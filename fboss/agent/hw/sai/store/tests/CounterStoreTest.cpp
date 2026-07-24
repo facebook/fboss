@@ -68,6 +68,20 @@ TEST_F(CounterStoreTest, counterCreateCtor) {
   EXPECT_EQ(labelValueExpected, labelValueGot);
 }
 
+TEST_F(CounterStoreTest, counterLabelExtended) {
+  SaiCharArray32 label = {"testCounter"};
+  // Label longer than the 32-byte SAI_COUNTER_ATTR_LABEL.
+  std::vector<int8_t> labelExtended(200, 'a');
+  SaiCounterTraits::CreateAttributes attrs{
+      label,
+      SAI_COUNTER_TYPE_REGULAR,
+      SaiCounterTraits::Attributes::LabelExtended{labelExtended}};
+  SaiCounterTraits::AdapterHostKey adapterHostKey = attrs;
+  auto obj = createObj<SaiCounterTraits>(adapterHostKey, attrs, 0);
+  EXPECT_EQ(
+      labelExtended, GET_OPT_ATTR(Counter, LabelExtended, obj.attributes()));
+}
+
 TEST_F(CounterStoreTest, serDeser) {
   auto id = createCounter();
   verifyAdapterKeySerDeser<SaiCounterTraits>({id});

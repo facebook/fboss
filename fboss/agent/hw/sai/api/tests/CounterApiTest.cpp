@@ -52,3 +52,21 @@ TEST_F(CounterApiTest, counter) {
   checkCounter(counterId, label, SAI_COUNTER_TYPE_REGULAR);
 #endif
 }
+
+TEST_F(CounterApiTest, counterLabelExtended) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  SaiCharArray32 label{"testCounter"};
+  // Label longer than the 32-byte SAI_COUNTER_ATTR_LABEL.
+  std::vector<int8_t> labelExtended(200, 'a');
+  auto counterId = counterApi->create<SaiCounterTraits>(
+      SaiCounterTraits::CreateAttributes{
+          label,
+          SAI_COUNTER_TYPE_REGULAR,
+          SaiCounterTraits::Attributes::LabelExtended{labelExtended}},
+      0);
+  EXPECT_EQ(
+      labelExtended,
+      counterApi->getAttribute(
+          counterId, SaiCounterTraits::Attributes::LabelExtended{}));
+#endif
+}
