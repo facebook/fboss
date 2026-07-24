@@ -46,7 +46,9 @@ TEST_F(CounterApiTest, counter) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   SaiCharArray32 label{"testCounter"};
   auto counterId = counterApi->create<SaiCounterTraits>(
-      SaiCounterTraits::CreateAttributes{label, SAI_COUNTER_TYPE_REGULAR}, 0);
+      SaiCounterTraits::CreateAttributes{
+          label, SAI_COUNTER_TYPE_REGULAR, std::nullopt},
+      0);
   checkCounter(counterId, label, SAI_COUNTER_TYPE_REGULAR);
 #endif
 }

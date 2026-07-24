@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
@@ -19,6 +20,7 @@
 
 #include <optional>
 #include <tuple>
+#include <vector>
 
 extern "C" {
 #include <sai.h>
@@ -37,11 +39,21 @@ struct SaiCounterTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     using Label =
         SaiAttribute<EnumType, SAI_COUNTER_ATTR_LABEL, SaiCharArray32>;
+    struct AttributeLabelExtendedWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LabelExtended = SaiExtensionAttribute<
+        std::vector<int8_t>,
+        AttributeLabelExtendedWrapper,
+        SaiS8ListDefault>;
 #endif
   };
   using AdapterKey = CounterSaiId;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-  using CreateAttributes = std::tuple<Attributes::Label, Attributes::Type>;
+  using CreateAttributes = std::tuple<
+      Attributes::Label,
+      Attributes::Type,
+      std::optional<Attributes::LabelExtended>>;
 #else
   using CreateAttributes = std::tuple<Attributes::Type>;
 #endif
@@ -51,6 +63,7 @@ struct SaiCounterTraits {
 SAI_ATTRIBUTE_NAME(Counter, Type);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
 SAI_ATTRIBUTE_NAME(Counter, Label);
+SAI_ATTRIBUTE_NAME(Counter, LabelExtended);
 #endif
 
 template <>

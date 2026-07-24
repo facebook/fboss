@@ -22,7 +22,8 @@ class CounterStoreTest : public SaiStoreTest {
  public:
   SaiCounterTraits::CreateAttributes counterCreateAtts() const {
     SaiCharArray32 label = {"testCounter"};
-    return SaiCounterTraits::CreateAttributes{label, SAI_COUNTER_TYPE_REGULAR};
+    return SaiCounterTraits::CreateAttributes{
+        label, SAI_COUNTER_TYPE_REGULAR, std::nullopt};
   }
   CounterSaiId createCounter() {
     return saiApiTable->counterApi().create<SaiCounterTraits>(

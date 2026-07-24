@@ -29,7 +29,7 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
     std::copy(counterID.begin(), counterID.end(), labelValue.begin());
 
     SaiCounterTraits::CreateAttributes attrs{
-        labelValue, SAI_COUNTER_TYPE_REGULAR};
+        labelValue, SAI_COUNTER_TYPE_REGULAR, std::nullopt};
     auto& counterStore = saiStore_->get<SaiCounterTraits>();
     entry->counter = counterStore.setObject(attrs, attrs);
   }

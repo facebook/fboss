@@ -29,6 +29,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _CounterMap{
 
 namespace facebook::fboss {
 
+void handleExtensionAttributes(){
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    SAI_EXT_ATTR_MAP(Counter, LabelExtended)
+#endif
+}
+
 WRAP_CREATE_FUNC(counter, SAI_OBJECT_TYPE_COUNTER, counter);
 WRAP_REMOVE_FUNC(counter, SAI_OBJECT_TYPE_COUNTER, counter);
 WRAP_SET_ATTR_FUNC(counter, SAI_OBJECT_TYPE_COUNTER, counter);
@@ -62,6 +68,7 @@ sai_status_t wrap_clear_counter_stats(
 }
 
 sai_counter_api_t* wrappedCounterApi() {
+  handleExtensionAttributes();
   static sai_counter_api_t counterWrappers;
 
   counterWrappers.create_counter = &wrap_create_counter;

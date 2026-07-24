@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
+#include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
@@ -491,6 +492,13 @@ std::optional<sai_attr_id_t>
 SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
   return SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE;
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+std::optional<sai_attr_id_t>
+SaiCounterTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
+  return SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED;
+}
+#endif
 
 std::optional<sai_attr_id_t>
 SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
