@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_properties_types.h"
@@ -18,14 +19,14 @@
 
 namespace facebook::fboss::hal_test {
 
-// Build a BspTransceiverMapping for a transceiver entry from config
-// attributes or hardcoded devmap defaults.
-BspTransceiverMapping buildBspTransceiverMapping(
-    const HalTestTransceiverEntry& entry);
-
-// Create a BspTransceiverImpl for a transceiver.
+// Create a BspTransceiverImpl for a transceiver. Uses the entry's BSP path
+// overrides if all three are set (non-FBOSS mode); otherwise looks the
+// transceiver up in the platform's BspPlatformMapping. Throws FbossError if the
+// entry has partial overrides, if the non-override path is taken with a null
+// bspMapping, or if the transceiver is absent from bspMapping.
 std::unique_ptr<BspTransceiverImpl> createBspTransceiverImpl(
-    const HalTestTransceiverEntry& entry);
+    const HalTestTransceiverEntry& entry,
+    const BspPlatformMapping* bspMapping);
 
 // Create a QsfpModule + its BspTransceiverImpl.
 struct HalTestModule {
@@ -33,7 +34,9 @@ struct HalTestModule {
   std::unique_ptr<BspTransceiverImpl> impl;
 };
 
-HalTestModule createQsfpModule(const HalTestTransceiverEntry& entry);
+HalTestModule createQsfpModule(
+    const HalTestTransceiverEntry& entry,
+    const BspPlatformMapping* bspMapping);
 
 // Create QsfpModules for all transceivers in the config.
 std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config);

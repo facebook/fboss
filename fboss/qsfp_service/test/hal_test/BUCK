@@ -33,6 +33,7 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/lib/firmware_storage:firmware_storage",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//folly:conv",
@@ -44,6 +45,7 @@ cpp_library(
     exported_deps = [
         ":bsp_transceiver_impl",
         ":hal_test_config-cpp2-types",
+        "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver_properties-cpp2-types",

@@ -14,7 +14,9 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/firmware_storage/FbossFwStorage.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -22,47 +24,66 @@
 
 namespace facebook::fboss::hal_test {
 
-BspTransceiverMapping buildBspTransceiverMapping(
+namespace {
+// Number of BSP override paths (i2cDevicePath / presentPath / resetPath) the
+// entry sets.
+int numBspPathOverrides(const HalTestTransceiverEntry& entry) {
+  return (entry.i2cDevicePath().has_value() ? 1 : 0) +
+      (entry.presentPath().has_value() ? 1 : 0) +
+      (entry.resetPath().has_value() ? 1 : 0);
+}
+
+// True only if the entry fully specifies BSP override paths (all three). This
+// is the mode for running on a non-FBOSS platform, where there is no
+// BspPlatformMapping and the user supplies the IO / present / reset sysfs paths
+// directly. Partial overrides are rejected by validateBspPathOverrides, so
+// detection (all three) and validation (all three) agree.
+bool hasBspPathOverrides(const HalTestTransceiverEntry& entry) {
+  return numBspPathOverrides(entry) == 3;
+}
+
+// Override mode is all-or-nothing: an entry that sets some but not all of the
+// three paths is a misconfiguration (there is no platform mapping to fill the
+// rest on a non-FBOSS platform). Reject it with a clear error rather than
+// silently falling back to the platform mapping.
+void validateBspPathOverrides(const HalTestTransceiverEntry& entry) {
+  int numOverrides = numBspPathOverrides(entry);
+  if (numOverrides != 0 && numOverrides != 3) {
+    throw FbossError(
+        "Transceiver ",
+        *entry.id(),
+        ": BSP path override mode requires i2cDevicePath, presentPath, and "
+        "resetPath to all be set (or none, to use the platform mapping)");
+  }
+}
+
+// Build a BspTransceiverMapping from the user-provided paths in the config.
+// Callers must ensure hasBspPathOverrides(entry) is true (all three paths set).
+BspTransceiverMapping buildBspTransceiverMappingFromOverrides(
     const HalTestTransceiverEntry& entry) {
   int id = *entry.id();
 
   BspTransceiverMapping mapping;
   mapping.tcvrId() = id;
 
-  // IO
   BspTransceiverIOControllerInfo io;
   io.controllerId() = folly::to<std::string>(id);
   io.type() = TransceiverIOType::I2C;
-  if (entry.i2cDevicePath().has_value()) {
-    io.devicePath() = *entry.i2cDevicePath();
-  } else {
-    io.devicePath() = fmt::format("/run/devmap/xcvrs/xcvr_io_{}", id);
-  }
+  io.devicePath() = *entry.i2cDevicePath();
   mapping.io() = io;
 
-  // Access control
   BspTransceiverAccessControllerInfo ac;
   ac.controllerId() = folly::to<std::string>(id);
   ac.type() = ResetAndPresenceAccessType::CPLD;
 
   BspPresencePinInfo presence;
-  if (entry.presentPath().has_value()) {
-    presence.sysfsPath() = *entry.presentPath();
-  } else {
-    presence.sysfsPath() =
-        fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_present_{}", id, id);
-  }
+  presence.sysfsPath() = *entry.presentPath();
   presence.mask() = 1;
   presence.presentHoldHi() = 0;
   ac.presence() = presence;
 
   BspResetPinInfo reset;
-  if (entry.resetPath().has_value()) {
-    reset.sysfsPath() = *entry.resetPath();
-  } else {
-    reset.sysfsPath() =
-        fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_reset_{}", id, id);
-  }
+  reset.sysfsPath() = *entry.resetPath();
   reset.mask() = 1;
   reset.resetHoldHi() = 1;
   ac.reset() = reset;
@@ -70,17 +91,47 @@ BspTransceiverMapping buildBspTransceiverMapping(
   mapping.accessControl() = ac;
   return mapping;
 }
+} // namespace
 
 std::unique_ptr<BspTransceiverImpl> createBspTransceiverImpl(
-    const HalTestTransceiverEntry& entry) {
-  auto mapping = buildBspTransceiverMapping(entry);
+    const HalTestTransceiverEntry& entry,
+    const BspPlatformMapping* bspMapping) {
+  validateBspPathOverrides(entry);
+
+  // Prefer user-provided paths (non-FBOSS mode).
+  if (hasBspPathOverrides(entry)) {
+    return std::make_unique<BspTransceiverImpl>(
+        *entry.id(),
+        *entry.name(),
+        buildBspTransceiverMappingFromOverrides(entry));
+  }
+
+  // Otherwise use the platform's BspPlatformMapping (derived from XcvrLib /
+  // platform_manager.json).
+  if (bspMapping == nullptr) {
+    throw FbossError(
+        "Transceiver ",
+        *entry.id(),
+        ": no BSP path overrides provided and no platform BspPlatformMapping "
+        "available");
+  }
+  if (!bspMapping->hasTcvrMapping(*entry.id())) {
+    throw FbossError(
+        "Transceiver ",
+        *entry.id(),
+        " not found in the platform BspPlatformMapping. Provide "
+        "i2cDevicePath/presentPath/resetPath overrides in the HAL test config "
+        "for it instead.");
+  }
   return std::make_unique<BspTransceiverImpl>(
-      *entry.id(), *entry.name(), std::move(mapping));
+      *entry.id(), *entry.name(), bspMapping->getTcvrMapping(*entry.id()));
 }
 
-HalTestModule createQsfpModule(const HalTestTransceiverEntry& entry) {
+HalTestModule createQsfpModule(
+    const HalTestTransceiverEntry& entry,
+    const BspPlatformMapping* bspMapping) {
   HalTestModule result;
-  result.impl = createBspTransceiverImpl(entry);
+  result.impl = createBspTransceiverImpl(entry, bspMapping);
 
   std::set<std::string> portNames;
   portNames.insert(*entry.name());
@@ -98,10 +149,36 @@ HalTestModule createQsfpModule(const HalTestTransceiverEntry& entry) {
 }
 
 std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config) {
+  // Only build the platform BspPlatformMapping if some entry relies on it (i.e.
+  // has no path overrides). On a non-FBOSS platform every entry must supply its
+  // own BSP paths, and we never touch PlatformNameLib / platform_manager.json.
+  bool needPlatformMapping = false;
+  for (const auto& entry : *config.transceivers()) {
+    validateBspPathOverrides(entry);
+    if (!hasBspPathOverrides(entry)) {
+      needPlatformMapping = true;
+    }
+  }
+
+  std::unique_ptr<BspPlatformMapping> bspMapping;
+  if (needPlatformMapping) {
+    // Derive the per-transceiver IO / reset / presence mapping from the running
+    // platform (XcvrLib + platform_manager.json), auto-detected from the
+    // device.
+    auto platformName = platform::helpers::PlatformNameLib().getPlatformName();
+    if (!platformName.has_value()) {
+      throw FbossError(
+          "Could not auto-detect platform name for BSP transceiver mapping. "
+          "On a non-FBOSS platform, provide i2cDevicePath/presentPath/resetPath "
+          "for every transceiver in the HAL test config instead.");
+    }
+    bspMapping = std::make_unique<BspPlatformMapping>(*platformName);
+  }
+
   std::map<int, HalTestModule> modules;
   for (const auto& entry : *config.transceivers()) {
     int id = *entry.id();
-    modules[id] = createQsfpModule(entry);
+    modules[id] = createQsfpModule(entry, bspMapping.get());
   }
   return modules;
 }
