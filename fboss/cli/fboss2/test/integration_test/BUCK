@@ -28,6 +28,7 @@ cpp_binary(
         "ConfigInterfaceFlowControlTest.cpp",
         "ConfigInterfaceIpv6NdpTest.cpp",
         "ConfigInterfaceLldpExpectedValueTest.cpp",
+        "ConfigInterfaceLookupClassTest.cpp",
         "ConfigInterfaceLoopbackModeTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
