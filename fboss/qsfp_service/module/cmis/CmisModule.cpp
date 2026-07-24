@@ -8,6 +8,7 @@
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <string>
@@ -1873,6 +1874,11 @@ CmisModule::getCdbSymbolErrorHistogramLocked(
   auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
   if (ret && commandBlockBuf.getCdbRlplLength() >= 1) {
     int numBins = commandBlockBuf.getCdbLplFlatMemory()[0];
+    // Clamp numBins to prevent OOB read: each bin reads kCdbSymErrHistBinSize
+    // bytes from the fixed 120-byte LPL buffer (first byte is numBins itself).
+    numBins = std::min(
+        numBins,
+        (CdbCommandBlock::kCdbLplMemoryLength - 1) / kCdbSymErrHistBinSize);
     for (auto bin = 0; bin < numBins; bin++) {
       SymErrHistogramBin binHistData;
       binHistData.nbitSymbolErrorMax() = f16ToDouble(
