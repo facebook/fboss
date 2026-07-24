@@ -10,6 +10,7 @@
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss {
 
@@ -70,19 +71,40 @@ CmdShowInterfaceCountersFecHistogram::queryClient(
     const HostInfo& hostInfo,
     const std::vector<std::string>& queriedIfs,
     const utils::LinkDirection& direction) {
-  auto qsfpClient =
-      utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
-
   std::map<std::string, CdbDatapathSymErrHistogram> portSymErr;
-  CdbDatapathSymErrHistogram symErr;
+  try {
+    auto qsfpClient =
+        utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
 
-  if (queriedIfs.empty()) {
-    return RetType{};
-  }
+    bool showAllInterfaces = queriedIfs.empty();
+    std::vector<std::string> interfaces = queriedIfs;
+    if (showAllInterfaces) {
+      // getPortMediaInterface only reports ports with a transceiver
+      // present, unlike wedge_agent's getAllPortInfo.
+      try {
+        std::map<std::string, MediaInterfaceCode> mediaInterfaces;
+        qsfpClient->sync_getPortMediaInterface(mediaInterfaces);
+        for (const auto& [portName, unused] : mediaInterfaces) {
+          interfaces.push_back(portName);
+        }
+      } catch (const thrift::FbossBaseError&) {
+      }
+    }
 
-  for (const auto& interface : queriedIfs) {
-    qsfpClient->sync_getSymbolErrorHistogram(symErr, interface);
-    portSymErr[interface] = symErr;
+    for (const auto& interface : interfaces) {
+      CdbDatapathSymErrHistogram symErr;
+      try {
+        qsfpClient->sync_getSymbolErrorHistogram(symErr, interface);
+      } catch (const thrift::FbossBaseError& ex) {
+        if (!showAllInterfaces) {
+          std::cerr << "Skipping " << interface << ": " << ex.what() << "\n";
+        }
+        continue;
+      }
+      portSymErr[interface] = symErr;
+    }
+  } catch (const apache::thrift::transport::TTransportException&) {
+    std::cerr << "Cannot connect to qsfp_service\n";
   }
 
   return createModel(portSymErr, direction.direction);
