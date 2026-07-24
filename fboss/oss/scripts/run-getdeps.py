@@ -38,6 +38,7 @@ ARG_NPU_LIBSAI_IMPL_PATH = "--npu-libsai-impl-path"
 ARG_NPU_LIBSAI_IMPL_TARBALL = "--npu-libsai-impl-tarball"
 ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
 ARG_PHY_SAI_IMPL = "--phy-sai-impl"
+ARG_PHY_SAI_VERSION = "--phy-sai-version"
 
 # Misc Build Flags
 ARG_BENCHMARK_INSTALL = "--benchmark-install"
@@ -101,14 +102,36 @@ SUPPORTED_SAI_SDK_VERSIONS = {
     "CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea",
 }
 
+# Per-pass SAI implementation selectors.
+PASS_IMPL_NPU = "npu"
+PASS_IMPL_PHY = "phy"
+PASS_IMPL_FAKE = "fake"
+
+# The CMake target that the PHY pass always (re)builds against the PAI SDK.
+PHY_CMAKE_TARGET = "qsfp_targets"
+
+# Env vars that select the SAI implementation. These are reset between passes so
+# one pass's selection never leaks into the next.
+_SAI_ENV_VARS = (
+    "SAI_BRCM_IMPL",
+    "SAI_TAJO_IMPL",
+    "CHENAB_SAI_SDK",
+    "SAI_BRCM_PAI_IMPL",
+    "BUILD_SAI_FAKE",
+    "SAI_SDK_VERSION",
+    "SAI_VERSION",
+)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         ARG_NPU_SAI_IMPL,
         required=False,
-        help="SAI implementation to be used for the build. "
-        "Mutually exclusive with --phy-sai-impl. "
+        help="NPU (agent) SAI implementation to be used for the build. "
+        "May be combined with --phy-sai-impl to build the agent against this "
+        "NPU SDK and qsfp_targets against the PHY SDK in a single command "
+        "(two sequential passes into the same build tree). "
         "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
         f"Meta officially supports: {sorted(SUPPORTED_SAI_IMPLS)}",
     )
@@ -116,9 +139,19 @@ def parse_args():
         ARG_PHY_SAI_IMPL,
         required=False,
         help="PHY (XPHY) SAI implementation to be used for the build. "
-        "Mutually exclusive with --npu-sai-impl. "
+        "When provided, qsfp_targets are (re)built against the PHY SDK. "
+        "If --npu-sai-impl is also provided, the agent is first built against "
+        "that NPU SDK; otherwise the rest of the build uses fake SAI. "
         "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
         f"Meta officially supports: {sorted(SUPPORTED_PHY_IMPLS)}",
+    )
+    parser.add_argument(
+        ARG_PHY_SAI_VERSION,
+        required=False,
+        choices=SAI_VERSION_SHAS.keys(),
+        help="SAI spec version to use for the PHY (PAI) build pass. "
+        "Only used when --phy-sai-impl is set. When omitted, the PHY pass "
+        "uses the build's default SAI version (current behavior).",
     )
     parser.add_argument(
         ARG_NPU_SAI_VERSION,
@@ -419,11 +452,33 @@ def setup_clang_environment(toolchain_info):
     _patch_manifests_disable_binutils()
 
 
+def _libsai_manifest_path():
+    return path_to("build", "fbcode_builder", "manifests", "libsai")
+
+
+def _read_libsai_manifest():
+    """Snapshot the current libsai manifest content, or None if it is absent."""
+    path = _libsai_manifest_path()
+    if not os.path.isfile(path):
+        return None
+    with open(path) as f:
+        return f.read()
+
+
+def _restore_libsai_manifest(content):
+    """Restore the libsai manifest to a snapshot taken before any pass edited it,
+    so one pass's --*-sai-version choice never leaks into the next."""
+    if content is None:
+        return
+    with open(_libsai_manifest_path(), "w") as f:
+        f.write(content)
+
+
 def _edit_libsai_manifest(version):
     """Overwrite the libsai manifest with the correct URL and SHA for the given version."""
     url = f"https://github.com/opencomputeproject/SAI/archive/v{version}.tar.gz"
     sha256 = SAI_VERSION_SHAS[version]
-    manifest_path = path_to("build", "fbcode_builder", "manifests", "libsai")
+    manifest_path = _libsai_manifest_path()
     manifest_str = (
         "[manifest]\n"
         "name = libsai\n"
@@ -588,60 +643,69 @@ def _warn_if_unsupported(flag_name, value, supported_values):
         )
 
 
-def _set_build_env_vars(args):
-    """
-    Validate flag groups and set the corresponding environment variables.
-    """
-    env_vars = {}
-
-    # --- SAI impl mutual exclusivity check ---
-    if args.npu_sai_impl is not None and args.phy_sai_impl is not None:
-        print_error(
-            f"Error: {ARG_NPU_SAI_IMPL} and {ARG_PHY_SAI_IMPL} are mutually exclusive. "
-            "Specify only one SAI implementation."
-        )
-        sys.exit(1)
-
-    # --- SAI flags ---
-    if args.npu_sai_version is not None:
-        env_vars["SAI_VERSION"] = args.npu_sai_version
-
+def _validate_sai_flags(args):
+    """Validate SAI flag combinations. NPU and PHY are no longer mutually
+    exclusive: they may be combined to build the agent against the NPU SDK and
+    qsfp_targets against the PHY SDK in a single command."""
     if args.npu_sai_impl is not None:
         _warn_if_unsupported(ARG_NPU_SAI_IMPL, args.npu_sai_impl, SUPPORTED_SAI_IMPLS)
-
-        # Real SAI impl requires an SDK version
+        # Real NPU SAI impl requires an SDK version.
         if args.npu_sai_sdk_version is None:
             print_error(
                 f"Error: {ARG_NPU_SAI_SDK_VERSION} is required when using "
                 f"{ARG_NPU_SAI_IMPL}={args.npu_sai_impl}."
             )
             sys.exit(1)
-        env_vars[args.npu_sai_impl] = "1"
-
         _warn_if_unsupported(
             ARG_NPU_SAI_SDK_VERSION,
             args.npu_sai_sdk_version,
             SUPPORTED_SAI_SDK_VERSIONS,
         )
-        env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
-    elif args.phy_sai_impl is not None:
+
+    if args.phy_sai_impl is not None:
         _warn_if_unsupported(ARG_PHY_SAI_IMPL, args.phy_sai_impl, SUPPORTED_PHY_IMPLS)
-        env_vars[args.phy_sai_impl] = "1"
-    else:
+
+    if args.phy_sai_version is not None and args.phy_sai_impl is None:
         print_info(
-            "No SAI implementation provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
+            f"Warning: {ARG_PHY_SAI_VERSION} is provided but {ARG_PHY_SAI_IMPL} "
+            "is not set; it will be ignored."
         )
+
+
+def _impl_env_vars(args, impl):
+    """Return the SAI env vars to export for a single build pass."""
+    env_vars = {}
+    if impl == PASS_IMPL_NPU:
+        env_vars[args.npu_sai_impl] = "1"
+        env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
+        if args.npu_sai_version is not None:
+            env_vars["SAI_VERSION"] = args.npu_sai_version
+    elif impl == PASS_IMPL_PHY:
+        env_vars[args.phy_sai_impl] = "1"
+        if args.phy_sai_version is not None:
+            env_vars["SAI_VERSION"] = args.phy_sai_version
+    elif impl == PASS_IMPL_FAKE:
         env_vars["BUILD_SAI_FAKE"] = "1"
+        # A fake build still targets a SAI spec version; honor --npu-sai-version.
+        if args.npu_sai_version is not None:
+            env_vars["SAI_VERSION"] = args.npu_sai_version
+    return env_vars
 
-    # --- Misc build flags ---
-    if args.benchmark_install:
-        env_vars["BENCHMARK_INSTALL"] = "1"
-    if args.skip_install:
-        env_vars["SKIP_ALL_INSTALL"] = "1"
 
-    # Set all collected env vars
+def _reset_sai_env(orig_sai_env, preserve_env):
+    """Clear SAI selection env vars before a pass, restoring any that were set in
+    the original environment when --preserve-env is requested."""
+    for name in _SAI_ENV_VARS:
+        if preserve_env and name in orig_sai_env:
+            os.environ[name] = orig_sai_env[name]
+        else:
+            os.environ.pop(name, None)
+
+
+def _apply_env(env_vars, preserve_env):
+    """Export env vars, honoring --preserve-env for already-set vars."""
     for name, value in env_vars.items():
-        if args.preserve_env and name in os.environ:
+        if preserve_env and name in os.environ:
             print_info(
                 f"Preserved existing ENV {name}={os.environ[name]} "
                 f"(flag value was {value})"
@@ -651,38 +715,148 @@ def _set_build_env_vars(args):
             print_info(f"Set ENV {name}={value}")
 
 
-def main():
-    args = parse_args()
-    print_info("Starting run-getdeps.py")
-    getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
+def _set_misc_env(args):
+    """Set pass-independent build env vars once."""
+    misc = {}
+    if args.benchmark_install:
+        misc["BENCHMARK_INSTALL"] = "1"
+    if args.skip_install:
+        misc["SKIP_ALL_INSTALL"] = "1"
+    _apply_env(misc, args.preserve_env)
 
-    if args.getdeps_help:
-        os.execv(getdeps_path, [getdeps_path, "-h"])
 
-    _set_build_env_vars(args)
+def _get_cmake_target(getdeps_args):
+    """Return the --cmake-target value from getdeps args, or None."""
+    for i, arg in enumerate(getdeps_args):
+        if arg == "--cmake-target" and i + 1 < len(getdeps_args):
+            return getdeps_args[i + 1]
+        if arg.startswith("--cmake-target="):
+            return arg.split("=", 1)[1]
+    return None
 
-    if args.npu_libsai_impl_tarball is not None:
-        if (
-            args.npu_libsai_impl_path is not None
-            or args.npu_experiments_path is not None
-        ):
-            print_error(
-                f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} is mutually exclusive with "
-                f"{ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}."
-            )
-            sys.exit(1)
-        _prepare_sdk_from_tarball(
-            args.npu_libsai_impl_tarball, _get_scratch_path(args.getdeps_args)
-        )
+
+def _force_cmake_target(getdeps_args, target):
+    """Return a copy of getdeps args with --cmake-target set to target,
+    replacing any existing --cmake-target. The flag is inserted right after the
+    getdeps subcommand (e.g. 'build') so it precedes the positional project."""
+    result = []
+    skip_next = False
+    for arg in getdeps_args:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == "--cmake-target":
+            skip_next = True
+            continue
+        if arg.startswith("--cmake-target="):
+            continue
+        result.append(arg)
+    if result:
+        result[1:1] = ["--cmake-target", target]
     else:
-        _conditionally_prepare_sdk_artifacts(
-            args.npu_libsai_impl_path, args.npu_experiments_path
-        )
+        result = ["--cmake-target", target]
+    return result
 
-    if args.npu_sai_version is not None:
-        _edit_libsai_manifest(args.npu_sai_version)
 
-    # Detect which toolchain is active and set up environment accordingly
+def _pass_spec(impl, label, getdeps_args):
+    """Build one self-contained pass description.
+
+    getdeps_args are the exact arguments to hand to getdeps.py for this pass, so
+    the caller never has to reinterpret them."""
+    return {"impl": impl, "label": label, "getdeps_args": getdeps_args}
+
+
+def _get_pass_specs(args):
+    """Return the ordered build passes to run, derived from the SAI flags.
+
+    The PHY pass always (re)builds just qsfp_targets against the PAI SDK; every
+    other pass builds whatever the caller asked for (args.getdeps_args as-is).
+    Passes run into the same build tree, so a later pass overwrites the earlier
+    pass's artifacts (this is how PHY qsfp overwrites the base build's qsfp)."""
+    caller_args = args.getdeps_args
+    npu = args.npu_sai_impl is not None
+    phy = args.phy_sai_impl is not None
+
+    qsfp_phy_pass = _pass_spec(
+        PASS_IMPL_PHY,
+        "PHY (PAI) qsfp",
+        _force_cmake_target(caller_args, PHY_CMAKE_TARGET),
+    )
+
+    if npu and phy:
+        # Build the agent (and any requested targets) against the NPU SDK, then
+        # rebuild qsfp against the PHY SDK on top.
+        return [_pass_spec(PASS_IMPL_NPU, "NPU base", caller_args), qsfp_phy_pass]
+
+    if phy:  # PHY only (npu is False here)
+        # If the caller only wants qsfp, a single PHY pass is enough. Otherwise
+        # build everything with fake SAI first (no NPU SDK needed), then rebuild
+        # qsfp against the PHY SDK on top.
+        if _get_cmake_target(caller_args) == PHY_CMAKE_TARGET:
+            return [_pass_spec(PASS_IMPL_PHY, "PHY (PAI) qsfp", caller_args)]
+        return [_pass_spec(PASS_IMPL_FAKE, "fake SAI base", caller_args), qsfp_phy_pass]
+
+    if npu:
+        return [_pass_spec(PASS_IMPL_NPU, "NPU", caller_args)]
+
+    print_info(
+        "No SAI implementation provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
+    )
+    return [_pass_spec(PASS_IMPL_FAKE, "fake SAI", caller_args)]
+
+
+def _prepare_pass(
+    args, pass_spec, orig_sai_env, orig_cmake_prefix, orig_libsai_manifest
+):
+    """Set up env + SDK artifacts for a single pass."""
+    impl = pass_spec["impl"]
+
+    # Start each pass from a clean SAI env, CMAKE_PREFIX_PATH, and libsai manifest
+    # so the previous pass's SDK/version selection cannot leak into this one.
+    _reset_sai_env(orig_sai_env, args.preserve_env)
+    if orig_cmake_prefix is None:
+        os.environ.pop("CMAKE_PREFIX_PATH", None)
+    else:
+        os.environ["CMAKE_PREFIX_PATH"] = orig_cmake_prefix
+    _restore_libsai_manifest(orig_libsai_manifest)
+
+    _apply_env(_impl_env_vars(args, impl), args.preserve_env)
+
+    if impl == PASS_IMPL_NPU:
+        # Stage the NPU SDK artifacts onto CMAKE_PREFIX_PATH.
+        if args.npu_libsai_impl_tarball is not None:
+            if (
+                args.npu_libsai_impl_path is not None
+                or args.npu_experiments_path is not None
+            ):
+                print_error(
+                    f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} is mutually exclusive with "
+                    f"{ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}."
+                )
+                sys.exit(1)
+            _prepare_sdk_from_tarball(
+                args.npu_libsai_impl_tarball, _get_scratch_path(args.getdeps_args)
+            )
+        else:
+            _conditionally_prepare_sdk_artifacts(
+                args.npu_libsai_impl_path, args.npu_experiments_path
+            )
+    # PHY consumes its PAI artifacts from /var/FBOSS/pai_impl via CMake directly,
+    # so no staging is needed here.
+
+    # Pin the libsai (SAI spec) version for the pass: the base pass (NPU or fake)
+    # follows --npu-sai-version; the PHY pass follows --phy-sai-version.
+    if impl in (PASS_IMPL_NPU, PASS_IMPL_FAKE):
+        if args.npu_sai_version is not None:
+            _edit_libsai_manifest(args.npu_sai_version)
+    elif impl == PASS_IMPL_PHY:
+        if args.phy_sai_version is not None:
+            _edit_libsai_manifest(args.phy_sai_version)
+
+
+def _setup_toolchain(args):
+    """Detect the active toolchain and configure the build environment once.
+    This is global and applies to every build pass."""
     toolchain_info = detect_toolchain()
 
     set_clang_cmd = [
@@ -725,9 +899,46 @@ def main():
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
 
-    # Call the real getdeps.py with all arguments
-    print_info(f"Executing getdeps.py with args: {args.getdeps_args}")
-    os.execv(getdeps_path, [getdeps_path, *args.getdeps_args])
+
+def main():
+    args = parse_args()
+    print_info("Starting run-getdeps.py")
+    getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
+
+    if args.getdeps_help:
+        os.execv(getdeps_path, [getdeps_path, "-h"])
+
+    _validate_sai_flags(args)
+    _set_misc_env(args)
+
+    # Toolchain setup is global; do it once before any pass.
+    _setup_toolchain(args)
+
+    passes = _get_pass_specs(args)
+
+    # Snapshot the state we mutate per-pass so each pass starts from a clean slate.
+    orig_sai_env = {v: os.environ[v] for v in _SAI_ENV_VARS if v in os.environ}
+    orig_cmake_prefix = os.environ.get("CMAKE_PREFIX_PATH")
+    orig_libsai_manifest = _read_libsai_manifest()
+
+    # Run each pass as a subprocess so control returns between passes. Passes
+    # build into the same tree, so a later pass overwrites the artifacts of an
+    # earlier one (e.g. PHY qsfp overwrites the base build's qsfp). Abort on the
+    # first failure.
+    for i, pass_spec in enumerate(passes):
+        print_info(f"=== Build pass {i + 1}/{len(passes)}: {pass_spec['label']} ===")
+        _prepare_pass(
+            args, pass_spec, orig_sai_env, orig_cmake_prefix, orig_libsai_manifest
+        )
+        gd_args = pass_spec["getdeps_args"]
+        print_info(f"Executing getdeps.py with args: {gd_args}")
+        result = subprocess.run([getdeps_path, *gd_args], check=False)
+        if result.returncode != 0:
+            print_error(
+                f"Build pass '{pass_spec['label']}' failed with exit code "
+                f"{result.returncode}."
+            )
+            sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
