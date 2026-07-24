@@ -113,6 +113,10 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
   if (mplsLabelLookupFailCounterSupported_) {
     reinitStat(kInLabelMissDiscards(), portName_, oldPortName);
   }
+  if (linkDebounceRetriggerCounterSupported_) {
+    reinitStat(kLinkDownDebounceRetriggerCount(), portName_, oldPortName);
+    reinitStat(kLinkUpDebounceRetriggerCount(), portName_, oldPortName);
+  }
   // Init per priority PFC stats
   if (getEnabledPfcPriorities().size()) {
     reinitPfcStats(oldPortName);
