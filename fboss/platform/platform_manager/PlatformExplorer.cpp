@@ -755,7 +755,12 @@ void PlatformExplorer::explorePciDevices(
         *pciDeviceConfig.miscCtrlConfigs(),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL,
         [&](const auto& miscCtrlConfig) {
-          pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
+          auto miscCtrlSysfsPath = pciExplorer_.createFpgaIpBlock(
+              pciDevice, miscCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(
+              Utils().createDevicePath(
+                  slotPath, *miscCtrlConfig.pmUnitScopedName()),
+              miscCtrlSysfsPath);
         });
     createPciSubDevices(
         slotPath,
