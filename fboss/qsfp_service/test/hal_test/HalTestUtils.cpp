@@ -2,7 +2,9 @@
 
 #include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 
+#include <algorithm>
 #include <atomic>
+#include <optional>
 #include <set>
 #include <thread>
 
@@ -272,27 +274,50 @@ getAllSpeedChangeTransitions() {
 
 namespace {
 
-// Extract APP and DSP firmware version strings from a module's transceiver
-// info.
-std::pair<std::string, std::string> readFirmwareVersions(QsfpModule* module) {
+struct ModuleFwVersions {
+  std::string appVer; // application "major.minor"
+  std::string dspVer; // DSP "major.minor"
+  std::optional<int> appBuildNumber; // CDB build number, when reported
+};
+
+// Extract APP/DSP firmware versions (and the app build number) from a module's
+// transceiver info.
+ModuleFwVersions readFirmwareVersions(QsfpModule* module) {
   auto info = module->getTransceiverInfo();
   const auto& tcvrState = *info.tcvrState();
 
-  std::string appVer;
-  std::string dspVer;
+  ModuleFwVersions versions;
   if (tcvrState.status().has_value()) {
     const auto& status = *tcvrState.status();
     if (status.fwStatus().has_value()) {
       const auto& fwStatus = *status.fwStatus();
       if (fwStatus.version().has_value()) {
-        appVer = *fwStatus.version();
+        versions.appVer = *fwStatus.version();
       }
       if (fwStatus.dspFwVer().has_value()) {
-        dspVer = *fwStatus.dspFwVer();
+        versions.dspVer = *fwStatus.dspFwVer();
+      }
+      if (fwStatus.buildNumber().has_value()) {
+        versions.appBuildNumber = *fwStatus.buildNumber();
       }
     }
   }
-  return {appVer, dspVer};
+  return versions;
+}
+
+// The module reports the application version as a 2-tuple "major.minor", with
+// the build number in a separate field. ZR optics use 3-tuple config versions
+// like "1.1.8192". When the config version is a 3-tuple, append the module's
+// build number so the comparison is apples-to-apples (mirrors
+// TransceiverManager::getFirmwareUpgradeData).
+std::string appVersionMatchingConfig(
+    const ModuleFwVersions& versions,
+    const std::string& configVersion) {
+  if (std::count(configVersion.begin(), configVersion.end(), '.') >= 2 &&
+      versions.appBuildNumber.has_value()) {
+    return fmt::format("{}.{}", versions.appVer, *versions.appBuildNumber);
+  }
+  return versions.appVer;
 }
 
 } // namespace
@@ -325,23 +350,24 @@ bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
   module->detectPresence();
   module->refresh();
 
-  auto [currentAppVer, currentDspVer] = readFirmwareVersions(module);
+  auto current = readFirmwareVersions(module);
 
   // Check if upgrade is needed by comparing current vs desired versions
   bool needsUpgrade = false;
   for (const auto& fwVersion : *desiredFw.versions()) {
     auto desiredVer = *fwVersion.version();
     if (*fwVersion.fwType() == cfg::FirmwareType::APPLICATION) {
+      auto currentAppVer = appVersionMatchingConfig(current, desiredVer);
       if (currentAppVer != desiredVer) {
         needsUpgrade = true;
         XLOG(INFO) << "Transceiver " << tcvrId << " APP firmware mismatch: "
                    << "current=" << currentAppVer << " desired=" << desiredVer;
       }
     } else if (*fwVersion.fwType() == cfg::FirmwareType::DSP) {
-      if (currentDspVer != desiredVer) {
+      if (current.dspVer != desiredVer) {
         needsUpgrade = true;
         XLOG(INFO) << "Transceiver " << tcvrId << " DSP firmware mismatch: "
-                   << "current=" << currentDspVer << " desired=" << desiredVer;
+                   << "current=" << current.dspVer << " desired=" << desiredVer;
       }
     }
   }
@@ -370,28 +396,30 @@ bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
   module->refresh();
 
   // Verify post-upgrade firmware versions match desired versions
-  auto [postAppVer, postDspVer] = readFirmwareVersions(module);
+  auto postVersions = readFirmwareVersions(module);
   for (const auto& fwVersion : *desiredFw.versions()) {
     auto desiredVer = *fwVersion.version();
-    if (*fwVersion.fwType() == cfg::FirmwareType::APPLICATION &&
-        postAppVer != desiredVer) {
-      throw FbossError(
-          "Transceiver ",
-          tcvrId,
-          " APP firmware version mismatch after upgrade: expected=",
-          desiredVer,
-          " actual=",
-          postAppVer);
+    if (*fwVersion.fwType() == cfg::FirmwareType::APPLICATION) {
+      auto postAppVer = appVersionMatchingConfig(postVersions, desiredVer);
+      if (postAppVer != desiredVer) {
+        throw FbossError(
+            "Transceiver ",
+            tcvrId,
+            " APP firmware version mismatch after upgrade: expected=",
+            desiredVer,
+            " actual=",
+            postAppVer);
+      }
     }
     if (*fwVersion.fwType() == cfg::FirmwareType::DSP &&
-        postDspVer != desiredVer) {
+        postVersions.dspVer != desiredVer) {
       throw FbossError(
           "Transceiver ",
           tcvrId,
           " DSP firmware version mismatch after upgrade: expected=",
           desiredVer,
           " actual=",
-          postDspVer);
+          postVersions.dspVer);
     }
   }
 
