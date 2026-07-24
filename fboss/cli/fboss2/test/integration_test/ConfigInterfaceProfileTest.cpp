@@ -286,6 +286,10 @@ TEST_F(ConfigInterfaceProfileTest, ChangeProfileSubsumesAndRemovesPorts) {
   EXPECT_THAT(
       result.stdout, ::testing::HasSubstr("auto-removed subsumed port"));
 
+  // A subsuming profile change removes a port, which commits as an agent
+  // coldboot (T281221621). Wait for the agent to come back before querying it.
+  waitForAgentReady();
+
   auto after =
       waitForPortRunningInfo(cand->portName, [&cand](const auto& info) {
         return info.profileId == cand->targetProfile;

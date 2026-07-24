@@ -770,6 +770,8 @@ class TestRunner(abc.ABC):
             )
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
+        # Sort the tests to run to match internal test infra behavior
+        tests_to_run = sorted(tests_to_run)
 
         # Check if tests need to be run or only listed
         if (

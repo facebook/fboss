@@ -1813,6 +1813,27 @@ TEST_F(
   }
 }
 
+// A subsuming profile change escalates the action level to AGENT_COLDBOOT so
+// the CLI commits it as an agent coldboot instead of a hitless reloadConfig
+// (T281221621).
+TEST_F(ApplyProfileSubsumeTestFixture, subsumeEscalatesToColdboot) {
+  setupTestableConfigSession(
+      "config interface", "eth1/1/1 profile PROFILE_400G_8_PAM4_RS544X2N");
+  auto validator = makeSubsumeValidator();
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+
+  cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
+  applyProfileImpl(
+      validator,
+      swConfig,
+      interfaces,
+      "PROFILE_400G_8_PAM4_RS544X2N",
+      &actionLevel);
+
+  EXPECT_EQ(actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+}
+
 // ============================================================================
 // applyProfileImpl pending-port (creation) tests
 // ============================================================================
@@ -1904,6 +1925,22 @@ TEST_F(CreatePendingInterfacePortsTestFixture, createsSupportedInterfacePort) {
   EXPECT_EQ(config.vlans()->size(), 1);
   EXPECT_EQ(config.vlanPorts()->size(), 1);
   EXPECT_EQ(config.interfaces()->size(), 1);
+}
+
+// Creating a port removes nothing, so the action level stays HITLESS (no
+// coldboot needed; the commit remains a hitless reloadConfig). See T281221621.
+TEST_F(CreatePendingInterfacePortsTestFixture, createStaysHitless) {
+  setupTestableConfigSession();
+  auto validator = makePendingValidator();
+  cfg::SwitchConfig config;
+  utils::InterfaceList interfaces(
+      std::vector<std::string>{"eth1/1/1"}, /*allowMissing*/ true);
+
+  cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
+  applyProfileImpl(
+      validator, config, interfaces, "PROFILE_100G_4_NRZ_CL91", &actionLevel);
+
+  EXPECT_EQ(actionLevel, cli::ConfigActionLevel::HITLESS);
 }
 
 // A pending non-INTERFACE_PORT (e.g. FABRIC_PORT) cannot be created.

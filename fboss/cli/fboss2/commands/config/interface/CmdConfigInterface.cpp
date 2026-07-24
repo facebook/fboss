@@ -135,7 +135,8 @@ std::string applyProfileImpl(
     ProfileValidator& validator,
     cfg::SwitchConfig& swConfig,
     const utils::InterfaceList& interfaces,
-    const std::string& value) {
+    const std::string& value,
+    cli::ConfigActionLevel* actionLevel) {
   // Parse once (throws std::invalid_argument on a bad string) and thread the
   // enum through the rest of the flow.
   const cfg::PortProfileID requestedProfile =
@@ -206,6 +207,12 @@ std::string applyProfileImpl(
         swConfig,
         std::set<PortID>(
             result.portsToRemove.begin(), result.portsToRemove.end()));
+    // Removing a port must not be applied on a live agent (crashes the SwAgent
+    // -- see T281221621); escalate the commit to a coldboot.
+    if (actionLevel != nullptr) {
+      *actionLevel =
+          std::max(*actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+    }
   }
 
   // 5) Create absent ports now that the config reflects the adjusted/removed
@@ -237,7 +244,8 @@ std::string applyProfileImpl(
 std::string applyProfile(
     const HostInfo& hostInfo,
     const utils::InterfaceList& interfaces,
-    const std::string& value) {
+    const std::string& value,
+    cli::ConfigActionLevel* actionLevel = nullptr) {
   // Build validator once (queries Agent + QSFP), then delegate to the testable
   // core operating on the session's config.
   ProfileValidator validator(hostInfo);
@@ -245,7 +253,8 @@ std::string applyProfile(
       validator,
       *ConfigSession::getInstance().getAgentConfig().sw(),
       interfaces,
-      value);
+      value,
+      actionLevel);
 }
 
 // Configures a port as a routed (L3) port.
@@ -399,8 +408,15 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   const std::optional<std::string> profileValue = findProfileValue(attributes);
 
   utils::InterfaceList resolved(std::vector<std::string>{});
+  // The commit action level required by this command, escalated by attribute
+  // handlers as needed. Starts HITLESS (reloadConfig); a profile change that
+  // removes a port escalates it to AGENT_COLDBOOT, because applying a port
+  // removal on a live agent can crash the SwAgent (LookupClassRouteUpdater
+  // dereferences the removed port's now-absent interface). See T281221621.
+  cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
   if (profileValue.has_value()) {
-    results.push_back(applyProfile(hostInfo, interfaces, *profileValue));
+    results.push_back(
+        applyProfile(hostInfo, interfaces, *profileValue, &actionLevel));
     changed = true;
     ConfigSession::getInstance().rebuildPortMap();
     resolved = utils::InterfaceList(interfaces.getNames());
@@ -506,9 +522,12 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   }
 
   // Save the updated config (skip the write/commit cycle if no port or
-  // interface was actually modified).
+  // interface was actually modified). Commit at the escalated action level: a
+  // profile change that removed a port coldboots the agent (T281221621);
+  // everything else stays a hitless reloadConfig.
   if (changed) {
-    ConfigSession::getInstance().saveConfig();
+    ConfigSession::getInstance().saveConfig(
+        cli::ServiceType::AGENT, actionLevel);
   }
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());
