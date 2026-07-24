@@ -595,6 +595,16 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+    // Read-only counts of how many times a link up/down debounce was
+    // retriggered by an additional flap while a debounce timeout was already
+    // active.
+    struct AttributeLinkDownDebounceRetriggerCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkDownDebounceRetriggerCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeLinkDownDebounceRetriggerCount,
+        SaiIntDefault<sai_uint64_t>>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
     // UEC Link Layer Retry per-port controls (UE Spec 1.0.2 section 5.1).
     // Mode local/remote enable LLR receive/transmit (section 5.1.3); the
@@ -977,6 +987,7 @@ SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
 SAI_ATTRIBUTE_NAME(Port, LinkUpDebouncePeriodMs)
 SAI_ATTRIBUTE_NAME(Port, LinkDownDebouncePeriodMs)
+SAI_ATTRIBUTE_NAME(Port, LinkDownDebounceRetriggerCount)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
