@@ -60,7 +60,6 @@ cpp_unittest(
         "NDPTest.cpp",
         "OperDeltaFilterTests.cpp",
         "PacketStreamHandlerTest.cpp",
-        "PortUpdateHandlerARPTest.cpp",
         "PortUpdateHandlerNDPTest.cpp",
         "PortUpdateHandlerTest.cpp",
         "ReachabilityGroupTests.cpp",

@@ -2603,18 +2603,6 @@ int32_t ThriftHandler::flushNeighborEntry(
       }
     }
 
-    // Check if ARP static neighbor is enabled
-    if (FLAGS_arp_static_neighbor) {
-      XLOG(DBG4) << "ThriftHandler::flushNeighborEntry - Entry flushed for "
-                 << parsedIP.str()
-                 << ", checking for interfaces that need ARP request";
-
-      if (parsedIP.isV4()) {
-        sw_->sendArpRequestForConfiguredInterfaces(
-            "ARP entry clear", parsedIP.asV4());
-      }
-    }
-
     return result;
   } catch (...) {
     throw FbossError(

@@ -186,28 +186,6 @@ void PortUpdateHandler::handlePortUp(
             interface, state, desiredPeerAddressIPv6);
       }
     }
-
-    // ARP cold start: send ARP request for configured IPv4 peers
-    if (FLAGS_arp_static_neighbor &&
-        interface->getDesiredPeerAddressIPv4().has_value()) {
-      auto desiredPeerAddressString = interface->getDesiredPeerAddressIPv4();
-      auto cidrNetwork =
-          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
-      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
-      if (interface->canReachAddress(desiredPeerAddressIPv4)) {
-        auto sourceAddr = interface->getAddressToReach(desiredPeerAddressIPv4);
-        if (sourceAddr.has_value()) {
-          XLOG(DBG4) << "Calling sendArpRequestHelper for interface "
-                     << interface->getID() << " when port " << newPort->getID()
-                     << " comes UP";
-          sw_->sendArpRequestHelper(
-              interface,
-              state,
-              sourceAddr->first.asV4(),
-              desiredPeerAddressIPv4);
-        }
-      }
-    }
   }
 }
 
