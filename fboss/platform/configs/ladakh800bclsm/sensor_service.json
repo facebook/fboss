@@ -1190,25 +1190,24 @@
           "compute": "10*@/1000.0"
         },
         {
-          "name": "COME_U28_INLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
+          "name": "COME_U28_OUTLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 46.3,
+            "maxAlarmVal": 66.4,
             "upperCriticalVal": 100
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_U29_OUTLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
+          "name": "COME_U29_INLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 65.4,
+            "maxAlarmVal": 47.3,
             "upperCriticalVal": 100
           },
-          "compute": "@/1000.0"
-        },
+          "compute": "@/1000.0"        },
         {
           "name": "COME_JCN1_DIMM_CHA_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_DIMM1_TSENSOR/temp1_input",
