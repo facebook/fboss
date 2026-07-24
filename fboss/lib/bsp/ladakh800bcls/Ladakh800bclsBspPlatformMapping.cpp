@@ -85,259 +85,227 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_2/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_2_1/rtm_reset_2"
         },
         "1": {
-          "phyId": 1,
-          "phyIOControllerId": 3,
+          "phyId": 1,          "phyIOControllerId": 3,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_3/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_3_1/rtm_reset_3"
         },
         "2": {
-          "phyId": 2,
-          "phyIOControllerId": 4,
+          "phyId": 2,          "phyIOControllerId": 4,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_4/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_4_1/rtm_reset_4"
         },
         "3": {
-          "phyId": 3,
-          "phyIOControllerId": 1,
+          "phyId": 3,          "phyIOControllerId": 1,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_1/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_1_1/rtm_reset_1"
         },
         "4": {
-          "phyId": 4,
-          "phyIOControllerId": 5,
+          "phyId": 4,          "phyIOControllerId": 5,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_5/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_5_1/rtm_reset_5"
         },
         "5": {
-          "phyId": 5,
-          "phyIOControllerId": 7,
+          "phyId": 5,          "phyIOControllerId": 7,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_7/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_7_1/rtm_reset_7"
         },
         "6": {
-          "phyId": 6,
-          "phyIOControllerId": 8,
+          "phyId": 6,          "phyIOControllerId": 8,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_8/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_8_1/rtm_reset_8"
         },
         "7": {
-          "phyId": 7,
-          "phyIOControllerId": 6,
+          "phyId": 7,          "phyIOControllerId": 6,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_6/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_6_1/rtm_reset_6"
         },
         "8": {
-          "phyId": 8,
-          "phyIOControllerId": 10,
+          "phyId": 8,          "phyIOControllerId": 10,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_10/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_10_1/rtm_reset_10"
         },
         "9": {
-          "phyId": 9,
-          "phyIOControllerId": 12,
+          "phyId": 9,          "phyIOControllerId": 12,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_12/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_12_1/rtm_reset_12"
         },
         "10": {
-          "phyId": 10,
-          "phyIOControllerId": 11,
+          "phyId": 10,          "phyIOControllerId": 11,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_11/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_11_1/rtm_reset_11"
         },
         "11": {
-          "phyId": 11,
-          "phyIOControllerId": 9,
+          "phyId": 11,          "phyIOControllerId": 9,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_9/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_9_1/rtm_reset_9"
         },
         "12": {
-          "phyId": 12,
-          "phyIOControllerId": 13,
+          "phyId": 12,          "phyIOControllerId": 13,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_13/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_13_1/rtm_reset_13"
         },
         "13": {
-          "phyId": 13,
-          "phyIOControllerId": 15,
+          "phyId": 13,          "phyIOControllerId": 15,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_15/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_15_1/rtm_reset_15"
         },
         "14": {
-          "phyId": 14,
-          "phyIOControllerId": 16,
+          "phyId": 14,          "phyIOControllerId": 16,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_16/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_16_1/rtm_reset_16"
         },
         "15": {
-          "phyId": 15,
-          "phyIOControllerId": 14,
+          "phyId": 15,          "phyIOControllerId": 14,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_l_14/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_l_14_1/rtm_reset_14"
         },
         "16": {
-          "phyId": 16,
-          "phyIOControllerId": 18,
+          "phyId": 16,          "phyIOControllerId": 18,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_2/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_2_1/rtm_reset_18"
         },
         "17": {
-          "phyId": 17,
-          "phyIOControllerId": 19,
+          "phyId": 17,          "phyIOControllerId": 19,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_3/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_3_1/rtm_reset_19"
         },
         "18": {
-          "phyId": 18,
-          "phyIOControllerId": 20,
+          "phyId": 18,          "phyIOControllerId": 20,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_4/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_4_1/rtm_reset_20"
         },
         "19": {
-          "phyId": 19,
-          "phyIOControllerId": 17,
+          "phyId": 19,          "phyIOControllerId": 17,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_1/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_1_1/rtm_reset_17"
         },
         "20": {
-          "phyId": 20,
-          "phyIOControllerId": 21,
+          "phyId": 20,          "phyIOControllerId": 21,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_5/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_5_1/rtm_reset_21"
         },
         "21": {
-          "phyId": 21,
-          "phyIOControllerId": 23,
+          "phyId": 21,          "phyIOControllerId": 23,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_7/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_7_1/rtm_reset_23"
         },
         "22": {
-          "phyId": 22,
-          "phyIOControllerId": 24,
+          "phyId": 22,          "phyIOControllerId": 24,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_8/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_8_1/rtm_reset_24"
         },
         "23": {
-          "phyId": 23,
-          "phyIOControllerId": 22,
+          "phyId": 23,          "phyIOControllerId": 22,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_6/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_6_1/rtm_reset_22"
         },
         "24": {
-          "phyId": 24,
-          "phyIOControllerId": 26,
+          "phyId": 24,          "phyIOControllerId": 26,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_10/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_10_1/rtm_reset_26"
         },
         "25": {
-          "phyId": 25,
-          "phyIOControllerId": 28,
+          "phyId": 25,          "phyIOControllerId": 28,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_12/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_12_1/rtm_reset_28"
         },
         "26": {
-          "phyId": 26,
-          "phyIOControllerId": 27,
+          "phyId": 26,          "phyIOControllerId": 27,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_11/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_11_1/rtm_reset_27"
         },
         "27": {
-          "phyId": 27,
-          "phyIOControllerId": 25,
+          "phyId": 27,          "phyIOControllerId": 25,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_9/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_9_1/rtm_reset_25"
         },
         "28": {
-          "phyId": 28,
-          "phyIOControllerId": 29,
+          "phyId": 28,          "phyIOControllerId": 29,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_13/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_13_1/rtm_reset_29"
         },
         "29": {
-          "phyId": 29,
-          "phyIOControllerId": 31,
+          "phyId": 29,          "phyIOControllerId": 31,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_15/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_15_1/rtm_reset_31"
         },
         "30": {
-          "phyId": 30,
-          "phyIOControllerId": 32,
+          "phyId": 30,          "phyIOControllerId": 32,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_16/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_16_1/rtm_reset_32"
         },
         "31": {
-          "phyId": 31,
-          "phyIOControllerId": 30,
+          "phyId": 31,          "phyIOControllerId": 30,
           "phyAddr": 0,
           "phyCoreId": 0,
           "pimId": 1,
-          "phyResetPath": "/run/devmap/mdio-busses/mdio_bus_ctrl_r_14/reset_rtm_0"
+          "phyResetPath": "/run/devmap/rtms/rtm_ctrl_mdio_r_14_1/rtm_reset_30"
         }
       },
-      "phyIOControllers": {
-        "1": {
+      "phyIOControllers": {        "1": {
           "controllerId": 1,
           "type": 1,
           "devicePath": "/run/devmap/mdio-busses/mdio_bus_io_l_1",

@@ -31,7 +31,7 @@ bool holdResetViaSysfs(
       *resetPath);
 
   try {
-    writeSysfs(*resetPath, "1");
+    writeSysfs(*resetPath, "0");
     usleep(kResetHoldDelayUs);
     return true;
   } catch (const std::exception& ex) {
@@ -62,7 +62,7 @@ bool releaseResetViaSysfs(
       *resetPath);
 
   try {
-    writeSysfs(*resetPath, "0");
+    writeSysfs(*resetPath, "1");
     return true;
   } catch (const std::exception& ex) {
     XLOG(ERR) << fmt::format(
