@@ -170,10 +170,11 @@ find_library(SAI_IMPL sai_impl)
 message(STATUS "SAI_IMPL: ${SAI_IMPL}")
 
 if(BUILD_SAI_FAKE)
-  BUILD_SAI_WEDGE_AGENT("fake" fake_sai)
-endif()
-
-if(SAI_IMPL)
+  # Name fake-SAI agent binaries with the -sai_impl suffix so they sit at
+  # the same /opt/fboss/bin/ paths the systemd unit files reference and
+  # package.py FORWARDING_BINARIES matches without modification.
+  BUILD_SAI_WEDGE_AGENT("sai_impl" fake_sai)
+elseif(SAI_IMPL)
   BUILD_SAI_WEDGE_AGENT("sai_impl" ${SAI_IMPL})
   install(
     TARGETS

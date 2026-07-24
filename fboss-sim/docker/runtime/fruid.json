@@ -1,0 +1,28 @@
+{
+  "Actions": [],
+  "Resources": [],
+  "Information": {
+    "Product Sub-Version": "1",
+    "Facebook PCBA Part Number": "",
+    "Product Version": "1",
+    "Product Part Number": "VIRTUAL-001",
+    "Extended MAC Address Size": "139",
+    "Facebook PCB Part Number": "",
+    "Product Name": "MONTBLANC",
+    "Local MAC": "02:00:00:00:00:01",
+    "PCB Manufacturer": "Virtual",
+    "CRC8": "0x0",
+    "System Assembly Part Number": "VIRT001",
+    "ODM PCBA Serial Number": "",
+    "Product Serial Number": "VIRTUAL-MONTBLANC-001",
+    "ODM PCBA Part Number": "",
+    "System Manufacturing Date": "2026031300",
+    "Version": "0",
+    "Location on Fabric": "Virtual",
+    "Assembled At": "Container",
+    "Product Production State": "0",
+    "Product Asset Tag": "fboss_base_virtual",
+    "Extended MAC Base": "02:00:00:00:00:00",
+    "System Manufacturer": "FBOSS Virtual Environment"
+  }
+}
