@@ -692,8 +692,6 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_YUBA:
-    case cfg::AsicType::ASIC_TYPE_CHENAB:
-    case cfg::AsicType::ASIC_TYPE_CHENAB2:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -705,6 +703,8 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return 0;
     // The below value of 110 was from FR4 optics and assumed to be used
     // everywhere. This assumption does not hold anymore.
@@ -2665,7 +2665,8 @@ void SaiPortManager::updateStats(
   if (updateCableLengths && isPortUp(portId) &&
       (portType == cfg::PortType::FABRIC_PORT ||
        portType == cfg::PortType::HYPER_PORT_MEMBER
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_GTE_13_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_GTE_13_0) || \
+    defined(CHENAB_SAI_SDK)
        || portType == cfg::PortType::INTERFACE_PORT
 #endif
        ) &&
@@ -2701,7 +2702,8 @@ void SaiPortManager::updateStats(
         !curPortStats.cableLengthMeters().has_value()) {
       try {
 #if (defined(BRCM_SAI_SDK_DNX_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)) || \
-    (defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS))
+    (defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)) ||     \
+    defined(CHENAB_SAI_SDK)
         int32_t cablePropogationDelayNS =
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
