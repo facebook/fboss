@@ -98,11 +98,13 @@ int RibRouteWeightNormalizer::getNumPathsToPrune(
     int numFailures,
     RackId dstRack,
     RackId srcRack) {
-  // Rack ids are offset 1 based
-  if (!dstRack || dstRack > numRacks_) {
+  // Rack ids are offset 1 based. RackId is a signed int; reject non-positive
+  // values explicitly so an attacker-supplied negative rack_id cannot index
+  // pruneLookupTable_ out of bounds below.
+  if (dstRack <= 0 || dstRack > numRacks_) {
     throw FbossError("invalid dst rack id ", dstRack);
   }
-  if (!srcRack || srcRack > numRacks_) {
+  if (srcRack <= 0 || srcRack > numRacks_) {
     throw FbossError("invalid src rack id ", srcRack);
   }
   if (numFailures < 0 || numFailures > numRacks_ * numPlanePathsPerRack_) {

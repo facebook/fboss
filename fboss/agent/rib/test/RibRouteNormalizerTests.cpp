@@ -330,6 +330,14 @@ TEST(RibRouteWeightNormalizerTest, verifyParameterValidation) {
       normalizer.getNumPathsToPrune(1000, 1, 1),
       FbossError); // too large failures
 
+  // Test negative rack_id (security fix: negative values must be rejected)
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, -1, 1), FbossError); // negative dstRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 1, -1), FbossError); // negative srcRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, -5, -5), FbossError); // both negative
+
   // Valid parameter tests - these should not throw
 
   // Constructor valid parameters
