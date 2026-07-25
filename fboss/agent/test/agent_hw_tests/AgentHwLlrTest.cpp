@@ -54,12 +54,13 @@ class AgentHwLlrTest : public AgentHwTest {
 };
 
 // Verify LLR config -- including each accepted INIT frame action -- applies to
-// ports and survives a warm boot. initFrameAction is swept BEST_EFFORT then
-// BLOCK (BLOCK last, so the "beyond BEST_EFFORT" case is the one carried across
-// the warm boot and read back); each applyNewConfig that reaches hardware
-// without throwing is the "SAI profile create/bind accepted this action"
-// assertion. The SDK rejects INIT=DISCARD and any non-BLOCK FLUSH at
-// profile-create, so FLUSH stays at its BLOCK default.
+// ports, the per-port LLR counters are collected, and all of it survives a warm
+// boot. initFrameAction is swept BEST_EFFORT then BLOCK (BLOCK last, so the
+// "beyond BEST_EFFORT" case is the one carried across the warm boot and read
+// back); each applyNewConfig that reaches hardware without throwing is the "SAI
+// profile create/bind accepted this action" assertion. The SDK rejects
+// INIT=DISCARD and any non-BLOCK FLUSH at profile-create, so FLUSH stays at its
+// BLOCK default.
 TEST_F(AgentHwLlrTest, verifyLlrConfig) {
   const std::vector<cfg::LlrFrameAction> kInitActions = {
       cfg::LlrFrameAction::BEST_EFFORT, cfg::LlrFrameAction::BLOCK};
@@ -72,6 +73,7 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
   };
   auto verify = [&]() {
     auto state = getProgrammedState();
+    auto portStats = getLatestPortStats(masterLogicalInterfacePortIds());
     for (const auto& portId : masterLogicalInterfacePortIds()) {
       auto port = state->getPorts()->getNodeIf(portId);
       ASSERT_NE(port, nullptr);
@@ -87,6 +89,32 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       EXPECT_EQ(
           port->getLlrConfig().value()->getFlushFrameAction(),
           cfg::LlrFrameAction::BLOCK);
+
+      // Every TU-supported per-port LLR counter is collected into HwPortStats.
+      // Counters read 0 without induced traffic, but each must be present once
+      // LLR is bound. The 4 stats with no SDK backing on Tomahawk Ultra
+      // (RX_BAD, TX_DISCARD, TX_POISONED, RX_POISONED) are neither fetched nor
+      // asserted (Broadcom CS00012472055).
+      const auto& stats = portStats.at(portId);
+      EXPECT_TRUE(stats.llrTxOk_().has_value());
+      EXPECT_TRUE(stats.llrTxReplay_().has_value());
+      EXPECT_TRUE(stats.llrRxOk_().has_value());
+      EXPECT_TRUE(stats.llrRxMissingSeq_().has_value());
+      EXPECT_TRUE(stats.llrRxDuplicateSeq_().has_value());
+      EXPECT_TRUE(stats.llrRxAckNackSeqError_().has_value());
+      EXPECT_TRUE(stats.llrRxReplay_().has_value());
+      // Additional Table 5-13 CtlOS and expected-sequence counters.
+      EXPECT_TRUE(stats.llrTxInitCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrTxInitEchoCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrTxAckCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrTxNackCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrRxInitCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrRxInitEchoCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrRxAckCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrRxNackCtlOs_().has_value());
+      EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
+      EXPECT_TRUE(stats.llrRxExpectedSeqPoisoned_().has_value());
+      EXPECT_TRUE(stats.llrRxExpectedSeqBad_().has_value());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
