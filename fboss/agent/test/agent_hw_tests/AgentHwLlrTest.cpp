@@ -7,7 +7,8 @@
 namespace facebook::fboss {
 
 // AgentHwTest for UEC Link Layer Retry (UE Spec 1.0.2 section 5.1). LLR is a
-// Tomahawk Ultra feature today; on ASICs without it the test is skipped.
+// Tomahawk Ultra feature today; getProductionFeaturesVerified() gates these
+// tests to LLR-capable ASICs through the test runner.
 class AgentHwLlrTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -52,15 +53,24 @@ class AgentHwLlrTest : public AgentHwTest {
   }
 };
 
-// Verify LLR config is applied to ports and survives a warm boot, and that the
-// LLR port counters are collected. On-device recovery behavior (replays under
-// induced BER) is validated via netcastle on Tomahawk Ultra.
+// Verify LLR config -- including each accepted INIT frame action -- applies to
+// ports and survives a warm boot. initFrameAction is swept BEST_EFFORT then
+// BLOCK (BLOCK last, so the "beyond BEST_EFFORT" case is the one carried across
+// the warm boot and read back); each applyNewConfig that reaches hardware
+// without throwing is the "SAI profile create/bind accepted this action"
+// assertion. The SDK rejects INIT=DISCARD and any non-BLOCK FLUSH at
+// profile-create, so FLUSH stays at its BLOCK default.
 TEST_F(AgentHwLlrTest, verifyLlrConfig) {
-  if (!isSupportedOnAllAsics(HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
-    GTEST_SKIP() << "LLR not supported on this ASIC";
-  }
-  auto setup = [this]() { applyNewConfig(initialConfig(*getAgentEnsemble())); };
-  auto verify = [this]() {
+  const std::vector<cfg::LlrFrameAction> kInitActions = {
+      cfg::LlrFrameAction::BEST_EFFORT, cfg::LlrFrameAction::BLOCK};
+  auto setup = [&]() {
+    for (auto action : kInitActions) {
+      auto cfg = initialConfig(*getAgentEnsemble());
+      (*cfg.llrConfigs())[kLlrConfigName].initFrameAction() = action;
+      applyNewConfig(cfg);
+    }
+  };
+  auto verify = [&]() {
     auto state = getProgrammedState();
     for (const auto& portId : masterLogicalInterfacePortIds()) {
       auto port = state->getPorts()->getNodeIf(portId);
@@ -71,13 +81,12 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       // replayCountMax defaults to 2 (thrift default / Meta sim
       // recommendation).
       EXPECT_EQ(port->getLlrConfig().value()->getReplayCountMax(), 2);
-      // TODO(llr): the 15.4_ea_odp SDK returns NOT_SUPPORTED for the
-      // SAI_PORT_STAT_LLR_* reads (the LLR config path is implemented, the
-      // stats path is not yet), so llrTxOk_ is not populated on hardware.
-      // Re-enable the LLR counter check once a drop implements the LLR stat
-      // reads:
-      //   auto stats = getLatestPortStats(portId);
-      //   EXPECT_TRUE(stats.llrTxOk_().has_value());
+      EXPECT_EQ(
+          port->getLlrConfig().value()->getInitFrameAction(),
+          kInitActions.back());
+      EXPECT_EQ(
+          port->getLlrConfig().value()->getFlushFrameAction(),
+          cfg::LlrFrameAction::BLOCK);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
