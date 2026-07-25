@@ -197,3 +197,42 @@ TEST(LlrConfigTest, rejectOutOfRange) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+// Loud rejection: values that fit the SAI attribute width but exceed the
+// tighter UE Spec 1.0.2 Table 5-9 bounds are rejected at config time.
+TEST(LlrConfigTest, rejectOutOfSpecRange) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  setAsicType(config, cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1);
+  config.ports()[0].llrConfigName() = kLlrName;
+
+  auto expectRejected = [&](const cfg::LlrConfig& llr) {
+    config.llrConfigs() = {{kLlrName, llr}};
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  };
+
+  // outstanding_seq_max spec max is 524288.
+  auto badFrames = makeLlrConfig();
+  badFrames.outstandingFramesMax() = 524289;
+  expectRejected(badFrames);
+
+  // replay_timer_max spec max is 65535 ns.
+  auto badReplayTimer = makeLlrConfig();
+  badReplayTimer.replayTimerMax() = 65536;
+  expectRejected(badReplayTimer);
+
+  // ctlos_target_spacing spec range is 400..16384 (both bounds enforced).
+  auto ctlosTooLow = makeLlrConfig();
+  ctlosTooLow.ctlosTargetSpacing() = 399;
+  expectRejected(ctlosTooLow);
+
+  auto ctlosTooHigh = makeLlrConfig();
+  ctlosTooHigh.ctlosTargetSpacing() = 16385;
+  expectRejected(ctlosTooHigh);
+}

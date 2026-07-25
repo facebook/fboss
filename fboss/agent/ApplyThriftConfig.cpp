@@ -5235,35 +5235,90 @@ shared_ptr<MultiSwitchLlrConfigMap> ThriftConfigApplier::updateLlrConfigs(
 static void validateLlrConfig(
     const std::string& id,
     const cfg::LlrConfig& llrConfig) {
-  // LlrConfig thrift fields are signed (thrift has no unsigned type) but map to
-  // unsigned SAI attributes of fixed width (u8/u16/u32). Reject negative or
-  // over-width values so a misconfiguration fails loudly here instead of
-  // silently wrapping when narrowed in SaiPortManager::programLlr.
-  auto checkRange = [&id](const char* field, int64_t value, int64_t maxVal) {
-    if (value < 0 || value > maxVal) {
-      throw FbossError(
-          "LlrConfig \"",
-          id,
-          "\": ",
-          field,
-          "=",
-          value,
-          " is out of range [0, ",
-          maxVal,
-          "]");
-    }
-  };
-  constexpr int64_t kU8Max = std::numeric_limits<uint8_t>::max();
-  constexpr int64_t kU16Max = std::numeric_limits<uint16_t>::max();
-  constexpr int64_t kU32Max = std::numeric_limits<uint32_t>::max();
+  // LlrConfig thrift fields are signed (thrift has no unsigned type) but have
+  // tighter UE Spec 1.0.2 Table 5-9 ranges than their SAI attribute widths.
+  // Reject out-of-range values loudly here instead of silently wrapping when
+  // narrowed in SaiPortManager::programLlr, or failing later at SAI profile
+  // create.
+  auto checkRange =
+      [&id](const char* field, int64_t value, int64_t minVal, int64_t maxVal) {
+        if (value < minVal || value > maxVal) {
+          throw FbossError(
+              "LlrConfig \"",
+              id,
+              "\": ",
+              field,
+              "=",
+              value,
+              " is out of range [",
+              minVal,
+              ", ",
+              maxVal,
+              "]");
+        }
+      };
+  // Bounds are the UE Spec 1.0.2 Table 5-9 limits (ASIC-agnostic). Several are
+  // tighter than the underlying SAI attribute width -- e.g. replay_timer_max
+  // and ctlos_target_spacing map to u32/u16 SAI attrs but the spec caps them
+  // lower -- so we enforce the spec value, not the register width.
+  constexpr int64_t kOutstandingFramesMin = 0;
+  // outstanding_seq_max: spec absolute max 524288 (inclusive), i.e. half the
+  // 2^20 sequence-number space. Implementations may support a lower max, which
+  // is enforced at profile-bind time, not here.
+  constexpr int64_t kOutstandingFramesMax = 524288;
+  // outstanding_data_max: sized to the link bandwidth-delay product; the spec
+  // gives no ceiling beyond the u32 register width.
+  constexpr int64_t kOutstandingBytesMin = 0;
+  constexpr int64_t kOutstandingBytesMax = std::numeric_limits<uint32_t>::max();
+  // replay_timer_max: 16-bit nanosecond value.
+  constexpr int64_t kReplayTimerMinNs = 0;
+  constexpr int64_t kReplayTimerMaxNs = 65535;
+  // replay_ct_max: u8 count; 255 means "no maximum".
+  constexpr int64_t kReplayCountMin = 0;
+  constexpr int64_t kReplayCountMax = 255;
+  // pcs_lost_timeout / data_age_timeout: 32-bit nanosecond values; the spec
+  // ceiling is the full u32 range (~4.29 s).
+  constexpr int64_t kTimeoutMinNs = 0;
+  constexpr int64_t kTimeoutMaxNs = std::numeric_limits<uint32_t>::max();
+  // ctlos_target_spacing: valid range in bytes.
+  constexpr int64_t kCtlosTargetSpacingMin = 400;
+  constexpr int64_t kCtlosTargetSpacingMax = 16384;
+
   checkRange(
-      "outstandingFramesMax", *llrConfig.outstandingFramesMax(), kU32Max);
-  checkRange("outstandingBytesMax", *llrConfig.outstandingBytesMax(), kU32Max);
-  checkRange("replayTimerMax", *llrConfig.replayTimerMax(), kU32Max);
-  checkRange("replayCountMax", *llrConfig.replayCountMax(), kU8Max);
-  checkRange("pcsLostTimeout", *llrConfig.pcsLostTimeout(), kU32Max);
-  checkRange("dataAgeTimeout", *llrConfig.dataAgeTimeout(), kU32Max);
-  checkRange("ctlosTargetSpacing", *llrConfig.ctlosTargetSpacing(), kU16Max);
+      "outstandingFramesMax",
+      *llrConfig.outstandingFramesMax(),
+      kOutstandingFramesMin,
+      kOutstandingFramesMax);
+  checkRange(
+      "outstandingBytesMax",
+      *llrConfig.outstandingBytesMax(),
+      kOutstandingBytesMin,
+      kOutstandingBytesMax);
+  checkRange(
+      "replayTimerMax",
+      *llrConfig.replayTimerMax(),
+      kReplayTimerMinNs,
+      kReplayTimerMaxNs);
+  checkRange(
+      "replayCountMax",
+      *llrConfig.replayCountMax(),
+      kReplayCountMin,
+      kReplayCountMax);
+  checkRange(
+      "pcsLostTimeout",
+      *llrConfig.pcsLostTimeout(),
+      kTimeoutMinNs,
+      kTimeoutMaxNs);
+  checkRange(
+      "dataAgeTimeout",
+      *llrConfig.dataAgeTimeout(),
+      kTimeoutMinNs,
+      kTimeoutMaxNs);
+  checkRange(
+      "ctlosTargetSpacing",
+      *llrConfig.ctlosTargetSpacing(),
+      kCtlosTargetSpacingMin,
+      kCtlosTargetSpacingMax);
 }
 
 std::shared_ptr<LlrConfig> ThriftConfigApplier::createLlrConfig(
