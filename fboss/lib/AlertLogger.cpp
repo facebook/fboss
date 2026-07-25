@@ -29,6 +29,7 @@ constexpr auto kFbossRouteAlert("ROUTE");
 constexpr auto kFbossLinkSnapshotAlert("LINK_SNAPSHOT");
 constexpr auto kFbossQsfpTransceiverValidationAlert("TRANSCEIVER_VALIDATION");
 constexpr auto kFbossFirmwareUpgradeAlert("TRANSCEIVER_FW_UPGRADE");
+constexpr auto kFbossLinkAlert("LINK_ALERT");
 
 // Alert tag by type
 AlertTag::AlertTag(std::string prefix, std::string sub_type)
@@ -52,6 +53,7 @@ TransceiverValidationAlert::TransceiverValidationAlert()
     : AlertTag(kFbossAlertPrefix, kFbossQsfpTransceiverValidationAlert) {}
 FirmwareUpgradeAlert::FirmwareUpgradeAlert()
     : AlertTag(kFbossAlertPrefix, kFbossFirmwareUpgradeAlert) {}
+LinkAlert::LinkAlert() : AlertTag(kFbossAlertPrefix, kFbossLinkAlert) {}
 
 // Alert param types
 constexpr auto kFbossPort("port");

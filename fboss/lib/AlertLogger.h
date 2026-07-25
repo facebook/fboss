@@ -109,6 +109,10 @@ class TransceiverValidationAlert : public AlertTag {
  public:
   TransceiverValidationAlert();
 };
+class LinkAlert : public AlertTag {
+ public:
+  LinkAlert();
+};
 class FirmwareUpgradeAlert : public AlertTag {
  public:
   FirmwareUpgradeAlert();
