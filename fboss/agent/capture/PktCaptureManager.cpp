@@ -163,8 +163,13 @@ void PktCaptureManager::packetSentImpl(const TxPacket* pkt) {
 }
 
 void PktCaptureManager::checkCaptureName(folly::StringPiece name) {
-  // We use the capture name for the on-disk filename, so don't allow
-  // directory separator characters or nul bytes.
+  // We use the capture name for the on-disk filename, so reject empty names and
+  // the "." / ".." directory entries in addition to the separator/nul checks
+  // below (defense in depth against path traversal via the capture name).
+  if (name.empty() || name == "." || name == "..") {
+    throw FbossError("invalid capture name \"", name, "\"");
+  }
+  // Don't allow directory separator characters or nul bytes.
   std::string invalidChars("\0/", 2);
   size_t idx = name.find_first_of(invalidChars);
   if (idx != std::string::npos) {

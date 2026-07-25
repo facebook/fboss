@@ -273,3 +273,35 @@ TEST_F(CaptureTest, FullCapture) {
   //
   // EXPECT_BUF_EQ(updatedIpPktData, pcapPkts.at(4).data);
 }
+
+TEST_F(CaptureTest, InvalidCaptureNames) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  auto* mgr = sw->getCaptureMgr();
+
+  // Test empty name (security fix: must be rejected)
+  auto emptyCapture =
+      make_unique<PktCapture>("", 100, CaptureDirection::CAPTURE_TX_RX);
+  EXPECT_THROW(mgr->startCapture(std::move(emptyCapture)), FbossError);
+
+  // Test "." name (security fix: must be rejected to prevent path traversal)
+  auto dotCapture =
+      make_unique<PktCapture>(".", 100, CaptureDirection::CAPTURE_TX_RX);
+  EXPECT_THROW(mgr->startCapture(std::move(dotCapture)), FbossError);
+
+  // Test ".." name (security fix: must be rejected to prevent path traversal)
+  auto dotdotCapture =
+      make_unique<PktCapture>("..", 100, CaptureDirection::CAPTURE_TX_RX);
+  EXPECT_THROW(mgr->startCapture(std::move(dotdotCapture)), FbossError);
+
+  // Test "/" in name (pre-existing validation, should still work)
+  auto slashCapture = make_unique<PktCapture>(
+      "test/capture", 100, CaptureDirection::CAPTURE_TX_RX);
+  EXPECT_THROW(mgr->startCapture(std::move(slashCapture)), FbossError);
+
+  // Test valid name (should work)
+  auto validCapture = make_unique<PktCapture>(
+      "valid_capture_123", 100, CaptureDirection::CAPTURE_TX_RX);
+  EXPECT_NO_THROW(mgr->startCapture(std::move(validCapture)));
+  mgr->stopCapture("valid_capture_123");
+}
