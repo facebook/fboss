@@ -368,6 +368,61 @@ void fillHwPortStats(
           hwPortStats.llrRxReplay_() = value;
         }
         break;
+      case SAI_PORT_STAT_LLR_TX_INIT_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrTxInitCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_INIT_ECHO_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrTxInitEchoCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_ACK_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrTxAckCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_NACK_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrTxNackCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INIT_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrRxInitCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INIT_ECHO_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrRxInitEchoCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ACK_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrRxAckCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_NACK_CTL_OS:
+        if (updateLlrStats) {
+          hwPortStats.llrRxNackCtlOs_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_GOOD:
+        if (updateLlrStats) {
+          hwPortStats.llrRxExpectedSeqGood_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_POISONED:
+        if (updateLlrStats) {
+          hwPortStats.llrRxExpectedSeqPoisoned_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD:
+        if (updateLlrStats) {
+          hwPortStats.llrRxExpectedSeqBad_() = value;
+        }
+        break;
 #endif
       case SAI_PORT_STAT_PFC_0_RX_PKTS:
       case SAI_PORT_STAT_PFC_1_RX_PKTS:

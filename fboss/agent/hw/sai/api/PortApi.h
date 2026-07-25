@@ -808,16 +808,30 @@ struct SaiPortTraits {
   };
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
+  // Fetch only the counters Tomahawk Ultra supports: LLR_RX_BAD,
+  // LLR_TX_DISCARD, LLR_TX_POISONED and LLR_RX_POISONED have no SDK backing on
+  // TU, and get_port_stats is all-or-nothing, so they are excluded (Broadcom
+  // CS00012472055).
   static const std::vector<sai_stat_id_t>& llrStats() {
     static const std::vector<sai_stat_id_t> ids = {
         SAI_PORT_STAT_LLR_TX_OK,
         SAI_PORT_STAT_LLR_TX_REPLAY,
         SAI_PORT_STAT_LLR_RX_OK,
-        SAI_PORT_STAT_LLR_RX_BAD,
         SAI_PORT_STAT_LLR_RX_MISSING_SEQ,
         SAI_PORT_STAT_LLR_RX_DUPLICATE_SEQ,
         SAI_PORT_STAT_LLR_RX_ACK_NACK_SEQ_ERROR,
         SAI_PORT_STAT_LLR_RX_REPLAY,
+        SAI_PORT_STAT_LLR_TX_INIT_CTL_OS,
+        SAI_PORT_STAT_LLR_TX_INIT_ECHO_CTL_OS,
+        SAI_PORT_STAT_LLR_TX_ACK_CTL_OS,
+        SAI_PORT_STAT_LLR_TX_NACK_CTL_OS,
+        SAI_PORT_STAT_LLR_RX_INIT_CTL_OS,
+        SAI_PORT_STAT_LLR_RX_INIT_ECHO_CTL_OS,
+        SAI_PORT_STAT_LLR_RX_ACK_CTL_OS,
+        SAI_PORT_STAT_LLR_RX_NACK_CTL_OS,
+        SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_GOOD,
+        SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_POISONED,
+        SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD,
     };
     return ids;
   }

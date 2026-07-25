@@ -178,6 +178,17 @@ HwPortStats getInitedStats() {
       0, // llrRxReplay
       0, // linkDownDebounceRetriggerCount_
       0, // linkUpDebounceRetriggerCount_
+      0, // llrTxInitCtlOs
+      0, // llrTxInitEchoCtlOs
+      0, // llrTxAckCtlOs
+      0, // llrTxNackCtlOs
+      0, // llrRxInitCtlOs
+      0, // llrRxInitEchoCtlOs
+      0, // llrRxAckCtlOs
+      0, // llrRxNackCtlOs
+      0, // llrRxExpectedSeqGood
+      0, // llrRxExpectedSeqPoisoned
+      0, // llrRxExpectedSeqBad
   };
 }
 

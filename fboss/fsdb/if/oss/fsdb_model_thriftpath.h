@@ -25743,7 +25743,18 @@ std::pair<apache::thrift::ident::llrRxDuplicateSeq_, Child<::std::int64_t, ::apa
 std::pair<apache::thrift::ident::llrRxAckNackSeqError_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::llrRxReplay_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::linkDownDebounceRetriggerCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<apache::thrift::ident::linkUpDebounceRetriggerCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<apache::thrift::ident::linkUpDebounceRetriggerCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxInitCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxInitEchoCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxAckCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrTxNackCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxInitCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxInitEchoCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxAckCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxNackCtlOs_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxExpectedSeqGood_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxExpectedSeqPoisoned_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::llrRxExpectedSeqBad_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -25829,6 +25840,17 @@ std::pair<apache::thrift::ident::linkUpDebounceRetriggerCount_, Child<::std::int
     STRUCT_CHILD_GETTERS(llrRxReplay_, 87);
     STRUCT_CHILD_GETTERS(linkDownDebounceRetriggerCount_, 88);
     STRUCT_CHILD_GETTERS(linkUpDebounceRetriggerCount_, 89);
+    STRUCT_CHILD_GETTERS(llrTxInitCtlOs_, 90);
+    STRUCT_CHILD_GETTERS(llrTxInitEchoCtlOs_, 91);
+    STRUCT_CHILD_GETTERS(llrTxAckCtlOs_, 92);
+    STRUCT_CHILD_GETTERS(llrTxNackCtlOs_, 93);
+    STRUCT_CHILD_GETTERS(llrRxInitCtlOs_, 94);
+    STRUCT_CHILD_GETTERS(llrRxInitEchoCtlOs_, 95);
+    STRUCT_CHILD_GETTERS(llrRxAckCtlOs_, 96);
+    STRUCT_CHILD_GETTERS(llrRxNackCtlOs_, 97);
+    STRUCT_CHILD_GETTERS(llrRxExpectedSeqGood_, 98);
+    STRUCT_CHILD_GETTERS(llrRxExpectedSeqPoisoned_, 99);
+    STRUCT_CHILD_GETTERS(llrRxExpectedSeqBad_, 100);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -25912,6 +25934,17 @@ std::pair<apache::thrift::ident::linkUpDebounceRetriggerCount_, Child<::std::int
     else if constexpr (__id == apache::thrift::FieldId{87}) { return llrRxReplay_(); }
     else if constexpr (__id == apache::thrift::FieldId{88}) { return linkDownDebounceRetriggerCount_(); }
     else if constexpr (__id == apache::thrift::FieldId{89}) { return linkUpDebounceRetriggerCount_(); }
+    else if constexpr (__id == apache::thrift::FieldId{90}) { return llrTxInitCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{91}) { return llrTxInitEchoCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{92}) { return llrTxAckCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{93}) { return llrTxNackCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{94}) { return llrRxInitCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{95}) { return llrRxInitEchoCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{96}) { return llrRxAckCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{97}) { return llrRxNackCtlOs_(); }
+    else if constexpr (__id == apache::thrift::FieldId{98}) { return llrRxExpectedSeqGood_(); }
+    else if constexpr (__id == apache::thrift::FieldId{99}) { return llrRxExpectedSeqPoisoned_(); }
+    else if constexpr (__id == apache::thrift::FieldId{100}) { return llrRxExpectedSeqBad_(); }
   }
 };
 
