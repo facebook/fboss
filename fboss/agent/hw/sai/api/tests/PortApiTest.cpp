@@ -720,3 +720,140 @@ TEST_F(PortApiTest, getPortErrStatusToctouExhaustsRetries) {
   SaiPortTraits::Attributes::PortErrStatus errStatusAttr;
   EXPECT_DEATH(portApi->getAttribute(portId, errStatusAttr), ".*");
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+namespace {
+// A LLR profile with a distinct value per attribute so a get() reading back the
+// wrong field is caught.
+PortLlrProfileSaiId createLlrProfile(PortApi* portApi) {
+  SaiPortLlrProfileTraits::CreateAttributes a{
+      SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{32},
+      SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{4096},
+      SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{5000},
+      SaiPortLlrProfileTraits::Attributes::ReplayCountMax{sai_uint8_t(7)},
+      SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{1000},
+      SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{200000},
+      SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+          SAI_LLR_FRAME_ACTION_BEST_EFFORT},
+      SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+          SAI_LLR_FRAME_ACTION_BLOCK},
+      SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{true},
+      SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+          sai_uint16_t(2048)}};
+  return portApi->create<SaiPortLlrProfileTraits>(a, 0);
+}
+} // namespace
+
+TEST_F(PortApiTest, createLlrProfile) {
+  auto id = createLlrProfile(portApi.get());
+
+  SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax framesBlank;
+  SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax bytesBlank;
+  SaiPortLlrProfileTraits::Attributes::ReplayTimerMax replayTimerBlank;
+  SaiPortLlrProfileTraits::Attributes::ReplayCountMax replayCountBlank;
+  SaiPortLlrProfileTraits::Attributes::PcsLostTimeout pcsLostBlank;
+  SaiPortLlrProfileTraits::Attributes::DataAgeTimeout dataAgeBlank;
+  SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction initActionBlank;
+  SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction flushActionBlank;
+  SaiPortLlrProfileTraits::Attributes::ReInitOnFlush reInitBlank;
+  SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing ctlosBlank;
+
+  EXPECT_EQ(portApi->getAttribute(id, framesBlank), 32);
+  EXPECT_EQ(portApi->getAttribute(id, bytesBlank), 4096);
+  EXPECT_EQ(portApi->getAttribute(id, replayTimerBlank), 5000);
+  EXPECT_EQ(portApi->getAttribute(id, replayCountBlank), 7);
+  EXPECT_EQ(portApi->getAttribute(id, pcsLostBlank), 1000);
+  EXPECT_EQ(portApi->getAttribute(id, dataAgeBlank), 200000);
+  EXPECT_EQ(
+      portApi->getAttribute(id, initActionBlank),
+      SAI_LLR_FRAME_ACTION_BEST_EFFORT);
+  EXPECT_EQ(
+      portApi->getAttribute(id, flushActionBlank), SAI_LLR_FRAME_ACTION_BLOCK);
+  EXPECT_EQ(portApi->getAttribute(id, reInitBlank), true);
+  EXPECT_EQ(portApi->getAttribute(id, ctlosBlank), 2048);
+
+  // Cross-check the fake store's view matches what the api returned.
+  const auto& profile = fs->portLlrProfileManager.get(id);
+  EXPECT_EQ(profile.outstandingFramesMax, 32);
+  EXPECT_EQ(profile.outstandingBytesMax, 4096);
+  EXPECT_EQ(profile.replayTimerMax, 5000);
+  EXPECT_EQ(profile.replayCountMax, 7);
+  EXPECT_EQ(profile.pcsLostTimeout, 1000);
+  EXPECT_EQ(profile.dataAgeTimeout, 200000);
+  EXPECT_EQ(profile.initLlrFrameAction, SAI_LLR_FRAME_ACTION_BEST_EFFORT);
+  EXPECT_EQ(profile.flushLlrFrameAction, SAI_LLR_FRAME_ACTION_BLOCK);
+  EXPECT_EQ(profile.reInitOnFlush, true);
+  EXPECT_EQ(profile.ctlosTargetSpacing, 2048);
+}
+
+TEST_F(PortApiTest, setLlrProfileAttributes) {
+  auto id = createLlrProfile(portApi.get());
+
+  SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax frames{64};
+  SaiPortLlrProfileTraits::Attributes::ReplayCountMax replayCount{
+      sai_uint8_t(3)};
+  SaiPortLlrProfileTraits::Attributes::ReInitOnFlush reInit{false};
+  SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction initAction{
+      SAI_LLR_FRAME_ACTION_DISCARD};
+  portApi->setAttribute(id, frames);
+  portApi->setAttribute(id, replayCount);
+  portApi->setAttribute(id, reInit);
+  portApi->setAttribute(id, initAction);
+
+  EXPECT_EQ(portApi->getAttribute(id, frames), 64);
+  EXPECT_EQ(portApi->getAttribute(id, replayCount), 3);
+  EXPECT_EQ(portApi->getAttribute(id, reInit), false);
+  EXPECT_EQ(
+      portApi->getAttribute(id, initAction), SAI_LLR_FRAME_ACTION_DISCARD);
+
+  // Untouched attributes keep their created values.
+  SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax bytesBlank;
+  EXPECT_EQ(portApi->getAttribute(id, bytesBlank), 4096);
+}
+
+TEST_F(PortApiTest, removeLlrProfile) {
+  auto id = createLlrProfile(portApi.get());
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+  portApi->remove(id);
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 0);
+}
+
+TEST_F(PortApiTest, portLlrAttributes) {
+  auto portId = createPort(100000, {42}, true);
+  auto profileId = createLlrProfile(portApi.get());
+
+  // Defaults on a freshly created port: LLR disabled, no profile, status OFF.
+  SaiPortTraits::Attributes::LlrModeLocal modeLocalBlank;
+  SaiPortTraits::Attributes::LlrModeRemote modeRemoteBlank;
+  SaiPortTraits::Attributes::LlrProfile profileBlank;
+  SaiPortTraits::Attributes::LlrTxStatus txStatusBlank;
+  SaiPortTraits::Attributes::LlrRxStatus rxStatusBlank;
+  EXPECT_EQ(portApi->getAttribute(portId, modeLocalBlank), false);
+  EXPECT_EQ(portApi->getAttribute(portId, modeRemoteBlank), false);
+  EXPECT_EQ(portApi->getAttribute(portId, profileBlank), SAI_NULL_OBJECT_ID);
+  EXPECT_EQ(
+      portApi->getAttribute(portId, txStatusBlank), SAI_PORT_LLR_TX_STATUS_OFF);
+  EXPECT_EQ(
+      portApi->getAttribute(portId, rxStatusBlank), SAI_PORT_LLR_RX_STATUS_OFF);
+
+  // Bind the profile and enable LLR, then read back.
+  SaiPortTraits::Attributes::LlrProfile profileAttr{
+      static_cast<sai_object_id_t>(profileId)};
+  SaiPortTraits::Attributes::LlrModeLocal modeLocal{true};
+  SaiPortTraits::Attributes::LlrModeRemote modeRemote{true};
+  portApi->setAttribute(portId, profileAttr);
+  portApi->setAttribute(portId, modeLocal);
+  portApi->setAttribute(portId, modeRemote);
+
+  EXPECT_EQ(
+      portApi->getAttribute(portId, profileBlank),
+      static_cast<sai_object_id_t>(profileId));
+  EXPECT_EQ(portApi->getAttribute(portId, modeLocalBlank), true);
+  EXPECT_EQ(portApi->getAttribute(portId, modeRemoteBlank), true);
+
+  const auto& port = fs->portManager.get(portId);
+  EXPECT_EQ(port.llrModeLocal, true);
+  EXPECT_EQ(port.llrModeRemote, true);
+  EXPECT_EQ(port.llrProfile, static_cast<sai_object_id_t>(profileId));
+}
+#endif
