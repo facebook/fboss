@@ -21,13 +21,17 @@
 namespace facebook::fboss {
 
 using facebook::neteng::fboss::bgp::thrift::TNexthopInfo;
+using facebook::neteng::fboss::bgp::thrift::TNexthopInfoQueryResult;
 
 struct CmdShowBgpNexthopInfoTraits : public ReadCommandTraits {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
   using ObjectArgType = std::vector<std::string>;
-  using RetType = TNexthopInfo;
+  // The view mode (list vs. per-nexthop detail) and the queried addresses are
+  // carried in the result itself, so printOutput is a pure function of its
+  // input rather than depending on out-of-band state on the command object.
+  using RetType = TNexthopInfoQueryResult;
 };
 
 class CmdShowBgpNexthopInfo

@@ -604,12 +604,45 @@ struct TBgpLocalConfig {
 }
 
 /**
- * Nexthop information for a prefix
+ * Nexthop information for a prefix.
+ *
+ * Fields 1-3 back the compact list view (`show bgpcpp nexthopinfo`). Fields
+ * 4-8 carry the extra detail surfaced by the per-nexthop "zoom" view
+ * (`show bgpcpp nexthopinfo <ipAddr>`).
  */
 struct TNexthopInfo {
   1: bgp_attr.TIpPrefix next_hop;
   2: bool is_reachable;
   3: optional i32 igp_cost;
+  // Whether the nexthop is directly connected; unset = unknown.
+  4: optional bool is_connected;
+  // Whether the nexthop is eligible for best-path selection (may differ from
+  // is_reachable: a reachable nexthop without an IGP cost can still be
+  // selectable under FBOSS semantics).
+  5: bool is_resolved_for_selection;
+  // Number of routes/prefixes currently depending on this nexthop.
+  6: i64 route_count;
+  // Seconds since reachability last changed; unset ("-") = never resolved,
+  // i.e. no resolution has ever been received from the underlying system.
+  7: optional i64 last_reachability_change_age_s;
+  // Seconds since the IGP cost last changed; unset ("-") = never resolved.
+  8: optional i64 last_igp_cost_change_age_s;
+}
+
+/**
+ * CLI result wrapper for `show bgpcpp nexthopinfo`, so the renderer stays a pure
+ * function of its input rather than depending on out-of-band view-mode state on
+ * the command object.
+ *
+ * detailed = false: compact list of every nexthop-cache entry (no argument).
+ * detailed = true : per-nexthop "zoom" view for the specifically queried IP(s).
+ * queried_nexthops is index-parallel to entries in detailed mode, so a cache
+ * miss can be reported against the exact address the operator asked for.
+ */
+struct TNexthopInfoQueryResult {
+  1: bool detailed;
+  2: list<TNexthopInfo> entries;
+  3: list<string> queried_nexthops;
 }
 
 /**
@@ -1939,6 +1972,15 @@ service TBgpService extends fb303.FacebookService {
    * @returns: NexthopInfo containing nexthop details for the prefix
    */
   TNexthopInfo getNexthopInfoForNexthop(1: string prefix);
+
+  /**
+   * Get nexthop information for the given nexthops. If the list is empty,
+   * returns nexthop info for ALL entries currently in the nexthop cache.
+   *
+   * @param nexthops: nexthop IP addresses to query; empty = all cache entries
+   * @returns: list of TNexthopInfo, one per matching nexthop-cache entry
+   */
+  list<TNexthopInfo> getNexthopInfos(1: list<string> nexthops);
 
   /**
    * [Profiler]
