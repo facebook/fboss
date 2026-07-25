@@ -16,11 +16,13 @@
 #include <boost/assign.hpp>
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -489,6 +491,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
     tcvrState.signalFlag() = getSignalFlagInfo();
     cacheSignalFlags(*tcvrState.signalFlag());
+    logLatchedLinkFaultsLocked(
+        *tcvrState.signalFlag(), *tcvrState.mediaLaneSignals());
 
     if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
       tcvrState.extendedSpecificationComplianceCode() = *extSpecCompliance;
@@ -642,6 +646,59 @@ void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
   signalFlagCache_.rxLos() = *signalflag.rxLos() | *signalFlagCache_.rxLos();
   signalFlagCache_.txLol() = *signalflag.txLol() | *signalFlagCache_.txLol();
   signalFlagCache_.rxLol() = *signalflag.rxLol() | *signalFlagCache_.rxLol();
+}
+
+void QsfpModule::logLatchedLinkFaultsLocked(
+    const SignalFlags& signalFlags,
+    const std::vector<MediaLaneSignals>& mediaLaneSignals) {
+  const int txLos = *signalFlags.txLos();
+  const int rxLos = *signalFlags.rxLos();
+  const int txLol = *signalFlags.txLol();
+  const int rxLol = *signalFlags.rxLol();
+
+  // txFault is only reported per media lane; collapse it into a per-lane
+  // bitmask so it reads uniformly with the aggregated flags above.
+  int txFault = 0;
+  for (const auto& laneSignal : mediaLaneSignals) {
+    if (laneSignal.txFault().value_or(false)) {
+      txFault |= (1 << *laneSignal.lane());
+    }
+  }
+
+  // Edge-trigger: a link that stays down keeps these flags latched every
+  // refresh, so only act when the flag set changes from what we last observed.
+  if (signalFlags == lastLoggedSignalFlags_ && txFault == lastLoggedTxFault_) {
+    return;
+  }
+  lastLoggedSignalFlags_ = signalFlags;
+  lastLoggedTxFault_ = txFault;
+
+  const auto portNames = folly::join(", ", getInterfaces());
+
+  // Reaching here means the flag set changed. All-clear is therefore a recovery
+  // from a previously latched fault; log it at INFO so downtime is visible in
+  // the event log without being treated as an error.
+  if (!txLos && !rxLos && !txLol && !rxLol && !txFault) {
+    QSFP_LOG(INFO, this) << LinkAlert()
+                         << fmt::format(
+                                "latched link fault flags "
+                                "(txLos/rxLos/txLol/rxLol/txFault) cleared on "
+                                "ports [{}]",
+                                portNames);
+    return;
+  }
+
+  QSFP_LOG(ERR, this) << LinkAlert()
+                      << fmt::format(
+                             "reported latched link fault flags on ports [{}]: "
+                             "txLos=0x{:x} rxLos=0x{:x} txLol=0x{:x} "
+                             "rxLol=0x{:x} txFault=0x{:x}",
+                             portNames,
+                             txLos,
+                             rxLos,
+                             txLol,
+                             rxLol,
+                             txFault);
 }
 
 void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {

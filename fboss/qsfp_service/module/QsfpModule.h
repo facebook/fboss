@@ -645,6 +645,18 @@ class QsfpModule : public Transceiver {
   void cacheSignalFlags(const SignalFlags& signalflag);
   void cacheStatusFlags(const ModuleStatus& status);
 
+  /*
+   * Emit a LINK_ALERT only when the latched
+   * txLos/rxLos/txLol/rxLol/txFault flag set changes from the last DOM read
+   * (so a link that stays down doesn't re-log every refresh). A new fault is
+   * logged at ERR with the port names and every latched flag; recovery back to
+   * all-clear is logged at INFO so downtime stays visible without being an
+   * error.
+   */
+  void logLatchedLinkFaultsLocked(
+      const SignalFlags& signalFlags,
+      const std::vector<MediaLaneSignals>& mediaLaneSignals);
+
   virtual void latchAndReadVdmDataLocked() override {}
 
   /*
@@ -714,6 +726,11 @@ class QsfpModule : public Transceiver {
   SignalFlags signalFlagCache_;
   std::map<int, MediaLaneSignals> mediaSignalsCache_;
   ModuleStatus moduleStatusCache_;
+
+  // Last latched link-fault flags emitted via LINK_ALERT, used to only log on
+  // changes rather than every refresh while a link stays down.
+  SignalFlags lastLoggedSignalFlags_;
+  int lastLoggedTxFault_{0};
 
   std::atomic_bool captureVdmStats_{false};
 

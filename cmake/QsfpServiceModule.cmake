@@ -48,6 +48,7 @@ target_link_libraries(qsfp_module
   fboss_types
   switch_config_cpp2
   firmware_storage
+  alert_logger
   async_filewriter_factory
   snapshot_manager
   phy_cpp2
