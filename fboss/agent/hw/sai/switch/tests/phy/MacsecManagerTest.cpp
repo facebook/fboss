@@ -80,38 +80,45 @@ class MacsecManagerTest : public ManagerTestBase {
 
     localSci = makeSci("00:00:00:00:00:00", PortID(p0.id));
     remoteSci = makeSci("11:11:11:11:11:11", PortID(p1.id));
+    // keyHex must be exactly 64 hex chars (32-byte AES-256 key) and keyIdHex
+    // exactly 32 hex chars (16-byte key id); setupMacsec now rejects anything
+    // else. See SaiMacsecManager::setupMacsec.
     rxSak1 = makeSak(
         remoteSci,
         PortID(p0.id),
-        "01020304050607080910111213141516",
-        "0807060504030201",
+        "0102030405060708091011121314151601020304050607080910111213141516",
+        "08070605040302010807060504030201",
         0);
     rxSak2 = makeSak(
         remoteSci,
         PortID(p0.id),
-        "01020304050607080910111213141516",
-        "0807060504030201",
+        "0102030405060708091011121314151601020304050607080910111213141516",
+        "08070605040302010807060504030201",
         1);
     txSak1 = makeSak(
         localSci,
         PortID(p0.id),
-        "16151413121110090807060504030201",
-        "0102030405060708",
+        "1615141312111009080706050403020116151413121110090807060504030201",
+        "01020304050607080102030405060708",
         0);
     txSak2 = makeSak(
         localSci,
         PortID(p0.id),
-        "16151413121110090807060504030201",
-        "0102030405060708",
+        "1615141312111009080706050403020116151413121110090807060504030201",
+        "01020304050607080102030405060708",
         1);
 
-    std::copy(
+    // rxSecureAssocKey / rxSecureAssocAuthKey are fixed 32/16-byte arrays fed
+    // straight to addMacsecSecureAssoc (which bypasses setupMacsec's hex-length
+    // validation). Copy only array-size chars from the longer hex strings so we
+    // don't overrun them.
+    std::copy_n(
         rxSak1.keyHex()->begin(),
-        rxSak1.keyHex()->end(),
+        rxSecureAssocKey.size(),
         rxSecureAssocKey.data());
-    std::copy(
+    std::copy_n(
         rxSak1.keyIdHex()->begin(),
-        rxSak1.keyIdHex()->end(),
+        rxSecureAssocAuthKey.size(),
         rxSecureAssocAuthKey.data());
     saiManagerTable->aclTableGroupManager().addAclTableGroup(
         std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS_MACSEC));
@@ -729,5 +736,52 @@ TEST_F(MacsecManagerTest, deleteKeysWithSingleSecureAssoc) {
       saiManagerTable->macsecManager().getMacsecSecureChannelHandle(
           swPort->getID(), packSci(localSci), SAI_MACSEC_DIRECTION_EGRESS);
   ASSERT_EQ(txChannel, nullptr);
+}
+
+TEST_F(MacsecManagerTest, invalidKeyLength) {
+  std::shared_ptr<Port> swPort = makePort(p0, cfg::PortSpeed::HUNDREDG, true);
+  saiManagerTable->portManager().addPort(swPort);
+
+  // A 32 hex-char (16-byte) key instead of the required 64 hex-char (32-byte)
+  // AES-256 key. Before the fix this was accepted and only the low 16 bytes of
+  // the key were populated (half-strength key). setupMacsec now rejects it,
+  // logging an error and returning early without installing a secure assoc.
+  auto shortKeySak = makeSak(
+      remoteSci,
+      PortID(p0.id),
+      "01020304050607080910111213141516", // 32 hex chars, not 64
+      "08070605040302010807060504030201",
+      0);
+
+  EXPECT_NO_THROW(saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), shortKeySak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS));
+
+  // The rejected key must not install a secure association.
+  EXPECT_EQ(
+      saiManagerTable->macsecManager().getMacsecSecureAssoc(
+          swPort->getID(),
+          packSci(remoteSci),
+          SAI_MACSEC_DIRECTION_INGRESS,
+          *shortKeySak.assocNum()),
+      nullptr);
+
+  // A valid 64 hex-char key installs the secure association as usual.
+  auto validSak = makeSak(
+      remoteSci,
+      PortID(p0.id),
+      "0102030405060708091011121314151617181920212223242526272829303132",
+      "08070605040302010807060504030201",
+      0);
+
+  EXPECT_NO_THROW(saiManagerTable->macsecManager().setupMacsec(
+      swPort->getID(), validSak, remoteSci, SAI_MACSEC_DIRECTION_INGRESS));
+
+  EXPECT_NE(
+      saiManagerTable->macsecManager().getMacsecSecureAssoc(
+          swPort->getID(),
+          packSci(remoteSci),
+          SAI_MACSEC_DIRECTION_INGRESS,
+          *validSak.assocNum()),
+      nullptr);
 }
 } // namespace facebook::fboss

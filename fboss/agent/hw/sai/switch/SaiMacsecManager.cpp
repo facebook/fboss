@@ -815,17 +815,22 @@ void SaiMacsecManager::setupMacsec(
     }
   };
 
-  if (sak.keyHex()->size() < 32) {
-    XLOG(ERR) << "Macsec key can't be lesser than 32 bytes";
+  // keyHex is a hex string: a 32-byte AES-256 key is 64 hex chars. The prior
+  // check compared the hex char count against the byte count, so a 32-char
+  // (16-byte) key was accepted and only the low half of the 256-bit key was
+  // populated. Require the exact hex length before decoding.
+  if (sak.keyHex()->size() != 64) {
+    XLOG(ERR) << "Macsec key must be exactly 64 hex chars (32 bytes)";
     return;
   }
   std::array<uint8_t, 32> key{0};
   hexStringToBytes(sak.keyHex().value(), key.data(), 32);
 
   // Input macsec keyid (auth key) is provided in string which needs to be
-  // converted to 16 byte array for passing to sai
-  if (sak.keyIdHex()->size() < 16) {
-    XLOG(ERR) << "Macsec key Id can't be lesser than 16 bytes";
+  // converted to 16 byte array for passing to sai. A 16-byte key id is 32 hex
+  // chars.
+  if (sak.keyIdHex()->size() != 32) {
+    XLOG(ERR) << "Macsec key Id must be exactly 32 hex chars (16 bytes)";
     return;
   }
 
