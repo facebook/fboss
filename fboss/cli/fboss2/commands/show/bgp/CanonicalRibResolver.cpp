@@ -15,9 +15,10 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include <folly/container/F14Map.h>
 
 namespace facebook::fboss {
 
@@ -70,9 +71,9 @@ void assignIfSet(Dst dst, const Src& src) {
  */
 std::optional<TBgpPath> resolveCanonicalPath(
     const TBgpPathCanonical& canonPath,
-    const std::unordered_map<int64_t, TBgpDedupedPath>& dedupedPaths,
+    const folly::F14FastMap<int64_t, TBgpDedupedPath>& dedupedPaths,
     const TBgpAttrDict& attrDict,
-    const std::unordered_map<int64_t, TCanonicalPeer>& peers) {
+    const folly::F14FastMap<int64_t, TCanonicalPeer>& peers) {
   const auto pathIdx = canonPath.path_idx().value();
   auto dedupedIt = dedupedPaths.find(pathIdx);
   if (dedupedIt == dedupedPaths.end()) {

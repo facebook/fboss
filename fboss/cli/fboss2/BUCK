@@ -290,6 +290,9 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip: CanonicalRibResolver.cpp is intentionally also compiled
+    # into fboss2-routing-protocol; inferring that binary as this library's
+    # provider would create a dependency cycle.
     name = "commands-show-bgp",
     headers = [
         "commands/clear/facebook/bgp/profiler/CmdClearBgpProfiler.h",
@@ -370,6 +373,7 @@ cpp_library(
         "//folly:network_address",
         "//folly:string",
         "//folly:subprocess",
+        "//folly/container:f14_hash",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//neteng/fboss/bgp/cpp/rib:rib_dc",
@@ -384,6 +388,9 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip: CanonicalRibResolver.cpp is intentionally also compiled
+    # into fboss2-routing-protocol; inferring that binary as this library's
+    # provider would create a dependency cycle.
     name = "fboss2-lib",
     srcs = [
         "CmdHandlerImplBgp.cpp",
@@ -809,6 +816,7 @@ cpp_library(
         "utils/LoopbackUtils.h",
         "utils/clients/BmcClient.h",
     ],
+    deps = ["//folly/container:f14_hash"],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
@@ -1491,6 +1499,7 @@ cpp_binary(
         "//folly:range",
         "//folly:string",
         "//folly:subprocess",
+        "//folly/container:f14_hash",
         "//folly/init:init",
         "//folly/json:dynamic",
         "//folly/logging:init",

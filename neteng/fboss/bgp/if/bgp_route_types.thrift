@@ -290,16 +290,16 @@ struct TPartialDrainState {
  */
 struct TBgpAttrDict {
   /** Unique whole-list COMMUNITY values (RFC 1997). */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   1: map<i64, list<bgp_attr.TBgpCommunity>> community_lists;
   /** Unique whole-list AS_PATH values (RFC 4271). */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   2: map<i64, list<bgp_attr.TAsPathSeg>> as_path_lists;
   /** Unique whole-list EXTENDED COMMUNITIES values (RFC 4360). */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   3: map<i64, list<TBgpExtCommunity>> ext_community_lists;
   /** Unique whole-list CLUSTER_LIST values (RFC 4456). */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   4: map<i64, list<i64>> cluster_lists;
 }
 
@@ -449,7 +449,7 @@ struct TRibEntryCanonical {
    * other paths (e.g. received paths that did not make the bestpath group).
    * Constants: facebook::bgp::kBestPathGroup, facebook::bgp::kDefaultPathGroup.
    */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   2: map<string, list<TBgpPathCanonical>> paths;
   /**
    * RIB version when this entry was last modified. Monotonically increasing
@@ -531,19 +531,19 @@ struct TCanonicalRibState {
    * Shared pool of unique (deduplicated) paths. Each TBgpPathCanonical in
    * rib_entries references one entry here via path_idx.
    */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   2: map<i64, TBgpDedupedPath> deduped_paths;
   /**
    * Shared pool of unique peers. Each TBgpPathCanonical references the peer
    * that advertised it via peer_idx. Bounded by the device's peer count, so
    * negligible relative to deduped_paths.
    */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   3: map<i64, TCanonicalPeer> peers;
   /**
    * Per-prefix entries. Key is str() of folly::CIDRNetwork (matches the
    * prefix in TRibEntryCanonical.prefix).
    */
-  @cpp.Type{template = "std::unordered_map"}
+  @cpp.Type{template = "folly::F14FastMap"}
   4: map<string, TRibEntryCanonical> rib_entries;
 }
