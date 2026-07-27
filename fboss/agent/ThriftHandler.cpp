@@ -3327,11 +3327,14 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
   }
 
   /*
-   * Named NHG are associated with counters in HW. SAI impls
-   * reject counters with label length > 31 characters. So
-   * restrict it here.
+   * Named NHG are associated with counters in HW. The base SAI counter label
+   * holds 31 characters; with FLAGS_srv6 the extended label attribute allows up
+   * to 255. Restrict the group name to the corresponding limit here.
    */
   static constexpr size_t kMaxGroupNameLen = 31;
+  static constexpr size_t kMaxExtendedGroupNameLen = 255;
+  auto maxGroupNameLen =
+      FLAGS_srv6 ? kMaxExtendedGroupNameLen : kMaxGroupNameLen;
   auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
   auto state = sw_->getState();
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
@@ -3339,10 +3342,10 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
     if (!group.name().has_value() || group.name()->empty()) {
       throw FbossError("Named next-hop group must have a name");
     }
-    if (group.name()->size() > kMaxGroupNameLen) {
+    if (group.name()->size() > maxGroupNameLen) {
       throw FbossError(
           "Named next-hop group name exceeds max length of ",
-          kMaxGroupNameLen,
+          maxGroupNameLen,
           " characters: ",
           *group.name());
     }
