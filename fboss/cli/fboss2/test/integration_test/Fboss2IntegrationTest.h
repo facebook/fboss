@@ -420,8 +420,11 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * Candidates are also rejected when the ID is already in use as an intfID by
    * a different VLAN — VlanManager would then allocate 5000 + vlanId instead,
    * which is out of range under both mappings.
+   *
+   * `exclude` rejects additional IDs, so a suite that needs several distinct
+   * VLANs can pick them all up front before any of them is committed.
    */
-  int pickUnusedVlanId() const;
+  int pickUnusedVlanId(const std::set<int>& exclude = {}) const;
 
   /**
    * Remove a VLAN and its backing interface from the running config and

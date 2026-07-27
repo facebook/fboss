@@ -741,14 +741,15 @@ folly::dynamic Fboss2IntegrationTest::getNdpConfig(
   return folly::dynamic::object();
 }
 
-int Fboss2IntegrationTest::pickUnusedVlanId() const {
+int Fboss2IntegrationTest::pickUnusedVlanId(
+    const std::set<int>& exclude) const {
   auto config = getRunningConfig();
   if (!config.isObject() || !config.count("sw")) {
     return 0;
   }
   const auto& sw = config["sw"];
 
-  std::set<int> usedVlans;
+  std::set<int> usedVlans(exclude);
   std::set<int> usedIntfIds;
   auto collect =
       [&sw](const char* array, const char* field, std::set<int>& into) {
