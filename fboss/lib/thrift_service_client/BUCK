@@ -36,6 +36,7 @@ cpp_library(
         "//folly/ssl:openssl_ptr_types",
         "//infrasec/authorization:base_identity_util",
         "//neteng/fboss/tools/build_info/server/if:fboss_build_info_if-cpp2-services",
+        "//nettools/ebb/platform/if:TeSrv6Agent-cpp2-clients",
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:rocket_client_channel",
