@@ -2531,6 +2531,17 @@ const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
 }
 #endif
 
+bool SaiPortManager::isLinkDebounceRetriggerCounterSupported(
+    [[maybe_unused]] const HwAsic* asic) {
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211))
+  return asic->isSupported(HwAsic::Feature::PORT_DEBOUNCE);
+#else
+  return false;
+#endif
+}
+
 void SaiPortManager::updateStats(
     PortID portId,
     bool updateWatermarks,
@@ -2711,6 +2722,34 @@ void SaiPortManager::updateStats(
   if (logicalPortId) {
     curPortStats.logicalPortId() = *logicalPortId;
   }
+
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211))
+  if (isLinkDebounceRetriggerCounterSupported(platform_->getAsic())) {
+    auto& portApi = SaiApiTable::getInstance()->portApi();
+    auto adapterKey = handle->port->adapterKey();
+    const auto& portAttrs = handle->port->attributes();
+    // Only read the retrigger counts for ports that actually have a debounce
+    // hold timer configured.
+    auto downPeriod = std::get<
+        std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
+        portAttrs);
+    if (downPeriod.has_value() && downPeriod->value() > 0) {
+      curPortStats.linkDownDebounceRetriggerCount_() = portApi.getAttribute(
+          adapterKey,
+          SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+    }
+    auto upPeriod = std::get<
+        std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
+        portAttrs);
+    if (upPeriod.has_value() && upPeriod->value() > 0) {
+      curPortStats.linkUpDebounceRetriggerCount_() = portApi.getAttribute(
+          adapterKey,
+          SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+    }
+  }
+#endif
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK)) {

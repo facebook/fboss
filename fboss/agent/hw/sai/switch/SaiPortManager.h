@@ -36,6 +36,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 struct SaiIngressPriorityGroupHandleAndProfile;
+class HwAsic;
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
@@ -244,6 +245,12 @@ class SaiPortManager {
       PortID portID,
       bool updateWatermarks = false,
       bool updateCableLengths = false);
+
+  // Link up/down debounce retrigger counts are leaba READ_ONLY port attributes
+  // (25.5.4210 / 26.2+). Compile-time SDK gate; the per-port read in
+  // updateStats is additionally guarded on the port having a debounce hold
+  // timer configured.
+  static bool isLinkDebounceRetriggerCounterSupported(const HwAsic* asic);
 
   void updateConnectivityStats(PortID portID);
 
