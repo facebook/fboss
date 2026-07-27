@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.transceiver
-namespace php fboss
 namespace py neteng.fboss.transceiver
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
@@ -9,7 +8,10 @@ include "fboss/lib/phy/link.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 

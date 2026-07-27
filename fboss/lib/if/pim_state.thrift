@@ -5,7 +5,6 @@ package;
 
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.pim_state
-namespace php fboss_common
 namespace py neteng.fboss.pim_state
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.pim_state

@@ -3,7 +3,6 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.platform_mapping_config
 namespace cpp2 facebook.fboss.platform_mapping_config
 namespace go neteng.fboss.platform_mapping_config
-namespace php fboss_platform_mapping_config
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"

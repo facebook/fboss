@@ -12,7 +12,6 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.qsfp_production_features
 namespace cpp2 facebook.fboss.qsfp_production_features
 namespace go neteng.fboss.qsfp_production_features
-namespace php fboss_qsfp_production_features
 
 enum QsfpProductionFeature {
   MACSEC = 0,

@@ -7,7 +7,6 @@ package;
 
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.link_qsfp_test_port_info
-namespace php fboss_link_qsfp_test_port_info
 namespace py neteng.fboss.link_qsfp_test_port_info
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.link_qsfp_test_port_info

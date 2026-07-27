@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.platform.reboot_cause_config
 namespace go neteng.fboss.platform.reboot_cause_config
-namespace php NetengFbossPlatformRebootCauseConfig
 namespace py neteng.fboss.platform.reboot_cause_config
 namespace py3 neteng.fboss.platform.reboot_cause_config
 namespace py.asyncio neteng.fboss.platform.asyncio.reboot_cause_config

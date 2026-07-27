@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.transceiver_validation
-namespace php fboss
 namespace py neteng.fboss.transceiver_validation
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver_validation
