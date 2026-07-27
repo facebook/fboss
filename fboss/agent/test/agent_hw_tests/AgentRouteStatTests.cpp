@@ -2,6 +2,7 @@
 
 #include <folly/IPAddressV6.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -23,6 +24,10 @@ const std::optional<facebook::fboss::RouteCounterID> kCounterID2(
     "route.counter.1");
 const std::optional<facebook::fboss::RouteCounterID> kCounterID3(
     "route.counter.2");
+// 200-byte label, well beyond the 32-byte SAI_COUNTER_ATTR_LABEL, exercising
+// the extended label attribute.
+const std::optional<facebook::fboss::RouteCounterID> kLongCounterID(
+    std::string(200, 'a'));
 constexpr int kUdpSrcPort = 4049;
 constexpr int kUdpDstPort = 4050;
 } // namespace
@@ -323,6 +328,40 @@ TEST_F(AgentRouteStatTest, CounterModify) {
     // Restore the route to original state, so verify
     // can be run multiple times
     addRoute(kAddr1, 120, PortDescriptor(origRoutePort), kCounterID1);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Extended route-counter label (>32 bytes) via
+// SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED.
+class AgentRouteStatExtendedLabelTest : public AgentRouteStatTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ROUTE_COUNTERS, ProductionFeature::SRV6_ENCAP};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_srv6 = true;
+  }
+};
+
+TEST_F(AgentRouteStatExtendedLabelTest, RouteCounterExtendedLabel) {
+  auto setup = [this]() {
+    setupEcmpHelper();
+    addRoute(
+        kAddr1,
+        120,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kLongCounterID);
+  };
+  auto verify = [this]() {
+    auto srcPort = masterLogicalInterfacePortIds()[1];
+    sendAndVerifyCounterIncrement({{kAddr1, *kLongCounterID}}, srcPort);
+    auto hwSwitchStats = getHwSwitchStats();
+    auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+    EXPECT_TRUE(routeCounters.count(*kLongCounterID));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
