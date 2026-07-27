@@ -6,7 +6,7 @@
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 5000",
+        "busName": "CPU_BUS@0",
         "address": "0x53",
         "kernelDeviceName": "24c02"
       }
@@ -53,7 +53,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000"
+    "CPU_BUS@0"
   ],
   "versionedPmUnitConfigs": {
     "NETLAKE": [
@@ -332,7 +332,8 @@
             }
           ]
         }
-      ],      "i2cDeviceConfigs": [
+      ],
+      "i2cDeviceConfigs": [
         {
           "busName": "MCB_IOB_I2C_MASTER_2",
           "address": "0x70",
@@ -1637,7 +1638,8 @@
     "/run/devmap/rtms/rtm_ctrl_mdio_r_14_4": "/[RTM_R_RTM_CTRL_PORT_112]",
     "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR": "/RUNBMC_SLOT@0/[RUNBMC_THERMAL_SENSOR]",
     "/run/devmap/sensors/COME_HWMON1": "/COMESE_SLOT@0/[COME_HWMON1]",
-    "/run/devmap/sensors/COME_HWMON2": "/COMESE_SLOT@0/[COME_HWMON2]",    "/run/devmap/sensors/COME_HWMON3": "/COMESE_SLOT@0/[COME_HWMON3]",
+    "/run/devmap/sensors/COME_HWMON2": "/COMESE_SLOT@0/[COME_HWMON2]",
+    "/run/devmap/sensors/COME_HWMON3": "/COMESE_SLOT@0/[COME_HWMON3]",
     "/run/devmap/sensors/COME_HWMON4": "/COMESE_SLOT@0/[COME_HWMON4]",
     "/run/devmap/sensors/COME_HWMON5": "/COMESE_SLOT@0/[COME_HWMON5]",
     "/run/devmap/sensors/COME_INLET_TSENSOR": "/COMESE_SLOT@0/[COME_INLET_TSENSOR]",
@@ -1706,7 +1708,8 @@
   "numRtms": 112,
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "4.4.1-1",
-  "nonBspKmodsToLoad": [    "i2c_i801",
+  "nonBspKmodsToLoad": [
+    "i2c_i801",
     "spidev",
     "ledtrig_timer"
   ]
