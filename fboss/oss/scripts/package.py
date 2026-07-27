@@ -21,21 +21,11 @@ TARGET_NAMES = ("agent-benchmarks", "forwarding-stack", "platform-stack")
 
 
 # Maps getdeps package name to library name when they differ.
-LIB_NAME_OVERRIDES = {
-    "fmt-python": "fmt",
-}
+LIB_NAME_OVERRIDES = {"fmt-python": "fmt"}
 
 # Global definitions describing what we package for each target.
 
-COMMON_LIBS = [
-    "gflags",
-    "glog",
-    "folly",
-    "fmt-python",
-    "wangle",
-    "fizz",
-    "mvfst",
-]
+COMMON_LIBS = ["gflags", "glog", "folly", "fmt-python", "wangle", "fizz", "mvfst"]
 
 FORWARDING_BINARIES = [
     "diag_shell_client",
@@ -122,7 +112,7 @@ PLATFORM_BINARIES = [
 
 PLATFORM_EXTRA = {
     OSS_DIR
-    / "hw_sanity_tests/bsp_sanity_tests.conf": "share/hw_sanity_tests/bsp_sanity_tests.conf",
+    / "hw_sanity_tests/bsp_sanity_tests.conf": "share/hw_sanity_tests/bsp_sanity_tests.conf"
 }
 
 PLATFORM_LIBS = []
@@ -235,9 +225,7 @@ def _build_target(target: str, build_dir: pathlib.Path):
         test_extras = PLATFORM_TEST_EXTRA
     elif target == "agent-benchmarks":
         bins = AGENT_BENCHMARK_BINARIES
-        extras = {
-            OSS_DIR / "hw_benchmark_tests": "share/hw_benchmark_tests",
-        }
+        extras = {OSS_DIR / "hw_benchmark_tests": "share/hw_benchmark_tests"}
 
     fboss_build_dir = build_dir / "build" / "fboss"
 
@@ -286,9 +274,7 @@ def parse_args(argv):
         ),
     )
     parser.add_argument(
-        "target",
-        choices=list(TARGET_NAMES),
-        help="Packaging target to create.",
+        "target", choices=list(TARGET_NAMES), help="Packaging target to create."
     )
     return parser.parse_args(argv)
 
