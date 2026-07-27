@@ -2187,7 +2187,6 @@ cpp_library(
         ":fboss-types",
         ":utils",
         "//fboss/agent/hw/switch_asics:switch_asics",
-        "//fboss/agent/platforms/common:platform_mapping_utils",
         "//fboss/lib/platforms:product-info",
     ],
 )

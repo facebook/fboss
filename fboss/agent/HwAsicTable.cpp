@@ -4,7 +4,6 @@
 #include <optional>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
