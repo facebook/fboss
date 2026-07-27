@@ -869,15 +869,29 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
 
 #if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
-  // Hold timers (ms) the SDK applies before reporting link up/down events.
-  // Unset on the swPort maps to the SDK default of "no debounce".
-  constexpr sai_uint32_t kSdkDefaultLinkDebouncePeriodMs = 0;
-  SaiPortTraits::Attributes::LinkUpDebouncePeriodMs linkUpDebounce{
-      static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
-          kSdkDefaultLinkDebouncePeriodMs))};
-  SaiPortTraits::Attributes::LinkDownDebouncePeriodMs linkDownDebounce{
-      static_cast<sai_uint32_t>(swPort->getPortDownHoldoffTimeMs().value_or(
-          kSdkDefaultLinkDebouncePeriodMs))};
+  std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>
+      linkUpDebounce{};
+  std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>
+      linkDownDebounce{};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE)) {
+    // Hold timers (ms) the SDK applies before reporting link up/down events.
+    // Unset on the swPort maps to the SDK default of "no debounce".
+    constexpr sai_uint32_t kSdkDefaultLinkDebouncePeriodMs = 0;
+    linkUpDebounce = SaiPortTraits::Attributes::LinkUpDebouncePeriodMs{
+        static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
+            kSdkDefaultLinkDebouncePeriodMs))};
+    linkDownDebounce = SaiPortTraits::Attributes::LinkDownDebouncePeriodMs{
+        static_cast<sai_uint32_t>(swPort->getPortDownHoldoffTimeMs().value_or(
+            kSdkDefaultLinkDebouncePeriodMs))};
+  } else if (
+      swPort->getPortUpHoldoffTimeMs().has_value() ||
+      swPort->getPortDownHoldoffTimeMs().has_value()) {
+    throw FbossError(
+        "Per-port link debounce timers (portUpHoldoffTimeMs / "
+        "portDownHoldoffTimeMs) are not supported on this ASIC; cannot apply to "
+        "port ",
+        swPort->getID());
+  }
 #else
   if (swPort->getPortUpHoldoffTimeMs().has_value() ||
       swPort->getPortDownHoldoffTimeMs().has_value()) {
