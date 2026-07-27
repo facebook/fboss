@@ -15,12 +15,21 @@
 #include <folly/logging/xlog.h>
 
 #include <chrono>
+#include <thread>
 
 namespace facebook::fboss {
 
 constexpr double kTolerance = 0.10;
 constexpr int32_t kHoldoffLongMs = 15000;
 constexpr auto kFlapWithinWindow = std::chrono::milliseconds(1000);
+// Number of extra flaps to inject inside an active down-holdoff window to force
+// the SDK debounce to retrigger.
+constexpr int kNumRetriggers = 3;
+// Settle time between flaps so the SDK observes each link edge as a distinct
+// notification. Without it, wait-free flaps can outpace the SDK's link
+// notification delivery on slower SDKs and drop an edge, making the retrigger
+// count non-deterministic.
+constexpr int32_t kFlapSettleMs = 1000;
 
 class AgentHwLinkDebounceTest : public AgentHwTest {
  public:
@@ -102,6 +111,56 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
     auto name = getProgrammedState()->getPorts()->getNodeIf(port)->getName();
     return fb303::fbData->getCounterIfExists(name + ".link_state.flap.sum")
         .value_or(0);
+  }
+
+  void settleBetweenFlaps() const {
+    // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+    std::this_thread::sleep_for(std::chrono::milliseconds(kFlapSettleMs));
+  }
+
+  void verifyRetriggerCount(bool upDebounce) {
+    auto port = portForTest();
+    // The up-debounce path holds off on link-up, so start from a down port;
+    // the down-debounce path holds off on link-down from an up port.
+    if (upDebounce) {
+      applyDebounceConfig(kHoldoffLongMs, std::nullopt);
+      bringDownPort(port);
+      ASSERT_FALSE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
+    } else {
+      applyDebounceConfig(std::nullopt, kHoldoffLongMs);
+      ASSERT_TRUE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
+    }
+
+    auto retriggerCount = [&]() {
+      auto stats = getLatestPortStats(port);
+      return (upDebounce ? stats.linkUpDebounceRetriggerCount_()
+                         : stats.linkDownDebounceRetriggerCount_())
+          .value_or(0);
+    };
+    auto before = retriggerCount();
+
+    // Arm the debounce in the held-off direction, then flap back and forth,
+    // settling between flaps so the SDK registers each edge (deterministic).
+    togglePortNoWait(port, upDebounce);
+    settleBetweenFlaps();
+    for (int i = 0; i < kNumRetriggers; ++i) {
+      togglePortNoWait(port, !upDebounce);
+      settleBetweenFlaps();
+      togglePortNoWait(port, upDebounce);
+      settleBetweenFlaps();
+    }
+
+    WITH_RETRIES({
+      auto after = retriggerCount();
+      XLOG(INFO) << "Port link" << (upDebounce ? "Up" : "Down")
+                 << "DebounceRetriggerCount before/after: " << before << "/"
+                 << after;
+      EXPECT_EVENTUALLY_EQ(after - before, kNumRetriggers);
+    });
+
+    // Restore loopback so the port settles back instead of relying on the
+    // holdoff timer eventually firing.
+    togglePortNoWait(port, !upDebounce);
   }
 };
 
@@ -246,6 +305,20 @@ TEST_F(AgentHwLinkDebounceTest, PacketDropDuringDownHoldoff) {
 
     togglePortNoWait(port, true /* toUp */);
   };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwLinkDebounceTest, LinkDownDebounceRetriggerCount) {
+  auto port = portForTest();
+  auto setup = [&]() { bringUpPort(port); };
+  auto verify = [&]() { verifyRetriggerCount(false /* upDebounce */); };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentHwLinkDebounceTest, LinkUpDebounceRetriggerCount) {
+  auto port = portForTest();
+  auto setup = [&]() { bringUpPort(port); };
+  auto verify = [&]() { verifyRetriggerCount(true /* upDebounce */); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
