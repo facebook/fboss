@@ -33,18 +33,26 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
 
   std::map<std::string, int64_t> counters;
   if (utils::isMultiSwitchEnabled(hostInfo)) {
-#ifndef IS_OSS
     auto hwAgentQueryFn =
         [&counters](
             apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
           std::map<std::string, int64_t> hwAgentCounters;
+#ifndef IS_OSS
           apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
               client.getChannelShared()};
           monitoringClient.sync_getCounters(hwAgentCounters);
+#else
+          // FbossHwCtrl does not extend FacebookService; the OSS HwAgent
+          // multiplex serves fb303 methods via a FacebookBase2 handler, so
+          // reuse the channel with an FbossCtrl client (which carries
+          // getCounters) to fetch HwAgent counters.
+          apache::thrift::Client<facebook::fboss::FbossCtrl> fb303Client{
+              client.getChannelShared()};
+          fb303Client.sync_getCounters(hwAgentCounters);
+#endif
           counters.merge(hwAgentCounters);
         };
     utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-#endif
   } else {
     auto entries =
         client->semifuture_getCounters().via(executor.getEventBase());
