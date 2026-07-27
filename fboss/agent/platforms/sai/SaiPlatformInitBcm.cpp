@@ -20,6 +20,7 @@
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
+#include "fboss/agent/platforms/common/m4062nhp/M4062nhpPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -61,6 +62,7 @@ bool useGenericSaiBcmPlatform(PlatformType type) {
       type == PlatformType::PLATFORM_ICETEA800BC ||
       type == PlatformType::PLATFORM_LADAKH800BCLS ||
       type == PlatformType::PLATFORM_LEH800BCLS ||
+      type == PlatformType::PLATFORM_M4062NHP ||
       type == PlatformType::PLATFORM_MINIPACK3BTA ||
       type == PlatformType::PLATFORM_MONTBLANC ||
       type == PlatformType::PLATFORM_TAHAN800BC ||
@@ -98,6 +100,8 @@ std::unique_ptr<PlatformMapping> createGenericSaiBcmPlatformMapping(
       return std::make_unique<Ladakh800bclsPlatformMapping>();
     case PlatformType::PLATFORM_LEH800BCLS:
       return std::make_unique<Leh800bclsPlatformMapping>();
+    case PlatformType::PLATFORM_M4062NHP:
+      return std::make_unique<M4062nhpPlatformMapping>();
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BIAC:

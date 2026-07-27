@@ -107,6 +107,7 @@ bool useGenericSaiBcmPlatformPort(PlatformType platformMode) {
       platformMode == PlatformType::PLATFORM_ICETEA800BC ||
       platformMode == PlatformType::PLATFORM_LADAKH800BCLS ||
       platformMode == PlatformType::PLATFORM_LEH800BCLS ||
+      platformMode == PlatformType::PLATFORM_M4062NHP ||
       platformMode == PlatformType::PLATFORM_WEDGE800BACT ||
       platformMode == PlatformType::PLATFORM_WEDGE800BNHP ||
       platformMode == PlatformType::PLATFORM_TAHANSB800BC ||
