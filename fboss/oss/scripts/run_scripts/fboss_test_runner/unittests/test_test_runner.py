@@ -465,3 +465,17 @@ class TestResolveTestsFile:
     def test_no_default_returns_empty(self, runner):
         # A runner with no default file (default_file="") and no override.
         assert runner._resolve_tests_file(None, "", "unsupported") == ""
+
+
+class TestGetTestRunCmdSwitchId:
+    def test_switch_id_for_testing_is_included(self, runner, mock_args):
+        mock_args.switch_id_for_testing = 1
+        with patch.object(runner, "args", new=mock_args):
+            cmd = runner._get_test_run_cmd("dummy.conf", "HwFooTest.Bar", [])
+            assert "--switch_id_for_testing=1" in cmd
+
+    def test_switch_id_for_testing_none_is_excluded(self, runner, mock_args):
+        mock_args.switch_id_for_testing = None
+        with patch.object(runner, "args", new=mock_args):
+            cmd = runner._get_test_run_cmd("dummy.conf", "HwFooTest.Bar", [])
+            assert not any("switch_id_for_testing" in item for item in cmd)

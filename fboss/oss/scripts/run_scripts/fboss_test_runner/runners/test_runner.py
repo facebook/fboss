@@ -34,6 +34,7 @@ from fboss_test_runner.constants import (
     OPT_ARG_SETUP_WB,
     OPT_ARG_SIMULATOR,
     OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+    OPT_ARG_SWITCH_ID_FOR_TESTING,
     OPT_ARG_TEST_RUN_TIMEOUT,
     OPT_KNOWN_BAD_TESTS_FILE,
     OPT_UNSUPPORTED_TESTS_FILE,
@@ -179,9 +180,7 @@ class TestRunner(abc.ABC):
             help="Only lists the tests, do not run any test",
         )
         sub_parser.add_argument(
-            OPT_ARG_CONFIG_FILE,
-            type=str,
-            help="run with the specified config file",
+            OPT_ARG_CONFIG_FILE, type=str, help="run with the specified config file"
         )
         sub_parser.add_argument(
             OPT_ARG_SKIP_KNOWN_BAD_TESTS,
@@ -223,6 +222,12 @@ class TestRunner(abc.ABC):
             type=int,
             default=DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
             help="Specify test run timeout in seconds",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SWITCH_ID_FOR_TESTING,
+            type=int,
+            default=None,
+            help="Specify switch ID for testing on multi-NPU/multi-switch platforms",
         )
         sub_parser.add_argument(
             OPT_ARG_NUM_WARMBOOT_ITERATIONS,
@@ -325,22 +330,20 @@ class TestRunner(abc.ABC):
     ) -> list[str]:
         args = self.args
         test_binary_name = self._get_test_binary_name()
-        run_cmd = [
-            test_binary_name,
-            "--gtest_filter=" + test_to_run,
-        ]
+        run_cmd = [test_binary_name, "--gtest_filter=" + test_to_run]
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
+        if getattr(args, "switch_id_for_testing", None) is not None:
+            run_cmd.append(
+                f"{OPT_ARG_SWITCH_ID_FOR_TESTING}={args.switch_id_for_testing}"
+            )
         run_cmd += self._get_test_run_args(conf_file)
         run_cmd += self._get_common_gflags()
 
         return run_cmd + flags if flags else run_cmd
 
     def _get_test_regexes_from_file(
-        self,
-        file_path: str,
-        test_dict_key: str,
-        keys_to_try: list[str],
+        self, file_path: str, test_dict_key: str, keys_to_try: list[str]
     ) -> list[str]:
         return get_test_regexes_from_file(file_path, test_dict_key, keys_to_try)
 
@@ -513,15 +516,10 @@ class TestRunner(abc.ABC):
         start_time = time.time()
         try:
             test_run_cmd = self._get_test_run_cmd(conf_file, test_to_run, flags)
-            print(
-                f"Running command {test_run_cmd}",
-                flush=True,
-            )
+            print(f"Running command {test_run_cmd}", flush=True)
 
             run_test_output = subprocess.check_output(
-                test_run_cmd,
-                timeout=args.test_run_timeout,
-                env=self.env_var,
+                test_run_cmd, timeout=args.test_run_timeout, env=self.env_var
             )
             elapsed_ms = int((time.time() - start_time) * 1000)
 
@@ -625,7 +623,7 @@ class TestRunner(abc.ABC):
         elif simulator in DNX_SIMULATOR_ASICS:
             self.env_var.update(DNX_SIMULATOR_ENV)
 
-    def _run_tests(  # noqa: PLR0915 - complex orchestration; splitting would harm readability
+    def _run_tests(
         self, tests_to_run: list[str], conf_file: str, args: Namespace
     ) -> list[GtestResult]:
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)

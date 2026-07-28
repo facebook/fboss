@@ -83,6 +83,18 @@ def test_build_cmd_with_config(suite, sai_args):
     assert "--mgmt-if" in cmd and "eth1" in cmd
 
 
+def test_build_cmd_with_switch_id_for_testing_included(suite, sai_args):
+    sai_args.switch_id_for_testing = 1
+    cmd = suite.build_cmd("/bin/b", sai_args)
+    assert "--switch_id_for_testing=1" in cmd
+
+
+def test_build_cmd_with_switch_id_for_testing_excluded(suite, sai_args):
+    sai_args.switch_id_for_testing = None
+    cmd = suite.build_cmd("/bin/b", sai_args)
+    assert not any("switch_id_for_testing" in item for item in cmd)
+
+
 # ---- known_bad_keys ------------------------------------------------------
 
 
