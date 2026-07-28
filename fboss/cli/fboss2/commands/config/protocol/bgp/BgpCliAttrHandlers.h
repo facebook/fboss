@@ -77,17 +77,46 @@ AttrHandler<T> joinedStringAttr(
       };
 }
 
+// A true/false value (accepts the parseBool spellings).
+template <typename T>
+AttrHandler<T> boolAttr(
+    std::string_view name,
+    std::function<void(T&, bool)> set) {
+  return
+      [name, set = std::move(set)](T& target, const Tokens& values) -> Result {
+        if (values.size() != 1) {
+          return err(fmt::format("Error: {} requires <true|false>", name));
+        }
+        auto enable = parseBool(values[0]);
+        if (!enable) {
+          return err(
+              fmt::format(
+                  "Error: Invalid {} value '{}'; expected true or false",
+                  name,
+                  values[0]));
+        }
+        set(target, *enable);
+        return ok(
+            fmt::format(
+                "Successfully {} {}", *enable ? "enabled" : "disabled", name));
+      };
+}
+
 // A value drawn from a fixed set of names, mapped to an enum by `lookup`
 // (returns std::nullopt for an unrecognized name). `valueDesc` documents the
-// accepted names in both the usage and the rejection message.
+// accepted names in both the usage and the rejection message; it is taken by
+// value because call sites build it with fmt::format, and a string_view
+// capture would dangle once that temporary dies.
 template <typename T, typename Enum>
 AttrHandler<T> enumAttr(
     std::string_view name,
-    std::string_view valueDesc,
+    std::string valueDesc,
     std::function<std::optional<Enum>(const std::string&)> lookup,
     std::function<void(T&, Enum)> set) {
-  return [name, valueDesc, lookup = std::move(lookup), set = std::move(set)](
-             T& target, const Tokens& values) -> Result {
+  return [name,
+          valueDesc = std::move(valueDesc),
+          lookup = std::move(lookup),
+          set = std::move(set)](T& target, const Tokens& values) -> Result {
     if (values.size() != 1) {
       return err(fmt::format("Error: {} requires <{}>", name, valueDesc));
     }

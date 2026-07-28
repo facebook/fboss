@@ -214,7 +214,11 @@ TEST_F(CmdConfigBgpPolicyAsPathListTestFixture, matchLogicDefaultIsEqual) {
 
 TEST_F(CmdConfigBgpPolicyAsPathListTestFixture, invalidMatchLogicRejected) {
   auto result = run({"AS100", "entry", "10", "match-logic", "MAYBE"});
-  EXPECT_THAT(result, HasSubstr("Invalid"));
+  // The full message matters: the accepted-values suffix once printed garbage
+  // (a string_view capture dangling over a fmt::format temporary).
+  EXPECT_THAT(
+      result,
+      HasSubstr("Invalid match-logic value 'MAYBE'; expected EQUAL|NOT_EQUAL"));
   // The rejected value must not leave a phantom list/entry behind.
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists())
