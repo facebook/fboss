@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.multiswitch
 namespace go neteng.fboss.multiswitch
-namespace php fboss.multiswitch
 namespace py neteng.fboss.multiswitch_ctrl
 namespace py3 neteng.fboss.multiswitch
 namespace py.asyncio neteng.fboss.asyncio.multiswitch_ctrl

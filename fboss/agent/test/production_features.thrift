@@ -9,7 +9,6 @@ namespace py3 neteng.fboss.test
 namespace py.asyncio neteng.fboss.test.asyncio.production_features
 namespace cpp2 facebook.fboss.test.production_features
 namespace go neteng.fboss.test.production_features
-namespace php fboss_test_production_features
 
 enum ProductionFeature {
   VOQ = 0,

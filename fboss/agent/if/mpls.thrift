@@ -1,11 +1,14 @@
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_mpls_"}
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_mpls_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.mpls
-namespace php fboss_mpls
 namespace py neteng.fboss.mpls
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.mpls

@@ -6,7 +6,6 @@ namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
-namespace php fboss_switch_config
 
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
@@ -14,7 +13,11 @@ include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_switch_config_"}
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_switch_config_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 

@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.utility
 namespace go neteng.fboss.agent_hw_test_ctrl
-namespace php fboss
 namespace py neteng.fboss.agent_hw_test_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_hw_test_ctrl

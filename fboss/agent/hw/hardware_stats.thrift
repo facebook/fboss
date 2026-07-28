@@ -3,12 +3,15 @@ namespace py neteng.fboss.hardware_stats
 namespace go neteng.fboss.hardware_stats
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.hardware_stats
-namespace php fboss_hw
 
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_hw_"}
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_hw_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 

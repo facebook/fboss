@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.ctrl
-namespace php fboss
 namespace py neteng.fboss.ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.ctrl
@@ -21,7 +20,12 @@ include "fboss/lib/phy/prbs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_"}
+@hack.LegacyAlwaysIncludeNamePrefixInProcessor
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 

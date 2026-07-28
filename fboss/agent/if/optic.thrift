@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.optic
-namespace php fboss
 namespace py neteng.fboss.optic
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.optic

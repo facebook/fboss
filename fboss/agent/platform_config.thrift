@@ -6,7 +6,6 @@ namespace py3 neteng.fboss.platform_config
 namespace py.asyncio neteng.fboss.asyncio.platform_config
 namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.platform_config
-namespace php fboss_platform_config
 
 include "fboss/agent/hw/bcm/bcm_config.thrift"
 include "fboss/agent/hw/sai/config/asic_config.thrift"
@@ -15,7 +14,10 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_platform_config_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 
