@@ -970,6 +970,29 @@ cpp_library(
 )
 
 cpp_library(
+    name = "fabric_connectivity_manager",
+    srcs = [
+        "FabricConnectivityManager.cpp",
+    ],
+    headers = [
+        "FabricConnectivityManager.h",
+    ],
+    exported_deps = [
+        ":asic_utils",
+        ":fboss-types",
+        ":hwswitchcallback",
+        ":switch_config-cpp2-types",
+        ":utils",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -985,7 +1008,6 @@ cpp_library(
         "DsfSubscription.cpp",
         "DsfUpdateValidator.cpp",
         "EncapIndexAllocator.cpp",
-        "FabricConnectivityManager.cpp",
         "FabricLinkMonitoring.cpp",
         "FabricLinkMonitoringManager.cpp",
         "FsdbSyncer.cpp",
@@ -1083,6 +1105,7 @@ cpp_library(
         ":dhcpv4_options_of_interest",
         ":dsfnode_utils",
         ":ecmp_resource_manager",
+        ":fabric_connectivity_manager",
         ":fboss-error",
         ":fboss-types",
         ":fboss_event_base",
@@ -1131,9 +1154,7 @@ cpp_library(
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/if:common-cpp2-types",
-        "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
-        "//fboss/agent/if:hw_ctrl-cpp2-services",
         "//fboss/agent/if:mpls-cpp2-types",
         "//fboss/agent/if:multiswitch_ctrl-cpp2-services",
         "//fboss/agent/lldp:lldp",
@@ -1145,7 +1166,6 @@ cpp_library(
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/platforms/common:platform_mapping_utils",
-        "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:network_to_route_map",
         "//fboss/agent/rib:nexthop_id_manager",
