@@ -80,8 +80,9 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   }
 
   sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
-  // For uA / uN, drop traffic when the next hop isn't resolved.
+  // For uA, drop traffic when the next hop isn't resolved.
   if (mySid.getType() != MySidType::DECAPSULATE_AND_LOOKUP &&
+      mySid.getType() != MySidType::NODE_MICRO_SID &&
       nextHopId == SAI_NULL_OBJECT_ID) {
     packetAction = SAI_PACKET_ACTION_DROP;
   }
@@ -252,6 +253,14 @@ void SaiSrv6MySidManager::addMySidEntry(
     }
   }
 
+  // Unresolved uN is kept in switch state (visible via show mysid) but some
+  // platforms reject SAI create with a null next hop. Defer HW programming
+  // until RIB resolves the configured node-address.
+  if (mySid->getType() == MySidType::NODE_MICRO_SID &&
+      !resolvedNextHopsId.has_value()) {
+    return;
+  }
+
   std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
   std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -286,6 +295,10 @@ void SaiSrv6MySidManager::removeMySidEntry(
   auto key = getMySidAdapterHostKey(*mySid, managerTable_);
   auto itr = handles_.find(key);
   if (itr == handles_.end()) {
+    if (mySid->getType() == MySidType::NODE_MICRO_SID &&
+        !mySid->getResolvedNextHopsId().has_value()) {
+      return;
+    }
     throw FbossError("MySid entry does not exist for ", mySid->getID());
   }
   handles_.erase(itr);

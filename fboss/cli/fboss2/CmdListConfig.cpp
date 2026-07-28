@@ -111,6 +111,10 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/delete/CmdConfigSrv6MySidDelete.h"
 #include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
@@ -135,6 +139,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -962,6 +968,32 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdConfigRollback>,
        argRegistrar<CmdConfigRollbackTraits>},
 
+      {
+          "config",
+          "srv6",
+          "Configure SRv6 MySID settings",
+          commandHandler<CmdConfigSrv6>,
+          argRegistrar<CmdConfigSrv6Traits>,
+          {{
+              "my-sid",
+              "Init or manage MySID entries under a locator prefix",
+              commandHandler<CmdConfigSrv6MySid>,
+              argRegistrar<CmdConfigSrv6MySidTraits>,
+              {{
+                   "add",
+                   "Add uA/uN/uDT46 entry: add entry <fn> type ...",
+                   commandHandler<CmdConfigSrv6MySidAdd>,
+                   argRegistrar<CmdConfigSrv6MySidAddTraits>,
+               },
+               {
+                   "delete",
+                   "Remove one entry: delete entry <fn>",
+                   commandHandler<CmdConfigSrv6MySidDelete>,
+                   argRegistrar<CmdConfigSrv6MySidDeleteTraits>,
+               }},
+          }},
+      },
+
       {"config",
        "tunnel",
        "Configure tunnel settings",
@@ -1114,6 +1146,20 @@ const CommandTree& kConfigCommandTree() {
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
+
+      {
+          "delete",
+          "srv6",
+          "Delete SRv6 MySID configuration",
+          commandHandler<CmdDeleteSrv6>,
+          argRegistrar<CmdDeleteSrv6Traits>,
+          {{
+              "my-sid",
+              "Remove entire mySidConfig block for <prefix>",
+              commandHandler<CmdDeleteSrv6MySid>,
+              argRegistrar<CmdDeleteSrv6MySidTraits>,
+          }},
+      },
 
       {"delete",
        "tunnel",

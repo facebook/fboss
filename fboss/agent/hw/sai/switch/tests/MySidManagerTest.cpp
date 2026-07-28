@@ -81,9 +81,9 @@ TEST_F(MySidManagerTest, addDuplicateThrows) {
 TEST_F(MySidManagerTest, addUnresolvedUASidProgramsWithDropAction) {
   auto mySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   auto state = getProgrammedState();
-  // uA / uN unresolved entries are programmed in SAI with PacketAction=DROP
-  // so a midpoint packet hits the SRv6 lookup and increments the discard
-  // counter rather than silently falling through to regular IP routing.
+  // uA unresolved entries are programmed in SAI with PacketAction=DROP so a
+  // midpoint packet hits the SRv6 lookup and increments the discard counter
+  // rather than silently falling through to regular IP routing.
   saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
 
   auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
@@ -98,6 +98,23 @@ TEST_F(MySidManagerTest, addUnresolvedUASidProgramsWithDropAction) {
   auto gotNextHopId =
       srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
   EXPECT_EQ(gotNextHopId, SAI_NULL_OBJECT_ID);
+}
+
+TEST_F(MySidManagerTest, addUnresolvedUNSidDefersSaiProgramming) {
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  auto state = getProgrammedState();
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  EXPECT_EQ(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+}
+
+TEST_F(MySidManagerTest, removeDeferredUNSidNoOp) {
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  auto state = getProgrammedState();
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+  EXPECT_NO_THROW(
+      saiManagerTable->srv6MySidManager().removeMySidEntry(mySid, state));
 }
 
 TEST_F(MySidManagerTest, removeDecapsulateAndLookup) {
@@ -123,7 +140,7 @@ TEST_F(MySidManagerTest, removeNonexistentThrows) {
 TEST_F(MySidManagerTest, removeUnresolvedUASidErasesHandle) {
   auto mySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
   auto state = getProgrammedState();
-  // uA / uN unresolved entries ARE programmed (with PacketAction=DROP), so
+  // uA unresolved entries ARE programmed (with PacketAction=DROP), so
   // removeMySidEntry must erase the SAI handle.
   saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
 
@@ -285,6 +302,24 @@ TEST_F(MySidManagerWithNextHopIdTest, changeUnresolvedToResolved) {
   auto gotAction = srv6Api.getAttribute(
       key, SaiMySidEntryTraits::Attributes::PacketAction{});
   EXPECT_EQ(gotAction, SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(MySidManagerWithNextHopIdTest, unresolvedUNProgramsOnResolve) {
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  auto state = getProgrammedState();
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  EXPECT_EQ(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+
+  RouteNextHopSet nhopSet;
+  nhopSet.insert(makeNextHop(testInterfaces[0]));
+  auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet);
+  auto resolvedMySid = mySid->clone();
+  resolvedMySid->setResolvedNextHopsId(allocResult.nextHopIdSetIter->second.id);
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      mySid, resolvedMySid, state);
+  EXPECT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
 }
 
 TEST_F(MySidManagerWithNextHopIdTest, addNodeMicroSidWithResolvedNextHop) {

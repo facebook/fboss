@@ -72,6 +72,7 @@
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
@@ -3748,6 +3749,16 @@ void SwSwitch::applyConfig(
   setConfigImpl(std::move(newAgentConfig));
 }
 
+void SwSwitch::syncStaticMySidSwitchStateFromRib() {
+  if (!rib_) {
+    return;
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib_->syncMySidSwitchState(
+      getScopeResolver(), ribMySidToSwitchStateFunc, this);
+}
+
 void SwSwitch::applyConfigImpl(
     const std::string& reason,
     const cfg::SwitchConfig& newConfig) {
@@ -3813,6 +3824,10 @@ void SwSwitch::applyConfigImpl(
    * update wrapper abstraction
    */
   routeUpdater.program();
+  if (oldConfig.mySidConfig().has_value() ||
+      newConfig.mySidConfig().has_value()) {
+    syncStaticMySidSwitchStateFromRib();
+  }
   runFsdbSyncFunction([&oldConfig, &newConfig](auto& syncer) {
     syncer->cfgUpdated(oldConfig, newConfig);
   });
