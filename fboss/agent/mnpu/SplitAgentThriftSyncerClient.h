@@ -24,9 +24,11 @@
 #include <folly/coro/UnboundedQueue.h>
 #endif
 
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 #include "fboss/agent/mnpu/IpcHealthMonitor.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/CommonThriftUtils.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 namespace facebook::fboss {

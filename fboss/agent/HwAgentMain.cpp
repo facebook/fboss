@@ -12,6 +12,7 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentConfig.h"
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
 #endif
