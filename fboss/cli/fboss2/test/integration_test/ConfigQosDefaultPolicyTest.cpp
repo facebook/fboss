@@ -1,19 +1,21 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 /**
- * Integration tests for:
+ * Integration test for:
  *   fboss2-dev config qos default-policy <name>  (set)
  *   fboss2-dev delete qos default-policy  (clear)
  *
  * Both commands operate on sw.dataPlaneTrafficPolicy.defaultQosPolicy.
  *
- * Each test creates its own uniquely named QoS policy in the config session
- * (via `config qos policy <name> map tc-to-queue`) and uses that as the
- * default, so the tests run on any DUT config — including one with no QoS
- * policies at all. The original defaultQosPolicy is captured from the running
- * config and restored in TearDown. The test policy itself may remain in the
- * config afterwards (there is no delete verb for QoS policies yet); its
- * timestamped name keeps it from conflicting with anything.
+ * A single test covers the full lifecycle: set the default policy, verify,
+ * delete it, verify it is gone. The test creates its own uniquely named QoS
+ * policy in the config session (via `config qos policy <name> map
+ * tc-to-queue`) and uses that as the default, so it runs on any DUT config —
+ * including one with no QoS policies at all. The original defaultQosPolicy is
+ * captured from the running config and restored in TearDown. The test policy
+ * itself may remain in the config afterwards (there is no delete verb for QoS
+ * policies yet); its timestamped name keeps it from conflicting with
+ * anything.
  */
 
 #include <fmt/format.h>
@@ -76,7 +78,9 @@ class ConfigQosDefaultPolicyTest : public Fboss2IntegrationTest {
 
   // Create the test QoS policy in the config session. A map subcommand
   // auto-creates the policy; default-policy validates names against the
-  // session config, so no commit is needed before using it.
+  // session config, so no commit is needed before using it. The agent
+  // requires a valid policy to carry a TC-to-Queue map plus a DSCP-to-TC or
+  // PCP-to-TC map, so program both.
   void createTestPolicy() {
     XLOG(INFO) << "Creating test QoS policy: " << testPolicyName_;
     auto result = runCli(
@@ -90,13 +94,26 @@ class ConfigQosDefaultPolicyTest : public Fboss2IntegrationTest {
          "0"});
     ASSERT_EQ(result.exitCode, 0)
         << "Failed to create test QoS policy: " << result.stderr;
+    result = runCli(
+        {"config",
+         "qos",
+         "policy",
+         testPolicyName_,
+         "map",
+         "dscp",
+         "0",
+         "traffic-class",
+         "0"});
+    ASSERT_EQ(result.exitCode, 0)
+        << "Failed to add dscp map to test QoS policy: " << result.stderr;
   }
 
   void restoreOriginalPolicy() {
     discardSession();
-    // Skip when the committed state already matches (e.g. after the delete
-    // test on a DUT that had no default policy): a no-op delete stages no
-    // session change, and committing an empty session fails.
+    // Skip when the committed state already matches (the delete step at the
+    // end of the test already cleared the field on a DUT that had no default
+    // policy): a no-op delete stages no session change, and committing an
+    // empty session fails.
     if (readDefaultPolicy(getRunningConfig()) == originalDefaultPolicy_) {
       return;
     }
@@ -118,32 +135,21 @@ class ConfigQosDefaultPolicyTest : public Fboss2IntegrationTest {
   }
 };
 
-TEST_F(ConfigQosDefaultPolicyTest, SetAndVerifyDefaultPolicy) {
-  XLOG(INFO) << "Setting default QoS policy to: " << testPolicyName_;
-
-  auto result = runCli({"config", "qos", "default-policy", testPolicyName_});
-  ASSERT_EQ(result.exitCode, 0) << "CLI failed: " << result.stderr;
-  EXPECT_THAT(result.stdout, ::testing::HasSubstr("Successfully set"));
-
-  commitConfig();
-
-  auto afterConfig = getRunningConfig();
-  ASSERT_TRUE(afterConfig.isObject() && afterConfig.count("sw"));
-  const auto& sw = afterConfig["sw"];
-  ASSERT_TRUE(sw.isObject() && sw.count("dataPlaneTrafficPolicy"));
-  const auto& policy = sw["dataPlaneTrafficPolicy"];
-  ASSERT_TRUE(policy.isObject() && policy.count("defaultQosPolicy"));
-  EXPECT_EQ(policy["defaultQosPolicy"].asString(), testPolicyName_);
-}
-
-TEST_F(ConfigQosDefaultPolicyTest, DeleteAndVerifyDefaultPolicy) {
-  // First set a policy so there's something to delete
+TEST_F(ConfigQosDefaultPolicyTest, SetAndDeleteDefaultPolicy) {
+  // Set the test policy as the default and commit.
   XLOG(INFO) << "Setting default QoS policy to: " << testPolicyName_;
   auto setResult = runCli({"config", "qos", "default-policy", testPolicyName_});
   ASSERT_EQ(setResult.exitCode, 0) << "Set failed: " << setResult.stderr;
+  EXPECT_THAT(setResult.stdout, ::testing::HasSubstr("Successfully set"));
   commitConfig();
 
-  // Now delete it
+  // Verify the running config reflects the new default.
+  auto afterSet = readDefaultPolicy(getRunningConfig());
+  ASSERT_TRUE(afterSet.has_value())
+      << "defaultQosPolicy absent after set + commit";
+  EXPECT_EQ(*afterSet, testPolicyName_);
+
+  // Delete the default policy and commit.
   auto delResult = runCli({"delete", "qos", "default-policy"});
   ASSERT_EQ(delResult.exitCode, 0) << "Delete failed: " << delResult.stderr;
   EXPECT_THAT(delResult.stdout, ::testing::HasSubstr("Successfully removed"));
@@ -152,12 +158,7 @@ TEST_F(ConfigQosDefaultPolicyTest, DeleteAndVerifyDefaultPolicy) {
   // thrift call, or getRunningConfig() below can hit connection-refused.
   waitForAgentReady();
 
-  // Verify field is absent
-  auto afterConfig = getRunningConfig();
-  ASSERT_TRUE(afterConfig.isObject() && afterConfig.count("sw"));
-  const auto& sw = afterConfig["sw"];
-  bool policyAbsent = !sw.count("dataPlaneTrafficPolicy") ||
-      !sw["dataPlaneTrafficPolicy"].count("defaultQosPolicy");
-  EXPECT_TRUE(policyAbsent)
-      << "defaultQosPolicy should be absent after delete-default-policy";
+  // Verify the field is absent.
+  EXPECT_EQ(readDefaultPolicy(getRunningConfig()), std::nullopt)
+      << "defaultQosPolicy should be absent after delete";
 }
