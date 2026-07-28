@@ -144,21 +144,27 @@ TEST_F(ConfigQosDefaultPolicyTest, SetAndDeleteDefaultPolicy) {
   commitConfig();
 
   // Verify the running config reflects the new default.
-  auto afterSet = readDefaultPolicy(getRunningConfig());
-  ASSERT_TRUE(afterSet.has_value())
-      << "defaultQosPolicy absent after set + commit";
-  EXPECT_EQ(*afterSet, testPolicyName_);
+  auto afterSet = waitForRunningConfig([this](const folly::dynamic& config) {
+    return readDefaultPolicy(config) == testPolicyName_;
+  });
+  EXPECT_EQ(readDefaultPolicy(afterSet), testPolicyName_)
+      << "defaultQosPolicy not set after set + commit";
 
   // Delete the default policy and commit.
   auto delResult = runCli({"delete", "qos", "default-policy"});
   ASSERT_EQ(delResult.exitCode, 0) << "Delete failed: " << delResult.stderr;
   EXPECT_THAT(delResult.stdout, ::testing::HasSubstr("Successfully removed"));
   commitConfig();
-  // delete commits at AGENT_COLDBOOT; wait for the restart before the next
-  // thrift call, or getRunningConfig() below can hit connection-refused.
-  waitForAgentReady();
 
-  // Verify the field is absent.
-  EXPECT_EQ(readDefaultPolicy(getRunningConfig()), std::nullopt)
+  // delete commits at AGENT_COLDBOOT; waitForRunningConfig tolerates the
+  // restart window (thrift errors count as condition-not-met).
+  auto afterDelete = waitForRunningConfig(
+      [](const folly::dynamic& config) {
+        return !readDefaultPolicy(config).has_value();
+      },
+      std::chrono::seconds(120));
+  EXPECT_EQ(readDefaultPolicy(afterDelete), std::nullopt)
       << "defaultQosPolicy should be absent after delete";
+  // Make sure the agent is fully back before TearDown's restore logic runs.
+  waitForAgentReady();
 }
