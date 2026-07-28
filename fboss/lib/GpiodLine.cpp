@@ -74,4 +74,28 @@ void GpiodLine::setValue(int defaultVal, int targetVal) {
   }
 }
 
+int GpiodLine::getLineValue() {
+  struct gpiod_line_request_config config = {
+      .consumer = name_.c_str(),
+      .request_type = GPIOD_LINE_REQUEST_DIRECTION_AS_IS,
+      .flags = 0};
+
+  if (gpiod_line_request(line_, &config, 0) != 0) {
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_line_request() failed for {}", name_));
+  }
+
+  int val = gpiod_line_get_value(line_); // Read the line value
+
+  if (-1 == val) {
+    throw GpiodLineError(
+        fmt::format(
+            "GpiodLineTrace: gpiod_line_get_value() failed to get {} value, errno = {}",
+            name_,
+            folly::errnoStr(errno)));
+  }
+
+  return val;
+}
 } // namespace facebook::fboss

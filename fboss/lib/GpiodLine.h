@@ -26,6 +26,7 @@ class GpiodLine {
   ~GpiodLine();
   int getValue();
   void setValue(int defaultVal, int targetVal);
+  int getLineValue();
 
   // Forbidden copy constructor and assignment operator
   GpiodLine(GpiodLine const&) = delete;
