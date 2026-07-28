@@ -81,24 +81,24 @@ struct FakePort {
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
   sai_port_ptp_mode_t ptpMode{SAI_PORT_PTP_MODE_NONE};
-  sai_port_eye_values_list_t portEyeValues;
+  sai_port_eye_values_list_t portEyeValues{};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
-  sai_port_lane_latch_status_list_t portRxSignalDetect;
-  sai_port_lane_latch_status_list_t portRxLockStatus;
-  sai_port_lane_latch_status_list_t portFecAlignmentLockStatus;
-  sai_latch_status_t portPcsLinkStatus;
-  sai_latch_status_t portCrcErrDetect;
+  sai_port_lane_latch_status_list_t portRxSignalDetect{};
+  sai_port_lane_latch_status_list_t portRxLockStatus{};
+  sai_port_lane_latch_status_list_t portFecAlignmentLockStatus{};
+  sai_latch_status_t portPcsLinkStatus{};
+  sai_latch_status_t portCrcErrDetect{};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-  sai_port_frequency_offset_ppm_list_t portRxPPM;
-  sai_port_snr_list_t portRxSNR;
+  sai_port_frequency_offset_ppm_list_t portRxPPM{};
+  sai_port_snr_list_t portRxSNR{};
 #endif
   sai_port_priority_flow_control_mode_t priorityFlowControlMode{
       SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED};
   sai_uint8_t priorityFlowControl{0xff};
   sai_uint8_t priorityFlowControlRx{0xff};
   sai_uint8_t priorityFlowControlTx{0xff};
-  sai_port_err_status_list_t portError;
+  sai_port_err_status_list_t portError{};
   std::vector<sai_port_err_status_t> portErrStatusList;
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   sai_uint32_t numberOfIngressPriorityGroups{0};
