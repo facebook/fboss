@@ -28,10 +28,12 @@ CmdConfigSessionClearTraits::RetType CmdConfigSessionClear::queryClient(
   // getInstance(), which would create a session if one doesn't exist
   std::string sessionConfigPath = ConfigSession::getSessionConfigPathStatic();
   std::string metadataPath = ConfigSession::getSessionMetadataPathStatic();
+  std::string bgpConfigPath = ConfigSession::getBgpSessionConfigPathStatic();
 
   std::error_code ec;
   bool removedConfig = false;
   bool removedMetadata = false;
+  bool removedBgpConfig = false;
 
   // Remove session config file (~/.fboss2/agent.conf)
   if (fs::exists(sessionConfigPath)) {
@@ -60,7 +62,23 @@ CmdConfigSessionClearTraits::RetType CmdConfigSessionClear::queryClient(
     removedMetadata = true;
   }
 
-  if (removedConfig || removedMetadata) {
+  // Remove staged BGP config file (~/.fboss2/bgp_config.json). BGP global edits
+  // are staged here (alongside any peer edits from BgpConfigSession), so a
+  // BGP-only session must be cleared too.
+  if (fs::exists(bgpConfigPath)) {
+    ec.clear();
+    fs::remove(bgpConfigPath, ec);
+    if (ec) {
+      throw std::runtime_error(
+          fmt::format(
+              "Failed to remove BGP session config file {}: {}",
+              bgpConfigPath,
+              ec.message()));
+    }
+    removedBgpConfig = true;
+  }
+
+  if (removedConfig || removedMetadata || removedBgpConfig) {
     return "Config session cleared successfully.";
   }
   return "No config session exists. Nothing to clear.";
