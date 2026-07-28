@@ -70,7 +70,6 @@ class AgentSrv6EncapTest : public AgentHwTest {
   const folly::IPAddress kChildDstIp{"2901::1234"};
   const folly::IPAddress kBgpRecursiveNhop{"2901::1"};
   static inline const std::string kChildRouteCounter{"recursiveChildSid"};
-  static inline const std::string kParentRouteCounter{"recursiveParentSid"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -543,7 +542,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
   //            admin distance), counted by kChildRouteCounter.
   //   BGP      programs the parent kEncapRoutePrefix -> a next hop inside
   //            kChildPrefix, resolving recursively through the child, counted
-  //            by kParentRouteCounter.
+  //            by (inherited) kChildRouterCounter
   // The parent inherits the child's SID list, so both prefixes egress the same
   // SID-list next hops.
   void addProductionRecursiveSrv6Routes() {
@@ -612,8 +611,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
         ClientID::BGPD,
         RouteNextHopEntry(
             RouteNextHopSet{UnresolvedNextHop(kBgpRecursiveNhop, ECMP_WEIGHT)},
-            AdminDistance::EBGP,
-            std::make_optional<RouteCounterID>(kParentRouteCounter)));
+            AdminDistance::EBGP));
 
     routeUpdater.program();
   }
@@ -1026,7 +1024,7 @@ TYPED_TEST(AgentSrv6EncapTest, recursiveBgpParentInheritsTeAgentChildSidList) {
         {this->kSid0},
         std::nullopt /*injectPort*/,
         this->kEncapRouteDstIp,
-        this->kParentRouteCounter);
+        this->kChildRouteCounter);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
