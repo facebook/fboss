@@ -97,6 +97,44 @@ TEST_F(MySidApplyConfigTest, AddMultipleEntries) {
   EXPECT_NE(getMySid("3001:db8:3::/48"), nullptr);
 }
 
+TEST_F(MySidApplyConfigTest, UnresolvedNodeEntryVisibleToShowMySid) {
+  auto config = baseConfig_;
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = "3001:db8::/32";
+
+  cfg::MySidEntryConfig nodeEntry;
+  cfg::NodeMySidConfig nodeConfig;
+  nodeConfig.nodeAddress() = "fc00:100::1";
+  nodeEntry.node() = nodeConfig;
+  mySidConfig.entries()[3] = nodeEntry;
+
+  config.mySidConfig() = mySidConfig;
+  applyConfig(config);
+
+  auto mySid = getMySid("3001:db8:3::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_EQ(mySid->getType(), MySidType::NODE_MICRO_SID);
+  EXPECT_FALSE(mySid->getResolvedNextHopsId().has_value());
+
+  // fboss2 show mysid reads this RPC, so verify the unresolved uN remains
+  // visible even though SAI programming is deferred until resolution.
+  ThriftHandler handler(sw_);
+  std::vector<MySidEntry> entries;
+  handler.getMySidEntries(entries);
+  ASSERT_EQ(entries.size(), 1);
+  EXPECT_EQ(*entries[0].type(), MySidType::NODE_MICRO_SID);
+  auto ip =
+      facebook::network::toIPAddress(*entries[0].mySid()->prefixAddress());
+  EXPECT_EQ(
+      folly::IPAddress::networkToString(
+          {ip, static_cast<uint8_t>(*entries[0].mySid()->prefixLength())}),
+      "3001:db8:3::/48");
+  ASSERT_EQ(entries[0].nextHops()->size(), 1);
+  EXPECT_EQ(
+      facebook::network::toIPAddress(*entries[0].nextHops()->front().address()),
+      folly::IPAddress("fc00:100::1"));
+}
+
 TEST_F(MySidApplyConfigTest, RemoveStaticEntry) {
   // First, add two entries
   auto config = baseConfig_;
@@ -256,6 +294,30 @@ TEST_F(MySidApplyConfigTest, LocatorPrefixChange) {
   EXPECT_NE(getMySid("3002:db8:7fff::/48"), nullptr);
   EXPECT_EQ(
       getMySid("3002:db8:7fff::/48")->getClientId(), ClientID::STATIC_ROUTE);
+}
+
+TEST_F(MySidApplyConfigTest, ReapplySameConfigSyncsMySidFromRib) {
+  auto config = baseConfig_;
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = "3001:db8::/32";
+  cfg::MySidEntryConfig entry;
+  entry.decap() = cfg::DecapMySidConfig{};
+  mySidConfig.entries()[0x100] = entry;
+  config.mySidConfig() = mySidConfig;
+  applyConfig(config);
+  ASSERT_NE(getMySid("3001:db8:100::/48"), nullptr);
+
+  // Simulate stale SwitchState (RIB still has static MySID after reload).
+  sw_->updateStateBlocking("clear mySids", [](const auto& state) {
+    auto newState = state->clone();
+    newState->resetMySids(std::make_shared<MultiSwitchMySidMap>());
+    return newState;
+  });
+  EXPECT_EQ(getMySidCount(), 0);
+
+  applyConfig(config);
+  EXPECT_EQ(getMySidCount(), 1);
+  EXPECT_NE(getMySid("3001:db8:100::/48"), nullptr);
 }
 
 TEST_F(MySidApplyConfigTest, InvalidPortNameThrows) {
