@@ -315,6 +315,7 @@ TEST_F(MySidManagerWithNextHopIdTest, unresolvedUNProgramsOnResolve) {
   RouteNextHopSet nhopSet;
   nhopSet.insert(makeNextHop(testInterfaces[0]));
   auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet);
+  state = getProgrammedState();
   auto resolvedMySid = mySid->clone();
   resolvedMySid->setResolvedNextHopsId(allocResult.nextHopIdSetIter->second.id);
   saiManagerTable->srv6MySidManager().changeMySidEntry(
@@ -346,6 +347,37 @@ TEST_F(MySidManagerWithNextHopIdTest, addNodeMicroSidWithResolvedNextHop) {
   auto gotAction = srv6Api.getAttribute(
       key, SaiMySidEntryTraits::Attributes::PacketAction{});
   EXPECT_EQ(gotAction, SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(
+    MySidManagerWithNextHopIdTest,
+    addNodeMicroSidWithoutConcreteNextHopDrops) {
+  RouteNextHopSet nhopSet;
+  nhopSet.insert(makeNextHop(testInterfaces[0]));
+  nhopSet.insert(makeNextHop(testInterfaces[1]));
+  auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhopSet);
+  auto nextHopSetId = allocResult.nextHopIdSetIter->second.id;
+
+  auto state = getProgrammedState();
+
+  auto mySid = makeMySid("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  mySid->setResolvedNextHopsId(nextHopSetId);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid, state);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto saiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(saiEntry, nullptr);
+
+  // In fake SAI, NHG members are managed/deferred, so the NHG has no concrete
+  // adapter key yet. uN must remain DROP until the hardware next hop exists.
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto gotAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(gotAction, SAI_PACKET_ACTION_DROP);
+
+  auto gotNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(gotNextHopId, SAI_NULL_OBJECT_ID);
 }
 
 class MySidBindingSidTest : public MySidManagerWithNextHopIdTest {

@@ -80,9 +80,8 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   }
 
   sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
-  // For uA, drop traffic when the next hop isn't resolved.
+  // For uA / uN, drop traffic when the next hop isn't resolved.
   if (mySid.getType() != MySidType::DECAPSULATE_AND_LOOKUP &&
-      mySid.getType() != MySidType::NODE_MICRO_SID &&
       nextHopId == SAI_NULL_OBJECT_ID) {
     packetAction = SAI_PACKET_ACTION_DROP;
   }
