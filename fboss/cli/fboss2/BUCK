@@ -118,6 +118,7 @@ cpp_library(
     # Different binaries (fboss2, fboss2-routing-protocol) provide their
     # own CmdList.cpp with different command trees.
     preferred_linkage = "static",
+    deps = [":fboss2-lib"],
     exported_deps = [
         ":cmd-global-options",
         ":cmd-list-header",  # @manual
@@ -363,7 +364,9 @@ cpp_library(
         ":cmd-handler",
         ":cmd-show-utils",  # @manual
         ":table-utils",
+        "//configerator/structs/neteng/bgp_policy/thrift:bgp_policy-cpp2-types",
         "//configerator/structs/neteng/bgp_policy/thrift:rib_policy-cpp2-types",
+        "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
         "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
         "//fboss/cli/fboss2/commands/show/bgp/summary:bgp_summary-cpp2-types",
         "//fboss/cli/fboss2/commands/show/bgp/table:bgp_table_summary-cpp2-types",
@@ -384,6 +387,7 @@ cpp_library(
         "//servicerouter/common:tservice_router_exception",
         "//thrift/lib/cpp:thrift_exception",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
 
@@ -1330,7 +1334,6 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/glog:glog",
-        ":cmd-list-header",
         ":table-utils",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:fboss-error",
@@ -1525,6 +1528,7 @@ cpp_binary(
         "//thrift/lib/cpp:thrift_exception",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [
         "CLI11",

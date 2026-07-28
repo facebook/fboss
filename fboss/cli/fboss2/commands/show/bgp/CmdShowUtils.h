@@ -12,6 +12,7 @@
 
 #include "folly/json/dynamic.h"
 
+#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
@@ -22,6 +23,9 @@ inline constexpr auto kGar = "--decode-gar-lbw-ext-comm";
 }
 
 namespace facebook::fboss {
+std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
+    const HostInfo& hostInfo);
+
 // This header is included across the entire bgp show-command tree, whose
 // command headers reference many neteng::fboss::bgp::thrift types unqualified
 // (e.g. NetworkPathWithHost, TBgpStreamSession, TRibEntryWithHost). Keep the

@@ -15,6 +15,7 @@
 #include <string>
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_route_types_types.h"
@@ -64,6 +65,11 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
   MOCK_METHOD(void, getChangeListEntries, (std::vector<TRibEntry>&, TBgpAfi));
   MOCK_METHOD(void, getShadowRibEntries, (std::vector<TRibEntry>&, TBgpAfi));
   MOCK_METHOD(void, getRunningConfig, (std::string&));
+  MOCK_METHOD(
+      void,
+      getRunningConfigStruct,
+      (facebook::bgp::thrift::BgpConfig&));
+  MOCK_METHOD(void, getPolicyConfig, (std::string&));
   MOCK_METHOD(
       void,
       getRibPrefix,

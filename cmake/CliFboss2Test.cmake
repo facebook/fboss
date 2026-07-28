@@ -88,6 +88,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedRejectedTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpOriginatedRoutesTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpPolicyConfigTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpShadowRibTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpStatsAttrsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpStatsEntriesTest.cpp

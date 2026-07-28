@@ -19,6 +19,7 @@
 #endif
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
@@ -34,6 +35,7 @@
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
+#include "thrift/lib/cpp2/protocol/Serializer.h"
 
 namespace facebook::fboss {
 using namespace neteng::fboss::bgp::thrift;
@@ -64,6 +66,32 @@ using facebook::neteng::fboss::bgp::thrift::TBgpAddPathNegotiated;
 using facebook::neteng::fboss::bgp::thrift::TBgpService;
 using facebook::neteng::fboss::bgp::thrift::TBgpSessionDetail;
 using neteng::fboss::bgp::thrift::TBgpPeerState;
+
+std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
+    const HostInfo& hostInfo) {
+  auto client = utils::createClient<Client<TBgpService>>(hostInfo);
+  std::string policyConfigJson;
+  try {
+    client->sync_getPolicyConfig(policyConfigJson);
+    if (!policyConfigJson.empty()) {
+      auto policyConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+          facebook::bgp::thrift::BgpPolicyConfig>(policyConfigJson);
+      return policyConfig.policies().to_optional();
+    }
+  } catch (const std::exception& ex) {
+    XLOGF(DBG2, "Standalone BGP policy config unavailable: {}", ex.what());
+  }
+
+  try {
+    facebook::bgp::thrift::BgpConfig bgpConfig;
+    client->sync_getRunningConfigStruct(bgpConfig);
+    return bgpConfig.policies().to_optional();
+  } catch (const std::exception& ex) {
+    XLOGF(
+        WARN, "BGP policy config unavailable from both sources: {}", ex.what());
+    return std::nullopt;
+  }
+}
 
 const std::string printCommunities(
     const std::vector<TBgpCommunity>& peer_communities,
