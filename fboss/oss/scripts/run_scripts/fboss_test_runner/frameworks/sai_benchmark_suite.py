@@ -6,6 +6,7 @@ import re
 from argparse import Namespace
 
 from fboss_test_runner.constants import (
+    OPT_ARG_SWITCH_ID_FOR_TESTING,
     SUB_ARG_AGENT_RUN_MODE_MONO,
     SUB_ARG_AGENT_RUN_MODE_MULTI,
 )
@@ -82,6 +83,11 @@ class SaiBenchmarkSuite(BenchmarkSuite):
 
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
+
+        if getattr(args, "switch_id_for_testing", None) is not None:
+            run_cmd.append(
+                f"{OPT_ARG_SWITCH_ID_FOR_TESTING}={args.switch_id_for_testing}"
+            )
 
         if not is_multi_switch:
             run_cmd.extend(["--enable_sai_log", args.sai_logging])
