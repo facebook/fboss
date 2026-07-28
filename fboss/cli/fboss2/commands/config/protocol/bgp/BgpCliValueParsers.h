@@ -10,13 +10,18 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <folly/Conv.h>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <limits>
 #include <optional>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 /**
  * Value parsing helpers shared by the BGP config dispatchers
@@ -91,6 +96,53 @@ inline std::optional<int64_t> parseAsn4Byte(const std::string& value) {
     return std::nullopt;
   }
   return static_cast<int64_t>(*parsed);
+}
+
+// ---- constructor-time token parsing ----------------------------------------
+// Unlike the value parsers above, this runs while constructing a command's
+// ObjectArgType, where throwing std::invalid_argument IS the framework's
+// error channel — the message is surfaced to the user as the parse error.
+
+// The `<list-name> [<keyword> <member-name>]` prefix shared by the policy
+// list commands (config and delete): the list name, the optional named
+// member selected by `keyword`, and where any remaining tokens begin.
+struct ListMemberSelector {
+  std::string listName;
+  std::optional<std::string> memberName;
+  // Index of the first token after the parsed prefix (== tokens.size() when
+  // nothing follows). The config dispatcher reads an <attribute> <value>...
+  // tail from here; the delete dispatcher rejects any tail.
+  size_t restStart;
+};
+
+// Parse the shared prefix. `objectName` is the list flavor for messages
+// (e.g. "community-list"), `memberKeyword` selects the nested member (e.g.
+// `community`), and `usage` is the whole-command usage line thrown when no
+// tokens were given. A second token other than `memberKeyword` is left to
+// the caller (restStart == 1): the config grammar treats it as a list-level
+// attribute, delete as an unexpected token.
+inline ListMemberSelector parseListMemberSelector(
+    const std::vector<std::string>& tokens,
+    std::string_view objectName,
+    std::string_view memberKeyword,
+    std::string_view usage) {
+  if (tokens.empty()) {
+    throw std::invalid_argument(std::string(usage));
+  }
+  if (tokens[0].empty()) {
+    throw std::invalid_argument(
+        fmt::format("Error: {} name must not be empty", objectName));
+  }
+  ListMemberSelector selector{tokens[0], std::nullopt, 1};
+  if (tokens.size() > 1 && tokens[1] == memberKeyword) {
+    if (tokens.size() < 3 || tokens[2].empty()) {
+      throw std::invalid_argument(
+          fmt::format("Error: `{}` requires a <name>", memberKeyword));
+    }
+    selector.memberName = tokens[2];
+    selector.restStart = 3;
+  }
+  return selector;
 }
 
 } // namespace facebook::fboss::bgpcli
