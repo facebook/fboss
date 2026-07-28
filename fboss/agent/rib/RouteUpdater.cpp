@@ -856,6 +856,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<TunnelType>& tunnelType,
     const std::optional<std::string>& tunnelId,
     const std::optional<int64_t>& cost,
+    std::optional<RouteCounterID>* inheritedCounterID,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -881,6 +882,10 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 
   if (route->isResolved()) {
     const auto& fwdInfo = route->getForwardInfo();
+    if (const auto childCounterID = fwdInfo.getCounterID();
+        childCounterID && !*inheritedCounterID) {
+      *inheritedCounterID = childCounterID;
+    }
     if (fwdInfo.isDrop()) {
       *hasDrop = true;
     } else if (fwdInfo.isToCPU()) {
@@ -963,7 +968,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto& bestEntryVal = *bestPair.second;
   const auto bestEntry = &bestEntryVal;
   const auto action = bestEntry->getAction();
-  const auto counterID = bestEntry->getCounterID();
+  auto counterID = bestEntry->getCounterID();
   const auto classID = bestEntry->getClassID();
   bool labelPopandLookup = false;
   if (action == RouteForwardAction::DROP) {
@@ -975,6 +980,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     // below stay correct once FLAGS_resolve_nexthops_from_id is on.
     const RouteNextHopSet bestEntryNhops =
         getClientNextHopsFromRib(nextHopIDManager_, *bestEntry);
+    std::optional<RouteCounterID> inheritedCounterID;
     auto fwItr = unresolvedToResolvedNhops_.find(bestEntryNhops);
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
@@ -1024,6 +1030,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              &inheritedCounterID,
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -1039,6 +1046,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              &inheritedCounterID,
               nhToFwds[nh]);
         }
       }
@@ -1058,7 +1066,10 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       }
 
       fwItr =
-          unresolvedToResolvedNhops_.insert({bestEntryNhops, std::move(nhSet)})
+          unresolvedToResolvedNhops_
+              .insert(
+                  {bestEntryNhops,
+                   ResolvedForwardInfo{std::move(nhSet), inheritedCounterID}})
               .first;
     } else {
       // This is done so that we dont miss updating label pop and lookup on
@@ -1073,7 +1084,13 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         }
       }
     }
-    fwd = &(fwItr->second);
+    fwd = &fwItr->second.nextHops;
+    // A route can carry only one counter. Preserve an explicitly configured
+    // parent counter; otherwise inherit the first recursively resolved child
+    // counter and ignore counters on subsequent children.
+    if (!counterID) {
+      counterID = fwItr->second.counterID;
+    }
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;

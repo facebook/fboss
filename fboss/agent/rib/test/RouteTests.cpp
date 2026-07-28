@@ -1627,6 +1627,66 @@ TEST(Route, resolveRecursiveSrv6OpenrRouteChange) {
   EXPECT_TRUE(intfs.count(InterfaceID(4)));
 }
 
+std::optional<RouteCounterID> resolveRecursiveCounterID(
+    std::optional<RouteCounterID> childCounterID,
+    std::optional<RouteCounterID> parentCounterID) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  const IPAddressV6 childPrefix{"fdad:feff:202::d:0"};
+  const RouteNextHopSet childNhops{
+      ResolvedNextHop(IPAddress("fe80::1"), InterfaceID(1), ECMP_WEIGHT)};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {{{childPrefix, 128},
+        RouteNextHopEntry(
+            childNhops, AdminDistance::OPENR, std::move(childCounterID))}},
+      {},
+      false);
+
+  const RouteNextHopSet parentNhops{
+      UnresolvedNextHop(childPrefix, ECMP_WEIGHT)};
+  const RouteV6::Prefix parentPrefix{IPAddressV6("2001::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{parentPrefix.network(), parentPrefix.mask()},
+        RouteNextHopEntry(
+            parentNhops, AdminDistance::EBGP, std::move(parentCounterID))}},
+      {},
+      false);
+
+  const auto parent =
+      v6Routes.exactMatch(parentPrefix.network(), parentPrefix.mask());
+  if (parent == v6Routes.end()) {
+    return std::nullopt;
+  }
+  return parent->value()->getForwardInfo().getCounterID();
+}
+
+TEST(Route, resolveRecursiveUsesParentCounterID) {
+  const RouteCounterID parentCounter{"parentCounter"};
+
+  EXPECT_EQ(
+      resolveRecursiveCounterID(std::nullopt, parentCounter), parentCounter);
+}
+
+TEST(Route, resolveRecursiveInheritsChildCounterID) {
+  const RouteCounterID childCounter{"childCounter"};
+
+  EXPECT_EQ(
+      resolveRecursiveCounterID(childCounter, std::nullopt), childCounter);
+}
+
+TEST(Route, resolveRecursivePrefersParentCounterID) {
+  const RouteCounterID childCounter{"childCounter"};
+  const RouteCounterID parentCounter{"parentCounter"};
+
+  EXPECT_EQ(
+      resolveRecursiveCounterID(childCounter, parentCounter), parentCounter);
+}
+
 // SRv6-over-SRv6 recursion: outer route R1 has no SID list and resolves over a
 // single OpenR route R2 whose link-local next hops themselves carry SID lists.
 // The outer next hop carries no SID list, so each resolved leaf inherits the

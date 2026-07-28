@@ -206,6 +206,7 @@ class RibRouteUpdater {
       const std::optional<TunnelType>& tunnelType,
       const std::optional<std::string>& tunnelId,
       const std::optional<int64_t>& cost,
+      std::optional<RouteCounterID>* inheritedCounterID,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
@@ -233,7 +234,11 @@ class RibRouteUpdater {
    * its pretty common for the same next hops to repeat, so
    * cache resolution
    */
-  std::map<RouteNextHopSet, RouteNextHopSet> unresolvedToResolvedNhops_;
+  struct ResolvedForwardInfo {
+    RouteNextHopSet nextHops;
+    std::optional<RouteCounterID> counterID;
+  };
+  std::map<RouteNextHopSet, ResolvedForwardInfo> unresolvedToResolvedNhops_;
   RibRouteWeightNormalizer weightNormalizer_;
 };
 
