@@ -12247,7 +12247,8 @@ class ChildThriftPath<::facebook::fboss::NetworkTopologyInformation, ::facebook:
 std::pair<apache::thrift::ident::plane_id, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::remote_rack_capacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::spine_capacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::spine_id, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -12258,6 +12259,7 @@ std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::ap
     STRUCT_CHILD_GETTERS(remote_rack_capacity, 3);
     STRUCT_CHILD_GETTERS(spine_capacity, 4);
     STRUCT_CHILD_GETTERS(local_rack_capacity, 5);
+    STRUCT_CHILD_GETTERS(spine_id, 6);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -12266,6 +12268,7 @@ std::pair<apache::thrift::ident::local_rack_capacity, Child<::std::int32_t, ::ap
     else if constexpr (__id == apache::thrift::FieldId{3}) { return remote_rack_capacity(); }
     else if constexpr (__id == apache::thrift::FieldId{4}) { return spine_capacity(); }
     else if constexpr (__id == apache::thrift::FieldId{5}) { return local_rack_capacity(); }
+    else if constexpr (__id == apache::thrift::FieldId{6}) { return spine_id(); }
   }
 };
 

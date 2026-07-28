@@ -35,9 +35,11 @@ struct NetworkTopologyInformation {
   3: optional i32 remote_rack_capacity;
   4: optional i32 spine_capacity;
   5: optional i32 local_rack_capacity;
-  // NOTE: when BGP populates these fields, there will be two cases:
+  6: optional i32 spine_id;
+  // BGP populates one of these field combinations:
   // (a) 1, 2, 3, 4
   // (b) 1, 2, 5
+  // (c) 1, 3, 6
 }
 
 struct NextHopThrift {

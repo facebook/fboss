@@ -414,12 +414,15 @@ struct hash<facebook::fboss::NetworkTopologyInformation> {
     size_t local_rack_capacity = info.local_rack_capacity()
         ? std::hash<int32_t>{}(*info.local_rack_capacity())
         : 0;
+    size_t spine_id =
+        info.spine_id() ? std::hash<int32_t>{}(*info.spine_id()) : 0;
     return folly::hash::hash_combine(
         rack_id,
         plane_id,
         remote_rak_capacity,
         spine_capacity,
-        local_rack_capacity);
+        local_rack_capacity,
+        spine_id);
   }
 };
 
