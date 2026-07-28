@@ -41,12 +41,14 @@ cpp_library(
     headers = [
         "Parser.h",
     ],
+    deps = [
+        "//fboss/lib/platforms:platform_mode",
+        "//folly:file_util",
+        "//folly:string",
+    ],
     exported_deps = [
         "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
         "//fboss/lib/if:fboss_common-cpp2-types",
-        "//fboss/lib/platforms:platform_mode",
-        "//folly:file_util",
         "//folly:range",
-        "//folly:string",
     ],
 )

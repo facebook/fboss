@@ -30,11 +30,13 @@ cpp_library(
     headers = [
         "BuildFromXcvrLib.h",
     ],
-    exported_deps = [
-        ":bsp_platform_mapping-cpp2-types",
+    deps = [
         "//fboss/lib/led:led_mapping-cpp2-types",
         "//fboss/platform/xcvr_lib:xcvr_lib",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":bsp_platform_mapping-cpp2-types",
     ],
 )
 
@@ -46,9 +48,9 @@ cpp_library(
     headers = [
         "BspPlatformMapping.h",
     ],
+    deps = [":build_from_xcvr_lib"],
     exported_deps = [
         ":bsp_platform_mapping-cpp2-types",
-        ":build_from_xcvr_lib",
     ],
 )
 
@@ -60,7 +62,6 @@ cpp_library(
     exported_deps = [
         ":bsp_core",
         ":bsp_platform_mapping-cpp2-types",
-        ":bsp_platform_mapping_lib",
         "//fboss/lib/fpga:fpga_device",
         "//fboss/lib/phy:phy_management_base",
     ],

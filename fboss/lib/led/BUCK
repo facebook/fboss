@@ -27,11 +27,13 @@ cpp_library(
     headers = [
         "LedIO.h",
     ],
-    exported_deps = [
-        ":led_mapping-cpp2-types",
+    deps = [
         "//fboss/led_service:led_utils",
-        "//fboss/led_service/if:led_structs-cpp2-types",
         "//folly:format",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":led_mapping-cpp2-types",
+        "//fboss/led_service/if:led_structs-cpp2-types",
     ],
 )

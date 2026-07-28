@@ -86,21 +86,23 @@ cpp_library(
         "Wedge100I2CBus.cpp",
         "WedgeI2CBus.cpp",
     ],
+    deps = [
+        ":cp2112",
+        ":usb-api",
+        "//fboss/lib/fpga:minipack_container",
+        "//folly/container:enumerate",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
         ":base-i2c-dependencies",
-        ":cp2112",
         ":i2-api",
-        ":usb-api",
         "//fboss/lib/fpga:fb_fpga_i2c",
-        "//fboss/lib/fpga:minipack_container",
         "//fboss/lib/i2c:i2c_controller_stats-cpp2-types",
         "//fboss/lib/i2c:platform_i2c_api",
         "//fboss/lib/i2c/minipack:minipack_base_i2c",
         "//folly:string",
-        "//folly/container:enumerate",
-        "//folly/logging:logging",
     ],
 )
 
@@ -109,11 +111,13 @@ cpp_library(
     srcs = [
         "BaseWedgeI2CBus.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/glog:glog",
+        ":usb-api",
+    ],
+    exported_deps = [
         ":cp2112",
         ":i2-api",
-        ":usb-api",
         "//folly:range",
     ],
 )

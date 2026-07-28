@@ -98,10 +98,11 @@ cpp_library(
     name = "link_qsfp_test_port_info_utils",
     srcs = ["LinkQsfpTestPortInfoUtils.cpp"],
     headers = ["LinkQsfpTestPortInfoUtils.h"],
-    exported_deps = [
+    deps = [
         ":link_qsfp_test_port_info-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
+    exported_deps = [],
 )
 
 thrift_library(

@@ -12,14 +12,16 @@ cpp_library(
     headers = [
         "PlatformConfigUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent:fboss-error",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/lib/phy:external_phy",
         "//fboss/lib/phy:phy-cpp2-types",
-        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
 
@@ -43,11 +45,13 @@ cpp_library(
     headers = [
         "AgentConfigUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+    exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/platforms/common:platform_mapping",
     ],
 )
 

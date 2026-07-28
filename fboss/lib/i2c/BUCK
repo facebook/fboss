@@ -23,9 +23,9 @@ cpp_library(
     srcs = [
         "PCA9541.cpp",
     ],
+    deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/lib/usb:base-i2c-dependencies",
-        "//folly/logging:logging",
     ],
 )
 
@@ -45,13 +45,15 @@ cpp_library(
         "I2cRdWrIo.h",
         "I2cSmbusIo.h",
     ],
+    deps = [
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         ":i2c_controller_stats-cpp2-types",
-        "//folly:format",
         "//folly:synchronized",
         "//folly/io/async:async_base",
-        "//folly/logging:logging",
         "//folly/system:thread_name",
     ],
 )

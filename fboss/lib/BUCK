@@ -34,16 +34,17 @@ cpp_library(
     headers = [
         "PhysicalMemory.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        "fbsource//third-party/glog:glog",
-        "//folly:file",
         "//folly:format",
         "//folly/logging:logging",
     ],
+    exported_deps = [
+        "fbsource//third-party/glog:glog",
+        "//folly:file",
+    ],
     exported_external_deps = [
         "boost",
-        ("glibc", None, "rt"),
     ],
 )
 
@@ -83,14 +84,14 @@ cpp_library(
     srcs = [
         "RestClient.cpp",
     ],
-    exported_deps = [
+    deps = [
+        "fbsource//third-party/curl:curl",
         "//fboss/agent:fboss-error",
         "//folly:file_util",
-        "//folly:network_address",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-        ("curl", None),
+    exported_deps = [
+        "//folly:network_address",
     ],
 )
 
@@ -99,9 +100,9 @@ cpp_library(
     srcs = [
         "BmcRestClient.cpp",
     ],
+    deps = ["//folly:network_address"],
     exported_deps = [
         ":rest-client",
-        "//folly:network_address",
     ],
 )
 
@@ -118,15 +119,17 @@ cpp_library(
         "LogThriftCall.cpp",
         "facebook/LogThriftCall.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":thrift_call_duration_logger",
+        "//infrasec/authorization:simple_identity_util",
+    ],
+    exported_deps = [
         "//folly:conv",
         "//folly:range",
         "//folly/futures:core",
         "//folly/json:dynamic",
         "//folly/logging:log_level",
         "//folly/logging:logging",
-        "//infrasec/authorization:simple_identity_util",
         "//thrift/lib/cpp2/server:cpp2_conn_context",
     ],
 )
@@ -171,6 +174,8 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip keep backward-compat folly re-exports (folly/system:shell) that
+    # downstream consumers relied on transitively; autodeps would demote them to deps.
     name = "common_utils",
     srcs = [
         "CommonUtils.cpp",
@@ -178,12 +183,14 @@ cpp_library(
     headers = [
         "CommonUtils.h",
     ],
-    exported_deps = [
+    deps = [
         ":common_file_utils",
+        "//folly:subprocess",
+    ],
+    exported_deps = [
         "//fb303:thread_cached_service_data",
         "//fb303:thread_local_stats",
         "//fboss/agent:fboss-error",
-        "//folly:subprocess",
         "//folly/debugging/exception_tracer:exception_tracer_base",
         "//folly/logging:logging",
         "//folly/system:shell",
@@ -198,18 +205,24 @@ cpp_library(
     headers = [
         "ExponentialBackoff.h",
     ],
-    exported_deps = [
-        "fbsource//third-party/glog:glog",
-    ],
+    deps = ["fbsource//third-party/glog:glog"],
+    exported_deps = [],
 )
 
 cpp_library(
+    # @autodeps-skip keep backward-compat folly re-exports (folly:format) that downstream
+    # consumers (e.g. hw/bcm:sdk_tracer -> SdkTracer.cpp includes folly/Format.h) relied on
+    # transitively; autodeps would demote them to deps.
     name = "function_call_time_reporter",
     srcs = [
         "FunctionCallTimeReporter.cpp",
     ],
     headers = [
         "PhysicalMemory.h",
+    ],
+    deps = [
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -218,9 +231,8 @@ cpp_library(
         "//folly:format",
         "//folly:scope_guard",
         "//folly:singleton",
-        "//folly/logging:logging",
-        "//folly/system:thread_name",
     ],
+    external_deps = ["gflags"],
     exported_external_deps = [
         "boost",
         "gflags",
@@ -235,11 +247,13 @@ cpp_library(
     headers = [
         "CommonFileUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent:fboss-error",
-        "//folly:range",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//folly:range",
     ],
     exported_external_deps = [("boost", None, "boost_filesystem")],
 )
@@ -252,10 +266,11 @@ cpp_library(
     headers = [
         "CommonPortUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         "//folly/logging:logging",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -266,14 +281,16 @@ cpp_library(
     headers = [
         "CommonThriftUtils.h",
     ],
+    deps = [
+        "//folly/coro:blocking_wait",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "//fb303:thread_cached_service_data",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:network_address",
         "//folly/coro:async_scope",
-        "//folly/coro:blocking_wait",
-        "//folly/io/async:async_base",
-        "//folly/logging:logging",
     ],
     exported_external_deps = [],
 )
@@ -335,10 +352,11 @@ cpp_library(
     srcs = [
         "DevMap.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":sysfs_utils",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
@@ -375,12 +393,14 @@ cpp_library(
     headers = [
         "WarmBootFileUtils.h",
     ],
-    exported_deps = [
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:switch_state-cpp2-types",
+    deps = [
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//folly:file_util",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_state-cpp2-types",
         "//folly/logging:logging",
     ],
 )
@@ -407,13 +427,15 @@ cpp_library(
     headers = [
         "ThriftServiceUtils.h",
     ],
-    exported_deps = [
-        "//folly:function",
+    deps = [
         "//folly/executors:io_thread_pool_executor",
         "//folly/io/async:epoll",
         "//folly/io/async:epoll_backend",
         "//folly/logging:logging",
         "//folly/system:hardware_concurrency",
+    ],
+    exported_deps = [
+        "//folly:function",
         "//thrift/lib/cpp2:server",
     ],
 )
