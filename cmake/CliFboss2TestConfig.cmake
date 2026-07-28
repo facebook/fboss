@@ -14,6 +14,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigBgpPeerGroupTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyAsPathListTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyAsPathListEntryTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigBgpPolicyCommunityListTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigCoppTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigDhcpTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigHostnameTest.cpp
@@ -49,6 +50,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdDeleteBgpNeighborTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteBgpPeerGroupTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteBgpPolicyAsPathListTest.cpp
+  fboss/cli/fboss2/test/config/CmdDeleteBgpPolicyCommunityListTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteCoppQueueTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteCoppReasonTest.cpp
