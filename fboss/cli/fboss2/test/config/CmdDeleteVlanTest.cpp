@@ -27,9 +27,11 @@ using namespace ::testing;
 namespace facebook::fboss {
 
 // Seed covers every deleteVlan branch:
-//   100 - barebone VLAN + its paired interface (fboss100, no IPs): deletable
+//   100 - barebone VLAN + its paired interface (fboss100, no IPs): deletable,
+//         and trunk port 3 is a member of it alongside the default VLAN
 //   200 - untagged ingress VLAN for port eth1/1/1
-//   300 - has a switchport member (VlanPort logicalPort 2)
+//   300 - switchport member only (VlanPort logicalPort 2): deletable, the
+//         membership row is cascaded away
 //   400 - backs a routed SVI (interface with an IP address)
 //   1   - the global default VLAN
 class CmdDeleteVlanTestFixture : public CmdConfigTestBase {
@@ -56,7 +58,9 @@ class CmdDeleteVlanTestFixture : public CmdConfigTestBase {
       {"logicalID": 1, "name": "eth1/1/1", "ingressVlan": 200}
     ],
     "vlanPorts": [
-      {"vlanID": 300, "logicalPort": 2}
+      {"vlanID": 300, "logicalPort": 2},
+      {"vlanID": 100, "logicalPort": 3},
+      {"vlanID": 1, "logicalPort": 3}
     ],
     "staticMacAddrs": [
       {"vlanID": 100, "macAddress": "02:00:00:00:01:00",
@@ -97,11 +101,6 @@ TEST_F(CmdDeleteVlanTestFixture, refuseIngressVlanPort) {
   }
 }
 
-TEST_F(CmdDeleteVlanTestFixture, refuseSwitchportMember) {
-  setupTestableConfigSession(cmdPrefix_, "300");
-  EXPECT_THROW(VlanManager::deleteVlan(swConfig(), VlanID(300)), FbossError);
-}
-
 TEST_F(CmdDeleteVlanTestFixture, refuseSviWithIp) {
   setupTestableConfigSession(cmdPrefix_, "400");
   EXPECT_THROW(VlanManager::deleteVlan(swConfig(), VlanID(400)), FbossError);
@@ -134,6 +133,34 @@ TEST_F(CmdDeleteVlanTestFixture, deleteUnreferencedRemovesVlanAndBareboneIntf) {
   EXPECT_TRUE(std::none_of(macs.begin(), macs.end(), [](const auto& e) {
     return *e.vlanID() == 100;
   }));
+  // Trunk port 3's membership row for this VLAN goes with it, but its row for
+  // the default VLAN is untouched — the cascade is scoped to the deleted VLAN.
+  const auto& vlanPorts = *swConfig().vlanPorts();
+  EXPECT_TRUE(
+      std::none_of(vlanPorts.begin(), vlanPorts.end(), [](const auto& vp) {
+        return *vp.vlanID() == 100;
+      }));
+  EXPECT_TRUE(
+      std::any_of(vlanPorts.begin(), vlanPorts.end(), [](const auto& vp) {
+        return *vp.vlanID() == 1 && *vp.logicalPort() == 3;
+      }));
+}
+
+// A VLAN whose only referrer is switchport membership is deletable: the
+// membership rows are cascaded away rather than refused.
+TEST_F(CmdDeleteVlanTestFixture, deleteMemberOnlyCascadesVlanPorts) {
+  setupTestableConfigSession(cmdPrefix_, "300");
+  VlanManager::deleteVlan(swConfig(), VlanID(300));
+
+  const auto& vlans = *swConfig().vlans();
+  EXPECT_TRUE(std::none_of(vlans.begin(), vlans.end(), [](const auto& v) {
+    return *v.id() == 300;
+  }));
+  const auto& vlanPorts = *swConfig().vlanPorts();
+  EXPECT_TRUE(
+      std::none_of(vlanPorts.begin(), vlanPorts.end(), [](const auto& vp) {
+        return *vp.vlanID() == 300;
+      }));
 }
 
 // ============================================================================

@@ -177,21 +177,6 @@ void VlanManager::deleteVlan(
         folly::join(", ", ingressPorts));
   }
 
-  // Port membership (VlanPort.vlanID).
-  std::vector<std::string> memberPorts;
-  for (const auto& vlanPort : *swConfig.vlanPorts()) {
-    if (*vlanPort.vlanID() == id) {
-      memberPorts.push_back(std::to_string(*vlanPort.logicalPort()));
-    }
-  }
-  if (!memberPorts.empty()) {
-    throw FbossError(
-        "Cannot delete VLAN ",
-        static_cast<uint16_t>(vlanId),
-        ": port(s) are still members (remove switchport membership first): ",
-        folly::join(", ", memberPorts));
-  }
-
   // Routed SVI: an interface on this VLAN that carries IP addresses.
   std::vector<std::string> sviInterfaces;
   for (const auto& intf : *swConfig.interfaces()) {
@@ -210,9 +195,24 @@ void VlanManager::deleteVlan(
   }
 
   // Safe to remove. Drop the VLAN entry, the barebone interface(s) that
-  // createVlan() pairs with it (matching vlanID, no IP addresses), and any
-  // static MAC entries scoped to it (child objects that cannot outlive the
-  // VLAN).
+  // createVlan() pairs with it (matching vlanID, no IP addresses), the
+  // switchport membership rows naming it, and any static MAC entries scoped to
+  // it (child objects that cannot outlive the VLAN).
+  //
+  // Membership rows are cascaded rather than refused: a VlanPort row carries no
+  // configuration the user would have to re-supply, and dropping it leaves the
+  // port valid in its remaining VLANs. Equivalent to running
+  // `config interface <port> switchport trunk allowed vlan remove <id>` on
+  // every member port. Access ports are not silently retagged — a port with
+  // ingressVlan == id is refused above, before this point.
+  auto& vlanPorts = *swConfig.vlanPorts();
+  vlanPorts.erase(
+      std::remove_if(
+          vlanPorts.begin(),
+          vlanPorts.end(),
+          [id](const cfg::VlanPort& vp) { return *vp.vlanID() == id; }),
+      vlanPorts.end());
+
   if (swConfig.staticMacAddrs().has_value()) {
     auto& macs = *swConfig.staticMacAddrs();
     macs.erase(

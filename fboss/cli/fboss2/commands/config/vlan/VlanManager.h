@@ -48,21 +48,25 @@ class VlanManager {
       const cfg::SwitchConfig& swConfig,
       const VlanID& vlanId);
 
-  // Removes the VLAN with the given ID from swConfig, along with the barebone
-  // L3 interface createVlan() pairs with every VLAN (a vlanID-matching
-  // interface that carries no IP addresses) and any static MAC entries scoped
-  // to it (child objects that cannot outlive the VLAN).
+  // Removes the VLAN with the given ID from swConfig, along with the child
+  // objects that cannot outlive it:
+  //   - the barebone L3 interface createVlan() pairs with every VLAN (a
+  //     vlanID-matching interface that carries no IP addresses)
+  //   - switchport membership rows naming it (VlanPort.vlanID), same effect as
+  //     config interface <port> switchport trunk allowed vlan remove <id> on
+  //     every member port
+  //   - static MAC entries scoped to it (StaticMacEntry.vlanID)
   //
-  // Refuses (throws FbossError) rather than silently orphaning references when
-  // the VLAN is still in use. Each referrer must be cleared first:
+  // Refuses (throws FbossError) rather than silently orphaning references or
+  // changing a sibling object's meaning when the VLAN is still in use. Each
+  // referrer must be cleared first:
   //   - it is the global default VLAN (SwitchConfig.defaultVlan)
   //       -> point the default elsewhere: config vlan default <other-id>
-  //   - a port lists it as its untagged ingress VLAN (Port.ingressVlan)
+  //   - a port lists it as its untagged ingress VLAN (Port.ingressVlan); the
+  //     only fallback value is 0, which means routed port, so clearing it here
+  //     would change the port's L2 mode
   //       -> move the port: config interface <port> switchport access vlan
   //          <other-id>
-  //   - a port is a member of it (VlanPort.vlanID)
-  //       -> remove membership: config interface <port> switchport trunk
-  //          allowed vlan remove <id> (or move the access VLAN as above)
   //   - it backs a routed SVI, i.e. an interface with vlanID == id that has
   //     IP addresses configured
   //       -> remove the addresses: delete interface <name> ip-address /
