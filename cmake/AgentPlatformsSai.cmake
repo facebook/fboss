@@ -24,6 +24,10 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
+  fboss/agent/platforms/sai/SaiPlatformInitBcm.cpp
+  fboss/agent/platforms/sai/SaiPlatformInitFake.cpp
+  fboss/agent/platforms/sai/SaiPlatformInitTajo.cpp
+  fboss/agent/platforms/sai/SaiPlatformInitYangra.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
