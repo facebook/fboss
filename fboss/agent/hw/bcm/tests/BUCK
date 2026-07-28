@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
 
 oncall("fboss_agent_push")
@@ -263,6 +264,7 @@ cpp_unittest(
     srcs = [
         "BcmAddressFBConvertorsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
         "//folly:network_address",
@@ -278,6 +280,7 @@ cpp_unittest(
     srcs = [
         "BcmHostKeyTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/test:label_forwarding_utils",
@@ -514,6 +517,7 @@ cpp_unittest(
     srcs = [
         "BcmCosQueueFBConvertorsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
@@ -527,6 +531,7 @@ cpp_unittest(
         "BcmAclUnitTests.cpp",
         "BcmUnitTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -544,6 +549,7 @@ cpp_unittest(
     srcs = [
         "BcmLabelSwitchingUtilsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent/hw/bcm:bcm_mpls_utils",
     ],
@@ -554,6 +560,7 @@ cpp_unittest(
     srcs = [
         "BcmFieldProcessorFBConvertorsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
@@ -569,6 +576,7 @@ cpp_unittest(
     srcs = [
         "GPort.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/glog:glog",
     ],

@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -62,6 +63,7 @@ cpp_unittest(
     srcs = [
         "CounterUtilsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//common/stats:service_data",
         "//common/stats:thread_cached_service_data",
@@ -76,6 +78,7 @@ cpp_unittest(
         "HwPortFb303StatsTests.cpp",
         "HwSysPortFb303StatsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/agent:switch_config-cpp2-types",
@@ -90,6 +93,7 @@ cpp_unittest(
     srcs = [
         "HwCpuFb303StatsTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/agent/hw:hw_cpu_fb303_stats",
@@ -103,6 +107,7 @@ cpp_unittest(
     srcs = [
         "HwResourceStatsPublisherTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fb303:service_data",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
@@ -215,6 +220,7 @@ cpp_unittest(
     srcs = [
         "PacketUtilTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":hw_packet_utils",
         "//fboss/agent/hw/mock:mock",
@@ -231,6 +237,7 @@ cpp_unittest(
     srcs = [
         "unittests/HwSwitchEnsembleTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":config_factory",
     ],

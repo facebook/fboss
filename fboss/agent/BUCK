@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss/agent:sai.bzl", "sai_main_all")
 load("//fboss/agent/fbpkg:fbpkg_ci_builds.bzl", "build_fbpkg_ci_shards")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
@@ -2222,6 +2223,7 @@ cpp_unittest(
     srcs = [
         "mnpu/test/IpcHealthMonitorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":ipc_health_monitor",
         "//fb303:service_data",

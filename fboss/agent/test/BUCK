@@ -101,6 +101,7 @@ cpp_unittest(
         "--folly_enable_async_scuba_trace=false",
         "--log_to_scribe=false",
     ],
+    network_access = network_access_utils.all(),
     supports_static_listing = False,
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
@@ -206,6 +207,7 @@ cpp_unittest(
     srcs = [
         "Srv6TunnelConfigTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":utils",
@@ -244,6 +246,7 @@ cpp_unittest(
     srcs = [
         "LacpTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "fbsource//third-party/googletest:gmock",
@@ -374,6 +377,7 @@ cpp_unittest(
     srcs = [
         "ResourceLibUtilTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":resourcelibutil",
@@ -404,6 +408,7 @@ cpp_unittest(
     srcs = [
         "RouteDistributionGeneratorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
@@ -449,6 +454,7 @@ cpp_unittest(
     srcs = [
         "RouteScaleGeneratorsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
@@ -511,6 +517,7 @@ cpp_library(
 cpp_unittest(
     name = "async_logger_test",
     srcs = ["AsyncLoggerTest.cpp"],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:async_logger",
@@ -520,6 +527,7 @@ cpp_unittest(
 cpp_unittest(
     name = "state_delta_logger_test",
     srcs = ["StateDeltaLoggerTest.cpp"],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":utils",
@@ -875,6 +883,7 @@ cpp_unittest(
     srcs = [
         "FsdbHelperTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
@@ -926,6 +935,7 @@ cpp_unittest(
     srcs = [
         "HwSwitchMatcherTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:fboss-error",
@@ -991,6 +1001,7 @@ cpp_unittest(
     srcs = [
         "AgentPreStartExecTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":mock_agent_command_executor",
@@ -1033,6 +1044,7 @@ cpp_unittest(
     srcs = [
         "AgentPreExecDrainerTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":mock_agent_netwhoami",
@@ -1095,6 +1107,7 @@ cpp_unittest(
     srcs = [
         "FbossEventBaseTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:fboss_event_base",
@@ -1117,6 +1130,7 @@ cpp_unittest(
         "BaseEcmpResourceManagerTest.h",
         "BaseEcmpResourceMgrMergeGroupsTests.h",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "fbsource//third-party/fmt:fmt",
