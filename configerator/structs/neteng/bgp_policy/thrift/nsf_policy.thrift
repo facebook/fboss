@@ -47,6 +47,13 @@ struct NsfL2TeWeightEncoding {
   5: i32 local_rack_capacity;
 }
 
+struct NsfFpfL2TeWeightEncoding {
+  1: i32 rack_id;
+  2: i32 spine_id;
+  3: i32 remote_rack_capacity;
+}
+
 union NsfTeWeightEncoding {
   1: NsfL2TeWeightEncoding l2_encoding;
+  2: NsfFpfL2TeWeightEncoding fpf_l2_encoding;
 }
