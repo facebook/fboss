@@ -211,6 +211,17 @@ service FsdbService extends fb303.FacebookService {
     fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
   > subscribeStatsExtended(1: fsdb_oper.SubRequest request);
 
+  // Append paths to an already-created patch subscription (state / stats trees),
+  // located by subscriptionUid (from OperSubInitResponse). Added paths get a
+  // full-state initial sync then incremental patches on the existing stream.
+  fsdb_oper.AddPatchSubscriptionPathsResponse addStatePatchSubscriptionPaths(
+    1: fsdb_oper.AddPatchSubscriptionPathsRequest request,
+  ) throws (1: fsdb_common.FsdbException e);
+
+  fsdb_oper.AddPatchSubscriptionPathsResponse addStatsPatchSubscriptionPaths(
+    1: fsdb_oper.AddPatchSubscriptionPathsRequest request,
+  ) throws (1: fsdb_common.FsdbException e);
+
   // Custom Oper getters: add specific state getters here if
   // desired.
 
