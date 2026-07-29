@@ -625,6 +625,10 @@ std::optional<FsdbErrorCode>
 NaivePeriodicSubscribableStorageBase::add_patch_subscription_path_impl(
     SubscriptionIdentifier&& id,
     std::map<SubscriptionKey, RawOperPath> newPaths) {
+  if (newPaths.empty()) {
+    // Nothing to add; reject rather than silently recording a no-op.
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
   for (auto& [key, path] : newPaths) {
     auto convertedPath = convertPath(std::move(*path.path()));
     path.path() = std::move(convertedPath);

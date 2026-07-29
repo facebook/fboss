@@ -226,9 +226,17 @@ std::optional<FsdbErrorCode> SubscriptionStore::addPatchSubscriptionPaths(
     }
   }
   auto addedKeys = subscription->addPaths(std::move(newPaths));
-  extendedSubsWithAddedPaths_.push_back(
-      ExtendedSubscriptionAddedPaths{
-          std::move(subscription), std::move(addedKeys)});
+  // If the subscription is still awaiting its own extended initial sync,
+  // doInitialSyncExtended will resolve ALL its paths_ (including these) next
+  // cycle. Only defer resolution here once that initial sync is done, else
+  // resolveAddedPatchPaths would resolve the same keys twice (duplicate
+  // chunks).
+  if (initialSyncNeededExtended_.find(subscription) ==
+      initialSyncNeededExtended_.end()) {
+    extendedSubsWithAddedPaths_.push_back(
+        ExtendedSubscriptionAddedPaths{
+            std::move(subscription), std::move(addedKeys)});
+  }
   return std::nullopt;
 }
 

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <fboss/fsdb/oper/Subscription.h>
+#include <fboss/fsdb/oper/SubscriptionStore.h>
 
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Timeout.h>
@@ -140,6 +141,55 @@ TEST(ExtendedSubscriptionTest, addPathsAppendsAndSkipsCollisions) {
   const std::vector<SubscriptionKey> expectedAfterCollision{4};
   EXPECT_EQ(sub->addPaths(std::move(collidingPaths)), expectedAfterCollision);
   EXPECT_EQ(sub->size(), 4);
+}
+
+// Unregistering an extended subscription with pending added-path work must
+// clear its extendedSubsWithAddedPaths_ entry -- that list holds a strong
+// shared_ptr, so a leftover entry would leak the cancelled subscription.
+TEST(ExtendedSubscriptionTest, unregisterClearsAddedPathsTracking) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  SubscriptionStore store;
+
+  ExtSubPathMap initialPaths;
+  initialPaths[1] = makeExtendedPath({"a"});
+  auto [gen, sub] = ExtendedPatchSubscription::create(
+      SubscriptionIdentifier("test-sub"),
+      initialPaths,
+      OperProtocol::BINARY,
+      std::nullopt,
+      heartbeatThread.getEventBase(),
+      std::chrono::milliseconds(100),
+      kSubscriptionServeQueueSize);
+
+  std::shared_ptr<ExtendedSubscription> shared = std::move(sub);
+  const auto id = shared->subscriptionId();
+  store.registerExtendedSubscription(shared);
+  ASSERT_EQ(store.extendedSubscriptions().size(), 1);
+  const std::string name = store.extendedSubscriptions().begin()->first;
+
+  // Simulate initial sync already done, so appended paths are recorded as
+  // deferred work (extendedSubsWithAddedPaths_) rather than folded into it.
+  store.initialSyncNeededExtended().erase(shared);
+
+  ExtSubPathMap newPaths;
+  newPaths[2] = makeExtendedPath({"b"});
+  EXPECT_EQ(
+      store.addPatchSubscriptionPaths(
+          id, std::move(newPaths), std::nullopt /* publisherRoot */),
+      std::nullopt);
+  ASSERT_EQ(store.extendedSubsWithAddedPaths().size(), 1);
+
+  // Drop the local strong ref so only the store holds it; weak_ptr then detects
+  // whether the subscription is pinned alive after unregister.
+  std::weak_ptr<ExtendedSubscription> weak = shared;
+  shared.reset();
+
+  store.unregisterExtendedSubscription(name);
+
+  EXPECT_TRUE(store.extendedSubsWithAddedPaths().empty());
+  // If unregister failed to erase the tracking entry, its strong shared_ptr
+  // would keep the cancelled subscription alive here.
+  EXPECT_TRUE(weak.expired());
 }
 
 } // namespace facebook::fboss::fsdb::test
