@@ -291,6 +291,27 @@ class SubscribableStorage {
         streamRevision);
   }
 
+  // Append additional extended (wildcard/regex) paths to an already-created
+  // patch subscription. Same semantics as add_patch_subscription_path but
+  // accepts ExtendedOperPath, avoiding the raw→extended conversion.
+  std::optional<FsdbErrorCode> add_extended_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      std::map<SubscriptionKey, ExtendedOperPath> newPaths,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return static_cast<Impl*>(this)->add_extended_patch_subscription_path_impl(
+        std::move(id), std::move(newPaths), streamRevision);
+  }
+  std::optional<FsdbErrorCode> add_extended_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      SubscriptionKey key,
+      ExtendedOperPath newPath,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return add_extended_patch_subscription_path(
+        std::move(id),
+        std::map<SubscriptionKey, ExtendedOperPath>{{key, std::move(newPath)}},
+        streamRevision);
+  }
+
   // wrapper calls to underlying storage
 
   template <typename Path>

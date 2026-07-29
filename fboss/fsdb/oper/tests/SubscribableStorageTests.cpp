@@ -2109,3 +2109,161 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
   co_await backgroundScope.joinAsync();
   co_return;
 }
+
+TYPED_TEST(SubscribableStorageTests, AddExtendedPatchSubscriptionPath) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // Subscribe with an extended (wildcard) path: stringToStruct/test1.*/max
+  const auto& extPath =
+      ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
+  auto streamReader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId(kSubscriber)), {{1, extPath}});
+  auto generator = std::move(streamReader.generator_);
+  if (this->isHybridStorage()) {
+    GTEST_SKIP() << "extended subscription under HybridNode is unsupported";
+  }
+
+  // initial sync for the wildcard-expanded "test1" key
+  const auto& setPath = this->root.stringToStruct()["test1"].max();
+  EXPECT_EQ(storage.set(setPath, 100), std::nullopt);
+  auto element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto msg = std::move(element.val);
+  EXPECT_GE(msg.get_chunk().patchGroups()->size(), 1);
+
+  // Add a second extended path to the live subscription
+  const auto& extPath2 =
+      ext_path_builder::raw("mapOfStringToI32").regex("test.*").get();
+  std::map<SubscriptionKey, ExtendedOperPath> addPaths;
+  addPaths[2] = extPath2;
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          std::move(addPaths)),
+      std::nullopt);
+
+  // The added wildcard path should get initial sync
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStringToI32()["test1"], 999), std::nullopt);
+  element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  msg = std::move(element.val);
+  auto& patchGroups = *msg.get_chunk().patchGroups();
+  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+
+  // negative: unknown identifier
+  std::map<SubscriptionKey, ExtendedOperPath> unknownPaths;
+  unknownPaths[3] = extPath2;
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId("unknownSubscriber")),
+          std::move(unknownPaths)),
+      FsdbErrorCode::ID_NOT_FOUND);
+
+  // negative: colliding SubscriptionKey (key 1 already exists)
+  std::map<SubscriptionKey, ExtendedOperPath> dupPaths;
+  dupPaths[1] = extPath;
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          std::move(dupPaths)),
+      FsdbErrorCode::ID_ALREADY_EXISTS);
+}
+
+TYPED_TEST(SubscribableStorageTests, AddExtendedPatchSubscriptionPathEmptyMap) {
+  using namespace facebook::fboss::fsdb;
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  const auto& extPath =
+      ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
+  auto streamReader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId(kSubscriber)), {{1, extPath}});
+  auto generator = std::move(streamReader.generator_);
+  if (this->isHybridStorage()) {
+    GTEST_SKIP() << "extended subscription under HybridNode is unsupported";
+  }
+  const auto& setPath = this->root.stringToStruct()["test1"].max();
+  EXPECT_EQ(storage.set(setPath, 1), std::nullopt);
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  // Empty map is rejected.
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          std::map<SubscriptionKey, ExtendedOperPath>{}),
+      FsdbErrorCode::INVALID_REQUEST);
+}
+
+// A rejected extended add (colliding key) must leave no partial state: a retry
+// with a fresh key must succeed and deliver, proving the rejection didn't
+// poison the subscription's path set or leave a dangling deferred-resolution
+// entry.
+TYPED_TEST(
+    SubscribableStorageTests,
+    AddExtendedPatchSubscriptionPathRetryAfterError) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // Subscribe with an extended (wildcard) path: stringToStruct/test1.*/max
+  const auto& extPath =
+      ext_path_builder::raw("stringToStruct").regex("test1.*").raw("max").get();
+  auto streamReader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId(kSubscriber)), {{1, extPath}});
+  auto generator = std::move(streamReader.generator_);
+  if (this->isHybridStorage()) {
+    GTEST_SKIP() << "extended subscription under HybridNode is unsupported";
+  }
+
+  // initial sync for the wildcard-expanded "test1" key
+  const auto& setPath = this->root.stringToStruct()["test1"].max();
+  EXPECT_EQ(storage.set(setPath, 100), std::nullopt);
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  const auto& extPath2 =
+      ext_path_builder::raw("mapOfStringToI32").regex("test.*").get();
+
+  // Rejected add: SubscriptionKey 1 already exists -> ID_ALREADY_EXISTS.
+  std::map<SubscriptionKey, ExtendedOperPath> collidingPaths;
+  collidingPaths[1] = extPath2;
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          std::move(collidingPaths)),
+      FsdbErrorCode::ID_ALREADY_EXISTS);
+
+  // Retry with a fresh key: must succeed despite the earlier rejection.
+  std::map<SubscriptionKey, ExtendedOperPath> retryPaths;
+  retryPaths[2] = extPath2;
+  EXPECT_EQ(
+      storage.add_extended_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          std::move(retryPaths)),
+      std::nullopt);
+
+  // The retried path must be fully functional: publishing under it produces a
+  // served chunk for key 2, proving the rejected add left clean state.
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStringToI32()["test1"], 999), std::nullopt);
+  WITH_RETRIES({
+    auto element = folly::coro::blockingWait(
+        folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+    auto msg = std::move(element.val);
+    bool hasKey2 = msg.getType() == SubscriberMessage::Type::chunk &&
+        msg.get_chunk().patchGroups()->count(2);
+    ASSERT_EVENTUALLY_TRUE(hasKey2);
+  });
+}

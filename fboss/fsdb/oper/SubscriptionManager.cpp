@@ -61,6 +61,15 @@ std::optional<FsdbErrorCode> SubscriptionManagerBase::addPatchSubscriptionPaths(
       id, std::move(extPaths), publisherRoot, streamRevision);
 }
 
+std::optional<FsdbErrorCode> SubscriptionManagerBase::addPatchSubscriptionPaths(
+    const SubscriptionIdentifier& id,
+    ExtSubPathMap newPaths,
+    const std::optional<std::string>& publisherRoot,
+    std::optional<StreamRevision> streamRevision) {
+  return addPatchSubscriptionPathsImpl(
+      id, std::move(newPaths), publisherRoot, streamRevision);
+}
+
 void SubscriptionManagerBase::closeNoPublisherActiveSubscriptions(
     const SubscriptionMetadataServer& metadataServer,
     FsdbErrorCode disconnectReason) {
