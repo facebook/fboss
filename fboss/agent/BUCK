@@ -993,6 +993,13 @@ cpp_library(
 )
 
 cpp_library(
+    name = "lock_policy",
+    headers = [
+        "LockPolicy.h",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -1071,7 +1078,6 @@ cpp_library(
         "FsdbSyncer.h",
         "HwAsicTable.h",
         "HwSwitchConnectionStatusTable.h",
-        "LockPolicy.h",
         "MultiSwitchFb303Stats.h",
         "MultiSwitchPacketStreamMap.h",
         "NeighborCache.h",
@@ -1118,6 +1124,7 @@ cpp_library(
         ":l2learn_event_observer",
         ":load_agent_config",
         ":loadbalancer_utils",
+        ":lock_policy",  # @manual
         ":mka_service_ports",
         ":monolithic_hw_switch_handler",
         ":packet",
