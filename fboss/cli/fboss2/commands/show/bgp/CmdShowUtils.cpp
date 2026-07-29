@@ -423,6 +423,110 @@ void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out) {
   }
 }
 
+void printBgpPrefixTelemetry(
+    const TBgpSession& neighbor,
+    const TBgpSessionDetail& details,
+    std::ostream& out) {
+  // Prefix-level telemetry: the current advertised/received prefix gauges plus
+  // the cumulative announcement/withdrawal counts (per AFI where tracked).
+  // "Accepted" applies only to the current-gauge row; cumulative rows show "-".
+  const std::string kNa = "-";
+  Table table;
+  table.setHeader({"Prefix Telemetry", "Sent", "Rcvd", "Accepted"});
+  table.addRow(
+      {"Current prefixes",
+       folly::to<std::string>(*neighbor.postpolicy_sent_prefix_count()),
+       folly::to<std::string>(*neighbor.prepolicy_rcvd_prefix_count()),
+       folly::to<std::string>(*neighbor.postpolicy_rcvd_prefix_count())});
+  table.addRow(
+      {"Announcements IPv4",
+       folly::to<std::string>(*details.sent_update_announcements_ipv4()),
+       folly::to<std::string>(*details.recv_update_announcements_ipv4()),
+       kNa});
+  table.addRow(
+      {"Announcements IPv6",
+       folly::to<std::string>(*details.sent_update_announcements_ipv6()),
+       folly::to<std::string>(*details.recv_update_announcements_ipv6()),
+       kNa});
+  table.addRow(
+      {"Withdrawals",
+       folly::to<std::string>(*details.sent_update_withdrawals()),
+       folly::to<std::string>(*details.recv_update_withdrawals()),
+       kNa});
+  out << table << std::endl;
+}
+
+void printBgpMessageCounters(
+    const TBgpSessionDetail& details,
+    std::ostream& out) {
+  // Per-message-type PDU counters for both layers: data-plane (socket, the
+  // SessionManager I/O thread) and control-plane (AdjRib / PeerManager). They
+  // converge for cross-module validation, and `clear bgp egress-counters` /
+  // `clear bgp ingress-counters` zero them for debugging. AdjRib only
+  // produces/consumes UPDATE and EoR PDUs, so the other types show "-" there.
+
+  // Only render when there is something to show, so idle peers stay
+  // uncluttered. A clear zeroes one direction at a time, so the other
+  // direction's non-zero counters keep the table visible for verifying the
+  // clear.
+  const bool anyCounter = *details.socket_tx_open_msgs() ||
+      *details.socket_tx_update_msgs() || *details.socket_tx_keepalive_msgs() ||
+      *details.socket_tx_notification_msgs() ||
+      *details.socket_tx_route_refresh_msgs() ||
+      *details.socket_tx_eor_msgs() || *details.socket_rx_open_msgs() ||
+      *details.socket_rx_update_msgs() || *details.socket_rx_keepalive_msgs() ||
+      *details.socket_rx_notification_msgs() ||
+      *details.socket_rx_route_refresh_msgs() ||
+      *details.socket_rx_eor_msgs() || *details.adjrib_sent_update_msgs() ||
+      *details.adjrib_sent_eor_msgs() || *details.adjrib_recv_update_msgs() ||
+      *details.adjrib_recv_eor_msgs();
+  if (!anyCounter) {
+    return;
+  }
+
+  const std::string kNa = "-";
+  Table table;
+  table.setHeader(
+      {"Message Type", "Socket Tx", "Socket Rx", "AdjRib Sent", "AdjRib Recv"});
+  table.addRow(
+      {"open",
+       folly::to<std::string>(*details.socket_tx_open_msgs()),
+       folly::to<std::string>(*details.socket_rx_open_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"update",
+       folly::to<std::string>(*details.socket_tx_update_msgs()),
+       folly::to<std::string>(*details.socket_rx_update_msgs()),
+       folly::to<std::string>(*details.adjrib_sent_update_msgs()),
+       folly::to<std::string>(*details.adjrib_recv_update_msgs())});
+  table.addRow(
+      {"keepalive",
+       folly::to<std::string>(*details.socket_tx_keepalive_msgs()),
+       folly::to<std::string>(*details.socket_rx_keepalive_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"notification",
+       folly::to<std::string>(*details.socket_tx_notification_msgs()),
+       folly::to<std::string>(*details.socket_rx_notification_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"route-refresh",
+       folly::to<std::string>(*details.socket_tx_route_refresh_msgs()),
+       folly::to<std::string>(*details.socket_rx_route_refresh_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"end-of-rib",
+       folly::to<std::string>(*details.socket_tx_eor_msgs()),
+       folly::to<std::string>(*details.socket_rx_eor_msgs()),
+       folly::to<std::string>(*details.adjrib_sent_eor_msgs()),
+       folly::to<std::string>(*details.adjrib_recv_eor_msgs())});
+  out << table << std::endl;
+}
+
 void printAddPathCapability(
     const std::vector<TBgpAddPathNegotiated>& capabilities,
     std::ostream& out) {

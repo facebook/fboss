@@ -108,6 +108,13 @@ void printAddPathCapability(
     const std::vector<TBgpAddPathNegotiated>& capabilities,
     std::ostream& out);
 void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out);
+void printBgpPrefixTelemetry(
+    const TBgpSession& neighbor,
+    const TBgpSessionDetail& details,
+    std::ostream& out);
+void printBgpMessageCounters(
+    const TBgpSessionDetail& details,
+    std::ostream& out);
 void printBgpNeighborsOutput(
     const std::vector<TBgpSession>& neighbors,
     std::ostream& out);
