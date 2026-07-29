@@ -1143,7 +1143,7 @@ const CommandTree& kConfigCommandTree() {
 
       {"delete",
        "vlan",
-       "Delete a VLAN (refuses while ports or routed interfaces reference it)",
+       "Delete a VLAN and its interface (refuses while it is the default VLAN or a port's ingress VLAN)",
        commandHandler<CmdDeleteVlan>,
        argRegistrar<CmdDeleteVlanTraits>},
 

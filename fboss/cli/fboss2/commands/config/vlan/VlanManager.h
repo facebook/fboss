@@ -50,8 +50,8 @@ class VlanManager {
 
   // Removes the VLAN with the given ID from swConfig, along with the child
   // objects that cannot outlive it:
-  //   - the barebone L3 interface createVlan() pairs with every VLAN (a
-  //     vlanID-matching interface that carries no IP addresses)
+  //   - interfaces bound to it (Interface.vlanID), including routed SVIs with
+  //     IP addresses — an interface's vlanID must reference an existing VLAN
   //   - switchport membership rows naming it (VlanPort.vlanID), same effect as
   //     config interface <port> switchport trunk allowed vlan remove <id> on
   //     every member port
@@ -67,10 +67,6 @@ class VlanManager {
   //     would change the port's L2 mode
   //       -> move the port: config interface <port> switchport access vlan
   //          <other-id>
-  //   - it backs a routed SVI, i.e. an interface with vlanID == id that has
-  //     IP addresses configured
-  //       -> remove the addresses: delete interface <name> ip-address /
-  //          ipv6-address <addr>
   // Throws FbossError if no VLAN with the given ID exists.
   //
   // Does NOT call saveConfig() — callers save after this returns.

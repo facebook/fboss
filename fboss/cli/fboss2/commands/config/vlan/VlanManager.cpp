@@ -177,27 +177,10 @@ void VlanManager::deleteVlan(
         folly::join(", ", ingressPorts));
   }
 
-  // Routed SVI: an interface on this VLAN that carries IP addresses.
-  std::vector<std::string> sviInterfaces;
-  for (const auto& intf : *swConfig.interfaces()) {
-    if (*intf.vlanID() == id && !intf.ipAddresses()->empty()) {
-      sviInterfaces.push_back(
-          intf.name().has_value() ? *intf.name()
-                                  : std::to_string(*intf.intfID()));
-    }
-  }
-  if (!sviInterfaces.empty()) {
-    throw FbossError(
-        "Cannot delete VLAN ",
-        static_cast<uint16_t>(vlanId),
-        ": interface(s) still have IP addresses (delete those first): ",
-        folly::join(", ", sviInterfaces));
-  }
-
-  // Safe to remove. Drop the VLAN entry, the barebone interface(s) that
-  // createVlan() pairs with it (matching vlanID, no IP addresses), the
-  // switchport membership rows naming it, and any static MAC entries scoped to
-  // it (child objects that cannot outlive the VLAN).
+  // Safe to remove. Drop the VLAN entry, the interface(s) bound to it
+  // (including routed SVIs with IP addresses — an interface's vlanID must
+  // reference an existing VLAN, so it cannot outlive it), the switchport
+  // membership rows naming it, and any static MAC entries scoped to it.
   //
   // Membership rows are cascaded rather than refused: a VlanPort row carries no
   // configuration the user would have to re-supply, and dropping it leaves the
@@ -236,9 +219,7 @@ void VlanManager::deleteVlan(
       std::remove_if(
           interfaces.begin(),
           interfaces.end(),
-          [id](const cfg::Interface& intf) {
-            return *intf.vlanID() == id && intf.ipAddresses()->empty();
-          }),
+          [id](const cfg::Interface& intf) { return *intf.vlanID() == id; }),
       interfaces.end());
 }
 

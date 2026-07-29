@@ -32,7 +32,8 @@ namespace facebook::fboss {
 //   200 - untagged ingress VLAN for port eth1/1/1
 //   300 - switchport member only (VlanPort logicalPort 2): deletable, the
 //         membership row is cascaded away
-//   400 - backs a routed SVI (interface with an IP address)
+//   400 - backs a routed SVI (interface with an IP address): deletable, the
+//         SVI is cascade-removed with it
 //   1   - the global default VLAN
 class CmdDeleteVlanTestFixture : public CmdConfigTestBase {
  public:
@@ -101,9 +102,24 @@ TEST_F(CmdDeleteVlanTestFixture, refuseIngressVlanPort) {
   }
 }
 
-TEST_F(CmdDeleteVlanTestFixture, refuseSviWithIp) {
+// An interface's vlanID must reference an existing VLAN, so a routed SVI
+// (interface with IP addresses) is cascade-removed with its VLAN.
+TEST_F(CmdDeleteVlanTestFixture, deleteSviWithIpCascadesInterface) {
   setupTestableConfigSession(cmdPrefix_, "400");
-  EXPECT_THROW(VlanManager::deleteVlan(swConfig(), VlanID(400)), FbossError);
+  VlanManager::deleteVlan(swConfig(), VlanID(400));
+
+  const auto& vlans = *swConfig().vlans();
+  EXPECT_TRUE(std::none_of(vlans.begin(), vlans.end(), [](const auto& v) {
+    return *v.id() == 400;
+  }));
+  const auto& intfs = *swConfig().interfaces();
+  EXPECT_TRUE(std::none_of(intfs.begin(), intfs.end(), [](const auto& i) {
+    return *i.vlanID() == 400;
+  }));
+  // The other VLAN's interface is untouched.
+  EXPECT_TRUE(std::any_of(intfs.begin(), intfs.end(), [](const auto& i) {
+    return *i.vlanID() == 100;
+  }));
 }
 
 // ============================================================================
