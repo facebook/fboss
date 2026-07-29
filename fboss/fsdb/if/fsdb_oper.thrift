@@ -169,9 +169,11 @@ struct AddPatchSubscriptionPathsRequest {
   1: fsdb_common.ClientId clientId;
   2: i64 subscriptionUid;
   3: map<SubscriptionKey, RawOperPath> paths;
+  // Extended (wildcard/regex) paths. Mutually exclusive with field 3 (paths):
+  // set exactly one of paths or extPaths per request.
+  4: map<SubscriptionKey, ExtendedOperPath> extPaths;
   // Last stream revision the client has observed. The server stashes it and
   // echoes it back as OperMetadata.streamRevision on subsequent patches.
-  // (Field 4 reserved for extPaths.)
   5: StreamRevision lastStreamRevision;
 }
 

@@ -1799,22 +1799,23 @@ ServiceHandler::addPatchSubscriptionPathsImpl(
   const auto subscriptionUid = *request->subscriptionUid();
   const auto* methodName = isStats ? "addStatsPatchSubscriptionPaths"
                                    : "addStatePatchSubscriptionPaths";
-  // validatePaths may throw an FsdbException (specific code) or a generic
-  // exception. Rethrow FsdbException unchanged to preserve its code; map
-  // anything else to INVALID_REQUEST so the Thrift `throws (FsdbException)`
-  // contract holds.
-  try {
-    validatePaths(*request->paths(), isStats);
-  } catch (const fsdb::FsdbException&) {
-    throw;
-  } catch (const std::exception& ex) {
+  bool hasRawPaths = !request->paths()->empty();
+  bool hasExtPaths = !request->extPaths()->empty();
+  if (hasRawPaths && hasExtPaths) {
     XLOG(WARN) << "FSDB rejected " << methodName
-               << ": INVALID_REQUEST (invalid path) clientId=" << clientId
-               << " subscriptionUid=" << subscriptionUid << " : " << ex.what();
+               << ": INVALID_REQUEST (both paths and extPaths) clientId="
+               << clientId << " subscriptionUid=" << subscriptionUid;
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_REQUEST,
-        "Invalid path in addPatchSubscriptionPaths from: ",
-        clientId);
+        "addPatchSubscriptionPaths: cannot set both paths and extPaths");
+  }
+  if (!hasRawPaths && !hasExtPaths) {
+    XLOG(WARN) << "FSDB rejected " << methodName
+               << ": INVALID_REQUEST (no paths) clientId=" << clientId
+               << " subscriptionUid=" << subscriptionUid;
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "addPatchSubscriptionPaths: must set paths or extPaths");
   }
   // For patch subscriptions the subscriberId is the clientId instanceId, paired
   // with the server-assigned uid the client received in OperSubInitResponse.
@@ -1827,11 +1828,49 @@ ServiceHandler::addPatchSubscriptionPathsImpl(
   if (const auto rev = *request->lastStreamRevision(); rev != 0) {
     streamRevision = rev;
   }
-  auto err = isStats
-      ? operStatsStorage_.add_patch_subscription_path(
-            std::move(id), std::move(*request->paths()), streamRevision)
-      : operStorage_.add_patch_subscription_path(
-            std::move(id), std::move(*request->paths()), streamRevision);
+  std::optional<FsdbErrorCode> err;
+  // The validators may throw an FsdbException (specific code) or a generic
+  // exception. Rethrow FsdbException unchanged to preserve its code; map
+  // anything else to INVALID_REQUEST so the Thrift `throws (FsdbException)`
+  // contract holds.
+  try {
+    if (hasExtPaths) {
+      // Validate extended paths for parity with the raw branch, so a malformed
+      // path is rejected here rather than deeper in the storage layer.
+      for (const auto& [_, extPath] : *request->extPaths()) {
+        if (isStats) {
+          PathValidator::validateExtendedStatsPath(extPath);
+        } else {
+          PathValidator::validateExtendedStatePath(extPath);
+        }
+      }
+    } else {
+      validatePaths(*request->paths(), isStats);
+    }
+  } catch (const fsdb::FsdbException&) {
+    throw;
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "FSDB rejected " << methodName
+               << ": INVALID_REQUEST (invalid path) clientId=" << clientId
+               << " subscriptionUid=" << subscriptionUid << " : " << ex.what();
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Invalid path in addPatchSubscriptionPaths from: ",
+        clientId);
+  }
+  if (hasExtPaths) {
+    err = isStats
+        ? operStatsStorage_.add_extended_patch_subscription_path(
+              std::move(id), std::move(*request->extPaths()), streamRevision)
+        : operStorage_.add_extended_patch_subscription_path(
+              std::move(id), std::move(*request->extPaths()), streamRevision);
+  } else {
+    err = isStats
+        ? operStatsStorage_.add_patch_subscription_path(
+              std::move(id), std::move(*request->paths()), streamRevision)
+        : operStorage_.add_patch_subscription_path(
+              std::move(id), std::move(*request->paths()), streamRevision);
+  }
   if (err.has_value()) {
     XLOG(WARN) << "FSDB rejected " << methodName << ": "
                << apache::thrift::util::enumNameSafe(*err)
