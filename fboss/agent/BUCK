@@ -367,10 +367,10 @@ cpp_library(
         "CommonInit.h",
     ],
     exported_deps = [
+        ":agent_features",
         ":fboss_init",  # @manual
         ":fboss_init_h",
         ":load_agent_config",
-        ":platform_base",
         "//common/base:build_info",
         "//common/config:config",
         "//fb303:service_data",
@@ -422,10 +422,10 @@ cpp_library(
         "Main.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":agent_initializer_h",
         ":fboss_init_h",
         ":load_agent_config",
-        ":platform_base",
         "//fb303:service_data",
         "//folly/io/async:async_signal_handler",
         "//folly/logging:init",
