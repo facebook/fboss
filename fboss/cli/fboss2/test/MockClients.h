@@ -177,6 +177,12 @@ class MockFbossQsfpService
   MOCK_METHOD2(
       getAllPortSupportedProfiles,
       void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
+  MOCK_METHOD2(
+      getSymbolErrorHistogram,
+      void(CdbDatapathSymErrHistogram&, std::unique_ptr<std::string>));
+  MOCK_METHOD1(
+      getPortMediaInterface,
+      void(std::map<std::string, MediaInterfaceCode>&));
 };
 
 #ifdef IS_OSS
