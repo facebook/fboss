@@ -296,6 +296,7 @@ cpp_library(
     # provider would create a dependency cycle.
     name = "commands-show-bgp",
     headers = [
+        "commands/clear/facebook/bgp/counters/CmdClearBgpCounters.h",
         "commands/clear/facebook/bgp/profiler/CmdClearBgpProfiler.h",
         "commands/set/facebook/bgp/profiler/CmdSetBgpProfilerFilter.h",
         "commands/show/bgp/CanonicalRibResolver.h",
@@ -405,6 +406,7 @@ cpp_library(
         "commands/clear/CmdClearInterfaceCounters.cpp",
         "commands/clear/CmdClearNdp.cpp",
         "commands/clear/facebook/CmdClearMirror.cpp",
+        "commands/clear/facebook/bgp/counters/CmdClearBgpCounters.cpp",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicy.cpp",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCps.cpp",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCrf.cpp",
@@ -634,6 +636,7 @@ cpp_library(
         "commands/clear/CmdClearInterfaceCounters.h",
         "commands/clear/CmdClearNdp.h",
         "commands/clear/facebook/CmdClearMirror.h",
+        "commands/clear/facebook/bgp/counters/CmdClearBgpCounters.h",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicy.h",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCps.h",
         "commands/clear/facebook/bgp/ribpolicy/CmdClearBgpRibPolicyCrf.h",
@@ -1412,6 +1415,7 @@ cpp_binary(
     srcs = [
         "CmdHandlerImplBgp.cpp",
         "Main.cpp",
+        "commands/clear/facebook/bgp/counters/CmdClearBgpCounters.cpp",
         "commands/clear/facebook/bgp/profiler/CmdClearBgpProfiler.cpp",
         "commands/set/facebook/bgp/profiler/CmdSetBgpProfilerFilter.cpp",
         "commands/show/bgp/CanonicalRibResolver.cpp",
