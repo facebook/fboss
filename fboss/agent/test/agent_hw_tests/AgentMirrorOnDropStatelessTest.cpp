@@ -184,14 +184,7 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  // Tajo ingress MoD does not carry the original front-panel ingress port in
-  // the export. The SDK redirects the drop to a fixed recycle port, so the punt
-  // header's source_sp/source_lp are the recycle port's system/logical port
-  // gids (constant across injection ports), not the injection PortID.
-  // TODO: ask Cisco to exposes the original ingress port for ingress MoD.
-  if (!isTajoImpl) {
-    EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
-  }
+  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));

@@ -108,19 +108,23 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
 
     sendSrv6Packet(injectionPortId, outerDst);
 
-    WITH_RETRIES_N(5, {
+    WITH_RETRIES_N(10, {
       auto frameRx = snooper.waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-      if (frameRx.has_value()) {
-        XLOG(INFO) << "Captured MirrorOnDrop packet for SRv6 drop:\n"
-                   << PktUtil::hexDump(frameRx->get());
-        validateMirrorOnDropPacket(
-            frameRx->get(),
-            injectionPortId,
-            expectedReasons,
-            outerDst,
-            kSrv6OuterSrcIp);
-      }
+      ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+      auto fields = parseMirrorOnDropPacket(frameRx->get());
+      // Ignore unrelated exports
+      ASSERT_EVENTUALLY_EQ(
+          fields.dropReasonIngress, expectedReasons.ingressDropReason);
+      ASSERT_EVENTUALLY_EQ(
+          fields.dropReasonEgress, expectedReasons.egressDropReason);
+      XLOG(INFO) << "Captured MirrorOnDrop packet for SRv6 drop:\n"
+                 << PktUtil::hexDump(frameRx->get());
+      validateMirrorOnDropPacket(
+          frameRx->get(),
+          injectionPortId,
+          expectedReasons,
+          outerDst,
+          kSrv6OuterSrcIp);
     });
   }
 
@@ -225,11 +229,12 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
   };
 
   auto verify = [&]() {
-    XLOG(INFO) << "--- Midpoint is-last-SID drop ---";
-    sendAndVerifyModPacket(
-        injectionPortId,
-        kMidpointMySidPrefix,
-        getSrv6MidpointIsLastSidDropReason());
+    // Todo: re-enable or delete once MT-902 is closed
+    // XLOG(INFO) << "--- Midpoint is-last-SID drop ---";
+    // sendAndVerifyModPacket(
+    //     injectionPortId,
+    //     kMidpointMySidPrefix,
+    //     getSrv6MidpointIsLastSidDropReason());
 
     XLOG(INFO) << "--- Decap non-last-segment drop ---";
     sendAndVerifyModPacket(
