@@ -211,6 +211,38 @@ struct TBgpSessionDetail {
    */
   36: optional bool ttl_security_enabled;
   37: optional i32 ttl_security_hops;
+  /*
+   * Data-plane per-message-type PDUs actually written to / read from the peer's
+   * socket. Source of truth: SessionManager (I/O) thread.
+   */
+  38: i64 socket_tx_open_msgs;
+  39: i64 socket_tx_update_msgs;
+  40: i64 socket_tx_keepalive_msgs;
+  41: i64 socket_tx_notification_msgs;
+  42: i64 socket_tx_route_refresh_msgs;
+  43: i64 socket_tx_eor_msgs;
+  44: i64 socket_rx_open_msgs;
+  45: i64 socket_rx_update_msgs;
+  46: i64 socket_rx_keepalive_msgs;
+  47: i64 socket_rx_notification_msgs;
+  48: i64 socket_rx_route_refresh_msgs;
+  49: i64 socket_rx_eor_msgs;
+  /*
+   * Control-plane per-message-type PDUs generated / consumed by PeerManager
+   * (AdjRib). The AdjRib layer only produces/consumes UPDATE and EoR PDUs.
+   * These converge with the socket-layer counters above for cross-module
+   * (control vs socket) validation, e.g. the health validator:
+   *   adjrib_sent_update_msgs <-> socket_tx_update_msgs
+   *   adjrib_sent_eor_msgs    <-> socket_tx_eor_msgs
+   *   adjrib_recv_update_msgs <-> socket_rx_update_msgs
+   *   adjrib_recv_eor_msgs    <-> socket_rx_eor_msgs
+   * adjrib_sent/recv_update_msgs mirror the legacy top-level
+   * TBgpSession.sent/recv_update_msgs, which are kept for existing consumers.
+   */
+  50: i64 adjrib_sent_update_msgs;
+  51: i64 adjrib_sent_eor_msgs;
+  52: i64 adjrib_recv_update_msgs;
+  53: i64 adjrib_recv_eor_msgs;
 }
 
 /**
@@ -239,6 +271,11 @@ struct TBgpSession {
   16: i64 reset_time;
   17: i64 num_resets;
   18: string last_reset_reason;
+  // DEPRECATED: prefer the per-message-type control-plane counters
+  // TBgpSessionDetail.adjrib_sent_update_msgs / adjrib_recv_update_msgs, which
+  // are grouped with the socket_* counters for cross-module validation. These
+  // top-level fields are retained for existing consumers (show bgp summary,
+  // NOWA/NetRCA) and should not be used in new code.
   19: i64 sent_update_msgs;
   20: i64 recv_update_msgs;
   /*
