@@ -17,7 +17,11 @@ class FsdbBenchmarkTestHelper {
   void setup(
       int32_t numSubscriptions = 1,
       bool startFsdbTestServer = true,
-      std::optional<std::string> serviceFileName = std::nullopt);
+      std::optional<std::string> serviceFileName = std::nullopt,
+      // Override the FsdbTestServer state serve interval (lowers the
+      // serve-cycle latency floor for latency-sensitive benchmarks); default
+      // when unset.
+      std::optional<uint32_t> stateServeIntervalMs = std::nullopt);
 
   void publishPath(const AgentStats& stats, uint64_t stamp);
   void publishStatePatch(const state::SwitchState& state, uint64_t stamp);
