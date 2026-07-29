@@ -24,6 +24,7 @@
 
 // Forward declarations
 namespace facebook::fboss {
+class HwAsic;
 class HwSwitch;
 class HwSwitchEnsemble;
 class SwitchState;
@@ -141,4 +142,12 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4SrcPort = std::nullopt,
     std::optional<uint16_t> l4DstPort = std::nullopt,
     std::optional<uint8_t> dscp = std::nullopt);
+
+int getQueuePerHostExpectedLoopbackPktCount(
+    const HwAsic* hwAsic,
+    int basePktCount);
+
+int getQueuePerHostExpectedLoopbackPktCount(
+    const std::vector<const HwAsic*>& hwAsics,
+    int pktCount);
 } // namespace facebook::fboss::utility

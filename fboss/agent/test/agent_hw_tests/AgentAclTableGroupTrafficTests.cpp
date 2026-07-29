@@ -271,7 +271,10 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
         if (qid == 0) {
           EXPECT_EVENTUALLY_GE(pktsOnQueue, 1);
         } else {
-          EXPECT_EVENTUALLY_EQ(pktsOnQueue, 2);
+          EXPECT_EVENTUALLY_EQ(
+              pktsOnQueue,
+              utility::getQueuePerHostExpectedLoopbackPktCount(
+                  getAgentEnsemble()->getL3Asics(), 2));
         }
       }
 
