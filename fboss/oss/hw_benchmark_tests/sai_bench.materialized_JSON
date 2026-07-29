@@ -3829,6 +3829,26 @@
           ]
         }
     ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6RouteCounter4kStatsCollectionBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6RouteCounter4kStatsCollectionBenchmark",
+              "upper_bound": 30830000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/26\\.5\\.5210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6RouteCounter4kStatsCollectionBenchmark",
+              "upper_bound": 37270000000000.0
+            }
+          ]
+        }
+    ],
     "fboss.agent.hw.sai.benchmarks.multi_switch.HwSrv6SingleNextHopRouteScaleBenchmark": [
         {
           "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
@@ -4909,6 +4929,26 @@
             {
               "metric_key_regex": "HwSrv6NextHopScaleBenchmark",
               "upper_bound": 34350000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSrv6RouteCounter4kStatsCollectionBenchmark": [
+        {
+          "test_config_regex": ".*/26\\.2\\.4210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6RouteCounter4kStatsCollectionBenchmark",
+              "upper_bound": 30830000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/26\\.5\\.5210/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSrv6RouteCounter4kStatsCollectionBenchmark",
+              "upper_bound": 37270000000000.0
             }
           ]
         }
