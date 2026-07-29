@@ -25,6 +25,7 @@ constexpr uint8_t kBcmDropReasonSrv6MidpointIsLastSid = 0x00;
 constexpr uint8_t kBcmDropReasonSrv6DecapNonLastSegment = 0x01;
 constexpr uint8_t kBcmDropReasonSrv6BindingSidNonLastSid = 0x02;
 constexpr uint8_t kBcmDropReasonSrv6MidpointUnresolved = 0x03;
+constexpr uint8_t kBcmDropReasonSrv6EncapMtuExceeded = 0x04;
 
 struct XgsMirrorOnDropPacketParsed {
   EthHdr ethHeader;
@@ -142,6 +143,10 @@ uint16_t XgsMirrorOnDropImpl::getSrv6BindingSidNonLastSidDropReason() const {
 
 uint16_t XgsMirrorOnDropImpl::getSrv6MidpointUnresolvedDropReason() const {
   return kBcmDropReasonSrv6MidpointUnresolved;
+}
+
+uint16_t XgsMirrorOnDropImpl::getSrv6EncapMtuExceededDropReason() const {
+  return kBcmDropReasonSrv6EncapMtuExceeded;
 }
 
 void XgsMirrorOnDropImpl::configureErspanMirror(

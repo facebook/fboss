@@ -137,6 +137,11 @@ AgentMirrorOnDropStatelessTest::getSrv6MidpointUnresolvedDropReasons() {
   return ingressOnly(impl()->getSrv6MidpointUnresolvedDropReason());
 }
 
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6EncapMtuExceededDropReasons() {
+  return egressOnly(impl()->getSrv6EncapMtuExceededDropReason());
+}
+
 void AgentMirrorOnDropStatelessTest::configureMmuDropBuffers(
     cfg::SwitchConfig& config,
     const PortID& injectionPortId,

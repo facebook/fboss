@@ -37,6 +37,18 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
   static inline const folly::IPAddressV6 kBgpRoute0{"2001::1"};
   static inline const folly::IPAddressV6 kOpenrPrefix0{"fdad::1:0"};
 
+  static inline const folly::IPAddressV6 kSrv6TunnelSrcIp{"2001:db8::1"};
+  static inline const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
+  static constexpr uint8_t kEncapRoutePrefixLen{64};
+  static inline const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
+  static inline const folly::IPAddressV6 kSrv6EncapSid{"3001:db8:1:2:3:4:5:6"};
+  static inline const folly::IPAddressV6 kNonEncapRoutePrefix{"2800:3::"};
+  static constexpr uint8_t kNonEncapRoutePrefixLen{64};
+  static inline const folly::IPAddressV6 kNonEncapRouteDstIp{"2800:3::1"};
+  static constexpr int kEncapEgressMtu{1500};
+  static constexpr size_t kSmallPayloadSize{1300};
+  static constexpr size_t kMtuBoundaryPayloadSize{1430};
+
   void setCmdLineFlagOverrides() const override {
     AgentMirrorOnDropStatelessTest::setCmdLineFlagOverrides();
     FLAGS_enable_nexthop_id_manager = true;
@@ -50,7 +62,8 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
         ProductionFeature::MIRROR_ON_DROP_STATELESS,
         ProductionFeature::SRV6_MIDPOINT,
         ProductionFeature::SRV6_DECAP,
-        ProductionFeature::SRV6_BINDING_SID};
+        ProductionFeature::SRV6_BINDING_SID,
+        ProductionFeature::SRV6_ENCAP};
   }
 
   void sendSrv6Packet(
@@ -76,6 +89,28 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
 
+  // Inject a plain UDP packet of the given payload size to dstIp.
+  void sendPlainPacket(
+      const PortID& injectPort,
+      const folly::IPAddressV6& dstIp,
+      size_t payloadSize) {
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        getVlanIDForTx(),
+        intfMac,
+        intfMac,
+        kSrv6OuterSrcIp,
+        dstIp,
+        8000,
+        8001,
+        0 /* trafficClass */,
+        64 /* hopLimit */,
+        std::vector<uint8_t>(payloadSize, 0xff));
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+  }
+
   void setupModAndCollector(
       cfg::SwitchConfig& config,
       const PortID& collectorPortId) {
@@ -93,6 +128,30 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
     waitForStateUpdates(getSw());
   }
 
+  void captureAndValidateModDrop(
+      utility::SwSwitchPacketSnooper& snooper,
+      const PortID& injectionPortId,
+      const MirrorOnDropDropReasonCodes& expectedReasons,
+      const folly::IPAddressV6& innerSrc,
+      const folly::IPAddressV6& innerDst) {
+    WITH_RETRIES_N(10, {
+      auto frameRx = snooper.waitForPacket(1);
+      ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
+      auto fields = parseMirrorOnDropPacket(frameRx->get());
+      ASSERT_EVENTUALLY_EQ(
+          fields.dropReasonIngress, expectedReasons.ingressDropReason);
+      ASSERT_EVENTUALLY_EQ(
+          fields.dropReasonEgress, expectedReasons.egressDropReason);
+      XLOG(INFO) << "Captured MirrorOnDrop packet:\n"
+                 << PktUtil::hexDump(frameRx->get());
+      validateMirrorOnDropPacket(
+          frameRx->get(), injectionPortId, expectedReasons, innerDst, innerSrc);
+    });
+  }
+
+  // Inject an SRv6 packet (received-SRv6 path) and verify the resulting MoD
+  // export. The sampled packet is the injected packet, so its inner src/dst are
+  // kSrv6OuterSrcIp -> outerDst.
   void sendAndVerifyModPacket(
       const PortID& injectionPortId,
       const folly::IPAddressV6& outerDst,
@@ -108,24 +167,8 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
 
     sendSrv6Packet(injectionPortId, outerDst);
 
-    WITH_RETRIES_N(10, {
-      auto frameRx = snooper.waitForPacket(1);
-      ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
-      auto fields = parseMirrorOnDropPacket(frameRx->get());
-      // Ignore unrelated exports
-      ASSERT_EVENTUALLY_EQ(
-          fields.dropReasonIngress, expectedReasons.ingressDropReason);
-      ASSERT_EVENTUALLY_EQ(
-          fields.dropReasonEgress, expectedReasons.egressDropReason);
-      XLOG(INFO) << "Captured MirrorOnDrop packet for SRv6 drop:\n"
-                 << PktUtil::hexDump(frameRx->get());
-      validateMirrorOnDropPacket(
-          frameRx->get(),
-          injectionPortId,
-          expectedReasons,
-          outerDst,
-          kSrv6OuterSrcIp);
-    });
+    captureAndValidateModDrop(
+        snooper, injectionPortId, expectedReasons, kSrv6OuterSrcIp, outerDst);
   }
 
   void programBindingSidRoutes() {
@@ -162,6 +205,141 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
             AdminDistance::EBGP));
 
     routeUpdater.program();
+  }
+
+  void addSrv6EncapRoute(
+      const folly::IPAddressV6& prefix,
+      uint8_t prefixLen,
+      const folly::IPAddressV6& sid) {
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto nhop = ecmpHelper.nhop(0);
+    CHECK(nhop.linkLocalNhopIp.has_value());
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(*nhop.linkLocalNhopIp),
+        nhop.intf,
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{sid},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"))};
+    auto routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        prefix,
+        prefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.program();
+  }
+
+  void addPlainRoute(const folly::IPAddressV6& prefix, uint8_t prefixLen) {
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    auto nhop = ecmpHelper.nhop(0);
+    CHECK(nhop.linkLocalNhopIp.has_value());
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(*nhop.linkLocalNhopIp), nhop.intf, ECMP_WEIGHT)};
+    auto routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        prefix,
+        prefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.program();
+  }
+
+  // Program MoD + collector + a headend SRv6 encap route AND a plain route out
+  // the same egress port.
+  void setupSrv6EncapWithEgressMtu(const PortID& collectorPortId) {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+
+    config.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
+        "srv6Tunnel0", InterfaceID(config.interfaces()[0].intfID().value()))};
+
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const auto encapEgressPort = ecmpHelper.nhop(0).portDesc;
+    const auto encapEgressIntf = ecmpHelper.nhop(0).intf;
+    for (auto& intf : *config.interfaces()) {
+      if (InterfaceID(*intf.intfID()) == encapEgressIntf) {
+        intf.mtu() = kEncapEgressMtu;
+      }
+    }
+
+    setupModAndCollector(config, collectorPortId);
+
+    // Resolve the encap egress neighbor (so the encapped packet forwards) and
+    // the collector neighbor (so MoD exports are delivered). Use the default
+    // (synthetic) next-hop MAC, not my_mac, so a forwarded packet that loops
+    // back is not re-routed.
+    auto resolveHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    applyNewState(
+        [&, collectorPortId](std::shared_ptr<SwitchState> in) {
+          return resolveHelper.resolveNextHops(
+              in,
+              {encapEgressPort, PortDescriptor{collectorPortId}},
+              /*useLinkLocal=*/true);
+        },
+        "resolve encap egress + collector neighbors");
+
+    addSrv6EncapRoute(kEncapRoutePrefix, kEncapRoutePrefixLen, kSrv6EncapSid);
+    addPlainRoute(kNonEncapRoutePrefix, kNonEncapRoutePrefixLen);
+  }
+
+  // Inject a plain packet of the given size to dstIp (which hits the encap
+  // route) and verify the egress MTU drop is exported. The sampled packet is
+  // the encapped packet, so its inner src/dst are the tunnel src and the SID.
+  void sendAndVerifyMtuDrop(
+      const PortID& injectionPortId,
+      const folly::IPAddressV6& dstIp,
+      size_t payloadSize) {
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-srv6-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
+    snooper.ignoreUnclaimedRxPkts();
+
+    sendPlainPacket(injectionPortId, dstIp, payloadSize);
+
+    // This is an egress drop (MTU exceeded after encap), so the Tajo punt
+    // header reports the egress system port
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const auto egressPort = ecmpHelper.nhop(0).portDesc.phyPortID();
+    captureAndValidateModDrop(
+        snooper,
+        egressPort,
+        getSrv6EncapMtuExceededDropReasons(),
+        kSrv6TunnelSrcIp,
+        kSrv6EncapSid);
+  }
+
+  // Inject a plain packet of the given size to dstIp and confirm it is
+  // forwarded out the encap egress port (its outBytes increase)
+  void sendAndVerifyForwarded(
+      const PortID& injectionPortId,
+      const folly::IPAddressV6& dstIp,
+      size_t payloadSize) {
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const auto egressPort = ecmpHelper.nhop(0).portDesc.phyPortID();
+    const auto bytesBefore = *getLatestPortStats(egressPort).outBytes_();
+
+    sendPlainPacket(injectionPortId, dstIp, payloadSize);
+
+    WITH_RETRIES({
+      const auto bytesAfter = *getLatestPortStats(egressPort).outBytes_();
+      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+    });
   }
 };
 
@@ -288,6 +466,36 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
         kMidpointMySidPrefix,
         kMidpointMySidPrefixLen,
         /*resolved=*/true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Egress MTU-exceeded drop after SRv6 tunnel-header imposition. Post-encap L3
+// size = 88B headers + payload; non-encap L3 size = 48B headers + payload.
+//   small payload, encap:  88+1300 = 1388 (< 1500) -> ok
+//   boundary payload, no encap:   48+1430 = 1478 (< 1500) -> ok
+//   boundary payload, encap:      88+1430 = 1518 (> 1500) -> drop
+TEST_F(AgentMirrorOnDropSrv6Test, Srv6EncapMtuExceededDrop) {
+  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  PortID injectionPortId = masterLogicalInterfacePortIds()[2];
+
+  auto setup = [&]() { setupSrv6EncapWithEgressMtu(collectorPortId); };
+
+  auto verify = [&]() {
+    XLOG(INFO) << "--- Case 1: small payload, encap route: expect forward ---";
+    sendAndVerifyForwarded(
+        injectionPortId, kEncapRouteDstIp, kSmallPayloadSize);
+
+    XLOG(INFO)
+        << "--- Case 2: boundary payload, non-encap route: expect forward ---";
+    sendAndVerifyForwarded(
+        injectionPortId, kNonEncapRouteDstIp, kMtuBoundaryPayloadSize);
+
+    XLOG(INFO)
+        << "--- Case 3: boundary payload, encap route: expect MoD MTU drop ---";
+    sendAndVerifyMtuDrop(
+        injectionPortId, kEncapRouteDstIp, kMtuBoundaryPayloadSize);
   };
 
   verifyAcrossWarmBoots(setup, verify);
