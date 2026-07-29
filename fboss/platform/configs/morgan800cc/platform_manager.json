@@ -6,7 +6,7 @@
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 5,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 2000",
+        "busName": "CPU_BUS@0",
         "address": "0x54",
         "kernelDeviceName": "24c64"
       },
@@ -81,7 +81,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 2000"
+    "CPU_BUS@0"
   ],
   "pmUnitConfigs": {
     "MCB": {
