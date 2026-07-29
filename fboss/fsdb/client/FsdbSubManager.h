@@ -115,6 +115,18 @@ class FsdbSubManager : public FsdbSubManagerBase {
   }
 
   /*
+   * Append an extended (wildcard/regex) path to an already-subscribed
+   * extended-path subscription. Must be called AFTER subscribe(). Throws
+   * FsdbException only on client-side validation error (nothing staged,
+   * retryable).
+   */
+  template <typename ExtendedOperPath>
+  SubscriptionKey addExtendedPathToLiveSubscription(ExtendedOperPath path) {
+    return addExtendedPathToLiveSubscriptionImpl(
+        PathConverter<Root>::extPathToIdTokens(*path.path()));
+  }
+
+  /*
    * Initiate subscription. Must be called after all interested paths are added.
    * See DataCallback for callback signature.
    */

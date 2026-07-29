@@ -32,9 +32,10 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   // Append paths to this live patch subscription. Paths are recorded so a
   // reconnect re-subscribes the full (original + added) set (guaranteed
   // eventual delivery); if connected, a best-effort async RPC also extends the
-  // live server-side subscription for immediate initial sync. Returns an
-  // FsdbErrorCode only on client-side rejection (e.g. extended/wildcard paths,
-  // unsupported).
+  // live server-side subscription for immediate initial sync. Always returns
+  // std::nullopt today (raw and extended paths both accepted; server-side
+  // rejection surfaces only as a logged warning); the FsdbErrorCode return is
+  // retained for a future synchronous client-side rejection.
   std::optional<FsdbErrorCode> addPaths(const PathElement& newPaths);
 
  private:

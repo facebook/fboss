@@ -112,6 +112,36 @@ SubscriptionKey FsdbSubManagerBase::addExtendedPathImpl(
   return key;
 }
 
+SubscriptionKey FsdbSubManagerBase::addExtendedPathToLiveSubscriptionImpl(
+    const std::vector<OperPathElem>& pathTokens) {
+  CHECK(subscribePaths_.empty()) << "Cannot mix extended and raw paths";
+  CHECK(extSubscriber_)
+      << "addExtendedPathToLiveSubscription requires an active extended-path subscription";
+  // Client-side validation: reject obviously-invalid input synchronously,
+  // before consuming a SubscriptionKey or staging the path, so the caller gets
+  // an immediate, retryable error. The live-extend RPC itself is best-effort
+  // and async, so server-side rejections surface via logs + the reconnect
+  // merge, not through this call's return value.
+  if (pathTokens.empty()) {
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "addExtendedPathToLiveSubscription: path must not be empty");
+  }
+  auto key = nextKey_;
+  ExtendedOperPath p;
+  p.path() = pathTokens;
+  auto err = extSubscriber_->addPaths({{key, p}});
+  if (err.has_value()) {
+    // Don't consume the key or stage the path on failure, so the caller can
+    // retry without leaking a key or a rejected path.
+    throw Utils::createFsdbException(
+        err.value(), "addExtendedPathToLiveSubscription failed");
+  }
+  extSubscribePaths_.insert_or_assign(key, std::move(p));
+  ++nextKey_;
+  return key;
+}
+
 void FsdbSubManagerBase::subscribeImpl(
     std::function<void(SubscriberChunk&&)> chunkHandler,
     std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb,

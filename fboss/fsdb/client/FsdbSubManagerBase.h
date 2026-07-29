@@ -62,6 +62,11 @@ class FsdbSubManagerBase {
   SubscriptionKey addExtendedPathImpl(
       const std::vector<OperPathElem>& pathTokens);
 
+  // Append an extended path to an already-subscribed (extended-path)
+  // subscription. Valid only after subscribe(). Throws FsdbException on error.
+  SubscriptionKey addExtendedPathToLiveSubscriptionImpl(
+      const std::vector<OperPathElem>& pathTokens);
+
   void subscribeImpl(
       std::function<void(SubscriberChunk&&)> chunkHandler,
       std::optional<SubscriptionStateChangeCb> subscriptionStateChangeCb,

@@ -826,6 +826,218 @@ TYPED_TEST(FsdbSubManagerTest, addPathToLiveSubscriptionSurvivesReconnect) {
   WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
 }
 
+TYPED_TEST(FsdbSubManagerTest, addExtendedPathAfterSubscribe) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  // Subscribe with an extended (wildcard) path. Use the callback form to
+  // observe which SubscriptionKeys are served: the appended path overlaps the
+  // wildcard, so the data tree alone can't prove the appended path itself is
+  // delivering.
+  auto subscriber = this->createExtendedSubscriber(
+      this->getSubscriptionOptions("test"), this->extSubscriptionPaths());
+  folly::Synchronized<std::vector<SubscriptionKey>> servedKeys;
+  std::atomic<int> numUpdates{0};
+  subscriber->subscribe([&](auto update) {
+    servedKeys.withWLock([&](auto& keys) {
+      keys.insert(
+          keys.end(), update.updatedKeys.begin(), update.updatedKeys.end());
+    });
+    numUpdates++;
+  });
+
+  // Wait for the wildcard initial sync to reach the client first, so the server
+  // uid is captured and the live-extend RPC fires in place (rather than
+  // deferring to a reconnect that never happens).
+  WITH_RETRIES(ASSERT_EVENTUALLY_GE(numUpdates.load(), 1));
+
+  // Append a second extended path (a specific map key) to the live
+  // subscription.
+  auto extPaths2 = this->mapKeyExtPaths({"newKey"});
+  ASSERT_FALSE(extPaths2.empty());
+  SubscriptionKey addedKey =
+      subscriber->addExtendedPathToLiveSubscription(std::move(extPaths2[0]));
+  EXPECT_GT(addedKey, 0);
+
+  // Publish to the appended path's key. The added subscription must serve a
+  // patch tagged with addedKey -- proving the appended path is itself live,
+  // not merely that the original wildcard keeps working.
+  this->testPublisher().publish(
+      this->mapKeyPath("newKey"), this->mapKeyData(7));
+  WITH_RETRIES({
+    bool sawAddedKey = false;
+    servedKeys.withRLock([&](const auto& keys) {
+      for (auto key : keys) {
+        if (key == addedKey) {
+          sawAddedKey = true;
+        }
+      }
+    });
+    ASSERT_EVENTUALLY_TRUE(sawAddedKey);
+  });
+
+  // The original wildcard path keeps delivering too: re-publishing it must be
+  // served under its own key. Clear servedKeys first so the assertion measures
+  // only post-republish activity, not keys from the initial wildcard sync.
+  servedKeys.wlock()->clear();
+  data1 = this->data1("bar");
+  this->testPublisher().publish(this->path1(), data1);
+  WITH_RETRIES({
+    bool sawOriginalKey = false;
+    servedKeys.withRLock([&](const auto& keys) {
+      for (auto key : keys) {
+        if (key != addedKey) {
+          sawOriginalKey = true;
+        }
+      }
+    });
+    ASSERT_EVENTUALLY_TRUE(sawOriginalKey);
+  });
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
+// Extended-path counterpart of addPathToLiveSubscriptionStreamRevision:
+// addExtendedPathToLiveSubscription() sends the new path's SubscriptionKey as
+// lastStreamRevision; the server echoes it back as OperMetadata.streamRevision
+// on patches served after the add. Assert it round-trips into the SubUpdate.
+TYPED_TEST(
+    FsdbSubManagerTest,
+    addExtendedPathToLiveSubscriptionStreamRevision) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  auto subscriber = this->createExtendedSubscriber(
+      this->getSubscriptionOptions("test"), this->extSubscriptionPaths());
+
+  // Capture the most recent stream revision seen in the data callback.
+  folly::Synchronized<std::optional<StreamRevision>> seenRevision;
+  std::atomic<int> numUpdates{0};
+  subscriber->subscribe([&](const auto& update) {
+    if (update.streamRevision.has_value()) {
+      *seenRevision.wlock() = update.streamRevision;
+    }
+    numUpdates++;
+  });
+
+  // Wait for the wildcard initial sync to reach the client first, so the server
+  // uid is captured and the live-extend RPC fires (rather than deferring to a
+  // reconnect that never happens).
+  WITH_RETRIES(ASSERT_EVENTUALLY_GE(numUpdates.load(), 1));
+
+  // Append a second extended path; the client sends addedKey as
+  // lastStreamRevision. Re-publishing the original path produces a served chunk
+  // that must come back stamped with streamRevision == addedKey.
+  auto extPaths2 = this->mapKeyExtPaths({"newKey"});
+  ASSERT_FALSE(extPaths2.empty());
+  SubscriptionKey addedKey =
+      subscriber->addExtendedPathToLiveSubscription(std::move(extPaths2[0]));
+  data1 = this->data1("bar");
+  this->testPublisher().publish(this->path1(), data1);
+
+  WITH_RETRIES({
+    auto rev = seenRevision.copy();
+    ASSERT_EVENTUALLY_TRUE(rev.has_value());
+    EXPECT_EVENTUALLY_EQ(*rev, addedKey);
+  });
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
+// Extended-path counterpart of addPathToLiveSubscriptionSurvivesReconnect: an
+// extended path appended via addExtendedPathToLiveSubscription() must survive a
+// reconnect. It is recorded in the subscriber and merged back into the
+// re-subscribe request (FsdbPatchSubscriber::createRequest()), so after the
+// stream drops and re-establishes the appended path keeps serving patches under
+// its key. Without the reconnect merge it would silently disappear once the
+// stream was torn down.
+TYPED_TEST(
+    FsdbSubManagerTest,
+    addExtendedPathToLiveSubscriptionSurvivesReconnect) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  // Track served SubscriptionKeys (to prove the appended path itself is live --
+  // it overlaps the wildcard, so the data tree alone cannot prove delivery) and
+  // state transitions (to confirm a genuine reconnect cycle).
+  auto subscriber = this->createExtendedSubscriber(
+      this->getSubscriptionOptions("test"), this->extSubscriptionPaths());
+  folly::Synchronized<std::vector<SubscriptionKey>> servedKeys;
+  std::atomic<int> numUpdates{0};
+  folly::Synchronized<std::vector<SubscriptionState>> stateChanges;
+  subscriber->subscribe(
+      [&](auto update) {
+        servedKeys.withWLock([&](auto& keys) {
+          keys.insert(
+              keys.end(), update.updatedKeys.begin(), update.updatedKeys.end());
+        });
+        numUpdates++;
+      },
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        stateChanges.wlock()->push_back(newState);
+      });
+
+  // Wait for the wildcard initial sync so the server uid is captured and the
+  // live-extend RPC fires in place (rather than deferring to a reconnect).
+  WITH_RETRIES(ASSERT_EVENTUALLY_GE(numUpdates.load(), 1));
+
+  // Append a specific map-key extended path to the live subscription.
+  auto extPaths2 = this->mapKeyExtPaths({"newKey"});
+  ASSERT_FALSE(extPaths2.empty());
+  SubscriptionKey addedKey =
+      subscriber->addExtendedPathToLiveSubscription(std::move(extPaths2[0]));
+  EXPECT_GT(addedKey, 0);
+
+  // Confirm the appended path is live on the current stream before reconnect.
+  this->testPublisher().publish(
+      this->mapKeyPath("newKey"), this->mapKeyData(7));
+  WITH_RETRIES({
+    bool sawAddedKey = false;
+    servedKeys.withRLock([&](const auto& keys) {
+      for (auto key : keys) {
+        if (key == addedKey) {
+          sawAddedKey = true;
+        }
+      }
+    });
+    ASSERT_EVENTUALLY_TRUE(sawAddedKey);
+  });
+
+  // Force a reconnect and wait for a genuine
+  // CONNECTED -> DISCONNECTED -> CONNECTED cycle. Clear servedKeys so the
+  // post-reconnect assertion cannot pass on a stale pre-reconnect observation.
+  size_t preReconnectChanges = stateChanges.rlock()->size();
+  servedKeys.wlock()->clear();
+  subscriber->reconnect();
+  WITH_RETRIES({
+    auto changes = stateChanges.rlock();
+    ASSERT_EVENTUALLY_GE(changes->size(), preReconnectChanges + 2);
+    ASSERT_EVENTUALLY_EQ(changes->back(), SubscriptionState::CONNECTED);
+  });
+
+  // After reconnect, a fresh publish on the appended path must still be served
+  // under addedKey -- proving it was re-subscribed via the createRequest()
+  // merge rather than dropped when the stream was torn down.
+  this->testPublisher().publish(
+      this->mapKeyPath("newKey"), this->mapKeyData(8));
+  WITH_RETRIES({
+    bool sawAddedKey = false;
+    servedKeys.withRLock([&](const auto& keys) {
+      for (auto key : keys) {
+        if (key == addedKey) {
+          sawAddedKey = true;
+        }
+      }
+    });
+    ASSERT_EVENTUALLY_TRUE(sawAddedKey);
+  });
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
 TYPED_TEST(FsdbSubManagerTest, subDeleteKeys) {
   // Publish a map with 3 keys
   auto allData = this->mapData({{"key1", 10}, {"key2", 20}, {"key3", 30}});
