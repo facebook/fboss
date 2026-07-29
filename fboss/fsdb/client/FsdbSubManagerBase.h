@@ -51,6 +51,14 @@ class FsdbSubManagerBase {
 
   SubscriptionKey addPathImpl(const std::vector<std::string>& pathTokens);
 
+  // Append a path to an already-subscribed (raw-path) subscription. Unlike
+  // addPathImpl, this is valid only after subscribe(). Throws FsdbException
+  // only on a client-side validation error (e.g., empty path tokens).
+  // Server-side rejections are logged and delivered via the reconnect merge,
+  // not surfaced as an exception through this call.
+  SubscriptionKey addPathToLiveSubscriptionImpl(
+      const std::vector<std::string>& pathTokens);
+
   SubscriptionKey addExtendedPathImpl(
       const std::vector<OperPathElem>& pathTokens);
 

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbPatchPublisher.h"
+#include "fboss/fsdb/client/FsdbPatchSubscriber.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.h"
 #include "fboss/fsdb/common/Utils.h"
@@ -9,6 +10,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
@@ -147,6 +149,12 @@ struct DataFactory<true /* IsStats */> {
     return root.agent()->hwTrunkStats()->at(path2Key);
   }
 
+  // path3 is a sibling of path2 (distinct map key), used when a test needs a
+  // second raw path that does not overlap path1 or path2.
+  auto path3() {
+    return root().agent().hwTrunkStats()["key2"];
+  }
+
   auto mapKeyPath(std::string key) {
     return root().agent().phyStats()[std::move(key)];
   }
@@ -219,6 +227,17 @@ struct DataFactory<false /* IsStats */> {
         ->at(path2Key);
   }
 
+  // path3 is a sibling of path2 (distinct map key), used when a test needs a
+  // second raw path that does not overlap path1 or path2.
+  auto path3() {
+    return root()
+        .agent()
+        .config()
+        .sw()
+        .switchSettings()
+        .switchIdToSwitchInfo()[path2Key + 1];
+  }
+
   auto mapKeyPath(std::string key) {
     return root().agent().config().defaultCommandLineArgs()[std::move(key)];
   }
@@ -286,6 +305,10 @@ class FsdbSubManagerTest : public ::testing::Test,
 
   TestAgentPublisher& testPublisher() {
     return *testPublisher_;
+  }
+
+  const utils::ConnectionOptions& connectionOptions() const {
+    return *connectionOptions_;
   }
 
   SubscriptionOptions getSubscriptionOptions(const std::string& clientId) {
@@ -548,6 +571,256 @@ TYPED_TEST(FsdbSubManagerTest, subMultiPath) {
   this->testPublisher().publish(this->path2(), data2);
 
   WITH_RETRIES(EXPECT_EVENTUALLY_EQ(numUpdates, 2));
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
+TYPED_TEST(FsdbSubManagerTest, addPathAfterSubscribe) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+  auto subscriber =
+      this->createSubscriber(this->getSubscriptionOptions("test"));
+  SubscriptionKey path1Key = subscriber->addPath(this->path1());
+  auto boundData = subscriber->subscribeBound();
+
+  // Wait for initial sync of path1 (subscription connected, uid round-tripped).
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(this->isSubscribed("test"));
+    ASSERT_EVENTUALLY_TRUE(*boundData.rlock());
+    EXPECT_EVENTUALLY_EQ(
+        this->fetchData1((*boundData.rlock())->toThrift()), data1);
+  });
+
+  // Append path2 to the already-live subscription.
+  SubscriptionKey path2Key =
+      subscriber->addPathToLiveSubscription(this->path2());
+  EXPECT_NE(path2Key, path1Key);
+
+  // Publishing path2 must now be delivered on the same stream, proving the
+  // appended path was added to the existing server-side subscription. path2
+  // lives inside a container that does not exist until published, so guard the
+  // read until it appears (fetchData2 throws until then).
+  auto data2 = this->data2(123);
+  this->testPublisher().publish(this->path2(), data2);
+  WITH_RETRIES({
+    bool gotData2 = false;
+    try {
+      gotData2 = this->fetchData2((*boundData.rlock())->toThrift()) == data2;
+    } catch (const std::exception&) {
+      gotData2 = false;
+    }
+    ASSERT_EVENTUALLY_TRUE(gotData2);
+  });
+
+  // The originally subscribed path keeps working too.
+  EXPECT_EQ(this->fetchData1((*boundData.rlock())->toThrift()), data1);
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
+// addPathToLiveSubscription() sends the new path's SubscriptionKey as the
+// request's lastStreamRevision; the server stashes it and echoes it back as
+// OperMetadata.streamRevision on every patch served after the add. Assert that
+// the value round-trips into the SubUpdate the data callback receives.
+TYPED_TEST(FsdbSubManagerTest, addPathToLiveSubscriptionStreamRevision) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+  auto subscriber =
+      this->createSubscriber(this->getSubscriptionOptions("test"));
+  subscriber->addPath(this->path1());
+
+  // Capture the most recent stream revision seen in the data callback.
+  folly::Synchronized<std::optional<StreamRevision>> seenRevision;
+  std::atomic<int> numUpdates{0};
+  subscriber->subscribe([&](const auto& update) {
+    if (update.streamRevision.has_value()) {
+      *seenRevision.wlock() = update.streamRevision;
+    }
+    numUpdates++;
+  });
+
+  // Wait for path1's initial sync to actually reach the client (not just for
+  // the server to register the subscription). This guarantees the init response
+  // was processed and the server uid captured, so the live-extend RPC below
+  // fires in place instead of silently deferring to a reconnect that never
+  // happens.
+  WITH_RETRIES(ASSERT_EVENTUALLY_GE(numUpdates.load(), 1));
+
+  // Append path2 to the live subscription. The client sends path2Key as
+  // lastStreamRevision; publishing path2 produces a served chunk that must come
+  // back stamped with streamRevision == path2Key.
+  SubscriptionKey path2Key =
+      subscriber->addPathToLiveSubscription(this->path2());
+  auto data2 = this->data2(123);
+  this->testPublisher().publish(this->path2(), data2);
+
+  WITH_RETRIES({
+    auto rev = seenRevision.copy();
+    ASSERT_EVENTUALLY_TRUE(rev.has_value());
+    EXPECT_EVENTUALLY_EQ(*rev, path2Key);
+  });
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
+// A single addPaths() call can carry multiple paths. The client must send the
+// largest SubscriptionKey (the most recently assigned) as lastStreamRevision,
+// not the first entry in the ascending-ordered map. Drive
+// FsdbPatchSubscriber::addPaths() directly with a multi-entry map whose largest
+// key belongs to the non-first entry, and assert the server echoes that largest
+// key back as OperMetadata.streamRevision on served chunks.
+TYPED_TEST(FsdbSubManagerTest, addPathsMultiPathUsesLargestStreamRevision) {
+  // Base subscription on path1 with data, so its initial sync reaches the
+  // client
+  // -- this proves the stream connected and the server uid was captured, which
+  // the live-extend RPC in addPaths() needs to fire in place.
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  folly::ScopedEventBaseThread streamThread("test-raw-sub-stream");
+  folly::ScopedEventBaseThread reconnectThread("test-raw-sub-reconnect");
+
+  RawOperPath basePath;
+  basePath.path() = this->path1().idTokens();
+  std::map<SubscriptionKey, RawOperPath> subscribePaths{{0, basePath}};
+
+  // Capture the most recent stream revision the server stamps on served chunks.
+  // Only chunks served after a live add-paths carry a value, so this stays
+  // unset until addPaths() takes effect on the stream.
+  folly::Synchronized<std::optional<StreamRevision>> seenRevision;
+  std::atomic<int> numChunks{0};
+  auto subscriber = std::make_unique<FsdbPatchSubscriber>(
+      SubscriptionOptions("test", this->IsStats),
+      subscribePaths,
+      streamThread.getEventBase(),
+      reconnectThread.getEventBase(),
+      [&](SubscriberChunk&& chunk) {
+        for (const auto& [key, patchGroup] : *chunk.patchGroups()) {
+          for (const auto& patch : patchGroup) {
+            const auto& metadata = *patch.metadata();
+            if (metadata.streamRevision().has_value()) {
+              *seenRevision.wlock() = *metadata.streamRevision();
+            }
+          }
+        }
+        numChunks++;
+      });
+  subscriber->setConnectionOptions(this->connectionOptions());
+
+  // Wait for path1's initial sync so the server uid is captured client-side.
+  WITH_RETRIES(ASSERT_EVENTUALLY_GE(numChunks.load(), 1));
+
+  // Add two paths in one addPaths() call. std::map orders keys ascending, so
+  // the largest key (kLargestKey) is the last / non-first entry while
+  // begin()->first is kSmallestKey (what the old behavior incorrectly sent).
+  // Assign the largest key to path3 so the assertion proves the revision
+  // follows the largest key, not the first path in the map.
+  constexpr SubscriptionKey kSmallestKey = 5;
+  constexpr SubscriptionKey kLargestKey = 9;
+  RawOperPath addPath2;
+  addPath2.path() = this->path2().idTokens();
+  RawOperPath addPath3;
+  addPath3.path() = this->path3().idTokens();
+  std::map<SubscriptionKey, RawOperPath> newPaths{
+      {kSmallestKey, addPath2}, {kLargestKey, addPath3}};
+  EXPECT_EQ(subscriber->addPaths(newPaths), std::nullopt);
+
+  // Publish on an added path to force a served chunk. streamRevision is stamped
+  // per-subscription (the same value rides every post-add patch regardless of
+  // which path changed), so it must come back as the largest key even though we
+  // publish path2 (whose key is the smallest).
+  auto data2 = this->data2(123);
+  this->testPublisher().publish(this->path2(), data2);
+
+  WITH_RETRIES({
+    auto rev = seenRevision.copy();
+    ASSERT_EVENTUALLY_TRUE(rev.has_value());
+    EXPECT_EVENTUALLY_EQ(*rev, kLargestKey);
+  });
+
+  subscriber.reset();
+}
+
+// A path appended via addPathToLiveSubscription() must survive a reconnect: it
+// is recorded in the subscriber and merged back into the re-subscribe request
+// (FsdbPatchSubscriber::createRequest()), so after the stream drops and
+// re-establishes the added path is still subscribed and keeps receiving
+// updates. Without the reconnect merge, path2 would silently disappear once the
+// stream was torn down.
+TYPED_TEST(FsdbSubManagerTest, addPathToLiveSubscriptionSurvivesReconnect) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  // Record state transitions so we can confirm a genuine
+  // CONNECTED -> DISCONNECTED -> CONNECTED cycle happened before asserting
+  // delivery on the new stream.
+  folly::Synchronized<std::vector<SubscriptionState>> stateChanges;
+  auto subscriber =
+      this->createSubscriber(this->getSubscriptionOptions("test"));
+  subscriber->addPath(this->path1());
+  auto boundData = subscriber->subscribeBound(
+      [&](auto, auto newState, std::optional<bool> /*initialSyncHasData*/) {
+        stateChanges.wlock()->push_back(newState);
+      });
+
+  // Wait for initial sync of path1.
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(this->isSubscribed("test"));
+    ASSERT_EVENTUALLY_TRUE(*boundData.rlock());
+    EXPECT_EVENTUALLY_EQ(
+        this->fetchData1((*boundData.rlock())->toThrift()), data1);
+  });
+
+  // Append path2 to the live subscription and confirm it is delivered on the
+  // current stream (exercises the live-extend RPC).
+  subscriber->addPathToLiveSubscription(this->path2());
+  auto data2 = this->data2(123);
+  this->testPublisher().publish(this->path2(), data2);
+  WITH_RETRIES({
+    bool gotData2 = false;
+    try {
+      gotData2 = this->fetchData2((*boundData.rlock())->toThrift()) == data2;
+    } catch (const std::exception&) {
+      gotData2 = false;
+    }
+    ASSERT_EVENTUALLY_TRUE(gotData2);
+  });
+
+  // Force a reconnect and wait for the full transition cycle so the assertions
+  // below run against a freshly re-established stream, not the original one.
+  size_t preReconnectChanges = stateChanges.rlock()->size();
+  subscriber->reconnect();
+  WITH_RETRIES({
+    auto changes = stateChanges.rlock();
+    ASSERT_EVENTUALLY_GE(changes->size(), preReconnectChanges + 2);
+    ASSERT_EVENTUALLY_EQ(changes->back(), SubscriptionState::CONNECTED);
+  });
+
+  // After reconnect, a fresh publish on the appended path must still be
+  // delivered -- proving path2 was re-subscribed via the createRequest() merge
+  // rather than dropped when the stream was torn down. Use a distinct value so
+  // a lingering pre-reconnect value cannot make this pass spuriously.
+  auto data2New = this->data2(456);
+  this->testPublisher().publish(this->path2(), data2New);
+  WITH_RETRIES({
+    bool gotData2New = false;
+    try {
+      gotData2New =
+          this->fetchData2((*boundData.rlock())->toThrift()) == data2New;
+    } catch (const std::exception&) {
+      gotData2New = false;
+    }
+    ASSERT_EVENTUALLY_TRUE(gotData2New);
+  });
+
+  // The originally subscribed path is still delivered post-reconnect too.
+  auto data1New = this->data1("bar");
+  this->testPublisher().publish(this->path1(), data1New);
+  WITH_RETRIES(EXPECT_EVENTUALLY_EQ(
+      this->fetchData1((*boundData.rlock())->toThrift()), data1New));
 
   subscriber.reset();
   WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));

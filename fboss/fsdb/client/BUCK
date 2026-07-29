@@ -12,7 +12,7 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_deps = [
-        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/googletest:gtest_headers",
         "//fb303:thread_cached_service_data",
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb-cpp2-services",
@@ -54,10 +54,12 @@ cpp_library(
     deps = [
         "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/fsdb/oper:delta_value",
+        "//folly/coro:invoke",
+        "//folly/coro:task",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
-        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/googletest:gtest_headers",
         ":fsdb_stream_client",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/common:utils",
@@ -106,6 +108,7 @@ cpp_library(
         "FsdbSubManager-inl.h",
         "FsdbSubManagerBase.h",
     ],
+    deps = ["//fboss/fsdb/common:utils"],
     exported_deps = [
         "fbsource//third-party/glog:glog",
         ":fsdb_pub_sub",

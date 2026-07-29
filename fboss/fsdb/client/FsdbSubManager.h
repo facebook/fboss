@@ -59,6 +59,11 @@ class FsdbSubManager : public FsdbSubManagerBase {
     // Maximum lastPublishedAt timestamps in milliseconds across all paths
     // (optional, only if metadata available)
     std::optional<int64_t> lastPublishedAt;
+    // Stream-revision token the server echoes back after
+    // addPathToLiveSubscription (the added path's SubscriptionKey). Present
+    // once a chunk reflecting the add has been served; lets the caller confirm
+    // the added path took effect.
+    std::optional<StreamRevision> streamRevision;
   };
 
   using DataCallback = std::function<void(SubUpdate)>;
@@ -81,6 +86,21 @@ class FsdbSubManager : public FsdbSubManagerBase {
         std::is_same_v<typename Path::RootT, Root>,
         "Path root must be same as Root type");
     return addPathImpl(path.idTokens());
+  }
+
+  /*
+   * Append a path to an already-subscribed subscription. Must be called AFTER
+   * subscribe() (use addPath() before). Returns the new path's SubscriptionKey;
+   * it receives a full-state initial sync then incremental patches. Throws
+   * FsdbException only on client-side validation error (nothing staged, so
+   * retryable).
+   */
+  template <typename Path>
+  SubscriptionKey addPathToLiveSubscription(Path path) {
+    static_assert(
+        std::is_same_v<typename Path::RootT, Root>,
+        "Path root must be same as Root type");
+    return addPathToLiveSubscriptionImpl(path.idTokens());
   }
 
   /*
