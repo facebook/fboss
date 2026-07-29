@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatformInitImpl.h"
 
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
+#include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 
 namespace facebook::fboss {
 
@@ -22,6 +23,16 @@ std::unique_ptr<SaiPlatform> chooseFakeSaiPlatform(
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));
   }
   return nullptr;
+}
+
+std::unique_ptr<SaiPlatformPort> createFakeSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform) {
+  if (platform->getType() != PlatformType::PLATFORM_FAKE_SAI &&
+      platform->getType() != PlatformType::PLATFORM_FAKE_WEDGE) {
+    return nullptr;
+  }
+  return std::make_unique<SaiFakePlatformPort>(portId, platform);
 }
 
 } // namespace facebook::fboss

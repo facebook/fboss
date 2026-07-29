@@ -20,21 +20,11 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
-#include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiChenabPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiPlatformInitImpl.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -91,41 +81,6 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 };
 
 using namespace facebook::fboss;
-
-bool useGenericSaiBcmPlatformPort(PlatformType platformMode) {
-  return platformMode == PlatformType::PLATFORM_MINIPACK3BTA ||
-      platformMode == PlatformType::PLATFORM_MONTBLANC ||
-      platformMode == PlatformType::PLATFORM_TAHAN800BC ||
-      platformMode == PlatformType::PLATFORM_MERU800BIA ||
-      platformMode == PlatformType::PLATFORM_MERU800BIAB ||
-      platformMode == PlatformType::PLATFORM_MERU800BIAC ||
-      platformMode == PlatformType::PLATFORM_MERU800BFA ||
-      platformMode == PlatformType::PLATFORM_MERU800BFA_P1 ||
-      platformMode == PlatformType::PLATFORM_JANGA800BIC ||
-      platformMode == PlatformType::PLATFORM_ICECUBE800BC ||
-      platformMode == PlatformType::PLATFORM_ICECUBE800BANW ||
-      platformMode == PlatformType::PLATFORM_ICETEA800BC ||
-      platformMode == PlatformType::PLATFORM_LADAKH800BCLS ||
-      platformMode == PlatformType::PLATFORM_LEH800BCLS ||
-      platformMode == PlatformType::PLATFORM_WEDGE800BACT ||
-      platformMode == PlatformType::PLATFORM_WEDGE800BNHP ||
-      platformMode == PlatformType::PLATFORM_TAHANSB800BC ||
-      platformMode == PlatformType::PLATFORM_J4SIM ||
-      platformMode == PlatformType::PLATFORM_SAINTPAUL ||
-      platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW;
-}
-
-bool useGenericSaiTajoPlatformPort(PlatformType platformMode) {
-  return platformMode == PlatformType::PLATFORM_WEDGE800CACT ||
-      platformMode == PlatformType::PLATFORM_M5120CSC ||
-      platformMode == PlatformType::PLATFORM_MORGAN800CC;
-}
-
-bool useGenericSaiChenabPlatformPort(PlatformType platformMode) {
-  return platformMode == PlatformType::PLATFORM_YANGRA ||
-      platformMode == PlatformType::PLATFORM_YANGRA2 ||
-      platformMode == PlatformType::PLATFORM_MINIPACK3N;
-}
 
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
@@ -367,7 +322,6 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 }
 
 void SaiPlatform::initPorts() {
-  auto platformMode = getType();
   auto switchId =
       SwitchID(getAsic()->getSwitchId() ? *getAsic()->getSwitchId() : 0);
   XLOG(DBG4) << "Platform ports are initialized with switch ID: " << switchId;
@@ -380,41 +334,20 @@ void SaiPlatform::initPorts() {
                  << " due to scope mismatch";
       continue;
     }
-    if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
-        platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
-        platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
-      saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
-      saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_WEDGE400 ||
-        platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
-      saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_DARWIN ||
-        platformMode == PlatformType::PLATFORM_DARWIN48V) {
-      saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
-      saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
-    } else if (useGenericSaiBcmPlatformPort(platformMode)) {
-      saiPort = std::make_unique<SaiBcmPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_YAMP) {
-      saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_FUJI) {
-      saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_ELBERT) {
-      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-        saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
-      } else if (
-          getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
-        saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
-      }
-    } else if (useGenericSaiChenabPlatformPort(platformMode)) {
-      saiPort = std::make_unique<SaiChenabPlatformPort>(portId, this);
-    } else if (useGenericSaiTajoPlatformPort(platformMode)) {
-      saiPort = std::make_unique<SaiTajoPlatformPort>(portId, this);
-    } else {
-      saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
+    saiPort = createBcmSaiPlatformPort(portId, this);
+    if (!saiPort) {
+      saiPort = createTajoSaiPlatformPort(portId, this);
+    }
+    if (!saiPort) {
+      saiPort = createYangraSaiPlatformPort(portId, this);
+    }
+    if (!saiPort) {
+      saiPort = createFakeSaiPlatformPort(portId, this);
+    }
+    if (!saiPort) {
+      throw FbossError(
+          "Unsupported SAI platform port type: ",
+          apache::thrift::util::enumNameSafe(getType()));
     }
     portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
   }

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 
 #include <memory>
 
@@ -49,5 +50,21 @@ std::unique_ptr<SaiPlatform> chooseFakeSaiPlatform(
     std::unique_ptr<PlatformProductInfo>& productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr);
+
+std::unique_ptr<SaiPlatformPort> createBcmSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform);
+
+std::unique_ptr<SaiPlatformPort> createTajoSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform);
+
+std::unique_ptr<SaiPlatformPort> createYangraSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform);
+
+std::unique_ptr<SaiPlatformPort> createFakeSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform);
 
 } // namespace facebook::fboss

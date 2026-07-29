@@ -16,7 +16,9 @@
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
+#include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
+#include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -80,6 +82,21 @@ std::unique_ptr<SaiPlatform> chooseTajoSaiPlatform(
   if (useGenericSaiTajoPlatform(type)) {
     return createGenericSaiTajoPlatform(
         std::move(productInfo), localMac, platformMappingStr);
+  }
+  return nullptr;
+}
+
+std::unique_ptr<SaiPlatformPort> createTajoSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform) {
+  const auto platformMode = platform->getType();
+  if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
+      platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
+      platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
+    return std::make_unique<SaiWedge400CPlatformPort>(portId, platform);
+  }
+  if (useGenericSaiTajoPlatform(platformMode)) {
+    return std::make_unique<SaiTajoPlatformPort>(portId, platform);
   }
   return nullptr;
 }
