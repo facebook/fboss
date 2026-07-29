@@ -366,6 +366,20 @@ class ExtendedSubscription : public BaseSubscription {
     return paths_.at(key);
   }
 
+  // Appends newPaths (skipping keys already present) and returns the inserted
+  // keys. Caller must hold the SubscriptionStore wlock: paths_ is otherwise
+  // read lock-free via paths()/pathAt() while serving.
+  std::vector<SubscriptionKey> addPaths(ExtSubPathMap&& newPaths) {
+    std::vector<SubscriptionKey> added;
+    added.reserve(newPaths.size());
+    for (auto& [key, path] : newPaths) {
+      if (paths_.emplace(key, std::move(path)).second) {
+        added.push_back(key);
+      }
+    }
+    return added;
+  }
+
   virtual std::unique_ptr<Subscription> resolve(
       const SubscriptionKey& key,
       const std::vector<std::string>& path) = 0;
@@ -387,7 +401,7 @@ class ExtendedSubscription : public BaseSubscription {
         paths_(std::move(paths)) {}
 
  private:
-  const ExtSubPathMap paths_;
+  ExtSubPathMap paths_;
   bool shouldPrune_{false};
 };
 

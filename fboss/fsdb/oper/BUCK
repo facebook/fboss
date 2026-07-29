@@ -25,6 +25,7 @@ cpp_library(
     exported_deps = [
         "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//folly/hash:hash",
     ],
 )
 
