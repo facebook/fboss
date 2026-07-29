@@ -266,14 +266,37 @@ class CowSubscriptionManager
     }
   }
 
+  // Resolves each of the subscription's keys into the lookup tree and seeds
+  // matching data paths from the root. Shared by doInitialSyncExtended (all
+  // keys) and resolveAddedPatchPaths (newly appended keys).
+  // incrementallyResolve is not idempotent, so callers must resolve a given
+  // (subscription, key) at most once per cycle.
+  void resolveExtendedSubscriptionKeys(
+      SubscriptionStore& store,
+      const Root& root,
+      const std::shared_ptr<ExtendedSubscription>& subscription,
+      const std::vector<SubscriptionKey>& keys) {
+    auto process = [&](const auto& path, auto& /* node */) {
+      store.processAddedPath(path.begin(), path.end());
+    };
+    for (const auto& key : keys) {
+      const auto& path = subscription->pathAt(key);
+      // seed beginnings of the path in to lookup tree
+      std::vector<std::string> emptyPathSoFar;
+      store.lookup().incrementallyResolve(
+          store, subscription, key, emptyPathSoFar);
+
+      thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
+      thrift_cow::RootExtendedPathVisitor::visit(
+          root, path.path()->begin(), path.path()->end(), options, process);
+    }
+  }
+
   void doInitialSyncExtended(
       SubscriptionStore& store,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer) {
     const auto& root = *newRoot;
-    auto process = [&](const auto& path, auto& node) {
-      store.processAddedPath(path.begin(), path.end());
-    };
 
     auto it = store.initialSyncNeededExtended().begin();
     while (it != store.initialSyncNeededExtended().end()) {
@@ -286,19 +309,51 @@ class CowSubscriptionManager
 
       subscription->updateMetadata(metadataServer);
 
-      const auto& paths = subscription->paths();
-      for (const auto& [key, path] : paths) {
-        // seed beginnings of the path in to lookup tree
-        std::vector<std::string> emptyPathSoFar;
-        store.lookup().incrementallyResolve(
-            store, subscription, key, emptyPathSoFar);
-
-        thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
-        thrift_cow::RootExtendedPathVisitor::visit(
-            root, path.path()->begin(), path.path()->end(), options, process);
+      std::vector<SubscriptionKey> keys;
+      keys.reserve(subscription->paths().size());
+      for (const auto& [key, _] : subscription->paths()) {
+        keys.push_back(key);
       }
+      resolveExtendedSubscriptionKeys(store, root, subscription, keys);
+
       subscription->recordInitialSyncCompleted();
+      // Initial sync already resolved the full path set (including keys
+      // appended before it ran); drop pending added-path work so
+      // resolveAddedPatchPaths does not resolve those keys again this cycle.
+      std::erase_if(
+          store.extendedSubsWithAddedPaths(),
+          [&](const ExtendedSubscriptionAddedPaths& added) {
+            return added.subscription == subscription;
+          });
       it = store.initialSyncNeededExtended().erase(it);
+    }
+  }
+
+  // Resolve + initial-sync only the newly appended paths (recorded in
+  // extendedSubsWithAddedPaths_). Subscriptions still awaiting their first
+  // extended sync have their entry dropped by doInitialSyncExtended, so entries
+  // seen here belong to subscriptions that already completed initial sync.
+  void resolveAddedPatchPaths(
+      SubscriptionStore& store,
+      const std::shared_ptr<Root>& newRoot,
+      const SubscriptionMetadataServer& metadataServer) {
+    const auto& root = *newRoot;
+
+    auto& addedPaths = store.extendedSubsWithAddedPaths();
+    auto it = addedPaths.begin();
+    while (it != addedPaths.end()) {
+      // Copy out the shared_ptr so its lifetime is independent of the vector
+      // element, which the trailing erase() below invalidates.
+      auto subscription = it->subscription;
+
+      if (!metadataServer.ready(subscription->publisherTreeRoot())) {
+        ++it;
+        continue;
+      }
+
+      subscription->updateMetadata(metadataServer);
+      resolveExtendedSubscriptionKeys(store, root, subscription, it->newKeys);
+      it = addedPaths.erase(it);
     }
   }
 
@@ -507,6 +562,7 @@ class CowSubscriptionManager
      */
 
     doInitialSyncExtended(store, newRoot, metadataServer);
+    resolveAddedPatchPaths(store, newRoot, metadataServer);
     doInitialSyncSimple(store, newRoot, metadataServer);
   }
 

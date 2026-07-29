@@ -28,11 +28,13 @@ void updateSubscriberStats(
 SubscriptionStore::~SubscriptionStore() {
   initialSyncNeeded_.clear(&pathStoreStats_);
   initialSyncNeededExtended_.clear();
+  extendedSubsWithAddedPaths_.clear();
 
   lookup_.clear(&pathStoreStats_);
   // fully resolved extended subs have a ref to the extended sub
   // make sure to destroy those before destroy the extended sub
   subscriptions_.clear();
+  extendedSubsByIdentifier_.clear();
   extendedSubscriptions_.clear();
 }
 
@@ -151,9 +153,83 @@ void SubscriptionStore::unregisterExtendedSubscription(
           *it->second.get(),
           updateSubscriberStatsDisconnectReason);
     }
+    // Only erase the index entry if it still points at this subscription:
+    // subscriptions can share an identifier (default uid 0) and a later
+    // registration may own the slot.
+    if (auto idxIt =
+            extendedSubsByIdentifier_.find(it->second->subscriptionId());
+        idxIt != extendedSubsByIdentifier_.end() &&
+        idxIt->second.lock() == it->second) {
+      extendedSubsByIdentifier_.erase(idxIt);
+    }
     initialSyncNeededExtended_.erase(it->second);
+    // Drop pending added-path work for this subscription: its entry holds a
+    // strong shared_ptr, so leaving it would pin the unregistered subscription
+    // alive and let resolveAddedPatchPaths later resolve off a dead
+    // subscription.
+    std::erase_if(
+        extendedSubsWithAddedPaths_,
+        [&](const ExtendedSubscriptionAddedPaths& added) {
+          return added.subscription == it->second;
+        });
     extendedSubscriptions_.erase(it);
   }
+}
+
+std::shared_ptr<ExtendedSubscription>
+SubscriptionStore::findExtendedSubscription(const SubscriptionIdentifier& id) {
+  auto it = extendedSubsByIdentifier_.find(id);
+  if (it == extendedSubsByIdentifier_.end()) {
+    return nullptr;
+  }
+  auto subscription = it->second.lock();
+  if (!subscription) {
+    extendedSubsByIdentifier_.erase(it);
+  }
+  return subscription;
+}
+
+std::optional<FsdbErrorCode> SubscriptionStore::addPatchSubscriptionPaths(
+    const SubscriptionIdentifier& id,
+    ExtSubPathMap newPaths,
+    const std::optional<std::string>& publisherRoot) {
+  auto subscription = findExtendedSubscription(id);
+  if (!subscription) {
+    XLOG(DBG1) << "addPatchSubscriptionPaths: no subscription found for "
+               << "subscriber " << id.subscriberId() << " uid " << id.uid();
+    return FsdbErrorCode::ID_NOT_FOUND;
+  }
+  if (subscription->type() != PubSubType::PATCH) {
+    XLOG(DBG1) << "addPatchSubscriptionPaths: subscription for subscriber "
+               << id.subscriberId() << " is not a patch subscription";
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
+  if (newPaths.empty()) {
+    XLOG(DBG1) << "addPatchSubscriptionPaths: no paths provided for "
+               << "subscriber " << id.subscriberId();
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
+  // New paths must resolve to the subscription's single publisher root.
+  if (subscription->publisherTreeRoot() != publisherRoot.value_or("")) {
+    XLOG(DBG1) << "addPatchSubscriptionPaths: publisher root mismatch for "
+               << "subscriber " << id.subscriberId();
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
+  // Reject colliding SubscriptionKeys: buffered_/patchGroups() are keyed by
+  // them.
+  const auto& existingPaths = subscription->paths();
+  for (const auto& [key, _] : newPaths) {
+    if (existingPaths.find(key) != existingPaths.end()) {
+      XLOG(DBG1) << "addPatchSubscriptionPaths: SubscriptionKey " << key
+                 << " already exists for subscriber " << id.subscriberId();
+      return FsdbErrorCode::ID_ALREADY_EXISTS;
+    }
+  }
+  auto addedKeys = subscription->addPaths(std::move(newPaths));
+  extendedSubsWithAddedPaths_.push_back(
+      ExtendedSubscriptionAddedPaths{
+          std::move(subscription), std::move(addedKeys)});
+  return std::nullopt;
 }
 
 void SubscriptionStore::registerSubscription(
@@ -179,6 +255,7 @@ void SubscriptionStore::registerExtendedSubscription(
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, name + " already exixts");
   }
+  extendedSubsByIdentifier_[subscription->subscriptionId()] = subscription;
   initialSyncNeededExtended_.insert(std::move(subscription));
 }
 

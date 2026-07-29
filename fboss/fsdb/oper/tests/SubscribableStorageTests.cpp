@@ -633,6 +633,125 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
   }
 }
 
+namespace {
+// Test-only storage: drives one serve cycle deterministically and exposes
+// manager-level addPatchSubscriptionPaths (to append paths mid-initial-sync).
+class DoubleResolveStorage
+    : public NaivePeriodicSubscribableCowStorage<TestStruct, false> {
+ public:
+  using Base = NaivePeriodicSubscribableCowStorage<TestStruct, false>;
+  using Base::Base;
+
+  // One serve cycle (mirrors the periodic loop), so the test controls timing.
+  void serveOnce() {
+    auto [oldRoot, newRoot, metadataServer] = this->publishCurrentState();
+    this->subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
+  }
+
+  std::optional<FsdbErrorCode> addPatchPaths(
+      const SubscriptionIdentifier& id,
+      std::map<SubscriptionKey, RawOperPath> newPaths,
+      const std::optional<std::string>& publisherRoot) {
+    return this->subMgr().addPatchSubscriptionPaths(
+        id, std::move(newPaths), publisherRoot);
+  }
+
+  std::optional<std::string> publisherRootOf(
+      const std::vector<std::string>& rawPath) {
+    return this->getPublisherRoot(rawPath.begin(), rawPath.end());
+  }
+};
+
+// Encoded i32 leaf with confirmed metadata; publishing this confirms the
+// publisher root (makes it "ready" for initial sync).
+OperState makeConfirmedI32(int32_t value) {
+  OperState state;
+  state.protocol() = OperProtocol::COMPACT;
+  state.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::integral>(OperProtocol::COMPACT, value);
+  state.metadata() = OperMetadata();
+  state.metadata()->lastConfirmedAt() = 1000;
+  return state;
+}
+} // namespace
+
+// A patch subscription can have paths appended while still awaiting its first
+// extended sync (publisher root not yet ready). doInitialSyncExtended then
+// resolves the full path set including the appended keys, which must NOT be
+// resolved again by resolveAddedPatchPaths. Asserts each key resolves once.
+TEST(
+    CowSubscriptionManagerDoubleResolveTest,
+    AddPathsWhileAwaitingInitialSync) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  auto testStruct = initializeTestStruct();
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  DoubleResolveStorage storage(
+      testStruct,
+      NaivePeriodicSubscribableStorageBase::StorageParams(
+          std::chrono::milliseconds(50),
+          std::chrono::seconds(5),
+          /*trackMetadata=*/true,
+          "fsdb",
+          /*convertToIDPaths=*/true));
+
+  const auto& path1 = root.stringToStruct()["test1"].max();
+  const auto& path2 = root.stringToStruct()["test2"].max();
+
+  // Publisher connects: root registered but not yet confirmed (not ready).
+  auto rootTokens = path1.tokens();
+  storage.registerPublisher(
+      rootTokens.begin(),
+      rootTokens.end(),
+      /*skipThriftStreamLivenessCheck=*/true);
+
+  // Subscribe with a single key. Non-zero uid so the subscription can be
+  // located by identifier when appending paths below.
+  SubscriptionIdentifier id(SubscriberId(kSubscriber), /*uid=*/42);
+  RawOperPath p1;
+  p1.path() = path1.tokens();
+  auto streamReader =
+      storage.subscribe_patch(SubscriptionIdentifier(id), {{1, std::move(p1)}});
+  auto generator = std::move(streamReader.generator_);
+
+  // Serve cycle #1: subscription becomes live/indexed but stays awaiting
+  // initial extended sync because the publisher root is not ready.
+  storage.serveOnce();
+
+  // Append a second key while the subscription is still awaiting initial sync.
+  // Pass id tokens directly: the manager-level append does not run storage
+  // path conversion, and the stored subscription paths are already id paths.
+  RawOperPath p2;
+  p2.path() = path2.idTokens();
+  EXPECT_EQ(
+      storage.addPatchPaths(
+          id, {{2, std::move(p2)}}, storage.publisherRootOf(path2.tokens())),
+      std::nullopt);
+
+  // Publisher initial sync: publish data for both paths with confirmed
+  // metadata, which makes the publisher root ready.
+  EXPECT_EQ(storage.set_encoded(path1, makeConfirmedI32(111)), std::nullopt);
+  EXPECT_EQ(storage.set_encoded(path2, makeConfirmedI32(222)), std::nullopt);
+
+  // Serve cycle #2: both keys resolve and get their initial-sync patch. On the
+  // double-resolution bug, key 2 resolves twice.
+  storage.serveOnce();
+
+  auto element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto msg = std::move(element.val);
+  auto patchGroups = *msg.get_chunk().patchGroups();
+
+  // Each subscribed key resolves exactly once (both are served in one chunk).
+  EXPECT_EQ(patchGroups.size(), 2);
+  EXPECT_EQ(patchGroups.at(1).size(), 1);
+  EXPECT_EQ(patchGroups.at(2).size(), 1);
+  // One resolved child subscription per key (would be 3 on double resolution).
+  EXPECT_EQ(storage.numSubscriptions(), 2);
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);
