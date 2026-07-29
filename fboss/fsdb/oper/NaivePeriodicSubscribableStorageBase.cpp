@@ -624,7 +624,8 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
 std::optional<FsdbErrorCode>
 NaivePeriodicSubscribableStorageBase::add_patch_subscription_path_impl(
     SubscriptionIdentifier&& id,
-    std::map<SubscriptionKey, RawOperPath> newPaths) {
+    std::map<SubscriptionKey, RawOperPath> newPaths,
+    std::optional<StreamRevision> streamRevision) {
   if (newPaths.empty()) {
     // Nothing to add; reject rather than silently recording a no-op.
     return FsdbErrorCode::INVALID_REQUEST;
@@ -634,7 +635,8 @@ NaivePeriodicSubscribableStorageBase::add_patch_subscription_path_impl(
     path.path() = std::move(convertedPath);
   }
   auto root = getPublisherRoot(newPaths);
-  return subMgr().addPatchSubscriptionPaths(id, std::move(newPaths), root);
+  return subMgr().addPatchSubscriptionPaths(
+      id, std::move(newPaths), root, streamRevision);
 }
 
 } // namespace facebook::fboss::fsdb

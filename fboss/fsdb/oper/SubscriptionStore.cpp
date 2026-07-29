@@ -192,7 +192,8 @@ SubscriptionStore::findExtendedSubscription(const SubscriptionIdentifier& id) {
 std::optional<FsdbErrorCode> SubscriptionStore::addPatchSubscriptionPaths(
     const SubscriptionIdentifier& id,
     ExtSubPathMap newPaths,
-    const std::optional<std::string>& publisherRoot) {
+    const std::optional<std::string>& publisherRoot,
+    std::optional<StreamRevision> streamRevision) {
   auto subscription = findExtendedSubscription(id);
   if (!subscription) {
     XLOG(DBG1) << "addPatchSubscriptionPaths: no subscription found for "
@@ -226,6 +227,11 @@ std::optional<FsdbErrorCode> SubscriptionStore::addPatchSubscriptionPaths(
     }
   }
   auto addedKeys = subscription->addPaths(std::move(newPaths));
+  // Stash the client-supplied stream revision so it is echoed back in
+  // OperMetadata.streamRevision on patches served after this add.
+  if (streamRevision.has_value()) {
+    subscription->setStreamRevision(*streamRevision);
+  }
   // If the subscription is still awaiting its own extended initial sync,
   // doInitialSyncExtended will resolve ALL its paths_ (including these) next
   // cycle. Only defer resolution here once that initial sync is done, else

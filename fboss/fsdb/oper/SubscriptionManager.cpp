@@ -31,19 +31,21 @@ std::optional<FsdbErrorCode>
 SubscriptionManagerBase::addPatchSubscriptionPathsImpl(
     const SubscriptionIdentifier& id,
     ExtSubPathMap newPaths,
-    const std::optional<std::string>& publisherRoot) {
+    const std::optional<std::string>& publisherRoot,
+    std::optional<StreamRevision> streamRevision) {
   if (!useIdPaths_) {
     throw std::runtime_error(
         "Cannot support patch type subscriptions without id paths");
   }
   return store_.wlock()->addPatchSubscriptionPaths(
-      id, std::move(newPaths), publisherRoot);
+      id, std::move(newPaths), publisherRoot, streamRevision);
 }
 
 std::optional<FsdbErrorCode> SubscriptionManagerBase::addPatchSubscriptionPaths(
     const SubscriptionIdentifier& id,
     std::map<SubscriptionKey, RawOperPath> newPaths,
-    const std::optional<std::string>& publisherRoot) {
+    const std::optional<std::string>& publisherRoot,
+    std::optional<StreamRevision> streamRevision) {
   // Convert raw paths to extended (raw-token) paths, mirroring
   // ExtendedPatchSubscription::create.
   ExtSubPathMap extPaths;
@@ -55,7 +57,8 @@ std::optional<FsdbErrorCode> SubscriptionManagerBase::addPatchSubscriptionPaths(
     }
     extPaths[key].path() = std::move(extendedPath);
   }
-  return addPatchSubscriptionPathsImpl(id, std::move(extPaths), publisherRoot);
+  return addPatchSubscriptionPathsImpl(
+      id, std::move(extPaths), publisherRoot, streamRevision);
 }
 
 void SubscriptionManagerBase::closeNoPublisherActiveSubscriptions(

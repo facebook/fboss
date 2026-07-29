@@ -380,6 +380,22 @@ class ExtendedSubscription : public BaseSubscription {
     return added;
   }
 
+  // Stream-revision token from the most recent add-paths request. One-shot:
+  // stamped onto OperMetadata.streamRevision of the first chunk served after
+  // the add (the "took effect" boundary), then cleared via
+  // takeStreamRevision().
+  void setStreamRevision(StreamRevision rev) {
+    streamRevision_ = rev;
+  }
+  const std::optional<StreamRevision>& streamRevision() const {
+    return streamRevision_;
+  }
+  // Return the pending stream revision (if any) and clear it, so it is applied
+  // to exactly one served chunk.
+  std::optional<StreamRevision> takeStreamRevision() {
+    return std::exchange(streamRevision_, std::nullopt);
+  }
+
   virtual std::unique_ptr<Subscription> resolve(
       const SubscriptionKey& key,
       const std::vector<std::string>& path) = 0;
@@ -403,6 +419,7 @@ class ExtendedSubscription : public BaseSubscription {
  private:
   ExtSubPathMap paths_;
   bool shouldPrune_{false};
+  std::optional<StreamRevision> streamRevision_;
 };
 
 class BasePathSubscription : public Subscription {

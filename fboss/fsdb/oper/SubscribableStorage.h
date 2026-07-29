@@ -275,17 +275,20 @@ class SubscribableStorage {
   // key).
   std::optional<FsdbErrorCode> add_patch_subscription_path(
       SubscriptionIdentifier&& id,
-      std::map<SubscriptionKey, RawOperPath> newPaths) {
+      std::map<SubscriptionKey, RawOperPath> newPaths,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
     return static_cast<Impl*>(this)->add_patch_subscription_path_impl(
-        std::move(id), std::move(newPaths));
+        std::move(id), std::move(newPaths), streamRevision);
   }
   std::optional<FsdbErrorCode> add_patch_subscription_path(
       SubscriptionIdentifier&& id,
       SubscriptionKey key,
-      RawOperPath newPath) {
+      RawOperPath newPath,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
     return add_patch_subscription_path(
         std::move(id),
-        std::map<SubscriptionKey, RawOperPath>{{key, std::move(newPath)}});
+        std::map<SubscriptionKey, RawOperPath>{{key, std::move(newPath)}},
+        streamRevision);
   }
 
   // wrapper calls to underlying storage

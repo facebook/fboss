@@ -43,7 +43,8 @@ class SubscriptionManagerBase {
   std::optional<FsdbErrorCode> addPatchSubscriptionPaths(
       const SubscriptionIdentifier& id,
       std::map<SubscriptionKey, RawOperPath> newPaths,
-      const std::optional<std::string>& publisherRoot);
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision = std::nullopt);
 
   size_t numSubscriptions() const {
     return store_.rlock()->subscriptions().size();
@@ -90,7 +91,8 @@ class SubscriptionManagerBase {
   std::optional<FsdbErrorCode> addPatchSubscriptionPathsImpl(
       const SubscriptionIdentifier& id,
       ExtSubPathMap newPaths,
-      const std::optional<std::string>& publisherRoot);
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision);
 
   void registerSubscription(
       std::string name,

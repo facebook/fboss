@@ -62,7 +62,8 @@ class SubscriptionStore {
   std::optional<FsdbErrorCode> addPatchSubscriptionPaths(
       const SubscriptionIdentifier& id,
       ExtSubPathMap newPaths,
-      const std::optional<std::string>& publisherRoot);
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision = std::nullopt);
 
   void processAddedPath(
       std::vector<std::string>::const_iterator begin,

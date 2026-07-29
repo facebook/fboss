@@ -649,11 +649,19 @@ void ExtendedPatchSubscription::buffer(
 std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
     const SubscriptionMetadataServer& metadataServer) {
   if (buffered_.empty()) {
+    // No chunk served this cycle; keep any pending stream revision so it lands
+    // on the first non-empty chunk (the "took effect" boundary).
     return std::nullopt;
   }
+  // One-shot: stamp the pending stream revision (if any) onto this chunk only,
+  // then clear it so subsequent patches are not tagged with a stale revision.
+  const auto rev = takeStreamRevision();
   for (auto& [_, patchGroups] : buffered_) {
     for (auto& patch : patchGroups) {
       patch.metadata() = getMetadata(metadataServer);
+      if (rev) {
+        patch.metadata()->streamRevision() = *rev;
+      }
       patch.protocol() = operProtocol();
     }
   }

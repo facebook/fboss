@@ -72,6 +72,7 @@ target_link_libraries(fsdb_test_clients
 )
 
 add_executable(fsdb_pub_sub_tests
+  fboss/fsdb/tests/client/FsdbAddPatchSubscriptionPathsTest.cpp
   fboss/fsdb/tests/client/FsdbPubSubManagerTest.cpp
   fboss/util/oss/TestMain.cpp
 )
@@ -81,6 +82,7 @@ target_link_libraries(fsdb_pub_sub_tests
   fsdb_test_clients
   fsdb_test_server
   fsdb_pub_sub
+  fsdb_cpp2
   fsdb_model_cpp2
   fsdb_oper_cpp2
   patch_cpp2
