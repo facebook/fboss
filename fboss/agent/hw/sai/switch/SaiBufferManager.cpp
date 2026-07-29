@@ -29,7 +29,6 @@
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
-#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -79,20 +78,6 @@ uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   return switchApi.getAttribute(
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
-}
-
-uint32_t getNumCellsAvailable(const SaiPlatform* platform) {
-  auto asic = platform->getAsic();
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-    auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-    return static_cast<const TomahawkAsic*>(asic)->getNumCellsAvailable(
-        platform->getType(),
-        saiBcmPlatform->getHwConfigValue(
-            TomahawkAsic::optimizedMqueueGuaranteeHwConfig()) != nullptr,
-        saiBcmPlatform->getHwConfigValue(
-            TomahawkAsic::optimizedMmuConfigOverrideHwConfig()) != nullptr);
-  }
-  return asic->getNumCellsAvailable(platform->getType());
 }
 
 void assertMaxBufferPoolSize(const SaiPlatform* platform) {
