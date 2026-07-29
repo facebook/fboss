@@ -190,6 +190,20 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_benchmark_tests"),
         )
 
+    def _copy_completion_scripts(self, tmp_dir_name):
+        completion_src = os.path.join(
+            self.get_fboss_subdirectory("fboss/oss/scripts"),
+            "fboss2_completion.bash",
+        )
+        completion_dst_dir = os.path.join(
+            tmp_dir_name, PackageFboss.DATA, "bash-completion", "completions"
+        )
+        os.makedirs(completion_dst_dir, exist_ok=True)
+        # bash-completion loads the file named after the command.
+        completion_dst = os.path.join(completion_dst_dir, "fboss2")
+        print(f"Copying {completion_src} to {completion_dst}")
+        shutil.copy(completion_src, completion_dst)
+
     def _copy_production_features(self, tmp_dir_name):
         production_features_path = self.get_fboss_subdirectory(
             "fboss/oss/production_features"
@@ -316,6 +330,7 @@ class PackageFboss:
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
+        self._copy_completion_scripts(tmp_dir_name)
 
     @staticmethod
     def _is_python_dir_executable(path: str) -> bool:
