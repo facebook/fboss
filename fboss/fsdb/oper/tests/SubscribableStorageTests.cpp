@@ -752,6 +752,127 @@ TEST(
   EXPECT_EQ(storage.numSubscriptions(), 2);
 }
 
+TYPED_TEST(SubscribableStorageTests, AddPatchSubscriptionPath) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  const auto& path1 = this->root.stringToStruct()["test1"].max();
+  const auto& path2 = this->root.stringToStruct()["test2"].max();
+  RawOperPath p1;
+  p1.path() = path1.tokens();
+  auto streamReader = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{1, std::move(p1)}});
+  auto generator = std::move(streamReader.generator_);
+
+  // initial sync for path1
+  EXPECT_EQ(storage.set(path1, 123), std::nullopt);
+  auto element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto msg = std::move(element.val);
+  auto patchGroups = *msg.get_chunk().patchGroups();
+  EXPECT_EQ(patchGroups.size(), 1);
+  EXPECT_EQ(patchGroups.begin()->first, 1);
+
+  // add path2 with a new SubscriptionKey on the live subscription
+  RawOperPath p2;
+  p2.path() = path2.tokens();
+  EXPECT_EQ(
+      storage.add_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)), 2, std::move(p2)),
+      std::nullopt);
+
+  // newly added path should get a full-state initial sync on the same stream
+  EXPECT_EQ(storage.set(path2, 200), std::nullopt);
+  element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  msg = std::move(element.val);
+  patchGroups = *msg.get_chunk().patchGroups();
+  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+  auto patches = patchGroups.at(2);
+  EXPECT_EQ(patches.size(), 1);
+  auto patch = patches.front();
+  EXPECT_EQ(patch.basePath()[1], "test2");
+  // initial sync is delivered as a whole blob
+  auto rootPatch = patch.patch()->move_val();
+  auto deserialized = facebook::fboss::thrift_cow::
+      deserializeBuf<apache::thrift::type_class::integral, int32_t>(
+          *patch.protocol(), std::move(rootPatch));
+  EXPECT_EQ(deserialized, 200);
+
+  // subsequent update on path2 should arrive as an incremental patch
+  EXPECT_EQ(storage.set(path2, 201), std::nullopt);
+  element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  msg = std::move(element.val);
+  patchGroups = *msg.get_chunk().patchGroups();
+  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+  patch = patchGroups.at(2).front();
+  auto newVal = *patch.patch()->val_ref();
+  deserialized = facebook::fboss::thrift_cow::
+      deserializeBuf<apache::thrift::type_class::integral, int32_t>(
+          OperProtocol::COMPACT, std::move(newVal));
+  EXPECT_EQ(deserialized, 201);
+
+  // negative: unknown identifier
+  RawOperPath pUnknown;
+  pUnknown.path() = path1.tokens();
+  EXPECT_EQ(
+      storage.add_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId("unknownSubscriber")),
+          3,
+          std::move(pUnknown)),
+      FsdbErrorCode::ID_NOT_FOUND);
+
+  // negative: colliding SubscriptionKey (key 1 already in the subscription)
+  RawOperPath pDup;
+  pDup.path() = path1.tokens();
+  EXPECT_EQ(
+      storage.add_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)),
+          1,
+          std::move(pDup)),
+      FsdbErrorCode::ID_ALREADY_EXISTS);
+}
+
+TYPED_TEST(SubscribableStorageTests, AddPatchSubscriptionPathNonPatch) {
+  using namespace facebook::fboss::fsdb;
+
+  if (this->isHybridStorage()) {
+    GTEST_SKIP() << "extended subscription under HybridNode is unsupported";
+  }
+
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // A non-patch extended subscription is indexed by identifier but must be
+  // rejected by add_patch_subscription_path.
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto streamReader = storage.subscribe_delta_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {path},
+      OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
+
+  // drive a serve cycle so the subscription is registered in the store
+  EXPECT_EQ(
+      storage.set(this->root.mapOfStringToI32()["test1"], 1), std::nullopt);
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  RawOperPath p;
+  p.path() = this->root.stringToStruct()["test2"].max().tokens();
+  EXPECT_EQ(
+      storage.add_patch_subscription_path(
+          SubscriptionIdentifier(SubscriberId(kSubscriber)), 1, std::move(p)),
+      FsdbErrorCode::INVALID_REQUEST);
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribePatchHeartbeat) {
   FLAGS_serveHeartbeats = true;
   auto storage = this->initStorage(this->testStruct);

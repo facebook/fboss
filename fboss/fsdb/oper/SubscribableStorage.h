@@ -268,6 +268,26 @@ class SubscribableStorage {
         std::move(subscriptionParams));
   }
 
+  // Append paths to an already-created patch subscription (located by its
+  // SubscriptionIdentifier). Added paths get a full-state initial sync then
+  // incremental patches on the existing stream. Returns an FsdbErrorCode on
+  // failure (unknown id, non-patch sub, publisher-root mismatch, colliding
+  // key).
+  std::optional<FsdbErrorCode> add_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      std::map<SubscriptionKey, RawOperPath> newPaths) {
+    return static_cast<Impl*>(this)->add_patch_subscription_path_impl(
+        std::move(id), std::move(newPaths));
+  }
+  std::optional<FsdbErrorCode> add_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      SubscriptionKey key,
+      RawOperPath newPath) {
+    return add_patch_subscription_path(
+        std::move(id),
+        std::map<SubscriptionKey, RawOperPath>{{key, std::move(newPath)}});
+  }
+
   // wrapper calls to underlying storage
 
   template <typename Path>

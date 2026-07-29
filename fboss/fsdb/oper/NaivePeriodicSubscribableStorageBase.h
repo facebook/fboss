@@ -220,6 +220,10 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
+  std::optional<FsdbErrorCode> add_patch_subscription_path_impl(
+      SubscriptionIdentifier&& id,
+      std::map<SubscriptionKey, RawOperPath> newPaths);
+
   void publisherHeartbeat(
       PathIter begin,
       PathIter end,
