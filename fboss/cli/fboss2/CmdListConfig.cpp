@@ -112,6 +112,9 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
 #include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
@@ -970,6 +973,26 @@ const CommandTree& kConfigCommandTree() {
        "Rollback to a previous config revision",
        commandHandler<CmdConfigRollback>,
        argRegistrar<CmdConfigRollbackTraits>},
+
+      {
+          "config",
+          "srv6",
+          "Configure SRv6 MySID settings",
+          commandHandler<CmdConfigSrv6>,
+          argRegistrar<CmdConfigSrv6Traits>,
+          {{
+              "my-sid",
+              "Initialize or manage MySID entries under a locator prefix",
+              commandHandler<CmdConfigSrv6MySid>,
+              argRegistrar<CmdConfigSrv6MySidTraits>,
+              {{
+                  "add",
+                  "Add uA/uN/uDT46 entry: add entry <fn> type ...",
+                  commandHandler<CmdConfigSrv6MySidAdd>,
+                  argRegistrar<CmdConfigSrv6MySidAddTraits>,
+              }},
+          }},
+      },
 
       {"config",
        "tunnel",
