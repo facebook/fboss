@@ -239,8 +239,8 @@ void BcmPortQueueManager::programAqm(
     std::optional<cfg::QueueCongestionDetection> detection) {
   const auto& defaultQueue = getDefaultQueueSettings(cfg::StreamType::UNICAST);
   auto& defaultAqms = defaultQueue.getAqms();
-  // NOTE: The following logic only works on Tomahawk (Wedge100).
-  //       Trident2 (Wedge40) does not have a drop profile for
+  // NOTE: The following logic only works on Tomahawk.
+  //       Trident2 does not have a drop profile for
   //       ECT_MARKED packets, so enabling ECN on that chip
   //       works differently. It should be sufficient to configure
   //       the TCP profile to have the MARK_CONGESTION flag. Some

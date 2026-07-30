@@ -42,7 +42,6 @@
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400GrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformUtil.h"
@@ -89,10 +88,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     }
   }
   switch (type) {
-    case PlatformType::PLATFORM_WEDGE:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge40PlatformMapping>()
-          : std::make_unique<Wedge40PlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE100:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge100PlatformMapping>()
@@ -155,11 +150,13 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Tahan800bcPlatformMapping>()
           : std::make_unique<Tahan800bcPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_FAKE_WEDGE:
-    case PlatformType::PLATFORM_FAKE_WEDGE40:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge40PlatformMapping>()
-          : std::make_unique<Wedge40PlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_FAKE_WEDGE: {
+      if (!platformMappingStr.empty()) {
+        return std::make_unique<PlatformMapping>(platformMappingStr);
+      }
+      return std::make_unique<FakeTestPlatformMapping>(
+          getFakeSaiControllingPortIDs());
+    }
     case PlatformType::PLATFORM_WEDGE400C_SIM:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge400CPlatformMapping>()
@@ -260,6 +257,8 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_CLOUDRIPPER_DEPRECATED:
     case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC_DEPRECATED:
     case PlatformType::PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED:
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:

@@ -97,7 +97,6 @@ void addMplsConfig(cfg::SwitchConfig& config) {
 uint16_t uplinksCountFromSwitch(PlatformType mode) {
   using PM = PlatformType;
   switch (mode) {
-    case PM::PLATFORM_WEDGE:
     case PM::PLATFORM_WEDGE100:
     case PM::PLATFORM_WEDGE400C:
     case PM::PLATFORM_WEDGE800CACT:

@@ -36,7 +36,6 @@
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge400CManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge400Manager.h"
-#include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -198,8 +197,7 @@ std::unique_ptr<WedgeManager> createWedgeManager(
           PlatformType::PLATFORM_LEH800BCLS>(
           platformMapping, qsfpServiceThreads);
     default:
-      return std::make_unique<Wedge40Manager>(
-          platformMapping, qsfpServiceThreads);
+      throw FbossError("Unsupported platform type");
   }
 }
 

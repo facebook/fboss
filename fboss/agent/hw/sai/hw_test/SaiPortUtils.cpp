@@ -20,7 +20,6 @@
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
-#include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -376,10 +375,6 @@ bool verifyLedStatus(Platform* platform, PortID port, bool up) {
   uint32_t currentVal = platformPort->getCurrentLedState();
   uint32_t expectedVal = 0;
   switch (platform->getType()) {
-    case PlatformType::PLATFORM_WEDGE: {
-      expectedVal =
-          static_cast<uint32_t>(Wedge40LedUtils::getExpectedLEDState(up, up));
-    } break;
     case PlatformType::PLATFORM_WEDGE100: {
       expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getExpectedLEDState(
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));

@@ -31,7 +31,6 @@ target_link_libraries(platform_mapping_utils
   fuji_platform_mapping
   galaxy_platform_mapping
   wedge100_platform_mapping
-  wedge40_platform_mapping
   wedge400_platform_utils
   wedge400c_platform_utils
   darwin_platform_mapping

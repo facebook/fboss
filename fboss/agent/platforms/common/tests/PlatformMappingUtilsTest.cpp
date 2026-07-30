@@ -74,3 +74,13 @@ TEST(TestPlatformMappingUtils, initPlatformMappingUsesDescriptorMapping) {
   EXPECT_TRUE(platformMapping->getPlatformPorts().empty());
   EXPECT_TRUE(platformMapping->getChips().empty());
 }
+
+TEST(TestPlatformMappingUtils, initPlatformMappingSupportsFakeWedge) {
+  FLAGS_platform_mapping_override_path = "";
+  FLAGS_platform_descriptor_config_path = "";
+
+  const auto platformMapping =
+      utility::initPlatformMapping(PlatformType::PLATFORM_FAKE_WEDGE);
+
+  EXPECT_FALSE(platformMapping->getPlatformPorts().empty());
+}

@@ -60,7 +60,6 @@ cpp_library(
         "//fboss/agent/platforms/common/tahan800bc:tahan800bc_platform_mapping",
         "//fboss/agent/platforms/common/tahansb800bc:tahansb800bc_platform_mapping",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
-        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/wedge400c:wedge400c_platform_mapping",

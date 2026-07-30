@@ -204,8 +204,7 @@ void verifyTxSettting(
     cfg::PortProfileID profileID,
     Platform* platform,
     const std::vector<phy::PinConfig>& expectedPinConfigs) {
-  if (platform->getType() == PlatformType::PLATFORM_FAKE_WEDGE ||
-      platform->getType() == PlatformType::PLATFORM_FAKE_WEDGE40) {
+  if (platform->getType() == PlatformType::PLATFORM_FAKE_WEDGE) {
     // TODO: skip fake now, add support for TxSettings in fake SDK
     return;
   }

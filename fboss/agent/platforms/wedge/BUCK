@@ -74,9 +74,6 @@ wedge_platform_src = [
     "wedge100/Wedge100Platform.cpp",
     "wedge100/Wedge100Port.cpp",
     "wedge100/facebook/Wedge100Port.cpp",
-    "wedge40/Wedge40Platform.cpp",
-    "wedge40/Wedge40Port.cpp",
-    "wedge40/facebook/Wedge40Port.cpp",
     "facebook/WedgePlatform.cpp",
     "facebook/WedgePlatformUtils.cpp",
     "facebook/WedgePlatformInit.cpp",
@@ -100,7 +97,6 @@ wedge_platform_src = [
 
 wedge_platform_headers = [
     "WedgePortMapping.h",
-    "wedge40/FakeWedge40Platform.h",
 ]
 
 cpp_library(
@@ -131,7 +127,6 @@ cpp_library(
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
         "//fboss/agent/platforms/common/utils:wedge-led-utils",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
-        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
@@ -164,7 +159,6 @@ cpp_library(
         "//folly/gen:base",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
-        "//folly/testing:test_util",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
@@ -208,7 +202,6 @@ cpp_library(
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",
         "//fboss/agent/platforms/common/utils:wedge-led-utils",
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
-        "//fboss/agent/platforms/common/wedge40:wedge40_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_utils",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
@@ -241,7 +234,6 @@ cpp_library(
         "//folly/gen:base",
         "//folly/io/async:async_base",
         "//folly/logging:logging",
-        "//folly/testing:test_util",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [

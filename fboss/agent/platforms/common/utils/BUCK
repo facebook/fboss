@@ -9,7 +9,6 @@ cpp_library(
         "MinipackLedUtils.cpp",
         "Wedge100LedUtils.cpp",
         "Wedge400LedUtils.cpp",
-        "Wedge40LedUtils.cpp",
         "facebook/Wedge100LedUtils.cpp",
     ],
     exported_deps = [

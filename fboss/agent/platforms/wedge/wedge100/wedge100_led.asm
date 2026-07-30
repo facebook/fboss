@@ -16,9 +16,8 @@
 ; This value defines the start byte where FBOSS will write port color info.
 ADDR_SW_PORTS equ 0xc0
 
-; Note that unlike Wedge40, we iterate over the ports backwards.  This
-; is because the CPLD accesses leds in reverse order of the logical
-; numbering. The CPLD takes care of flipping the ports back within a
+; We iterate over the ports backwards because the CPLD accesses LEDs in reverse
+; logical order. The CPLD takes care of flipping the ports back within a
 ; 24-bit block, but cannot change the order outside of 24 bits so we
 ; pass the cpld the ports in reverse order.
 ;
