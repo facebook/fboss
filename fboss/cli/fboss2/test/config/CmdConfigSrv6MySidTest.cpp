@@ -19,7 +19,9 @@
 
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/delete/CmdConfigSrv6MySidDelete.h"
 #include "fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
@@ -63,6 +65,18 @@ const std::map<std::string, std::string> kSrv6MySidTestDescriptions = {
      "add entry with wrong locator prefix is rejected"},
     {"mySidAdd_upserts",
      "Re-adding same function ID overwrites prior entry with warning"},
+    {"mySidDeleteEntry_removesEntry",
+     "config srv6 my-sid <prefix> delete entry <fn> removes entry"},
+    {"mySidDeleteEntry_noOpWhenMissing",
+     "delete entry for missing function ID returns informational message"},
+    {"mySidDeleteEntry_noOpWhenNoConfig",
+     "delete entry with no mySidConfig returns informational message"},
+    {"deleteMySid_removesEntireConfig",
+     "delete srv6 my-sid <prefix> removes entire mySidConfig block"},
+    {"deleteMySid_wrongPrefix",
+     "delete srv6 my-sid with mismatched prefix is rejected"},
+    {"deleteMySid_noConfig",
+     "delete srv6 my-sid when nothing configured returns informational message"},
 };
 
 class Srv6MySidTestLogListener : public ::testing::EmptyTestEventListener {
@@ -329,6 +343,73 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_upserts) {
   cmd.queryClient(hostInfo_, prefix, firstArg);
   auto result = cmd.queryClient(hostInfo_, prefix, secondArg);
   EXPECT_THAT(result, HasSubstr("Warning: MySID entry 10188 overwritten"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_removesEntry) {
+  initMySidConfig();
+  CmdConfigSrv6MySidAdd addCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidAddArg addArg({"entry", "32767", "type", "decap"});
+  addCmd.queryClient(hostInfo_, prefix, addArg);
+
+  CmdConfigSrv6MySidDelete deleteCmd;
+  MySidDeleteEntryArg deleteArg({"entry", "32767"});
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("Successfully deleted MySID entry 32767"));
+
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  EXPECT_EQ(config.sw()->mySidConfig()->entries()->count(32767), 0);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_noOpWhenMissing) {
+  initMySidConfig();
+  CmdConfigSrv6MySidDelete deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidDeleteEntryArg deleteArg({"entry", "10188"});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("does not exist"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_noOpWhenNoConfig) {
+  setupTestableConfigSession("config srv6 my-sid delete", kLocatorPrefix);
+  CmdConfigSrv6MySidDelete deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidDeleteEntryArg deleteArg({"entry", "10188"});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("no mySidConfig configured"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_removesEntireConfig) {
+  initMySidConfig();
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix);
+  EXPECT_THAT(
+      result, HasSubstr("Successfully deleted SRv6 MySID configuration"));
+  EXPECT_THAT(result, HasSubstr(kLocatorPrefix));
+
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  EXPECT_FALSE(config.sw()->mySidConfig().has_value());
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_wrongPrefix) {
+  initMySidConfig();
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kOtherLocatorPrefix});
+
+  EXPECT_THROW(deleteCmd.queryClient(hostInfo_, prefix), std::runtime_error);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_noConfig) {
+  setupTestableConfigSession("delete srv6 my-sid", kLocatorPrefix);
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix);
+  EXPECT_THAT(result, HasSubstr("nothing configured"));
 }
 
 } // namespace facebook::fboss

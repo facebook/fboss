@@ -93,4 +93,16 @@ class MySidAddArg : public utils::BaseObjectArgType<std::string> {
   std::string nodeAddress_;
 };
 
+class MySidDeleteEntryArg : public utils::BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ MySidDeleteEntryArg(std::vector<std::string> v);
+
+  int16_t getFunctionValue() const {
+    return functionValue_;
+  }
+
+ private:
+  int16_t functionValue_{0};
+};
+
 } // namespace facebook::fboss

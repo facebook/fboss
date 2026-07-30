@@ -11,16 +11,15 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.h"
 #include "fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
 
 namespace facebook::fboss {
 
-// CLI: `config srv6 my-sid <prefix>`
-// Creates the mySidConfig block (locator + empty entries map) when none exists.
-// Also acts as the parent context for add/delete entry subcommands.
-struct CmdConfigSrv6MySidTraits : public WriteCommandTraits {
-  using ParentCmd = CmdConfigSrv6;
+// CLI: `delete srv6 my-sid <prefix>`
+// Removes the entire mySidConfig block (locator and all entries).
+struct CmdDeleteSrv6MySidTraits : public WriteCommandTraits {
+  using ParentCmd = CmdDeleteSrv6;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
         "prefix", args, "SRv6 /32 locator prefix (e.g. fdad:ffff::/32)");
@@ -29,11 +28,11 @@ struct CmdConfigSrv6MySidTraits : public WriteCommandTraits {
   using RetType = std::string;
 };
 
-class CmdConfigSrv6MySid
-    : public CmdHandler<CmdConfigSrv6MySid, CmdConfigSrv6MySidTraits> {
+class CmdDeleteSrv6MySid
+    : public CmdHandler<CmdDeleteSrv6MySid, CmdDeleteSrv6MySidTraits> {
  public:
-  using ObjectArgType = CmdConfigSrv6MySidTraits::ObjectArgType;
-  using RetType = CmdConfigSrv6MySidTraits::RetType;
+  using ObjectArgType = CmdDeleteSrv6MySidTraits::ObjectArgType;
+  using RetType = CmdDeleteSrv6MySidTraits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& prefix);
 

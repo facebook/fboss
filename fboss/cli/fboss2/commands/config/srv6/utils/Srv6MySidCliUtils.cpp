@@ -240,4 +240,19 @@ cfg::MySidEntryConfig MySidAddArg::buildEntryConfig() const {
   return entry;
 }
 
+MySidDeleteEntryArg::MySidDeleteEntryArg(std::vector<std::string> v) {
+  size_t index = 0;
+  expectKeyword(v, index, "entry");
+  if (index >= v.size()) {
+    throw std::invalid_argument("Missing function value after 'entry'");
+  }
+  functionValue_ = parseMySidFunctionValue(v[index++]);
+  if (index != v.size()) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Unexpected extra argument '{}' for delete entry", v[index]));
+  }
+  data_.push_back(fmt::format("{}", functionValue_));
+}
+
 } // namespace facebook::fboss

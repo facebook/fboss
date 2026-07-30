@@ -1026,8 +1026,14 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h
   fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.cpp
   fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h
+  fboss/cli/fboss2/commands/config/srv6/my_sid/delete/CmdConfigSrv6MySidDelete.cpp
+  fboss/cli/fboss2/commands/config/srv6/my_sid/delete/CmdConfigSrv6MySidDelete.h
   fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.cpp
   fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h
+  fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.cpp
+  fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.cpp
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h
