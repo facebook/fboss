@@ -2858,6 +2858,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
         },
         {
@@ -3248,6 +3251,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks"
@@ -4066,6 +4072,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
         },
         {
@@ -4459,6 +4468,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentVoqSwitchTest.verifyAI23ModeConfig$"
@@ -6220,6 +6232,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         }
     ],
@@ -6663,6 +6678,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
         },
         {
@@ -7064,6 +7082,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAsicDefaultProgrammingTest.verifyDefaultProgramming$"
         }
     ],
@@ -7454,6 +7475,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.verifyEcnThreshold$"
@@ -9018,6 +9042,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -9464,6 +9491,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -9868,6 +9898,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -10261,6 +10294,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -15276,6 +15312,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -15720,6 +15759,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
@@ -16177,6 +16219,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -16578,6 +16623,9 @@
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
+        },
+        {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
         },
         {
@@ -16971,6 +17019,9 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "roundtrip.*.AgentVoqSwitchWarmbootReconcileTest.WarmbootReconcileMissingRoute"
         },
         {
           "test_name_regex": "AgentAqmEcnOnlyTest.*$"
