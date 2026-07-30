@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
+#include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -660,6 +661,24 @@ std::shared_ptr<LlrConfig> makeLlrConfigNode() {
   llr->setCtlosTargetSpacing(2048);
   return llr;
 }
+
+// A second profile whose values (and name) all differ from makeLlrConfigNode,
+// so switching between them yields a different content key.
+std::shared_ptr<LlrConfig> makeAltLlrConfigNode() {
+  const std::string kAltLlrProfileId{"llrProfileAlt"};
+  auto llr = std::make_shared<LlrConfig>(kAltLlrProfileId);
+  llr->setOutstandingFramesMax(64);
+  llr->setOutstandingBytesMax(8192);
+  llr->setReplayTimerMax(6000);
+  llr->setReplayCountMax(3);
+  llr->setPcsLostTimeout(2000);
+  llr->setDataAgeTimeout(100000);
+  llr->setInitFrameAction(cfg::LlrFrameAction::DISCARD);
+  llr->setFlushFrameAction(cfg::LlrFrameAction::DISCARD);
+  llr->setReInitOnFlush(false);
+  llr->setCtlosTargetSpacing(4096);
+  return llr;
+}
 } // namespace
 
 TEST_F(PortManagerTest, programLlrOnAddPort) {
@@ -736,6 +755,98 @@ TEST_F(PortManagerTest, clearLlrOnChangePort) {
   EXPECT_EQ(
       portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::LlrProfile{}),
       SAI_NULL_OBJECT_ID);
+}
+
+TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
+  auto swPort = makePort(p0);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto oldProfileSaiId = handle->llrProfile->adapterKey();
+  auto fs = FakeSai::getInstance();
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+
+  // Change to a different profile: the content key changes, so a new SAI
+  // profile is created and bound and the old one is torn down.
+  auto newPort = makePort(p0);
+  newPort->setLlrConfigName("llrProfileAlt");
+  newPort->setLlrConfig(makeAltLlrConfigNode());
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto newProfileSaiId = handle->llrProfile->adapterKey();
+  EXPECT_NE(newProfileSaiId, oldProfileSaiId);
+  // Exactly one profile remains and it is not the old one.
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+  EXPECT_EQ(
+      fs->portLlrProfileManager.map().count(
+          static_cast<sai_object_id_t>(oldProfileSaiId)),
+      0);
+
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = handle->port->adapterKey();
+  // Port now points at the new profile, modes still enabled.
+  EXPECT_EQ(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::LlrProfile{}),
+      static_cast<sai_object_id_t>(newProfileSaiId));
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeLocal{}),
+      true);
+  // New profile carries the updated values.
+  EXPECT_EQ(
+      portApi.getAttribute(
+          newProfileSaiId,
+          SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{}),
+      64);
+  EXPECT_EQ(
+      portApi.getAttribute(
+          newProfileSaiId,
+          SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{}),
+      SAI_LLR_FRAME_ACTION_DISCARD);
+}
+
+TEST_F(PortManagerTest, reenableLlrOnChangePort) {
+  auto swPort = makePort(p0);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  // Disable: change to a port with no LLR config.
+  auto clearedPort = makePort(p0);
+  saiManagerTable->portManager().changePort(swPort, clearedPort);
+  ASSERT_EQ(
+      saiManagerTable->portManager()
+          .getPortHandle(clearedPort->getID())
+          ->llrProfile,
+      nullptr);
+
+  // Re-enable: change back to a port carrying LLR config.
+  auto reenabledPort = makePort(p0);
+  reenabledPort->setLlrConfigName("llrProfile");
+  reenabledPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().changePort(clearedPort, reenabledPort);
+
+  auto* handle =
+      saiManagerTable->portManager().getPortHandle(reenabledPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = handle->port->adapterKey();
+  EXPECT_EQ(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::LlrProfile{}),
+      static_cast<sai_object_id_t>(handle->llrProfile->adapterKey()));
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeLocal{}),
+      true);
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}),
+      true);
 }
 #endif
 } // namespace facebook::fboss
