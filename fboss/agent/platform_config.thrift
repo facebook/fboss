@@ -43,6 +43,17 @@ struct PlatformConfig {
   4: map<i16, i64> switchIndexToSwitchId;
   5: map<i16, ChipConfig> switchIndexToChipConfigs;
   6: map<i16, map<PlatformAttributes, string>> switchIndexToPlatformSettings;
+  7: optional map<i32, PortAssignment> portIdToPortAssignment;
+}
+
+// Separates deployment-specific port IDs from the static, name-keyed hardware
+// topology in PlatformMapping.rawPlatformPorts. The two parts reconstruct the
+// conventional ID-keyed PlatformMapping.ports map at runtime.
+struct PortAssignment {
+  1: string portName;
+  2: switch_config.PortType portType;
+  3: optional i32 attachedCorePortIndex;
+  4: switch_config.Scope scope;
 }
 
 struct PlatformPortEntry {
@@ -60,11 +71,15 @@ struct PlatformPortMapping {
   7: optional i32 attachedCorePortIndex;
   8: optional i32 virtualDeviceId;
   9: switch_config.Scope scope = switch_config.Scope.LOCAL;
+  // Name-based form of controllingPort used by rawPlatformPorts.
+  10: optional string controllingPortName;
 }
 
 struct PlatformPortConfig {
   1: optional list<i32> subsumedPorts;
   2: phy.PortPinConfig pins;
+  // Name-based form of subsumedPorts used by rawPlatformPorts.
+  3: optional list<string> subsumedPortNames;
 }
 
 // Currently we have 'PlatformPortConfig' in PlatformPortEntry to define the
@@ -99,6 +114,8 @@ struct PlatformPortConfigOverrideFactor {
   1: optional list<i32> ports;
   2: optional list<switch_config.PortProfileID> profiles;
   3: optional list<double> cableLengths;
+  // Name-based form of ports used by rawPlatformPorts.
+  4: optional list<string> portNames;
   5: optional transceiver.TransceiverManagementInterface transceiverManagementInterface;
   6: optional list<phy.DataPlanePhyChip> chips;
   7: optional transceiver.MediaInterfaceCode mediaInterfaceCode;
@@ -156,4 +173,7 @@ struct PlatformMapping {
   4: optional map<PlatformAttributes, string> platformSettings;
   5: optional list<PlatformPortConfigOverride> portConfigOverrides;
   7: list<PlatformPortProfileConfigEntry> platformSupportedProfiles;
+  // Static hardware topology keyed and cross-referenced by stable port names.
+  // Numeric port IDs are supplied separately by portIdToPortAssignment.
+  8: optional map<string, PlatformPortEntry> rawPlatformPorts;
 }
