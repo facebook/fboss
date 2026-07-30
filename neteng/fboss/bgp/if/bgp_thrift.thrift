@@ -30,7 +30,6 @@ include "thrift/annotation/thrift.thrift"
 @thrift.AllowLegacyMissingUris
 package;
 
-namespace php fboss
 namespace py neteng.fboss.bgp_thrift
 namespace py.asyncio neteng.fboss.asyncio.bgp_thrift
 namespace py3 neteng.fboss
