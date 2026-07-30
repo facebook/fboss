@@ -195,8 +195,8 @@ cpp_library(
         "fbsource//third-party/googletest:gtest",
         ":bcm_switch_ensemble",
         "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_test_port_utils",
+        "//fboss/agent/platforms/tests/utils:bcm_test_platforms",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_external_deps = [
@@ -677,11 +677,11 @@ cpp_library(
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
-        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_test_acl_utils",
         "//fboss/agent/hw/test:hw_test_aqm_utils",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
         "//fboss/agent/hw/test:hw_test_pfc_utils",
+        "//fboss/agent/hw/test:hw_test_port_utils",
         "//fboss/agent/hw/test:hw_test_thrift_handler",  # @manual
         "//fboss/agent/hw/test:hw_test_thrift_handler_h",
         "//fboss/agent/hw/test:phy_capabilities",

@@ -13,12 +13,10 @@
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
 extern "C" {
 #include <bcm/port.h>
@@ -238,10 +236,9 @@ void verifyTxSettting(
   }
 }
 
-bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
-  BcmTestPlatform* platform =
-      static_cast<BcmTestPlatform*>(ensemble->getPlatform());
-  return platform->verifyLEDStatus(port, up);
+bool verifyLedStatus(Platform* platform, PortID port, bool up) {
+  auto* bcmPlatform = static_cast<BcmTestPlatform*>(platform);
+  return bcmPlatform->verifyLEDStatus(port, up);
 }
 
 void verifyRxSettting(
