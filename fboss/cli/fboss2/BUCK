@@ -1492,6 +1492,7 @@ cpp_binary(
         ":cmd-list-header",
         ":cmd-local-options",
         ":commands-show-bgp",  # @manual
+        ":safety-prompt-utils",
         ":table-utils",
         "//common/config:configerator",
         "//common/strings:string_util",

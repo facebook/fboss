@@ -2054,12 +2054,15 @@ service TBgpService extends fb303.FacebookService {
   void clearProfilerStats();
 
   /**
-   * [Debug] Reset per-peer cumulative BGP message counters in BOTH directions
-   * across all peers: socket tx/rx counts (SessionManager), AdjRib sent/recv
-   * message counts, update-group sent counts, and their fb303 keys. Live prefix
-   * gauges are not affected.
+   * [Debug] Reset per-peer cumulative BGP message counters in BOTH directions:
+   * socket tx/rx counts (SessionManager), AdjRib sent/recv message counts,
+   * update-group sent counts, and their fb303 keys. Live prefix gauges are not
+   * affected.
+   *
+   * `peers` selects which peers to clear, by IP address; an empty list clears
+   * every peer.
    */
-  void clearCounters();
+  void clearCounters(1: list<string> peers);
 
   /**
    * [Telemetry]
