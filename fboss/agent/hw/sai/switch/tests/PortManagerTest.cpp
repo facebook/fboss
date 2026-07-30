@@ -848,5 +848,48 @@ TEST_F(PortManagerTest, reenableLlrOnChangePort) {
           portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}),
       true);
 }
+
+TEST_F(PortManagerTest, updateLlrStatsWhenEnabled) {
+  auto swPort = makePort(p0);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+  ASSERT_NE(
+      saiManagerTable->portManager().getPortHandle(swPort->getID())->llrProfile,
+      nullptr);
+
+  saiManagerTable->portManager().updateStats(swPort->getID());
+
+  auto* portStat =
+      saiManagerTable->portManager().getLastPortStat(swPort->getID());
+  ASSERT_NE(portStat, nullptr);
+  auto stats = portStat->portStats();
+  // The isolated LLR read fired, so the LLR counters are collected. Fake SAI
+  // has no dataplane, so the values are 0 -- assert only that they are
+  // populated.
+  EXPECT_TRUE(stats.llrTxOk_().has_value());
+  EXPECT_TRUE(stats.llrRxOk_().has_value());
+  EXPECT_TRUE(stats.llrTxReplay_().has_value());
+  EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
+  EXPECT_EQ(*stats.llrTxOk_(), 0);
+}
+
+TEST_F(PortManagerTest, noLlrStatsWhenDisabled) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  ASSERT_EQ(
+      saiManagerTable->portManager().getPortHandle(swPort->getID())->llrProfile,
+      nullptr);
+
+  saiManagerTable->portManager().updateStats(swPort->getID());
+
+  auto* portStat =
+      saiManagerTable->portManager().getLastPortStat(swPort->getID());
+  ASSERT_NE(portStat, nullptr);
+  auto stats = portStat->portStats();
+  // No profile bound -> the LLR read is skipped and the fields stay unset.
+  EXPECT_FALSE(stats.llrTxOk_().has_value());
+  EXPECT_FALSE(stats.llrRxOk_().has_value());
+}
 #endif
 } // namespace facebook::fboss
