@@ -17,6 +17,17 @@ target_link_libraries(platform_descriptor
   gflags
 )
 
+add_library(split_platform_mapping_utils
+  fboss/lib/platforms/PlatformMappingUtils.cpp
+)
+
+target_link_libraries(split_platform_mapping_utils
+  fboss_error
+  platform_config_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 add_library(product_info
   fboss/lib/platforms/PlatformProductInfo.cpp
   fboss/lib/platforms/oss/PlatformProductInfo.cpp

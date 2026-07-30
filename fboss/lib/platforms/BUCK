@@ -48,6 +48,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "platform_mapping_utils",
+    srcs = [
+        "PlatformMappingUtils.cpp",
+    ],
+    headers = [
+        "PlatformMappingUtils.h",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/agent:platform_config-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "fruid_fields",
     headers = [
         "FruIdFields.h",

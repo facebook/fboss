@@ -15,6 +15,30 @@ export_file(
     visibility = ["PUBLIC"],
 )
 
+[
+    export_file(
+        name = "montblanc_" + artifact,
+        src = "generated_platform_mappings/celestica/montblanc/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
+[
+    export_file(
+        name = "montblanc_odd_ports_8x100G_" + artifact,
+        src = "generated_platform_mappings/celestica/montblanc_odd_ports_8x100G/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
 python_library(
     name = "helpers",
     srcs = ["helpers.py"],
