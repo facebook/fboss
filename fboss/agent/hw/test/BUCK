@@ -721,7 +721,6 @@ cpp_library(
     name = "hw_test_aqm_utils_headers",
     headers = ["dataplane_tests/HwTestAqmUtils.h"],
     exported_deps = [
-        ":config_factory",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
@@ -735,8 +734,8 @@ cpp_library(
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions.
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
-        ":config_factory",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/test/utils:aqm_test_utils",
