@@ -291,6 +291,7 @@ add_fbthrift_cpp_library(
     json
   DEPENDS
     ctrl_cpp2
+    nsf_policy_cpp2
 )
 
 add_fbthrift_cpp_library(

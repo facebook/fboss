@@ -93,6 +93,37 @@ std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
   }
 }
 
+std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>
+getNsfTeWeightEncoding(const facebook::bgp::bgp_policy::BgpPolicies& policies) {
+  // A switch's running BGP policy is guaranteed to carry at most one GAR NSF TE
+  // weight encoding scheme, so the first supported encoding we encounter is the
+  // definitive switch-wide scheme; we can safely return on the first match.
+  for (const auto& statement : *policies.bgp_policy_statements()) {
+    for (const auto& term : *statement.policy_entries()) {
+      for (const auto& action : *term.policy_action_entries()) {
+        if (!action.lbw_ext_community_action().has_value() ||
+            !action.lbw_ext_community_action()->encoding_scheme().has_value()) {
+          continue;
+        }
+        const auto& encoding =
+            *action.lbw_ext_community_action()->encoding_scheme();
+        switch (encoding.getType()) {
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
+              fpf_l2_encoding:
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
+              l2_encoding:
+            return encoding;
+          // Intentionally no default: listing every variant makes -Wswitch-enum
+          // flag any newly added encoding scheme so this switch is revisited.
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::__EMPTY__:
+            break;
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
+
 const std::string printCommunities(
     const std::vector<TBgpCommunity>& peer_communities,
     const HostInfo& hostInfo,

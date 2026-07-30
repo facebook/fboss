@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
 
@@ -105,7 +106,13 @@ CmdShowRouteDetails::RetType CmdShowRouteDetails::queryClient(
       });
 
   ObjectArgType finalQueriedRoutes(finalRoutes);
-  return createModel(entries, finalQueriedRoutes);
+  auto model = createModel(entries, finalQueriedRoutes);
+  if (const auto policies = getRunningBgpPolicies(hostInfo)) {
+    if (const auto encoding = getNsfTeWeightEncoding(*policies)) {
+      model.nsfTeWeightEncoding() = *encoding;
+    }
+  }
+  return model;
 }
 
 void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
@@ -139,7 +146,9 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
       out << "      Nexthops:\n";
       for (const auto& nextHop : clAndNxthops.nextHops().value()) {
         out << fmt::format(
-            "        {}\n", show::route::utils::getNextHopInfoStr(nextHop));
+            "        {}\n",
+            show::route::utils::getNextHopInfoStr(
+                nextHop, model.nsfTeWeightEncoding().to_optional()));
       }
       out << fmt::format(
           "      Counter Id: {}\n", clAndNxthops.counterID().value());
@@ -149,7 +158,7 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
 
     out << fmt::format("  Action: {}\n", entry.action().value());
 
-    auto printNextHops = [this, &out](
+    auto printNextHops = [this, &out, &model](
                              const std::string& header,
                              const auto& nextHops,
                              bool isOverride,
@@ -162,7 +171,10 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
             "  {}  {}\n",
             overrideStr,
             show::route::utils::getNextHopInfoStr(
-                nextHop, vlanAggregatePortMap, vlanPortMap));
+                nextHop,
+                vlanAggregatePortMap,
+                vlanPortMap,
+                model.nsfTeWeightEncoding().to_optional()));
 
         auto it = nhToTopoInfo.find(nextHop.addr().value());
         if (it != nhToTopoInfo.end()) {
