@@ -154,7 +154,7 @@ class PciExplorer {
       uint32_t instanceId);
 
   std::string getMdioBusSysfsPath(
-      const PciDevice& pciDevice,
+      const PciDevice& /* pciDevice */,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 

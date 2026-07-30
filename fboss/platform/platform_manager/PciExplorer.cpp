@@ -804,7 +804,7 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
 }
 
 std::string PciExplorer::getMdioBusSysfsPath(
-    const PciDevice& pciDevice,
+    const PciDevice& /* pciDevice */,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   const auto mdioBusSysfsPath = "/sys/class/mdio_bus";
