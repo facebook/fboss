@@ -22190,6 +22190,12 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/gibraltar/mono": [
@@ -23969,6 +23975,12 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
         }
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/mono": [
@@ -24747,6 +24759,12 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
         }
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/multi_switch/rbb": [
@@ -25142,6 +25160,12 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
         }
     ],
     "leaba/26.5.5210/26.5.5210/graphene200/multi_switch/rbb": [
@@ -25537,6 +25561,12 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*AgentHwLinkDebounceTest.LinkUpDebounceRetriggerCount$"
         }
     ],
     "leaba/26.5.5211/26.5.5211/palladium2/simulator/mono": [
