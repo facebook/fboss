@@ -17,6 +17,18 @@ export_file(
 
 [
     export_file(
+        name = "icecube800bc_" + artifact,
+        src = "generated_platform_mappings/celestica/icecube800bc/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
+[
+    export_file(
         name = "montblanc_" + artifact,
         src = "generated_platform_mappings/celestica/montblanc/" + artifact,
     )
