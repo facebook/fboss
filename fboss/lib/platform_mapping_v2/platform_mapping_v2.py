@@ -51,6 +51,7 @@ from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformPortEntry,
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
+    PortAssignment,
 )
 from neteng.fboss.platform_mapping_config.thrift_types import ChipType, CoreType
 from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
@@ -286,6 +287,161 @@ class PlatformMappingV2:
 
     def get_platform_port_map(self) -> Mapping[int, PlatformPortEntry]:
         return self.platform_mapping.ports
+
+    def get_port_id_to_port_assignment(self) -> Dict[int, PortAssignment]:
+        return {
+            port_id: PortAssignment(
+                portName=entry.mapping.name,
+                portType=entry.mapping.portType,
+                attachedCorePortIndex=entry.mapping.attachedCorePortIndex,
+                scope=entry.mapping.scope,
+            )
+            for port_id, entry in self.platform_mapping.ports.items()
+        }
+
+    @staticmethod
+    def _to_raw_port_entry(
+        entry: PlatformPortEntry, id_to_name: Mapping[int, str]
+    ) -> PlatformPortEntry:
+        return PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=0,
+                name=entry.mapping.name,
+                controllingPort=0,
+                controllingPortName=id_to_name[entry.mapping.controllingPort],
+                pins=entry.mapping.pins,
+                attachedCoreId=entry.mapping.attachedCoreId,
+                virtualDeviceId=entry.mapping.virtualDeviceId,
+            ),
+            supportedProfiles={
+                profile: PlatformPortConfig(
+                    pins=config.pins,
+                    subsumedPortNames=(
+                        [id_to_name[port_id] for port_id in config.subsumedPorts]
+                        if config.subsumedPorts is not None
+                        else None
+                    ),
+                )
+                for profile, config in entry.supportedProfiles.items()
+            },
+        )
+
+    @staticmethod
+    def _merge_raw_port_entries(
+        existing: PlatformPortEntry, incoming: PlatformPortEntry
+    ) -> PlatformPortEntry:
+        name = existing.mapping.name
+        if (
+            existing.mapping.attachedCoreId != incoming.mapping.attachedCoreId
+            or existing.mapping.virtualDeviceId != incoming.mapping.virtualDeviceId
+            or existing.mapping.controllingPortName
+            != incoming.mapping.controllingPortName
+        ):
+            raise ValueError(f"Conflicting hardware topology for port {name}")
+
+        merged_pins = list(existing.mapping.pins)
+        for pin in incoming.mapping.pins:
+            if pin not in merged_pins:
+                merged_pins.append(pin)
+        merged_pins.sort(key=lambda pin: pin.a.lane)
+
+        merged_profiles = dict(existing.supportedProfiles)
+        for profile, config in incoming.supportedProfiles.items():
+            if profile not in merged_profiles:
+                merged_profiles[profile] = config
+                continue
+
+            existing_config = merged_profiles[profile]
+            if existing_config.pins != config.pins:
+                raise ValueError(
+                    f"Conflicting profile pins for {profile} on port {name}"
+                )
+            subsumed_names: set[str] = set()
+            subsumed_names.update(existing_config.subsumedPortNames or [])
+            subsumed_names.update(config.subsumedPortNames or [])
+            merged_profiles[profile] = PlatformPortConfig(
+                pins=config.pins,
+                subsumedPortNames=sorted(subsumed_names) or None,
+            )
+
+        return PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=0,
+                name=name,
+                controllingPort=0,
+                controllingPortName=existing.mapping.controllingPortName,
+                pins=merged_pins,
+                attachedCoreId=existing.mapping.attachedCoreId,
+                virtualDeviceId=existing.mapping.virtualDeviceId,
+            ),
+            supportedProfiles=dict(
+                sorted(merged_profiles.items(), key=lambda item: int(item[0]))
+            ),
+        )
+
+    @staticmethod
+    def _normalize_raw_override(
+        override: PlatformPortConfigOverride, id_to_name: Mapping[int, str]
+    ) -> PlatformPortConfigOverride:
+        factor = override.factor
+        return PlatformPortConfigOverride(
+            factor=PlatformPortConfigOverrideFactor(
+                profiles=factor.profiles,
+                cableLengths=factor.cableLengths,
+                portNames=(
+                    [id_to_name[port_id] for port_id in factor.ports]
+                    if factor.ports is not None
+                    else None
+                ),
+                transceiverManagementInterface=factor.transceiverManagementInterface,
+                chips=factor.chips,
+                mediaInterfaceCode=factor.mediaInterfaceCode,
+                vendor=factor.vendor,
+            ),
+            pins=override.pins,
+            portProfileConfig=override.portProfileConfig,
+            driverPeaking=override.driverPeaking,
+        )
+
+    @staticmethod
+    def generate_raw_platform_mapping(
+        platform_mappings: Sequence[PlatformMapping],
+    ) -> PlatformMapping:
+        if not platform_mappings:
+            raise ValueError("At least one platform mapping is required")
+
+        raw_ports: Dict[str, PlatformPortEntry] = {}
+        raw_overrides: List[PlatformPortConfigOverride] = []
+        for platform_mapping in platform_mappings:
+            id_to_name = {
+                port_id: entry.mapping.name
+                for port_id, entry in platform_mapping.ports.items()
+            }
+            for entry in platform_mapping.ports.values():
+                name = entry.mapping.name
+                incoming = PlatformMappingV2._to_raw_port_entry(entry, id_to_name)
+                if name not in raw_ports:
+                    raw_ports[name] = incoming
+                    continue
+                raw_ports[name] = PlatformMappingV2._merge_raw_port_entries(
+                    raw_ports[name], incoming
+                )
+
+            for override in platform_mapping.portConfigOverrides or []:
+                normalized_override = PlatformMappingV2._normalize_raw_override(
+                    override, id_to_name
+                )
+                if normalized_override not in raw_overrides:
+                    raw_overrides.append(normalized_override)
+
+        first_mapping = platform_mappings[0]
+        return PlatformMapping(
+            ports={},
+            chips=first_mapping.chips,
+            portConfigOverrides=raw_overrides or None,
+            platformSupportedProfiles=first_mapping.platformSupportedProfiles,
+            rawPlatformPorts=dict(sorted(raw_ports.items())),
+        )
 
     def get_chips(self) -> Sequence[DataPlanePhyChip]:
         return self.platform_mapping.chips

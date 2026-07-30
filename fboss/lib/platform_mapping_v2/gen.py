@@ -17,6 +17,10 @@ from thrift.python.serializer import Protocol, serialize
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 
+_RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
+    "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
+}
+
 
 def _is_thrift_map(d: object) -> bool:
     """Return True when *d* looks like a serialized Thrift map (all-numeric keys)."""
@@ -124,9 +128,8 @@ def generate_platform_mappings(
         exit(1)
 
     print("Generating platform mapping...", file=sys.stderr)
-    platform_mapping = PlatformMappingV2(
-        vendor_data_map, platform_name, is_multi_npu
-    ).get_platform_mapping()
+    generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
+    platform_mapping = generator.get_platform_mapping()
 
     output_dir = os.path.expanduser(output_dir)
     platform_descriptor_data = get_platform_descriptor_data(
@@ -155,9 +158,70 @@ def generate_platform_mappings(
     with open(os.path.expanduser(output_file), "w") as f:
         f.write(platform_mapping_json)
 
+    write_raw_platform_mapping_artifacts(
+        vendor_data_map,
+        output_dir,
+        platform_name,
+        is_multi_npu,
+        generator,
+    )
+
     generate_platform_descriptor(
         vendor_data_map, output_dir, platform_name, platform_descriptor_data
     )
+
+
+def _get_raw_platform_mapping_family(platform_name: str) -> Optional[Tuple[str, ...]]:
+    for base_platform, family in _RAW_PLATFORM_MAPPING_FAMILIES.items():
+        if platform_name == base_platform or platform_name in family:
+            return family
+    return None
+
+
+def _serialize_thrift(value: Any) -> str:
+    serialized = serialize(value, protocol=Protocol.JSON)
+    formatted = _format_json(json.loads(serialized))
+    return formatted if formatted.endswith("\n") else formatted + "\n"
+
+
+def _serialize_port_assignments(generator: PlatformMappingV2) -> str:
+    assignments = {
+        str(port_id): json.loads(serialize(assignment, protocol=Protocol.JSON))
+        for port_id, assignment in generator.get_port_id_to_port_assignment().items()
+    }
+    formatted = _format_json({"portIdToPortAssignment": assignments})
+    return formatted if formatted.endswith("\n") else formatted + "\n"
+
+
+def write_raw_platform_mapping_artifacts(
+    vendor_data_map: Dict[str, Dict[str, str]],
+    output_dir: str,
+    platform_name: str,
+    is_multi_npu: bool,
+    generator: Optional[PlatformMappingV2] = None,
+) -> None:
+    family = _get_raw_platform_mapping_family(platform_name)
+    if family is None:
+        return
+
+    family_mappings = [
+        PlatformMappingV2(
+            vendor_data_map, family_platform, is_multi_npu
+        ).get_platform_mapping()
+        for family_platform in family
+    ]
+    raw_mapping = PlatformMappingV2.generate_raw_platform_mapping(family_mappings)
+    if generator is None:
+        generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
+
+    raw_mapping_file = os.path.join(output_dir, "raw_platform_mapping.json")
+    assignment_file = os.path.join(output_dir, "port_id_to_port_assignment.json")
+    print(f"Writing to file {raw_mapping_file}...", file=sys.stderr)
+    with open(raw_mapping_file, "w") as f:
+        f.write(_serialize_thrift(raw_mapping))
+    print(f"Writing to file {assignment_file}...", file=sys.stderr)
+    with open(assignment_file, "w") as f:
+        f.write(_serialize_port_assignments(generator))
 
 
 def get_platform_descriptor_data(
