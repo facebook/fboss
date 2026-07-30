@@ -195,6 +195,20 @@ class PackageFboss:
             self.get_fboss_subdirectory("fboss/oss/scripts"),
             "fboss2_completion.bash",
         )
+        # get_fboss_subdirectory prefers the getdeps source clone, which in a
+        # default (non --local) build is pinned to a stable commit that may
+        # predate this file. The completion script ships alongside this script
+        # in the same commit, so fall back to the copy next to package-fboss.py.
+        if not os.path.isfile(completion_src):
+            completion_src = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "fboss2_completion.bash",
+            )
+        # The completion script is a non-critical convenience artifact; never
+        # fail packaging if it is absent from an older checkout.
+        if not os.path.isfile(completion_src):
+            print(f"Skipping fboss2 bash completion; {completion_src} not found")
+            return
         completion_dst_dir = os.path.join(
             tmp_dir_name, PackageFboss.DATA, "bash-completion", "completions"
         )
