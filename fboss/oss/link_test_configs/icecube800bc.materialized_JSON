@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "512",
+    "egress_buffer_pool_size": "252000000",
     "enable_1to1_intf_route_table_mapping": "true",
     "enable_acl_table_group": "true",
     "enable_nexthop_id_manager": "true",
