@@ -149,9 +149,8 @@ std::string MySidAddArg::getTypeStr() const {
 
 MySidAddArg::MySidAddArg(std::vector<std::string> v) {
   size_t index = 0;
-  expectKeyword(v, index, "entry");
   if (index >= v.size()) {
-    throw std::invalid_argument("Missing function value after 'entry'");
+    throw std::invalid_argument("Missing MySID function value");
   }
   functionValue_ = parseMySidFunctionValue(v[index++]);
 
@@ -228,6 +227,16 @@ cfg::MySidEntryConfig MySidAddArg::buildEntryConfig() const {
       break;
   }
   return entry;
+}
+
+MySidDeleteEntryArg::MySidDeleteEntryArg(std::vector<std::string> v) {
+  if (v.size() != 1) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Expected exactly one MySID function value, got {}", v.size()));
+  }
+  functionValue_ = parseMySidFunctionValue(v[0]);
+  data_.push_back(fmt::format("{}", functionValue_));
 }
 
 } // namespace facebook::fboss
