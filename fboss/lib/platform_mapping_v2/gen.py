@@ -18,6 +18,7 @@ JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 
 _RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
+    "icecube800bc": ("icecube800bc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
 }
 
