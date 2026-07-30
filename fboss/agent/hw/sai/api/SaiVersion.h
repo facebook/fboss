@@ -234,7 +234,13 @@
  *  High-level Chenab (NVIDIA) flags:
  *   - CHENAB_SAI_SDK: Flags for all Chenab SDK (set in tp2 BUCK)
  *   - CHENAB_SAI_SDK_GTE_2511_36: Flags for SDK >= 2511.36
+ *   - CHENAB_SAI_SDK_GTE_2605_37: Flags for SDK >= 2605.37
  */
-#if defined(CHENAB_SAI_SDK_VERSION_2511_36_0_20)
+#if defined(CHENAB_SAI_SDK_VERSION_2605_37_0_20)
+#define CHENAB_SAI_SDK_GTE_2605_37
+#endif
+
+#if defined(CHENAB_SAI_SDK_VERSION_2511_36_0_20) || \
+    defined(CHENAB_SAI_SDK_GTE_2605_37)
 #define CHENAB_SAI_SDK_GTE_2511_36
 #endif
