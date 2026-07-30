@@ -8,8 +8,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/Thrifty.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace {
 std::string getActualAclTableName(
