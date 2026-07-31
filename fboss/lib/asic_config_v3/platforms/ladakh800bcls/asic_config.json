@@ -12,7 +12,6 @@
     },
     "port_config": {
       "default_speed": 400000,
-      "enable": 1,
       "pc_port_overrides": {
         "LINK_TRAINING": 0
       },
@@ -29,7 +28,6 @@
     },
     "mgmt_port": {
       "enabled": true,
-      "enable": 1,
       "in_port_block": true
     },
     "mgmt_port_overrides": {
