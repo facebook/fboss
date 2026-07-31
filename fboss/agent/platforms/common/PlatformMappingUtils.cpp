@@ -48,7 +48,6 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
-#include "fboss/agent/platforms/common/wedge800bact/Wedge800BACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
@@ -201,9 +200,13 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800BACT:
     case PlatformType::PLATFORM_WEDGE800BNHP:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge800BACTPlatformMapping>()
-          : std::make_unique<Wedge800BACTPlatformMapping>(platformMappingStr);
+      // Wedge800BACT/Wedge800BNHP no longer ship a compiled-in platform
+      // mapping. The mapping must be provided externally via
+      // --platform_descriptor_config_path or --platform_mapping_override_path.
+      throw FbossError(
+          "Wedge800BACT/Wedge800BNHP requires an external platform mapping; ",
+          "set --platform_descriptor_config_path or ",
+          "--platform_mapping_override_path");
     case PlatformType::PLATFORM_ICETEA800BC:
       return platformMappingStr.empty()
           ? std::make_unique<Icetea800bcPlatformMapping>()

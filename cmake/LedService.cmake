@@ -124,7 +124,6 @@ target_link_libraries(led_manager_lib
   leh800bcls_platform_mapping
   wedge400_fpga
   wedge400_platform_mapping
-  wedge800bact_platform_mapping
   wedge800cact_platform_mapping
   yamp_platform_mapping
   platform_mapping_utils

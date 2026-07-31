@@ -28,7 +28,6 @@
 #include "fboss/agent/platforms/common/saintpaul/SaintpaulPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge800bact/Wedge800BACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
@@ -90,9 +89,6 @@ std::unique_ptr<PlatformMapping> createGenericSaiBcmPlatformMapping(
   switch (type) {
     case PlatformType::PLATFORM_BLACKWOLF800BANW:
       return std::make_unique<Blackwolf800banwPlatformMapping>();
-    case PlatformType::PLATFORM_WEDGE800BACT:
-    case PlatformType::PLATFORM_WEDGE800BNHP:
-      return std::make_unique<Wedge800BACTPlatformMapping>();
     case PlatformType::PLATFORM_ICECUBE800BC:
       return std::make_unique<Icecube800bcPlatformMapping>();
     case PlatformType::PLATFORM_ICECUBE800BANW:

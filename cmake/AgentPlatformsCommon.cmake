@@ -47,7 +47,6 @@ target_link_libraries(platform_mapping_utils
   icecube800bc_platform_mapping
   blackwolf800banw_platform_mapping
   m4062nhp_platform_mapping
-  wedge800bact_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   wedge800cact_platform_mapping
