@@ -6,7 +6,7 @@
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 1000",
+        "busName": "CPU_BUS@0",
         "address": "0x50",
         "kernelDeviceName": "24c512",
         "offset": 15360
@@ -460,7 +460,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 1000"
+    "CPU_BUS@0"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/fpgas/MERU_SCM_CPLD": "/[SCM_FPGA]",
