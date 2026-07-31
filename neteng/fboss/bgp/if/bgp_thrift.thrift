@@ -419,11 +419,19 @@ struct TUpdateGroupStats {
   /* Number of times lazy clone was invoked for detached peers. */
   5: i64 lazy_clone_events;
 
-  /* Cumulative count of IPv4 announcement prefixes sent (monotonic counter). */
-  6: i64 total_sent_announcements_ipv4;
+  /**
+   * Cumulative count of IPv4 UPDATE announcement PDUs sent by this group
+   * (monotonic counter, one bump per BgpUpdate2, NOT per prefix). Mirrors the
+   * per-peer TBgpSessionDetail.sent_update_announcements_ipv4.
+   */
+  6: i64 total_sent_announcement_msgs_ipv4;
 
-  /* Cumulative count of IPv6 announcement prefixes sent (monotonic counter). */
-  7: i64 total_sent_announcements_ipv6;
+  /**
+   * Cumulative count of IPv6 UPDATE announcement PDUs sent by this group
+   * (monotonic counter, one bump per BgpUpdate2, NOT per prefix). Mirrors the
+   * per-peer TBgpSessionDetail.sent_update_announcements_ipv6.
+   */
+  7: i64 total_sent_announcement_msgs_ipv6;
 
   /* Number of IPv4 update messages sent by this group. */
   8: i64 group_update_messages_ipv4;
@@ -431,8 +439,11 @@ struct TUpdateGroupStats {
   /* Number of IPv6 update messages sent by this group. */
   9: i64 group_update_messages_ipv6;
 
-  /* Number of withdrawals sent by this group. */
-  10: i64 group_withdrawals;
+  /**
+   * Cumulative count of withdrawal UPDATE PDUs sent by this group (monotonic
+   * counter, one bump per BgpUpdate2, NOT per prefix).
+   */
+  10: i64 total_sent_withdrawal_msgs;
 
   /* Total queue wait time (ms) across all sync peers in the group. */
   11: i64 group_total_queue_wait_ms;
