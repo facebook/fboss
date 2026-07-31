@@ -128,8 +128,8 @@ bool BcmAclStat::isStateSame(
   std::sort(expectedCounterTypes.begin(), expectedCounterTypes.end());
 
   /*
-   * The asic used by Wedge40 can't program a subset a counter types, it has to
-   * program them all at once. The SDK hides this limitation by storing the
+   * Trident2 can't program a subset of counter types, so it has to program them
+   * all at once. The SDK hides this limitation by storing the
    * counter types in an internal data structure, so if you program a single
    * counter and ask the SDK what counters are being used, it returns a single
    * counter (even if 2 counters were actually programmed).

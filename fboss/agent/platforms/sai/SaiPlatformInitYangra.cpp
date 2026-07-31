@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiYangraPlatform.h"
+#include "fboss/agent/platforms/sai/SaiChenabPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 
@@ -76,6 +77,17 @@ std::unique_ptr<SaiPlatform> chooseYangraSaiPlatform(
   if (type == PlatformType::PLATFORM_MINIPACK3N) {
     return std::make_unique<SaiMinipack3NPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
+  }
+  return nullptr;
+}
+
+std::unique_ptr<SaiPlatformPort> createYangraSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform) {
+  const auto platformMode = platform->getType();
+  if (useGenericSaiYangraPlatform(platformMode) ||
+      platformMode == PlatformType::PLATFORM_MINIPACK3N) {
+    return std::make_unique<SaiChenabPlatformPort>(portId, platform);
   }
   return nullptr;
 }

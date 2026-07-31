@@ -5,6 +5,8 @@
 
 DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 
+DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
+
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
 DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");

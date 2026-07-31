@@ -2258,6 +2258,312 @@ TEST(Route, resolveRecursiveSrv6ParentOnlyKeepsParent) {
   EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
+TEST(Route, RecursiveResolutionInheritsRoleFromTopLevelNextHop) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater updater(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  RouteNextHopSet interfaceNhops1{ResolvedNextHop(
+      IPAddress("2001:db8:1::1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT)};
+  RouteNextHopSet interfaceNhops2{ResolvedNextHop(
+      IPAddress("2001:db8:2::1"), InterfaceID(2), UCMP_DEFAULT_WEIGHT)};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("2001:db8:1::"), 64},
+           RouteNextHopEntry(
+               interfaceNhops1, AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("2001:db8:2::"), 64},
+           RouteNextHopEntry(
+               interfaceNhops2, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  RouteNextHopSet openrNhops1{
+      UnresolvedNextHop(IPAddress("2001:db8:1::10"), ECMP_WEIGHT)};
+  RouteNextHopSet openrNhops2{
+      UnresolvedNextHop(IPAddress("2001:db8:2::10"), ECMP_WEIGHT)};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("2001:db8:3::"), 64},
+           RouteNextHopEntry(openrNhops1, AdminDistance::OPENR)},
+          {{IPAddress("2001:db8:4::"), 64},
+           RouteNextHopEntry(openrNhops2, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  NextHop primaryBgpNextHop =
+      UnresolvedNextHop(IPAddress("2001:db8:3::10"), ECMP_WEIGHT);
+  NextHop backupBgpNextHop =
+      UnresolvedNextHop(IPAddress("2001:db8:4::10"), ECMP_WEIGHT);
+  auto backupBgpNextHopThrift = backupBgpNextHop.toThrift();
+  *backupBgpNextHopThrift.role() = NextHopRole::BACKUP;
+  RouteNextHopSet bgpNhops{
+      primaryBgpNextHop, util::fromThrift(backupBgpNextHopThrift)};
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001:db8:5::"), 64};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  auto route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& forwardInfo = route->value()->getForwardInfo();
+  const auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, forwardInfo);
+  const std::map<InterfaceID, NextHopRole> expectedRoles{
+      {InterfaceID(1), NextHopRole::PRIMARY},
+      {InterfaceID(2), NextHopRole::BACKUP},
+  };
+  auto rolesByInterface = [](const RouteNextHopSet& nhops) {
+    std::map<InterfaceID, NextHopRole> roles;
+    for (const auto& nhop : nhops) {
+      roles.emplace(nhop.intf(), nhop.role());
+    }
+    return roles;
+  };
+  EXPECT_EQ(rolesByInterface(resolvedNhops), expectedRoles);
+
+  const auto normalizedID = forwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(normalizedID.has_value());
+  const auto normalizedNhops = nhopIds.getNextHops(*normalizedID);
+  EXPECT_EQ(rolesByInterface(normalizedNhops), expectedRoles);
+}
+
+TEST(Route, RecursiveResolutionAppliesBackupRoleToAllResolvedNextHops) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater updater(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("2001:db8:11::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:11::1"),
+                   InterfaceID(1),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("2001:db8:12::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:12::1"),
+                   InterfaceID(2),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("2001:db8:13::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:13::1"),
+                   InterfaceID(3),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  RouteNextHopSet primaryOpenrNhops{
+      UnresolvedNextHop(IPAddress("2001:db8:11::10"), ECMP_WEIGHT)};
+  RouteNextHopSet backupOpenrNhops{
+      UnresolvedNextHop(IPAddress("2001:db8:12::10"), ECMP_WEIGHT),
+      UnresolvedNextHop(IPAddress("2001:db8:13::10"), ECMP_WEIGHT)};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("2001:db8:21::"), 64},
+           RouteNextHopEntry(primaryOpenrNhops, AdminDistance::OPENR)},
+          {{IPAddress("2001:db8:22::"), 64},
+           RouteNextHopEntry(backupOpenrNhops, AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  NextHop primaryBgpNextHop =
+      UnresolvedNextHop(IPAddress("2001:db8:21::10"), ECMP_WEIGHT);
+  NextHop backupBgpNextHop =
+      UnresolvedNextHop(IPAddress("2001:db8:22::10"), ECMP_WEIGHT);
+  auto backupBgpNextHopThrift = backupBgpNextHop.toThrift();
+  *backupBgpNextHopThrift.role() = NextHopRole::BACKUP;
+  RouteNextHopSet bgpNhops{
+      primaryBgpNextHop, util::fromThrift(backupBgpNextHopThrift)};
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001:db8:31::"), 64};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  auto route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& forwardInfo = route->value()->getForwardInfo();
+  const std::map<InterfaceID, NextHopRole> expectedRoles{
+      {InterfaceID(1), NextHopRole::PRIMARY},
+      {InterfaceID(2), NextHopRole::BACKUP},
+      {InterfaceID(3), NextHopRole::BACKUP},
+  };
+  auto rolesByInterface = [](const RouteNextHopSet& nhops) {
+    std::map<InterfaceID, NextHopRole> roles;
+    for (const auto& nhop : nhops) {
+      roles.emplace(nhop.intf(), nhop.role());
+    }
+    return roles;
+  };
+
+  const auto resolvedNhops = getResolvedNextHopsFromRib(&nhopIds, forwardInfo);
+  EXPECT_EQ(rolesByInterface(resolvedNhops), expectedRoles);
+
+  const auto normalizedID = forwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(normalizedID.has_value());
+  EXPECT_EQ(
+      rolesByInterface(nhopIds.getNextHops(*normalizedID)), expectedRoles);
+
+  auto swappedBackupThrift = primaryBgpNextHop.toThrift();
+  *swappedBackupThrift.role() = NextHopRole::BACKUP;
+  RouteNextHopSet swappedBgpNhops{
+      util::fromThrift(swappedBackupThrift), backupBgpNextHop};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(swappedBgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& swappedForwardInfo = route->value()->getForwardInfo();
+  const std::map<InterfaceID, NextHopRole> swappedExpectedRoles{
+      {InterfaceID(1), NextHopRole::BACKUP},
+      {InterfaceID(2), NextHopRole::PRIMARY},
+      {InterfaceID(3), NextHopRole::PRIMARY},
+  };
+  EXPECT_EQ(
+      rolesByInterface(
+          getResolvedNextHopsFromRib(&nhopIds, swappedForwardInfo)),
+      swappedExpectedRoles);
+
+  const auto swappedNormalizedID =
+      swappedForwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(swappedNormalizedID.has_value());
+  EXPECT_EQ(
+      rolesByInterface(nhopIds.getNextHops(*swappedNormalizedID)),
+      swappedExpectedRoles);
+}
+
+void verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+    NextHopRole secondBgpNextHopRole,
+    const std::map<InterfaceID, NextHopRole>& expectedRoles) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater updater(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("2001:db8:41::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:41::1"),
+                   InterfaceID(1),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("2001:db8:42::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:42::1"),
+                   InterfaceID(2),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  NextHop openrNextHop1 =
+      UnresolvedNextHop(IPAddress("2001:db8:41::10"), ECMP_WEIGHT);
+  auto openrNextHop1Thrift = openrNextHop1.toThrift();
+  *openrNextHop1Thrift.role() = NextHopRole::BACKUP;
+  NextHop openrNextHop2 =
+      UnresolvedNextHop(IPAddress("2001:db8:42::10"), ECMP_WEIGHT);
+  auto openrNextHop2Thrift = openrNextHop2.toThrift();
+  *openrNextHop2Thrift.role() = NextHopRole::BACKUP;
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("2001:db8:43::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{util::fromThrift(openrNextHop1Thrift)},
+               AdminDistance::OPENR)},
+          {{IPAddress("2001:db8:44::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{util::fromThrift(openrNextHop2Thrift)},
+               AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  NextHop bgpNextHop1 =
+      UnresolvedNextHop(IPAddress("2001:db8:43::10"), ECMP_WEIGHT);
+  NextHop bgpNextHop2 =
+      UnresolvedNextHop(IPAddress("2001:db8:44::10"), ECMP_WEIGHT);
+  auto bgpNextHop2Thrift = bgpNextHop2.toThrift();
+  *bgpNextHop2Thrift.role() = secondBgpNextHopRole;
+  RouteNextHopSet bgpNhops{bgpNextHop1, util::fromThrift(bgpNextHop2Thrift)};
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001:db8:45::"), 64};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  auto rolesByInterface = [](const RouteNextHopSet& nhops) {
+    std::map<InterfaceID, NextHopRole> roles;
+    for (const auto& nhop : nhops) {
+      roles.emplace(nhop.intf(), nhop.role());
+    }
+    return roles;
+  };
+  auto route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& forwardInfo = route->value()->getForwardInfo();
+  EXPECT_EQ(
+      rolesByInterface(getResolvedNextHopsFromRib(&nhopIds, forwardInfo)),
+      expectedRoles);
+
+  const auto normalizedID = forwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(normalizedID.has_value());
+  EXPECT_EQ(
+      rolesByInterface(nhopIds.getNextHops(*normalizedID)), expectedRoles);
+}
+
+TEST(Route, BGPNextHopRoleOverridesOpenrNextHopRoles) {
+  {
+    const std::map<InterfaceID, NextHopRole> expectedRoles{
+        {InterfaceID(1), NextHopRole::PRIMARY},
+        {InterfaceID(2), NextHopRole::BACKUP},
+    };
+    verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+        NextHopRole::BACKUP, expectedRoles);
+  }
+
+  {
+    const std::map<InterfaceID, NextHopRole> expectedRoles{
+        {InterfaceID(1), NextHopRole::PRIMARY},
+        {InterfaceID(2), NextHopRole::PRIMARY},
+    };
+    verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+        NextHopRole::PRIMARY, expectedRoles);
+  }
+}
+
 // Same-prefix client preference: an OpenR route (no SID lists) and a TE_Agent
 // route (with SID lists) share a prefix. The TE_Agent route has the lower admin
 // distance, so it wins best-entry selection and its SID lists are programmed.

@@ -6,7 +6,7 @@
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 1000",
+        "busName": "CPU_BUS@0",
         "address": "0x50",
         "kernelDeviceName": "24c512",
         "offset": 15360
@@ -95,6 +95,10 @@
         {
           "pmUnitScopedName": "NVME_TEMP",
           "sysfsPath": "/sys/class/nvme/nvme0"
+        },
+        {
+          "pmUnitScopedName": "DIMM_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/icelake_dimm_temp.0"
         }
       ]
     },
@@ -456,7 +460,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 1000"
+    "CPU_BUS@0"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/fpgas/MERU_SCM_CPLD": "/[SCM_FPGA]",
@@ -482,6 +486,7 @@
     "/run/devmap/sensors/CPU_MPS_PMBUS": "/[SCM_MPS_PMBUS]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
+    "/run/devmap/sensors/DIMM_TEMP": "/[DIMM_TEMP]",
     "/run/devmap/fpgas/MERU800BIA_SMB_FPGA": "/SMB_SLOT@0/[SMB_FPGA]",
     "/run/devmap/fpgas/MERU800BIA_SMB_FPGA_INFO_ROM": "/SMB_SLOT@0/[SMB_FPGA_INFO_ROM]",
     "/run/devmap/inforoms/MERU800BIA_SMB_FPGA_INFO_ROM": "/SMB_SLOT@0/[SMB_FPGA_INFO_ROM]",
@@ -634,6 +639,7 @@
     "spidev",
     "i2c_i801",
     "ledtrig_timer",
-    "scd_info"
+    "scd_info",
+    "icelake_dimm_temp"
   ]
 }

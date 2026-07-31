@@ -465,6 +465,14 @@
             }
           ]
       },
+      "FTCF4719E6PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
       "QDD-400G-XDR4": {
           "versions": [
             {

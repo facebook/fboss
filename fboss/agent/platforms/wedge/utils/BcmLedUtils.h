@@ -17,10 +17,6 @@ class BcmLedUtils {
   // wedge100
   static void setWedge100PortStatus(int unit, int port, uint32_t status);
   static uint32_t getWedge100PortStatus(int unit, int port);
-
-  // wedge40
-  static void setWedge40PortStatus(int unit, int port, uint32_t status);
-  static uint32_t getWedge40PortStatus(int unit, int port);
 };
 
 } // namespace facebook::fboss

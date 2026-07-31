@@ -1358,7 +1358,6 @@ cfg::SwitchConfig twoL3IntfConfig(
 
 bool isRswPlatform(PlatformType type) {
   switch (type) {
-    case PlatformType::PLATFORM_WEDGE:
     case PlatformType::PLATFORM_WEDGE100:
     case PlatformType::PLATFORM_WEDGE400:
     case PlatformType::PLATFORM_WEDGE400_GRANDTETON:

@@ -285,6 +285,21 @@ TEST_F(NextHopIDManagerTest, getOrAllocateNextHopID) {
   EXPECT_EQ(manager_->getNextHopRefCount(nh3), 1);
 }
 
+TEST_F(NextHopIDManagerTest, AllocatesDifferentIDsForDifferentRoles) {
+  NextHop primary =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  auto backupThrift = primary.toThrift();
+  *backupThrift.role() = NextHopRole::BACKUP;
+  NextHop backup = util::fromThrift(backupThrift);
+
+  const auto primaryID = manager_->getOrAllocateNextHopID(primary)->second;
+  const auto backupID = manager_->getOrAllocateNextHopID(backup)->second;
+
+  EXPECT_NE(primaryID, backupID);
+  EXPECT_EQ(manager_->getOrAllocateNextHopID(primary)->second, primaryID);
+  EXPECT_EQ(manager_->getOrAllocateNextHopID(backup)->second, backupID);
+}
+
 TEST_F(NextHopIDManagerTest, getOrAllocateNextHopSetID) {
   // Test empty set throws exception
   NextHopIDSet emptySet;

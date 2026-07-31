@@ -39,10 +39,6 @@ std::optional<uint16_t> getUplinksCount(
     cfg::PortSpeed downlinkSpeed) {
   using ConfigType = std::tuple<PlatformType, cfg::PortSpeed, cfg::PortSpeed>;
   static const std::map<ConfigType, uint16_t> numUplinksMap = {
-      {{PlatformType::PLATFORM_WEDGE,
-        cfg::PortSpeed::FORTYG,
-        cfg::PortSpeed::XG},
-       4},
       {{PlatformType::PLATFORM_WEDGE100,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::XG},

@@ -13,6 +13,7 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -27,6 +28,10 @@ struct CmdShowArpTraits : public ReadCommandTraits {
   using RetType = cli::ShowArpModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
@@ -44,6 +49,10 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
       std::vector<facebook::fboss::ArpEntryThrift>& arpEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

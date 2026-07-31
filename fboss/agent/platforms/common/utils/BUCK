@@ -9,7 +9,6 @@ cpp_library(
         "MinipackLedUtils.cpp",
         "Wedge100LedUtils.cpp",
         "Wedge400LedUtils.cpp",
-        "Wedge40LedUtils.cpp",
         "facebook/Wedge100LedUtils.cpp",
     ],
     exported_deps = [
@@ -20,7 +19,7 @@ cpp_library(
         "//fboss/lib/fpga:minipack_base_container",
         "//fboss/lib/usb:wedge_i2c",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
-        "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
+        "//fboss/qsfp_service/platforms/wedge:wedge-i2c-bus-lock",
         "//folly:range",
         "//folly/logging:logging",
     ],

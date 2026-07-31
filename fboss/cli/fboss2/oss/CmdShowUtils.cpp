@@ -242,46 +242,12 @@ void printBgpNeighborsOutput(
       out << "DISABLED\n" << std::endl;
     }
 
-    const auto rcvdPrefix = *neighbor.prepolicy_rcvd_prefix_count();
-    const auto acceptedPrefix = *neighbor.postpolicy_rcvd_prefix_count();
-    const auto sentPrefix = *neighbor.postpolicy_sent_prefix_count();
-
-    Table table;
-    table.setHeader({"Prefix statistics:", "Sent", "Rcvd", "Accepted"});
-    table.addRow(
-        {"IPv4, IPv6 Unicast:",
-         folly::to<std::string>(sentPrefix),
-         folly::to<std::string>(rcvdPrefix),
-         folly::to<std::string>(acceptedPrefix)});
-
-    out << table << std::endl;
-
-    if (auto sentAnnoucementsIpv4 =
-            *details->sent_update_announcements_ipv4()) {
-      out << "BGP update announcements sent ipv4: " << sentAnnoucementsIpv4
-          << std::endl;
-    }
-    if (auto sentAnnoucementsIpv6 =
-            *details->sent_update_announcements_ipv6()) {
-      out << "BGP update announcements sent ipv6: " << sentAnnoucementsIpv6
-          << std::endl;
-    }
-    if (auto sentWithdrawals = *details->sent_update_withdrawals()) {
-      out << "BGP update withdrawals sent: " << sentWithdrawals << std::endl;
-    }
-    if (auto recvdAnnoucementsIpv4 =
-            *details->recv_update_announcements_ipv4()) {
-      out << "BGP update announcements received ipv4: " << recvdAnnoucementsIpv4
-          << std::endl;
-    }
-    if (auto recvdAnnoucementsIpv6 =
-            *details->recv_update_announcements_ipv6()) {
-      out << "BGP update announcements received ipv6: " << recvdAnnoucementsIpv6
-          << std::endl;
-    }
-    if (auto recvdWithdrawals = *details->recv_update_withdrawals()) {
-      out << "BGP update withdrawals received: " << recvdWithdrawals
-          << std::endl;
+    // Counter telemetry (prefix-level + PDU-level) is only meaningful for an
+    // established session; stats are cleared on session-down, so skip both
+    // tables for non-established peers to avoid all-zero noise.
+    if (peerState == TBgpPeerState::ESTABLISHED) {
+      printBgpPrefixTelemetry(neighbor, *details, out);
+      printBgpMessageCounters(*details, out);
     }
     if (auto enforceFirstAsRejects = *details->enforce_first_as_rejects()) {
       out << "Number of enforce-first-as validation rejections: "

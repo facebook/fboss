@@ -409,18 +409,34 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
 #if defined(CHENAB_SAI_SDK_GTE_2511_36)
+  // Per-stage HW drop-cause counters from the Chenab pipeline.
+  // Each ID aggregates the drop reasons for one packet-processing stage;
+  // SaiSwitchManager reads each into the matching HwSwitchDropBitmapStats
+  // field. Examples below are representative, not exhaustive.
   static const std::vector<sai_stat_id_t> stats{
+      // Ingress port/MAC (L1-L2) RX errors: PHY/FCS, runt/oversize, bad type.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_INGRESS_MAC_0,
+      // Generic ingress-pipeline drops not specific to a protocol stage.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_GENERAL_0,
+      // L2/MAC pipeline stage: e.g. source MAC multicast, SMAC==DMAC.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_MAC_0,
+      // IPv4 routing stage: e.g. loopback/martian DIP, header/TTL errors.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_IPV4_0,
+      // IPv6 routing stage: e.g. loopback/multicast DIP, hop-limit errors.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_IPV6_0,
+      // MPLS label stage: e.g. invalid/unknown label, label TTL expiry.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_MPLS_0,
+      // Tunnel encap/decap stage: e.g. termination errors, decap miss.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_PIPELINE_TUNNEL_0,
+      // Ingress buffer admission: e.g. WRED, buffer/headroom exhaustion.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_BUFFER_0,
+      // Egress queue/scheduling: e.g. queue tail-drop or WRED.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_QUEUE_0,
+      // Egress pipeline stage: post-routing egress processing/ACL drops.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_EGRESS_PIPE_0,
+      // Egress port/MAC stage: e.g. MTU exceeded, egress port errors.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_EGRESS_MAC_0,
+      // Host/CPU path: e.g. control-plane trap/policer drops to host.
       SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_HOST_0,
   };
 #else

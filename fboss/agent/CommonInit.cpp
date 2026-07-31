@@ -11,8 +11,8 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/Platform.h"
 
 #include <gflags/gflags.h>
 #include <cstdio>

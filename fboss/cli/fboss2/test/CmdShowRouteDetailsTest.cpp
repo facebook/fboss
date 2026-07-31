@@ -8,7 +8,9 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
@@ -16,6 +18,53 @@
 using namespace ::testing;
 
 namespace facebook::fboss {
+
+facebook::bgp::nsf_policy::NsfTeWeightEncoding createFpfEncoding() {
+  facebook::bgp::nsf_policy::NsfFpfL2TeWeightEncoding fpfEncoding;
+  fpfEncoding.rack_id() = 8;
+  fpfEncoding.spine_id() = 16;
+  fpfEncoding.remote_rack_capacity() = 8;
+
+  facebook::bgp::nsf_policy::NsfTeWeightEncoding encoding;
+  encoding.fpf_l2_encoding() = fpfEncoding;
+  return encoding;
+}
+
+facebook::bgp::nsf_policy::NsfTeWeightEncoding createL2Encoding() {
+  facebook::bgp::nsf_policy::NsfTeWeightEncoding encoding;
+  encoding.l2_encoding() = facebook::bgp::nsf_policy::NsfL2TeWeightEncoding();
+  return encoding;
+}
+
+facebook::bgp::bgp_policy::BgpPolicies createFpfPolicies() {
+  auto encoding = createFpfEncoding();
+
+  facebook::bgp::bgp_policy::LbwExtCommunityAction lbwAction;
+  lbwAction.type() =
+      facebook::bgp::bgp_policy::LbwExtCommunityActionType::DECODE_ALL;
+  lbwAction.encoding_scheme() = encoding;
+
+  facebook::bgp::bgp_policy::BgpPolicyAction action;
+  action.lbw_ext_community_action() = lbwAction;
+
+  facebook::bgp::bgp_policy::BgpPolicyTerm term;
+  term.policy_action_entries()->push_back(action);
+
+  facebook::bgp::bgp_policy::BgpPolicyStatement statement;
+  statement.name() = "GAR_POLICY";
+  statement.policy_version() = "1";
+  statement.policy_entries()->push_back(term);
+
+  facebook::bgp::bgp_policy::BgpPolicies policies;
+  policies.bgp_policy_statements()->push_back(statement);
+  return policies;
+}
+
+std::string createStandaloneFpfPolicyConfig() {
+  facebook::bgp::thrift::BgpPolicyConfig config;
+  config.policies() = createFpfPolicies();
+  return apache::thrift::SimpleJSONSerializer::serialize<std::string>(config);
+}
 
 /*
  * Set up test data
@@ -72,6 +121,11 @@ std::vector<RouteDetails> createRouteEntries() {
   nextHop1_2.address() = binaryAddr1_3;
   nextHop1_2.weight() = 1;
   nextHop1_2.mplsAction() = mplsAction1_2;
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.rack_id() = 5;
+  topologyInfo.spine_id() = 17;
+  topologyInfo.remote_rack_capacity() = 3;
+  nextHop1_2.topologyInfo() = topologyInfo;
   routeEntry1.nextHops()->emplace_back(nextHop1_2);
   routeEntry1.classID() = cfg::AclLookupClass::DST_CLASS_L3_DPR;
   routeEntry1.resolvedNextHopSetID() = 100;
@@ -227,6 +281,11 @@ cli::ShowRouteDetailsModel createRouteModel() {
   nextHopInfo1_2.weight() = 1;
   nextHopInfo1_2.mplsAction() = mplsActionInfo1_2;
   nextHopInfo1_2.ifName() = "Port-Channel304";
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.rack_id() = 5;
+  topologyInfo.spine_id() = 17;
+  topologyInfo.remote_rack_capacity() = 3;
+  nextHopInfo1_2.topologyInfo() = topologyInfo;
 
   entry1.nextHops()->emplace_back(nextHopInfo1_2);
   entry1.counterID() = "None";
@@ -312,6 +371,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry4.nextHops()->emplace_back(nextHopInfo4);
 
   model.routeEntries() = {entry1, entry2, entry3, entry4};
+  model.nsfTeWeightEncoding() = createFpfEncoding();
 
   return model;
 }
@@ -326,10 +386,28 @@ class CmdShowRouteDetailsTestFixture : public CmdHandlerTestBase {
     routeEntries = createRouteEntries();
     normalizedModel = createRouteModel();
   }
+
+  void setupFpfPolicy(bool standalonePolicy = true) {
+    setupMockedBgpServer();
+    if (standalonePolicy) {
+      EXPECT_CALL(getMockBgp(), getPolicyConfig(_))
+          .WillOnce([](std::string& config) {
+            config = createStandaloneFpfPolicyConfig();
+          });
+      return;
+    }
+    EXPECT_CALL(getMockBgp(), getPolicyConfig(_))
+        .WillOnce([](std::string& config) { config.clear(); });
+    EXPECT_CALL(getMockBgp(), getRunningConfigStruct(_))
+        .WillOnce([](facebook::bgp::thrift::BgpConfig& config) {
+          config.policies() = createFpfPolicies();
+        });
+  }
 };
 
 TEST_F(CmdShowRouteDetailsTestFixture, queryClient) {
   setupMockedAgentServer();
+  setupFpfPolicy();
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
   // Mock the calls made by populateAggregatePortMap and populateVlanPortMap
@@ -348,6 +426,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryClient) {
 
 TEST_F(CmdShowRouteDetailsTestFixture, queryNetworkEntries) {
   setupMockedAgentServer();
+  setupFpfPolicy(false);
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
   // Mock the calls made by populateAggregatePortMap and populateVlanPortMap
@@ -368,6 +447,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryNetworkEntries) {
 
 TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
   setupMockedAgentServer();
+  setupFpfPolicy();
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
   EXPECT_CALL(getMockAgent(), getIpRouteDetails(_, _, _))
@@ -392,6 +472,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
   expectedModel.routeEntries() = {
       normalizedModel.routeEntries().value()[0],
       normalizedModel.routeEntries().value()[1]};
+  expectedModel.nsfTeWeightEncoding() = createFpfEncoding();
   EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
@@ -409,7 +490,7 @@ Network Address: 2401:db00::/32
       Class Id: DST_CLASS_L3_DPR(20)
   Action: Nexthops
   Forwarding via:
-    2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3}
+    2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3} rack 5 spine id 17 remote weight 3
   Overridden ECMP mode: None
   Resolved NextHop Set ID: 100
   Normalized Resolved NextHop Set ID: 200
@@ -444,6 +525,34 @@ Network Address: 2800:2::/64
   Overridden ECMP mode: None
 )";
   EXPECT_EQ(output, expectOutput);
+}
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputUsesNsfEncodingScheme) {
+  normalizedModel.nsfTeWeightEncoding() = createL2Encoding();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(normalizedModel, ss);
+
+  EXPECT_THAT(
+      ss.str(),
+      HasSubstr(
+          "rack 5 plane none remote weight 3 spine weight none local weight none"));
+  EXPECT_THAT(ss.str(), Not(HasSubstr("spine id 17")));
+}
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputHandlesMissingFpfSpineId) {
+  normalizedModel.routeEntries()
+      ->at(0)
+      .nextHops()
+      ->at(0)
+      .topologyInfo()
+      ->spine_id()
+      .reset();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(normalizedModel, ss);
+
+  EXPECT_THAT(ss.str(), HasSubstr("rack 5 spine id none remote weight 3"));
 }
 
 } // namespace facebook::fboss

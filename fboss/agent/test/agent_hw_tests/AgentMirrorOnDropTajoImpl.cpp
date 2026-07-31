@@ -27,6 +27,17 @@ constexpr uint16_t kTajoDropReasonSrv6MidpointIsLastSid = 52;
 constexpr uint16_t kTajoDropReasonSrv6DecapNonLastSegment = 162;
 constexpr uint16_t kTajoDropReasonSrv6BindingSidNonLastSid = 164;
 constexpr uint16_t kTajoDropReasonSrv6MidpointUnresolved = 161;
+// L3_TX_MTU_FAILURE: egress drop when the packet (after SRv6/tunnel header
+// imposition) exceeds the egress L3 (RIF) MTU.
+constexpr uint16_t kTajoDropReasonSrv6EncapMtuExceeded = 52;
+
+constexpr uint8_t kNplPuntSrcEgressDrop = 0x9;
+constexpr uint8_t kNplPuntSrcEgressTmDrop = 0xd;
+
+bool isEgressPuntSource(uint8_t puntSource) {
+  return puntSource == kNplPuntSrcEgressDrop ||
+      puntSource == kNplPuntSrcEgressTmDrop;
+}
 
 struct TajoMirrorOnDropPacketParsed {
   EthHdr ethHeader;
@@ -270,11 +281,11 @@ MirrorOnDropPacketFields TajoMirrorOnDropImpl::parsePacket(
       .outerDstPort = parsed.udpHeader.dstPort,
       .ingressPort = parsed.puntHeader.ingressPort,
       .dropReasonIngress = static_cast<uint16_t>(
-          parsed.puntHeader.dropReason == kTajoDropReasonMmu
+          isEgressPuntSource(parsed.puntHeader.puntSource)
               ? 0
               : parsed.puntHeader.dropReason),
       .dropReasonEgress = static_cast<uint16_t>(
-          parsed.puntHeader.dropReason == kTajoDropReasonMmu
+          isEgressPuntSource(parsed.puntHeader.puntSource)
               ? parsed.puntHeader.dropReason
               : 0),
       .innerSrcMac = parsed.innerEth.has_value() ? parsed.innerEth->getSrcMac()
@@ -368,6 +379,10 @@ uint16_t TajoMirrorOnDropImpl::getSrv6BindingSidNonLastSidDropReason() const {
 
 uint16_t TajoMirrorOnDropImpl::getSrv6MidpointUnresolvedDropReason() const {
   return kTajoDropReasonSrv6MidpointUnresolved;
+}
+
+uint16_t TajoMirrorOnDropImpl::getSrv6EncapMtuExceededDropReason() const {
+  return kTajoDropReasonSrv6EncapMtuExceeded;
 }
 
 void TajoMirrorOnDropImpl::configureErspanMirror(

@@ -100,19 +100,38 @@ std::string getMplsLabelStr(const cli::NextHopInfo& nextHopInfo) {
   }
   return labelStr;
 }
-std::string getTopologyInfoStr(const cli::NextHopInfo& nextHopInfo) {
+std::string getTopologyInfoStr(
+    const cli::NextHopInfo& nextHopInfo,
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding) {
   std::string topoStr;
   auto topoInfoPtr = apache::thrift::get_pointer(nextHopInfo.topologyInfo());
   if (topoInfoPtr != nullptr) {
-    std::string rackCapacityStr = "none";
-    if (topoInfoPtr->local_rack_capacity().has_value()) {
-      rackCapacityStr =
-          std::to_string(topoInfoPtr->local_rack_capacity().value());
-    }
     std::string remoteRackCapacityStr = "none";
     if (topoInfoPtr->remote_rack_capacity().has_value()) {
       remoteRackCapacityStr =
           std::to_string(topoInfoPtr->remote_rack_capacity().value());
+    }
+    std::string rackStr = topoInfoPtr->rack_id().has_value()
+        ? std::to_string(topoInfoPtr->rack_id().value())
+        : "none";
+    if (encoding.has_value() &&
+        encoding->getType() ==
+            facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
+                fpf_l2_encoding) {
+      std::string spineStr = topoInfoPtr->spine_id().has_value()
+          ? std::to_string(topoInfoPtr->spine_id().value())
+          : "none";
+      return fmt::format(
+          " rack {} spine id {} remote weight {}",
+          rackStr,
+          spineStr,
+          remoteRackCapacityStr);
+    }
+    std::string rackCapacityStr = "none";
+    if (topoInfoPtr->local_rack_capacity().has_value()) {
+      rackCapacityStr =
+          std::to_string(topoInfoPtr->local_rack_capacity().value());
     }
     std::string spineCapacityStr = "none";
     if (topoInfoPtr->spine_capacity().has_value()) {
@@ -120,9 +139,6 @@ std::string getTopologyInfoStr(const cli::NextHopInfo& nextHopInfo) {
     }
     std::string planeStr = topoInfoPtr->plane_id().has_value()
         ? std::to_string(topoInfoPtr->plane_id().value())
-        : "none";
-    std::string rackStr = topoInfoPtr->rack_id().has_value()
-        ? std::to_string(topoInfoPtr->rack_id().value())
         : "none";
     topoStr = fmt::format(
         " rack {} plane {} remote weight {} spine weight {} local weight {}",
@@ -168,7 +184,10 @@ std::string getSrv6SidListStr(const cli::NextHopInfo& nextHopInfo) {
   return fmt::format(" SRv6 SID List [{}]", folly::join(",", *sidListPtr));
 }
 
-std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
+std::string getNextHopInfoStr(
+    const cli::NextHopInfo& nextHopInfo,
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding) {
   auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
   std::string viaStr;
   if (ifNamePtr != nullptr) {
@@ -178,7 +197,7 @@ std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
   std::string costStr = getCostStr(nextHopInfo);
-  std::string topologyStr = getTopologyInfoStr(nextHopInfo);
+  std::string topologyStr = getTopologyInfoStr(nextHopInfo, encoding);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
       "{}{}{}{}{}{}{}{}",
@@ -230,22 +249,26 @@ std::string getNextHopInfoStr(
     const std::map<std::string, std::string>& vlanAggregatePortMap,
     const std::map<
         std::string,
-        std::map<std::string, std::vector<std::string>>>& vlanPortMap) {
+        std::map<std::string, std::vector<std::string>>>& vlanPortMap,
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding) {
   auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
   auto viaStr = getViaStr(ifNamePtr, vlanAggregatePortMap, vlanPortMap);
   std::string labelStr = getMplsLabelStr(nextHopInfo);
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
   std::string costStr = getCostStr(nextHopInfo);
+  std::string topologyStr = getTopologyInfoStr(nextHopInfo, encoding);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
       costStr,
       labelStr,
+      topologyStr,
       srv6SidStr);
   return ret;
 }

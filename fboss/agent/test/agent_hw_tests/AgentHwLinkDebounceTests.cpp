@@ -120,14 +120,11 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
 
   void verifyRetriggerCount(bool upDebounce) {
     auto port = portForTest();
-    // The up-debounce path holds off on link-up, so start from a down port;
-    // the down-debounce path holds off on link-down from an up port.
+    applyDebounceConfig(kHoldoffLongMs, kHoldoffLongMs);
     if (upDebounce) {
-      applyDebounceConfig(kHoldoffLongMs, std::nullopt);
       bringDownPort(port);
       ASSERT_FALSE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
     } else {
-      applyDebounceConfig(std::nullopt, kHoldoffLongMs);
       ASSERT_TRUE(getProgrammedState()->getPorts()->getNodeIf(port)->isUp());
     }
 
@@ -158,9 +155,8 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
       EXPECT_EVENTUALLY_EQ(after - before, kNumRetriggers);
     });
 
-    // Restore loopback so the port settles back instead of relying on the
-    // holdoff timer eventually firing.
-    togglePortNoWait(port, !upDebounce);
+    applyDebounceConfig(std::nullopt, std::nullopt);
+    bringUpPort(port);
   }
 };
 

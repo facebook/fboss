@@ -62,6 +62,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowHostTest.cpp
   fboss/cli/fboss2/test/CmdShowHwAgentStatusTest.cpp
   fboss/cli/fboss2/test/CmdShowHwObjectTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfaceCountersFecHistogramTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfaceCountersTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfaceErrorsTest.cpp
   # fboss/cli/fboss2/test/CmdShowInterfaceFlapsTest.cpp - excluded (depends on hardware model not built in CMake)

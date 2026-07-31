@@ -259,7 +259,7 @@ void PlatformExplorer::exploreSlot(
 
   // If PresenceDetection is specified, proceed further only if the presence
   // condition is satisfied
-  if (const auto presenceDetection = slotConfig.presenceDetection()) {
+  if (auto presenceDetection = slotConfig.presenceDetection()) {
     PresenceInfo presenceInfo;
     presenceInfo.presenceDetection() = *presenceDetection;
     presenceInfo.isPresent() = false;

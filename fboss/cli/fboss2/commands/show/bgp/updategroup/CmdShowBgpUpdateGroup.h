@@ -245,13 +245,30 @@ class CmdShowBgpUpdateGroup
 
     const auto& stats = group.stats().value();
 
+    // Advertisement telemetry mirrors the per-peer `show bgp neighbors` view:
+    // the current advertised-prefix gauge AND the cumulative message/PDU
+    // counts, shown as two separate sections. There is no socket-layer
+    // counterpart at the group level (socket tx/rx is inherently per-peer) --
+    // see `show bgp neighbors` for a member's socket counts.
+    out << std::endl;
+    out << "Prefixes advertised (post-policy RIB-OUT):" << std::endl;
+    out << "  Total:                   "
+        << stats.post_out_prefix_count().value() << std::endl;
+    out << "  IPv4:                    "
+        << stats.post_out_prefix_count_ipv4().value() << std::endl;
+    out << "  IPv6:                    "
+        << stats.post_out_prefix_count_ipv6().value() << std::endl;
+
+    out << std::endl;
+    out << "Messages sent (PDU count):" << std::endl;
+    out << "  Announcements (v4/v6):   "
+        << stats.total_sent_announcement_msgs_ipv4().value() << "/"
+        << stats.total_sent_announcement_msgs_ipv6().value() << std::endl;
+    out << "  Withdrawals:             "
+        << stats.total_sent_withdrawal_msgs().value() << std::endl;
+
     out << std::endl;
     out << "Stats:" << std::endl;
-    out << "  Announcements(v4/v6):    "
-        << stats.total_sent_announcements_ipv4().value() << "/"
-        << stats.total_sent_announcements_ipv6().value() << std::endl;
-    out << "  Withdrawals:             " << stats.group_withdrawals().value()
-        << std::endl;
     out << "  Queue Blocks:            "
         << stats.group_total_queue_blocks().value()
         << " (total wait: " << stats.group_total_queue_wait_ms().value()
@@ -266,15 +283,6 @@ class CmdShowBgpUpdateGroup
         << std::endl;
     out << "  Collapse Corrections:    "
         << stats.collapse_entries_corrected().value() << std::endl;
-
-    out << std::endl;
-    out << "Prefixes (post-policy RIB-OUT):" << std::endl;
-    out << "  Total:                   "
-        << stats.post_out_prefix_count().value() << std::endl;
-    out << "  IPv4:                    "
-        << stats.post_out_prefix_count_ipv4().value() << std::endl;
-    out << "  IPv6:                    "
-        << stats.post_out_prefix_count_ipv6().value() << std::endl;
 
     out << std::endl;
     out << "Diagnostics:" << std::endl;

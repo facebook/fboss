@@ -190,6 +190,34 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_benchmark_tests"),
         )
 
+    def _copy_completion_scripts(self, tmp_dir_name):
+        completion_src = os.path.join(
+            self.get_fboss_subdirectory("fboss/oss/scripts"),
+            "fboss2_completion.bash",
+        )
+        # get_fboss_subdirectory prefers the getdeps source clone, which in a
+        # default (non --local) build is pinned to a stable commit that may
+        # predate this file. The completion script ships alongside this script
+        # in the same commit, so fall back to the copy next to package-fboss.py.
+        if not os.path.isfile(completion_src):
+            completion_src = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "fboss2_completion.bash",
+            )
+        # The completion script is a non-critical convenience artifact; never
+        # fail packaging if it is absent from an older checkout.
+        if not os.path.isfile(completion_src):
+            print(f"Skipping fboss2 bash completion; {completion_src} not found")
+            return
+        completion_dst_dir = os.path.join(
+            tmp_dir_name, PackageFboss.DATA, "bash-completion", "completions"
+        )
+        os.makedirs(completion_dst_dir, exist_ok=True)
+        # bash-completion loads the file named after the command.
+        completion_dst = os.path.join(completion_dst_dir, "fboss2")
+        print(f"Copying {completion_src} to {completion_dst}")
+        shutil.copy(completion_src, completion_dst)
+
     def _copy_production_features(self, tmp_dir_name):
         production_features_path = self.get_fboss_subdirectory(
             "fboss/oss/production_features"
@@ -316,6 +344,7 @@ class PackageFboss:
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
+        self._copy_completion_scripts(tmp_dir_name)
 
     @staticmethod
     def _is_python_dir_executable(path: str) -> bool:

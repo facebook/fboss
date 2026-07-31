@@ -364,12 +364,13 @@ class CmdShowBgpSummary
     out << "Paths: Received - " << paths_rcvd << ", Accepted - "
         << paths_accepted << ", Sent - " << paths_sent << std::endl;
     /*
-     * Prefix count is omitted when unset (older bgpd without getNumPrefixes();
-     * see queryClient()). RIB Version comes from getRibVersion(), which is
-     * already deployed to prod, so it is always shown.
+     * Loc-RIB prefix count is omitted when unset (older bgpd without
+     * getNumPrefixes(); see queryClient()). RIB Version comes from
+     * getRibVersion(), which is already deployed to prod, so it is always
+     * shown.
      */
     if (bgpSummary.total_prefix_count().has_value()) {
-      out << "Prefix count: "
+      out << "Loc-RIB Prefix Count: "
           << folly::copy(bgpSummary.total_prefix_count().value()) << std::endl;
     }
     out << "RIB Version: " << folly::copy(bgpSummary.rib_version().value())

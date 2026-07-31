@@ -367,10 +367,10 @@ cpp_library(
         "CommonInit.h",
     ],
     exported_deps = [
+        ":agent_features",
         ":fboss_init",  # @manual
         ":fboss_init_h",
         ":load_agent_config",
-        ":platform_base",
         "//common/base:build_info",
         "//common/config:config",
         "//fb303:service_data",
@@ -422,10 +422,10 @@ cpp_library(
         "Main.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":agent_initializer_h",
         ":fboss_init_h",
         ":load_agent_config",
-        ":platform_base",
         "//fb303:service_data",
         "//folly/io/async:async_signal_handler",
         "//folly/logging:init",
@@ -993,6 +993,13 @@ cpp_library(
 )
 
 cpp_library(
+    name = "lock_policy",
+    headers = [
+        "LockPolicy.h",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
@@ -1071,7 +1078,6 @@ cpp_library(
         "FsdbSyncer.h",
         "HwAsicTable.h",
         "HwSwitchConnectionStatusTable.h",
-        "LockPolicy.h",
         "MultiSwitchFb303Stats.h",
         "MultiSwitchPacketStreamMap.h",
         "NeighborCache.h",
@@ -1118,6 +1124,7 @@ cpp_library(
         ":l2learn_event_observer",
         ":load_agent_config",
         ":loadbalancer_utils",
+        ":lock_policy",  # @manual
         ":mka_service_ports",
         ":monolithic_hw_switch_handler",
         ":packet",
@@ -1766,6 +1773,7 @@ cpp_library(
         ":test_utils",
         ":utils",
         "//common/fb303/cpp:default_control",
+        "//common/fb303/cpp:default_monitor",
         "//common/fb303/cpp:fb303",
         "//fb303:logging",
         "//fb303:service_data",

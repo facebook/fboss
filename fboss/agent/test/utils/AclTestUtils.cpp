@@ -205,52 +205,6 @@ void addUdfTableToAcl(
   acl->udfTable()->push_back(aclUdfEntry);
 }
 
-std::shared_ptr<AclEntry> getAclEntryByName(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclName) {
-  std::shared_ptr<AclEntry> swAcl;
-  if (FLAGS_enable_acl_table_group) {
-    auto aclMap = state->getAclsForTable(
-        cfg::AclStage::INGRESS,
-        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
-    if (aclMap) {
-      swAcl = aclMap->getNodeIf(aclName);
-    }
-  } else {
-    swAcl = state->getAcl(aclName);
-  }
-
-  return swAcl;
-}
-
-std::optional<std::string> getAclTableNameForEntry(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclEntryId) {
-  if (!FLAGS_enable_acl_table_group) {
-    // If table groups are not enabled, use the default table name
-    return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
-  }
-
-  // Search through ACL table groups to find which table contains this entry
-  auto aclTableGroups = state->getAclTableGroups();
-  if (!aclTableGroups) {
-    return std::nullopt;
-  }
-
-  for (const auto& groupMap : std::as_const(*aclTableGroups)) {
-    for (const auto& [stage, group] : std::as_const(*groupMap.second)) {
-      for (const auto& [tableName, table] :
-           std::as_const(*group->getAclTableMap())) {
-        if (table->getAclMap()->getNodeIf(aclEntryId)) {
-          return tableName;
-        }
-      }
-    }
-  }
-
-  return std::nullopt;
-}
-
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName) {

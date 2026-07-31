@@ -13,10 +13,17 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
 namespace facebook::fboss {
+
+uint32_t SaiBufferManager::getNumCellsAvailable(const SaiPlatform* platform) {
+  auto asic = platform->getAsic();
+  return asic->getNumCellsAvailable(platform->getType());
+}
 
 void SaiBufferManager::loadCpuPortEgressBufferPool() {
   const auto& switchApi = SaiApiTable::getInstance()->switchApi();

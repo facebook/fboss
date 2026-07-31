@@ -28,15 +28,23 @@
 #include "fboss/agent/platforms/common/saintpaul/SaintpaulPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/tahansb800bc/Tahansb800bcPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge800bact/Wedge800BACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
+#include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -81,9 +89,6 @@ std::unique_ptr<PlatformMapping> createGenericSaiBcmPlatformMapping(
   switch (type) {
     case PlatformType::PLATFORM_BLACKWOLF800BANW:
       return std::make_unique<Blackwolf800banwPlatformMapping>();
-    case PlatformType::PLATFORM_WEDGE800BACT:
-    case PlatformType::PLATFORM_WEDGE800BNHP:
-      return std::make_unique<Wedge800BACTPlatformMapping>();
     case PlatformType::PLATFORM_ICECUBE800BC:
       return std::make_unique<Icecube800bcPlatformMapping>();
     case PlatformType::PLATFORM_ICECUBE800BANW:
@@ -174,6 +179,46 @@ std::unique_ptr<SaiPlatform> chooseBcmSaiPlatform(
   if (useGenericSaiBcmPlatform(type)) {
     return createGenericSaiBcmPlatform(
         std::move(productInfo), localMac, platformMappingStr);
+  }
+  return nullptr;
+}
+
+std::unique_ptr<SaiPlatformPort> createBcmSaiPlatformPort(
+    const PortID& portId,
+    SaiPlatform* platform) {
+  const auto platformMode = platform->getType();
+  if (platformMode == PlatformType::PLATFORM_WEDGE100) {
+    return std::make_unique<SaiBcmWedge100PlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_WEDGE400 ||
+      platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
+    return std::make_unique<SaiBcmWedge400PlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_DARWIN ||
+      platformMode == PlatformType::PLATFORM_DARWIN48V) {
+    return std::make_unique<SaiBcmDarwinPlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_MINIPACK) {
+    return std::make_unique<SaiBcmMinipackPlatformPort>(portId, platform);
+  }
+  if (useGenericSaiBcmPlatform(platformMode)) {
+    return std::make_unique<SaiBcmPlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_YAMP) {
+    return std::make_unique<SaiBcmYampPlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_FUJI) {
+    return std::make_unique<SaiBcmFujiPlatformPort>(portId, platform);
+  }
+  if (platformMode == PlatformType::PLATFORM_ELBERT) {
+    if (platform->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      return std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, platform);
+    }
+    if (platform->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      return std::make_unique<SaiBcmElbertPlatformPort>(portId, platform);
+    }
   }
   return nullptr;
 }

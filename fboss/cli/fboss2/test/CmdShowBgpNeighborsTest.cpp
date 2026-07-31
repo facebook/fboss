@@ -242,15 +242,13 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printOutputWithoutAddCapabilities) {
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
       "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -264,6 +262,49 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printOutputWithoutAddCapabilities) {
       "EOR Received at 2021-10-26 10:59:55.614 PDT\n\n";
 
   EXPECT_EQ(output, expectedOutput);
+}
+
+// With non-zero per-type message counters, the detail view renders the
+// data-plane (socket) + control-plane (AdjRib) counters table. Header presence
+// is asserted via substrings; per-row values are asserted via ContainsRegex
+// (spaces collapsed to " +") so the checks stay robust to utils::Table
+// locale-dependent column widths while still pinning that each value lands in
+// its own column. The four columns per row use DISTINCT values so a Tx/Rx swap
+// or a Socket/AdjRib column crossing is caught (equal values would hide it).
+TEST_F(CmdShowBgpNeighborsTestFixture, printOutputMessageCounters) {
+  auto sessions = establishedNeighborSession_;
+  auto& d = sessions[0].details().ensure();
+  d.socket_tx_open_msgs() = 1;
+  d.socket_tx_update_msgs() = 7;
+  d.socket_tx_keepalive_msgs() = 3;
+  d.socket_tx_notification_msgs() = 2;
+  d.socket_tx_route_refresh_msgs() = 4;
+  d.socket_tx_eor_msgs() = 5;
+  d.socket_rx_open_msgs() = 10;
+  d.socket_rx_update_msgs() = 70;
+  d.socket_rx_keepalive_msgs() = 30;
+  d.socket_rx_notification_msgs() = 20;
+  d.socket_rx_route_refresh_msgs() = 40;
+  d.socket_rx_eor_msgs() = 50;
+  d.adjrib_sent_update_msgs() = 6;
+  d.adjrib_sent_eor_msgs() = 4;
+  d.adjrib_recv_update_msgs() = 60;
+  d.adjrib_recv_eor_msgs() = 40;
+
+  std::stringstream ss;
+  CmdShowBgpNeighbors().printOutput(sessions, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("Socket Tx"));
+  EXPECT_THAT(output, HasSubstr("Socket Rx"));
+  EXPECT_THAT(output, HasSubstr("AdjRib Sent"));
+  EXPECT_THAT(output, HasSubstr("AdjRib Recv"));
+
+  // Socket-only row: AdjRib columns render "-" for non-UPDATE/EoR PDU types.
+  EXPECT_THAT(output, ContainsRegex("open +1 +10 +- +-"));
+  // AdjRib-bearing rows: all four columns distinct so column order is verified.
+  EXPECT_THAT(output, ContainsRegex("update +7 +70 +6 +60"));
+  EXPECT_THAT(output, ContainsRegex("end-of-rib +5 +50 +4 +40"));
 }
 
 TEST_F(
@@ -296,15 +337,13 @@ TEST_F(
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
       "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -358,15 +397,13 @@ TEST_F(
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
       "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -413,15 +450,13 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printOutputWithAddCapabilities) {
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
       "    Add Path: Configured - BOTH, Negotiated - AFI_IPV4 BOTH\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -460,16 +495,8 @@ TEST_F(
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -478,7 +505,8 @@ TEST_F(
       "Number of session terminations: 20\n"
       "HoldTimer last reset at 2021-10-26 13:07:40.724 PDT\n"
       "KeepAlive last received at 2021-10-26 13:07:39.716 PDT\n"
-      "KeepAlive last sent at 2021-10-26 13:07:40.724 PDT\n\n";
+      "KeepAlive last sent at 2021-10-26 13:07:40.724 PDT\n"
+      "\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -507,16 +535,8 @@ TEST_F(
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -525,7 +545,8 @@ TEST_F(
       "Number of session terminations: 20\n"
       "HoldTimer last reset at 2021-10-26 13:07:40.724 PDT\n"
       "KeepAlive last received at 2021-10-26 13:07:39.716 PDT\n"
-      "KeepAlive last sent at 2021-10-26 13:07:40.724 PDT\n\n";
+      "KeepAlive last sent at 2021-10-26 13:07:40.724 PDT\n"
+      "\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -554,16 +575,15 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printAllNeighbors) {
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -595,16 +615,15 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printAllNeighbors) {
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
+      " Prefix Telemetry    Sent  Rcvd  Accepted \n"
+      "-----------------------------------------------\n"
+      " Current prefixes    2     10    0        \n"
+      " Announcements IPv4  8     5     -        \n"
+      " Announcements IPv6  7     4     -        \n"
+      " Withdrawals         6     3     -        \n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -635,16 +654,8 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printAllNeighbors) {
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"
@@ -674,16 +685,8 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printAllNeighbors) {
       "    Multiprotocol IPv4 Unicast: negotiated\n"
       "    Graceful Restart: received, peer restart-time is 60s\n"
       "    Graceful Restart: sent, local restart-time is 120s\n"
-      "    Add Path: DISABLED\n\n"
-      " Prefix statistics:   Sent  Rcvd  Accepted \n"
-      "------------------------------------------------\n"
-      " IPv4, IPv6 Unicast:  2     10    0        \n\n"
-      "BGP update announcements sent ipv4: 8\n"
-      "BGP update announcements sent ipv6: 7\n"
-      "BGP update withdrawals sent: 6\n"
-      "BGP update announcements received ipv4: 5\n"
-      "BGP update announcements received ipv6: 4\n"
-      "BGP update withdrawals received: 3\n"
+      "    Add Path: DISABLED\n"
+      "\n"
       "Number of enforce-first-as validation rejections: 71\n"
       "Local AS is 2001, local router ID 2.3.5.6\n"
       "Local TCP address is 5.6.7.8, local port is 44003\n"

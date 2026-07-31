@@ -57,6 +57,7 @@ DECLARE_int32(dsf_session_recv_timeout_ms);
 DECLARE_bool(set_classid_for_my_subnet_and_ip_routes);
 DECLARE_int32(stat_publish_interval_ms);
 DECLARE_int32(hwagent_port_base);
+DECLARE_int32(switchIndex);
 DECLARE_bool(force_init_fp);
 DECLARE_bool(flowletSwitchingEnable);
 DECLARE_bool(enable_ecmp_random_spray);

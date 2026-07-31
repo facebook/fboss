@@ -1434,7 +1434,7 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
   }
 
   for (const auto& versionedPmUnitConfig : versionedPmUnitConfigs) {
-    if (const auto& pmUvs = versionedPmUnitConfig.pmUnitVersions();
+    if (auto pmUvs = versionedPmUnitConfig.pmUnitVersions();
         pmUvs && !pmUvs->empty()) {
       for (const auto& pmUv : *pmUvs) {
         if (*pmUv.productionState() < 0 || *pmUv.productionSubState() < 0 ||

@@ -20,8 +20,6 @@
 #include <folly/logging/xlog.h>
 #include <string>
 
-DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
-
 namespace facebook::fboss {
 
 Platform::Platform(

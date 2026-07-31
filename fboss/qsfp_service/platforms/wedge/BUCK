@@ -16,15 +16,30 @@ cpp_library(
 )
 
 cpp_library(
-    name = "wedge-transceiver",
+    name = "wedge-i2c-bus-lock",
     srcs = [
         "WedgeI2CBusLock.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "//fboss/lib/usb:usb-api",
+        "//fboss/qsfp_service:stats",
+    ],
+    exported_deps = [
+        "//fboss/lib/usb:base-i2c-dependencies",
+        "//fboss/lib/usb:i2-api",
+        "//folly:range",
+    ],
+)
+
+cpp_library(
+    name = "wedge-transceiver",
+    srcs = [
         "WedgeQsfp.cpp",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/lib/usb:usb-api",
         "//fboss/qsfp_service:stats",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
@@ -34,13 +49,12 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_deps = [
+        ":wedge-i2c-bus-lock",  # @manual
         "//fboss/lib:io_stats_recorder",
-        "//fboss/lib/usb:base-i2c-dependencies",
-        "//fboss/lib/usb:i2-api",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:firmware_upgrader",  # @manual
         "//fboss/qsfp_service/module:i2c_log_buffer",
-        "//folly:range",
+        "//folly:range",  # @manual
         "//folly/futures:core",
         "//folly/io/async:async_base",
     ],
