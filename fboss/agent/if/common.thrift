@@ -42,6 +42,11 @@ struct NetworkTopologyInformation {
   // (c) 1, 3, 6
 }
 
+enum NextHopRole {
+  PRIMARY = 0,
+  BACKUP = 1,
+}
+
 struct NextHopThrift {
   1: Address.BinaryAddress address;
   // Default weight of 0 represents an ECMP route.
@@ -67,6 +72,7 @@ struct NextHopThrift {
   15: optional i32 adjustedWeight;
   16: optional NetworkTopologyInformation topologyInfo;
   17: optional i64 cost;
+  18: NextHopRole role = NextHopRole.PRIMARY;
 }
 
 /*

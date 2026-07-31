@@ -4519,6 +4519,7 @@ class ChildThriftPath<::facebook::fboss::NextHopThrift, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(adjustedWeight, 15);
     STRUCT_CHILD_GETTERS(topologyInfo, 16);
     STRUCT_CHILD_GETTERS(cost, 17);
+    STRUCT_CHILD_GETTERS(role, 18);
 };
 
 
