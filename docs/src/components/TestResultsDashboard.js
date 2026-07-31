@@ -21,6 +21,9 @@ const TAG_COLORS = {
   Platform: {bg: 'rgba(14,165,233,0.08)', color: '#0284c7', border: 'rgba(14,165,233,0.2)'},
   Component: {bg: 'rgba(168,85,247,0.08)', color: '#9333ea', border: 'rgba(168,85,247,0.2)'},
   Topology: {bg: 'rgba(236,72,153,0.08)', color: '#db2777', border: 'rgba(236,72,153,0.2)'},
+  Transceiver: {bg: 'rgba(14,165,233,0.08)', color: '#0284c7', border: 'rgba(14,165,233,0.2)'},
+  'Qualifying FW': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
+  'Previous FW': {bg: 'rgba(99,102,241,0.08)', color: '#4f46e5', border: 'rgba(99,102,241,0.2)'},
   'ASIC SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
   'PHY SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
 };
@@ -71,6 +74,16 @@ function parseConfig(testType, config) {
     const phySdk = parts.find(p => p.startsWith('physdk-'));
     if (asicSdk) tags.push({label: 'ASIC SDK', value: asicSdk.replace('asicsdk-', '')});
     if (phySdk) tags.push({label: 'PHY SDK', value: phySdk.replace('physdk-', '')});
+    return tags;
+  }
+
+  if (testType === 'Qsfp HAL Tests') {
+    // previous_mcu_fw_ is absent for first-time qualifications.
+    const tags = [{label: 'Transceiver', value: parts[0]}];
+    const qual = parts.find(p => p.startsWith('qualify_mcu_fw_'));
+    const prev = parts.find(p => p.startsWith('previous_mcu_fw_'));
+    if (qual) tags.push({label: 'Qualifying FW', value: qual.replace('qualify_mcu_fw_', '')});
+    if (prev) tags.push({label: 'Previous FW', value: prev.replace('previous_mcu_fw_', '')});
     return tags;
   }
 
