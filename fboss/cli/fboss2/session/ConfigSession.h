@@ -305,12 +305,24 @@ class ConfigSession {
 
   // git relative path of the bgpd config tracked in the /etc/coop repo.
   static constexpr auto kBgpGitRelPath = "bgpcpp/bgpcpp.conf";
+  // git relative path of the CLI metadata tracked in the /etc/coop repo.
+  static constexpr auto kMetadataGitRelPath = "cli/cli_metadata.json";
   // Like Git::fileAtRevision but returns "" instead of throwing when the path
   // does not exist at that revision (e.g. a pre-BGP commit). Used by
   // rebase/rollback/diff so a missing bgpcpp.conf is treated as empty.
   std::string fileAtRevisionOrEmpty(
       const std::string& revision,
       const std::string& gitRelPath) const;
+
+  // Highest per-service action level recorded in the metadata of every commit
+  // a rollback to resolvedSha would undo (i.e. commits in (resolvedSha, HEAD]).
+  // Undoing a change needs at least the action level applying it did (e.g. a
+  // VLAN membership change requires an agent warmboot in both directions), so
+  // rollback() promotes each service's default action to this level.
+  // If resolvedSha is not found in the metadata history, the max over the
+  // whole history is returned (conservative).
+  std::map<cli::ServiceType, cli::ConfigActionLevel> rolledBackActionLevels(
+      const std::string& resolvedSha) const;
 
   // Track the highest action level required for pending config changes per
   // service. Persisted to disk so it survives across CLI invocations within a
