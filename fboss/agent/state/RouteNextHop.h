@@ -92,6 +92,10 @@ struct INextHop {
       return folly::poly_call<10>(*this);
     }
 
+    NextHopRole role() const {
+      return folly::poly_call<11>(*this);
+    }
+
     bool isResolved() const {
       return intfID().has_value();
     }
@@ -156,6 +160,7 @@ struct INextHop {
       if (auto value = cost()) {
         nht.cost() = value.value();
       }
+      *nht.role() = role();
       return nht;
     }
 
@@ -183,7 +188,8 @@ struct INextHop {
       &T::srv6SegmentList,
       &T::tunnelType,
       &T::tunnelId,
-      &T::cost);
+      &T::cost,
+      &T::role);
 };
 
 using NextHop = folly::Poly<INextHop>;
@@ -212,7 +218,8 @@ class ResolvedNextHop {
       const std::vector<folly::IPAddressV6>& srv6SegmentList = {},
       const std::optional<TunnelType>& tunnelType = std::nullopt,
       const std::optional<std::string>& tunnelId = std::nullopt,
-      const std::optional<int64_t>& cost = std::nullopt);
+      const std::optional<int64_t>& cost = std::nullopt,
+      NextHopRole role = NextHopRole::PRIMARY);
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
@@ -225,7 +232,8 @@ class ResolvedNextHop {
       std::vector<folly::IPAddressV6>&& srv6SegmentList = {},
       std::optional<TunnelType>&& tunnelType = std::nullopt,
       std::optional<std::string>&& tunnelId = std::nullopt,
-      std::optional<int64_t>&& cost = std::nullopt);
+      std::optional<int64_t>&& cost = std::nullopt,
+      NextHopRole role = NextHopRole::PRIMARY);
   std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
@@ -294,6 +302,10 @@ class ResolvedNextHop {
     cost_ = cost;
   }
 
+  NextHopRole role() const {
+    return role_;
+  }
+
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
@@ -306,6 +318,7 @@ class ResolvedNextHop {
   std::optional<TunnelType> tunnelType_;
   std::optional<std::string> tunnelId_;
   std::optional<int64_t> cost_;
+  NextHopRole role_;
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -323,7 +336,8 @@ class UnresolvedNextHop {
       const std::vector<folly::IPAddressV6>& srv6SegmentList = {},
       const std::optional<TunnelType>& tunnelType = std::nullopt,
       const std::optional<std::string>& tunnelId = std::nullopt,
-      const std::optional<int64_t>& cost = std::nullopt);
+      const std::optional<int64_t>& cost = std::nullopt,
+      NextHopRole role = NextHopRole::PRIMARY);
   UnresolvedNextHop(
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
@@ -335,7 +349,8 @@ class UnresolvedNextHop {
       std::vector<folly::IPAddressV6>&& srv6SegmentList = {},
       std::optional<TunnelType>&& tunnelType = std::nullopt,
       std::optional<std::string>&& tunnelId = std::nullopt,
-      std::optional<int64_t>&& cost = std::nullopt);
+      std::optional<int64_t>&& cost = std::nullopt,
+      NextHopRole role = NextHopRole::PRIMARY);
   std::optional<InterfaceID> intfID() const {
     return std::nullopt;
   }
@@ -374,6 +389,10 @@ class UnresolvedNextHop {
     return cost_;
   }
 
+  NextHopRole role() const {
+    return role_;
+  }
+
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
@@ -385,6 +404,7 @@ class UnresolvedNextHop {
   std::optional<TunnelType> tunnelType_;
   std::optional<std::string> tunnelId_;
   std::optional<int64_t> cost_;
+  NextHopRole role_;
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
@@ -439,7 +459,8 @@ struct hash<facebook::fboss::NextHop> {
         nexthop.topologyInfo(),
         nexthop.tunnelType(),
         nexthop.tunnelId(),
-        nexthop.cost());
+        nexthop.cost(),
+        nexthop.role());
     for (const auto& seg : nexthop.srv6SegmentList()) {
       seed = folly::hash::hash_combine(seed, seg);
     }
@@ -460,7 +481,8 @@ struct hash<facebook::fboss::ResolvedNextHop> {
         nexthop.topologyInfo(),
         nexthop.tunnelType(),
         nexthop.tunnelId(),
-        nexthop.cost());
+        nexthop.cost(),
+        nexthop.role());
     for (const auto& seg : nexthop.srv6SegmentList()) {
       seed = folly::hash::hash_combine(seed, seg);
     }
