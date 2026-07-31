@@ -41,13 +41,10 @@
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
