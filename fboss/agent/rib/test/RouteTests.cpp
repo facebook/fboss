@@ -2424,6 +2424,37 @@ TEST(Route, RecursiveResolutionAppliesBackupRoleToAllResolvedNextHops) {
   ASSERT_TRUE(normalizedID.has_value());
   EXPECT_EQ(
       rolesByInterface(nhopIds.getNextHops(*normalizedID)), expectedRoles);
+
+  auto swappedBackupThrift = primaryBgpNextHop.toThrift();
+  *swappedBackupThrift.role() = NextHopRole::BACKUP;
+  RouteNextHopSet swappedBgpNhops{
+      util::fromThrift(swappedBackupThrift), backupBgpNextHop};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(swappedBgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& swappedForwardInfo = route->value()->getForwardInfo();
+  const std::map<InterfaceID, NextHopRole> swappedExpectedRoles{
+      {InterfaceID(1), NextHopRole::BACKUP},
+      {InterfaceID(2), NextHopRole::PRIMARY},
+      {InterfaceID(3), NextHopRole::PRIMARY},
+  };
+  EXPECT_EQ(
+      rolesByInterface(
+          getResolvedNextHopsFromRib(&nhopIds, swappedForwardInfo)),
+      swappedExpectedRoles);
+
+  const auto swappedNormalizedID =
+      swappedForwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(swappedNormalizedID.has_value());
+  EXPECT_EQ(
+      rolesByInterface(nhopIds.getNextHops(*swappedNormalizedID)),
+      swappedExpectedRoles);
 }
 
 // Same-prefix client preference: an OpenR route (no SID lists) and a TE_Agent
