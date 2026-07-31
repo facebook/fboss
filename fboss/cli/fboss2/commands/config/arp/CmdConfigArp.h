@@ -10,14 +10,36 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
+
+// Attribute-name vocabulary shared between `config arp` and `delete arp`
+// so the two command trees can never diverge.
+namespace arp_attrs {
+constexpr std::string_view kTimeout = "timeout";
+constexpr std::string_view kAgeInterval = "age-interval";
+constexpr std::string_view kMaxProbes = "max-probes";
+constexpr std::string_view kStaleInterval = "stale-interval";
+/* arpRefreshSeconds is defined in switch_config.thrift yet not implemented
+constexpr std::string_view kRefresh = "refresh";
+*/
+
+// Alphabetical order so folly::join produces a stable, sorted error message.
+constexpr auto kValidAttrs = std::to_array<std::string_view>({
+    kAgeInterval,
+    kMaxProbes,
+    kStaleInterval,
+    kTimeout,
+});
+} // namespace arp_attrs
 
 // Argument for `config arp <attr> <value>`.
 // Validates that v[0] is one of the valid ARP attribute names and v[1] is a

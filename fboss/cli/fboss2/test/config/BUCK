@@ -38,6 +38,7 @@ cpp_unittest(
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
         "CmdDeleteAclRuleTest.cpp",
+        "CmdDeleteArpTest.cpp",
         "CmdDeleteConfigInterfaceTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "CmdDeleteInterfaceTest.cpp",
