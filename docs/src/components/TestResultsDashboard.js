@@ -6,6 +6,7 @@ import React, {useState, useMemo, useRef, useEffect} from 'react';
 
 const VENDOR_NAMES = {
   brcm: 'Broadcom',
+  'bcm-sai': 'Broadcom',
   leaba: 'Cisco',
   nvda: 'Chenab',
   chenab: 'Chenab',
@@ -37,7 +38,11 @@ function parseConfig(testType, config) {
     return [{label: 'Platform', value: parts[0]}];
   }
 
-  if (testType === 'Agent HW Test' || testType === 'SAI Test') {
+  const agentShaped = [
+    'Agent HW Test', 'SAI Test', 'Agent Scale Tests', 'Agent Invariant Tests',
+  ];
+
+  if (agentShaped.includes(testType)) {
     const tags = [];
     if (parts[0]) tags.push({label: 'Vendor', value: VENDOR_NAMES[parts[0]] || parts[0]});
     if (parts[1]) tags.push({label: 'SDK', value: parts[1].replace(/_/g, ' ')});
@@ -65,6 +70,18 @@ function parseConfig(testType, config) {
     const phySdk = parts.find(p => p.startsWith('physdk-'));
     if (asicSdk) tags.push({label: 'ASIC SDK', value: asicSdk.replace('asicsdk-', '')});
     if (phySdk) tags.push({label: 'PHY SDK', value: phySdk.replace('physdk-', '')});
+    return tags;
+  }
+
+  if (testType === 'Fboss2 CLI Tests') {
+    const tags = [{label: 'Platform', value: parts[0]}];
+    if (parts[1]) {
+      const dash = parts[1].indexOf('-');
+      const vendor = dash === -1 ? parts[1] : parts[1].slice(0, dash);
+      const sdk = dash === -1 ? '' : parts[1].slice(dash + 1);
+      tags.push({label: 'Vendor', value: VENDOR_NAMES[vendor] || vendor});
+      if (sdk) tags.push({label: 'SDK', value: sdk.replace(/_/g, ' ')});
+    }
     return tags;
   }
 
