@@ -103,6 +103,25 @@ class PortStoreTest : public SaiStoreTest {
     SaiPortTraits::CreateAttributes c = makeAttrs(lane, 100000);
     return saiApiTable->portApi().create<SaiPortTraits>(c, 0);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  SaiPortLlrProfileTraits::CreateAttributes makeLlrProfileAttrs() {
+    return SaiPortLlrProfileTraits::CreateAttributes{
+        SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{32},
+        SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{4096},
+        SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{5000},
+        SaiPortLlrProfileTraits::Attributes::ReplayCountMax{sai_uint8_t(7)},
+        SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{1000},
+        SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{200000},
+        SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+            SAI_LLR_FRAME_ACTION_BEST_EFFORT},
+        SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+            SAI_LLR_FRAME_ACTION_BLOCK},
+        SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{true},
+        SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+            sai_uint16_t(2048)}};
+  }
+#endif
 };
 
 TEST_F(PortStoreTest, loadPort) {
@@ -444,3 +463,38 @@ TEST_F(PortStoreTest, portSetPfcMonitorDirection) {
       portId, SaiPortTraits::Attributes::PfcMonitorDirection{});
   EXPECT_EQ(apiPfcMonitorDirection, 1);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// A port bound to an LLR profile is reclaimed on warm-boot reload with its
+// LlrProfile binding intact, and the referenced profile object is reclaimed
+// too.
+TEST_F(PortStoreTest, loadPortBoundToLlrProfile) {
+  auto profileId = saiApiTable->portApi().create<SaiPortLlrProfileTraits>(
+      makeLlrProfileAttrs(), 0);
+  auto portId = createPort(0);
+  saiApiTable->portApi().setAttribute(
+      portId,
+      SaiPortTraits::Attributes::LlrProfile{
+          static_cast<sai_object_id_t>(profileId)});
+
+  SaiStore s(0);
+  s.reload();
+
+  // Port reclaimed and still bound to the profile.
+  std::vector<uint32_t> lanes{0};
+  auto gotPort =
+      s.get<SaiPortTraits>().get(SaiPortTraits::AdapterHostKey{lanes});
+  ASSERT_NE(gotPort, nullptr);
+  EXPECT_EQ(gotPort->adapterKey(), portId);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          gotPort->adapterKey(), SaiPortTraits::Attributes::LlrProfile{}),
+      static_cast<sai_object_id_t>(profileId));
+
+  // The referenced profile object is reclaimed too.
+  SaiPortLlrProfileTraits::AdapterHostKey profileKey = makeLlrProfileAttrs();
+  auto gotProfile = s.get<SaiPortLlrProfileTraits>().get(profileKey);
+  ASSERT_NE(gotProfile, nullptr);
+  EXPECT_EQ(gotProfile->adapterKey(), profileId);
+}
+#endif
