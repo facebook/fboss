@@ -891,5 +891,56 @@ TEST_F(PortManagerTest, noLlrStatsWhenDisabled) {
   EXPECT_FALSE(stats.llrTxOk_().has_value());
   EXPECT_FALSE(stats.llrRxOk_().has_value());
 }
+
+// Removing an LLR-enabled port tears down its LLR profile (no leak).
+TEST_F(PortManagerTest, removeLlrOnRemovePort) {
+  auto swPort = makePort(p0);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto fs = FakeSai::getInstance();
+  ASSERT_NE(
+      saiManagerTable->portManager().getPortHandle(swPort->getID())->llrProfile,
+      nullptr);
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+
+  saiManagerTable->portManager().removePort(swPort);
+
+  // Port gone -> its LLR profile is released (refcount -> 0).
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 0);
+}
+
+// Two ports with an identical LlrConfig share a single content-keyed SAI
+// profile; the profile is freed only when the last referencing port is removed.
+TEST_F(PortManagerTest, shareLlrProfileAcrossPorts) {
+  auto fs = FakeSai::getInstance();
+
+  auto port0 = makePort(p0);
+  port0->setLlrConfigName("llrProfile");
+  port0->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(port0);
+
+  auto port1 = makePort(p1);
+  port1->setLlrConfigName("llrProfile");
+  port1->setLlrConfig(makeLlrConfigNode()); // identical content
+  saiManagerTable->portManager().addPort(port1);
+
+  // Identical config -> exactly one shared profile, both ports bound to it.
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+  auto* h0 = saiManagerTable->portManager().getPortHandle(port0->getID());
+  auto* h1 = saiManagerTable->portManager().getPortHandle(port1->getID());
+  ASSERT_NE(h0->llrProfile, nullptr);
+  ASSERT_NE(h1->llrProfile, nullptr);
+  EXPECT_EQ(h0->llrProfile->adapterKey(), h1->llrProfile->adapterKey());
+
+  // Removing one port keeps the profile (still referenced by the other).
+  saiManagerTable->portManager().removePort(port0);
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 1);
+
+  // Removing the last referencing port frees it.
+  saiManagerTable->portManager().removePort(port1);
+  EXPECT_EQ(fs->portLlrProfileManager.map().size(), 0);
+}
 #endif
 } // namespace facebook::fboss
