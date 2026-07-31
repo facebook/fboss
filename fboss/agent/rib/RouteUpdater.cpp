@@ -957,7 +957,36 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     }
   }
 }
-
+/*
+ * Policy for inheriting next hop properties during resolution.
+ * --------------------------------------------------------------
+ *
+ * For all the cases below consider the following resolution
+ * DST via NHA
+ * NHA via NHB
+ * There are 3 types of properties to consider here
+ * 1. Encapsulation properties
+ * Examples of these are SidLists and Labels. Here
+ * we prefer the values from root next hops, but if not set
+ * we inherit them from the child next hops. E.g.
+ * DST via NHA via NHB (SidListX) results in DST via NHB (SidListX)
+ * DST via NHA (SidListY) via NHB (SidListX) results in DST via NHB (SidListY)
+ * The latter is actually ambiguous - but we have to resolve it one way,
+ * so we resolve in favor of the root.
+ * The reasoning here is that where ever the SidList is set, it actually
+ * dictates how the route to that next hop must manifest itself. Hence
+ * we inherit the encapsulation behaviors.
+ * TODO: Fix this for Labeled routes
+ * 2. Route Counters - We inherit the same way as 1. This is more
+ * a use case based decision. For recursive resolution is to also count
+ * traffic against recursively resolving route. We can make this customizable
+ * in the future.
+ * 3. Role (PRIMARY, BACKUP) - This is viewed as a policy decision and
+ * the root role carries all the way through. Taking our example
+ * from above
+ * DST via NHA (PRIMARY) via NHB (BACKUP) becomes DST -> NHB (PRIMARY)
+ * DST via NHA (BACKUP) via NHB (PRIMARY) becomes DST -> NHB (BACKUP)
+ */
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     typename NetworkToRouteMap<AddressT>::Iterator ritr) {
