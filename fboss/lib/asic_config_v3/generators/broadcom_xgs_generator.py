@@ -398,6 +398,11 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             f"FEC_MODE: {fec}",
             f"MAX_FRAME_SIZE: {self.mmu_size}",
         )
+        # Optional pass-through PC_PORT settings, appended in declaration order.
+        for setting_key, setting_value in port_config.get(
+            "pc_port_overrides", {}
+        ).items():
+            pc_value = (*pc_value, f"{setting_key}: {setting_value}")
         self.values["PC_PORT"][pc_key] = pc_value
 
         if mgmt_port and mgmt_port_config.get("enabled", False):

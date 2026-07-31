@@ -90,9 +90,10 @@
                             "type": "integer",
                             "description": "Optional. Value emitted as PC_PORT.ENABLE for front-panel ports. Defaults to 0."
                         },
-                        "link_training": {
-                            "type": "integer",
-                            "description": "Optional. When set, emits LINK_TRAINING: <value> on front-panel PC_PORT entries."
+                        "pc_port_overrides": {
+                            "type": "object",
+                            "description": "Optional pass-through front-panel PC_PORT settings, emitted verbatim as '<KEY>: <value>' lines after the standard fields (e.g. LINK_TRAINING).",
+                            "additionalProperties": true
                         }
                     }
                 },
