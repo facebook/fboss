@@ -101,6 +101,7 @@ build_test_artifacts_fbpkgs(product_lines = [ProductLine.NVIDIA_SAI_SDK])
 build_test_artifacts_fbpkgs(product_lines = [ProductLine.LEABA])
 
 build_test_artifacts_fbpkgs(
+    include_dev_sdks = True,
     product_lines = [ProductLine.LEABA],
     test_types = ["te_srv6_integration_test"],
 )
