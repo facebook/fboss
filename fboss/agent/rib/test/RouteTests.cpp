@@ -2457,6 +2457,113 @@ TEST(Route, RecursiveResolutionAppliesBackupRoleToAllResolvedNextHops) {
       swappedExpectedRoles);
 }
 
+void verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+    NextHopRole secondBgpNextHopRole,
+    const std::map<InterfaceID, NextHopRole>& expectedRoles) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater updater(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("2001:db8:41::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:41::1"),
+                   InterfaceID(1),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("2001:db8:42::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001:db8:42::1"),
+                   InterfaceID(2),
+                   UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  NextHop openrNextHop1 =
+      UnresolvedNextHop(IPAddress("2001:db8:41::10"), ECMP_WEIGHT);
+  auto openrNextHop1Thrift = openrNextHop1.toThrift();
+  *openrNextHop1Thrift.role() = NextHopRole::BACKUP;
+  NextHop openrNextHop2 =
+      UnresolvedNextHop(IPAddress("2001:db8:42::10"), ECMP_WEIGHT);
+  auto openrNextHop2Thrift = openrNextHop2.toThrift();
+  *openrNextHop2Thrift.role() = NextHopRole::BACKUP;
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::OPENR,
+      {
+          {{IPAddress("2001:db8:43::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{util::fromThrift(openrNextHop1Thrift)},
+               AdminDistance::OPENR)},
+          {{IPAddress("2001:db8:44::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{util::fromThrift(openrNextHop2Thrift)},
+               AdminDistance::OPENR)},
+      },
+      {},
+      false);
+
+  NextHop bgpNextHop1 =
+      UnresolvedNextHop(IPAddress("2001:db8:43::10"), ECMP_WEIGHT);
+  NextHop bgpNextHop2 =
+      UnresolvedNextHop(IPAddress("2001:db8:44::10"), ECMP_WEIGHT);
+  auto bgpNextHop2Thrift = bgpNextHop2.toThrift();
+  *bgpNextHop2Thrift.role() = secondBgpNextHopRole;
+  RouteNextHopSet bgpNhops{bgpNextHop1, util::fromThrift(bgpNextHop2Thrift)};
+  RouteV6::Prefix bgpPrefix{IPAddressV6("2001:db8:45::"), 64};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {{{bgpPrefix.network(), bgpPrefix.mask()},
+        RouteNextHopEntry(bgpNhops, AdminDistance::EBGP)}},
+      {},
+      false);
+
+  auto rolesByInterface = [](const RouteNextHopSet& nhops) {
+    std::map<InterfaceID, NextHopRole> roles;
+    for (const auto& nhop : nhops) {
+      roles.emplace(nhop.intf(), nhop.role());
+    }
+    return roles;
+  };
+  auto route = v6Routes.exactMatch(bgpPrefix.network(), bgpPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto& forwardInfo = route->value()->getForwardInfo();
+  EXPECT_EQ(
+      rolesByInterface(getResolvedNextHopsFromRib(&nhopIds, forwardInfo)),
+      expectedRoles);
+
+  const auto normalizedID = forwardInfo.getNormalizedResolvedNextHopSetID();
+  ASSERT_TRUE(normalizedID.has_value());
+  EXPECT_EQ(
+      rolesByInterface(nhopIds.getNextHops(*normalizedID)), expectedRoles);
+}
+
+TEST(Route, BGPNextHopRoleOverridesOpenrNextHopRoles) {
+  {
+    const std::map<InterfaceID, NextHopRole> expectedRoles{
+        {InterfaceID(1), NextHopRole::PRIMARY},
+        {InterfaceID(2), NextHopRole::BACKUP},
+    };
+    verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+        NextHopRole::BACKUP, expectedRoles);
+  }
+
+  {
+    const std::map<InterfaceID, NextHopRole> expectedRoles{
+        {InterfaceID(1), NextHopRole::PRIMARY},
+        {InterfaceID(2), NextHopRole::PRIMARY},
+    };
+    verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
+        NextHopRole::PRIMARY, expectedRoles);
+  }
+}
+
 // Same-prefix client preference: an OpenR route (no SID lists) and a TE_Agent
 // route (with SID lists) share a prefix. The TE_Agent route has the lower admin
 // distance, so it wins best-entry selection and its SID lists are programmed.
