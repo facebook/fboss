@@ -575,7 +575,8 @@ struct NextHopCombinedWeightsKey {
         srv6SegmentList(nhop.srv6SegmentList()),
         tunnelType(nhop.tunnelType()),
         tunnelId(nhop.tunnelId()),
-        cost(nhop.cost()) {
+        cost(nhop.cost()),
+        role(nhop.role()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
@@ -590,7 +591,8 @@ struct NextHopCombinedWeightsKey {
                srv6SegmentList,
                tunnelType,
                tunnelId,
-               cost) <
+               cost,
+               role) <
         std::tie(
                other.ip,
                other.intfId,
@@ -600,7 +602,8 @@ struct NextHopCombinedWeightsKey {
                other.srv6SegmentList,
                other.tunnelType,
                other.tunnelId,
-               other.cost);
+               other.cost,
+               other.role);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
@@ -611,6 +614,7 @@ struct NextHopCombinedWeightsKey {
   std::optional<TunnelType> tunnelType;
   std::optional<std::string> tunnelId;
   std::optional<int64_t> cost;
+  NextHopRole role;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -670,7 +674,8 @@ RouteNextHopSet mergeForwardInfosEcmp(
           fnh.srv6SegmentList(),
           fnh.tunnelType(),
           fnh.tunnelId(),
-          fnh.cost()));
+          fnh.cost(),
+          fnh.role()));
     }
   }
   return fwd;
@@ -754,7 +759,8 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
         cw.first.srv6SegmentList,
         cw.first.tunnelType,
         cw.first.tunnelId,
-        cw.first.cost));
+        cw.first.cost,
+        cw.first.role));
   }
   return fwd;
 }
@@ -856,6 +862,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<TunnelType>& tunnelType,
     const std::optional<std::string>& tunnelId,
     const std::optional<int64_t>& cost,
+    NextHopRole role,
     std::optional<RouteCounterID>* inheritedCounterID,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
@@ -913,7 +920,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
             srv6Encap.segmentList,
             srv6Encap.tunnelType,
             srv6Encap.tunnelId,
-            cost));
+            cost,
+            role));
       } else {
         std::for_each(
             nhops.begin(),
@@ -925,7 +933,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
              &srv6SegmentList,
              &tunnelType,
              &tunnelId,
-             &cost](const auto& nhop) {
+             &cost,
+             role](const auto& nhop) {
               const auto srv6Encap =
                   resolveSrv6Encap(srv6SegmentList, tunnelType, tunnelId, nhop);
               fwd.insert(ResolvedNextHop(
@@ -941,7 +950,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                   srv6Encap.segmentList,
                   srv6Encap.tunnelType,
                   srv6Encap.tunnelId,
-                  cost));
+                  cost,
+                  role));
             });
       }
     }
@@ -1030,6 +1040,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              nh.role(),
               &inheritedCounterID,
               nhToFwds[nh]);
         } else {
@@ -1046,6 +1057,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              nh.role(),
               &inheritedCounterID,
               nhToFwds[nh]);
         }
