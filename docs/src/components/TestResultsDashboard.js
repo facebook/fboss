@@ -20,6 +20,7 @@ const TAG_COLORS = {
   Role: {bg: 'rgba(139,92,246,0.08)', color: '#7c3aed', border: 'rgba(139,92,246,0.2)'},
   Platform: {bg: 'rgba(14,165,233,0.08)', color: '#0284c7', border: 'rgba(14,165,233,0.2)'},
   Component: {bg: 'rgba(168,85,247,0.08)', color: '#9333ea', border: 'rgba(168,85,247,0.2)'},
+  Topology: {bg: 'rgba(236,72,153,0.08)', color: '#db2777', border: 'rgba(236,72,153,0.2)'},
   'ASIC SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
   'PHY SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
 };
@@ -70,6 +71,15 @@ function parseConfig(testType, config) {
     const phySdk = parts.find(p => p.startsWith('physdk-'));
     if (asicSdk) tags.push({label: 'ASIC SDK', value: asicSdk.replace('asicsdk-', '')});
     if (phySdk) tags.push({label: 'PHY SDK', value: phySdk.replace('physdk-', '')});
+    return tags;
+  }
+
+  if (testType === 'Multi Node Tests') {
+    // Trailing segment is a DSF fabric topology, not an ASIC.
+    const tags = [];
+    if (parts[0]) tags.push({label: 'Vendor', value: VENDOR_NAMES[parts[0]] || parts[0]});
+    if (parts[1]) tags.push({label: 'SDK', value: parts[1].replace(/_/g, ' ')});
+    if (parts[3]) tags.push({label: 'Topology', value: parts[3].replace(/_/g, ' ')});
     return tags;
   }
 
