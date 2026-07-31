@@ -48,7 +48,8 @@
       "dlb_quality_adjustment_default_value_select": "1"
     },
     "features": {
-      "generate_autoload_board_settings": true
+      "generate_autoload_board_settings": true,
+      "generate_dlb_ecmp_config": true
     }
   },
   "variants": {
