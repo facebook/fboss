@@ -58,8 +58,13 @@ function parseConfig(testType, config) {
   }
 
   if (testType === 'Link Tests') {
+    // The physdk pair is absent on platforms with no external PHY, so locate
+    // both SDK segments by prefix rather than by index.
     const tags = [{label: 'Platform', value: parts[0]}];
-    if (parts[2]) tags.push({label: 'ASIC SDK', value: parts[2].replace('asicsdk-', '')});
+    const asicSdk = parts.find(p => p.startsWith('asicsdk-'));
+    const phySdk = parts.find(p => p.startsWith('physdk-'));
+    if (asicSdk) tags.push({label: 'ASIC SDK', value: asicSdk.replace('asicsdk-', '')});
+    if (phySdk) tags.push({label: 'PHY SDK', value: phySdk.replace('physdk-', '')});
     return tags;
   }
 
