@@ -90,9 +90,7 @@ namespace facebook::fboss {
 class ConfigSession {
  public:
   ConfigSession();
-  // Defined out-of-line in the .cpp: the unique_ptr members hold
-  // forward-declared types, so the destructor must be emitted where those
-  // types are complete.
+
   virtual ~ConfigSession();
 
   // Get or create the current config session
