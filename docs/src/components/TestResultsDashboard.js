@@ -187,6 +187,9 @@ function TestTypeCard({data, configCount, onClick}) {
           <span style={{marginRight: '0.6rem'}}>{data.total.toLocaleString()} tests</span>
           <span style={{marginRight: '0.6rem'}}>{data.passed !== null ? data.passed.toLocaleString() : 'N/A'} passed</span>
           <span style={{marginRight: '0.6rem'}}>{data.failed !== null ? data.failed.toLocaleString() : 'N/A'} failed</span>
+          {data.skipped ? (
+            <span style={{marginRight: '0.6rem'}}>{data.skipped.toLocaleString()} skipped</span>
+          ) : null}
           <span>{configCount} configs</span>
         </div>
       </div>
@@ -316,6 +319,8 @@ export default function TestResultsDashboard({summary, details}) {
   const totalTests = summary.reduce((a, s) => a + s.total, 0);
   const totalPassed = summary.reduce((a, s) => a + (s.passed || 0), 0);
   const totalFailed = summary.reduce((a, s) => a + (s.failed || 0), 0);
+  const totalSkipped = summary.reduce((a, s) => a + (s.skipped || 0), 0);
+  // Skipped tests are excluded from the denominator - they neither passed nor failed.
   const passRate = totalPassed > 0
     ? ((totalPassed / (totalPassed + totalFailed)) * 100).toFixed(1) + '%'
     : 'N/A';
@@ -408,7 +413,7 @@ export default function TestResultsDashboard({summary, details}) {
         Facebook Open Switching System &mdash; Continuous Testing Dashboard
       </p>
       <p style={{fontSize: '0.8rem', color: 'var(--ifm-color-emphasis-400)', marginBottom: '2rem'}}>
-        Refreshed daily &middot; {details.length} test configs &middot; {summary.length} test types
+        Refreshed weekly &middot; {details.length} test configs &middot; {summary.length} test types
       </p>
 
       {/* KPI Cards */}
@@ -421,6 +426,7 @@ export default function TestResultsDashboard({summary, details}) {
         <KpiCard label="Total Tests" value={totalTests.toLocaleString()} />
         <KpiCard label="Passed" value={totalPassed.toLocaleString()} />
         <KpiCard label="Failed" value={totalFailed.toLocaleString()} warn />
+        <KpiCard label="Skipped" value={totalSkipped.toLocaleString()} />
         <KpiCard label="Pass Rate" value={passRate} />
         <KpiCard label="CSV Files" value={details.length.toString()} />
         <KpiCard label="Test Types" value={summary.length.toString()} />
