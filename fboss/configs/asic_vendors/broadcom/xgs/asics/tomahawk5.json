@@ -24,7 +24,8 @@
     "FP_CONFIG",
     "CTR_EFLEX_CONFIG",
     "PC_PMD_FIRMWARE",
-    "DLB_ECMP_CONFIG"
+    "DLB_ECMP_CONFIG",
+    "PHB_CONTROL"
   ],
   "mgmt_port_defaults": {
     "logical_id": 76,
@@ -77,6 +78,9 @@
   "dlb_ecmp_config_defaults": {
     "PATH_QUALITY_PROFILE_MODE": "WIDE"
   },
+  "phb_control_defaults": {
+    "INT_PRI_TAGGED_TO_INPUT_PRI": 1
+  },
 
   "port_config_defaults": {"PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE": 1},
   "fp_config_defaults": {"FP_ING_OPERMODE": "GLOBAL_PIPE_AWARE"},
@@ -128,6 +132,12 @@
       "description": "Emits the DLB_ECMP_CONFIG path-quality profile settings.",
       "condition": {"source": "features", "param": "generate_dlb_ecmp_config", "equals": true},
       "apply_from": {"source": "dlb_ecmp_config_defaults", "target_table": "DLB_ECMP_CONFIG"}
+    },
+    {
+      "name": "phb_control",
+      "description": "Emits the PHB_CONTROL priority-mapping settings.",
+      "condition": {"source": "features", "param": "generate_phb_control", "equals": true},
+      "apply_from": {"source": "phb_control_defaults", "target_table": "PHB_CONTROL"}
     },
     {
       "name": "autoload_board_settings",

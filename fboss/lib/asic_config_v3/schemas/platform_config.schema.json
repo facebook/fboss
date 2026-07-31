@@ -221,6 +221,10 @@
                         "generate_dlb_ecmp_config": {
                             "type": "boolean",
                             "description": "When true, emits the DLB_ECMP_CONFIG output table from the ASIC dlb_ecmp_config_defaults block."
+                        },
+                        "generate_phb_control": {
+                            "type": "boolean",
+                            "description": "When true, emits the PHB_CONTROL output table from the ASIC phb_control_defaults block."
                         }
                     }
                 },

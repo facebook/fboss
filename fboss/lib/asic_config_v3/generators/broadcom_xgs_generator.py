@@ -497,6 +497,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                     "FP_CONFIG",
                     "CTR_EFLEX_CONFIG",
                     "DLB_ECMP_CONFIG",
+                    "PHB_CONTROL",
                 )
             ):
                 device = "device"
