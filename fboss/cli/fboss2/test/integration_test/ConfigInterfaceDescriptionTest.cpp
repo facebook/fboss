@@ -96,7 +96,7 @@ TEST_F(ConfigInterfaceDescriptionTest, SetAndVerifyDescription) {
 // agent (skip-when-unchanged). Regression test for the agent-side unification.
 TEST_F(ConfigInterfaceDescriptionTest, SetSameDescriptionIsNoOpCommit) {
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   const std::string originalDescription = interface.description;
   XLOG(INFO) << "  Using interface: " << interface.name << " (description: '"
              << originalDescription << "')";
