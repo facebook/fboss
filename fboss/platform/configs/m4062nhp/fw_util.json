@@ -1,0 +1,10 @@
+{
+  "fwConfigs": {
+    "bios": {
+      "version": {
+        "versionType": "sysfs",
+        "path": "/sys/devices/virtual/dmi/id/bios_version"
+      }
+    }
+  }
+}
