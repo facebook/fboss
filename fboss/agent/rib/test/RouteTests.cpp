@@ -2457,6 +2457,75 @@ TEST(Route, RecursiveResolutionAppliesBackupRoleToAllResolvedNextHops) {
       swappedExpectedRoles);
 }
 
+// This recursive topology mimics the production use case in an NSF deployment.
+TEST(Route, RecursiveBgpRoutePreservesTopLevelNextHopRoles) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  NextHopIDManager nhopIds;
+  RibRouteUpdater updater(&v4Routes, &v6Routes, &nhopIds, nullptr);
+
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("2001::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("2001::1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("3001::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("3001::1"), InterfaceID(2), UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("4001::"), 64},
+           RouteNextHopEntry(
+               RouteNextHopSet{ResolvedNextHop(
+                   IPAddress("4001::1"), InterfaceID(3), UCMP_DEFAULT_WEIGHT)},
+               AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  RouteNextHopSet intermediateNhops{
+      UnresolvedNextHop(IPAddress("3001::1"), ECMP_WEIGHT),
+      UnresolvedNextHop(IPAddress("4001::1"), ECMP_WEIGHT)};
+  NextHop backupNextHop =
+      UnresolvedNextHop(IPAddress("1001:1:2:3::1"), ECMP_WEIGHT);
+  auto backupNextHopThrift = backupNextHop.toThrift();
+  *backupNextHopThrift.role() = NextHopRole::BACKUP;
+  RouteNextHopSet topLevelNhops{
+      UnresolvedNextHop(IPAddress("2001::1"), ECMP_WEIGHT),
+      util::fromThrift(backupNextHopThrift)};
+  RouteV6::Prefix intermediatePrefix{IPAddressV6("1001:1:2:3::"), 64};
+  RouteV6::Prefix topLevelPrefix{IPAddressV6("5001::"), 56};
+  updater.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::BGPD,
+      {
+          {{intermediatePrefix.network(), intermediatePrefix.mask()},
+           RouteNextHopEntry(intermediateNhops, AdminDistance::EBGP)},
+          {{topLevelPrefix.network(), topLevelPrefix.mask()},
+           RouteNextHopEntry(topLevelNhops, AdminDistance::EBGP)},
+      },
+      {},
+      false);
+
+  auto route =
+      v6Routes.exactMatch(topLevelPrefix.network(), topLevelPrefix.mask());
+  ASSERT_NE(route, v6Routes.end());
+  const auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->value()->getForwardInfo());
+  std::map<IPAddress, NextHopRole> rolesByAddress;
+  for (const auto& nextHop : resolvedNhops) {
+    rolesByAddress.emplace(nextHop.addr(), nextHop.role());
+  }
+  const std::map<IPAddress, NextHopRole> expectedRoles{
+      {IPAddress("2001::1"), NextHopRole::PRIMARY},
+      {IPAddress("3001::1"), NextHopRole::BACKUP},
+      {IPAddress("4001::1"), NextHopRole::BACKUP},
+  };
+  EXPECT_EQ(rolesByAddress, expectedRoles);
+}
+
 void verifyBgpNextHopRolesOverrideOpenrNextHopRoles(
     NextHopRole secondBgpNextHopRole,
     const std::map<InterfaceID, NextHopRole>& expectedRoles) {
