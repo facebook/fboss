@@ -135,8 +135,9 @@ class PciExplorer {
       uint32_t instanceId);
 
   // Create the generic device block based on the given FpgaIpBlockConfig
-  // residing at the given PciDevice. Throw std::runtime_error on failure.
-  void createFpgaIpBlock(
+  // residing at the given PciDevice. Returns the auxiliary device's sysfs
+  // path. Throws std::runtime_error on failure.
+  std::string createFpgaIpBlock(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
@@ -185,8 +186,8 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const SpiMasterConfig& spiMasterConfig,
       uint32_t instanceId);
-  std::string getInfoRomSysfsPath(
-      const FpgaIpBlockConfig& infoRomConfig,
+  std::string getFpgaIpBlockSysfsPath(
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   std::string getWatchDogCharDevPath(
       const PciDevice& pciDevice,
