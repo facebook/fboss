@@ -12,6 +12,7 @@
 "LedTest.DeviceLedsCreated","minipack3ba","PASSED"
 "KmodTest.UnloadKmods","minipack3ba","PASSED"
 "KmodTest.LoadKmods","minipack3ba","PASSED"
+"KmodTest.KmodsJsonComplete","minipack3ba","PASSED"
 "KmodTest.FbspRemove","minipack3ba","PASSED"
 "KmodStressTest.KmodLoadUnloadStress","minipack3ba","SKIPPED"
 "I2CTest.I2CTransactions","minipack3ba","PASSED"
