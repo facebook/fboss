@@ -1,0 +1,24 @@
+{
+  "config": {
+    "common_config": {
+      "board-type": "pallas2",
+      "description": "M5120CSC P1 P200 board configuration",
+      "board-rev": "P1",
+      "devices": [
+        {
+          "id": 1,
+          "type": "palladium2",
+          "rev": 1,
+          "device_property": {
+            "poll_msi": false
+          }
+        }
+      ]
+    },
+    "prod_config_only": {},
+    "hw_test_config_only": {},
+    "link_test_config_only": {},
+    "benchmark_config_only": {},
+    "port_map_config": {}
+  }
+}
