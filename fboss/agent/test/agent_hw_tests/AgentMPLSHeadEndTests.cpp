@@ -21,10 +21,13 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTest.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_acl_table_group);
 
 namespace {
 
@@ -97,7 +100,6 @@ class AgentMPLSHeadEndTest : public AgentMPLSDataplaneTest<PortType> {
   using BaseT::getSw;
   using BaseT::getVlanIDForTx;
   using BaseT::ingressPort;
-  using BaseT::initialConfig;
   using BaseT::maxPushedLabelStack;
   using BaseT::pushedLabelStack;
   using BaseT::pushedTopLabel;
@@ -110,6 +112,26 @@ class AgentMPLSHeadEndTest : public AgentMPLSDataplaneTest<PortType> {
       return {ProductionFeature::MPLS_HEADEND, ProductionFeature::LAG};
     }
     return {ProductionFeature::MPLS_HEADEND};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    BaseT::setCmdLineFlagOverrides();
+    // Required so pre-ingress uses ACL table groups instead of the legacy
+    // default ingress table at SAI init.
+    FLAGS_enable_acl_table_group = true;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = BaseT::initialConfig(ensemble);
+
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
+    if (asic->isSupported(HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+      // Keep BaseT ingress CoPP ACLs and add pre-ingress for MPLS loopback trap
+      // (src-port match). SDK union key profiles allow INGRESS + PRE_INGRESS.
+      utility::setupDefaultPreIngressAclTableGroup(config);
+    }
+    return config;
   }
 
   MplsTrapPacketMechanism trapPacketMechanism() const {

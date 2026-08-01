@@ -930,6 +930,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       macAgingTime,
       std::nullopt, // ingress acl
       std::nullopt, // egress acl
+      std::nullopt, // pre-ingress acl
       aclFieldList,
       std::nullopt, // tam object list
       useEcnThresholds,

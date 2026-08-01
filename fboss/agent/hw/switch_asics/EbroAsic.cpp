@@ -218,6 +218,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
+    case HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:

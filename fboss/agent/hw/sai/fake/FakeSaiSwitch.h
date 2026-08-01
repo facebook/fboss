@@ -227,6 +227,12 @@ class FakeSwitch {
   void setIngressAcl(sai_object_id_t oid) {
     ingressAcl_ = oid;
   }
+  sai_object_id_t getPreIngressAcl() {
+    return preIngressAcl_;
+  }
+  void setPreIngressAcl(sai_object_id_t oid) {
+    preIngressAcl_ = oid;
+  }
   sai_object_id_t getArsProfile() {
     return arsProfile_;
   }
@@ -348,6 +354,7 @@ class FakeSwitch {
   sai_uint32_t macAgingTime_{0};
   bool UseEcnThresholds_{false};
   sai_object_id_t ingressAcl_{SAI_NULL_OBJECT_ID};
+  sai_object_id_t preIngressAcl_{SAI_NULL_OBJECT_ID};
   sai_object_id_t arsProfile_{SAI_NULL_OBJECT_ID};
   struct FakeSwitchLedState {
     bool reset{};

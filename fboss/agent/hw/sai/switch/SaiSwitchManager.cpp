@@ -726,6 +726,43 @@ void SaiSwitchManager::resetIngressAcl() {
   }
 }
 
+void SaiSwitchManager::setPreIngressAcl() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    return;
+  }
+  auto aclTableGroupHandle =
+      managerTable_->aclTableGroupManager()
+          .getAclTableGroupHandle(SAI_ACL_STAGE_PRE_INGRESS)
+          ->aclTableGroup;
+  setPreIngressAcl(aclTableGroupHandle->adapterKey());
+}
+
+void SaiSwitchManager::setPreIngressAcl(sai_object_id_t id) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    return;
+  }
+  XLOG(DBG2) << "Set pre-ingress ACL; " << id;
+  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::PreIngressAcl{id});
+  isPreIngressAclSupported_ = true;
+}
+
+void SaiSwitchManager::resetPreIngressAcl() {
+  if (!isPreIngressAclSupported_) {
+    return;
+  }
+  auto preIngressAcl =
+      std::get<std::optional<SaiSwitchTraits::Attributes::PreIngressAcl>>(
+          switch_->attributes());
+  if (preIngressAcl && preIngressAcl->value() != SAI_NULL_OBJECT_ID) {
+    XLOG(DBG2) << "Reset current pre-ingress acl:" << preIngressAcl->value()
+               << " back to null";
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::PreIngressAcl{SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiSwitchManager::setEgressAcl() {
   CHECK(platform_->getAsic()->isSupported(
       HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))

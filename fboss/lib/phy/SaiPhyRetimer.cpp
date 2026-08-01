@@ -244,6 +244,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // macAgingTime
       std::nullopt, // ingress acl
       std::nullopt, // egress acl
+      std::nullopt, // pre-ingress acl
       std::nullopt, // aclFieldList
       std::nullopt, // tam object list
       std::nullopt, // use Ecn Thresholds

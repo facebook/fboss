@@ -245,6 +245,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:
     case HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE:
+    case HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL:
     case HwAsic::Feature::SAI_HOST_MISS_TRAP:
     case HwAsic::Feature::CPU_TX_PACKET_REQUIRES_VLAN_TAG:
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:

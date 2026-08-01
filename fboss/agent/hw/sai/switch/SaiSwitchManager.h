@@ -68,6 +68,10 @@ class SaiSwitchManager {
   void setIngressAcl(sai_object_id_t id);
   void resetIngressAcl();
 
+  void setPreIngressAcl();
+  void setPreIngressAcl(sai_object_id_t id);
+  void resetPreIngressAcl();
+
   void setEgressAcl();
   void resetEgressAcl();
 
@@ -204,6 +208,7 @@ class SaiSwitchManager {
 
   bool isMplsQosSupported_{false};
   bool isIngressPostLookupAclSupported_{false};
+  bool isPreIngressAclSupported_{false};
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;

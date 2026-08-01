@@ -82,6 +82,11 @@ class HwAsic {
     //  - Candidate for removal: YES. All ASICs/SDKs already support this.
     SWITCH_ATTR_INGRESS_ACL,
 
+    // Set to true if PreIngress ACLs are supported.
+    // Used to bind an ACL Table or ACL Table Group to a switch using
+    // SAI_SWITCH_ATTR_PRE_INGRESS_ACL
+    SWITCH_ATTR_PRE_INGRESS_ACL,
+
     // Set to true if Egress ACL Table is supported.
     // However, this Table sits post lookup but before buffering.
     // Thus, named as INGRESS_POST_LOOKUP_ACL_TABLE.
