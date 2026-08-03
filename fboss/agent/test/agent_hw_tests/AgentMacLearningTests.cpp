@@ -1037,8 +1037,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
       sendPkt();
 
       /*
-       * Verify if we get ADD (learn) callback for PENDING entry for TD2, TH
-       * and VALIDATED entry for TH3.
+       * Verify if we get an ADD callback for a PENDING entry for TH and a
+       * VALIDATED entry for TH3.
        */
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdates().front(),

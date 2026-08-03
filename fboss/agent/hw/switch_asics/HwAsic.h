@@ -211,9 +211,8 @@ class HwAsic {
     // In either case, FBOSS need not implement replication.
     // Only used by SaiSwitch.
     // TODO:
-    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
-    //    Remove Trident2 support (no longer needed), fix Fake support, then
-    //    remove.
+    //  - Candidate for removal: YES, enabled everywhere except Fake. Fix Fake
+    //    support, then remove.
     //  - Rename to carry ECMP_ prefix.
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
 

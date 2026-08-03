@@ -355,9 +355,6 @@ TEST_F(BgpIntegrationTest, routeScaleTest) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       runRouteScaleTest<utility::HgridUuRouteScaleGenerator>();
       break;
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      runRouteScaleTest<utility::RSWRouteScaleGenerator>();
-      break;
     default:
       break;
   }

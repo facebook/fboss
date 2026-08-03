@@ -370,6 +370,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -391,9 +392,6 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
       break;
 
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      diagCmds = validated_shell_commands_constants::TD2_TESTED_CMDS();
-      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       diagCmds = validated_shell_commands_constants::TH_TESTED_CMDS();
       break;

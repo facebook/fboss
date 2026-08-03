@@ -876,15 +876,7 @@ bool BcmAclEntry::isStateSame(
       aclMsg,
       "LookupClassNeighborOrRoute");
 
-  /*
-   * bcmFieldQualifyDstClassL2 is not configured for Trident2 or else we runs
-   * out of resources in fp group. bcmFieldQualifyDstClassL2 is needed for
-   * MH-NIC queue-per-host solution. HOwever, the solution is not appliable for
-   * Trident2 as Trident2 does not support queues.
-   */
-  if (BCM_FIELD_QSET_TEST(
-          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
-          bcmFieldQualifyDstClassL2)) {
+  if (BCM_FIELD_QSET_TEST(getAclQset(), bcmFieldQualifyDstClassL2)) {
     std::optional<uint32> lookupClassL2;
     if (acl->getLookupClassL2()) {
       lookupClassL2 = static_cast<int>(acl->getLookupClassL2().value());
@@ -898,9 +890,7 @@ bool BcmAclEntry::isStateSame(
         "LookupClassL2");
   }
 
-  if (BCM_FIELD_QSET_TEST(
-          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
-          bcmFieldQualifyPacketRes)) {
+  if (BCM_FIELD_QSET_TEST(getAclQset(), bcmFieldQualifyPacketRes)) {
     std::optional<uint32> packetLookupResult;
     if (acl->getPacketLookupResult()) {
       packetLookupResult = cfgPacketLookupResultToBcmPktResult(
@@ -916,9 +906,7 @@ bool BcmAclEntry::isStateSame(
   }
 
   // check EtherType
-  if (BCM_FIELD_QSET_TEST(
-          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
-          bcmFieldQualifyEtherType)) {
+  if (BCM_FIELD_QSET_TEST(getAclQset(), bcmFieldQualifyEtherType)) {
     std::optional<uint16> etherType{std::nullopt};
     if (acl->getEtherType()) {
       uint16 data, mask;
@@ -934,9 +922,7 @@ bool BcmAclEntry::isStateSame(
         "EtherType");
   }
 
-  if (BCM_FIELD_QSET_TEST(
-          getAclQset(hw->getPlatform()->getAsic()->getAsicType()),
-          bcmFieldQualifyOuterVlanId)) {
+  if (BCM_FIELD_QSET_TEST(getAclQset(), bcmFieldQualifyOuterVlanId)) {
     std::optional<bcm_vlan_t> outerVlanId{std::nullopt};
     if (acl->getVlanID()) {
       outerVlanId = acl->getVlanID().value();

@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
-#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -78,9 +77,6 @@ AqmMap makeDefauleAqmMap(int32_t threshold) {
   return aqms;
 }
 // Unique setting for each single chip
-// ======TD2======
-// default port queue shared bytes is 8 mmu units
-constexpr int kDefaultTD2PortQueueSharedBytes = 1664;
 // ======TH======
 // default Aqm thresholds
 constexpr int32_t kDefaultTHAqmThreshold = 13631280;
@@ -225,30 +221,6 @@ bcm_cosq_stat_t getBcmCosqStatType(
   return cosqStats.at(type);
 }
 
-const PortQueue& getTD2DefaultUCPortQueueSettings() {
-  // Since the default queue is constant, we can use static to cache this
-  // object here.
-  static const auto asic = makeAsic<Trident2Asic>();
-  static const PortQueue kPortQueue{getPortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::UNICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, cfg::PortType::INTERFACE_PORT),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
-  return kPortQueue;
-}
-
 const PortQueue& getTHDefaultUCPortQueueSettings() {
   static const auto asic = makeAsic<TomahawkAsic>();
   static const PortQueue kPortQueue{getPortQueueFields(
@@ -306,28 +278,6 @@ const PortQueue& getTH4DefaultUCPortQueueSettings() {
       std::nullopt,
       kDefaultTH4PortQueueSharedBytes,
       kDefaultTH4PortQueueAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
-  return kPortQueue;
-}
-
-const PortQueue& getTD2DefaultMCPortQueueSettings() {
-  static const auto asic = makeAsic<Trident2Asic>();
-  static const PortQueue kPortQueue{getPortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, cfg::PortType::INTERFACE_PORT),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
       getPortQueueRatePps(
           kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
       std::nullopt,
@@ -409,8 +359,6 @@ const PortQueue& getDefaultPortQueueSettings(
   switch (streamType) {
     case cfg::StreamType::UNICAST:
       switch (chip) {
-        case BcmChip::TRIDENT2:
-          return getTD2DefaultUCPortQueueSettings();
         case BcmChip::TOMAHAWK:
           return getTHDefaultUCPortQueueSettings();
         case BcmChip::TOMAHAWK3:
@@ -420,8 +368,6 @@ const PortQueue& getDefaultPortQueueSettings(
       }
     case cfg::StreamType::MULTICAST:
       switch (chip) {
-        case BcmChip::TRIDENT2:
-          return getTD2DefaultMCPortQueueSettings();
         case BcmChip::TOMAHAWK:
           return getTHDefaultMCPortQueueSettings();
         case BcmChip::TOMAHAWK3:
@@ -436,28 +382,6 @@ const PortQueue& getDefaultPortQueueSettings(
   throw FbossError(
       "Port queue doesn't support streamType:",
       apache::thrift::util::enumNameSafe(streamType));
-}
-
-const PortQueue& getTD2DefaultMCCPUQueueSettings() {
-  static const auto asic = makeAsic<Trident2Asic>();
-  static const PortQueue kPortQueue{getPortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT),
-      std::nullopt,
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
-  return kPortQueue;
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
@@ -532,8 +456,6 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
   switch (streamType) {
     case cfg::StreamType::MULTICAST:
       switch (chip) {
-        case BcmChip::TRIDENT2:
-          return getTD2DefaultMCCPUQueueSettings();
         case BcmChip::TOMAHAWK:
           return getTHDefaultMCCPUQueueSettings();
         case BcmChip::TOMAHAWK3:

@@ -31,7 +31,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
-#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
@@ -162,7 +161,7 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return std::make_unique<MockAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      return std::make_unique<Trident2Asic>(switchId, switchInfo, sdkVersion);
+      throw FbossError("Unsupported ASIC type: ", *switchInfo.asicType());
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       return std::make_unique<TomahawkAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:

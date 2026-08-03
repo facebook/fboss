@@ -503,7 +503,7 @@ class AgentUcmpTest : public AgentEcmpTest {
 TEST_F(AgentUcmpTest, UcmpOverflowZero) {
   std::vector<NextHopWeight> swWs, hwWs;
   if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
+    // default ecmp_width for tomahawk
     swWs = {50, 50, 1, 1};
     hwWs = {31, 31, 1, 1};
   } else if (FLAGS_ecmp_width == 128) {
@@ -520,7 +520,7 @@ TEST_F(AgentUcmpTest, UcmpOverflowZero) {
 TEST_F(AgentUcmpTest, UcmpOverflowZeroNotEnoughToRoundUp) {
   std::vector<NextHopWeight> swWs, hwWs;
   if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
+    // default ecmp_width for tomahawk
     swWs = {50, 50, 1, 1, 1, 1, 1, 1};
     hwWs = {29, 29, 1, 1, 1, 1, 1, 1};
   } else if (FLAGS_ecmp_width == 128) {
@@ -538,7 +538,7 @@ TEST_F(AgentUcmpTest, UcmpRoutesWithSameNextHopsDifferentWeights) {
   std::vector<NextHopWeight> swWs, hwWs;
 
   if (FLAGS_ecmp_width == 64) {
-    // default ecmp_width for td2 and tomahawk
+    // default ecmp_width for tomahawk
     swWs = {50, 50, 1, 1};
     hwWs = {31, 31, 1, 1};
   } else if (FLAGS_ecmp_width == 128) {

@@ -62,10 +62,6 @@ class BcmRoute {
       const RouteNextHopEntry& fwd,
       bool replace);
 
-  /*
-   * Check whether we can use the host route table. BCM platforms
-   * support this from TD2 onwards
-   */
   bool isHostRoute() const;
   bool canUseHostTable() const;
   // no copy or assign
