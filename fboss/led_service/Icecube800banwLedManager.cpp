@@ -3,7 +3,7 @@
 #include "fboss/led_service/Icecube800banwLedManager.h"
 #include "fboss/agent/platforms/common/icecube800banw/Icecube800banwPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
-#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
+#include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -14,7 +14,7 @@ namespace facebook::fboss {
  * icecube800banw platform
  */
 Icecube800banwLedManager::Icecube800banwLedManager() : BspLedManager() {
-  init<Icecube800banwBspPlatformMapping, Icecube800banwPlatformMapping>();
+  init<Icecube800bcBspPlatformMapping, Icecube800banwPlatformMapping>();
   XLOG(INFO) << "Created Icecube800banw BSP LED Manager";
 }
 
