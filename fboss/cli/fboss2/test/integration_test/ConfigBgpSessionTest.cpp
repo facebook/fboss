@@ -175,7 +175,7 @@ TEST_F(ConfigBgpSessionTest, AgentCommitSnapshotsBgpAndRollbackPreservesIt) {
   const folly::dynamic defaultBgp = readSystemBgpConfig();
 
   // Step 1: an agent-only commit (interface description). No BGP is staged.
-  Interface intf = findFirstEthInterface();
+  Interface intf = getInterfaceInfo(getRandomInterfacePortName());
   auto setRes =
       runCli({"config", "interface", intf.name, "description", "bgp-rb-test"});
   ASSERT_EQ(setRes.exitCode, 0) << "stderr=" << setRes.stderr;
