@@ -106,12 +106,23 @@ shared helpers (e.g., `helpers::runThriftService()`).
 - **Github PR**: https://github.com/search?q=repo%3Afacebook%2Ffboss+%22Differential+Revision%3A+D91612218%22&type=commits
 - **Severity**: LOW
 
+### L. Preserve the Split-Agent Dependency Boundary
+For changes to `deps`, `exported_deps`, `link_whole`, BUCK macros, or source-less wrapper
+libraries reachable from a production `fboss_hw_agent-*` target, inspect the configured
+`@mode/opt` dependency graph. A new path to `//fboss/agent:core`, `//fboss/agent:handler`, or
+`//fboss/agent:multiswitch_service` is a blocking layering regression.
+- Run `buck2 cquery @mode/opt "somepath(<hw-target>, <forbidden-target>)" --target-universe <hw-target>`.
+- Include the shortest path in the finding and identify the narrow target that owns the required type, header, or symbol.
+- This hard invariant does not apply to `fboss_sw_agent`, monolithic `wedge_agent` binaries, benchmarks, or explicitly test-only targets.
+- Before recommending removal, check static initializers, plugin registration, weak/strong overrides, dynamic loading, and Thrift extra-interface registration. A successful build does not prove behavior is preserved.
+- **Severity**: HIGH
+
 ### Dispatch Criteria
 Dispatch this reviewer when:
 - Changes touch both SwSwitch AND HwSwitch code paths
 - New state fields are being added to SwitchState
 - New stats/counters are being introduced
-- BUCK target structure is being modified (new targets, library splits)
+- BUCK/Starlark dependencies or target structure are modified, especially `deps`, `exported_deps`, `link_whole`, or generated binary macros
 - New Thrift client/connection infrastructure is being created
 - Changes span 3+ directories under fboss/
 - Class inheritance hierarchies are being introduced or extended
