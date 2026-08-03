@@ -24,12 +24,20 @@ class FakeNextHopGroupMember {
   FakeNextHopGroupMember(
       sai_object_id_t nextHopGroupId,
       sai_object_id_t nextHopId,
-      std::optional<sai_uint32_t> weight)
-      : nextHopGroupId(nextHopGroupId), nextHopId(nextHopId), weight(weight) {}
+      std::optional<sai_uint32_t> weight,
+      sai_int32_t configuredRole = 0 /* PRIMARY */,
+      sai_object_id_t monitoredObject = SAI_NULL_OBJECT_ID)
+      : nextHopGroupId(nextHopGroupId),
+        nextHopId(nextHopId),
+        weight(weight),
+        configuredRole(configuredRole),
+        monitoredObject(monitoredObject) {}
   sai_object_id_t nextHopGroupId;
   sai_object_id_t nextHopId;
   sai_object_id_t id;
   std::optional<sai_uint32_t> weight;
+  sai_int32_t configuredRole;
+  sai_object_id_t monitoredObject;
 };
 
 class FakeNextHopGroup {

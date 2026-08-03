@@ -34,6 +34,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMemberMap{
     SAI_ATTR_MAP(NextHopGroupMember, NextHopGroupId),
     SAI_ATTR_MAP(NextHopGroupMember, NextHopId),
     SAI_ATTR_MAP(NextHopGroupMember, Weight),
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    SAI_ATTR_MAP(NextHopGroupMember, ConfiguredRole),
+    SAI_ATTR_MAP(NextHopGroupMember, MonitoredObject),
+#endif
 };
 
 void handleExtensionAttributes() {

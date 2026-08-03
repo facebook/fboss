@@ -520,7 +520,15 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   // and proper weight is set through bulk set api. check comments
   // associated with SaiNextHopGroupHandle::bulkProgramMembers for details
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
-      nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
+      nexthopGroupId_,
+      nexthopId,
+      fixedWidthMode_ ? 0 : weight_
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::nullopt /* configuredRole */,
+      std::nullopt /* monitoredObject */
+#endif
+  };
 
   bool bulkUpdate{true};
   if (fixedWidthMode_) {

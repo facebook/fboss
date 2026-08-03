@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
 #include <folly/json/json.h>
+#include <algorithm>
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;
@@ -57,7 +58,16 @@ class NextHopGroupStoreTest : public SaiStoreTest {
       std::optional<sai_uint32_t> weight) {
     auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
     return nextHopGroupApi.create<SaiNextHopGroupMemberTraits>(
-        {groupId, nextHopId, weight}, 0);
+        {groupId,
+         nextHopId,
+         weight
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+         ,
+         std::nullopt,
+         std::nullopt
+#endif
+        },
+        0);
   }
 
   NextHopSaiId createNextHop(const folly::IPAddress& ip) {
@@ -231,7 +241,16 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupCreateCtor) {
 TEST_F(NextHopGroupStoreTest, nextHopGroupMemberCreateCtor) {
   auto nhgId = createNextHopGroup();
   SaiNextHopGroupMemberTraits::AdapterHostKey k{nhgId, 42};
-  SaiNextHopGroupMemberTraits::CreateAttributes c{nhgId, 42, 2};
+  SaiNextHopGroupMemberTraits::CreateAttributes c{
+      nhgId,
+      42,
+      2
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::nullopt,
+      std::nullopt
+#endif
+  };
   auto obj = createObj<SaiNextHopGroupMemberTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(NextHopGroupMember, NextHopId, obj.attributes()), 42);
   EXPECT_EQ(GET_OPT_ATTR(NextHopGroupMember, Weight, obj.attributes()), 2);
@@ -344,6 +363,86 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
   EXPECT_EQ(iter0->second, json0);
 }
 
+// The protection discriminator and the hierarchical-ECMP fields
+// (childNextHopGroups + level) of the adapter host key must round-trip
+// through warm boot state, otherwise a protection/hierarchical group would
+// reload with an identity that collides with a plain ECMP group having the same
+// member set.
+TEST_F(NextHopGroupStoreTest, protectionAndHierarchicalAhkSerDeser) {
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNextHopGroupTraits>();
+
+  folly::IPAddress ip1{"10.10.10.1"};
+  folly::IPAddress ip2{"10.10.10.2"};
+  folly::IPAddress primaryIp{"10.10.10.9"};
+
+  // Protection group: the primary is a direct member, the backup/standby group
+  // is a child, and the group is tagged HW_PROTECTION.
+  SaiNextHopGroupTraits::AdapterHostKey backupKey;
+  backupKey.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, 1));
+  backupKey.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, 1));
+  SaiNextHopGroupTraits::AdapterHostKey protKey;
+  protKey.groupType = SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+  protKey.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, primaryIp}, 1));
+  protKey.childNextHopGroups = {backupKey};
+  auto protObj = store.setObject(
+      protKey,
+      {SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION,
+       std::nullopt,
+       std::nullopt,
+       std::nullopt});
+  auto protJson = protObj->adapterHostKeyToFollyDynamic();
+  EXPECT_EQ(
+      SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(protJson),
+      protKey);
+  // A plain ECMP group over the same primary next hop must have a distinct key:
+  // it differs by type (ECMP vs HW_PROTECTION) and has no child group.
+  SaiNextHopGroupTraits::AdapterHostKey ecmpKey;
+  ecmpKey.nhopMemberSet = protKey.nhopMemberSet;
+  EXPECT_NE(protKey, ecmpKey);
+
+  // Hierarchical ECMP: parent group whose members are child groups' identities.
+  SaiNextHopGroupTraits::AdapterHostKey childKey;
+  childKey.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, 3));
+  SaiNextHopGroupTraits::AdapterHostKey childKey2;
+  childKey2.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip2}, 4));
+
+  // A std::set built from an initializer list is sorted AND duplicate-free, so
+  // the repeated childKey collapses to a single entry.
+  SaiNextHopGroupTraits::AdapterHostKey parentKey;
+  parentKey.level = 1;
+  parentKey.childNextHopGroups = {childKey, childKey2, childKey};
+  EXPECT_EQ(parentKey.childNextHopGroups.size(), 2);
+
+  // The same two children in the opposite order must produce an identical key
+  // and hash (order-independent identity).
+  SaiNextHopGroupTraits::AdapterHostKey parentKeyReordered;
+  parentKeyReordered.level = 1;
+  parentKeyReordered.childNextHopGroups = {childKey2, childKey};
+  EXPECT_EQ(parentKey, parentKeyReordered);
+  EXPECT_EQ(
+      std::hash<SaiNextHopGroupTraits::AdapterHostKey>{}(parentKey),
+      std::hash<SaiNextHopGroupTraits::AdapterHostKey>{}(parentKeyReordered));
+
+  auto parentObj = store.setObject(
+      parentKey,
+      {SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt});
+  auto parentJson = parentObj->adapterHostKeyToFollyDynamic();
+  EXPECT_EQ(
+      SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
+          parentJson),
+      parentKey);
+  // A flat group with an empty member set and level 0 must differ from the
+  // level-1 hierarchical parent.
+  EXPECT_NE(parentKey, SaiNextHopGroupTraits::AdapterHostKey{});
+}
+
 TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   // Create a next hop group
@@ -394,11 +493,35 @@ TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
   EXPECT_EQ(
       got1->attributes(),
       (SaiNextHopGroupMemberTraits::CreateAttributes{
-          nextHopGroupId, nextHopId1, weight3}));
+          nextHopGroupId,
+          nextHopId1,
+          weight3
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+          ,
+          // Reload materializes these optional protection-member attributes
+          // with their SAI defaults (PRIMARY role, null monitored object).
+          SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+              SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY},
+          SaiNextHopGroupMemberTraits::Attributes::MonitoredObject{
+              SAI_NULL_OBJECT_ID}
+#endif
+      }));
   EXPECT_EQ(
       got2->attributes(),
       (SaiNextHopGroupMemberTraits::CreateAttributes{
-          nextHopGroupId, nextHopId2, weight4}));
+          nextHopGroupId,
+          nextHopId2,
+          weight4
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+          ,
+          // Reload materializes these optional protection-member attributes
+          // with their SAI defaults (PRIMARY role, null monitored object).
+          SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+              SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY},
+          SaiNextHopGroupMemberTraits::Attributes::MonitoredObject{
+              SAI_NULL_OBJECT_ID}
+#endif
+      }));
 #endif
 }
 
