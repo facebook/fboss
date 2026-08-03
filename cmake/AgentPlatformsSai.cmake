@@ -129,6 +129,7 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_platform
     sai_traced_api
     setup_thrift_prod
+    thrift_service_client
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
     ${CMAKE_THREAD_LIBS_INIT}
@@ -161,6 +162,7 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
     load_agent_config
     sai_platform
     hwagent
+    thrift_service_client
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
