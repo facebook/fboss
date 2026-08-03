@@ -1951,6 +1951,11 @@ TEST_F(AgentSflowMirrorAddressFamilySwitchingTest, MoveToV4) {
 }
 
 TEST_F(AgentSflowMirrorTruncateTestV6, verifyL4SrcPortRandomization) {
+  // Randomized sFlow src-port needs the eventor sFlow datapath; skip otherwise.
+  if (!isSupportedOnAllAsics(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
+    GTEST_SKIP() << "ASIC does not randomize the sFlow UDP source port "
+                    "(requires the eventor sFlow datapath, e.g. Jericho3)";
+  }
   auto setup = [=, this]() {
     auto config = initialConfig(*getAgentEnsemble());
     configureMirrorWithSampling(
