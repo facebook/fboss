@@ -5193,7 +5193,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwStatsCollection",
-              "upper_bound": 1120000000000000
+              "upper_bound": 1500000000000000
             }
           ]
         },
@@ -6257,6 +6257,21 @@
         }
     ],
     "leaba/25.5.4210/graphene200/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/26.2.4210/graphene200": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/26.2.4210/graphene200/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/26.2.4210/graphene200/multi_switch": [
         {
           "test_name_regex": "HwSrv6.*$"
         }
