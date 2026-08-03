@@ -59,6 +59,21 @@ void addAggPort(
       if (!aggVlan) {
         aggVlan = vlanPort.vlanID().value();
       }
+    }
+  }
+  // PORT RIF configs (P200/Chenab) use vlanID 0 in vlanPorts; SAI LAG creation
+  // requires a real VLAN (e.g. default VLAN 4094 on P200). Fall back to the
+  // switch default when members have no explicit VLAN membership.
+  if (!aggVlan || *aggVlan == 0) {
+    if (config->defaultVlan().has_value() && *config->defaultVlan() != 0) {
+      aggVlan = *config->defaultVlan();
+    }
+  }
+  if (!aggVlan || *aggVlan == 0) {
+    throw FbossError("No VLAN found for aggregate port in addAggPort");
+  }
+  for (auto& vlanPort : *config->vlanPorts()) {
+    if (memberPorts.contains(vlanPort.logicalPort().value())) {
       vlanPort.vlanID() = *aggVlan;
     }
   }
@@ -67,9 +82,6 @@ void addAggPort(
     // Set ingress VLAN for all members to be the same
     for (auto& port : *config->ports()) {
       if (memberPorts.contains(port.logicalID().value())) {
-        if (!aggVlan) {
-          throw FbossError("No VLAN found for aggregate port in addAggPort");
-        }
         port.ingressVlan() = *aggVlan;
       }
     }

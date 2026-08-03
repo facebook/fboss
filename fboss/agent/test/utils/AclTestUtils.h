@@ -222,6 +222,12 @@ void setupDefaultPostLookupIngressAclTableGroup(cfg::SwitchConfig& config);
 
 void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config);
 
+void setupDefaultPreIngressAclTableGroup(cfg::SwitchConfig& config);
+
+void setupDefaultPreIngressCatchAllAclEntry(cfg::SwitchConfig& config);
+
+std::string kDefaultPreIngressAclTable();
+
 std::set<cfg::AclTableQualifier> getRequiredQualifers(
     const cfg::AclEntry& aclEntry);
 

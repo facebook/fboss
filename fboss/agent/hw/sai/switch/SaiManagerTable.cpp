@@ -198,6 +198,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // ACL Table Group is going away, reset ingressACL pointing to it
   if (!skipSwitchManager) {
     switchManager_->resetIngressAcl();
+    switchManager_->resetPreIngressAcl();
     switchManager_->resetEgressAcl();
   }
 

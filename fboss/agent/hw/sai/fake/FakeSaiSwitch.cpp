@@ -231,6 +231,9 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_INGRESS_ACL:
       sw.setIngressAcl(attr->value.oid);
       break;
+    case SAI_SWITCH_ATTR_PRE_INGRESS_ACL:
+      sw.setPreIngressAcl(attr->value.oid);
+      break;
     case SAI_SWITCH_ATTR_ARS_PROFILE:
       sw.setArsProfile(attr->value.oid);
       break;
@@ -513,6 +516,9 @@ sai_status_t get_switch_attribute_fn(
         break;
       case SAI_SWITCH_ATTR_INGRESS_ACL:
         attr[i].value.oid = sw.getIngressAcl();
+        break;
+      case SAI_SWITCH_ATTR_PRE_INGRESS_ACL:
+        attr[i].value.oid = sw.getPreIngressAcl();
         break;
       case SAI_SWITCH_ATTR_ARS_PROFILE:
         attr[i].value.oid = sw.getArsProfile();

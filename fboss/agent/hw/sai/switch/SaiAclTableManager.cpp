@@ -1230,6 +1230,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #endif
     }
 
+    // Pre-ingress tables (e.g. P200) support PACKET_ACTION but not SET_TC.
+    // Apply TRAP/COPY when only toCpuAction is specified in matchToAction.
+    if (matchAction.getToCpuAction() && tc == std::nullopt &&
+        !matchAction.getUserDefinedTrap()) {
+      setCopyOrTrap(matchAction);
+    }
+
     if (matchAction.getIngressMirror().has_value()) {
       ingressMirror = matchAction.getIngressMirror().value();
       std::vector<sai_object_id_t> aclEntryMirrorIngressOidList;
@@ -1753,6 +1760,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       !platform_->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE)) {
     throw FbossError("egress acl table is not supported on switch asic");
+  }
+  if (aclStage == SAI_ACL_STAGE_PRE_INGRESS &&
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    throw FbossError("pre-ingress acl table is not supported on switch asic");
   }
   /*
    * Not all the qualifiers are supported by every ASIC.

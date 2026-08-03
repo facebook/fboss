@@ -35,6 +35,8 @@ sai_acl_stage_t SaiAclTableGroupManager::cfgAclStageToSaiAclStage(
       return SAI_ACL_STAGE_EGRESS_MACSEC;
     case cfg::AclStage::INGRESS_POST_LOOKUP:
       return SAI_ACL_STAGE_EGRESS;
+    case cfg::AclStage::PRE_INGRESS:
+      return SAI_ACL_STAGE_PRE_INGRESS;
   }
 
   // should return in one of the cases
@@ -84,6 +86,13 @@ AclTableGroupSaiId SaiAclTableGroupManager::addAclTableGroup(
 
   if (saiAclStage == SAI_ACL_STAGE_INGRESS) {
     managerTable_->switchManager().setIngressAcl();
+  } else if (saiAclStage == SAI_ACL_STAGE_PRE_INGRESS) {
+    CHECK(platform_->getAsic()->isSupported(
+        HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL))
+        << apache::thrift::util::enumNameSafe(
+               platform_->getAsic()->getAsicType())
+        << " does not support pre-ingress acl table";
+    managerTable_->switchManager().setPreIngressAcl();
   } else if (saiAclStage == SAI_ACL_STAGE_EGRESS) {
     CHECK(platform_->getAsic()->isSupported(
         HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))

@@ -1007,6 +1007,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
       return defaultIngressCpuAclsForSai(hwAsic, cfg);
     case cfg::AclStage::INGRESS_POST_LOOKUP:
       return defaultPostIngressCpuAclsForSai(hwAsic, cfg);
+    case cfg::AclStage::PRE_INGRESS:
+      throw FbossError("PRE_INGRESS stage not supported for CPU ACLs");
     case cfg::AclStage::EGRESS_MACSEC:
     case cfg::AclStage::INGRESS_MACSEC:
       throw FbossError("MACSEC stage not supported for CPU ACLs");

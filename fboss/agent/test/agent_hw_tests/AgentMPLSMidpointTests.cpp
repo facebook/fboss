@@ -7,6 +7,7 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <optional>
@@ -22,10 +23,13 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTest.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_acl_table_group);
 
 namespace {
 
@@ -44,6 +48,35 @@ using MplsMidpointPortTypes =
 
 namespace facebook::fboss {
 
+namespace {
+
+void removeIngressAclTableGroups(cfg::SwitchConfig& config) {
+  if (!config.aclTableGroups()) {
+    return;
+  }
+  auto& groups = *config.aclTableGroups();
+  groups.erase(
+      std::remove_if(
+          groups.begin(),
+          groups.end(),
+          [](const cfg::AclTableGroup& group) {
+            const auto stage = group.stage().value();
+            return stage == cfg::AclStage::INGRESS ||
+                stage == cfg::AclStage::INGRESS_POST_LOOKUP;
+          }),
+      groups.end());
+}
+
+void clearIngressCpuTrafficPolicyAclMatchers(cfg::SwitchConfig& config) {
+  if (!config.cpuTrafficPolicy() ||
+      !config.cpuTrafficPolicy()->trafficPolicy()) {
+    return;
+  }
+  config.cpuTrafficPolicy()->trafficPolicy()->matchToAction().ensure().clear();
+}
+
+} // namespace
+
 template <typename PortType>
 class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
  protected:
@@ -60,7 +93,6 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
   using BaseT::getSw;
   using BaseT::getVlanIDForTx;
   using BaseT::ingressPort;
-  using BaseT::initialConfig;
   using BaseT::maxPushedLabelStack;
   using BaseT::pushedLabelStack;
   using BaseT::pushedTopLabel;
@@ -74,6 +106,24 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
       return {ProductionFeature::MPLS_MIDPOINT, ProductionFeature::LAG};
     }
     return {ProductionFeature::MPLS_MIDPOINT};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    BaseT::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_group = true;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = BaseT::initialConfig(ensemble);
+
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
+    if (asic->isSupported(HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+      removeIngressAclTableGroups(config);
+      clearIngressCpuTrafficPolicyAclMatchers(config);
+      utility::setupDefaultPreIngressAclTableGroup(config);
+    }
+    return config;
   }
 
   MplsTrapPacketMechanism trapPacketMechanism() const {

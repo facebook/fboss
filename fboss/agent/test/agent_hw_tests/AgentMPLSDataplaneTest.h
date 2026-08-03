@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -51,7 +52,43 @@ class AgentMPLSDataplaneTest : public AgentHwTest {
         true /* interfaceHasSubnet */);
 
     if constexpr (kIsTrunk) {
-      utility::addAggPort(1, {ensemble.masterLogicalPortIds()[0]}, &config);
+      const auto memberPort = ensemble.masterLogicalPortIds()[0];
+      utility::addAggPort(1, {memberPort}, &config);
+
+      // P200/Chenab: a PORT RIF on a LAG member collides with LAG eth-port
+      // creation (SAI create_ethernet_port -> OBJECT IN USE). Route via the
+      // default VLAN SVI instead; EcmpSetupHelper maps AggregatePortID to the
+      // member VLAN and looks up InterfaceID == vlanID.
+      auto& interfaces = *config.interfaces();
+      interfaces.erase(
+          std::remove_if(
+              interfaces.begin(),
+              interfaces.end(),
+              [&](const cfg::Interface& intf) {
+                return intf.type() == cfg::InterfaceType::PORT &&
+                    intf.portID().has_value() &&
+                    PortID(*intf.portID()) == memberPort;
+              }),
+          interfaces.end());
+
+      if (config.defaultVlan().has_value()) {
+        const auto defaultVlanId = *config.defaultVlan();
+        for (auto& intf : *config.interfaces()) {
+          if (intf.name().has_value() && *intf.name() == "default_vlan_rif") {
+            intf.intfID() = defaultVlanId;
+            break;
+          }
+        }
+        // Keep vlan->interfaceID consistent with default_vlan_rif (ConfigUtils
+        // initially sets intfID 10 on both; EcmpSetupHelper looks up interface
+        // by vlan ID, getNeighborTableForVlan uses vlan.getInterfaceID()).
+        for (auto& vlan : *config.vlans()) {
+          if (vlan.id().has_value() && *vlan.id() == defaultVlanId) {
+            vlan.intfID() = defaultVlanId;
+            break;
+          }
+        }
+      }
     }
 
     utility::setDefaultCpuTrafficPolicyConfig(
@@ -76,7 +113,13 @@ class AgentMPLSDataplaneTest : public AgentHwTest {
   }
 
   PortID secondPassEgressPort() const {
-    return this->masterLogicalInterfacePortIds()[2];
+    const auto& ports = this->masterLogicalInterfacePortIds();
+    CHECK_GE(ports.size(), 3)
+        << "MPLS dataplane TTL-expiry tests require at least 3 interface "
+           "ports (egress, ingress inject, second-pass egress). Use a "
+           "platform mapping with >= 3 ports, e.g. "
+           "Wedge400CPlatformMapping-16port.json";
+    return ports[2];
   }
 
   folly::MacAddress routerMac() const {

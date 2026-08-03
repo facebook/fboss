@@ -1,16 +1,42 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook::fboss::utility {
+
+namespace {
+
+std::string trapAclTableName(const HwAsic* asic) {
+  if (asic->isSupported(HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    return kDefaultPreIngressAclTable();
+  }
+  return kDefaultAclTable();
+}
+
+cfg::AclStage trapAclStage(const HwAsic* asic) {
+  if (asic->isSupported(HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    return cfg::AclStage::PRE_INGRESS;
+  }
+  return cfg::AclStage::INGRESS;
+}
+
+} // namespace
 
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
     PortID port) {
-  auto makeTrapAction = []() {
+  auto makeTrapAction = [](cfg::AclStage aclStage) {
     cfg::MatchAction action;
+    // Pre-ingress ACL tables (e.g. P200) only support PACKET_ACTION (+
+    // COUNTER). Omit SET_TC, sendToQueue, and userDefinedTrap which ingress
+    // CoPP uses. P200: src-port match + TRAP (FORCE_TRAP_WITH_EVENT in SDK).
+    if (aclStage == cfg::AclStage::PRE_INGRESS) {
+      action.toCpuAction() = cfg::ToCpuAction::TRAP;
+      return action;
+    }
     action.sendToQueue() = cfg::QueueMatchAction();
     action.sendToQueue()->queueId() = 0;
     action.toCpuAction() = cfg::ToCpuAction::COPY;
@@ -35,7 +61,8 @@ void addTrapPacketAcl(
   auto addEntry = [&](const std::string& name,
                       std::optional<cfg::EtherType> etherType,
                       std::optional<cfg::IpType> ipType,
-                      const std::string& tableName) {
+                      const std::string& tableName,
+                      cfg::AclStage aclStage) {
     cfg::AclEntry entry{};
     entry.name() = name;
     entry.srcPort() = port;
@@ -46,10 +73,10 @@ void addTrapPacketAcl(
       entry.ipType() = *ipType;
     }
     entry.actionType() = cfg::AclActionType::PERMIT;
-    utility::addAclEntry(config, entry, tableName);
+    utility::addAclEntry(config, entry, tableName, aclStage);
     cfg::MatchToAction match2Action;
     match2Action.matcher() = name;
-    match2Action.action() = makeTrapAction();
+    match2Action.action() = makeTrapAction(aclStage);
     trafficPolicy.matchToAction()->push_back(match2Action);
   };
 
@@ -63,18 +90,23 @@ void addTrapPacketAcl(
         folly::to<std::string>("trap-packet-", port, "-v4"),
         cfg::EtherType::IPv4,
         std::nullopt,
-        utility::kDefaultAclTable());
+        utility::kDefaultAclTable(),
+        cfg::AclStage::INGRESS);
     addEntry(
         folly::to<std::string>("trap-packet-", port, "-v6"),
         cfg::EtherType::IPv6,
         std::nullopt,
-        utility::kIpv6AclTable());
+        utility::kIpv6AclTable(),
+        cfg::AclStage::INGRESS);
   } else {
+    const auto tableName = trapAclTableName(asic);
+    const auto aclStage = trapAclStage(asic);
     // If ASIC needs Ether Type to be passed in to disambiguate ACL entry, then
     // for SRC port matching, IP type should be set to NON_IP to match all
     // ingress packets in the ASIC SRC port. Chenab does not use ip type.
     std::optional<cfg::IpType> ipType;
-    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE) &&
+    if (!asic->isSupported(HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL) &&
+        asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE) &&
         asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       ipType = cfg::IpType::NON_IP;
     }
@@ -82,7 +114,8 @@ void addTrapPacketAcl(
         folly::to<std::string>("trap-packet-", port),
         std::nullopt,
         ipType,
-        utility::kDefaultAclTable());
+        tableName,
+        aclStage);
   }
 
   cpuTrafficPolicy.trafficPolicy() = trafficPolicy;

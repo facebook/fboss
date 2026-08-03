@@ -732,6 +732,7 @@ enum AclStage {
   INGRESS_MACSEC = 1,
   EGRESS_MACSEC = 2,
   INGRESS_POST_LOOKUP = 3,
+  PRE_INGRESS = 4,
 }
 
 // startdocs_AclTableGroup_struct
@@ -1147,6 +1148,10 @@ const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
 
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
+
+const string DEFAULT_PRE_INGRESS_ACL_TABLE_GROUP = "pre-ingress-ACL-Table-Group";
+
+const string DEFAULT_PRE_INGRESS_ACL_TABLE = "PreIngressAclTable1";
 
 const string DEFAULT_PBR_ACL_TABLE = "PbrAclTable";
 

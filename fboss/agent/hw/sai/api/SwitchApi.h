@@ -273,6 +273,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_EGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    using PreIngressAcl = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PRE_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using TamObject = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_TAM_OBJECT_ID,
@@ -902,6 +907,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MacAgingTime>,
       std::optional<Attributes::IngressAcl>,
       std::optional<Attributes::EgressAcl>,
+      std::optional<Attributes::PreIngressAcl>,
       std::optional<Attributes::AclFieldList>,
       std::optional<Attributes::TamObject>,
       std::optional<Attributes::UseEcnThresholds>,
@@ -1073,6 +1079,7 @@ SAI_ATTRIBUTE_NAME(Switch, LedReset)
 
 SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 SAI_ATTRIBUTE_NAME(Switch, EgressAcl)
+SAI_ATTRIBUTE_NAME(Switch, PreIngressAcl)
 
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)

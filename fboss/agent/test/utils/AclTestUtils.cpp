@@ -24,6 +24,10 @@ std::string kDefaultAclTable() {
   return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
 }
 
+std::string kDefaultPreIngressAclTable() {
+  return cfg::switch_config_constants::DEFAULT_PRE_INGRESS_ACL_TABLE();
+}
+
 std::string kTtldAclTable() {
   return "ttld-acl-table";
 }
@@ -131,9 +135,9 @@ cfg::AclEntry* addAclEntry(
     cfg::AclStage aclStage) {
   if (FLAGS_enable_acl_table_group) {
     auto aclTableGroup = getAclTableGroup(*cfg, aclStage);
-
+    CHECK(aclTableGroup) << "ACL table group missing for stage "
+                         << static_cast<int>(aclStage);
     int tableNumber = getAclTableIndex(aclTableGroup, aclTableName);
-    CHECK(aclTableGroup);
     auto& aclTable = aclTableGroup->aclTables()[tableNumber];
     if (!aclEntrySupported(&aclTable, acl)) {
       throw FbossError(
@@ -219,6 +223,10 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
 
 std::string kDefaultAclTableGroupName() {
   return "acl-table-group-ingress";
+}
+
+std::string kDefaultPreIngressAclTableGroupName() {
+  return cfg::switch_config_constants::DEFAULT_PRE_INGRESS_ACL_TABLE_GROUP();
 }
 
 std::vector<cfg::AclEntry>& getAcls(
@@ -817,6 +825,124 @@ void setupDefaultIngressAclTableGroup(cfg::SwitchConfig& config) {
   utility::addAclTableGroup(
       &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
   utility::addDefaultAclTable(config);
+}
+
+void addDefaultPreIngressAclTable(cfg::SwitchConfig& cfg) {
+  std::optional<cfg::SdkVersion> version{};
+  if (cfg.sdkVersion()) {
+    version = *cfg.sdkVersion();
+  }
+
+  HwAsicTable asicTable(
+      *cfg.switchSettings()->switchIdToSwitchInfo(),
+      std::move(version),
+      *cfg.dsfNodes());
+  auto asic =
+      checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing);
+
+  // P200 pre-ingress supports a narrow action/qualifier set (see
+  // p200_supported_actions_preingress in sai_acl_cmd.h). Omit IP_TYPE so
+  // non-IP/MPLS packets match the catch-all PRE_FWD_L2 path.
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+    addAclTable(
+        &cfg,
+        cfg::AclStage::PRE_INGRESS,
+        cfg::switch_config_constants::DEFAULT_PRE_INGRESS_ACL_TABLE(),
+        0 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {},
+        {});
+    return;
+  }
+
+  auto actions = genAclActionTypesConfig(asic->getAsicType());
+
+  addAclTable(
+      &cfg,
+      cfg::AclStage::PRE_INGRESS,
+      cfg::switch_config_constants::DEFAULT_PRE_INGRESS_ACL_TABLE(),
+      0 /* priority */,
+      actions,
+      {
+          cfg::AclTableQualifier::SRC_PORT,
+          cfg::AclTableQualifier::IP_TYPE,
+          cfg::AclTableQualifier::ETHER_TYPE,
+          cfg::AclTableQualifier::DSCP,
+          cfg::AclTableQualifier::TTL,
+          cfg::AclTableQualifier::L4_SRC_PORT,
+          cfg::AclTableQualifier::L4_DST_PORT,
+          cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+          cfg::AclTableQualifier::IPV6_NEXT_HEADER,
+          cfg::AclTableQualifier::DST_IPV4,
+          cfg::AclTableQualifier::DST_IPV6,
+          cfg::AclTableQualifier::SRC_IPV4,
+          cfg::AclTableQualifier::SRC_IPV6,
+      },
+      {});
+}
+
+void setupDefaultPreIngressAclTableGroup(cfg::SwitchConfig& config) {
+  if (config.switchSettings()->switchIdToSwitchInfo()->empty()) {
+    return;
+  }
+  std::optional<cfg::SdkVersion> version{};
+  if (config.sdkVersion()) {
+    version = *config.sdkVersion();
+  }
+
+  HwAsicTable asicTable(
+      *config.switchSettings()->switchIdToSwitchInfo(),
+      std::move(version),
+      *config.dsfNodes());
+
+  if (!asicTable.isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::SWITCH_ATTR_PRE_INGRESS_ACL)) {
+    return;
+  }
+
+  if (getAclTableGroup(config, cfg::AclStage::PRE_INGRESS)) {
+    return;
+  }
+  utility::addAclTableGroup(
+      &config,
+      cfg::AclStage::PRE_INGRESS,
+      utility::kDefaultPreIngressAclTableGroupName());
+  addDefaultPreIngressAclTable(config);
+}
+
+void setupDefaultPreIngressCatchAllAclEntry(cfg::SwitchConfig& config) {
+  if (!getAclTableGroup(config, cfg::AclStage::PRE_INGRESS)) {
+    return;
+  }
+
+  // Catch-all pre-ingress entry: counter + SAI_PACKET_ACTION_TRAP (ACL team
+  // guidance for non-IP/MPLS punt to CPU). No field matches on the entry.
+  constexpr auto kCatchAllEntryName = "pre-ingress-catch-all";
+  constexpr auto kCatchAllCounterName = "pre-ingress-catch-all-stat";
+
+  cfg::AclEntry entry{};
+  entry.name() = kCatchAllEntryName;
+  entry.actionType() = cfg::AclActionType::PERMIT;
+  addAclEntry(
+      &config, entry, kDefaultPreIngressAclTable(), cfg::AclStage::PRE_INGRESS);
+
+  addTrafficCounter(&config, kCatchAllCounterName, std::nullopt);
+
+  cfg::MatchAction matchAction;
+  matchAction.counter() = kCatchAllCounterName;
+  matchAction.toCpuAction() = cfg::ToCpuAction::TRAP;
+
+  cfg::MatchToAction matchToAction;
+  *matchToAction.matcher() = kCatchAllEntryName;
+  *matchToAction.action() = matchAction;
+
+  if (!config.dataPlaneTrafficPolicy()) {
+    config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
+  }
+  config.dataPlaneTrafficPolicy()->matchToAction()->push_back(matchToAction);
 }
 
 void setupDefaultAclTableGroups(cfg::SwitchConfig& config) {
