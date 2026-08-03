@@ -13,11 +13,13 @@
 // fields at the time this test was written. The integration test in
 // ConfigDhcpSourceOverrideTest.cpp exercises the real running-config shape.
 
+#include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <string>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -126,6 +128,20 @@ TEST_F(CmdConfigDhcpTestFixture, argValidation_familyMismatch) {
   // IPv4 address passed as ipv6 family → IPv6 parser rejects
   EXPECT_THROW(
       DhcpSourceOverrideArgs({"ipv6", "10.1.2.3"}), std::invalid_argument);
+}
+
+TEST_F(CmdConfigDhcpTestFixture, sourceOverrideField_unknownKindThrows) {
+  // kind dispatch must fail closed: anything other than "relay"/"reply"
+  // (typo, case variant) must throw rather than silently pick a field.
+  cfg::SwitchConfig swConfig;
+  EXPECT_THROW(
+      dhcpSourceOverrideField(swConfig, "replay", "ipv4"),
+      std::invalid_argument);
+  EXPECT_THROW(
+      dhcpSourceOverrideField(swConfig, "Relay", "ipv4"),
+      std::invalid_argument);
+  EXPECT_THROW(
+      dhcpSourceOverrideField(swConfig, "", "ipv6"), std::invalid_argument);
 }
 
 // =============================================================
