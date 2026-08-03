@@ -1058,6 +1058,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.cpp
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp

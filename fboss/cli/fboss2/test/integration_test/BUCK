@@ -51,6 +51,7 @@ cpp_binary(
         "ConfigVlanSwitchportAccessTest.cpp",
         "DeleteInterfaceIpv6NdpTest.cpp",
         "DeleteInterfaceTest.cpp",
+        "DeleteVlanTest.cpp",
         "Fboss2IntegrationTest.cpp",
         "TunnelIpInIpTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",

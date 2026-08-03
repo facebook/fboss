@@ -43,6 +43,7 @@ cpp_unittest(
         "CmdDeleteInterfaceTest.cpp",
         "CmdDeleteQosDefaultPolicyTest.cpp",
         "CmdDeleteTunnelIpInIpTest.cpp",
+        "CmdDeleteVlanTest.cpp",
         "ConfigSessionSystemdTest.cpp",
         "ProfileValidationTest.cpp",
     ],
