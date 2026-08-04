@@ -70,7 +70,7 @@ std::unique_ptr<SaiPlatform> createGenericSaiTajoPlatform(
       localMac);
 }
 
-std::unique_ptr<SaiPlatform> chooseTajoSaiPlatform(
+std::unique_ptr<SaiPlatform> chooseSaiPlatformImpl(
     std::unique_ptr<PlatformProductInfo>& productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr) {
@@ -86,7 +86,7 @@ std::unique_ptr<SaiPlatform> chooseTajoSaiPlatform(
   return nullptr;
 }
 
-std::unique_ptr<SaiPlatformPort> createTajoSaiPlatformPort(
+std::unique_ptr<SaiPlatformPort> createSaiPlatformPort(
     const PortID& portId,
     SaiPlatform* platform) {
   const auto platformMode = platform->getType();

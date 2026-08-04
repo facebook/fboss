@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<SaiPlatform> chooseFakeSaiPlatform(
+std::unique_ptr<SaiPlatform> chooseSaiPlatformImpl(
     std::unique_ptr<PlatformProductInfo>& productInfo,
     folly::MacAddress /*localMac*/,
     const std::string& /*platformMappingStr*/) {
@@ -25,7 +25,7 @@ std::unique_ptr<SaiPlatform> chooseFakeSaiPlatform(
   return nullptr;
 }
 
-std::unique_ptr<SaiPlatformPort> createFakeSaiPlatformPort(
+std::unique_ptr<SaiPlatformPort> createSaiPlatformPort(
     const PortID& portId,
     SaiPlatform* platform) {
   if (platform->getType() != PlatformType::PLATFORM_FAKE_SAI &&

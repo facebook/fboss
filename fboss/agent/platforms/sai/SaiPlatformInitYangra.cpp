@@ -65,7 +65,7 @@ std::unique_ptr<SaiPlatform> createGenericSaiYangraPlatform(
       localMac);
 }
 
-std::unique_ptr<SaiPlatform> chooseYangraSaiPlatform(
+std::unique_ptr<SaiPlatform> chooseSaiPlatformImpl(
     std::unique_ptr<PlatformProductInfo>& productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr) {
@@ -81,7 +81,7 @@ std::unique_ptr<SaiPlatform> chooseYangraSaiPlatform(
   return nullptr;
 }
 
-std::unique_ptr<SaiPlatformPort> createYangraSaiPlatformPort(
+std::unique_ptr<SaiPlatformPort> createSaiPlatformPort(
     const PortID& portId,
     SaiPlatform* platform) {
   const auto platformMode = platform->getType();
