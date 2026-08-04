@@ -1444,6 +1444,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
    */
+  void addNamedNextHopGroups(
+    1: list<common.NextHopGroup> nextHopGroups,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * API to add named next hop groups, named next hop group with same name will be replaced
+   */
   void addOrUpdateNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
   ) throws (1: fboss.FbossBaseError error);

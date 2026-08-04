@@ -3536,6 +3536,23 @@ TEST_F(NamedNextHopGroupThriftTest, addAndGetNextHopGroup) {
   EXPECT_EQ(result[0].nexthops()->size(), 2);
 }
 
+TEST_F(NamedNextHopGroupThriftTest, addNamedNextHopGroups) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  handler.addNamedNextHopGroups(std::move(groups));
+
+  std::vector<NextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("group1");
+  handler.getNamedNextHopGroups(result, std::move(nameFilter));
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(*result[0].name(), "group1");
+  EXPECT_EQ(result[0].nexthops()->size(), 2);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, addMultipleGroups) {
   ThriftHandler handler(sw_);
 
