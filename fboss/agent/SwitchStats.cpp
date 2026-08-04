@@ -302,6 +302,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           10000,
           AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
+      linkFault_(map, kCounterPrefix + "link_fault", SUM),
       linkActiveStateChange_(
           map,
           kCounterPrefix + "link_active_state.flap",
@@ -578,6 +579,7 @@ InterfaceStats* FOLLY_NULLABLE SwitchStats::intf(InterfaceID intfID) {
 
 void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   agentStats.linkFlaps() = getCumulativeValue(linkStateChange_);
+  agentStats.linkFaults() = getCumulativeValue(linkFault_);
   agentStats.trappedPktsDropped() = getCumulativeValue(trapPktDrops_);
   agentStats.threadHeartBeatMiss() =
       getCumulativeValue(threadHeartbeatMissCount_);
