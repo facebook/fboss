@@ -51,6 +51,30 @@ export_file(
     ]
 ]
 
+[
+    export_file(
+        name = "wedge800bact_" + artifact,
+        src = "generated_platform_mappings/accton/wedge800bact/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
+[
+    export_file(
+        name = "wedge800cact_" + artifact,
+        src = "generated_platform_mappings/accton/wedge800cact/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
 python_library(
     name = "helpers",
     srcs = ["helpers.py"],
