@@ -98,21 +98,47 @@ int getRoundedBufferThreshold(
         (12 * 1024 * 384),
         (15 * 1024 * 384),
         (16000 * 384)};
+    /*
+     * Ebro (GB) is always brought up with the min-guarantee buffer profile,
+     * for which the SDK programs a different CGM quantization table. Mirrors
+     * lsai_wred_manager_gb_min_guarantee::m_voq_sms_thresh, defined in
+     * sai/src/cgm/wred/sai_wred_manager_gb_min.h.
+     */
+    const std::vector<int> kEbroMinGuaranteeQuantizedThresholds{
+        (50 * 384),
+        (96 * 384),
+        (192 * 384),
+        (512 * 384),
+        (1 * 1024 * 384),
+        (2730 * 384),
+        (6 * 1024 * 384),
+        (7 * 1024 * 384),
+        (8 * 1024 * 384),
+        (9 * 1024 * 384),
+        (10 * 1024 * 384),
+        (12 * 1024 * 384),
+        (14 * 1024 * 384),
+        (15 * 1024 * 384),
+        (16000 * 384)};
+    const auto& quantizedThresholds =
+        cfg::AsicType::ASIC_TYPE_EBRO == asic->getAsicType()
+        ? kEbroMinGuaranteeQuantizedThresholds
+        : kEbroQuantizedThresholds;
     auto it = std::lower_bound(
-        kEbroQuantizedThresholds.begin(),
-        kEbroQuantizedThresholds.end(),
+        quantizedThresholds.begin(),
+        quantizedThresholds.end(),
         expectedThreshold);
 
     if (roundUp) {
-      if (it == kEbroQuantizedThresholds.end()) {
+      if (it == quantizedThresholds.end()) {
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
       } else {
         threshold = *it;
       }
     } else {
-      if (it != kEbroQuantizedThresholds.end() && *it == expectedThreshold) {
+      if (it != quantizedThresholds.end() && *it == expectedThreshold) {
         threshold = *it;
-      } else if (it != kEbroQuantizedThresholds.begin()) {
+      } else if (it != quantizedThresholds.begin()) {
         threshold = *(std::prev(it));
       } else {
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
