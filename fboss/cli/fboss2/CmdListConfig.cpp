@@ -101,6 +101,7 @@
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
@@ -131,6 +132,9 @@
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
 #include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
@@ -139,10 +143,12 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
 #include "fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/qos/default_queue_config/CmdDeleteQosDefaultQueueConfig.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
+#include "fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h"
 
 namespace facebook::fboss {
 
@@ -895,6 +901,12 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigQosDefaultPolicyTraits>,
            },
            {
+               "default-queue-config",
+               "Configure default port queue settings",
+               commandHandler<CmdConfigQosDefaultQueueConfig>,
+               argRegistrar<CmdConfigQosDefaultQueueConfigTraits>,
+           },
+           {
                "policy",
                "Configure QoS policy settings",
                commandHandler<CmdConfigQosPolicy>,
@@ -1084,11 +1096,17 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteQos>,
           argRegistrar<CmdDeleteQosTraits>,
           {{
-              "default-policy",
-              "Clear the default data-plane QoS policy",
-              commandHandler<CmdDeleteQosDefaultPolicy>,
-              argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
-          }},
+               "default-policy",
+               "Clear the default data-plane QoS policy",
+               commandHandler<CmdDeleteQosDefaultPolicy>,
+               argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
+           },
+           {
+               "default-queue-config",
+               "Remove a queue entry from the default port queue config",
+               commandHandler<CmdDeleteQosDefaultQueueConfig>,
+               argRegistrar<CmdDeleteQosDefaultQueueConfigTraits>,
+           }},
       },
 
       {
@@ -1145,6 +1163,26 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
 
+      {
+          "delete",
+          "dhcp",
+          "Remove DHCP source-override settings",
+          commandHandler<CmdDeleteDhcp>,
+          argRegistrar<CmdDeleteDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Remove source IP override for DHCP relay packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpRelaySourceOverride>,
+               argRegistrar<CmdDeleteDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Remove source IP override for DHCP reply packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpReplySourceOverride>,
+               argRegistrar<CmdDeleteDhcpReplySourceOverrideTraits>,
+           }},
+      },
+
       {"delete",
        "tunnel",
        "Delete (reset to default) tunnel settings",
@@ -1170,8 +1208,14 @@ const CommandTree& kConfigCommandTree() {
             }},
        }}},
 
+      {"delete",
+       "vlan",
+       "Delete a VLAN and its interface (refuses while it is the default VLAN or a port's ingress VLAN)",
+       commandHandler<CmdDeleteVlan>,
+       argRegistrar<CmdDeleteVlanTraits>},
+
   };
-  sort(root.begin(), root.end());
+  stable_sort(root.begin(), root.end());
   return root;
 }
 

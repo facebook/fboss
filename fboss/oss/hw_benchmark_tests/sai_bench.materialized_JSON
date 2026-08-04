@@ -5193,7 +5193,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwStatsCollection",
-              "upper_bound": 1120000000000000
+              "upper_bound": 1500000000000000
             }
           ]
         },

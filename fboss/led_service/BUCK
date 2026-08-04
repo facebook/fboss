@@ -137,7 +137,6 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
-        "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",

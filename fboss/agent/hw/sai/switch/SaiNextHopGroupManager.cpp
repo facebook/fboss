@@ -51,6 +51,25 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     return nextHopGroupHandle;
   }
   const auto& swNextHops = key.first;
+  RouteNextHopEntry::NextHopSet primaryNhops, backupNhops;
+  for (const auto& swNextHop : swNextHops) {
+    switch (swNextHop.role()) {
+      case NextHopRole::PRIMARY:
+        primaryNhops.insert(swNextHop);
+        break;
+      case NextHopRole::BACKUP:
+        backupNhops.insert(swNextHop);
+        break;
+    }
+  }
+  if (backupNhops.size() && primaryNhops.size() > 1) {
+    throw FbossError(
+        "Got : ",
+        primaryNhops.size(),
+        " primary nhops and ",
+        backupNhops.size(),
+        " backup nhops. While only 1:N protection model is supported");
+  }
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -520,7 +539,15 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   // and proper weight is set through bulk set api. check comments
   // associated with SaiNextHopGroupHandle::bulkProgramMembers for details
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
-      nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
+      nexthopGroupId_,
+      nexthopId,
+      fixedWidthMode_ ? 0 : weight_
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::nullopt /* configuredRole */,
+      std::nullopt /* monitoredObject */
+#endif
+  };
 
   bool bulkUpdate{true};
   if (fixedWidthMode_) {

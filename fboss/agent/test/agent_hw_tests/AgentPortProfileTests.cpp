@@ -72,8 +72,7 @@ class AgentPortProfileTest : public AgentHwTest {
 
   void verifyPhyInfo(phy::PhyInfo& phyInfo, PortID portID) {
     auto asicType = getAgentEnsemble()->getL3Asics().front()->getAsicType();
-    if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2 ||
-        asicType == cfg::AsicType::ASIC_TYPE_FAKE ||
+    if (asicType == cfg::AsicType::ASIC_TYPE_FAKE ||
         asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
         asicType == cfg::AsicType::ASIC_TYPE_CHENAB2 ||
         asicType == cfg::AsicType::ASIC_TYPE_MOCK) {

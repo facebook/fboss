@@ -211,13 +211,6 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     bool dstMacEnabled =
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     configureQualifier(acl->dstMac(), dstMacEnabled, "00:11:22:33:44:55");
-    /*
-     * lookupClassL2 is not configured for Trident2 or else we run out of
-     * resources.
-     * Note: lookupclassL2 is needed for MH-NIC queue-per-host solution.
-     * However, the solution is not applicable for Trident2 as we don't
-     * implement queues on trident2.
-     */
     auto switchType = getAgentEnsemble()
                           ->getSw()
                           ->getSwitchInfoTable()
@@ -225,8 +218,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
                           .at(switchID)
                           .switchType()
                           .value();
-    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TRIDENT2 &&
-        asic->getAsicVendor() !=
+    if (asic->getAsicVendor() !=
             HwAsic::AsicVendor::ASIC_VENDOR_CHENAB && // no l2 lookup class in
                                                       // chenab in ingress stage
                                                       // L2 switching only on

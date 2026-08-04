@@ -11349,6 +11349,7 @@ class ChildThriftPath<::facebook::fboss::AgentStats, ::facebook::fboss::fsdb::Fs
     STRUCT_CHILD_GETTERS(ecmpOverShelDisabledPort, 32);
     STRUCT_CHILD_GETTERS(counterStats, 33);
     STRUCT_CHILD_GETTERS(switchDropBitmapStatsMap, 34);
+    STRUCT_CHILD_GETTERS(linkFaults, 35);
 };
 
 
@@ -11497,6 +11498,7 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(llrRxExpectedSeqGood_, 98);
     STRUCT_CHILD_GETTERS(llrRxExpectedSeqPoisoned_, 99);
     STRUCT_CHILD_GETTERS(llrRxExpectedSeqBad_, 100);
+    STRUCT_CHILD_GETTERS(linkFault_, 101);
 };
 
 

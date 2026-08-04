@@ -1,0 +1,3 @@
+"Test Case","Hardware","Vendor","SDK Version","ASIC","Switch Mode","Role","Status"
+"warm_boot.ProdInvariantTest.verifyInvariants","wedge100s","Broadcom","10.2.0.0_odp","tomahawk","multi switch","","PASSED"
+"cold_boot.ProdInvariantTest.verifyInvariants","wedge100s","Broadcom","10.2.0.0_odp","tomahawk","multi switch","","PASSED"

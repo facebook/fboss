@@ -16,54 +16,12 @@
 
 namespace facebook::fboss {
 
-std::unique_ptr<SaiPlatform> chooseBcmSaiPlatform(
+std::unique_ptr<SaiPlatform> chooseSaiPlatformImpl(
     std::unique_ptr<PlatformProductInfo>& productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr);
 
-std::unique_ptr<SaiPlatform> createGenericSaiBcmPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatform> chooseTajoSaiPlatform(
-    std::unique_ptr<PlatformProductInfo>& productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatform> createGenericSaiTajoPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatform> chooseYangraSaiPlatform(
-    std::unique_ptr<PlatformProductInfo>& productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatform> createGenericSaiYangraPlatform(
-    std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatform> chooseFakeSaiPlatform(
-    std::unique_ptr<PlatformProductInfo>& productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr);
-
-std::unique_ptr<SaiPlatformPort> createBcmSaiPlatformPort(
-    const PortID& portId,
-    SaiPlatform* platform);
-
-std::unique_ptr<SaiPlatformPort> createTajoSaiPlatformPort(
-    const PortID& portId,
-    SaiPlatform* platform);
-
-std::unique_ptr<SaiPlatformPort> createYangraSaiPlatformPort(
-    const PortID& portId,
-    SaiPlatform* platform);
-
-std::unique_ptr<SaiPlatformPort> createFakeSaiPlatformPort(
+std::unique_ptr<SaiPlatformPort> createSaiPlatformPort(
     const PortID& portId,
     SaiPlatform* platform);
 

@@ -104,6 +104,7 @@ cpp_library(
         "//fboss/agent:agent_features",
         "//fboss/agent:asic_utils",
         "//fboss/agent:core",
+        "//fboss/agent:fabric_connectivity_manager",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:hw_switch_thrift_client_table",
@@ -468,8 +469,8 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/agent:asic_utils",
-        "//fboss/agent:core",
         "//fboss/agent:ecmp_resource_manager",
+        "//fboss/agent:fabric_connectivity_manager",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",

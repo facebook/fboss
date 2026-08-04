@@ -1509,7 +1509,6 @@ void BcmPort::updateStats() {
       now, kOutPause(), snmpDot3OutPauseFrames, &(*curPortStats.outPause_()));
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
-    // ECN stats not supported by TD2
     updateStat(
         now,
         kOutEcnCounter(),

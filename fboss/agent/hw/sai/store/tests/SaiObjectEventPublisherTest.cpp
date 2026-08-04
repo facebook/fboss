@@ -153,7 +153,16 @@ class SaiObjectEventPublisherTest : public SaiStoreTest {
   SaiNextHopGroupMemberTraits::CreateAttributes makeNhGroupMemberAttrs(
       sai_object_id_t groupId,
       sai_object_id_t nextHopId) const {
-    return {groupId, nextHopId, std::nullopt};
+    return {
+        groupId,
+        nextHopId,
+        std::nullopt
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        ,
+        std::nullopt,
+        std::nullopt
+#endif
+    };
   }
 
   detail::SaiObjectEventPublisher<SaiNeighborTraits>& neighborPublisher() {

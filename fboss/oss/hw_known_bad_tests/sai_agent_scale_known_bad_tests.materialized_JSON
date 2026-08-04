@@ -469,6 +469,44 @@
           "test_name_regex": "AgentMirroringScaleTest/1.ExceedMaxMirroringTest$"
         }
     ],
+    "leaba/26.2.4210/26.2.4210/graphene200/mono": [
+        {
+          "test_name_regex": "AgentEcmpTest.CreateMaxUcmpMembers$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclSingleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclDobleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateVariableWidthAclTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateSingleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentAclScaleTest.CreateTripleWideTableMaxAclEntries$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/[15].ExceedMaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.MaxMirroringTest$"
+        },
+        {
+          "test_name_regex": "AgentMirroringScaleTest/1.ExceedMaxMirroringTest$"
+        }
+    ],
     "nvda/2505.34/2505.34/spectrum4/multi_switch": [
         {
           "test_name_regex": "AgentAclScaleTest.CreateMaxAclTripleWideTables$"

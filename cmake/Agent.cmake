@@ -816,6 +816,7 @@ target_link_libraries(fboss_sw_agent
   handler
   -Wl,--whole-archive
   setup_thrift_prod
+  thrift_service_client
   -Wl,--no-whole-archive
 )
 

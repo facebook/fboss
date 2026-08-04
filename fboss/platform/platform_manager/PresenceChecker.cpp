@@ -30,7 +30,7 @@ int PresenceChecker::getPresenceValue(
     const std::string& slotPath) {
   if (const auto sysfsFileHandle = presenceDetection.sysfsFileHandle()) {
     return sysfsValue(*sysfsFileHandle);
-  } else if (const auto gpioLineHandle = presenceDetection.gpioLineHandle()) {
+  } else if (auto gpioLineHandle = presenceDetection.gpioLineHandle()) {
     return gpioValue(*gpioLineHandle);
   } else {
     throw std::runtime_error(
