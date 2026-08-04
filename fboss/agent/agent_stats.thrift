@@ -74,4 +74,7 @@ struct AgentStats {
   32: i16 ecmpOverShelDisabledPort;
   33: hardware_stats.HwSwitchCounterStats counterStats;
   34: map<i16, hardware_stats.HwSwitchDropBitmapStats> switchDropBitmapStatsMap;
+  // Link flaps plus debounce retriggers suppressed by the port debounce hold
+  // timers, summed across all ports.
+  35: i64 linkFaults;
 }

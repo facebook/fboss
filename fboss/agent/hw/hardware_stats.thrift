@@ -147,6 +147,9 @@ struct HwPortStats {
   98: optional i64 llrRxExpectedSeqGood_;
   99: optional i64 llrRxExpectedSeqPoisoned_;
   100: optional i64 llrRxExpectedSeqBad_;
+  // Link flaps plus debounce retriggers suppressed by the port debounce hold
+  // timers.
+  101: optional i64 linkFault_;
 }
 
 struct HwSysPortStats {

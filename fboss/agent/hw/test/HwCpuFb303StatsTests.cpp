@@ -119,6 +119,7 @@ HwPortStats getInitedStats() {
       0, // llrRxExpectedSeqGood
       0, // llrRxExpectedSeqPoisoned
       0, // llrRxExpectedSeqBad
+      0, // linkFault_
   };
 }
 
