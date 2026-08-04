@@ -1450,6 +1450,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * Deprecated. Use addNamedNextHopGroups.
    */
   void addOrUpdateNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
