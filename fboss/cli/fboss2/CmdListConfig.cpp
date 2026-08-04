@@ -130,6 +130,9 @@
 #include "fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h"
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
@@ -1138,6 +1141,26 @@ const CommandTree& kConfigCommandTree() {
        "Delete config objects",
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
+
+      {
+          "delete",
+          "dhcp",
+          "Remove DHCP source-override settings",
+          commandHandler<CmdDeleteDhcp>,
+          argRegistrar<CmdDeleteDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Remove source IP override for DHCP relay packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpRelaySourceOverride>,
+               argRegistrar<CmdDeleteDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Remove source IP override for DHCP reply packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpReplySourceOverride>,
+               argRegistrar<CmdDeleteDhcpReplySourceOverrideTraits>,
+           }},
+      },
 
       {"delete",
        "tunnel",
