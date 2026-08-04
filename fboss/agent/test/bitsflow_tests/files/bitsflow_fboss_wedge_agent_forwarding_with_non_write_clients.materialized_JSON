@@ -136,7 +136,7 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.addOrUpdatePolicies",
+      "action": "FbossCtrl.addPolicies",
       "entries": [
         {
           "identity": {

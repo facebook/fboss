@@ -1499,7 +1499,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Add one or multiple traffic redirection policy objects.
    */
-  void addOrUpdatePolicies(1: list<common.Policy> policy) throws (
+  void addPolicies(1: list<common.Policy> policy) throws (
     1: fboss.FbossBaseError error,
   );
 
