@@ -24,6 +24,7 @@ _RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
     "wedge800bact": ("wedge800bact",),
+    "wedge800cact": ("wedge800cact",),
 }
 
 
