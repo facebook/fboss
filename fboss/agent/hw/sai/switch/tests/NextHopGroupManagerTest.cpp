@@ -69,6 +69,30 @@ TEST_F(NextHopGroupManagerTest, addNextHopGroup) {
   checkNextHopGroup(saiNextHopGroup->adapterKey(), {});
 }
 
+TEST_F(NextHopGroupManagerTest, rejectMultiplePrimariesWithBackup) {
+  ResolvedNextHop primaryNh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  ResolvedNextHop primaryNh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+  ResolvedNextHop backupNh{
+      h0.ip,
+      InterfaceID(intf0.id),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      NextHopRole::BACKUP};
+  RouteNextHopEntry::NextHopSet swNextHops{primaryNh1, primaryNh2, backupNh};
+
+  EXPECT_THROW(
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, std::nullopt)),
+      FbossError);
+}
+
 TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
   FLAGS_flowletSwitchingEnable = true;
   ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
