@@ -3491,7 +3491,9 @@ void addUnicastRouteWithNamedNextHopGroup(
   auto route = std::make_unique<UnicastRoute>();
   route->dest()->ip() = toBinaryAddress(network.first);
   route->dest()->prefixLength() = network.second;
-  route->namedRouteDestination()->nextHopGroup() = nhgName;
+  NamedRouteDestination namedDestination;
+  namedDestination.nextHopGroup() = nhgName;
+  route->namedRouteDestination() = std::move(namedDestination);
   route->adminDistance() = AdminDistance::EBGP;
   handler.addUnicastRoute(
       static_cast<int16_t>(ClientID::BGPD), std::move(route));
@@ -3722,6 +3724,7 @@ TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsNamedIsProgrammed) {
   ASSERT_EQ(nameToProgrammedState.count("multi_ref"), 1);
   ASSERT_EQ(nameToProgrammedState.count("single_ref"), 1);
   ASSERT_EQ(nameToProgrammedState.count("orphan"), 1);
+  EXPECT_TRUE(nameToProgrammedState.at("multi_ref"));
   EXPECT_FALSE(nameToProgrammedState.at("single_ref"));
   EXPECT_FALSE(nameToProgrammedState.at("orphan"));
   EXPECT_EQ(nameToProgrammedState, namedApiProgrammedState);
