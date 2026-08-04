@@ -56,6 +56,14 @@ struct PortAssignment {
   4: switch_config.Scope scope;
 }
 
+// Standalone carrier for PlatformConfig.portIdToPortAssignment, used to publish
+// port assignments as their own artifact. PlatformConfig cannot serve this role:
+// Configerator treats its 'chip' union as required, so a PlatformConfig holding
+// only assignments fails validation.
+struct PortIdToPortAssignmentConfig {
+  1: map<i32, PortAssignment> portIdToPortAssignment;
+}
+
 struct PlatformPortEntry {
   1: PlatformPortMapping mapping;
   2: map<switch_config.PortProfileID, PlatformPortConfig> supportedProfiles;

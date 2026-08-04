@@ -194,6 +194,7 @@ python_binary(
     deps = [
         ":platform_mapping_v2",
         ":read_files_utils",
+        "//fboss/agent:platform_config-python-types",
         "//thrift/lib/python:types",
     ],
 )
