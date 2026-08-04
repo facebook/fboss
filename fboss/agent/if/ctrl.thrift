@@ -1506,7 +1506,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Remove one or multiple traffic redirection policy objects.
    */
-  void removePolicies(1: list<string> policyName) throws (
+  void deletePolicies(1: list<string> policyName) throws (
     1: fboss.FbossBaseError error,
   );
 

@@ -475,7 +475,7 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.removePolicies",
+      "action": "FbossCtrl.deletePolicies",
       "entries": [
         {
           "identity": {
