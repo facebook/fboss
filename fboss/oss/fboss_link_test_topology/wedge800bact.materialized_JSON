@@ -7,12 +7,7 @@
       "interfaces": {
         "eth1/1/1": {
             "neighbor": "eth1/2/1",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/1/5": {
-            "neighbor": "eth1/2/5",
-            "profileID": 38,
+            "profileID": 39,
             "hasTransceiver": true
         },
         "eth1/10/1": {
@@ -22,48 +17,88 @@
         },
         "eth1/10/5": {
             "neighbor": "eth1/9/5",
-            "profileID": 25,
+            "profileID": 38,
             "hasTransceiver": true
         },
         "eth1/11/1": {
             "neighbor": "eth1/12/1",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/11/2": {
+            "neighbor": "eth1/12/2",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/11/3": {
             "neighbor": "eth1/12/3",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/11/4": {
+            "neighbor": "eth1/12/4",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/11/5": {
             "neighbor": "eth1/12/5",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/11/6": {
+            "neighbor": "eth1/12/6",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/11/7": {
             "neighbor": "eth1/12/7",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/11/8": {
+            "neighbor": "eth1/12/8",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/12/1": {
             "neighbor": "eth1/11/1",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/12/2": {
+            "neighbor": "eth1/11/2",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/12/3": {
             "neighbor": "eth1/11/3",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/12/4": {
+            "neighbor": "eth1/11/4",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/12/5": {
             "neighbor": "eth1/11/5",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/12/6": {
+            "neighbor": "eth1/11/6",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/12/7": {
             "neighbor": "eth1/11/7",
-            "profileID": 54,
-            "hasTransceiver": false
+            "profileID": 56,
+            "hasTransceiver": true
+        },
+        "eth1/12/8": {
+            "neighbor": "eth1/11/8",
+            "profileID": 56,
+            "hasTransceiver": true
         },
         "eth1/13/1": {
             "neighbor": "eth1/14/1",
@@ -85,218 +120,8 @@
             "profileID": 23,
             "hasTransceiver": true
         },
-        "eth1/15/1": {
-            "neighbor": "eth1/16/1",
-            "profileID": 24,
-            "hasTransceiver": false
-        },
-        "eth1/15/5": {
-            "neighbor": "eth1/16/5",
-            "profileID": 24,
-            "hasTransceiver": false
-        },
-        "eth1/16/1": {
-            "neighbor": "eth1/15/1",
-            "profileID": 24,
-            "hasTransceiver": false
-        },
-        "eth1/16/5": {
-            "neighbor": "eth1/15/5",
-            "profileID": 24,
-            "hasTransceiver": false
-        },
-        "eth1/17/1": {
-            "neighbor": "eth1/18/1",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/17/5": {
-            "neighbor": "eth1/18/5",
-            "profileID": 25,
-            "hasTransceiver": true
-        },
-        "eth1/18/1": {
-            "neighbor": "eth1/17/1",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/18/5": {
-            "neighbor": "eth1/17/5",
-            "profileID": 25,
-            "hasTransceiver": true
-        },
-        "eth1/19/1": {
-            "neighbor": "eth1/20/1",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/19/3": {
-            "neighbor": "eth1/20/3",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/19/5": {
-            "neighbor": "eth1/20/5",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/19/7": {
-            "neighbor": "eth1/20/7",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
         "eth1/2/1": {
             "neighbor": "eth1/1/1",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/2/5": {
-            "neighbor": "eth1/1/5",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/20/1": {
-            "neighbor": "eth1/19/1",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/20/3": {
-            "neighbor": "eth1/19/3",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/20/5": {
-            "neighbor": "eth1/19/5",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/20/7": {
-            "neighbor": "eth1/19/7",
-            "profileID": 55,
-            "hasTransceiver": false
-        },
-        "eth1/21/1": {
-            "neighbor": "eth1/22/1",
-            "profileID": 25,
-            "hasTransceiver": true
-        },
-        "eth1/21/5": {
-            "neighbor": "eth1/22/5",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/22/1": {
-            "neighbor": "eth1/21/1",
-            "profileID": 25,
-            "hasTransceiver": true
-        },
-        "eth1/22/5": {
-            "neighbor": "eth1/21/5",
-            "profileID": 38,
-            "hasTransceiver": true
-        },
-        "eth1/23/1": {
-            "neighbor": "eth1/27/1",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/2": {
-            "neighbor": "eth1/27/2",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/3": {
-            "neighbor": "eth1/27/3",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/4": {
-            "neighbor": "eth1/27/4",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/5": {
-            "neighbor": "eth1/27/5",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/6": {
-            "neighbor": "eth1/27/6",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/7": {
-            "neighbor": "eth1/27/7",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/23/8": {
-            "neighbor": "eth1/27/8",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/24/1": {
-            "neighbor": "eth1/28/1",
-            "profileID": 50,
-            "hasTransceiver": false
-        },
-        "eth1/25/1": {
-            "neighbor": "eth1/26/1",
-            "profileID": 39,
-            "hasTransceiver": true
-        },
-        "eth1/26/1": {
-            "neighbor": "eth1/25/1",
-            "profileID": 39,
-            "hasTransceiver": true
-        },
-        "eth1/27/1": {
-            "neighbor": "eth1/23/1",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/2": {
-            "neighbor": "eth1/23/2",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/3": {
-            "neighbor": "eth1/23/3",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/4": {
-            "neighbor": "eth1/23/4",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/5": {
-            "neighbor": "eth1/23/5",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/6": {
-            "neighbor": "eth1/23/6",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/7": {
-            "neighbor": "eth1/23/7",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/27/8": {
-            "neighbor": "eth1/23/8",
-            "profileID": 56,
-            "hasTransceiver": false
-        },
-        "eth1/28/1": {
-            "neighbor": "eth1/24/1",
-            "profileID": 50,
-            "hasTransceiver": false
-        },
-        "eth1/29/1": {
-            "neighbor": "eth1/30/1",
             "profileID": 39,
             "hasTransceiver": true
         },
@@ -304,31 +129,6 @@
             "neighbor": "eth1/4/1",
             "profileID": 50,
             "hasTransceiver": true
-        },
-        "eth1/30/1": {
-            "neighbor": "eth1/29/1",
-            "profileID": 39,
-            "hasTransceiver": true
-        },
-        "eth1/31/1": {
-            "neighbor": "eth1/32/1",
-            "profileID": 22,
-            "hasTransceiver": false
-        },
-        "eth1/31/5": {
-            "neighbor": "eth1/32/5",
-            "profileID": 22,
-            "hasTransceiver": false
-        },
-        "eth1/32/1": {
-            "neighbor": "eth1/31/1",
-            "profileID": 22,
-            "hasTransceiver": false
-        },
-        "eth1/32/5": {
-            "neighbor": "eth1/31/5",
-            "profileID": 22,
-            "hasTransceiver": false
         },
         "eth1/33/1": {
             "neighbor": "eth1/33/1",
@@ -387,7 +187,7 @@
         },
         "eth1/9/5": {
             "neighbor": "eth1/10/5",
-            "profileID": 25,
+            "profileID": 38,
             "hasTransceiver": true
         }
       },
