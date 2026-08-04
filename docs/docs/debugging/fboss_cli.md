@@ -6,12 +6,17 @@ sidebar_position: 1
 
 The FBOSS2 CLI (`fboss2`) is a command-line tool for interacting with and managing FBOSS switches. It provides comprehensive visibility into the switch's operational state, configuration, and various subsystems.
 
+There are two flavors of the binary:
+
+- **fboss2**: Provides the ability to inspect the state of the switch through `show`, `clear`, and other operational commands.
+- **fboss2-dev**: Includes everything in `fboss2` plus `config` (and related `delete`) subcommands for managing the switch configuration locally. These configuration commands are kept in a separate binary to give operators more control over how they choose to introduce and manage configuration changes on the switch; this may change in the future. See [Config Commands](#config-fboss2-dev-only) below.
+
 ## Overview
 
 FBOSS2 CLI is the primary tool for:
 - **Monitoring**: View real-time switch state, port status, and traffic statistics
 - **Troubleshooting**: Debug connectivity issues, inspect routing tables, and analyze network behavior
-- **Configuration**: Modify switch settings, manage interfaces, and apply policies
+- **Configuration**: Modify switch settings, manage interfaces, and apply policies (`fboss2-dev`)
 - **Operational tasks**: Verify configurations, check hardware health, and validate deployments
 
 ### Basic Usage
@@ -37,7 +42,7 @@ The FBOSS2 CLI organizes functionality into the following top-level commands:
 | `clear` | Reset counters, clear tables, and remove temporary state |
 | `set` | Modify object properties and settings |
 | `get` | Retrieve specific object information |
-| `config` | Configuration management commands |
+| `config` | Configuration management commands (`fboss2-dev` only) |
 | `create` | Create new objects (routes, ACLs, etc.) |
 | `delete` | Remove objects from the switch |
 | `bounce` | Disable and re-enable objects (ports, interfaces) |
@@ -1036,16 +1041,242 @@ fboss2 get pcap [options]
 
 ---
 
-## config
+## config (fboss2-dev only)
 
-Configuration management commands for viewing and modifying switch configuration.
+Configuration management commands for viewing and modifying the switch configuration. These commands are currently only available in the `fboss2-dev` binary. `fboss2-dev` is a strict superset of `fboss2`: everything documented above (including `show config`) works the same in both binaries, and `fboss2-dev` adds the `config` and related `delete` commands on top.
 
 **Usage:**
 ```bash
-fboss2 config <subcommand> [options]
+fboss2-dev config <subcommand> [options]
 ```
 
-*Note: Use `fboss2 show config` for viewing configuration information.*
+### Config Sessions
+
+The `fboss2-dev` CLI uses a **session-based configuration model**. Config commands never modify the live system configuration directly. They edit a *copy* of the configuration, staged in a session under `~/.fboss2/`, and have no effect on the switch until the session is committed.
+
+**Key points:**
+
+1. **No immediate side effects**: Running a `config` command only updates the session config. The switch state is not modified until the session is committed. Use `fboss2-dev config session diff` to review pending changes.
+
+2. **Single commit step**: All staged changes are applied together when you run `fboss2-dev config session commit`. The commit is not atomic in the transactional sense. Services are updated one at a time, and if applying a change fails the CLI attempts to roll back on a best-effort basis.
+
+3. **Multiple services**: A session can stage changes to the configuration of multiple FBOSS services. Today that means the agent config (`agent.conf`) and the BGP daemon config (`bgpcpp.conf`). More services (e.g. `qsfp_service`) may be managed the same way in the future.
+
+4. **Rebase**: Use `fboss2-dev config session rebase` to reapply uncommitted session changes on top of the current startup config, similar to `git rebase`. This is useful if the startup config has changed since the session was started (e.g., another user committed a change).
+
+5. **Rollback**: Since the configuration is stored in a local Git repository, you can roll back to a previous configuration with `fboss2-dev config rollback`.
+
+### Session Workflow
+
+```bash
+# Stage configuration changes (no side effects yet)
+fboss2-dev config interface eth1/1/1 description "Peer link to device XYZ"
+fboss2-dev config interface eth1/1/1 eth1/2/1 mtu 1500
+
+# Review pending changes
+fboss2-dev config session diff
+
+# Apply all staged changes
+fboss2-dev config session commit
+
+# Or rebase changes onto current config,
+# if the startup config changed underneath the session
+fboss2-dev config session rebase
+
+# ... or throw away all staged changes
+fboss2-dev config session clear
+```
+
+Staging a change confirms what was recorded in the session:
+
+```text
+$ fboss2-dev config interface eth1/1/1 description "Peer link to device XYZ"
+Successfully configured interface(s) eth1/1/1: description="Peer link to device XYZ"
+$ fboss2-dev config interface eth1/1/1 eth1/2/1 mtu 1500
+Successfully configured interface(s) eth1/1/1, eth1/2/1: mtu=1500
+```
+
+`config session diff` shows the pending changes as a unified diff of the config files:
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+$ fboss2-dev config session diff
+--- current live config
++++ session config
+@@ -174,7 +174,7 @@
+         "ipAddresses": [],
+         "isStateSyncDisabled": false,
+         "isVirtual": false,
+-        "mtu": 9000,
++        "mtu": 1500,
+         "portID": 9,
+         "routerID": 0,
+         "scope": 0,
+@@ -186,7 +186,7 @@
+         "ipAddresses": [],
+         "isStateSyncDisabled": false,
+         "isVirtual": false,
+-        "mtu": 9000,
++        "mtu": 1500,
+         "portID": 1,
+         "routerID": 0,
+         "scope": 0,
+@@ -984,7 +984,7 @@
+     "ports": [
+       {
+         "conditionalEntropyRehash": false,
+-        "description": "",
++        "description": "Peer link to device XYZ",
+         "drainState": 0,
+         "expectedLLDPValues": {},
+         "expectedNeighborReachability": [],
+```
+
+</div>
+
+`config session commit` reports the new config revision and how the change was applied to each affected service:
+
+```text
+$ fboss2-dev config session commit
+Config session committed successfully as 21c94ca and config reloaded for fboss_sw_agent.
+```
+
+The committed revision then appears in `config history`:
+
+```text
+$ fboss2-dev config history
+ Commit    Author  Commit Time          Message
+---------------------------------------------------------------------
+ 21c94ca8  netops  2026-07-30 19:23:24  Config commit by netops
+ d0ab8413  netops  2026-07-30 19:23:15  Config commit by netops
+ e3446ba1  netops  2026-07-30 19:22:34  Initial commit
+```
+
+### Config Storage
+
+The switch configuration is stored under `/etc/coop/`, which is a **local Git repository**:
+
+- **No remote**: The repository is managed entirely locally with no remote configured.
+- **Automatic commits**: When you run `fboss2-dev config session commit`, the CLI automatically creates a Git commit with the new configuration.
+- **Version history**: Use `fboss2-dev config history` (or standard Git commands) to view configuration history.
+
+```
+/etc/coop/
+├── .git/                # Local Git repository
+├── agent.conf           # Agent startup configuration (usually a symlink)
+├── cli/
+│   ├── agent.conf       # Last agent configuration committed by the CLI
+│   └── cli_metadata.json
+├── bgpcpp.conf          # BGP daemon startup configuration (symlink)
+└── bgpcpp/
+    └── bgpcpp.conf      # Last BGP configuration committed by the CLI
+```
+
+### Rolling Back
+
+Because every commit is a Git commit, `fboss2-dev config rollback` can restore any previous configuration. Pick a revision from `config history` and roll back to it, or run the command with no argument to roll back to the previous revision:
+
+```text
+$ fboss2-dev config history
+ Commit    Author  Commit Time          Message
+---------------------------------------------------------------------
+ b79071f1  netops  2026-07-30 19:24:08  Config commit by netops
+ 21c94ca8  netops  2026-07-30 19:23:24  Config commit by netops
+ d0ab8413  netops  2026-07-30 19:23:15  Config commit by netops
+ e3446ba1  netops  2026-07-30 19:22:34  Initial commit
+
+$ fboss2-dev config rollback 21c94ca8
+Successfully rolled back. New commit: 790bf861. Config reloaded.
+
+# With no argument, rollback goes back to the previous revision
+$ fboss2-dev config rollback
+Successfully rolled back. New commit: d298ccb2. Config reloaded.
+```
+
+A rollback does not rewrite history. It creates a *new* commit whose content matches the target revision and applies it, so the rollback itself shows up in `config history` and can in turn be rolled back:
+
+```text
+$ fboss2-dev config history
+ Commit    Author  Commit Time          Message
+----------------------------------------------------------------------------
+ d298ccb2  netops  2026-07-30 19:47:49  Rollback to b79071f1 by netops
+ 790bf861  netops  2026-07-30 19:47:21  Rollback to 21c94ca8 by netops
+ b79071f1  netops  2026-07-30 19:24:08  Config commit by netops
+ 21c94ca8  netops  2026-07-30 19:23:24  Config commit by netops
+```
+
+### Applying Changes
+
+When a session is committed, the CLI determines, **per service**, the least disruptive action needed to apply what was actually changed. This is abstracted away from the user. For example, some agent changes can be applied hitlessly via delta processing in ~1-2 seconds, while others require an agent restart. A BGP change may require restarting the BGP daemon while leaving the agent untouched, and a session that only touches the agent config leaves the BGP daemon alone. The CLI tracks the required action level for each service as you stage changes, and `config session commit` takes care of the rest.
+
+### Config Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `acl` | Configure ACL tables and rules |
+| `applied-info` | Show config applied information |
+| `arp` | Configure ARP settings |
+| `copp` | Configure CoPP (control-plane policing) settings |
+| `dhcp` | Configure DHCP relay settings |
+| `history` | Show history of committed config revisions |
+| `interface` | Configure interface settings (MTU, description, switchport, IPv6 NDP, PFC, queuing policy, ...) |
+| `l2` | Configure L2 settings (learning mode) |
+| `load-balancing` | Configure ECMP/LAG hashing |
+| `mac` | Configure MAC settings (aging time) |
+| `protocol` | Configure routing protocols (BGP, static routes) |
+| `ptp` | Configure PTP settings |
+| `qos` | Configure QoS policies, buffer pools, and queuing policies |
+| `reload` | Reload agent configuration from the startup config |
+| `rollback` | Roll back to a previous config revision |
+| `session` | Manage the config session (`clear`, `commit`, `diff`, `rebase`) |
+| `switch` | Configure switch-level settings (hostname, admin distance) |
+| `tunnel` | Configure IP-in-IP tunnels |
+| `vlan` | Configure VLAN settings |
+
+Most `config` subcommands have a matching `delete` counterpart to remove or reset the corresponding piece of configuration (e.g. `fboss2-dev delete protocol static ip route ...`).  Note, that not all configuration parameters can be individually deleted.  Modification of leaf parameters may require deleting the parent object and re-configuring with the desired parameter modified or deleted appropriately.
+
+### BGP Configuration
+
+:::note
+BGP config support is under active development; some pieces are still being upstreamed.
+:::
+
+BGP is configured through the same session model, but the changes are staged for and committed to the BGP daemon's config (`/etc/coop/bgpcpp/bgpcpp.conf`) rather than the agent config. `config session diff`, `rebase`, `rollback`, and `history` are all BGP-aware.
+
+The BGP command families are:
+
+- **`config protocol bgp global [<attribute> <value> ...]`**: process-wide settings such as `router-id`, `local-asn`, `hold-time`, `confed-asn`, `cluster-id`, `network6` (advertised networks), and `switch-limit` overload-protection settings.
+- **`config protocol bgp neighbor <ip-address> [<attribute> <value> ...]`**: per-neighbor settings such as `remote-asn`, `local-asn`, `peer-group`, `description`, `bind-addr address`, `next-hop4`/`next-hop6`/`next-hop-self`, `connect-mode <PASSIVE|ACTIVE>`, `afi disable-ipv4-afi`/`disable-ipv6-afi`, `rr-client`, `confed-peer`, `type`, `ingress-policy`/`egress-policy`, `add-path send|receive`, `link-bandwidth`, `graceful-restart restart-time`, `timers hold-time|keepalive|out-delay|withdraw-unprog-delay`, and `max-route pre-filter|post-filter` limits. A bare `neighbor <ip-address>` creates the neighbor.
+- **`config protocol bgp peer-group <name> [<attribute> <value> ...]`**: the same attribute family applied to a peer group, which neighbors can then reference via `peer-group`.
+- **`config protocol bgp policy as-path-list <name> [entry <seq-num>] [<attribute> <value> ...]`**: BGP routing policy objects. `as-path-list` entries support `asn-regexp`, `description`, and `match-logic <EQUAL|NOT_EQUAL>`. More policy object types (community-list, prefix-list, routing-policy) will follow the same pattern.
+
+Each family has a `delete` counterpart, e.g. `fboss2-dev delete protocol bgp neighbor <ip-address>`.
+
+**Example workflow:**
+
+```bash
+fboss2-dev config protocol bgp global local-asn 65000
+fboss2-dev config protocol bgp neighbor 2001:db8::99 remote-asn 65510
+fboss2-dev config protocol bgp neighbor 2001:db8::99 peer-group RSW-FSW-V6
+fboss2-dev config session diff
+fboss2-dev config session commit
+```
+
+### Useful Commands
+
+| Command | Description |
+|---------|-------------|
+| `show config running` | Show the current in-memory configuration of the agent |
+| `config session diff` | Show pending changes (session vs live, session vs revision, or revision vs revision) |
+| `config session commit` | Apply staged changes to all affected services |
+| `config session rebase` | Reapply uncommitted changes on top of current startup config |
+| `config session clear` | Discard the current config session |
+| `config history` | Show Git commit history of configuration changes |
+| `config rollback` | Roll back to a previous configuration version |
+| `config reload` | Reload the agent configuration from the startup config |
+
+**Note:** The running config (in-memory) may differ from the startup config if changes have been made directly via Thrift calls to the agent.
 
 ---
 
