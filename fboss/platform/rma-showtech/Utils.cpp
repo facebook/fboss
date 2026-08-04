@@ -355,7 +355,7 @@ void Utils::printLogs() {
   std::cout << "##### fboss_hw_agent@0 Log #####" << std::endl;
   printServiceLogs("fboss_hw_agent@0");
 
-  std::cout << "##### demsg Log #####" << std::endl;
+  std::cout << "##### dmesg Log #####" << std::endl;
   std::cout << execCommandWithLimit("dmesg").second << std::endl;
 
   std::cout << "##### Boot Console Log #####" << std::endl;
