@@ -1688,7 +1688,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
-   * Remove Adjacency FRR.
+   * Delete Adjacency FRR.
    *
    * protectedObject:
    *  non-existing (never added by addAdjacencyFrr): throws error
@@ -1697,7 +1697,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * FrrProtectedObject is a union. Fill either protected uA mySID or MPLS
    * label.
    */
-  void removeAdjacencyFrr(1: FrrProtectedObject protectedObject) throws (
+  void deleteAdjacencyFrr(1: FrrProtectedObject protectedObject) throws (
     1: fboss.FbossBaseError error,
   );
 }

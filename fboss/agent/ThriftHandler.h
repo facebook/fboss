@@ -250,7 +250,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addAdjacencyFrr(
       std::unique_ptr<FrrProtectedObject> protectedObject,
       std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) override;
-  void removeAdjacencyFrr(
+  void deleteAdjacencyFrr(
       std::unique_ptr<FrrProtectedObject> protectedObject) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
