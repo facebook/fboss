@@ -222,6 +222,8 @@ sai_status_t set_switch_attribute_fn(
     case SAI_SWITCH_ATTR_RESTART_WARM:
       sw.setRestartWarm(attr->value.booldata);
       break;
+    case SAI_SWITCH_ATTR_PRE_SHUTDOWN:
+      break;
     case SAI_SWITCH_ATTR_FDB_AGING_TIME:
       sw.setMacAgingTime(attr->value.u32);
       break;
