@@ -65,6 +65,16 @@ class PortMap {
       InterfaceID interfaceId) const;
 
   /**
+   * Get the port name for a given port logical ID.
+   *
+   * @param logicalId The port logical ID
+   * @return The port name if found, std::nullopt otherwise
+   */
+  std::optional<std::string> getPortNameForLogicalId(
+      // @lint-ignore CLANGTIDY performance-unnecessary-value-param
+      PortID logicalId) const;
+
+  /**
    * Get the port logical ID for a given port name.
    *
    * @param portName The name of the port
