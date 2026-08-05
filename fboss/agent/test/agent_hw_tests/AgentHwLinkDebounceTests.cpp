@@ -30,6 +30,8 @@ constexpr int kNumRetriggers = 3;
 // notification delivery on slower SDKs and drop an edge, making the retrigger
 // count non-deterministic.
 constexpr int32_t kFlapSettleMs = 1000;
+constexpr auto kDownRetriggerCounter = "link_down_debounce_retrigger";
+constexpr auto kUpRetriggerCounter = "link_up_debounce_retrigger";
 
 class AgentHwLinkDebounceTest : public AgentHwTest {
  public:
@@ -107,9 +109,24 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
     });
   }
 
-  int64_t getLinkStateFlapCount(PortID port) const {
+  int64_t getPortFb303Counter(PortID port, const std::string& key) const {
     auto name = getProgrammedState()->getPorts()->getNodeIf(port)->getName();
-    return fb303::fbData->getCounterIfExists(name + ".link_state.flap.sum")
+    return fb303::fbData->getCounterIfExists(name + "." + key + ".sum")
+        .value_or(0);
+  }
+
+  int64_t getLinkStateFlapCount(PortID port) const {
+    return getPortFb303Counter(port, "link_state.flap");
+  }
+
+  int64_t getLinkFaultCount(PortID port) const {
+    return getPortFb303Counter(port, "link_fault");
+  }
+
+  int64_t getDebounceRetriggerCount(PortID port, bool up) {
+    auto stats = getLatestPortStats(port);
+    return (up ? stats.linkUpDebounceRetriggerCount_()
+               : stats.linkDownDebounceRetriggerCount_())
         .value_or(0);
   }
 
@@ -129,12 +146,16 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
     }
 
     auto retriggerCount = [&]() {
-      auto stats = getLatestPortStats(port);
-      return (upDebounce ? stats.linkUpDebounceRetriggerCount_()
-                         : stats.linkDownDebounceRetriggerCount_())
-          .value_or(0);
+      return getDebounceRetriggerCount(port, upDebounce);
     };
     auto before = retriggerCount();
+    auto flapsBefore = getLinkStateFlapCount(port);
+    auto faultBefore = getLinkFaultCount(port);
+    auto downRetriggersBefore = getDebounceRetriggerCount(port, false);
+    auto upRetriggersBefore = getDebounceRetriggerCount(port, true);
+    auto swDownRetriggersBefore =
+        getPortFb303Counter(port, kDownRetriggerCounter);
+    auto swUpRetriggersBefore = getPortFb303Counter(port, kUpRetriggerCounter);
 
     // Arm the debounce in the held-off direction, then flap back and forth,
     // settling between flaps so the SDK registers each edge (deterministic).
@@ -153,6 +174,39 @@ class AgentHwLinkDebounceTest : public AgentHwTest {
                  << "DebounceRetriggerCount before/after: " << before << "/"
                  << after;
       EXPECT_EVENTUALLY_EQ(after - before, kNumRetriggers);
+    });
+
+    // link_fault counts link downs and link down debounce retriggers. Link up
+    // retriggers are re-asserted link ups, not faults, so they must never be
+    // added here. Reported flaps alternate from the oper state asserted above,
+    // so half of them are downs, rounding up only if the port started up.
+    // Compared as deltas since the retrigger counts are not reset by the test.
+    WITH_RETRIES({
+      auto flapsDelta = getLinkStateFlapCount(port) - flapsBefore;
+      auto downRetriggersDelta =
+          getDebounceRetriggerCount(port, false) - downRetriggersBefore;
+      auto faultDelta = getLinkFaultCount(port) - faultBefore;
+      auto downFlaps = upDebounce ? flapsDelta / 2 : (flapsDelta + 1) / 2;
+      XLOG(INFO) << "Port link_fault delta " << faultDelta << " vs link downs "
+                 << downFlaps << " (of " << flapsDelta
+                 << " flaps) + link down retriggers " << downRetriggersDelta;
+      EXPECT_EVENTUALLY_EQ(faultDelta, downFlaps + downRetriggersDelta);
+    });
+
+    // Both directions are also tracked on their own, so the SwSwitch counters
+    // must mirror the hardware counts even though only the down one is a fault.
+    WITH_RETRIES({
+      auto swDown = getPortFb303Counter(port, kDownRetriggerCounter) -
+          swDownRetriggersBefore;
+      auto swUp =
+          getPortFb303Counter(port, kUpRetriggerCounter) - swUpRetriggersBefore;
+      XLOG(INFO) << "Port debounce retrigger deltas, sw down/up " << swDown
+                 << "/" << swUp;
+      EXPECT_EVENTUALLY_EQ(
+          swDown,
+          getDebounceRetriggerCount(port, false) - downRetriggersBefore);
+      EXPECT_EVENTUALLY_EQ(
+          swUp, getDebounceRetriggerCount(port, true) - upRetriggersBefore);
     });
 
     applyDebounceConfig(std::nullopt, std::nullopt);
