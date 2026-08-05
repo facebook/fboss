@@ -2452,6 +2452,13 @@ struct FlowletSwitchingConfig {
   18: optional i32 maxArsVirtualGroupWidth;
   // maximum number of ARS virtual groups
   19: optional i32 maxArsVirtualGroups;
+  // standby DLB group switching mode
+  20: optional SwitchingMode standbySwitchingMode;
+  // wait for lack of activity interval on the flow before load balancing,
+  // for standby DLB groups
+  21: optional i16 standbyInactivityIntervalUsecs;
+  // flow set table size for standby DLB groups
+  22: optional i16 standbyFlowletTableSize;
 }
 
 /*

@@ -6210,6 +6210,9 @@ class ChildThriftPath<::facebook::fboss::cfg::FlowletSwitchingConfig, ::facebook
     STRUCT_CHILD_GETTERS(minWidthForArsVirtualGroup, 17);
     STRUCT_CHILD_GETTERS(maxArsVirtualGroupWidth, 18);
     STRUCT_CHILD_GETTERS(maxArsVirtualGroups, 19);
+    STRUCT_CHILD_GETTERS(standbySwitchingMode, 20);
+    STRUCT_CHILD_GETTERS(standbyInactivityIntervalUsecs, 21);
+    STRUCT_CHILD_GETTERS(standbyFlowletTableSize, 22);
 };
 
 
