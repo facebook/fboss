@@ -108,6 +108,28 @@ SaiNextHopGroupManager::SaiNextHopGroupManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId>
+SaiNextHopGroupManager::getArsObjectId(
+    std::optional<cfg::SwitchingMode> switchingMode,
+    size_t nextHopGroupSize) const {
+  if (!isEcmpModeARS(switchingMode)) {
+    return std::nullopt;
+  }
+
+  auto arsHandle = managerTable_->arsManager().getArsHandle();
+  if (minWidthForArsVirtualGroup_.has_value() &&
+      nextHopGroupSize >= minWidthForArsVirtualGroup_.value()) {
+    arsHandle = managerTable_->arsManager().getVirtualArsGroupHandle();
+  }
+  if (!arsHandle->ars) {
+    return std::nullopt;
+  }
+  return SaiNextHopGroupTraits::Attributes::ArsObjectId{
+      arsHandle->ars->adapterKey()};
+}
+#endif
+
 std::shared_ptr<SaiNextHopGroupHandle>
 SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   auto ins = handles_.refOrEmplace(key);
@@ -208,20 +230,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     nextHopGroupHandle->desiredEcmpSwitchingMode_ = getDesiredEcmpSwitchingMode(
         nextHopGroupType, key.second, primaryArsMode_);
 
-    if (isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
-
-      if (minWidthForArsVirtualGroup_.has_value() &&
-          swNextHops.size() >= minWidthForArsVirtualGroup_.value()) {
-        arsHandlePtr = managerTable_->arsManager().getVirtualArsGroupHandle();
-      }
-      if (arsHandlePtr->ars) {
-        auto arsSaiId = arsHandlePtr->ars->adapterKey();
-        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
-      }
+    arsObjectId = getArsObjectId(
+        nextHopGroupHandle->desiredEcmpSwitchingMode_, swNextHops.size());
 #endif
-    } else {
+    if (!isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
       if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value() &&
           (nextHopGroupHandle->desiredEcmpSwitchingMode_.value() ==
            cfg::SwitchingMode::PER_PACKET_RANDOM)) {

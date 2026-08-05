@@ -318,6 +318,11 @@ class SaiNextHopGroupManager {
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> getArsObjectId(
+      std::optional<cfg::SwitchingMode> switchingMode,
+      size_t nextHopGroupSize) const;
+#endif
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
