@@ -217,6 +217,8 @@ class NetcastleTestRunner(BaseTestRunner):
             basset_query,
             "--jobs",
             str(num_jobs),
+            "--timeout",
+            asic_options.timeout,
         ]
 
         multi_stage = None
