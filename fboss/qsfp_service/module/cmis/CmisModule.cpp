@@ -55,7 +55,7 @@ constexpr uint8_t kPageSelectByteOffset = 127;
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
-constexpr int kUsecDiagSelectLatchWait = 200000;
+constexpr int kUsecDiagSelectLatchWaitPrbs = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
@@ -96,13 +96,6 @@ namespace facebook {
 namespace fboss {
 
 using namespace facebook::fboss::phy;
-
-enum DiagnosticFeatureEncoding {
-  NONE = 0x0,
-  BER = 0x1,
-  SNR = 0x6,
-  LATCHED_BER = 0x11,
-};
 
 // VDM Config pages: 20h (Group 1), 21h (Group 2), 22h (Group 3), 23h (Group 4)
 constexpr std::array<CmisField, 4> kVdmConfPages = {
@@ -2534,23 +2527,18 @@ void CmisModule::readSnrDiagPageLocked(BankedPage& dest) {
   // Page 14h is a multiplexed diagnostic page; DIAG_SEL selects which feature
   // (SNR vs BER) its data region reflects. DIAG_SEL lives on the banked page
   // itself, so it must be written under each bank's selection before the read.
-  uint8_t diagFeature = static_cast<uint8_t>(DiagnosticFeatureEncoding::SNR);
   // dest is pre-sized to getMaxNumBanks() (>= 1) by cacheMaxNumBanks().
   uint8_t numBanks = getMaxNumBanks();
   if (numBanks <= 1) {
     // Single-bank module: legacy behavior, no bank-select write.
-    writeCmisField(CmisField::DIAG_SEL, &diagFeature);
+    setDiagSel(DiagnosticFeatureEncoding::SNR);
     readCmisField(CmisField::PAGE_UPPER14H, dest.at(0).data());
   } else {
     // Multi-bank: select SNR and read 14h for each bank. Bank 0 is done last so
     // the module is left selected on bank 0 for the subsequent bank-agnostic
     // reads (VDM).
     for (int bank = numBanks - 1; bank >= 0; --bank) {
-      writeCmisField(
-          CmisField::DIAG_SEL,
-          &diagFeature,
-          /*skipBankAndPageChange=*/false,
-          bank);
+      setDiagSel(DiagnosticFeatureEncoding::SNR, bank);
       readCmisField(
           CmisField::PAGE_UPPER14H,
           dest.at(bank).data(),
@@ -2558,6 +2546,34 @@ void CmisModule::readSnrDiagPageLocked(BankedPage& dest) {
           bank);
     }
   }
+}
+
+int CmisModule::getDiagSelLatchWaitUsec() const {
+  const auto partNumber = getQsfpString(CmisField::PART_NUMBER);
+  return std::find(
+             kSlowDiagSelectPartNumbers.begin(),
+             kSlowDiagSelectPartNumbers.end(),
+             partNumber) != kSlowDiagSelectPartNumbers.end()
+      ? kUsecDiagSelectLatchWaitSlow
+      : kUsecDiagSelectLatchWait;
+}
+
+void CmisModule::setDiagSel(
+    DiagnosticFeatureEncoding diagSel,
+    std::optional<uint8_t> bank,
+    std::optional<int> latchWaitUsec) {
+  uint8_t desired = static_cast<uint8_t>(diagSel);
+  uint8_t current = 0;
+  readCmisField(
+      CmisField::DIAG_SEL, &current, /*skipBankAndPageChange=*/false, bank);
+  if (current == desired) {
+    return;
+  }
+  writeCmisField(
+      CmisField::DIAG_SEL, &desired, /*skipBankAndPageChange=*/false, bank);
+  /* sleep override */
+  usleep(
+      latchWaitUsec.has_value() ? *latchWaitUsec : getDiagSelLatchWaitUsec());
 }
 
 /*
@@ -5040,19 +5056,17 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
     uint8_t checkerLockMask;
     readCmisField(lockField, &checkerLockMask, false, bankArg);
 
-    uint8_t diagSel = DiagnosticFeatureEncoding::BER;
-    writeCmisField(CmisField::DIAG_SEL, &diagSel, false, bankArg);
-    /* sleep override */
-    usleep(kUsecDiagSelectLatchWait);
+    setDiagSel(
+        DiagnosticFeatureEncoding::BER, bankArg, kUsecDiagSelectLatchWaitPrbs);
     std::array<uint8_t, 16> laneBerList{};
     readCmisField(berField, laneBerList.data(), false, bankArg);
 
     std::array<uint8_t, 16> laneSnrList{};
     if (snrSupported) {
-      diagSel = DiagnosticFeatureEncoding::SNR;
-      writeCmisField(CmisField::DIAG_SEL, &diagSel, false, bankArg);
-      /* sleep override */
-      usleep(kUsecDiagSelectLatchWait);
+      setDiagSel(
+          DiagnosticFeatureEncoding::SNR,
+          bankArg,
+          kUsecDiagSelectLatchWaitPrbs);
       readCmisField(snrField, laneSnrList.data(), false, bankArg);
     }
 

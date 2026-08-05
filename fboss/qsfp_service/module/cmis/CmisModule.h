@@ -15,6 +15,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace facebook {
@@ -107,6 +108,13 @@ enum VdmConfigType {
   Q_MARGIN = 152,
 };
 
+enum class DiagnosticFeatureEncoding : uint8_t {
+  NONE = 0x0,
+  BER = 0x1,
+  SNR = 0x6,
+  LATCHED_BER = 0x11,
+};
+
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
@@ -132,6 +140,12 @@ class CmisModule : public QsfpModule {
   static constexpr int kMediaInterfaceCodeOffset = 1;
   static constexpr int32_t kDefaultFrequencyMhz = 193100000;
   static constexpr uint8_t kInvalidApplication = 0;
+  // CMIS requires 10ms to repopulate page 14h after DIAG_SEL writes
+  static constexpr int kUsecDiagSelectLatchWait = 10000;
+  // Some modules are non-compliant and take 100ms
+  static constexpr std::array<std::string_view, 2> kSlowDiagSelectPartNumbers =
+      {"QDD-400G-XDR4", "FB-P800G-2XDR4-1"};
+  static constexpr int kUsecDiagSelectLatchWaitSlow = 100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -807,6 +821,10 @@ class CmisModule : public QsfpModule {
       phy::Side side,
       bool setLoopback) override;
 
+  /* How long this module needs to repopulate page 14h after DIAG_SEL changes,
+   * keyed off the part number. */
+  int getDiagSelLatchWaitUsec() const;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -867,6 +885,16 @@ class CmisModule : public QsfpModule {
    * banked page, so DIAG_SEL=SNR is written under each bank's selection before
    * reading. Reads bank 0 last so the module is left selected on bank 0. */
   void readSnrDiagPageLocked(BankedPage& dest);
+
+  /*
+  1. Check if existing diagSel matches the desired one
+  2. If not, write the value and wait for page 14h to repopulate
+   Note that latchWaitUsec overrides getDiagSelLatchWaitUsec().
+  */
+  void setDiagSel(
+      DiagnosticFeatureEncoding diagSel,
+      std::optional<uint8_t> bank = std::nullopt,
+      std::optional<int> latchWaitUsec = std::nullopt);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
