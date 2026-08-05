@@ -32,12 +32,14 @@ CmdShowInterfaceFlapsTraits::RetType createModel(
       std::string tenMinutes = interface + ".link_state.flap.sum.600";
       std::string oneHour = interface + ".link_state.flap.sum.3600";
       std::string totalFlaps = interface + ".link_state.flap.sum";
+      std::string totalLinkFaults = interface + ".link_fault.sum";
 
       counter.interfaceName() = interface;
       counter.oneMinute() = wedgeCounters[oneMinute];
       counter.tenMinute() = wedgeCounters[tenMinutes];
       counter.oneHour() = wedgeCounters[oneHour];
       counter.totalFlaps() = wedgeCounters[totalFlaps];
+      counter.totalLinkFaults() = wedgeCounters[totalLinkFaults];
 
       ret.flap_counters()->push_back(counter);
     }
@@ -80,7 +82,8 @@ CmdShowInterfaceFlapsTraits::RetType CmdShowInterfaceFlaps::queryClient(
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
   std::map<std::string, int64_t> wedgeCounters;
-  client->sync_getRegexCounters(wedgeCounters, "^(eth|fab).*flap.sum.*");
+  client->sync_getRegexCounters(
+      wedgeCounters, "^(eth|fab).*(flap|link_fault).sum.*");
   std::unordered_set<std::string> distinctInterfaceNames;
   for (const auto& counter : wedgeCounters) {
     std::vector<std::string> result;
@@ -103,7 +106,8 @@ void CmdShowInterfaceFlaps::printOutput(
        "1 Min",
        "10 Min",
        "60 Min",
-       "Total (since last reboot)"});
+       "Total (since last reboot)",
+       "Total Link Faults"});
 
   for (const auto& counter : model.flap_counters().value()) {
     table.addRow({
@@ -120,6 +124,9 @@ void CmdShowInterfaceFlaps::printOutput(
         Table::StyledCell(
             std::to_string(folly::copy(counter.totalFlaps().value())),
             get_FlapStyle(folly::copy(counter.totalFlaps().value()))),
+        Table::StyledCell(
+            std::to_string(folly::copy(counter.totalLinkFaults().value())),
+            get_FlapStyle(folly::copy(counter.totalLinkFaults().value()))),
     });
   }
 
