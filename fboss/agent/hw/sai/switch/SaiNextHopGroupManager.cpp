@@ -106,14 +106,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhops(swNextHops);
   const auto nextHopGroupType =
       getEcmpGroupType(primaryNhops.size(), backupNhops.size());
-  auto childNexthopGroup = (primaryNhops.size() && backupNhops.size())
+  auto childNextHopGroup = (primaryNhops.size() && backupNhops.size())
       ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(backupNhops, key.second))
       : nullptr;
-  // Just to get rid of unused var warning, child nhop group will be used in
-  // next diffs
-  CHECK_EQ(
-      primaryNhops.size() > 0 && backupNhops.size() > 0,
-      childNexthopGroup != nullptr);
   const auto& memberNhops = primaryNhops.empty() ? backupNhops : primaryNhops;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
@@ -271,6 +266,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   nextHopGroupHandle->platform_ = platform_;
 
+  if (childNextHopGroup) {
+    nextHopGroupHandle->childGroupMember_ =
+        std::make_shared<SaiNextHopGroupChildGroupMember>(
+            this, std::move(childNextHopGroup), nextHopGroupId);
+  }
+
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
@@ -362,6 +363,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
 
   return nextHopGroupHandle;
+}
+
+const SaiNextHopGroupHandle* SaiNextHopGroupManager::getNextHopGroup(
+    const SaiNextHopGroupKey& key) const {
+  return handles_.get(key);
 }
 
 bool SaiNextHopGroupManager::isFixedWidthNextHopGroup(

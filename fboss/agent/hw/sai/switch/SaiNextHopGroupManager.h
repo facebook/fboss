@@ -242,6 +242,9 @@ class NextHopGroupMember {
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
+  // Currently only Adj FRR with  1:N protection is supported,
+  // so a group can have only one child next hop group member.
+  std::shared_ptr<SaiNextHopGroupChildGroupMember> childGroupMember_;
   bool fixedWidthMode{false};
   bool bulkCreate{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
@@ -278,6 +281,9 @@ class SaiNextHopGroupManager {
 
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const SaiNextHopGroupKey& key);
+
+  const SaiNextHopGroupHandle* getNextHopGroup(
+      const SaiNextHopGroupKey& key) const;
 
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
