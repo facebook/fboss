@@ -23,6 +23,7 @@ cpp_library(
         "//fboss/platform/helpers:platform_utils",
         "//folly:conv",
         "//folly:format",
+        "//folly:scope_guard",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
