@@ -165,6 +165,69 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
   }
 }
 
+TEST_F(NextHopManagerTest, testProtectionNextHopGroupMemberResolution) {
+  const auto& primaryHost = intf0.remoteHosts[0];
+  const auto& backupHost = intf1.remoteHosts[0];
+  auto primaryArpEntry = makeArpEntry(intf0.id, primaryHost);
+  auto backupArpEntry = makeArpEntry(intf1.id, backupHost);
+  saiManagerTable->neighborManager().removeNeighbor(primaryArpEntry);
+  saiManagerTable->neighborManager().removeNeighbor(backupArpEntry);
+
+  auto backup = makeResolvedNextHop(intf1, NextHopRole::BACKUP);
+  RouteNextHopEntry::NextHopSet backupNhops{backup};
+  RouteNextHopEntry::NextHopSet swNextHops{
+      makeResolvedNextHop(intf0, NextHopRole::PRIMARY),
+      backup,
+  };
+  auto parentGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
+  ASSERT_NE(parentGroupHandle->nextHopGroup, nullptr);
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  auto parentGroupType = nextHopGroupApi.getAttribute(
+      parentGroupHandle->nextHopGroup->adapterKey(),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(parentGroupType, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+  ASSERT_NE(parentGroupHandle->childGroupMember_, nullptr);
+  auto childGroupMember =
+      parentGroupHandle->childGroupMember_->getNhopGroupMemberObject();
+  ASSERT_NE(childGroupMember, nullptr);
+  auto childGroupId = nextHopGroupApi.getAttribute(
+      childGroupMember->adapterKey(),
+      SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
+  auto childGroupType = nextHopGroupApi.getAttribute(
+      NextHopGroupSaiId(childGroupId),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(childGroupType, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+
+  auto childGroupHandle =
+      saiManagerTable->nextHopGroupManager().getNextHopGroup(
+          SaiNextHopGroupKey(backupNhops, std::nullopt));
+  ASSERT_NE(childGroupHandle, nullptr);
+  ASSERT_EQ(parentGroupHandle->members_.size(), 1);
+  ASSERT_EQ(childGroupHandle->members_.size(), 1);
+  EXPECT_FALSE(parentGroupHandle->members_[0]->isProgrammed());
+  EXPECT_FALSE(childGroupHandle->members_[0]->isProgrammed());
+
+  primaryArpEntry = resolveArp(intf0.id, primaryHost);
+  EXPECT_TRUE(parentGroupHandle->members_[0]->isProgrammed());
+  EXPECT_FALSE(childGroupHandle->members_[0]->isProgrammed());
+
+  backupArpEntry = resolveArp(intf1.id, backupHost);
+  EXPECT_TRUE(parentGroupHandle->members_[0]->isProgrammed());
+  EXPECT_TRUE(childGroupHandle->members_[0]->isProgrammed());
+
+  saiManagerTable->neighborManager().removeNeighbor(primaryArpEntry);
+  saiManagerTable->neighborManager().removeNeighbor(backupArpEntry);
+  EXPECT_FALSE(parentGroupHandle->members_[0]->isProgrammed());
+  EXPECT_FALSE(childGroupHandle->members_[0]->isProgrammed());
+
+  resolveArp(intf0.id, primaryHost);
+  resolveArp(intf1.id, backupHost);
+  EXPECT_TRUE(parentGroupHandle->members_[0]->isProgrammed());
+  EXPECT_TRUE(childGroupHandle->members_[0]->isProgrammed());
+}
+
 TEST_F(NextHopManagerTest, testProtectionGroupsWithDifferentBackupsDoNotAlias) {
   auto primary = makeResolvedNextHop(intf0, NextHopRole::PRIMARY);
   RouteNextHopEntry::NextHopSet firstNextHops{
