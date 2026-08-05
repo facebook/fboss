@@ -240,6 +240,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
   }
 
+  nextHopGroupAdapterHostKey.groupType = nextHopGroupType;
+  if (childNextHopGroup) {
+    CHECK(childNextHopGroup->nextHopGroup);
+    nextHopGroupAdapterHostKey.childNextHopGroups.insert(
+        childNextHopGroup->nextHopGroup->adapterHostKey());
+  }
+
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{

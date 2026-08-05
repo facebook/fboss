@@ -158,6 +158,34 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
   }
 }
 
+TEST_F(NextHopManagerTest, testProtectionGroupsWithDifferentBackupsDoNotAlias) {
+  auto primary = makeResolvedNextHop(intf0, NextHopRole::PRIMARY);
+  RouteNextHopEntry::NextHopSet firstNextHops{
+      primary,
+      makeResolvedNextHop(intf1, NextHopRole::BACKUP),
+  };
+  RouteNextHopEntry::NextHopSet secondNextHops{
+      primary,
+      makeResolvedNextHop(intf2, NextHopRole::BACKUP),
+  };
+
+  auto firstHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(firstNextHops, std::nullopt));
+  auto secondHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(secondNextHops, std::nullopt));
+
+  ASSERT_NE(firstHandle->nextHopGroup, nullptr);
+  ASSERT_NE(secondHandle->nextHopGroup, nullptr);
+  EXPECT_NE(
+      firstHandle->nextHopGroup->adapterHostKey(),
+      secondHandle->nextHopGroup->adapterHostKey());
+  EXPECT_NE(
+      firstHandle->nextHopGroup->adapterKey(),
+      secondHandle->nextHopGroup->adapterKey());
+}
+
 TEST_F(NextHopManagerTest, testPrimaryOnlyNextHopGroup) {
   RouteNextHopEntry::NextHopSet swNextHops{
       makeResolvedNextHop(intf0, NextHopRole::PRIMARY),
