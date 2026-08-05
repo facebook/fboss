@@ -52,7 +52,7 @@ CmdDeleteQosDefaultQueueConfig::queryClient(
   defaultPortQueues.erase(it);
 
   session.saveConfig(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
   return fmt::format(
       "Successfully deleted default-queue-config queue-id {}", queueIdVal);

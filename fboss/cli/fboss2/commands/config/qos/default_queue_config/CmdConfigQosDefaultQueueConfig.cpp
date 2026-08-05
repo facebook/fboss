@@ -62,7 +62,7 @@ CmdConfigQosDefaultQueueConfig::queryClient(
   }
 
   session.saveConfig(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
   return fmt::format(
       "Successfully configured default-queue-config queue-id {}", queueIdVal);
