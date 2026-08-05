@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
@@ -22,6 +23,14 @@ using namespace facebook::fboss;
 
 class NextHopManagerTest : public ManagerTestBase {
  public:
+  void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
+    ManagerTestBase::SetUp();
+    intf0 = testInterfaces[0];
+    intf1 = testInterfaces[1];
+    intf2 = testInterfaces[2];
+  }
+
   void checkNextHop(
       NextHopSaiId nextHopId,
       RouterInterfaceSaiId expectedRifId,
@@ -36,6 +45,28 @@ class NextHopManagerTest : public ManagerTestBase {
         nextHopId, SaiIpNextHopTraits::Attributes::Type());
     EXPECT_EQ(typeGot, SAI_NEXT_HOP_TYPE_IP);
   }
+
+  ResolvedNextHop makeResolvedNextHop(
+      const TestInterface& intf,
+      NextHopRole role) const {
+    return ResolvedNextHop{
+        intf.remoteHosts[0].ip,
+        InterfaceID(intf.id),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        {},
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        role};
+  }
+
+  TestInterface intf0;
+  TestInterface intf1;
+  TestInterface intf2;
 };
 
 TEST_F(NextHopManagerTest, testAddNextHop) {
@@ -44,6 +75,23 @@ TEST_F(NextHopManagerTest, testAddNextHop) {
   std::shared_ptr<SaiIpNextHop> nextHop =
       saiManagerTable->nextHopManager().addNextHop(rifId, ip4);
   checkNextHop(nextHop->adapterKey(), rifId, ip4);
+}
+
+TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
+  RouteNextHopEntry::NextHopSet swNextHops{
+      makeResolvedNextHop(intf0, NextHopRole::PRIMARY),
+      makeResolvedNextHop(intf1, NextHopRole::BACKUP),
+      makeResolvedNextHop(intf2, NextHopRole::BACKUP),
+  };
+
+  auto nextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
+  ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
+  auto type = saiApiTable->nextHopGroupApi().getAttribute(
+      nextHopGroupHandle->nextHopGroup->adapterKey(),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(type, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)

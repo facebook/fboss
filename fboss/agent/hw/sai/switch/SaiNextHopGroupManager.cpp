@@ -30,6 +30,45 @@
 
 namespace facebook::fboss {
 
+namespace {
+std::pair<RouteNextHopEntry::NextHopSet, RouteNextHopEntry::NextHopSet>
+checkAndGetPriAndBackupNhop(const RouteNextHopEntry::NextHopSet& swNextHops) {
+  RouteNextHopEntry::NextHopSet primaryNhops, backupNhops;
+  for (const auto& swNextHop : swNextHops) {
+    switch (swNextHop.role()) {
+      case NextHopRole::PRIMARY:
+        primaryNhops.insert(swNextHop);
+        break;
+      case NextHopRole::BACKUP:
+        backupNhops.insert(swNextHop);
+        break;
+    }
+  }
+  if (backupNhops.size() && primaryNhops.size() > 1) {
+    throw FbossError(
+        "Got : ",
+        primaryNhops.size(),
+        " primary nhops and ",
+        backupNhops.size(),
+        " backup nhops. While only 1:N protection model is supported");
+  }
+  return std::make_pair(primaryNhops, backupNhops);
+}
+sai_next_hop_group_type_t getEcmpGroupType(
+    size_t numPrimaryNhops,
+    size_t numBackupNhops) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  if (numPrimaryNhops && numBackupNhops) {
+    return SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+  }
+  if (numBackupNhops) {
+    return SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+  }
+#endif
+  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+}
+} // namespace
+
 bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
   return (
       switchingMode.has_value() &&
@@ -51,25 +90,15 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     return nextHopGroupHandle;
   }
   const auto& swNextHops = key.first;
-  RouteNextHopEntry::NextHopSet primaryNhops, backupNhops;
-  for (const auto& swNextHop : swNextHops) {
-    switch (swNextHop.role()) {
-      case NextHopRole::PRIMARY:
-        primaryNhops.insert(swNextHop);
-        break;
-      case NextHopRole::BACKUP:
-        backupNhops.insert(swNextHop);
-        break;
-    }
-  }
-  if (backupNhops.size() && primaryNhops.size() > 1) {
-    throw FbossError(
-        "Got : ",
-        primaryNhops.size(),
-        " primary nhops and ",
-        backupNhops.size(),
-        " backup nhops. While only 1:N protection model is supported");
-  }
+  auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhop(swNextHops);
+  auto childNexthopGroup = (primaryNhops.size() && backupNhops.size())
+      ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(backupNhops, key.second))
+      : nullptr;
+  // Just to get rid of unused var warning, child nhop group will be used in
+  // next diffs
+  CHECK_EQ(
+      primaryNhops.size() > 0 && backupNhops.size() > 0,
+      childNexthopGroup != nullptr);
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -203,9 +232,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP
+      getEcmpGroupType(primaryNhops.size(), backupNhops.size())
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      ,
+          ,
       arsObjectId
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
