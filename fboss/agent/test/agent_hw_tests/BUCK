@@ -204,6 +204,7 @@ cpp_library(
         "AgentAclTableGroupTests.cpp",
         "AgentAclTableGroupTrafficTests.cpp",
         "AgentAclTableTests.cpp",
+        "AgentAdjFrrRouteTests.cpp",
         "AgentAmIdlesTests.cpp",
         "AgentAqmTests.cpp",
         "AgentAsicDefaultProgrammingTests.cpp",
