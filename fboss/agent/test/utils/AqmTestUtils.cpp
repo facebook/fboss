@@ -73,29 +73,32 @@ int getRoundedBufferThreshold(
     int expectedThreshold,
     bool roundUp) {
   int threshold{};
-  if (cfg::AsicType::ASIC_TYPE_EBRO == asic->getAsicType() ||
-      cfg::AsicType::ASIC_TYPE_P200 == asic->getAsicType()) {
+  if (cfg::AsicType::ASIC_TYPE_EBRO == asic->getAsicType()) {
     /*
      * Ebro splits queue buffers into 16 blocks, watermarks and
      * ECN/WRED thresholds can only be reported / configured in
      * the order of these block thresholds as captured below.
+     * Ebro (GB) is also brought up with the min-guarantee buffer profile,
+     * for which the SDK programs a different CGM quantization table. Mirrors
+     * lsai_wred_manager_gb_min_guarantee::m_voq_sms_thresh, defined in
+     * sai/src/cgm/wred/sai_wred_manager_gb_min.h.
      *
      * Doc: https://fburl.com/nil3f15m
      */
     const std::vector<int> kEbroQuantizedThresholds{
         (50 * 384),
-        (256 * 384),
+        (96 * 384),
+        (192 * 384),
         (512 * 384),
-        (1024 * 384),
-        (2 * 1024 * 384),
-        (3 * 1024 * 384),
+        (1 * 1024 * 384),
+        (2730 * 384),
         (6 * 1024 * 384),
         (7 * 1024 * 384),
         (8 * 1024 * 384),
         (9 * 1024 * 384),
         (10 * 1024 * 384),
-        (11 * 1024 * 384),
         (12 * 1024 * 384),
+        (14 * 1024 * 384),
         (15 * 1024 * 384),
         (16000 * 384)};
     auto it = std::lower_bound(
