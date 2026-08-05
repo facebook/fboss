@@ -904,6 +904,13 @@ class HwAsic {
     return cfg::TunnelMode::PIPE;
   }
 
+  // Applicable only when PORT_DEBOUNCE feature is enabled. True means each
+  // read reports the count since the previous read, false means the retrigger
+  // counters report a running total.
+  virtual bool isPortDebounceRetriggerCountClearOnRead() const {
+    return true;
+  }
+
   virtual uint64_t getCpuPortEgressPoolSize() const;
 
   virtual bool portMtuSupported(cfg::PortType portType) const;
