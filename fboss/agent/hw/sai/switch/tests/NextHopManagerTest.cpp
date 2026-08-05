@@ -125,6 +125,9 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
   auto childGroupMember =
       nextHopGroupHandle->childGroupMember_->getNhopGroupMemberObject();
   ASSERT_NE(childGroupMember, nullptr);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  EXPECT_EQ(std::get<3>(childGroupMember->attributes()), std::nullopt);
+#endif
   auto childNextHopGroupId = saiApiTable->nextHopGroupApi().getAttribute(
       childGroupMember->adapterKey(),
       SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
@@ -137,9 +140,21 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
           SaiNextHopGroupKey(backupNhops, std::nullopt));
   ASSERT_NE(backupNextHopGroupHandle, nullptr);
   EXPECT_EQ(backupNextHopGroupHandle->childGroupMember_, nullptr);
+  for (const auto& member : backupNextHopGroupHandle->members_) {
+    ASSERT_NE(member->getObject(), nullptr);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    EXPECT_EQ(
+        std::get<3>(member->getObject()->attributes()),
+        SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+            SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY});
+#endif
+  }
   for (const auto& member : nextHopGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);
     EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    EXPECT_EQ(std::get<3>(member->getObject()->attributes()), std::nullopt);
+#endif
   }
 }
 
@@ -154,6 +169,12 @@ TEST_F(NextHopManagerTest, testPrimaryOnlyNextHopGroup) {
           SaiNextHopGroupKey(swNextHops, std::nullopt));
   ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
   EXPECT_EQ(nextHopGroupHandle->childGroupMember_, nullptr);
+  for (const auto& member : nextHopGroupHandle->members_) {
+    ASSERT_NE(member->getObject(), nullptr);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    EXPECT_EQ(std::get<3>(member->getObject()->attributes()), std::nullopt);
+#endif
+  }
 }
 
 TEST_F(NextHopManagerTest, testBackupOnlyNextHopGroup) {
@@ -175,6 +196,12 @@ TEST_F(NextHopManagerTest, testBackupOnlyNextHopGroup) {
   for (const auto& member : nextHopGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);
     EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    EXPECT_EQ(
+        std::get<3>(member->getObject()->attributes()),
+        SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+            SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY});
+#endif
   }
 }
 

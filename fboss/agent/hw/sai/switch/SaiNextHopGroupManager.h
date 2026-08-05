@@ -75,6 +75,7 @@ class ManagedSaiNextHopGroupNextHopMember
       SaiNextHopGroupHandle* nhgroup,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       NextHopWeight weight,
       bool fixedWidthMode)
       : Base(managedNextHop->adapterHostKey()),
@@ -82,6 +83,7 @@ class ManagedSaiNextHopGroupNextHopMember
         nhgroup_(nhgroup),
         managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
+        nextHopGroupType_(nextHopGroupType),
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
@@ -115,6 +117,7 @@ class ManagedSaiNextHopGroupNextHopMember
   SaiNextHopGroupHandle* nhgroup_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
+  sai_next_hop_group_type_t nextHopGroupType_;
   NextHopWeight weight_;
   bool fixedWidthMode_;
   std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
@@ -167,6 +170,7 @@ class NextHopGroupMember {
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       ManagedSaiNextHop managedSaiNextHop,
       NextHopWeight nextHopWeight,
       bool fixedWidthMode);

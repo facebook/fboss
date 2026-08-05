@@ -80,7 +80,6 @@ sai_next_hop_group_type_t getEcmpGroupType(
 #endif
   return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
 }
-} // namespace
 
 bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
   return (
@@ -88,6 +87,7 @@ bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
       (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
        switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
 }
+} // namespace
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
@@ -318,6 +318,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         this,
         nextHopGroupHandle.get(),
         nextHopGroupId,
+        nextHopGroupType,
         managedNextHop,
         weight,
         nextHopGroupHandle->fixedWidthMode);
@@ -550,6 +551,7 @@ NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupHandle* nhgroup,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+    sai_next_hop_group_type_t nextHopGroupType,
     ManagedSaiNextHop managedSaiNextHop,
     NextHopWeight nextHopWeight,
     bool fixedWidthMode) {
@@ -566,6 +568,7 @@ NextHopGroupMember::NextHopGroupMember(
             nhgroup,
             managedNextHop,
             nexthopGroupId,
+            nextHopGroupType,
             nextHopWeight,
             fixedWidthMode);
         SaiObjectEventPublisher::getInstance()->get<ObjectTraits>().subscribe(
@@ -625,6 +628,14 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
 
   SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
       nexthopGroupId_, nexthopId};
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole>
+      configuredRole;
+  if (nextHopGroupType_ == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
+    configuredRole = SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+        SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY};
+  }
+#endif
   // In fixed width case, the member is added with weight 0
   // and proper weight is set through bulk set api. check comments
   // associated with SaiNextHopGroupHandle::bulkProgramMembers for details
@@ -636,7 +647,7 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
           : weight_
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::nullopt /* configuredRole */,
+      configuredRole,
       std::nullopt /* monitoredObject */
 #endif
   };
