@@ -40,6 +40,7 @@ thrift_library(
         "//fboss/agent/if:mpls",
         "//fboss/lib/if:fboss_common",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
     ],
@@ -145,6 +146,7 @@ thrift_library(
         "//fboss/agent/hw/sai/config:asic_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -1774,6 +1776,7 @@ cpp_library(
         ":utils",
         "//common/fb303/cpp:default_control",
         "//common/fb303/cpp:default_monitor",
+        "//common/fb303/cpp:default_status",
         "//common/fb303/cpp:fb303",
         "//fb303:logging",
         "//fb303:service_data",

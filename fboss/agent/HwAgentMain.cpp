@@ -16,6 +16,7 @@
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
 #include "common/fb303/cpp/DefaultMonitor.h"
+#include "common/fb303/cpp/DefaultStatus.h"
 #endif
 #ifdef IS_OSS
 #include "common/fb303/cpp/FacebookBase2.h"
@@ -251,6 +252,12 @@ int hwAgentMain(
       std::make_shared<facebook::fb303::DefaultMonitor>());
   server->setControlInterface(
       std::make_shared<facebook::fb303::DefaultControl>());
+  // The NetOS native-service watchdog gates systemd readiness on an fb303
+  // getStatus() call against the HwAgent thrift port. Without a status
+  // interface that method is unresolvable, so the service never reaches
+  // READY and is killed by the watchdog before SwAgent can start.
+  server->setStatusInterface(
+      std::make_shared<facebook::fb303::DefaultStatus>());
 #endif
 
   SplitHwAgentSignalHandler signalHandler(
