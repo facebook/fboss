@@ -27,20 +27,25 @@
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
+#include <iterator>
+#include <vector>
 
 namespace facebook::fboss {
 
 namespace {
 std::pair<RouteNextHopEntry::NextHopSet, RouteNextHopEntry::NextHopSet>
-checkAndGetPriAndBackupNhop(const RouteNextHopEntry::NextHopSet& swNextHops) {
-  RouteNextHopEntry::NextHopSet primaryNhops, backupNhops;
+checkAndGetPriAndBackupNhops(const RouteNextHopEntry::NextHopSet& swNextHops) {
+  std::vector<NextHop> primaryNhops;
+  std::vector<NextHop> backupNhops;
+  primaryNhops.reserve(swNextHops.size());
+  backupNhops.reserve(swNextHops.size());
   for (const auto& swNextHop : swNextHops) {
     switch (swNextHop.role()) {
       case NextHopRole::PRIMARY:
-        primaryNhops.insert(swNextHop);
+        primaryNhops.push_back(swNextHop);
         break;
       case NextHopRole::BACKUP:
-        backupNhops.insert(swNextHop);
+        backupNhops.push_back(swNextHop);
         break;
     }
   }
@@ -52,7 +57,15 @@ checkAndGetPriAndBackupNhop(const RouteNextHopEntry::NextHopSet& swNextHops) {
         backupNhops.size(),
         " backup nhops. While only 1:N protection model is supported");
   }
-  return std::make_pair(primaryNhops, backupNhops);
+  return std::make_pair(
+      RouteNextHopEntry::NextHopSet(
+          boost::container::ordered_unique_range,
+          std::make_move_iterator(primaryNhops.begin()),
+          std::make_move_iterator(primaryNhops.end())),
+      RouteNextHopEntry::NextHopSet(
+          boost::container::ordered_unique_range,
+          std::make_move_iterator(backupNhops.begin()),
+          std::make_move_iterator(backupNhops.end())));
 }
 sai_next_hop_group_type_t getEcmpGroupType(
     size_t numPrimaryNhops,
@@ -90,7 +103,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     return nextHopGroupHandle;
   }
   const auto& swNextHops = key.first;
-  auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhop(swNextHops);
+  auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhops(swNextHops);
   const auto nextHopGroupType =
       getEcmpGroupType(primaryNhops.size(), backupNhops.size());
   auto childNexthopGroup = (primaryNhops.size() && backupNhops.size())
