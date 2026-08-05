@@ -191,6 +191,33 @@ TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
       r2, RouterID(0), getProgrammedState());
 }
 
+TEST_F(
+    RouteManagerTest,
+    singleNhopProtectionRouteCreatesTopLevelAndChildGroups) {
+  RouteNextHopEntry::NextHopSet backupNextHops{
+      makeResolvedNextHop(testInterfaces.at(1), NextHopRole::BACKUP),
+  };
+  auto route = makeProtectionRoute(d1, testInterfaces.at(0), backupNextHops);
+  auto routeHandle = programRoute(route);
+  ASSERT_NE(routeHandle, nullptr);
+
+  auto groupHandle = routeHandle->nextHopGroupHandle();
+  ASSERT_NE(groupHandle, nullptr);
+  ASSERT_NE(groupHandle->nextHopGroup, nullptr);
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  auto topLevelGroupType = nextHopGroupApi.getAttribute(
+      groupHandle->nextHopGroup->adapterKey(),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(topLevelGroupType, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+
+  auto childGroupId = getChildGroupId(groupHandle);
+  ASSERT_TRUE(childGroupId.has_value());
+  auto childGroupType = nextHopGroupApi.getAttribute(
+      NextHopGroupSaiId(childGroupId.value()),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(childGroupType, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+}
+
 TEST_F(RouteManagerTest, protectionRoutesWithSameBackupsShareChildGroup) {
   RouteNextHopEntry::NextHopSet backupNextHops{
       makeResolvedNextHop(testInterfaces.at(2), NextHopRole::BACKUP),
