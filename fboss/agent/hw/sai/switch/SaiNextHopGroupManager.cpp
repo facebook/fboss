@@ -539,7 +539,8 @@ NextHopGroupMember::NextHopGroupMember(
             decltype(managedNextHop)>::element_type::ObjectTraits;
         auto key = managedNextHop->adapterHostKey();
         std::ignore = key;
-        using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
+        using ManagedMemberType =
+            ManagedSaiNextHopGroupNextHopMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
             manager,
             nhgroup,
@@ -558,15 +559,15 @@ template <typename NextHopTraits>
 std::pair<
     std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
     std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
-ManagedSaiNextHopGroupMember<
+ManagedSaiNextHopGroupNextHopMember<
     NextHopTraits>::getAdapterHostKeyAndCreateAttributes() {
   return std::make_pair(adapterHostKey_, createAttributes_);
 }
 
 template <typename NextHopTraits>
-void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
-    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
-        added) {
+void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
+    typename ManagedSaiNextHopGroupNextHopMember<
+        NextHopTraits>::PublisherObjects added) {
   CHECK(this->allPublishedObjectsAlive()) << "next hops are not ready";
 
   auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
@@ -621,18 +622,20 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
     // notify nhgroup to bulk program correct weight
     nhgroup_->memberAdded({adapterHostKey, weight_.value()}, bulkUpdate);
   }
-  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString()
-             << " weight "
+  XLOG(DBG2) << "ManagedSaiNextHopGroupNextHopMember::createObject: "
+             << toString() << " weight "
              << (weight_.has_value() ? std::to_string(weight_->value())
                                      : "none");
 }
 
 template <typename NextHopTraits>
-void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
+void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::removeObject(
     size_t /* index */,
-    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
+    typename ManagedSaiNextHopGroupNextHopMember<
+        NextHopTraits>::PublisherObjects
     /* removed */) {
-  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
+  XLOG(DBG2) << "ManagedSaiNextHopGroupNextHopMember::removeObject: "
+             << toString();
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program with 0 weight. In fixed width mode
     // member cannot be removed directly. check comments associated with
@@ -782,7 +785,8 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
 }
 
 template <typename NextHopTraits>
-std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
+std::string ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::toString()
+    const {
   auto nextHopGroupMemberIdStr = this->getObject()
       ? std::to_string(this->getObject()->adapterKey())
       : "none";

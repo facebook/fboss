@@ -55,14 +55,14 @@ template <typename T>
 class ManagedNextHop;
 
 template <typename NextHopTraits>
-class ManagedSaiNextHopGroupMember
+class ManagedSaiNextHopGroupNextHopMember
     : public SaiObjectEventAggregateSubscriber<
-          ManagedSaiNextHopGroupMember<NextHopTraits>,
+          ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
           SaiNextHopGroupMemberTraits,
           NextHopTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      ManagedSaiNextHopGroupMember<NextHopTraits>,
+      ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
       SaiNextHopGroupMemberTraits,
       NextHopTraits>;
 
@@ -70,7 +70,7 @@ class ManagedSaiNextHopGroupMember
   using PublisherObjects = std::tuple<NextHopWeakPtr>;
   using NextHopWeight =
       std::optional<typename SaiNextHopGroupMemberTraits::Attributes::Weight>;
-  ManagedSaiNextHopGroupMember(
+  ManagedSaiNextHopGroupNextHopMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
@@ -85,7 +85,7 @@ class ManagedSaiNextHopGroupMember
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
-  ~ManagedSaiNextHopGroupMember() {
+  ~ManagedSaiNextHopGroupNextHopMember() {
     this->resetObject();
   }
 
@@ -127,12 +127,12 @@ class NextHopGroupMember {
   using NextHopWeight =
       std::optional<SaiNextHopGroupMemberTraits::Attributes::Weight>;
   using ManagedIpNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiMplsNextHopTraits>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   using ManagedSrv6NextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiSrv6SidlistNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiSrv6SidlistNextHopTraits>;
 #endif
 
   NextHopGroupMember(
