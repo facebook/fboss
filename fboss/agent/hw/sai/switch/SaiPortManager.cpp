@@ -2730,23 +2730,36 @@ void SaiPortManager::updateStats(
     auto& portApi = SaiApiTable::getInstance()->portApi();
     auto adapterKey = handle->port->adapterKey();
     const auto& portAttrs = handle->port->attributes();
+    // Some ASICs clear the retrigger counters on read. Accumulate those so
+    // HwPortStats always reports a monotonic count, as we do for FEC errors.
+    auto retriggerCountClearOnRead =
+        platform_->getAsic()->isPortDebounceRetriggerCountClearOnRead();
+    auto storeRetriggerCount = [retriggerCountClearOnRead](
+                                   auto&& stat, int64_t value) {
+      stat =
+          retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
     if (downPeriod.has_value() && downPeriod->value() > 0) {
-      curPortStats.linkDownDebounceRetriggerCount_() = portApi.getAttribute(
-          adapterKey,
-          SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+      storeRetriggerCount(
+          curPortStats.linkDownDebounceRetriggerCount_(),
+          portApi.getAttribute(
+              adapterKey,
+              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
     }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      curPortStats.linkUpDebounceRetriggerCount_() = portApi.getAttribute(
-          adapterKey,
-          SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+      storeRetriggerCount(
+          curPortStats.linkUpDebounceRetriggerCount_(),
+          portApi.getAttribute(
+              adapterKey,
+              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
     }
   }
 #endif
