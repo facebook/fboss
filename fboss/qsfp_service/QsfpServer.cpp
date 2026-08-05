@@ -1,9 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/QsfpServer.h"
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
 #include "fboss/lib/ThriftServiceUtils.h"
+#include "fboss/platform/helpers/PlatformThriftAcceptor.h"
+#include "fboss/platform/helpers/PlatformThriftAcceptorUtil.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -13,6 +16,20 @@ DEFINE_int32(port, 5910, "Port for the thrift service");
 // current default 5910 is in conflict with VNC ports, need to
 // eventually migrate to 5960
 DEFINE_int32(migrated_port, 5960, "New thrift server port migrate to");
+
+DEFINE_bool(
+    qsfp_enable_thrift_acceptor,
+    false,
+    "If set, install a connection-level acceptor that admits Thrift "
+    "connections only from loopback or --qsfp_trusted_subnets and rejects all "
+    "others. Off by default to preserve existing behavior.");
+
+DEFINE_string(
+    qsfp_trusted_subnets,
+    "",
+    "Comma-separated CIDR subnets, in addition to loopback (which is always "
+    "permitted), allowed to connect when --qsfp_enable_thrift_acceptor is set. "
+    "FBOSS control traffic is IPv6-only; e.g. \"2001:db8::/32\".");
 
 namespace facebook::fboss {
 
@@ -52,6 +69,21 @@ setupThriftServer(
   }
   server->setAddresses(addresses);
   server->setInterface(handler);
+
+  // MACsec SAK install/delete and other qsfp_service RPCs are otherwise
+  // unauthenticated on a wildcard-bound port. When enabled, admit only
+  // loopback (where the on-box MKA daemon, fboss2, wedge_qsfp_util connect)
+  // plus configured trusted subnets, rejecting off-box peers at accept time.
+  if (FLAGS_qsfp_enable_thrift_acceptor) {
+    auto trustedSubnets =
+        platform::helpers::parseTrustedSubnets(FLAGS_qsfp_trusted_subnets);
+    XLOG(INFO) << "Thrift connection acceptor enabled: admitting loopback + "
+               << trustedSubnets.size() << " trusted subnet(s)";
+    server->setAcceptorFactory(
+        std::make_shared<platform::helpers::PlatformThriftAcceptorFactory>(
+            server.get(), std::move(trustedSubnets)));
+  }
+
   return std::make_pair(server, handler);
 }
 
