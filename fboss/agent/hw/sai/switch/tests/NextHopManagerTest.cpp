@@ -186,6 +186,48 @@ TEST_F(NextHopManagerTest, testProtectionGroupsWithDifferentBackupsDoNotAlias) {
       secondHandle->nextHopGroup->adapterKey());
 }
 
+TEST_F(NextHopManagerTest, testProtectionGroupsWithSameBackupShareChildGroup) {
+  auto backup = makeResolvedNextHop(intf2, NextHopRole::BACKUP);
+  RouteNextHopEntry::NextHopSet backupNhops{backup};
+  RouteNextHopEntry::NextHopSet firstNextHops{
+      makeResolvedNextHop(intf0, NextHopRole::PRIMARY),
+      backup,
+  };
+  RouteNextHopEntry::NextHopSet secondNextHops{
+      makeResolvedNextHop(intf1, NextHopRole::PRIMARY),
+      backup,
+  };
+
+  auto firstHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(firstNextHops, std::nullopt));
+  auto secondHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(secondNextHops, std::nullopt));
+
+  ASSERT_NE(firstHandle->childGroupMember_, nullptr);
+  ASSERT_NE(secondHandle->childGroupMember_, nullptr);
+  auto firstChildMember =
+      firstHandle->childGroupMember_->getNhopGroupMemberObject();
+  auto secondChildMember =
+      secondHandle->childGroupMember_->getNhopGroupMemberObject();
+  ASSERT_NE(firstChildMember, nullptr);
+  ASSERT_NE(secondChildMember, nullptr);
+  auto firstChildGroupId = saiApiTable->nextHopGroupApi().getAttribute(
+      firstChildMember->adapterKey(),
+      SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
+  auto secondChildGroupId = saiApiTable->nextHopGroupApi().getAttribute(
+      secondChildMember->adapterKey(),
+      SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
+  EXPECT_EQ(firstChildGroupId, secondChildGroupId);
+
+  auto backupHandle = saiManagerTable->nextHopGroupManager().getNextHopGroup(
+      SaiNextHopGroupKey(backupNhops, std::nullopt));
+  ASSERT_NE(backupHandle, nullptr);
+  ASSERT_NE(backupHandle->nextHopGroup, nullptr);
+  EXPECT_EQ(backupHandle->nextHopGroup->adapterKey(), firstChildGroupId);
+}
+
 TEST_F(NextHopManagerTest, testPrimaryOnlyNextHopGroup) {
   RouteNextHopEntry::NextHopSet swNextHops{
       makeResolvedNextHop(intf0, NextHopRole::PRIMARY),
