@@ -20,6 +20,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <functional>
+#include <string_view>
 
 namespace facebook::fboss {
 
@@ -40,6 +41,10 @@ struct CmdShowHostTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;
   using RetType = cli::ShowHostModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
@@ -58,6 +63,10 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       const ObjectArgType& queriedPorts,
       const DnsResolver& resolver = defaultDnsResolver);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

@@ -147,4 +147,11 @@ TEST_F(CmdShowLldpTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowLldpTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowLldpTraits::description().empty());
+  EXPECT_FALSE(CmdShowLldp::sampleModel().lldpEntries()->empty());
+}
+
 } // namespace facebook::fboss

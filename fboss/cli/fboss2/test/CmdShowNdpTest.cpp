@@ -132,4 +132,11 @@ TEST_F(CmdShowNdpTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowNdpTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowNdpTraits::description().empty());
+  EXPECT_FALSE(CmdShowNdp::sampleModel().ndpEntries()->empty());
+}
+
 } // namespace facebook::fboss
