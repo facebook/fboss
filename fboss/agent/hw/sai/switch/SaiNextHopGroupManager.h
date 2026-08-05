@@ -69,7 +69,7 @@ class ManagedSaiNextHopGroupMember
   using NextHopWeakPtr = std::weak_ptr<const SaiObject<NextHopTraits>>;
   using PublisherObjects = std::tuple<NextHopWeakPtr>;
   using NextHopWeight =
-      typename SaiNextHopGroupMemberTraits::Attributes::Weight;
+      std::optional<typename SaiNextHopGroupMemberTraits::Attributes::Weight>;
   ManagedSaiNextHopGroupMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
@@ -124,6 +124,8 @@ class ManagedSaiNextHopGroupMember
 
 class NextHopGroupMember {
  public:
+  using NextHopWeight =
+      std::optional<SaiNextHopGroupMemberTraits::Attributes::Weight>;
   using ManagedIpNextHopGroupMember =
       ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =

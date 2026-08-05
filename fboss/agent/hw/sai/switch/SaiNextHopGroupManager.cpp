@@ -91,6 +91,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   }
   const auto& swNextHops = key.first;
   auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhop(swNextHops);
+  const auto nextHopGroupType =
+      getEcmpGroupType(primaryNhops.size(), backupNhops.size());
   auto childNexthopGroup = (primaryNhops.size() && backupNhops.size())
       ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(backupNhops, key.second))
       : nullptr;
@@ -232,9 +234,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
-      getEcmpGroupType(primaryNhops.size(), backupNhops.size())
+      nextHopGroupType
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-          ,
+      ,
       arsObjectId
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -247,7 +249,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
-  nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
+  nextHopGroupHandle->fixedWidthMode =
+      nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_ECMP &&
+      isFixedWidthNextHopGroup(swNextHops);
   nextHopGroupHandle->saiStore_ = saiStore_;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
@@ -286,9 +290,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);
 #endif
     auto memberKey = std::make_pair(nextHopGroupId, resolvedNextHop);
-    auto weight = (resolvedNextHop.weight() == ECMP_WEIGHT)
-        ? 1
-        : resolvedNextHop.weight();
+    NextHopGroupMember::NextHopWeight weight;
+    if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
+      weight = SaiNextHopGroupMemberTraits::Attributes::Weight{
+          static_cast<sai_uint32_t>(
+              resolvedNextHop.weight() == ECMP_WEIGHT
+                  ? 1
+                  : resolvedNextHop.weight())};
+    }
     auto result = nextHopGroupMembers_.refOrEmplace(
         memberKey,
         this,
@@ -570,7 +579,9 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
       nexthopGroupId_,
       nexthopId,
-      fixedWidthMode_ ? 0 : weight_
+      fixedWidthMode_
+          ? NextHopWeight{SaiNextHopGroupMemberTraits::Attributes::Weight{0}}
+          : weight_
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
       std::nullopt /* configuredRole */,
@@ -608,10 +619,12 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
 
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program correct weight
-    nhgroup_->memberAdded({adapterHostKey, weight_}, bulkUpdate);
+    nhgroup_->memberAdded({adapterHostKey, weight_.value()}, bulkUpdate);
   }
   XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString()
-             << " weight " << weight_.value();
+             << " weight "
+             << (weight_.has_value() ? std::to_string(weight_->value())
+                                     : "none");
 }
 
 template <typename NextHopTraits>
@@ -624,7 +637,8 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
     // notify nhgroup to bulk program with 0 weight. In fixed width mode
     // member cannot be removed directly. check comments associated with
     // SaiNextHopGroupHandle::bulkProgramMembers for details
-    nhgroup_->memberRemoved({this->getObject()->adapterHostKey(), weight_});
+    nhgroup_->memberRemoved(
+        {this->getObject()->adapterHostKey(), weight_.value()});
   }
   this->createAttributes_ = std::nullopt;
   this->adapterHostKey_ = std::nullopt;

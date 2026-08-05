@@ -29,6 +29,9 @@ class NextHopManagerTest : public ManagerTestBase {
     intf0 = testInterfaces[0];
     intf1 = testInterfaces[1];
     intf2 = testInterfaces[2];
+    resolveArp(intf0.id, intf0.remoteHosts[0]);
+    resolveArp(intf1.id, intf1.remoteHosts[0]);
+    resolveArp(intf2.id, intf2.remoteHosts[0]);
   }
 
   void checkNextHop(
@@ -92,6 +95,10 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       nextHopGroupHandle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::Type{});
   EXPECT_EQ(type, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+  for (const auto& member : nextHopGroupHandle->members_) {
+    ASSERT_NE(member->getObject(), nullptr);
+    EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
+  }
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
