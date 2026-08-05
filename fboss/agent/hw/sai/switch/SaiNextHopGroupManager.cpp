@@ -114,6 +114,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   CHECK_EQ(
       primaryNhops.size() > 0 && backupNhops.size() > 0,
       childNexthopGroup != nullptr);
+  const auto& memberNhops = primaryNhops.empty() ? backupNhops : primaryNhops;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -122,14 +123,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   // creating the next hop group requires going through all the next hops
   // to figure out the AdapterHostKey)
   std::vector<ResolvedNextHop> resolvedNextHops;
-  resolvedNextHops.reserve(swNextHops.size());
+  resolvedNextHops.reserve(memberNhops.size());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::unordered_map<
       const ResolvedNextHop*,
       std::shared_ptr<SaiSrv6SidListHandle>>
       srv6SidListMap;
 #endif
-  for (const auto& swNextHop : swNextHops) {
+  for (const auto& swNextHop : memberNhops) {
     // Compute the sai id of the next hop's router interface
     const InterfaceID interfaceId = swNextHop.intf();
     auto routerInterfaceHandle =

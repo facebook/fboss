@@ -95,6 +95,28 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       nextHopGroupHandle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::Type{});
   EXPECT_EQ(type, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+  ASSERT_EQ(nextHopGroupHandle->members_.size(), 1);
+  for (const auto& member : nextHopGroupHandle->members_) {
+    ASSERT_NE(member->getObject(), nullptr);
+    EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
+  }
+}
+
+TEST_F(NextHopManagerTest, testBackupOnlyNextHopGroup) {
+  RouteNextHopEntry::NextHopSet swNextHops{
+      makeResolvedNextHop(intf1, NextHopRole::BACKUP),
+      makeResolvedNextHop(intf2, NextHopRole::BACKUP),
+  };
+
+  auto nextHopGroupHandle =
+      saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+          SaiNextHopGroupKey(swNextHops, std::nullopt));
+  ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
+  auto type = saiApiTable->nextHopGroupApi().getAttribute(
+      nextHopGroupHandle->nextHopGroup->adapterKey(),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(type, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+  ASSERT_EQ(nextHopGroupHandle->members_.size(), 2);
   for (const auto& member : nextHopGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);
     EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
