@@ -49,6 +49,7 @@ namespace {
 const std::unordered_set<std::string> kKnownAttributes = [] {
   std::unordered_set<std::string> attrs = {
       "description",
+      "name",
       "mtu",
       "ip-address",
       "ipv6-address",
@@ -74,7 +75,7 @@ const std::unordered_set<std::string> kValuelessAttributes = {
 };
 
 constexpr auto kValidConfigAttrs =
-    "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
+    "description, name, mtu, ip-address, ipv6-address, profile, loopback-mode, "
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
     "no-shutdown, lookup-class";
 
@@ -504,6 +505,61 @@ bool applyLookupClass(
   return changed;
 }
 
+// Set the name of the L3 interface(s) targeted by the command. Since an
+// interface name must be unique, only a single target interface is allowed,
+// and the new name must not collide with an existing port or interface name.
+// Purely-numeric names are rejected: they would shadow lookups by port
+// logical ID or interface ID.
+bool applyInterfaceName(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  if (value.empty()) {
+    throw std::invalid_argument("Interface name cannot be empty");
+  }
+  if (std::all_of(value.begin(), value.end(), ::isdigit)) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid interface name '{}': a purely-numeric name would "
+            "conflict with lookups by port or interface ID",
+            value));
+  }
+
+  std::vector<cfg::Interface*> targets;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Interface* interface = intf.getInterface();
+    if (interface) {
+      targets.push_back(interface);
+    }
+  }
+  if (targets.size() > 1) {
+    throw std::invalid_argument(
+        "Cannot set the same name on multiple interfaces");
+  }
+
+  auto& portMap = ConfigSession::getInstance().getPortMap();
+  if (portMap.hasPort(value)) {
+    throw std::invalid_argument(
+        fmt::format("'{}' is already in use as a port name", value));
+  }
+  cfg::Interface* existing = portMap.getInterfaceByName(value);
+  if (existing && (targets.empty() || existing != targets[0])) {
+    throw std::invalid_argument(
+        fmt::format(
+            "'{}' is already in use by interface {}",
+            value,
+            *existing->intfID()));
+  }
+
+  if (targets.empty()) {
+    return false;
+  }
+  targets[0]->name() = value;
+  // Refresh the name-based lookup maps so the rest of the session sees the
+  // new name.
+  ConfigSession::getInstance().rebuildPortMap();
+  return true;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -561,6 +617,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("description=\"{}\"", value));
+    } else if (attr == "name") {
+      changed |= applyInterfaceName(value, effectiveInterfaces);
+      results.push_back(fmt::format("name=\"{}\"", value));
     } else if (attr == "ip-address" || attr == "ipv6-address") {
       validateInterfaceIpAttr(attr, value);
 
