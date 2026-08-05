@@ -87,6 +87,19 @@ bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
       (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
        switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
 }
+
+std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
+    sai_next_hop_group_type_t nextHopGroupType,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+    std::optional<cfg::SwitchingMode> primaryArsMode) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
+    return std::nullopt;
+  }
+#endif
+  return overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
+                                               : primaryArsMode;
+}
 } // namespace
 
 SaiNextHopGroupManager::SaiNextHopGroupManager(
@@ -192,14 +205,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-    auto overrideEcmpSwitchingMode = key.second;
-
-    // if overrideEcmpSwitchingMode is empty, then use primary mode
-    // if overrideEcmpSwitchingMode has value, then a backup mode is requested
-    // by ERM
-    nextHopGroupHandle->desiredEcmpSwitchingMode_ =
-        overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
-                                              : primaryArsMode_;
+    nextHopGroupHandle->desiredEcmpSwitchingMode_ = getDesiredEcmpSwitchingMode(
+        nextHopGroupType, key.second, primaryArsMode_);
 
     if (isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -234,9 +241,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       }
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    nextHopGroupAdapterHostKey.mode =
-        managerTable_->arsManager().cfgSwitchingModeToSai(
-            nextHopGroupHandle->desiredEcmpSwitchingMode_.value());
+    if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value()) {
+      nextHopGroupAdapterHostKey.mode =
+          managerTable_->arsManager().cfgSwitchingModeToSai(
+              nextHopGroupHandle->desiredEcmpSwitchingMode_.value());
+    }
 #endif
   }
 

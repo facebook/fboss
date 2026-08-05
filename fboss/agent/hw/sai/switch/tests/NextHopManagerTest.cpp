@@ -105,6 +105,9 @@ TEST_F(NextHopManagerTest, testAddNextHop) {
 }
 
 TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
+  FLAGS_flowletSwitchingEnable = true;
+  saiManagerTable->nextHopGroupManager().setPrimaryArsSwitchingMode(
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
   RouteNextHopEntry::NextHopSet backupNhops{
       makeResolvedNextHop(intf1, NextHopRole::BACKUP),
       makeResolvedNextHop(intf2, NextHopRole::BACKUP),
@@ -116,6 +119,7 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
           SaiNextHopGroupKey(swNextHops, std::nullopt));
   ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
+  EXPECT_EQ(nextHopGroupHandle->desiredEcmpSwitchingMode_, std::nullopt);
   auto type = saiApiTable->nextHopGroupApi().getAttribute(
       nextHopGroupHandle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::Type{});
@@ -139,6 +143,9 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       saiManagerTable->nextHopGroupManager().getNextHopGroup(
           SaiNextHopGroupKey(backupNhops, std::nullopt));
   ASSERT_NE(backupNextHopGroupHandle, nullptr);
+  EXPECT_EQ(
+      backupNextHopGroupHandle->desiredEcmpSwitchingMode_,
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
   EXPECT_EQ(backupNextHopGroupHandle->childGroupMember_, nullptr);
   for (const auto& member : backupNextHopGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);

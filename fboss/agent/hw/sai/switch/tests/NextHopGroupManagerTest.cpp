@@ -102,6 +102,9 @@ TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
           SaiNextHopGroupKey(swNextHops, cfg::SwitchingMode::FIXED_ASSIGNMENT));
   auto saiNextHopGroup = saiNextHopGroupHandle->nextHopGroup;
+  EXPECT_EQ(
+      saiNextHopGroupHandle->desiredEcmpSwitchingMode_,
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
   EXPECT_EQ(saiNextHopGroupHandle.use_count(), 1);
   EXPECT_EQ(saiNextHopGroup.use_count(), 2);
 
@@ -120,6 +123,9 @@ TEST_F(NextHopGroupManagerTest, verifyNextHopGroupKey) {
           SaiNextHopGroupKey(
               swNextHops, cfg::SwitchingMode::PER_PACKET_RANDOM));
   auto saiNextHopGroup3 = saiNextHopGroupHandle3->nextHopGroup;
+  EXPECT_EQ(
+      saiNextHopGroupHandle3->desiredEcmpSwitchingMode_,
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
   EXPECT_EQ(saiNextHopGroupHandle3.use_count(), 1);
   EXPECT_EQ(saiNextHopGroup3.use_count(), 2);
 
