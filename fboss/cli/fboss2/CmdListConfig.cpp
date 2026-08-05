@@ -130,6 +130,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h"
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
+#include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
@@ -1061,6 +1062,12 @@ const CommandTree& kConfigCommandTree() {
               argRegistrar<CmdConfigVlanDefaultTraits>,
           }},
       },
+
+      {"delete",
+       "arp",
+       "Reset ARP/NDP timer settings to their defaults",
+       commandHandler<CmdDeleteArp>,
+       argRegistrar<CmdDeleteArpTraits>},
 
       {
           "delete",
