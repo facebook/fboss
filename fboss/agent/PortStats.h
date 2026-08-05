@@ -65,6 +65,7 @@ class PortStats {
       bool isUp,
       bool isDrained,
       std::optional<bool> activeState) const;
+  int64_t getLinkStateFlapCount() const;
   void linkActiveStateChange(bool isActive) const;
 
   void ipv4DstLookupFailure() const;

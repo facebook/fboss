@@ -194,6 +194,12 @@ void PortStats::linkStateChange(
   switchStats_->linkStateChange();
 }
 
+int64_t PortStats::getLinkStateFlapCount() const {
+  return fb303::fbData
+      ->getCounterIfExists(getCounterKey(kLinkStateFlap) + ".sum")
+      .value_or(0);
+}
+
 void PortStats::linkActiveStateChange(bool isActive) const {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 1, SUM);
