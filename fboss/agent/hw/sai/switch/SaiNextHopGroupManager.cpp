@@ -81,7 +81,7 @@ sai_next_hop_group_type_t getEcmpGroupType(
   return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
 }
 
-bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
+bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
   return (
       switchingMode.has_value() &&
       (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
@@ -197,11 +197,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     // if overrideEcmpSwitchingMode is empty, then use primary mode
     // if overrideEcmpSwitchingMode has value, then a backup mode is requested
     // by ERM
-    nextHopGroupHandle->desiredArsMode_ = overrideEcmpSwitchingMode.has_value()
-        ? overrideEcmpSwitchingMode
-        : primaryArsMode_;
+    nextHopGroupHandle->desiredEcmpSwitchingMode_ =
+        overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
+                                              : primaryArsMode_;
 
-    if (isEcmpModeDynamic(nextHopGroupHandle->desiredArsMode_)) {
+    if (isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
 
@@ -215,8 +215,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       }
 #endif
     } else {
-      if (nextHopGroupHandle->desiredArsMode_.has_value() &&
-          (nextHopGroupHandle->desiredArsMode_.value() ==
+      if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value() &&
+          (nextHopGroupHandle->desiredEcmpSwitchingMode_.value() ==
            cfg::SwitchingMode::PER_PACKET_RANDOM)) {
         // setting hash algo to RANDOM is specific to TH* asics
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -236,7 +236,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     nextHopGroupAdapterHostKey.mode =
         managerTable_->arsManager().cfgSwitchingModeToSai(
-            nextHopGroupHandle->desiredArsMode_.value());
+            nextHopGroupHandle->desiredEcmpSwitchingMode_.value());
 #endif
   }
 
@@ -433,7 +433,7 @@ void SaiNextHopGroupManager::updateArsModeAll(
     }
 
     // do not convert backup modes to dynamic
-    if (!isEcmpModeDynamic(handlePtr->desiredArsMode_)) {
+    if (!isEcmpModeARS(handlePtr->desiredEcmpSwitchingMode_)) {
       continue;
     }
 
@@ -506,8 +506,9 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
     }
   }
 
-  if (nextHopGroupHandle && nextHopGroupHandle->desiredArsMode_.has_value()) {
-    return nextHopGroupHandle->desiredArsMode_.value();
+  if (nextHopGroupHandle &&
+      nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value()) {
+    return nextHopGroupHandle->desiredEcmpSwitchingMode_.value();
   }
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
@@ -541,7 +542,8 @@ std::vector<EcmpDetails> SaiNextHopGroupManager::getAllEcmpDetails() const {
     }
     EcmpDetails ecmp;
     ecmp.ecmpId() = static_cast<int32_t>(handle->nextHopGroup->adapterKey());
-    const bool flowletEnabled = isEcmpModeDynamic(handle->desiredArsMode_);
+    const bool flowletEnabled =
+        isEcmpModeARS(handle->desiredEcmpSwitchingMode_);
     ecmp.flowletEnabled() = flowletEnabled;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (flowletEnabled) {
