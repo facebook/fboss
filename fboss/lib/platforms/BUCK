@@ -30,8 +30,8 @@ cpp_library(
         "PlatformDescriptor.h",
     ],
     deps = [
+        ":platform_mapping_utils",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:platform_config-cpp2-types",
         "//folly:file_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2:field_ref",
@@ -39,6 +39,7 @@ cpp_library(
     ],
     exported_deps = [
         ":platform_descriptor_thrift-cpp2-types",
+        "//fboss/agent:platform_config-cpp2-types",
         "//folly:cpp_attributes",
     ],
     external_deps = [
