@@ -126,6 +126,40 @@ void CmdShowInterfaceFlaps::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowInterfaceFlapsTraits::description() {
+  return "Displays per-interface link-flap counts over the last 1, 10, and 60 minutes, plus the total since the last reboot. Use it to identify unstable links.";
+}
+
+CmdShowInterfaceFlaps::RetType CmdShowInterfaceFlaps::sampleModel() {
+  RetType model;
+
+  cli::FlapCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.oneMinute() = 0;
+  counter1.tenMinute() = 0;
+  counter1.oneHour() = 0;
+  counter1.totalFlaps() = 13;
+  model.flap_counters()->push_back(counter1);
+
+  cli::FlapCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.oneMinute() = 0;
+  counter2.tenMinute() = 0;
+  counter2.oneHour() = 0;
+  counter2.totalFlaps() = 1;
+  model.flap_counters()->push_back(counter2);
+
+  cli::FlapCounters counter3;
+  counter3.interfaceName() = "eth1/11/1";
+  counter3.oneMinute() = 0;
+  counter3.tenMinute() = 0;
+  counter3.oneHour() = 0;
+  counter3.totalFlaps() = 0;
+  model.flap_counters()->push_back(counter3);
+
+  return model;
+}
+
 // Template instantiations
 template void
 CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::run();

@@ -184,4 +184,12 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {
 
   EXPECT_EQ(expectedOutput, output);
 }
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceTrafficTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceTrafficTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowInterfaceTraffic::sampleModel().traffic_counters()->empty());
+}
 } // namespace facebook::fboss
