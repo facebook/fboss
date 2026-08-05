@@ -569,6 +569,37 @@ NextHopGroupMember::NextHopGroupMember(
       managedSaiNextHop);
 }
 
+SaiNextHopGroupChildGroupMember::SaiNextHopGroupChildGroupMember(
+    SaiNextHopGroupManager* manager,
+    std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup,
+    const SaiNextHopGroupTraits::AdapterKey& parentNextHopGroupId)
+    : childNextHopGroup_(std::move(childNextHopGroup)),
+      parentNextHopGroupId_(parentNextHopGroupId) {
+  CHECK(childNextHopGroup_);
+  CHECK(childNextHopGroup_->nextHopGroup);
+  auto childNextHopGroupId = childNextHopGroup_->adapterKey();
+  adapterHostKey_.emplace(parentNextHopGroupId_, childNextHopGroupId);
+  createAttributes_.emplace(
+      parentNextHopGroupId_,
+      childNextHopGroupId,
+      std::nullopt
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::nullopt,
+      std::nullopt
+#endif
+  );
+  nextHopGroupMember_ =
+      manager->createSaiObject(*adapterHostKey_, *createAttributes_);
+}
+
+std::pair<
+    std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+    std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+SaiNextHopGroupChildGroupMember::getAdapterHostKeyAndCreateAttributes() {
+  return std::make_pair(adapterHostKey_, createAttributes_);
+}
+
 template <typename NextHopTraits>
 std::pair<
     std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
@@ -810,6 +841,19 @@ std::string ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::toString()
       "NextHopGroupId: ",
       nexthopGroupId_,
       "NextHopGroupMemberId:",
+      nextHopGroupMemberIdStr);
+}
+
+std::string SaiNextHopGroupChildGroupMember::toString() const {
+  auto nextHopGroupMemberIdStr = nextHopGroupMember_
+      ? std::to_string(nextHopGroupMember_->adapterKey())
+      : "none";
+  return folly::to<std::string>(
+      nextHopGroupMember_ ? "active " : "inactive ",
+      "next hop group child group member: ",
+      "ParentNextHopGroupId: ",
+      parentNextHopGroupId_,
+      ", NextHopGroupMemberId: ",
       nextHopGroupMemberIdStr);
 }
 

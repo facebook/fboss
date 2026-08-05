@@ -122,6 +122,34 @@ class ManagedSaiNextHopGroupNextHopMember
       createAttributes_;
 };
 
+class SaiNextHopGroupChildGroupMember {
+ public:
+  SaiNextHopGroupChildGroupMember(
+      SaiNextHopGroupManager* manager,
+      std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup,
+      const SaiNextHopGroupTraits::AdapterKey& parentNextHopGroupId);
+
+  std::pair<
+      std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+      std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+  getAdapterHostKeyAndCreateAttributes();
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>>
+  getNhopGroupMemberObject() {
+    return nextHopGroupMember_;
+  }
+
+  std::string toString() const;
+
+ private:
+  std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup_;
+  SaiNextHopGroupTraits::AdapterKey parentNextHopGroupId_;
+  std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
+  std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>
+      createAttributes_;
+  std::shared_ptr<SaiNextHopGroupMember> nextHopGroupMember_;
+};
+
 class NextHopGroupMember {
  public:
   using NextHopWeight =
