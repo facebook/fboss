@@ -142,7 +142,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
 #include "fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h"
-#include "fboss/cli/fboss2/commands/delete/qos/default_queue_config/CmdDeleteQosDefaultQueueConfig.h"
+#include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
+#include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -1095,10 +1096,16 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
            },
            {
-               "default-queue-config",
-               "Remove a queue entry from the default port queue config",
-               commandHandler<CmdDeleteQosDefaultQueueConfig>,
-               argRegistrar<CmdDeleteQosDefaultQueueConfigTraits>,
+               "queue-config",
+               "Remove a queue config, or 'default' to clear the switch-wide default queues",
+               commandHandler<CmdDeleteQosQueueConfig>,
+               argRegistrar<CmdDeleteQosQueueConfigTraits>,
+               {{
+                   "queue-id",
+                   "Remove only the given queue from the queue config",
+                   commandHandler<CmdDeleteQosQueueConfigQueueId>,
+                   argRegistrar<CmdDeleteQosQueueConfigQueueIdTraits>,
+               }},
            }},
       },
 

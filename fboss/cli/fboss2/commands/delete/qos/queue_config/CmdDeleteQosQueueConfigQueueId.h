@@ -12,12 +12,15 @@
 
 #include <fmt/format.h>
 #include <folly/Conv.h>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
+#include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
 
@@ -59,13 +62,10 @@ class DeleteQueueId : public utils::BaseObjectArgType<std::string> {
   int16_t queueId_{0};
 };
 
-struct CmdDeleteQosDefaultQueueConfigTraits : public WriteCommandTraits {
-  using ParentCmd = CmdDeleteQos;
+struct CmdDeleteQosQueueConfigQueueIdTraits : public WriteCommandTraits {
+  using ParentCmd = CmdDeleteQosQueueConfig;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option(
-           "queue_id",
-           args,
-           "ID of the queue entry to remove from defaultPortQueues")
+    cmd.add_option("queue_id", args, "ID of the queue entry to remove")
         ->required()
         ->expected(1);
   }
@@ -73,15 +73,18 @@ struct CmdDeleteQosDefaultQueueConfigTraits : public WriteCommandTraits {
   using RetType = std::string;
 };
 
-class CmdDeleteQosDefaultQueueConfig
+class CmdDeleteQosQueueConfigQueueId
     : public CmdHandler<
-          CmdDeleteQosDefaultQueueConfig,
-          CmdDeleteQosDefaultQueueConfigTraits> {
+          CmdDeleteQosQueueConfigQueueId,
+          CmdDeleteQosQueueConfigQueueIdTraits> {
  public:
-  using ObjectArgType = CmdDeleteQosDefaultQueueConfigTraits::ObjectArgType;
-  using RetType = CmdDeleteQosDefaultQueueConfigTraits::RetType;
+  using ObjectArgType = CmdDeleteQosQueueConfigQueueIdTraits::ObjectArgType;
+  using RetType = CmdDeleteQosQueueConfigQueueIdTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& queueId);
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const utils::QueueConfigName& name,
+      const ObjectArgType& queueId);
 
   void printOutput(const RetType& logMsg);
 };

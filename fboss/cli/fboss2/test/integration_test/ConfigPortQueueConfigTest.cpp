@@ -5,6 +5,7 @@
  *   fboss2-dev config qos buffer-pool <name> shared-bytes/headroom-bytes
  *   fboss2-dev config qos queue-config <name> queue-id <id> <attr> <value>...
  *   fboss2-dev config interface <name> queue-config <name>
+ *   fboss2-dev delete qos queue-config <name>
  *
  * Builds a buffer pool + named queue config with five queues exercising:
  *   - WRR + SP scheduling
@@ -32,6 +33,9 @@ namespace {
 // bufferPool in the running config.
 constexpr auto kBufferPoolName = "cli_e2e_test_buffer_pool";
 constexpr auto kQueueConfigName = "cli_e2e_test_queue_config";
+// Separate name so the delete case cannot disturb BuildAndAssignPolicy's
+// config (tests may be sharded across workers and are not ordered).
+constexpr auto kDeleteQueueConfigName = "cli_e2e_test_qc_delete";
 
 // Enum values from switch_config.thrift
 constexpr int kSchedWrr = 0;
@@ -241,3 +245,57 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
 
   XLOG(INFO) << "TEST PASSED";
 }
+
+// Removing a whole named config has to survive the round trip: the agent must
+// accept a config with the entry gone, not just the CLI drop it locally.
+TEST_F(ConfigPortQueueConfigTest, DeleteWholeQueueConfig) {
+  const std::string name = kDeleteQueueConfigName;
+
+  XLOG(INFO) << "[Step 1] Creating " << name;
+  ASSERT_EQ(
+      runCli({"config",
+              "qos",
+              "queue-config",
+              name,
+              "queue-id",
+              "1",
+              "scheduling",
+              "WRR",
+              "weight",
+              "3"})
+          .exitCode,
+      0);
+  commitConfig();
+  waitForAgentReady();
+
+  // Hold the config in a named local: getRunningConfig() returns by value, and
+  // binding a reference to a subobject of the temporary would dangle.
+  auto afterCreate = getRunningConfig();
+  const auto& swAfterCreate = afterCreate["sw"];
+  // Check the key before indexing -- folly::dynamic::operator[] on a missing
+  // key inserts a null, and count() on a null throws rather than failing the
+  // assertion readably.
+  ASSERT_TRUE(swAfterCreate.count("portQueueConfigs"))
+      << "no portQueueConfigs in running config after creating " << name;
+  ASSERT_TRUE(swAfterCreate["portQueueConfigs"].count(name))
+      << name << " missing after create";
+
+  XLOG(INFO) << "[Step 2] Deleting " << name;
+  discardSession();
+  auto del = runCli({"delete", "qos", "queue-config", name});
+  ASSERT_EQ(del.exitCode, 0) << "CLI failed: " << del.stderr;
+  commitConfig();
+  waitForAgentReady();
+
+  auto afterDelete = getRunningConfig();
+  const auto& swAfterDelete = afterDelete["sw"];
+  EXPECT_FALSE(
+      swAfterDelete.count("portQueueConfigs") &&
+      swAfterDelete["portQueueConfigs"].count(name))
+      << name << " still present after delete";
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// The bound-config delete guard is intentionally NOT tested here: it rejects
+// at the staged session and never reaches the agent, so it needs no hardware.
+// See CmdDeleteQosQueueConfigTest.refusesToDeleteBoundNamedConfig.

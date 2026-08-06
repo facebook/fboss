@@ -3,7 +3,7 @@
 /**
  * End-to-end tests for the switch-wide default queue config:
  *   fboss2-dev config qos queue-config default queue-id <id> <attr> <value> ...
- *   fboss2-dev delete qos default-queue-config <queue-id>
+ *   fboss2-dev delete qos queue-config default [queue-id <id>]
  *
  * `default` is the reserved queue-config name that targets
  * SwitchConfig::defaultPortQueues rather than a portQueueConfigs entry; the
@@ -128,7 +128,12 @@ class ConfigQosDefaultQueueConfigTest : public Fboss2IntegrationTest {
   void deleteQueueAndCommit(int queueId) {
     discardSession();
     auto del = runCli(
-        {"delete", "qos", "default-queue-config", std::to_string(queueId)});
+        {"delete",
+         "qos",
+         "queue-config",
+         "default",
+         "queue-id",
+         std::to_string(queueId)});
     EXPECT_EQ(del.exitCode, 0) << "CLI failed: " << del.stderr;
     createdQueueId_.reset();
 
@@ -283,7 +288,12 @@ TEST_F(ConfigQosDefaultQueueConfigTest, DeleteRemovesQueueEntry) {
 
   discardSession();
   auto del = runCli(
-      {"delete", "qos", "default-queue-config", std::to_string(queueId)});
+      {"delete",
+       "qos",
+       "queue-config",
+       "default",
+       "queue-id",
+       std::to_string(queueId)});
   ASSERT_EQ(del.exitCode, 0) << "CLI failed: " << del.stderr;
   EXPECT_THAT(del.stdout, ::testing::HasSubstr("Successfully deleted"));
   createdQueueId_.reset();

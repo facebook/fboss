@@ -89,6 +89,24 @@ std::vector<cfg::PortQueue>& queueConfigListForWrite(
     cfg::SwitchConfig& switchConfig,
     const QueueConfigName& name);
 
+// Resolves `name` to the PortQueue list it designates, or nullptr if a named
+// config does not exist. Callers that must not create an entry on a typo --
+// delete, in particular -- use this rather than queueConfigListForWrite.
+// `default` always resolves, since defaultPortQueues always exists.
+std::vector<cfg::PortQueue>* findQueueConfigList(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
+
+// Names of the ports whose Port::portQueueConfigName references `name`, so a
+// caller can refuse to remove a queue config that is still bound and would
+// leave those ports pointing at nothing.
+//
+// Always empty for the reserved `default`: no port names it explicitly, and
+// every port without a binding falls back to it, so it can never be dangling.
+std::vector<std::string> portsUsingQueueConfig(
+    const cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
+
 // Applies queue configuration attributes onto `queue`. Shared by every command
 // in the `config qos queue-config <name|default>` family, which configure the
 // same cfg::PortQueue attributes into different parts of the switch config.

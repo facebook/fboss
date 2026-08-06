@@ -320,6 +320,39 @@ std::vector<cfg::PortQueue>& queueConfigListForWrite(
   return (*switchConfig.portQueueConfigs())[name.getName()];
 }
 
+std::vector<cfg::PortQueue>* findQueueConfigList(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name) {
+  if (name.isDefault()) {
+    return &*switchConfig.defaultPortQueues();
+  }
+  auto& configs = *switchConfig.portQueueConfigs();
+  auto it = configs.find(name.getName());
+  return it == configs.end() ? nullptr : &it->second;
+}
+
+std::vector<std::string> portsUsingQueueConfig(
+    const cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name) {
+  std::vector<std::string> portNames;
+  if (name.isDefault()) {
+    return portNames;
+  }
+  for (const auto& port : *switchConfig.ports()) {
+    if (port.portQueueConfigName().has_value() &&
+        *port.portQueueConfigName() == name.getName()) {
+      // Port::name is optional; switch_config.thrift documents the fallback as
+      // "port-<logicalID>", so use that rather than reporting an empty name.
+      if (port.name().has_value()) {
+        portNames.push_back(*port.name());
+      } else {
+        portNames.push_back(fmt::format("port-{}", *port.logicalID()));
+      }
+    }
+  }
+  return portNames;
+}
+
 void applyPortQueueConfig(
     cfg::PortQueue& queue,
     const std::vector<std::pair<std::string, std::string>>& attributes,
