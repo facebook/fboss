@@ -85,12 +85,24 @@ namespace facebook::fboss {
  */
 class ConfigSession {
  public:
+<<<<<<< HEAD
   ConfigSession();
   virtual ~ConfigSession() = default;
+=======
+  // ReadOnly skips seeding ~/.fboss2 when no session exists; used by commands
+  // (history, session diff) that must not stage one.
+  enum class SessionInit { CreateIfAbsent, ReadOnly };
 
-  // Get or create the current config session
-  // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
-  static ConfigSession& getInstance();
+  explicit ConfigSession(SessionInit init = SessionInit::CreateIfAbsent);
+
+  virtual ~ConfigSession();
+>>>>>>> 2b69b192fa (NOS-13484: don't stage a config session from read-only commands (#1634))
+
+  // Get or create the current config session.
+  // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf,
+  // unless init == ReadOnly.
+  static ConfigSession& getInstance(
+      SessionInit init = SessionInit::CreateIfAbsent);
 
   // Reset the singleton (for testing only).
   // Destroys the current instance so the next getInstance() creates a fresh
@@ -244,7 +256,10 @@ class ConfigSession {
 
  protected:
   // Constructor for testing with custom paths
-  ConfigSession(std::string sessionConfigDir, std::string systemConfigDir);
+  ConfigSession(
+      std::string sessionConfigDir,
+      std::string systemConfigDir,
+      SessionInit init = SessionInit::CreateIfAbsent);
 
   // Constructor for testing with custom paths and mock FbossServiceUtil
   ConfigSession(
@@ -339,8 +354,9 @@ class ConfigSession {
   // multi-switch state via Thrift, rather than reading the config file.
   virtual void ensureFbossServiceUtil(const HostInfo& hostInfo);
 
-  // Initialize the session (creates session config file if it doesn't exist)
-  void initializeSession();
+  // Initialize the session. With CreateIfAbsent, creates the session config
+  // file if it doesn't exist; with ReadOnly, leaves ~/.fboss2 untouched.
+  void initializeSession(SessionInit init);
   void copySystemConfigToSession() const;
   void loadConfig();
 
