@@ -306,6 +306,12 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
       }
     } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+      // TU1 cannot program 200G on interface ports: the SDK rejects
+      // set Speed=200G with ATTR NOT SUPPORTED, and 200G is unsupported in
+      // FBOSS and optics. AgentHwTests build their own port config (separate
+      // from the COOP/matryoshka production config -- they can legitimately
+      // differ), and this branch was selecting 200G, which the hardware can't
+      // program. Pick 400G, a profile the platform mapping supports.
       auto portId = group.first;
       auto platPortItr = platformMapping->getPlatformPorts().find(portId);
       if (platPortItr == platformMapping->getPlatformPorts().end()) {
@@ -313,8 +319,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       if (*platPortItr->second.mapping()->portType() ==
           cfg::PortType::INTERFACE_PORT) {
-        bestSpeed = cfg::PortSpeed::TWOHUNDREDG;
-        bestProfile = cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL;
+        bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+        bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
       }
     }
     // If bestSpeed is default - pick the largest speed from the safe profiles
