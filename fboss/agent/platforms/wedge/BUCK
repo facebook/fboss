@@ -246,6 +246,7 @@ cpp_library(
 
 fbpkg.builder(
     name = "fboss.emulation.fake_wedge_agent",
+    architectures = ["x86_64"],
     path_actions = {
         "fake_wedge_agent": ":fake_wedge_agent",
     },
@@ -253,6 +254,7 @@ fbpkg.builder(
 
 fbpkg.builder(
     name = "neteng.fboss.fake_wedge_agent",
+    architectures = ["x86_64"],
     buck_opts = fbpkg.buck_opts(
         mode = "opt",
     ),
