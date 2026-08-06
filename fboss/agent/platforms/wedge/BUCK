@@ -148,6 +148,7 @@ cpp_library(
         "//fboss/lib/usb:wedge_i2c",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//fboss/qsfp_service/platforms/wedge:wedge-i2c-bus-lock",
         "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:file_util",
         "//folly:memory",
@@ -161,10 +162,12 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
+    external_deps = [
+        ("boost", None, "boost_regex"),
+        "gflags",
+    ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
-        ("boost", None, "boost_regex"),
-        ("broadcom-xgs-robo", None, "xgs_robo"),
         "gflags",
     ],
 )
@@ -177,6 +180,7 @@ cpp_library(
         # this is to debolloxify BCM's attempts to inline soc_pci_XXX functions >:\
         "-DSOC_PCI_DEBUG",
     ],
+    deps = ["//fboss/agent/platforms/wedge/utils:bcm-led-utils"],
     exported_deps = [
         "//common/fbwhoami:fb_who_am_i",
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
@@ -190,6 +194,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/facebook/test:fake_sdk",  # @manual
+        "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcm_sdk_ver",
         "//fboss/agent/hw/bcm:config",
         "//fboss/agent/hw/bcm:fake_bcm",  # @manual
@@ -223,6 +228,7 @@ cpp_library(
         "//fboss/lib/usb:wedge_i2c",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//fboss/qsfp_service/platforms/wedge:wedge-i2c-bus-lock",
         "//fboss/qsfp_service/platforms/wedge:wedge-transceiver",
         "//folly:file_util",
         "//folly:memory",
@@ -236,10 +242,12 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
+    external_deps = [
+        ("boost", None, "boost_regex"),
+        "gflags",
+    ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
-        ("boost", None, "boost_regex"),
-        ("broadcom-xgs-robo", None, "xgs_robo"),
         "gflags",
     ],
 )

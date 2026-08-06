@@ -30,6 +30,7 @@ thrift_library(
     deps = [
         "//fboss/mka_service/if:mka_structs",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -59,9 +60,11 @@ cpp_library(
     srcs = [
         "HwResourceStatsPublisher.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":hardware_stats-cpp2-types",
         "//fb303:service_data",
+    ],
+    exported_deps = [
         "//folly:range",
     ],
 )
@@ -71,13 +74,16 @@ cpp_library(
     srcs = [
         "BufferStatsLogger.cpp",
     ],
+    deps = ["//folly/logging:logging"],
     exported_deps = [
         "//folly:string",
-        "//folly/logging:logging",
     ],
 )
 
 cpp_library(
+    # @autodeps-skip SwitchStats.h is compiled by both :stats (acyclic) and :core;
+    # autodeps2 resolves the HwSwitchFb303Stats.cpp include to :core, which cycles
+    # (:core -> hw:hw_switch_fb303_stats -> :core). Keep the acyclic :stats.
     name = "hw_switch_fb303_stats",
     srcs = [
         "HwSwitchFb303Stats.cpp",
@@ -85,11 +91,13 @@ cpp_library(
     headers = [
         "HwSwitchFb303Stats.h",
     ],
+    deps = [
+        "//fboss/agent:stats",
+        "//fboss/lib:common_utils",
+    ],
     exported_deps = [
         ":hardware_stats-cpp2-types",
         "//fb303:thread_cached_service_data",
-        "//fboss/agent:stats",
-        "//fboss/lib:common_utils",
         "//folly:thread_local",
     ],
 )
@@ -99,10 +107,12 @@ cpp_library(
     srcs = [
         "HwTrunkCounters.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":counter_utils",
-        ":hardware_stats-cpp2-types",
         ":stats_constants",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
         "//common/stats:monotonic_counter",
         "//fboss/agent:fboss-types",
     ],
@@ -113,19 +123,21 @@ cpp_library(
     srcs = [
         "HwSwitchWarmBootHelper.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent:agent_dir_util",
-        "//fboss/agent:agent_features",
         "//fboss/agent:async_logger",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:warm_boot_file_utils",
         "//folly:file_util",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//folly/json:dynamic",
     ],
 )
 
@@ -134,14 +146,16 @@ cpp_library(
     srcs = [
         "CounterUtils.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":hardware_stats-cpp2-types",
+        "//fb303:service_data",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//fb303:export_type",
         "//fb303:exported_stat_map_impl",
-        "//fb303:service_data",
         "//fboss/agent:switch_config-cpp2-types",
         "//folly:range",
-        "//folly/logging:logging",
     ],
 )
 
@@ -150,12 +164,14 @@ cpp_library(
     srcs = [
         "DiagCmdFilter.cpp",
     ],
-    exported_deps = [
-        "fbsource//third-party/re2:re2",
-        "//folly:fbstring",
+    deps = [
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        "//folly:fbstring",
     ],
 )
 
@@ -164,12 +180,14 @@ cpp_library(
     srcs = [
         "HwFb303Stats.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":counter_utils",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//common/stats:monotonic_counter",
         "//fboss/agent:fboss-error",
         "//folly/container:f14_hash",
-        "//folly/logging:logging",
     ],
 )
 
@@ -180,18 +198,20 @@ cpp_library(
         "HwPortFb303Stats.cpp",
         "HwSysPortFb303Stats.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":counter_utils",
-        ":hardware_stats-cpp2-types",
-        ":hw_fb303_stats",
         ":stats_constants",
         "//common/stats:macros",
         "//fb303:service_data",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//folly/container:f14_hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":hardware_stats-cpp2-types",
+        ":hw_fb303_stats",
+        "//fboss/agent:fboss-types",
+        "//folly/container:f14_hash",
     ],
 )
 
@@ -211,13 +231,15 @@ cpp_library(
     srcs = [
         "HwCpuFb303Stats.cpp",
     ],
+    deps = [
+        ":stats_constants",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         ":counter_utils",
         ":hardware_stats-cpp2-types",
         ":hw_fb303_stats",
-        ":stats_constants",
         "//folly/container:f14_hash",
-        "//folly/logging:logging",
     ],
 )
 

@@ -14,15 +14,18 @@ cpp_library(
         "GalaxyFCPlatformMapping.h",
         "GalaxyLCPlatformMapping.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",
         "//fboss/agent:utils",
-        "//fboss/agent/platforms/common:platform_mapping",
         "//folly:file_util",
         "//folly/json:dynamic",
         "//neteng/netwhoami/lib/cpp:recover",
     ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+    external_deps = [("boost", None, "boost_algorithm")],
     exported_external_deps = [
         ("boost", None, "boost_algorithm"),
     ],
