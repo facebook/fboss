@@ -48,6 +48,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -115,6 +116,7 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
@@ -466,6 +468,17 @@ const CommandTree& kConfigCommandTree() {
                                    CmdConfigProtocolBgpPolicyCommunityList>,
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyCommunityListTraits>,
+                           },
+                           {
+                               "prefix-list",
+                               "Configure BGP prefix-list: <name> "
+                               "[<attribute> <value> ...] "
+                               "(boolean-operator, compare-operator, "
+                               "description, ip-version)",
+                               commandHandler<
+                                   CmdConfigProtocolBgpPolicyPrefixList>,
+                               argRegistrar<
+                                   CmdConfigProtocolBgpPolicyPrefixListTraits>,
                            }},
                       },
                   },
@@ -830,6 +843,14 @@ const CommandTree& kConfigCommandTree() {
                              CmdDeleteProtocolBgpPolicyCommunityList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyCommunityListTraits>,
+                     },
+                     {
+                         "prefix-list",
+                         "Delete a BGP prefix-list: <name> "
+                         "[entry <seq-num>]",
+                         commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
+                         argRegistrar<
+                             CmdDeleteProtocolBgpPolicyPrefixListTraits>,
                      }},
                 }},
            },
