@@ -10,18 +10,88 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 namespace facebook::fboss::utils {
 
-// Applies queue configuration attributes onto `queue`. Shared by the
-// `config qos default-queue-config` and `config qos queuing-policy <policy>`
-// commands, which configure the same cfg::PortQueue attributes into different
-// parts of the switch config.
+// Reserved queue-config name designating the switch-wide default queue list.
+// `queue-config default` edits SwitchConfig::defaultPortQueues -- the fallback
+// every port without an explicit portQueueConfigName uses -- while any other
+// name edits a SwitchConfig::portQueueConfigs entry. Reserving the name is what
+// keeps the two disjoint: portQueueConfigs can never acquire a "default" key,
+// so Port::portQueueConfigName can never resolve to the default list.
+inline constexpr auto kDefaultQueueConfigName = "default";
+
+/**
+ * Name of a queue config: either a portQueueConfigs key or the reserved
+ * `default`.
+ */
+class QueueConfigName : public BaseObjectArgType<std::string> {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ QueueConfigName(std::vector<std::string> v);
+
+  const std::string& getName() const {
+    return data_[0];
+  }
+
+  bool isDefault() const {
+    return data_[0] == kDefaultQueueConfigName;
+  }
+};
+
+/**
+ * A queue id plus the attributes to apply to it.
+ *
+ * Parses command line arguments in the format:
+ *   <queue-id> [<attr1> <val1> [<attr2> <val2> ...]]
+ *
+ * For example:
+ *   0 reserved-bytes 1000 weight 10 scheduling WEIGHTED_ROUND_ROBIN
+ */
+class QueueIdAndAttributes : public BaseObjectArgType<std::string> {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ QueueIdAndAttributes(std::vector<std::string> v);
+
+  int16_t getQueueId() const {
+    return queueId_;
+  }
+
+  const std::vector<std::pair<std::string, std::string>>& getAttributes()
+      const {
+    return attributes_;
+  }
+
+  const std::vector<std::string>& getAqmAttributes() const {
+    return aqmAttributes_;
+  }
+
+ private:
+  int16_t queueId_{0};
+  std::vector<std::pair<std::string, std::string>> attributes_;
+  std::vector<std::string> aqmAttributes_;
+};
+
+// Human-readable list of the supported queue attributes. Shared by the CLI help
+// text and the parser's error messages so the two cannot drift.
+const std::string& validQueueAttrs();
+
+// Resolves `name` to the PortQueue list it designates, creating an empty
+// portQueueConfigs entry if a named config does not exist yet.
+std::vector<cfg::PortQueue>& queueConfigListForWrite(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
+
+// Applies queue configuration attributes onto `queue`. Shared by every command
+// in the `config qos queue-config <name|default>` family, which configure the
+// same cfg::PortQueue attributes into different parts of the switch config.
 //
 // `attributes` is the flat list of scalar <attr, value> pairs (reserved-bytes,
 // shared-bytes, weight, scaling-factor, scheduling, stream-type,

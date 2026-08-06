@@ -8,14 +8,14 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.h"
 
-#include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CmdHandler.cpp" // NOLINT(facebook-unused-include-check)
 
 namespace facebook::fboss {
 
 // Explicit template instantiation
 template void
-CmdHandler<CmdConfigQosQueuingPolicy, CmdConfigQosQueuingPolicyTraits>::run();
+CmdHandler<CmdConfigQosQueueConfig, CmdConfigQosQueueConfigTraits>::run();
 
 } // namespace facebook::fboss

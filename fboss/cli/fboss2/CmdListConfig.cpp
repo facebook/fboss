@@ -21,7 +21,7 @@
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueueConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
@@ -101,13 +101,12 @@
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h"
-#include "fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
@@ -265,10 +264,10 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigInterfacePfcConfigTraits>,
            },
            {
-               "queuing-policy",
-               "Set queuing policy for interface",
-               commandHandler<CmdConfigInterfaceQueuingPolicy>,
-               argRegistrar<CmdConfigInterfaceQueuingPolicyTraits>,
+               "queue-config",
+               "Set queue config for interface",
+               commandHandler<CmdConfigInterfaceQueueConfig>,
+               argRegistrar<CmdConfigInterfaceQueueConfigTraits>,
            },
            {
                "ipv6",
@@ -901,12 +900,6 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigQosDefaultPolicyTraits>,
            },
            {
-               "default-queue-config",
-               "Configure default port queue settings",
-               commandHandler<CmdConfigQosDefaultQueueConfig>,
-               argRegistrar<CmdConfigQosDefaultQueueConfigTraits>,
-           },
-           {
                "policy",
                "Configure QoS policy settings",
                commandHandler<CmdConfigQosPolicy>,
@@ -929,15 +922,15 @@ const CommandTree& kConfigCommandTree() {
                  argRegistrar<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}},
            },
            {
-               "queuing-policy",
-               "Configure queuing policy settings",
-               commandHandler<CmdConfigQosQueuingPolicy>,
-               argRegistrar<CmdConfigQosQueuingPolicyTraits>,
+               "queue-config",
+               "Configure port queue settings for a named queue config, or for 'default' (the switch-wide default queues)",
+               commandHandler<CmdConfigQosQueueConfig>,
+               argRegistrar<CmdConfigQosQueueConfigTraits>,
                {{
                    "queue-id",
                    "Specify queue ID and attributes",
-                   commandHandler<CmdConfigQosQueuingPolicyQueueId>,
-                   argRegistrar<CmdConfigQosQueuingPolicyQueueIdTraits>,
+                   commandHandler<CmdConfigQosQueueConfigQueueId>,
+                   argRegistrar<CmdConfigQosQueueConfigQueueIdTraits>,
                }},
            }},
       },

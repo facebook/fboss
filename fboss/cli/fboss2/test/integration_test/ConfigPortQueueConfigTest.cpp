@@ -3,17 +3,18 @@
 /**
  * End-to-end test for:
  *   fboss2-dev config qos buffer-pool <name> shared-bytes/headroom-bytes
- *   fboss2-dev config qos queuing-policy <name> queue-id <id> <attr> <value>...
- *   fboss2-dev config interface <name> queuing-policy <policy>
+ *   fboss2-dev config qos queue-config <name> queue-id <id> <attr> <value>...
+ *   fboss2-dev config interface <name> queue-config <name>
  *
- * Builds a buffer pool + queuing policy with five queues exercising:
+ * Builds a buffer pool + named queue config with five queues exercising:
  *   - WRR + SP scheduling
  *   - weight, shared-bytes, reserved-bytes
  *   - scaling-factor (MMUScalingFactor enum)
  *   - stream-type (MULTICAST vs default UNICAST)
  *   - buffer-pool-name back-reference
  *   - AQM with ECN behavior and linear detection profile
- * then assigns the policy to an interface and verifies the running config.
+ * then assigns the queue config to an interface and verifies the running
+ * config.
  */
 
 #include <folly/json/dynamic.h>
@@ -30,7 +31,7 @@ namespace {
 // buffer pool name with ConfigPfcTest because FBOSS only permits one
 // bufferPool in the running config.
 constexpr auto kBufferPoolName = "cli_e2e_test_buffer_pool";
-constexpr auto kQueuingPolicyName = "cli_e2e_test_queue_policy";
+constexpr auto kQueueConfigName = "cli_e2e_test_queue_config";
 
 // Enum values from switch_config.thrift
 constexpr int kSchedWrr = 0;
@@ -44,12 +45,12 @@ constexpr int kBehaviorEcn = 1;
 class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
  protected:
   std::string bufferPoolName_ = kBufferPoolName;
-  std::string policyName_ = kQueuingPolicyName;
+  std::string queueConfigName_ = kQueueConfigName;
 
   void SetUp() override {
     Fboss2IntegrationTest::SetUp();
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
-    XLOG(INFO) << "Using queuing-policy: " << policyName_;
+    XLOG(INFO) << "Using queue-config: " << queueConfigName_;
   }
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {
@@ -78,8 +79,8 @@ class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
     std::vector<std::string> cmd = {
         "config",
         "qos",
-        "queuing-policy",
-        policyName_,
+        "queue-config",
+        queueConfigName_,
         "queue-id",
         std::to_string(queueId)};
     cmd.insert(cmd.end(), attrs.begin(), attrs.end());
@@ -147,9 +148,9 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
        "probability",
        "100"});
 
-  XLOG(INFO) << "[Step 3] Assigning queuing-policy to " << ifName;
+  XLOG(INFO) << "[Step 3] Assigning queue-config to " << ifName;
   ASSERT_EQ(
-      runCli({"config", "interface", ifName, "queuing-policy", policyName_})
+      runCli({"config", "interface", ifName, "queue-config", queueConfigName_})
           .exitCode,
       0);
 
@@ -169,12 +170,12 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
   EXPECT_EQ(pools[bufferPoolName_]["sharedBytes"].asInt(), 78773528);
   EXPECT_EQ(pools[bufferPoolName_]["headroomBytes"].asInt(), 4405376);
 
-  // Queuing policy
+  // Named queue config
   ASSERT_TRUE(sw.count("portQueueConfigs"));
-  const auto& policies = sw["portQueueConfigs"];
-  ASSERT_TRUE(policies.count(policyName_))
-      << "policy " << policyName_ << " missing";
-  const auto& queues = policies[policyName_];
+  const auto& queueConfigs = sw["portQueueConfigs"];
+  ASSERT_TRUE(queueConfigs.count(queueConfigName_))
+      << "queue config " << queueConfigName_ << " missing";
+  const auto& queues = queueConfigs[queueConfigName_];
 
   // Queue 2: SP + shared + weight
   {
@@ -231,7 +232,8 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
     if (port.count("name") && port["name"].asString() == ifName) {
       sawPort = true;
       EXPECT_EQ(
-          port.getDefault("portQueueConfigName", "").asString(), policyName_);
+          port.getDefault("portQueueConfigName", "").asString(),
+          queueConfigName_);
       break;
     }
   }

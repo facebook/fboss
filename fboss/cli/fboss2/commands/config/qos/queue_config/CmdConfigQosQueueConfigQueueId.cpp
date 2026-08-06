@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h"
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
@@ -25,29 +25,36 @@
 
 namespace facebook::fboss {
 
-CmdConfigQosDefaultQueueConfigTraits::RetType
-CmdConfigQosDefaultQueueConfig::queryClient(
+CmdConfigQosQueueConfigQueueIdTraits::RetType
+CmdConfigQosQueueConfigQueueId::queryClient(
     const HostInfo& /* hostInfo */,
+    const utils::QueueConfigName& name,
     const ObjectArgType& config) {
   auto& session = ConfigSession::getInstance();
   auto& agentConfig = session.getAgentConfig();
   auto& switchConfig = *agentConfig.sw();
 
-  auto& defaultPortQueues = *switchConfig.defaultPortQueues();
+  // `default` targets SwitchConfig::defaultPortQueues, any other name a
+  // SwitchConfig::portQueueConfigs entry. Both hold a list<PortQueue> that the
+  // agent funnels through the same ThriftConfigApplier::updatePortQueues path,
+  // so everything below this line is identical for the two.
+  auto& configList = utils::queueConfigListForWrite(switchConfig, name);
   int16_t queueIdVal = config.getQueueId();
 
   // Edit a local copy; splice back only after all args validate, so a mid-parse
-  // throw leaves the shared ConfigSession untouched.
-  int existingIdx = -1;
-  cfg::PortQueue work;
-  for (size_t i = 0; i < defaultPortQueues.size(); ++i) {
-    if (*defaultPortQueues[i].id() == queueIdVal) {
-      work = defaultPortQueues[i];
-      existingIdx = static_cast<int>(i);
+  // throw leaves the existing queue config untouched.
+  cfg::PortQueue* existing = nullptr;
+  for (auto& queue : configList) {
+    if (*queue.id() == queueIdVal) {
+      existing = &queue;
       break;
     }
   }
-  if (existingIdx < 0) {
+
+  cfg::PortQueue work;
+  if (existing != nullptr) {
+    work = *existing;
+  } else {
     work.id() = queueIdVal;
     work.scheduling() = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   }
@@ -55,25 +62,31 @@ CmdConfigQosDefaultQueueConfig::queryClient(
   utils::applyPortQueueConfig(
       work, config.getAttributes(), config.getAqmAttributes());
 
-  if (existingIdx >= 0) {
-    defaultPortQueues[existingIdx] = work;
+  // `existing` stays valid across applyPortQueueConfig: it only mutates `work`,
+  // and the push_back that could reallocate configList runs only when there is
+  // no existing entry to point at.
+  if (existing != nullptr) {
+    *existing = work;
   } else {
-    defaultPortQueues.push_back(work);
+    configList.push_back(work);
   }
 
   session.saveConfig(
       cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
 
   return fmt::format(
-      "Successfully configured default-queue-config queue-id {}", queueIdVal);
+      "Successfully configured queue-config '{}' queue-id {}",
+      name.getName(),
+      queueIdVal);
 }
 
-void CmdConfigQosDefaultQueueConfig::printOutput(const RetType& logMsg) {
+void CmdConfigQosQueueConfigQueueId::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
+// Explicit template instantiation
 template void CmdHandler<
-    CmdConfigQosDefaultQueueConfig,
-    CmdConfigQosDefaultQueueConfigTraits>::run();
+    CmdConfigQosQueueConfigQueueId,
+    CmdConfigQosQueueConfigQueueIdTraits>::run();
 
 } // namespace facebook::fboss

@@ -13,13 +13,16 @@
 #include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
+#include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <optional>
 #include <stdexcept>
+#include <utility>
 
 namespace facebook::fboss::utils {
 
@@ -103,16 +106,6 @@ std::string getValidLinearAttrs() {
     keys.push_back(key);
   }
   return folly::join(", ", keys);
-}
-
-// Human-readable list of the supported top-level attributes, shared by the
-// "at least one attribute" and "unknown attribute" error messages so the two
-// can't drift apart.
-const std::string& validTopLevelAttrs() {
-  static const std::string kAttrs =
-      "reserved-bytes, shared-bytes, weight, scaling-factor, scheduling, "
-      "stream-type, buffer-pool-name, active-queue-management";
-  return kAttrs;
 }
 
 std::optional<cfg::QueueScheduling> parseScheduling(const std::string& value) {
@@ -239,13 +232,101 @@ cfg::ActiveQueueManagement& selectOrCreateAqm(
 
 } // namespace
 
+const std::string& validQueueAttrs() {
+  static const std::string kAttrs =
+      "reserved-bytes, shared-bytes, weight, scaling-factor, scheduling, "
+      "stream-type, buffer-pool-name, active-queue-management";
+  return kAttrs;
+}
+
+QueueConfigName::QueueConfigName(std::vector<std::string> v) {
+  if (v.empty()) {
+    throw std::invalid_argument("Queue config name is required");
+  }
+  if (v.size() != 1) {
+    throw std::invalid_argument(
+        "Expected a single queue config name, got: " + folly::join(", ", v));
+  }
+  const auto& name = v[0];
+  // Starts with a letter, then alphanumerics/underscore/hyphen, 1-64 chars.
+  // The reserved name `default` satisfies this, so it needs no special case
+  // here; the commands distinguish it via isDefault().
+  static const re2::RE2 kValidNamePattern("^[a-zA-Z][a-zA-Z0-9_-]{0,63}$");
+  if (!re2::RE2::FullMatch(name, kValidNamePattern)) {
+    throw std::invalid_argument(
+        "Invalid queue config name: '" + name +
+        "'. Name must start with a letter, contain only alphanumeric "
+        "characters, underscores, or hyphens, and be 1-64 characters long.");
+  }
+  data_.push_back(name);
+}
+
+QueueIdAndAttributes::QueueIdAndAttributes(std::vector<std::string> v) {
+  if (v.empty()) {
+    throw std::invalid_argument(
+        "Expected: <queue-id> <attr> <value> [<attr> <value> ...] where "
+        "<attr> is one of: " +
+        validQueueAttrs());
+  }
+
+  // Parse the queue ID (first argument). The true upper bound is ASIC
+  // dependent; kMaxQueueId is the shared arbitrary-but-high limit.
+  queueId_ = folly::to<int16_t>(v[0]);
+  if (queueId_ < 0 || queueId_ > kMaxQueueId) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Queue ID must be between 0 and {}, got: {}",
+            kMaxQueueId,
+            queueId_));
+  }
+  data_.push_back(v[0]);
+
+  // Parse the remaining arguments. Most attributes are simple key-value pairs,
+  // but "active-queue-management" has nested sub-attributes that consume all
+  // remaining arguments.
+  for (size_t i = 1; i < v.size();) {
+    const auto& attr = v[i];
+    data_.push_back(attr);
+
+    if (attr == "active-queue-management" || attr == "aqm") {
+      // Everything after "active-queue-management" is part of the AQM config
+      std::vector<std::string> aqmArgs;
+      for (size_t j = i + 1; j < v.size(); ++j) {
+        aqmArgs.push_back(v[j]);
+        data_.push_back(v[j]);
+      }
+      aqmAttributes_ = std::move(aqmArgs);
+      break; // AQM consumes all remaining arguments
+    }
+
+    // Regular key-value pair
+    if (i + 1 >= v.size()) {
+      throw std::invalid_argument(
+          fmt::format("Attribute '{}' requires a value.", attr));
+    }
+    const auto& value = v[i + 1];
+    attributes_.emplace_back(attr, value);
+    data_.push_back(value);
+    i += 2;
+  }
+}
+
+std::vector<cfg::PortQueue>& queueConfigListForWrite(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name) {
+  if (name.isDefault()) {
+    return *switchConfig.defaultPortQueues();
+  }
+  return (*switchConfig.portQueueConfigs())[name.getName()];
+}
+
 void applyPortQueueConfig(
     cfg::PortQueue& queue,
     const std::vector<std::pair<std::string, std::string>>& attributes,
     const std::vector<std::string>& aqmArgs) {
   if (attributes.empty() && aqmArgs.empty()) {
     throw std::invalid_argument(
-        "At least one attribute is required: " + validTopLevelAttrs());
+        "At least one attribute is required: " + validQueueAttrs());
   }
 
   for (const auto& [attr, value] : attributes) {
@@ -273,7 +354,7 @@ void applyPortQueueConfig(
     } else {
       throw std::invalid_argument(
           "Unknown attribute: '" + attr +
-          "'. Valid attributes are: " + validTopLevelAttrs());
+          "'. Valid attributes are: " + validQueueAttrs());
     }
   }
 

@@ -11,36 +11,35 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
-#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
 
-struct CmdConfigInterfaceQueuingPolicyTraits : public WriteCommandTraits {
+struct CmdConfigInterfaceQueueConfigTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("msg", args, "Message");
+    cmd.add_option("queue_config_name", args, "Queue config name");
   }
-  using ObjectArgType = utils::Message;
+  using ObjectArgType = utils::QueueConfigName;
   using RetType = std::string;
 };
 
-class CmdConfigInterfaceQueuingPolicy
-    : public CmdHandler<
-          CmdConfigInterfaceQueuingPolicy,
-          CmdConfigInterfaceQueuingPolicyTraits> {
+class CmdConfigInterfaceQueueConfig : public CmdHandler<
+                                          CmdConfigInterfaceQueueConfig,
+                                          CmdConfigInterfaceQueueConfigTraits> {
  public:
-  using ObjectArgType = CmdConfigInterfaceQueuingPolicyTraits::ObjectArgType;
-  using RetType = CmdConfigInterfaceQueuingPolicyTraits::RetType;
+  using ObjectArgType = CmdConfigInterfaceQueueConfigTraits::ObjectArgType;
+  using RetType = CmdConfigInterfaceQueueConfigTraits::RetType;
 
   RetType queryClient(
       const HostInfo& hostInfo,
       const utils::InterfaceList& interfaces,
-      const ObjectArgType& policyName);
+      const ObjectArgType& name);
 
   void printOutput(const RetType& logMsg);
 };

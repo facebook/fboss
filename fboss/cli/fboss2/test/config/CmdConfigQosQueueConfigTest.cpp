@@ -1,21 +1,32 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <streambuf>
 #include <string>
+#include <vector>
 
-#include "fboss/cli/fboss2/commands/config/qos/default_queue_config/CmdConfigQosDefaultQueueConfig.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
+
+namespace {
+// Most cases below drive the reserved `default` name, i.e. the
+// SwitchConfig::defaultPortQueues branch of queueConfigListForWrite. The named
+// portQueueConfigs branch is covered by the NamedQueueConfig tests at the end.
+utils::QueueConfigName kDefaultName() {
+  return utils::QueueConfigName({utils::kDefaultQueueConfigName});
+}
+} // namespace
 
 // Seed JSON mirrors a typical RSW defaultPortQueues shape with 9 unicast
 // queues (ids 0-8) at weighted round-robin scheduling with varying weights.
@@ -35,13 +46,13 @@ static const std::string kSeedConfig = R"({
   }
 })";
 
-class CmdConfigQosDefaultQueueConfigTestFixture : public CmdConfigTestBase {
+class CmdConfigQosQueueConfigTestFixture : public CmdConfigTestBase {
  public:
-  CmdConfigQosDefaultQueueConfigTestFixture()
+  CmdConfigQosQueueConfigTestFixture()
       : CmdConfigTestBase("fboss_dqc_test_%%%%-%%%%-%%%%-%%%%", kSeedConfig) {}
 
  protected:
-  const std::string cmdPrefix_ = "config qos default-queue-config";
+  const std::string cmdPrefix_ = "config qos queue-config default queue-id";
 
   static const cfg::PortQueue* findQueue(int16_t queueId) {
     const auto& queues = *ConfigSession::getInstance()
@@ -59,50 +70,56 @@ class CmdConfigQosDefaultQueueConfigTestFixture : public CmdConfigTestBase {
   // Run the command with the given argument string and return the target queue.
   const cfg::PortQueue* runAndFind(const std::string& args, int16_t queueId) {
     setupTestableConfigSession(cmdPrefix_, args);
-    auto cmd = CmdConfigQosDefaultQueueConfig();
-    QueueConfig config(getCmdArgsList());
-    cmd.queryClient(localhost(), config);
+    auto cmd = CmdConfigQosQueueConfigQueueId();
+    utils::QueueIdAndAttributes config(getCmdArgsList());
+    cmd.queryClient(localhost(), kDefaultName(), config);
     return findQueue(queueId);
   }
 };
 
 // Arg validation: minimum valid input
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, validMinimalArgs) {
-  EXPECT_NO_THROW(QueueConfig({"0", "weight", "5"}));
-  EXPECT_NO_THROW(QueueConfig({"7", "reserved-bytes", "1024"}));
-  EXPECT_NO_THROW(QueueConfig({"3", "scheduling", "WRR"}));
+TEST_F(CmdConfigQosQueueConfigTestFixture, validMinimalArgs) {
+  EXPECT_NO_THROW(utils::QueueIdAndAttributes({"0", "weight", "5"}));
+  EXPECT_NO_THROW(utils::QueueIdAndAttributes({"7", "reserved-bytes", "1024"}));
+  EXPECT_NO_THROW(utils::QueueIdAndAttributes({"3", "scheduling", "WRR"}));
 }
 
 // Arg validation: multiple attributes
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, validMultipleAttrs) {
-  EXPECT_NO_THROW(QueueConfig({"1", "weight", "10", "reserved-bytes", "2048"}));
+TEST_F(CmdConfigQosQueueConfigTestFixture, validMultipleAttrs) {
   EXPECT_NO_THROW(
-      QueueConfig({"2", "scheduling", "SP", "shared-bytes", "4096"}));
+      utils::QueueIdAndAttributes(
+          {"1", "weight", "10", "reserved-bytes", "2048"}));
+  EXPECT_NO_THROW(
+      utils::QueueIdAndAttributes(
+          {"2", "scheduling", "SP", "shared-bytes", "4096"}));
 }
 
 // Arg validation: empty args
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, emptyArgsFails) {
-  EXPECT_THROW(QueueConfig({}), std::invalid_argument);
+TEST_F(CmdConfigQosQueueConfigTestFixture, emptyArgsFails) {
+  EXPECT_THROW(utils::QueueIdAndAttributes({}), std::invalid_argument);
 }
 
 // Arg validation: attribute missing value
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, attrMissingValueFails) {
-  EXPECT_THROW(QueueConfig({"0", "weight"}), std::invalid_argument);
+TEST_F(CmdConfigQosQueueConfigTestFixture, attrMissingValueFails) {
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"0", "weight"}), std::invalid_argument);
 }
 
 // Arg validation: negative queue id
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, negativeQueueIdFails) {
-  EXPECT_THROW(QueueConfig({"-1", "weight", "5"}), std::invalid_argument);
+TEST_F(CmdConfigQosQueueConfigTestFixture, negativeQueueIdFails) {
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"-1", "weight", "5"}),
+      std::invalid_argument);
 }
 
 // Modify weight on an existing queue in defaultPortQueues
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setWeightExistingQueue) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setWeightExistingQueue) {
   setupTestableConfigSession(cmdPrefix_, "1 weight 20");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  auto result = cmd.queryClient(localhost(), config);
+  auto result = cmd.queryClient(localhost(), kDefaultName(), config);
 
   EXPECT_THAT(result, ::testing::HasSubstr("Successfully configured"));
   EXPECT_THAT(result, ::testing::HasSubstr("1"));
@@ -124,15 +141,13 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setWeightExistingQueue) {
 }
 
 // Set reserved-bytes on an existing queue
-TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
-    setReservedBytesExistingQueue) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setReservedBytesExistingQueue) {
   setupTestableConfigSession(cmdPrefix_, "0 reserved-bytes 1024");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  cmd.queryClient(localhost(), config);
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   auto& agentConfig = ConfigSession::getInstance().getAgentConfig();
   const auto& queues = *agentConfig.sw()->defaultPortQueues();
@@ -150,13 +165,13 @@ TEST_F(
 }
 
 // Create a new queue entry when queue-id is not in defaultPortQueues
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, createsNewQueueEntry) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, createsNewQueueEntry) {
   setupTestableConfigSession(cmdPrefix_, "15 weight 3");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  cmd.queryClient(localhost(), config);
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const auto& queues =
       *ConfigSession::getInstance().getAgentConfig().sw()->defaultPortQueues();
@@ -174,13 +189,13 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, createsNewQueueEntry) {
 }
 
 // Set scheduling to STRICT_PRIORITY via short name
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSchedulingShortName) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setSchedulingShortName) {
   setupTestableConfigSession(cmdPrefix_, "8 scheduling SP");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  cmd.queryClient(localhost(), config);
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const auto& queues =
       *ConfigSession::getInstance().getAgentConfig().sw()->defaultPortQueues();
@@ -197,18 +212,16 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSchedulingShortName) {
 }
 
 // Full AQM grammar: ECN behavior + linear detection thresholds
-TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
-    setAqmEcnWithLinearDetection) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setAqmEcnWithLinearDetection) {
   setupTestableConfigSession(
       cmdPrefix_,
       "6 active-queue-management detection linear minimum-length 40000 "
       "maximum-length 40000 congestion-behavior ECN");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  cmd.queryClient(localhost(), config);
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const auto& queues =
       *ConfigSession::getInstance().getAgentConfig().sw()->defaultPortQueues();
@@ -230,17 +243,17 @@ TEST_F(
 }
 
 // Unknown linear detection attribute error enumerates the valid attributes
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, unknownLinearAttrFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, unknownLinearAttrFails) {
   setupTestableConfigSession(
       cmdPrefix_,
       "6 active-queue-management congestion-behavior ECN "
       "detection linear bogus-attr 5");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("bogus-attr"));
@@ -251,28 +264,28 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, unknownLinearAttrFails) {
 }
 
 // Linear detection attribute with a missing trailing value fails
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, linearAttrMissingValueFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, linearAttrMissingValueFails) {
   setupTestableConfigSession(
       cmdPrefix_, "6 active-queue-management detection linear minimum-length");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
 }
 
 // Invalid congestion-behavior error enumerates the thrift enum values
-TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
-    invalidCongestionBehaviorFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, invalidCongestionBehaviorFails) {
   setupTestableConfigSession(
       cmdPrefix_, "6 active-queue-management congestion-behavior BOGUS");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("EARLY_DROP"));
@@ -281,14 +294,14 @@ TEST_F(
 }
 
 // Non-numeric values for integer attributes fail with a clean CLI error
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, nonNumericValueFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, nonNumericValueFails) {
   setupTestableConfigSession(cmdPrefix_, "0 weight abc");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("must be an integer"));
@@ -296,25 +309,27 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, nonNumericValueFails) {
 }
 
 // Unknown attribute fails in queryClient
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, unknownAttrFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, unknownAttrFails) {
   setupTestableConfigSession(cmdPrefix_, "0 unknown-attr 99");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
-  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
 }
 
 // Negative integer value fails with the non-negative error (distinct from the
 // non-numeric branch covered above)
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, negativeValueFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, negativeValueFails) {
   setupTestableConfigSession(cmdPrefix_, "0 weight -5");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("must be non-negative"));
@@ -322,7 +337,7 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, negativeValueFails) {
 }
 
 // Set shared-bytes through queryClient and verify the stored field
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSharedBytesExistingQueue) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setSharedBytesExistingQueue) {
   const auto* q = runAndFind("0 shared-bytes 4096", 0);
   ASSERT_NE(q, nullptr);
   ASSERT_TRUE(q->sharedBytes().has_value());
@@ -330,7 +345,7 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSharedBytesExistingQueue) {
 }
 
 // Set scaling-factor (enum attribute) and verify the stored field
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setScalingFactor) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setScalingFactor) {
   const auto* q = runAndFind("0 scaling-factor ONE_HALF", 0);
   ASSERT_NE(q, nullptr);
   ASSERT_TRUE(q->scalingFactor().has_value());
@@ -338,14 +353,14 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setScalingFactor) {
 }
 
 // Set stream-type (enum attribute) and verify the stored field
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setStreamType) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setStreamType) {
   const auto* q = runAndFind("0 stream-type UNICAST", 0);
   ASSERT_NE(q, nullptr);
   EXPECT_EQ(*q->streamType(), cfg::StreamType::UNICAST);
 }
 
 // Set buffer-pool-name (string attribute) and verify the stored field
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setBufferPoolName) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setBufferPoolName) {
   const auto* q = runAndFind("0 buffer-pool-name egress_pool", 0);
   ASSERT_NE(q, nullptr);
   ASSERT_TRUE(q->bufferPoolName().has_value());
@@ -353,7 +368,7 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setBufferPoolName) {
 }
 
 // Set scheduling via full thrift enum name (not just the short SP alias)
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSchedulingFullEnumName) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setSchedulingFullEnumName) {
   const auto* q = runAndFind("0 scheduling DEFICIT_ROUND_ROBIN", 0);
   ASSERT_NE(q, nullptr);
   EXPECT_EQ(*q->scheduling(), cfg::QueueScheduling::DEFICIT_ROUND_ROBIN);
@@ -361,9 +376,7 @@ TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, setSchedulingFullEnumName) {
 
 // Set active-queue-management with EARLY_DROP behavior and probability, and
 // verify all three linear fields plus behavior are stored
-TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
-    setAqmEarlyDropWithProbability) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, setAqmEarlyDropWithProbability) {
   const auto* q = runAndFind(
       "6 active-queue-management detection linear minimum-length 1000 "
       "maximum-length 5000 probability 80 congestion-behavior EARLY_DROP",
@@ -380,9 +393,9 @@ TEST_F(
 }
 
 // printOutput emits the message
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, printOutput) {
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  std::string msg = "Successfully configured default-queue-config queue-id 3";
+TEST_F(CmdConfigQosQueueConfigTestFixture, printOutput) {
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  std::string msg = "Successfully configured queue-config 'default' queue-id 3";
 
   std::stringstream buf;
   std::streambuf* old = std::cout.rdbuf(buf.rdbuf());
@@ -413,9 +426,9 @@ static const std::string kSeedConfigWithAqm = R"({
   }
 })";
 
-class CmdConfigQosDefaultQueueConfigAqmSeedFixture : public CmdConfigTestBase {
+class CmdConfigQosQueueConfigAqmSeedFixture : public CmdConfigTestBase {
  public:
-  CmdConfigQosDefaultQueueConfigAqmSeedFixture()
+  CmdConfigQosQueueConfigAqmSeedFixture()
       : CmdConfigTestBase(
             "fboss_dqc_aqm_test_%%%%-%%%%-%%%%-%%%%",
             kSeedConfigWithAqm) {}
@@ -423,17 +436,15 @@ class CmdConfigQosDefaultQueueConfigAqmSeedFixture : public CmdConfigTestBase {
 
 // Editing one linear threshold of an existing AQM entry (selected by its
 // behavior) preserves that entry's behavior and its untouched linear fields.
-TEST_F(
-    CmdConfigQosDefaultQueueConfigAqmSeedFixture,
-    aqmEditPreservesExistingFields) {
+TEST_F(CmdConfigQosQueueConfigAqmSeedFixture, aqmEditPreservesExistingFields) {
   setupTestableConfigSession(
-      "config qos default-queue-config",
+      "config qos queue-config default queue-id",
       "6 active-queue-management congestion-behavior ECN "
       "detection linear minimum-length 1234");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
-  cmd.queryClient(localhost(), config);
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const auto& queues =
       *ConfigSession::getInstance().getAgentConfig().sw()->defaultPortQueues();
@@ -491,17 +502,15 @@ static const cfg::ActiveQueueManagement* findAqmByBehavior(
 // Adding an EARLY_DROP policy to a queue that already carries an ECN entry must
 // APPEND (yielding two entries) rather than overwrite the ECN one — this is the
 // core coexistence behavior of selectOrCreateAqm.
-TEST_F(
-    CmdConfigQosDefaultQueueConfigAqmSeedFixture,
-    aqmCoexistEcnAndEarlyDrop) {
+TEST_F(CmdConfigQosQueueConfigAqmSeedFixture, aqmCoexistEcnAndEarlyDrop) {
   setupTestableConfigSession(
-      "config qos default-queue-config",
+      "config qos queue-config default queue-id",
       "6 active-queue-management congestion-behavior EARLY_DROP "
       "detection linear minimum-length 300 maximum-length 400 probability 25");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
-  cmd.queryClient(localhost(), config);
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const cfg::PortQueue* q = queueInSession(6);
   ASSERT_NE(q, nullptr);
@@ -530,15 +539,15 @@ TEST_F(
 // A bare `congestion-behavior <x>` (no detection args) must leave the selected
 // entry's existing detection intact — the sawDetectionArgs no-clobber guard.
 TEST_F(
-    CmdConfigQosDefaultQueueConfigAqmSeedFixture,
+    CmdConfigQosQueueConfigAqmSeedFixture,
     aqmBareBehaviorPreservesDetection) {
   setupTestableConfigSession(
-      "config qos default-queue-config",
+      "config qos queue-config default queue-id",
       "6 active-queue-management congestion-behavior ECN");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
-  cmd.queryClient(localhost(), config);
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  cmd.queryClient(localhost(), kDefaultName(), config);
 
   const cfg::PortQueue* q = queueInSession(6);
   ASSERT_NE(q, nullptr);
@@ -556,18 +565,16 @@ TEST_F(
 // An AQM edit that names no congestion-behavior is ambiguous (a queue can hold
 // both an ECN and an EARLY_DROP entry) and must be rejected, not silently
 // applied to aqms.front() or committed as a phantom EARLY_DROP entry.
-TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
-    aqmRequiresCongestionBehavior) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, aqmRequiresCongestionBehavior) {
   setupTestableConfigSession(
       cmdPrefix_,
       "6 active-queue-management detection linear minimum-length 100");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
 
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("congestion-behavior"));
@@ -577,30 +584,112 @@ TEST_F(
 // Two congestion-behavior tokens in one edit are ambiguous (selection keys on
 // the first, assignment on the last) and must be rejected.
 TEST_F(
-    CmdConfigQosDefaultQueueConfigTestFixture,
+    CmdConfigQosQueueConfigTestFixture,
     aqmDuplicateCongestionBehaviorFails) {
   setupTestableConfigSession(
       cmdPrefix_,
       "6 active-queue-management congestion-behavior ECN "
       "congestion-behavior EARLY_DROP");
 
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
-  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
 }
 
 // A queue-id with no attributes at all is rejected by queryClient rather than
 // staging an empty edit.
-TEST_F(CmdConfigQosDefaultQueueConfigTestFixture, noAttributesFails) {
+TEST_F(CmdConfigQosQueueConfigTestFixture, noAttributesFails) {
   setupTestableConfigSession(cmdPrefix_, "0");
-  auto cmd = CmdConfigQosDefaultQueueConfig();
-  QueueConfig config(getCmdArgsList());
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
   try {
-    cmd.queryClient(localhost(), config);
+    cmd.queryClient(localhost(), kDefaultName(), config);
     FAIL() << "expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     EXPECT_THAT(e.what(), ::testing::HasSubstr("At least one attribute"));
   }
+}
+
+// ---------------------------------------------------------------------------
+// Named queue configs: the portQueueConfigs branch of queueConfigListForWrite.
+// Everything above drives the reserved `default` name.
+// ---------------------------------------------------------------------------
+
+namespace {
+constexpr auto kNamedConfigName = "rsw_queues";
+
+utils::QueueConfigName kNamedName() {
+  return utils::QueueConfigName({kNamedConfigName});
+}
+
+const std::vector<cfg::PortQueue>* namedQueuesInSession(
+    const std::string& name) {
+  const auto& configs =
+      *ConfigSession::getInstance().getAgentConfig().sw()->portQueueConfigs();
+  auto it = configs.find(name);
+  return it == configs.end() ? nullptr : &it->second;
+}
+
+size_t defaultQueueCount() {
+  return ConfigSession::getInstance()
+      .getAgentConfig()
+      .sw()
+      ->defaultPortQueues()
+      ->size();
+}
+} // namespace
+
+// A named config lands in portQueueConfigs, creating the entry on demand, and
+// leaves defaultPortQueues alone.
+TEST_F(CmdConfigQosQueueConfigTestFixture, namedConfigCreatesEntry) {
+  // Must come before any ConfigSession::getInstance() call: until the session
+  // is set up, getInstance() resolves against the real /etc/coop/cli.
+  setupTestableConfigSession(
+      "config qos queue-config rsw_queues queue-id", "3 weight 7");
+  const auto defaultCountBefore = defaultQueueCount();
+
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  auto result = cmd.queryClient(localhost(), kNamedName(), config);
+
+  EXPECT_THAT(result, ::testing::HasSubstr(kNamedConfigName));
+
+  const auto* queues = namedQueuesInSession(kNamedConfigName);
+  ASSERT_NE(queues, nullptr) << "named entry was not created";
+  ASSERT_EQ(queues->size(), 1);
+  EXPECT_EQ(*queues->front().id(), 3);
+  ASSERT_TRUE(queues->front().weight().has_value());
+  EXPECT_EQ(*queues->front().weight(), 7);
+
+  EXPECT_EQ(defaultQueueCount(), defaultCountBefore)
+      << "a named edit must not touch defaultPortQueues";
+}
+
+// `default` is reserved: it routes to defaultPortQueues and must never
+// materialize a portQueueConfigs["default"] key, which
+// Port::portQueueConfigName could otherwise be pointed at.
+TEST_F(CmdConfigQosQueueConfigTestFixture, defaultNameNeverCreatesNamedEntry) {
+  setupTestableConfigSession(cmdPrefix_, "1 weight 20");
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  cmd.queryClient(localhost(), kDefaultName(), config);
+
+  EXPECT_EQ(namedQueuesInSession(utils::kDefaultQueueConfigName), nullptr)
+      << "'default' must route to defaultPortQueues, not portQueueConfigs";
+}
+
+TEST_F(CmdConfigQosQueueConfigTestFixture, queueConfigNameValidation) {
+  EXPECT_TRUE(
+      utils::QueueConfigName({utils::kDefaultQueueConfigName}).isDefault());
+  EXPECT_FALSE(utils::QueueConfigName({kNamedConfigName}).isDefault());
+
+  EXPECT_THROW(utils::QueueConfigName({}), std::invalid_argument);
+  EXPECT_THROW(utils::QueueConfigName({"a", "b"}), std::invalid_argument);
+  // Must start with a letter, and may not contain spaces.
+  EXPECT_THROW(utils::QueueConfigName({"9queues"}), std::invalid_argument);
+  EXPECT_THROW(utils::QueueConfigName({"bad name"}), std::invalid_argument);
 }
 
 } // namespace facebook::fboss
