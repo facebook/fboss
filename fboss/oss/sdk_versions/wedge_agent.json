@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<94068b351fc2ecbb9fe4e9a89c58294a>>"
+        "@generated SignedSource<<97ed7c4c680f479e3cb33bd77e6a5059>>"
     ],
     "MINIPACK": [
         {
@@ -141,6 +141,34 @@
             "asicSdk": "25.11.4210",
             "saiSdk": "25.11.4210",
             "saiVersion": "1.17.0"
+        }
+    ],
+    "WEDGE800BACT": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.30",
+            "saiSdk": "11.7.0.0_odp",
+            "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
+        }
+    ],
+    "WEDGE800BNHP": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.30",
+            "saiSdk": "11.7.0.0_odp",
+            "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.32",
+            "saiSdk": "13.3.0.0_odp",
+            "saiVersion": "1.16.1"
         }
     ],
     "ICECUBE800BC": [
