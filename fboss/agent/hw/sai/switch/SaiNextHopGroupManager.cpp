@@ -93,7 +93,10 @@ std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<cfg::SwitchingMode> primaryArsMode) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
+  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION ||
+      nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
+    // FIXME - HW_PROTECTION GROUP should be of type standby
+    // group mode.
     return std::nullopt;
   }
 #endif
@@ -295,17 +298,16 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
   nextHopGroupHandle->platform_ = platform_;
 
-  if (childNextHopGroup) {
-    nextHopGroupHandle->childGroupMember_ =
-        std::make_shared<SaiNextHopGroupChildGroupMember>(
-            this, std::move(childNextHopGroup), nextHopGroupId);
-  }
-
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_->getAsic()->isSupported(
+  bool canBulkCreateMembers = true;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  canBulkCreateMembers = nextHopGroupType != SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+#endif
+  if (canBulkCreateMembers &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     // TODO(zecheng): Use bulk create for warmboot handle reclaiming as well.
     // There is a sequencing issue where the delayed bulk create will cause
@@ -391,6 +393,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     }
   }
 #endif
+
+  if (childNextHopGroup) {
+    nextHopGroupHandle->childGroupMember_ =
+        std::make_shared<SaiNextHopGroupChildGroupMember>(
+            this, std::move(childNextHopGroup), nextHopGroupId);
+  }
 
   return nextHopGroupHandle;
 }
@@ -625,7 +633,8 @@ SaiNextHopGroupChildGroupMember::SaiNextHopGroupChildGroupMember(
       std::nullopt
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::nullopt,
+      SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+          SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY},
       std::nullopt
 #endif
   );
@@ -662,9 +671,9 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole>
       configuredRole;
-  if (nextHopGroupType_ == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
+  if (nextHopGroupType_ == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
     configuredRole = SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
-        SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY};
+        SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY};
   }
 #endif
   // In fixed width case, the member is added with weight 0
