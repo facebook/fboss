@@ -21,7 +21,6 @@
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
@@ -56,8 +55,8 @@
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
-#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.h"
+#include "fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
@@ -80,7 +79,11 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h"
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
+#include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
@@ -96,10 +99,13 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
 #include "fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
+#include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h"
+#include "fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h"
 
 namespace facebook::fboss {
 
@@ -214,12 +220,6 @@ const CommandTree& kConfigCommandTree() {
                "Configure PFC settings for interface",
                commandHandler<CmdConfigInterfacePfcConfig>,
                argRegistrar<CmdConfigInterfacePfcConfigTraits>,
-           },
-           {
-               "queuing-policy",
-               "Set queuing policy for interface",
-               commandHandler<CmdConfigInterfaceQueuingPolicy>,
-               argRegistrar<CmdConfigInterfaceQueuingPolicyTraits>,
            },
            {
                "ipv6",
@@ -518,15 +518,15 @@ const CommandTree& kConfigCommandTree() {
                  argRegistrar<CmdConfigQosPriorityGroupPolicyGroupIdTraits>}},
            },
            {
-               "queuing-policy",
-               "Configure queuing policy settings",
-               commandHandler<CmdConfigQosQueuingPolicy>,
-               argRegistrar<CmdConfigQosQueuingPolicyTraits>,
+               "queue-config",
+               "Configure port queue settings for a named queue config, or for 'default' (the switch-wide default queues)",
+               commandHandler<CmdConfigQosQueueConfig>,
+               argRegistrar<CmdConfigQosQueueConfigTraits>,
                {{
                    "queue-id",
                    "Specify queue ID and attributes",
-                   commandHandler<CmdConfigQosQueuingPolicyQueueId>,
-                   argRegistrar<CmdConfigQosQueuingPolicyQueueIdTraits>,
+                   commandHandler<CmdConfigQosQueueConfigQueueId>,
+                   argRegistrar<CmdConfigQosQueueConfigQueueIdTraits>,
                }},
            }},
       },
@@ -652,6 +652,12 @@ const CommandTree& kConfigCommandTree() {
           }},
       },
 
+      {"delete",
+       "arp",
+       "Reset ARP/NDP timer settings to their defaults",
+       commandHandler<CmdDeleteArp>,
+       argRegistrar<CmdDeleteArpTraits>},
+
       {
           "delete",
           "interface",
@@ -679,11 +685,23 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteQos>,
           argRegistrar<CmdDeleteQosTraits>,
           {{
-              "default-policy",
-              "Clear the default data-plane QoS policy",
-              commandHandler<CmdDeleteQosDefaultPolicy>,
-              argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
-          }},
+               "default-policy",
+               "Clear the default data-plane QoS policy",
+               commandHandler<CmdDeleteQosDefaultPolicy>,
+               argRegistrar<CmdDeleteQosDefaultPolicyTraits>,
+           },
+           {
+               "queue-config",
+               "Remove a queue config, or 'default' to clear the switch-wide default queues",
+               commandHandler<CmdDeleteQosQueueConfig>,
+               argRegistrar<CmdDeleteQosQueueConfigTraits>,
+               {{
+                   "queue-id",
+                   "Remove only the given queue from the queue config",
+                   commandHandler<CmdDeleteQosQueueConfigQueueId>,
+                   argRegistrar<CmdDeleteQosQueueConfigQueueIdTraits>,
+               }},
+           }},
       },
 
       {
@@ -787,6 +805,26 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdDeleteConfig>,
        argRegistrar<CmdDeleteConfigTraits>},
 
+      {
+          "delete",
+          "dhcp",
+          "Remove DHCP source-override settings",
+          commandHandler<CmdDeleteDhcp>,
+          argRegistrar<CmdDeleteDhcpTraits>,
+          {{
+               "relay-source-override",
+               "Remove source IP override for DHCP relay packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpRelaySourceOverride>,
+               argRegistrar<CmdDeleteDhcpRelaySourceOverrideTraits>,
+           },
+           {
+               "reply-source-override",
+               "Remove source IP override for DHCP reply packets (ipv4|ipv6)",
+               commandHandler<CmdDeleteDhcpReplySourceOverride>,
+               argRegistrar<CmdDeleteDhcpReplySourceOverrideTraits>,
+           }},
+      },
+
       {"delete",
        "tunnel",
        "Delete (reset to default) tunnel settings",
@@ -812,8 +850,14 @@ const CommandTree& kConfigCommandTree() {
             }},
        }}},
 
+      {"delete",
+       "vlan",
+       "Delete a VLAN and its interface (refuses while it is the default VLAN or a port's ingress VLAN)",
+       commandHandler<CmdDeleteVlan>,
+       argRegistrar<CmdDeleteVlanTraits>},
+
   };
-  sort(root.begin(), root.end());
+  stable_sort(root.begin(), root.end());
   return root;
 }
 

@@ -114,4 +114,12 @@ TEST_F(CmdShowArpTestFixture, printOutput) {
   std::cout << output;
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text), so cosmetic output changes to
+// printOutput() do not churn this test.
+TEST_F(CmdShowArpTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowArpTraits::description().empty());
+  EXPECT_FALSE(CmdShowArp::sampleModel().arpEntries()->empty());
+}
+
 } // namespace facebook::fboss

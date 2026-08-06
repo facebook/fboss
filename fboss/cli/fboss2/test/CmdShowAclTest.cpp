@@ -139,4 +139,12 @@ Acl: aclTable2_cpuPolicing-high-slow-protocols-mac
 )";
   EXPECT_EQ(output, expectOutput);
 }
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowAclTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowAclTraits::description().empty());
+  EXPECT_FALSE(CmdShowAcl::sampleModel().aclTableEntries()->empty());
+}
+
 } // namespace facebook::fboss

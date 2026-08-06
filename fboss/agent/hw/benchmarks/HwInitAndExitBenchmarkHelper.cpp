@@ -112,7 +112,6 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
     const AgentEnsemble* ensemble) {
   /*
    * |  Platform   |  Role  |
-   * |  TRIDENT2   |   RSW  |
    * |  TOMAHAWK   |   FSW  |
    * |  TOMAHAWK3  |    UU  |
    * |  EBRO       |   RSW  |
@@ -129,12 +128,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   auto asicType =
       swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
-  if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(
-               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
-        .getThriftRoutes();
-  } else if (
-      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||

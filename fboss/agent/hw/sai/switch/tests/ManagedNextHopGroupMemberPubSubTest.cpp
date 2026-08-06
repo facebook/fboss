@@ -20,9 +20,9 @@
 using namespace facebook::fboss;
 
 /*
- * Tests for ManagedSaiNextHopGroupMember pub/sub behavior.
+ * Tests for ManagedSaiNextHopGroupNextHopMember pub/sub behavior.
  *
- * ManagedSaiNextHopGroupMember subscribes to NextHopTraits publisher
+ * ManagedSaiNextHopGroupNextHopMember subscribes to NextHopTraits publisher
  * (SaiIpNextHopTraits). When the next hop SAI object appears,
  * createObject creates the group member. When it disappears,
  * removeObject cleans up the group member.

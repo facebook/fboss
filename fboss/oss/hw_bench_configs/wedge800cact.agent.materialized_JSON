@@ -5,6 +5,7 @@
     "enable_nexthop_id_manager": "true",
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
+    "platform_descriptor_config_path": "/tmp/platform_descriptors/",
     "skip_transceiver_programming": "true",
     "use_full_dlb_scale": "true"
   },

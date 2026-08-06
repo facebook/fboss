@@ -65,6 +65,7 @@ class PortStats {
       bool isUp,
       bool isDrained,
       std::optional<bool> activeState) const;
+  int64_t getLinkStateFlapCount() const;
   void linkActiveStateChange(bool isActive) const;
 
   void ipv4DstLookupFailure() const;
@@ -112,6 +113,12 @@ class PortStats {
     return curFabricLinkMonitoringTxPackets_;
   }
 
+  // Tracks the increment in each debounce retrigger count. Only the link down
+  // increment feeds the link fault counter.
+  void linkDebounceRetriggers(
+      std::optional<int64_t> downRetriggers,
+      std::optional<int64_t> upRetriggers);
+
   // Non-const as it accesses curInErrors_, should only be called from the
   // stats update thread.
   void
@@ -132,6 +139,9 @@ class PortStats {
   PortStats& operator=(PortStats&&) = delete;
 
   std::string getCounterKey(const std::string& key) const;
+  static int64_t debounceRetriggerIncrement(
+      std::optional<int64_t> count,
+      std::optional<int64_t>& baseline);
   void updateLoadBearingTLStatValue(
       const std::string& counter,
       bool isDrained,
@@ -153,6 +163,8 @@ class PortStats {
   SwitchStats* const switchStats_;
 
   std::chrono::steady_clock::time_point lastMkPduTime_;
+  std::optional<int64_t> curLinkDownDebounceRetriggers_;
+  std::optional<int64_t> curLinkUpDebounceRetriggers_;
   int64_t curInErrors_{0};
   int64_t curFecUncorrectableErrors_{0};
   int64_t curFabricLinkMonitoringRxPackets_{0};

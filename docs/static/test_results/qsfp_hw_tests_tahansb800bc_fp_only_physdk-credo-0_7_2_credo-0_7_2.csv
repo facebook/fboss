@@ -47,5 +47,5 @@
 "cold_boot.HwStateMachineTest.CheckPortStatusUpdated","tahansb800bc_fp_only","credo-0.7.2","PASSED"
 "warm_boot.HwStateMachineTest.CheckAgentConfigChanged","tahansb800bc_fp_only","credo-0.7.2","PASSED"
 "cold_boot.HwStateMachineTest.CheckAgentConfigChanged","tahansb800bc_fp_only","credo-0.7.2","PASSED"
-"cold_boot.EmptyHwTest.CheckInit","tahansb800bc_fp_only","credo-0.7.2","PASSED"
 "warm_boot.EmptyHwTest.CheckInit","tahansb800bc_fp_only","credo-0.7.2","PASSED"
+"cold_boot.EmptyHwTest.CheckInit","tahansb800bc_fp_only","credo-0.7.2","PASSED"

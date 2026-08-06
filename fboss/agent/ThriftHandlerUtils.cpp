@@ -44,9 +44,15 @@ void clearSwPortStats(
         : port->getName();
     portKeys.emplace_back(
         folly::to<std::string>(portName, ".", "link_state.flap"));
+    portKeys.emplace_back(folly::to<std::string>(portName, ".", "link_fault"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portName, ".", "link_down_debounce_retrigger"));
+    portKeys.emplace_back(
+        folly::to<std::string>(portName, ".", "link_up_debounce_retrigger"));
   };
   auto getLinkStateCounterKey = [&](std::vector<std::string>& globalKeys) {
     globalKeys.emplace_back("link_state.flap");
+    globalKeys.emplace_back("link_fault");
   };
 
   auto statsMap = facebook::fb303::fbData->getStatMap();

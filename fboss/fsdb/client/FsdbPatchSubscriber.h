@@ -38,6 +38,16 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   // retained for a future synchronous client-side rejection.
   std::optional<FsdbErrorCode> addPaths(const PathElement& newPaths);
 
+  // Whether the server on the current connection advertised live add-path
+  // support by populating OperSubInitResponse.subscriptionUid. When true,
+  // addPaths() extends the live server-side subscription in place (immediate
+  // initial sync); when false -- an older server, or before this connection's
+  // initial sync has completed -- appended paths are only delivered on the next
+  // (re)connect via the createRequest() merge. Thread-safe.
+  bool serverSupportsLiveAddPath() const {
+    return serverUid_.rlock()->has_value();
+  }
+
  private:
 #if FOLLY_HAS_COROUTINES
   using StreamT = typename BaseT::StreamT;

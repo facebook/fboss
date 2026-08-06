@@ -52,7 +52,16 @@ class NextHopGroupApiTest : public ::testing::Test {
       const sai_object_id_t nextHopId,
       const sai_uint32_t nextHopWeight) const {
     return nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(
-        {nextHopGroupId, nextHopId, nextHopWeight}, 0);
+        {nextHopGroupId,
+         nextHopId,
+         nextHopWeight
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+         ,
+         std::nullopt,
+         std::nullopt
+#endif
+        },
+        0);
   }
 
   void checkNextHopGroup(const sai_object_id_t& nextHopGroupId) const {

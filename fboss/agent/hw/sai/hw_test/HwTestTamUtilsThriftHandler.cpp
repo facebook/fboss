@@ -207,6 +207,10 @@ void HwTestThriftHandler::triggerParityError() {
   auto asic = hwSwitch_->getPlatform()->getAsic()->getAsicType();
 
   switch (asic) {
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      XLOG(FATAL) << "Unsupported HwAsic: "
+                  << hwSwitch_->getPlatform()->getAsic()->getAsicTypeStr();
+      break;
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
@@ -224,7 +228,6 @@ void HwTestThriftHandler::triggerParityError() {
     case cfg::AsicType::ASIC_TYPE_G202X:
       triggerCiscoParityError(hwSwitch_);
       break;
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:

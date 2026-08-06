@@ -55,6 +55,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCurrentAppSelCode;
+  using CmisModule::getDiagSelLatchWaitUsec;
   using CmisModule::getInterfaceCodeForAppSel;
   using CmisModule::getLaneValuePtr;
   using CmisModule::getMaxNumBanks;
@@ -97,7 +98,20 @@ class CmisTest : public TransceiverManagerTestHelper {
 
     return xcvr;
   }
+
+  // The fake EEPROM backing the most recently overridden transceiver.
+  FakeTransceiverImpl* lastQsfpImpl() {
+    return static_cast<FakeTransceiverImpl*>(qsfpImpls_.back().get());
+  }
 };
+
+namespace {
+// DIAG_SEL is byte 0 of upper page 14h.
+constexpr int kPage14 = static_cast<int>(CmisPages::PAGE14);
+constexpr int kDiagSelUpperPageOffset = 0;
+constexpr uint8_t kDiagSelSnr =
+    static_cast<uint8_t>(DiagnosticFeatureEncoding::SNR);
+} // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
 // Lower Page 00h byte 70, so getMaxNumBanks() must fall back to a single bank.
@@ -206,6 +220,109 @@ TEST_F(CmisTest, cpoReadsSnrDiagPagePerBank) {
     const uint8_t* data = xcvr->getBankedQsfpValuePtr(page14, 240, 1, bank);
     EXPECT_EQ(data[0], bank);
   }
+}
+
+// Only the Arista XDR4 part numbers need the long wait after DIAG_SEL changes;
+// every other part number gets the 10ms the CMIS spec allows for. Both XDR4
+// fixtures are real EEPROM dumps, so the part number the gate matches on is the
+// one the module actually reports.
+TEST_F(CmisTest, diagSelLatchWaitIsGatedOnPartNumber) {
+  auto xdr4 = overrideCmisModule<CmisArista400GXdr4Transceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::QSFP_DD);
+  EXPECT_EQ(xdr4->getPartNumber(), "QDD-400G-XDR4");
+  EXPECT_EQ(
+      xdr4->getDiagSelLatchWaitUsec(),
+      CmisModule::kUsecDiagSelectLatchWaitSlow);
+
+  auto xdr4x2 = overrideCmisModule<CmisArista2x400GXdr4Transceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  EXPECT_EQ(xdr4x2->getPartNumber(), "FB-P800G-2XDR4-1");
+  EXPECT_EQ(
+      xdr4x2->getDiagSelLatchWaitUsec(),
+      CmisModule::kUsecDiagSelectLatchWaitSlow);
+
+  auto zr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(2), TransceiverModuleIdentifier::OSFP);
+  EXPECT_EQ(zr->getPartNumber(), "DP08SFP8-ZRB-29B");
+  EXPECT_EQ(
+      zr->getDiagSelLatchWaitUsec(), CmisModule::kUsecDiagSelectLatchWait);
+}
+
+// Both XDR4 dumps were taken while qsfp_service had the module selected on SNR,
+// so DIAG_SEL already reads back as 6 and refreshing must not rewrite it -- the
+// steady state on a deployed module never pays the 100ms.
+//
+// Page 14h offset 240 holds the per-lane Rx SNR as a U16 with a 1/256 dB LSB
+// (CMIS 5.2 Table 8-95), so lane 0 of the 400G dump (bytes d7 15) is
+// 0x15d7 / 256 = 21.84 dB.
+TEST_F(CmisTest, aristaXdr4RefreshLeavesDiagSelAloneAndReadsSnr) {
+  auto xcvr = overrideCmisModule<CmisArista400GXdr4Transceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::QSFP_DD);
+  auto* qsfpImpl = lastQsfpImpl();
+
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 0);
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 0);
+
+  const std::vector<uint16_t> expectedRawSnr = {0x15d7, 0x1531, 0x151a, 0x15e1};
+  const auto& info = xcvr->getTransceiverInfo();
+  const auto& channels = *info.tcvrStats()->channels();
+  ASSERT_EQ(channels.size(), expectedRawSnr.size());
+  for (size_t lane = 0; lane < expectedRawSnr.size(); ++lane) {
+    EXPECT_NEAR(
+        *channels[lane].sensors()->rxSnr()->value(),
+        expectedRawSnr[lane] / 256.0,
+        0.001);
+  }
+}
+
+// Reading page 14h right after writing DIAG_SEL races the module and yields
+// zeros, so the refresh path waits for the module to repopulate the page. The
+// wait is only owed when the selection changes, so DIAG_SEL is written once and
+// then left alone: the fixture starts at DIAG_SEL=NONE, so the first refresh
+// writes SNR and a second refresh finds SNR already selected and skips.
+TEST_F(CmisTest, snrDiagSelWrittenOnceAcrossRefreshes) {
+  auto xcvr = overrideCmisModule<Cmis2x400GDr4Transceiver>(TransceiverID(0));
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 1);
+  auto* qsfpImpl = lastQsfpImpl();
+
+  const uint8_t* diagSel = xcvr->getQsfpValuePtr(
+      kPage14, QsfpModule::MAX_QSFP_PAGE_SIZE + kDiagSelUpperPageOffset, 1);
+  EXPECT_EQ(diagSel[0], kDiagSelSnr);
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 1);
+
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 1);
+}
+
+// DIAG_SEL lives on banked page 14h, so on a multi-bank (CPO) module every bank
+// carries its own copy and each must be selected before that bank's 14h read.
+// The fixture starts every bank at DIAG_SEL=NONE, so the first refresh writes
+// once per bank and a second refresh writes nothing.
+TEST_F(CmisTest, cpoSnrDiagSelWrittenOncePerBank) {
+  auto xcvr = overrideCmisModule<CmisCpo6P4TDrReadyTransceiver>(
+      TransceiverID(0), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 4);
+  auto* qsfpImpl = lastQsfpImpl();
+
+  for (uint8_t bank = 0; bank < 4; ++bank) {
+    const uint8_t* diagSel = xcvr->getBankedQsfpValuePtr(
+        kPage14,
+        QsfpModule::MAX_QSFP_PAGE_SIZE + kDiagSelUpperPageOffset,
+        1,
+        bank);
+    EXPECT_EQ(diagSel[0], kDiagSelSnr);
+  }
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 4);
+
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(kPage14, kDiagSelUpperPageOffset), 4);
 }
 
 // On a READY VDM-capable multi-bank (CPO) module, the VDM data page (24h) is
@@ -2704,6 +2821,26 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+TEST_F(CmisTest, cmis2x400GXdr4TransceiverInfoTest) {
+  // XDR4 is the 2km reach variant of DR4 and advertises the same 400G-DR4
+  // application, so it must derive the same media interface as the 500m part
+  // despite its longer SMF length.
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GXdr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_2x400G);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
+  }
+  EXPECT_EQ(*info.tcvrState()->cable()->singleMode(), 2000);
 }
 
 TEST_F(CmisTest, vdmPam4MpiAlarmsTest) {

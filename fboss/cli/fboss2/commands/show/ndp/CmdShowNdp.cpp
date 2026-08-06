@@ -139,6 +139,53 @@ RetType CmdShowNdp::createModel(
   return model;
 }
 
+std::string_view CmdShowNdpTraits::description() {
+  return "Displays the switch's IPv6 NDP neighbor table: each resolved IPv6 neighbor, the interface it was learned on, its VLAN/interface ID, reachability state, and TTL. Use it to confirm IPv6 next-hops are present before debugging routing.";
+}
+
+CmdShowNdp::RetType CmdShowNdp::sampleModel() {
+  RetType model;
+
+  cli::NdpEntry entry1;
+  entry1.ip() = "fe80::200:11ff:fe22:3301";
+  entry1.mac() = "02:00:11:22:33:01";
+  entry1.port() = "eth1/1/1";
+  entry1.vlanName() = "vlan2001";
+  entry1.vlanID() = 2001;
+  entry1.state() = "REACHABLE";
+  entry1.ttl() = 3814;
+  entry1.classID() = 0;
+  entry1.switchName() = "--";
+  entry1.resolvedSince() = "--";
+
+  cli::NdpEntry entry2;
+  entry2.ip() = "2001:db8:a::3e";
+  entry2.mac() = "02:00:11:22:33:01";
+  entry2.port() = "eth1/1/1";
+  entry2.vlanName() = "vlan2001";
+  entry2.vlanID() = 2001;
+  entry2.state() = "REACHABLE";
+  entry2.ttl() = 36122;
+  entry2.classID() = 0;
+  entry2.switchName() = "--";
+  entry2.resolvedSince() = "--";
+
+  cli::NdpEntry entry3;
+  entry3.ip() = "fe80::200:11ff:fe22:3302";
+  entry3.mac() = "02:00:11:22:33:02";
+  entry3.port() = "eth1/2/1";
+  entry3.vlanName() = "vlan2003";
+  entry3.vlanID() = 2003;
+  entry3.state() = "REACHABLE";
+  entry3.ttl() = 32225;
+  entry3.classID() = 0;
+  entry3.switchName() = "--";
+  entry3.resolvedSince() = "--";
+
+  model.ndpEntries() = {entry1, entry2, entry3};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template const ValidFilterMapType

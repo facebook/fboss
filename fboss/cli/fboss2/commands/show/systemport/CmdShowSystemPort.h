@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include <map>
 #include <string>
+#include <string_view>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -28,6 +29,10 @@ struct CmdShowSystemPortTraits : public ReadCommandTraits {
   using RetType = cli::ShowSystemPortModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowSystemPort
@@ -48,6 +53,10 @@ class CmdShowSystemPort
       const std::map<std::string, facebook::fboss::HwSysPortStats>&
           systemportHwStats,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

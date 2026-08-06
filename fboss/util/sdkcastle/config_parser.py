@@ -25,6 +25,7 @@ from .config import (
     SdkcastleSpec,
     TestSpec,
 )
+from .constants import DEFAULT_NETCASTLE_TIMEOUT
 from .enums import (
     AsicType,
     BootType,
@@ -200,6 +201,7 @@ class ConfigParser:
             regex=data.get("regex"),
             num_jobs=data.get("numJobs", 4),
             runner_options=data.get("runnerOptions"),
+            timeout=data.get("timeout", DEFAULT_NETCASTLE_TIMEOUT),
         )
 
     def _parse_basset_query(self, data: Dict[str, Any]) -> BassetQuery:

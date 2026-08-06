@@ -89,6 +89,36 @@ TEST_F(SwSwitchTest, GetPortStats) {
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 2);
   EXPECT_EQ(portStats->getPortName(), "port0");
 }
+
+TEST_F(SwSwitchTest, PhyInfoLinkFlapCountFromLinkScanCallbacks) {
+  const PortID portId{1};
+  phy::PhyInfo phyInfo;
+  phyInfo.state() = phy::PhyState();
+  phyInfo.state()->name() = "port1";
+  phyInfo.stats() = phy::PhyStats();
+  ON_CALL(*getMockHw(sw), updateAllPhyInfoImpl())
+      .WillByDefault(Return(std::map<PortID, phy::PhyInfo>{{portId, phyInfo}}));
+
+  sw->linkStateChanged(portId, true, cfg::PortType::INTERFACE_PORT);
+  waitForStateUpdates(sw);
+
+  CounterCache counters(sw);
+  counters.update();
+  const auto linkStateFlapCount = counters.value("port1.link_state.flap.sum");
+
+  sw->updateStats();
+  std::vector<PortID> portIds{portId};
+  auto phyInfos = sw->getIPhyInfo(portIds);
+  ASSERT_EQ(phyInfos.size(), 1);
+  EXPECT_EQ(
+      phyInfos.at(portId).stats()->linkFlapCount().value(), linkStateFlapCount);
+
+  auto agentStats = sw->fillFsdbStats();
+  EXPECT_EQ(
+      agentStats.phyStats()->at("port1").linkFlapCount().value(),
+      linkStateFlapCount);
+}
+
 ACTION(ThrowException) {
   throw std::exception();
 }

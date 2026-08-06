@@ -1012,9 +1012,12 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchDropStats()});
       agentStats.switchDropBitmapStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
-      for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
+      for (auto& [portID, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
-        agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
+        auto phyStats = phyInfo.stats().value();
+        phyStats.linkFlapCount() =
+            portStats(PortID(portID))->getLinkStateFlapCount();
+        agentStats.phyStats()->insert({portName, std::move(phyStats)});
       }
       agentStats.flowletStatsMap()->insert(
           {switchIdx, *hwSwitchStats.flowletStats()});
@@ -1169,10 +1172,17 @@ void SwSwitch::updateStats() {
         portStat->inErrors(*hwPortStats.inErrors_(), portDrained, portActive);
         portStat->fecUncorrectableErrors(
             *hwPortStats.fecUncorrectableErrors(), portDrained, portActive);
+        portStat->linkDebounceRetriggers(
+            hwPortStats.linkDownDebounceRetriggerCount_().to_optional(),
+            hwPortStats.linkUpDebounceRetriggerCount_().to_optional());
       }
     }
   }
 
+  for (auto& [portID, phyInfoEntry] : phyInfo) {
+    phyInfoEntry.stats()->linkFlapCount() =
+        portStats(portID)->getLinkStateFlapCount();
+  }
   phySnapshotManager_->updatePhyInfos(phyInfo);
   updatePhyFb303Stats(phyInfo);
   updateFabricLinkMonitoringStats();

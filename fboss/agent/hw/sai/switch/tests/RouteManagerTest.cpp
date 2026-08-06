@@ -53,6 +53,66 @@ class RouteManagerTest : public ManagerTestBase {
     tr1.nextHopInterfaces.push_back(testInterfaces.at(3));
   }
 
+  ResolvedNextHop makeResolvedNextHop(
+      const TestInterface& intf,
+      NextHopRole role) const {
+    return ResolvedNextHop{
+        intf.remoteHosts[0].ip,
+        InterfaceID(intf.id),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        {},
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        role};
+  }
+
+  std::shared_ptr<Route<folly::IPAddressV4>> makeProtectionRoute(
+      const folly::CIDRNetwork& destination,
+      const TestInterface& primaryInterface,
+      const RouteNextHopEntry::NextHopSet& backupNextHops) {
+    auto nextHops = backupNextHops;
+    nextHops.insert(
+        makeResolvedNextHop(primaryInterface, NextHopRole::PRIMARY));
+    RouteNextHopEntry entry(nextHops, AdminDistance::STATIC_ROUTE);
+    RouteFields<folly::IPAddressV4>::Prefix prefix(
+        destination.first.asV4(), destination.second);
+    auto route = std::make_shared<Route<folly::IPAddressV4>>(
+        RouteV4::makeThrift(prefix));
+    route->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
+    route->setResolved(entry);
+    return route;
+  }
+
+  SaiRouteHandle* programRoute(
+      const std::shared_ptr<Route<folly::IPAddressV4>>& route) {
+    saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+        route, RouterID(0), getProgrammedState());
+    auto routeEntry = saiManagerTable->routeManager().routeEntryFromSwRoute(
+        RouterID(0), route);
+    return saiManagerTable->routeManager().getRouteHandle(routeEntry);
+  }
+
+  std::optional<sai_object_id_t> getChildGroupId(
+      const std::shared_ptr<SaiNextHopGroupHandle>& groupHandle) {
+    if (!groupHandle || !groupHandle->childGroupMember_) {
+      return std::nullopt;
+    }
+    auto childMember =
+        groupHandle->childGroupMember_->getNhopGroupMemberObject();
+    if (!childMember) {
+      return std::nullopt;
+    }
+    return saiApiTable->nextHopGroupApi().getAttribute(
+        childMember->adapterKey(),
+        SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
+  }
+
   folly::CIDRNetwork d1;
   folly::CIDRNetwork d2;
   TestRoute tr1;
@@ -129,6 +189,112 @@ TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
       r1, RouterID(0), getProgrammedState());
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
       r2, RouterID(0), getProgrammedState());
+}
+
+TEST_F(
+    RouteManagerTest,
+    singleNhopProtectionRouteCreatesTopLevelAndChildGroups) {
+  RouteNextHopEntry::NextHopSet backupNextHops{
+      makeResolvedNextHop(testInterfaces.at(1), NextHopRole::BACKUP),
+  };
+  auto route = makeProtectionRoute(d1, testInterfaces.at(0), backupNextHops);
+  auto routeHandle = programRoute(route);
+  ASSERT_NE(routeHandle, nullptr);
+
+  auto groupHandle = routeHandle->nextHopGroupHandle();
+  ASSERT_NE(groupHandle, nullptr);
+  ASSERT_NE(groupHandle->nextHopGroup, nullptr);
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  auto topLevelGroupType = nextHopGroupApi.getAttribute(
+      groupHandle->nextHopGroup->adapterKey(),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(topLevelGroupType, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+
+  auto childGroupId = getChildGroupId(groupHandle);
+  ASSERT_TRUE(childGroupId.has_value());
+  auto childGroupType = nextHopGroupApi.getAttribute(
+      NextHopGroupSaiId(childGroupId.value()),
+      SaiNextHopGroupTraits::Attributes::Type{});
+  EXPECT_EQ(childGroupType, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+}
+
+TEST_F(RouteManagerTest, protectionRoutesWithSameBackupsShareChildGroup) {
+  RouteNextHopEntry::NextHopSet backupNextHops{
+      makeResolvedNextHop(testInterfaces.at(2), NextHopRole::BACKUP),
+      makeResolvedNextHop(testInterfaces.at(3), NextHopRole::BACKUP),
+  };
+
+  auto firstRoute =
+      makeProtectionRoute(d1, testInterfaces.at(0), backupNextHops);
+  auto secondRoute =
+      makeProtectionRoute(d2, testInterfaces.at(1), backupNextHops);
+  auto firstRouteHandle = programRoute(firstRoute);
+  auto secondRouteHandle = programRoute(secondRoute);
+  ASSERT_NE(firstRouteHandle, nullptr);
+  ASSERT_NE(secondRouteHandle, nullptr);
+  auto firstGroupHandle = firstRouteHandle->nextHopGroupHandle();
+  auto secondGroupHandle = secondRouteHandle->nextHopGroupHandle();
+  ASSERT_NE(firstGroupHandle, nullptr);
+  ASSERT_NE(secondGroupHandle, nullptr);
+  ASSERT_NE(firstGroupHandle->nextHopGroup, nullptr);
+  ASSERT_NE(secondGroupHandle->nextHopGroup, nullptr);
+  EXPECT_NE(
+      firstGroupHandle->nextHopGroup->adapterKey(),
+      secondGroupHandle->nextHopGroup->adapterKey());
+
+  auto firstChildGroupId = getChildGroupId(firstGroupHandle);
+  auto secondChildGroupId = getChildGroupId(secondGroupHandle);
+  ASSERT_TRUE(firstChildGroupId.has_value());
+  ASSERT_TRUE(secondChildGroupId.has_value());
+  EXPECT_EQ(firstChildGroupId, secondChildGroupId);
+}
+
+TEST_F(RouteManagerTest, updatingBackupsStopsChildGroupSharing) {
+  RouteNextHopEntry::NextHopSet sharedBackupNextHops{
+      makeResolvedNextHop(testInterfaces.at(2), NextHopRole::BACKUP),
+      makeResolvedNextHop(testInterfaces.at(3), NextHopRole::BACKUP),
+  };
+  auto firstRoute =
+      makeProtectionRoute(d1, testInterfaces.at(0), sharedBackupNextHops);
+  auto secondRoute =
+      makeProtectionRoute(d2, testInterfaces.at(1), sharedBackupNextHops);
+  auto firstRouteHandle = programRoute(firstRoute);
+  auto secondRouteHandle = programRoute(secondRoute);
+  ASSERT_NE(firstRouteHandle, nullptr);
+  ASSERT_NE(secondRouteHandle, nullptr);
+  auto firstGroupHandle = firstRouteHandle->nextHopGroupHandle();
+  auto secondGroupHandle = secondRouteHandle->nextHopGroupHandle();
+  ASSERT_NE(firstGroupHandle, nullptr);
+  ASSERT_NE(secondGroupHandle, nullptr);
+  auto firstChildGroupId = getChildGroupId(firstGroupHandle);
+  auto secondChildGroupId = getChildGroupId(secondGroupHandle);
+  ASSERT_TRUE(firstChildGroupId.has_value());
+  ASSERT_TRUE(secondChildGroupId.has_value());
+  EXPECT_EQ(firstChildGroupId, secondChildGroupId);
+
+  RouteNextHopEntry::NextHopSet updatedBackupNextHops{
+      makeResolvedNextHop(testInterfaces.at(4), NextHopRole::BACKUP),
+      makeResolvedNextHop(testInterfaces.at(5), NextHopRole::BACKUP),
+  };
+  auto updatedSecondRoute =
+      makeProtectionRoute(d2, testInterfaces.at(1), updatedBackupNextHops);
+  saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
+      secondRoute, updatedSecondRoute, RouterID(0), getProgrammedState());
+
+  firstGroupHandle = firstRouteHandle->nextHopGroupHandle();
+  secondGroupHandle = secondRouteHandle->nextHopGroupHandle();
+  ASSERT_NE(firstGroupHandle, nullptr);
+  ASSERT_NE(secondGroupHandle, nullptr);
+  ASSERT_NE(firstGroupHandle->nextHopGroup, nullptr);
+  ASSERT_NE(secondGroupHandle->nextHopGroup, nullptr);
+  EXPECT_NE(
+      firstGroupHandle->nextHopGroup->adapterKey(),
+      secondGroupHandle->nextHopGroup->adapterKey());
+  firstChildGroupId = getChildGroupId(firstGroupHandle);
+  secondChildGroupId = getChildGroupId(secondGroupHandle);
+  ASSERT_TRUE(firstChildGroupId.has_value());
+  ASSERT_TRUE(secondChildGroupId.has_value());
+  EXPECT_NE(firstChildGroupId, secondChildGroupId);
 }
 
 TEST_F(RouteManagerTest, addRouteOneNextHop) {

@@ -294,6 +294,56 @@ RetType CmdShowSystemPort::createModel(
   return model;
 }
 
+std::string_view CmdShowSystemPortTraits::description() {
+  return "Displays the VOQ system ports: each port's ID, name, switch/core indices, speed, VOQ count, QoS policy, remote system-port type and liveness, and scope. Use it on DSF/VOQ switches to inspect system-port programming.";
+}
+
+RetType CmdShowSystemPort::sampleModel() {
+  RetType model;
+
+  cli::SystemPortEntry entry1;
+  entry1.id() = 30908;
+  entry1.name() = "peer001:eth1/11/1";
+  entry1.speed() = "800G";
+  entry1.numVoqs() = 3;
+  entry1.qosPolicy() = "ai-queue-policy-v2";
+  entry1.coreIndex() = 1;
+  entry1.corePortIndex() = 1;
+  entry1.remoteSystemPortType() = "DYNAMIC";
+  entry1.remoteSystemPortLivenessStatus() = "LIVE";
+  entry1.scope() = "GLOBAL";
+
+  cli::SystemPortEntry entry2;
+  entry2.id() = 14526;
+  entry2.name() = "peer001:eth1/12/1";
+  entry2.speed() = "800G";
+  entry2.numVoqs() = 3;
+  entry2.qosPolicy() = "ai-queue-policy-v2";
+  entry2.coreIndex() = 1;
+  entry2.corePortIndex() = 4;
+  entry2.remoteSystemPortType() = "DYNAMIC";
+  entry2.remoteSystemPortLivenessStatus() = "LIVE";
+  entry2.scope() = "GLOBAL";
+
+  cli::SystemPortEntry entry3;
+  entry3.id() = 14524;
+  entry3.name() = "peer001:eth1/13/1";
+  entry3.speed() = "800G";
+  entry3.numVoqs() = 3;
+  entry3.qosPolicy() = "ai-queue-policy-v2";
+  entry3.coreIndex() = 1;
+  entry3.corePortIndex() = 0;
+  entry3.remoteSystemPortType() = "DYNAMIC";
+  entry3.remoteSystemPortLivenessStatus() = "LIVE";
+  entry3.scope() = "GLOBAL";
+
+  model.sysPortEntries()->push_back(entry1);
+  model.sysPortEntries()->push_back(entry2);
+  model.sysPortEntries()->push_back(entry3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::run();
 template const ValidFilterMapType

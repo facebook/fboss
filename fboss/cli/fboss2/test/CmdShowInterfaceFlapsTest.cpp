@@ -23,16 +23,20 @@ std::map<std::string, std::int64_t> createQueriedData() {
   fb303_counters["eth1/1/1.link_state.flap.sum.600"] = 0;
   fb303_counters["eth1/1/1.link_state.flap.sum.3600"] = 0;
   fb303_counters["eth1/1/1.link_state.flap.sum"] = 0;
+  fb303_counters["eth1/1/1.link_fault.sum"] = 0;
 
   fb303_counters["eth2/1/1.link_state.flap.sum.60"] = 1;
   fb303_counters["eth2/1/1.link_state.flap.sum.600"] = 2;
   fb303_counters["eth2/1/1.link_state.flap.sum.3600"] = 3;
   fb303_counters["eth2/1/1.link_state.flap.sum"] = 6;
+  // Exceeds the flap count: debounce suppressed some of the instability.
+  fb303_counters["eth2/1/1.link_fault.sum"] = 9;
 
   fb303_counters["eth3/1/1.link_state.flap.sum.60"] = 1000;
   fb303_counters["eth3/1/1.link_state.flap.sum.600"] = 10000;
   fb303_counters["eth3/1/1.link_state.flap.sum.3600"] = 100000;
   fb303_counters["eth3/1/1.link_state.flap.sum"] = 111000;
+  fb303_counters["eth3/1/1.link_fault.sum"] = 111222;
 
   return fb303_counters;
 }
@@ -85,18 +89,21 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
   EXPECT_EQ(flapsEntries[0].get_tenMinute(), 0);
   EXPECT_EQ(flapsEntries[0].get_oneHour(), 0);
   EXPECT_EQ(flapsEntries[0].get_totalFlaps(), 0);
+  EXPECT_EQ(flapsEntries[0].get_totalLinkFaults(), 0);
 
   EXPECT_EQ(flapsEntries[1].get_interfaceName(), "eth2/1/1");
   EXPECT_EQ(flapsEntries[1].get_oneMinute(), 1);
   EXPECT_EQ(flapsEntries[1].get_tenMinute(), 2);
   EXPECT_EQ(flapsEntries[1].get_oneHour(), 3);
   EXPECT_EQ(flapsEntries[1].get_totalFlaps(), 6);
+  EXPECT_EQ(flapsEntries[1].get_totalLinkFaults(), 9);
 
   EXPECT_EQ(flapsEntries[2].get_interfaceName(), "eth3/1/1");
   EXPECT_EQ(flapsEntries[2].get_oneMinute(), 1000);
   EXPECT_EQ(flapsEntries[2].get_tenMinute(), 10000);
   EXPECT_EQ(flapsEntries[2].get_oneHour(), 100000);
   EXPECT_EQ(flapsEntries[2].get_totalFlaps(), 111000);
+  EXPECT_EQ(flapsEntries[2].get_totalLinkFaults(), 111222);
 }
 
 TEST_F(CmdShowInterfaceFlapsTestFixture, printOutput) {
@@ -108,12 +115,19 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " Interface Name  1 Min  10 Min  60 Min  Total (since last reboot) \n"
-      "------------------------------------------------------------------------\n"
-      " eth1/1/1        0      0       0       0                         \n"
-      " eth2/1/1        1      2       3       6                         \n"
-      " eth3/1/1        1000   10000   100000  111000                    \n\n";
+      " Interface Name  1 Min  10 Min  60 Min  Total (since last reboot)  Total Link Faults \n"
+      "--------------------------------------------------------------------------------------------\n"
+      " eth1/1/1        0      0       0       0                          0                 \n"
+      " eth2/1/1        1      2       3       6                          9                 \n"
+      " eth3/1/1        1000   10000   100000  111000                     111222            \n\n";
 
   EXPECT_EQ(output, expectOutput);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceFlapsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceFlapsTraits::description().empty());
+  EXPECT_FALSE(CmdShowInterfaceFlaps::sampleModel().flap_counters()->empty());
 }
 } // namespace facebook::fboss

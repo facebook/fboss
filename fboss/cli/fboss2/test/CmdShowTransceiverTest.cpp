@@ -809,4 +809,11 @@ TEST_F(CmdShowTransceiverTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowTransceiverTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowTransceiverTraits::description().empty());
+  EXPECT_FALSE(CmdShowTransceiver::sampleModel().transceivers()->empty());
+}
+
 } // namespace facebook::fboss

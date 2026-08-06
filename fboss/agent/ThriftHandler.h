@@ -124,6 +124,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       MplsRouteDetails& mplsRouteDetail,
       MplsLabel topLabel) override;
 
+  void addNamedNextHopGroups(
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) override;
   void addOrUpdateNamedNextHopGroups(
       std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) override;
   void deleteNamedNextHopGroups(
@@ -250,7 +252,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void addAdjacencyFrr(
       std::unique_ptr<FrrProtectedObject> protectedObject,
       std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) override;
-  void removeAdjacencyFrr(
+  void deleteAdjacencyFrr(
       std::unique_ptr<FrrProtectedObject> protectedObject) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
@@ -503,6 +505,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
+  void addNamedNextHopGroupsImpl(
+      folly::StringPiece function,
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups);
 
   void buildFabricMonitoringLookupMaps(
       const cfg::SwitchConfig& config,

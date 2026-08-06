@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(erspan_parser
+  fboss/agent/test/utils/oss/ErspanParser.cpp
+)
+
+target_link_libraries(erspan_parser
+  Folly::folly
+)
+
 add_library(acl_test_utils
   fboss/agent/test/utils/AclTestUtils.cpp
 )

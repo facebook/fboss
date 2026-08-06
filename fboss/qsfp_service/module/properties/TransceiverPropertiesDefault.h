@@ -115,7 +115,6 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
         "hostStartLanes": [0],
         "hostInterfaceCode": 0x50
       },
-      "smfLength": 500,
       "numHostLanes": 8,
       "numMediaLanes": 4,
       "displayName": "DR4_400G",
@@ -223,7 +222,6 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
         "hostStartLanes": [0, 4],
         "hostInterfaceCode": 0x50
       },
-      "smfLength": 500,
       "numHostLanes": 8,
       "numMediaLanes": 8,
       "displayName": "DR4_2x400G",

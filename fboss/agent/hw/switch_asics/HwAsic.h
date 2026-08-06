@@ -211,9 +211,8 @@ class HwAsic {
     // In either case, FBOSS need not implement replication.
     // Only used by SaiSwitch.
     // TODO:
-    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
-    //    Remove Trident2 support (no longer needed), fix Fake support, then
-    //    remove.
+    //  - Candidate for removal: YES, enabled everywhere except Fake. Fix Fake
+    //    support, then remove.
     //  - Rename to carry ECMP_ prefix.
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
 
@@ -903,6 +902,13 @@ class HwAsic {
   // Applicable only when IP_IN_IP_DECAP feature is enabled.
   virtual cfg::TunnelMode getTunnelDscpMode() const {
     return cfg::TunnelMode::PIPE;
+  }
+
+  // Applicable only when PORT_DEBOUNCE feature is enabled. True means each
+  // read reports the count since the previous read, false means the retrigger
+  // counters report a running total.
+  virtual bool isPortDebounceRetriggerCountClearOnRead() const {
+    return true;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

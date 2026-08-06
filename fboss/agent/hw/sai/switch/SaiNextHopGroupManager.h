@@ -55,26 +55,27 @@ template <typename T>
 class ManagedNextHop;
 
 template <typename NextHopTraits>
-class ManagedSaiNextHopGroupMember
+class ManagedSaiNextHopGroupNextHopMember
     : public SaiObjectEventAggregateSubscriber<
-          ManagedSaiNextHopGroupMember<NextHopTraits>,
+          ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
           SaiNextHopGroupMemberTraits,
           NextHopTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      ManagedSaiNextHopGroupMember<NextHopTraits>,
+      ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
       SaiNextHopGroupMemberTraits,
       NextHopTraits>;
 
   using NextHopWeakPtr = std::weak_ptr<const SaiObject<NextHopTraits>>;
   using PublisherObjects = std::tuple<NextHopWeakPtr>;
   using NextHopWeight =
-      typename SaiNextHopGroupMemberTraits::Attributes::Weight;
-  ManagedSaiNextHopGroupMember(
+      std::optional<typename SaiNextHopGroupMemberTraits::Attributes::Weight>;
+  ManagedSaiNextHopGroupNextHopMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       NextHopWeight weight,
       bool fixedWidthMode)
       : Base(managedNextHop->adapterHostKey()),
@@ -82,10 +83,11 @@ class ManagedSaiNextHopGroupMember
         nhgroup_(nhgroup),
         managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
+        nextHopGroupType_(nextHopGroupType),
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
-  ~ManagedSaiNextHopGroupMember() {
+  ~ManagedSaiNextHopGroupNextHopMember() {
     this->resetObject();
   }
 
@@ -115,6 +117,7 @@ class ManagedSaiNextHopGroupMember
   SaiNextHopGroupHandle* nhgroup_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
+  sai_next_hop_group_type_t nextHopGroupType_;
   NextHopWeight weight_;
   bool fixedWidthMode_;
   std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
@@ -122,21 +125,52 @@ class ManagedSaiNextHopGroupMember
       createAttributes_;
 };
 
+class SaiNextHopGroupChildGroupMember {
+ public:
+  SaiNextHopGroupChildGroupMember(
+      SaiNextHopGroupManager* manager,
+      std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup,
+      const SaiNextHopGroupTraits::AdapterKey& parentNextHopGroupId);
+
+  std::pair<
+      std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+      std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+  getAdapterHostKeyAndCreateAttributes();
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>>
+  getNhopGroupMemberObject() {
+    return nextHopGroupMember_;
+  }
+
+  std::string toString() const;
+
+ private:
+  std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup_;
+  SaiNextHopGroupTraits::AdapterKey parentNextHopGroupId_;
+  std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
+  std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>
+      createAttributes_;
+  std::shared_ptr<SaiNextHopGroupMember> nextHopGroupMember_;
+};
+
 class NextHopGroupMember {
  public:
+  using NextHopWeight =
+      std::optional<SaiNextHopGroupMemberTraits::Attributes::Weight>;
   using ManagedIpNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiMplsNextHopTraits>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   using ManagedSrv6NextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiSrv6SidlistNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiSrv6SidlistNextHopTraits>;
 #endif
 
   NextHopGroupMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       ManagedSaiNextHop managedSaiNextHop,
       NextHopWeight nextHopWeight,
       bool fixedWidthMode);
@@ -212,11 +246,14 @@ class NextHopGroupMember {
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
+  // Currently only Adj FRR with  1:N protection is supported,
+  // so a group can have only one child next hop group member.
+  std::shared_ptr<SaiNextHopGroupChildGroupMember> childGroupMember_;
   bool fixedWidthMode{false};
   bool bulkCreate{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
   uint32_t maxVariableWidthEcmpSize;
-  std::optional<cfg::SwitchingMode> desiredArsMode_;
+  std::optional<cfg::SwitchingMode> desiredEcmpSwitchingMode_;
   SaiStore* saiStore_;
   const SaiPlatform* platform_;
   sai_object_id_t adapterKey() const {
@@ -249,6 +286,9 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const SaiNextHopGroupKey& key);
 
+  const SaiNextHopGroupHandle* getNextHopGroup(
+      const SaiNextHopGroupKey& key) const;
+
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
       const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
@@ -278,6 +318,11 @@ class SaiNextHopGroupManager {
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> getArsObjectId(
+      std::optional<cfg::SwitchingMode> switchingMode,
+      size_t nextHopGroupSize) const;
+#endif
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

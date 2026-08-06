@@ -89,52 +89,76 @@ class BenchmarkFramework:
             print(f"Warning: Failed to list benchmarks from {binary_path}: {e}")
             return None
 
-    def _load_requested_benchmarks(self, filter_file: str) -> list[str] | None:
-        """Load benchmark names from a filter file (one per line)."""
-        if not os.path.exists(filter_file):
-            print(f"Error: Configuration file not found: {filter_file}")
-            return None
-        names = load_from_file(filter_file)
-        if not names:
-            print(f"Error: No benchmarks found in {filter_file}")
-            return None
-        return names
+    @staticmethod
+    def _wildcards_to_regex(pattern: str) -> str:
+        """Expand ``*``/``?`` to ``.*``/``.``, leaving wildcards that are already
+        part of a regex alone so ``.*Route.*`` does not become ``..*Route..*``."""
+        pattern = re.sub(r"(?<![.\\*])\?", ".", pattern)
+        return re.sub(r"(?<![.\\])\*", ".*", pattern)
+
+    @staticmethod
+    def _split_filter(filter_string: str) -> tuple[list[str], list[str]]:
+        """Split a ``--gtest_filter``-style string into (includes, excludes):
+        colon-separated patterns, everything after the first ``-`` excluded.
+        Benchmark names are ``\\w`` only, so ``-`` never appears in a pattern."""
+        include_part, _, exclude_part = filter_string.partition("-")
+        return (
+            [p.strip() for p in include_part.split(":") if p.strip()],
+            [p.strip() for p in exclude_part.split(":") if p.strip()],
+        )
+
+    @staticmethod
+    def _compile_patterns(patterns: list[str], kind: str) -> list[re.Pattern] | None:
+        """Compile filter patterns, or return None if any one is invalid."""
+        compiled = []
+        for pattern in patterns:
+            try:
+                compiled.append(
+                    re.compile(BenchmarkFramework._wildcards_to_regex(pattern))
+                )
+            except re.error as e:
+                print(f"Error: Invalid {kind} pattern '{pattern}': {e}")
+                return None
+        return compiled
 
     def _get_benchmarks_to_run(
         self, all_benchmarks: list[str], args: Namespace
     ) -> list[str] | None:
-        """Apply ``--filter`` and ``--filter_file`` to narrow the benchmark
-        list. Returns the filtered list, or None on error."""
-        benchmarks = list(all_benchmarks)
-        available_set = set(all_benchmarks)
-
-        if args.filter:
-            try:
-                benchmarks = [
-                    name for name in benchmarks if re.search(args.filter, name)
-                ]
-            except re.error as e:
-                print(f"Error: Invalid --filter regex '{args.filter}': {e}")
-                return None
-            if not benchmarks:
-                print(f"No benchmarks matching --filter '{args.filter}'")
-                return None
-            print(f"--filter '{args.filter}' matched {len(benchmarks)} benchmarks")
-
+        """Narrow the benchmark list by ``--filter`` / ``--filter_file``, both of
+        which take the gtest grammar (``include:include:-exclude``) so a filter
+        file written for the gtest runners selects the same way. ``--filter_file``
+        wins when both are given. Returns None on error."""
         if args.filter_file:
-            requested = self._load_requested_benchmarks(args.filter_file)
-            if requested is None:
+            if not os.path.exists(args.filter_file):
+                print(f"Error: Configuration file not found: {args.filter_file}")
                 return None
-            not_found = [name for name in requested if name not in available_set]
-            if not_found:
-                print(
-                    f"\nWarning: {len(not_found)} benchmark names not found in binary:"
-                )
-                for name in not_found:
-                    print(f"  - {name}")
-            requested_set = set(requested)
-            benchmarks = [name for name in benchmarks if name in requested_set]
+            patterns = load_from_file(args.filter_file, args.profile)
+            if not patterns:
+                print(f"Error: No benchmark filters found in {args.filter_file}")
+                return None
+            filter_string = ":".join(patterns)
+        else:
+            filter_string = args.filter or ""
 
+        if not filter_string:
+            return list(all_benchmarks)
+
+        includes, excludes = self._split_filter(filter_string)
+        include_res = self._compile_patterns(includes, "include")
+        exclude_res = self._compile_patterns(excludes, "exclude")
+        if include_res is None or exclude_res is None:
+            return None
+
+        benchmarks = [
+            name
+            for name in all_benchmarks
+            if (not include_res or any(r.search(name) for r in include_res))
+            and not any(r.search(name) for r in exclude_res)
+        ]
+        if not benchmarks:
+            print(f"No benchmarks matching filter '{filter_string}'")
+            return None
+        print(f"Filter '{filter_string}' matched {len(benchmarks)} benchmarks")
         return benchmarks
 
     def _filter_known_bad(
@@ -446,20 +470,18 @@ class BenchmarkFramework:
         benchmarks_to_run, unsupported_skipped = self._filter_unsupported(
             benchmarks_to_run, unsupported_regexes
         )
-        if not benchmarks_to_run:
-            print("No benchmarks to run after filtering unsupported")
-            return
-
         benchmarks_to_run, skipped_count = self._filter_known_bad(
             benchmarks_to_run, known_bad_regexes
         )
-        if not benchmarks_to_run:
-            print("No benchmarks to run after filtering")
-            return
 
         if args.list_tests:
             for name in benchmarks_to_run:
                 print(name)
+            return
+
+        if not benchmarks_to_run:
+            print("No benchmarks to run after filtering known bad/unsupported")
+            self._write_results_and_summary([], skipped_count + unsupported_skipped)
             return
 
         print(f"\nRunning {len(benchmarks_to_run)} benchmarks")

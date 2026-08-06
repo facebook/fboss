@@ -127,4 +127,13 @@ TEST_F(CmdShowRouteSummaryTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowRouteSummaryTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowRouteSummaryTraits::description().empty());
+  auto sampleModel = CmdShowRouteSummary::sampleModel();
+  EXPECT_GT(sampleModel.numV4Routes().value(), 0);
+  EXPECT_GT(sampleModel.numV6().value(), 0);
+}
+
 } // namespace facebook::fboss

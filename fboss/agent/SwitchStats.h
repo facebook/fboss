@@ -371,6 +371,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     linkStateChange_.addValue(1);
   }
 
+  void linkFault(int64_t increment) {
+    linkFault_.addValue(increment);
+  }
+
   void linkActiveStateChange() {
     linkActiveStateChange_.addValue(1);
   }
@@ -1106,6 +1110,12 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
    * Link state up/down change count
    */
   TLTimeseries linkStateChange_;
+
+  /**
+   * Link flaps plus debounce retriggers suppressed by the port debounce
+   * hold timers
+   */
+  TLTimeseries linkFault_;
 
   /**
    * Link state active/inactive change count

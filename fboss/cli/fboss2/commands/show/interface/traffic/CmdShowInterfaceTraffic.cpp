@@ -451,6 +451,40 @@ void CmdShowInterfaceTraffic::printOutput(
   out << trafficTable << std::endl;
 }
 
+std::string_view CmdShowInterfaceTrafficTraits::description() {
+  return "Displays per-interface traffic rates against the discovered peer: inbound/outbound Mbps, utilization percent, and Kpps over a sampling interval. Use it to gauge link utilization and spot imbalances.";
+}
+
+CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::sampleModel() {
+  RetType model;
+
+  cli::TrafficCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.peerIf() = "peer001";
+  counter1.inMbps() = 1768.99;
+  counter1.inPct() = 0.44;
+  counter1.inKpps() = 54.00;
+  counter1.outMbps() = 437.21;
+  counter1.outPct() = 0.11;
+  counter1.outKpps() = 29.00;
+  counter1.portSpeed() = 400000;
+  model.traffic_counters()->push_back(counter1);
+
+  cli::TrafficCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.peerIf() = "peer002";
+  counter2.inMbps() = 17.99;
+  counter2.inPct() = 0.00;
+  counter2.inKpps() = 2.00;
+  counter2.outMbps() = 18.61;
+  counter2.outPct() = 0.00;
+  counter2.outKpps() = 3.00;
+  counter2.portSpeed() = 400000;
+  model.traffic_counters()->push_back(counter2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();

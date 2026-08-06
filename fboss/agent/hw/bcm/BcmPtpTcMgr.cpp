@@ -137,7 +137,7 @@ bool BcmPtpTcMgr::isPtpTcPcsSupported(const BcmSwitchIf* hw) {
   return hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PTP_TC_PCS);
 }
 
-/* separate configuration for MAC based timestamping devices - TD2/TH, and
+/* separate configuration for MAC based timestamping devices - TH, and
  * PCS based timestamping devices - TH3 */
 void BcmPtpTcMgr::enablePtpTc() {
   if (!isPtpTcSupported(hw_)) {

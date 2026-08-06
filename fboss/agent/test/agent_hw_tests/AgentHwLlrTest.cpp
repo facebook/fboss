@@ -90,9 +90,9 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
           port->getLlrConfig().value()->getFlushFrameAction(),
           cfg::LlrFrameAction::BLOCK);
 
-      // Every TU-supported per-port LLR counter is collected into HwPortStats.
+      // Every TU1-supported per-port LLR counter is collected into HwPortStats.
       // Counters read 0 without induced traffic, but each must be present once
-      // LLR is bound. The 4 stats with no SDK backing on Tomahawk Ultra
+      // LLR is bound. The 4 stats with no SDK backing on Tomahawk Ultra 1
       // (RX_BAD, TX_DISCARD, TX_POISONED, RX_POISONED) are neither fetched nor
       // asserted (Broadcom CS00012472055).
       const auto& stats = portStats.at(portId);
