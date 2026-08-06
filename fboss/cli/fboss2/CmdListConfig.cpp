@@ -21,7 +21,6 @@
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
-#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueueConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
@@ -263,12 +262,6 @@ const CommandTree& kConfigCommandTree() {
                "Configure PFC settings for interface",
                commandHandler<CmdConfigInterfacePfcConfig>,
                argRegistrar<CmdConfigInterfacePfcConfigTraits>,
-           },
-           {
-               "queue-config",
-               "Set queue config for interface",
-               commandHandler<CmdConfigInterfaceQueueConfig>,
-               argRegistrar<CmdConfigInterfaceQueueConfigTraits>,
            },
            {
                "ipv6",

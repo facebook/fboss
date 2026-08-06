@@ -836,8 +836,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueueConfig.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueueConfig.h
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
   fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.cpp

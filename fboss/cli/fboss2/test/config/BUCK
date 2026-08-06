@@ -17,7 +17,6 @@ cpp_unittest(
         "CmdConfigHostnameTest.cpp",
         "CmdConfigIcmpV4UnavailableSrcAddrTest.cpp",
         "CmdConfigInterfaceIpv6NdpTest.cpp",
-        "CmdConfigInterfaceQueueConfigTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",

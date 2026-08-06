@@ -2301,4 +2301,128 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsBadInList) {
   }
 }
 
+// ============================================================================
+// queue-config attribute
+// ============================================================================
+
+// Needs its own seed: portQueueConfigs entries to bind to, and a port that
+// starts out already bound so the clear path is reachable.
+class QueueConfigAttrTestFixture : public CmdConfigTestBase {
+ public:
+  QueueConfigAttrTestFixture()
+      : CmdConfigTestBase(
+            "fboss_ifqc_attr_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1,
+        "portQueueConfigName": "rsw_queues"
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/2/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1
+      }
+    ],
+    "portQueueConfigs": {
+      "rsw_queues": [
+        {"id": 0, "streamType": 1, "weight": 1, "scheduling": 5}
+      ]
+    }
+  }
+})") {}
+
+ protected:
+  static const cfg::Port* findPort(const std::string& name) {
+    const auto& ports =
+        *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+    for (const auto& port : ports) {
+      if (*port.name() == name) {
+        return &port;
+      }
+    }
+    return nullptr;
+  }
+
+  std::string configure(const std::vector<std::string>& args) {
+    auto cmd = CmdConfigInterface();
+    return cmd.queryClient(localhost(), InterfacesConfig(args));
+  }
+};
+
+TEST_F(QueueConfigAttrTestFixture, bindsNamedQueueConfig) {
+  setupTestableConfigSession();
+  auto result = configure({"eth1/2/1", "queue-config", "rsw_queues"});
+
+  EXPECT_THAT(result, ::testing::HasSubstr("queue-config=rsw_queues"));
+  const auto* port = findPort("eth1/2/1");
+  ASSERT_NE(port, nullptr);
+  ASSERT_TRUE(port->portQueueConfigName().has_value());
+  EXPECT_EQ(*port->portQueueConfigName(), "rsw_queues");
+}
+
+// `default` is not a portQueueConfigs entry; per Port::portQueueConfigName's
+// contract an unset field already resolves to defaultPortQueues, so selecting
+// it clears the override rather than writing an unresolvable name.
+TEST_F(QueueConfigAttrTestFixture, defaultClearsExistingBinding) {
+  setupTestableConfigSession();
+  ASSERT_TRUE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+
+  configure({"eth1/1/1", "queue-config", "default"});
+
+  EXPECT_FALSE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+}
+
+TEST_F(QueueConfigAttrTestFixture, defaultOnUnboundPortIsNoOp) {
+  setupTestableConfigSession();
+  EXPECT_NO_THROW(configure({"eth1/2/1", "queue-config", "default"}));
+  EXPECT_FALSE(findPort("eth1/2/1")->portQueueConfigName().has_value());
+}
+
+// A named config must exist before it can be bound; `default` bypasses this
+// check because it never has a portQueueConfigs entry to find.
+TEST_F(QueueConfigAttrTestFixture, unknownNameThrows) {
+  setupTestableConfigSession();
+  try {
+    configure({"eth1/1/1", "queue-config", "no_such_config"});
+    FAIL() << "expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("no_such_config"));
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("does not exist"));
+  }
+  // The failed bind must leave the previously-bound port alone.
+  EXPECT_EQ(*findPort("eth1/1/1")->portQueueConfigName(), "rsw_queues");
+}
+
+TEST_F(QueueConfigAttrTestFixture, invalidNameThrows) {
+  setupTestableConfigSession();
+  EXPECT_THROW(
+      configure({"eth1/1/1", "queue-config", "9bad"}), std::invalid_argument);
+}
+
+// The payoff of folding this into the attribute model: queue-config composes
+// with other attributes in a single command, which the old standalone
+// subcommand could not do.
+TEST_F(QueueConfigAttrTestFixture, composesWithOtherAttributes) {
+  setupTestableConfigSession();
+  auto result = configure(
+      {"eth1/2/1", "description", "uplink", "queue-config", "rsw_queues"});
+
+  EXPECT_THAT(result, ::testing::HasSubstr("queue-config=rsw_queues"));
+  EXPECT_THAT(result, ::testing::HasSubstr("description"));
+
+  const auto* port = findPort("eth1/2/1");
+  ASSERT_NE(port, nullptr);
+  ASSERT_TRUE(port->portQueueConfigName().has_value());
+  EXPECT_EQ(*port->portQueueConfigName(), "rsw_queues");
+  EXPECT_EQ(*port->description(), "uplink");
+}
+
 } // namespace facebook::fboss

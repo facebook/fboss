@@ -36,7 +36,8 @@ namespace {
 // The lldp-expected-* names come from the shared lldpAttrToTag() list so the
 // config and delete commands cannot drift apart.
 const std::unordered_set<std::string> kValuelessDeleteAttributes = [] {
-  std::unordered_set<std::string> attrs = {"loopback-mode", "lookup-class"};
+  std::unordered_set<std::string> attrs = {
+      "loopback-mode", "lookup-class", "queue-config"};
   for (const auto& name : lldpAttrNames()) {
     attrs.insert(name);
   }
@@ -52,7 +53,7 @@ const std::unordered_set<std::string> kKnownDeleteAttributes = [] {
 }();
 
 const std::string kValidDeleteAttrs = fmt::format(
-    "loopback-mode, lookup-class, {}, ip-address, ipv6-address",
+    "loopback-mode, lookup-class, queue-config, {}, ip-address, ipv6-address",
     folly::join(", ", lldpAttrNames()));
 
 } // namespace
@@ -177,7 +178,7 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
                 folly::join(", ", missingNames)));
       }
     } else {
-      // Port-level valueless reset (loopback-mode, lookup-class,
+      // Port-level valueless reset (loopback-mode, lookup-class, queue-config,
       // lldp-expected-*).
       std::vector<std::string> resetNames;
       std::vector<std::string> skippedNames;
@@ -195,6 +196,14 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
         } else if (attr == "lookup-class") {
           if (!port->lookupClasses()->empty()) {
             port->lookupClasses()->clear();
+            changed = true;
+          }
+        } else if (attr == "queue-config") {
+          // Same reset as `config interface <intf> queue-config default`: an
+          // unset portQueueConfigName resolves to
+          // SwitchConfig::defaultPortQueues.
+          if (port->portQueueConfigName().has_value()) {
+            port->portQueueConfigName().reset();
             changed = true;
           }
         } else if (auto tag = lldpTagForAttr(attr); tag.has_value()) {
