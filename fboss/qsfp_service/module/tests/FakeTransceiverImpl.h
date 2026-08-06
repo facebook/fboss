@@ -196,6 +196,14 @@ class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+// The 2km reach (XDR4) variant of the above. XDR4 has no media interface code
+// of its own, so it advertises the same 400G-DR4 application and differs only
+// in the SMF length (Page 01h byte 132).
+class Cmis2x400GXdr4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis2x400GXdr4Transceiver(int module, TransceiverManager* mgr);
+};
+
 // Custom transceiver for testing CWDM4_100G temperature thresholds
 class SffCwdm4TempTransceiver : public FakeTransceiverImpl {
  public:

@@ -2823,6 +2823,26 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+TEST_F(CmisTest, cmis2x400GXdr4TransceiverInfoTest) {
+  // XDR4 is the 2km reach variant of DR4 and advertises the same 400G-DR4
+  // application, so it must derive the same media interface as the 500m part
+  // despite its longer SMF length.
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GXdr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_2x400G);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
+  }
+  EXPECT_EQ(*info.tcvrState()->cable()->singleMode(), 2000);
+}
+
 TEST_F(CmisTest, vdmPam4MpiAlarmsTest) {
   // This test verifies that PAM4 MPI alarm flags are not raised by default
   auto xcvrID = TransceiverID(1);
