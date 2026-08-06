@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -118,6 +119,7 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/community-list/CmdDeleteProtocolBgpPolicyCommunityList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/prefix-list/CmdDeleteProtocolBgpPolicyPrefixList.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
@@ -492,6 +494,16 @@ const CommandTree& kConfigCommandTree() {
                                    argRegistrar<
                                        CmdConfigProtocolBgpPolicyPrefixListEntryTraits>,
                                }},
+                           },
+                           {
+                               "routing-policy",
+                               "Configure BGP routing-policy: <name> "
+                               "[<attribute> <value> ...] "
+                               "(description)",
+                               commandHandler<
+                                   CmdConfigProtocolBgpPolicyRoutingPolicy>,
+                               argRegistrar<
+                                   CmdConfigProtocolBgpPolicyRoutingPolicyTraits>,
                            }},
                       },
                   },
@@ -864,6 +876,14 @@ const CommandTree& kConfigCommandTree() {
                          commandHandler<CmdDeleteProtocolBgpPolicyPrefixList>,
                          argRegistrar<
                              CmdDeleteProtocolBgpPolicyPrefixListTraits>,
+                     },
+                     {
+                         "routing-policy",
+                         "Delete a BGP routing-policy: <name>",
+                         commandHandler<
+                             CmdDeleteProtocolBgpPolicyRoutingPolicy>,
+                         argRegistrar<
+                             CmdDeleteProtocolBgpPolicyRoutingPolicyTraits>,
                      }},
                 }},
            },
