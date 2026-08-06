@@ -555,4 +555,11 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutputHandlesMissingFpfSpineId) {
   EXPECT_THAT(ss.str(), HasSubstr("rack 5 spine id none remote weight 3"));
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowRouteDetailsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowRouteDetailsTraits::description().empty());
+  EXPECT_FALSE(CmdShowRouteDetails::sampleModel().routeEntries()->empty());
+}
+
 } // namespace facebook::fboss

@@ -126,6 +126,40 @@ RetType CmdShowArp::createModel(
   return model;
 }
 
+std::string_view CmdShowArpTraits::description() {
+  return "Displays the switch's ARP table: each resolved IPv4 neighbor, the "
+         "interface or port it was learned on, its VLAN, and reachability "
+         "state. Use it to confirm L3 next-hops are present before debugging "
+         "routing.";
+}
+
+RetType CmdShowArp::sampleModel() {
+  RetType model;
+
+  cli::ArpEntry entry1;
+  entry1.ip() = "10.0.0.1";
+  entry1.mac() = "02:90:fb:5e:00:01";
+  entry1.ifName() = "eth1/1/1";
+  entry1.vlan() = "downlinks (2000)";
+  entry1.state() = "REACHABLE";
+  entry1.ttl() = 45013;
+  entry1.classID() = 0;
+  entry1.switchName() = "--";
+
+  cli::ArpEntry entry2;
+  entry2.ip() = "10.0.0.2";
+  entry2.mac() = "02:90:fb:5e:00:02";
+  entry2.ifName() = "eth2/1/1";
+  entry2.vlan() = "uplink_1 (4001)";
+  entry2.state() = "REACHABLE";
+  entry2.ttl() = 21045;
+  entry2.classID() = 0;
+  entry2.switchName() = "--";
+
+  model.arpEntries() = {entry1, entry2};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template const ValidFilterMapType

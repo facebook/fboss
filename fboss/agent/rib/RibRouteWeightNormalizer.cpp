@@ -129,7 +129,8 @@ RouteNextHopSet RibRouteWeightNormalizer::getNormalizedNexthops(
         nhop.srv6SegmentList(),
         nhop.tunnelType(),
         nhop.tunnelId(),
-        nhop.cost());
+        nhop.cost(),
+        nhop.role());
   }
   normalizeWeightsForNexthops(resolvedNexthops);
   for (auto& nhop : resolvedNexthops) {

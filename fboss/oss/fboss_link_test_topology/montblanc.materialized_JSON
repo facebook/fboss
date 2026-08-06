@@ -20,6 +20,11 @@
             "profileID": 23,
             "hasTransceiver": true
         },
+        "eth1/11/1": {
+            "neighbor": "eth1/15/1",
+            "profileID": 39,
+            "hasTransceiver": true
+        },
         "eth1/12/1": {
             "neighbor": "eth1/16/1",
             "profileID": 38,
@@ -38,6 +43,11 @@
         "eth1/14/5": {
             "neighbor": "eth1/10/5",
             "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/15/1": {
+            "neighbor": "eth1/11/1",
+            "profileID": 39,
             "hasTransceiver": true
         },
         "eth1/16/1": {

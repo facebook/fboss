@@ -751,7 +751,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishStats(std::unique_ptr<PubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
-  PathValidator::validateStatePath(*request->path()->path());
+  PathValidator::validateStatsPath(*request->path()->path());
   co_return {
       {},
       makeSinkConsumer<PublisherMessage>(

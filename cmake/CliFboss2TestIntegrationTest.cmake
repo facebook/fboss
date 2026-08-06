@@ -38,6 +38,7 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceLoopbackModeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceTypeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigQosDefaultPolicyTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigQosDefaultQueueConfigTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigQosPolicyMapTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanCreateTest.cpp
@@ -46,7 +47,10 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanSwitchportAccessTest.cpp
+  fboss/cli/fboss2/test/integration_test/DeleteArpTest.cpp
+  fboss/cli/fboss2/test/integration_test/DeleteDhcpSourceOverrideTest.cpp
   fboss/cli/fboss2/test/integration_test/DeleteInterfaceIpv6NdpTest.cpp
+  fboss/cli/fboss2/test/integration_test/DeleteVlanTest.cpp
   fboss/cli/fboss2/test/integration_test/TunnelIpInIpTest.cpp
   fboss/cli/fboss2/utils/CmdInitUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp

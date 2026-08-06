@@ -34,6 +34,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -60,6 +61,7 @@ const std::unordered_set<std::string> kKnownAttributes = [] {
       "shutdown",
       "no-shutdown",
       "lookup-class",
+      "queue-config",
   };
   for (const auto& name : lldpAttrNames()) {
     attrs.insert(name);
@@ -76,7 +78,7 @@ const std::unordered_set<std::string> kValuelessAttributes = {
 constexpr auto kValidConfigAttrs =
     "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
-    "no-shutdown, lookup-class";
+    "no-shutdown, lookup-class, queue-config";
 
 // The value of the `profile` attribute if the parsed attribute list configures
 // one, else nullopt. Centralized (single scan) so the InterfacesConfig
@@ -504,6 +506,44 @@ bool applyLookupClass(
   return changed;
 }
 
+// Binds a named queue config to each port, or clears the binding for the
+// reserved `default`.
+//
+// `default` is not a portQueueConfigs entry, so there is nothing to look up and
+// nothing to bind: per Port::portQueueConfigName's contract a port with the
+// field unset already resolves to SwitchConfig::defaultPortQueues. Selecting it
+// therefore clears any existing override rather than writing a name that
+// resolves to nothing.
+bool applyQueueConfig(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  // Validate the name up front so a typo fails before any port is touched.
+  const utils::QueueConfigName name({value});
+
+  if (!name.isDefault()) {
+    const auto& portQueueConfigs =
+        *ConfigSession::getInstance().getAgentConfig().sw()->portQueueConfigs();
+    if (portQueueConfigs.find(name.getName()) == portQueueConfigs.end()) {
+      throw std::invalid_argument(
+          fmt::format("Queue config '{}' does not exist.", name.getName()));
+    }
+  }
+
+  bool changed = false;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      if (name.isDefault()) {
+        port->portQueueConfigName().reset();
+      } else {
+        port->portQueueConfigName() = name.getName();
+      }
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -646,6 +686,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.emplace_back("state=enabled");
+    } else if (attr == "queue-config") {
+      changed |= applyQueueConfig(value, effectiveInterfaces);
+      results.push_back(fmt::format("queue-config={}", value));
     }
   }
 

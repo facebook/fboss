@@ -53,6 +53,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:qsfp-module",
@@ -88,8 +89,8 @@ cpp_library(
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
-        "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly:memory",
     ],
@@ -107,11 +108,10 @@ cpp_library(
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/lib/usb:i2-api",
-        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/module:qsfp-module",
     ],
     exported_deps = [
-        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service:transceiver-manager",
     ],
 )
 

@@ -201,6 +201,43 @@ RetType CmdShowAcl::createModel(facebook::fboss::AclTableThrift entries) {
   return model;
 }
 
+std::string_view CmdShowAclTraits::description() {
+  return "Displays the configured ACL tables and their entries: each ACL's name, priority, match fields (IP, DSCP, protocol, TTL, etc.), action, and whether it's enabled. Use it to review packet-classification and control-plane policing rules.";
+}
+
+RetType CmdShowAcl::sampleModel() {
+  RetType model;
+
+  cli::AclEntry acl1;
+  acl1.name() = "cpuPolicing-high-NetworkControl-ff02::/16";
+  acl1.priority() = 2;
+  acl1.dstIp() = "ff02::";
+  acl1.dstIpPrefixLength() = 16;
+  acl1.dscp() = 48;
+  acl1.actionType() = "permit";
+  acl1.enabled() = 1;
+
+  cli::AclEntry acl2;
+  acl2.name() = "mpls-dest-nomatch";
+  acl2.priority() = 4;
+  acl2.actionType() = "permit";
+  acl2.enabled() = 1;
+
+  cli::AclEntry acl3;
+  acl3.name() = "ttld-interconnect";
+  acl3.priority() = 100004;
+  acl3.srcIp() = "2001:db8:1c00::";
+  acl3.srcIpPrefixLength() = 40;
+  acl3.proto() = 6;
+  acl3.ttl() = 128;
+  acl3.actionType() = "permit";
+  acl3.enabled() = 1;
+
+  model.aclTableEntries()["AclTable1"] = {acl1, acl2, acl3};
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template const ValidFilterMapType

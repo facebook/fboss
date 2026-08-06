@@ -42,6 +42,16 @@ class FsdbSubManagerBase {
 
   std::optional<SubscriptionInfo> getInfo();
 
+  // Whether the FSDB server on the current connection supports adding paths to
+  // a live subscription -- i.e. a path passed to addPathToLiveSubscription is
+  // extended in place for an immediate initial sync, rather than being deferred
+  // to the next (re)connect. Returns false when there is no active
+  // subscription, before the connection's initial sync completes, or when
+  // connected to an older server that does not advertise the capability.
+  // Callers can branch on this to fall back to reconnect()/re-subscribe on
+  // older servers.
+  bool supportsLiveAddPath() const;
+
  protected:
   FsdbSubManagerBase(
       fsdb::SubscriptionOptions opts,

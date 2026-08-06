@@ -6,446 +6,286 @@
       "pmUnitName": "SMB",
       "sensors": [
         {
-          "name": "CPU_DPM_POS3V3_STDBY_VOUT",
+          "name": "NVME_COMPOSITE_TEMP",
+          "sysfsPath": "/run/devmap/sensors/NVME_TEMP/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 80.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS0V75_ALW_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.465,
-            "lowerCriticalVal": 3.135
+            "upperCriticalVal": 0.862,
+            "lowerCriticalVal": 0.638,
+            "maxAlarmVal": 0.825,
+            "minAlarmVal": 0.675
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS5V0_VOUT",
+          "name": "CPU_DPM_POS1V8_ALW_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 5.25,
-            "lowerCriticalVal": 4.75
+            "upperCriticalVal": 2.07,
+            "lowerCriticalVal": 1.53,
+            "maxAlarmVal": 1.98,
+            "minAlarmVal": 1.62
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS12V_VOUT",
+          "name": "CPU_DPM_POS3V3_ALW_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 12.6,
-            "lowerCriticalVal": 11.4
+            "upperCriticalVal": 3.795,
+            "lowerCriticalVal": 2.805,
+            "maxAlarmVal": 3.63,
+            "minAlarmVal": 2.97
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS3V3_VOUT",
+          "name": "CPU_DPM_POS1V2_CPLD_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.366,
-            "lowerCriticalVal": 3.234
+            "upperCriticalVal": 1.38,
+            "lowerCriticalVal": 1.02,
+            "maxAlarmVal": 1.32,
+            "minAlarmVal": 1.08
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS1V2_FPGA_VOUT",
+          "name": "CPU_DPM_POS1V0_MSW_VOUT",
           "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.242,
-            "lowerCriticalVal": 1.158
+            "upperCriticalVal": 1.15,
+            "lowerCriticalVal": 0.85,
+            "maxAlarmVal": 1.1,
+            "minAlarmVal": 0.9
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS2V5_CPLD_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in6_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 2.875,
+            "lowerCriticalVal": 2.125,
+            "maxAlarmVal": 2.75,
+            "minAlarmVal": 2.25
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS5V_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in7_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 5.75,
+            "lowerCriticalVal": 4.25,
+            "maxAlarmVal": 5.5,
+            "minAlarmVal": 4.5
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS1V8_MSW_LDO_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in10_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 2.185,
+            "lowerCriticalVal": 1.615,
+            "maxAlarmVal": 2.09,
+            "minAlarmVal": 1.71
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS3V3_RGMII_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in11_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 3.795,
+            "lowerCriticalVal": 2.805,
+            "maxAlarmVal": 3.63,
+            "minAlarmVal": 2.97
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_BMC_1V0_MON_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in12_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.15,
+            "lowerCriticalVal": 0.85,
+            "maxAlarmVal": 1.1,
+            "minAlarmVal": 0.9
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_BMC_POS1P2_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in13_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.38,
+            "lowerCriticalVal": 1.02,
+            "maxAlarmVal": 1.32,
+            "minAlarmVal": 1.08
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_BMC_POS1P8_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in14_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 2.07,
+            "lowerCriticalVal": 1.53,
+            "maxAlarmVal": 1.98,
+            "minAlarmVal": 1.62
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_BMC_POS0P91_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in15_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.047,
+            "lowerCriticalVal": 0.773,
+            "maxAlarmVal": 1.001,
+            "minAlarmVal": 0.819
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS12V_CPU_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in16_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 14.496,
+            "lowerCriticalVal": 9.504,
+            "maxAlarmVal": 13.2,
+            "minAlarmVal": 10.8
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS3V3_CPU_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in19_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 3.795,
+            "lowerCriticalVal": 2.805,
+            "maxAlarmVal": 3.63,
+            "minAlarmVal": 2.97
           },
           "compute": "@/1000.0"
         },
         {
           "name": "CPU_DPM_POS1V8_CPU_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in6_input",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in20_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.818,
-            "lowerCriticalVal": 1.782
+            "upperCriticalVal": 2.07,
+            "lowerCriticalVal": 1.53,
+            "maxAlarmVal": 1.98,
+            "minAlarmVal": 1.62
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS1V1_MEM_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in21_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.265,
+            "lowerCriticalVal": 0.935,
+            "maxAlarmVal": 1.21,
+            "minAlarmVal": 0.99
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS0V8_VDDSOC_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in22_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.85,
+            "lowerCriticalVal": 0.2,
+            "maxAlarmVal": 1.76,
+            "minAlarmVal": 0.4
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS0V8_VDDMISC_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in23_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.85,
+            "lowerCriticalVal": 0.2,
+            "maxAlarmVal": 1.76,
+            "minAlarmVal": 0.4
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_DPM_POS0V8_VDDCR_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in24_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 1.85,
+            "lowerCriticalVal": 0.2,
+            "maxAlarmVal": 1.76,
+            "minAlarmVal": 0.4
           },
           "compute": "@/1000.0"
         },
         {
           "name": "CPU_DPM_POS1V27_MPHY_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in7_input",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in26_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.334,
-            "lowerCriticalVal": 1.207
+            "upperCriticalVal": 1.461,
+            "lowerCriticalVal": 1.08,
+            "maxAlarmVal": 1.397,
+            "minAlarmVal": 1.143
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS1V0_PVNN_PCH_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in8_input",
+          "name": "CPU_DPM_CMOS_BATT_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in28_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.2,
-            "lowerCriticalVal": 0.6
+            "upperCriticalVal": 3.75,
+            "lowerCriticalVal": 1.707,
+            "maxAlarmVal": 3.6,
+            "minAlarmVal": 2.001
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "CPU_DPM_POS1V0_PVNN_NAC_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in9_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.2,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS1V05_CPU_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in10_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.061,
-            "lowerCriticalVal": 1.059
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS1V8_NAC_DELAY_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in11_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.89,
-            "lowerCriticalVal": 1.71
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS2V5_VPP_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in12_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.625,
-            "lowerCriticalVal": 2.375
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS1V2_VDDQ_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in13_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.236,
-            "lowerCriticalVal": 1.164
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS0V6_VTT_VOUT_MILIVOLT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in14_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 630.0,
-            "lowerCriticalVal": 570.0
-          }
-        },
-        {
-          "name": "CPU_DPM_POS1V0_PVCCANA_CPU_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in15_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.01,
-            "lowerCriticalVal": 0.99
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_POS1V8_VCCIN_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in16_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.0,
-            "lowerCriticalVal": 1.5
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_DPM_VBAT_OUT_VOUT",
-          "sysfsPath": "/run/devmap/sensors/CPU_DPM_UCD90320/in17_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.255,
-            "lowerCriticalVal": 2.945
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_VIN1",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_VIN2",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_VOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/in3_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.2,
-            "lowerCriticalVal": 1.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_VOUT2",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/in4_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.0,
-            "lowerCriticalVal": 1.6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/temp1_input",
+          "name": "AMBIENT_TEMP",
+          "sysfsPath": "/run/devmap/sensors/AMBIENT_TEMP/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
+            "upperCriticalVal": 70.0,
+            "maxAlarmVal": 65.0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/temp2_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/temp3_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_TEMP4",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/temp4_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_IOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/curr3_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_VCCIN_1V8_IOUT2",
-          "sysfsPath": "/run/devmap/sensors/CPU_VCCIN_1V8_CPU/curr4_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_VIN1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_VIN2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_VOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/in3_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.26,
-            "lowerCriticalVal": 0.86
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V0_CPU_VOUT2_MILLIVOLT",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/in4_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1400.0,
-            "lowerCriticalVal": 400.0
-          }
-        },
-        {
-          "name": "CPU_1V2_VDDQ_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/temp2_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/temp3_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_TEMP4",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/temp4_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V2_VDDQ_IOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/curr3_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V0_CPU_IOUT2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V2_VDDQ_1V0_CPU/curr4_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_VIN1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_VIN2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_VOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/in3_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.43,
-            "lowerCriticalVal": 1.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V0_PCH_VOUT2_MILLIVOLT",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/in4_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1200.0,
-            "lowerCriticalVal": 800.0
-          }
-        },
-        {
-          "name": "CPU_1V05_VNN_TEMP1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_TEMP2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/temp2_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_TEMP3",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/temp3_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_TEMP4",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/temp4_input",
-          "type": 3,
-          "thresholds": {
-            "upperCriticalVal": 120.0,
-            "maxAlarmVal": 100.0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V05_VNN_IOUT1",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/curr3_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "CPU_1V0_PCH_IOUT2",
-          "sysfsPath": "/run/devmap/sensors/CPU_1V05_CPU_VNN_PCH/curr4_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -453,8 +293,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 62.5,
-            "lowerCriticalVal": 37.5
+            "upperCriticalVal": 57.6,
+            "lowerCriticalVal": 38.4
           },
           "compute": "@/1000.0"
         },
@@ -463,8 +303,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 62.5,
-            "lowerCriticalVal": 37.5
+            "upperCriticalVal": 57.6,
+            "lowerCriticalVal": 38.4
           },
           "compute": "@/1000.0"
         },
@@ -473,8 +313,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 15.0,
-            "lowerCriticalVal": 9.0
+            "upperCriticalVal": 14.4,
+            "lowerCriticalVal": 9.6
           },
           "compute": "@/1000.0"
         },
@@ -483,8 +323,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.794,
-            "lowerCriticalVal": 2.804
+            "upperCriticalVal": 3.465,
+            "lowerCriticalVal": 3.135
           },
           "compute": "@/1000.0"
         },
@@ -493,8 +333,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 5.75,
-            "lowerCriticalVal": 4.25
+            "upperCriticalVal": 5.25,
+            "lowerCriticalVal": 4.75
           },
           "compute": "@/1000.0"
         },
@@ -503,8 +343,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in6_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1150.0,
-            "lowerCriticalVal": 849.0
+            "upperCriticalVal": 1050.0,
+            "lowerCriticalVal": 950.0
           }
         },
         {
@@ -512,8 +352,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in7_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.069,
-            "lowerCriticalVal": 1.53
+            "upperCriticalVal": 1.89,
+            "lowerCriticalVal": 1.71
           },
           "compute": "@/1000.0"
         },
@@ -522,8 +362,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.38,
-            "lowerCriticalVal": 1.02
+            "upperCriticalVal": 1.26,
+            "lowerCriticalVal": 1.14
           },
           "compute": "@/1000.0"
         },
@@ -532,8 +372,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in9_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.794,
-            "lowerCriticalVal": 2.804
+            "upperCriticalVal": 3.465,
+            "lowerCriticalVal": 3.135
           },
           "compute": "@/1000.0"
         },
@@ -542,8 +382,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in10_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.069,
-            "lowerCriticalVal": 1.53
+            "upperCriticalVal": 1.89,
+            "lowerCriticalVal": 1.71
           },
           "compute": "@/1000.0"
         },
@@ -552,8 +392,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in11_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.38,
-            "lowerCriticalVal": 1.02
+            "upperCriticalVal": 1.26,
+            "lowerCriticalVal": 1.14
           },
           "compute": "@/1000.0"
         },
@@ -562,8 +402,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in12_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 900.0,
-            "lowerCriticalVal": 599.0
+            "upperCriticalVal": 862.5,
+            "lowerCriticalVal": 637.5
           }
         },
         {
@@ -571,8 +411,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in13_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 900.0,
-            "lowerCriticalVal": 599.0
+            "upperCriticalVal": 885.0,
+            "lowerCriticalVal": 615.0
           }
         },
         {
@@ -580,8 +420,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in14_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 900.0,
-            "lowerCriticalVal": 599.0
+            "upperCriticalVal": 885.0,
+            "lowerCriticalVal": 615.0
           }
         },
         {
@@ -589,8 +429,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in15_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 900.0,
-            "lowerCriticalVal": 599.0
+            "upperCriticalVal": 885.0,
+            "lowerCriticalVal": 615.0
           }
         },
         {
@@ -598,8 +438,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in16_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 900.0,
-            "lowerCriticalVal": 599.0
+            "upperCriticalVal": 885.0,
+            "lowerCriticalVal": 615.0
           }
         },
         {
@@ -607,8 +447,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in17_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.666,
-            "lowerCriticalVal": 1.234
+            "upperCriticalVal": 1.566,
+            "lowerCriticalVal": 1.334
           },
           "compute": "@/1000.0"
         },
@@ -617,8 +457,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in18_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.666,
-            "lowerCriticalVal": 1.234
+            "upperCriticalVal": 1.566,
+            "lowerCriticalVal": 1.334
           },
           "compute": "@/1000.0"
         },
@@ -627,8 +467,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in19_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.666,
-            "lowerCriticalVal": 1.234
+            "upperCriticalVal": 1.566,
+            "lowerCriticalVal": 1.334
           },
           "compute": "@/1000.0"
         },
@@ -637,8 +477,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in20_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.666,
-            "lowerCriticalVal": 1.234
+            "upperCriticalVal": 1.566,
+            "lowerCriticalVal": 1.334
           },
           "compute": "@/1000.0"
         },
@@ -647,8 +487,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in21_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 679.0
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 540.0
           }
         },
         {
@@ -656,8 +496,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in22_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 679.0
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 540.0
           }
         },
         {
@@ -665,8 +505,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in23_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 679.0
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 540.0
           }
         },
         {
@@ -674,8 +514,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_0/in24_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 679.0
+            "upperCriticalVal": 900.0,
+            "lowerCriticalVal": 540.0
           }
         },
         {
@@ -683,8 +523,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in1_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 861.0,
-            "lowerCriticalVal": 638.0
+            "upperCriticalVal": 862.5,
+            "lowerCriticalVal": 637.5
           }
         },
         {
@@ -692,8 +532,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 861.0,
-            "lowerCriticalVal": 638.0
+            "upperCriticalVal": 862.5,
+            "lowerCriticalVal": 637.5
           }
         },
         {
@@ -701,8 +541,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 990.0,
+            "lowerCriticalVal": 810.0
           }
         },
         {
@@ -710,8 +550,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 990.0,
+            "lowerCriticalVal": 810.0
           }
         },
         {
@@ -719,8 +559,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.68,
+            "lowerCriticalVal": 1.32
           },
           "compute": "@/1000.0"
         },
@@ -729,8 +569,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in6_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.68,
+            "lowerCriticalVal": 1.32
           },
           "compute": "@/1000.0"
         },
@@ -739,8 +579,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in7_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -749,8 +589,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -759,8 +599,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in9_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -769,8 +609,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in10_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -779,8 +619,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in11_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -789,8 +629,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in12_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.723,
-            "lowerCriticalVal": 1.276
+            "upperCriticalVal": 1.545,
+            "lowerCriticalVal": 1.455
           },
           "compute": "@/1000.0"
         },
@@ -799,8 +639,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in13_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.379,
-            "lowerCriticalVal": 1.02
+            "upperCriticalVal": 1.236,
+            "lowerCriticalVal": 1.164
           },
           "compute": "@/1000.0"
         },
@@ -809,8 +649,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in14_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.379,
-            "lowerCriticalVal": 1.02
+            "upperCriticalVal": 1.236,
+            "lowerCriticalVal": 1.164
           },
           "compute": "@/1000.0"
         },
@@ -819,8 +659,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in15_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 927.0,
+            "lowerCriticalVal": 873.0
           }
         },
         {
@@ -828,8 +668,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in16_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 927.0,
+            "lowerCriticalVal": 873.0
           }
         },
         {
@@ -837,8 +677,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in17_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 927.0,
+            "lowerCriticalVal": 873.0
           }
         },
         {
@@ -846,8 +686,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in18_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1033.0,
-            "lowerCriticalVal": 765.0
+            "upperCriticalVal": 927.0,
+            "lowerCriticalVal": 873.0
           }
         },
         {
@@ -855,8 +695,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in19_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 681.0
+            "upperCriticalVal": 824.0,
+            "lowerCriticalVal": 776.0
           }
         },
         {
@@ -864,8 +704,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in20_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 919.0,
-            "lowerCriticalVal": 681.0
+            "upperCriticalVal": 824.0,
+            "lowerCriticalVal": 776.0
           }
         },
         {
@@ -873,38 +713,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in29_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.791,
-            "lowerCriticalVal": 2.808
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_UCD1_POS3V3_STDBY_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in30_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 3.791,
-            "lowerCriticalVal": 2.808
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_UCD1_ROPE1_LEAK_ANALOG",
-          "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in31_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.204,
-            "lowerCriticalVal": 1.6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_UCD1_ROPE2_LEAK_ANALOG",
-          "sysfsPath": "/run/devmap/sensors/SMB_UCD90320_1/in32_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 2.204,
-            "lowerCriticalVal": 1.6
+            "upperCriticalVal": 3.63,
+            "lowerCriticalVal": 2.97
           },
           "compute": "@/1000.0"
         },
@@ -1853,7 +1663,7 @@
         },
         {
           "name": "SMB_XDPE_POS3V3_OPTICS01_3_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_POS3V3_OPTICS0_1/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_POS3V3_OPTICS0_1/temp3_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115.0,
@@ -1863,7 +1673,7 @@
         },
         {
           "name": "SMB_XDPE_POS3V3_OPTICS01_4_TEMP",
-          "sysfsPath": "/run/devmap/sensors/SMB_POS3V3_OPTICS0_1/temp2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_POS3V3_OPTICS0_1/temp4_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 115.0,
@@ -1997,7 +1807,7 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_LHS_VOUT",
@@ -2007,19 +1817,19 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_LHS_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_LHS/curr1_input",
           "type": 2,
-          "compute": "@/1000.0"
+          "compute": "@/12698"
         },
         {
           "name": "SMB_ECB_POS48V_LHS_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_LHS/power1_input",
           "type": 0,
-          "compute": "@/1000000.0"
+          "compute": "@/143600"
         },
         {
           "name": "SMB_ECB_POS48V_LHS_TEMP",
@@ -2029,7 +1839,7 @@
             "upperCriticalVal": 125.0,
             "maxAlarmVal": 110.0
           },
-          "compute": "@/1000.0"
+          "compute": "(@ - 321030) / 1400"
         },
         {
           "name": "SMB_ECB_POS48V_RHS_VIN",
@@ -2039,7 +1849,7 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_RHS_VOUT",
@@ -2049,19 +1859,19 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_RHS_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_RHS/curr1_input",
           "type": 2,
-          "compute": "@/1000.0"
+          "compute": "@/12698"
         },
         {
           "name": "SMB_ECB_POS48V_RHS_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_RHS/power1_input",
           "type": 0,
-          "compute": "@/1000000.0"
+          "compute": "@/143600"
         },
         {
           "name": "SMB_ECB_POS48V_RHS_TEMP",
@@ -2071,7 +1881,7 @@
             "upperCriticalVal": 125.0,
             "maxAlarmVal": 110.0
           },
-          "compute": "@/1000.0"
+          "compute": "(@ - 321030) / 1400"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_01_VIN",
@@ -2081,7 +1891,7 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_01_VOUT",
@@ -2091,19 +1901,19 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_01_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_OPTICS_01/curr1_input",
           "type": 2,
-          "compute": "@/1000.0"
+          "compute": "@/12698"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_01_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_OPTICS_01/power1_input",
           "type": 0,
-          "compute": "@/1000000.0"
+          "compute": "@/143600"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_01_TEMP",
@@ -2113,7 +1923,7 @@
             "upperCriticalVal": 125.0,
             "maxAlarmVal": 110.0
           },
-          "compute": "@/1000.0"
+          "compute": "(@ - 321030) / 1400"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_23_VIN",
@@ -2123,7 +1933,7 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_23_VOUT",
@@ -2133,19 +1943,19 @@
             "upperCriticalVal": 62.5,
             "lowerCriticalVal": 37.5
           },
-          "compute": "@/1000.0"
+          "compute": "@/11660"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_23_IIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_OPTICS_23/curr1_input",
           "type": 2,
-          "compute": "@/1000.0"
+          "compute": "@/12698"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_23_PIN",
           "sysfsPath": "/run/devmap/sensors/SMB_POS48V_OPTICS_23/power1_input",
           "type": 0,
-          "compute": "@/1000000.0"
+          "compute": "@/143600"
         },
         {
           "name": "SMB_ECB_POS48V_OPTICS_23_TEMP",
@@ -2155,7 +1965,7 @@
             "upperCriticalVal": 125.0,
             "maxAlarmVal": 110.0
           },
-          "compute": "@/1000.0"
+          "compute": "(@ - 321030) / 1400"
         },
         {
           "name": "SMB_IBC_POS12V_LHS_VIN",
@@ -2632,6 +2442,58 @@
             "maxAlarmVal": 105.0
           },
           "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_CHASSIS_REAR_TEMP",
+          "sysfsPath": "/run/devmap/sensors/CHASSIS_REAR_TMP75/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85.0,
+            "maxAlarmVal": 80.0
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "SMB_CPU_POS48V_VIN",
+          "sysfsPath": "/run/devmap/sensors/CPU_POS48V/in1_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 62.5,
+            "lowerCriticalVal": 37.5
+          },
+          "compute": "@/11660"
+        },
+        {
+          "name": "SMB_CPU_POS48V_VOUT",
+          "sysfsPath": "/run/devmap/sensors/CPU_POS48V/in2_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 62.5,
+            "lowerCriticalVal": 37.5
+          },
+          "compute": "@/11660"
+        },
+        {
+          "name": "SMB_CPU_POS48V_IIN",
+          "sysfsPath": "/run/devmap/sensors/CPU_POS48V/curr1_input",
+          "type": 2,
+          "compute": "@/12698"
+        },
+        {
+          "name": "SMB_CPU_POS48V_PIN",
+          "sysfsPath": "/run/devmap/sensors/CPU_POS48V/power1_input",
+          "type": 0,
+          "compute": "@/143600"
+        },
+        {
+          "name": "SMB_CPU_POS48V_TEMP",
+          "sysfsPath": "/run/devmap/sensors/CPU_POS48V/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 125.0,
+            "maxAlarmVal": 110.0
+          },
+          "compute": "(@ - 321030) / 1400"
         }
       ]
     }
@@ -2653,13 +2515,18 @@
       {
         "name": "HSC4",
         "powerSensorName": "SMB_ECB_POS48V_OPTICS_23_PIN"
+      },
+      {
+        "name": "HSC5",
+        "powerSensorName": "SMB_CPU_POS48V_PIN"
       }
     ],
     "inputVoltageSensors": [
       "SMB_ECB_POS48V_LHS_VIN",
       "SMB_ECB_POS48V_RHS_VIN",
       "SMB_ECB_POS48V_OPTICS_01_VIN",
-      "SMB_ECB_POS48V_OPTICS_23_VIN"
+      "SMB_ECB_POS48V_OPTICS_23_VIN",
+      "SMB_CPU_POS48V_VIN"
     ]
   },
   "temperatureConfigs": [

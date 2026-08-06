@@ -13,6 +13,7 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/agent/if/gen-cpp2/fboss_types.h>
 #include <iostream>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -26,6 +27,10 @@ struct CmdShowAclTraits : public ReadCommandTraits {
   using RetType = cli::ShowAclModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
@@ -37,6 +42,10 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
   RetType createModel(facebook::fboss::AclTableThrift entries);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

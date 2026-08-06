@@ -36,6 +36,18 @@ void CmdShowProduct::printOutput(const RetType& model, std::ostream& out) {
   out << "Serial: " << model.serial().value() << std::endl;
 }
 
+std::string_view CmdShowProductTraits::description() {
+  return "Displays the switch's product/platform name. Use it to quickly identify the hardware platform.";
+}
+
+CmdShowProduct::RetType CmdShowProduct::sampleModel() {
+  RetType model;
+  model.product() = "MOCK_PLATFORM";
+  model.oem() = "MOCK_OEM";
+  model.serial() = "MOCK_SERIAL";
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowProduct, CmdShowProductTraits>::run();
 

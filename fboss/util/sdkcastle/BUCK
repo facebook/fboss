@@ -21,6 +21,7 @@ python_library(
         "config.py",
     ],
     deps = [
+        ":constants",
         ":enums",
     ],
 )
@@ -32,6 +33,7 @@ python_library(
     ],
     deps = [
         ":config",
+        ":constants",
         ":enums",
     ],
 )

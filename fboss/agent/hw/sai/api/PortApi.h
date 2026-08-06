@@ -808,10 +808,9 @@ struct SaiPortTraits {
   };
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
-  // Fetch only the counters Tomahawk Ultra supports: LLR_RX_BAD,
-  // LLR_TX_DISCARD, LLR_TX_POISONED and LLR_RX_POISONED have no SDK backing on
-  // TU, and get_port_stats is all-or-nothing, so they are excluded (Broadcom
-  // CS00012472055).
+  // TU1 does not support LLR_RX_BAD, LLR_TX_DISCARD, LLR_TX_POISONED or
+  // LLR_RX_POISONED (no SDK backing); get_port_stats is all-or-nothing, so
+  // fetch only the counters TU1 supports (Broadcom CS00012472055).
   static const std::vector<sai_stat_id_t>& llrStats() {
     static const std::vector<sai_stat_id_t> ids = {
         SAI_PORT_STAT_LLR_TX_OK,

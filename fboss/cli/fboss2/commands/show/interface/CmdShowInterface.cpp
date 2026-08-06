@@ -335,6 +335,47 @@ Table::StyledCell CmdShowInterface::colorStatusCell(const std::string& status) {
   return Table::StyledCell(status, cellStyle);
 }
 
+std::string_view CmdShowInterfaceTraits::description() {
+  return "Displays each interface's operational status, speed, VLAN, MTU, configured IP addresses, and description. Use it for a quick overview of a port's configuration and addressing.";
+}
+
+CmdShowInterface::RetType CmdShowInterface::sampleModel() {
+  RetType model;
+
+  cli::Interface if1;
+  if1.name() = "eth1/1/1";
+  if1.status() = "up";
+  if1.speed() = "400G";
+  if1.vlan() = 2001;
+  if1.mtu() = 9000;
+  cli::IpPrefix prefix1_1;
+  prefix1_1.ip() = "2001:db8:a::3f";
+  prefix1_1.prefixLength() = 127;
+  cli::IpPrefix prefix1_2;
+  prefix1_2.ip() = "fe80::200:11ff:fe22:3301";
+  prefix1_2.prefixLength() = 64;
+  if1.prefixes() = {prefix1_1, prefix1_2};
+  if1.description() = "neighbor peer001 on eth1/1/1";
+
+  cli::Interface if2;
+  if2.name() = "eth1/2/1";
+  if2.status() = "up";
+  if2.speed() = "200G";
+  if2.vlan() = 2003;
+  if2.mtu() = 9000;
+  cli::IpPrefix prefix2_1;
+  prefix2_1.ip() = "2001:db8:b::1";
+  prefix2_1.prefixLength() = 127;
+  cli::IpPrefix prefix2_2;
+  prefix2_2.ip() = "fe80::200:11ff:fe22:3302";
+  prefix2_2.prefixLength() = 64;
+  if2.prefixes() = {prefix2_1, prefix2_2};
+  if2.description() = "neighbor peer002 on eth1/2/1";
+
+  model.interfaces() = {if1, if2};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template const ValidFilterMapType

@@ -836,8 +836,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
   fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.cpp
@@ -896,12 +894,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
+  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.cpp
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.cpp
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h
   fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.cpp
@@ -910,10 +914,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h
-  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.cpp
-  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h
-  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.cpp
-  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.cpp
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.h
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.cpp
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.cpp
@@ -961,6 +965,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
+  fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h
+  fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h
+  fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp
@@ -985,6 +995,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
   fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.cpp
   fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
+  fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.cpp
+  fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
@@ -995,6 +1007,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.cpp
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.cpp
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/FbossServiceUtil.h

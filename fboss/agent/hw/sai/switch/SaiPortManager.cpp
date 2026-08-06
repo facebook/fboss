@@ -343,11 +343,9 @@ void fillHwPortStats(
           hwPortStats.llrRxOk_() = value;
         }
         break;
-      case SAI_PORT_STAT_LLR_RX_BAD:
-        if (updateLlrStats) {
-          hwPortStats.llrRxBad_() = value;
-        }
-        break;
+      // LLR_RX_BAD, LLR_TX_DISCARD, LLR_TX_POISONED and LLR_RX_POISONED have no
+      // SDK backing on TU1 and are not fetched (see PortApi::llrStats, Broadcom
+      // CS00012472055), so there is intentionally no case for them here.
       case SAI_PORT_STAT_LLR_RX_MISSING_SEQ:
         if (updateLlrStats) {
           hwPortStats.llrRxMissingSeq_() = value;
@@ -2730,23 +2728,36 @@ void SaiPortManager::updateStats(
     auto& portApi = SaiApiTable::getInstance()->portApi();
     auto adapterKey = handle->port->adapterKey();
     const auto& portAttrs = handle->port->attributes();
+    // Some ASICs clear the retrigger counters on read. Accumulate those so
+    // HwPortStats always reports a monotonic count, as we do for FEC errors.
+    auto retriggerCountClearOnRead =
+        platform_->getAsic()->isPortDebounceRetriggerCountClearOnRead();
+    auto storeRetriggerCount = [retriggerCountClearOnRead](
+                                   auto&& stat, int64_t value) {
+      stat =
+          retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
     if (downPeriod.has_value() && downPeriod->value() > 0) {
-      curPortStats.linkDownDebounceRetriggerCount_() = portApi.getAttribute(
-          adapterKey,
-          SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+      storeRetriggerCount(
+          curPortStats.linkDownDebounceRetriggerCount_(),
+          portApi.getAttribute(
+              adapterKey,
+              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
     }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      curPortStats.linkUpDebounceRetriggerCount_() = portApi.getAttribute(
-          adapterKey,
-          SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+      storeRetriggerCount(
+          curPortStats.linkUpDebounceRetriggerCount_(),
+          portApi.getAttribute(
+              adapterKey,
+              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
     }
   }
 #endif

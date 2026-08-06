@@ -17,7 +17,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInitImpl.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
@@ -49,84 +48,22 @@ std::string getPlatformMappingForInit(PlatformType type) {
   return platformMappingStr;
 }
 
-cfg::SwitchInfo makeAsicVendorProbeSwitchInfo(cfg::AsicType asicType) {
-  cfg::SwitchInfo switchInfo;
-  switchInfo.switchType() = cfg::SwitchType::NPU;
-  switchInfo.asicType() = asicType;
-  switchInfo.switchIndex() = 0;
-  switchInfo.switchMac() = "02:00:00:00:00:01";
-  switchInfo.systemPortRanges()->systemPortRanges() = {};
-  return switchInfo;
-}
-
-std::unique_ptr<SaiPlatform> createGenericSaiPlatform(
-    const PlatformDescriptor& descriptor,
-    std::unique_ptr<PlatformProductInfo>& productInfo,
-    folly::MacAddress localMac,
-    const std::string& platformMappingStr) {
-  const auto asicType = descriptor.asicType().value();
-  auto probeSwitchInfo = makeAsicVendorProbeSwitchInfo(asicType);
-  auto probeAsic =
-      HwAsic::makeAsic(0, probeSwitchInfo, std::nullopt, std::nullopt);
-  const auto asicVendor = probeAsic->getAsicVendor();
-  switch (asicVendor) {
-    case HwAsic::AsicVendor::ASIC_VENDOR_BCM:
-      return createGenericSaiBcmPlatform(
-          std::move(productInfo), localMac, platformMappingStr);
-    case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
-      return createGenericSaiTajoPlatform(
-          std::move(productInfo), localMac, platformMappingStr);
-    case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
-      return createGenericSaiYangraPlatform(
-          std::move(productInfo), localMac, platformMappingStr);
-    case HwAsic::AsicVendor::ASIC_VENDOR_CREDO:
-    case HwAsic::AsicVendor::ASIC_VENDOR_MARVELL:
-    case HwAsic::AsicVendor::ASIC_VENDOR_MOCK:
-    case HwAsic::AsicVendor::ASIC_VENDOR_FAKE:
-      break;
-  }
-  throw FbossError(
-      "Unsupported generic SAI ASIC vendor ",
-      static_cast<int>(asicVendor),
-      " for ASIC type ",
-      apache::thrift::util::enumNameSafe(asicType));
-}
-
 } // namespace
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr) {
-  if (!FLAGS_platform_descriptor_config_path.empty()) {
-    auto type = productInfo->getType();
-    const auto& registry = PlatformDescriptorRegistry::get();
-    auto descriptor = registry.getDescriptor(type);
-    if (descriptor) {
-      return createGenericSaiPlatform(
-          *descriptor, productInfo, localMac, platformMappingStr);
-    }
-  }
-
+  const auto type = productInfo->getType();
   if (auto platform =
-          chooseBcmSaiPlatform(productInfo, localMac, platformMappingStr)) {
-    return platform;
-  }
-  if (auto platform =
-          chooseTajoSaiPlatform(productInfo, localMac, platformMappingStr)) {
-    return platform;
-  }
-  if (auto platform =
-          chooseYangraSaiPlatform(productInfo, localMac, platformMappingStr)) {
-    return platform;
-  }
-  if (auto platform =
-          chooseFakeSaiPlatform(productInfo, localMac, platformMappingStr)) {
+          chooseSaiPlatformImpl(productInfo, localMac, platformMappingStr)) {
     return platform;
   }
 
-  return nullptr;
-} // namespace facebook::fboss
+  throw FbossError(
+      "Unsupported SAI platform type ",
+      apache::thrift::util::enumNameSafe(type));
+}
 
 std::unique_ptr<Platform> initSaiPlatform(
     std::unique_ptr<AgentConfig> config,

@@ -12,6 +12,9 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
     read_all_vendor_data,
     read_platform_descriptor,
 )
+from neteng.fboss.platform_config.platform_config.thrift_types import (
+    PortIdToPortAssignmentConfig,
+)
 from thrift.python.serializer import Protocol, serialize
 
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
@@ -20,6 +23,8 @@ PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 _RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
+    "wedge800bact": ("wedge800bact",),
+    "wedge800cact": ("wedge800cact",),
 }
 
 
@@ -200,10 +205,10 @@ def write_raw_platform_mapping_artifacts(
     platform_name: str,
     is_multi_npu: bool,
     generator: Optional[PlatformMappingV2] = None,
-) -> None:
+) -> Optional[PortIdToPortAssignmentConfig]:
     family = _get_raw_platform_mapping_family(platform_name)
     if family is None:
-        return
+        return None
 
     family_mappings = [
         PlatformMappingV2(
@@ -215,6 +220,10 @@ def write_raw_platform_mapping_artifacts(
     if generator is None:
         generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
 
+    port_id_to_port_assignment = PortIdToPortAssignmentConfig(
+        portIdToPortAssignment=generator.get_port_id_to_port_assignment()
+    )
+
     raw_mapping_file = os.path.join(output_dir, "raw_platform_mapping.json")
     assignment_file = os.path.join(output_dir, "port_id_to_port_assignment.json")
     print(f"Writing to file {raw_mapping_file}...", file=sys.stderr)
@@ -223,6 +232,7 @@ def write_raw_platform_mapping_artifacts(
     print(f"Writing to file {assignment_file}...", file=sys.stderr)
     with open(assignment_file, "w") as f:
         f.write(_serialize_port_assignments(generator))
+    return port_id_to_port_assignment
 
 
 def get_platform_descriptor_data(

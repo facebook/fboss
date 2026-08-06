@@ -68,4 +68,11 @@ TEST_F(CmdShowProductTestFixture, printOutput) {
   EXPECT_EQ(output, expectedOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowProductTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowProductTraits::description().empty());
+  EXPECT_FALSE(CmdShowProduct::sampleModel().product()->empty());
+}
+
 } // namespace facebook::fboss

@@ -18,7 +18,9 @@ class WeutilDarwin : public WeutilInterface {
   folly::dynamic getInfoJson() override;
 
  private:
-  void genSpiPrefdlFile();
+  // Runs flashrom/dd to dump the SPI prefdl into the given per-run temp
+  // directory and returns the path to the generated prefdl file.
+  std::string genSpiPrefdlFile(const std::string& runDir);
   std::unique_ptr<PrefdlBase> eepromParser_;
 };
 

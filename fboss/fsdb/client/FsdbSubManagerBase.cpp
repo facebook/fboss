@@ -61,6 +61,15 @@ std::optional<SubscriptionInfo> FsdbSubManagerBase::getInfo() {
   return std::nullopt;
 }
 
+bool FsdbSubManagerBase::supportsLiveAddPath() const {
+  if (subscriber_) {
+    return subscriber_->serverSupportsLiveAddPath();
+  } else if (extSubscriber_) {
+    return extSubscriber_->serverSupportsLiveAddPath();
+  }
+  return false;
+}
+
 SubscriptionKey FsdbSubManagerBase::addPathImpl(
     const std::vector<std::string>& pathTokens) {
   CHECK(extSubscribePaths_.empty()) << "Cannot mix extended and raw paths";

@@ -94,6 +94,38 @@ RetType CmdShowMacDetails::createModel(
   return model;
 }
 
+std::string_view CmdShowMacDetailsTraits::description() {
+  return "Displays the switch's L2 MAC address table: each learned MAC, the port or trunk and VLAN it was learned on, the entry type, and any class ID. Use it to verify L2 learning and locate where a host is connected.";
+}
+
+CmdShowMacDetails::RetType CmdShowMacDetails::sampleModel() {
+  RetType model;
+
+  cli::L2Entry entry1;
+  entry1.mac() = "02:00:11:22:33:01";
+  entry1.ifName() = "eth1/37/5";
+  entry1.vlanID() = 2074;
+  entry1.l2EntryType() = "Validated";
+  entry1.classID() = "-";
+
+  cli::L2Entry entry2;
+  entry2.mac() = "02:00:11:22:33:02";
+  entry2.ifName() = "eth1/37/1";
+  entry2.vlanID() = 2073;
+  entry2.l2EntryType() = "Validated";
+  entry2.classID() = "-";
+
+  cli::L2Entry entry3;
+  entry3.mac() = "02:00:11:22:33:03";
+  entry3.ifName() = "eth1/25/1";
+  entry3.vlanID() = 2049;
+  entry3.l2EntryType() = "Validated";
+  entry3.classID() = "-";
+
+  model.l2Entries() = {entry1, entry2, entry3};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowMacDetails, CmdShowMacDetailsTraits>::run();
 

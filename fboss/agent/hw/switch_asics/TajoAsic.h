@@ -43,6 +43,11 @@ class TajoAsic : public HwAsic {
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
   }
+  // TODO(zecheng): move the Leaba retrigger counters to clear-on-read as well
+  // and drop this override.
+  bool isPortDebounceRetriggerCountClearOnRead() const override {
+    return false;
+  }
   int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor /* scalingFactor */) const override {
     throw FbossError("Dynamic buffer threshold unsupported!");

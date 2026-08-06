@@ -1741,11 +1741,11 @@ void ThriftHandler::addAdjacencyFrr(
   throw FbossError("addAdjacencyFrr Not supported");
 }
 
-void ThriftHandler::removeAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
+void ThriftHandler::deleteAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
   ensureConfigured(__func__);
 
   // TODO add support
-  throw FbossError("removeAdjacencyFrr Not supported");
+  throw FbossError("deleteAdjacencyFrr Not supported");
 }
 
 void ThriftHandler::clearPortPrbsStats(
@@ -3316,10 +3316,22 @@ void ThriftHandler::getTeFlowTableDetails(
   throw FbossError("getTeFlowTableDetails is deprecated");
 }
 
+void ThriftHandler::addNamedNextHopGroups(
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+}
+
 void ThriftHandler::addOrUpdateNamedNextHopGroups(
     std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  ensureConfigured(__func__);
+  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+}
+
+void ThriftHandler::addNamedNextHopGroupsImpl(
+    folly::StringPiece function,
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+  ensureConfigured(function);
 
   auto* rib = sw_->getRib();
   if (!rib) {

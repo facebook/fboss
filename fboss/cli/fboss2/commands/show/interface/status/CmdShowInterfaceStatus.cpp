@@ -149,6 +149,35 @@ void CmdShowInterfaceStatus::printOutput(
   out << outTable << std::endl;
 }
 
+std::string_view CmdShowInterfaceStatusTraits::description() {
+  return "Displays a per-interface status summary: description, link status, VLAN, speed, and the installed transceiver's vendor and part number. Use it to confirm link state and optic inventory at a glance.";
+}
+
+CmdShowInterfaceStatus::RetType CmdShowInterfaceStatus::sampleModel() {
+  RetType model;
+
+  cli::InterfaceStatus if1;
+  if1.name() = "eth1/1/1";
+  if1.description() = "neighbor peer001 on eth1/1/1";
+  if1.status() = "up";
+  if1.vlan() = 2001;
+  if1.speed() = "400G";
+  if1.vendor() = "Eoptolink";
+  if1.mpn() = "EOLO-168HG-02-1B";
+
+  cli::InterfaceStatus if2;
+  if2.name() = "eth1/2/1";
+  if2.description() = "neighbor peer002 on eth1/2/1";
+  if2.status() = "down";
+  if2.vlan() = 2003;
+  if2.speed() = "200G";
+  if2.vendor() = "Eoptolink";
+  if2.mpn() = "EOLO-168HG-02-1B";
+
+  model.interfaces() = {if1, if2};
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();

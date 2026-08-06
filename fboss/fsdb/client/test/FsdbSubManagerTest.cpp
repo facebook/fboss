@@ -666,6 +666,36 @@ TYPED_TEST(FsdbSubManagerTest, addPathToLiveSubscriptionStreamRevision) {
   WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
 }
 
+// supportsLiveAddPath() reflects whether the server on the current connection
+// advertised a subscription uid (OperSubInitResponse.subscriptionUid). Before
+// subscribe it is false (no active subscription); after the initial sync
+// completes against a server that populates the uid, it is true. This is the
+// signal callers use to decide between addPathToLiveSubscription and an
+// older-server fallback (stop/re-subscribe).
+TYPED_TEST(FsdbSubManagerTest, supportsLiveAddPath) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+  auto subscriber =
+      this->createSubscriber(this->getSubscriptionOptions("test"));
+  subscriber->addPath(this->path1());
+
+  // No active subscription yet -> not supported.
+  EXPECT_FALSE(subscriber->supportsLiveAddPath());
+
+  std::atomic<int> numUpdates{0};
+  subscriber->subscribe([&](const auto&) { numUpdates++; });
+
+  // Once the initial sync reaches the client, the init response (carrying the
+  // server-assigned uid) has been processed, so the capability reads true.
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_GE(numUpdates.load(), 1);
+    EXPECT_EVENTUALLY_TRUE(subscriber->supportsLiveAddPath());
+  });
+
+  subscriber.reset();
+  WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
+}
+
 // A single addPaths() call can carry multiple paths. The client must send the
 // largest SubscriptionKey (the most recently assigned) as lastStreamRevision,
 // not the first entry in the ascending-ordered map. Drive

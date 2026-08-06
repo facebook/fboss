@@ -9,6 +9,9 @@ load(
 oncall("fboss_agent_push")
 
 cpp_library(
+    # @autodeps-skip autodeps2 mis-resolves a CommonInit include to :fake_main (pulls
+    # emulation:main -> duplicate initializeBitsflow/setVersionInfo). CommonInit comes
+    # via :agent_ensemble_integration_test_base.
     name = "agent_integration_test",
     srcs = [
         "AgentBgpIntegrationTests.cpp",

@@ -351,18 +351,6 @@ sai_uint32_t SaiAclTableManager::cfgLookupClassToSaiMetaDataAndMaskHelper(
 std::pair<sai_uint32_t, sai_uint32_t>
 SaiAclTableManager::cfgLookupClassToSaiFdbMetaDataAndMask(
     cfg::AclLookupClass lookupClass) const {
-  if (platform_->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    /*
-     * lookupClassL2 is not configured on Trident2 or else the ASIC runs out
-     * of resources. lookupClassL2 is needed for MH-NIC queue-per-host
-     * solution. However, the solution is not applicable for Trident2 as we
-     * don't implement queues on Trident2.
-     */
-    throw FbossError(
-        "attempted to configure lookupClassL2 on Trident2, not needed/supported");
-  }
-
   return std::make_pair(
       cfgLookupClassToSaiMetaDataAndMaskHelper(
           lookupClass,
@@ -1765,8 +1753,6 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
    */
   bool isTajo = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-  bool isTrident2 =
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
   bool isJericho2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
   bool isJericho3 =
@@ -1913,17 +1899,6 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
-    /*
-     * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
-     * However, the solution is not applicable for Trident2 as FBOSS does not
-     * implement queues on Trident2.
-     * Furthermore, Trident2 supports fewer ACL qualifiers than other
-     * hardwares. Thus, avoid programming unncessary qualifiers (or else we
-     * run out resources).
-     */
-    if (isTrident2) {
-      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
-    }
     // TH5 fails creating ACL table after adding vlan as qualifier with 10.0
     // CS00012342272
     if (isTomahawk5) {

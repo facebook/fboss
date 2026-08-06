@@ -334,16 +334,7 @@ void SaiPlatform::initPorts() {
                  << " due to scope mismatch";
       continue;
     }
-    saiPort = createBcmSaiPlatformPort(portId, this);
-    if (!saiPort) {
-      saiPort = createTajoSaiPlatformPort(portId, this);
-    }
-    if (!saiPort) {
-      saiPort = createYangraSaiPlatformPort(portId, this);
-    }
-    if (!saiPort) {
-      saiPort = createFakeSaiPlatformPort(portId, this);
-    }
+    saiPort = createSaiPlatformPort(portId, this);
     if (!saiPort) {
       throw FbossError(
           "Unsupported SAI platform port type: ",

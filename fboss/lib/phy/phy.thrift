@@ -602,6 +602,7 @@ struct PhyState {
 struct PhyStats {
   1: optional PhySideStats system;
   2: PhySideStats line;
+  // On FBOSS, this gets incremented when we see state changes in the linkscan callback
   3: optional i64 linkFlapCount;
   9: io_stats.IOStats ioStats;
   10: i32 timeCollected;

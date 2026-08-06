@@ -113,6 +113,50 @@ void CmdShowInterfaceCounters::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowInterfaceCountersTraits::description() {
+  return "Displays per-interface traffic counters: inbound/outbound byte counts and unicast/multicast/broadcast packet counts. Use it to check traffic volumes and spot imbalances.";
+}
+
+CmdShowInterfaceCounters::RetType CmdShowInterfaceCounters::sampleModel() {
+  RetType model;
+
+  cli::InterfaceCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.inputBytes() = 673784998014233;
+  counter1.inputUcastPkts() = 203100360208;
+  counter1.inputMulticastPkts() = 0;
+  counter1.inputBroadcastPkts() = 0;
+  counter1.outputBytes() = 751980313621180;
+  counter1.outputUcastPkts() = 241044633532;
+  counter1.outputMulticastPkts() = 0;
+  counter1.outputBroadcastPkts() = 0;
+
+  cli::InterfaceCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.inputBytes() = 460058508909866;
+  counter2.inputUcastPkts() = 130586642176;
+  counter2.inputMulticastPkts() = 0;
+  counter2.inputBroadcastPkts() = 0;
+  counter2.outputBytes() = 538242637301265;
+  counter2.outputUcastPkts() = 142109732536;
+  counter2.outputMulticastPkts() = 0;
+  counter2.outputBroadcastPkts() = 0;
+
+  cli::InterfaceCounters counter3;
+  counter3.interfaceName() = "eth1/11/1";
+  counter3.inputBytes() = 0;
+  counter3.inputUcastPkts() = 0;
+  counter3.inputMulticastPkts() = 0;
+  counter3.inputBroadcastPkts() = 0;
+  counter3.outputBytes() = 457110;
+  counter3.outputUcastPkts() = 5079;
+  counter3.outputMulticastPkts() = 0;
+  counter3.outputBroadcastPkts() = 0;
+
+  model.int_counters() = {counter1, counter2, counter3};
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();

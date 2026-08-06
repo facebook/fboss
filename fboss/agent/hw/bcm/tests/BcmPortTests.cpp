@@ -140,15 +140,6 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
     return;
   }
 
-  if (true) {
-    // Changing loopback mode to MAC on a 40G port on trident2 changes
-    // the speed to 10G unexpectedly. Ignore this test for now...
-    //
-    // Broadcom case: CS8832244
-    //
-    return;
-  }
-
   auto setup = [this]() {
     auto newCfg = initialConfig();
     for (auto portId : initialConfiguredPorts()) {

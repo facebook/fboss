@@ -73,9 +73,7 @@ cfg::SwitchConfig createProdFswConfig(
     bool enableStrictPriority = false);
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch);
-cfg::PortSpeed getPortSpeed(
-    cfg::AsicType hwAsicType,
-    PlatformType platformType);
+cfg::PortSpeed getPortSpeed(PlatformType platformType);
 
 cfg::SwitchConfig createProdRswMhnicConfig(
     const HwSwitch* hwSwitch,

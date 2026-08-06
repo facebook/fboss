@@ -145,6 +145,45 @@ void CmdShowHost::printOutput(const RetType& model, std::ostream& out) {
   out << table << std::endl;
 }
 
+std::string_view CmdShowHostTraits::description() {
+  return "Displays per-port host/link information: the connected hostname, admin and link state, speed, FEC mode, and error/discard counters. Use it to check per-port link health and connectivity.";
+}
+
+CmdShowHost::RetType CmdShowHost::sampleModel() {
+  RetType model;
+
+  cli::ShowHostModelEntry entry1;
+  entry1.portName() = "eth1/1/1";
+  entry1.portID() = 1;
+  entry1.queueID() = "Olympic";
+  entry1.hostName() = "eth1-64-1.peer001.example";
+  entry1.adminState() = "Enabled";
+  entry1.linkState() = "Up";
+  entry1.speed() = "400G";
+  entry1.fecMode() = "RS544_2N";
+  entry1.inErrors() = 0;
+  entry1.inDiscards() = 7;
+  entry1.outErrors() = 0;
+  entry1.outDiscards() = 12;
+
+  cli::ShowHostModelEntry entry2;
+  entry2.portName() = "eth1/2/1";
+  entry2.portID() = 3;
+  entry2.queueID() = "Olympic";
+  entry2.hostName() = "eth1-64-1.peer002.example";
+  entry2.adminState() = "Enabled";
+  entry2.linkState() = "Up";
+  entry2.speed() = "400G";
+  entry2.fecMode() = "RS544_2N";
+  entry2.inErrors() = 0;
+  entry2.inDiscards() = 5;
+  entry2.outErrors() = 0;
+  entry2.outDiscards() = 9;
+
+  model.hostEntries() = {entry1, entry2};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowHost, CmdShowHostTraits>::run();
 
