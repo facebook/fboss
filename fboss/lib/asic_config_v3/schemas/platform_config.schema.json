@@ -8,15 +8,15 @@
     "properties": {
         "platform_name": {
             "type": "string",
-            "description": "Platform identifier. Must match the directory name under platforms/."
+            "description": "Platform identifier. Must match the platform directory name under fboss/configs/platforms/<system_vendor>/."
         },
         "vendor": {
             "type": "string",
-            "description": "ASIC vendor identifier. Must match a directory name under vendors/."
+            "description": "ASIC vendor identifier. Must match a directory name under fboss/configs/asic_vendors/."
         },
         "asic": {
             "type": "string",
-            "description": "ASIC chip identifier. Must match the basename of a JSON file under vendors/<vendor>/asics/."
+            "description": "ASIC chip identifier. Must match the basename of a JSON file under fboss/configs/asic_vendors/<vendor>/<family>/asics/."
         },
         "num_ports_per_core": {
             "type": "integer",

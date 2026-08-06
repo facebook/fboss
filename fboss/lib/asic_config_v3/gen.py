@@ -5,12 +5,11 @@ import json
 import os
 import sys
 
-from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
+from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
 from fboss.lib.asic_config_v3.generators.broadcom_xgs_generator import (
     BroadcomXgsGenerator,
 )
-
-OUTPUT_DIR: str = f"{MODULE_DIR}/generated_asic_configs"
+from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 
 # Add a new (vendor, asic) entry when bringing up a new ASIC family.
 _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
@@ -20,7 +19,10 @@ _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
 
 
 def get_generator(
-    platform_name: str, variant: str, platform_config: dict
+    platform_name: str,
+    variant: str,
+    platform_config: dict,
+    paths: AsicConfigPaths,
 ) -> BaseAsicConfigGenerator:
     """Instantiate the correct generator based on vendor and ASIC."""
     vendor = platform_config["vendor"]
@@ -29,41 +31,63 @@ def get_generator(
     generator_cls = _GENERATOR_REGISTRY.get(key)
     if not generator_cls:
         raise ValueError(f"No generator registered for vendor={vendor}, asic={asic}")
-    return generator_cls(platform_name, variant, platform_config)
+    return generator_cls(platform_name, variant, platform_config, paths)
 
 
-def discover_platforms() -> dict:
-    """Return a mapping of platform name to platform config.
+def discover_platforms(paths: AsicConfigPaths) -> dict[str, tuple[dict, str]]:
+    """Return a mapping of platform name to its config and output directory.
 
-    Discovered by scanning ``platforms/*/asic_config.json``.
+    Discovered by scanning
+    ``platforms/<vendor>/<platform>/asic_config_v3/asic_config.json``.
     """
-    platforms_dir = os.path.join(MODULE_DIR, "platforms")
-    platforms = {}
+    platforms: dict[str, tuple[dict, str]] = {}
+    platform_vendors: dict[str, str] = {}
 
-    if not os.path.exists(platforms_dir):
-        return platforms
+    if not os.path.isdir(paths.platforms_dir):
+        raise FileNotFoundError(
+            f"Platform config directory '{paths.platforms_dir}' does not exist"
+        )
 
-    for platform_name in os.listdir(platforms_dir):
-        platform_path = os.path.join(platforms_dir, platform_name)
-        if not os.path.isdir(platform_path):
+    for platform_vendor in sorted(os.listdir(paths.platforms_dir)):
+        vendor_path = os.path.join(paths.platforms_dir, platform_vendor)
+        if not os.path.isdir(vendor_path):
             continue
 
-        config_path = os.path.join(platform_path, "asic_config.json")
-        if not os.path.exists(config_path):
-            continue
+        for platform_name in sorted(os.listdir(vendor_path)):
+            platform_path = os.path.join(vendor_path, platform_name, "asic_config_v3")
+            if not os.path.isdir(platform_path):
+                continue
 
-        with open(config_path) as f:
-            platform_config = json.load(f)
-            platforms[platform_name] = platform_config
+            config_path = os.path.join(platform_path, "asic_config.json")
+            if not os.path.exists(config_path):
+                continue
+
+            if platform_name in platforms:
+                raise ValueError(
+                    f"Duplicate platform '{platform_name}' found under system vendors "
+                    f"'{platform_vendors[platform_name]}' and '{platform_vendor}'"
+                )
+
+            with open(config_path) as f:
+                platform_config = json.load(f)
+                output_dir = os.path.join(platform_path, "generated")
+                platforms[platform_name] = (platform_config, output_dir)
+                platform_vendors[platform_name] = platform_vendor
 
     return platforms
 
 
-def _generate_platform(platform_name: str, platform_config: dict) -> None:
+def _generate_platform(
+    platform_name: str,
+    platform_config: dict,
+    output_dir: str,
+    paths: AsicConfigPaths,
+    clean_output: bool = False,
+) -> None:
     """Generate ASIC configs for every variant of a single platform.
 
-    Output files are written to ``OUTPUT_DIR``. Platforms whose (vendor, asic)
-    pair has no registered generator are skipped.
+    Output files are written to the platform's ``generated`` directory.
+    Platforms whose (vendor, asic) pair has no registered generator are skipped.
     """
     vendor = platform_config.get("vendor", "")
     asic = platform_config.get("asic", "")
@@ -75,6 +99,9 @@ def _generate_platform(platform_name: str, platform_config: dict) -> None:
         )
         return
 
+    if clean_output:
+        _clean_output(output_dir)
+
     variants = platform_config.get("variants", {})
 
     for variant_name in variants:
@@ -84,15 +111,18 @@ def _generate_platform(platform_name: str, platform_config: dict) -> None:
         )
 
         try:
-            generator = get_generator(platform_name, variant_name, platform_config)
+            generator = get_generator(
+                platform_name, variant_name, platform_config, paths
+            )
             output = generator.generate()
 
             output_filename = (
                 f"{platform_name}_{variant_name}{generator.output_extension}"
             )
-            output_path = os.path.join(OUTPUT_DIR, output_filename)
+            output_path = os.path.join(output_dir, output_filename)
 
             print(f"Writing to {output_path}", file=sys.stderr)
+            os.makedirs(output_dir, exist_ok=True)
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(output)
 
@@ -104,37 +134,44 @@ def _generate_platform(platform_name: str, platform_config: dict) -> None:
             raise
 
 
-def _clean_output(platform_name: str | None = None) -> None:
-    """Remove previously generated outputs.
+def _clean_output(output_dir: str) -> None:
+    """Remove previously generated outputs from one platform directory."""
+    if not os.path.isdir(output_dir):
+        return
 
-    When ``platform_name`` is given, only that platform's outputs are removed
-    (files named ``<platform_name>_*``); otherwise all generated outputs are
-    removed.
-    """
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    prefix = f"{platform_name}_" if platform_name else None
-    for filename in os.listdir(OUTPUT_DIR):
+    for filename in sorted(os.listdir(output_dir)):
         if not filename.endswith((".json", ".yml")):
             continue
-        if prefix is not None and not filename.startswith(prefix):
+        os.remove(os.path.join(output_dir, filename))
+
+
+def _clean_all_outputs(paths: AsicConfigPaths) -> None:
+    """Remove generated outputs, including those for deleted platform configs."""
+    for platform_vendor in sorted(os.listdir(paths.platforms_dir)):
+        vendor_path = os.path.join(paths.platforms_dir, platform_vendor)
+        if not os.path.isdir(vendor_path):
             continue
-        os.remove(os.path.join(OUTPUT_DIR, filename))
+
+        for platform_name in sorted(os.listdir(vendor_path)):
+            output_dir = os.path.join(
+                vendor_path, platform_name, "asic_config_v3", "generated"
+            )
+            _clean_output(output_dir)
 
 
-def generate_all_asic_configs() -> None:
+def generate_all_asic_configs(paths: AsicConfigPaths) -> None:
     """Generate ASIC configs for every discovered platform and variant."""
-    _clean_output()
+    platforms = discover_platforms(paths)
+    _clean_all_outputs(paths)
 
-    platforms = discover_platforms()
+    for platform_name in sorted(platforms):
+        platform_config, output_dir = platforms[platform_name]
+        _generate_platform(platform_name, platform_config, output_dir, paths)
 
-    for platform_name, platform_config in platforms.items():
-        _generate_platform(platform_name, platform_config)
 
-
-def generate_single_platform(platform_name: str) -> None:
+def generate_single_platform(platform_name: str, paths: AsicConfigPaths) -> None:
     """Generate ASIC configs for a single platform's variants."""
-    platforms = discover_platforms()
+    platforms = discover_platforms(paths)
 
     if platform_name not in platforms:
         available = "\n".join(f"  - {p}" for p in sorted(platforms)) or "  (none)"
@@ -142,8 +179,14 @@ def generate_single_platform(platform_name: str) -> None:
             f"Unknown platform '{platform_name}'.\nAvailable platforms:\n{available}"
         )
 
-    _clean_output(platform_name)
-    _generate_platform(platform_name, platforms[platform_name])
+    platform_config, output_dir = platforms[platform_name]
+    _generate_platform(
+        platform_name,
+        platform_config,
+        output_dir,
+        paths,
+        clean_output=True,
+    )
 
 
 def main() -> None:
@@ -151,20 +194,30 @@ def main() -> None:
         description="Generate asic_config_v3 ASIC config YAML."
     )
     parser.add_argument(
+        "--fboss-root",
+        type=str,
+        required=True,
+        help=(
+            "Path to the fboss/ source directory itself, for example "
+            "/path/to/fbcode/fboss."
+        ),
+    )
+    parser.add_argument(
         "--platform",
         type=str,
         default=None,
         help=(
-            "Generate only this platform (matches a platforms/<name> dir). "
+            "Generate only this platform (matches a platforms/<vendor>/<name> dir). "
             "Defaults to generating all discovered platforms."
         ),
     )
     args = parser.parse_args()
+    paths = AsicConfigPaths.from_root(args.fboss_root)
 
     if args.platform:
-        generate_single_platform(args.platform)
+        generate_single_platform(args.platform, paths)
     else:
-        generate_all_asic_configs()
+        generate_all_asic_configs(paths)
 
 
 if __name__ == "__main__":

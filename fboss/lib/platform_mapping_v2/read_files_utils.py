@@ -70,9 +70,9 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
     return vendor_data
 
 
-def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
+def read_all_vendor_data(input_dir: str = INPUT_DIR) -> Dict[str, Dict[str, str]]:
     all_vendor_data = {}
-    data_path = INPUT_DIR
+    data_path = input_dir
     print(
         f"Reading all vendor data in {data_path}...",
         file=sys.stderr,

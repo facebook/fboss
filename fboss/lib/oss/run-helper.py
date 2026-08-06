@@ -77,7 +77,7 @@ Current run path: {run_path}"""
 
     hostname = str(subprocess.check_output("hostname"))
     is_facebook_machine = "facebook" in hostname or "fbinfra" in hostname
-    proxy_env_vars = "https_proxy=fwdproxy:8080 http_proxy=fwdproxy:8080"
+    proxy_env_vars = "https_proxy=http://fwdproxy:8080 http_proxy=http://fwdproxy:8080"
     if is_facebook_machine:
         get_deps_path = f"{proxy_env_vars} {get_deps_path}"
 
@@ -86,13 +86,16 @@ Current run path: {run_path}"""
     cmake_defines_json = json.dumps(cmake_defines)
 
     print(f"Starting build for {target}")
-    subprocess.run(
+    build_proc = subprocess.run(
         f"""{get_deps_path} build """
         + f"--allow-system-packages --num-jobs 32 --extra-cmake-defines='{cmake_defines_json}' --src-dir {expected_path} --cmake-target"
         + f" {target} fboss",
         check=False,
         shell=True,
     )
+    if build_proc.returncode != 0:
+        print(f"Failed to build target {target}", file=sys.stderr)
+        sys.exit(build_proc.returncode)
 
     print(f"Completed build for {target}")
 
@@ -104,7 +107,18 @@ Current run path: {run_path}"""
         text=True,
     )
 
-    build_dir = show_build_dir_proc.stdout.rstrip()
+    build_dir = next(
+        (
+            line
+            for line in show_build_dir_proc.stdout.splitlines()
+            if os.path.isdir(line)
+        ),
+        None,
+    )
+    if show_build_dir_proc.returncode != 0 or build_dir is None:
+        print("Could not determine the fboss build directory", file=sys.stderr)
+        sys.exit(show_build_dir_proc.returncode or 1)
+
     target_basename = target.removesuffix(".GEN_PY_EXE")
     output_path = f"{build_dir}/{target_basename}"
 

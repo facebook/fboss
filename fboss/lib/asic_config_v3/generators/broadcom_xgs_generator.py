@@ -5,7 +5,8 @@ import os
 from typing import Any
 
 import yaml
-from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
+from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
+from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
 from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
@@ -19,9 +20,13 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
     ASIC_FAMILY: str = "xgs"
 
     def __init__(
-        self, platform_name: str, variant: str, platform_config: dict[str, Any]
+        self,
+        platform_name: str,
+        variant: str,
+        platform_config: dict[str, Any],
+        paths: AsicConfigPaths,
     ) -> None:
-        super().__init__(platform_name, variant, platform_config)
+        super().__init__(platform_name, variant, platform_config, paths)
 
         self.values: dict[str, Any] = {}
         self.asic_config: dict[str, Any] = {}
@@ -35,7 +40,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         mapping_name = self.variant_config.get(
             "platform_mapping_name", self.platform_name
         )
-        self.parser = PlatformMappingParser(read_all_vendor_data(), mapping_name)
+        self.parser = PlatformMappingParser(
+            read_all_vendor_data(self.paths.platform_mapping_dir), mapping_name
+        )
 
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)
         self.mmu_size: int = self.asic_config.get("mmu_size", 9416)
@@ -54,7 +61,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         vendor = self.asic_vendor
         asic = self.asic_name
 
-        ocp_sai_common_path = os.path.join(MODULE_DIR, "common", "ocp_sai_common.json")
+        ocp_sai_common_path = os.path.join(
+            self.paths.asic_vendors_dir, "common", "ocp_sai_common.json"
+        )
         if os.path.exists(ocp_sai_common_path):
             with open(ocp_sai_common_path) as f:
                 self.ocp_sai_common = json.load(f)
@@ -62,19 +71,29 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             self.ocp_sai_common = {"global": {}}
 
         vendor_sdk_common_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "sdk_common.json"
+            self.paths.asic_vendors_dir,
+            vendor,
+            self.ASIC_FAMILY,
+            "sdk_common.json",
         )
         with open(vendor_sdk_common_path) as f:
             self.vendor_sdk_common = json.load(f)
 
         vendor_sai_common_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "sai_common.json"
+            self.paths.asic_vendors_dir,
+            vendor,
+            self.ASIC_FAMILY,
+            "sai_common.json",
         )
         with open(vendor_sai_common_path) as f:
             self.vendor_sai_common = json.load(f)
 
         asic_config_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "asics", f"{asic}.json"
+            self.paths.asic_vendors_dir,
+            vendor,
+            self.ASIC_FAMILY,
+            "asics",
+            f"{asic}.json",
         )
         with open(asic_config_path) as f:
             self.asic_config = json.load(f)
@@ -89,7 +108,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
 
     def _read_preamble(self, file_name: str) -> str:
         """Read preamble file contents."""
-        preamble_path = os.path.join(MODULE_DIR, file_name)
+        preamble_path = os.path.join(self.paths.module_dir, file_name)
         with open(preamble_path, encoding="utf-8") as f:
             return f.read()
 

@@ -4,10 +4,11 @@ sidebar_position: 1
 
 # Overview
 
-The `asic_config_v3` tool, located at `fboss/lib/asic_config_v3/`, generates
-the per-platform ASIC configuration that a switch ASIC needs at SDK and SAI
-initialization time (for example, the Broadcom YAML configuration). It is the
-data-driven successor to the code-driven `asic_config_v2` implementation.
+The `asic_config_v3` tool, located at `fboss/lib/asic_config_v3/`, reads inputs
+from `fboss/configs/` and generates the per-platform ASIC configuration that a
+switch ASIC needs at SDK and SAI initialization time (for example, the
+Broadcom YAML configuration). It is the data-driven successor to the
+code-driven `asic_config_v2` implementation.
 Whereas `asic_config_v2` required a dedicated Python module for every
 platform, `asic_config_v3` describes each platform in JSON data files that are
 processed by a generic generator shared by all platforms of an ASIC family. As
@@ -23,10 +24,10 @@ Each layer is a JSON file:
 
 | Layer | File | Contents |
 |---|---|---|
-| OCP SAI common | `common/ocp_sai_common.json` | Vendor-agnostic SAI defaults shared by all vendors |
-| Vendor family common | `vendors/<vendor>/<family>/sdk_common.json` and `sai_common.json` | SDK and SAI settings shared by all ASICs in a family (for example, Broadcom XGS) |
-| Per-ASIC | `vendors/<vendor>/<family>/asics/<asic>.json` | Data intrinsic to the chip, such as the port architecture, output table names, global defaults, SAI overrides, pass-through data blocks, and ASIC-wide conditional settings |
-| Platform | `platforms/<platform>/asic_config.json` | Board-specific data, such as the ASIC selection, port defaults, configuration variants, and platform-level SAI overrides |
+| OCP SAI common | `fboss/configs/asic_vendors/common/ocp_sai_common.json` | Vendor-agnostic SAI defaults shared by all vendors |
+| Vendor family common | `fboss/configs/asic_vendors/<vendor>/<family>/sdk_common.json` and `sai_common.json` | SDK and SAI settings shared by all ASICs in a family (for example, Broadcom XGS) |
+| Per-ASIC | `fboss/configs/asic_vendors/<vendor>/<family>/asics/<asic>.json` | Data intrinsic to the chip, such as the port architecture, output table names, global defaults, SAI overrides, pass-through data blocks, and ASIC-wide conditional settings |
+| Platform | `fboss/configs/platforms/<system_vendor>/<platform>/asic_config_v3/asic_config.json` | Board-specific data, such as the ASIC selection, port defaults, configuration variants, and platform-level SAI overrides |
 
 Port wiring information (the lane map, polarity map, and logical-to-physical
 port mapping) is not duplicated in these files. The generator computes it from
@@ -34,9 +35,10 @@ the platform data already maintained under `fboss/lib/platform_mapping_v2`.
 
 ### Generation pipeline
 
-The entry point, `gen.py`, discovers every `platforms/*/asic_config.json`
-file, looks up the appropriate generator in a registry keyed on the ASIC
-vendor and ASIC names, and runs that generator once per
+The entry point, `gen.py`, discovers every
+`platforms/*/*/asic_config_v3/asic_config.json` file under `fboss/configs/`,
+looks up the appropriate generator in a registry keyed on the ASIC vendor and
+ASIC names, and runs that generator once per
 [variant](#platform-configuration-and-variants). For the Broadcom XGS family,
 the generator applies the settings below in order. When two steps write the
 same key of the same output table, the later step wins, so the list is also
@@ -46,15 +48,15 @@ write to their own tables.
 
 | Order | Setting | Source, in priority order | Output table |
 |---|---|---|---|
-| 1 | OCP SAI common | `common/ocp_sai_common.json` (`global`) | `global` |
-| 2 | ASIC global defaults | `vendors/broadcom/xgs/asics/<asic>.json` (`global_defaults`) | `global` |
-| 3 | Vendor SDK common | `vendors/broadcom/xgs/sdk_common.json` (`global`) | `global` |
-| 4 | Vendor SAI common, minus keys listed in an active `skip_from_sai_common` | `vendors/broadcom/xgs/sai_common.json` (`global`) | `global` |
-| 5 | ASIC SAI overrides | `vendors/broadcom/xgs/asics/<asic>.json` (`sai_overrides`) | `global` |
-| 6 | Platform SAI overrides | `platforms/<platform>/asic_config.json` (`platform_sai_overrides`) | `global` |
-| 7 | [Pass-through settings](#pass-through-settings) | `vendors/broadcom/xgs/asics/<asic>.json`, or `platforms/<platform>/asic_config.json` when the variant redefines a block | `PORT_CONFIG`, `FP_CONFIG`, `TM_THD_CONFIG`, `CTR_EFLEX_CONFIG`, `global` |
-| 8 | [Conditional settings](#conditional-settings), ASIC entries then platform entries, each in array order | `vendors/broadcom/xgs/asics/<asic>.json` (`conditional_settings`), then `platforms/<platform>/asic_config.json` (`conditional_settings`) | tables named by each entry, for example `global`, `TM_THD_CONFIG`, `DEVICE_CONFIG` |
-| 9 | Device configuration overrides | `platforms/<platform>/asic_config.json` (`device_config_overrides`) | `DEVICE_CONFIG` |
+| 1 | OCP SAI common | `asic_vendors/common/ocp_sai_common.json` (`global`) | `global` |
+| 2 | ASIC global defaults | `asic_vendors/broadcom/xgs/asics/<asic>.json` (`global_defaults`) | `global` |
+| 3 | Vendor SDK common | `asic_vendors/broadcom/xgs/sdk_common.json` (`global`) | `global` |
+| 4 | Vendor SAI common, minus keys listed in an active `skip_from_sai_common` | `asic_vendors/broadcom/xgs/sai_common.json` (`global`) | `global` |
+| 5 | ASIC SAI overrides | `asic_vendors/broadcom/xgs/asics/<asic>.json` (`sai_overrides`) | `global` |
+| 6 | Platform SAI overrides | `platforms/<system_vendor>/<platform>/asic_config_v3/asic_config.json` (`platform_sai_overrides`) | `global` |
+| 7 | [Pass-through settings](#pass-through-settings) | `asic_vendors/broadcom/xgs/asics/<asic>.json`, or a platform's `asic_config.json` when the variant redefines a block | `PORT_CONFIG`, `FP_CONFIG`, `TM_THD_CONFIG`, `CTR_EFLEX_CONFIG`, `global` |
+| 8 | [Conditional settings](#conditional-settings), ASIC entries then platform entries, each in array order | `asic_vendors/broadcom/xgs/asics/<asic>.json` (`conditional_settings`), then a platform's `asic_config.json` (`conditional_settings`) | tables named by each entry, for example `global`, `TM_THD_CONFIG`, `DEVICE_CONFIG` |
+| 9 | Device configuration overrides | A platform's `asic_config.json` (`device_config_overrides`) | `DEVICE_CONFIG` |
 | 10 | Port mapping, port configuration, lane map, and polarity map | computed from `platform_mapping_v2`, the ASIC `port_architecture` and `mgmt_port_defaults`, and the platform `port_config`, `cpu_port`, `mgmt_port`, `mgmt_port_overrides`, and `port_mapping_overrides` | `PC_PM_CORE`, `PC_PORT_PHYS_MAP`, `PC_PORT`, `PORT` |
 
 The ordering is the same for every platform and variant. Within steps 7 and
@@ -70,7 +72,8 @@ so a new configuration key must be added to the corresponding schema, with a
 description, in the same change. Run the validator with:
 
 ```shell
-python3 fboss/lib/asic_config_v3/validation/validate_asic_configs.py
+python3 -m fboss.lib.asic_config_v3.validation.validate_asic_configs \
+  --fboss-root "$PWD/fboss"
 ```
 
 The schemas document every field and are the fastest way to look up valid keys
@@ -87,9 +90,9 @@ Run the helper script from the root of the repository:
 ./fboss/lib/asic_config_v3/run-helper.sh
 ```
 
-Output files are written to
-`fboss/lib/asic_config_v3/generated_asic_configs/`. To generate a single
-platform, pass the `--platform <name>` argument.
+Output files are written beside each platform input under
+`fboss/configs/platforms/<system_vendor>/<platform>/asic_config_v3/generated/`.
+To generate a single platform, pass the `--platform <name>` argument.
 
 ## Configuration details
 
@@ -157,7 +160,7 @@ and `asic`), which selects both the per-ASIC data file and the generator to
 use. It then declares a `defaults` block together with one or more named
 `variants`. A variant represents one deliverable configuration for the
 platform, and the generator produces one output file per variant, named
-`generated_asic_configs/<platform>_<variant>.yml`.
+`generated/<platform>_<variant>.yml`.
 
 The effective configuration for a variant is formed by merging the variant's
 settings on top of the `defaults` block. The merge is recursive for nested
@@ -232,8 +235,9 @@ added.
 1. Ensure that `fboss/lib/platform_mapping_v2/platforms/newboard/` exists and
    contains the platform's static mapping and vendor data (see the
    [platform mapping documentation](../platform_mapping.md)).
-2. Create `fboss/lib/asic_config_v3/platforms/newboard/asic_config.json`. The
-   following is a complete example declaring a single variant; an existing
+2. Create
+   `fboss/configs/platforms/<system_vendor>/newboard/asic_config_v3/asic_config.json`.
+   The following is a complete example declaring a single variant; an existing
    platform on the same ASIC is a good starting template:
 
 ```json
@@ -282,11 +286,13 @@ added.
 3. Validate and generate:
 
 ```shell
-python3 fboss/lib/asic_config_v3/validation/validate_asic_configs.py
+python3 -m fboss.lib.asic_config_v3.validation.validate_asic_configs \
+  --fboss-root "$PWD/fboss"
 ./fboss/lib/asic_config_v3/run-helper.sh
 ```
 
-The output appears as `generated_asic_configs/newboard_newvariant.yml`.
+The output appears beside the input as
+`generated/newboard_newvariant.yml`.
 
 If the platform needs a setting that no listed field covers, see
 [Overriding a setting outside these fields](#overriding-a-setting-outside-these-fields).
@@ -339,16 +345,19 @@ Suppose a hypothetical Broadcom DNX family with a `jericho3` ASIC is being
 added. The new files are:
 
 ```
+fboss/configs/
+├── asic_vendors/broadcom/dnx/
+│   ├── sdk_common.json  # optional family-wide settings
+│   └── asics/jericho3.json  # chip-intrinsic data
+└── platforms/<system_vendor>/newdnxboard/asic_config_v3/asic_config.json
+
 fboss/lib/asic_config_v3/
-├── vendors/broadcom/dnx/
-│   ├── sdk_common.json                     # optional family-wide settings
-│   └── asics/jericho3.json                 # chip-intrinsic data
-├── platforms/newdnxboard/asic_config.json  # first platform on the family
-├── generators/broadcom_dnx_generator.py    # the family generator
+├── generators/broadcom_dnx_generator.py  # the family generator
 └── schemas/broadcom_dnx_asic_config.schema.json
 ```
 
-1. **Vendor data.** `vendors/broadcom/dnx/asics/jericho3.json` holds the
+1. **Vendor data.**
+   `fboss/configs/asic_vendors/broadcom/dnx/asics/jericho3.json` holds the
    chip-intrinsic data the generator needs, such as the identity, port
    architecture, output table names, base settings, and conditional settings.
    Add family-wide common files only if several ASICs in the family will share
@@ -394,8 +403,9 @@ _GENERATOR_REGISTRY = {
 5. **Build.** Add the new generator source files, and any new modules they
    import, to `cmake/AsicConfigV3ConfigCli.cmake` so that the build target
    includes them.
-6. **Platform.** Add `platforms/newdnxboard/asic_config.json` exactly as in
-   the first example, with `"vendor": "broadcom"` and `"asic": "jericho3"`
-   selecting the new generator.
+6. **Platform.** Add
+   `fboss/configs/platforms/<system_vendor>/newdnxboard/asic_config_v3/asic_config.json`
+   exactly as in the first example, with `"vendor": "broadcom"` and
+   `"asic": "jericho3"` selecting the new generator.
 7. **Verification.** Compare the generated output against a known-good
    reference configuration for that family.

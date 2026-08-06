@@ -24,15 +24,17 @@ The configuration files contain two kinds of keys.
 ## Platform Configuration
 
 Platform configuration, defined by `platform_config.schema.json`. This schema
-validates every `platforms/<platform>/asic_config.json` file.
+validates every
+`fboss/configs/platforms/<system_vendor>/<platform>/asic_config_v3/asic_config.json`
+file.
 
 ### Top-level fields
 
 | Field | Required | Description |
 |---|---|---|
-| `platform_name` | yes | Platform identifier. Must match the directory name under `platforms/`. |
-| `vendor` | yes | ASIC vendor identifier. Must match a directory name under `vendors/`. |
-| `asic` | yes | ASIC chip identifier. Must match the basename of a JSON file under `vendors/<vendor>/<family>/asics/`. |
+| `platform_name` | yes | Platform identifier. Must match the platform directory name. |
+| `vendor` | yes | ASIC vendor identifier. Must match a directory name under `fboss/configs/asic_vendors/`. |
+| `asic` | yes | ASIC chip identifier. Must match the basename of a JSON file under `fboss/configs/asic_vendors/<vendor>/<family>/asics/`. |
 | `num_ports_per_core` | no | Number of front-panel ports per ASIC core. Combined with the ASIC's lanes-per-core value to derive the number of lanes per port. |
 | `num_lanes_per_port` | no | Explicit override of the derived lanes-per-port value, for platforms that wire only a subset of the lanes. |
 | `defaults` | no | Shared settings inherited by every variant. A variant's own settings take precedence over the corresponding defaults. |
@@ -75,7 +77,7 @@ the field name against this reference.
 
 Broadcom XGS ASIC configuration, defined by
 `broadcom_xgs_asic_config.schema.json`. This schema validates the per-ASIC
-files under `vendors/broadcom/xgs/asics/`.
+files under `fboss/configs/asic_vendors/broadcom/xgs/asics/`.
 
 | Field | Description |
 |---|---|
@@ -122,8 +124,8 @@ are required:
 
 Vendor common configuration, defined by `vendor_common.schema.json`. This
 schema validates the family-wide common files, such as
-`vendors/broadcom/xgs/sdk_common.json` and
-`vendors/broadcom/xgs/sai_common.json`.
+`fboss/configs/asic_vendors/broadcom/xgs/sdk_common.json` and
+`fboss/configs/asic_vendors/broadcom/xgs/sai_common.json`.
 
 | Field | Required | Description |
 |---|---|---|

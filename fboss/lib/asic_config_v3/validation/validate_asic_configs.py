@@ -4,42 +4,60 @@
 Validate ASIC config JSON files against their JSON schemas.
 
 Usage:
-    python3 validate_asic_configs.py
+    python3 -m fboss.lib.asic_config_v3.validation.validate_asic_configs \
+        --fboss-root /path/to/fboss
 """
 
+import argparse
 import glob
 import json
 import os
 import sys
 
 import jsonschema
+from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODULE_DIR = os.path.dirname(SCRIPT_DIR)
-SCHEMAS_DIR = os.path.join(MODULE_DIR, "schemas")
-VENDORS_DIR = os.path.join(MODULE_DIR, "vendors")
-PLATFORMS_DIR = os.path.join(MODULE_DIR, "platforms")
 
-# Each entry pairs a JSON schema with the set of config files validated against it.
-VALIDATION_TARGETS = [
-    {
-        "description": "Vendor common configs",
-        "schema": "vendor_common.schema.json",
-        "files_glob": os.path.join(VENDORS_DIR, "**", "*_common.json"),
-    },
-    {
-        "description": "Broadcom XGS ASIC configs",
-        "schema": "broadcom_xgs_asic_config.schema.json",
-        "files_glob": os.path.join(
-            VENDORS_DIR, "broadcom", "xgs", "asics", "tomahawk*.json"
-        ),
-    },
-    {
-        "description": "Platform configs",
-        "schema": "platform_config.schema.json",
-        "files_glob": os.path.join(PLATFORMS_DIR, "**", "asic_config.json"),
-    },
-]
+def get_validation_targets(paths):
+    # Each entry pairs a JSON schema with the config files it validates.
+    return [
+        {
+            "description": "Vendor common configs",
+            "schema": "vendor_common.schema.json",
+            "files_glob": os.path.join(
+                paths.asic_vendors_dir, "*", "*", "*_common.json"
+            ),
+        },
+        {
+            "description": "OCP SAI common config",
+            "schema": "vendor_common.schema.json",
+            "files_glob": os.path.join(
+                paths.asic_vendors_dir, "common", "ocp_sai_common.json"
+            ),
+        },
+        {
+            "description": "Broadcom XGS ASIC configs",
+            "schema": "broadcom_xgs_asic_config.schema.json",
+            "files_glob": os.path.join(
+                paths.asic_vendors_dir,
+                "broadcom",
+                "xgs",
+                "asics",
+                "tomahawk*.json",
+            ),
+        },
+        {
+            "description": "Platform configs",
+            "schema": "platform_config.schema.json",
+            "files_glob": os.path.join(
+                paths.platforms_dir,
+                "*",
+                "*",
+                "asic_config_v3",
+                "asic_config.json",
+            ),
+        },
+    ]
 
 
 def validate(schema, config_path):
@@ -49,11 +67,24 @@ def validate(schema, config_path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--fboss-root",
+        type=str,
+        required=True,
+        help=(
+            "Path to the fboss/ source directory itself, for example "
+            "/path/to/fbcode/fboss."
+        ),
+    )
+    args = parser.parse_args()
+    paths = AsicConfigPaths.from_root(args.fboss_root)
+
     passed = 0
     failed = 0
 
-    for target in VALIDATION_TARGETS:
-        schema_path = os.path.join(SCHEMAS_DIR, target["schema"])
+    for target in get_validation_targets(paths):
+        schema_path = os.path.join(paths.schemas_dir, target["schema"])
         with open(schema_path) as f:
             schema = json.load(f)
 
@@ -66,7 +97,7 @@ def main():
             continue
 
         for path in files:
-            name = os.path.relpath(path, MODULE_DIR)
+            name = os.path.relpath(path, paths.configs_dir)
             try:
                 validate(schema, path)
                 print(f"  {name}: PASSED")
