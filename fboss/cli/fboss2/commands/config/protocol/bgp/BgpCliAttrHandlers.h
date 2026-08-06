@@ -12,6 +12,7 @@
 
 #include <fmt/core.h>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -100,6 +101,38 @@ AttrHandler<T> boolAttr(
             fmt::format(
                 "Successfully {} {}", *enable ? "enabled" : "disabled", name));
       };
+}
+
+// A bounded integer value in [minValue, maxValue]. `valueDesc` documents the
+// accepted range in both the usage and the rejection message; it is taken by
+// value for the same dangling-temporary reason as enumAttr's.
+template <typename T>
+AttrHandler<T> intAttr(
+    std::string_view name,
+    std::string valueDesc,
+    int32_t minValue,
+    int32_t maxValue,
+    std::function<void(T&, int32_t)> set) {
+  return [name,
+          valueDesc = std::move(valueDesc),
+          minValue,
+          maxValue,
+          set = std::move(set)](T& target, const Tokens& values) -> Result {
+    if (values.size() != 1) {
+      return err(fmt::format("Error: {} requires <{}>", name, valueDesc));
+    }
+    auto parsed = parseInt<int64_t>(values[0]);
+    if (!parsed || *parsed < minValue || *parsed > maxValue) {
+      return err(
+          fmt::format(
+              "Error: Invalid {} value '{}'; expected {}",
+              name,
+              values[0],
+              valueDesc));
+    }
+    set(target, static_cast<int32_t>(*parsed));
+    return ok(fmt::format("Successfully set {} to: {}", name, values[0]));
+  };
 }
 
 // A value drawn from a fixed set of names, mapped to an enum by `lookup`
