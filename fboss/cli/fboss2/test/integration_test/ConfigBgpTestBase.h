@@ -20,13 +20,18 @@
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
+#include <filesystem>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
 
+#include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
@@ -40,6 +45,17 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     if (bgpDaemonActiveState() != "active") {
       GTEST_SKIP() << "skipping because bgp is not active";
     }
+    // Snapshot the config bgpd runs with; TearDown restores it, so committed
+    // test objects never outlive the test regardless of where it failed.
+    haveBgpSnapshot_ = folly::readFile(kBgpDaemonConfigPath, bgpSnapshot_);
+    if (haveBgpSnapshot_) {
+      bgpSnapshotConfig_ = parseBgpConfig(bgpSnapshot_);
+    }
+  }
+
+  void TearDown() override {
+    restoreBgpConfigSnapshot();
+    Fboss2IntegrationTest::TearDown();
   }
 
   // Staged session file written by the CLI (~/.fboss2/bgp_config.json).
@@ -259,6 +275,64 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     }
     return bgpDaemonActiveState() == "active";
   }
+
+ private:
+  // The stable path bgpd reads (--config): a plain file on a device the CLI
+  // never committed on, a symlink into bgpcpp/ afterwards. Reading follows
+  // the symlink, so the snapshot is always bgpd's effective config.
+  static constexpr auto kBgpDaemonConfigPath = "/etc/coop/bgpcpp.conf";
+
+  // Deserialized view of a serialized BgpConfig; nullopt if unparseable.
+  static std::optional<bgp::thrift::BgpConfig> parseBgpConfig(
+      const std::string& content) {
+    try {
+      return apache::thrift::SimpleJSONSerializer::deserialize<
+          bgp::thrift::BgpConfig>(content);
+    } catch (const std::exception&) {
+      return std::nullopt;
+    }
+  }
+
+  // True when `content` matches the snapshot: by thrift struct equality when
+  // both sides parse (formatting-only differences from a commit round-trip
+  // don't count), else by bytes.
+  bool matchesBgpSnapshot(const std::string& content) const {
+    auto current = parseBgpConfig(content);
+    if (bgpSnapshotConfig_ && current) {
+      return *current == *bgpSnapshotConfig_;
+    }
+    return content == bgpSnapshot_;
+  }
+
+  void restoreBgpConfigSnapshot() {
+    if (!haveBgpSnapshot_) {
+      return; // SetUp skipped or there was no config to protect
+    }
+    discardSession();
+    clearBgpSession();
+    std::string current;
+    if (folly::readFile(kBgpDaemonConfigPath, current) &&
+        matchesBgpSnapshot(current)) {
+      return; // semantically unchanged; skip the restart
+    }
+    // Write the real file, never through the bgpd.conf symlink.
+    std::string target = std::filesystem::exists(systemBgpConfigPath())
+        ? systemBgpConfigPath()
+        : std::string(kBgpDaemonConfigPath);
+    EXPECT_TRUE(folly::writeFile(bgpSnapshot_, target.c_str()))
+        << "failed to restore BGP config snapshot to " << target;
+    resetBgpDaemonLimit();
+    runCmd({"/usr/bin/systemctl", "restart", "bgpd"});
+    EXPECT_TRUE(waitForBgpDaemonActive())
+        << "bgpd did not return active after snapshot restore; state="
+        << bgpDaemonActiveState();
+  }
+
+  bool haveBgpSnapshot_{false};
+  // Raw bytes, written back verbatim on restore; the typed view drives the
+  // changed/unchanged decision.
+  std::string bgpSnapshot_;
+  std::optional<bgp::thrift::BgpConfig> bgpSnapshotConfig_;
 };
 
 } // namespace facebook::fboss
