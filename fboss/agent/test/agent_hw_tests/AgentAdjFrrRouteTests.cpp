@@ -12,12 +12,19 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
 class AgentAdjFrrRouteTest : public AgentHwTest {
  protected:
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 6;
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {
@@ -79,14 +86,46 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
     auto routeUpdater = getSw()->getRouteUpdater();
     routeUpdater.addRoute(
         RouterID(0),
-        folly::IPAddressV6("2401:db00::"),
-        64,
+        folly::IPAddressV6("2001::"),
+        16,
         ClientID::BGPD,
         RouteNextHopEntry(nextHops, AdminDistance::EBGP));
     routeUpdater.program();
   };
 
-  verifyAcrossWarmBoots(setup, []() {});
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    auto state = getProgrammedState();
+    utility::EcmpSetupAnyNPorts<folly::IPAddressV6> ecmpHelper(
+        state, getSw()->needL2EntryForNeighbor());
+    auto primaryPort = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+    auto injectionPort = ecmpHelper.ecmpPortDescriptorAt(5).phyPortID();
+    auto primaryPortState = state->getPorts()->getNode(primaryPort);
+    auto injectionPortState = state->getPorts()->getNode(injectionPort);
+    XLOG(INFO) << "Injecting traffic through port "
+               << injectionPortState->getName() << " (" << injectionPort
+               << "); checking primary next-hop port "
+               << primaryPortState->getName() << " (" << primaryPort << ")";
+    auto beforeOutPkts = *getLatestPortStats(primaryPort).outUnicastPkts__ref();
+
+    utility::pumpTraffic(
+        true,
+        utility::getAllocatePktFn(getAgentEnsemble()),
+        utility::getSendPktFunc(getAgentEnsemble()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+        getVlanIDForTx(),
+        injectionPort,
+        255,
+        kPacketCount);
+
+    WITH_RETRIES({
+      auto afterOutPkts =
+          *getLatestPortStats(primaryPort).outUnicastPkts__ref();
+      EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + kPacketCount);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
