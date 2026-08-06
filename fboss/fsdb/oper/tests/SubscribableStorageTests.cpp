@@ -53,6 +53,58 @@ folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
   co_return std::move(value);
 }
 
+// Builds a multi-depth self-referential RecursiveStruct tree for
+// TestStruct.recursiveMember:
+//   recursiveMember[0]            name="r0"  simpleMember{min=11,  max=111}
+//     children[0]                 name="c0"  simpleMember{min=22,  max=222}
+//     children[1]                 name="c1"  simpleMember{min=33,  max=333}
+//       children[0]               name="gc0" simpleMember{min=44,  max=444}
+std::vector<RecursiveStruct> makeRecursiveMember() {
+  auto makeNode = [](std::string name, int32_t min, int32_t max) {
+    RecursiveStruct node;
+    node.name() = std::move(name);
+    node.simpleMember()->min() = min;
+    node.simpleMember()->max() = max;
+    return node;
+  };
+  auto r0 = makeNode("r0", 11, 111);
+  auto c0 = makeNode("c0", 22, 222);
+  auto c1 = makeNode("c1", 33, 333);
+  auto gc0 = makeNode("gc0", 44, 444);
+  c1.children()->push_back(std::move(gc0));
+  r0.children()->push_back(std::move(c0));
+  r0.children()->push_back(std::move(c1));
+  return {std::move(r0)};
+}
+
+// Drain patches (initial sync + subsequent deltas) from the subscription
+// generator, apply each to the target storage, and stop once the leaf at
+// minPath reaches the expected value.
+template <typename Gen, typename Storage>
+folly::coro::Task<void> applyPatchesUntilMin(
+    Gen& generator,
+    Storage& tgtStorage,
+    const std::vector<std::string>& minPath,
+    int32_t expected) {
+  while (true) {
+    auto element = co_await folly::coro::timeout(
+        consumeOne(generator), std::chrono::seconds(5));
+    auto msg = std::move(element.val);
+    if (msg.getType() != SubscriberMessage::Type::chunk) {
+      continue;
+    }
+    auto chunk = msg.get_chunk();
+    for (auto& [key, patches] : *chunk.patchGroups()) {
+      for (auto& patch : patches) {
+        EXPECT_EQ(tgtStorage.patch(std::move(patch)), std::nullopt);
+      }
+    }
+    if (tgtStorage.template get<int32_t>(minPath).value() == expected) {
+      co_return;
+    }
+  }
+}
+
 } // namespace
 
 template <bool EnableHybridStorage>
@@ -577,6 +629,50 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchUpdate) {
       deserializeBuf<apache::thrift::type_class::integral, int>(
           OperProtocol::COMPACT, std::move(newVal));
   EXPECT_EQ(deserializedVal, 10);
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribePatchRecursiveStruct) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  // Populate a self-referential tree so the subscription path (which ends at a
+  // recursive struct parent) exists at subscribe time. Patch apply does not
+  // auto-vivify list indices, so the target storage is seeded with the same
+  // structure and received patches are applied to it for validation.
+  this->testStruct.recursiveMember() = makeRecursiveMember();
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // Subscribe at a path that ends at a recursive struct parent
+  // (recursiveMember[0], a RecursiveStruct).
+  auto streamReader = storage.subscribe_patch(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root.recursiveMember()[0]);
+  auto generator = std::move(streamReader.generator_);
+
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+  const std::vector<std::string> minPath = {
+      "recursiveMember", "0", "simpleMember", "min"};
+
+  auto applyUntilMin = [&](int32_t expected) {
+    folly::coro::blockingWait(
+        applyPatchesUntilMin(generator, tgtStorage, minPath, expected));
+  };
+
+  // set: change a leaf inside the recursive struct parent
+  EXPECT_EQ(
+      storage.set(this->root.recursiveMember()[0].simpleMember().min(), 777),
+      std::nullopt);
+  applyUntilMin(777);
+  EXPECT_EQ(tgtStorage.template get<int32_t>(minPath).value(), 777);
+
+  // update: change the same leaf again
+  EXPECT_EQ(
+      storage.set(this->root.recursiveMember()[0].simpleMember().min(), 888),
+      std::nullopt);
+  applyUntilMin(888);
+  EXPECT_EQ(tgtStorage.template get<int32_t>(minPath).value(), 888);
 }
 
 TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
@@ -1995,6 +2091,59 @@ CO_TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPatchMultipleChanges) {
           expected.at(lastPathElem));
     }
   }
+}
+
+CO_TYPED_TEST(SubscribableStorageTests, SubscribePatchExtendedRecursiveStruct) {
+  using namespace facebook::fboss::fsdb;
+  using namespace facebook::fboss::thrift_cow;
+
+  // Pre-populate the recursive tree so the (list-based) recursive paths exist
+  // in both source and target; patch apply does not auto-vivify list indices.
+  this->testStruct.recursiveMember() = makeRecursiveMember();
+  auto storage = this->initStorage(this->testStruct);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  // Extended subscription whose regex/wildcard match traverses the recursive
+  // structure: recursiveMember/*/children/1/children/*. The first wildcard is
+  // on the recursiveMember list index and the trailing wildcard is on the
+  // (recursive) children list of children[1], so the match ends at a grandchild
+  // recursive struct (recursiveMember[0].children[1].children[0]). NOTE: the
+  // extended path visitor only supports wildcards over container (list/map/set)
+  // elements, not struct fields, hence the trailing "/*" is over the children
+  // list rather than the struct's fields.
+  auto path = ext_path_builder::raw("recursiveMember")
+                  .regex(".*")
+                  .raw("children")
+                  .raw("1")
+                  .raw("children")
+                  .regex(".*")
+                  .get();
+  auto generator = storage.subscribe_patch_extended(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      {{0, path}});
+
+  auto tgtStorage = this->createCowStorage(this->testStruct);
+  // A leaf under the matched grandchild recursive struct.
+  const std::vector<std::string> minPath = {
+      "recursiveMember",
+      "0",
+      "children",
+      "1",
+      "children",
+      "0",
+      "simpleMember",
+      "min"};
+
+  // set: change the matched recursive leaf
+  EXPECT_EQ(storage.set(minPath, 777), std::nullopt);
+  co_await applyPatchesUntilMin(generator, tgtStorage, minPath, 777);
+  EXPECT_EQ(tgtStorage.template get<int32_t>(minPath).value(), 777);
+
+  // update: change the same recursive leaf again
+  EXPECT_EQ(storage.set(minPath, 888), std::nullopt);
+  co_await applyPatchesUntilMin(generator, tgtStorage, minPath, 888);
+  EXPECT_EQ(tgtStorage.template get<int32_t>(minPath).value(), 888);
 }
 
 class SubscribableStorageTestsPathDelta
