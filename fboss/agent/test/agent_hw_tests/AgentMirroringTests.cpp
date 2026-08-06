@@ -12,6 +12,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/ErspanParser.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
@@ -1198,13 +1199,13 @@ class AgentErspanIngressSamplingTest
         auto ensemble = this->getAgentEnsemble();
         auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
         if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+          // Bytes before the GRE header: outer Ethernet (14) + outer IPv4 (20)
+          // or IPv6 (40). Assumes untagged Ethernet and no IPv4 options, which
+          // the mirror packets this test generates satisfy.
+          constexpr uint32_t kOuterHeaderBytes =
+              14 + (std::is_same_v<AddrT, folly::IPAddressV4> ? 20 : 40);
           folly::io::Cursor cursor(buf.value().get());
-          cursor += 14; // skip ethernet header
-          if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-            cursor += 20; // skip IPv4 header
-          } else {
-            cursor += 40; // skip IPv6 header
-          }
+          cursor += kOuterHeaderBytes; // skip outer Ethernet + IP to GRE header
           auto gre = cursor.readBE<uint32_t>(); // read gre proto
           EXPECT_EQ(gre, 0x8949);
           auto port = cursor.readBE<uint16_t>(); // ingress label port
@@ -1214,6 +1215,23 @@ class AgentErspanIngressSamplingTest
           cursor.readBE<uint8_t>(); // padding
           cursor.readBE<uint8_t>(); // flags
           cursor.readBE<uint8_t>(); // packet type
+
+          // Cross-validate the raw wire bytes against the sFlow collector's
+          // ERSPAN parser: the datagram the ASIC emitted must decode exactly as
+          // the collector decodes it off its raw GRE socket, which delivers the
+          // packet starting at the GRE header. This ties
+          // ChenabAsic::getGreProtocol() and the mirror-header layout to the
+          // collector. parseChenabErspanSample() has an internal (nettools) and
+          // an open-source implementation behind one header.
+          folly::io::Cursor greCursor(buf.value().get());
+          greCursor += kOuterHeaderBytes; // skip outer Ethernet + IP to GRE
+          auto params = utility::getMirrorTestParams<AddrT>();
+          auto sample = utility::parseChenabErspanSample(greCursor);
+          EXPECT_EQ(
+              sample.ingressLabelPort, static_cast<uint32_t>(ingressLabelPort));
+          EXPECT_EQ(sample.srcAddr, folly::IPAddress(params.senderIp));
+          EXPECT_EQ(sample.dstAddr, folly::IPAddress(params.receiverIp));
+          EXPECT_EQ(sample.ipProtocol, 17); // UDP
         }
       }
       EXPECT_EVENTUALLY_TRUE(buf.has_value());

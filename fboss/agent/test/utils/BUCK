@@ -3,6 +3,21 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    name = "erspan_parser",
+    srcs = [
+        "facebook/ErspanParser.cpp",
+    ],
+    headers = [
+        "ErspanParser.h",
+    ],
+    exported_deps = [
+        "//folly:network_address",
+        "//folly/io:iobuf",
+        "//nettools/flowtools/sflow:sflow_sample_parser",
+    ],
+)
+
+cpp_library(
     name = "srv6_test_utils",
     srcs = [
         "Srv6TestUtils.cpp",
