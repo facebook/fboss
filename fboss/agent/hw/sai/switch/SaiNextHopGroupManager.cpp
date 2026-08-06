@@ -300,6 +300,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
+  if (childNextHopGroup) {
+    nextHopGroupHandle->childGroupMember_ =
+        std::make_shared<SaiNextHopGroupChildGroupMember>(
+            this, std::move(childNextHopGroup), nextHopGroupId);
+  }
+
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
   bool canBulkCreateMembers = true;
@@ -393,12 +399,6 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     }
   }
 #endif
-
-  if (childNextHopGroup) {
-    nextHopGroupHandle->childGroupMember_ =
-        std::make_shared<SaiNextHopGroupChildGroupMember>(
-            this, std::move(childNextHopGroup), nextHopGroupId);
-  }
 
   return nextHopGroupHandle;
 }
