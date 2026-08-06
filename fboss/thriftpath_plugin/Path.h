@@ -241,6 +241,20 @@ class Path : public BasePath {
   using Tag = _Tag;
   using ParentT = _ParentT;
 
+  // Every Path -- root and child alike -- is generated with folly::Unit
+  // (detail::StableParent) as its parent type. This is the invariant that
+  // bounds template instantiation for recursive Thrift structs (see the
+  // detail::StableParent comment below). Enforce it here so any future code
+  // that tries to construct a Path with a real ancestor type -- reintroducing
+  // compile-time parent navigation -- fails loudly instead of silently
+  // re-breaking recursive schemas. detail::StableParent is defined later in
+  // this header, so assert against folly::Unit directly.
+  static_assert(
+      std::is_same_v<ParentT, folly::Unit>,
+      "Path::ParentT must be folly::Unit (detail::StableParent). Compile-time "
+      "ancestor typing is intentionally dropped so recursive Thrift schemas "
+      "stay finite; do not pass a real parent Path type.");
+
   using BasePath::BasePath;
 };
 
@@ -279,6 +293,23 @@ struct path_for_tag<DataT, Root, Parent, Tag, true> {
 
 template <typename DataT, typename Root, typename Parent, typename Tag>
 using path_for_tag_t = typename path_for_tag<DataT, Root, Parent, Tag>::type;
+
+// Recursion-bounding mechanism for self-referential Thrift structs.
+//
+// Child path types are pinned to a single stable parent type (folly::Unit)
+// rather than the actual parent Path type. This is the sole mechanism that
+// makes recursive schemas (e.g. a struct that transitively contains a
+// list<Self>) produce a finite set of Path template instantiations instead of
+// an unbounded tower of nested Parent types that would never stop expanding at
+// compile time.
+//
+// Tradeoff: Path::ParentT is intentionally NOT navigable after this change.
+// Compile-time ancestor typing is deliberately dropped; the runtime path state
+// (tokens/idTokens/extendedTokens) still lives in BasePath and is fully
+// preserved. Do NOT reintroduce real ancestor types here to restore
+// compile-time parent navigation -- doing so silently reintroduces infinite
+// Path instantiations for recursive schemas and breaks the codegen.
+using StableParent = folly::Unit;
 
 template <typename Tag>
 struct container_traits;
@@ -323,7 +354,7 @@ class StructuredThriftPath
   using TypeFor = detail::path_for_tag_t<
       apache::thrift::op::get_native_type<StructT, Id>,
       Root,
-      Self,
+      detail::StableParent,
       apache::thrift::op::get_type_tag<StructT, Id>>;
 
   using Self::Self;
@@ -399,7 +430,7 @@ class ContainerThriftPath
   using Child = detail::path_for_tag_t<
       apache::thrift::type::native_type<typename Traits::value_tag>,
       Root,
-      Self,
+      detail::StableParent,
       typename Traits::value_tag>;
   using Key = typename Traits::key_type;
 
