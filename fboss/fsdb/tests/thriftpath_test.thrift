@@ -97,4 +97,5 @@ struct TestStruct {
   @fboss_common.AllowSkipThriftCow
   23: map<string, OtherStruct> fieldAnnotatedMap;
   24: list<RecursiveStruct> recursiveMember;
+  25: map<string, RecursiveStruct> mapOfRecursiveStruct = {};
 }

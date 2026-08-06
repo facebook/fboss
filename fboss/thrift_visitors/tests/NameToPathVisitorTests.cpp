@@ -296,6 +296,72 @@ TEST(NameToPathVisitorTests, RecursiveStructExtended) {
   EXPECT_EQ(result, NameToPathResult::INVALID_STRUCT_MEMBER);
 }
 
+TEST(NameToPathVisitorTests, RecursiveStructMapKeyed) {
+  RootThriftPath<TestStruct> testStructRoot;
+
+  // Same name/id token equivalence as the RecursiveStruct test above, but the
+  // recursive type is reached through a map (TestStruct.mapOfRecursiveStruct,
+  // map<string, RecursiveStruct>) instead of a list. Map keys are opaque and
+  // appear verbatim in both the name and the id tokens.
+  struct PathCase {
+    std::vector<std::string> input;
+    std::vector<std::string> expectedNameTokens;
+    std::vector<std::string> expectedIdTokens;
+  };
+
+  // mapOfRecursiveStruct=25, name=1, simpleMember=2, children=3; min=1
+  const std::vector<PathCase> cases = {
+      // mapOfRecursiveStruct/key0/name
+      {{"mapOfRecursiveStruct", "key0", "name"},
+       {"mapOfRecursiveStruct", "key0", "name"},
+       {"25", "key0", "1"}},
+      {{"25", "key0", "1"},
+       {"mapOfRecursiveStruct", "key0", "name"},
+       {"25", "key0", "1"}},
+      // mapOfRecursiveStruct/key0/simpleMember/min
+      {{"mapOfRecursiveStruct", "key0", "simpleMember", "min"},
+       {"mapOfRecursiveStruct", "key0", "simpleMember", "min"},
+       {"25", "key0", "2", "1"}},
+      // map key followed by a level of self-recursion:
+      // mapOfRecursiveStruct/key0/children/1/simpleMember/min
+      {{"mapOfRecursiveStruct", "key0", "children", "1", "simpleMember", "min"},
+       {"mapOfRecursiveStruct", "key0", "children", "1", "simpleMember", "min"},
+       {"25", "key0", "3", "1", "2", "1"}},
+      {{"25", "key0", "3", "1", "2", "1"},
+       {"mapOfRecursiveStruct", "key0", "children", "1", "simpleMember", "min"},
+       {"25", "key0", "3", "1", "2", "1"}},
+  };
+
+  for (const auto& testCase : cases) {
+    const auto& path = testCase.input;
+    auto result = RootNameToPathVisitor<RootThriftPath<TestStruct>>::visit(
+        testStructRoot,
+        path.begin(),
+        path.begin(),
+        path.end(),
+        [&](const auto& resolved) {
+          EXPECT_EQ(resolved.tokens(), testCase.expectedNameTokens);
+          EXPECT_EQ(resolved.idTokens(), testCase.expectedIdTokens);
+        });
+    EXPECT_EQ(result, NameToPathResult::OK)
+        << "Failed path: /" + folly::join('/', path);
+  }
+
+  // A bogus member under a map-keyed RecursiveStruct must fail resolution.
+  const std::vector<std::string> invalidPath{
+      "mapOfRecursiveStruct", "key0", "bogusField"};
+  auto result = RootNameToPathVisitor<RootThriftPath<TestStruct>>::visit(
+      testStructRoot,
+      invalidPath.begin(),
+      invalidPath.begin(),
+      invalidPath.end(),
+      [&](const auto& /*resolved*/) {
+        ADD_FAILURE() << "visitor should not resolve invalid path /"
+                      << folly::join('/', invalidPath);
+      });
+  EXPECT_EQ(result, NameToPathResult::INVALID_STRUCT_MEMBER);
+}
+
 TEST(NameToPathVisitorTests, NameAndIds) {
   RootThriftPath<TestStruct> testStructRoot;
 
