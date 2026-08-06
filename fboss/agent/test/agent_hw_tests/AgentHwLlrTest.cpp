@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
@@ -115,6 +116,21 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqPoisoned_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqBad_().has_value());
+
+      // Read the LLR binding back from hardware (via the HwAgent process, so
+      // this works in both mono and multi-switch). This confirms the SAI
+      // profile object still exists, is bound to the port, and carries the
+      // last-applied frame actions after the warm boot -- not just that the
+      // SwitchState intent survived.
+      auto switchId =
+          getAgentEnsemble()->scopeResolver().scope(portId).switchId();
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+      utility::PortLlrInfo llrInfo;
+      client->sync_getPortLlrInfo(llrInfo, portId);
+      EXPECT_TRUE(*llrInfo.hasProfile());
+      EXPECT_NE(*llrInfo.profileId(), 0);
+      EXPECT_EQ(*llrInfo.initFrameAction(), kInitActions.back());
+      EXPECT_EQ(*llrInfo.flushFrameAction(), cfg::LlrFrameAction::BLOCK);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
