@@ -343,11 +343,9 @@ void fillHwPortStats(
           hwPortStats.llrRxOk_() = value;
         }
         break;
-      case SAI_PORT_STAT_LLR_RX_BAD:
-        if (updateLlrStats) {
-          hwPortStats.llrRxBad_() = value;
-        }
-        break;
+      // LLR_RX_BAD, LLR_TX_DISCARD, LLR_TX_POISONED and LLR_RX_POISONED have no
+      // SDK backing on TU1 and are not fetched (see PortApi::llrStats, Broadcom
+      // CS00012472055), so there is intentionally no case for them here.
       case SAI_PORT_STAT_LLR_RX_MISSING_SEQ:
         if (updateLlrStats) {
           hwPortStats.llrRxMissingSeq_() = value;
