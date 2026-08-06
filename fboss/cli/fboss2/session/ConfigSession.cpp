@@ -281,7 +281,7 @@ std::string ConfigSession::readCommandLineFromProc() const {
   return folly::join(" ", args);
 }
 
-ConfigSession::ConfigSession() {
+ConfigSession::ConfigSession(SessionInit init) {
   username_ = getUsername();
   std::string homeDir = getHomeDirectory();
 
@@ -295,17 +295,18 @@ ConfigSession::ConfigSession() {
   sessionConfigDir_ = homeDir + "/.fboss2";
   systemConfigDir_ = coopDir;
   git_ = std::make_unique<Git>(coopDir);
-  initializeSession();
+  initializeSession(init);
 }
 
 ConfigSession::ConfigSession(
     std::string sessionConfigDir,
-    std::string systemConfigDir)
+    std::string systemConfigDir,
+    SessionInit init)
     : sessionConfigDir_(std::move(sessionConfigDir)),
       systemConfigDir_(std::move(systemConfigDir)),
       username_(getUsername()),
       git_(std::make_unique<Git>(systemConfigDir_)) {
-  initializeSession();
+  initializeSession(init);
 }
 
 ConfigSession::ConfigSession(
@@ -328,10 +329,10 @@ std::unique_ptr<ConfigSession>& getInstancePtr() {
 }
 } // namespace
 
-ConfigSession& ConfigSession::getInstance() {
+ConfigSession& ConfigSession::getInstance(SessionInit init) {
   auto& instance = getInstancePtr();
   if (!instance) {
-    instance = std::make_unique<ConfigSession>();
+    instance = std::make_unique<ConfigSession>(init);
   }
   return *instance;
 }
@@ -455,6 +456,9 @@ void ConfigSession::saveConfig(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           agentConfig_);
   std::string prettyJson = folly::toPrettyJson(folly::parseJson(json));
+
+  // May not exist yet if this session was constructed ReadOnly.
+  ensureDirectoryExists(sessionConfigDir_);
 
   // Use folly::writeFileAtomic with sync to avoid race conditions when multiple
   // threads/processes write to the same session file. WITH_SYNC ensures data
@@ -659,6 +663,8 @@ void ConfigSession::loadMetadata() {
 
 void ConfigSession::saveMetadata() {
   std::string metadataPath = getMetadataPath();
+  // May not exist yet if this session was constructed ReadOnly.
+  ensureDirectoryExists(sessionConfigDir_);
 
   // Build Thrift metadata struct and serialize to JSON with symbolic enum names
   // Using PORTABLE format for human-readable enum names instead of integers
@@ -780,7 +786,8 @@ void ConfigSession::loadConfig() {
   // If session file doesn't exist (e.g., after a commit), re-initialize
   // the session by copying from system config.
   if (!sessionExists()) {
-    initializeSession();
+    // Force materialization even if constructed ReadOnly.
+    initializeSession(SessionInit::CreateIfAbsent);
   }
 
   std::string configJson;
@@ -802,7 +809,8 @@ void ConfigSession::loadConfig() {
   configLoaded_ = true;
 }
 
-void ConfigSession::initializeSession() {
+void ConfigSession::initializeSession(SessionInit init) {
+  // Bootstraps /etc/coop, not ~/.fboss2, so this runs regardless of `init`.
   initializeGit();
   // Resume an existing session if EITHER an agent (agent.conf) or a BGP
   // (bgp_config.json) session is staged. Keying only on the agent session file
@@ -816,6 +824,10 @@ void ConfigSession::initializeSession() {
     commands_.clear();
     requiredActions_.clear();
     configLoaded_ = false;
+
+    if (init == SessionInit::ReadOnly) {
+      return; // leave ~/.fboss2 alone
+    }
 
     // Ensure the session config directory exists
     ensureDirectoryExists(sessionConfigDir_);
