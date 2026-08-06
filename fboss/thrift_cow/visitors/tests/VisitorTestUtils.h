@@ -18,6 +18,14 @@ constexpr int16_t fieldId() {
 
 TestStruct createSimpleTestStruct();
 
+// Builds a self-referential RecursiveStruct hierarchy used by the recursive
+// Thrift struct coverage tests:
+//   top.simpleMember.min = 11
+//   top.children[0]                              (left empty)
+//   top.children[1].name = "childName"
+//   top.children[1].children[0].simpleMember.min = 22
+RecursiveStruct makeRecursiveStruct();
+
 template <typename Node, typename Func>
 inline ThriftTraverseResult visitPath(
     Node& node,
