@@ -95,6 +95,7 @@ std::vector<RouteDetails> createRouteEntries() {
   nextHop1_1.address() = binaryAddr1_2;
   nextHop1_1.weight() = 1;
   nextHop1_1.mplsAction() = mplsAction1_1;
+  nextHop1_1.role() = NextHopRole::BACKUP;
 
   ClientAndNextHops clAndNxthops1;
   clAndNxthops1.clientId() = 0;
@@ -121,6 +122,7 @@ std::vector<RouteDetails> createRouteEntries() {
   nextHop1_2.address() = binaryAddr1_3;
   nextHop1_2.weight() = 1;
   nextHop1_2.mplsAction() = mplsAction1_2;
+  nextHop1_2.role() = NextHopRole::BACKUP;
   NetworkTopologyInformation topologyInfo;
   topologyInfo.rack_id() = 5;
   topologyInfo.spine_id() = 17;
@@ -259,6 +261,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   nextHopInfo1_1.addr() = "2401:db00:e32f:8fc::2";
   nextHopInfo1_1.weight() = 1;
   nextHopInfo1_1.mplsAction() = mplsActionInfo1_1;
+  nextHopInfo1_1.isBackup() = true;
 
   cli::ClientAndNextHops clnAndNxtHops1;
   clnAndNxtHops1.clientId() = 0;
@@ -281,6 +284,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
   nextHopInfo1_2.weight() = 1;
   nextHopInfo1_2.mplsAction() = mplsActionInfo1_2;
   nextHopInfo1_2.ifName() = "Port-Channel304";
+  nextHopInfo1_2.isBackup() = true;
   NetworkTopologyInformation topologyInfo;
   topologyInfo.rack_id() = 5;
   topologyInfo.spine_id() = 17;
@@ -485,12 +489,12 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {
 Network Address: 2401:db00::/32
 > Client: BGPD (Admin Distance: 20)
       Nexthops:
-        2401:db00:e32f:8fc::2 weight 1 MPLS -> SWAP : 1
+        2401:db00:e32f:8fc::2 weight 1 MPLS -> SWAP : 1 (BACKUP)
       Counter Id: None
       Class Id: DST_CLASS_L3_DPR(20)
   Action: Nexthops
   Forwarding via:
-    2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3} rack 5 spine id 17 remote weight 3
+    2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3} rack 5 spine id 17 remote weight 3 (BACKUP)
   Overridden ECMP mode: None
   Resolved NextHop Set ID: 100
   Normalized Resolved NextHop Set ID: 200

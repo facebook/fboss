@@ -55,6 +55,8 @@ void getNextHopInfoThrift(
     cli::NextHopInfo& nextHopInfo) {
   getNextHopInfoAddr(nextHop.address().value(), nextHopInfo);
   nextHopInfo.weight() = folly::copy(nextHop.weight().value());
+  nextHopInfo.isBackup() =
+      folly::copy(nextHop.role().value()) == NextHopRole::BACKUP;
 
   if (nextHop.cost().has_value()) {
     nextHopInfo.cost() = folly::copy(nextHop.cost().value());
@@ -176,6 +178,10 @@ std::string getCostStr(const cli::NextHopInfo& nextHopInfo) {
   return costStr;
 }
 
+std::string getRoleStr(const cli::NextHopInfo& nextHopInfo) {
+  return folly::copy(nextHopInfo.isBackup().value()) ? " (BACKUP)" : "";
+}
+
 std::string getSrv6SidListStr(const cli::NextHopInfo& nextHopInfo) {
   auto sidListPtr = apache::thrift::get_pointer(nextHopInfo.srv6SegmentList());
   if (sidListPtr == nullptr || sidListPtr->empty()) {
@@ -199,8 +205,9 @@ std::string getNextHopInfoStr(
   std::string costStr = getCostStr(nextHopInfo);
   std::string topologyStr = getTopologyInfoStr(nextHopInfo, encoding);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
+  std::string roleStr = getRoleStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
@@ -208,7 +215,8 @@ std::string getNextHopInfoStr(
       costStr,
       labelStr,
       topologyStr,
-      srv6SidStr);
+      srv6SidStr,
+      roleStr);
   return ret;
 }
 
@@ -260,8 +268,9 @@ std::string getNextHopInfoStr(
   std::string costStr = getCostStr(nextHopInfo);
   std::string topologyStr = getTopologyInfoStr(nextHopInfo, encoding);
   std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
+  std::string roleStr = getRoleStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
@@ -269,7 +278,8 @@ std::string getNextHopInfoStr(
       costStr,
       labelStr,
       topologyStr,
-      srv6SidStr);
+      srv6SidStr,
+      roleStr);
   return ret;
 }
 
