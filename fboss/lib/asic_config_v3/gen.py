@@ -19,10 +19,7 @@ _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
 
 
 def get_generator(
-    platform_name: str,
-    variant: str,
-    platform_config: dict,
-    paths: AsicConfigPaths,
+    platform_name: str, variant: str, platform_config: dict, paths: AsicConfigPaths
 ) -> BaseAsicConfigGenerator:
     """Instantiate the correct generator based on vendor and ASIC."""
     vendor = platform_config["vendor"]
@@ -183,11 +180,7 @@ def generate_single_platform(platform_name: str, paths: AsicConfigPaths) -> None
 
     platform_config, output_dir = platforms[platform_name]
     _generate_platform(
-        platform_name,
-        platform_config,
-        output_dir,
-        paths,
-        clean_output=True,
+        platform_name, platform_config, output_dir, paths, clean_output=True
     )
 
 
