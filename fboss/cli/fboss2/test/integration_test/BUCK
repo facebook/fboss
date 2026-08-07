@@ -21,6 +21,7 @@ cpp_binary(
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
         "ConfigBgpGlobalTest.cpp",
+        "ConfigBgpNeighborTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
@@ -68,10 +69,14 @@ cpp_binary(
         "TunnelIpInIpTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    headers = [
+        "ConfigBgpTestBase.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -97,6 +102,7 @@ cpp_binary(
         "//folly/json:dynamic",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//thrift/lib/cpp/util:enum_utils",
     ],
     external_deps = [
