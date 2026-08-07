@@ -263,13 +263,13 @@ cpp_library(
 )
 
 cpp_unittest(
+    # @autodeps-skip
     name = "bcmaddress_fb_convertors_test",
     srcs = [
         "BcmAddressFBConvertorsTests.cpp",
     ],
     network_access = network_access_utils.none(),
     deps = [
-        "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
         "//folly:network_address",
         "//folly:range",
@@ -522,6 +522,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
 ]
 
 cpp_unittest(
+    # @autodeps-skip
     name = "bcm_cosqueue_fbconvertors_tests",
     srcs = [
         "BcmCosQueueFBConvertorsTests.cpp",
@@ -530,7 +531,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcm_cosqueue_fb_convertors",
     ],
 )
 
@@ -553,17 +554,19 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    # @autodeps-skip
     name = "bcm_label_switching_utils_tests",
     srcs = [
         "BcmLabelSwitchingUtilsTests.cpp",
     ],
     network_access = network_access_utils.none(),
     deps = [
-        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/bcm:bcm_mpls_utils",
     ],
 )
 
 cpp_unittest(
+    # @autodeps-skip
     name = "bcm_fieldprocessor_fbconvertors_tests",
     srcs = [
         "BcmFieldProcessorFBConvertorsTests.cpp",
@@ -572,7 +575,6 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
     ],
     external_deps = [
