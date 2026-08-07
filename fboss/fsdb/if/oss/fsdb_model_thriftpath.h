@@ -6454,6 +6454,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpSettingConfig, ::facebook::fbo
     STRUCT_CHILD_GETTERS(enable_policy_default_action, 16);
     STRUCT_CHILD_GETTERS(next_hop_tracking_use_openr_igp_cost, 17);
     STRUCT_CHILD_GETTERS(enable_addpath_gr_reconcile, 18);
+    STRUCT_CHILD_GETTERS(enable_legacy_v4_nlri_encoding, 19);
 };
 
 
