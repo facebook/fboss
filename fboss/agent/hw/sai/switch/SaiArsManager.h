@@ -54,6 +54,23 @@ class SaiArsManager {
   SaiArsHandle* getVirtualArsGroupHandle() const;
   SaiArsHandle* getStandbyArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
+
+  SaiArsTraits::CreateAttributes makeArsAttributes(
+      cfg::SwitchingMode switchingMode,
+      std::optional<sai_uint32_t> idleTime = std::nullopt,
+      std::optional<sai_uint32_t> maxFlows = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+          primaryPathQualityThreshold = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+          alternatePathCost = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+          alternatePathBias = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::NextHopGroupType>
+          nextHopGroupType = std::nullopt) const;
+
+  void setArsObject(
+      SaiArsHandle* handle,
+      const SaiArsTraits::CreateAttributes& attributes);
 #endif
 
  private:

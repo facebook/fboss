@@ -50,6 +50,43 @@ sai_int32_t SaiArsManager::cfgSwitchingModeToSai(
   throw FbossError("Unsupported flowlet switching mode");
 }
 
+SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
+    cfg::SwitchingMode switchingMode,
+    std::optional<sai_uint32_t> idleTime,
+    std::optional<sai_uint32_t> maxFlows,
+    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+        primaryPathQualityThreshold,
+    std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+        alternatePathCost,
+    std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+        alternatePathBias,
+    std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType)
+    const {
+  std::optional<SaiArsTraits::Attributes::IdleTime> idleTimeAttr = std::nullopt;
+  if (idleTime) {
+    idleTimeAttr = SaiArsTraits::Attributes::IdleTime{*idleTime};
+  }
+  std::optional<SaiArsTraits::Attributes::MaxFlows> maxFlowsAttr = std::nullopt;
+  if (maxFlows) {
+    maxFlowsAttr = SaiArsTraits::Attributes::MaxFlows{*maxFlows};
+  }
+  return SaiArsTraits::CreateAttributes{
+      SaiArsTraits::Attributes::Mode{cfgSwitchingModeToSai(switchingMode)},
+      idleTimeAttr,
+      maxFlowsAttr,
+      primaryPathQualityThreshold,
+      alternatePathCost,
+      alternatePathBias,
+      nextHopGroupType};
+}
+
+void SaiArsManager::setArsObject(
+    SaiArsHandle* handle,
+    const SaiArsTraits::CreateAttributes& attributes) {
+  handle->ars = saiStore_->get<SaiArsTraits>().setObject(
+      getAdapterHostKey(attributes), attributes);
+}
+
 void SaiArsManager::removeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   if (arsHandle_->ars) {
