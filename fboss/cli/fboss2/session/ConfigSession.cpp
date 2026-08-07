@@ -421,7 +421,10 @@ std::vector<ConfigSession::ConfigDomain> ConfigSession::configDomains() const {
           getBgpSessionConfigPath(), // ~/.fboss2/bgp_config.json
           kBgpGitRelPath, // bgpcpp/bgpcpp.conf
           getBgpSystemConfigPath(), // /etc/coop/bgpcpp/bgpcpp.conf (promoted)
-          getBgpSystemConfigPath(), // the promoted file is also the live read
+          getBgpSystemConfigLinkPath(), // /etc/coop/bgpcpp.conf (the symlink,
+                                        // as for the agent: it is what bgpd
+                                        // reads, and before the first commit
+                                        // it is the image-installed file)
           getBgpSystemConfigLinkPath(), // /etc/coop/bgpcpp.conf (symlink)
           kBgpGitRelPath, // symlink -> bgpcpp/bgpcpp.conf
           cli::ConfigActionLevel::AGENT_WARMBOOT, // rollback restarts bgpd
@@ -696,17 +699,30 @@ void ConfigSession::loadBgpConfig() {
   // schema defaults. A read failure on a file that exists is logged (not
   // silently treated as "no config") so a permission/IO error doesn't
   // masquerade as a fresh session.
+  // The running config is read through the daemon's own --config path, which
+  // is a symlink to the promoted file once a commit has happened and the
+  // plain file the bgp++ RPM installs before that. Seeding from it (rather
+  // than from the promoted path directly) is what keeps a first BGP edit on a
+  // freshly imaged box from starting at schema defaults and having the commit
+  // discard the running config, leaving bgpd to crash-loop on an unset
+  // router_id. The promoted path is a backstop for a missing symlink.
   std::string content;
   std::string sessionPath = getBgpSessionConfigPath();
+  std::string linkPath = getBgpSystemConfigLinkPath();
   std::string systemPath = getBgpSystemConfigPath();
   if (fs::exists(sessionPath)) {
     if (!folly::readFile(sessionPath.c_str(), content)) {
       LOG(WARNING) << "Failed to read staged BGP config " << sessionPath
                    << "; starting from defaults";
     }
+  } else if (fs::exists(linkPath)) {
+    if (!folly::readFile(linkPath.c_str(), content)) {
+      LOG(WARNING) << "Failed to read system BGP config " << linkPath
+                   << "; starting from defaults";
+    }
   } else if (fs::exists(systemPath)) {
     if (!folly::readFile(systemPath.c_str(), content)) {
-      LOG(WARNING) << "Failed to read system BGP config " << systemPath
+      LOG(WARNING) << "Failed to read promoted BGP config " << systemPath
                    << "; starting from defaults";
     }
   }
@@ -1030,9 +1046,26 @@ void ConfigSession::initializeGit() {
     // the first revision has no BGP snapshot, so a rollback to it would read
     // the empty target as "BGP never existed" and DELETE the running
     // bgpcpp.conf.
+    //
+    // Mirroring the agent above: if the promoted path doesn't exist yet but
+    // the daemon's config path resolves to a readable file (the bgp++ RPM
+    // ships it as a plain file), populate the promoted path from it. Copy
+    // rather than rename — bgpd reads /etc/coop/bgpcpp.conf right now, and
+    // commit() is what later replaces it with a symlink to the promoted copy.
     std::vector<std::string> initialFiles = {
         cliConfigPath, initialMetadataPath};
     std::string bgpSystemPath = getBgpSystemConfigPath();
+    std::string bgpLinkPath = getBgpSystemConfigLinkPath();
+    if (!fs::exists(bgpSystemPath) && fs::exists(bgpLinkPath)) {
+      // fs::exists follows symlinks, so a dangling one is correctly skipped.
+      std::string bgpSeedContent;
+      if (folly::readFile(bgpLinkPath.c_str(), bgpSeedContent) &&
+          !bgpSeedContent.empty()) {
+        ensureDirectoryExists(getBgpSystemConfigDir());
+        folly::writeFileAtomic(
+            bgpSystemPath, bgpSeedContent, 0644, folly::SyncType::WITH_SYNC);
+      }
+    }
     if (fs::exists(bgpSystemPath)) {
       initialFiles.push_back(bgpSystemPath);
     }
