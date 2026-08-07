@@ -93,7 +93,11 @@ CmdShowNamedNextHopGroups::RetType CmdShowNamedNextHopGroups::queryClient(
   std::vector<NextHopGroup> nextHopGroups;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  client->sync_getNextHopGroups(nextHopGroups);
+  // Use the name-keyed API so groups that share a next-hop set (and thus a
+  // single hardware NextHopSetId) are each listed by name, rather than being
+  // collapsed into one entry as sync_getNextHopGroups would do.
+  std::vector<std::string> names; // empty => return all named groups
+  client->sync_getNamedNextHopGroups(nextHopGroups, names);
   return createModel(nextHopGroups);
 }
 
