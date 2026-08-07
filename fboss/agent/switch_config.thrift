@@ -2459,6 +2459,8 @@ struct FlowletSwitchingConfig {
   21: optional i16 standbyInactivityIntervalUsecs;
   // flow set table size for standby DLB groups
   22: optional i16 standbyFlowletTableSize;
+  // Source Port Prune, prevents forwarding traffic back to received port
+  23: optional bool sourcePortPrune;
 }
 
 /*
