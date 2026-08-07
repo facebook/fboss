@@ -22,6 +22,7 @@ cpp_binary(
         "ConfigArpTest.cpp",
         "ConfigBgpGlobalTest.cpp",
         "ConfigBgpNeighborTest.cpp",
+        "ConfigBgpPeerGroupTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
