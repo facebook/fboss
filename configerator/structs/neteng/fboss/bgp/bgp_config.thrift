@@ -658,6 +658,17 @@ struct BgpSettingConfig {
 
   /** Enable add-path-receive reconciliation across a peer graceful restart. */
   18: optional bool enable_addpath_gr_reconcile;
+
+  /**
+   * Enable RFC 4271 classic IPv4-unicast NLRI encoding toward capability-less
+   * peers. When true, a peer that advertised no MP-EXT capability
+   * (capability-less / RFC 1771) receives IPv4-unicast announcements as classic
+   * NLRI + NEXT_HOP (attr 3) instead of MP_REACH_NLRI (attr 14), and is keyed
+   * into its own update group. Default (unset or false): every peer keeps
+   * MP_REACH and existing update groups are unchanged, so the feature can be
+   * turned off instantly for rollback.
+   */
+  19: optional bool enable_legacy_v4_nlri_encoding;
 }
 
 /**
