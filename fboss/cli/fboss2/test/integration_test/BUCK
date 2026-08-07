@@ -32,6 +32,7 @@ cpp_binary(
         "ConfigBgpPolicyRoutingPolicyTest.cpp",
         "ConfigBgpPolicyRoutingPolicyTermTest.cpp",
         "ConfigBgpPolicyRoutingPolicyTermActionTest.cpp",
+        "ConfigBgpPolicyRoutingPolicyTermMatchTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
