@@ -58,6 +58,15 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kFabricControlTxPackets(),
       kOutDiscardsSll(),
       kOutDiscardsHll(),
+      kLlrTxOk(),
+      kLlrRxOk(),
+      kLlrTxReplay(),
+      kLlrRxReplay(),
+      kLlrRxMissingSeq(),
+      kLlrRxDuplicateSeq(),
+      kLlrRxAckNackSeqError(),
+      kLlrRxExpectedSeqPoisoned(),
+      kLlrRxExpectedSeqBad(),
   };
   return kPortKeys;
 }
@@ -319,6 +328,48 @@ void HwPortFb303Stats::updateStats(
   if (curPortStats.outDiscardsHll_().has_value()) {
     updateStat(
         timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+  }
+
+  // UEC LLR counters -- populated only on LLR-capable ASICs (Tomahawk Ultra).
+  if (curPortStats.llrTxOk_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxOk(), *curPortStats.llrTxOk_());
+  }
+  if (curPortStats.llrRxOk_().has_value()) {
+    updateStat(timeRetrieved_, kLlrRxOk(), *curPortStats.llrRxOk_());
+  }
+  if (curPortStats.llrTxReplay_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxReplay(), *curPortStats.llrTxReplay_());
+  }
+  if (curPortStats.llrRxReplay_().has_value()) {
+    updateStat(timeRetrieved_, kLlrRxReplay(), *curPortStats.llrRxReplay_());
+  }
+  if (curPortStats.llrRxMissingSeq_().has_value()) {
+    updateStat(
+        timeRetrieved_, kLlrRxMissingSeq(), *curPortStats.llrRxMissingSeq_());
+  }
+  if (curPortStats.llrRxDuplicateSeq_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxDuplicateSeq(),
+        *curPortStats.llrRxDuplicateSeq_());
+  }
+  if (curPortStats.llrRxAckNackSeqError_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxAckNackSeqError(),
+        *curPortStats.llrRxAckNackSeqError_());
+  }
+  if (curPortStats.llrRxExpectedSeqPoisoned_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxExpectedSeqPoisoned(),
+        *curPortStats.llrRxExpectedSeqPoisoned_());
+  }
+  if (curPortStats.llrRxExpectedSeqBad_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxExpectedSeqBad(),
+        *curPortStats.llrRxExpectedSeqBad_());
   }
 
   // Update queue stats
