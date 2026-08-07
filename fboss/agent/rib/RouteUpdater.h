@@ -20,6 +20,7 @@
 #include <folly/IPAddress.h>
 
 DECLARE_bool(enable_capacity_pruning);
+DECLARE_bool(enable_fpf_capacity_pruning);
 namespace facebook::fboss {
 class NextHopIDManager;
 
