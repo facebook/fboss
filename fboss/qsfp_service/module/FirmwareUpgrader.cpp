@@ -196,6 +196,35 @@ bool CmisFirmwareUpgrader::isTunableModule() const {
   }
 }
 
+/*
+ * writeMsaPasswordIfNeeded
+ *
+ * Writes the given value to the module password entry register - either the
+ * MSA password, to let the privileged operation of firmware download, or an
+ * all-zero value to revert it. Modules complying with CMIS 5.0 and later allow
+ * the firmware download without the password, so for them both the write and
+ * the revert that undoes it are skipped.
+ */
+void CmisFirmwareUpgrader::writeMsaPasswordIfNeeded(
+    const std::array<uint8_t, 4>& password) {
+  if (cmisMajorRevision_ >= kMsaPasswordRequiredBelowCmisMajorRev) {
+    XLOG(INFO) << fmt::format(
+        "Transceiver:{:d} writeMsaPasswordIfNeeded: Skipping module password write for CMIS {:d}.x module",
+        moduleId_,
+        cmisMajorRevision_);
+    return;
+  }
+
+  bus_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
+      password.data(),
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
+}
+
 bool CmisFirmwareUpgrader::isCdbCmdCompleteFlagSupported() const {
   try {
     uint8_t cdbAdvPage = kCdbAdvertisementPage;
@@ -259,15 +288,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Start the IO profiling
   bus_->i2cTimeProfilingStart();
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  writeMsaPasswordIfNeeded(msaPassword_);
 
   CdbCommandBlock commandBlockBuf(cdbWriteDelayUsec_);
   CdbCommandBlock* commandBlock = &commandBlockBuf;
@@ -493,15 +514,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     pollForModuleReady();
   }
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  writeMsaPasswordIfNeeded(msaPassword_);
 
   /* After the firmware starts running, module may disable I2C for a short time
    * while it updates the different pages of its eeprom. Adding a delay here
@@ -534,15 +547,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   usleep(10 * moduleDatapathInitDurationUsec);
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  writeMsaPasswordIfNeeded(msaPassword_);
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
@@ -579,20 +584,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Always revert the MSA password at the end. Certain commands like releasing
   // low power don't work when certain modules (like xdr4) are still in the CDB
   // mode which is the mode that's activated when the msa password is written
-  // during firmware upgrade
-  std::array<uint8_t, 4> resetPassword;
-  resetPassword[0] = 0;
-  resetPassword[1] = 0;
-  resetPassword[2] = 0;
-  resetPassword[3] = 0;
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      resetPassword.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  // during firmware upgrade. This is a no-op on the modules we never wrote the
+  // password to.
+  const std::array<uint8_t, 4> resetPassword{0, 0, 0, 0};
+  writeMsaPasswordIfNeeded(resetPassword);
   if (!result) {
     // If the download failed then print the message and return. No need
     // to do any recovery here

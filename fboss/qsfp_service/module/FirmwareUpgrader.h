@@ -43,6 +43,10 @@ class CmisFirmwareUpgrader {
       {"intel-400g-fr4", {"SPTSHP3CLCKS    "}},
   };
 
+  // Modules complying with CMIS 5.0 and later don't need the MSA password to
+  // be written to unlock the privileged firmware download operation.
+  static constexpr uint8_t kMsaPasswordRequiredBelowCmisMajorRev = 5;
+
   // Constructor. The caller is responsible for interfacing with Firmware
   // Store and provide the FbossFirmware object. cmisMajorRevision is the
   // major number of the CMIS revision the module complies with (Lower Page
@@ -93,6 +97,11 @@ class CmisFirmwareUpgrader {
 
   // Check if module is tunable by reading MEDIA_INTERFACE_TECHNOLOGY register
   bool isTunableModule() const;
+
+  // Write the given value to the module password entry register - the MSA
+  // password to unlock the privileged firmware download operation, or an
+  // all-zero value to revert it. No-op on modules that don't need it
+  void writeMsaPasswordIfNeeded(const std::array<uint8_t, 4>& password);
 
   // Poll for module to reach ready state after firmware run command
   bool pollForModuleReady();
