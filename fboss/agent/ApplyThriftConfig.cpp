@@ -5125,6 +5125,36 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setMaxArsVirtualGroups(
         *config.maxArsVirtualGroups());
   }
+  if (config.standbySwitchingMode()) {
+    // Distinct switching modes keep the standby and primary ARS objects from
+    // collapsing into a single SaiStore entry.
+    if (*config.standbySwitchingMode() == *config.switchingMode()) {
+      throw FbossError(
+          "standbySwitchingMode must differ from switchingMode, both are ",
+          apache::thrift::util::enumNameSafe(*config.switchingMode()));
+    }
+    if (!config.standbyInactivityIntervalUsecs()) {
+      throw FbossError(
+          "standbySwitchingMode is set but standbyInactivityIntervalUsecs "
+          "is missing");
+    }
+    if (!config.standbyFlowletTableSize()) {
+      throw FbossError(
+          "standbySwitchingMode is set but standbyFlowletTableSize is missing");
+    }
+    newFlowletSwitchingConfig->setStandbySwitchingMode(
+        *config.standbySwitchingMode());
+    newFlowletSwitchingConfig->setStandbyInactivityIntervalUsecs(
+        *config.standbyInactivityIntervalUsecs());
+    newFlowletSwitchingConfig->setStandbyFlowletTableSize(
+        *config.standbyFlowletTableSize());
+  } else if (
+      config.standbyInactivityIntervalUsecs() ||
+      config.standbyFlowletTableSize()) {
+    throw FbossError(
+        "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
+        "standbySwitchingMode to be set");
+  }
   return newFlowletSwitchingConfig;
 }
 
