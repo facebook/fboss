@@ -297,6 +297,10 @@ class CmisModule : public QsfpModule {
   // Lower Page 00h byte 70. See cacheMaxNumBanks()/getMaxNumBanks().
   std::optional<uint8_t> maxNumBanks_;
 
+  // Cached <major, minor> CMIS revision the module complies with, read from
+  // Lower Page 00h byte 1. See cacheCmisRevision()/getCmisRevision().
+  std::pair<uint8_t, uint8_t> cmisRevision_{0, 0};
+
   /* Maximum number of CMIS banks supported by the module. Returns 1 until
    * cacheMaxNumBanks() has populated the cache. */
   uint8_t getMaxNumBanks() const {
@@ -671,6 +675,12 @@ class CmisModule : public QsfpModule {
   std::array<std::string, 3> getFwRevisions();
   FirmwareStatus getFwStatus();
 
+  /* CMIS revision the module complies with, as <major, minor>. Returns {0, 0}
+   * until cacheCmisRevision() has populated the cache. */
+  std::pair<uint8_t, uint8_t> getCmisRevision() const {
+    return cmisRevision_;
+  }
+
   /*
    * Fetches the firmware build number from CDB Get Firmware Info command.
    * Returns the build number if successful, or std::nullopt on failure.
@@ -872,6 +882,12 @@ class CmisModule : public QsfpModule {
    * report 0 fall back to a single bank. Expects the lower page to be cached
    * (i.e. call after the lower page read in updateQsfpData). */
   void cacheMaxNumBanks();
+
+  /* Read the CMIS revision the module complies with from Lower Page 00h byte 1
+   * and cache it in cmisRevision_. The upper nibble is the major number and the
+   * lower nibble the minor number (e.g. 0x50 -> 5.0). Expects the lower page to
+   * be cached (i.e. call after the lower page read in updateQsfpData). */
+  void cacheCmisRevision();
 
   /* Read a banked page for every bank into its per-bank buffer (dest), sized to
    * getMaxNumBanks(). On a single-bank module this is exactly

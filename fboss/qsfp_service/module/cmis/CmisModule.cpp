@@ -709,6 +709,13 @@ void CmisModule::cacheMaxNumBanks() {
   page27_.assign(numBanks, {});
 }
 
+void CmisModule::cacheCmisRevision() {
+  uint8_t revision = getSettingsValue(CmisField::REVISION_COMPLIANCE);
+  cmisRevision_ = std::make_pair(
+      static_cast<uint8_t>(revision >> 4),
+      static_cast<uint8_t>(revision & 0xf));
+}
+
 void CmisModule::selectPageAndBank(int dataPage, std::optional<uint8_t> bank) {
   auto page = static_cast<CmisPages>(dataPage);
   if (page == CmisPages::LOWER || flatMem_) {
@@ -2686,6 +2693,7 @@ void CmisModule::updateQsfpData(bool allPages) {
     dirty_ = false;
     setQsfpFlatMem();
     cacheMaxNumBanks();
+    cacheCmisRevision();
 
     readCmisField(CmisField::PAGE_UPPER00H, page0_);
     if (!flatMem_) {

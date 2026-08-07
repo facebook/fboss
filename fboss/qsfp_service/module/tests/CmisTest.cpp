@@ -54,6 +54,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getApplicationField;
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
+  using CmisModule::getCmisRevision;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getDiagSelLatchWaitUsec;
   using CmisModule::getInterfaceCodeForAppSel;
@@ -502,6 +503,24 @@ TEST_F(CmisTest, cpoConfiguredMediaLanesPerBank) {
       xcvr->configuredMediaLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
   EXPECT_EQ(
       xcvr->configuredMediaLanes(12), (std::vector<uint8_t>{12, 13, 14, 15}));
+}
+
+// The CMIS revision lives in Lower Page byte 1: upper nibble is the major
+// number, lower nibble the minor. The 200G FR4 fixture has 0x40 and the 800G
+// ZR fixture has 0x53.
+TEST_F(CmisTest, getCmisRevision) {
+  const std::pair<uint8_t, uint8_t> expected200G{4, 0};
+  EXPECT_EQ(
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))
+          ->getCmisRevision(),
+      expected200G);
+
+  const std::pair<uint8_t, uint8_t> expected800GZr{5, 3};
+  EXPECT_EQ(
+      overrideCmisModule<Cmis800GZrTransceiver>(
+          TransceiverID(1), TransceiverModuleIdentifier::OSFP)
+          ->getCmisRevision(),
+      expected800GZr);
 }
 
 // Tests that the transceiverInfo object is correctly populated
