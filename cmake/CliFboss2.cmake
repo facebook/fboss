@@ -892,6 +892,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/BgpCommunityListCliUtils.h
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/community/CmdConfigProtocolBgpPolicyCommunityListCommunity.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/community/CmdConfigProtocolBgpPolicyCommunityListCommunity.h
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
   fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
