@@ -11514,7 +11514,6 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(llrTxOk_, 80);
     STRUCT_CHILD_GETTERS(llrTxReplay_, 81);
     STRUCT_CHILD_GETTERS(llrRxOk_, 82);
-    STRUCT_CHILD_GETTERS(llrRxBad_, 83);
     STRUCT_CHILD_GETTERS(llrRxMissingSeq_, 84);
     STRUCT_CHILD_GETTERS(llrRxDuplicateSeq_, 85);
     STRUCT_CHILD_GETTERS(llrRxAckNackSeqError_, 86);

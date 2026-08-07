@@ -171,7 +171,6 @@ HwPortStats getInitedStats() {
       0, // llrTxOk
       0, // llrTxReplay
       0, // llrRxOk
-      0, // llrRxBad
       0, // llrRxMissingSeq
       0, // llrRxDuplicateSeq
       0, // llrRxAckNackSeqError

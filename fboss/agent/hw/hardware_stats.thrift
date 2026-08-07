@@ -129,7 +129,8 @@ struct HwPortStats {
   80: optional i64 llrTxOk_;
   81: optional i64 llrTxReplay_;
   82: optional i64 llrRxOk_;
-  83: optional i64 llrRxBad_;
+  // 83 (llrRxBad_) intentionally unused: LLR_RX_BAD has no SDK backing on
+  // Tomahawk Ultra (Broadcom CS00012472055); field number reserved, do not reuse.
   84: optional i64 llrRxMissingSeq_;
   85: optional i64 llrRxDuplicateSeq_;
   86: optional i64 llrRxAckNackSeqError_;
