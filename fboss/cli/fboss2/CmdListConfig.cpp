@@ -43,6 +43,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/entry/CmdConfigProtocolBgpPolicyAsPathListEntry.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -417,6 +418,16 @@ const CommandTree& kConfigCommandTree() {
                                   CmdConfigProtocolBgpPolicyAsPathList>,
                               argRegistrar<
                                   CmdConfigProtocolBgpPolicyAsPathListTraits>,
+                              {{
+                                  "entry",
+                                  "Configure an AS-path list entry: "
+                                  "<seq-num> [<attribute> <value> ...] "
+                                  "(asn-regexp, description, match-logic)",
+                                  commandHandler<
+                                      CmdConfigProtocolBgpPolicyAsPathListEntry>,
+                                  argRegistrar<
+                                      CmdConfigProtocolBgpPolicyAsPathListEntryTraits>,
+                              }},
                           }},
                       },
                   },

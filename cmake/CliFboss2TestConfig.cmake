@@ -13,6 +13,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigBgpNeighborTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPeerGroupTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyAsPathListTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigBgpPolicyAsPathListEntryTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigCoppTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigDhcpTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigHostnameTest.cpp
