@@ -59,11 +59,6 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
               fmt::format("{} (warmboot)", serviceName));
         }
         break;
-      case cli::ConfigActionLevel::BGP_RESTART:
-        for (const auto& serviceName : serviceNamesList) {
-          restartedServices.push_back(fmt::format("{} (restart)", serviceName));
-        }
-        break;
       case cli::ConfigActionLevel::HITLESS:
         for (const auto& serviceName : serviceNamesList) {
           reloadedServices.push_back(serviceName);
