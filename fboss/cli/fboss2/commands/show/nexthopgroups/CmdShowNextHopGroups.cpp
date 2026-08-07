@@ -108,6 +108,36 @@ void CmdShowNamedNextHopGroups::printOutput(
   printNextHopGroups(model, out);
 }
 
+std::string_view CmdShowNextHopGroupsTraits::description() {
+  return "Displays the switch's nexthop groups: each group's name and programming status, its member nexthops (address, egress interface, weight, cost), and any SRv6 SID list. Use it to inspect ECMP / nexthop-group programming.";
+}
+
+CmdShowNextHopGroups::RetType CmdShowNextHopGroups::sampleModel() {
+  RetType model;
+
+  // First group: unnamed, programmed, with two plain cost members
+  cli::NextHopGroupEntry group1;
+  group1.name() = "--";
+  group1.isNamed() = false;
+  group1.programmed() = "yes";
+  group1.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 dev fboss2008 cost 202",
+      "fe80::200:11ff:fe22:3302 dev fboss2002 cost 202"};
+  model.nextHopGroups()->push_back(group1);
+
+  // Second group: named "lspgrp_example", programmed, with an SRv6 SID list
+  // member
+  cli::NextHopGroupEntry group2;
+  group2.name() = "lspgrp_example";
+  group2.isNamed() = true;
+  group2.programmed() = "yes";
+  group2.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 dev fboss2008 SRv6 SID List [fdad:ffff:7fff::]"};
+  model.nextHopGroups()->push_back(group2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowNextHopGroups, CmdShowNextHopGroupsTraits>::run();

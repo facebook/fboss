@@ -12,6 +12,7 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/commands/show/route/utils.h"
@@ -23,6 +24,10 @@ struct CmdShowRouteTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowRouteModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
@@ -34,6 +39,10 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout);
   bool isUcmpActive(const std::vector<NextHopThrift>& nextHops);
   RetType createModel(std::vector<facebook::fboss::UnicastRoute>& routeEntries);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

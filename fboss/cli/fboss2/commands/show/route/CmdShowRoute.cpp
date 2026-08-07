@@ -110,6 +110,42 @@ CmdShowRoute::RetType CmdShowRoute::createModel(
   return model;
 }
 
+std::string_view CmdShowRouteTraits::description() {
+  return "Displays the switch's routing table: each destination prefix and its ECMP nexthops (via address, egress interface, and weight). Use it to inspect installed routes and their paths.";
+}
+
+CmdShowRoute::RetType CmdShowRoute::sampleModel() {
+  RetType model;
+
+  // First route: 100::/64 with no nexthops
+  cli::RouteEntry route1;
+  route1.networkAddress() = "100::/64";
+  route1.nextHops() = std::vector<cli::NextHopInfo>();
+  route1.overridenEcmpMode() = "";
+  model.routeEntries()->emplace_back(route1);
+
+  // Second route: 2001:db8:2215:f000::/52 with two nexthops
+  cli::RouteEntry route2;
+  route2.networkAddress() = "2001:db8:2215:f000::/52";
+  route2.overridenEcmpMode() = "";
+
+  cli::NextHopInfo nh1;
+  nh1.addr() = "2001:db8:e22f:219::2a";
+  nh1.ifName() = "fboss2006";
+  nh1.weight() = 1;
+  route2.nextHops()->emplace_back(nh1);
+
+  cli::NextHopInfo nh2;
+  nh2.addr() = "2001:db8:e22f:119::3a";
+  nh2.ifName() = "fboss2008";
+  nh2.weight() = 1;
+  route2.nextHops()->emplace_back(nh2);
+
+  model.routeEntries()->emplace_back(route2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
 template const ValidFilterMapType
