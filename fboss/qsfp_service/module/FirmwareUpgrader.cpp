@@ -78,11 +78,18 @@ CmisFirmwareUpgrader::CmisFirmwareUpgrader(
     TransceiverImpl* bus,
     unsigned int modId,
     FbossFirmware* fbossFirmware,
+    uint8_t cmisMajorRevision,
     uint64_t cdbWriteDelayUsec)
     : bus_(bus),
       moduleId_(modId),
       fbossFirmware_(fbossFirmware),
+      cmisMajorRevision_(cmisMajorRevision),
       cdbWriteDelayUsec_(cdbWriteDelayUsec) {
+  XLOG(INFO) << fmt::format(
+      "Transceiver:{:d} CmisFirmwareUpgrader: Module complies with CMIS {:d}.x",
+      moduleId_,
+      cmisMajorRevision_);
+
   // Check the FbossFirmware object first
   if (fbossFirmware_ == nullptr) {
     XLOG(ERR) << "FbossFirmware object is null, returning...";

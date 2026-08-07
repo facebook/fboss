@@ -44,11 +44,15 @@ class CmisFirmwareUpgrader {
   };
 
   // Constructor. The caller is responsible for interfacing with Firmware
-  // Store and provide the FbossFirmware object
+  // Store and provide the FbossFirmware object. cmisMajorRevision is the
+  // major number of the CMIS revision the module complies with (Lower Page
+  // byte 1, upper nibble) and is mandatory - the caller decides how to obtain
+  // it, and what to report when it can't be read.
   CmisFirmwareUpgrader(
       TransceiverImpl* bus,
       unsigned int modId,
       FbossFirmware* fbossFirmware,
+      uint8_t cmisMajorRevision,
       uint64_t cdbWriteDelayUsec = POST_I2C_WRITE_DELAY_CDB_US);
 
   // Function to trigger the firmware download to the QSFP module of CMIS type
@@ -68,7 +72,9 @@ class CmisFirmwareUpgrader {
   // mapped in memory
   std::unique_ptr<folly::IOBuf> fileIOBuffer_;
   // MSA password for privilege operation
-  std::array<uint8_t, 4> msaPassword_;
+  std::array<uint8_t, 4> msaPassword_{};
+  // CMIS major revision the module complies with
+  uint8_t cmisMajorRevision_;
   // Default image header length
   uint32_t imageHeaderLen_;
   // Image type (App/Dsp)

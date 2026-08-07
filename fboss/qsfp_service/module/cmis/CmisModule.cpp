@@ -5653,6 +5653,7 @@ bool CmisModule::upgradeFirmwareLockedImpl(FbossFirmware* fbossFw) const {
       qsfpImpl_,
       getID(),
       fbossFw,
+      getCmisRevision().first,
       cachedCdbWriteDelayUsec_.value_or(POST_I2C_WRITE_DELAY_CDB_US));
 
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
