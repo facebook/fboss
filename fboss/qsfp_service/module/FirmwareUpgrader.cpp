@@ -54,6 +54,10 @@ constexpr int moduleDatapathInitDurationUsec = 5000000;
 
 constexpr int moduleReadyAfterFirmwareRunUsec = 100 * 1000; // 100ms
 
+// Tunable (coherent) modules need a settling period after Firmware Download
+// Complete before their CDB status can be polled
+constexpr uint32_t kDelayAfterFwDownloadCompleteSec = 30;
+
 // Module ready state polling constants
 constexpr int kModuleReadyPollTimeoutUsec = 120 * 1000 * 1000; // 120 seconds
 constexpr int kModuleReadyPollIntervalUsec = 500 * 1000; // 0.5 seconds
@@ -278,6 +282,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bool status;
   int imageOffset, imageChunkLen;
   bool eplSupported = false;
+  bool isTunable = isTunableModule();
 
   XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}, cdbWriteDelay {:d} us",
@@ -472,9 +477,16 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Step 3: Issue CDB command: Firmware download complete
   commandBlock->createCdbCmdFwDownloadComplete();
 
+  const uint32_t delayAfterFwDownloadCompleteSec =
+      isTunable ? kDelayAfterFwDownloadCompleteSec : 0;
+
   // Run the CDB command
   status = commandBlock->cmisRunCdbCommand(
-      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
+      bus_,
+      fwUpgradeCdbTimeoutUsec,
+      cdbCmdCompleteFlagSupported,
+      delayAfterFwDownloadCompleteSec);
+
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
     XLOG(INFO) << fmt::format(
@@ -510,7 +522,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   usleep(2 * moduleDatapathInitDurationUsec);
 
   // Poll for module ready state after firmware run (tunable optics only)
-  if (isTunableModule()) {
+  if (isTunable) {
     pollForModuleReady();
   }
 
