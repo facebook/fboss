@@ -66,6 +66,13 @@ struct SaiArsTraits {
         sai_int32_t,
         AttributeNextHopGroupType,
         SaiIntDefault<sai_int32_t>>;
+    struct AttributeSourcePortPrune {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    // Prevents an ECMP group from load balancing a packet back out the port it
+    // was received on.
+    using SourcePortPrune =
+        SaiExtensionAttribute<bool, AttributeSourcePortPrune>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -76,7 +83,8 @@ struct SaiArsTraits {
       std::optional<Attributes::PrimaryPathQualityThreshold>,
       std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>,
-      std::optional<Attributes::NextHopGroupType>>;
+      std::optional<Attributes::NextHopGroupType>,
+      std::optional<Attributes::SourcePortPrune>>;
 #if defined(CHENAB_SAI_SDK)
   using AdapterHostKey = std::tuple<Attributes::Mode>;
 #else
@@ -105,6 +113,7 @@ SAI_ATTRIBUTE_NAME(Ars, PrimaryPathQualityThreshold)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
 SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
+SAI_ATTRIBUTE_NAME(Ars, SourcePortPrune)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {

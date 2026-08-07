@@ -37,7 +37,8 @@ class ArsApiTest : public ::testing::Test {
             kPrimaryPathQualityThreshold()},
         SaiArsTraits::Attributes::AlternatePathCost{kAlternatePathCost()},
         SaiArsTraits::Attributes::AlternatePathBias{kAlternatePathBias()},
-        std::nullopt}; // NextHopGroupType
+        std::nullopt, // NextHopGroupType
+        std::nullopt}; // SourcePortPrune
   }
 
   ArsSaiId createArs() const {

@@ -2,7 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 
-#if defined(BRCM_SAI_SDK_GTE_14_0)
+#if defined(BRCM_SAI_SDK_GTE_13_0)
 #include <experimental/saiarsextensions.h>
 #endif
 
@@ -13,6 +13,15 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
 #else
   return std::nullopt;
 #endif

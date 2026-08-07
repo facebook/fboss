@@ -60,7 +60,8 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
         alternatePathCost,
     std::optional<SaiArsTraits::Attributes::AlternatePathBias>
         alternatePathBias,
-    std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType)
+    std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType,
+    std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune)
     const {
   std::optional<SaiArsTraits::Attributes::IdleTime> idleTimeAttr = std::nullopt;
   if (idleTime) {
@@ -77,7 +78,8 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
       primaryPathQualityThreshold,
       alternatePathCost,
       alternatePathBias,
-      nextHopGroupType};
+      nextHopGroupType,
+      sourcePortPrune};
 }
 
 void SaiArsManager::setArsObject(
@@ -85,6 +87,15 @@ void SaiArsManager::setArsObject(
     const SaiArsTraits::CreateAttributes& attributes) {
   handle->ars = saiStore_->get<SaiArsTraits>().setObject(
       getAdapterHostKey(attributes), attributes);
+}
+
+std::optional<SaiArsTraits::Attributes::SourcePortPrune>
+SaiArsManager::getSourcePortPrune(
+    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) const {
+  if (auto sourcePortPrune = flowletSwitchConfig->getSourcePortPrune()) {
+    return SaiArsTraits::Attributes::SourcePortPrune{*sourcePortPrune};
+  }
+  return std::nullopt;
 }
 
 void SaiArsManager::removeArs(

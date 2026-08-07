@@ -34,7 +34,9 @@ void SaiArsManager::addArs(
           maxFlows,
           std::nullopt,
           SaiArsTraits::Attributes::AlternatePathCost{0},
-          SaiArsTraits::Attributes::AlternatePathBias{0}));
+          SaiArsTraits::Attributes::AlternatePathBias{0},
+          std::nullopt,
+          getSourcePortPrune(flowletSwitchConfig)));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();
@@ -57,7 +59,9 @@ void SaiArsManager::addArs(
             SaiArsTraits::Attributes::AlternatePathCost{
                 static_cast<sai_uint32_t>(*cost)},
             SaiArsTraits::Attributes::AlternatePathBias{
-                static_cast<sai_uint32_t>(*bias)}));
+                static_cast<sai_uint32_t>(*bias)},
+            std::nullopt,
+            getSourcePortPrune(flowletSwitchConfig)));
   }
 }
 

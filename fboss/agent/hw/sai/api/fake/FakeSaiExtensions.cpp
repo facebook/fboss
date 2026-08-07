@@ -1115,6 +1115,11 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
+}
 #endif
 
 } // namespace facebook::fboss

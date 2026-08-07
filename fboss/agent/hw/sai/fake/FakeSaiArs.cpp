@@ -28,6 +28,7 @@ sai_status_t create_ars_fn(
   std::optional<sai_uint32_t> alternate_path_cost;
   std::optional<sai_uint32_t> alternate_path_bias;
   std::optional<sai_int32_t> next_hop_group_type;
+  std::optional<bool> source_port_prune;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
@@ -51,6 +52,9 @@ sai_status_t create_ars_fn(
       case SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE:
         next_hop_group_type = attr_list[i].value.s32;
         break;
+      case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
+        source_port_prune = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -62,7 +66,8 @@ sai_status_t create_ars_fn(
       primary_path_quality_threshold,
       alternate_path_cost,
       alternate_path_bias,
-      next_hop_group_type);
+      next_hop_group_type,
+      source_port_prune);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -99,6 +104,9 @@ sai_status_t set_ars_attribute_fn(
       break;
     case SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE:
       ars.next_hop_group_type = attr->value.s32;
+      break;
+    case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
+      ars.source_port_prune = attr->value.booldata;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -153,6 +161,9 @@ sai_status_t get_ars_attribute_fn(
         } else {
           attr_list[i].value.s32 = 0;
         }
+        break;
+      case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
+        attr_list[i].value.booldata = ars.source_port_prune.value_or(false);
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

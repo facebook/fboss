@@ -29,6 +29,9 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(Ars, NextHopGroupType);
 #endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(Ars, SourcePortPrune);
+#endif
 }
 #endif
 
