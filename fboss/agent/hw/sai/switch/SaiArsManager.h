@@ -52,6 +52,7 @@ class SaiArsManager {
   SaiArsHandle* getArsHandle() const;
   SaiArsHandle* getAlternateMemberArsHandle() const;
   SaiArsHandle* getVirtualArsGroupHandle() const;
+  SaiArsHandle* getStandbyArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
 #endif
 
@@ -64,6 +65,7 @@ class SaiArsManager {
   std::unique_ptr<SaiArsHandle> arsHandle_;
   std::unique_ptr<SaiArsHandle> alternateMemberArsHandle_;
   std::unique_ptr<SaiArsHandle> virtualArsGroupHandle_;
+  std::unique_ptr<SaiArsHandle> standbyArsHandle_;
 #endif
 };
 

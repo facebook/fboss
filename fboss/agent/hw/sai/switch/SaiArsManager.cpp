@@ -28,6 +28,7 @@ SaiArsManager::SaiArsManager(
   arsHandle_ = std::make_unique<SaiArsHandle>();
   alternateMemberArsHandle_ = std::make_unique<SaiArsHandle>();
   virtualArsGroupHandle_ = std::make_unique<SaiArsHandle>();
+  standbyArsHandle_ = std::make_unique<SaiArsHandle>();
 #endif
 }
 
@@ -60,6 +61,9 @@ void SaiArsManager::removeArs(
   if (virtualArsGroupHandle_->ars) {
     virtualArsGroupHandle_->ars.reset();
   }
+  if (standbyArsHandle_->ars) {
+    standbyArsHandle_->ars.reset();
+  }
 }
 
 void SaiArsManager::changeArs(
@@ -78,6 +82,10 @@ SaiArsHandle* SaiArsManager::getAlternateMemberArsHandle() const {
 
 SaiArsHandle* SaiArsManager::getVirtualArsGroupHandle() const {
   return virtualArsGroupHandle_.get();
+}
+
+SaiArsHandle* SaiArsManager::getStandbyArsHandle() const {
+  return standbyArsHandle_.get();
 }
 
 #endif
