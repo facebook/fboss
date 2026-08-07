@@ -35,6 +35,7 @@ cpp_library(
     ],
     deps = [
         "//fboss/agent:fboss-error",
+        "//fboss/agent:load_agent_config",
         "//fboss/agent/platforms/common/blackwolf800banw:blackwolf800banw_platform_mapping",
         "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
         "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",

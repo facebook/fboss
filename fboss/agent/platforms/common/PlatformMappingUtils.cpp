@@ -11,6 +11,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
@@ -65,6 +66,17 @@ std::vector<int> getFakeSaiControllingPortIDs() {
 } // namespace
 
 namespace facebook::fboss::utility {
+
+std::unique_ptr<PlatformMapping> initPlatformMapping(
+    PlatformType type,
+    const cfg::PlatformConfig& platformConfig) {
+  if (!FLAGS_use_raw_platform_mapping) {
+    return initPlatformMapping(type);
+  }
+  return std::make_unique<PlatformMapping>(
+      PlatformDescriptorRegistry::get().loadPlatformMappingFromRaw(
+          type, platformConfig));
+}
 
 std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
   std::string platformMappingStr;
