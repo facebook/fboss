@@ -303,7 +303,8 @@ void CmdShowInterfacePhy::printPmdLaneTxInfo(
        "Main",
        "Post1",
        "Post2",
-       "Post3"});
+       "Post3",
+       "Precoding"});
   for (auto pmdLane : pmdLanes) {
     auto laneState = (*sideState.pmd()->lanes())[pmdLane];
     auto txSettings = *laneState.txSettings();
@@ -318,6 +319,10 @@ void CmdShowInterfacePhy::printPmdLaneTxInfo(
     std::string post = std::to_string(*txSettings.post());
     std::string post2 = std::to_string(*txSettings.post2());
     std::string post3 = std::to_string(*txSettings.post3());
+    std::string precoding = "N/A";
+    if (auto txPrecoding = txSettings.precoding()) {
+      precoding = std::to_string(*txPrecoding);
+    }
     pmdTxTable.addRow(
         {"",
          std::to_string(pmdLane),
@@ -327,7 +332,8 @@ void CmdShowInterfacePhy::printPmdLaneTxInfo(
          main,
          post,
          post2,
-         post3});
+         post3,
+         precoding});
   }
   out << pmdTxTable;
 }
@@ -357,7 +363,9 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
        "RxEq1",
        "RxEqM",
        "RxEqP1",
-       "RxEqP2"});
+       "RxEqP2",
+       "RxReach",
+       "RxPrecoding"});
 
   for (const auto& [laneId, laneState] : *pmdState.lanes()) {
     auto serdesParams = laneState.serdesParameters();
@@ -380,6 +388,8 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
     std::string rxEqM = "N/A";
     std::string rxEqP1 = "N/A";
     std::string rxEqP2 = "N/A";
+    std::string rxReach = "N/A";
+    std::string rxPrecoding = "N/A";
 
     if (auto rvgaVal = serdesParams->rvga()) {
       rvga = std::to_string(*rvgaVal);
@@ -435,6 +445,12 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
     if (auto rxEqP2Val = serdesParams->rxEqP2()) {
       rxEqP2 = std::to_string(*rxEqP2Val);
     }
+    if (auto rxReachVal = serdesParams->rxReach()) {
+      rxReach = apache::thrift::util::enumNameSafe(*rxReachVal);
+    }
+    if (auto rxPrecodingVal = serdesParams->rxPrecoding()) {
+      rxPrecoding = std::to_string(*rxPrecodingVal);
+    }
 
     serdesTable.addRow({"",      std::to_string(laneId),
                         rvga,    dco,
@@ -445,7 +461,8 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
                         rxTap1,  rxTap2,
                         rxEq3,   rxEq2,
                         rxEq1,   rxEqM,
-                        rxEqP1,  rxEqP2});
+                        rxEqP1,  rxEqP2,
+                        rxReach, rxPrecoding});
   }
 
   out << serdesTable;

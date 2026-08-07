@@ -555,6 +555,8 @@ struct SerdesParameters {
   17: optional i32 rxEqP2;
   18: optional i32 rxPfLfq;
   19: optional i32 rxPfHfq;
+  20: optional RxReach rxReach;
+  21: optional i32 rxPrecoding;
 }
 
 struct LaneState {
