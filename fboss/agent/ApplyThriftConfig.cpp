@@ -5155,6 +5155,9 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
         "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
         "standbySwitchingMode to be set");
   }
+  if (config.sourcePortPrune()) {
+    newFlowletSwitchingConfig->setSourcePortPrune(*config.sourcePortPrune());
+  }
   return newFlowletSwitchingConfig;
 }
 
