@@ -14,6 +14,9 @@ using namespace ::testing;
 namespace facebook::fboss {
 
 namespace {
+constexpr auto kSharedNhIp = "2401:db00::1";
+constexpr std::array kGroupNames{"nhgA", "nhgB"};
+
 NextHopThrift makeNextHop(const std::string& ip) {
   NextHopThrift nh;
   nh.address() = facebook::network::toBinaryAddress(folly::IPAddress(ip));
@@ -24,26 +27,37 @@ NextHopThrift makeNextHop(const std::string& ip) {
 // dedup to a single NextHopSetId; the name-keyed getNamedNextHopGroups API
 // still returns both, one entry per name.
 std::vector<NextHopGroup> createSameSetNamedGroups() {
-  NextHopGroup groupA;
-  groupA.name() = "nhgA";
-  groupA.isProgrammed() = true;
-  groupA.nexthops() = {makeNextHop("2401:db00::1")};
+  std::vector<NextHopGroup> groups;
+  for (const auto& name : kGroupNames) {
+    NextHopGroup group;
+    group.name() = name;
+    group.isProgrammed() = true;
+    group.nexthops() = {makeNextHop(kSharedNhIp)};
+    groups.push_back(std::move(group));
+  }
+  return groups;
+}
 
-  NextHopGroup groupB;
-  groupB.name() = "nhgB";
-  groupB.isProgrammed() = true;
-  groupB.nexthops() = {makeNextHop("2401:db00::1")};
-
-  return {groupA, groupB};
+// Expected CLI rows for createSameSetNamedGroups(): a full-object expectation
+// covering every displayed attribute (name, isNamed, programmed state, and the
+// formatted nexthop string), so a mismatch pinpoints the offending field. A
+// bare nexthop (weight 0, no interface/cost/SRv6/backup) formats to just its
+// address.
+std::vector<cli::NextHopGroupEntry> expectedNamedEntries() {
+  std::vector<cli::NextHopGroupEntry> entries;
+  for (const auto& name : kGroupNames) {
+    cli::NextHopGroupEntry entry;
+    entry.name() = name;
+    entry.isNamed() = true;
+    entry.programmed() = "yes";
+    entry.nextHops() = {kSharedNhIp};
+    entries.push_back(std::move(entry));
+  }
+  return entries;
 }
 } // namespace
 
-class CmdShowNamedNextHopGroupsTestFixture : public CmdHandlerTestBase {
- public:
-  void SetUp() override {
-    CmdHandlerTestBase::SetUp();
-  }
-};
+class CmdShowNamedNextHopGroupsTestFixture : public CmdHandlerTestBase {};
 
 // Two named groups sharing one next-hop set must both appear in the listing.
 // This is the regression guard for the collapse bug: the command must query the
@@ -58,14 +72,9 @@ TEST_F(CmdShowNamedNextHopGroupsTestFixture, queryClientReturnsBothSharedSet) {
   auto cmd = CmdShowNamedNextHopGroups();
   auto model = cmd.queryClient(localhost());
 
-  const auto& entries = model.nextHopGroups().value();
-  ASSERT_EQ(entries.size(), 2);
-
-  std::vector<std::string> names{
-      entries[0].name().value(), entries[1].name().value()};
-  std::sort(names.begin(), names.end());
-  const std::vector<std::string> expected{"nhgA", "nhgB"};
-  EXPECT_EQ(names, expected);
+  EXPECT_THAT(
+      model.nextHopGroups().value(),
+      UnorderedElementsAreArray(expectedNamedEntries()));
 }
 
 } // namespace facebook::fboss
