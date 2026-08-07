@@ -56,7 +56,11 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowNdpTest.cpp
   fboss/cli/fboss2/test/CmdShowAggregatePortTest.cpp
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
+  fboss/cli/fboss2/test/CmdShowDsfNodesTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricReachabilityTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricTopologyTest.cpp
   fboss/cli/fboss2/test/CmdShowFlowletTest.cpp
   fboss/cli/fboss2/test/CmdShowFsdbTest.cpp
   fboss/cli/fboss2/test/CmdShowHostTest.cpp

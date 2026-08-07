@@ -11,6 +11,7 @@
 #pragma once
 
 #include <map>
+#include <string_view>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/gen-cpp2/model_types.h"
@@ -24,6 +25,10 @@ struct CmdShowDsfNodesTraits : public ReadCommandTraits {
   using RetType = cli::ShowDsfNodesModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowDsfNodes
@@ -34,6 +39,10 @@ class CmdShowDsfNodes
   RetType queryClient(const HostInfo& hostInfo);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
   RetType createModel(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss
