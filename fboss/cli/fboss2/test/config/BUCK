@@ -24,6 +24,7 @@ cpp_unittest(
         "CmdConfigBgpPolicyPrefixListEntryTest.cpp",
         "CmdConfigBgpPolicyPrefixListTest.cpp",
         "CmdConfigBgpPolicyRoutingPolicyTest.cpp",
+        "CmdConfigBgpPolicyRoutingPolicyTermTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDataPlaneTrafficPolicyTest.cpp",
         "CmdConfigDhcpTest.cpp",
@@ -80,6 +81,7 @@ cpp_unittest(
         "CmdDeleteBgpPolicyCommunityListTest.cpp",
         "CmdDeleteBgpPolicyPrefixListTest.cpp",
         "CmdDeleteBgpPolicyRoutingPolicyTest.cpp",
+        "CmdDeleteBgpPolicyRoutingPolicyTermTest.cpp",
         "ProfileValidationTest.cpp",
     ],
     headers = [
