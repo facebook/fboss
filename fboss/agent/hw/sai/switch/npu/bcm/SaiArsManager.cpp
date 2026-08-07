@@ -84,6 +84,24 @@ void SaiArsManager::addArs(
             nextHopGroupType));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto standbySwitchingMode = flowletSwitchConfig->getStandbySwitchingMode();
+  if (standbySwitchingMode.has_value()) {
+    // ThriftConfigApplier guarantees the standby idle time and table size are
+    // set alongside the mode, and that the mode differs from the primary's.
+    setArsObject(
+        standbyArsHandle_.get(),
+        makeArsAttributes(
+            *standbySwitchingMode,
+            *flowletSwitchConfig->getStandbyInactivityIntervalUsecs(),
+            *flowletSwitchConfig->getStandbyFlowletTableSize(),
+            std::nullopt,
+            alternatePathCostForArs,
+            alternatePathBiasForArs,
+            nextHopGroupType));
+  }
+#endif
+
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
     setArsObject(
