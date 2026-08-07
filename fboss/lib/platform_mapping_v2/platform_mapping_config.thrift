@@ -39,6 +39,7 @@ enum CoreType {
   J4SIM_NIF = 11, // J4Sim
   J4_NIF = 12, // J4 NIF
   J4_FE = 13, // J4 Fabric
+  P200 = 14, // m5120
 
   // Transceivers
   OSFP = 100,
