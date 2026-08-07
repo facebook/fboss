@@ -67,6 +67,7 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip
     name = "fake_bcm_test_platforms",
     srcs = bcm_test_platforms_common_srcs
     + [
@@ -94,7 +95,6 @@ cpp_library(
         ":test_platform_types",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:fake_bcm",  # @manual
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib/fpga/facebook/fuji:fuji_container",
