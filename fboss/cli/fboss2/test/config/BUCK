@@ -17,6 +17,7 @@ cpp_unittest(
         "CmdConfigBgpPolicyAsPathListTest.cpp",
         "CmdConfigBgpPolicyCommunityListCommunityTest.cpp",
         "CmdConfigBgpPolicyCommunityListTest.cpp",
+        "CmdConfigBgpPolicyPrefixListEntryTest.cpp",
         "CmdConfigBgpPolicyPrefixListTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDhcpTest.cpp",
