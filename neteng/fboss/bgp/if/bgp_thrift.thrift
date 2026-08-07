@@ -398,6 +398,13 @@ struct TUpdateGroupKey {
 
   /* Whether peer has per-peer egress policy override. */
   17: bool peer_override;
+
+  /*
+   * Whether IPv4-unicast announcements to this group use RFC 4271 classic NLRI
+   * + NEXT_HOP (for peers that advertised no MP-EXT capability) instead of
+   * MP_REACH_NLRI.
+   */
+  18: bool legacy_v4_nlri_encoding;
 }
 
 /**
