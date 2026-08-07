@@ -436,6 +436,10 @@ void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out) {
   if (folly::copy(details.ipv6_unicast().value())) {
     out << "    Multiprotocol IPv6 Unicast: negotiated" << std::endl;
   }
+  if (folly::copy(details.legacy_v4_nlri_encoding().value())) {
+    out << "    Legacy v4 NLRI encoding (RFC 4271 classic NLRI + NEXT_HOP): yes"
+        << std::endl;
+  }
   if (folly::copy(details.rr_client().value())) {
     out << "    Route Refresh: advertised" << std::endl;
   }
