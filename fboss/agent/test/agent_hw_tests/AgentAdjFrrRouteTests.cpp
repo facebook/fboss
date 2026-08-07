@@ -21,8 +21,11 @@ namespace facebook::fboss {
 
 class AgentAdjFrrRouteTest : public AgentHwTest {
  protected:
+  static constexpr size_t kNumRouteNextHops = 5;
+  static constexpr size_t kNumRequiredPhyLoopbackPorts = kNumRouteNextHops + 1;
+
   std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return 6;
+    return std::nullopt;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -39,6 +42,15 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /* interfaceHasSubnet */);
+    phyLoopbackPortIds_.clear();
+    // BRCM switches require PHY loopback for FRR link
+    // state detection.
+    for (auto& port : *config.ports()) {
+      if (*port.speed() == cfg::PortSpeed::EIGHTHUNDREDG) {
+        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+        phyLoopbackPortIds_.emplace_back(*port.logicalID());
+      }
+    }
     utility::addFlowletConfigs(
         config,
         ensemble.masterLogicalPortIds(),
@@ -51,19 +63,26 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_flowletSwitchingEnable = true;
   }
+
+  mutable std::vector<PortID> phyLoopbackPortIds_;
 };
 
 TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
   auto setup = [this]() {
-    utility::EcmpSetupAnyNPorts<folly::IPAddressV6> ecmpHelper(
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    boost::container::flat_set<PortDescriptor> nextHopPorts;
+    for (size_t i = 0; i < kNumRouteNextHops; ++i) {
+      nextHopPorts.emplace(phyLoopbackPortIds_.at(i));
+    }
     applyNewState([&](const std::shared_ptr<SwitchState>& state) {
-      return ecmpHelper.resolveNextHops(state, 5);
+      return ecmpHelper.resolveNextHops(state, nextHopPorts);
     });
 
-    auto makeNextHop = [&ecmpHelper](int index, NextHopRole role) {
+    auto makeNextHop = [this, &ecmpHelper](size_t index, NextHopRole role) {
       return UnresolvedNextHop(
-          ecmpHelper.ip(index),
+          ecmpHelper.ip(PortDescriptor(phyLoopbackPortIds_.at(index))),
           ECMP_WEIGHT,
           std::nullopt,
           std::nullopt,
@@ -95,11 +114,10 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
 
   auto verify = [this]() {
     constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
     auto state = getProgrammedState();
-    utility::EcmpSetupAnyNPorts<folly::IPAddressV6> ecmpHelper(
-        state, getSw()->needL2EntryForNeighbor());
-    auto primaryPort = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
-    auto injectionPort = ecmpHelper.ecmpPortDescriptorAt(5).phyPortID();
+    auto primaryPort = phyLoopbackPortIds_.at(0);
+    auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
     auto primaryPortState = state->getPorts()->getNode(primaryPort);
     auto injectionPortState = state->getPorts()->getNode(injectionPort);
     XLOG(INFO) << "Injecting traffic through port "
