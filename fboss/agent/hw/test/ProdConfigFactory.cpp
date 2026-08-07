@@ -102,6 +102,7 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_WEDGE800CACT:
     case PM::PLATFORM_WEDGE800CNHP:
     case PM::PLATFORM_WEDGE800BACT:
+    case PM::PLATFORM_WEDGE800BNHP:
     case PM::PLATFORM_WEDGE400:
     case PM::PLATFORM_YAMP:
     case PM::PLATFORM_MORGAN800CC:
@@ -150,6 +151,7 @@ cfg::PortSpeed getPortSpeed(PlatformType platformType) {
     case PlatformType::PLATFORM_TAHAN800BC:
     case PlatformType::PLATFORM_TAHANSB800BC:
     case PlatformType::PLATFORM_WEDGE800BACT:
+    case PlatformType::PLATFORM_WEDGE800BNHP:
     case PlatformType::PLATFORM_WEDGE800CACT:
     case PlatformType::PLATFORM_WEDGE800CNHP:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
