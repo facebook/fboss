@@ -30,6 +30,7 @@ cpp_binary(
         "ConfigBgpPolicyPrefixListEntryTest.cpp",
         "ConfigBgpPolicyPrefixListTest.cpp",
         "ConfigBgpPolicyRoutingPolicyTest.cpp",
+        "ConfigBgpPolicyRoutingPolicyTermTest.cpp",
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
