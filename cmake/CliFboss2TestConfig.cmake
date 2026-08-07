@@ -17,6 +17,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyCommunityListTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyCommunityListCommunityTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigBgpPolicyPrefixListTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigBgpPolicyPrefixListEntryTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigCoppTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigDhcpTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigHostnameTest.cpp

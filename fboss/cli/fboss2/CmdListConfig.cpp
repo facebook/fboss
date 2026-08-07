@@ -47,6 +47,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/community/CmdConfigProtocolBgpPolicyCommunityListCommunity.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/CmdConfigProtocolBgpPolicyPrefixList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/prefix-list/entry/CmdConfigProtocolBgpPolicyPrefixListEntry.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -464,6 +465,18 @@ const CommandTree& kConfigCommandTree() {
                                    CmdConfigProtocolBgpPolicyPrefixList>,
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyPrefixListTraits>,
+                               {{
+                                   "entry",
+                                   "Configure a prefix-list entry: <seq-num> "
+                                   "[<attribute> <value> ...] (base-prefix, "
+                                   "communities, description, match-logic, "
+                                   "max-allowed-subnet-count, "
+                                   "prefix-len-range, regex)",
+                                   commandHandler<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntry>,
+                                   argRegistrar<
+                                       CmdConfigProtocolBgpPolicyPrefixListEntryTraits>,
+                               }},
                            }},
                       },
                   },
