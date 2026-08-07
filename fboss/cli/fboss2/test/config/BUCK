@@ -12,6 +12,7 @@ cpp_unittest(
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
         "CmdConfigBgpNeighborTest.cpp",
+        "CmdConfigBgpPeerGroupTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDhcpTest.cpp",
         "CmdConfigHistoryTest.cpp",
@@ -59,6 +60,7 @@ cpp_unittest(
         "CmdDeleteTunnelIpInIpTest.cpp",
         "CmdDeleteVlanTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdDeleteBgpPeerGroupTest.cpp",
         "ProfileValidationTest.cpp",
     ],
     headers = [
