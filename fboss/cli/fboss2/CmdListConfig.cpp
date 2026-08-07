@@ -45,6 +45,7 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/entry/CmdConfigProtocolBgpPolicyAsPathListEntry.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/CmdConfigProtocolBgpPolicyCommunityList.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/community-list/community/CmdConfigProtocolBgpPolicyCommunityListCommunity.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -440,6 +441,16 @@ const CommandTree& kConfigCommandTree() {
                                    CmdConfigProtocolBgpPolicyCommunityList>,
                                argRegistrar<
                                    CmdConfigProtocolBgpPolicyCommunityListTraits>,
+                               {{
+                                   "community",
+                                   "Configure a community-list community: "
+                                   "<name> [<attribute> <value> ...] "
+                                   "(description, type, value)",
+                                   commandHandler<
+                                       CmdConfigProtocolBgpPolicyCommunityListCommunity>,
+                                   argRegistrar<
+                                       CmdConfigProtocolBgpPolicyCommunityListCommunityTraits>,
+                               }},
                            }},
                       },
                   },
