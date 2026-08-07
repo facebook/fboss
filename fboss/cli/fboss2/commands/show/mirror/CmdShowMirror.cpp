@@ -208,6 +208,30 @@ CmdShowMirror::RetType CmdShowMirror::createModel(
   return model;
 }
 
+std::string_view CmdShowMirrorTraits::description() {
+  return "Displays configured traffic mirror / sFlow sessions: each mirror's resolution status, egress port, tunnel type (GRE or sFlow), tunnel source/destination MAC, IP and UDP ports, DSCP, and TTL. Use it to verify mirroring and sFlow export configuration.";
+}
+
+CmdShowMirror::RetType CmdShowMirror::sampleModel() {
+  RetType model;
+  cli::ShowMirrorModelEntry entry;
+  entry.mirror() = "fboss_dcflow_traffic_mirror";
+  entry.status() = "Active";
+  entry.egressPort() = "5";
+  entry.egressPortName() = "eth3/5/1";
+  entry.mirrorTunnelType() = "sFlow";
+  entry.srcMAC() = "02:00:11:22:33:01";
+  entry.srcIP() = "2001:db8:a::1";
+  entry.srcUDPPort() = "12355";
+  entry.dstMAC() = "02:00:11:22:33:02";
+  entry.dstIP() = "2001:db8:b::1";
+  entry.dstUDPPort() = "6343";
+  entry.dscp() = "42";
+  entry.ttl() = "127";
+  model.mirrorEntries()->push_back(entry);
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowMirror, CmdShowMirrorTraits>::run();
 
