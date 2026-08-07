@@ -16,7 +16,16 @@
 
 using namespace facebook::fboss;
 
-class ArsManagerTest : public ManagerTestBase {};
+class ArsManagerTest : public ManagerTestBase {
+ protected:
+  std::shared_ptr<FlowletSwitchingConfig> makeFlowletSwitchingConfig() {
+    auto fsc = std::make_shared<FlowletSwitchingConfig>();
+    fsc->setInactivityIntervalUsecs(1000);
+    fsc->setFlowletTableSize(2000);
+    fsc->setSwitchingMode(cfg::SwitchingMode::FLOWLET_QUALITY);
+    return fsc;
+  }
+};
 
 TEST_F(ArsManagerTest, testArsManager) {
   std::shared_ptr<FlowletSwitchingConfig> oldFsc =
@@ -68,6 +77,39 @@ TEST_F(ArsManagerTest, testArsManager) {
   alternateArsHandle =
       saiManagerTable->arsManager().getAlternateMemberArsHandle();
   EXPECT_EQ(alternateArsHandle->ars, nullptr);
+}
+
+// changeArs() routes through addArs(), so a config that stops asking for a
+// standby object must tear down one an earlier config created rather than
+// leave it orphaned in the store.
+// Same teardown, but reached by the standby mode becoming equal to the
+// primary's rather than by the field being cleared.
+// Mode is the only thing distinguishing the standby AdapterHostKey from the
+// primary's, so an identical mode must be skipped rather than silently
+// reprogramming the primary with the standby idle time / table size.
+TEST_F(ArsManagerTest, testSourcePortPrune) {
+  auto fsc = makeFlowletSwitchingConfig();
+  fsc->setSourcePortPrune(true);
+
+  saiManagerTable->arsManager().addArs(fsc);
+
+  auto arsSaiId =
+      saiManagerTable->arsManager().getArsHandle()->ars->adapterKey();
+  EXPECT_TRUE(saiApiTable->arsApi().getAttribute(
+      arsSaiId, SaiArsTraits::Attributes::SourcePortPrune{}));
+}
+
+// Opt-in: platforms whose adapter rejects the attribute must never be asked to
+// program it, so an unset config field means the attribute is not sent.
+TEST_F(ArsManagerTest, testSourcePortPruneUnsetByDefault) {
+  auto fsc = makeFlowletSwitchingConfig();
+
+  saiManagerTable->arsManager().addArs(fsc);
+
+  auto arsSaiId =
+      saiManagerTable->arsManager().getArsHandle()->ars->adapterKey();
+  EXPECT_FALSE(saiApiTable->arsApi().getAttribute(
+      arsSaiId, SaiArsTraits::Attributes::SourcePortPrune{}));
 }
 
 TEST_F(ArsManagerTest, testAlternateArsManager) {
