@@ -35,6 +35,13 @@
               "startAdapterIndex": 0,
               "numAdapters": 10
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCM_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
           ]
         }
       ],
@@ -214,6 +221,13 @@
               "startPort": 129,
               "numPorts": 1
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SMB0_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
           ]
         },
         {
@@ -350,6 +364,13 @@
               "startPort": 97,
               "numPorts": 32
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SMB1_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
           ]
         }
       ],
@@ -432,6 +453,7 @@
     "/run/devmap/sensors/DPM_2": "/[DPM_2]",
     "/run/devmap/sensors/SWITCH_CARD_TEMP_SENSOR": "/SMB_SLOT@0/[SWITCH_CARD_TEMP_SENSOR]",
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
+    "/run/devmap/inforoms/SCM_IOB_INFO_ROM": "/[SCM_IOB_INFO_ROM]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_0": "/[SCM_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_1": "/[SCM_IOB_I2C_1]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_2": "/[SCM_IOB_I2C_2]",
@@ -444,6 +466,8 @@
     "/run/devmap/i2c-busses/SCM_IOB_I2C_9": "/[SCM_IOB_I2C_9]",
     "/run/devmap/fpgas/SMB_IOB_0": "/SMB_SLOT@0/[SMB_IOB_0]",
     "/run/devmap/fpgas/SMB_IOB_1": "/SMB_SLOT@0/[SMB_IOB_1]",
+    "/run/devmap/inforoms/SMB0_IOB_INFO_ROM": "/SMB_SLOT@0/[SMB0_IOB_INFO_ROM]",
+    "/run/devmap/inforoms/SMB1_IOB_INFO_ROM": "/SMB_SLOT@0/[SMB1_IOB_INFO_ROM]",
     "/run/devmap/sensors/ASIC_TEMP": "/SMB_SLOT@0/[SMB_IOB_ASIC_TEMP]",
     "/run/devmap/sensors/PSU_PRESENT": "/SMB_SLOT@0/[SMB_IOB_PSU_PRESENT]",
     "/run/devmap/i2c-busses/SMB0_IOB_I2C_0": "/SMB_SLOT@0/[SMB0_IOB_I2C_0]",
