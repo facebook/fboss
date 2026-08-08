@@ -282,11 +282,18 @@ PortRifNeighbor::PortRifNeighbor(
   auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       manager_->getSwitchSaiId(), rifSaiId, ip);
+  // Broadcom NPU SAI rejects SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL on PORT-type
+  // RIF neighbors with SAI_STATUS_FAILURE.  Don't pass it for PORT; the SAI
+  // default (true) is used instead.  SYSTEM_PORT (VOQ) still requires it.
+  std::optional<SaiNeighborTraits::Attributes::IsLocal> isLocalSai;
+  if (intfType_ != cfg::InterfaceType::PORT) {
+    isLocalSai = isLocal;
+  }
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       std::get<folly::MacAddress>(intfIDAndIpAndMac),
       metadata,
       encapIndex,
-      isLocal,
+      isLocalSai,
       noHostRoute};
   neighbor_ = manager_->createSaiObject(adapterHostKey, createAttributes);
   handle_->neighbor = neighbor_.get();
