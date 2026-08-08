@@ -81,6 +81,10 @@
       "metaMacOuis": [],
       "needL2EntryForNeighbor": true
     },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {},
     "defaultVoqConfig": [],
     "aclTableGroups": [
