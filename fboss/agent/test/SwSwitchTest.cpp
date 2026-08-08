@@ -10,7 +10,9 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -26,12 +28,15 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonFileUtils.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 
-#include <algorithm>
+#include <atomic>
+#include <thread>
+#include <vector>
 
 using namespace facebook::fboss;
 using folly::IPAddressV4;
@@ -336,6 +341,38 @@ TEST_F(SwSwitchTest, gracefulExit) {
   sw->gracefulExit();
 }
 
+TEST_F(SwSwitchTest, gracefulExitSavesWarmBootState) {
+  auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state);
+  };
+  sw->updateStateBlocking("Bring Ports Up", bringPortsUpUpdateFn);
+
+  const auto* dirUtil = sw->getDirUtil();
+  auto canWarmBootFile = dirUtil->getSwSwitchCanWarmBootFile();
+  EXPECT_FALSE(checkFileExists(canWarmBootFile));
+
+  // Persists warm-boot state and sets the can_warm_boot marker.
+  sw->gracefulExit();
+
+  EXPECT_TRUE(checkFileExists(canWarmBootFile));
+}
+
+TEST_F(SwSwitchTest, gracefulExitSkipWarmBootStateSave) {
+  auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
+    return bringAllPortsUp(state);
+  };
+  sw->updateStateBlocking("Bring Ports Up", bringPortsUpUpdateFn);
+
+  const auto* dirUtil = sw->getDirUtil();
+  auto canWarmBootFile = dirUtil->getSwSwitchCanWarmBootFile();
+  EXPECT_FALSE(checkFileExists(canWarmBootFile));
+
+  // Cold shutdown: no warm-boot state persisted, so no can_warm_boot marker.
+  sw->gracefulExit(true /* skipWarmBootStateSave */);
+
+  EXPECT_FALSE(checkFileExists(canWarmBootFile));
+}
+
 TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
   auto bringPortsUpUpdateFn = [](const std::shared_ptr<SwitchState>& state) {
     return bringAllPortsUp(state);
@@ -549,4 +586,37 @@ TEST_F(SwSwitchTest, FillFsdbStatsNullShelManager) {
   // Should not crash - shelManager_ is null on NPU switches
   // and the code must guard against that.
   EXPECT_NO_THROW(sw->fillFsdbStats());
+}
+
+TEST_F(SwSwitchTest, RequestGracefulShutdownUnregisteredIsNoOp) {
+  // No handler registered: must not crash.
+  EXPECT_NO_THROW(sw->requestGracefulShutdown());
+}
+
+TEST_F(SwSwitchTest, RequestGracefulShutdownRunsHandlerExactlyOnce) {
+  FbossEventBase evb("RequestGracefulShutdownTestEvb");
+  std::thread evbThread([&evb]() { evb.loopForever(); });
+  evb.waitUntilRunning();
+
+  std::atomic<int> callCount{0};
+  sw->registerGracefulShutdownHandler(
+      &evb, [&callCount]() { callCount.fetch_add(1); });
+
+  // Concurrent fires must collapse to a single handler invocation.
+  constexpr int kThreads = 8;
+  std::vector<std::thread> threads;
+  threads.reserve(kThreads);
+  for (int i = 0; i < kThreads; ++i) {
+    threads.emplace_back([this]() { sw->requestGracefulShutdown(); });
+  }
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  // Flush the event base so the enqueued handler has run.
+  evb.runInFbossEventBaseThreadAndWait([]() {});
+  evb.terminateLoopSoon();
+  evbThread.join();
+
+  EXPECT_EQ(callCount.load(), 1);
 }

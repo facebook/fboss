@@ -70,7 +70,11 @@ bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
                  << ": " << dirUtil->getHwColdBootOnceFile(switchIndex);
     }
 
-    std::exit(EXIT_SUCCESS);
+    // Schedule graceful teardown on the server's event base instead of exiting
+    // inline on this thrift stream cleanup thread.
+    lk.unlock();
+    sw_->requestGracefulShutdown();
+    return true;
   }
   if (FLAGS_exit_for_any_hw_disconnect) {
     XLOG(FATAL)
