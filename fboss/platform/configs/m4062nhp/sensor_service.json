@@ -24,6 +24,66 @@
             "lowerCriticalVal": 9
           },
           "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_TCTL_TEMP",
+          "sysfsPath": "/run/devmap/sensors/CPU_TEMP/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 95,
+            "upperCriticalVal": 120
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_TCCD1_TEMP",
+          "sysfsPath": "/run/devmap/sensors/CPU_TEMP/temp3_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 95,
+            "upperCriticalVal": 120
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "CPU_TCCD2_TEMP",
+          "sysfsPath": "/run/devmap/sensors/CPU_TEMP/temp4_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 95,
+            "upperCriticalVal": 120
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "NVME_COMPOSITE_TEMP",
+          "sysfsPath": "/run/devmap/sensors/NVME_TEMP/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 90,
+            "upperCriticalVal": 95
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "NIC_PHY_TEMP",
+          "sysfsPath": "/run/devmap/sensors/NIC_TEMP/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 110
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "NIC_MAC_TEMP",
+          "sysfsPath": "/run/devmap/sensors/NIC_TEMP/temp2_input",
+          "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 110
+          },
+          "compute": "@/1000.0"
         }
       ]
     },

@@ -59,6 +59,20 @@
           "isEeprom": true
         }
       ],
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "CPU_TEMP",
+          "sysfsPath": "/sys/bus/pci/drivers/k10temp/0000:00:18.3"
+        },
+        {
+          "pmUnitScopedName": "NVME_TEMP",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        },
+        {
+          "pmUnitScopedName": "NIC_TEMP",
+          "sysfsPath": "/sys/bus/pci/devices/0000:02:00.0"
+        }
+      ],
       "outgoingSlotConfigs": {
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT"
@@ -430,6 +444,9 @@
     "/run/devmap/eeproms/PSU4_EEPROM": "/SMB_SLOT@0/[PSU4_EEPROM]",
     "/run/devmap/sensors/DPM": "/[DPM]",
     "/run/devmap/sensors/DPM_2": "/[DPM_2]",
+    "/run/devmap/sensors/CPU_TEMP": "/[CPU_TEMP]",
+    "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
+    "/run/devmap/sensors/NIC_TEMP": "/[NIC_TEMP]",
     "/run/devmap/sensors/SWITCH_CARD_TEMP_SENSOR": "/SMB_SLOT@0/[SWITCH_CARD_TEMP_SENSOR]",
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_0": "/[SCM_IOB_I2C_0]",
