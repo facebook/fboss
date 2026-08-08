@@ -12,6 +12,10 @@ on:
     paths:
       - 'fboss-image/**'
 
+
+permissions:
+  contents: read
+
 jobs:
   Distro-Image-Build:
     runs-on: 32-core-ubuntu

@@ -11,6 +11,10 @@ on:
     # Run daily at 1:36PM UTC = 6:36AM PDT
     # Run daily at 7:36PM UTC = 12:36PM PDT
     - cron: '36 1,13,19 * * *'
+
+permissions:
+  contents: read
+
 jobs:
   Agent-Service-Build:
     runs-on: 32-core-ubuntu
