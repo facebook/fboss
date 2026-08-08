@@ -13,12 +13,9 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
-<<<<<<< HEAD
 #include "fboss/agent/AgentConfig.h"
-=======
 #include <gflags/gflags.h>
 #include "fboss/agent/InitHookRegistry.h"
->>>>>>> 178e092e05 (NOS-12717: Fix agent EventBase double-drive abort on graceful exit (#1593))
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
 #include "common/fb303/cpp/DefaultMonitor.h"
