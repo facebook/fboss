@@ -53,7 +53,8 @@ BENCHMARK(RxSlowPathArpBenchmark) {
     CHECK_GE(
         ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}).size(),
         1);
-    std::vector<PortID> ports = {ensemble.masterLogicalInterfacePortIds()[0]};
+    std::vector<PortID> ports = {ensemble.masterLogicalInterfacePortIds(
+        SwitchID(FLAGS_switch_id_for_testing))[0]};
 
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsicForTesting(l3Asics);
@@ -65,7 +66,12 @@ BENCHMARK(RxSlowPathArpBenchmark) {
               asic,
               ensemble.masterLogicalPortIds(),
               ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-              asic->desiredLoopbackModes())
+              asic->desiredLoopbackModes(),
+              true, /* interfaceHasSubnet */
+              utility::kBaseVlanId, /* baseVlanId */
+              true, /* optimizePortProfile */
+              true, /* setInterfaceMac */
+              ensemble.getSw()->getPlatformType())
         : utility::onePortPerInterfaceConfig(
               ensemble.getSw()->getPlatformMapping(),
               asic,
@@ -97,6 +103,8 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   std::optional<VlanID> vlanId{};
   if (intf->getType() == cfg::InterfaceType::VLAN) {
     vlanId = intf->getVlanID();
+    portDescriptor = PortDescriptor(ensemble->masterLogicalInterfacePortIds(
+        SwitchID(FLAGS_switch_id_for_testing))[0]);
   } else if (intf->getType() == cfg::InterfaceType::PORT) {
     portDescriptor = PortDescriptor(intf->getPortID());
   }
@@ -118,7 +126,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   std::map<int, CpuPortStats> cpuStatsBefore;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
-  auto statsBefore = cpuStatsBefore[0];
+  auto statsBefore = cpuStatsBefore[FLAGS_switch_id_for_testing];
   auto hwAsic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
   auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
       *statsBefore.portStats_(), utility::getCoppHighPriQueueId(hwAsic));
@@ -127,7 +135,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   std::map<int, CpuPortStats> cpuStatsAfter;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsAfter);
-  auto statsAfter = cpuStatsAfter[0];
+  auto statsAfter = cpuStatsAfter[FLAGS_switch_id_for_testing];
   auto [pktsAfter, bytesAfter] = utility::getCpuQueueOutPacketsAndBytes(
       *statsAfter.portStats_(), utility::getCoppHighPriQueueId(hwAsic));
   auto timeAfter = std::chrono::steady_clock::now();
