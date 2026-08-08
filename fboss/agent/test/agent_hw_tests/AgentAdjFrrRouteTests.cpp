@@ -17,10 +17,13 @@
 
 #include <folly/logging/xlog.h>
 
+#include <limits>
+
 namespace facebook::fboss {
 
 class AgentAdjFrrRouteTest : public AgentHwTest {
  protected:
+  static constexpr int kMaxLoadBalanceDeviationPct = 25;
   static constexpr size_t kNumRouteNextHops = 5;
   static constexpr size_t kNumRequiredPhyLoopbackPorts = kNumRouteNextHops + 1;
 
@@ -56,6 +59,8 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY);
+    config.loadBalancers()->push_back(
+        utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
     return config;
   }
 
@@ -70,14 +75,15 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
       int packetCount,
       const char* egressPortDescription) {
     CHECK(!egressPorts.empty());
-    auto getOutPkts = [this, &egressPorts]() {
+    auto getOutPkts = [&egressPorts](const auto& portStats) {
       uint64_t outPkts{0};
       for (auto port : egressPorts) {
-        outPkts += *getLatestPortStats(port).outUnicastPkts__ref();
+        outPkts += *portStats.at(port).outUnicastPkts__ref();
       }
       return outPkts;
     };
-    const auto beforeOutPkts = getOutPkts();
+    const auto beforePortStats = getLatestPortStats(egressPorts);
+    const auto beforeOutPkts = getOutPkts(beforePortStats);
 
     utility::pumpTraffic(
         true,
@@ -90,11 +96,31 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         packetCount);
 
     WITH_RETRIES({
-      const auto afterOutPkts = getOutPkts();
+      const auto afterPortStats = getLatestPortStats(egressPorts);
+      const auto afterOutPkts = getOutPkts(afterPortStats);
+      const auto [highestOutBytesIncrement, lowestOutBytesIncrement] =
+          utility::getHighestAndLowestBytesIncrement(
+              beforePortStats, afterPortStats);
+      const auto deviationPct = lowestOutBytesIncrement == 0
+          ? (highestOutBytesIncrement == 0
+                 ? 0.0
+                 : std::numeric_limits<double>::infinity())
+          : static_cast<double>(
+                highestOutBytesIncrement - lowestOutBytesIncrement) /
+              lowestOutBytesIncrement * 100.0;
       XLOG(INFO) << egressPortDescription
                  << " out packets before traffic: " << beforeOutPkts
-                 << ", after traffic: " << afterOutPkts;
+                 << ", after traffic: " << afterOutPkts
+                 << ", lowest out bytes increment: " << lowestOutBytesIncrement
+                 << ", highest out bytes increment: "
+                 << highestOutBytesIncrement << ", deviation: " << deviationPct
+                 << "%";
       EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + packetCount);
+      EXPECT_EVENTUALLY_TRUE(
+          utility::isDeviationWithinThreshold(
+              lowestOutBytesIncrement,
+              highestOutBytesIncrement,
+              kMaxLoadBalanceDeviationPct));
     });
   }
 
