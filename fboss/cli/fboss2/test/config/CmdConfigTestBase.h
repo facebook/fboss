@@ -52,6 +52,8 @@ class CmdConfigTestBase : public CmdHandlerTestBase {
 
   // For now, we only support one command line per TestableConfigSession
   void setupTestableConfigSession();
+  // Installs a SessionInit::ReadOnly session, as read-only commands do.
+  void setupReadOnlyTestableConfigSession();
   void setupTestableConfigSession(
       const std::string& cmdPrefix,
       const std::string& cmdArgs);
