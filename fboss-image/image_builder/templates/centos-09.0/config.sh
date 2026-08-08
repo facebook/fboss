@@ -393,7 +393,7 @@ systemctl enable fboss_hw_agents.target
 
 # 8. Fix NetworkManager connection profile permissions
 # NM ignores profiles that are world-readable
-chmod 600 /etc/NetworkManager/system-connections/eth0.nmconnection
+chmod 600 /etc/NetworkManager/system-connections/*.nmconnection
 
 # 9. Done! Cleanup and install additional packages
 echo "Cleaning up /repos directory..."
