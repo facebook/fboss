@@ -4776,7 +4776,8 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "wedge800cact") {
+    } else if (
+        FLAGS_platform == "wedge800cact" || FLAGS_platform == "wedge800cnhp") {
       auto systemContainer = BspGenericSystemContainer<
                                  Wedge800CACTBspPlatformMapping>::getInstance()
                                  .get();
@@ -4889,7 +4890,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800CACT ||
+      mode == PlatformType::PLATFORM_WEDGE800CNHP) {
     auto systemContainer =
         BspGenericSystemContainer<Wedge800CACTBspPlatformMapping>::getInstance()
             .get();
