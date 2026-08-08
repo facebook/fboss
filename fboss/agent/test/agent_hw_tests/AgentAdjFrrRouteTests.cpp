@@ -64,6 +64,40 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     FLAGS_flowletSwitchingEnable = true;
   }
 
+  void sendTrafficAndVerifyOutPackets(
+      PortID injectionPort,
+      const std::vector<PortID>& egressPorts,
+      int packetCount,
+      const char* egressPortDescription) {
+    CHECK(!egressPorts.empty());
+    auto getOutPkts = [this, &egressPorts]() {
+      uint64_t outPkts{0};
+      for (auto port : egressPorts) {
+        outPkts += *getLatestPortStats(port).outUnicastPkts__ref();
+      }
+      return outPkts;
+    };
+    const auto beforeOutPkts = getOutPkts();
+
+    utility::pumpTraffic(
+        true,
+        utility::getAllocatePktFn(getAgentEnsemble()),
+        utility::getSendPktFunc(getAgentEnsemble()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+        getVlanIDForTx(),
+        injectionPort,
+        255,
+        packetCount);
+
+    WITH_RETRIES({
+      const auto afterOutPkts = getOutPkts();
+      XLOG(INFO) << egressPortDescription
+                 << " out packets before traffic: " << beforeOutPkts
+                 << ", after traffic: " << afterOutPkts;
+      EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + packetCount);
+    });
+  }
+
   mutable std::vector<PortID> phyLoopbackPortIds_;
 };
 
@@ -118,6 +152,7 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
     auto state = getProgrammedState();
     auto primaryPort = phyLoopbackPortIds_.at(0);
     auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    const std::vector<PortID> primaryPorts{primaryPort};
     std::vector<PortID> backupPorts(
         phyLoopbackPortIds_.begin() + 1,
         phyLoopbackPortIds_.begin() + kNumRouteNextHops);
@@ -127,48 +162,30 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
                << injectionPortState->getName() << " (" << injectionPort
                << "); checking primary next-hop port "
                << primaryPortState->getName() << " (" << primaryPort << ")";
-    auto beforeOutPkts = *getLatestPortStats(primaryPort).outUnicastPkts__ref();
+    sendTrafficAndVerifyOutPackets(
+        injectionPort, primaryPorts, kPacketCount, "Primary");
 
-    auto pumpTestTraffic = [this, injectionPort](int packetCount) {
-      utility::pumpTraffic(
-          true,
-          utility::getAllocatePktFn(getAgentEnsemble()),
-          utility::getSendPktFunc(getAgentEnsemble()),
-          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
-          getVlanIDForTx(),
-          injectionPort,
-          255,
-          packetCount);
-    };
-    pumpTestTraffic(kPacketCount);
-
-    WITH_RETRIES({
-      auto afterOutPkts =
-          *getLatestPortStats(primaryPort).outUnicastPkts__ref();
-      XLOG(INFO) << "Primary out packets before traffic: " << beforeOutPkts
-                 << ", after traffic: " << afterOutPkts;
-      EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + kPacketCount);
-    });
-
-    auto getBackupOutPkts = [this, &backupPorts]() {
-      uint64_t outPkts{0};
-      for (auto port : backupPorts) {
-        outPkts += *getLatestPortStats(port).outUnicastPkts__ref();
-      }
-      return outPkts;
-    };
     bringDownPort(primaryPort);
-    auto beforeBackupOutPkts = getBackupOutPkts();
-    pumpTestTraffic(kPacketCount);
+    sendTrafficAndVerifyOutPackets(
+        injectionPort, backupPorts, kPacketCount, "Backup");
 
-    WITH_RETRIES({
-      auto afterBackupOutPkts = getBackupOutPkts();
-      XLOG(INFO) << "Backup out packets before traffic: " << beforeBackupOutPkts
-                 << ", after traffic: " << afterBackupOutPkts;
-      EXPECT_EVENTUALLY_EQ(
-          afterBackupOutPkts, beforeBackupOutPkts + kPacketCount);
-    });
     bringUpPort(primaryPort);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const boost::container::flat_set<PortDescriptor> primaryNextHopPorts{
+        PortDescriptor(primaryPort)};
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.unresolveNextHops(state, primaryNextHopPorts);
+    });
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, primaryNextHopPorts);
+    });
+
+    sendTrafficAndVerifyOutPackets(
+        injectionPort,
+        primaryPorts,
+        kPacketCount,
+        "Primary after next-hop re-resolution");
   };
 
   verifyAcrossWarmBoots(setup, verify);
