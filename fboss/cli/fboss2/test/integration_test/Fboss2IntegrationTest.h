@@ -206,23 +206,32 @@ class Fboss2IntegrationTest : public ::testing::Test {
 
   /**
    * Pick a random INTERFACE_PORT for testing and return its name.
-   *
-   * Candidates come from the agent's getAllPortInfo() and are restricted to
-   * INTERFACE_PORT ports, so the returned port is always L3-resolvable via
-   * getInterfaceIdForPort(). (Other port types such as MANAGEMENT_PORT may
-   * carry a virtual L3 interface whose member ports the agent omits from
-   * getAllInterfaces(), which would break port->interface lookups.) Ports that
-   * are operationally up are strongly preferred — if at least one is up, a
-   * random up port is chosen; otherwise a random INTERFACE_PORT is chosen.
-   * Throws if no INTERFACE_PORT exists.
-   *
-   * The selection is randomized (thread-local mt19937) to reduce the chance
-   * of piling test load onto the same port across back-to-back runs.
-   *
-   * Callers that need the full Interface object (vlan/addresses/description)
-   * should pass the returned name to getInterfaceInfo().
+   * Equivalent to getRandomInterfacePortNames(1), but throws if no
+   * INTERFACE_PORT exists.
    */
   std::string getRandomInterfacePortName() const;
+
+  /**
+   * Pick `count` distinct random INTERFACE_PORTs and return their names.
+   *
+   * Candidates come from the agent's getAllPortInfo() and are restricted to
+   * INTERFACE_PORT ports, so the returned ports are always L3-resolvable via
+   * getInterfaceIdForPort(). (Other port types such as MANAGEMENT_PORT may
+   * carry a virtual L3 interface whose member ports the agent omits from
+   * getAllInterfaces(), which would break port->interface lookups.) Ports
+   * that are operationally up are strongly preferred — if enough are up, the
+   * selection is drawn from those, otherwise from all INTERFACE_PORTs.
+   * Retries while the agent settles; returns fewer than `count` (possibly
+   * zero) if the switch doesn't have enough.
+   *
+   * The selection is randomized (thread-local mt19937) to reduce the chance
+   * of piling test load onto the same ports across back-to-back runs; the
+   * chosen ports are logged so failures can be traced.
+   *
+   * Callers that need the full Interface object (vlan/addresses/description)
+   * should pass the returned names to getInterfaceInfo().
+   */
+  std::vector<std::string> getRandomInterfacePortNames(size_t count) const;
 
   /**
    * Find the first ethernet interface that has a non-zero MTU reported by
@@ -327,6 +336,12 @@ class Fboss2IntegrationTest : public ::testing::Test {
   PlatformMapping fetchPlatformMapping() const;
 
   /**
+   * The DUT's product name from the agent (via getProductInfo), e.g.
+   * "NH4010F". Useful for skipping tests on platforms with known issues.
+   */
+  std::string agentProductName() const;
+
+  /**
    * Ports currently present in the agent (subsumed/removed ports are absent),
    * keyed by logical id.
    */
@@ -385,6 +400,23 @@ class Fboss2IntegrationTest : public ::testing::Test {
   void discardSession() const;
 
   /**
+   * Serialize the system config (/etc/coop/agent.conf, which a fresh
+   * ConfigSession materializes). Snapshot in SetUp(), pass to
+   * restoreConfig() in TearDown() to leave the DUT as found even when a
+   * test fails mid-way.
+   */
+  std::string snapshotConfig() const;
+
+  /**
+   * Commit a snapshotConfig() snapshot back with an agent warmboot and wait
+   * for the agent. Goes through the ConfigSession API: commit() only
+   * restarts services for actions accumulated by saveConfig(), so a config
+   * written to the session file directly gets git-committed but never
+   * applied.
+   */
+  void restoreConfig(const std::string& configJson) const;
+
+  /**
    * Wait until the FBOSS agent is responsive (ready to serve thrift requests).
    * Polls 'show interface' until it succeeds or timeout is reached.
    * Use this after triggering a warmboot or coldboot restart.
@@ -392,6 +424,14 @@ class Fboss2IntegrationTest : public ::testing::Test {
    */
   void waitForAgentReady(
       std::chrono::seconds timeout = std::chrono::seconds(120)) const;
+
+  /**
+   * Dump systemd unit status and the tail of the agent log to stderr.
+   * Called from waitForAgentReady() on timeout so CI output captures why the
+   * agent never became reachable (otherwise we only see "connection refused"
+   * polls and have nothing to triage from).
+   */
+  void dumpAgentDiagnostics() const;
 
   /**
    * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
