@@ -76,16 +76,22 @@ bool OvertempCondition::checkIfOvertemp() {
   for (auto overtempItem = entries.begin(); overtempItem != entries.end();
        overtempItem++) {
     auto& entry = overtempItem->second;
-    if (entry.length == 0) {
+    if (entry.length < entry.slidingWindowSize) {
       return false;
     }
-    float movingAverage = entry.sumTotal / entry.length;
-    if (movingAverage > entry.overtempThreshold) {
+    bool isOvertemp = true;
+    for (auto sensorRead : entry.sensorReads) {
+      if (sensorRead <= entry.overtempThreshold) {
+        isOvertemp = false;
+        break;
+      }
+    }
+    if (isOvertemp) {
       XLOG(ERR) << fmt::format(
-          "Overtemp condition detected for sensor:{} value:{}, entry_count:{}",
+          "Overtemp condition detected for sensor:{} threshold:{}, window_size:{}",
           entry.sensorName,
-          movingAverage,
-          entry.length);
+          entry.overtempThreshold,
+          entry.slidingWindowSize);
       overtempCount++;
     }
   }
