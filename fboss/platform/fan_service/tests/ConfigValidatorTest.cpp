@@ -107,3 +107,32 @@ TEST(ConfigValidatorTest, ZoneConfig) {
   EXPECT_TRUE(
       ConfigValidator().isValidZoneConfig(zone, {fan}, {sensor}, {optic}));
 }
+
+TEST(ConfigValidatorTest, DeadFanShutdownCondition) {
+  auto config = FanServiceConfig();
+  config.shutdownCmd() = "";
+  config.pwmTransitionValue() = 50;
+  config.fans() = {};
+  config.zones() = {};
+  config.sensors() = {};
+  config.optics() = {};
+  config.deadFanShutdownCondition() = DeadFanShutdownCondition();
+
+  config.deadFanShutdownCondition()->numDeadFans() = 0;
+  config.deadFanShutdownCondition()->fanDeadShutdownCmds() = {"shutdown asic"};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.deadFanShutdownCondition()->numDeadFans() = 2;
+  config.deadFanShutdownCondition()->fanDeadShutdownCmds() = {};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.deadFanShutdownCondition()->fanDeadShutdownCmds() = {""};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.deadFanShutdownCondition()->fanDeadShutdownCmds() = {"shutdown asic"};
+  config.deadFanShutdownCondition()->fanDeadPwmValue() = 101;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.deadFanShutdownCondition()->fanDeadPwmValue() = 30;
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}

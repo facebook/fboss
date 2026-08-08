@@ -111,6 +111,12 @@ struct ShutdownCondition {
   2: list<OvertempEntry> conditions;
 }
 
+struct DeadFanShutdownCondition {
+  1: i16 numDeadFans;
+  2: list<string> fanDeadShutdownCmds;
+  3: optional i16 fanDeadPwmValue;
+}
+
 struct FanServiceConfig {
   1: optional ControlInterval controlInterval;
   2: string shutdownCmd;
@@ -127,4 +133,5 @@ struct FanServiceConfig {
   16: i16 pwmUpperThreshold;
   17: i16 pwmLowerThreshold;
   18: optional ShutdownCondition shutdownCondition;
+  19: optional DeadFanShutdownCondition deadFanShutdownCondition;
 }
