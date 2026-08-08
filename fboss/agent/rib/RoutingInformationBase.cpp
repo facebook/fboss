@@ -524,6 +524,13 @@ void RibRouteTables::reconfigure(
   }
 }
 
+void RibRouteTables::syncMySidSwitchState(
+    const SwitchIdScopeResolver* resolver,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  updateFib(resolver, ribMySidToSwitchStateFunc, cookie);
+}
+
 void RibRouteTables::updateRemoteInterfaceRoutes(
     const SwitchIdScopeResolver* resolver,
     const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -1162,6 +1169,18 @@ void RoutingInformationBase::reconfigure(
         staticMySids,
         ribToSwitchStateFunc,
         cookie);
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
+}
+
+void RoutingInformationBase::syncMySidSwitchState(
+    const SwitchIdScopeResolver* resolver,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  ensureRunning();
+  auto updateFn = [&] {
+    ribTables_.syncMySidSwitchState(
+        resolver, ribMySidToSwitchStateFunc, cookie);
   };
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
 }
