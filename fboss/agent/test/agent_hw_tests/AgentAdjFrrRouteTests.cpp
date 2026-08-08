@@ -69,6 +69,50 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     FLAGS_flowletSwitchingEnable = true;
   }
 
+  void setupRouteWithPrimaryAndBackupNhops() {
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    boost::container::flat_set<PortDescriptor> nextHopPorts;
+    for (size_t i = 0; i < kNumRouteNextHops; ++i) {
+      nextHopPorts.emplace(phyLoopbackPortIds_.at(i));
+    }
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, nextHopPorts);
+    });
+
+    auto makeNextHop = [this, &ecmpHelper](size_t index, NextHopRole role) {
+      return UnresolvedNextHop(
+          ecmpHelper.ip(PortDescriptor(phyLoopbackPortIds_.at(index))),
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          {},
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          role);
+    };
+
+    RouteNextHopSet nextHops{
+        makeNextHop(0, NextHopRole::PRIMARY),
+        makeNextHop(1, NextHopRole::BACKUP),
+        makeNextHop(2, NextHopRole::BACKUP),
+        makeNextHop(3, NextHopRole::BACKUP),
+        makeNextHop(4, NextHopRole::BACKUP),
+    };
+    auto routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2001::"),
+        16,
+        ClientID::BGPD,
+        RouteNextHopEntry(nextHops, AdminDistance::EBGP));
+    routeUpdater.program();
+  }
+
   void sendTrafficAndVerifyOutPackets(
       PortID injectionPort,
       const std::vector<PortID>& egressPorts,
@@ -128,49 +172,7 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
 };
 
 TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
-  auto setup = [this]() {
-    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
-    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
-    boost::container::flat_set<PortDescriptor> nextHopPorts;
-    for (size_t i = 0; i < kNumRouteNextHops; ++i) {
-      nextHopPorts.emplace(phyLoopbackPortIds_.at(i));
-    }
-    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
-      return ecmpHelper.resolveNextHops(state, nextHopPorts);
-    });
-
-    auto makeNextHop = [this, &ecmpHelper](size_t index, NextHopRole role) {
-      return UnresolvedNextHop(
-          ecmpHelper.ip(PortDescriptor(phyLoopbackPortIds_.at(index))),
-          ECMP_WEIGHT,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          {},
-          std::nullopt,
-          std::nullopt,
-          std::nullopt,
-          role);
-    };
-
-    RouteNextHopSet nextHops{
-        makeNextHop(0, NextHopRole::PRIMARY),
-        makeNextHop(1, NextHopRole::BACKUP),
-        makeNextHop(2, NextHopRole::BACKUP),
-        makeNextHop(3, NextHopRole::BACKUP),
-        makeNextHop(4, NextHopRole::BACKUP),
-    };
-    auto routeUpdater = getSw()->getRouteUpdater();
-    routeUpdater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("2001::"),
-        16,
-        ClientID::BGPD,
-        RouteNextHopEntry(nextHops, AdminDistance::EBGP));
-    routeUpdater.program();
-  };
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
 
   auto verify = [this]() {
     constexpr int kPacketCount = 10000;
@@ -212,6 +214,54 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
         primaryPorts,
         kPacketCount,
         "Primary after next-hop re-resolution");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentAdjFrrRouteTest, sourcePortGetsPruned) {
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
+
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    const auto primaryPort = phyLoopbackPortIds_.at(0);
+    const std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+
+    sendTrafficAndVerifyOutPackets(
+        primaryPort,
+        backupPorts,
+        kPacketCount,
+        "Backup with primary next-hop ingress");
+
+    bringDownPort(primaryPort);
+    const auto backupInjectionPort = backupPorts.front();
+    const std::vector<PortID> remainingBackupPorts(
+        backupPorts.begin() + 1, backupPorts.end());
+    sendTrafficAndVerifyOutPackets(
+        backupInjectionPort,
+        remainingBackupPorts,
+        kPacketCount,
+        "Backup with backup next-hop ingress");
+
+    bringUpPort(primaryPort);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const boost::container::flat_set<PortDescriptor> primaryNextHopPorts{
+        PortDescriptor(primaryPort)};
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.unresolveNextHops(state, primaryNextHopPorts);
+    });
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, primaryNextHopPorts);
+    });
+    sendTrafficAndVerifyOutPackets(
+        primaryPort,
+        backupPorts,
+        kPacketCount,
+        "Backup after primary next-hop restoration");
   };
 
   verifyAcrossWarmBoots(setup, verify);
