@@ -118,6 +118,9 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
     auto state = getProgrammedState();
     auto primaryPort = phyLoopbackPortIds_.at(0);
     auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
     auto primaryPortState = state->getPorts()->getNode(primaryPort);
     auto injectionPortState = state->getPorts()->getNode(injectionPort);
     XLOG(INFO) << "Injecting traffic through port "
@@ -126,21 +129,46 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
                << primaryPortState->getName() << " (" << primaryPort << ")";
     auto beforeOutPkts = *getLatestPortStats(primaryPort).outUnicastPkts__ref();
 
-    utility::pumpTraffic(
-        true,
-        utility::getAllocatePktFn(getAgentEnsemble()),
-        utility::getSendPktFunc(getAgentEnsemble()),
-        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
-        getVlanIDForTx(),
-        injectionPort,
-        255,
-        kPacketCount);
+    auto pumpTestTraffic = [this, injectionPort](int packetCount) {
+      utility::pumpTraffic(
+          true,
+          utility::getAllocatePktFn(getAgentEnsemble()),
+          utility::getSendPktFunc(getAgentEnsemble()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+          getVlanIDForTx(),
+          injectionPort,
+          255,
+          packetCount);
+    };
+    pumpTestTraffic(kPacketCount);
 
     WITH_RETRIES({
       auto afterOutPkts =
           *getLatestPortStats(primaryPort).outUnicastPkts__ref();
+      XLOG(INFO) << "Primary out packets before traffic: " << beforeOutPkts
+                 << ", after traffic: " << afterOutPkts;
       EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + kPacketCount);
     });
+
+    auto getBackupOutPkts = [this, &backupPorts]() {
+      uint64_t outPkts{0};
+      for (auto port : backupPorts) {
+        outPkts += *getLatestPortStats(port).outUnicastPkts__ref();
+      }
+      return outPkts;
+    };
+    bringDownPort(primaryPort);
+    auto beforeBackupOutPkts = getBackupOutPkts();
+    pumpTestTraffic(kPacketCount);
+
+    WITH_RETRIES({
+      auto afterBackupOutPkts = getBackupOutPkts();
+      XLOG(INFO) << "Backup out packets before traffic: " << beforeBackupOutPkts
+                 << ", after traffic: " << afterBackupOutPkts;
+      EXPECT_EVENTUALLY_EQ(
+          afterBackupOutPkts, beforeBackupOutPkts + kPacketCount);
+    });
+    bringUpPort(primaryPort);
   };
 
   verifyAcrossWarmBoots(setup, verify);
