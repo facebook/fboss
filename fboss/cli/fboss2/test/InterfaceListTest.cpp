@@ -53,6 +53,13 @@ class InterfaceListTest : public ::testing::Test {
         "state": 2,
         "speed": 100000
       }
+    ],
+    "interfaces": [
+      {
+        "intfID": 2001,
+        "name": "uplinks_1",
+        "vlanID": 0
+      }
     ]
   }
 })";
@@ -100,6 +107,43 @@ TEST_F(InterfaceListTest, AllowMissingResolvesKnownPort) {
 
   ASSERT_EQ(list.size(), 1);
   EXPECT_NE(list[0].getPort(), nullptr);
+}
+
+// A numeric name matching a port logical ID resolves to that port.
+TEST_F(InterfaceListTest, ResolvesPortLogicalId) {
+  InterfaceList list({"1"});
+
+  ASSERT_EQ(list.size(), 1);
+  const auto& intf = list[0];
+  ASSERT_NE(intf.getPort(), nullptr);
+  EXPECT_EQ(*intf.getPort()->name(), "eth1/1/1");
+  EXPECT_EQ(intf.name(), "1");
+}
+
+// A numeric name matching an interface ID resolves to that interface.
+TEST_F(InterfaceListTest, ResolvesInterfaceId) {
+  InterfaceList list({"2001"});
+
+  ASSERT_EQ(list.size(), 1);
+  const auto& intf = list[0];
+  EXPECT_EQ(intf.getPort(), nullptr);
+  ASSERT_NE(intf.getInterface(), nullptr);
+  EXPECT_EQ(*intf.getInterface()->intfID(), 2001);
+}
+
+// An interface is still resolvable by name.
+TEST_F(InterfaceListTest, ResolvesInterfaceName) {
+  InterfaceList list({"uplinks_1"});
+
+  ASSERT_EQ(list.size(), 1);
+  ASSERT_NE(list[0].getInterface(), nullptr);
+  EXPECT_EQ(*list[0].getInterface()->intfID(), 2001);
+}
+
+// A numeric name matching neither a port logical ID nor an interface ID
+// throws.
+TEST_F(InterfaceListTest, ThrowsForUnknownId) {
+  EXPECT_THROW(InterfaceList({"4242"}), std::invalid_argument);
 }
 
 } // namespace facebook::fboss::utils
