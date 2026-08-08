@@ -420,6 +420,46 @@ void SaiPortManager::programSerdes(
 
   // create System port serdes
   portHandle->sysSerdes = store.setObject(sysSerdesKey, serdesAttributes);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // Apply TX/RX precoding from the platform mapping pin configs. These aren't
+  // serdes CreateAttributes, so set them after the serdes object is created.
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    auto applyPrecoding = [](const std::shared_ptr<SaiPortSerdes>& serdes,
+                             const std::vector<phy::PinConfig>& pinConfigs) {
+      if (!serdes) {
+        return;
+      }
+      SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+      SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+      for (const auto& pinConfig : pinConfigs) {
+        if (auto tx = pinConfig.tx()) {
+          if (auto precoding = tx->precoding()) {
+            txPrecoding.push_back(precoding.value());
+          }
+        }
+        if (auto rx = pinConfig.rx()) {
+          if (auto precoding = rx->precoding()) {
+            rxPrecoding.push_back(precoding.value());
+          }
+        }
+      }
+      if (!txPrecoding.empty()) {
+        SaiApiTable::getInstance()->portApi().setAttribute(
+            serdes->adapterKey(),
+            SaiPortSerdesTraits::Attributes::TxPrecoding{txPrecoding});
+      }
+      if (!rxPrecoding.empty()) {
+        SaiApiTable::getInstance()->portApi().setAttribute(
+            serdes->adapterKey(),
+            SaiPortSerdesTraits::Attributes::RxPrecoding{rxPrecoding});
+      }
+    };
+    applyPrecoding(portHandle->serdes, swPort->getLinePinConfigs().value());
+    applyPrecoding(portHandle->sysSerdes, swPort->getPinConfigs());
+  }
+#endif
 }
 
 /*
