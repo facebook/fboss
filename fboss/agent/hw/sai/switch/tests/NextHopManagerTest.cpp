@@ -146,7 +146,9 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       saiManagerTable->nextHopGroupManager().getNextHopGroup(
           SaiNextHopGroupKey(backupNhops, std::nullopt));
   ASSERT_NE(backupNextHopGroupHandle, nullptr);
-  EXPECT_EQ(backupNextHopGroupHandle->desiredEcmpSwitchingMode_, std::nullopt);
+  EXPECT_EQ(
+      backupNextHopGroupHandle->desiredEcmpSwitchingMode_,
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
   EXPECT_EQ(backupNextHopGroupHandle->childGroupMember_, nullptr);
   for (const auto& member : backupNextHopGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);
