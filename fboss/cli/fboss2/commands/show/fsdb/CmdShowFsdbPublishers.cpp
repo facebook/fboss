@@ -114,6 +114,52 @@ void printPublisherDetail(
 
 } // namespace
 
+std::string_view CmdShowFsdbPublisherTraits::description() {
+  return "Displays the publishers currently writing to FSDB: each publisher's ID, publish type (PATH/PATCH), the raw path, and whether it's stats (vs state). Use it to see who is producing FSDB data.";
+}
+
+CmdShowFsdbPublishers::RetType CmdShowFsdbPublishers::sampleModel() {
+  fsdb::PublisherIdToOperPublisherInfo result;
+
+  fsdb::OperPublisherInfo pub1;
+  pub1.publisherId() = "agent";
+  pub1.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path1;
+  path1.raw() = {"agent"};
+  pub1.path() = path1;
+  pub1.isStats() = true;
+  result["agent"].push_back(pub1);
+
+  fsdb::OperPublisherInfo pub2;
+  pub2.publisherId() = "agent";
+  pub2.type() = fsdb::PubSubType::PATCH;
+  fsdb::OperPath path2;
+  path2.raw() = {"agent"};
+  pub2.path() = path2;
+  pub2.isStats() = false;
+  result["agent"].push_back(pub2);
+
+  fsdb::OperPublisherInfo pub3;
+  pub3.publisherId() = "bgpd";
+  pub3.type() = fsdb::PubSubType::PATCH;
+  fsdb::OperPath path3;
+  path3.raw() = {"bgp"};
+  pub3.path() = path3;
+  pub3.isStats() = false;
+  result["bgpd"] = {pub3};
+
+  fsdb::OperPublisherInfo pub4;
+  pub4.publisherId() = "qsfp_service";
+  pub4.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path4;
+  path4.raw() = {"qsfp_service"};
+  pub4.path() = path4;
+  pub4.isStats() = true;
+  result["qsfp_service"] = {pub4};
+
+  return result;
+}
+
 CmdShowFsdbPublishers::RetType CmdShowFsdbPublishers::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& fsdbClientid) {

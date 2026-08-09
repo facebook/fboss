@@ -92,4 +92,20 @@ TEST_F(CmdShowFsdbTestFixture, testGetSubscriptionPathStrExtendedFallback) {
   EXPECT_EQ(utils::getSubscriptionPathStr(subscriber), "99999");
 }
 
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksSubscribers) {
+  auto description = CmdShowFsdbSubscriberTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbSubscribers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksPublishers) {
+  auto description = CmdShowFsdbPublisherTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbPublishers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
 } // namespace facebook::fboss
