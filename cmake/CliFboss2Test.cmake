@@ -81,6 +81,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowPortTest.cpp
   fboss/cli/fboss2/test/CmdShowProductDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowProductTest.cpp
+  fboss/cli/fboss2/test/CmdShowRifTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/CmdConfigIpRouteTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp

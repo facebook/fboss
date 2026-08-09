@@ -137,6 +137,54 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
   out << outTable << std::endl;
 }
 
+// Human description for auto-generated CLI reference wiki.
+std::string_view CmdShowRifTraits::description() {
+  return "Displays the switch's router interfaces (RIFs): each RIF's ID, OS interface, VLAN, router ID, MAC, MTU, type, liveness, scope, member ports, and configured IP addresses. Use it to inspect L3 interface configuration.";
+}
+
+// Synthetic populated model for CLI reference wiki documentation.
+RetType CmdShowRif::sampleModel() {
+  RetType model;
+
+  cli::RifEntry entry1;
+  entry1.name() = "Interface 10";
+  entry1.rifID() = 10;
+  entry1.osIfName() = "fboss10";
+  entry1.vlanID() = 10;
+  entry1.routerID() = 0;
+  entry1.mac() = "02:00:11:22:33:01";
+  entry1.mtu() = 9000;
+  entry1.remoteInterfaceType() = "--";
+  entry1.remoteInterfaceLivenessStatus() = "--";
+  entry1.scope() = "LOCAL";
+  entry1.portNames() = {};
+  entry1.addrs() = {
+      "2001:db8:a::/128",
+      "fe80::200:11ff:fe22:3301/64",
+  };
+  model.rifs()->push_back(entry1);
+
+  cli::RifEntry entry2;
+  entry2.name() = "vlan2001";
+  entry2.rifID() = 2001;
+  entry2.osIfName() = "fboss2001";
+  entry2.vlanID() = 2001;
+  entry2.routerID() = 0;
+  entry2.mac() = "02:00:11:22:33:01";
+  entry2.mtu() = 9000;
+  entry2.remoteInterfaceType() = "--";
+  entry2.remoteInterfaceLivenessStatus() = "--";
+  entry2.scope() = "LOCAL";
+  entry2.portNames() = {"eth1/1/1"};
+  entry2.addrs() = {
+      "2001:db8:b::63/127",
+      "fe80::200:11ff:fe22:3301/64",
+  };
+  model.rifs()->push_back(entry2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
 template const ValidFilterMapType
