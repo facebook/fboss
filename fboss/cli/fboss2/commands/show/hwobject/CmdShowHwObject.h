@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
@@ -20,6 +21,8 @@ struct CmdShowHwObjectTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST;
   using ObjectArgType = utils::HwObjectList;
   using RetType = std::string;
+
+  static std::string_view description();
 };
 
 // Common query logic shared by cached and uncached hw-object commands.
@@ -40,6 +43,8 @@ class CmdShowHwObject
       const ObjectArgType& queriedHwObjectTypes);
 
   void printOutput(const RetType& hwObjectInfo, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss
