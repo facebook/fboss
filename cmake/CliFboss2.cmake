@@ -995,6 +995,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.cpp
+  fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.cpp
@@ -1090,6 +1092,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.cpp
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
