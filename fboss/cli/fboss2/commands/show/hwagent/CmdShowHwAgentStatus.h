@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace facebook::fboss {
@@ -25,6 +26,10 @@ using utils::Table;
 
 struct CmdShowHwAgentStatusTraits : public ReadCommandTraits {
   using RetType = cli::ShowHwAgentStatusModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 struct SwHwAgentCounters {
@@ -61,6 +66,10 @@ class CmdShowHwAgentStatus
   RetType queryClient(const HostInfo& hostInfo);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 
   int64_t getCounterValue(
       const std::map<std::string, int64_t>& counters,

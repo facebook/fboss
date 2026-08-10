@@ -60,4 +60,9 @@ TEST_F(CmdShowAgentSslTestFixture, queryClientAndPrintOutput) {
       ss.str());
 }
 
+TEST_F(CmdShowAgentSslTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowAgentSslTraits::description().empty());
+  EXPECT_FALSE(CmdShowAgentSsl::sampleModel().AgentSslStatus()->empty());
+}
+
 } // namespace facebook::fboss

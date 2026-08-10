@@ -680,6 +680,16 @@ bool isBankedPage(CmisPages page) {
       page != CmisPages::PAGE01 && page != CmisPages::PAGE02 &&
       page != CmisPages::PAGE04;
 }
+
+/* Decode ModuleState out of Lower Page 00h byte 3. The state is bits 1-3;
+ * bits 4-7 are reserved and some modules do populate them, so they have to be
+ * masked off rather than merely shifted past. Every reader of byte 3 must go
+ * through here - this decode used to be open-coded per call site, and the
+ * copies drifted apart. */
+CmisModuleState moduleStateFromStatusByte(uint8_t statusByte) {
+  return static_cast<CmisModuleState>(
+      (statusByte & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT);
+}
 } // namespace
 
 void CmisModule::cacheMaxNumBanks() {
@@ -978,7 +988,7 @@ std::optional<uint16_t> CmisModule::fetchFwBuildNumberFromCdb() {
 ModuleStatus CmisModule::getModuleStatus() {
   ModuleStatus moduleStatus;
   moduleStatus.cmisModuleState() =
-      (CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1);
+      moduleStateFromStatusByte(getSettingsValue(CmisField::MODULE_STATE));
   moduleStatus.fwStatus() = getFwStatus();
   moduleStatus.cmisStateChanged() = getModuleStateChanged();
   return moduleStatus;
@@ -1479,8 +1489,7 @@ bool CmisModule::isModuleInReadyState() {
   uint8_t moduleStatus;
   readCmisField(CmisField::MODULE_STATE, &moduleStatus);
   const bool isReady =
-      ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
-                         MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
+      moduleStateFromStatusByte(moduleStatus) == CmisModuleState::READY;
 
   if (isReady) {
     QSFP_LOG(INFO, this) << "isModuleInReadyState: Module is in READY state";
@@ -2707,9 +2716,8 @@ void CmisModule::updateQsfpData(bool allPages) {
         readCmisField(CmisField::PAGE_UPPER12H, page12_);
       }
 
-      bool isReady =
-          ((CmisModuleState)(getSettingsValue(CmisField::MODULE_STATE) >> 1) ==
-           CmisModuleState::READY);
+      bool isReady = moduleStateFromStatusByte(getSettingsValue(
+                         CmisField::MODULE_STATE)) == CmisModuleState::READY;
       if (isReady) {
         readSnrDiagPageLocked(page14_);
         updateVdmCacheLocked();

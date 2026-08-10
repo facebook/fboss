@@ -189,6 +189,7 @@ void BspSaiPhyManager::createExternalPhy(
   // Create SaiPhyPlatform for this xphy
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
   addSaiPlatform(
       xphyID,
       std::make_unique<SaiPhyPlatform>(

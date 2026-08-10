@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
@@ -24,6 +25,10 @@ struct CmdShowFabricReachabilityTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowFabricReachabilityModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowFabricReachability : public CmdHandler<
@@ -42,5 +47,9 @@ class CmdShowFabricReachability : public CmdHandler<
           reachabilityMatrix);
 
   static void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 } // namespace facebook::fboss

@@ -26,6 +26,11 @@ DEFINE_bool(
     false,
     "If the agent is running in multi_switch mode or not");
 
+DEFINE_bool(
+    use_raw_platform_mapping,
+    false,
+    "Reconstruct the platform mapping from raw platform mapping and port assignments");
+
 // NOTE: we use std::cerr because logging libs are likely not
 // initialized yet...
 

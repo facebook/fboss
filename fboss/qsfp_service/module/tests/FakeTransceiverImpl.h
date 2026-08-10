@@ -126,6 +126,16 @@ class Cmis200GTransceiver : public FakeTransceiverImpl {
   explicit Cmis200GTransceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis200G variant whose Lower Page byte 3 sets the reserved bits 4-7 on top
+// of ModuleState=READY in bits 1-3. Real modules do this, and the state has to
+// be masked out of the byte rather than just shifted.
+class Cmis200GReservedStateBitsTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis200GReservedStateBitsTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 class BadCmis200GTransceiver : public FakeTransceiverImpl {
  public:
   explicit BadCmis200GTransceiver(int module, TransceiverManager* mgr);

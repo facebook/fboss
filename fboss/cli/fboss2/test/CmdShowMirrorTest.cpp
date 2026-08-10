@@ -222,4 +222,11 @@ TEST_F(CmdShowMirrorTestFixture, queryClientNonZeroSwitchId) {
   // fix, createModel() hardcoded find("id=0") and returned an empty model.
   EXPECT_THRIFT_EQ(expectedWithoutTunnelModel, model);
 }
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowMirrorTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowMirrorTraits::description().empty());
+  EXPECT_FALSE(CmdShowMirror::sampleModel().mirrorEntries()->empty());
+}
 } // namespace facebook::fboss

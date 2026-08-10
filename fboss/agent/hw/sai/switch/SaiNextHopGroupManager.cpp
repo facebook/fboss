@@ -93,11 +93,11 @@ std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<cfg::SwitchingMode> primaryArsMode) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION ||
-      nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
-    // FIXME - HW_PROTECTION GROUP should be of type standby
-    // group mode.
+  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
     return std::nullopt;
+  }
+  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
+    return cfg::SwitchingMode::PER_PACKET_RANDOM;
   }
 #endif
   return overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode

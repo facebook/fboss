@@ -13,11 +13,13 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <memory>
+#include <optional>
+#include <thread>
 #include <vector>
 
-#include <common/base/Proc.h>
 #include <fboss/fsdb/if/FsdbModel.h>
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
@@ -35,6 +37,7 @@ constexpr auto kReadsPerTask = 1000;
 constexpr auto kWritesPerTask = 200;
 constexpr auto kNumIncrementalUpdates = 10;
 constexpr auto kSubscriptionServeIntervalMsec = 1;
+constexpr auto kPeakSampleIntervalUsec = 500;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
@@ -289,15 +292,57 @@ initEmptySubscribableStorage() {
           /*requireResponseOnInitialSync=*/true));
 }
 
+// Samples jemalloc `stats.allocated` on a background thread and keeps the
+// maximum. Needed because the peak of the publish + fanout path is transient:
+// patch buffers are built and freed within the measured region, so start/end
+// snapshots alone never see it.
+class PeakAllocatedSampler {
+ public:
+  explicit PeakAllocatedSampler(int64_t baselineBytes)
+      : peakBytes_(baselineBytes), thread_([this]() {
+          while (!stop_.load(std::memory_order_relaxed)) {
+            peakBytes_ = std::max(
+                peakBytes_, thrift_cow::test::getJemallocAllocatedBytes());
+            std::this_thread::sleep_for(
+                std::chrono::microseconds(kPeakSampleIntervalUsec));
+          }
+        }) {}
+
+  ~PeakAllocatedSampler() {
+    stop();
+  }
+
+  // Stops sampling and returns the max of all samples and `endBytes`.
+  int64_t stopAndGetPeak(int64_t endBytes) {
+    stop();
+    return std::max(peakBytes_, endBytes);
+  }
+
+ private:
+  void stop() {
+    if (thread_.joinable()) {
+      stop_.store(true, std::memory_order_relaxed);
+      thread_.join();
+    }
+  }
+
+  int64_t peakBytes_;
+  std::atomic<bool> stop_{false};
+  std::thread thread_;
+};
+
+// Measures memory consumed by publishing one state update and fanning it out
+// to `num_subscribers` patch subscribers. Returns the delta in jemalloc
+// `stats.allocated` across the measured region, or the peak delta observed
+// within it when `measurePeak` is set.
 int64_t bm_ribmap_pubsub_mem_helper(
     test_data::BgpRibMapDataGenerator& gen,
-    int num_subscribers) {
+    int num_subscribers,
+    bool measurePeak = false) {
   using RootT = test_data::BgpRibMapDataGenerator::RootT;
 
   folly::BenchmarkSuspender suspender;
   auto state = gen.getStateUpdate(0, false);
-  // Allow the allocator to settle so the baseline memory snapshot is stable.
-  sleep(2);
 
   // (a) empty storage, then start serving subscriptions.
   auto storage = initEmptySubscribableStorage<RootT>();
@@ -346,7 +391,11 @@ int64_t bm_ribmap_pubsub_mem_helper(
   initSyncDone.wait();
 
   // (e) begin measurement around publish + fanout.
-  auto startMem = facebook::Proc::getMemoryUsage();
+  auto startAllocated = thrift_cow::test::getJemallocAllocatedBytes();
+  std::unique_ptr<PeakAllocatedSampler> sampler;
+  if (measurePeak) {
+    sampler = std::make_unique<PeakAllocatedSampler>(startAllocated);
+  }
   suspender.dismiss();
 
   // (f) publish state; wait for all subscribers to receive the update.
@@ -355,10 +404,49 @@ int64_t bm_ribmap_pubsub_mem_helper(
 
   // (g) end measurement.
   suspender.rehire();
-  auto endMem = facebook::Proc::getMemoryUsage();
+  auto endAllocated = thrift_cow::test::getJemallocAllocatedBytes();
+  auto measuredAllocated =
+      sampler ? sampler->stopAndGetPeak(endAllocated) : endAllocated;
 
   folly::coro::blockingWait(scope.joinAsync());
-  return endMem - startMem;
+  return measuredAllocated - startAllocated;
+}
+
+struct MemoryStats {
+  double avgKB{0.0};
+  double maxKB{0.0};
+  double stddevKB{0.0};
+};
+
+std::optional<MemoryStats> computeMemoryStats(
+    const std::vector<int64_t>& measurements) {
+  if (measurements.empty()) {
+    return std::nullopt;
+  }
+
+  int64_t sum = 0;
+  for (int64_t m : measurements) {
+    sum += m;
+  }
+  int64_t avg = sum / static_cast<int64_t>(measurements.size());
+  int64_t max = *std::max_element(measurements.begin(), measurements.end());
+
+  // Sample stddev requires at least 2 points.
+  double stddev = 0.0;
+  if (measurements.size() > 1) {
+    double variance = 0.0;
+    for (int64_t m : measurements) {
+      double diff = static_cast<double>(m - avg);
+      variance += diff * diff;
+    }
+    variance /= static_cast<double>(measurements.size() - 1);
+    stddev = std::sqrt(variance);
+  }
+
+  return MemoryStats{
+      static_cast<double>(avg) / 1024.0,
+      static_cast<double>(max) / 1024.0,
+      stddev / 1024.0};
 }
 
 void bm_ribmap_pubsub_mem(
@@ -371,42 +459,34 @@ void bm_ribmap_pubsub_mem(
       test_data::BgpRibMapDataGenerator::makeGtswScale(prefixScale, paths);
   test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
 
-  std::vector<int64_t> memoryMeasurements;
+  std::vector<int64_t> allocatedMeasurements;
+  std::vector<int64_t> peakMeasurements;
   for (int i = 0; i < FLAGS_bm_subbench_memory_iters; i++) {
+    // Separate passes: the peak sampler polls the allocator during the measured
+    // region, so keeping it out of the delta pass leaves that value
+    // unperturbed.
     auto delta = bm_ribmap_pubsub_mem_helper(gen, num_subscribers);
     if (delta > 0) {
-      memoryMeasurements.push_back(delta);
+      allocatedMeasurements.push_back(delta);
+    }
+    auto peak =
+        bm_ribmap_pubsub_mem_helper(gen, num_subscribers, /*measurePeak=*/true);
+    if (peak > 0) {
+      peakMeasurements.push_back(peak);
     }
   }
 
-  if (memoryMeasurements.empty()) {
-    return;
+  // Deltas of jemalloc `stats.allocated` across publish + fanout.
+  if (auto stats = computeMemoryStats(allocatedMeasurements)) {
+    counters["avg_allocated_KB"] = folly::UserMetric(stats->avgKB);
+    counters["max_allocated_KB"] = folly::UserMetric(stats->maxKB);
+    counters["stddev_allocated_KB"] = folly::UserMetric(stats->stddevKB);
   }
-
-  int64_t sum = 0;
-  for (int64_t m : memoryMeasurements) {
-    sum += m;
+  if (auto stats = computeMemoryStats(peakMeasurements)) {
+    counters["avg_peak_KB"] = folly::UserMetric(stats->avgKB);
+    counters["max_peak_KB"] = folly::UserMetric(stats->maxKB);
+    counters["stddev_peak_KB"] = folly::UserMetric(stats->stddevKB);
   }
-  int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
-  int64_t maxMem =
-      *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
-
-  double stddev = 0.0;
-  if (memoryMeasurements.size() > 1) {
-    double variance = 0.0;
-    for (int64_t m : memoryMeasurements) {
-      double diff = static_cast<double>(m - avgMem);
-      variance += diff * diff;
-    }
-    variance /= static_cast<double>(memoryMeasurements.size() - 1);
-    stddev = std::sqrt(variance);
-  }
-
-  counters["avg_memory_KB"] =
-      folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-  counters["max_memory_KB"] =
-      folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-  counters["stddev_memory_KB"] = folly::UserMetric(stddev / 1024.0);
 }
 
 } // namespace

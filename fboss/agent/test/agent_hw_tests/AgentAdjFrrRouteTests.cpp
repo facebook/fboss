@@ -17,12 +17,18 @@
 
 #include <folly/logging/xlog.h>
 
+#include <limits>
+
 namespace facebook::fboss {
 
 class AgentAdjFrrRouteTest : public AgentHwTest {
  protected:
+  static constexpr int kMaxLoadBalanceDeviationPct = 25;
+  static constexpr size_t kNumRouteNextHops = 5;
+  static constexpr size_t kNumRequiredPhyLoopbackPorts = kNumRouteNextHops + 1;
+
   std::optional<size_t> maxRequiredInterfacePorts() const override {
-    return 6;
+    return std::nullopt;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -39,11 +45,22 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /* interfaceHasSubnet */);
+    phyLoopbackPortIds_.clear();
+    // BRCM switches require PHY loopback for FRR link
+    // state detection.
+    for (auto& port : *config.ports()) {
+      if (*port.speed() == cfg::PortSpeed::EIGHTHUNDREDG) {
+        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+        phyLoopbackPortIds_.emplace_back(*port.logicalID());
+      }
+    }
     utility::addFlowletConfigs(
         config,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY);
+    config.loadBalancers()->push_back(
+        utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
     return config;
   }
 
@@ -51,19 +68,22 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_flowletSwitchingEnable = true;
   }
-};
 
-TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
-  auto setup = [this]() {
-    utility::EcmpSetupAnyNPorts<folly::IPAddressV6> ecmpHelper(
+  void setupRouteWithPrimaryAndBackupNhops() {
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    boost::container::flat_set<PortDescriptor> nextHopPorts;
+    for (size_t i = 0; i < kNumRouteNextHops; ++i) {
+      nextHopPorts.emplace(phyLoopbackPortIds_.at(i));
+    }
     applyNewState([&](const std::shared_ptr<SwitchState>& state) {
-      return ecmpHelper.resolveNextHops(state, 5);
+      return ecmpHelper.resolveNextHops(state, nextHopPorts);
     });
 
-    auto makeNextHop = [&ecmpHelper](int index, NextHopRole role) {
+    auto makeNextHop = [this, &ecmpHelper](size_t index, NextHopRole role) {
       return UnresolvedNextHop(
-          ecmpHelper.ip(index),
+          ecmpHelper.ip(PortDescriptor(phyLoopbackPortIds_.at(index))),
           ECMP_WEIGHT,
           std::nullopt,
           std::nullopt,
@@ -91,22 +111,23 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
         ClientID::BGPD,
         RouteNextHopEntry(nextHops, AdminDistance::EBGP));
     routeUpdater.program();
-  };
+  }
 
-  auto verify = [this]() {
-    constexpr int kPacketCount = 10000;
-    auto state = getProgrammedState();
-    utility::EcmpSetupAnyNPorts<folly::IPAddressV6> ecmpHelper(
-        state, getSw()->needL2EntryForNeighbor());
-    auto primaryPort = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
-    auto injectionPort = ecmpHelper.ecmpPortDescriptorAt(5).phyPortID();
-    auto primaryPortState = state->getPorts()->getNode(primaryPort);
-    auto injectionPortState = state->getPorts()->getNode(injectionPort);
-    XLOG(INFO) << "Injecting traffic through port "
-               << injectionPortState->getName() << " (" << injectionPort
-               << "); checking primary next-hop port "
-               << primaryPortState->getName() << " (" << primaryPort << ")";
-    auto beforeOutPkts = *getLatestPortStats(primaryPort).outUnicastPkts__ref();
+  void sendTrafficAndVerifyOutPackets(
+      PortID injectionPort,
+      const std::vector<PortID>& egressPorts,
+      int packetCount,
+      const char* egressPortDescription) {
+    CHECK(!egressPorts.empty());
+    auto getOutPkts = [&egressPorts](const auto& portStats) {
+      uint64_t outPkts{0};
+      for (auto port : egressPorts) {
+        outPkts += *portStats.at(port).outUnicastPkts__ref();
+      }
+      return outPkts;
+    };
+    const auto beforePortStats = getLatestPortStats(egressPorts);
+    const auto beforeOutPkts = getOutPkts(beforePortStats);
 
     utility::pumpTraffic(
         true,
@@ -116,13 +137,131 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
         getVlanIDForTx(),
         injectionPort,
         255,
-        kPacketCount);
+        packetCount);
 
     WITH_RETRIES({
-      auto afterOutPkts =
-          *getLatestPortStats(primaryPort).outUnicastPkts__ref();
-      EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + kPacketCount);
+      const auto afterPortStats = getLatestPortStats(egressPorts);
+      const auto afterOutPkts = getOutPkts(afterPortStats);
+      const auto [highestOutBytesIncrement, lowestOutBytesIncrement] =
+          utility::getHighestAndLowestBytesIncrement(
+              beforePortStats, afterPortStats);
+      const auto deviationPct = lowestOutBytesIncrement == 0
+          ? (highestOutBytesIncrement == 0
+                 ? 0.0
+                 : std::numeric_limits<double>::infinity())
+          : static_cast<double>(
+                highestOutBytesIncrement - lowestOutBytesIncrement) /
+              lowestOutBytesIncrement * 100.0;
+      XLOG(INFO) << egressPortDescription
+                 << " out packets before traffic: " << beforeOutPkts
+                 << ", after traffic: " << afterOutPkts
+                 << ", lowest out bytes increment: " << lowestOutBytesIncrement
+                 << ", highest out bytes increment: "
+                 << highestOutBytesIncrement << ", deviation: " << deviationPct
+                 << "%";
+      EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + packetCount);
+      EXPECT_EVENTUALLY_TRUE(
+          utility::isDeviationWithinThreshold(
+              lowestOutBytesIncrement,
+              highestOutBytesIncrement,
+              kMaxLoadBalanceDeviationPct));
     });
+  }
+
+  mutable std::vector<PortID> phyLoopbackPortIds_;
+};
+
+TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
+
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    auto state = getProgrammedState();
+    auto primaryPort = phyLoopbackPortIds_.at(0);
+    auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    const std::vector<PortID> primaryPorts{primaryPort};
+    std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+    auto primaryPortState = state->getPorts()->getNode(primaryPort);
+    auto injectionPortState = state->getPorts()->getNode(injectionPort);
+    XLOG(INFO) << "Injecting traffic through port "
+               << injectionPortState->getName() << " (" << injectionPort
+               << "); checking primary next-hop port "
+               << primaryPortState->getName() << " (" << primaryPort << ")";
+    sendTrafficAndVerifyOutPackets(
+        injectionPort, primaryPorts, kPacketCount, "Primary");
+
+    bringDownPort(primaryPort);
+    sendTrafficAndVerifyOutPackets(
+        injectionPort, backupPorts, kPacketCount, "Backup");
+
+    bringUpPort(primaryPort);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const boost::container::flat_set<PortDescriptor> primaryNextHopPorts{
+        PortDescriptor(primaryPort)};
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.unresolveNextHops(state, primaryNextHopPorts);
+    });
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, primaryNextHopPorts);
+    });
+
+    sendTrafficAndVerifyOutPackets(
+        injectionPort,
+        primaryPorts,
+        kPacketCount,
+        "Primary after next-hop re-resolution");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentAdjFrrRouteTest, sourcePortGetsPruned) {
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
+
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    const auto primaryPort = phyLoopbackPortIds_.at(0);
+    const std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+
+    sendTrafficAndVerifyOutPackets(
+        primaryPort,
+        backupPorts,
+        kPacketCount,
+        "Backup with primary next-hop ingress");
+
+    bringDownPort(primaryPort);
+    const auto backupInjectionPort = backupPorts.front();
+    const std::vector<PortID> remainingBackupPorts(
+        backupPorts.begin() + 1, backupPorts.end());
+    sendTrafficAndVerifyOutPackets(
+        backupInjectionPort,
+        remainingBackupPorts,
+        kPacketCount,
+        "Backup with backup next-hop ingress");
+
+    bringUpPort(primaryPort);
+    utility::EcmpSetupTargetedPorts<folly::IPAddressV6> ecmpHelper(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    const boost::container::flat_set<PortDescriptor> primaryNextHopPorts{
+        PortDescriptor(primaryPort)};
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.unresolveNextHops(state, primaryNextHopPorts);
+    });
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, primaryNextHopPorts);
+    });
+    sendTrafficAndVerifyOutPackets(
+        primaryPort,
+        backupPorts,
+        kPacketCount,
+        "Backup after primary next-hop restoration");
   };
 
   verifyAcrossWarmBoots(setup, verify);

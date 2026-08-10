@@ -523,6 +523,29 @@ TEST_F(CmisTest, getCmisRevision) {
       expected800GZr);
 }
 
+// ModuleState lives in bits 1-3 of Lower Page byte 3; bits 4-7 are reserved
+// and real modules do set them. Those bits have to be masked off, not merely
+// shifted past, or they leak into CmisModuleState and produce values outside
+// the enum. Byte 3 = 0x56 is READY with the reserved bits set.
+TEST_F(CmisTest, moduleStateIgnoresReservedBitsOfStatusByte) {
+  auto xcvr = overrideCmisModule<Cmis200GReservedStateBitsTransceiver>(
+      TransceiverID(0));
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto status = info.tcvrState()->status();
+  ASSERT_TRUE(status.has_value());
+  ASSERT_TRUE(status->cmisModuleState().has_value());
+  EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+
+  // updateQsfpData() gates the SNR diag page and the VDM cache on the same
+  // decode, so a module misread as not-ready silently loses that data. Page
+  // 14h byte 0 is 0x06 in this fixture; it is only populated when the module
+  // was seen as READY during the refresh.
+  auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+  ASSERT_TRUE(cmisData.page14().has_value());
+  EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
+}
+
 // Tests that the transceiverInfo object is correctly populated
 TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto xcvrID = TransceiverID(0);

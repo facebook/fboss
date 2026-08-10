@@ -290,6 +290,43 @@ void CmdShowInterfaceCountersFecUncorrectable::printOutput(
   out << table << std::endl;
 }
 
+// CLI reference wiki hooks
+std::string_view CmdShowInterfaceCountersFecUncorrectableTraits::description() {
+  return "Displays per-interface uncorrectable FEC codeword counts (total and over the last 10 minutes), by side. system shows XPHY-system and transceiver-system counts; line shows ASIC, XPHY-line, and transceiver-line counts. Use it to spot links taking uncorrectable FEC errors.";
+}
+
+CmdShowInterfaceCountersFecUncorrectable::RetType
+CmdShowInterfaceCountersFecUncorrectable::sampleModel() {
+  cli::ShowInterfaceCountersFecUncorrectableModel model;
+  model.direction() = phy::Direction::RECEIVE;
+
+  // eth2/1/1: ASIC and GB_LINE present, TRANSCEIVER_LINE absent
+  cli::uncorrectableCount asic1;
+  asic1.totalCount() = 0;
+  asic1.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/1/1"][phy::PortComponent::ASIC] = asic1;
+
+  cli::uncorrectableCount gbLine1;
+  gbLine1.totalCount() = 0;
+  gbLine1.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/1/1"][phy::PortComponent::GB_LINE] =
+      gbLine1;
+
+  // eth2/14/1: ASIC has 3 total, 0 in 10min; GB_LINE is 0/0
+  cli::uncorrectableCount asic14;
+  asic14.totalCount() = 3;
+  asic14.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/14/1"][phy::PortComponent::ASIC] = asic14;
+
+  cli::uncorrectableCount gbLine14;
+  gbLine14.totalCount() = 0;
+  gbLine14.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/14/1"][phy::PortComponent::GB_LINE] =
+      gbLine14;
+
+  return model;
+}
+
 // Template instantiations
 template void CmdHandler<
     CmdShowInterfaceCountersFecUncorrectable,

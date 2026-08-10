@@ -7,6 +7,7 @@ namespace facebook::fboss {
 bool Agera3PhyAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
       return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
@@ -30,7 +31,6 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
-    case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       return false;
     default:

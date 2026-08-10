@@ -184,12 +184,12 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION: {
         for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
-          ingressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+          ingressSampleMirrorList.push_back(attr_list[i].value.objlist.list[j]);
         }
       } break;
       case SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION: {
         for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
-          egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
+          egressSampleMirrorList.push_back(attr_list[i].value.objlist.list[j]);
         }
       } break;
       case SAI_PORT_ATTR_PRBS_POLYNOMIAL:

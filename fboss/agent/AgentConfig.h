@@ -15,6 +15,7 @@
 #include <memory>
 
 DECLARE_bool(multi_switch);
+DECLARE_bool(use_raw_platform_mapping);
 
 namespace facebook::fboss {
 

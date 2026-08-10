@@ -749,6 +749,8 @@ class ChildThriftPath<::facebook::fboss::phy::SerdesParameters, ::facebook::fbos
     STRUCT_CHILD_GETTERS(rxEqP2, 17);
     STRUCT_CHILD_GETTERS(rxPfLfq, 18);
     STRUCT_CHILD_GETTERS(rxPfHfq, 19);
+    STRUCT_CHILD_GETTERS(rxReach, 20);
+    STRUCT_CHILD_GETTERS(rxPrecoding, 21);
 };
 
 
@@ -6454,6 +6456,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpSettingConfig, ::facebook::fbo
     STRUCT_CHILD_GETTERS(enable_policy_default_action, 16);
     STRUCT_CHILD_GETTERS(next_hop_tracking_use_openr_igp_cost, 17);
     STRUCT_CHILD_GETTERS(enable_addpath_gr_reconcile, 18);
+    STRUCT_CHILD_GETTERS(enable_legacy_v4_nlri_encoding, 19);
 };
 
 

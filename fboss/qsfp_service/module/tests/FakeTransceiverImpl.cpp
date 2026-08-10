@@ -3218,6 +3218,31 @@ Cmis200GTransceiver::Cmis200GTransceiver(int module, TransceiverManager* mgr)
           kCmis200GFr4UpperPages,
           mgr) {}
 
+namespace {
+// Lower Page byte 3 with ModuleState=READY in bits 1-3 and the reserved bits
+// 4-7 set: 0x57 -> (0x57 & 0x0E) >> 1 == 3 == READY. Modules seen in the fleet
+// (e.g. FINISAR FTCE4717E1PCB-FB) do populate those reserved bits. Only the
+// reserved nibble differs from the base fixture's 0x07 - bit 0
+// (InterruptDeasserted) is deliberately left as-is.
+constexpr uint8_t kModuleStateReadyWithReservedBits = 0x57;
+
+std::map<uint8_t, std::array<uint8_t, 128>> cmis200GFr4LowerWithReservedBits() {
+  auto lower = kCmis200GFr4Lower;
+  lower[TransceiverAccessParameter::ADDR_QSFP][3] =
+      kModuleStateReadyWithReservedBits;
+  return lower;
+}
+} // namespace
+
+Cmis200GReservedStateBitsTransceiver::Cmis200GReservedStateBitsTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          cmis200GFr4LowerWithReservedBits(),
+          kCmis200GFr4UpperPages,
+          mgr) {}
+
 BadCmis200GTransceiver::BadCmis200GTransceiver(
     int module,
     TransceiverManager* mgr)

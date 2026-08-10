@@ -12,6 +12,7 @@
 
 #include <fboss/fsdb/if/gen-cpp2/fsdb_common_types.h>
 #include <thrift/lib/cpp2/gen/module_types_h.h>
+#include <string_view>
 
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -25,6 +26,8 @@ struct CmdShowFsdbPublisherTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID;
   using ObjectArgType = utils::FsdbClientId;
   using RetType = facebook::fboss::fsdb::PublisherIdToOperPublisherInfo;
+  // Command description for CLI reference wiki
+  static std::string_view description();
 };
 
 class CmdShowFsdbPublishers
@@ -36,6 +39,8 @@ class CmdShowFsdbPublishers
       const HostInfo& hostInfo,
       const ObjectArgType& fsdbClientid);
   void printOutput(const RetType& result, std::ostream& out = std::cout);
+  // Sample model for CLI reference wiki
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

@@ -71,8 +71,10 @@ struct SaiArsTraits {
     };
     // Prevents an ECMP group from load balancing a packet back out the port it
     // was received on.
-    using SourcePortPrune =
-        SaiExtensionAttribute<bool, AttributeSourcePortPrune>;
+    using SourcePortPrune = SaiExtensionAttribute<
+        bool,
+        AttributeSourcePortPrune,
+        StdNullOptDefault<bool>>;
   };
 
   using AdapterKey = ArsSaiId;

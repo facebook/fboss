@@ -524,8 +524,8 @@ SwSwitch::SwSwitch(
   utilCreateDir(agentDirUtil_->getPersistentStateDir());
   try {
     platformProductInfo_->initialize();
-    platformMapping_ =
-        utility::initPlatformMapping(platformProductInfo_->getType());
+    platformMapping_ = utility::initPlatformMapping(
+        platformProductInfo_->getType(), *config->thrift.platform());
   } catch (const std::exception& ex) {
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();

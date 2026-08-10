@@ -91,9 +91,17 @@ elseif (CHENAB_SAI_SDK)
     ${SAI_PLATFORM_CHENAB_SRC}
   )
 elseif (SAI_BRCM_PAI_IMPL)
+  # PAI (retimer / XPHY) build: same platform-port sources as the fake build,
+  # but with a PAI-specific createSaiPlatformPort that builds real ports for the
+  # Agera3 retimer boxes (LEH800BCLS/LADAKH800BCLS) instead of the fake-only
+  # factory. Mirrors brcm_pai_srcs in platform.bzl.
+  set(SAI_PLATFORM_PAI_SRC ${SAI_PLATFORM_FAKE_SRC})
+  list(REMOVE_ITEM SAI_PLATFORM_PAI_SRC
+    fboss/agent/platforms/sai/SaiPlatformInitFake.cpp)
   list(APPEND SAI_PLATFORM_SRC
     fboss/agent/platforms/sai/SaiPhyPlatform.cpp
-    ${SAI_PLATFORM_FAKE_SRC}
+    fboss/agent/platforms/sai/SaiPlatformInitPai.cpp
+    ${SAI_PLATFORM_PAI_SRC}
   )
 else()
   list(APPEND SAI_PLATFORM_SRC
