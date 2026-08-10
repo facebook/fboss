@@ -268,21 +268,12 @@ TEST_F(DeleteInterfaceTest, DeleteWholePortRemovesCreatedSubport) {
   XLOG(INFO) << "TEST PASSED";
 }
 
-// Deleting a real L3 interface by ID is covered unconditionally by the unit
-// test CmdDeleteWholeL3InterfaceTestFixture.deletesLoopbackInterfaceById. It is
-// not repeated as an integration test: a session's port map is built once and
-// is not rebuilt for interfaces staged later in the same session, so a
-// self-contained "config vlan then delete its SVI" cannot resolve the SVI it
-// just staged, and deleting a pre-existing interface would either mutate the
-// shared DUT or skip when the running config has none. The end-to-end
-// delete-by-ID resolution path is still exercised by
-// DeleteUnknownInterfaceIdFails.
-
-// The port-router-interface refusal is covered unconditionally by the unit
-// test CmdDeleteWholeL3InterfaceTestFixture.refusesPortRouterInterface; it is
-// not repeated here because a PORT-type interface cannot be created through the
-// CLI, so an integration test could only run when the DUT's config happened to
-// have one.
+// Whole-interface deletes and their refusal paths are unit-tested in
+// CmdDeleteWholeL3InterfaceTestFixture, not repeated here: the session's port
+// map is not rebuilt for interfaces staged in the same session, and a
+// PORT-type interface cannot be created via the CLI, so integration versions
+// could only run conditionally on the DUT's existing config. Delete-by-ID
+// resolution is still exercised end-to-end by DeleteUnknownInterfaceIdFails.
 
 // ---------------------------------------------------------------------------
 // Test: an interface ID that matches nothing is rejected, and leaves no
