@@ -200,7 +200,6 @@ std::optional<std::string> PortMap::getPortNameForInterface(
 }
 
 std::optional<std::string> PortMap::getPortNameForLogicalId(
-    // @lint-ignore CLANGTIDY performance-unnecessary-value-param
     PortID logicalId) const {
   auto it = portLogicalIdToName_.find(logicalId);
   if (it != portLogicalIdToName_.end()) {
