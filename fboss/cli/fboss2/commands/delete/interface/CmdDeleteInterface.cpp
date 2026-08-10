@@ -23,7 +23,9 @@
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
+#include "fboss/cli/fboss2/commands/config/interface/InterfaceManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 #include "fboss/lib/config/AgentConfigUtils.h"
@@ -89,7 +91,10 @@ InterfaceDeleteConfig::InterfaceDeleteConfig(const std::vector<std::string>& v)
     }
   }
 
-  // Resolve port names to InterfaceList (throws if any port is not found).
+  // Resolve names to InterfaceList (throws if any name is not found).
+  // InterfaceList resolves a bare number as a port logical ID or an interface
+  // ID, so a whole-interface delete can name the interfaces that generated
+  // configs leave unnamed.
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
@@ -103,31 +108,50 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  // No attributes => delete the whole port(s) from the config.
+  // No attributes => delete the whole port(s) / interface(s) from the config.
   if (attributes.empty()) {
     auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
     std::set<PortID> portsToDelete;
+    std::set<InterfaceID> interfacesToDelete;
     std::vector<std::string> deletedNames;
     for (const utils::Intf& intf : interfaces) {
-      const cfg::Port* port = intf.getPort();
-      if (!port) {
+      if (const cfg::Port* port = intf.getPort()) {
+        portsToDelete.insert(PortID(*port->logicalID()));
+      } else if (const cfg::Interface* iface = intf.getInterface()) {
+        // A name that resolves to an interface but no port is a portless L3
+        // interface (VLAN SVI, loopback), so the interface itself is what gets
+        // removed. The interfaces a port owns are pruned by
+        // removePortsFromConfig below instead.
+        interfacesToDelete.insert(InterfaceID(*iface->intfID()));
+      } else {
         continue;
       }
-      portsToDelete.insert(PortID(*port->logicalID()));
       deletedNames.push_back(intf.name());
     }
-    if (portsToDelete.empty()) {
+    if (portsToDelete.empty() && interfacesToDelete.empty()) {
       throw std::invalid_argument(
-          "No port found for the specified interface(s)");
+          "No port or interface found for the specified name(s)");
     }
-    utility::removePortsFromConfig(
-        swConfig,
-        portsToDelete,
-        utility::PortRemovalMode::Erase,
-        /*pruneEmptyVlansAndInterfaces=*/true);
-    // Removing a port is a HITLESS change: the agent's reloadConfig() applies
-    // the port-set delta live, matching how 'config interface <port> profile'
-    // adds/removes ports. No agent warmboot is needed.
+    // Interfaces first: deleteInterfaces() refuses a delete that would dangle
+    // a reference or produce a config the agent rejects, and running those
+    // checks before removePortsFromConfig keeps a refusal from leaving the
+    // session half-mutated. portsToDelete is passed so a port removed in the
+    // same command does not count as keeping its VLAN's interface alive.
+    if (!interfacesToDelete.empty()) {
+      InterfaceManager::deleteInterfaces(
+          swConfig, interfacesToDelete, portsToDelete);
+    }
+    if (!portsToDelete.empty()) {
+      utility::removePortsFromConfig(
+          swConfig,
+          portsToDelete,
+          utility::PortRemovalMode::Erase,
+          /*pruneEmptyVlansAndInterfaces=*/true);
+    }
+    // Removing a port or an L3 interface is a HITLESS change: the agent's
+    // reloadConfig() applies the delta live, matching how 'config interface
+    // <port> profile' adds/removes ports and how 'delete vlan' drops a VLAN's
+    // interfaces. No agent warmboot is needed.
     ConfigSession::getInstance().saveConfig();
     return fmt::format(
         "Deleted interface(s): {}", folly::join(", ", deletedNames));
