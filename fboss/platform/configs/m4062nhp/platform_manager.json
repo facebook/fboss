@@ -59,6 +59,16 @@
           "isEeprom": true
         }
       ],
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "DIMM1_TEMP",
+          "sysfsPath": "/sys/bus/i2c/devices/1-0050"
+        },
+        {
+          "pmUnitScopedName": "DIMM2_TEMP",
+          "sysfsPath": "/sys/bus/i2c/devices/1-0051"
+        }
+      ],
       "outgoingSlotConfigs": {
         "SMB_SLOT@0": {
           "slotType": "SMB_SLOT"
@@ -409,6 +419,8 @@
     "/run/devmap/eeproms/PSU4_EEPROM": "/SMB_SLOT@0/[PSU4_EEPROM]",
     "/run/devmap/sensors/DPM": "/[DPM]",
     "/run/devmap/sensors/DPM_2": "/[DPM_2]",
+    "/run/devmap/sensors/DIMM1_TEMP": "/[DIMM1_TEMP]",
+    "/run/devmap/sensors/DIMM2_TEMP": "/[DIMM2_TEMP]",
     "/run/devmap/sensors/SWITCH_CARD_TEMP_SENSOR": "/SMB_SLOT@0/[SWITCH_CARD_TEMP_SENSOR]",
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_0": "/[SCM_IOB_I2C_0]",
@@ -703,6 +715,8 @@
   "bspKmodsRpmVersion": "1.0.0-1",
   "nonBspKmodsToLoad": [
     "i2c_i801",
+    "i2c_piix4",
+    "spd5118",
     "i2c_mux",
     "fbiob_pci",
     "nh_fpga_i2c",
