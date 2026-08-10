@@ -52,20 +52,24 @@
       "pmUnitName": "SMB",
       "sensors": [
         {
-          "name": "ASIC_TEMP_MAX_RAW",
+          "name": "ASIC_TEMP_MAX_C",
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_max_raw",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 8191
-          }
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 122
+          },
+          "compute": "379.10968 - 0.12984*@"
         },
         {
-          "name": "ASIC_TEMP_MIN_RAW",
+          "name": "ASIC_TEMP_MIN_C",
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_min_raw",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 8191
-          }
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 122
+          },
+          "compute": "379.10968 - 0.12984*@"
         },
         {
           "name": "SWITCH_CARD_REAR",
@@ -340,7 +344,7 @@
     {
       "name": "ASIC",
       "temperatureSensorNames": [
-        "ASIC_TEMP_MAX_RAW"
+        "ASIC_TEMP_MAX_C"
       ]
     }
   ],
