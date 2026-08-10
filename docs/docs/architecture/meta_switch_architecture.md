@@ -555,7 +555,7 @@ A few notes:
 ## 9. Provisioning Requirements
 
 * The system shall be compliant to Meta’s provisioning process.
-  * Refer to [Meta's Provisioning Requirements](https://github.com/facebook/fboss/blob/main/fboss/docs/provisioning/provisioning_requirements_npi.md)
+  * Refer to [Meta's Provisioning Requirements](/docs/provisioning/provisioning_requirements_npi)
     on meeting Meta’s provisioning standards.
 
 ## 10. Software Deliverables and its schedule
