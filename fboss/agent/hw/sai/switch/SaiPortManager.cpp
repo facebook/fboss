@@ -3792,6 +3792,39 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.tpChn0() = val; });
 
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    getSerdesParam(
+        "RxReach",
+        SaiPortSerdesTraits::Attributes::RxReach{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [swPortID](auto& param, auto val) {
+          if (val == SAI_PORT_SERDES_REACH_MODE_NR) {
+            param.rxReach() = phy::RxReach::RX_NORMAL_REACH;
+          } else if (val == SAI_PORT_SERDES_REACH_MODE_ER) {
+            param.rxReach() = phy::RxReach::RX_EXTENDED_REACH;
+          } else {
+            XLOG_EVERY_MS(WARNING, 10000)
+                << "Port " << swPortID << " lane " << *param.lane()
+                << ": leaving rxReach unset for unknown SAI reach mode " << val;
+          }
+        });
+  }
+#endif
+
+// TODO(ccpowers): Add support for earlier SDKs through vendor extension attrs
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+    (!defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_XGS_GTE_14_0))
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    getSerdesParam(
+        "RxPrecoding",
+        SaiPortSerdesTraits::Attributes::RxPrecoding{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [](auto& param, auto val) { param.rxPrecoding() = val; });
+  }
+#endif
+
   return serdesParams;
 }
 
@@ -3863,6 +3896,18 @@ std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
       SaiPortSerdesTraits::Attributes::TxFirPost3{
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+    (!defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_XGS_GTE_14_0))
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    getTxParam(
+        "TxPrecoding",
+        SaiPortSerdesTraits::Attributes::TxPrecoding{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [](auto& param, auto val) { param.precoding() = val; });
+  }
+#endif
 
   return txSettings;
 }
