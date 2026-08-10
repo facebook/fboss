@@ -22,7 +22,13 @@ namespace facebook::fboss {
  * delete (reset to default or remove by value) for the `delete interface`
  * command.
  *
- * Usage: delete interface <port-list> [<attr> [<value>] ...]
+ * Usage: delete interface <intf-list> [<attr> [<value>] ...]
+ *
+ * Each entry of <intf-list> is a port name (eth1/1/1), an interface name, or
+ * a bare interface ID — generated configs leave Interface.name unset, so the
+ * ID is the only handle for those. With no attribute the whole object is
+ * deleted: a port name deletes the port and its dependents, an interface
+ * deletes the L3 interface itself.
  *
  * Valueless attributes (reset to default):
  *   loopback-mode, lookup-class, lldp-expected-value, lldp-expected-chassis,
@@ -45,7 +51,7 @@ struct CmdDeleteInterfaceTraits : public WriteCommandTraits {
     cmd.add_option(
         "interface_delete_config",
         args,
-        "<port-list> [loopback-mode|lookup-class|lldp-expected-*|ip-address <cidr>|ipv6-address <cidr>]");
+        "<port-name|intf-name|intf-id>... [loopback-mode|lookup-class|lldp-expected-*|ip-address <cidr>|ipv6-address <cidr>]");
   }
   using ObjectArgType = InterfaceDeleteConfig;
   using RetType = std::string;
