@@ -8,8 +8,7 @@
  * The restore step is not re-verified per-field — the config-side round-trip
  * is ConfigLoadBalancingTest's coverage; this test only checks the entry is
  * present again. The lag subcommand shares the removal implementation and is
- * covered by CmdDeleteLoadBalancing unit tests; LAG hash updates are not
- * exercised on DUTs (see the disabled LAG cases in ConfigLoadBalancingTest).
+ * covered by CmdDeleteLoadBalancing unit tests;
  *
  * Requirements:
  *   - FBOSS agent is running with a valid configuration that already contains
