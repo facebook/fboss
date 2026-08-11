@@ -230,6 +230,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     // Disabling ANY_TRAP_DROP_COUNTER for the time being.
     // This will result in an early return in
