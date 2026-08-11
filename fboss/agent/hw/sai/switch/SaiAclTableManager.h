@@ -118,6 +118,9 @@ class SaiAclTableManager {
    */
   static auto constexpr kDscpMask = 0x3F;
 
+  // Traffic class is a u8; PBR matches on the full value.
+  static auto constexpr kTcMask = 0xFF;
+
   static auto constexpr kMaxUdfGroups = 5;
 
   /*
@@ -325,6 +328,11 @@ class SaiAclTableManager {
 
   std::shared_ptr<SaiAclRange>
   getOrCreateAclRange(sai_int32_t rangeType, uint32_t min, uint32_t max);
+
+  std::shared_ptr<SaiNextHopGroupHandle> resolvePbrNextHopGroup(
+      const std::shared_ptr<SwitchState>& state,
+      int64_t nextHopGroupId,
+      const std::string& aclEntryId);
 
   void recreateAclTable(
       std::shared_ptr<SaiAclTable>& exisitingTable,

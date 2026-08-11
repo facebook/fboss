@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/CounterUtils.h"
@@ -21,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -681,6 +683,52 @@ std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
   return store.setObject(key, attrs);
 }
 
+std::shared_ptr<SaiNextHopGroupHandle>
+SaiAclTableManager::resolvePbrNextHopGroup(
+    const std::shared_ptr<SwitchState>& state,
+    int64_t nextHopGroupId,
+    const std::string& aclEntryId) {
+  if (!state) {
+    throw FbossError(
+        "PBR ACL entry ",
+        aclEntryId,
+        " references NextHopSetID ",
+        nextHopGroupId,
+        " but no SwitchState is available to resolve it");
+  }
+  auto nexthops = getNextHops(state, nextHopGroupId);
+  if (nexthops.empty()) {
+    throw FbossError(
+        "PBR ACL entry ",
+        aclEntryId,
+        " NextHopSetID ",
+        nextHopGroupId,
+        " not found in switch state or resolved to an empty next hop group");
+  }
+  RouteNextHopSet nhops(nexthops.begin(), nexthops.end());
+  // TODO(zecheng): Normalized NH should be used to create Sai NHG. See stacked
+  // diff for storing normalized SetID directly in FIB
+  auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
+  auto handle = managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
+      SaiNextHopGroupKey(normalizedNhops, std::nullopt /*switchingMode*/));
+  if (!handle->nextHopGroup) {
+    // on multi-NPU switches a NHG can
+    // legitimately have no members on the local ASIC (all next hops filtered
+    // out), in which case the route side sets the route to DROP rather than
+    // failing.
+    if (platform_->hasMultipleSwitches()) {
+      return nullptr;
+    }
+    throw FbossError(
+        "PBR ACL entry ",
+        aclEntryId,
+        " NextHopSetID ",
+        nextHopGroupId,
+        " has no SAI next hop group (no members on this ASIC)");
+  }
+  return handle;
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName,
@@ -948,9 +996,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         std::make_pair(addedAclEntry->getDscp().value(), kDscpMask))};
   }
 
-  // PBR phase 2: populated from AclEntry::getTrafficClass() in a stacked diff;
-  // nullopt here keeps the positional tuple well-formed.
   std::optional<SaiAclEntryTraits::Attributes::FieldTc> fieldTc{std::nullopt};
+  if (addedAclEntry->getTrafficClass()) {
+    fieldTc = SaiAclEntryTraits::Attributes::FieldTc{AclEntryFieldU8(
+        std::make_pair(addedAclEntry->getTrafficClass().value(), kTcMask))};
+  }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldDstMac> fieldDstMac{
       std::nullopt};
@@ -1066,6 +1116,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionRedirect{std::nullopt};
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop{
       nullptr};
+  std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle{nullptr};
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
@@ -1111,6 +1162,32 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionL3SwitchCancel{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDestination>
       aclFieldRouteDestination{std::nullopt};
+  if (addedAclEntry->getNextHopGroupId()) {
+    matchNhgHandle = resolvePbrNextHopGroup(
+        state, *addedAclEntry->getNextHopGroupId(), addedAclEntry->getID());
+    if (!matchNhgHandle) {
+      // Multi-NPU: the match NHG has no members on this ASIC, so there is no
+      // SAI next-hop-group to match on and routes resolving to it are already
+      // DROP. Skip programming this PBR entry here.
+      XLOG(DBG2) << "skip PBR acl entry " << addedAclEntry->getID()
+                 << ": match next-hop-group has no members on this ASIC";
+      return AclEntrySaiId{0};
+    }
+    aclFieldRouteDestination =
+        SaiAclEntryTraits::Attributes::FieldRouteDestination{
+            AclEntryFieldSaiObjectIdT(
+                std::make_pair(
+                    matchNhgHandle->nextHopGroup->adapterKey(),
+                    kMaskDontCare))};
+  }
+#else
+  if (addedAclEntry->getNextHopGroupId()) {
+    throw FbossError(
+        "PBR ACL entry ",
+        addedAclEntry->getID(),
+        " matches on a next-hop-group but SAI FieldRouteDestination requires "
+        "SAI_API_VERSION >= 1.16.0");
+  }
 #endif
 
   auto action = addedAclEntry->getAclAction();
@@ -1390,8 +1467,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   }
 
   // TODO(skhare) At least one field and one action must be specified.
-  // Once we add support for all fields and actions, throw error if that is not
-  // honored.
+  // Once we add support for all fields and actions, throw error if that is
+  // not honored.
   auto matcherIsValid =
       (fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
        fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
@@ -1401,11 +1478,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
        fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
        fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
-       fieldDscp.has_value() || fieldDstMac.has_value() ||
-       fieldIpType.has_value() || fieldTtl.has_value() ||
-       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
-       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
-       fieldOuterVlanId.has_value() ||
+       fieldDscp.has_value() || fieldTc.has_value() ||
+       fieldDstMac.has_value() || fieldIpType.has_value() ||
+       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
+       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
+       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1419,6 +1496,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        userDefinedGroup0.has_value() || userDefinedGroup1.has_value() ||
        userDefinedGroup2.has_value() || userDefinedGroup3.has_value() ||
        userDefinedGroup4.has_value() ||
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+       aclFieldRouteDestination.has_value() ||
 #endif
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
   if (fieldSrcPort.has_value()) {
@@ -1534,6 +1614,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
+  entryHandle->matchNhgHandle = matchNhgHandle;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;
@@ -2097,8 +2178,12 @@ bool SaiAclTableManager::isQualifierSupported(
       return field.has_value();
     }
     case cfg::AclTableQualifier::TC:
+      return hasField(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldTc>>(
+              attributes));
     case cfg::AclTableQualifier::NEXT_HOP_GROUP_ID:
-      // PBR phase 2 qualifiers: real support is wired in a stacked diff.
+      // TODO(zecheng): wire the table-side FieldRouteDestination qualifier (PBR
+      // phase 2).
       return false;
     case cfg::AclTableQualifier::UDF:
       /* not supported */
@@ -2157,8 +2242,8 @@ void SaiAclTableManager::recreateAclTable(
     aclEntry.reset();
   }
   // remove group member and acl table, since store holds only weak ptr after
-  // setObject is invoked, clearing returned shared ptr is enough to destroy SAI
-  // object and call SAI remove API.
+  // setObject is invoked, clearing returned shared ptr is enough to destroy
+  // SAI object and call SAI remove API.
   std::shared_ptr<SaiAclTableGroupMember> groupMember{};
   SaiAclTableGroupMemberTraits::AdapterHostKey memberAdapterHostKey{};
   SaiAclTableGroupMemberTraits::CreateAttributes memberAttrs{};
@@ -2205,8 +2290,8 @@ void SaiAclTableManager::recreateAclTable(
   }
   // skip recreating acl entries as acl entry information is lost.
   // this happens because SAI API layer returns default values for unset ACL
-  // entry attributes. some of the attributes may be unsupported in sdk or could
-  // stretch the key width beyind what's supported.
+  // entry attributes. some of the attributes may be unsupported in sdk or
+  // could stretch the key width beyind what's supported.
 }
 
 void SaiAclTableManager::removeUnclaimedAclCounter() {
