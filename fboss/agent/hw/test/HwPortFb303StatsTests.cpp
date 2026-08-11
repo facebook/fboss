@@ -189,6 +189,7 @@ HwPortStats getInitedStats() {
       0, // llrRxExpectedSeqPoisoned
       0, // llrRxExpectedSeqBad
       0, // linkFault_
+      0, // fecCorrectedSymbols
   };
 }
 

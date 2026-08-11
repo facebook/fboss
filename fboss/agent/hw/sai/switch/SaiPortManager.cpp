@@ -37,7 +37,9 @@
 
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
 #include <chrono>
+#include <limits>
 
 #include <fmt/ranges.h>
 
@@ -67,6 +69,40 @@ namespace {
 void setUninitializedStatsToZero(long& counter) {
   counter =
       counter == hardware_stats_constants::STAT_UNINITIALIZED() ? 0 : counter;
+}
+
+[[maybe_unused]] void
+setUnsignedCounter(long& counter, uint64_t value, const char* counterName) {
+  constexpr auto kMaxCounterValue =
+      static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+  if (value > kMaxCounterValue) {
+    XLOG_EVERY_MS(ERR, 60000)
+        << "Saturating " << counterName << " counter value " << value
+        << " to the maximum signed 64-bit value";
+    counter = std::numeric_limits<int64_t>::max();
+    return;
+  }
+  counter = static_cast<int64_t>(value);
+}
+
+[[maybe_unused]] void accumulateUnsignedCounter(
+    long& counter,
+    uint64_t value,
+    const char* counterName) {
+  constexpr auto kMaxCounterValue =
+      static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+  setUninitializedStatsToZero(counter);
+  // A residual negative value would wrap to a huge unsigned count
+  const auto currentValue =
+      static_cast<uint64_t>(std::max<int64_t>(counter, 0));
+  if (value > kMaxCounterValue - currentValue) {
+    XLOG_EVERY_MS(ERR, 60000)
+        << counterName << " counter would overflow adding " << value << " to "
+        << currentValue << ", saturating to the maximum signed 64-bit value";
+    counter = std::numeric_limits<int64_t>::max();
+    return;
+  }
+  counter = static_cast<int64_t>(currentValue + value);
 }
 
 uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
@@ -320,7 +356,18 @@ void fillHwPortStats(
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS:
         if (updateFecStats) {
-          hwPortStats.fecCorrectedBits_() = value;
+          setUnsignedCounter(
+              *hwPortStats.fecCorrectedBits_(), value, "FEC corrected bits");
+        }
+        break;
+      case SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS:
+        if (updateFecStats) {
+          // This counter is clear-on-read, so accumulate into a monotonic
+          // software counter.
+          accumulateUnsignedCounter(
+              *hwPortStats.fecCorrectedSymbols_(),
+              value,
+              "FEC corrected symbols");
         }
         break;
 #endif
@@ -2241,7 +2288,7 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
       utility::isReedSolomonFec(getFECMode(portId));
 }
 
-bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+bool SaiPortManager::fecCorrectedCounterSupported(PortID portId) const {
   if ((platform_->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
        platform_->getAsic()->getAsicType() ==
@@ -2252,14 +2299,27 @@ bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
     return false;
 #endif
   }
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&
+  if ((platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_FEC_CORRECTED_BITS) ||
+       platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS)) &&
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
     return true;
 #endif
   }
   return false;
+}
+
+bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+  return fecCorrectedCounterSupported(portId) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_FEC_CORRECTED_BITS);
+}
+
+bool SaiPortManager::fecCorrectedSymbolsSupported(PortID portId) const {
+  return fecCorrectedCounterSupported(portId) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS);
 }
 
 bool SaiPortManager::rxFrequencyRPMSupported() const {
@@ -2627,19 +2687,19 @@ void SaiPortManager::updateStats(
       (now.count() - lastFecReadTimeIt->second) >=
           FLAGS_fec_counters_update_interval_s) {
     bool fecCollectionSucceeded = true;
-    if (fecStatsSupported(portId)) {
-      fecCollectionSucceeded &= collectStats(
-          {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
-           SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-          SAI_STATS_MODE_READ_AND_CLEAR,
-          "FEC correctable/uncorrectable frames");
-    }
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    std::vector<sai_stat_id_t> correctedFecCounters;
     if (fecCorrectedBitsSupported(portId)) {
+      correctedFecCounters.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS);
+    }
+    if (fecCorrectedSymbolsSupported(portId)) {
+      correctedFecCounters.push_back(SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS);
+    }
+    if (!correctedFecCounters.empty()) {
       fecCollectionSucceeded &= collectStats(
-          {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS},
+          correctedFecCounters,
           SAI_STATS_MODE_READ,
-          "FEC corrected bits");
+          "FEC corrected bits and symbols");
     }
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
@@ -2660,6 +2720,17 @@ void SaiPortManager::updateStats(
           fecCodewordsToRead, SAI_STATS_MODE_READ, "FEC codeword errors");
     }
 #endif
+    // Keep this last. READ_AND_CLEAR clears every counter in the same hardware
+    // group, not just the ones named here -- on Nvidia all the FEC counters
+    // share the PHY layer group, so clearing first would zero the corrected
+    // bits/symbols counters before we read them.
+    if (fecStatsSupported(portId)) {
+      fecCollectionSucceeded &= collectStats(
+          {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
+           SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
+          SAI_STATS_MODE_READ_AND_CLEAR,
+          "FEC correctable/uncorrectable frames");
+    }
     if (fecCollectionSucceeded) {
       lastFecCounterReadTime_[portId] = now.count();
       updateFecStats = true;
@@ -2926,6 +2997,7 @@ void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
   auto curPortStats = portStatItr->second->portStats();
   curPortStats.fecCorrectableErrors() = 0;
   curPortStats.fecUncorrectableErrors() = 0;
+  curPortStats.fecCorrectedSymbols_() = 0;
 
   portStatItr->second->clearStat(kFecCorrectable());
   portStatItr->second->clearStat(kFecUncorrectable());

@@ -227,6 +227,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::ROUTE_COUNTERS:
     // J3-AI natively supports hashing. So hash configuration is not supported.
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

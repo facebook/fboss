@@ -11535,6 +11535,7 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(llrRxExpectedSeqPoisoned_, 99);
     STRUCT_CHILD_GETTERS(llrRxExpectedSeqBad_, 100);
     STRUCT_CHILD_GETTERS(linkFault_, 101);
+    STRUCT_CHILD_GETTERS(fecCorrectedSymbols_, 102);
 };
 
 

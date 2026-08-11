@@ -329,6 +329,7 @@ class SaiPortManager {
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
+  bool fecCorrectedSymbolsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
@@ -403,6 +404,7 @@ class SaiPortManager {
   void fillInSupportedStats(PortID port);
   void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
+  bool fecCorrectedCounterSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,

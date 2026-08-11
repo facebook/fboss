@@ -272,6 +272,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     // TODO (Q4D/J4/R4): re-enable these features on J4 after SDK supports them
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:

@@ -151,6 +151,7 @@ struct HwPortStats {
   // Link flaps plus debounce retriggers suppressed by the port debounce hold
   // timers.
   101: optional i64 linkFault_;
+  102: i64 fecCorrectedSymbols_ = STAT_UNINITIALIZED;
 }
 
 struct HwSysPortStats {
