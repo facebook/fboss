@@ -52,9 +52,14 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     return std::string(home) + "/.fboss2/bgp_config.json";
   }
 
-  // System config consumed by the bgpd daemon (written on commit).
+  // System config consumed by the bgpd daemon: the stable path bgpd is started
+  // with (--config). After the first commit this is a symlink to the promoted
+  // bgpcpp/bgpcpp.conf; before it, it is the plain file the bgp++ RPM installs.
+  // Reading it (rather than the promoted path directly) means the fixture does
+  // not require a commit to have happened, so these tests can run first on a
+  // freshly imaged box.
   std::string systemBgpConfigPath() const {
-    return "/etc/coop/bgpcpp/bgpcpp.conf";
+    return "/etc/coop/bgpcpp.conf";
   }
 
   // Remove any pre-existing staged BGP session so each test starts clean.
