@@ -179,6 +179,10 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif
+#if defined(SAI_BRCM_PAI_IMPL)
+  SAI_EXT_ATTR_MAP(Switch, SyncLock)
+  SAI_EXT_ATTR_MAP(Switch, SyncUnlock)
+#endif
 }
 
 } // namespace

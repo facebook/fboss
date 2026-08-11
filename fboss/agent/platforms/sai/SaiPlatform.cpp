@@ -1000,6 +1000,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       measureCableLengths, // enable cable propagation delay measurement
       portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
+#if defined(SAI_BRCM_PAI_IMPL)
+      std::nullopt, // SyncLock
+      std::nullopt, // SyncUnlock
+#endif
   };
 }
 

@@ -21,6 +21,11 @@
 
 #include <fmt/format.h>
 
+DEFINE_bool(
+    enable_xphy_global_lock,
+    false,
+    "Enable/disable global lock for all XPHY chips");
+
 namespace facebook::fboss::phy {
 
 namespace {
@@ -34,6 +39,65 @@ FecMode getFecMode(sai_port_fec_mode_t fec, cfg::PortSpeed /* speed */) {
       static_cast<int>(fec),
       ". Only SAI_PORT_FEC_MODE_NONE is supported for now");
 }
+
+#if defined(SAI_BRCM_PAI_IMPL)
+// Global mutex fallback, used when the enable_xphy_global_lock gflag is set.
+std::mutex gPaiGlobalMutex;
+
+// pai_lock_callback/pai_unlock_callback are invoked by PAI across a C ABI
+// boundary, so exceptions must not propagate out of them.
+sai_status_t pai_lock_callback(uint64_t platform_context) {
+  try {
+    if (FLAGS_enable_xphy_global_lock) {
+      gPaiGlobalMutex.lock();
+      XLOG(DBG5) << "[PAI-SYNC] LOCK acquired mode=GLOBAL mutex="
+                 << static_cast<void*>(&gPaiGlobalMutex);
+    } else {
+      if (platform_context == 0) {
+        XLOG(ERR) << "[PAI-SYNC] lock callback invoked with a null context.";
+        return SAI_STATUS_FAILURE;
+      }
+      auto* retimer = reinterpret_cast<SaiPhyRetimer*>(platform_context);
+      retimer->getPaiMutex().lock();
+      XLOG(DBG5) << "[PAI-SYNC] LOCK acquired mode=PER-XPHY xphy:"
+                 << retimer->getPhyAddr()
+                 << " mutex=" << static_cast<void*>(&retimer->getPaiMutex());
+    }
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "[PAI-SYNC] lock callback failed: " << e.what();
+    return SAI_STATUS_FAILURE;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t pai_unlock_callback(uint64_t platform_context) {
+  try {
+    if (FLAGS_enable_xphy_global_lock) {
+      gPaiGlobalMutex.unlock();
+      XLOG(DBG5) << "[PAI-SYNC] UNLOCK released mode=GLOBAL mutex="
+                 << static_cast<void*>(&gPaiGlobalMutex);
+    } else {
+      if (platform_context == 0) {
+        // May happen if a preceding lock failed; warn rather than silently
+        // succeed so an unexpected unlock is visible.
+        XLOG(WARNING)
+            << "[PAI-SYNC] unlock callback invoked with a null context.";
+        return SAI_STATUS_SUCCESS;
+      }
+      auto* retimer = reinterpret_cast<SaiPhyRetimer*>(platform_context);
+      retimer->getPaiMutex().unlock();
+      XLOG(DBG5) << "[PAI-SYNC] UNLOCK released mode=PER-XPHY xphy:"
+                 << retimer->getPhyAddr()
+                 << " mutex=" << static_cast<void*>(&retimer->getPaiMutex());
+    }
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "[PAI-SYNC] unlock callback failed: " << e.what();
+    return SAI_STATUS_FAILURE;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+#endif
+
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -223,6 +287,20 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList>
       sysPortConfigList(sysPortConfigVec);
 
+#if defined(SAI_BRCM_PAI_IMPL)
+  XLOG(INFO) << "[PAI-SYNC] SAI_BRCM_PAI_IMPL is COMPILED IN. Installing PAI "
+             << "sync lock/unlock callbacks for xphy:" << getPhyAddr()
+             << " (xphyID=" << xphyID_ << "), mode="
+             << (FLAGS_enable_xphy_global_lock ? "GLOBAL" : "PER-XPHY")
+             << ", platform_context(this)=" << static_cast<const void*>(this)
+             << ", paiMutex=" << static_cast<void*>(&paiMutex_);
+#else
+  XLOG(WARNING) << "[PAI-SYNC] SAI_BRCM_PAI_IMPL is NOT compiled in; PAI sync "
+                << "lock/unlock callbacks will NOT be passed to PAI for xphy:"
+                << getPhyAddr() << " (xphyID=" << xphyID_
+                << "). PAI access is UNPROTECTED.";
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -323,6 +401,10 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // enable cable propagation delay measurement
       std::nullopt, // enable CL72 link training retry
       std::nullopt, // switching mode
+#if defined(SAI_BRCM_PAI_IMPL)
+      reinterpret_cast<sai_pointer_t>(pai_lock_callback), // user sync_lock
+      reinterpret_cast<sai_pointer_t>(pai_unlock_callback), // user sync_unlock
+#endif
   };
 }
 
