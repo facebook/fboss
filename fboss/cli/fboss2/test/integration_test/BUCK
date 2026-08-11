@@ -79,6 +79,7 @@ cpp_binary(
         "//fboss/lib/config:fboss_config_utils",
         "//folly:dynamic",
         "//folly:network_address",
+        "//folly:scope_guard",
         "//folly:string",
         "//folly:subprocess",
         "//folly/init:init",

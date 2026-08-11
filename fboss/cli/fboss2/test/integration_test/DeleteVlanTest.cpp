@@ -11,9 +11,9 @@
  *   - Test is run as root (or with sudo) on a DUT
  */
 
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
-#include <set>
 #include <string>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
@@ -21,52 +21,6 @@ using namespace facebook::fboss;
 
 class DeleteVlanTest : public Fboss2IntegrationTest {
  protected:
-  // First VLAN ID in [2, 4094] unused in the running config.
-  int pickUnusedVlanId() {
-    auto config = getRunningConfig();
-    std::set<int> used;
-    if (config.isObject() && config.count("sw")) {
-      const auto& sw = config["sw"];
-      if (sw.count("defaultVlan")) {
-        used.insert(sw["defaultVlan"].asInt());
-      }
-      if (sw.count("ports")) {
-        for (const auto& p : sw["ports"]) {
-          if (p.count("ingressVlan")) {
-            used.insert(p["ingressVlan"].asInt());
-          }
-        }
-      }
-      if (sw.count("vlanPorts")) {
-        for (const auto& vp : sw["vlanPorts"]) {
-          if (vp.count("vlanID")) {
-            used.insert(vp["vlanID"].asInt());
-          }
-        }
-      }
-      if (sw.count("interfaces")) {
-        for (const auto& i : sw["interfaces"]) {
-          if (i.count("vlanID")) {
-            used.insert(i["vlanID"].asInt());
-          }
-        }
-      }
-      if (sw.count("vlans")) {
-        for (const auto& v : sw["vlans"]) {
-          if (v.count("id")) {
-            used.insert(v["id"].asInt());
-          }
-        }
-      }
-    }
-    for (int id = 2; id <= 4094; ++id) {
-      if (!used.count(id)) {
-        return id;
-      }
-    }
-    return 0;
-  }
-
   static bool hasVlan(const folly::dynamic& config, int vlanId) {
     if (!config.isObject() || !config.count("sw") ||
         !config["sw"].count("vlans")) {
@@ -104,7 +58,15 @@ class DeleteVlanTest : public Fboss2IntegrationTest {
 
 TEST_F(DeleteVlanTest, ProgramThenDeleteVlan) {
   const int vlanId = pickUnusedVlanId();
-  ASSERT_NE(vlanId, 0) << "no free VLAN ID in [2, 4094]";
+  if (vlanId == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  // Step 3 deletes the VLAN on the happy path; this guards the case where the
+  // test aborts earlier and would otherwise leak the interface's TUN device.
+  SCOPE_EXIT {
+    deleteVlanIfPresent(vlanId);
+  };
   const std::string id = std::to_string(vlanId);
 
   XLOG(INFO) << "[Step 1] Program unreferenced VLAN " << id << " and commit";

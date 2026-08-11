@@ -741,19 +741,91 @@ folly::dynamic Fboss2IntegrationTest::getNdpConfig(
   return folly::dynamic::object();
 }
 
-int Fboss2IntegrationTest::ensureUnderlayIntfId(int vlanId) const {
+int Fboss2IntegrationTest::pickUnusedVlanId() const {
+  auto config = getRunningConfig();
+  if (!config.isObject() || !config.count("sw")) {
+    return 0;
+  }
+  const auto& sw = config["sw"];
+
+  std::set<int> usedVlans;
+  std::set<int> usedIntfIds;
+  auto collect =
+      [&sw](const char* array, const char* field, std::set<int>& into) {
+        if (!sw.count(array)) {
+          return;
+        }
+        for (const auto& item : sw[array]) {
+          if (item.count(field)) {
+            into.insert(item[field].asInt());
+          }
+        }
+      };
+  if (sw.count("defaultVlan")) {
+    usedVlans.insert(sw["defaultVlan"].asInt());
+  }
+  collect("vlans", "id", usedVlans);
+  collect("vlanPorts", "vlanID", usedVlans);
+  collect("interfaces", "vlanID", usedVlans);
+  collect("ports", "ingressVlan", usedVlans);
+  collect("interfaces", "intfID", usedIntfIds);
+
+  for (int candidate = kTestVlanMin; candidate <= kTestVlanMax; ++candidate) {
+    if (!usedVlans.count(candidate) && !usedIntfIds.count(candidate)) {
+      return candidate;
+    }
+  }
+  return 0;
+}
+
+void Fboss2IntegrationTest::deleteVlanIfPresent(int vlanId) const {
+  auto config = getRunningConfig();
+  if (!config.isObject() || !config.count("sw") ||
+      !config["sw"].count("vlans")) {
+    return;
+  }
+  const auto& vlans = config["sw"]["vlans"];
+  const bool present = std::any_of(
+      vlans.begin(), vlans.end(), [vlanId](const folly::dynamic& vlan) {
+        return vlan.count("id") && vlan["id"].asInt() == vlanId;
+      });
+  if (!present) {
+    return;
+  }
+
+  auto result = runCli({"delete", "vlan", std::to_string(vlanId)});
+  if (result.exitCode != 0) {
+    XLOG(WARN) << "delete vlan " << vlanId
+               << " failed, discarding session: " << result.stderr;
+    discardSession();
+    return;
+  }
+  commitConfig();
+  XLOG(INFO) << "Removed VLAN " << vlanId << " and its backing interface";
+}
+
+int Fboss2IntegrationTest::ensureUnderlayIntfId(
+    std::optional<int> vlanId) const {
+  const int vid = vlanId.value_or(pickUnusedVlanId());
+  if (vid == 0) {
+    throw std::runtime_error(
+        fmt::format(
+            "No VLAN ID free in [{}, {}] for the tunnel underlay",
+            kTestVlanMin,
+            kTestVlanMax));
+  }
   auto& session = ConfigSession::getInstance();
   auto& swConfig = *session.getAgentConfig().sw();
-  auto [created, vlan] = VlanManager::createVlan(swConfig, VlanID(vlanId));
+  auto [created, vlan] = VlanManager::createVlan(swConfig, VlanID(vid));
   // Pointer into swConfig.vlans() — do not hold across further mutations.
   (void)vlan;
 
   // VlanManager either created a new cfg::Interface for this VLAN or left
   // an existing one in place. Either way, look it up by vlanID.
   for (const auto& intf : *swConfig.interfaces()) {
-    if (*intf.vlanID() == vlanId) {
+    if (*intf.vlanID() == vid) {
       if (created) {
-        XLOG(INFO) << "Created VLAN " << vlanId << " with interface "
+        XLOG(INFO) << "Created VLAN " << vid << " with interface "
                    << *intf.intfID() << " for tunnel underlay";
         session.saveConfig();
       }
@@ -762,8 +834,7 @@ int Fboss2IntegrationTest::ensureUnderlayIntfId(int vlanId) const {
   }
   throw std::runtime_error(
       fmt::format(
-          "VlanManager did not produce a backing interface for VLAN {}",
-          vlanId));
+          "VlanManager did not produce a backing interface for VLAN {}", vid));
 }
 
 std::string Fboss2IntegrationTest::findIpv6OnIntf(int intfId) const {
