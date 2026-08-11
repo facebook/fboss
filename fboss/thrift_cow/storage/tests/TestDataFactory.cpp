@@ -3,7 +3,6 @@
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 #include <fmt/format.h>
 #include <folly/IPAddress.h>
-#include <folly/base64.h>
 
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
@@ -23,6 +22,20 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss::test_data {
+
+namespace {
+
+// prefix_bin is thrift `binary`: raw network-order address bytes, not base64.
+// Mirrors BgpRibTestPublisher::toIpPrefix.
+std::string toPrefixBin(const folly::IPAddress& addr) {
+  return addr.isV4() ? addr.asV4().toBinary().str()
+                     : addr.asV6().toBinary().str();
+}
+
+// LOCAL_PREF from the captured FPF canonicalRib.
+constexpr int32_t kFpfLocalPref = 90;
+
+} // namespace
 
 TaggedOperState TestDataFactory::getStateUpdate(int version, bool minimal) {
   TaggedOperState state;
@@ -1560,10 +1573,38 @@ BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
   };
 }
 
+BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
+    bool isFPF,
+    int numPods,
+    int numPrefixesPerPod) {
+  BgpRibMapScale scale{};
+  scale.isFPF = isFPF;
+  scale.numPods = numPods;
+  scale.numPrefixesPerPod = numPrefixesPerPod;
+  // canonicalRib is all-V6 /64.
+  scale.ribV6EntryCount = numPods * numPrefixesPerPod;
+  scale.ribV4EntryCount = 0;
+  // Best-path-only view: one best path per entry.
+  scale.bestPathsPerEntry = 1;
+  // Counts come from a captured GTSW canonicalRib (gtsw001.l1001.c087.mwg2),
+  // not the injector's inputs: bgpd rewrites the attributes on import.
+  scale.communitiesPerPath = 13;
+  scale.asPathSegments = 1;
+  scale.extCommunitiesPerPath = 1;
+  return scale;
+}
+
 fsdb::BgpData BgpRibMapDataGenerator::buildBgpData(int version) {
   fsdb::BgpData bgpData;
   BgpRibMapScale scale =
       overrideScale_.has_value() ? *overrideScale_ : getScale(selector_);
+
+  // FPF path: emit the compact, best-path-only canonicalRib that
+  // HostReachTracker subscribes to. ribMap is left unset.
+  if (scale.isFPF) {
+    bgpData.canonicalRib() = buildCanonicalRib(scale, version);
+    return bgpData;
+  }
 
   std::map<std::string, TRibEntry> ribMap;
 
@@ -1649,11 +1690,7 @@ BgpRibMapDataGenerator::createPrefix(int index, bool isV6, int keySet) {
     std::string prefixStr =
         fmt::format("2401:{:x}00:{:x}:{:x}::/64", baseOctet, hex3, hex4);
     auto network = folly::IPAddress::createNetwork(prefixStr);
-    auto bytes = network.first.asV6().toByteArray();
-    std::string encoded = folly::base64Encode(
-        std::string_view(
-            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
-    prefix.prefix_bin() = encoded;
+    prefix.prefix_bin() = toPrefixBin(network.first);
     prefix.num_bits() = 64;
   } else {
     // IPv4 prefix
@@ -1670,11 +1707,7 @@ BgpRibMapDataGenerator::createPrefix(int index, bool isV6, int keySet) {
     std::string prefixStr =
         fmt::format("{}.{}.{}.0/24", baseOctet1, octet2, octet3);
     auto network = folly::IPAddress::createNetwork(prefixStr);
-    auto bytes = network.first.asV4().toByteArray();
-    std::string encoded = folly::base64Encode(
-        std::string_view(
-            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
-    prefix.prefix_bin() = encoded;
+    prefix.prefix_bin() = toPrefixBin(network.first);
     prefix.num_bits() = 24;
   }
 
@@ -1695,12 +1728,7 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
   nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
   std::string nextHopStr =
       fmt::format("fe80::{:x}:{:x}", entryIndex % 65536, pathIndex % 65536);
-  auto nextHopAddr = folly::IPAddress(nextHopStr);
-  auto bytes = nextHopAddr.asV6().toByteArray();
-  std::string encoded = folly::base64Encode(
-      std::string_view(
-          reinterpret_cast<const char*>(bytes.data()), bytes.size()));
-  nextHop.prefix_bin() = encoded;
+  nextHop.prefix_bin() = toPrefixBin(folly::IPAddress(nextHopStr));
   nextHop.num_bits() = 128;
   path.next_hop() = nextHop;
 
@@ -1733,11 +1761,11 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
   std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
   for (int i = 0; i < numCommunities; i++) {
     facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
-    int16_t asn = 65400 + (i % 100);
+    int32_t asn = 65400 + (i % 100);
     int16_t value = 100 + ((entryIndex + pathIndex + i) % 200);
     community.asn() = asn;
     community.value() = value;
-    community.community() = (static_cast<int32_t>(asn) << 16) | value;
+    community.community() = (asn << 16) | value;
     communities.push_back(community);
   }
   path.communities() = communities;
@@ -1779,17 +1807,153 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
 
 std::string BgpRibMapDataGenerator::createPrefixKey(
     const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix) {
-  auto decoded = folly::base64Decode(*prefix.prefix_bin());
+  const auto& bin = *prefix.prefix_bin();
   auto addrResult = folly::IPAddress::tryFromBinary(
       folly::ByteRange(
-          reinterpret_cast<const unsigned char*>(decoded.data()),
-          decoded.size()));
+          reinterpret_cast<const unsigned char*>(bin.data()), bin.size()));
   if (addrResult.hasValue()) {
     auto& addr = addrResult.value();
     int numBits = *prefix.num_bits();
     return addr.str() + "/" + std::to_string(numBits);
   }
   return "unknown_prefix";
+}
+
+facebook::neteng::fboss::bgp_attr::TIpPrefix
+BgpRibMapDataGenerator::createFpfPrefix(int index) {
+  facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
+  prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  // Mirror the DNE injector's prefix range: base 5000:dd::/64 stepped by
+  // 0:0:1::. Index is split across the 3rd and 4th hextets (both free in a /64)
+  // with the low bits in the 3rd, so prefixes match the injector for
+  // index < 65536 and stay distinct for any int beyond it.
+  const auto idx = static_cast<uint32_t>(index);
+  std::string prefixStr =
+      fmt::format("5000:dd:{:x}:{:x}::/64", idx & 0xffff, (idx >> 16) & 0xffff);
+  auto network = folly::IPAddress::createNetwork(prefixStr);
+  prefix.prefix_bin() = toPrefixBin(network.first);
+  prefix.num_bits() = 64;
+  return prefix;
+}
+
+neteng::fboss::bgp::thrift::TBgpAttrDict BgpRibMapDataGenerator::buildAttrDict(
+    const BgpRibMapScale& scale) {
+  neteng::fboss::bgp::thrift::TBgpAttrDict attrDict;
+
+  // One shared community list (index 0): every injected prefix carries the same
+  // list, so it dedups to one. Count matches the captured FPF canonicalRib.
+  std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
+  communities.reserve(scale.communitiesPerPath);
+  for (int i = 0; i < scale.communitiesPerPath; i++) {
+    facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
+    int32_t asn = 65400 + (i % 100);
+    int16_t value = 100 + (i % 200);
+    community.asn() = asn;
+    community.value() = value;
+    community.community() = (asn << 16) | value;
+    communities.push_back(community);
+  }
+  attrDict.community_lists()[0] = std::move(communities);
+
+  // One AS_PATH list per pod: a single AS_SEQUENCE holding the 2-hop path the
+  // captured state shows (upstream ASN prepended by the STSW, then the pod
+  // origin), in both the deprecated 2-byte `asns` list and `asns_4_byte`.
+  constexpr int64_t kFpfBaseAsn = 4203699001;
+  constexpr int64_t kFpfUpstreamAsn = 4203601901;
+  for (int k = 0; k < scale.numPods; k++) {
+    facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() =
+        facebook::neteng::fboss::bgp_attr::TAsPathSegType::AS_SEQUENCE;
+    const int64_t originAsn = kFpfBaseAsn + k;
+    segment.asns() = std::vector<int32_t>{
+        static_cast<int32_t>(kFpfUpstreamAsn), static_cast<int32_t>(originAsn)};
+    segment.asns_4_byte() = std::vector<int64_t>{kFpfUpstreamAsn, originAsn};
+    attrDict.as_path_lists()[k] =
+        std::vector<facebook::neteng::fboss::bgp_attr::TAsPathSeg>{
+            std::move(segment)};
+  }
+
+  // One shared ext-community list (index 0), so best_path.ext_communities_idx
+  // resolves.
+  for (int i = 0; i < scale.extCommunitiesPerPath; i++) {
+    neteng::fboss::bgp::thrift::TBgpExtCommunity extComm;
+    neteng::fboss::bgp::thrift::TBgpExtCommUnion extCommUnion;
+    neteng::fboss::bgp::thrift::TBgpTwoByteAsnExtComm twoByteAsn;
+    twoByteAsn.type() = 64;
+    twoByteAsn.sub_type() = 4;
+    twoByteAsn.asn() = 57325;
+    twoByteAsn.value() = 16777472;
+    extCommUnion.two_byte_asn() = twoByteAsn;
+    extComm.u() = extCommUnion;
+    attrDict.ext_community_lists()[0].push_back(std::move(extComm));
+  }
+
+  // cluster_lists left empty: the captured state has none.
+  return attrDict;
+}
+
+neteng::fboss::bgp::thrift::TBgpDedupedPath
+BgpRibMapDataGenerator::buildDedupedBestPath(
+    int index,
+    int podIdx,
+    const BgpRibMapScale& scale) {
+  neteng::fboss::bgp::thrift::TBgpDedupedPath path;
+
+  // Synthesize a next_hop (mirrors createBgpPath's next-hop encoding).
+  facebook::neteng::fboss::bgp_attr::TIpPrefix nextHop;
+  nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  std::string nextHopStr = fmt::format("fe80::{:x}", index % 65536);
+  nextHop.prefix_bin() = toPrefixBin(folly::IPAddress(nextHopStr));
+  nextHop.num_bits() = 128;
+  path.next_hop() = nextHop;
+
+  // Reference the shared attr_dict entries by index.
+  path.as_path_idx() = podIdx;
+  path.communities_idx() = 0;
+  if (scale.extCommunitiesPerPath > 0) {
+    path.ext_communities_idx() = 0;
+  }
+  path.origin() = 0; // IGP
+  path.local_pref() = kFpfLocalPref;
+  path.med() = 0;
+  path.atomic_aggregate() = false;
+
+  // topology_info is the only per-entry container child on best_path, so it
+  // dominates canonicalRib COW memory (~416 B/entry). Values match the captured
+  // state.
+  path.topology_info() = std::unordered_map<std::string, int64_t>{
+      {"spine_id", 1}, {"remote_rack_capacity", 1}, {"rack_id", 0}};
+
+  return path;
+}
+
+neteng::fboss::bgp::thrift::TCanonicalRibState
+BgpRibMapDataGenerator::buildCanonicalRib(
+    const BgpRibMapScale& scale,
+    int version) {
+  neteng::fboss::bgp::thrift::TCanonicalRibState canonicalRib;
+  canonicalRib.attr_dict() = buildAttrDict(scale);
+  // deduped_paths and peers left empty: best-path-only view.
+
+  for (int i = 0; i < scale.ribV6EntryCount; i++) {
+    int podIdx =
+        (scale.numPrefixesPerPod > 0) ? (i / scale.numPrefixesPerPod) : 0;
+    neteng::fboss::bgp::thrift::TRibEntryCanonical entry;
+    auto prefix = createFpfPrefix(i);
+    entry.prefix() = prefix;
+    // paths map left empty (best-path-only view).
+    entry.rib_version() = version;
+    entry.best_path() = buildDedupedBestPath(i, podIdx, scale);
+    std::string prefixKey = createPrefixKey(prefix);
+    canonicalRib.rib_entries()[prefixKey] = std::move(entry);
+  }
+
+  // Duplicate prefixes would silently shrink the map and invalidate the
+  // benchmark scale.
+  CHECK_EQ(canonicalRib.rib_entries()->size(), scale.ribV6EntryCount)
+      << "duplicate FPF prefixes for " << scale.numPods << " pods x "
+      << scale.numPrefixesPerPod << " prefixes/pod";
+  return canonicalRib;
 }
 
 } // namespace facebook::fboss::test_data
