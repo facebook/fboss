@@ -16,9 +16,9 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
   // TODO(zecheng): return the real BCM SAI extension id for the PBR
-  // next-hop-group ACL match field once the vendor SDK exposes it (phase 2).
+  // route-destination ACL match field once the vendor SDK exposes it (phase 2).
   return std::nullopt;
 }
 

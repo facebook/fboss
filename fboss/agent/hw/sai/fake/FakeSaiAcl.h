@@ -103,9 +103,9 @@ class FakeAclEntry {
   sai_object_id_t fieldOutPortData;
   sai_uint32_t fieldOutPortMask;
 
-  bool fieldNextHopGroupIdEnable{false};
-  sai_object_id_t fieldNextHopGroupIdData{};
-  sai_uint32_t fieldNextHopGroupIdMask{};
+  bool fieldRouteDestinationEnable{false};
+  sai_object_id_t fieldRouteDestinationData{};
+  sai_uint32_t fieldRouteDestinationMask{};
 
   bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;

@@ -1117,8 +1117,8 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
-  return SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID;
+SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  return SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST;
 }
 
 std::optional<sai_attr_id_t>
