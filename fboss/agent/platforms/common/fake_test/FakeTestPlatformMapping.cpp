@@ -230,6 +230,14 @@ static const std::unordered_map<
              TransmitterTechnology::COPPER,
              phy::InterfaceMode::CAUI,
              phy::InterfaceType::CAUI)},
+        {cfg::PortProfileID::PROFILE_DEFAULT,
+         std::make_tuple(
+             cfg::PortSpeed::DEFAULT,
+             1,
+             phy::FecMode::NONE,
+             TransmitterTechnology::COPPER,
+             phy::InterfaceMode::SFI,
+             phy::InterfaceType::NONE)},
 };
 } // namespace
 
