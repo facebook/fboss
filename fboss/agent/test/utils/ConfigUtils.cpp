@@ -1698,12 +1698,22 @@ void modifyPlatformConfig(
       modifyMapFunc(*bcm.config());
     }
   } else if (chip.getType() == cfg::ChipConfig::Type::asicConfig) {
-    auto& common = *(chip.mutable_asicConfig().common());
-    if (common.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
-      // yamlConfig used for TH4
-      modifyYamlFunc(common.mutable_yamlConfig());
-    } else if (common.getType() == cfg::AsicConfigEntry::Type::config) {
-      modifyMapFunc(common.mutable_config());
+    auto& asicConfig = chip.mutable_asicConfig();
+    auto applyOverrides = [&](cfg::AsicConfigEntry& entry) {
+      if (entry.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
+        // yamlConfig used for TH4
+        modifyYamlFunc(entry.mutable_yamlConfig());
+      } else if (entry.getType() == cfg::AsicConfigEntry::Type::config) {
+        modifyMapFunc(entry.mutable_config());
+      }
+    };
+
+    applyOverrides(*asicConfig.common());
+
+    if (asicConfig.npuEntries().has_value()) {
+      for (auto& [_, entry] : *asicConfig.npuEntries()) {
+        applyOverrides(entry);
+      }
     }
   }
 }
