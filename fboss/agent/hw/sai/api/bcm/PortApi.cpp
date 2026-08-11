@@ -64,6 +64,24 @@ SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_TRANSMIT_PRECODING_STATE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_RECEIVE_PRECODING_STATE;
+#else
+  return std::nullopt;
+#endif
+}
+
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)

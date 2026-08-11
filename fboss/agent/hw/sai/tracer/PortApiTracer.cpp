@@ -241,6 +241,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
   SAI_EXT_ATTR_MAP(PortSerdes, FltS)
   SAI_EXT_ATTR_MAP(PortSerdes, RxReach)
+  SAI_EXT_ATTR_MAP(PortSerdes, TransmitPrecodingState)
+  SAI_EXT_ATTR_MAP(PortSerdes, ReceivePrecodingState)
   SAI_EXT_ATTR_MAP(PortSerdes, RVga)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq1)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq2)

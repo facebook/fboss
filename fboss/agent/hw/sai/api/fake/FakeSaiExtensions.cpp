@@ -149,6 +149,16 @@ SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
 }

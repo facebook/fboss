@@ -3812,14 +3812,12 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
   }
 #endif
 
-// TODO(ccpowers): Add support for earlier SDKs through vendor extension attrs
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
-    (!defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_XGS_GTE_14_0))
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_SERDES_PRECODING)) {
     getSerdesParam(
         "RxPrecoding",
-        SaiPortSerdesTraits::Attributes::RxPrecoding{
+        SaiPortSerdesTraits::Attributes::RxPrecodingAttr{
             std::vector<sai_int32_t>(numPmdLanes)},
         [](auto& param, auto val) { param.rxPrecoding() = val; });
   }
@@ -3897,13 +3895,12 @@ std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
-    (!defined(BRCM_SAI_SDK_XGS) || defined(BRCM_SAI_SDK_XGS_GTE_14_0))
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_SERDES_PRECODING)) {
     getTxParam(
         "TxPrecoding",
-        SaiPortSerdesTraits::Attributes::TxPrecoding{
+        SaiPortSerdesTraits::Attributes::TxPrecodingAttr{
             std::vector<sai_int32_t>(numPmdLanes)},
         [](auto& param, auto val) { param.precoding() = val; });
   }

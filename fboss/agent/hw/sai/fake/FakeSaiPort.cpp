@@ -1514,6 +1514,27 @@ sai_status_t set_port_serdes_attribute_fn(
       }
       break;
 
+    // The vendor extensions alias the standard precoding attributes
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE:
+      fillVec(
+          portSerdes.txPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.txPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE:
+      fillVec(
+          portSerdes.rxPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
     case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
       fillVec(
           portSerdes.rxCtlCode,
@@ -1973,6 +1994,24 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.rxReach, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.txPrecoding)) {
+          attr_list[i].value.s32list.count =
+              static_cast<uint32_t>(portSerdes.txPrecoding.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txPrecoding, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxPrecoding)) {
+          attr_list[i].value.s32list.count =
+              static_cast<uint32_t>(portSerdes.rxPrecoding.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxPrecoding, attr_list[i].value.s32list);
         break;
       case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
         if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {

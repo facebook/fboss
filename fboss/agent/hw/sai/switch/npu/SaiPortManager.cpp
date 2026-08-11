@@ -1409,11 +1409,11 @@ void SaiPortManager::programSerdes(
     }
   }
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
-    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
     for (const auto& pinConfig : swPort->getPinConfigs()) {
       if (auto rx = pinConfig.rx()) {
         if (auto precoding = rx->precoding()) {
@@ -1428,15 +1428,25 @@ void SaiPortManager::programSerdes(
     }
     // Precoding is handled by link training
     if (!rxPrecoding.empty() && !linkTrainingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+      SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
+          rxPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxPrecodingAttr);
     }
     if (!txPrecoding.empty() && !linkTrainingEnabled) {
-      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+      SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
+          txPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), txPrecodingAttr);
     }
+  }
+#else
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    XLOG_EVERY_MS(WARNING, 10000)
+        << "Port " << swPort->getID()
+        << ": SAI_SERDES_PRECODING is supported by the ASIC but no precoding "
+           "attribute is available on this SDK, skipping";
   }
 #endif
 

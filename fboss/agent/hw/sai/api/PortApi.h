@@ -1090,6 +1090,12 @@ struct SaiPortSerdesTraits {
     struct AttributeRxReachWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeTransmitPrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeReceivePrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRVgaWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1169,6 +1175,23 @@ struct SaiPortSerdesTraits {
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxReachWrapper>;
+    // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
+    // These vendor extensions work from 13.3
+    using TransmitPrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTransmitPrecodingStateWrapper>;
+    using ReceivePrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeReceivePrecodingStateWrapper>;
+// Alias to vendor extension attributes on bcm SAI
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+    using TxPrecodingAttr = TransmitPrecodingState;
+    using RxPrecodingAttr = ReceivePrecodingState;
+#elif SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    // If not BCM, alias to standard SAI attributes
+    using TxPrecodingAttr = TxPrecoding;
+    using RxPrecodingAttr = RxPrecoding;
+#endif
     using RVga =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
     using Dco =
@@ -1545,6 +1568,8 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxReach);
+SAI_ATTRIBUTE_NAME(PortSerdes, TransmitPrecodingState);
+SAI_ATTRIBUTE_NAME(PortSerdes, ReceivePrecodingState);
 SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
 SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);
