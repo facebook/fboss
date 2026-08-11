@@ -589,7 +589,8 @@
         89,
         87,
         78,
-        117
+        117,
+        120
     ],
     "tomahawkultra1": [
         2,
@@ -1294,7 +1295,8 @@
         "AM_IDLES",
         "UDF_HASH",
         "ECMP_RANDOM_SPRAY",
-        "CABLE_LENGTH_MEASUREMENT"
+        "CABLE_LENGTH_MEASUREMENT",
+        "ETSW_ROUTE_SCALE"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
