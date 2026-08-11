@@ -2718,6 +2718,8 @@ void SaiSwitch::updateRsInfo(
     std::shared_ptr<SaiPort> port,
     [[maybe_unused]] PortID swPort,
     [[maybe_unused]] phy::PhySideState& lastState) {
+  bool rsInfoSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ERR_STATUS);
   auto errStatus =
       managerTable_->portManager().getPortErrStatus(port->adapterKey());
   phy::LinkFaultStatus faultStatus;
@@ -2737,6 +2739,7 @@ void SaiSwitch::updateRsInfo(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   if (auto highCrcErrorRate = managerTable_->portManager().getHighCrcErrorRate(
           port->adapterKey(), swPort)) {
+    rsInfoSupported = true;
     faultStatus.highCrcErrorRateLive() = highCrcErrorRate->current_status;
     if (highCrcErrorRate->changed) {
       if (lastState.rs().has_value()) {
@@ -2755,8 +2758,7 @@ void SaiSwitch::updateRsInfo(
   }
 #endif
 
-  if (*faultStatus.localFault() || *faultStatus.remoteFault() ||
-      *faultStatus.highCrcErrorRateLive()) {
+  if (rsInfoSupported) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideState.rs() = rsInfo;
