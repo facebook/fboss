@@ -449,16 +449,10 @@ std::optional<MemoryStats> computeMemoryStats(
       stddev / 1024.0};
 }
 
-void bm_ribmap_pubsub_mem(
+void bm_pubsub_mem_stats(
     folly::UserCounters& counters,
-    unsigned /* iters */,
-    int prefixScale,
-    int paths,
+    test_data::BgpRibMapDataGenerator& gen,
     int num_subscribers) {
-  auto scale =
-      test_data::BgpRibMapDataGenerator::makeGtswScale(prefixScale, paths);
-  test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
-
   std::vector<int64_t> allocatedMeasurements;
   std::vector<int64_t> peakMeasurements;
   for (int i = 0; i < FLAGS_bm_subbench_memory_iters; i++) {
@@ -487,6 +481,33 @@ void bm_ribmap_pubsub_mem(
     counters["max_peak_KB"] = folly::UserMetric(stats->maxKB);
     counters["stddev_peak_KB"] = folly::UserMetric(stats->stddevKB);
   }
+}
+
+void bm_ribmap_pubsub_mem(
+    folly::UserCounters& counters,
+    unsigned /* iters */,
+    int prefixScale,
+    int paths,
+    int num_subscribers) {
+  auto scale =
+      test_data::BgpRibMapDataGenerator::makeGtswScale(prefixScale, paths);
+  test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  bm_pubsub_mem_stats(counters, gen, num_subscribers);
+}
+
+// FPF canonicalRib pub/sub memory: measures fanout of the compact,
+// best-path-only bgpData.canonicalRib() payload (numPods x numPrefixesPerPod
+// entries) that HostReachTracker subscribes to, instead of ribMap.
+void bm_canonicalrib_pubsub_mem(
+    folly::UserCounters& counters,
+    unsigned /* iters */,
+    int numPods,
+    int numPrefixesPerPod,
+    int num_subscribers) {
+  auto scale = test_data::BgpRibMapDataGenerator::makeGtswScale(
+      /*isFPF=*/true, numPods, numPrefixesPerPod);
+  test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  bm_pubsub_mem_stats(counters, gen, num_subscribers);
 }
 
 } // namespace
@@ -530,6 +551,33 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     70000,
     120,
     1);
+
+// FPF canonicalRib: 144 pods x 240 prefixes/pod = 34560 entries, single
+// subscriber (matches inject_bgp_prefixes --pods 144 --prefixes-per-pod 240).
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S1,
+    144,
+    240,
+    1);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S240,
+    144,
+    240,
+    240);
+
+// YUGE scale: 196 pods * 216 GPUs/pod = ~42K prefixes / vf
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_196x216_S216,
+    196,
+    216,
+    216);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 
