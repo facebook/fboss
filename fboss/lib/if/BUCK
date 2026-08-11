@@ -96,11 +96,20 @@ thrift_library(
 
 cpp_library(
     name = "link_qsfp_test_port_info_utils",
-    srcs = ["LinkQsfpTestPortInfoUtils.cpp"],
-    headers = ["LinkQsfpTestPortInfoUtils.h"],
+    srcs = [
+        "LinkQsfpTestPortInfoUtils.cpp",
+        "facebook/LinkQsfpTestMachineInfo.cpp",
+    ],
+    headers = [
+        "LinkQsfpTestMachineInfo.h",
+        "LinkQsfpTestPortInfoUtils.h",
+    ],
     deps = [
         ":link_qsfp_test_port_info-cpp2-types",
+        "//common/fbwhoami:fb_who_am_i",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//neteng/netwhoami/lib/cpp:recover",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_deps = [],
 )

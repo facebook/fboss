@@ -903,6 +903,7 @@ add_fbthrift_cpp_library(
 
 add_library(link_qsfp_test_port_info_utils
   fboss/lib/if/LinkQsfpTestPortInfoUtils.cpp
+  fboss/lib/if/oss/LinkQsfpTestMachineInfo.cpp
 )
 
 target_link_libraries(link_qsfp_test_port_info_utils
