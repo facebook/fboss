@@ -1984,6 +1984,12 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS)) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::DST_IPV6_WORD3);
+      bcmQualifiers.insert(cfg::AclTableQualifier::DST_IPV6_WORD2);
+    }
+
     // TH5 fails creating ACL table after adding vlan as qualifier with 10.0
     // CS00012342272
     if (isTomahawk5) {
