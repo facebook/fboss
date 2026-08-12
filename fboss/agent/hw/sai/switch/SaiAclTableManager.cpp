@@ -1546,6 +1546,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        aclFieldRouteDestination.has_value() ||
 #endif
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
+  if ((dstIpV6Word3 || dstIpV6Word2) && !dstIpV6WordQualifiersSupported) {
+    throw FbossError(
+        "ACL entry ",
+        addedAclEntry->getID(),
+        " uses DST IPv6 word qualifiers, but ASIC ",
+        platform_->getAsic()->getAsicTypeStr(),
+        " does not support ACL_DST_IPV6_WORD_QUALIFIERS");
+  }
   if (fieldSrcPort.has_value()) {
     auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
         HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
