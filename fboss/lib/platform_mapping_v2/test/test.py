@@ -553,6 +553,49 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             platform_mapping, self._get_expected_override_factors()
         )
 
+    def test_montblanc_family_port_five_uses_cage_root_controller(
+        self,
+    ) -> None:
+        vendor_data = {
+            "montblanc": read_vendor_data(
+                "fboss/lib/platform_mapping_v2/platforms/montblanc"
+            ),
+            "montblanc_gtsw_yolo": read_vendor_data(
+                "fboss/lib/platform_mapping_v2/platforms/montblanc_gtsw_yolo"
+            ),
+            "montblanc_odd_ports_8x100G": read_vendor_data(
+                "fboss/lib/platform_mapping_v2/platforms/montblanc_odd_ports_8x100G"
+            ),
+        }
+        platform_mappings = [
+            PlatformMappingV2(
+                vendor_data, platform, multi_npu=False
+            ).get_platform_mapping()
+            for platform in (
+                "montblanc",
+                "montblanc_odd_ports_8x100G",
+                "montblanc_gtsw_yolo",
+            )
+        ]
+        try:
+            raw_mapping = PlatformMappingV2.generate_raw_platform_mapping(
+                platform_mappings
+            )
+        except ValueError as error:
+            self.fail(str(error))
+        raw_ports = raw_mapping.rawPlatformPorts
+        self.assertIsNotNone(raw_ports)
+        if raw_ports is None:
+            return
+
+        port_fives = {
+            name: entry for name, entry in raw_ports.items() if name.endswith("/5")
+        }
+        self.assertEqual(64, len(port_fives))
+        for name, entry in port_fives.items():
+            cage_root = f"{name.rsplit('/', 1)[0]}/1"
+            self.assertEqual(cage_root, entry.mapping.controllingPortName, name)
+
     def test_read_platform_descriptor_variant_attributes(self) -> None:
         descriptor = read_platform_descriptor(
             {
