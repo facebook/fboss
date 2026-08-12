@@ -46,6 +46,34 @@ using namespace std::chrono;
 
 namespace facebook::fboss {
 
+namespace {
+
+// Match all 32 bits in the selected IPv6 word.
+constexpr uint32_t kIpV6WordExactMatchMask = 0xFFFFFFFF;
+
+folly::IPAddressV6 ipV6WordToAddress(uint32_t word, int wordIndex) {
+  CHECK(wordIndex == 2 || wordIndex == 3)
+      << "Only DST IPv6 word2 and word3 are supported";
+
+  folly::ByteArray16 bytes{{0}};
+  // SAI word3 is the most-significant IPv6 word; word0 is least-significant.
+  auto byteOffset = (3 - wordIndex) * sizeof(uint32_t);
+  bytes[byteOffset] = static_cast<uint8_t>(word >> 24);
+  bytes[byteOffset + 1] = static_cast<uint8_t>(word >> 16);
+  bytes[byteOffset + 2] = static_cast<uint8_t>(word >> 8);
+  bytes[byteOffset + 3] = static_cast<uint8_t>(word);
+  return folly::IPAddressV6(bytes);
+}
+
+AclEntryFieldIpV6 ipV6WordField(uint32_t word, int wordIndex) {
+  return AclEntryFieldIpV6(
+      std::make_pair(
+          ipV6WordToAddress(word, wordIndex),
+          ipV6WordToAddress(kIpV6WordExactMatchMask, wordIndex)));
+}
+
+} // namespace
+
 sai_u32_range_t SaiAclTableManager::getFdbDstUserMetaDataRange() const {
   std::optional<SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange> range =
       SaiSwitchTraits::Attributes::FdbDstUserMetaDataRange();
@@ -781,6 +809,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6> fieldDstIpV6{
       std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word3>
+      fieldDstIpV6Word3{std::nullopt};
+  std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word2>
+      fieldDstIpV6Word2{std::nullopt};
   std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV4> fieldDstIpV4{
       std::nullopt};
   if (addedAclEntry->getDstIp().first) {
@@ -799,6 +831,18 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
               std::make_pair(
                   addedAclEntry->getDstIp().first.asV4(), dstIpV4Mask))};
     }
+  }
+  const auto dstIpV6Word3 = addedAclEntry->getDstIpV6Word3();
+  const auto dstIpV6Word2 = addedAclEntry->getDstIpV6Word2();
+  const auto dstIpV6WordQualifiersSupported = platform_->getAsic()->isSupported(
+      HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS);
+  if (dstIpV6Word3 && dstIpV6WordQualifiersSupported) {
+    fieldDstIpV6Word3 = SaiAclEntryTraits::Attributes::FieldDstIpV6Word3{
+        ipV6WordField(*dstIpV6Word3, 3 /* wordIndex */)};
+  }
+  if (dstIpV6Word2 && dstIpV6WordQualifiersSupported) {
+    fieldDstIpV6Word2 = SaiAclEntryTraits::Attributes::FieldDstIpV6Word2{
+        ipV6WordField(*dstIpV6Word2, 2 /* wordIndex */)};
   }
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcPort> fieldSrcPort{
@@ -1471,6 +1515,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // not honored.
   auto matcherIsValid =
       (fieldSrcIpV6.has_value() || fieldDstIpV6.has_value() ||
+       fieldDstIpV6Word3.has_value() || fieldDstIpV6Word2.has_value() ||
        fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
        fieldSrcPort.has_value() || fieldOutPort.has_value() ||
        fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
@@ -1541,10 +1586,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       true,
       fieldSrcIpV6,
       fieldDstIpV6,
-      std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word3>{
-          std::nullopt},
-      std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word2>{
-          std::nullopt},
+      fieldDstIpV6Word3,
+      fieldDstIpV6Word2,
       fieldSrcIpV4,
       fieldDstIpV4,
       fieldSrcPort,
