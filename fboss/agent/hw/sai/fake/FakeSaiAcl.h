@@ -79,6 +79,14 @@ class FakeAclEntry {
   folly::IPAddressV6 fieldDstIpV6Data;
   folly::IPAddressV6 fieldDstIpV6Mask;
 
+  bool fieldDstIpV6Word3Enable{false};
+  folly::IPAddressV6 fieldDstIpV6Word3Data;
+  folly::IPAddressV6 fieldDstIpV6Word3Mask;
+
+  bool fieldDstIpV6Word2Enable{false};
+  folly::IPAddressV6 fieldDstIpV6Word2Data;
+  folly::IPAddressV6 fieldDstIpV6Word2Mask;
+
   bool fieldSrcIpV4Enable{false};
   folly::IPAddressV4 fieldSrcIpV4Data;
   folly::IPAddressV4 fieldSrcIpV4Mask;
@@ -263,6 +271,8 @@ class FakeAclTable {
       std::vector<sai_int32_t> actionTypeList,
       bool fieldSrcIpV6,
       bool fieldDstIpV6,
+      bool fieldDstIpV6Word3,
+      bool fieldDstIpV6Word2,
       bool fieldSrcIpV4,
       bool fieldDstIpV4,
       bool fieldL4SrcPort,
@@ -299,6 +309,8 @@ class FakeAclTable {
         actionTypeList(actionTypeList),
         fieldSrcIpV6(fieldSrcIpV6),
         fieldDstIpV6(fieldDstIpV6),
+        fieldDstIpV6Word3(fieldDstIpV6Word3),
+        fieldDstIpV6Word2(fieldDstIpV6Word2),
         fieldSrcIpV4(fieldSrcIpV4),
         fieldDstIpV4(fieldDstIpV4),
         fieldL4SrcPort(fieldL4SrcPort),
@@ -341,6 +353,8 @@ class FakeAclTable {
   std::vector<sai_int32_t> actionTypeList;
   bool fieldSrcIpV6;
   bool fieldDstIpV6;
+  bool fieldDstIpV6Word3;
+  bool fieldDstIpV6Word2;
   bool fieldSrcIpV4;
   bool fieldDstIpV4;
   bool fieldL4SrcPort;

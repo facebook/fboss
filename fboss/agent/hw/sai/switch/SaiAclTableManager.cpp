@@ -1541,6 +1541,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       true,
       fieldSrcIpV6,
       fieldDstIpV6,
+      std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word3>{
+          std::nullopt},
+      std::optional<SaiAclEntryTraits::Attributes::FieldDstIpV6Word2>{
+          std::nullopt},
       fieldSrcIpV4,
       fieldDstIpV4,
       fieldSrcPort,
