@@ -47,6 +47,15 @@ constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
 constexpr auto kL4DstPortRangeMin = 100;
 constexpr auto kL4DstPortRangeMax = 200;
 constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+constexpr auto kDstIpV6WordAclTableName = "dst-ipv6-word-acl-table";
+constexpr auto kDstIpV6WordAclName = "dst-ipv6-word-acl";
+constexpr auto kDstIpV6WordAclCounterName = "dst-ipv6-word-acl-stats";
+constexpr auto kDstIpV6WordEcmpWidth = 1;
+// Program the route to helper port 0, but inject from the next helper port so
+// the packet does not ingress on the same port selected for egress.
+constexpr auto kDstIpV6WordInjectionPortIndex = kDstIpV6WordEcmpWidth;
+constexpr uint32_t kDstIpV6Word3 = 0x12345678;
+constexpr uint32_t kDstIpV6Word2 = 0x9abcdef0;
 } // namespace
 
 namespace facebook::fboss {
@@ -761,6 +770,127 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
   }
 };
 
+class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentAclCounterTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::MODIFY_ACL_QUALIFIERS);
+    features.push_back(ProductionFeature::DST_IPV6_WORD_ACL_QUALIFIERS);
+    return features;
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentAclCounterTest::initialConfig(ensemble);
+    if (!FLAGS_enable_acl_table_group) {
+      return cfg;
+    }
+
+    utility::addAclTable(
+        &cfg,
+        kDstIpV6WordAclTableName,
+        1 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {cfg::AclTableQualifier::DST_IPV6_WORD3,
+         cfg::AclTableQualifier::DST_IPV6_WORD2});
+    return cfg;
+  }
+
+  cfg::AclEntry makeDstIpV6WordAcl() const {
+    cfg::AclEntry acl;
+    acl.name() = kDstIpV6WordAclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    acl.dstIpV6Word3() = kDstIpV6Word3;
+    acl.dstIpV6Word2() = kDstIpV6Word2;
+    return acl;
+  }
+
+  void addDstIpV6WordAclAndStat(cfg::SwitchConfig* cfg) const {
+    auto acl = makeDstIpV6WordAcl();
+    if (FLAGS_enable_acl_table_group) {
+      utility::addAclEntry(
+          cfg, acl, kDstIpV6WordAclTableName, cfg::AclStage::INGRESS);
+    } else {
+      utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
+    }
+    utility::addAclStat(
+        cfg,
+        kDstIpV6WordAclName,
+        kDstIpV6WordAclCounterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+  }
+
+  void setupDstIpV6WordAclCounterTest() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, kDstIpV6WordEcmpWidth);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kDstIpV6WordEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addDstIpV6WordAclAndStat(&newCfg);
+    applyNewConfig(newCfg);
+  }
+
+  uint64_t getDstIpV6WordAclPacketCounter() const {
+    return utility::getAclInOutPackets(getSw(), kDstIpV6WordAclCounterName);
+  }
+
+  void sendPacketWithDstIpV6(const folly::IPAddressV6& dstIp) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto txPacket = utility::makeTCPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        kSrcIP(),
+        dstIp,
+        kTestSrcPort,
+        kTestDstPort,
+        0,
+        255);
+    auto outPort = helper_->ecmpPortDescriptorAt(kDstIpV6WordInjectionPortIndex)
+                       .phyPortID();
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+  }
+
+  void verifyDstIpV6WordAclCounter(
+      const std::string& name,
+      const folly::IPAddressV6& dstIp) {
+    SCOPED_TRACE(name);
+    auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto egressPktsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
+
+    sendPacketWithDstIpV6(dstIp);
+
+    WITH_RETRIES({
+      auto egressPktsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      auto aclPktCountAfter = getDstIpV6WordAclPacketCounter();
+      XLOG(DBG2) << "\n"
+                 << "egressPacketCounter: " << egressPktsBefore << " -> "
+                 << egressPktsAfter << "\n"
+                 << "aclPacketCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
+      // Some ASICs can count the looped-back packet a second time before it is
+      // dropped later in the ingress pipeline. For one sent packet, require one
+      // or two ACL hits.
+      EXPECT_EVENTUALLY_GE(egressPktsAfter, egressPktsBefore + 1);
+      EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
+      EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+    });
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
@@ -805,6 +935,16 @@ TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
             {kL4DstPortRangeMiss});
       }
     }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentDstIpV6WordAclCounterTest, VerifyDstIpV6Word2AndWord3AclCounter) {
+  auto setup = [this]() { setupDstIpV6WordAclCounterTest(); };
+  auto verify = [this]() {
+    verifyDstIpV6WordAclCounter(
+        "word2 and word3 hit", folly::IPAddressV6("1234:5678:9abc:def0::1"));
   };
 
   verifyAcrossWarmBoots(setup, verify);
