@@ -4525,6 +4525,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto dstIp = config->dstIp()) {
     newAcl->setDstIp(IPAddress::createNetwork(*dstIp));
   }
+  if (auto dstIpV6Word3 = config->dstIpV6Word3()) {
+    newAcl->setDstIpV6Word3(*dstIpV6Word3);
+  }
+  if (auto dstIpV6Word2 = config->dstIpV6Word2()) {
+    newAcl->setDstIpV6Word2(*dstIpV6Word2);
+  }
   if (auto proto = config->proto()) {
     newAcl->setProto(*proto);
   }
