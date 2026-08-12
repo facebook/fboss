@@ -4459,6 +4459,10 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
       throw FbossError("l4DstPort and l4DstPortRange cannot both be set");
     }
   }
+  if (config->dstIp() && (config->dstIpV6Word3() || config->dstIpV6Word2())) {
+    throw FbossError(
+        "dstIp cannot be combined with dstIpV6Word3 or dstIpV6Word2");
+  }
   if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
