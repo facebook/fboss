@@ -131,6 +131,7 @@ def _setup_hw_agent_service(
     hw_agent_service_bin_path: str | None = None,
     platform_mapping_override_path: str | None = None,
     sai_replayer_log_path: str | None = None,
+    sai_replayer_sdk_log_level: str | None = None,
     is_fsdb_disabled: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
     hw_agent_for_testing: bool = True,
@@ -155,6 +156,26 @@ def _setup_hw_agent_service(
                 platform_mapping_override_path, "Platform mapping override path"
             )
             extra_args += f" {_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
+        if sai_replayer_sdk_log_level is not None and not sai_replayer_log_path:
+            print(
+                "Warning: --sai_replayer_sdk_log_level is ignored without --sai_replayer_logging / sai_replayer_log_path"
+            )
+        # Validate before interpolating into ExecStart (defence-in-depth for
+        # direct callers; argparse `choices=` already rejects bad values).
+        _ALLOWED_SAI_REPLAYER_LEVELS = {
+            "DEBUG",
+            "INFO",
+            "NOTICE",
+            "WARN",
+            "ERROR",
+            "CRITICAL",
+        }
+        if sai_replayer_sdk_log_level is not None:
+            if sai_replayer_sdk_log_level not in _ALLOWED_SAI_REPLAYER_LEVELS:
+                raise ValueError(
+                    f"Invalid sai_replayer_sdk_log_level {sai_replayer_sdk_log_level!r}; "
+                    f"expected one of {sorted(_ALLOWED_SAI_REPLAYER_LEVELS)}"
+                )
         if sai_replayer_log_path:
             extra_args += (
                 " --enable_replayer"
@@ -162,6 +183,10 @@ def _setup_hw_agent_service(
                 " --enable_packet_log"
                 f" --sai_log {sai_replayer_log_path}"
             )
+            if sai_replayer_sdk_log_level:
+                extra_args += (
+                    f" --sai_replayer_sdk_log_level {sai_replayer_sdk_log_level}"
+                )
 
         if not is_fsdb_disabled:
             extra_args += " --fsdb_client_ssl_preferred=false"
@@ -194,6 +219,7 @@ def setup_and_start_hw_agent_service(
     hw_agent_service_bin_path: str | None = None,
     platform_mapping_override_path: str | None = None,
     sai_replayer_log_path: str | None = None,
+    sai_replayer_sdk_log_level: str | None = None,
     is_fsdb_disabled: bool = False,
     is_warm_boot: bool = False,
     hw_agent_service_name: str = _HW_AGENT_SERVICE_OSS,
@@ -206,6 +232,7 @@ def setup_and_start_hw_agent_service(
         hw_agent_service_bin_path,
         platform_mapping_override_path,
         sai_replayer_log_path,
+        sai_replayer_sdk_log_level,
         is_fsdb_disabled,
         hw_agent_service_name=hw_agent_service_name,
         hw_agent_for_testing=hw_agent_for_testing,

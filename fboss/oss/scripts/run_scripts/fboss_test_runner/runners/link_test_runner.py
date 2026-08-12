@@ -148,6 +148,9 @@ class LinkTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=False,
             )
@@ -173,6 +176,9 @@ class LinkTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=True,
             )

@@ -30,6 +30,7 @@ from fboss_test_runner.constants import (
     OPT_ARG_QSFP_CONFIG_FILE,
     OPT_ARG_SAI_LOGGING,
     OPT_ARG_SAI_REPLAYER_LOGGING,
+    OPT_ARG_SAI_REPLAYER_SDK_LOG_LEVEL,
     OPT_ARG_SETUP_CB,
     OPT_ARG_SETUP_WB,
     OPT_ARG_SIMULATOR,
@@ -264,6 +265,13 @@ class TestRunner(abc.ABC):
             OPT_ARG_SAI_REPLAYER_LOGGING,
             type=str,
             help="Enable SAI Replayer logging and store logs in the supplied directory",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SAI_REPLAYER_SDK_LOG_LEVEL,
+            type=str,
+            choices=["DEBUG", "INFO", "NOTICE", "WARN", "ERROR", "CRITICAL"],
+            default=None,
+            help="SAI replayer SDK log level for replayer (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL; requires --sai_replayer_logging)",
         )
         sub_parser.add_argument(
             OPT_ARG_SIMULATOR,
@@ -627,6 +635,11 @@ class TestRunner(abc.ABC):
         self, tests_to_run: list[str], conf_file: str, args: Namespace
     ) -> list[GtestResult]:
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
+        sai_replayer_sdk_log_level = getattr(args, "sai_replayer_sdk_log_level", None)
+        if sai_replayer_sdk_log_level is not None and not sai_replayer_logging:
+            print(
+                "Warning: --sai_replayer_sdk_log_level is ignored without --sai_replayer_logging"
+            )
         simulator = getattr(args, "simulator", None)
 
         if sai_replayer_logging:
