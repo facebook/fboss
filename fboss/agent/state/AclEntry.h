@@ -20,6 +20,7 @@
 #include <folly/MacAddress.h>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 
 namespace facebook::fboss {
@@ -488,6 +489,30 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
       const HwSwitchMatcher& matcher);
 
  private:
+  // IPv6 word qualifiers are 32-bit values, but thrift stores them as signed
+  // i64 because it has no unsigned 32-bit integer type.
+  static constexpr int64_t kMaxIpV6Word = 0xFFFFFFFF;
+
+  static uint32_t validateIpV6Word(int64_t word) {
+    if (word < 0 || word > kMaxIpV6Word) {
+      throw FbossError("IPv6 ACL word must be a 32-bit value");
+    }
+    return static_cast<uint32_t>(word);
+  }
+
+  template <typename Tag>
+  std::optional<uint32_t> getIpV6Word() const {
+    if (auto word = cref<Tag>()) {
+      return validateIpV6Word(word->cref());
+    }
+    return std::nullopt;
+  }
+
+  template <typename Tag>
+  void setIpV6Word(int64_t word) {
+    set<Tag>(static_cast<int64_t>(validateIpV6Word(word)));
+  }
+
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
   friend class CloneAllocator;
