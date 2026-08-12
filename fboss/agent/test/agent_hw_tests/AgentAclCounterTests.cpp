@@ -961,6 +961,10 @@ TEST_F(AgentDstIpV6WordAclCounterTest, VerifyDstIpV6Word2AndWord3AclCounter) {
         "word3 miss while word2 still matches",
         folly::IPAddressV6("1111:2222:9abc:def0::1"),
         false);
+    verifyDstIpV6WordAclCounter(
+        "same word2 and word3 with all lower 64 bits different still hits",
+        folly::IPAddressV6("1234:5678:9abc:def0:ffff:ffff:ffff:ffff"),
+        true);
   };
 
   verifyAcrossWarmBoots(setup, verify);
