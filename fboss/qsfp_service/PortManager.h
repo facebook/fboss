@@ -78,13 +78,6 @@ class PortManager {
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::map<int32_t, PortStatus>> ports);
 
-  void publishPhyIOStats() const {
-    if (!phyManager_) {
-      return;
-    }
-    phyManager_->publishPhyIOStatsToFb303();
-  }
-
   PhyManager* getPhyManager() {
     return phyManager_.get();
   }

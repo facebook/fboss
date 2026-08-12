@@ -901,6 +901,14 @@ PhyManager::PortStatsWLockedPtr PhyManager::getWLockedStats(
   return statsInfo->second->wlock();
 }
 
+size_t PhyManager::getNumXphys() const {
+  size_t numXphys = 0;
+  for (const auto& pimAndXphy : xphyMap_) {
+    numXphys += pimAndXphy.second.size();
+  }
+  return numXphys;
+}
+
 void PhyManager::publishPhyIOStatsToFb303() const {
   std::map<std::string, IOStats> ioStats;
   for (const auto& pimAndXphy : xphyMap_) {
