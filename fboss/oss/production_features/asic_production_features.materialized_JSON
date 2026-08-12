@@ -564,6 +564,7 @@
         39,
         43,
         40,
+        120,
         42,
         44,
         50,
@@ -589,8 +590,7 @@
         89,
         87,
         78,
-        117,
-        120
+        117
     ],
     "tomahawkultra1": [
         2,
@@ -1270,6 +1270,7 @@
         "HGRID_UU_ROUTE_SCALE",
         "UDF_WR_IMMEDIATE_ACL",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "ETSW_ROUTE_SCALE",
         "PFC",
         "VLAN",
         "PAUSE",
@@ -1295,8 +1296,7 @@
         "AM_IDLES",
         "UDF_HASH",
         "ECMP_RANDOM_SPRAY",
-        "CABLE_LENGTH_MEASUREMENT",
-        "ETSW_ROUTE_SCALE"
+        "CABLE_LENGTH_MEASUREMENT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
