@@ -863,12 +863,14 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
 
   void verifyDstIpV6WordAclCounter(
       const std::string& name,
-      const folly::IPAddressV6& dstIp) {
+      const folly::IPAddressV6& dstIp,
+      bool expectHit) {
     SCOPED_TRACE(name);
-    auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
+    auto egressPort =
+        helper_->ecmpPortDescriptorAt(kDstIpV6WordEcmpWidth - 1).phyPortID();
     auto egressPktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
-    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
 
     sendPacketWithDstIpV6(dstIp);
 
@@ -881,12 +883,16 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
                  << egressPktsAfter << "\n"
                  << "aclPacketCounter(" << kDstIpV6WordAclCounterName
                  << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
-      // Some ASICs can count the looped-back packet a second time before it is
-      // dropped later in the ingress pipeline. For one sent packet, require one
-      // or two ACL hits.
       EXPECT_EVENTUALLY_GE(egressPktsAfter, egressPktsBefore + 1);
-      EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
-      EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+      if (expectHit) {
+        // Some ASICs can count the looped-back packet a second time before it
+        // is dropped later in the ingress pipeline. For one sent packet,
+        // require one or two ACL hits.
+        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
+        EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+      }
     });
   }
 };
@@ -944,7 +950,17 @@ TEST_F(AgentDstIpV6WordAclCounterTest, VerifyDstIpV6Word2AndWord3AclCounter) {
   auto setup = [this]() { setupDstIpV6WordAclCounterTest(); };
   auto verify = [this]() {
     verifyDstIpV6WordAclCounter(
-        "word2 and word3 hit", folly::IPAddressV6("1234:5678:9abc:def0::1"));
+        "word2 and word3 hit",
+        folly::IPAddressV6("1234:5678:9abc:def0::1"),
+        true);
+    verifyDstIpV6WordAclCounter(
+        "word2 miss while word3 still matches",
+        folly::IPAddressV6("1234:5678:1111:2222::1"),
+        false);
+    verifyDstIpV6WordAclCounter(
+        "word3 miss while word2 still matches",
+        folly::IPAddressV6("1111:2222:9abc:def0::1"),
+        false);
   };
 
   verifyAcrossWarmBoots(setup, verify);
