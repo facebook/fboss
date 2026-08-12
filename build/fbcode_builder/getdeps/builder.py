@@ -1637,6 +1637,9 @@ class NopBuilder(BuilderBase):
                 dest_parent = os.path.dirname(full_dest)
                 if not os.path.exists(dest_parent):
                     os.makedirs(dest_parent)
+                if not os.path.exists(full_src):
+                    # Skip files that don't exist (e.g., optional files in different SAI versions)
+                    continue
                 if os.path.isdir(full_src):
                     if not os.path.exists(full_dest):
                         simple_copytree(full_src, full_dest)
