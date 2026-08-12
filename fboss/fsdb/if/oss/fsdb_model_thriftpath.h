@@ -6673,6 +6673,8 @@ class ChildThriftPath<::facebook::fboss::cfg::AclEntry, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(roceMask, 34);
     STRUCT_CHILD_GETTERS(udfTable, 35);
     STRUCT_CHILD_GETTERS(l4DstPortRange, 36);
+    STRUCT_CHILD_GETTERS(dstIpV6Word3, 37);
+    STRUCT_CHILD_GETTERS(dstIpV6Word2, 38);
 };
 
 
