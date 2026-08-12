@@ -1776,7 +1776,7 @@ void PortManager::handlePendingUpdates() {
   // Pending updates are stored within each PortStateMachineController, so this
   // function asks each StateMachineController to execute a single pending
   // update if possible.
-  PORTMGR_SM_LOG(INFO) << "Trying to update all PortStateMachines";
+  XLOG_EVERY_MS(DBG2, 30000) << "[SM] Trying to update all PortStateMachines";
 
   // To expedite all these different ports state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
