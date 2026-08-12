@@ -164,6 +164,22 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::dstIp>(folly::IPAddress::networkToString(ip));
   }
 
+  std::optional<uint32_t> getDstIpV6Word3() const {
+    return getIpV6Word<switch_state_tags::dstIpV6Word3>();
+  }
+
+  void setDstIpV6Word3(int64_t word) {
+    setIpV6Word<switch_state_tags::dstIpV6Word3>(word);
+  }
+
+  std::optional<uint32_t> getDstIpV6Word2() const {
+    return getIpV6Word<switch_state_tags::dstIpV6Word2>();
+  }
+
+  void setDstIpV6Word2(int64_t word) {
+    setIpV6Word<switch_state_tags::dstIpV6Word2>(word);
+  }
+
   std::optional<uint8_t> getProto() const {
     if (auto proto = cref<switch_state_tags::proto>()) {
       return proto->cref();
