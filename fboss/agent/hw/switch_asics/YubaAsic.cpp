@@ -106,6 +106,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
       return isSrv6Supported();
     case HwAsic::Feature::ACL_BYTE_COUNTER:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:

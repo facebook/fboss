@@ -288,6 +288,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
       return false;
   }
   return false;

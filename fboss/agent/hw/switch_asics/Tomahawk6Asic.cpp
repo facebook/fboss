@@ -87,6 +87,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:

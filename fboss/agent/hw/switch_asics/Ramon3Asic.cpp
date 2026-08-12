@@ -67,6 +67,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     default:
       return false;
   }
