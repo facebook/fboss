@@ -271,6 +271,15 @@ struct AclEntryFields {
   33: optional switch_config.Range l4DstPortRange;
   34: optional byte trafficClass;
   35: optional i64 nextHopGroupId;
+  // Thrift has no unsigned 32-bit integer type. Use i64 as the carrier type so
+  // the full IPv6 word range [0, 0xffffffff] is representable. ACL config
+  // application validates the range before programming.
+  //
+  // dstIpV6Word3 matches destination IPv6 bits 127:96, and dstIpV6Word2
+  // matches bits 95:64. For AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222,
+  // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
+  36: optional i64 dstIpV6Word3;
+  37: optional i64 dstIpV6Word2;
 }
 
 enum NeighborState {

@@ -5034,6 +5034,8 @@ class ChildThriftPath<::facebook::fboss::state::AclEntryFields, ::facebook::fbos
     STRUCT_CHILD_GETTERS(l4DstPortRange, 33);
     STRUCT_CHILD_GETTERS(trafficClass, 34);
     STRUCT_CHILD_GETTERS(nextHopGroupId, 35);
+    STRUCT_CHILD_GETTERS(dstIpV6Word3, 36);
+    STRUCT_CHILD_GETTERS(dstIpV6Word2, 37);
 };
 
 
