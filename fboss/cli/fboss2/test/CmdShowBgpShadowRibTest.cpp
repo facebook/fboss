@@ -114,14 +114,14 @@ TEST_F(CmdShowBgpShadowRibTestFixture, printOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.1/32, Selected 1/1 paths\n"
-      "*@ from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::1/64, Selected 1/1 paths\n"
-      "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::3/64, Selected 1/1 paths\n"
-      "*@ from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.1/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::3/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
 
   maskDateInOutput(output);
   EXPECT_EQ(output, expectedOutput);
@@ -198,29 +198,29 @@ TEST_F(CmdShowBgpShadowRibTestFixture, printCPSOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.1/32, Selected 0/1 paths\n"
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.1/32, Selected 0/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 8.0.0.1/32\n"
       "    default BGP multipath selector\n"
       "    BGP native min nexthop: 20\n"
-      "   from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.3/32, Selected 1/1 paths\n"
+      "    from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.3/32, Selected 1/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 8.0.0.3/32\n"
       "    default BGP multipath selector\n"
       "    BGP native min nexthop: 20, partial drain: true\n"
-      "*  from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::1/64, Selected 1/1 paths\n"
-      "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::3/64, Selected 1/1 paths\n"
+      "*   from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::3/64, Selected 1/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 2001::3/64\n"
       "    active criteria:\n"
       "      path_matchers:\n"
       "      min nexthop: 13\n"
-      "*@ from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
+      "*@  from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
 
   maskDateInOutput(output);
   EXPECT_EQ(output, expectedOutput);

@@ -41,8 +41,11 @@ const std::string kIpAddress = "8.0.0.0/32";
 const std::string kPeerId = "1.2.3.4";
 const std::string kPeerDescription = "one.two.three.four";
 const std::string kNextHop = "8.0.0.1";
+// Mirrors kRibEntryMarkersLegend in commands/show/bgp/CmdShowUtils.h.
+// Kept as a literal so this small test-utils target need not depend on the
+// full CLI command library; the exact-match golden tests catch any drift.
 const std::string kRibEntryMarkersHeader =
-    "Markers: * - One of the best entries, @ - The best entry, % - Pending best path selection\n"
+    "Markers: * - One of the best entries, @ - Best entry, % - Pending selection, ! - Inactive path\n"
     "Acronyms: ASP - AS Path, LP - Local Preference, LBW - Link Bandwidth, LM - Last Modified\n";
 
 // Common BGP peer state constants

@@ -151,6 +151,7 @@ std::optional<TBgpPath> resolveCanonicalPath(
   assignIfSet(path.path_id_to_send(), canonPath.path_id_to_send());
   assignIfSet(path.bestpath_filter_descr(), canonPath.bestpath_filter_descr());
   assignIfSet(path.policy_name(), canonPath.policy_name());
+  assignIfSet(path.is_inactive(), canonPath.is_inactive());
 
   return path;
 }

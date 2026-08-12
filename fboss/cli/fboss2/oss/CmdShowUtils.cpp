@@ -311,8 +311,7 @@ void printRIBEntries(
     const bool detail,
     const std::string& originator,
     bool fbnetsource) {
-  out << "Markers: * - One of the best entries, @ - The best entry, % - Pending best path selection"
-      << std::endl;
+  out << kRibEntryMarkersLegend << std::endl;
   out << "Acronyms: ASP - AS Path, LP - Local Preference, LBW - Link Bandwidth, LM - Last Modified"
       << std::endl;
   auto& entries = *data.tRibEntries();
@@ -325,7 +324,7 @@ void printRIBEntries(
     const auto& bestGroup = entry.best_group().value();
     const auto& bestNextHop = entry.best_next_hop().value();
     const bool entryHasBestPath = hasBestPath(entry);
-    int totalPaths = 0, ecmpPaths = 0;
+    int totalPaths = 0, ecmpPaths = 0, inactivePaths = 0;
     std::vector<std::string> pathsToPrint;
 
     for (const auto& [group, paths] : entry.paths().value()) {
@@ -346,8 +345,14 @@ void printRIBEntries(
             ? path.is_best_path().value_or(false)
             : (isEcmpPath && bestNextHop == nextHop);
 
+        const bool isInactivePath = path.is_inactive().value_or(false);
+        if (isInactivePath) {
+          ++inactivePaths;
+        }
+
         std::string marker = (isEcmpPath) ? "*" : " ";
         marker += (bestEcmpPath) ? "@" : " ";
+        marker += (isInactivePath) ? "!" : " ";
 
         std::string peerIdStr = "--";
         if (const auto& peerId = apache::thrift::get_pointer(path.peer_id())) {
@@ -495,11 +500,13 @@ void printRIBEntries(
       pendingMarker = "%";
     }
     out << fmt::format(
-        "\n>{} {}, Selected {}/{} paths\n",
+        "\n>{} {}, Selected {}/{} paths ({} active, {} inactive)\n",
         pendingMarker,
         prefix,
         ecmpPaths,
-        totalPaths);
+        totalPaths,
+        totalPaths - inactivePaths,
+        inactivePaths);
     out << folly::join('\n', pathsToPrint) << std::endl;
   }
 }
