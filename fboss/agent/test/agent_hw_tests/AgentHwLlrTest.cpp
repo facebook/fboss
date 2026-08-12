@@ -35,16 +35,23 @@ class AgentHwLlrTest : public AgentHwTest {
   void addLlrConfig(cfg::SwitchConfig& cfg, const AgentEnsemble& ensemble)
       const {
     cfg::LlrConfig llr;
-    // Values track the UE Spec section 5.1.4 registers; replayCountMax, frame
-    // actions and ctlosTargetSpacing keep their thrift defaults (replayCountMax
-    // 2, init BEST_EFFORT, flush BLOCK, ctlos 2048).
-    // outstandingFramesMax / outstandingBytesMax are validated at profile-bind
-    // time against a speed-dependent HW maximum (~ the link bandwidth-delay
-    // product); exceeding it fails the bind. Use conservative values that fit
-    // the smallest supported port speed (100G, BDP ~6KB) so the bind succeeds
-    // on any LLR-capable port.
-    llr.outstandingFramesMax() = 32;
-    llr.outstandingBytesMax() = 4096;
+    // 400G TU1 UEC LLR profile mirroring the production COOP values, sized from
+    // the Broadcom BCM78920 LLR Reach Calculator (checked in at
+    // fboss/agent/facebook/wiki/BCM78920_LLR_ReachCalculator_v5.1.html). At
+    // 400G (MTU 9000, ACK 2048): External Budget = 2708ns usable buffer - 132
+    // PHY
+    // - 2x180 MTU - 2x41 ACK - 8 CtlOS - 5.1 header - 5.1 AM ~= 2116ns; x 50
+    // B/ns ~= 105800 B. outstandingBytesMax is the outstanding (un-acked)
+    // window; the full 135400 B usable buffer leaves no room for those reserved
+    // overheads and hangs the profile program, so External Budget is the HW
+    // ceiling; 105800 is bind-validated on TU1 (cold+warm).
+    // outstandingFramesMax = ceil(105800 / 64B min frame) = 1654 so
+    // bytes stays the binding limit. LLR is TU1-400G only today; revisit if an
+    // LLR port at another speed is added. replayCountMax, frame actions and
+    // ctlosTargetSpacing keep their thrift defaults (2, init BEST_EFFORT, flush
+    // BLOCK, ctlos 2048).
+    llr.outstandingFramesMax() = 1654;
+    llr.outstandingBytesMax() = 105800;
     llr.replayTimerMax() = 5000; // ns
     cfg.llrConfigs() = {{kLlrConfigName, llr}};
     for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
