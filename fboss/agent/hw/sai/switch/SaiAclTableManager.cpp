@@ -2060,11 +2060,11 @@ bool SaiAclTableManager::isQualifierSupported(
               attributes));
     case cfg::AclTableQualifier::SRC_IPV4:
       return hasField(
-          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstIpV4>>(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldSrcIpV4>>(
               attributes));
     case cfg::AclTableQualifier::DST_IPV4:
       return hasField(
-          std::get<std::optional<SaiAclTableTraits::Attributes::FieldSrcIpV4>>(
+          std::get<std::optional<SaiAclTableTraits::Attributes::FieldDstIpV4>>(
               attributes));
     case cfg::AclTableQualifier::L4_SRC_PORT:
       return hasField(
