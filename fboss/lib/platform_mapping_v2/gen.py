@@ -22,7 +22,11 @@ PlatformDescriptorData = Tuple[str, Dict[str, Any]]
 
 _RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
-    "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
+    "montblanc": (
+        "montblanc",
+        "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
+    ),
     "wedge800bact": ("wedge800bact",),
     "wedge800cact": ("wedge800cact",),
 }
