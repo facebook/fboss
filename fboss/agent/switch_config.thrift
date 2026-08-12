@@ -726,6 +726,8 @@ enum AclTableQualifier {
   L4_DST_PORT_RANGE = 27,
   TC = 28,
   NEXT_HOP_GROUP_ID = 29,
+  DST_IPV6_WORD3 = 30,
+  DST_IPV6_WORD2 = 31,
 }
 
 struct AclTable {

@@ -495,7 +495,7 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
         getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
         getRoceMask() || getUdfTable() || getTrafficClass() ||
-        getNextHopGroupId();
+        getNextHopGroupId() || getDstIpV6Word3() || getDstIpV6Word2();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
