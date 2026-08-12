@@ -87,4 +87,73 @@ TEST_F(CmdShowBgpStatsAttrsTestFixture, printOutput) {
 
   EXPECT_EQ(expectedOutput, output);
 }
+
+// An older bgpd predating the deduplicator fields sends them unset. The
+// existing block must still render and the new one must be omitted entirely,
+// rather than throwing on a missing optional.
+TEST_F(CmdShowBgpStatsAttrsTestFixture, printOutputOmitsDedupBlockWhenUnset) {
+  std::stringstream ss;
+  CmdShowBgpStatsAttrs().printOutput(stats_, ss);
+
+  EXPECT_THAT(ss.str(), HasSubstr("BGP attribute statistics:"));
+  EXPECT_THAT(ss.str(), Not(HasSubstr("Deduplicator sizes")));
+}
+
+TEST_F(CmdShowBgpStatsAttrsTestFixture, printOutputRendersDedupSizes) {
+  auto stats = stats_;
+  stats.dedup_bgp_path() = 800000;
+  stats.dedup_bgp_attributes() = 300001;
+  stats.dedup_as_path() = 101;
+  stats.dedup_communities() = 200;
+  stats.dedup_cluster_list() = 0;
+  stats.dedup_ext_communities() = 100;
+
+  std::stringstream ss;
+  CmdShowBgpStatsAttrs().printOutput(stats, ss);
+  const std::string output = ss.str();
+
+  // The pre-existing block is untouched -- this is an extension, not a
+  // replacement.
+  EXPECT_THAT(output, HasSubstr(" Total number of attributes: 1"));
+  EXPECT_THAT(output, HasSubstr(" Average as path length: 1.06"));
+
+  EXPECT_THAT(output, HasSubstr("Deduplicator sizes"));
+  EXPECT_THAT(output, HasSubstr("bgp_attributes"));
+  EXPECT_THAT(output, HasSubstr("300001"));
+
+  /*
+   * The L2 collection is published to fb303 as "...deduplicated_attributes.
+   * total", a name that reads as a grand total when it is the bundle count.
+   * The CLI must not reproduce it.
+   */
+  EXPECT_THAT(output, Not(HasSubstr("total)")));
+  EXPECT_THAT(output, HasSubstr("101"));
+  EXPECT_THAT(output, HasSubstr("800000"));
+  EXPECT_THAT(output, HasSubstr("bgp_path"));
+
+  /*
+   * The level column is what stops "total" being read as a grand total, and
+   * the trailing note is what stops L2 being read as the sum of L3. Both are
+   * load-bearing for interpreting the numbers, so both are asserted.
+   */
+  EXPECT_THAT(output, HasSubstr("Level"));
+  EXPECT_THAT(output, HasSubstr("L1"));
+  EXPECT_THAT(output, HasSubstr("L2"));
+  EXPECT_THAT(output, HasSubstr("L3"));
+  EXPECT_THAT(output, HasSubstr("NOT the sum of the level below"));
+}
+
+// A zero-valued collection must render as 0, not be mistaken for unset and
+// suppressed -- cluster_list is legitimately 0 without route reflection.
+TEST_F(CmdShowBgpStatsAttrsTestFixture, printOutputRendersZeroCollection) {
+  auto stats = stats_;
+  stats.dedup_bgp_path() = 1;
+  stats.dedup_cluster_list() = 0;
+
+  std::stringstream ss;
+  CmdShowBgpStatsAttrs().printOutput(stats, ss);
+
+  EXPECT_THAT(ss.str(), HasSubstr("cluster_list"));
+  EXPECT_THAT(ss.str(), HasSubstr("Deduplicator sizes"));
+}
 } // namespace facebook::fboss

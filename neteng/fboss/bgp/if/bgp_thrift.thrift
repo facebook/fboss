@@ -788,6 +788,60 @@ struct TAttributeStats {
   6: double avg_as_path_len;
   7: double avg_cluster_list_len;
   8: double avg_topology_info_len;
+
+  /**
+   * Live size of each DeDuplicator<T>, i.e. how many DISTINCT values of that
+   * type the daemon is currently storing. Read straight from
+   * `DeDuplicator::size()`, so these are O(1) and, unlike fields 1-8, cost
+   * nothing to produce -- they do not require walking the RIB.
+   *
+   * Six SEPARATE collections. They nest by containment, but each one counts
+   * distinct values at ITS OWN level:
+   *
+   *   L1  dedup_bgp_path        BgpPathC       = attrs pointer + nexthop
+   *                                              + topologyInfo
+   *   L2    dedup_bgp_attributes  BgpAttributesC = the attribute bundle L1
+   *                                              points at; no nexthop
+   *   L3      dedup_as_path / dedup_communities / dedup_cluster_list /
+   *           dedup_ext_communities, held BY the bundle as deduplicated
+   *           POINTERS, so each is counted once here however many bundles
+   *           reference it.
+   *
+   * A LEVEL IS NOT THE SUM OF THE LEVEL BELOW IT, in either direction. L2
+   * counts distinct COMBINATIONS: A as_paths x C community sets can reach A*C
+   * bundles, far above the L3 sum, while pairing them 1:1 gives max(A, C),
+   * below it. `BgpAttributesC` also carries med / isMedSet / localPref /
+   * atomicAggregate / aggregator / originatorId / weight, none of which have a
+   * deduplicator -- bundles differing only in MED add L2 entries and no L3
+   * entries at all.
+   *
+   * Nor does L1 bound L2: many paths differing only in nexthop share one
+   * bundle, while bundles interned by transient or egress objects that never
+   * become a stored BgpPath have no L1 entry. Either can exceed the other.
+   *
+   * Each field is named after the deduplicator it reports, so the name says
+   * which level it belongs to. NOTE for anyone correlating with fb303: the L2
+   * bundle count is published there as
+   * `bgpcpp.deduplicated_attributes.total`. That counter name is kept for
+   * continuity, but "total" is a misnomer -- it is the bundle count, never a
+   * sum -- so it is deliberately NOT reproduced in this API.
+   *
+   * CAVEAT on dedup_bgp_path: `AdjRibEntry::setPreIn` and `setPostAttr` route
+   * through DeDuplicatedBgpPath; `setPreOut` stores its path verbatim. In the
+   * announce path that is not a gap -- preOut is handed the RIB best-entry
+   * path, which reached the RIB as an already-interned postAttr -- but an
+   * egress path that minted its own BgpPath would go uncounted here. See
+   * AdjRibEntryTest for the pinned behaviour.
+   */
+  // L1
+  9: optional i64 dedup_bgp_path;
+  // L2
+  10: optional i64 dedup_bgp_attributes;
+  // L3
+  11: optional i64 dedup_as_path;
+  12: optional i64 dedup_communities;
+  13: optional i64 dedup_cluster_list;
+  14: optional i64 dedup_ext_communities;
 }
 
 /**
