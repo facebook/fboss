@@ -899,6 +899,18 @@ struct TRibSummary {
   // peer advertising N add-path routes for a prefix contributes N. Same
   // semantic as TEntryStats.total_rib_paths, split per address family.
   10: i64 total_paths;
+  // Subset of total_paths that best-path selection excluded as candidates --
+  // today, paths whose next-hop is unresolvable. The remainder
+  // (total_paths - inactive_paths) are the paths that entered selection, of
+  // which the winners form each prefix's best/ECMP set. Mirrors the
+  // bgpcpp.rib.inactive_path.count ODS gauge.
+  //
+  // Optional so a newer client can tell "server did not report this" apart from
+  // a genuine zero: an older bgpd predating this field would otherwise
+  // deserialize as 0 and the CLI would confidently render a fully-active RIB.
+  // Consumers must omit the active/inactive split when this is unset rather
+  // than substituting a default.
+  11: optional i64 inactive_paths;
 }
 
 /**
