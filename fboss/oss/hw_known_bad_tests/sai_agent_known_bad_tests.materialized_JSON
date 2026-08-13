@@ -2057,6 +2057,12 @@
         },
         {
           "test_name_regex": "AgentPfcConfigTest.PfcWatchdog.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk4/multi_switch": [
@@ -2422,6 +2428,12 @@
         },
         {
           "test_name_regex": "AgentPfcConfigTest.PfcWatchdog.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/11.7.0.0_dnx_odp/jericho3/mono": [
@@ -21146,6 +21158,12 @@
         },
         {
           "test_name_regex": "AgentPfcConfigTest.PfcWatchdog.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk4/multi_switch": [
@@ -21511,6 +21529,12 @@
         },
         {
           "test_name_regex": "AgentPfcConfigTest.PfcWatchdog.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentFlexPortTest.FlexPortFOURX10G$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk5/mono": [
