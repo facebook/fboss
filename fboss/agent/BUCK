@@ -517,6 +517,7 @@ cpp_library(
     ],
     exported_deps = [
         ":fboss-types",
+        ":platform_config-cpp2-types",
         ":switch_state-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//folly:range",
