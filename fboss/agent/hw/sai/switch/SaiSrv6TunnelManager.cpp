@@ -86,7 +86,8 @@ void SaiSrv6TunnelManager::addSrv6Tunnel(
       encapDscpMode,
       std::nullopt, // DecapTtlMode (encap tunnel)
       std::nullopt, // DecapDscpMode (encap tunnel)
-      std::nullopt}; // DecapEcnMode (encap tunnel)
+      std::nullopt, // DecapEcnMode (encap tunnel)
+      std::nullopt}; // DecapQosDscpToTcMap (encap tunnel)
   auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();
   handle->tunnel = tunnelObj;
@@ -143,7 +144,9 @@ void SaiSrv6TunnelManager::addSrv6DecapTunnel(
       std::nullopt, // EncapDscpMode (decap tunnel)
       ttlMode,
       dscpMode,
-      ecnMode};
+      ecnMode,
+      std::nullopt}; // DecapQosDscpToTcMap (encap tunnel)
+
   auto& tunnelStore = saiStore_->get<SaiSrv6TunnelTraits>();
   auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();

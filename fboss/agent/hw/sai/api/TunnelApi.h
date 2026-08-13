@@ -35,6 +35,10 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_IPINIP> {
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_DSCP_MODE, sai_int32_t>;
   using DecapEcnMode =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_ECN_MODE, sai_int32_t>;
+  // Only SRv6 decap tunnels bind a DSCP->TC map, and
+  // SAI_TUNNEL_ATTR_DECAP_QOS_DSCP_TO_TC_MAP does not exist in SAI specs older
+  // than the SRv6 tunnel support below.
+  using DecapQosDscpToTcMap = void;
   using EncapTtlMode =
       SaiAttribute<EnumType, SAI_TUNNEL_ATTR_ENCAP_TTL_MODE, sai_int32_t>;
   using EncapDscpMode =
@@ -79,6 +83,13 @@ struct TunnelAttributesTypes<SAI_TUNNEL_TYPE_SRV6> {
       SAI_TUNNEL_ATTR_DECAP_ECN_MODE,
       sai_int32_t,
       SaiIntDefault<sai_int32_t>>;
+  // Unset on tunnels that do not classify on the inner DSCP, so it too needs a
+  // default getter.
+  using DecapQosDscpToTcMap = SaiAttribute<
+      EnumType,
+      SAI_TUNNEL_ATTR_DECAP_QOS_DSCP_TO_TC_MAP,
+      SaiObjectIdT,
+      SaiObjectIdDefault>;
   using EncapTtlMode = SaiAttribute<
       EnumType,
       SAI_TUNNEL_ATTR_ENCAP_TTL_MODE,
@@ -131,7 +142,8 @@ struct TunnelTraitsAttributes<Attributes, SAI_TUNNEL_TYPE_SRV6> {
       std::optional<typename Attributes::EncapDscpMode>,
       std::optional<typename Attributes::DecapTtlMode>,
       std::optional<typename Attributes::DecapDscpMode>,
-      std::optional<typename Attributes::DecapEcnMode>>;
+      std::optional<typename Attributes::DecapEcnMode>,
+      std::optional<typename Attributes::DecapQosDscpToTcMap>>;
   using AdapterHostKey = CreateAttributes;
 };
 #endif
@@ -172,6 +184,8 @@ struct SaiTunnelTraitsT {
         typename detail::TunnelAttributesTypes<type>::DecapDscpMode;
     using DecapEcnMode =
         typename detail::TunnelAttributesTypes<type>::DecapEcnMode;
+    using DecapQosDscpToTcMap =
+        typename detail::TunnelAttributesTypes<type>::DecapQosDscpToTcMap;
     using EncapTtlMode =
         typename detail::TunnelAttributesTypes<type>::EncapTtlMode;
     using EncapDscpMode =
@@ -231,6 +245,7 @@ SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapSrcIp);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapTtlMode);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapDscpMode);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapEcnMode);
+SAI_ATTRIBUTE_NAME(Srv6Tunnel, DecapQosDscpToTcMap);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapTtlMode);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapDscpMode);
 SAI_ATTRIBUTE_NAME(Srv6Tunnel, EncapEcnMode);

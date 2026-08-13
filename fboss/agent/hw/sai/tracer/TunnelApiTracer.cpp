@@ -33,6 +33,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
     SAI_ATTR_MAP(Srv6Tunnel, DecapTtlMode),
     SAI_ATTR_MAP(Srv6Tunnel, DecapDscpMode),
     SAI_ATTR_MAP(Srv6Tunnel, DecapEcnMode),
+    SAI_ATTR_MAP(Srv6Tunnel, DecapQosDscpToTcMap),
 #endif
 };
 
