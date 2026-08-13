@@ -463,6 +463,10 @@ folly::dynamic SaiObject<SaiSrv6TunnelTraits>::adapterHostKeyToFollyDynamic() {
           std::get<std::optional<Attributes::DecapEcnMode>>(adapterHostKey_)) {
     json["decapEcnMode"] = attr->value();
   }
+  if (auto attr = std::get<std::optional<Attributes::DecapQosDscpToTcMap>>(
+          adapterHostKey_)) {
+    json["decapQosDscpToTcMap"] = folly::to<std::string>(attr->value());
+  }
   return json;
 }
 
@@ -513,6 +517,11 @@ SaiObject<SaiSrv6TunnelTraits>::follyDynamicToAdapterHostKey(
     std::get<std::optional<Attributes::DecapEcnMode>>(key) =
         Attributes::DecapEcnMode{
             static_cast<sai_int32_t>(json["decapEcnMode"].asInt())};
+  }
+  if (has("decapQosDscpToTcMap")) {
+    std::get<std::optional<Attributes::DecapQosDscpToTcMap>>(key) =
+        Attributes::DecapQosDscpToTcMap{
+            folly::to<sai_object_id_t>(json["decapQosDscpToTcMap"].asString())};
   }
   return key;
 }
