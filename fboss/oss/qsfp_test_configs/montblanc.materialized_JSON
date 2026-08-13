@@ -173,6 +173,11 @@
         "profileID": 38
       },
       {
+        "aPortName": "eth1/15/1",
+        "zPortName": "eth1/11/1",
+        "profileID": 39
+      },
+      {
         "aPortName": "eth1/61/1",
         "zPortName": "eth1/61/5",
         "profileID": 38
@@ -256,6 +261,14 @@
           ]
       },
       "DP08SFP8-LRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
           "versions": [
             {
               "fwType": 1,

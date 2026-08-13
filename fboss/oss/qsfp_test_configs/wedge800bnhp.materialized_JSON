@@ -4,7 +4,8 @@
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
-    "mode": "minipack3n",
+    "mode": "wedge800bnhp",
+    "platform_descriptor_config_path": "/tmp/platform_descriptors/",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -14,108 +15,68 @@
     "cabledPortPairs": [
       {
         "aPortName": "eth1/1/1",
-        "zPortName": "eth1/5/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/1/5",
-        "zPortName": "eth1/5/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/2/1",
-        "zPortName": "eth1/6/1",
+        "zPortName": "eth1/2/1",
         "profileID": 39
+      },
+      {
+        "aPortName": "eth1/5/1",
+        "zPortName": "eth1/6/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/5/5",
+        "zPortName": "eth1/6/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/9/1",
+        "zPortName": "eth1/10/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/9/5",
+        "zPortName": "eth1/10/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/13/1",
+        "zPortName": "eth1/14/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/13/5",
+        "zPortName": "eth1/14/5",
+        "profileID": 23
       },
       {
         "aPortName": "eth1/3/1",
-        "zPortName": "eth1/3/5",
-        "profileID": 38
+        "zPortName": "eth1/4/1",
+        "profileID": 50
       },
       {
-        "aPortName": "eth1/4/1",
-        "zPortName": "eth1/4/5",
-        "profileID": 38
+        "aPortName": "eth1/7/1",
+        "zPortName": "eth1/8/1",
+        "profileID": 45
       },
       {
-        "aPortName": "eth1/10/1",
-        "zPortName": "eth1/14/1",
-        "profileID": 39
+        "aPortName": "eth1/7/5",
+        "zPortName": "eth1/8/5",
+        "profileID": 45
       },
       {
         "aPortName": "eth1/11/1",
-        "zPortName": "eth1/15/1",
-        "profileID": 38
+        "zPortName": "eth1/12/1",
+        "profileID": 24
       },
       {
         "aPortName": "eth1/11/5",
-        "zPortName": "eth1/15/5",
-        "profileID": 38
+        "zPortName": "eth1/12/5",
+        "profileID": 24
       },
       {
-        "aPortName": "eth1/26/1",
-        "zPortName": "eth1/26/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/30/1",
-        "zPortName": "eth1/30/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/40/1",
-        "zPortName": "eth1/40/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/41/1",
-        "zPortName": "eth1/41/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/42/1",
-        "zPortName": "eth1/42/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/43/1",
-        "zPortName": "eth1/44/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/43/5",
-        "zPortName": "eth1/44/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/45/1",
-        "zPortName": "eth1/49/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/45/5",
-        "zPortName": "eth1/49/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/61/1",
-        "zPortName": "eth1/61/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/64/1",
-        "zPortName": "eth1/64/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/65/1",
-        "zPortName": "eth1/65/1",
-        "profileID": 62
-      },
-      {
-        "aPortName": "eth1/65/2",
-        "zPortName": "eth1/65/2",
-        "profileID": 62
+        "aPortName": "eth1/33/1",
+        "zPortName": "eth1/33/1",
+        "profileID": 23
       }
     ]
   },

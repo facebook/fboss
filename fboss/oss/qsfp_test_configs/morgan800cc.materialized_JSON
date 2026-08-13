@@ -4,7 +4,7 @@
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
-    "mode": "minipack3n",
+    "mode": "morgan800cc",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -14,108 +14,148 @@
     "cabledPortPairs": [
       {
         "aPortName": "eth1/1/1",
-        "zPortName": "eth1/5/1",
-        "profileID": 38
+        "zPortName": "eth1/3/1",
+        "profileID": 25
       },
       {
         "aPortName": "eth1/1/5",
-        "zPortName": "eth1/5/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/2/1",
-        "zPortName": "eth1/6/1",
-        "profileID": 39
-      },
-      {
-        "aPortName": "eth1/3/1",
         "zPortName": "eth1/3/5",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/4/1",
-        "zPortName": "eth1/4/5",
+        "aPortName": "eth1/2/1",
+        "zPortName": "eth1/4/1",
         "profileID": 38
+      },
+      {
+        "aPortName": "eth1/2/5",
+        "zPortName": "eth1/4/5",
+        "profileID": 25
       },
       {
         "aPortName": "eth1/10/1",
-        "zPortName": "eth1/14/1",
-        "profileID": 39
+        "zPortName": "eth1/11/1",
+        "profileID": 25
       },
       {
-        "aPortName": "eth1/11/1",
+        "aPortName": "eth1/10/5",
+        "zPortName": "eth1/11/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/12/1",
+        "zPortName": "eth1/13/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/12/5",
+        "zPortName": "eth1/13/5",
+        "profileID": 38
+      },
+      {
+        "aPortName": "eth1/14/1",
         "zPortName": "eth1/15/1",
-        "profileID": 38
+        "profileID": 23
       },
       {
-        "aPortName": "eth1/11/5",
+        "aPortName": "eth1/14/5",
         "zPortName": "eth1/15/5",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/16/1",
+        "zPortName": "eth1/17/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/16/5",
+        "zPortName": "eth1/17/5",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/26/1",
-        "zPortName": "eth1/26/5",
+        "aPortName": "eth1/18/1",
+        "zPortName": "eth1/19/1",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/18/5",
+        "zPortName": "eth1/19/5",
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/31/1",
+        "zPortName": "eth1/32/1",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/30/1",
-        "zPortName": "eth1/30/5",
+        "aPortName": "eth1/31/5",
+        "zPortName": "eth1/32/5",
         "profileID": 38
       },
       {
         "aPortName": "eth1/40/1",
-        "zPortName": "eth1/40/5",
-        "profileID": 38
+        "zPortName": "eth1/44/1",
+        "profileID": 39
       },
       {
         "aPortName": "eth1/41/1",
-        "zPortName": "eth1/41/5",
+        "zPortName": "eth1/43/1",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/42/1",
-        "zPortName": "eth1/42/5",
+        "aPortName": "eth1/41/5",
+        "zPortName": "eth1/43/5",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/43/1",
-        "zPortName": "eth1/44/5",
+        "aPortName": "eth1/51/1",
+        "zPortName": "eth1/54/1",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/43/5",
-        "zPortName": "eth1/44/1",
+        "aPortName": "eth1/51/5",
+        "zPortName": "eth1/54/5",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/55/1",
+        "zPortName": "eth1/58/1",
+        "profileID": 25
+      },
+      {
+        "aPortName": "eth1/55/5",
+        "zPortName": "eth1/58/5",
         "profileID": 38
       },
       {
-        "aPortName": "eth1/45/1",
-        "zPortName": "eth1/49/1",
-        "profileID": 38
+        "aPortName": "eth1/63/1",
+        "zPortName": "eth1/64/1",
+        "profileID": 23
       },
       {
-        "aPortName": "eth1/45/5",
-        "zPortName": "eth1/49/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/61/1",
-        "zPortName": "eth1/61/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/64/1",
+        "aPortName": "eth1/63/5",
         "zPortName": "eth1/64/5",
-        "profileID": 38
+        "profileID": 23
+      },
+      {
+        "aPortName": "eth1/5/1",
+        "zPortName": "eth1/8/1",
+        "profileID": 39
+      },
+      {
+        "aPortName": "eth1/9/1",
+        "zPortName": "eth1/20/1",
+        "profileID": 39
+      },
+      {
+        "aPortName": "eth1/21/1",
+        "zPortName": "eth1/24/1",
+        "profileID": 39
       },
       {
         "aPortName": "eth1/65/1",
         "zPortName": "eth1/65/1",
-        "profileID": 62
-      },
-      {
-        "aPortName": "eth1/65/2",
-        "zPortName": "eth1/65/2",
-        "profileID": 62
+        "profileID": 48
       }
     ]
   },
@@ -740,5 +780,95 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "tunableOpticsConfig": {
+    "eth1/20/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 191675000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/21/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 186875000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/24/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 186875000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/40/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 195125000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/44/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 195125000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/5/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 186275000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/8/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 186275000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    },
+    "eth1/9/1": {
+        "frequencyConfig": {
+          "frequencyGrid": 1,
+          "centerFrequencyConfig": {
+            "frequencyMhz": 191675000
+          }
+        },
+        "txPower0P01Dbm": -200,
+        "appSelCode": 5,
+        "rxConsActHoldOffTimerMs": 0
+    }
   }
 }
