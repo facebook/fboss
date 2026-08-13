@@ -332,6 +332,13 @@ if [ ${ONIE_RC} -ne 0 ]; then
   dprint "ERROR: ONIE installer build failed"
 fi
 
+# The partx wrapper is installed by CI only, and its container is discarded
+# once this script returns, so surface its trace while we still can.
+if [ -f /tmp/partx_wrapper.log ]; then
+  dprint "partx wrapper trace:"
+  cat /tmp/partx_wrapper.log
+fi
+
 rm -rf ${TARGET_DIR}/btrfs ${TARGET_DIR}/onie
 
 RC=$((PXE_RC + ONIE_RC))
