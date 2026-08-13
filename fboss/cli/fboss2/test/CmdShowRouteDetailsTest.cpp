@@ -537,10 +537,7 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutputUsesNsfEncodingScheme) {
   std::stringstream ss;
   CmdShowRouteDetails().printOutput(normalizedModel, ss);
 
-  EXPECT_THAT(
-      ss.str(),
-      HasSubstr(
-          "rack 5 plane none remote weight 3 spine weight none local weight none"));
+  EXPECT_THAT(ss.str(), HasSubstr("rack 5 remote weight 3"));
   EXPECT_THAT(ss.str(), Not(HasSubstr("spine id 17")));
 }
 
@@ -556,7 +553,10 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutputHandlesMissingFpfSpineId) {
   std::stringstream ss;
   CmdShowRouteDetails().printOutput(normalizedModel, ss);
 
-  EXPECT_THAT(ss.str(), HasSubstr("rack 5 spine id none remote weight 3"));
+  // Still FPF-encoded, but spine_id was cleared: the nexthop line keeps its
+  // other FPF fields and drops the spine identifier that would otherwise print.
+  EXPECT_THAT(ss.str(), HasSubstr("rack 5 remote weight 3"));
+  EXPECT_THAT(ss.str(), Not(HasSubstr("spine id 17")));
 }
 
 // CLI reference wiki hooks: a human description and a non-empty sample model.
@@ -564,6 +564,188 @@ TEST_F(CmdShowRouteDetailsTestFixture, printOutputHandlesMissingFpfSpineId) {
 TEST_F(CmdShowRouteDetailsTestFixture, wikiDocHooks) {
   EXPECT_FALSE(CmdShowRouteDetailsTraits::description().empty());
   EXPECT_FALSE(CmdShowRouteDetails::sampleModel().routeEntries()->empty());
+}
+
+namespace {
+cli::NextHopInfo makeTopologyNextHop(
+    const std::string& addr,
+    const NetworkTopologyInformation& topologyInfo) {
+  cli::NextHopInfo nhInfo;
+  nhInfo.addr() = addr;
+  nhInfo.weight() = 1;
+  nhInfo.topologyInfo() = topologyInfo;
+  return nhInfo;
+}
+
+// Build a single-route model with the given nexthops on one BGP client, so
+// printOutput exercises both the per-nexthop topology string (client Nexthops
+// section) and the per-STSW/plane summary (Forwarding via section). The
+// address->topology map consumed by the summary is derived from the nexthops
+// themselves, so each nexthop's topology is specified exactly once.
+cli::ShowRouteDetailsModel makeTopologyModel(
+    const std::string& prefix,
+    int prefixLength,
+    const std::vector<cli::NextHopInfo>& nextHops) {
+  cli::ShowRouteDetailsModel model;
+  cli::RouteDetailEntry entry;
+  entry.ip() = prefix;
+  entry.prefixLength() = prefixLength;
+  entry.action() = "Nexthops";
+  entry.isConnected() = false;
+  entry.overridenEcmpMode() = "None";
+
+  cli::ClientAndNextHops client;
+  client.clientId() = 0;
+  client.adminDistance() = "20";
+  client.isPreferred() = true;
+  client.counterID() = "None";
+  client.classID() = "None";
+  client.nextHops() = nextHops;
+  entry.nextHopMulti()->emplace_back(client);
+
+  entry.nextHops() = nextHops;
+
+  std::map<std::string, NetworkTopologyInformation> nhToTopoInfo;
+  for (const auto& nextHop : nextHops) {
+    if (nextHop.topologyInfo().has_value()) {
+      nhToTopoInfo[nextHop.addr().value()] = nextHop.topologyInfo().value();
+    }
+  }
+  entry.nhAddressToTopologyInfo() = nhToTopoInfo;
+  model.routeEntries() = {entry};
+  return model;
+}
+} // namespace
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputFpfTopology) {
+  NetworkTopologyInformation topo3;
+  topo3.spine_id() = 3;
+  topo3.remote_rack_capacity() = 6;
+  NetworkTopologyInformation topo5;
+  topo5.spine_id() = 5;
+  topo5.remote_rack_capacity() = 8;
+
+  auto model = makeTopologyModel(
+      "2401:db00:1::",
+      64,
+      {makeTopologyNextHop("2401:db00:1::1", topo3),
+       makeTopologyNextHop("2401:db00:1::2", topo3),
+       makeTopologyNextHop("2401:db00:1::3", topo5)});
+  // spine id is only decoded (and printed) under the FPF L2 encoding.
+  model.nsfTeWeightEncoding() = createFpfEncoding();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(model, ss);
+  std::string expectOutput = R"(
+Network Address: 2401:db00:1::/64
+> Client: BGPD (Admin Distance: 20)
+      Nexthops:
+        2401:db00:1::1 weight 1 spine id 3 remote weight 6
+        2401:db00:1::2 weight 1 spine id 3 remote weight 6
+        2401:db00:1::3 weight 1 spine id 5 remote weight 8
+      Counter Id: None
+      Class Id: None
+  Action: Nexthops
+  Forwarding via:
+    2401:db00:1::1 weight 1 spine id 3 remote weight 6
+    2401:db00:1::2 weight 1 spine id 3 remote weight 6
+    2401:db00:1::3 weight 1 spine id 5 remote weight 8
+  Paths per stsw:
+    Stsw 3: 2
+    Stsw 5: 1
+  Overridden ECMP mode: None
+)";
+  EXPECT_EQ(ss.str(), expectOutput);
+}
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputNsfTopology) {
+  NetworkTopologyInformation topo;
+  topo.rack_id() = 2;
+  topo.plane_id() = 1;
+  topo.remote_rack_capacity() = 6;
+  topo.spine_capacity() = 34;
+  topo.local_rack_capacity() = 6;
+
+  auto model = makeTopologyModel(
+      "2402:db00::",
+      64,
+      {makeTopologyNextHop("2402:db00::1", topo),
+       makeTopologyNextHop("2402:db00::2", topo)});
+  model.nsfTeWeightEncoding() = createL2Encoding();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(model, ss);
+  std::string expectOutput = R"(
+Network Address: 2402:db00::/64
+> Client: BGPD (Admin Distance: 20)
+      Nexthops:
+        2402:db00::1 weight 1 rack 2 plane 1 remote weight 6 spine weight 34 local weight 6
+        2402:db00::2 weight 1 rack 2 plane 1 remote weight 6 spine weight 34 local weight 6
+      Counter Id: None
+      Class Id: None
+  Action: Nexthops
+  Forwarding via:
+    2402:db00::1 weight 1 rack 2 plane 1 remote weight 6 spine weight 34 local weight 6
+    2402:db00::2 weight 1 rack 2 plane 1 remote weight 6 spine weight 34 local weight 6
+  Paths per plane:
+    Plane 1: 2
+  Overridden ECMP mode: None
+)";
+  EXPECT_EQ(ss.str(), expectOutput);
+}
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputNsfTopologyWithSpineId) {
+  // spine_id set under a non-FPF encoding: the per-nexthop line and the
+  // per-plane/stsw summary must agree on the encoding as the discriminator.
+  NetworkTopologyInformation topo;
+  topo.rack_id() = 2;
+  topo.plane_id() = 1;
+  topo.spine_id() = 7;
+  topo.remote_rack_capacity() = 6;
+
+  auto model = makeTopologyModel(
+      "2403:db00::", 64, {makeTopologyNextHop("2403:db00::1", topo)});
+  model.nsfTeWeightEncoding() = createL2Encoding();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(model, ss);
+  std::string expectOutput = R"(
+Network Address: 2403:db00::/64
+> Client: BGPD (Admin Distance: 20)
+      Nexthops:
+        2403:db00::1 weight 1 rack 2 plane 1 remote weight 6
+      Counter Id: None
+      Class Id: None
+  Action: Nexthops
+  Forwarding via:
+    2403:db00::1 weight 1 rack 2 plane 1 remote weight 6
+  Paths per plane:
+    Plane 1: 1
+  Overridden ECMP mode: None
+)";
+  EXPECT_EQ(ss.str(), expectOutput);
+}
+
+TEST_F(CmdShowRouteDetailsTestFixture, printOutputFpfTopologyIgnoresPlaneId) {
+  NetworkTopologyInformation spineTopo;
+  spineTopo.spine_id() = 3;
+  NetworkTopologyInformation planeTopo;
+  planeTopo.plane_id() = 1;
+
+  auto model = makeTopologyModel(
+      "2404:db00::",
+      64,
+      {makeTopologyNextHop("2404:db00::1", spineTopo),
+       makeTopologyNextHop("2404:db00::2", planeTopo)});
+  model.nsfTeWeightEncoding() = createFpfEncoding();
+
+  std::stringstream ss;
+  CmdShowRouteDetails().printOutput(model, ss);
+
+  EXPECT_THAT(ss.str(), HasSubstr("Paths per stsw:"));
+  EXPECT_THAT(ss.str(), HasSubstr("Stsw 3: 1"));
+  EXPECT_THAT(ss.str(), Not(HasSubstr("Paths per plane")));
+  EXPECT_THAT(ss.str(), Not(HasSubstr("Plane 1")));
 }
 
 } // namespace facebook::fboss
