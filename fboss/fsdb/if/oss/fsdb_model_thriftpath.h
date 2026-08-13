@@ -3025,6 +3025,7 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TBgpPath, ::facebo
     STRUCT_CHILD_GETTERS(topologyInfo, 25);
     STRUCT_CHILD_GETTERS(igp_cost, 26);
     STRUCT_CHILD_GETTERS(path_id_to_send, 27);
+    STRUCT_CHILD_GETTERS(is_inactive, 28);
 };
 
 
