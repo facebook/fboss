@@ -146,10 +146,16 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6, bool>;
     using FieldDstIpV6 =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6, bool>;
-    using FieldDstIpV6Word3 =
-        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD3, bool>;
-    using FieldDstIpV6Word2 =
-        SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD2, bool>;
+    using FieldDstIpV6Word3 = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD3,
+        bool,
+        SaiBoolDefaultFalse>;
+    using FieldDstIpV6Word2 = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD2,
+        bool,
+        SaiBoolDefaultFalse>;
     using FieldSrcIpV4 =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_IP, bool>;
     using FieldDstIpV4 =
