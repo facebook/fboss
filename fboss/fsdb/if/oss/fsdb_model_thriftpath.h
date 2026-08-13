@@ -4371,6 +4371,8 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(portUpHoldoffTimeMs, 68);
     STRUCT_CHILD_GETTERS(llrConfigName, 69);
     STRUCT_CHILD_GETTERS(llrConfig, 70);
+    STRUCT_CHILD_GETTERS(txPrecoding, 71);
+    STRUCT_CHILD_GETTERS(rxPrecoding, 72);
 };
 
 
@@ -5165,6 +5167,8 @@ class ChildThriftPath<::facebook::fboss::cfg::Port, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(portDownHoldoffTimeMs, 40);
     STRUCT_CHILD_GETTERS(portUpHoldoffTimeMs, 41);
     STRUCT_CHILD_GETTERS(llrConfigName, 42);
+    STRUCT_CHILD_GETTERS(txPrecoding, 43);
+    STRUCT_CHILD_GETTERS(rxPrecoding, 44);
 };
 
 

@@ -1408,6 +1408,13 @@ struct Port {
   // UEC Link Layer Retry: name of the LlrConfig profile to apply to this port.
   // Presence enables LLR on the port (UE Spec 1.0.2 section 5.1).
   42: optional LlrConfigName llrConfigName;
+
+  // Controls whether TX precoding settings from the platform mapping are
+  // applied to the port.
+  43: optional bool txPrecoding;
+  // Controls whether RX precoding settings from the platform mapping are
+  // applied to the port.
+  44: optional bool rxPrecoding;
 }
 
 enum LacpPortRate {

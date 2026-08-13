@@ -186,6 +186,10 @@ struct PortFields {
   68: optional i32 portUpHoldoffTimeMs;
   69: optional string llrConfigName;
   70: optional LlrFields llrConfig;
+  // Whether platform mapping TX precoding settings are applied to this port
+  71: optional bool txPrecoding;
+  // Whether platform mapping RX precoding settings are applied to this port
+  72: optional bool rxPrecoding;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
