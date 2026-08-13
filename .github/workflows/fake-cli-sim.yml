@@ -82,7 +82,11 @@ jobs:
             sleep 2
           done
           echo "❌ Agent not ready"
-          docker exec "$CONTAINER" tail -n 50 /var/facebook/logs/fboss/wedge_agent.log || true
+          # Split mode is the default, and each unit logs to its own file.
+          for log in sw_agent hw_agent0; do
+            echo "===== /var/facebook/logs/fboss/$log.log (last 50) ====="
+            docker exec "$CONTAINER" tail -n 50 "/var/facebook/logs/fboss/$log.log" || true
+          done
           exit 1
 
       - name: Run fboss2 integration test
