@@ -506,9 +506,9 @@ SwSwitch::SwSwitch(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       stateUpdateValidator_(new StateUpdateValidator(
-          config->getRunMode(),
+          AgentConfig::getRunMode(),
           getMonolithicHwSwitchHandlerIf(
-              config->getRunMode(),
+              AgentConfig::getRunMode(),
               multiHwSwitchHandler_.get()),
           hwAsicTable_.get(),
           scopeResolver_.get())),
@@ -1295,8 +1295,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
 }
 
 bool SwSwitch::isRunModeMultiSwitch() const {
-  return FLAGS_multi_switch ||
-      (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  return AgentConfig::getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
 
 void SwSwitch::getAllHwSysPortStats(

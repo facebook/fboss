@@ -96,7 +96,7 @@ AgentConfig::AgentConfig(const cfg::AgentConfig& thriftConfig)
       raw(apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           thriftConfig)) {}
 
-cfg::AgentRunMode AgentConfig::getRunMode() const {
+cfg::AgentRunMode AgentConfig::getRunMode() {
   return FLAGS_multi_switch ? cfg::AgentRunMode::MULTI_SWITCH
                             : cfg::AgentRunMode::MONO;
 }

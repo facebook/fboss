@@ -37,7 +37,7 @@ struct AgentConfig {
 
   void dumpConfig(folly::StringPiece path) const;
 
-  cfg::AgentRunMode getRunMode() const;
+  static cfg::AgentRunMode getRunMode();
 
   const cfg::AgentConfig thrift;
   const std::string raw;
