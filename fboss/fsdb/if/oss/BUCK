@@ -3,6 +3,8 @@ load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
 load("@fbcode_macros//build_defs:native_rules.bzl", "buck_sh_binary")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("@fbcode_macros//build_defs/lib:copy_rule.bzl", "copy_rule")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
 load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
 
 oncall("fboss_agent_push")
@@ -99,5 +101,44 @@ custom_unittest(
     type = "simple",
     deps = [
         "//fboss/fsdb/if/oss:sync_model_thriftpath",
+    ],
+)
+
+# Land-blocking diff signal: runs verify_oss_thriftpath whenever any thrift file
+# in the fsdb_model dependency closure changes. Uses ci_deps to auto-derive
+# trigger paths from the buck dependency graph — no manual file list needed.
+# Modeled after neteng/fboss/bgp/tools/oss:verify_oss_thrift_signal.
+# @ci-signal-ack
+ci_sandcastle(
+    name = "verify_oss_thriftpath_signal",
+    alias = "fsdb-verify-oss-thriftpath-citadel",
+    args = {
+        "skip_if_error_exists_on_base_revision": True,
+        "steps": [
+            {
+                "name": "Verify FSDB OSS thriftpath header is in sync with thrift model",
+                "shell": "buck2 test --flagfile fbcode//mode/opt fbcode//fboss/fsdb/if/oss:verify_oss_thriftpath",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    ci_deps = [
+        # Trigger whenever ANY file in the fsdb_model thrift dependency closure changes.
+        # This covers all direct and transitive thrift includes automatically.
+        "fbsource//fboss/fsdb/if/oss:fsdb_model",
+    ],
+    ci_srcs = [
+        # Also trigger on changes to the checked-in header itself or the sync script
+        "fbcode/fboss/fsdb/if/oss/fsdb_model_thriftpath.h",
+        "fbcode/fboss/fsdb/if/oss/sync_model_thriftpath.sh",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_agent_push",
+    schedules = [
+        ci.diff,
     ],
 )
