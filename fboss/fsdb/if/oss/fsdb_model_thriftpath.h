@@ -12952,6 +12952,8 @@ class ChildThriftPath<::facebook::fboss::phy::RsFecInfo, ::facebook::fboss::fsdb
     STRUCT_CHILD_GETTERS(codewordStats, 5);
     STRUCT_CHILD_GETTERS(fecTail, 6);
     STRUCT_CHILD_GETTERS(maxSupportedFecTail, 7);
+    STRUCT_CHILD_GETTERS(correctedSymbols, 8);
+    STRUCT_CHILD_GETTERS(preFECBerSource, 9);
 };
 
 

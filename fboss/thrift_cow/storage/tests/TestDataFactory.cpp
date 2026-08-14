@@ -1103,6 +1103,7 @@ RsFecInfo FsdbStatsDataFactory::createRsFecInfo(int portIndex) {
   rsFec.correctedCodewords() = 10418410 + (portIndex % 100000);
   rsFec.uncorrectedCodewords() = 0;
   rsFec.correctedBits() = 9886733 + (portIndex % 100000);
+  rsFec.correctedSymbols() = 1977346 + (portIndex % 100000);
   rsFec.preFECBer() = 8.9e-11;
   rsFec.fecTail() = 0;
   rsFec.maxSupportedFecTail() = 15;
