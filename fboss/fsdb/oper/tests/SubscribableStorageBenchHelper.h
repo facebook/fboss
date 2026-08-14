@@ -6,11 +6,14 @@
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 
+#include <folly/Benchmark.h>
+#include <folly/Function.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Task.h>
 #include <folly/coro/Timeout.h>
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -53,6 +56,17 @@ template <typename RootT = TestStruct>
 class StorageBenchmarkHelper {
  public:
   using RootType = RootT;
+
+  // The pub/sub memory members are de-templated on the subscription callable so
+  // their definitions can live in the .cpp. The callable subscribes at the root
+  // path and returns the patch stream reader whose `generator_` the helper
+  // drives; patch-extended shares this type. (Delta returns a different stream
+  // element and would need its own overload.)
+  using PatchStreamReader = SubscriptionStreamReader<
+      SubscriptionServeQueueElement<SubscriberMessage>>;
+  using SubscribeFn = folly::FunctionRef<PatchStreamReader(
+      NaivePeriodicSubscribableCowStorage<RootType>&,
+      SubscriptionIdentifier&&)>;
 
   class Params {
    public:
@@ -196,6 +210,33 @@ class StorageBenchmarkHelper {
     consumer();
     co_return;
   }
+
+  // Measures memory consumed by publishing one state update and fanning it out
+  // to `numSubscribers` subscribers created by `subscribeFn`. Returns the delta
+  // in jemalloc `stats.allocated` across the measured region, or the peak delta
+  // observed within it when `measurePeak` is set. `subscribeFn` is called as
+  // `subscribeFn(storage_, SubscriptionIdentifier&&)` and returns the patch
+  // stream reader whose `generator_` the helper drives.
+  //
+  // One instance measures once: the storage and its subscriptions are consumed.
+  // Defined in the .cpp (explicitly instantiated) so the AsyncScope / executor
+  // / Baton / jemalloc machinery stays out of this header.
+  int64_t measurePubSubMemory(
+      int numSubscribers,
+      SubscribeFn subscribeFn,
+      bool measurePeak = false);
+
+  // Runs `iterations` measurement passes and reports avg/max/stddev counters
+  // for both the allocated delta and the observed peak. Each pass constructs a
+  // fresh helper (storage + subscriptions are consumed by measurePubSubMemory),
+  // running the delta and peak passes separately so the peak sampler's polling
+  // does not perturb the delta measurement. Defined in the .cpp.
+  static void reportPubSubMemStats(
+      folly::UserCounters& counters,
+      test_data::IDataGenerator& gen,
+      int numSubscribers,
+      int iterations,
+      SubscribeFn subscribeFn);
 
  private:
   std::vector<std::string> getSubscriptionPath() {
