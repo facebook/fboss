@@ -49,7 +49,7 @@ void bm_get(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(dataGen);
+  StorageBenchmarkHelper<> helper(dataGen);
   helper.startStorage();
 
   // launch get requests from multiple threads
@@ -76,9 +76,9 @@ void bm_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2));
   helper.startStorage();
@@ -110,9 +110,9 @@ void bm_concurrent_get_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2)
           .setServeGetWithLastPublished(
@@ -145,9 +145,9 @@ void bm_serve_initialSync(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setStartWithInitializedData(false));
+      StorageBenchmarkHelper<>::Params().setStartWithInitializedData(false));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -202,9 +202,9 @@ void bm_serve_update_state(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setNumUpdates(kNumIncrementalUpdates));
+      StorageBenchmarkHelper<>::Params().setNumUpdates(kNumIncrementalUpdates));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
