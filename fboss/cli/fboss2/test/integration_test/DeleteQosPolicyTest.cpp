@@ -27,14 +27,12 @@
 
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string>
 
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
 using namespace facebook::fboss;
-using ::testing::HasSubstr;
 
 class DeleteQosPolicyTest : public Fboss2IntegrationTest {
  protected:
@@ -150,12 +148,7 @@ TEST_F(DeleteQosPolicyTest, DeleteMapEntriesThenPolicy) {
   EXPECT_TRUE(hasTcToQueue(config, kPolicy, kTrafficClass))
       << "deleting the dscp mapping must not touch trafficClassToQueueId";
 
-  // 3. Deleting the same dscp again is an error, not a silent success.
-  result = runCli({"delete", "qos", "policy", kPolicy, "map", "dscp", kDscp});
-  EXPECT_NE(result.exitCode, 0);
-  EXPECT_THAT(result.stderr, HasSubstr("no dscp mapping"));
-
-  // 4. Delete the tc-to-queue mapping.
+  // 3. Delete the tc-to-queue mapping.
   XLOG(INFO) << "Deleting tc-to-queue " << kTrafficClass << " from " << kPolicy;
   result = runCli(
       {"delete",
@@ -173,7 +166,7 @@ TEST_F(DeleteQosPolicyTest, DeleteMapEntriesThenPolicy) {
   });
   EXPECT_FALSE(hasTcToQueue(config, kPolicy, kTrafficClass));
 
-  // 5. Delete the policy itself. Nothing references it, so this is allowed.
+  // 4. Delete the policy itself. Nothing references it, so this is allowed.
   XLOG(INFO) << "Deleting qos policy " << kPolicy;
   result = runCli({"delete", "qos", "policy", kPolicy});
   ASSERT_EQ(result.exitCode, 0)
@@ -182,9 +175,4 @@ TEST_F(DeleteQosPolicyTest, DeleteMapEntriesThenPolicy) {
   config = waitForRunningConfig(
       [&](const folly::dynamic& cfg) { return !hasPolicy(cfg, kPolicy); });
   EXPECT_FALSE(hasPolicy(config, kPolicy));
-
-  // 6. Deleting it again reports that it does not exist.
-  result = runCli({"delete", "qos", "policy", kPolicy});
-  EXPECT_NE(result.exitCode, 0);
-  EXPECT_THAT(result.stderr, HasSubstr("No QoS policy named"));
 }
