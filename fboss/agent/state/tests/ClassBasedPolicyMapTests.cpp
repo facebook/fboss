@@ -12,6 +12,8 @@
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ClassBasedPolicyNode.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -67,6 +69,32 @@ TEST(ClassBasedPolicyMapTest, ModifyClonesPublishedState) {
   EXPECT_NE(modified, nullptr);
   EXPECT_FALSE(state->isPublished());
   EXPECT_NE(modified->getMapNodeIf(matcher)->getPolicyIf("qzk1"), nullptr);
+}
+
+TEST(ClassBasedPolicyMapTest, GetClassBasedPoliciesDelta) {
+  auto matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->resetClassBasedPolicies(makePolicies(matcher));
+  oldState->publish();
+
+  // Same state on both sides -> empty delta.
+  EXPECT_TRUE(
+      DeltaFunctions::isEmpty(
+          StateDelta(oldState, oldState).getClassBasedPoliciesDelta()));
+
+  // Add a second policy -> non-empty delta.
+  const std::string kOther = "qzk2";
+  auto newState = std::make_shared<SwitchState>();
+  auto policyMap = std::make_shared<ClassBasedPolicyMap>();
+  policyMap->addPolicy(std::make_shared<ClassBasedPolicyNode>(kOther));
+  auto multi = std::make_shared<MultiSwitchClassBasedPolicyMap>();
+  multi->addMapNode(policyMap, matcher);
+  newState->resetClassBasedPolicies(multi);
+  newState->publish();
+
+  EXPECT_FALSE(
+      DeltaFunctions::isEmpty(
+          StateDelta(oldState, newState).getClassBasedPoliciesDelta()));
 }
 
 } // namespace facebook::fboss
