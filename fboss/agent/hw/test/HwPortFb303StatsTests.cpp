@@ -190,6 +190,10 @@ HwPortStats getInitedStats() {
       0, // llrRxExpectedSeqBad
       0, // linkFault_
       0, // fecCorrectedSymbols
+      // Both statuses must have the numeric value 1 -- verifyUpdatedStats
+      // expects every kPortFb303CounterStatKeys() counter to read 1.
+      LlrTxStatus::INIT, // llrTxStatus
+      LlrRxStatus::SEND_ACKS, // llrRxStatus
   };
 }
 

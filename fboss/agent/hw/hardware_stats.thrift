@@ -17,6 +17,25 @@ package;
 
 const i64 STAT_UNINITIALIZED = -1;
 
+// UEC Link Layer Retry transmit state machine (UE Spec 1.0.2 section 5.1.5,
+// Figure 5-3). ADVANCE is the only state that accepts new frames.
+enum LlrTxStatus {
+  OFF = 0,
+  INIT = 1,
+  ADVANCE = 2,
+  REPLAY = 3,
+  FLUSH = 4,
+}
+
+// UEC Link Layer Retry receive (ACK/NACK transmit) state machine (UE Spec
+// 1.0.2 section 5.1.7, Figure 5-4). Note these are NOT the transmit states.
+enum LlrRxStatus {
+  OFF = 0,
+  SEND_ACKS = 1,
+  SEND_NACK = 2,
+  NACK_SENT = 3,
+}
+
 struct MacsecSciFlowStats {
   1: mka_structs.MKASci sci;
   2: mka_structs.MacsecFlowStats flowStats;
@@ -152,6 +171,18 @@ struct HwPortStats {
   // timers.
   101: optional i64 linkFault_;
   102: i64 fecCorrectedSymbols_ = STAT_UNINITIALIZED;
+  // Current LLR state machine status, read from hardware once per stats round.
+  // Set only for ports with an LLR profile bound on an LLR-capable ASIC, and
+  // cleared whenever the read is skipped or fails, so a stale state machine
+  // value is never published. A down port reads OFF: LLR is not running.
+  //
+  // Tomahawk Ultra 1 reports a subset: the Broadcom SDK derives these from
+  // bcm_port_llr_status_t, which carries only llr_active_tx/llr_active_rx, so
+  // TX is either ADVANCE or OFF and RX is either SEND_ACKS or OFF. OFF on an
+  // up, LLR-bound port therefore means LLR did not come up -- including a
+  // never-completed INIT handshake, which TU1 cannot report as INIT.
+  103: optional LlrTxStatus llrTxStatus_;
+  104: optional LlrRxStatus llrRxStatus_;
 }
 
 struct HwSysPortStats {
