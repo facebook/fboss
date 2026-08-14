@@ -528,6 +528,24 @@ struct TUpdateGroupPeerInfo {
 }
 
 /**
+ * Lightweight update-group state used by the all-groups summary view.
+ * Every field is available directly from cached group state; producing this
+ * structure must not walk group members or RIB-OUT trees.
+ */
+struct TUpdateGroupSummary {
+  1: i64 group_id;
+  2: string egress_policy_name;
+  3: string group_state;
+  4: i64 member_count;
+  5: i64 in_sync_peer_count;
+  6: i64 detached_peer_count;
+  7: i64 post_out_prefix_count;
+  8: i64 post_out_prefix_count_ipv4;
+  9: i64 post_out_prefix_count_ipv6;
+  10: i64 last_seen_rib_version;
+}
+
+/**
  * Complete update-group information for CLI display.
  * Organized by mutability with reserved field ranges for extensibility:
  *   1-2:   Identity (immutable)
@@ -602,11 +620,10 @@ struct TUpdateGroupInfo {
 }
 
 /**
- * Request parameters for getUpdateGroupInfo().
- * All fields are optional — omitting them returns all groups.
+ * Request parameters for the single-group detail endpoint.
  */
 struct TGetUpdateGroupInfoRequest {
-  /* Filter by a specific update group ID. Unset returns all groups. */
+  /* Required by the handler. An unset ID returns no detail record. */
   1: optional i64 group_id;
 }
 
@@ -619,6 +636,12 @@ struct TGetUpdateGroupInfoResponse {
   1: list<TUpdateGroupInfo> update_groups;
 
   /* Whether the update-group feature is enabled. */
+  2: bool enable_update_group;
+}
+
+/** Response for the lightweight all-groups summary endpoint. */
+struct TGetUpdateGroupSummariesResponse {
+  1: list<TUpdateGroupSummary> update_groups;
   2: bool enable_update_group;
 }
 
@@ -1363,6 +1386,11 @@ service TBgpService extends fb303.FacebookService {
   TGetUpdateGroupInfoResponse getUpdateGroupInfo(
     1: TGetUpdateGroupInfoRequest request,
   );
+
+  /**
+   * Get lightweight summary information for all active update groups.
+   */
+  TGetUpdateGroupSummariesResponse getUpdateGroupSummaries();
 
   /**
    * Get local config information
