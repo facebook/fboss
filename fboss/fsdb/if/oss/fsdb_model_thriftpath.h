@@ -7708,6 +7708,7 @@ class ChildThriftPath<::facebook::fboss::state::MatchAction, ::facebook::fboss::
     STRUCT_CHILD_GETTERS(flowletAction, 11);
     STRUCT_CHILD_GETTERS(ecmpHashAction, 12);
     STRUCT_CHILD_GETTERS(enableAlternateArsMembers, 13);
+    STRUCT_CHILD_GETTERS(redirectNextHopGroupId, 14);
 };
 
 

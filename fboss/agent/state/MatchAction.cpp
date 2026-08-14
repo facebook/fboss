@@ -34,6 +34,7 @@ state::MatchAction MatchAction::toThrift() const {
     }
     matchAction.redirectToNextHop() = redirectToNextHop;
   }
+  matchAction.redirectNextHopGroupId().from_optional(redirectNextHopGroupId_);
   if (setTc_.has_value()) {
     auto setTc = state::SetTc();
     setTc.action() = setTc_->first;
@@ -71,6 +72,8 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
     }
     matchAction.redirectToNextHop_ = redirectAction;
   }
+  matchAction.redirectNextHopGroupId_ =
+      ma.redirectNextHopGroupId().to_optional();
   if (auto setTc = ma.setTc()) {
     auto setTcVal = SetTc();
     setTcVal.first = setTc->action().value();

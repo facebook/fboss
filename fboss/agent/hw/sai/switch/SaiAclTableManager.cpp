@@ -1161,6 +1161,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop{
       nullptr};
   std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle{nullptr};
+  std::shared_ptr<SaiNextHopGroupHandle> redirectNhgHandle{nullptr};
 
   std::shared_ptr<SaiAclCounter> saiAclCounter{nullptr};
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
@@ -1481,7 +1482,33 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     }
 #endif
 
-    if (matchAction.getRedirectToNextHop()) {
+    if (auto redirectNhgId = matchAction.getRedirectNextHopGroupId()) {
+      redirectNhgHandle =
+          resolvePbrNextHopGroup(state, *redirectNhgId, addedAclEntry->getID());
+      if (redirectNhgHandle) {
+        aclActionRedirect = SaiAclEntryTraits::Attributes::ActionRedirect{
+            AclEntryActionSaiObjectIdT(
+                NextHopGroupSaiId{
+                    redirectNhgHandle->nextHopGroup->adapterKey()})};
+      } else {
+        // Redirect NHG has no resolved member. Setting action to drop as the
+        // packets cannot be forwarded.
+        // In the case of the redirect group losing the last resolved member
+        // (e.g. link down), the fast-ECMP shrink path will remove the last
+        // member, therefore the ACL is still redirecting to an empty ECMP
+        // group.
+        // When the next update comes (e.g. via BGP/openR updates),
+        // redirectNhgHandle will become nullptr and hence the action will be
+        // updated to drop.
+        // TODO(zecheng): Fail hard if there is PBR rule for multiple hw agent
+        XLOG(DBG2) << "PBR acl entry " << addedAclEntry->getID()
+                   << ": redirect next-hop-group " << *redirectNhgId
+                   << " has no resolved member, setting action to drop";
+        aclActionPacketAction =
+            SaiAclEntryTraits::Attributes::ActionPacketAction{
+                SAI_PACKET_ACTION_DROP};
+      }
+    } else if (matchAction.getRedirectToNextHop()) {
       auto& [redirectAction, resolvedNexthops] =
           matchAction.getRedirectToNextHop().value();
       for (const auto& nhStruct : *redirectAction.redirectNextHops()) {
@@ -1566,7 +1593,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
        aclActionSetTC.has_value() || aclActionSetDSCP.has_value() ||
        aclActionMirrorIngress.has_value() ||
-       aclActionMirrorEgress.has_value() || aclActionMacsecFlow.has_value()
+       aclActionMirrorEgress.has_value() || aclActionMacsecFlow.has_value() ||
+       aclActionRedirect.has_value()
 #if !defined(TAJO_SDK)
        || aclActionSetUserTrap.has_value()
 #endif
@@ -1670,6 +1698,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
   entryHandle->matchNhgHandle = matchNhgHandle;
+  entryHandle->redirectNhgHandle = redirectNhgHandle;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
   entryHandle->ingressMirror = ingressMirror;
   entryHandle->egressMirror = egressMirror;

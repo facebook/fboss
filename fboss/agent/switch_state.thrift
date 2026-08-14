@@ -236,6 +236,7 @@ struct MatchAction {
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
   13: optional bool enableAlternateArsMembers;
+  14: optional i64 redirectNextHopGroupId;
 }
 
 struct AclEntryFields {
