@@ -11,6 +11,7 @@ cpp_unittest(
         "AclTests.cpp",
         "AggregatePortTests.cpp",
         "BufferPoolConfigTests.cpp",
+        "ClassBasedPolicyNodeTests.cpp",
         "ControlPlaneTests.cpp",
         "DsfNodeTests.cpp",
         "FibsInfoDeltaTests.cpp",

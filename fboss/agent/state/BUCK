@@ -52,6 +52,7 @@ cpp_library(
         "ArpTable.cpp",
         "BufferPoolConfig.cpp",
         "BufferPoolConfigMap.cpp",
+        "ClassBasedPolicyNode.cpp",
         "ControlPlane.cpp",
         "DsfNode.cpp",
         "DsfNodeMap.cpp",
