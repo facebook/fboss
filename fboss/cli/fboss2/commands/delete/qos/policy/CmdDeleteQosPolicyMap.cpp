@@ -28,7 +28,12 @@
 namespace facebook::fboss {
 
 namespace {
-constexpr auto kSupportedMapTypes = "dscp, tc-to-queue";
+constexpr auto kSupportedMapTypes =
+    "dscp, mpls-exp, dot1p, tc-to-queue, pfc-pri-to-queue, tc-to-pg, "
+    "pfc-pri-to-pg";
+// Traffic classes, PFC priorities, EXP and PCP codepoints are all 3-bit.
+constexpr int16_t kMinMapKey = 0;
+constexpr int16_t kMaxMapKey = 7;
 } // namespace
 
 DeleteQosMapEntry::DeleteQosMapEntry(std::vector<std::string> v) {
@@ -44,8 +49,18 @@ DeleteQosMapEntry::DeleteQosMapEntry(std::vector<std::string> v) {
   const std::string& mapType = v[0];
   if (mapType == "dscp") {
     mapType_ = DeleteQosMapType::DSCP;
+  } else if (mapType == "mpls-exp") {
+    mapType_ = DeleteQosMapType::MPLS_EXP;
+  } else if (mapType == "dot1p") {
+    mapType_ = DeleteQosMapType::DOT1P;
   } else if (mapType == "tc-to-queue") {
     mapType_ = DeleteQosMapType::TC_TO_QUEUE;
+  } else if (mapType == "pfc-pri-to-queue") {
+    mapType_ = DeleteQosMapType::PFC_PRI_TO_QUEUE;
+  } else if (mapType == "tc-to-pg") {
+    mapType_ = DeleteQosMapType::TC_TO_PG;
+  } else if (mapType == "pfc-pri-to-pg") {
+    mapType_ = DeleteQosMapType::PFC_PRI_TO_PG;
   } else {
     throw std::invalid_argument(
         fmt::format(
@@ -70,9 +85,14 @@ DeleteQosMapEntry::DeleteQosMapEntry(std::vector<std::string> v) {
               utils::kMaxDscp,
               v[1]));
     }
-  } else if (key_ < 0) {
+  } else if (key_ < kMinMapKey || key_ > kMaxMapKey) {
     throw std::invalid_argument(
-        fmt::format("traffic class must not be negative, got: {}", v[1]));
+        fmt::format(
+            "{} value must be between {} and {}, got: {}",
+            mapType,
+            kMinMapKey,
+            kMaxMapKey,
+            v[1]));
   }
 
   data_ = std::move(v);
@@ -80,15 +100,22 @@ DeleteQosMapEntry::DeleteQosMapEntry(std::vector<std::string> v) {
 
 namespace {
 
-// Removes `dscp` from whichever DscpQosMap lists it. An entry that ends up
-// with no ingress codepoints and no egress rewrite carries no information, so
-// it is dropped rather than left behind as an empty shell.
-bool eraseDscp(std::vector<cfg::DscpQosMap>& dscpMaps, int16_t dscp) {
-  auto byteVal = static_cast<int8_t>(dscp);
+// Removes `codepoint` from whichever map entry's ingress list carries it. An
+// entry that ends up with no ingress codepoints and no egress rewrite carries
+// no information, so it is dropped rather than left behind as an empty shell.
+// Shared by the three structurally identical list maps (DscpQosMap, ExpQosMap,
+// PcpQosMap); the projections select the ingress list and the egress rewrite.
+template <typename MapEntry, typename GetIngressList, typename GetEgressValue>
+bool eraseCodepoint(
+    std::vector<MapEntry>& maps,
+    int16_t codepoint,
+    GetIngressList getIngressList,
+    GetEgressValue getEgressValue) {
+  auto byteVal = static_cast<int8_t>(codepoint);
   bool erased = false;
 
-  for (auto& entry : dscpMaps) {
-    auto& fromList = *entry.fromDscpToTrafficClass();
+  for (auto& entry : maps) {
+    auto& fromList = getIngressList(entry);
     auto it = std::find(fromList.begin(), fromList.end(), byteVal);
     if (it != fromList.end()) {
       fromList.erase(it);
@@ -97,18 +124,59 @@ bool eraseDscp(std::vector<cfg::DscpQosMap>& dscpMaps, int16_t dscp) {
   }
 
   if (erased) {
-    dscpMaps.erase(
+    maps.erase(
         std::remove_if(
-            dscpMaps.begin(),
-            dscpMaps.end(),
-            [](const cfg::DscpQosMap& entry) {
-              return entry.fromDscpToTrafficClass()->empty() &&
-                  !entry.fromTrafficClassToDscp().has_value();
+            maps.begin(),
+            maps.end(),
+            [&](const MapEntry& entry) {
+              return getIngressList(const_cast<MapEntry&>(entry)).empty() &&
+                  !getEgressValue(entry).has_value();
             }),
-        dscpMaps.end());
+        maps.end());
   }
 
   return erased;
+}
+
+bool eraseDscp(std::vector<cfg::DscpQosMap>& dscpMaps, int16_t dscp) {
+  return eraseCodepoint(
+      dscpMaps,
+      dscp,
+      [](cfg::DscpQosMap& e) -> auto& { return *e.fromDscpToTrafficClass(); },
+      [](const cfg::DscpQosMap& e) { return e.fromTrafficClassToDscp(); });
+}
+
+bool eraseExp(std::vector<cfg::ExpQosMap>& expMaps, int16_t exp) {
+  return eraseCodepoint(
+      expMaps,
+      exp,
+      [](cfg::ExpQosMap& e) -> auto& { return *e.fromExpToTrafficClass(); },
+      [](const cfg::ExpQosMap& e) { return e.fromTrafficClassToExp(); });
+}
+
+bool erasePcp(std::vector<cfg::PcpQosMap>& pcpMaps, int16_t pcp) {
+  return eraseCodepoint(
+      pcpMaps,
+      pcp,
+      [](cfg::PcpQosMap& e) -> auto& { return *e.fromPcpToTrafficClass(); },
+      [](const cfg::PcpQosMap& e) { return e.fromTrafficClassToPcp(); });
+}
+
+// Erases `key` from an optional map<i16, i16> field. Returns false when the
+// field is unset or the key is absent. A map left empty by the erase is
+// reset, so the field returns to its unset default.
+template <typename OptionalMapRef>
+bool eraseOptionalMapKey(OptionalMapRef field, int16_t key) {
+  if (!field.has_value()) {
+    return false;
+  }
+  if (field->erase(key) == 0) {
+    return false;
+  }
+  if (field->empty()) {
+    field.reset();
+  }
+  return true;
 }
 
 } // namespace
@@ -147,6 +215,39 @@ CmdDeleteQosPolicyMapTraits::RetType CmdDeleteQosPolicyMap::queryClient(
           name,
           entry.getKey());
     }
+    case DeleteQosMapType::MPLS_EXP: {
+      if (!eraseExp(*qosMap.expMaps(), entry.getKey())) {
+        throw std::runtime_error(
+            fmt::format(
+                "QoS policy '{}' has no mpls-exp mapping for value {}",
+                name,
+                entry.getKey()));
+      }
+      session.saveConfig();
+      return fmt::format(
+          "Successfully deleted QoS policy '{}' mpls-exp mapping for value {}",
+          name,
+          entry.getKey());
+    }
+    case DeleteQosMapType::DOT1P: {
+      bool erased = qosMap.pcpMaps().has_value() &&
+          erasePcp(*qosMap.pcpMaps(), entry.getKey());
+      if (!erased) {
+        throw std::runtime_error(
+            fmt::format(
+                "QoS policy '{}' has no dot1p mapping for value {}",
+                name,
+                entry.getKey()));
+      }
+      if (qosMap.pcpMaps()->empty()) {
+        qosMap.pcpMaps().reset();
+      }
+      session.saveConfig();
+      return fmt::format(
+          "Successfully deleted QoS policy '{}' dot1p mapping for value {}",
+          name,
+          entry.getKey());
+    }
     case DeleteQosMapType::TC_TO_QUEUE: {
       auto& tcToQueue = *qosMap.trafficClassToQueueId();
       if (tcToQueue.erase(entry.getKey()) == 0) {
@@ -159,6 +260,48 @@ CmdDeleteQosPolicyMapTraits::RetType CmdDeleteQosPolicyMap::queryClient(
       session.saveConfig();
       return fmt::format(
           "Successfully deleted QoS policy '{}' tc-to-queue mapping for traffic class {}",
+          name,
+          entry.getKey());
+    }
+    case DeleteQosMapType::PFC_PRI_TO_QUEUE: {
+      if (!eraseOptionalMapKey(qosMap.pfcPriorityToQueueId(), entry.getKey())) {
+        throw std::runtime_error(
+            fmt::format(
+                "QoS policy '{}' has no pfc-pri-to-queue mapping for priority {}",
+                name,
+                entry.getKey()));
+      }
+      session.saveConfig();
+      return fmt::format(
+          "Successfully deleted QoS policy '{}' pfc-pri-to-queue mapping for priority {}",
+          name,
+          entry.getKey());
+    }
+    case DeleteQosMapType::TC_TO_PG: {
+      if (!eraseOptionalMapKey(qosMap.trafficClassToPgId(), entry.getKey())) {
+        throw std::runtime_error(
+            fmt::format(
+                "QoS policy '{}' has no tc-to-pg mapping for traffic class {}",
+                name,
+                entry.getKey()));
+      }
+      session.saveConfig();
+      return fmt::format(
+          "Successfully deleted QoS policy '{}' tc-to-pg mapping for traffic class {}",
+          name,
+          entry.getKey());
+    }
+    case DeleteQosMapType::PFC_PRI_TO_PG: {
+      if (!eraseOptionalMapKey(qosMap.pfcPriorityToPgId(), entry.getKey())) {
+        throw std::runtime_error(
+            fmt::format(
+                "QoS policy '{}' has no pfc-pri-to-pg mapping for priority {}",
+                name,
+                entry.getKey()));
+      }
+      session.saveConfig();
+      return fmt::format(
+          "Successfully deleted QoS policy '{}' pfc-pri-to-pg mapping for priority {}",
           name,
           entry.getKey());
     }

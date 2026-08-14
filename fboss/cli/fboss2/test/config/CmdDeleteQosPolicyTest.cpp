@@ -29,8 +29,16 @@ static const std::string kSeedConfig = R"({
             {"internalTrafficClass": 0, "fromDscpToTrafficClass": [0, 1, 2]},
             {"internalTrafficClass": 1, "fromDscpToTrafficClass": [8], "fromTrafficClassToDscp": 8}
           ],
-          "expMaps": [],
-          "trafficClassToQueueId": {"0": 0, "1": 1, "2": 2}
+          "expMaps": [
+            {"internalTrafficClass": 2, "fromExpToTrafficClass": [5]}
+          ],
+          "pcpMaps": [
+            {"internalTrafficClass": 3, "fromPcpToTrafficClass": [6]}
+          ],
+          "trafficClassToQueueId": {"0": 0, "1": 1, "2": 2},
+          "pfcPriorityToQueueId": {"3": 3},
+          "trafficClassToPgId": {"4": 4, "5": 5},
+          "pfcPriorityToPgId": {"6": 6}
         }
       },
       {
@@ -119,8 +127,7 @@ TEST_F(CmdDeleteQosPolicyTestFixture, mapEntryArgValidation) {
   EXPECT_THROW(DeleteQosMapEntry({"dscp"}), std::invalid_argument);
   EXPECT_THROW(DeleteQosMapEntry({"dscp", "1", "2"}), std::invalid_argument);
   // unknown map type
-  EXPECT_THROW(
-      DeleteQosMapEntry({"pfc-pri-to-pg", "1"}), std::invalid_argument);
+  EXPECT_THROW(DeleteQosMapEntry({"no-such-map", "1"}), std::invalid_argument);
   // non-integer value
   EXPECT_THROW(DeleteQosMapEntry({"dscp", "abc"}), std::invalid_argument);
   // dscp out of range
@@ -270,6 +277,135 @@ TEST_F(CmdDeleteQosPolicyTestFixture, deleteMissingTcToQueueFails) {
           QosPolicyName({"unreferenced"}),
           DeleteQosMapEntry({"tc-to-queue", "7"})),
       std::runtime_error);
+}
+
+// ------------------------------------------------- delete map remaining kinds
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteMplsExpDropsEntry) {
+  setupTestableConfigSession("delete qos policy map", "mpls-exp 5");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  auto result = cmd.queryClient(
+      localhost(),
+      QosPolicyName({"unreferenced"}),
+      DeleteQosMapEntry({"mpls-exp", "5"}));
+
+  EXPECT_THAT(result, ::testing::HasSubstr("Successfully deleted"));
+  // 5 was the entry's only codepoint and it has no egress rewrite, so the
+  // whole ExpQosMap entry is dropped.
+  const auto* policy = findPolicy("unreferenced");
+  ASSERT_NE(policy, nullptr);
+  EXPECT_TRUE(policy->qosMap()->expMaps()->empty());
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteMissingMplsExpFails) {
+  setupTestableConfigSession("delete qos policy map", "mpls-exp 0");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          QosPolicyName({"unreferenced"}),
+          DeleteQosMapEntry({"mpls-exp", "0"})),
+      std::runtime_error);
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteLastDot1pResetsPcpMaps) {
+  setupTestableConfigSession("delete qos policy map", "dot1p 6");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  auto result = cmd.queryClient(
+      localhost(),
+      QosPolicyName({"unreferenced"}),
+      DeleteQosMapEntry({"dot1p", "6"}));
+
+  EXPECT_THAT(result, ::testing::HasSubstr("Successfully deleted"));
+  // 6 was the only PCP codepoint; the emptied optional pcpMaps is reset.
+  const auto* policy = findPolicy("unreferenced");
+  ASSERT_NE(policy, nullptr);
+  EXPECT_FALSE(policy->qosMap()->pcpMaps().has_value());
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteMissingDot1pFails) {
+  setupTestableConfigSession("delete qos policy map", "dot1p 0");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          QosPolicyName({"unreferenced"}),
+          DeleteQosMapEntry({"dot1p", "0"})),
+      std::runtime_error);
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteLastPfcPriToQueueResetsMap) {
+  setupTestableConfigSession("delete qos policy map", "pfc-pri-to-queue 3");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  auto result = cmd.queryClient(
+      localhost(),
+      QosPolicyName({"unreferenced"}),
+      DeleteQosMapEntry({"pfc-pri-to-queue", "3"}));
+
+  EXPECT_THAT(result, ::testing::HasSubstr("Successfully deleted"));
+  // 3 was the only key; the emptied optional map is reset to unset.
+  const auto* policy = findPolicy("unreferenced");
+  ASSERT_NE(policy, nullptr);
+  EXPECT_FALSE(policy->qosMap()->pfcPriorityToQueueId().has_value());
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deleteTcToPgKeepsRemainingKeys) {
+  setupTestableConfigSession("delete qos policy map", "tc-to-pg 4");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  auto result = cmd.queryClient(
+      localhost(),
+      QosPolicyName({"unreferenced"}),
+      DeleteQosMapEntry({"tc-to-pg", "4"}));
+
+  EXPECT_THAT(result, ::testing::HasSubstr("Successfully deleted"));
+  const auto* policy = findPolicy("unreferenced");
+  ASSERT_NE(policy, nullptr);
+  const auto& tcToPg = policy->qosMap()->trafficClassToPgId();
+  ASSERT_TRUE(tcToPg.has_value());
+  EXPECT_EQ(tcToPg->count(4), 0);
+  EXPECT_EQ(tcToPg->at(5), 5);
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deletePfcPriToPgOnUnsetKeyFails) {
+  setupTestableConfigSession("delete qos policy map", "pfc-pri-to-pg 0");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          QosPolicyName({"unreferenced"}),
+          DeleteQosMapEntry({"pfc-pri-to-pg", "0"})),
+      std::runtime_error);
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, deletePfcPriToPg) {
+  setupTestableConfigSession("delete qos policy map", "pfc-pri-to-pg 6");
+
+  auto cmd = CmdDeleteQosPolicyMap();
+  auto result = cmd.queryClient(
+      localhost(),
+      QosPolicyName({"unreferenced"}),
+      DeleteQosMapEntry({"pfc-pri-to-pg", "6"}));
+
+  EXPECT_THAT(result, ::testing::HasSubstr("Successfully deleted"));
+  const auto* policy = findPolicy("unreferenced");
+  ASSERT_NE(policy, nullptr);
+  EXPECT_FALSE(policy->qosMap()->pfcPriorityToPgId().has_value());
+}
+
+TEST_F(CmdDeleteQosPolicyTestFixture, mapEntryValueRangeValidation) {
+  // Non-dscp kinds are 3-bit: 8 is out of range for all of them.
+  EXPECT_THROW(DeleteQosMapEntry({"dot1p", "8"}), std::invalid_argument);
+  EXPECT_THROW(
+      DeleteQosMapEntry({"pfc-pri-to-queue", "8"}), std::invalid_argument);
+  EXPECT_THROW(DeleteQosMapEntry({"tc-to-pg", "-1"}), std::invalid_argument);
+  EXPECT_THROW(DeleteQosMapEntry({"mpls-exp", "8"}), std::invalid_argument);
 }
 
 TEST_F(CmdDeleteQosPolicyTestFixture, mapDeleteOnMissingPolicyFails) {
