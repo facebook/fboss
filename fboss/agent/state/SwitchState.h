@@ -25,6 +25,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -187,6 +188,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::classBasedPolicyMaps,
+    MultiSwitchClassBasedPolicyMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::portFlowletCfgMaps,
     MultiSwitchPortFlowletCfgMap);
 RESOLVE_STRUCT_MEMBER(
@@ -292,6 +297,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
+
+  const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& getClassBasedPolicies()
+      const;
 
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
 
@@ -403,6 +411,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
+  void resetClassBasedPolicies(
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
   void resetSflowCollectors(
