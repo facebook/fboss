@@ -287,6 +287,17 @@ struct AclEntryFields {
   37: optional i64 dstIpV6Word2;
 }
 
+struct NamedNextHopGroupAndID {
+  1: string name;
+  2: i64 id;
+}
+
+struct ClassBasedPolicyFields {
+  1: string name;
+  2: NamedNextHopGroupAndID defaultNextHopGroup;
+  3: map<common.ForwardingClass, NamedNextHopGroupAndID> class2NextHopGroup;
+}
+
 enum NeighborState {
   Unverified = 0,
   Pending = 1,
@@ -888,6 +899,10 @@ struct SwitchState {
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   127: map<SwitchIdList, map<string, LlrFields>> llrCfgMaps;
+  128: map<
+    SwitchIdList,
+    map<string, ClassBasedPolicyFields>
+  > classBasedPolicyMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
