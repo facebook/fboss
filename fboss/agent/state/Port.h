@@ -911,6 +911,36 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getTxPrecoding() const {
+    if (auto txPrecoding = cref<switch_state_tags::txPrecoding>()) {
+      return txPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTxPrecoding(std::optional<bool> txPrecoding) {
+    if (!txPrecoding.has_value()) {
+      ref<switch_state_tags::txPrecoding>().reset();
+    } else {
+      set<switch_state_tags::txPrecoding>(txPrecoding.value());
+    }
+  }
+
+  std::optional<bool> getRxPrecoding() const {
+    if (auto rxPrecoding = cref<switch_state_tags::rxPrecoding>()) {
+      return rxPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRxPrecoding(std::optional<bool> rxPrecoding) {
+    if (!rxPrecoding.has_value()) {
+      ref<switch_state_tags::rxPrecoding>().reset();
+    } else {
+      set<switch_state_tags::rxPrecoding>(rxPrecoding.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

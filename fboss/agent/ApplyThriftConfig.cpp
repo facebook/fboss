@@ -3233,6 +3233,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getLinkTraining().value_or(false) &&
       portConf->linkTraining().has_value() ==
           orig->getLinkTraining().has_value() &&
+      portConf->txPrecoding().value_or(false) ==
+          orig->getTxPrecoding().value_or(false) &&
+      portConf->txPrecoding().has_value() ==
+          orig->getTxPrecoding().has_value() &&
+      portConf->rxPrecoding().value_or(false) ==
+          orig->getRxPrecoding().value_or(false) &&
+      portConf->rxPrecoding().has_value() ==
+          orig->getRxPrecoding().has_value() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3339,6 +3347,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setLinkTraining(portConf->linkTraining().value());
   } else {
     newPort->setLinkTraining(std::nullopt);
+  }
+  if (portConf->txPrecoding().has_value()) {
+    newPort->setTxPrecoding(portConf->txPrecoding().value());
+  } else {
+    newPort->setTxPrecoding(std::nullopt);
+  }
+  if (portConf->rxPrecoding().has_value()) {
+    newPort->setRxPrecoding(portConf->rxPrecoding().value());
+  } else {
+    newPort->setRxPrecoding(std::nullopt);
   }
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
