@@ -3711,6 +3711,13 @@ void ThriftHandler::getHwPortStats(
   sw_->getAllHwPortStats(hwPortStats);
 }
 
+void ThriftHandler::getRouteCounters(
+    std::map<std::string, HwSwitchCounter>& routeCounters) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  routeCounters = sw_->getRouteCounters();
+}
+
 void ThriftHandler::getHwRouterInterfaceStats(
     std::map<std::string, HwRouterInterfaceStats>& hwPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);

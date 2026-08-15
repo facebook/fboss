@@ -696,6 +696,10 @@ TEST_F(ThriftServerTest, counterStatsAccumulation) {
   sw_->updateHwSwitchStats(1, stats1);
 
   auto routeCounters = sw_->getRouteCounters();
+  ThriftHandler handler(sw_);
+  std::map<std::string, HwSwitchCounter> thriftRouteCounters;
+  handler.getRouteCounters(thriftRouteCounters);
+  EXPECT_EQ(routeCounters, thriftRouteCounters);
   auto agentStats = sw_->fillFsdbStats();
   EXPECT_EQ(routeCounters, *agentStats.counterStats()->routeCounters());
 
