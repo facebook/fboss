@@ -145,6 +145,76 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::optional<LlrTxStatus> saiToLlrTxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_TX_STATUS_OFF:
+      return LlrTxStatus::OFF;
+    case SAI_PORT_LLR_TX_STATUS_INIT:
+      return LlrTxStatus::INIT;
+    case SAI_PORT_LLR_TX_STATUS_ADVANCE:
+      return LlrTxStatus::ADVANCE;
+    case SAI_PORT_LLR_TX_STATUS_REPLAY:
+      return LlrTxStatus::REPLAY;
+    case SAI_PORT_LLR_TX_STATUS_FLUSH:
+      return LlrTxStatus::FLUSH;
+  }
+  return std::nullopt;
+}
+
+std::optional<LlrRxStatus> saiToLlrRxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_RX_STATUS_OFF:
+      return LlrRxStatus::OFF;
+    case SAI_PORT_LLR_RX_STATUS_SEND_ACKS:
+      return LlrRxStatus::SEND_ACKS;
+    case SAI_PORT_LLR_RX_STATUS_SEND_NACK:
+      return LlrRxStatus::SEND_NACK;
+    case SAI_PORT_LLR_RX_STATUS_NACK_SENT:
+      return LlrRxStatus::NACK_SENT;
+  }
+  return std::nullopt;
+}
+
+/*
+ * Read the LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
+ * 5.1.7) for a port with an LLR profile bound. Valid regardless of link state:
+ * the SDK reads the MAC LLR status register with no link-state precondition,
+ * so a down port simply reports inactive (OFF).
+ *
+ * Read through the throwing getAttribute overload, not the std::optional one:
+ * these attrs carry a SaiIntDefault getter, and the optional overload
+ * substitutes that default (0 == LLR_*_STATUS_OFF) without surfacing an error,
+ * so an unserved attribute would read back as a healthy-looking "LLR off".
+ * Catch locally like every other per-port read here, so one failure does not
+ * drop the port's stats round.
+ */
+void readLlrStatus(
+    PortID portId,
+    const std::string& portName,
+    PortSaiId portSaiId,
+    HwPortStats& stats) {
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  try {
+    auto txStatus = saiToLlrTxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrTxStatus{}));
+    auto rxStatus = saiToLlrRxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrRxStatus{}));
+    if (!txStatus.has_value() || !rxStatus.has_value()) {
+      XLOG_EVERY_MS(ERR, 10000) << "Unrecognized LLR status value for port "
+                                << portName << " (portId: " << portId << ")";
+      return;
+    }
+    stats.llrTxStatus_() = *txStatus;
+    stats.llrRxStatus_() = *rxStatus;
+  } catch (const SaiApiError& e) {
+    XLOG_EVERY_MS(ERR, 10000)
+        << "Failed to get LLR status for port " << portName
+        << " (portId: " << portId << "): " << e.what();
+  }
+}
+#endif
+
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
 // TODO(nivinl): Retire the extension attribute based support once the
 // standard SAI stats IDs are supported in XGS/DNX.
@@ -2918,6 +2988,19 @@ void SaiPortManager::updateStats(
       curPortStats.dataCellsFilterOn() = false;
     }
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // Unlike the LLR counters, the status is a snapshot of a state machine, so a
+  // stale value is worse than none: clear it before every round and let the
+  // read below set it, leaving the fields unset when the port has no LLR
+  // profile bound or the read fails.
+  curPortStats.llrTxStatus_().reset();
+  curPortStats.llrRxStatus_().reset();
+  if (handle->llrProfile &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+    readLlrStatus(portId, portName, handle->port->adapterKey(), curPortStats);
+  }
+#endif
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
   if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||
