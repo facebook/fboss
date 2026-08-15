@@ -407,4 +407,18 @@ inline folly::StringPiece constexpr kLlrRxExpectedSeqPoisoned() {
 inline folly::StringPiece constexpr kLlrRxExpectedSeqBad() {
   return "llr_rx_expected_seq_bad";
 }
+
+// Current LLR state machine status, exported as an fb303 counter (a gauge)
+// rather than a timeseries. The value is the LlrTxStatus/LlrRxStatus thrift
+// enum value: TX 0=OFF 1=INIT 2=ADVANCE 3=REPLAY 4=FLUSH, RX 0=OFF
+// 1=SEND_ACKS 2=SEND_NACK 3=NACK_SENT. A healthy LLR link with no loss sits at
+// TX ADVANCE / RX SEND_ACKS; a link whose partner never completes the INIT
+// handshake sits at TX INIT.
+inline folly::StringPiece constexpr kLlrTxStatus() {
+  return "llr_tx_status";
+}
+
+inline folly::StringPiece constexpr kLlrRxStatus() {
+  return "llr_rx_status";
+}
 } // namespace facebook::fboss

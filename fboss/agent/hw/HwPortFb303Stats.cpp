@@ -77,6 +77,8 @@ HwPortFb303Stats::kPortFb303CounterStatKeys() const {
       kCableLengthMeters(),
       kCableDelayNsec(),
       kDataCellsFilterOn(),
+      kLlrTxStatus(),
+      kLlrRxStatus(),
   };
   return kPortKeys;
 }
@@ -296,6 +298,19 @@ void HwPortFb303Stats::updateStats(
     fb303::fbData->setCounter(
         statName(kDataCellsFilterOn(), portName()),
         *curPortStats.dataCellsFilterOn() ? 1 : 0);
+  }
+  // LLR state machine status. A gauge, not a timeseries: the value is the
+  // current state, not a count. Set only while the port has LLR bound and the
+  // hardware read succeeded.
+  if (curPortStats.llrTxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrTxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrTxStatus_()));
+  }
+  if (curPortStats.llrRxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrRxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrRxStatus_()));
   }
   if (curPortStats.linkLayerFlowControlWatermark_().has_value()) {
     updateStat(
