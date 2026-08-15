@@ -1,6 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include <fmt/format.h>
+#include <algorithm>
+#include <chrono>
+#include <string_view>
 
+#include <folly/FileUtil.h>
+
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/lib/CommonUtils.h"
@@ -8,6 +14,18 @@
 #include "folly/testing/TestUtil.h"
 
 namespace facebook::fboss {
+
+namespace {
+constexpr auto kInterruptMaskedEventCintStr = R"(
+      cint_reset();
+      bcm_switch_event_control_t type;
+      type.event_id = 2128; // JR3_INT_MACT_LARGE_EM_LARGE_EM_EVENT_FIFO_HIGH_THRESHOLD_REACHED
+      type.index = 0;
+      type.action = bcmSwitchEventMask;
+      bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, type, 0);
+    )";
+} // namespace
+
 class AgentVoqSwitchInterruptTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -61,6 +79,84 @@ class AgentVoqSwitchVendorSwitchInterruptTest
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_ignore_asic_hard_reset_notification = true;
+  }
+};
+
+class AgentVoqSwitchSdkDumpRateLimitTest : public AgentVoqSwitchInterruptTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentVoqSwitchInterruptTest::setCmdLineFlagOverrides();
+    // The rate limiter has nothing to suppress unless the SDK is dumping.
+    FLAGS_skip_sdk_reg_dump = false;
+    FLAGS_sdk_dump_rate_limit_window_ms = windowSecs() * 1000;
+    // Keep the dump off /var/facebook so the test can read it back.
+    FLAGS_sdk_reg_dump_path_prefix = "/tmp/sdk_reg_dump_rate_limit";
+  }
+
+ protected:
+  // The rate limit window is expressed in stats cycles rather than seconds, so
+  // it is always a whole number of cycles whatever update_stats_interval_s is
+  // set to and a window always closes on a cycle boundary.
+  static constexpr int kWindowCycles = 10;
+  // The SDK prefixes every dump it writes with this header. Matching the field
+  // that follows BEGIN as well keeps a payload that happens to contain the word
+  // from being counted as a write.
+  static constexpr std::string_view kSdkRegDumpWriteMarker =
+      "\nBEGIN\nEvent Type:";
+
+  static int sampleSecs() {
+    return std::max(1, FLAGS_update_stats_interval_s);
+  }
+
+  static int windowSecs() {
+    return kWindowCycles * sampleSecs();
+  }
+
+  // Mirrors the path SaiSwitch::setSdkRegDumpEnabledLocked() programs, which
+  // names the file after the switch index.
+  std::string sdkRegDumpPath(uint16_t switchIdx) const {
+    return fmt::format("{}_{}.log", FLAGS_sdk_reg_dump_path_prefix, switchIdx);
+  }
+
+  // The SDK writes a header delimited block per dump it actually writes, so
+  // counting them counts the writes the rate limiter let through. Summed over
+  // the same switches getSdkDumpSuppressedCount() covers, since each one writes
+  // its own file.
+  int countSdkRegDumpWrites() const {
+    int writes = 0;
+    for (auto switchIdx : voqIndices()) {
+      std::string contents;
+      if (!folly::readFile(sdkRegDumpPath(switchIdx).c_str(), contents)) {
+        continue;
+      }
+      for (size_t pos = contents.find(kSdkRegDumpWriteMarker);
+           pos != std::string::npos;
+           pos = contents.find(
+               kSdkRegDumpWriteMarker, pos + kSdkRegDumpWriteMarker.size())) {
+        writes++;
+      }
+    }
+    return writes;
+  }
+
+  // Sum over the same switches countSdkRegDumpWrites() covers.
+  int64_t getSdkDumpSuppressedCount() {
+    auto voqIdxs = voqIndices();
+    int64_t total = 0;
+    for (const auto& [switchIdx, switchStats] :
+         getSw()->getHwSwitchStatsExpensive()) {
+      if (voqIdxs.find(switchIdx) == voqIdxs.end()) {
+        continue;
+      }
+      auto suppressed =
+          switchStats.fb303GlobalStats()->sdk_dump_suppressed_count();
+      if (suppressed.has_value()) {
+        total += *suppressed;
+        XLOG(DBG2) << "Switch index: " << switchIdx
+                   << " SDK dumps suppressed: " << *suppressed;
+      }
+    }
+    return total;
   }
 };
 
@@ -207,14 +303,6 @@ TEST_F(AgentVoqSwitchInterruptTest, allReassemblyContextsTakenError) {
 
 TEST_F(AgentVoqSwitchInterruptTest, validateInterruptMaskedEventCallback) {
   auto verify = [=, this]() {
-    constexpr auto kInterruptMaskedEventCintStr = R"(
-      cint_reset();
-      bcm_switch_event_control_t type;
-      type.event_id = 2128; // JR3_INT_MACT_LARGE_EM_LARGE_EM_EVENT_FIFO_HIGH_THRESHOLD_REACHED
-      type.index = 0;
-      type.action = bcmSwitchEventMask;
-      bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, type, 0);
-    )";
     runCint(kInterruptMaskedEventCintStr);
     WITH_RETRIES({
       for (const auto& [switchIdx, switchStats] :
@@ -227,6 +315,74 @@ TEST_F(AgentVoqSwitchInterruptTest, validateInterruptMaskedEventCallback) {
         EXPECT_EVENTUALLY_GT(*intrMaskedEvents, 0);
       }
     });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchSdkDumpRateLimitTest, verifySdkDumpRateLimit) {
+  auto verify = [=, this]() {
+    auto baselineSuppressed = getSdkDumpSuppressedCount();
+    auto baselineWrites = countSdkRegDumpWrites();
+
+    // A masked interrupt is one of the NORMAL priority events the SDK writes a
+    // register/state dump for. Once masked it fires back to back at a high
+    // rate - that flood is what S673847 was about - so the SDK sees far more
+    // events than the injections below, and the suppressed count climbs by
+    // thousands a second rather than tracking the injection rate.
+    //
+    // One sample per stats cycle, so the agent has refreshed the counter
+    // between samples. The budget covers a little over two windows, which is
+    // headroom - the loop stops as soon as the throttling shows.
+    const int kNumSamples = kWindowCycles * 2 + 5;
+    // Exactly one dump is let through per window, so two writes already show
+    // the throttling and the loop stops there - this is checking that dumps are
+    // throttled, not counting them precisely, so there is nothing to gain from
+    // waiting on further windows. The cap covers every window the run could
+    // span, plus a boundary landing either side of it.
+    const int kMinWrites = 2;
+    const int kMaxWrites = kNumSamples / kWindowCycles + 2;
+    int events = 0;
+    // Sample the suppressed count as the events are driven. The SDK clears
+    // SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT on read, so the fb303 value is
+    // only right if every stats cycle accumulates its delta. Once suppression
+    // has started the flood guarantees there is something to add every cycle,
+    // so the count must be strictly higher than the previous sample - that
+    // catches an accumulation that stalls or regresses, neither of which a
+    // single before/after comparison would notice.
+    int64_t lastSuppressed = baselineSuppressed;
+    WITH_RETRIES_N_TIMED(kNumSamples, std::chrono::seconds(sampleSecs()), {
+      runCint(kInterruptMaskedEventCintStr);
+      events++;
+      auto sample = getSdkDumpSuppressedCount();
+      // A count still at the baseline just means nothing has been suppressed
+      // yet, which is not a failure. Past that it has to advance every time.
+      if (sample > baselineSuppressed) {
+        EXPECT_GT(sample, lastSuppressed)
+            << "sdk_dump_suppressed_count did not advance";
+      }
+      lastSuppressed = sample;
+      // Gating the loop on the write count means it always covers at least the
+      // windows that count needs.
+      EXPECT_EVENTUALLY_GE(
+          countSdkRegDumpWrites() - baselineWrites, kMinWrites);
+    });
+
+    auto writes = countSdkRegDumpWrites() - baselineWrites;
+    auto suppressed = lastSuppressed - baselineSuppressed;
+    XLOG(INFO) << "Injected " << events << " masked interrupts with a "
+               << windowSecs() << "s dump rate limit window, SDK wrote "
+               << writes << " dumps under " << FLAGS_sdk_reg_dump_path_prefix
+               << " and suppressed " << suppressed;
+    // The loop only stops once two dumps have been written, one window apart,
+    // so by here the SDK has written once per window. All that is left to rule
+    // out is it writing once per event.
+    EXPECT_LE(writes, kMaxWrites);
+    // The masked interrupt fires far faster than the rate it is injected at, so
+    // the limiter holds back orders of magnitude more dumps than the handful it
+    // lets through - in practice thousands. Assert only that it is a large
+    // multiple of the injections, well below what is actually observed, since
+    // the exact rate is a property of the ASIC and not something to pin down.
+    EXPECT_GT(suppressed, 10 * events);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

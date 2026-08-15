@@ -125,6 +125,7 @@ cpp_library(
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:voq_test_utils",
         "//fboss/lib:common_utils",
+        "//folly:file_util",
         "//folly/testing:test_util",
     ],
     exported_deps = [
