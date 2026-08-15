@@ -5,6 +5,9 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 namespace facebook::fboss {
 
 // AgentHwTest for UEC Link Layer Retry (UE Spec 1.0.2 section 5.1). LLR is a
@@ -123,6 +126,24 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqPoisoned_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqBad_().has_value());
+
+      // The LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
+      // 5.1.7), read from hardware for every LLR-bound port regardless of link
+      // state. The read leaves both fields unset on failure, so has_value() is
+      // the assertion that the SDK actually served the attribute.
+      ASSERT_TRUE(stats.llrTxStatus_().has_value());
+      ASSERT_TRUE(stats.llrRxStatus_().has_value());
+      // The value itself is logged, not asserted. On Tomahawk Ultra the SDK
+      // derives both attributes from llr_active_tx/llr_active_rx, so a non-OFF
+      // status means LLR completed its INIT handshake on the wire. This
+      // ensemble brings ports up in ASIC loopback with no LLR-capable peer, so
+      // every port reads OFF here -- asserting otherwise would need a real
+      // link partner running LLR (IXIA or a second switch), which is out of
+      // scope for a single-node AgentHwTest.
+      XLOG(DBG2) << "Port " << portId << " LLR status: tx="
+                 << apache::thrift::util::enumNameSafe(*stats.llrTxStatus_())
+                 << " rx="
+                 << apache::thrift::util::enumNameSafe(*stats.llrRxStatus_());
 
       // Read the LLR binding back from hardware (via the HwAgent process, so
       // this works in both mono and multi-switch). This confirms the SAI
