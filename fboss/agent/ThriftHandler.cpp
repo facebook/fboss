@@ -200,6 +200,12 @@ void fillPortStats(
   if (auto cableLen = hwPortStats.cableLengthMeters()) {
     portInfo.cableLengthMeters() = *cableLen;
   }
+  if (auto llrTxStatus = hwPortStats.llrTxStatus_()) {
+    portInfo.llrTxStatus() = *llrTxStatus;
+  }
+  if (auto llrRxStatus = hwPortStats.llrRxStatus_()) {
+    portInfo.llrRxStatus() = *llrRxStatus;
+  }
 
   for (int16_t i = 0; i < numPortQs; i++) {
     QueueStats stats;
