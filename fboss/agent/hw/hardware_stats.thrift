@@ -561,6 +561,9 @@ struct HwSwitchFb303GlobalStats {
   36: optional i64 asic_revision;
   37: optional i64 sram_low_buffer_limit_hit_count;
   38: optional i64 dram_quarantined_buffer_count;
+  // Number of SDK register/state dump writes the SDK skipped because the
+  // configured dump rate limit window was still active
+  39: optional i64 sdk_dump_suppressed_count;
 }
 
 struct HwSwitchHardResetStats {

@@ -348,6 +348,12 @@ void accumulateFb303GlobalStats(
     hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
     accumulated.sram_low_buffer_limit_hit_count() = hitCount;
   }
+  if (toAdd.sdk_dump_suppressed_count().has_value()) {
+    uint64_t suppressedCount =
+        accumulated.sdk_dump_suppressed_count().value_or(0);
+    suppressedCount += toAdd.sdk_dump_suppressed_count().value();
+    accumulated.sdk_dump_suppressed_count() = suppressedCount;
+  }
 }
 
 void accumulateGlobalCpuStats(

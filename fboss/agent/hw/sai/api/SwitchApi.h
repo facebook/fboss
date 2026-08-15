@@ -754,6 +754,11 @@ struct SaiSwitchTraits {
         sai_uint32_t,
         AttributeSdkDumpRateLimitWindow,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeSdkDumpSuppressedCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkDumpSuppressedCount =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSdkDumpSuppressedCount>;
     struct AttributeFirmwareObjectList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1194,6 +1199,7 @@ SAI_ATTRIBUTE_NAME(Switch, ArsAvailableFlows)
 SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
 SAI_ATTRIBUTE_NAME(Switch, SdkDumpRateLimitWindow)
+SAI_ATTRIBUTE_NAME(Switch, SdkDumpSuppressedCount)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
 SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
 SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)

@@ -653,6 +653,22 @@ SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
   return std::nullopt;
 }
 
+// Number of register/state dump writes the SDK rate limiter has skipped. The
+// SDK clears the counter to zero on every read, so a read yields the count
+// accumulated since the previous read and never a running total - callers have
+// to sum the deltas themselves. READ_ONLY, so it is not a create attribute.
+//
+// The id only exists on the DNX releases carrying the CS00012465650 backport,
+// which is why they are listed individually below. Returning nullopt elsewhere
+// is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
+#endif
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)

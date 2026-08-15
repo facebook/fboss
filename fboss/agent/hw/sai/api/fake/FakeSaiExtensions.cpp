@@ -998,6 +998,11 @@ SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
   return SAI_SWITCH_ATTR_FIRMWARE_OBJECTS;
 }
