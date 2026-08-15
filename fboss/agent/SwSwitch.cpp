@@ -4221,6 +4221,15 @@ SwSwitch::getHwSwitchStatsExpensive() const {
   return *hwSwitchStats_.rlock();
 }
 
+std::map<std::string, HwSwitchCounter> SwSwitch::getRouteCounters() const {
+  HwSwitchCounterStats counterStats;
+  auto lockedStats = hwSwitchStats_.rlock();
+  for (const auto& [_, hwSwitchStats] : *lockedStats) {
+    accumulateCounterStats(counterStats, *hwSwitchStats.counterStats());
+  }
+  return std::move(*counterStats.routeCounters());
+}
+
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
   auto lockedStats = hwSwitchStats_.rlock();
   std::map<uint16_t, FabricReachabilityStats> fabricReachStats;

@@ -695,8 +695,9 @@ TEST_F(ThriftServerTest, counterStatsAccumulation) {
   stats1.counterStats()->routeCounters()["baz"] = counter1baz;
   sw_->updateHwSwitchStats(1, stats1);
 
+  auto routeCounters = sw_->getRouteCounters();
   auto agentStats = sw_->fillFsdbStats();
-  auto& routeCounters = *agentStats.counterStats()->routeCounters();
+  EXPECT_EQ(routeCounters, *agentStats.counterStats()->routeCounters());
 
   // "foo" exists on both switches — values should be summed
   EXPECT_EQ(routeCounters.size(), 3);
