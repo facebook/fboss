@@ -840,7 +840,12 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
     return utility::getAclInOutPackets(getSw(), kDstIpV6WordAclCounterName);
   }
 
-  void sendPacketWithDstIpV6(const folly::IPAddressV6& dstIp) {
+  uint64_t getDstIpV6WordAclByteCounter() const {
+    return utility::getAclInOutPackets(
+        getSw(), kDstIpV6WordAclCounterName, true /* bytes */);
+  }
+
+  size_t sendPacketWithDstIpV6(const folly::IPAddressV6& dstIp) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
@@ -856,9 +861,11 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
         kTestDstPort,
         0,
         255);
+    auto txPacketSize = txPacket->buf()->length();
     auto outPort = helper_->ecmpPortDescriptorAt(kDstIpV6WordInjectionPortIndex)
                        .phyPortID();
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    return txPacketSize;
   }
 
   void verifyDstIpV6WordAclCounter(
@@ -871,18 +878,23 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
     auto egressPktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
     auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
+    auto aclByteCountBefore = getDstIpV6WordAclByteCounter();
 
-    sendPacketWithDstIpV6(dstIp);
+    auto sizeOfPacketSent = sendPacketWithDstIpV6(dstIp);
 
     WITH_RETRIES({
       auto egressPktsAfter =
           *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
       auto aclPktCountAfter = getDstIpV6WordAclPacketCounter();
+      auto aclByteCountAfter = getDstIpV6WordAclByteCounter();
       XLOG(DBG2) << "\n"
                  << "egressPacketCounter: " << egressPktsBefore << " -> "
                  << egressPktsAfter << "\n"
                  << "aclPacketCounter(" << kDstIpV6WordAclCounterName
-                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter
+                 << "\n"
+                 << "aclByteCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclByteCountBefore << " -> " << aclByteCountAfter;
       EXPECT_EVENTUALLY_GE(egressPktsAfter, egressPktsBefore + 1);
       if (expectHit) {
         // Some ASICs can count the looped-back packet a second time before it
@@ -890,8 +902,23 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
         // require one or two ACL hits.
         EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
         EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          auto numAclHits = aclPktCountAfter - aclPktCountBefore;
+          auto expectedByteDelta = numAclHits * sizeOfPacketSent;
+          EXPECT_EVENTUALLY_GE(
+              aclByteCountAfter, aclByteCountBefore + expectedByteDelta);
+          // ACL byte counters may include the 4-byte FCS for each packet that
+          // hits the ACL, so scale the byte tolerance by the observed hit
+          // count.
+          EXPECT_EVENTUALLY_LE(
+              aclByteCountAfter,
+              aclByteCountBefore + expectedByteDelta + (4 * numAclHits));
+        }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          EXPECT_EVENTUALLY_EQ(aclByteCountBefore, aclByteCountAfter);
+        }
       }
     });
   }
