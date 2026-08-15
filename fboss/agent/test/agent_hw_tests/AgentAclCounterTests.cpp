@@ -866,11 +866,11 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
       const folly::IPAddressV6& dstIp,
       bool expectHit) {
     SCOPED_TRACE(name);
-    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
     auto egressPort =
         helper_->ecmpPortDescriptorAt(kDstIpV6WordEcmpWidth - 1).phyPortID();
     auto egressPktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
 
     sendPacketWithDstIpV6(dstIp);
 
