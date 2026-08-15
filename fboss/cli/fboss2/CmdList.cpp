@@ -95,6 +95,7 @@
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
 #include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
@@ -394,7 +395,11 @@ const CommandTree& kCommandTree() {
        "Show Route information",
        commandHandler<CmdShowRoute>,
        argTypeHandler<CmdShowRouteTraits>,
-       {{"details",
+       {{"counters",
+         "Show route counters",
+         commandHandler<CmdShowRouteCounters>,
+         argTypeHandler<CmdShowRouteCountersTraits>},
+        {"details",
          "Show details of the route table",
          commandHandler<CmdShowRouteDetails>,
          argTypeHandler<CmdShowRouteDetailsTraits>},

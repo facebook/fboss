@@ -526,6 +526,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.h
   fboss/cli/fboss2/commands/show/route/CmdShowRoute.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.cpp
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.cpp

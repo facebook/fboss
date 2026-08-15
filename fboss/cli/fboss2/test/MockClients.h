@@ -78,6 +78,7 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
       std::map<int16_t, facebook::fboss::HwAgentEventSyncStatus>&;
   using SwitchIndicesForInterfaces =
       std::map<int16_t, std::vector<std::string>>&;
+  using RouteCounters = std::map<std::string, HwSwitchCounter>&;
   MOCK_METHOD(void, startPktCapture, (std::unique_ptr<CaptureInfo>));
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
@@ -87,6 +88,7 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
       void,
       getAllCpuPortStats,
       ((std::map<int32_t, facebook::fboss::CpuPortStats>&)));
+  MOCK_METHOD(void, getRouteCounters, (RouteCounters));
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
   MOCK_METHOD(void, getHwAgentConnectionStatus, (HwAgentStatusMap));
   MOCK_METHOD(void, getMultiSwitchRunState, (MultiSwitchRunState&));
