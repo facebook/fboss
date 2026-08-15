@@ -802,6 +802,12 @@ enum TPolicyStageFilter {
 /**
 * Get Attribute memory statistics
 */
+enum TAttributeStatsPayloadKind {
+  UNKNOWN = 0,
+  LEGACY_ATTRIBUTE_STATS = 1,
+  DEDUPLICATOR_STATS = 2,
+}
+
 struct TAttributeStats {
   1: i64 total_num_of_attributes;
   2: i64 total_unique_attributes;
@@ -865,6 +871,52 @@ struct TAttributeStats {
   12: optional i64 dedup_communities;
   13: optional i64 dedup_cluster_list;
   14: optional i64 dedup_ext_communities;
+
+  /**
+   * Identifies which mutually exclusive payload is populated. The CLI sets
+   * this after selecting an RPC path, so a legacy server does not need to
+   * understand this field for the fallback path to be identified.
+   */
+  15: TAttributeStatsPayloadKind payload_kind = TAttributeStatsPayloadKind.UNKNOWN;
+}
+
+/**
+ * Request wrapper for getDeduplicatorStats().
+ *
+ * The initial API always returns every deduplicator. Future filters or
+ * snapshot options can be added here without changing the method signature.
+ */
+struct TGetDeduplicatorStatsRequest {}
+
+/**
+ * Statistics for one deduplicated collection.
+ *
+ * For example, entry_count = 42 means that the collection currently holds 42
+ * distinct values; it is a count, not a byte size or reference count.
+ */
+struct TDeduplicatorCollectionStats {
+  1: i64 entry_count;
+}
+
+/**
+ * O(1) snapshot of the six BGP attribute deduplicators.
+ *
+ * Each collection is sampled independently, so the response is not an atomic
+ * point-in-time snapshot across all six collections. A successful response
+ * always contains every collection, including collections with zero entries.
+ */
+struct TGetDeduplicatorStatsResponse {
+  /* L1: BgpPathC = attribute bundle + nexthop + topologyInfo. */
+  1: TDeduplicatorCollectionStats bgp_path;
+
+  /* L2: BgpAttributesC bundle. This is not a total of the other fields. */
+  2: TDeduplicatorCollectionStats bgp_attributes;
+
+  /* L3: sub-attributes held by BgpAttributesC. */
+  3: TDeduplicatorCollectionStats as_path;
+  4: TDeduplicatorCollectionStats communities;
+  5: TDeduplicatorCollectionStats cluster_list;
+  6: TDeduplicatorCollectionStats ext_communities;
 }
 
 /**
@@ -1236,6 +1288,7 @@ struct THealthReport {
   8: i32 warnCount;
 }
 
+// @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
    * [Logging]
@@ -1987,6 +2040,13 @@ service TBgpService extends fb303.FacebookService {
    * Get attribute memory statistics
    */
   TAttributeStats getAttributeStats();
+
+  /**
+   * Get an O(1) snapshot of the BGP attribute deduplicators.
+   */
+  TGetDeduplicatorStatsResponse getDeduplicatorStats(
+    1: TGetDeduplicatorStatsRequest request,
+  );
 
   /**
    * Get attribute memory statistics filtered by ingress/egress and pre/post policy

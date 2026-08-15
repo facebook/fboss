@@ -1433,6 +1433,8 @@ cpp_binary(
 )
 
 cpp_binary(
+    # @autodeps-skip: This routing binary intentionally compiles shared fboss2
+    # sources directly; inferring their provider targets creates duplicate deps.
     name = "fboss2-routing-protocol",
     srcs = [
         "CmdHandlerImplBgp.cpp",
