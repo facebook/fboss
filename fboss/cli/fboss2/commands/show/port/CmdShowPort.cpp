@@ -12,6 +12,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <thrift/lib/cpp/transport/TTransportException.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -415,6 +416,17 @@ RetType CmdShowPort::createModel(
       portDetails.activeState() = activeState;
       portDetails.activeStateMismatch() = activeStateMismatch;
       portDetails.cableLengthMeters() = cableLenMeters;
+      // Left unset unless the port has an LLR profile bound on an LLR-capable
+      // ASIC, so the detail view omits the rows entirely rather than showing
+      // them empty on the platforms that do not run LLR.
+      if (auto llrTxStatus = portInfo.llrTxStatus()) {
+        portDetails.llrTxStatus() =
+            apache::thrift::util::enumNameSafe(*llrTxStatus);
+      }
+      if (auto llrRxStatus = portInfo.llrRxStatus()) {
+        portDetails.llrRxStatus() =
+            apache::thrift::util::enumNameSafe(*llrRxStatus);
+      }
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
@@ -594,6 +606,18 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
             fmt::format(
                 "PFC:            \t\t {}",
                 *apache::thrift::get_pointer(portInfo.pfc())));
+      }
+      if (apache::thrift::get_pointer(portInfo.llrTxStatus())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "LLR TX status:  \t\t {}",
+                *apache::thrift::get_pointer(portInfo.llrTxStatus())));
+      }
+      if (apache::thrift::get_pointer(portInfo.llrRxStatus())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "LLR RX status:  \t\t {}",
+                *apache::thrift::get_pointer(portInfo.llrRxStatus())));
       }
       detailedOutput.emplace_back(
           fmt::format(
