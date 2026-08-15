@@ -411,6 +411,16 @@ struct TUpdateGroupKey {
    * MP_REACH_NLRI.
    */
   18: bool legacy_v4_nlri_encoding;
+
+  /*
+   * Local AS advertised to this group. Per-peer overridable via the peer /
+   * peer-group local_as cascade (RFC-7705), and it is the ASN prepended to
+   * AS_PATH on egress, so peers with different local AS must not share a group.
+  */
+  19: i64 local_as;
+
+  /* Confederation identifier used by the egress AS_PATH transform. */
+  20: optional i64 as_confed_id;
 }
 
 /**

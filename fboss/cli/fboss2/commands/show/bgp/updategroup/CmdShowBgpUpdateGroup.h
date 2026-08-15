@@ -223,6 +223,12 @@ class CmdShowBgpUpdateGroup
         << boolStr(key.ext_nh_encoding_capable().value()) << std::endl;
     out << "  Peer Override:           " << boolStr(key.peer_override().value())
         << std::endl;
+    out << "  Local AS:                " << key.local_as().value() << std::endl;
+    out << "  AS Confederation ID:     "
+        << (key.as_confed_id().has_value()
+                ? std::to_string(key.as_confed_id().value())
+                : "-")
+        << std::endl;
 
     out << std::endl;
     out << "Runtime State:" << std::endl;
