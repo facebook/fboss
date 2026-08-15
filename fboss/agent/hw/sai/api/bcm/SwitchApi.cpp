@@ -633,6 +633,26 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return std::nullopt;
 }
 
+// Time window in milliseconds within which the SDK writes at most one
+// register/state dump for a NORMAL priority event - masked interrupt, soft
+// reset, RX FIFO stuck, and the interrupt status log taken at switch create.
+// HIGH priority events - hard reset, fabric auto isolate and an on demand tech
+// support request - bypass the limiter and always write. Two values are
+// special: 0 disables rate limiting, which is also the SDK default, and
+// 0xFFFFFFFF suppresses NORMAL priority dumps entirely. The SDK fails open and
+// allows the write if it cannot read the configured window.
+//
+// The id only exists on the DNX releases carrying the CS00012465650 backport,
+// which is why they are listed individually below. Returning nullopt elsewhere
+// is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW;
+#endif
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)

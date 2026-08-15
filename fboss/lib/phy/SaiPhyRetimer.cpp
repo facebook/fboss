@@ -388,6 +388,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // MaxSwitchId
       std::nullopt, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
+      std::nullopt, // SDK dump rate limit window
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
       std::nullopt, // PFC watchdog timer granularity

@@ -359,6 +359,14 @@ DEFINE_bool(
     "Prevent the SDK from writing register/state dumps to disk. Used to "
     "selectively avoid devices that log heavily to disk.");
 
+DEFINE_uint32(
+    sdk_dump_rate_limit_window_ms,
+    900000,
+    "Time window in milliseconds within which the SDK allows at most one "
+    "register/state dump write for NORMAL priority events. High priority "
+    "events are never rate limited. 0 disables rate limiting, 0xFFFFFFFF "
+    "disables dumps for NORMAL priority events altogether.");
+
 DEFINE_bool(
     type_dctype1_janga,
     false,

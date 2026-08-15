@@ -900,6 +900,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
 #endif
 
+  std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
+      sdkDumpRateLimitWindow{std::nullopt};
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -987,6 +993,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
+      sdkDumpRateLimitWindow, // SDK dump rate limit window
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
       pfcWatchdogTimerGranularityMap, // PFC watchdog timer granularity

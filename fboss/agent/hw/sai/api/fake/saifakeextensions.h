@@ -120,6 +120,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_PFC_MONITOR_ENABLE,
   SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT,
   SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE,
+  SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
