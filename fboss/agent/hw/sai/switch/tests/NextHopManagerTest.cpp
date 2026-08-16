@@ -104,6 +104,7 @@ TEST_F(NextHopManagerTest, testAddNextHop) {
   checkNextHop(nextHop->adapterKey(), rifId, ip4);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
   FLAGS_flowletSwitchingEnable = true;
   saiManagerTable->nextHopGroupManager().setPrimaryArsSwitchingMode(
@@ -117,7 +118,8 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
 
   auto nextHopGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(swNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              swNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
   ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
   EXPECT_EQ(nextHopGroupHandle->desiredEcmpSwitchingMode_, std::nullopt);
   auto type = saiApiTable->nextHopGroupApi().getAttribute(
@@ -143,8 +145,8 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroup) {
       SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION,
       {intf1.remoteHosts[0].ip, intf2.remoteHosts[0].ip});
   auto backupNextHopGroupHandle =
-      saiManagerTable->nextHopGroupManager().getNextHopGroup(
-          SaiNextHopGroupKey(backupNhops, std::nullopt));
+      saiManagerTable->nextHopGroupManager().getNextHopGroup(SaiNextHopGroupKey(
+          backupNhops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION));
   ASSERT_NE(backupNextHopGroupHandle, nullptr);
   EXPECT_EQ(
       backupNextHopGroupHandle->desiredEcmpSwitchingMode_,
@@ -184,7 +186,8 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroupMemberResolution) {
   };
   auto parentGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(swNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              swNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
   ASSERT_NE(parentGroupHandle->nextHopGroup, nullptr);
   auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
   auto parentGroupType = nextHopGroupApi.getAttribute(
@@ -204,8 +207,8 @@ TEST_F(NextHopManagerTest, testProtectionNextHopGroupMemberResolution) {
   EXPECT_EQ(childGroupType, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
 
   auto childGroupHandle =
-      saiManagerTable->nextHopGroupManager().getNextHopGroup(
-          SaiNextHopGroupKey(backupNhops, std::nullopt));
+      saiManagerTable->nextHopGroupManager().getNextHopGroup(SaiNextHopGroupKey(
+          backupNhops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION));
   ASSERT_NE(childGroupHandle, nullptr);
   ASSERT_EQ(parentGroupHandle->members_.size(), 1);
   ASSERT_EQ(childGroupHandle->members_.size(), 1);
@@ -244,10 +247,14 @@ TEST_F(NextHopManagerTest, testProtectionGroupsWithDifferentBackupsDoNotAlias) {
 
   auto firstHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(firstNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              firstNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
   auto secondHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(secondNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              secondNextHops,
+              std::nullopt,
+              SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
 
   ASSERT_NE(firstHandle->nextHopGroup, nullptr);
   ASSERT_NE(secondHandle->nextHopGroup, nullptr);
@@ -273,10 +280,14 @@ TEST_F(NextHopManagerTest, testProtectionGroupsWithSameBackupShareChildGroup) {
 
   auto firstHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(firstNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              firstNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
   auto secondHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(secondNextHops, std::nullopt));
+          SaiNextHopGroupKey(
+              secondNextHops,
+              std::nullopt,
+              SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
 
   ASSERT_NE(firstHandle->childGroupMember_, nullptr);
   ASSERT_NE(secondHandle->childGroupMember_, nullptr);
@@ -294,12 +305,14 @@ TEST_F(NextHopManagerTest, testProtectionGroupsWithSameBackupShareChildGroup) {
       SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
   EXPECT_EQ(firstChildGroupId, secondChildGroupId);
 
-  auto backupHandle = saiManagerTable->nextHopGroupManager().getNextHopGroup(
-      SaiNextHopGroupKey(backupNhops, std::nullopt));
+  auto backupHandle =
+      saiManagerTable->nextHopGroupManager().getNextHopGroup(SaiNextHopGroupKey(
+          backupNhops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION));
   ASSERT_NE(backupHandle, nullptr);
   ASSERT_NE(backupHandle->nextHopGroup, nullptr);
   EXPECT_EQ(backupHandle->nextHopGroup->adapterKey(), firstChildGroupId);
 }
+#endif
 
 TEST_F(NextHopManagerTest, testPrimaryOnlyNextHopGroup) {
   RouteNextHopEntry::NextHopSet swNextHops{
@@ -320,23 +333,48 @@ TEST_F(NextHopManagerTest, testPrimaryOnlyNextHopGroup) {
   }
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 TEST_F(NextHopManagerTest, testBackupOnlyNextHopGroup) {
   RouteNextHopEntry::NextHopSet swNextHops{
       makeResolvedNextHop(intf1, NextHopRole::BACKUP),
       makeResolvedNextHop(intf2, NextHopRole::BACKUP),
   };
 
-  auto nextHopGroupHandle =
+  auto parentGroupHandle =
       saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
-          SaiNextHopGroupKey(swNextHops, std::nullopt));
-  ASSERT_NE(nextHopGroupHandle->nextHopGroup, nullptr);
-  auto type = saiApiTable->nextHopGroupApi().getAttribute(
-      nextHopGroupHandle->nextHopGroup->adapterKey(),
+          SaiNextHopGroupKey(
+              swNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION));
+  ASSERT_NE(parentGroupHandle->nextHopGroup, nullptr);
+  auto parentType = saiApiTable->nextHopGroupApi().getAttribute(
+      parentGroupHandle->nextHopGroup->adapterKey(),
       SaiNextHopGroupTraits::Attributes::Type{});
-  EXPECT_EQ(type, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
-  ASSERT_EQ(nextHopGroupHandle->members_.size(), 2);
-  EXPECT_EQ(nextHopGroupHandle->childGroupMember_, nullptr);
-  for (const auto& member : nextHopGroupHandle->members_) {
+  EXPECT_EQ(parentType, SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+  EXPECT_TRUE(parentGroupHandle->members_.empty());
+  ASSERT_NE(parentGroupHandle->childGroupMember_, nullptr);
+  auto childGroupMember =
+      parentGroupHandle->childGroupMember_->getNhopGroupMemberObject();
+  ASSERT_NE(childGroupMember, nullptr);
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  EXPECT_EQ(
+      std::get<3>(childGroupMember->attributes()),
+      SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+          SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY});
+#endif
+  auto childGroupId = saiApiTable->nextHopGroupApi().getAttribute(
+      childGroupMember->adapterKey(),
+      SaiNextHopGroupMemberTraits::Attributes::NextHopId{});
+  checkNextHopGroup(
+      NextHopGroupSaiId(childGroupId),
+      SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION,
+      {intf1.remoteHosts[0].ip, intf2.remoteHosts[0].ip});
+
+  auto childGroupHandle =
+      saiManagerTable->nextHopGroupManager().getNextHopGroup(SaiNextHopGroupKey(
+          swNextHops, std::nullopt, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION));
+  ASSERT_NE(childGroupHandle, nullptr);
+  ASSERT_EQ(childGroupHandle->members_.size(), 2);
+  EXPECT_EQ(childGroupHandle->childGroupMember_, nullptr);
+  for (const auto& member : childGroupHandle->members_) {
     ASSERT_NE(member->getObject(), nullptr);
     EXPECT_EQ(std::get<2>(member->getObject()->attributes()), std::nullopt);
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -344,6 +382,7 @@ TEST_F(NextHopManagerTest, testBackupOnlyNextHopGroup) {
 #endif
   }
 }
+#endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 class Srv6NextHopManagerTest : public ManagerTestBase {

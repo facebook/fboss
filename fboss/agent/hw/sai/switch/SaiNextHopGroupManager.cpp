@@ -67,20 +67,6 @@ checkAndGetPriAndBackupNhops(const RouteNextHopEntry::NextHopSet& swNextHops) {
           std::make_move_iterator(backupNhops.begin()),
           std::make_move_iterator(backupNhops.end())));
 }
-sai_next_hop_group_type_t getEcmpGroupType(
-    size_t numPrimaryNhops,
-    size_t numBackupNhops) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (numPrimaryNhops && numBackupNhops) {
-    return SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
-  }
-  if (numBackupNhops) {
-    return SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
-  }
-#endif
-  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
-}
-
 bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
   return (
       switchingMode.has_value() &&
@@ -88,18 +74,42 @@ bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
        switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
 }
 
+bool isProtectionNextHopGroupType(
+    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+#else
+  return false;
+#endif
+}
+
+bool isHwProtectionNextHopGroupType(
+    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+#else
+  return false;
+#endif
+}
+
+sai_next_hop_group_type_t getHwProtectionNextHopGroupType() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+#else
+  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+#endif
+}
+
 std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
     sai_next_hop_group_type_t nextHopGroupType,
     std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
     std::optional<cfg::SwitchingMode> primaryArsMode) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
+  if (isProtectionNextHopGroupType(nextHopGroupType)) {
     return std::nullopt;
   }
-  if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
+  if (isHwProtectionNextHopGroupType(nextHopGroupType)) {
     return cfg::SwitchingMode::PER_PACKET_RANDOM;
   }
-#endif
   return overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
                                                : primaryArsMode;
 }
@@ -142,13 +152,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   }
   const auto& swNextHops = key.nextHops;
   auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhops(swNextHops);
-  const auto nextHopGroupType =
-      getEcmpGroupType(primaryNhops.size(), backupNhops.size());
-  auto childNextHopGroup = (primaryNhops.size() && backupNhops.size())
-      ? incRefOrAddNextHopGroup(
-            SaiNextHopGroupKey(backupNhops, key.switchingMode))
+  const auto nextHopGroupType = key.groupType;
+  auto childNextHopGroup = isProtectionNextHopGroupType(nextHopGroupType)
+      ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(
+            backupNhops, key.switchingMode, getHwProtectionNextHopGroupType()))
       : nullptr;
-  const auto& memberNhops = primaryNhops.empty() ? backupNhops : primaryNhops;
+  const auto& memberNhops = isHwProtectionNextHopGroupType(nextHopGroupType)
+      ? backupNhops
+      : primaryNhops;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -309,10 +320,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  bool canBulkCreateMembers = true;
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  canBulkCreateMembers = nextHopGroupType != SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
-#endif
+  bool canBulkCreateMembers = !isProtectionNextHopGroupType(nextHopGroupType);
   if (canBulkCreateMembers &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
@@ -672,7 +680,7 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole>
       configuredRole;
-  if (nextHopGroupType_ == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION) {
+  if (isProtectionNextHopGroupType(nextHopGroupType_)) {
     configuredRole = SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
         SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY};
   }
