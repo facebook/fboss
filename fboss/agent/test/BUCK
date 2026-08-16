@@ -539,6 +539,7 @@ cpp_unittest(
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:async_logger",
+        "//folly:file_util",
     ],
 )
 
