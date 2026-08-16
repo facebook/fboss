@@ -140,12 +140,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   if (!ins.second) {
     return nextHopGroupHandle;
   }
-  const auto& swNextHops = key.first;
+  const auto& swNextHops = key.nextHops;
   auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhops(swNextHops);
   const auto nextHopGroupType =
       getEcmpGroupType(primaryNhops.size(), backupNhops.size());
   auto childNextHopGroup = (primaryNhops.size() && backupNhops.size())
-      ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(backupNhops, key.second))
+      ? incRefOrAddNextHopGroup(
+            SaiNextHopGroupKey(backupNhops, key.switchingMode))
       : nullptr;
   const auto& memberNhops = primaryNhops.empty() ? backupNhops : primaryNhops;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
@@ -231,7 +232,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
     nextHopGroupHandle->desiredEcmpSwitchingMode_ = getDesiredEcmpSwitchingMode(
-        nextHopGroupType, key.second, primaryArsMode_);
+        nextHopGroupType, key.switchingMode, primaryArsMode_);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     arsObjectId = getArsObjectId(
