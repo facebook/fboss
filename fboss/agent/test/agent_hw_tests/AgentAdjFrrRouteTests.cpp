@@ -13,13 +13,69 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 #include <folly/logging/xlog.h>
 
 #include <limits>
 
 namespace facebook::fboss {
+
+namespace {
+
+constexpr auto kEcmpHashCancelAclName = "test-ecmp-hash-cancel";
+constexpr auto kEcmpHashCancelCounterName = "test-ecmp-hash-cancel-stats";
+
+void addFlowletAndEcmpHashCancelAcls(cfg::SwitchConfig& config, bool isSai) {
+  if (FLAGS_enable_acl_table_group) {
+    utility::addAclTableGroup(
+        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+    utility::addDefaultAclTable(config, {utility::kRoceUdfFlowletGroupName});
+  }
+
+  cfg::AclEntry flowletAcl;
+  flowletAcl.name() = utility::kFlowletAclName;
+  flowletAcl.actionType() = cfg::AclActionType::PERMIT;
+  flowletAcl.proto() = 17;
+  flowletAcl.l4DstPort() = 4791;
+  if (isSai) {
+    utility::addUdfTableToAcl(
+        &flowletAcl,
+        utility::kRoceUdfFlowletGroupName,
+        {utility::kRoceReserved},
+        {utility::kRoceReserved});
+  } else {
+    flowletAcl.udfGroups() = {utility::kRoceUdfFlowletGroupName};
+    flowletAcl.roceBytes() = {utility::kRoceReserved};
+    flowletAcl.roceMask() = {utility::kRoceReserved};
+  }
+  utility::addAcl(&config, flowletAcl, cfg::AclStage::INGRESS);
+
+  cfg::MatchAction flowletAction;
+  flowletAction.flowletAction() = cfg::FlowletAction::FORWARD;
+  flowletAction.counter() = utility::kFlowletAclCounterName;
+  utility::addTrafficCounter(
+      &config,
+      utility::kFlowletAclCounterName,
+      std::vector<cfg::CounterType>{
+          cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+  utility::addMatcher(&config, utility::kFlowletAclName, flowletAction);
+
+  cfg::AclEntry ecmpHashCancelAcl;
+  ecmpHashCancelAcl.name() = kEcmpHashCancelAclName;
+  ecmpHashCancelAcl.actionType() = cfg::AclActionType::PERMIT;
+  cfg::Ttl ttl;
+  ttl.value() = 0;
+  ttl.mask() = 0;
+  ecmpHashCancelAcl.ttl() = ttl;
+  utility::addAcl(&config, ecmpHashCancelAcl, cfg::AclStage::INGRESS);
+  utility::addAclEcmpHashCancelAction(
+      &config, kEcmpHashCancelAclName, kEcmpHashCancelCounterName);
+}
+
+} // namespace
 
 class AgentAdjFrrRouteTest : public AgentHwTest {
  protected:
@@ -45,6 +101,8 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /* interfaceHasSubnet */);
+    config.udfConfig() =
+        utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
     phyLoopbackPortIds_.clear();
     // BRCM switches require PHY loopback for FRR link
     // state detection.
@@ -59,6 +117,7 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY);
+    addFlowletAndEcmpHashCancelAcls(config, ensemble.isSai());
     config.loadBalancers()->push_back(
         utility::getEcmpFullHashConfig(ensemble.getL3Asics()));
     return config;
