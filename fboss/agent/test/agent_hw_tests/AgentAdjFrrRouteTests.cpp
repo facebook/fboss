@@ -272,9 +272,7 @@ TEST_F(AgentAdjFrrRouteTest, sourcePortGetsPruned) {
 
 TEST_F(AgentAdjFrrRouteTest, priAndBackupNextHopFlap) {
   auto setup = [this]() {
-    // TODO - start with 0 primaries one vendor lib fixes handling for
-    // this
-    setupRouteWithPrimaryAndBackupNhops(true /* includePrimaryNextHop */);
+    setupRouteWithPrimaryAndBackupNhops(false /* includePrimaryNextHop */);
   };
 
   auto verify = [this]() {
