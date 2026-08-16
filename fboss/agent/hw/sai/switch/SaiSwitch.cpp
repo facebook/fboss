@@ -5125,6 +5125,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP);
         objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER);
         break;
+      case HwObjectType::NEXT_HOP_GROUP_MEMBER:
+        objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER);
+        break;
       case HwObjectType::ROUTER_INTERFACE:
         objTypes.push_back(SAI_OBJECT_TYPE_ROUTER_INTERFACE);
         break;

@@ -768,6 +768,7 @@ enum HwObjectType {
   SYSTEM_PORT = 25,
   FIRMWARE = 26,
   SRV6 = 27,
+  NEXT_HOP_GROUP_MEMBER = 28,
 }
 
 exception FbossFibUpdateError {
