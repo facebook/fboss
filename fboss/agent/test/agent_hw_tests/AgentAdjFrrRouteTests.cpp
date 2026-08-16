@@ -211,15 +211,21 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     const auto beforePortStats = getLatestPortStats(egressPorts);
     const auto beforeOutPkts = getOutPkts(beforePortStats);
 
-    utility::pumpTraffic(
-        true,
+    utility::pumpRoCETraffic(
+        true /* isV6 */,
         utility::getAllocatePktFn(getAgentEnsemble()),
         utility::getSendPktFunc(getAgentEnsemble()),
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         getVlanIDForTx(),
         injectionPort,
-        255,
-        packetCount);
+        utility::kUdfL4DstPort,
+        255 /* hopLimit */,
+        std::nullopt /* srcMacAddr */,
+        packetCount,
+        utility::kUdfRoceOpcodeAck,
+        utility::kRoceReserved,
+        std::nullopt /* nextHdr */,
+        true /* sameDstQueue */);
 
     WITH_RETRIES({
       const auto afterPortStats = getLatestPortStats(egressPorts);
