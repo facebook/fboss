@@ -19,6 +19,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
 #include <limits>
 
 namespace facebook::fboss {
@@ -211,21 +212,7 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     const auto beforePortStats = getLatestPortStats(egressPorts);
     const auto beforeOutPkts = getOutPkts(beforePortStats);
 
-    utility::pumpRoCETraffic(
-        true /* isV6 */,
-        utility::getAllocatePktFn(getAgentEnsemble()),
-        utility::getSendPktFunc(getAgentEnsemble()),
-        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
-        getVlanIDForTx(),
-        injectionPort,
-        utility::kUdfL4DstPort,
-        255 /* hopLimit */,
-        std::nullopt /* srcMacAddr */,
-        packetCount,
-        utility::kUdfRoceOpcodeAck,
-        utility::kRoceReserved,
-        std::nullopt /* nextHdr */,
-        true /* sameDstQueue */);
+    pumpRoceTraffic(injectionPort, packetCount);
 
     WITH_RETRIES({
       const auto afterPortStats = getLatestPortStats(egressPorts);
@@ -253,6 +240,80 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
               lowestOutBytesIncrement,
               highestOutBytesIncrement,
               kMaxLoadBalanceDeviationPct));
+    });
+  }
+
+  void pumpRoceTraffic(PortID injectionPort, int packetCount) {
+    utility::pumpRoCETraffic(
+        true /* isV6 */,
+        utility::getAllocatePktFn(getAgentEnsemble()),
+        utility::getSendPktFunc(getAgentEnsemble()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+        getVlanIDForTx(),
+        injectionPort,
+        utility::kUdfL4DstPort,
+        255 /* hopLimit */,
+        std::nullopt /* srcMacAddr */,
+        packetCount,
+        utility::kUdfRoceOpcodeAck,
+        utility::kRoceReserved,
+        std::nullopt /* nextHdr */,
+        true /* sameDstQueue */);
+  }
+
+  void sendNonDlbFlowAndVerifySingleEgressPort(
+      PortID injectionPort,
+      const std::vector<PortID>& egressPorts,
+      int packetCount) {
+    CHECK(!egressPorts.empty());
+    const auto beforePortStats = getLatestPortStats(egressPorts);
+
+    constexpr uint16_t kSrcPort = 10000;
+    constexpr uint16_t kDstPort = 20000;
+    utility::pumpTraffic(
+        utility::getAllocatePktFn(getAgentEnsemble()),
+        utility::getSendPktFunc(getAgentEnsemble()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+        {folly::IPAddressV6("1001::1")},
+        {folly::IPAddressV6("2001::1")},
+        kSrcPort,
+        kDstPort,
+        1 /* streams */,
+        getVlanIDForTx(),
+        injectionPort,
+        255 /* hopLimit */,
+        std::nullopt /* srcMac */,
+        packetCount);
+
+    WITH_RETRIES({
+      const auto afterPortStats = getLatestPortStats(egressPorts);
+      int64_t totalOutPktsIncrement{0};
+      int64_t highestOutPktsIncrement{0};
+      size_t egressPortsWithPackets{0};
+      for (auto port : egressPorts) {
+        const auto beforeOutPkts =
+            *beforePortStats.at(port).outUnicastPkts__ref();
+        const auto afterOutPkts =
+            *afterPortStats.at(port).outUnicastPkts__ref();
+        const auto outPktsIncrement = afterOutPkts - beforeOutPkts;
+        XLOG(INFO) << "Non-DLB flow backup port " << port
+                   << " out packets before traffic: " << beforeOutPkts
+                   << ", after traffic: " << afterOutPkts
+                   << ", increment: " << outPktsIncrement;
+        totalOutPktsIncrement += outPktsIncrement;
+        if (outPktsIncrement > 0) {
+          ++egressPortsWithPackets;
+          highestOutPktsIncrement =
+              std::max(highestOutPktsIncrement, outPktsIncrement);
+        }
+      }
+      XLOG(INFO) << "Non-DLB flow backup out packets increment: total="
+                 << totalOutPktsIncrement
+                 << ", highest=" << highestOutPktsIncrement
+                 << ", ports with packets=" << egressPortsWithPackets;
+      EXPECT_EVENTUALLY_EQ(totalOutPktsIncrement, packetCount);
+      EXPECT_EVENTUALLY_EQ(highestOutPktsIncrement, packetCount);
+      EXPECT_EVENTUALLY_EQ(egressPortsWithPackets, 1);
     });
   }
 
@@ -330,6 +391,27 @@ TEST_F(AgentAdjFrrRouteTest, sourcePortGetsPruned) {
         backupPorts,
         kPacketCount,
         "Backup after primary next-hop restoration");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentAdjFrrRouteTest, nonDlbFlowUsesSingleBackupNextHop) {
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
+
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    const auto primaryPort = phyLoopbackPortIds_.at(0);
+    const auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    const std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+
+    bringDownPort(primaryPort);
+    sendNonDlbFlowAndVerifySingleEgressPort(
+        injectionPort, backupPorts, kPacketCount);
+    restoreNextHop(primaryPort);
   };
 
   verifyAcrossWarmBoots(setup, verify);
