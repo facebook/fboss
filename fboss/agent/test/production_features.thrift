@@ -133,6 +133,7 @@ enum ProductionFeature {
   ADJACENCY_FRR = 119,
   ETSW_ROUTE_SCALE = 120,
   DST_IPV6_WORD_ACL_QUALIFIERS = 121,
+  ARS_SOURCE_PORT_PRUNE = 122,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
