@@ -391,6 +391,9 @@ systemctl enable fsdb.service
 systemctl enable qsfp_service.service
 systemctl enable fboss_sw_agent.service
 systemctl enable fboss_hw_agents.target
+# Normally enabled by systemd preset; enabled explicitly so FBOSS log rotation
+# does not depend on preset behaviour in the image build.
+systemctl enable logrotate.timer
 
 # 8. Fix NetworkManager connection profile permissions
 # NM ignores profiles that are world-readable
