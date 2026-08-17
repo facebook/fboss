@@ -46,6 +46,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
@@ -109,6 +110,14 @@ Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
   // reset args from a previous executeCliCommand() call would bleed into the
   // current parse and typically cause nonsensical positional arg values.
   CmdArgsLists::getInstance()->clear();
+
+  // CmdGlobalOptions is also a process-wide singleton and CLI11 leaves bound
+  // variables untouched when the option isn't passed, so a --filter /
+  // --aggregate from a previous executeCliCommand() would apply to every
+  // later command. Reset them before each parse.
+  std::string emptyOption;
+  CmdGlobalOptions::getInstance()->setFilterInput(emptyOption);
+  CmdGlobalOptions::getInstance()->setAggregateInput(emptyOption);
 
   // Create a new CLI::App for this command
   CLI::App app{"FBOSS CLI Test"};

@@ -14,11 +14,13 @@
 namespace facebook::fboss {
 
 CmdShowRoute::RetType CmdShowRoute::queryClient(const HostInfo& hostInfo) {
-  std::vector<UnicastRoute> entries;
+  // getRouteTableDetails (rather than getRouteTable) carries nextHopMulti,
+  // needed to derive the route's protocol for --filter.
+  std::vector<facebook::fboss::RouteDetails> entries;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
-  client->sync_getRouteTable(entries);
+  client->sync_getRouteTableDetails(entries);
   return createModel(entries);
 }
 
@@ -63,7 +65,7 @@ bool CmdShowRoute::isUcmpActive(const std::vector<NextHopThrift>& nextHops) {
 }
 
 CmdShowRoute::RetType CmdShowRoute::createModel(
-    std::vector<facebook::fboss::UnicastRoute>& routeEntries) {
+    std::vector<facebook::fboss::RouteDetails>& routeEntries) {
   RetType model;
 
   for (const auto& entry : routeEntries) {
@@ -79,6 +81,9 @@ CmdShowRoute::RetType CmdShowRoute::createModel(
 
     cli::RouteEntry routeEntry;
     routeEntry.networkAddress() = fmt::format("{}{}", ipPrefix, ucmpActive);
+    routeEntry.protocol() = show::route::utils::getProtocolStr(
+        show::route::utils::getBestClientId(entry));
+    routeEntry.addressFamily() = show::route::utils::getAddressFamilyStr(entry);
 
     if (!nextHops.empty()) {
       for (const auto& nh : nextHops) {
@@ -87,19 +92,21 @@ CmdShowRoute::RetType CmdShowRoute::createModel(
         routeEntry.nextHops()->emplace_back(nextHopInfo);
       }
     } else {
-      for (const auto& address : entry.nextHopAddrs().value()) {
+      for (const auto& ifAndIp : entry.fwdInfo().value()) {
         cli::NextHopInfo nextHopInfo;
-        show::route::utils::getNextHopInfoAddr(address, nextHopInfo);
+        nextHopInfo.interfaceID() = folly::copy(ifAndIp.interfaceID().value());
+        show::route::utils::getNextHopInfoAddr(
+            ifAndIp.ip().value(), nextHopInfo);
         routeEntry.nextHops()->emplace_back(nextHopInfo);
       }
     }
-    if (entry.overrideEcmpSwitchingMode()) {
-      routeEntry.overridenEcmpMode() = apache::thrift::util::enumNameSafe(
-          *entry.overrideEcmpSwitchingMode());
+    if (entry.overridenEcmpMode()) {
+      routeEntry.overridenEcmpMode() =
+          apache::thrift::util::enumNameSafe(*entry.overridenEcmpMode());
     }
-    if (entry.overrideNextHops()) {
+    if (entry.overridenNextHops()) {
       routeEntry.overridenNextHops() = std::vector<cli::NextHopInfo>();
-      for (const auto& nh : *entry.overrideNextHops()) {
+      for (const auto& nh : *entry.overridenNextHops()) {
         cli::NextHopInfo nextHopInfo;
         show::route::utils::getNextHopInfoThrift(nh, nextHopInfo);
         routeEntry.overridenNextHops()->emplace_back(nextHopInfo);

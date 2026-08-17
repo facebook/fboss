@@ -45,6 +45,7 @@ cpp_binary(
         "ConfigQosDefaultQueueConfigTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
+        "ShowRouteFilterTest.cpp",
         "ConfigVlanCreateTest.cpp",
         "ConfigVlanDefaultTest.cpp",
         "ConfigVlanPortTaggingModeTest.cpp",
