@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
@@ -27,6 +28,7 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 
+#include <fb303/ServiceData.h>
 #include <gtest/gtest.h>
 
 namespace {
@@ -49,6 +51,8 @@ constexpr std::array<size_t, 5> kPopAndForwardLabelStackDepths{
 
 const facebook::fboss::Label kTtlTrapIngressLabel{3101};
 const facebook::fboss::LabelForwardingAction::Label kTtlTrapSwapLabel{3201};
+const std::string kMplsTtlExceededCounter =
+    facebook::fboss::SwitchStats::kCounterPrefix + "mpls.ttl_exceeded.sum";
 
 using MplsMidpointPortTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
@@ -631,6 +635,9 @@ TYPED_TEST(AgentMPLSMidpointTest, MplsTtlExpiryTrap) {
             utility::kCoppLowPriQueueId,
             0 /* retryTimes */,
             0 /* expectedNumPkts */);
+        auto numTtlExceededPktsBefore =
+            fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                .value_or(0);
         utility::SwSwitchPacketSnooper snooper(
             this->getSw(),
             "mpls-ttl-expiry-trap",
@@ -659,12 +666,22 @@ TYPED_TEST(AgentMPLSMidpointTest, MplsTtlExpiryTrap) {
         folly::io::Cursor cursor((*pktBuf).get());
         utility::EthFrame frame(cursor);
         ASSERT_TRUE(frame.mplsPayLoad().has_value());
+        WITH_RETRIES({
+          auto numTtlExceededPktsAfter =
+              fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                  .value_or(0);
+          EXPECT_EVENTUALLY_EQ(
+              1, numTtlExceededPktsAfter - numTtlExceededPktsBefore);
+        });
       }
 
       // Verify TTL=64 forwards without TTL-expiry trapping.
       {
         auto outPktsBefore = utility::getPortOutPkts(
             this->getLatestPortStats(this->egressPort()));
+        auto numTtlExceededPktsBefore =
+            fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                .value_or(0);
 
         // A packet with MPLS TTL 64 should not trap. kTtlTrapSwapLabel has no
         // downstream InSeg entry, so first-pass egress forwarding validates the
@@ -676,6 +693,11 @@ TYPED_TEST(AgentMPLSMidpointTest, MplsTtlExpiryTrap) {
           auto statsAfter = this->getLatestPortStats(this->egressPort());
           auto outPktsAfter = utility::getPortOutPkts(statsAfter);
           EXPECT_EVENTUALLY_EQ(1, outPktsAfter - outPktsBefore);
+          auto numTtlExceededPktsAfter =
+              fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                  .value_or(0);
+          EXPECT_EVENTUALLY_EQ(
+              0, numTtlExceededPktsAfter - numTtlExceededPktsBefore);
         });
       }
     }
