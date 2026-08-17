@@ -1017,6 +1017,36 @@ void pumpTrafficAndVerifyLoadBalanced(
   }
 }
 
+void pumpTrafficAndVerifyLoadBalanced(
+    const std::function<uint64_t()>& pumpTraffic,
+    const std::function<void()>& clearPortStats,
+    const std::function<uint64_t()>& getPortOutPackets,
+    const std::function<bool()>& isLoadBalanced,
+    bool loadBalanceExpected) {
+  clearPortStats();
+  auto portOutPacketsBefore = getPortOutPackets();
+  WITH_RETRIES({
+    portOutPacketsBefore = getPortOutPackets();
+    ASSERT_EVENTUALLY_EQ(0, portOutPacketsBefore);
+  });
+
+  const auto numPacketsSent = pumpTraffic();
+  auto portOutPacketsAfter = uint64_t{0};
+  WITH_RETRIES({
+    portOutPacketsAfter = getPortOutPackets();
+    XLOG(DBG2) << "Port out packets before: " << portOutPacketsBefore
+               << ", after: " << portOutPacketsAfter
+               << ", packets sent: " << numPacketsSent;
+    ASSERT_EVENTUALLY_EQ(numPacketsSent, portOutPacketsAfter);
+  });
+
+  if (loadBalanceExpected) {
+    WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(isLoadBalanced()));
+  } else {
+    EXPECT_FALSE(isLoadBalanced());
+  }
+}
+
 /*
  * Enable load balancing on provided config. Uses an enum, declared in
  * ConfigFactory.h, to decide whether to apply full-hash or half-hash config.
