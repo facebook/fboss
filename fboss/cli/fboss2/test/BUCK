@@ -179,6 +179,7 @@ cpp_unittest(
         "CmdShowInterfaceErrorsTest.cpp",
         "CmdShowInterfaceFlapsTest.cpp",
         "CmdShowInterfacePhyTest.cpp",
+        "CmdShowInterfacePrbsTest.cpp",
         "CmdShowInterfaceStatusTest.cpp",
         "CmdShowInterfaceTest.cpp",
         "CmdShowInterfaceTrafficTest.cpp",
