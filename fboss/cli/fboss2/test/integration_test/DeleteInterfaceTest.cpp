@@ -1,13 +1,17 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 /**
- * End-to-end tests for 'fboss2-dev delete interface <name> <attr> [<attr>...]'
+ * End-to-end tests for 'fboss2-dev delete interface <name|intfID>
+ * [<attr> ...]'
  *
- * These tests:
+ * The attribute tests:
  *  1. Pick an interface from the running system
  *  2. Set one or more attributes via the config CLI
  *  3. Delete (reset to defaults) via the delete CLI
  *  4. Verify the command succeeds (exit code 0)
+ *
+ * The bare (no-attribute) tests cover whole-object deletes: a port by name,
+ * and an L3 interface by its interface ID.
  *
  * Requirements:
  *  - FBOSS agent must be running with a valid configuration
@@ -15,6 +19,7 @@
  */
 
 #include <folly/logging/xlog.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string>
 #include <utility>
@@ -22,6 +27,7 @@
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
 using namespace facebook::fboss;
+using ::testing::HasSubstr;
 
 class DeleteInterfaceTest : public Fboss2IntegrationTest {
  protected:
@@ -258,5 +264,27 @@ TEST_F(DeleteInterfaceTest, DeleteWholePortRemovesCreatedSubport) {
       });
   EXPECT_EQ(restored.profileId, cand->controllingProfile)
       << "controlling port should be restored to its original profile";
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// Whole-interface deletes and their refusal paths are unit-tested in
+// CmdDeleteWholeL3InterfaceTestFixture, not repeated here: the session's port
+// map is not rebuilt for interfaces staged in the same session, and a
+// PORT-type interface cannot be created via the CLI, so integration versions
+// could only run conditionally on the DUT's existing config. Delete-by-ID
+// resolution is still exercised end-to-end by DeleteUnknownInterfaceIdFails.
+
+// ---------------------------------------------------------------------------
+// Test: an interface ID that matches nothing is rejected, and leaves no
+// staged change behind.
+// ---------------------------------------------------------------------------
+
+TEST_F(DeleteInterfaceTest, DeleteUnknownInterfaceIdFails) {
+  auto del = runCli({"delete", "interface", "65535"});
+  discardSession();
+
+  EXPECT_NE(del.exitCode, 0) << "unknown interface ID should be rejected";
+  EXPECT_THAT(del.stderr + del.stdout, HasSubstr("not found in configuration"))
+      << "should fail on resolution, not on some later error";
   XLOG(INFO) << "TEST PASSED";
 }

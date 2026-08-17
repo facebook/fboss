@@ -199,6 +199,15 @@ std::optional<std::string> PortMap::getPortNameForInterface(
   return std::nullopt;
 }
 
+std::optional<std::string> PortMap::getPortNameForLogicalId(
+    PortID logicalId) const {
+  auto it = portLogicalIdToName_.find(logicalId);
+  if (it != portLogicalIdToName_.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
 std::optional<PortID> PortMap::getPortLogicalId(
     const std::string& portName) const {
   auto it = portNameToLogicalId_.find(portName);
