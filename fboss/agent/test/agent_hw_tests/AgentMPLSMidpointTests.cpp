@@ -22,6 +22,8 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTest.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 
@@ -33,6 +35,7 @@ namespace mpls_test = facebook::fboss::utility::mpls_dataplane_test;
 using mpls_test::MplsTrapPacketMechanism;
 
 const facebook::fboss::Label kTopLabel{1101};
+const facebook::fboss::Label kInnerLabel{2202};
 const facebook::fboss::LabelForwardingAction::Label kSwapLabel{201};
 constexpr uint32_t kSinglePushedLabelBase = 101;
 constexpr uint32_t kMaxPushedLabelBase = 1001;
@@ -134,6 +137,14 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         kTopLabel,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH, pushStack),
+        egressPortDescriptor());
+  }
+
+  void configureStaticMplsPopAndForwardRoute(cfg::SwitchConfig& config) const {
+    configureStaticMplsRoute(
+        config,
+        kTopLabel,
+        LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
         egressPortDescriptor());
   }
 
@@ -285,6 +296,29 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     return pkt;
   }
 
+  std::unique_ptr<TxPacket> makeTwoLabelMplsIngressPacket(uint8_t ttl) const {
+    auto vlan = getVlanIDForTx();
+    CHECK(vlan.has_value());
+
+    std::vector<MPLSHdr::Label> labels{
+        MPLSHdr::Label{static_cast<uint32_t>(kTopLabel.value()), 0, false, ttl},
+        MPLSHdr::Label{
+            static_cast<uint32_t>(kInnerLabel.value()), 0, true, ttl},
+    };
+
+    auto frame = utility::getEthFrame(
+        utility::kLocalCpuMac(),
+        routerMac(),
+        labels,
+        folly::IPAddressV6{"1001::1"},
+        folly::IPAddressV6{"2001::1"},
+        10000,
+        20000,
+        *vlan);
+    return frame.getTxPacket(
+        [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
+  }
+
   void sendMplsIngressPacket(
       Label label,
       uint8_t ttl,
@@ -303,6 +337,17 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     } else {
       EXPECT_TRUE(getAgentEnsemble()->ensureSendPacketSwitched(std::move(pkt)));
     }
+  }
+
+  void sendTwoLabelMplsIngressPacket(uint8_t ttl, PortID injectPort) {
+    auto pkt = makeTwoLabelMplsIngressPacket(ttl);
+    XLOG(INFO) << "MPLS midpoint injected two-label packet hexdump top label "
+               << kTopLabel.value() << " inner label " << kInnerLabel.value()
+               << " ttl " << static_cast<int>(ttl) << " send front-panel:\n"
+               << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
+    EXPECT_TRUE(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
+            std::move(pkt), injectPort));
   }
 
   void setupStaticMplsRoutePush(
@@ -336,6 +381,18 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     applyConfigAndEnableTrunks(config);
   }
 
+  void setupStaticMplsPopAndForwardRoute() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    applyConfigAndEnableTrunks(config);
+    resolveNextHopForPortWithMac(egressPortDescriptor(), routerMac());
+
+    configureStaticMplsPopAndForwardRoute(config);
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, egressPort());
+    applyConfigAndEnableTrunks(config);
+  }
+
   void verifyMplsPushAndTrapPacket(
       bool isV4,
       std::optional<PortID> injectPort,
@@ -350,6 +407,56 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         [this, isV4, injectPort](uint8_t ttl) {
           sendMplsIngressPacket(kTopLabel, ttl, isV4, injectPort);
         });
+  }
+
+  void verifyMplsPopAndForward() {
+    SCOPED_TRACE(
+        folly::to<std::string>(
+            "send=front-panel isTrunk=",
+            BaseT::kIsTrunk,
+            " labelStackDepth=2"));
+
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mpls-midpoint-pop-and-forward-verifier",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL);
+    snooper.ignoreUnclaimedRxPkts();
+
+    auto outPktsBefore =
+        utility::getPortOutPkts(this->getLatestPortStats(egressPort()));
+
+    sendTwoLabelMplsIngressPacket(128, ingressPort());
+
+    WITH_RETRIES({
+      auto outPktsAfter =
+          utility::getPortOutPkts(this->getLatestPortStats(egressPort()));
+      EXPECT_EVENTUALLY_EQ(1, outPktsAfter - outPktsBefore);
+    });
+
+    auto pktBuf = snooper.waitForPacket(10);
+    ASSERT_TRUE(pktBuf.has_value());
+    ASSERT_TRUE(*pktBuf);
+    XLOG(INFO) << "MPLS dataplane pop-and-forward trapped packet hexdump:\n"
+               << folly::hexDump((*pktBuf)->data(), (*pktBuf)->length());
+
+    folly::io::Cursor cursor((*pktBuf).get());
+    utility::EthFrame frame(cursor);
+
+    auto mplsPayload = frame.mplsPayLoad();
+    ASSERT_TRUE(mplsPayload.has_value());
+
+    const auto& mplsHeader = mplsPayload->header();
+    const auto& labelStack = mplsHeader.stack();
+    XLOG(INFO) << "MPLS dataplane pop-and-forward captured header "
+               << mplsHeader;
+
+    const std::vector<uint32_t> expectedLabels{
+        static_cast<uint32_t>(kInnerLabel.value())};
+    EXPECT_EQ(expectedLabels, mpls_test::capturedLabelValues(labelStack));
+    EXPECT_TRUE(mpls_test::bottomOfStackBitsValid(labelStack));
   }
 };
 
@@ -412,6 +519,21 @@ TYPED_TEST(AgentMPLSMidpointTest, PushLabelAfterLinkFlap) {
           false /* isV4 */, injectPort, pushStack);
     }
   };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// PopAndForwardPreservesInnerMplsLabels verifies midpoint pop-and-forward
+// behavior for a packet that remains MPLS after the outer label is popped:
+// - Program only the top label route, so forwarding is selected by that route.
+// - Inject a two-label packet whose inner label is not separately programmed.
+// - Verify first-pass egress forwarding to the route nexthop.
+// - Trap the looped post-pop-and-forward packet with src-port ACL and verify
+//   only the inner MPLS label remains.
+TYPED_TEST(AgentMPLSMidpointTest, PopAndForwardPreservesInnerMplsLabels) {
+  auto setup = [this]() { this->setupStaticMplsPopAndForwardRoute(); };
+
+  auto verify = [this]() { this->verifyMplsPopAndForward(); };
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
