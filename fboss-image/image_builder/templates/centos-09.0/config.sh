@@ -11,6 +11,7 @@ sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
 echo "Creating FBOSS log directories..."
 mkdir -p /var/facebook/logs/fboss/sdk
+mkdir -p /var/facebook/logs/fboss/archive
 semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
 restorecon -Rv /var/facebook/logs/fboss
 
