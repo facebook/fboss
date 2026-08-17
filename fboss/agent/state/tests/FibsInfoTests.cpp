@@ -578,34 +578,44 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
         folly::IPAddress(ip), InterfaceID(1), UCMP_DEFAULT_WEIGHT);
   };
 
+  auto makeClientEntry = [&makeNextHop](
+                             const std::string& ip, NextHopSetID clientId) {
+    RouteNextHopEntry entry(
+        RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::EBGP);
+    std::optional<NextHopSetID> clientIdOpt = clientId;
+    entry.setClientNextHopSetID(clientIdOpt);
+    return entry;
+  };
   auto makeFwdInfo = [&makeNextHop](
                          const std::string& ip,
-                         std::optional<NextHopSetID> clientId,
                          std::optional<NextHopSetID> resolvedId,
                          std::optional<NextHopSetID> normalizedId) {
     RouteNextHopEntry fwd(
         RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, AdminDistance::EBGP);
-    fwd.setClientNextHopSetID(clientId);
     fwd.setResolvedNextHopSetID(resolvedId);
     fwd.setNormalizedResolvedNextHopSetID(normalizedId);
     return fwd;
   };
 
-  auto fwd1 = makeFwdInfo("10.0.0.1", clientId1, resolvedId1, normalizedId1);
-  auto fwd2 = makeFwdInfo("10.0.0.2", clientId2, resolvedId2, normalizedId2);
-  auto fwd3 = makeFwdInfo("2001:db8::1", clientId3, resolvedId3, normalizedId3);
+  auto fwd1 = makeFwdInfo("10.0.0.1", resolvedId1, normalizedId1);
+  auto fwd2 = makeFwdInfo("10.0.0.2", resolvedId2, normalizedId2);
+  auto fwd3 = makeFwdInfo("2001:db8::1", resolvedId3, normalizedId3);
 
   ForwardingInformationBaseV4 fibV4;
   auto route1 = std::make_shared<RouteV4>(
       RouteFields<folly::IPAddressV4>(
-          RoutePrefixV4{folly::IPAddressV4("10.0.0.0"), 24})
+          RoutePrefixV4{folly::IPAddressV4("10.0.0.0"), 24},
+          ClientID::BGPD,
+          makeClientEntry("10.0.0.1", clientId1))
           .toThrift());
   route1->setResolved(fwd1);
   fibV4.addNode(route1);
 
   auto route2 = std::make_shared<RouteV4>(
       RouteFields<folly::IPAddressV4>(
-          RoutePrefixV4{folly::IPAddressV4("192.168.1.0"), 24})
+          RoutePrefixV4{folly::IPAddressV4("192.168.1.0"), 24},
+          ClientID::BGPD,
+          makeClientEntry("10.0.0.2", clientId2))
           .toThrift());
   route2->setResolved(fwd2);
   fibV4.addNode(route2);
@@ -614,7 +624,9 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
   ForwardingInformationBaseV6 fibV6;
   auto route3 = std::make_shared<RouteV6>(
       RouteFields<folly::IPAddressV6>(
-          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 64})
+          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 64},
+          ClientID::BGPD,
+          makeClientEntry("2001:db8::1", clientId3))
           .toThrift());
   route3->setResolved(fwd3);
   fibV6.addNode(route3);
@@ -639,7 +651,7 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutes) {
   EXPECT_EQ(refCounts[resolvedId3], 2);
 }
 
-TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
+TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesBestClientOnly) {
   auto fibInfo = std::make_shared<FibInfo>();
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
   auto fibContainer =
@@ -649,6 +661,9 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
   // Named NHG "nhg1" has clientNextHopSetID=42 (unresolved loopback nexthops)
   // After recursive resolution, resolvedNextHopSetID=500 (link-local nexthops)
   NextHopSetID namedNhgClientId(42);
+  NextHopSetID backupClientId(43);
+  NextHopSetID unresolvedClientId(44);
+  NextHopSetID dropClientId(45);
   NextHopSetID resolvedLinkLocalId(500);
 
   auto makeNextHop = [](const std::string& ip) {
@@ -656,22 +671,56 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
         folly::IPAddress(ip), InterfaceID(1), UCMP_DEFAULT_WEIGHT);
   };
 
+  auto makeClientEntry = [&makeNextHop](
+                             const std::string& ip,
+                             AdminDistance distance,
+                             NextHopSetID clientId) {
+    RouteNextHopEntry entry(
+        RouteNextHopEntry::NextHopSet{makeNextHop(ip)}, distance);
+    std::optional<NextHopSetID> clientIdOpt = clientId;
+    entry.setClientNextHopSetID(clientIdOpt);
+    return entry;
+  };
+
   RouteNextHopEntry fwd(
       RouteNextHopEntry::NextHopSet{makeNextHop("fe80::1")},
       AdminDistance::EBGP);
-  std::optional<NextHopSetID> clientOpt = namedNhgClientId;
   std::optional<NextHopSetID> resolvedOpt = resolvedLinkLocalId;
-  fwd.setClientNextHopSetID(clientOpt);
   fwd.setResolvedNextHopSetID(resolvedOpt);
   fwd.setNormalizedResolvedNextHopSetID(resolvedOpt);
 
   ForwardingInformationBaseV6 fibV6;
   auto route = std::make_shared<RouteV6>(
       RouteFields<folly::IPAddressV6>(
-          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 48})
+          RoutePrefixV6{folly::IPAddressV6("2001:db8::"), 48},
+          ClientID::BGPD,
+          makeClientEntry("2001:db8::1", AdminDistance::EBGP, namedNhgClientId))
           .toThrift());
+  route->update(
+      ClientID::OPENR,
+      makeClientEntry("2001:db8::2", AdminDistance::IBGP, backupClientId));
   route->setResolved(fwd);
   fibV6.addNode(route);
+
+  auto unresolvedRoute = std::make_shared<RouteV6>(
+      RouteFields<folly::IPAddressV6>(
+          RoutePrefixV6{folly::IPAddressV6("2001:db8:1::"), 64},
+          ClientID::BGPD,
+          makeClientEntry(
+              "2001:db8:1::1", AdminDistance::EBGP, unresolvedClientId))
+          .toThrift());
+  unresolvedRoute->setUnresolvable();
+  fibV6.addNode(unresolvedRoute);
+
+  auto dropRoute = std::make_shared<RouteV6>(
+      RouteFields<folly::IPAddressV6>(
+          RoutePrefixV6{folly::IPAddressV6("2001:db8:2::"), 64},
+          ClientID::BGPD,
+          makeClientEntry("2001:db8:2::1", AdminDistance::EBGP, dropClientId))
+          .toThrift());
+  dropRoute->setResolved(RouteNextHopEntry(
+      RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+  fibV6.addNode(dropRoute);
   fibContainer->setFib(fibV6.clone());
 
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
@@ -680,6 +729,9 @@ TEST_F(FibInfoTest, GetNextHopSetIdRefCountsFromRoutesRecursiveResolution) {
   auto refCounts = fibInfo->getNextHopSetIdRefCountsFromRoutes();
   // The named NHG's clientNextHopSetID should be in the refcounts
   EXPECT_EQ(refCounts[namedNhgClientId], 1);
+  EXPECT_EQ(refCounts.count(backupClientId), 0);
+  EXPECT_EQ(refCounts.count(unresolvedClientId), 0);
+  EXPECT_EQ(refCounts.count(dropClientId), 0);
   // The resolved link-local ID should also be counted (resolved + normalized)
   EXPECT_EQ(refCounts[resolvedLinkLocalId], 2);
 }
