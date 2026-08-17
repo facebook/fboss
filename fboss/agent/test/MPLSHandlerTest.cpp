@@ -76,4 +76,18 @@ TEST(MPLSHandlerTest, TtlExpiredPacketIncrementsCounter) {
       1 /* expectedDelta */);
 }
 
+TEST(MPLSHandlerTest, NonExpiredTtlDoesNotIncrementCounter) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  CounterCache counters(sw);
+
+  rxMplsPacket(handle.get(), 2 /* ttl */, PortID(1), VlanID(1));
+
+  counters.update();
+  // TTL is greater than 1, so the TTL exceeded counter is not incremented.
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + kMplsTtlExceededCounter,
+      0 /* expectedDelta */);
+}
+
 } // namespace facebook::fboss
