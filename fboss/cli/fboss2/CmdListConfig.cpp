@@ -24,6 +24,8 @@
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
+#include "fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h"
+#include "fboss/cli/fboss2/commands/config/interface/sflow/sample_dest/CmdConfigInterfaceSflowSampleDest.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -139,6 +141,8 @@
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h"
+#include "fboss/cli/fboss2/commands/delete/interface/sflow/sample_dest/CmdDeleteInterfaceSflowSampleDest.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
@@ -276,6 +280,18 @@ const CommandTree& kConfigCommandTree() {
                    "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
                    commandHandler<CmdConfigInterfaceIpv6Ndp>,
                    argRegistrar<CmdConfigInterfaceIpv6NdpTraits>,
+               }},
+           },
+           {
+               "sflow",
+               "Configure sFlow settings",
+               commandHandler<CmdConfigInterfaceSflow>,
+               argTypeHandler<CmdConfigInterfaceSflowTraits>,
+               {{
+                   "sample-dest",
+                   "Set the sFlow sample destination: <cpu|mirror>",
+                   commandHandler<CmdConfigInterfaceSflowSampleDest>,
+                   argRegistrar<CmdConfigInterfaceSflowSampleDestTraits>,
                }},
            },
            {
@@ -1086,17 +1102,29 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteInterface>,
           argRegistrar<CmdDeleteInterfaceTraits>,
           {{
-              "ipv6",
-              "Delete (reset to default) IPv6 settings for interface",
-              commandHandler<CmdDeleteInterfaceIpv6>,
-              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
-              {{
-                  "ndp",
-                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
-                  commandHandler<CmdDeleteInterfaceIpv6Ndp>,
-                  argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
-              }},
-          }},
+               "ipv6",
+               "Delete (reset to default) IPv6 settings for interface",
+               commandHandler<CmdDeleteInterfaceIpv6>,
+               argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+               {{
+                   "ndp",
+                   "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                   commandHandler<CmdDeleteInterfaceIpv6Ndp>,
+                   argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+               }},
+           },
+           {
+               "sflow",
+               "Delete (reset to default) sFlow settings for interface",
+               commandHandler<CmdDeleteInterfaceSflow>,
+               argTypeHandler<CmdDeleteInterfaceSflowTraits>,
+               {{
+                   "sample-dest",
+                   "Clear the sFlow sample destination",
+                   commandHandler<CmdDeleteInterfaceSflowSampleDest>,
+                   argTypeHandler<CmdDeleteInterfaceSflowSampleDestTraits>,
+               }},
+           }},
       },
 
       {
