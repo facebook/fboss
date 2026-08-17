@@ -73,6 +73,11 @@ struct NextHopThrift {
   16: optional NetworkTopologyInformation topologyInfo;
   17: optional i64 cost;
   18: NextHopRole role = NextHopRole.PRIMARY;
+
+  // Headend/Binding SID FRR: per Nexthop protection
+  //   Empty: if no FRR for this Nexthop
+  //   Non-empty: Backup ECMP Nexthops providing FRR for this Nexthop
+  19: optional list<NextHopThrift> backupNexthops;
 }
 
 /*
