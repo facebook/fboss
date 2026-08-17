@@ -21,10 +21,14 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
     MGMT_PORT_PHYSICAL_ID = 514
 
     def __init__(
-        self, asic_config_params: asic_config_thrift.AsicConfigParameters
+        self,
+        asic_config_params: asic_config_thrift.AsicConfigParameters,
+        platform_mapping_input_dir: str,
     ) -> None:
         super(Icecube800banwConfig, self).__init__(asic_config_params)
-        self.parser = PlatformMappingParser(read_all_vendor_data(), "icecube800banw")
+        self.parser = PlatformMappingParser(
+            read_all_vendor_data(platform_mapping_input_dir), "icecube800banw"
+        )
         self.num_ports_per_core = 2
 
     def get_asic_vendor_config(self) -> AsicVendorConfig:
@@ -129,7 +133,8 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
 
 def gen_icecube800banw_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
+    platform_mapping_input_dir: str,
 ) -> Icecube800banwConfig:
-    cfg = Icecube800banwConfig(asic_config_params)
+    cfg = Icecube800banwConfig(asic_config_params, platform_mapping_input_dir)
     cfg.generate_asic_config()
     return cfg
