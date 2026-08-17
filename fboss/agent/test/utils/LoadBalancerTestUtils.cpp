@@ -1018,9 +1018,10 @@ void pumpTrafficAndVerifyLoadBalanced(
 }
 
 void pumpTrafficAndVerifyLoadBalanced(
-    const std::function<uint64_t()>& pumpTraffic,
+    const std::function<void()>& pumpTraffic,
     const std::function<void()>& clearPortStats,
     const std::function<uint64_t()>& getPortOutPackets,
+    uint64_t numPacketsSent,
     const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected) {
   clearPortStats();
@@ -1030,7 +1031,7 @@ void pumpTrafficAndVerifyLoadBalanced(
     ASSERT_EVENTUALLY_EQ(0, portOutPacketsBefore);
   });
 
-  const auto numPacketsSent = pumpTraffic();
+  pumpTraffic();
   auto portOutPacketsAfter = uint64_t{0};
   WITH_RETRIES({
     portOutPacketsAfter = getPortOutPackets();

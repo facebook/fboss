@@ -147,21 +147,35 @@ void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
     const std::vector<NextHopWeight>& weights,
     int deviation,
     bool loadBalanceExpected) {
+  auto helper = this->ecmpSetupHelper();
+  const auto portDescs = helper->ecmpPortDescs(ecmpWidth);
+  std::vector<PortID> ports;
+  for (const auto& portDesc : portDescs) {
+    if (portDesc.isPhysicalPort()) {
+      ports.push_back(portDesc.phyPortID());
+    }
+  }
+
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=, this]() { this->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
       [=, this]() {
-        auto helper = this->ecmpSetupHelper();
-        auto portDescs = helper->getPortDescs(ecmpWidth);
-        auto ports = std::make_unique<std::vector<int32_t>>();
-        for (const auto& portDesc : portDescs) {
-          if (portDesc.isPhysicalPort()) {
-            ports->push_back(portDesc.phyPortID());
-          }
+        auto portIds = std::make_unique<std::vector<int32_t>>();
+        for (const auto& port : ports) {
+          portIds->push_back(port);
         }
-        ensemble_->clearPortStats(ports);
+        ensemble_->clearPortStats(portIds);
       },
       [=, this]() {
-        return this->isLoadBalanced(ecmpWidth, weights, deviation);
+        const auto portStats = ensemble_->getLatestPortStats(ports);
+        uint64_t totalOutPackets{0};
+        for (const auto& port : ports) {
+          totalOutPackets += *portStats.at(port).outUnicastPkts_();
+        }
+        return totalOutPackets;
+      },
+      this->getNumPacketsToPump(),
+      [=, this]() {
+        return this->isLoadBalanced(portDescs, weights, deviation);
       },
       loadBalanceExpected);
 }
