@@ -2878,27 +2878,63 @@ void SaiPortManager::updateStats(
       stat =
           retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
     };
+    // 26.2.4210 replaced the retrigger attributes with port stats served by
+    // get_port_stats
+    auto readRetriggerCount =
+        [&](const std::vector<sai_stat_id_t>& statIds,
+            auto&& readAttr,
+            const char* statsGroup) -> std::optional<int64_t> {
+      if (statIds.empty()) {
+        return static_cast<int64_t>(readAttr());
+      }
+      try {
+        auto values = portApi.getStats<SaiPortTraits>(
+            adapterKey, statIds, SAI_STATS_MODE_READ);
+        if (values.empty()) {
+          return std::nullopt;
+        }
+        return static_cast<int64_t>(values.front());
+      } catch (const SaiApiError& e) {
+        XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
+                  << " (portId: " << portId << "): " << e.what();
+        return std::nullopt;
+      }
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
-    if (downPeriod.has_value() && downPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkDownDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
-    }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
+    if (downPeriod.has_value() && downPeriod->value() > 0) {
+      auto downCount = readRetriggerCount(
+          SaiPortTraits::linkDownDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+          },
+          "link down debounce retrigger count");
+      if (downCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkDownDebounceRetriggerCount_(), *downCount);
+      }
+    }
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkUpDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
+      auto upCount = readRetriggerCount(
+          SaiPortTraits::linkUpDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+          },
+          "link up debounce retrigger count");
+      if (upCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkUpDebounceRetriggerCount_(), *upCount);
+      }
     }
   }
 #endif

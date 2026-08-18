@@ -952,6 +952,18 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
