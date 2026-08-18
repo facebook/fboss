@@ -10,6 +10,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -515,7 +516,24 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 }
 
 TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
-  auto setup = [this]() { _setup(false); };
+  auto setup = [this]() {
+    // A packet that egresses the congested port, loops back on the MAC and
+    // re-enters the same queue is counted as TXed while still occupying a
+    // buffer. sendPacketsWithQueueBuildup() then compensates for it and the
+    // queue peaks above kNumberOfPacketsToSend. Deny ingress on the egress
+    // port so each packet gets exactly one pass through the queue.
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    const PortID kEgressPort = masterLogicalInterfacePortIds()[0];
+    cfg::AclEntry acl;
+    acl.name() = "verifyQueueWatermarkAccuracy-egress-rx-disable";
+    acl.srcPort() = kEgressPort;
+    acl.actionType() = cfg::AclActionType::DENY;
+    utility::addAclEntry(&config, acl, utility::kDefaultAclTable());
+    applyNewConfig(config);
+    XLOG(DBG0) << "Disabled egress port ingress via ACL on port "
+               << kEgressPort;
+    _setup(false);
+  };
   auto verify = [this]() {
     for (const auto& switchId : switchIdsUnderTest()) {
       const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
