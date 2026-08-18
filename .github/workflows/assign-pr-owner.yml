@@ -1,0 +1,29 @@
+name: Assign PR Owner
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, ready_for_review]
+
+permissions: {}
+
+jobs:
+  assign-owner:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const assignPullRequestOwner = require(
+              './.github/scripts/assign-pr-owner.js'
+            );
+            await assignPullRequestOwner({ github, context, core });

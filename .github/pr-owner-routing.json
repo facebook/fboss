@@ -1,0 +1,57 @@
+{
+  "services": [
+    {
+      "name": "agent",
+      "paths": ["fboss/agent/"],
+      "owners": ["tanmayaudupa", "Tianyu-Meta", "ashutoshgrewal"]
+    },
+    {
+      "name": "optics",
+      "paths": [
+        "fboss/qsfp_service/",
+        "fboss/led_service/",
+        "fboss/mdio/",
+        "fboss/firmware/"
+      ],
+      "owners": ["harshitgulati18", "xanabani", "srikrishnagopu"]
+    },
+    {
+      "name": "platform",
+      "paths": ["fboss/platform/"],
+      "owners": ["lohithchittineni", "Scott8440", "ezeob002", "somasun", "binhuang00", "Delrik"]
+    },
+    {
+      "name": "lib",
+      "paths": ["fboss/lib/"],
+      "owners": ["srikrishnagopu", "joseph5wu", "AarjunC", "KevinYakar", "Scott8440"]
+    },
+    {
+      "name": "cli",
+      "paths": ["fboss/cli/"],
+      "owners": ["srikrishnagopu", "joseph5wu", "AarjunC", "KevinYakar", "Scott8440"]
+    },
+    {
+      "name": "fsdb",
+      "paths": ["fboss/fsdb/"],
+      "owners": ["priyankw-meta", "elangovan911-meta"]
+    },
+    {
+      "name": "thrift",
+      "paths": ["fboss/thrift_cow/", "fboss/thrift_visitors/"],
+      "owners": ["srikrishnagopu", "joseph5wu", "AarjunC", "KevinYakar", "Scott8440"]
+    },
+    {
+      "name": "oss",
+      "paths": ["fboss/oss/", "fboss/github/"],
+      "owners": ["srikrishnagopu", "joseph5wu", "AarjunC", "KevinYakar", "Scott8440"]
+    }
+  ],
+  "ownersByVendor": {
+    "accton": ["tao-ren"],
+    "arista": ["joancaneus"],
+    "celestica": ["mikechoifb"],
+    "cisco": ["somasun"],
+    "nexthop": ["srikrishnagopu"]
+  },
+  "fallbackOwners": ["srikrishnagopu", "joseph5wu", "AarjunC", "KevinYakar"]
+}
