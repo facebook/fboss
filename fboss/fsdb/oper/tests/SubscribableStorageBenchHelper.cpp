@@ -20,12 +20,17 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <map>
 #include <memory>
+#include <string>
 #include <thread>
 #include <vector>
 
 namespace {
 constexpr auto kPeakSampleIntervalUsec = 500;
+constexpr auto kInitialSyncPollIntervalMsec = 1;
+constexpr auto kInitialSyncTimeoutSec = 60;
+constexpr auto kUpdateTimeoutSec = 300;
 
 // Samples jemalloc `stats.allocated` on a background thread and keeps the
 // maximum. Needed because the peak of the publish + fanout path is transient:
@@ -66,9 +71,74 @@ class PeakAllocatedSampler {
   std::atomic<bool> stop_{false};
   std::thread thread_;
 };
+
+using facebook::fboss::fsdb::SubscriberMessage;
+
+// Awaits one message carrying a chunk, skipping heartbeats so they cannot
+// satisfy a wait meant to observe served data. The message is moved out of the
+// generator frame and destroyed before returning, so the subscriber's copy of
+// the served chunk is not charged to the storage being measured.
+template <typename Generator>
+folly::coro::Task<void> awaitChunk(Generator& generator, int subIndex) {
+  while (true) {
+    auto item = co_await generator.next();
+    XCHECK(item.has_value())
+        << "subscriber " << subIndex << " stream ended before a chunk arrived";
+    bool isChunk{false};
+    {
+      auto element = std::move(*item);
+      isChunk = element.val.getType() == SubscriberMessage::Type::chunk;
+    }
+    // `element` is destroyed here, freeing the chunk before we return.
+    if (isChunk) {
+      co_return;
+    }
+  }
+}
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
+
+// A subscription is registered, resolved and initial-synced within one serve
+// cycle, so a subscriber stamped with an initial sync timestamp is ready to be
+// served the next publish. Distinct subscriber ids are counted because a
+// resolved child shares its parent's subscriber id. A non-zero
+// enqueuedDataSize marks a subscriber that must drain an initial-sync chunk
+// before the publish; heartbeats enqueue zero bytes.
+template <typename RootT>
+int StorageBenchmarkHelper<RootT>::waitForInitialSync(int numSubscribers) {
+  auto deadline = std::chrono::steady_clock::now() +
+      std::chrono::seconds(kInitialSyncTimeoutSec);
+  while (true) {
+    std::map<std::string, bool> syncedSubscribers;
+    for (const auto& info : storage_.getSubscriptions()) {
+      if (info.initialSyncCompletedAt().value_or(0) == 0) {
+        continue;
+      }
+      // Only the extended parent writes to the pipe, so OR across the entries
+      // sharing a subscriber id.
+      syncedSubscribers[*info.subscriberId()] |=
+          info.enqueuedDataSize().value_or(0) > 0;
+    }
+    if (syncedSubscribers.size() >= static_cast<size_t>(numSubscribers)) {
+      auto numServed = std::count_if(
+          syncedSubscribers.begin(),
+          syncedSubscribers.end(),
+          [](const auto& entry) { return entry.second; });
+      XCHECK(
+          numServed == 0 ||
+          numServed == static_cast<int64_t>(syncedSubscribers.size()))
+          << "initial sync served " << numServed << " of "
+          << syncedSubscribers.size() << " subscribers; expected all or none";
+      return numServed > 0 ? 1 : 0;
+    }
+    XCHECK(std::chrono::steady_clock::now() < deadline)
+        << "timed out waiting for initial sync: " << syncedSubscribers.size()
+        << " of " << numSubscribers << " subscribers synced";
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kInitialSyncPollIntervalMsec));
+  }
+}
 
 template <typename RootT>
 int64_t StorageBenchmarkHelper<RootT>::measurePubSubMemory(
@@ -80,8 +150,28 @@ int64_t StorageBenchmarkHelper<RootT>::measurePubSubMemory(
   // (a) empty storage, then start serving subscriptions.
   startStorage();
 
-  // (b) numSubscribers subscriber tasks subscribed to the root path.
+  // (b) subscribe numSubscribers subscribers. Registering on this thread lets
+  // the initial sync shape be observed before the draining tasks are launched.
+  std::vector<PatchStreamReader> readers;
+  readers.reserve(numSubscribers);
+  for (int i = 0; i < numSubscribers; i++) {
+    readers.push_back(subscribeFn(
+        storage_,
+        SubscriptionIdentifier(SubscriberId(fmt::format("patch_sub_{}", i)))));
+  }
+
+  // (c) PATH publisher registration on root path. Effective only when
+  // trackMetadata=true; an explicit no-op otherwise.
   std::vector<std::string> rootPath = getSubscriptionPath();
+  storage_.registerPublisher(
+      rootPath.begin(),
+      rootPath.end(),
+      /*skipThriftStreamLivenessCheck=*/true);
+
+  // (d) wait for every subscription to be registered and past initial sync, and
+  // learn how many chunks initial sync served each subscriber.
+  auto numInitialSyncChunks = waitForInitialSync(numSubscribers);
+
   folly::coro::AsyncScope scope;
   auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(
       std::max(numSubscribers, 1));
@@ -91,37 +181,36 @@ int64_t StorageBenchmarkHelper<RootT>::measurePubSubMemory(
   std::atomic<int> initSyncCount{0};
   std::atomic<int> updateCount{0};
 
-  auto subscriberTask = [&](int subIndex) -> folly::coro::Task<void> {
-    auto streamReader = subscribeFn(
-        storage_,
-        SubscriptionIdentifier(
-            SubscriberId(fmt::format("patch_sub_{}", subIndex))));
-    auto generator = std::move(streamReader.generator_);
-    co_await generator.next();
+  auto subscriberTask =
+      [&](int subIndex, PatchStreamReader reader) -> folly::coro::Task<void> {
+    auto generator = std::move(reader.generator_);
+    for (int chunk = 0; chunk < numInitialSyncChunks; chunk++) {
+      co_await awaitChunk(generator, subIndex);
+    }
     if (initSyncCount.fetch_add(1) + 1 == numSubscribers) {
       initSyncDone.post();
     }
-    co_await generator.next();
+    // Initial sync is served as a single message, so one chunk is the whole
+    // published update.
+    co_await awaitChunk(generator, subIndex);
     if (updateCount.fetch_add(1) + 1 == numSubscribers) {
       updateReceived.post();
     }
   };
 
   for (int i = 0; i < numSubscribers; i++) {
-    scope.add(folly::coro::co_withExecutor(executor.get(), subscriberTask(i)));
+    scope.add(
+        folly::coro::co_withExecutor(
+            executor.get(), subscriberTask(i, std::move(readers[i]))));
   }
 
-  // (c) PATH publisher registration on root path. Effective only when
-  // trackMetadata=true; an explicit no-op otherwise.
-  storage_.registerPublisher(
-      rootPath.begin(),
-      rootPath.end(),
-      /*skipThriftStreamLivenessCheck=*/true);
+  // (e) all subscribers have drained their initial sync chunks.
+  XCHECK(
+      initSyncDone.try_wait_for(std::chrono::seconds(kInitialSyncTimeoutSec)))
+      << "timed out waiting for " << numSubscribers << " subscribers to drain "
+      << numInitialSyncChunks << " initial sync chunk(s)";
 
-  // (d) wait for all subscribers to receive initial sync.
-  initSyncDone.wait();
-
-  // (e) begin measurement around publish + fanout.
+  // (f) begin measurement around publish + fanout.
   auto startAllocated = thrift_cow::test::getJemallocAllocatedBytes();
   std::unique_ptr<PeakAllocatedSampler> sampler;
   if (measurePeak) {
@@ -129,11 +218,13 @@ int64_t StorageBenchmarkHelper<RootT>::measurePubSubMemory(
   }
   suspender.dismiss();
 
-  // (f) publish state; wait for all subscribers to receive the update.
+  // (g) publish state; wait for all subscribers to receive the update.
   setStorageData(0);
-  updateReceived.wait();
+  XCHECK(updateReceived.try_wait_for(std::chrono::seconds(kUpdateTimeoutSec)))
+      << "timed out waiting for " << numSubscribers
+      << " subscribers to receive the published update";
 
-  // (g) end measurement.
+  // (h) end measurement.
   suspender.rehire();
   auto endAllocated = thrift_cow::test::getJemallocAllocatedBytes();
   auto measuredAllocated =
@@ -155,21 +246,16 @@ void StorageBenchmarkHelper<RootT>::reportPubSubMemStats(
   for (int i = 0; i < iterations; i++) {
     {
       StorageBenchmarkHelper helper(
-          gen,
-          Params()
-              .setStartWithInitializedData(false)
-              .setRequireResponseOnInitialSync(true));
-      auto delta = helper.measurePubSubMemory(numSubscribers, subscribeFn);
+          gen, Params().setStartWithInitializedData(false));
+      auto delta = helper.measurePubSubMemory(
+          numSubscribers, subscribeFn, /*measurePeak=*/false);
       if (delta > 0) {
         allocatedMeasurements.push_back(delta);
       }
     }
     {
       StorageBenchmarkHelper helper(
-          gen,
-          Params()
-              .setStartWithInitializedData(false)
-              .setRequireResponseOnInitialSync(true));
+          gen, Params().setStartWithInitializedData(false));
       auto peak = helper.measurePubSubMemory(
           numSubscribers, subscribeFn, /*measurePeak=*/true);
       if (peak > 0) {
