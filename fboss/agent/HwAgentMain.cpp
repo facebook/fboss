@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include <chrono>
+#include <cstdlib>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
@@ -155,7 +156,8 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     XLOG(INFO) << "[Exit] Delay complete, exiting now";
   }
 
-  exit(0);
+  // _Exit: skip global dtors that re-drive the live EventBase on warmboot exit.
+  std::_Exit(0);
 }
 
 int hwAgentMain(
