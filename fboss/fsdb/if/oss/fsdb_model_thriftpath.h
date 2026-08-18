@@ -1657,6 +1657,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SwitchSettings, ::facebook::fboss:
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortOffset, 34);
     STRUCT_CHILD_GETTERS(measureCableLengths, 35);
     STRUCT_CHILD_GETTERS(packetForwardingMode, 36);
+    STRUCT_CHILD_GETTERS(ecmpWidth, 37);
 };
 
 
