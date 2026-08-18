@@ -19,10 +19,7 @@ _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
 
 
 def get_generator(
-    platform_name: str,
-    variant: str,
-    platform_config: dict,
-    paths: AsicConfigPaths,
+    platform_name: str, variant: str, platform_config: dict, paths: AsicConfigPaths
 ) -> BaseAsicConfigGenerator:
     """Instantiate the correct generator based on vendor and ASIC."""
     vendor = platform_config["vendor"]
@@ -105,10 +102,13 @@ def _generate_platform(
     variants = platform_config.get("variants", {})
 
     for variant_name in variants:
-        print(
-            f"Generating ASIC config for {platform_name}/{variant_name}...",
-            file=sys.stderr,
+        # An empty variant name produces filename "<platform><ext>", with no
+        # "_<variant>" suffix, for platforms whose reference config is not
+        # variant-qualified.
+        display_name = (
+            f"{platform_name}/{variant_name}" if variant_name else platform_name
         )
+        print(f"Generating ASIC config for {display_name}...", file=sys.stderr)
 
         try:
             generator = get_generator(
@@ -118,6 +118,8 @@ def _generate_platform(
 
             output_filename = (
                 f"{platform_name}_{variant_name}{generator.output_extension}"
+                if variant_name
+                else f"{platform_name}{generator.output_extension}"
             )
             output_path = os.path.join(output_dir, output_filename)
 
@@ -127,10 +129,7 @@ def _generate_platform(
                 f.write(output)
 
         except Exception as e:
-            print(
-                f"Error generating config for {platform_name}/{variant_name}: {e}",
-                file=sys.stderr,
-            )
+            print(f"Error generating config for {display_name}: {e}", file=sys.stderr)
             raise
 
 
@@ -181,11 +180,7 @@ def generate_single_platform(platform_name: str, paths: AsicConfigPaths) -> None
 
     platform_config, output_dir = platforms[platform_name]
     _generate_platform(
-        platform_name,
-        platform_config,
-        output_dir,
-        paths,
-        clean_output=True,
+        platform_name, platform_config, output_dir, paths, clean_output=True
     )
 
 
