@@ -245,6 +245,7 @@ enum MediaInterfaceCode {
   DR4_800G_GEARBOX = 35,
   // 8x800G over DR4: 4 banks, each a 2x800G-DR4
   DR4_8x800G = 36,
+  FR2_200G = 37,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -316,6 +317,7 @@ enum SMFMediaInterfaceCode {
   ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
   ZR_OPENZRP_OFEC_400G = 0x36,
   FR4_800G = 0x79,
+  FR2_200G = 0xC0,
   FR2_400G = 0xC2,
   FR1_200G = 0xC4,
   ZR_VENDOR_CUSTOM = 0xF7,

@@ -208,12 +208,22 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
           "ports": [
             {"speed": 800000, "hostLanes": {"start": 0, "count": 8}, "mediaLanes": {"start": 0, "count": 8}, "mediaLaneCode": {"smfCode": 0xC1}, "mediaInterfaceCode": 15}
           ]
+        },
+        {
+          "combinationName": "4x200G-FR4",
+          "ports": [
+            {"speed": 200000, "hostLanes": {"start": 0, "count": 2}, "mediaLanes": {"start": 0, "count": 2}, "mediaLaneCode": {"smfCode": 0xC0}, "mediaInterfaceCode": 37},
+            {"speed": 200000, "hostLanes": {"start": 2, "count": 2}, "mediaLanes": {"start": 2, "count": 2}, "mediaLaneCode": {"smfCode": 0xC0}, "mediaInterfaceCode": 37},
+            {"speed": 200000, "hostLanes": {"start": 4, "count": 2}, "mediaLanes": {"start": 4, "count": 2}, "mediaLaneCode": {"smfCode": 0xC0}, "mediaInterfaceCode": 37},
+            {"speed": 200000, "hostLanes": {"start": 6, "count": 2}, "mediaLanes": {"start": 6, "count": 2}, "mediaLaneCode": {"smfCode": 0xC0}, "mediaInterfaceCode": 37}
+          ]
         }
       ],
       "speedChangeTransitions": [
         ["2x400G-FR4", "2x200G-FR4"],
         ["2x400G-FR4", "400G-FR4+200G-FR4"],
         ["2x400G-FR4", "200G-FR4+400G-FR4"],
+        ["2x400G-FR4", "4x200G-FR4"],
       ]
     },
     "13": {
