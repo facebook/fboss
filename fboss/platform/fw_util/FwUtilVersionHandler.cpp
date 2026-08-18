@@ -70,9 +70,9 @@ std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
     // Rewrote to use library function instead of executing cat
     auto content = PlatformFsUtils().getStringFileContent(globbuf.gl_pathv[0]);
     if (!content.has_value()) {
+      const std::string matchedPath = globbuf.gl_pathv[0];
       globfree(&globbuf);
-      throw std::runtime_error(
-          "Failed to read file: " + std::string(globbuf.gl_pathv[0]));
+      throw std::runtime_error("Failed to read file: " + matchedPath);
     }
     version = content.value();
     globfree(&globbuf);
