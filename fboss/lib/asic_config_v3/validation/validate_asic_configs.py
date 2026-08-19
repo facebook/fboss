@@ -53,7 +53,7 @@ def get_validation_targets(paths):
                 paths.platforms_dir,
                 "*",
                 "*",
-                "asic_config_v3",
+                "asic_config",
                 "asic_config.json",
             ),
         },

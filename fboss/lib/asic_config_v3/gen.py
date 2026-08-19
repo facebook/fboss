@@ -35,7 +35,7 @@ def discover_platforms(paths: AsicConfigPaths) -> dict[str, tuple[dict, str]]:
     """Return a mapping of platform name to its config and output directory.
 
     Discovered by scanning
-    ``platforms/<vendor>/<platform>/asic_config_v3/asic_config.json``.
+    ``platforms/<vendor>/<platform>/asic_config/asic_config.json``.
     """
     platforms: dict[str, tuple[dict, str]] = {}
     platform_vendors: dict[str, str] = {}
@@ -51,7 +51,7 @@ def discover_platforms(paths: AsicConfigPaths) -> dict[str, tuple[dict, str]]:
             continue
 
         for platform_name in sorted(os.listdir(vendor_path)):
-            platform_path = os.path.join(vendor_path, platform_name, "asic_config_v3")
+            platform_path = os.path.join(vendor_path, platform_name, "asic_config")
             if not os.path.isdir(platform_path):
                 continue
 
@@ -153,7 +153,7 @@ def _clean_all_outputs(paths: AsicConfigPaths) -> None:
 
         for platform_name in sorted(os.listdir(vendor_path)):
             output_dir = os.path.join(
-                vendor_path, platform_name, "asic_config_v3", "generated"
+                vendor_path, platform_name, "asic_config", "generated"
             )
             _clean_output(output_dir)
 
