@@ -430,7 +430,7 @@ std::vector<ConfigSession::ConfigDomain> ConfigSession::configDomains() const {
                                         // it is the image-installed file)
           getBgpSystemConfigLinkPath(), // /etc/coop/bgpcpp.conf (symlink)
           kBgpGitRelPath, // symlink -> bgpcpp/bgpcpp.conf
-          cli::ConfigActionLevel::AGENT_WARMBOOT, // rollback restarts bgpd
+          cli::ConfigActionLevel::SERVICE_RESTART, // rollback restarts bgpd
       },
   };
 }
@@ -559,7 +559,7 @@ bool ConfigSession::hasActiveSession() const {
   // An agent config session (agent.conf) OR a protocol session staged outside
   // agent.conf. BGP is the latter: a staged ~/.fboss2/bgp_config.json (written
   // by either the typed global config here or BgpConfigSession's peer edits)
-  // with a recorded restart (AGENT_WARMBOOT) action, but never touching
+  // with a recorded restart (SERVICE_RESTART) action, but never touching
   // agent.conf.
   return sessionExists() || bgpSessionExists();
 }
@@ -764,9 +764,9 @@ const bgp::thrift::BgpConfig& ConfigSession::getBgpConfig() const {
 void ConfigSession::saveBgpConfig() {
   // Convenience wrapper over the generic saveConfig(), mirroring the no-arg
   // saveConfig() for the agent. bgpd has no hitless reload, so a staged BGP
-  // change always requires a bgpd restart (AGENT_WARMBOOT) on the next
+  // change always requires a bgpd restart (SERVICE_RESTART) on the next
   // `config session commit`.
-  saveConfig(cli::ServiceType::BGP, cli::ConfigActionLevel::AGENT_WARMBOOT);
+  saveConfig(cli::ServiceType::BGP, cli::ConfigActionLevel::SERVICE_RESTART);
 }
 
 Git& ConfigSession::getGit() {
@@ -930,6 +930,7 @@ ConfigSession::applyServiceActions(
     switch (level) {
       case cli::ConfigActionLevel::AGENT_COLDBOOT:
       case cli::ConfigActionLevel::AGENT_WARMBOOT:
+      case cli::ConfigActionLevel::SERVICE_RESTART:
         serviceNames[service] =
             fbossServiceUtil_->restartService(service, level);
         break;
@@ -975,7 +976,7 @@ void ConfigSession::initializeSession(SessionInit init) {
   // Resume an existing session if EITHER an agent (agent.conf) or a BGP
   // (bgp_config.json) session is staged. Keying only on the agent session file
   // would misdetect a BGP-only session as fresh and clear its recorded
-  // restart (AGENT_WARMBOOT) action on the next (separate-process) CLI
+  // restart (SERVICE_RESTART) action on the next (separate-process) CLI
   // invocation, silently dropping the staged change at commit time.
   if (!hasActiveSession()) {
     // Starting a new session - reset all state to ensure we don't carry over
