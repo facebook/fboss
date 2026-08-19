@@ -31,14 +31,9 @@ class CmdConfigVlan : public CmdHandler<CmdConfigVlan, CmdConfigVlanTraits> {
   using ObjectArgType = CmdConfigVlanTraits::ObjectArgType;
   using RetType = CmdConfigVlanTraits::RetType;
 
-  RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* vlanId */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands");
-  }
+  RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& vlanId);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& logMsg);
 };
 
 } // namespace facebook::fboss
