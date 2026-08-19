@@ -260,6 +260,11 @@ class FakeAclEntry {
   bool actionL3SwitchCancelEnable{false};
   bool actionL3SwitchCancelData{false};
 
+  void setLabelExtended(const sai_attribute_t* attr);
+  sai_status_t getLabelExtended(sai_attribute_t* attr) const;
+
+  std::vector<int8_t> labelExtended;
+
   sai_object_id_t id;
 };
 

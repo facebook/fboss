@@ -783,7 +783,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclTableHandle->aclTable->adapterKey()};
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
-  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
+  std::optional<SaiAclEntryTraits::Attributes::LabelExtended> labelExtended;
+  if (SaiAclEntryTraits::Attributes::LabelExtended::
+          optionalExtensionAttributeId()
+              .has_value()) {
+    const auto& aclEntryName = addedAclEntry->getID();
+    labelExtended = SaiAclEntryTraits::Attributes::LabelExtended{
+        std::vector<int8_t>(aclEntryName.begin(), aclEntryName.end())};
+  }
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{
+      aclTableId, priority, labelExtended};
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
@@ -1689,6 +1698,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionL3SwitchCancel,
       aclFieldRouteDestination,
 #endif
+      labelExtended,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

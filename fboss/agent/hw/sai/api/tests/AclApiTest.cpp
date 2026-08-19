@@ -372,6 +372,11 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(81, 0);
   }
 
+  std::vector<int8_t> kLabelExtended() const {
+    static const std::string kLabel{"acl-entry-label"};
+    return std::vector<int8_t>(kLabel.begin(), kLabel.end());
+  }
+
   std::pair<sai_object_id_t, sai_uint32_t> kRouteDestination2() const {
     return std::make_pair(810, 0);
   }
@@ -589,6 +594,8 @@ class AclApiTest : public ::testing::Test {
     SaiAclEntryTraits::Attributes::FieldRouteDestination
         aclFieldRouteDestination{
             AclEntryFieldSaiObjectIdT(kRouteDestination())};
+    SaiAclEntryTraits::Attributes::LabelExtended aclLabelExtended{
+        kLabelExtended()};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -642,7 +649,8 @@ class AclApiTest : public ::testing::Test {
          aclActionDisableArsForwarding,
          aclActionSetEcmpHashAlgorithm,
          aclActionL3SwitchCancel,
-         aclFieldRouteDestination},
+         aclFieldRouteDestination,
+         aclLabelExtended},
         kSwitchID());
   }
 
@@ -890,6 +898,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionL3SwitchCancel());
     auto aclFieldRouteDestinationGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDestination());
+    auto aclLabelExtendedGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::LabelExtended());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
@@ -943,6 +953,7 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
     EXPECT_EQ(aclActionL3SwitchCancelGot.getData(), l3SwitchCancel);
     EXPECT_EQ(aclFieldRouteDestinationGot.getDataAndMask(), routeDestination);
+    EXPECT_EQ(aclLabelExtendedGot, kLabelExtended());
   }
 
   std::shared_ptr<FakeSai> fs;
