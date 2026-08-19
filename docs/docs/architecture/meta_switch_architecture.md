@@ -3,8 +3,7 @@
 ## About this document
 
 This document describes the high level system architecture requirements for all
-network switches for Meta data centers. This document will eventually replace
-the existing BMC-Lite Specification.
+network switches for Meta data centers.
 
 ## Table Of Contents
 
