@@ -172,11 +172,17 @@ void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
           }
         });
       },
-      [=, this]() {
+      [=, this]() -> std::optional<uint64_t> {
         const auto portStats = ensemble_->getLatestPortStats(ports);
         uint64_t totalOutPackets{0};
         for (const auto& port : ports) {
-          totalOutPackets += *portStats.at(port).outUnicastPkts_();
+          // Stats collection is async and may not have caught up for every
+          // port yet. Report "not ready" so the caller retries.
+          auto portStat = portStats.find(port);
+          if (portStat == portStats.end()) {
+            return std::nullopt;
+          }
+          totalOutPackets += *portStat->second.outUnicastPkts_();
         }
         return totalOutPackets;
       },
