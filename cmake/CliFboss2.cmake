@@ -1092,6 +1092,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.cpp
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.cpp
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.cpp
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
