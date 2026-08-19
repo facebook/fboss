@@ -142,9 +142,6 @@ As shown in the reference design:
    controller directly, and baud rate is set to 9600 bps in the Meta environment.
 2. There must be a UART connection between BMC and CPU/X86, usually muxed by a
    CPLD, for SOL application: the baud rate between BMC and CPU is 57600 bps.
-3. The debug UART (USB 3.0 Debug card) shall be supported. Support UART
-   multiplexing between the Meta OCP Debug Card USB port, RunBMC, and
-   Microserver (HSUART).
 
 ### 2.4 Management Network Topology (Internal Control Plane Switch)
 
