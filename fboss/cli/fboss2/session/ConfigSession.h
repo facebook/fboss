@@ -159,7 +159,8 @@ class ConfigSession {
     std::string symlinkPath; // daemon-facing stable path (a symlink)
     std::string symlinkTarget; // relative target of symlinkPath
     // Action used when a rollback changes this domain (no recorded action is
-    // available then): HITLESS reloads the agent; AGENT_WARMBOOT restarts bgpd.
+    // available then): HITLESS reloads the agent; SERVICE_RESTART restarts
+    // bgpd.
     cli::ConfigActionLevel rollbackActionLevel;
   };
 
@@ -249,7 +250,7 @@ class ConfigSession {
   bgp::thrift::BgpConfig& getBgpConfig();
   const bgp::thrift::BgpConfig& getBgpConfig() const;
 
-  // Convenience wrapper over saveConfig(BGP, AGENT_WARMBOOT): persists the
+  // Convenience wrapper over saveConfig(BGP, SERVICE_RESTART): persists the
   // typed BGP config to ~/.fboss2/bgp_config.json and records that bgpd must be
   // restarted on the next `config session commit`. Mirrors the no-arg
   // saveConfig() for the agent.
@@ -268,9 +269,10 @@ class ConfigSession {
   const Git& getGit() const;
 
   // Update the required action level for the current session.
-  // Tracks the highest action level across all config commands.
-  // Higher action levels take precedence (AGENT_COLDBOOT > AGENT_WARMBOOT >
-  // HITLESS).
+  // Tracks the highest action level across all config commands, per service.
+  // Higher action levels take precedence (for the agent: AGENT_COLDBOOT >
+  // AGENT_WARMBOOT > HITLESS; for bgpd: SERVICE_RESTART > HITLESS). Levels
+  // are only compared within one service.
   void updateRequiredAction(
       cli::ServiceType service,
       cli::ConfigActionLevel actionLevel);
