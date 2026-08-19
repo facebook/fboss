@@ -70,6 +70,7 @@ bool useGenericSaiBcmPlatform(PlatformType type) {
       type == PlatformType::PLATFORM_LADAKH800BCLS ||
       type == PlatformType::PLATFORM_LEH800BCLS ||
       type == PlatformType::PLATFORM_MINIPACK3BTA ||
+      type == PlatformType::PLATFORM_M4052ACTM ||
       type == PlatformType::PLATFORM_MONTBLANC ||
       type == PlatformType::PLATFORM_TAHAN800BC ||
       type == PlatformType::PLATFORM_TAHANSB800BC;

@@ -212,6 +212,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800BACT:
     case PlatformType::PLATFORM_WEDGE800BNHP:
+    case PlatformType::PLATFORM_M4052ACTM:
       // Wedge800BACT/Wedge800BNHP no longer ship a compiled-in platform
       // mapping. The mapping must be provided externally via
       // --platform_descriptor_config_path or --platform_mapping_override_path.
