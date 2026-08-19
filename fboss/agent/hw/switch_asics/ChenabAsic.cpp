@@ -97,6 +97,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::ACL_BYTE_COUNTER:
       return true;
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
@@ -108,7 +109,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
-    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::EGRESS_CORE_BUFFER_WATERMARK:
     case HwAsic::Feature::DELETED_CREDITS_STAT:
