@@ -1864,6 +1864,10 @@ void SaiAclTableManager::updateStats() {
             aclStats_.updateStat(now, counterName, counterPackets);
           } break;
           case cfg::CounterType::BYTES: {
+            if (!platform_->getAsic()->isSupported(
+                    HwAsic::Feature::ACL_BYTE_COUNTER)) {
+              break;
+            }
             auto counterBytes =
                 SaiApiTable::getInstance()->aclApi().getAttribute(
                     aclMember.second->aclCounter->adapterKey(),
