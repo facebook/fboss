@@ -59,6 +59,12 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
               fmt::format("{} (warmboot)", serviceName));
         }
         break;
+      case cli::ConfigActionLevel::SERVICE_RESTART:
+        // Plain restart (bgpd has no warmboot) -- no boot-type suffix.
+        for (const auto& serviceName : serviceNamesList) {
+          restartedServices.push_back(serviceName);
+        }
+        break;
       case cli::ConfigActionLevel::HITLESS:
         for (const auto& serviceName : serviceNamesList) {
           reloadedServices.push_back(serviceName);
