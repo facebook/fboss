@@ -92,7 +92,6 @@ def get_content(directory: Dict[str, str], filename: str) -> str:
 
 
 def column_int_enum_generator(string_list: str):
-    # pyre-ignore
     return IntEnum(
         "Column", {item: idx for idx, item in enumerate(string_list.split())}
     )

@@ -382,11 +382,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 404,
                 "Not Found",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )
@@ -405,11 +403,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 500,
                 "Internal Server Error",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )
@@ -432,11 +428,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 304,
                 "Not Modified",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )
@@ -462,11 +456,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 304,
                 "Not Modified",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )
@@ -582,11 +574,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 403,
                 "Forbidden",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )
@@ -605,11 +595,9 @@ class TestDownloadWithCache(unittest.TestCase):
 
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                # pyrefly: ignore [bad-argument-type]
                 full_url,
                 503,
                 "Service Unavailable",
-                # pyrefly: ignore [bad-argument-type]
                 {},
                 None,
             )

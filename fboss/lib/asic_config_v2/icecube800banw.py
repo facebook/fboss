@@ -38,7 +38,6 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: cross-boundary type mismatch until platform_mapping_v2 migrates
         return self.parser.get_static_mapping().get_static_mapping()
 
     def generate_port_config(self, mgmt_port: bool = False) -> None:

@@ -26,7 +26,6 @@ class Icecube800bcAsicConfig(Tomahawk6AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: Expected `thrift_types.StaticMapping` but got
         #  `ttypes.StaticMapping`. Will be fixed when platform_mapping_v2
         #  migrates to thrift-python.
         return self.parser.get_static_mapping().get_static_mapping()
