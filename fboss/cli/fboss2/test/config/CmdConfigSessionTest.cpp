@@ -1455,11 +1455,11 @@ TEST_F(ConfigSessionTestFixture, bgpConfigEditPreservesOtherSections) {
   EXPECT_EQ(saved["peer_groups"][0]["name"].asString(), "RACK");
 
   // A BGP restart must be recorded so `config session commit` applies it.
-  // bgpd has no hitless reload, so the recorded level is AGENT_WARMBOOT (a
-  // plain service restart for BGP).
+  // bgpd has no hitless reload (and no warmboot), so the recorded level is
+  // SERVICE_RESTART (a plain service restart).
   EXPECT_EQ(
       session.getRequiredAction(cli::ServiceType::BGP),
-      cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ConfigActionLevel::SERVICE_RESTART);
 }
 
 // A staged BGP edit persists to disk and is seeded back by a fresh session via
