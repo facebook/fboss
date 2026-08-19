@@ -6286,7 +6286,6 @@ class ChildThriftPath<::facebook::fboss::cfg::FlowletSwitchingConfig, ::facebook
     STRUCT_CHILD_GETTERS(standbySwitchingMode, 20);
     STRUCT_CHILD_GETTERS(standbyInactivityIntervalUsecs, 21);
     STRUCT_CHILD_GETTERS(standbyFlowletTableSize, 22);
-    STRUCT_CHILD_GETTERS(sourcePortPrune, 23);
 };
 
 

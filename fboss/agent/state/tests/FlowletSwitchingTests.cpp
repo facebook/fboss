@@ -54,7 +54,6 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg1->getStandbySwitchingMode(), std::nullopt);
   EXPECT_EQ(flowletCfg1->getStandbyInactivityIntervalUsecs(), std::nullopt);
   EXPECT_EQ(flowletCfg1->getStandbyFlowletTableSize(), std::nullopt);
-  EXPECT_EQ(flowletCfg1->getSourcePortPrune(), std::nullopt);
 
   flowletCfg.inactivityIntervalUsecs() = 60;
   flowletCfg.flowletTableSize() = 1024;
@@ -75,7 +74,6 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.standbyInactivityIntervalUsecs() = 128;
   flowletCfg.standbyFlowletTableSize() = 512;
-  flowletCfg.sourcePortPrune() = true;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -113,7 +111,6 @@ TEST(FlowletSwitching, addUpdate) {
       cfg::SwitchingMode::FIXED_ASSIGNMENT);
   EXPECT_EQ(flowletCfg2->getStandbyInactivityIntervalUsecs(), 128);
   EXPECT_EQ(flowletCfg2->getStandbyFlowletTableSize(), 512);
-  EXPECT_EQ(flowletCfg2->getSourcePortPrune(), true);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
@@ -175,7 +172,6 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
   flowletCfg.standbyInactivityIntervalUsecs() = 256;
   flowletCfg.standbyFlowletTableSize() = 2048;
-  flowletCfg.sourcePortPrune() = true;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -223,7 +219,6 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg1->getStandbySwitchingMode(), std::nullopt);
   EXPECT_EQ(flowletCfg1->getStandbyInactivityIntervalUsecs(), std::nullopt);
   EXPECT_EQ(flowletCfg1->getStandbyFlowletTableSize(), std::nullopt);
-  EXPECT_EQ(flowletCfg1->getSourcePortPrune(), std::nullopt);
 
   // change config
   flowletCfg.inactivityIntervalUsecs() = 60;
@@ -244,7 +239,6 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
   flowletCfg.standbyInactivityIntervalUsecs() = 256;
   flowletCfg.standbyFlowletTableSize() = 2048;
-  flowletCfg.sourcePortPrune() = true;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -272,7 +266,6 @@ TEST(FlowletSwitching, applyConfig) {
       cfg::SwitchingMode::PER_PACKET_RANDOM);
   EXPECT_EQ(flowletCfg2->getStandbyInactivityIntervalUsecs(), 256);
   EXPECT_EQ(flowletCfg2->getStandbyFlowletTableSize(), 2048);
-  EXPECT_EQ(flowletCfg2->getSourcePortPrune(), true);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;

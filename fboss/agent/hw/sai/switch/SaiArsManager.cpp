@@ -89,15 +89,6 @@ void SaiArsManager::setArsObject(
       getAdapterHostKey(attributes), attributes);
 }
 
-std::optional<SaiArsTraits::Attributes::SourcePortPrune>
-SaiArsManager::getSourcePortPrune(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) const {
-  if (auto sourcePortPrune = flowletSwitchConfig->getSourcePortPrune()) {
-    return SaiArsTraits::Attributes::SourcePortPrune{*sourcePortPrune};
-  }
-  return std::nullopt;
-}
-
 void SaiArsManager::removeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   if (arsHandle_->ars) {
