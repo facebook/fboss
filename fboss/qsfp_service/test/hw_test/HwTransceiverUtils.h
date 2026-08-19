@@ -50,7 +50,16 @@ class HwTransceiverUtils {
       time_t timeReference,
       bool expectedReset);
 
+  // Active optical cable: reports ACTIVE_CABLES media type encoding like an
+  // AEC, but an optical transmitter. Its media interface union carries
+  // activeCuCode, not smfCode.
+  static bool isAoc(const TcvrState& tcvrState);
+
  private:
+  static void verifyActiveOpticalCableProfile(
+      TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces,
+      cfg::PortProfileID profile);
   static void verifyOpticsSettings(
       const TcvrState& tcvrState,
       const std::string& portName,
