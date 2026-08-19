@@ -770,8 +770,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   }
 
   // If we already store a handle for this this Acl Entry, fail to add new one.
-  auto aclEntryHandle =
-      getAclEntryHandle(aclTableHandle, addedAclEntry->getPriority());
+  auto aclEntryHandle = getAclEntryHandle(
+      aclTableHandle, addedAclEntry->getPriority(), addedAclEntry->getID());
   if (aclEntryHandle) {
     throw FbossError(
         "attempted to add a duplicate aclEntry: ", addedAclEntry->getID());
@@ -1715,7 +1715,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   entryHandle->egressMirror = egressMirror;
   entryHandle->userDefinedTrap = userDefinedTrap;
   auto [it, inserted] = aclTableHandle->aclTableMembers.emplace(
-      addedAclEntry->getPriority(), std::move(entryHandle));
+      std::make_pair(addedAclEntry->getPriority(), addedAclEntry->getID()),
+      std::move(entryHandle));
   CHECK(inserted);
 
   XLOG(DBG2) << "added acl entry " << addedAclEntry->getID() << " priority "
@@ -1741,8 +1742,8 @@ void SaiAclTableManager::removeAclEntry(
   }
 
   // If we attempt to remove entry that does not exist, fail.
-  auto itr =
-      aclTableHandle->aclTableMembers.find(removedAclEntry->getPriority());
+  auto itr = aclTableHandle->aclTableMembers.find(
+      {removedAclEntry->getPriority(), removedAclEntry->getID()});
   if (itr == aclTableHandle->aclTableMembers.end()) {
     // an acl entry that uses cpu port as qualifier may not have been created
     // even if it exists in switch state.
@@ -1798,26 +1799,16 @@ void SaiAclTableManager::changedAclEntry(
 
 const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
     const SaiAclTableHandle* aclTableHandle,
-    int priority) const {
-  auto itr = aclTableHandle->aclTableMembers.find(priority);
+    int priority,
+    const std::string& aclEntryName) const {
+  auto itr = aclTableHandle->aclTableMembers.find({priority, aclEntryName});
   if (itr == aclTableHandle->aclTableMembers.end()) {
     return nullptr;
   }
   if (!itr->second || !itr->second->aclEntry) {
-    XLOG(FATAL) << "invalid null Acl entry for: " << priority;
+    XLOG(FATAL) << "invalid null Acl entry for: " << aclEntryName;
   }
   return itr->second.get();
-}
-
-const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
-    const SaiAclTableHandle* aclTableHandle,
-    int priority,
-    const std::string& aclEntryName) const {
-  auto* handle = getAclEntryHandle(aclTableHandle, priority);
-  if (!handle || handle->aclEntryName != aclEntryName) {
-    return nullptr;
-  }
-  return handle;
 }
 
 void SaiAclTableManager::programMirror(
