@@ -295,6 +295,7 @@ void fillHwPortStats(
     const cfg::PortType& portType,
     bool updateFecStats,
     [[maybe_unused]] bool updateLlrStats,
+    [[maybe_unused]] bool updateLlrExtensionStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -536,6 +537,48 @@ void fillHwPortStats(
       case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD:
         if (updateLlrStats) {
           hwPortStats.llrRxExpectedSeqBad_() = value;
+        }
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+      // Broadcom LLR stat extensions, gated on their own read (see
+      // SaiPortTraits::llrExtensionStats) so a failure here does not suppress
+      // the standard LLR counters above, or the reverse. There is no case for
+      // SAI_PORT_STAT_LLR_REPLAY because it is not requested: it resolves to
+      // the same SDK counter as SAI_PORT_STAT_LLR_TX_REPLAY.
+      case SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_REPLAY_EVENT:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxNackReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_TIMER_REPLAY:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxTimerReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TOTAL_ERROR:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxError_() = value;
         }
         break;
 #endif
@@ -2807,6 +2850,7 @@ void SaiPortManager::updateStats(
     }
   }
   bool updateLlrStats = false;
+  bool updateLlrExtensionStats = false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // LLR counters are collected in their own isolated read (not bundled with the
   // basic port counters) so that on a drop whose SDK does not yet implement the
@@ -2819,6 +2863,16 @@ void SaiPortManager::updateStats(
           HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
     updateLlrStats = collectStats(
         SaiPortTraits::llrStats(), SAI_STATS_MODE_READ, "LLR port counters");
+    // The Broadcom extension counters are a different SAI enum family and get
+    // their own read for the same reason: an SDK can implement one family and
+    // not the other, and get_port_stats is all-or-nothing.
+    const auto& llrExtensionStats = SaiPortTraits::llrExtensionStats();
+    if (!llrExtensionStats.empty()) {
+      updateLlrExtensionStats = collectStats(
+          llrExtensionStats,
+          SAI_STATS_MODE_READ,
+          "LLR extension port counters");
+    }
   }
 #endif
   const auto& counters = handle->port->getStats();
@@ -2830,6 +2884,7 @@ void SaiPortManager::updateStats(
       portType,
       updateFecStats,
       updateLlrStats,
+      updateLlrExtensionStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {

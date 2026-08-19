@@ -872,6 +872,10 @@ TEST_F(PortManagerTest, updateLlrStatsWhenEnabled) {
   EXPECT_TRUE(stats.llrTxReplay_().has_value());
   EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
   EXPECT_EQ(*stats.llrTxOk_(), 0);
+  // The Broadcom LLR stat extensions are not standard SAI enums, so
+  // SaiPortTraits::llrExtensionStats() is empty on fake and the second read is
+  // skipped entirely. Coverage for those fields is AgentHwLlrTest.
+  EXPECT_FALSE(stats.llrTxIneligiblePkts_().has_value());
 }
 
 TEST_F(PortManagerTest, noLlrStatsWhenDisabled) {

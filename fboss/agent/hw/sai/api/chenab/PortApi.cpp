@@ -470,4 +470,9 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
   return std::nullopt;
 }
 
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 } // namespace facebook::fboss

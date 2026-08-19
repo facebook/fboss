@@ -871,6 +871,10 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
   static const std::vector<sai_stat_id_t>& linkDownDebounceRetriggerStats();
   static const std::vector<sai_stat_id_t>& linkUpDebounceRetriggerStats();
+  // Broadcom LLR stat extensions. Unlike llrStats() above these are not
+  // standard SAI 1.18 enums, so the list is vendor-defined and empty everywhere
+  // except a Broadcom SDK new enough to declare them.
+  static const std::vector<sai_stat_id_t>& llrExtensionStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
