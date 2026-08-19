@@ -1705,6 +1705,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
   entryHandle->dstPortRange = dstPortRangeObj;
   entryHandle->aclEntry = saiAclEntry;
+  entryHandle->aclEntryName = addedAclEntry->getID();
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->tunnelEncapNextHop = tunnelEncapNextHop;
   entryHandle->matchNhgHandle = matchNhgHandle;
@@ -1806,6 +1807,17 @@ const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
     XLOG(FATAL) << "invalid null Acl entry for: " << priority;
   }
   return itr->second.get();
+}
+
+const SaiAclEntryHandle* FOLLY_NULLABLE SaiAclTableManager::getAclEntryHandle(
+    const SaiAclTableHandle* aclTableHandle,
+    int priority,
+    const std::string& aclEntryName) const {
+  auto* handle = getAclEntryHandle(aclTableHandle, priority);
+  if (!handle || handle->aclEntryName != aclEntryName) {
+    return nullptr;
+  }
+  return handle;
 }
 
 void SaiAclTableManager::programMirror(

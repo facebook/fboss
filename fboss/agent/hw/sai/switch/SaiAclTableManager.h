@@ -87,6 +87,7 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle;
   std::shared_ptr<SaiNextHopGroupHandle> redirectNhgHandle;
   std::shared_ptr<SaiAclEntry> aclEntry;
+  std::string aclEntryName;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
   std::optional<std::string> egressMirror;
@@ -212,6 +213,11 @@ class SaiAclTableManager {
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
       int priority) const;
+
+  const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
+      const SaiAclTableHandle* aclTableHandle,
+      int priority,
+      const std::string& aclEntryName) const;
 
   std::pair<
       std::shared_ptr<SaiAclCounter>,
