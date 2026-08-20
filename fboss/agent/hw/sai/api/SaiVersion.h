@@ -84,9 +84,13 @@
 #define BRCM_SAI_SDK_GTE_16_0
 #endif
 
-#if defined(BRCM_SAI_SDK_GTE_16_0) || defined(SAI_VERSION_15_0_EA_ODP) || \
-    defined(SAI_VERSION_15_0_EA_DNX_ODP) ||                               \
-    defined(SAI_VERSION_15_4_EA_ODP) || defined(SAI_VERSION_15_4_0_0_ODP)
+#if defined(BRCM_SAI_SDK_GTE_16_0) || defined(SAI_VERSION_15_4_EA_ODP) || \
+    defined(SAI_VERSION_15_4_0_0_ODP)
+#define BRCM_SAI_SDK_GTE_15_4
+#endif
+
+#if defined(BRCM_SAI_SDK_GTE_15_4) || defined(SAI_VERSION_15_0_EA_ODP) || \
+    defined(SAI_VERSION_15_0_EA_DNX_ODP)
 #define BRCM_SAI_SDK_GTE_15_0
 #endif
 

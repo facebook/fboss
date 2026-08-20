@@ -32,7 +32,7 @@
         },
         "variants": {
             "type": "object",
-            "description": "Named configuration variants for this platform. Each variant produces a separate output config file.",
+            "description": "Named configuration variants for this platform. Each variant produces a separate output config file. An empty variant name produces filename <platform>.yml, with no variant suffix.",
             "minProperties": 1,
             "additionalProperties": {
                 "$ref": "#/$defs/variant"
@@ -90,9 +90,10 @@
                             "type": "integer",
                             "description": "Optional. Value emitted as PC_PORT.ENABLE for front-panel ports. Defaults to 0."
                         },
-                        "link_training": {
-                            "type": "integer",
-                            "description": "Optional. When set, emits LINK_TRAINING: <value> on front-panel PC_PORT entries."
+                        "pc_port_overrides": {
+                            "type": "object",
+                            "description": "Optional pass-through front-panel PC_PORT settings, emitted verbatim as '<KEY>: <value>' lines after the standard fields (e.g. LINK_TRAINING).",
+                            "additionalProperties": true
                         }
                     }
                 },
@@ -220,6 +221,10 @@
                         "generate_dlb_ecmp_config": {
                             "type": "boolean",
                             "description": "When true, emits the DLB_ECMP_CONFIG output table from the ASIC dlb_ecmp_config_defaults block."
+                        },
+                        "generate_phb_control": {
+                            "type": "boolean",
+                            "description": "When true, emits the PHB_CONTROL output table from the ASIC phb_control_defaults block."
                         }
                     }
                 },

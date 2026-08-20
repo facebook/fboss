@@ -85,6 +85,36 @@ Boot history log format:
 [ 2025 November 04 03:52:55 ]: Start of a COLD_BOOT, SDK version: sdk, Agent version: buildPackageVersion
 ```
 
+### Log Rotation
+
+FBOSS services write to `/var/facebook/logs/fboss/` and the binaries do not rotate their own logs. The distro image ships a logrotate fragment that does it for them:
+
+```bash
+# Rotation policy
+cat /etc/logrotate.d/fboss
+
+# The distro logrotate timer applies it, raised to every 15 minutes
+systemctl cat logrotate.timer
+systemctl list-timers logrotate.timer
+
+# Rotated logs are compressed into the archive directory
+ls -lh /var/facebook/logs/fboss/archive/
+```
+
+Each log is capped at 100 MB live with 20 compressed generations retained. Rotation is size-driven, and because logrotate rotates a file at most once per run, the 15-minute interval is what bounds how far a busy log can overshoot its cap. At the stock daily interval a busy log would reach many GB between runs.
+
+To see what rotation would do without changing anything, or to force a rotation immediately:
+
+```bash
+# Dry run, FBOSS logs only
+logrotate -d /etc/logrotate.d/fboss
+
+# Force a rotation now (all configured logs)
+systemctl start logrotate.service
+```
+
+If you run FBOSS outside the distro image, or you modify `/etc/logrotate.d/fboss`, keep the `copytruncate` option. FBOSS services receive their log file descriptor from systemd via `StandardOutput=append:`, and the snapshot logs are opened directly by the process; neither can reopen a log file on request. Rename-based rotation therefore leaves the service writing into the renamed file while the live path disappears, and no disk space is reclaimed - the usual symptom being a filesystem that fills up even though rotation appears to be working.
+
 ### Service Dependencies
 
 FBOSS services have dependencies. If a service fails, check its dependencies:

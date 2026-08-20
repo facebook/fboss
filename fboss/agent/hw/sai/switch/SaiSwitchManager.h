@@ -149,6 +149,7 @@ class SaiSwitchManager {
       std::optional<cfg::HashingAlgorithm> algo);
   void addOrUpdateEcmpLoadBalancer(const std::shared_ptr<LoadBalancer>& newLb);
   void updateSramLowBufferLimitHitCounter();
+  void updateSdkDumpSuppressedCounter();
 
   void programLagLoadBalancerParams(
       std::optional<sai_uint32_t> seed,

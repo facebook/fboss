@@ -22,10 +22,28 @@ const MplsLabel MAX_MPLS_LABEL = 0xfffff;
 typedef list<i32> MplsLabelStack
 
 enum MplsActionCode {
+  # Forward via an MPLS next hop that imposes MplsAction.pushLabels.
+  # On an IP route, this turns the IP packet into an MPLS packet. On a label
+  # route, FBOSS first pops the matched top label, then imposes pushLabels.
   PUSH = 0,
+
+  # Replace the matched top label with MplsAction.swapLabel and forward via the
+  # resolved next hop.
   SWAP = 1,
-  PHP = 2, # Pen-ultimate hop popping => POP and FORWARD
+
+  # Pop one matched top label and forward via the resolved next hop with no
+  # label imposition. If the ingress packet has more labels, the remaining
+  # label stack is preserved.
+  #
+  # Note: Historically named PHP. In FBOSS this action is generic
+  # pop-and-forward; it is not limited to classic penultimate-hop popping to IP.
+  PHP = 2,
+
+  # Pop one matched top label and continue forwarding by looking up the exposed
+  # payload/header, which is expected to be an IP header in current FBOSS agent
+  # usage, instead of forwarding directly via the MPLS route nexthop.
   POP_AND_LOOKUP = 3,
+
   NOOP = 4,
 }
 

@@ -1185,7 +1185,10 @@ bool TransceiverManager::updateState(
 
 void TransceiverManager::handlePendingUpdates() {
   // Try to run one state machine updates on each transceiver.
-  XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
+  // Invoked once per enqueued state update, so rate limit to keep this from
+  // dominating the log on large transceiver-count platforms.
+  XLOG_EVERY_MS(DBG2, 60000)
+      << "Trying to update all TransceiverStateMachines";
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;

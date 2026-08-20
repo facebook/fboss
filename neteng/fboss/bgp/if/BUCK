@@ -43,13 +43,11 @@ thrift_library(
     languages = [
         "cpp2",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "go",
         "python",
         "py-deprecated",
     ],
     py3_namespace = "nettools.bgplib",
-    py_asyncio_base_module = "nettools.bgplib_asyncio",
     py_base_module = "nettools.bgplib",
     thrift_cpp2_options = "json",
     thrift_srcs = {"BmpStructs.thrift": None},

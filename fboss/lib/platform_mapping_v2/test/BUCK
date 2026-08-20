@@ -25,6 +25,7 @@ python_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
 )
 

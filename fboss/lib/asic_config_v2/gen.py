@@ -1,5 +1,6 @@
 # pyre-strict
 
+import argparse
 import json
 import os
 import sys
@@ -21,15 +22,24 @@ _PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformType, Any] = {
     PlatformType.PLATFORM_WEDGE800BACT: gen_wedge800bact_asic_config,
 }
 
-_FBOSS_DIR: str = os.getcwd() + "/fboss"
-OUTPUT_DIR: str = f"{_FBOSS_DIR}/lib/asic_config_v2/generated_asic_configs"
 
+def generate_all_asic_configs(fboss_root: str) -> None:
+    fboss_root = os.path.abspath(os.path.expanduser(fboss_root))
+    output_dir = os.path.join(
+        fboss_root, "lib", "asic_config_v2", "generated_asic_configs"
+    )
+    platform_mapping_input_dir = os.path.join(
+        fboss_root, "lib", "platform_mapping_v2", "platforms"
+    )
 
-def generate_all_asic_configs() -> None:
     # Clear out all configs in the output directory
-    for filename in os.listdir(OUTPUT_DIR):
-        if filename.endswith(".json") or filename.endswith(".yml"):
-            os.remove(os.path.join(OUTPUT_DIR, filename))
+    os.makedirs(output_dir, exist_ok=True)
+    for filename in os.listdir(output_dir):
+        output_path = os.path.join(output_dir, filename)
+        if (filename.endswith(".json") or filename.endswith(".yml")) and os.path.isfile(
+            output_path
+        ):
+            os.remove(output_path)
 
     # Generate new configs
     for platform, asic_config_map in all_params.items():
@@ -45,14 +55,14 @@ def generate_all_asic_configs() -> None:
                 if "preamble" in config_data
                 else ""
             )
-            asic_config = asic_config_func(**deepcopy_config_data)
+            asic_config = asic_config_func(
+                platform_mapping_input_dir=platform_mapping_input_dir,
+                **deepcopy_config_data,
+            )
             is_yaml_config: bool = (
                 asic_config.asic_config_params.configType
                 == asic_config_thrift.AsicConfigType.YAML_CONFIG
             )
-
-            output_dir = os.path.expanduser(OUTPUT_DIR)
-            os.makedirs(output_dir, exist_ok=True)
 
             print(
                 f"Writing asic config for {platform_str}...",
@@ -79,5 +89,17 @@ def generate_all_asic_configs() -> None:
                     file.write(prettified_json)
 
 
+def main() -> None:
+    parser = argparse.ArgumentParser(description="ASIC config V2 generation.")
+    parser.add_argument(
+        "--fboss-root",
+        type=str,
+        required=True,
+        help="Path to the fboss/ source directory itself.",
+    )
+    args = parser.parse_args()
+    generate_all_asic_configs(args.fboss_root)
+
+
 if __name__ == "__main__":
-    generate_all_asic_configs()
+    main()

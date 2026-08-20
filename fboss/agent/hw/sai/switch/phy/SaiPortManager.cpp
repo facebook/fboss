@@ -360,6 +360,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrProfile
 #endif
       std::nullopt, // PfcPauseDurationOverride
+      std::nullopt, // LinkScanMode
   };
 }
 

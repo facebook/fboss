@@ -190,6 +190,9 @@ struct PortFields {
   71: optional bool txPrecoding;
   // Whether platform mapping RX precoding settings are applied to this port
   72: optional bool rxPrecoding;
+  // Whether the SDK's software linkscan thread or the ASIC notices link
+  // status changes on this port. Unset = leave SDK default untouched.
+  73: optional switch_config.LinkScanMode linkScanMode;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -549,8 +552,8 @@ struct SwitchSettingsFields {
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
   61: optional switch_config.PacketForwardingMode packetForwardingMode;
-  // FLAGS_ecmp_width snapshot. A mismatch on warmboot triggers assert
-  // and coldboot.
+  // ECMP width for this switch, sourced from cfg.SwitchSettings.ecmpWidth
+  // (FLAGS_ecmp_width fallback during migration).
   62: optional i32 ecmpWidth;
 }
 

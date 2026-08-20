@@ -96,6 +96,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
   }
 
@@ -443,6 +444,25 @@ TEST_F(PortStoreTest, portSetResetQueueCreditBalance) {
   apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
   EXPECT_EQ(apiResetQueueCreditBalance, false);
+}
+
+TEST_F(PortStoreTest, portSetLinkScanMode) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Check default value
+  auto apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 0);
+
+  // Set link scan mode to hardware (SAI_PORT_LINKSCAN_MODE_HW == 2)
+  SaiPortTraits::Attributes::LinkScanMode linkScanMode(2);
+  saiApiTable->portApi().setAttribute(portId, linkScanMode);
+
+  // Verify the attribute was set correctly
+  apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 2);
 }
 
 TEST_F(PortStoreTest, portSetPfcMonitorDirection) {

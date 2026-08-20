@@ -1103,6 +1103,7 @@ RsFecInfo FsdbStatsDataFactory::createRsFecInfo(int portIndex) {
   rsFec.correctedCodewords() = 10418410 + (portIndex % 100000);
   rsFec.uncorrectedCodewords() = 0;
   rsFec.correctedBits() = 9886733 + (portIndex % 100000);
+  rsFec.correctedSymbols() = 1977346 + (portIndex % 100000);
   rsFec.preFECBer() = 8.9e-11;
   rsFec.fecTail() = 0;
   rsFec.maxSupportedFecTail() = 15;
@@ -1665,12 +1666,13 @@ TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
   // Set best_next_hop (use first path's next_hop)
   if (!pathsMap["best"].empty()) {
     *entry.best_next_hop() = *pathsMap["best"][0].next_hop();
+    // best_path is a copy of the selected path (createBgpPath already flags
+    // path 0 with is_best_path), so a bgp/ribMap/<prefix>/best_path subscriber
+    // resolves without the full `paths` map.
+    entry.best_path() = pathsMap["best"][0];
   }
 
   entry.paths() = std::move(pathsMap);
-
-  // Create prefix key string
-  std::string prefixKey = createPrefixKey(prefix);
 
   return entry;
 }
@@ -1685,8 +1687,14 @@ BgpRibMapDataGenerator::createPrefix(int index, bool isV6, int keySet) {
     // Use different base addresses for different key sets
     // keySet 0: 2401:db00::/32, keySet 1: 2401:dc00::/32
     int baseOctet = (keySet == 0) ? 0xdb : 0xdc;
-    int hex3 = (index / 512) % 256;
-    int hex4 = index % 256;
+    // Split the index across the two hextets free in a /64 under
+    // 2401:xx00::/32, using all 16 bits of each. The previous encoding varied
+    // only 8 bits per hextet ((index / 512) % 256, index % 256), so index N and
+    // N + 256 produced the same /64 -- 120K indices collapsed to 60096 distinct
+    // prefixes, silently shrinking the generated RIB.
+    const auto idx = static_cast<uint32_t>(index);
+    unsigned hex3 = (idx >> 16) & 0xffff;
+    unsigned hex4 = idx & 0xffff;
     std::string prefixStr =
         fmt::format("2401:{:x}00:{:x}:{:x}::/64", baseOctet, hex3, hex4);
     auto network = folly::IPAddress::createNetwork(prefixStr);

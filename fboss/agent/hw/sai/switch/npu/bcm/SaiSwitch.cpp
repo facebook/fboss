@@ -979,10 +979,12 @@ void SaiSwitch::switchEventCallback(
     }
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT_MASKED:
       getSwitchStats()->interruptMaskedEvent();
-      // For debug purposes only, to avoid flood of msgs in case of a
-      // real issue in fleet.
-      XLOG(DBG4) << "Interrupt masked notification received for interrupt ID "
-                 << static_cast<int>(eventInfo->index);
+      // Rate limited since a masked interrupt can fire back to back at a high
+      // rate. The interrupt_masked_events counter carries the exact rate, this
+      // is only here to name the interrupt id that is firing.
+      XLOG_EVERY_MS(WARN, 60000)
+          << "Interrupt masked notification received for interrupt ID "
+          << static_cast<int>(eventInfo->index);
       break;
     case SAI_SWITCH_EVENT_TYPE_FIRMWARE_CRASHED: {
       XLOG(ERR) << "Firmware Crash callback received: " << " error type: "

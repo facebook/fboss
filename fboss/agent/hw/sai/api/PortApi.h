@@ -595,6 +595,13 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkScanMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkScanMode = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeLinkScanMode,
+        SaiIntDefault<sai_int32_t>>;
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
@@ -787,7 +794,8 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrModeRemote>,
       std::optional<Attributes::LlrProfile>,
 #endif
-      std::optional<Attributes::PfcPauseDurationOverride>>;
+      std::optional<Attributes::PfcPauseDurationOverride>,
+      std::optional<Attributes::LinkScanMode>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -869,6 +877,12 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
   static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
   static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
+  static const std::vector<sai_stat_id_t>& linkDownDebounceRetriggerStats();
+  static const std::vector<sai_stat_id_t>& linkUpDebounceRetriggerStats();
+  // Broadcom LLR stat extensions. Unlike llrStats() above these are not
+  // standard SAI 1.18 enums, so the list is vendor-defined and empty everywhere
+  // except a Broadcom SDK new enough to declare them.
+  static const std::vector<sai_stat_id_t>& llrExtensionStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
@@ -967,6 +981,7 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
+SAI_ATTRIBUTE_NAME(Port, LinkScanMode);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);

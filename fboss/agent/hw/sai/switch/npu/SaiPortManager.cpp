@@ -491,6 +491,9 @@ void SaiPortManager::changePortImpl(
   if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
       oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
     programLlr(newPort, existingPort);
+  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
+    // The LLR TX trigger only takes effect once the link is up.
+    reissueLlrModeRemote(existingPort);
   }
   changeClm(oldPort, newPort);
 }
@@ -1000,6 +1003,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1112,6 +1116,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
+      std::nullopt, // LinkScanMode
   };
 }
 
@@ -1210,6 +1215,32 @@ void SaiPortManager::programLlr(
 #else
   (void)swPort;
   (void)portHandle;
+#endif
+}
+
+// Re-assert LLR mode remote on a port that has just come up.
+//
+// SAI_PORT_ATTR_LLR_MODE_REMOTE is not a persistent enable: the SDK maps it
+// onto the MAC's one-shot, self-clearing SEND_TX_INIT trigger. programLlr()
+// asserts it at port creation, before link up, where bring-up consumes it and
+// no LLR_INIT is sent -- silently, as the field cannot be read back. Verified
+// on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
+// brings a link-up port to 1.
+//
+// The false write is required: setOptionalAttribute elides a set whose value
+// already matches, and mode remote is already true in the store. Only remote
+// is cycled -- local is a persistent enable, and clearing it would stop this
+// port acknowledging the partner's frames.
+void SaiPortManager::reissueLlrModeRemote(
+    [[maybe_unused]] SaiPortHandle* portHandle) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!portHandle->llrProfile) {
+    return;
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
 

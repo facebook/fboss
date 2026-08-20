@@ -348,6 +348,12 @@ void accumulateFb303GlobalStats(
     hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
     accumulated.sram_low_buffer_limit_hit_count() = hitCount;
   }
+  if (toAdd.sdk_dump_suppressed_count().has_value()) {
+    uint64_t suppressedCount =
+        accumulated.sdk_dump_suppressed_count().value_or(0);
+    suppressedCount += toAdd.sdk_dump_suppressed_count().value();
+    accumulated.sdk_dump_suppressed_count() = suppressedCount;
+  }
 }
 
 void accumulateGlobalCpuStats(
@@ -506,9 +512,9 @@ SwSwitch::SwSwitch(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       stateUpdateValidator_(new StateUpdateValidator(
-          config->getRunMode(),
+          AgentConfig::getRunMode(),
           getMonolithicHwSwitchHandlerIf(
-              config->getRunMode(),
+              AgentConfig::getRunMode(),
               multiHwSwitchHandler_.get()),
           hwAsicTable_.get(),
           scopeResolver_.get())),
@@ -1295,8 +1301,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
 }
 
 bool SwSwitch::isRunModeMultiSwitch() const {
-  return FLAGS_multi_switch ||
-      (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  return AgentConfig::getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
 
 void SwSwitch::getAllHwSysPortStats(
@@ -4220,6 +4225,15 @@ multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsExpensive(
 std::map<uint16_t, multiswitch::HwSwitchStats>
 SwSwitch::getHwSwitchStatsExpensive() const {
   return *hwSwitchStats_.rlock();
+}
+
+std::map<std::string, HwSwitchCounter> SwSwitch::getRouteCounters() const {
+  HwSwitchCounterStats counterStats;
+  auto lockedStats = hwSwitchStats_.rlock();
+  for (const auto& [_, hwSwitchStats] : *lockedStats) {
+    accumulateCounterStats(counterStats, *hwSwitchStats.counterStats());
+  }
+  return std::move(*counterStats.routeCounters());
 }
 
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {

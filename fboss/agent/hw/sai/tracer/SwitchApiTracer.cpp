@@ -159,6 +159,8 @@ void handleExtensionAttributes() {
 #endif
   SAI_EXT_ATTR_MAP(Switch, SflowAggrNofSamples);
   SAI_EXT_ATTR_MAP(Switch, SdkRegDumpLogPath);
+  SAI_EXT_ATTR_MAP(Switch, SdkDumpRateLimitWindow);
+  SAI_EXT_ATTR_MAP(Switch, SdkDumpSuppressedCount);
   SAI_EXT_ATTR_MAP(Switch, FirmwareObjectList);
   SAI_EXT_ATTR_MAP(Switch, TcRateLimitList);
   SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);

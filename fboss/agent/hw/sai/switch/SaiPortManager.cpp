@@ -145,6 +145,76 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::optional<LlrTxStatus> saiToLlrTxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_TX_STATUS_OFF:
+      return LlrTxStatus::OFF;
+    case SAI_PORT_LLR_TX_STATUS_INIT:
+      return LlrTxStatus::INIT;
+    case SAI_PORT_LLR_TX_STATUS_ADVANCE:
+      return LlrTxStatus::ADVANCE;
+    case SAI_PORT_LLR_TX_STATUS_REPLAY:
+      return LlrTxStatus::REPLAY;
+    case SAI_PORT_LLR_TX_STATUS_FLUSH:
+      return LlrTxStatus::FLUSH;
+  }
+  return std::nullopt;
+}
+
+std::optional<LlrRxStatus> saiToLlrRxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_RX_STATUS_OFF:
+      return LlrRxStatus::OFF;
+    case SAI_PORT_LLR_RX_STATUS_SEND_ACKS:
+      return LlrRxStatus::SEND_ACKS;
+    case SAI_PORT_LLR_RX_STATUS_SEND_NACK:
+      return LlrRxStatus::SEND_NACK;
+    case SAI_PORT_LLR_RX_STATUS_NACK_SENT:
+      return LlrRxStatus::NACK_SENT;
+  }
+  return std::nullopt;
+}
+
+/*
+ * Read the LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
+ * 5.1.7) for a port with an LLR profile bound. Valid regardless of link state:
+ * the SDK reads the MAC LLR status register with no link-state precondition,
+ * so a down port simply reports inactive (OFF).
+ *
+ * Read through the throwing getAttribute overload, not the std::optional one:
+ * these attrs carry a SaiIntDefault getter, and the optional overload
+ * substitutes that default (0 == LLR_*_STATUS_OFF) without surfacing an error,
+ * so an unserved attribute would read back as a healthy-looking "LLR off".
+ * Catch locally like every other per-port read here, so one failure does not
+ * drop the port's stats round.
+ */
+void readLlrStatus(
+    PortID portId,
+    const std::string& portName,
+    PortSaiId portSaiId,
+    HwPortStats& stats) {
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  try {
+    auto txStatus = saiToLlrTxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrTxStatus{}));
+    auto rxStatus = saiToLlrRxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrRxStatus{}));
+    if (!txStatus.has_value() || !rxStatus.has_value()) {
+      XLOG_EVERY_MS(ERR, 10000) << "Unrecognized LLR status value for port "
+                                << portName << " (portId: " << portId << ")";
+      return;
+    }
+    stats.llrTxStatus_() = *txStatus;
+    stats.llrRxStatus_() = *rxStatus;
+  } catch (const SaiApiError& e) {
+    XLOG_EVERY_MS(ERR, 10000)
+        << "Failed to get LLR status for port " << portName
+        << " (portId: " << portId << "): " << e.what();
+  }
+}
+#endif
+
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
 // TODO(nivinl): Retire the extension attribute based support once the
 // standard SAI stats IDs are supported in XGS/DNX.
@@ -225,6 +295,7 @@ void fillHwPortStats(
     const cfg::PortType& portType,
     bool updateFecStats,
     [[maybe_unused]] bool updateLlrStats,
+    [[maybe_unused]] bool updateLlrExtensionStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -466,6 +537,48 @@ void fillHwPortStats(
       case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD:
         if (updateLlrStats) {
           hwPortStats.llrRxExpectedSeqBad_() = value;
+        }
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+      // Broadcom LLR stat extensions, gated on their own read (see
+      // SaiPortTraits::llrExtensionStats) so a failure here does not suppress
+      // the standard LLR counters above, or the reverse. There is no case for
+      // SAI_PORT_STAT_LLR_REPLAY because it is not requested: it resolves to
+      // the same SDK counter as SAI_PORT_STAT_LLR_TX_REPLAY.
+      case SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_REPLAY_EVENT:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxNackReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_TIMER_REPLAY:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxTimerReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TOTAL_ERROR:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxError_() = value;
         }
         break;
 #endif
@@ -2737,6 +2850,7 @@ void SaiPortManager::updateStats(
     }
   }
   bool updateLlrStats = false;
+  bool updateLlrExtensionStats = false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // LLR counters are collected in their own isolated read (not bundled with the
   // basic port counters) so that on a drop whose SDK does not yet implement the
@@ -2749,6 +2863,16 @@ void SaiPortManager::updateStats(
           HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
     updateLlrStats = collectStats(
         SaiPortTraits::llrStats(), SAI_STATS_MODE_READ, "LLR port counters");
+    // The Broadcom extension counters are a different SAI enum family and get
+    // their own read for the same reason: an SDK can implement one family and
+    // not the other, and get_port_stats is all-or-nothing.
+    const auto& llrExtensionStats = SaiPortTraits::llrExtensionStats();
+    if (!llrExtensionStats.empty()) {
+      updateLlrExtensionStats = collectStats(
+          llrExtensionStats,
+          SAI_STATS_MODE_READ,
+          "LLR extension port counters");
+    }
   }
 #endif
   const auto& counters = handle->port->getStats();
@@ -2760,6 +2884,7 @@ void SaiPortManager::updateStats(
       portType,
       updateFecStats,
       updateLlrStats,
+      updateLlrExtensionStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -2808,27 +2933,63 @@ void SaiPortManager::updateStats(
       stat =
           retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
     };
+    // 26.2.4210 replaced the retrigger attributes with port stats served by
+    // get_port_stats
+    auto readRetriggerCount =
+        [&](const std::vector<sai_stat_id_t>& statIds,
+            auto&& readAttr,
+            const char* statsGroup) -> std::optional<int64_t> {
+      if (statIds.empty()) {
+        return static_cast<int64_t>(readAttr());
+      }
+      try {
+        auto values = portApi.getStats<SaiPortTraits>(
+            adapterKey, statIds, SAI_STATS_MODE_READ);
+        if (values.empty()) {
+          return std::nullopt;
+        }
+        return static_cast<int64_t>(values.front());
+      } catch (const SaiApiError& e) {
+        XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
+                  << " (portId: " << portId << "): " << e.what();
+        return std::nullopt;
+      }
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
-    if (downPeriod.has_value() && downPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkDownDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
-    }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
+    if (downPeriod.has_value() && downPeriod->value() > 0) {
+      auto downCount = readRetriggerCount(
+          SaiPortTraits::linkDownDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+          },
+          "link down debounce retrigger count");
+      if (downCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkDownDebounceRetriggerCount_(), *downCount);
+      }
+    }
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkUpDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
+      auto upCount = readRetriggerCount(
+          SaiPortTraits::linkUpDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+          },
+          "link up debounce retrigger count");
+      if (upCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkUpDebounceRetriggerCount_(), *upCount);
+      }
     }
   }
 #endif
@@ -2918,6 +3079,19 @@ void SaiPortManager::updateStats(
       curPortStats.dataCellsFilterOn() = false;
     }
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // Unlike the LLR counters, the status is a snapshot of a state machine, so a
+  // stale value is worse than none: clear it before every round and let the
+  // read below set it, leaving the fields unset when the port has no LLR
+  // profile bound or the read fails.
+  curPortStats.llrTxStatus_().reset();
+  curPortStats.llrRxStatus_().reset();
+  if (handle->llrProfile &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+    readLlrStatus(portId, portName, handle->port->adapterKey(), curPortStats);
+  }
+#endif
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
   if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||

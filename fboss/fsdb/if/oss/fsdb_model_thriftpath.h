@@ -1657,6 +1657,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SwitchSettings, ::facebook::fboss:
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortOffset, 34);
     STRUCT_CHILD_GETTERS(measureCableLengths, 35);
     STRUCT_CHILD_GETTERS(packetForwardingMode, 36);
+    STRUCT_CHILD_GETTERS(ecmpWidth, 37);
 };
 
 
@@ -4271,6 +4272,7 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(llrConfig, 70);
     STRUCT_CHILD_GETTERS(txPrecoding, 71);
     STRUCT_CHILD_GETTERS(rxPrecoding, 72);
+    STRUCT_CHILD_GETTERS(linkScanMode, 73);
 };
 
 
@@ -4579,6 +4581,7 @@ class ChildThriftPath<::facebook::fboss::NextHopThrift, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(topologyInfo, 16);
     STRUCT_CHILD_GETTERS(cost, 17);
     STRUCT_CHILD_GETTERS(role, 18);
+    STRUCT_CHILD_GETTERS(backupNexthops, 19);
 };
 
 
@@ -5067,6 +5070,7 @@ class ChildThriftPath<::facebook::fboss::cfg::Port, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(llrConfigName, 42);
     STRUCT_CHILD_GETTERS(txPrecoding, 43);
     STRUCT_CHILD_GETTERS(rxPrecoding, 44);
+    STRUCT_CHILD_GETTERS(linkScanMode, 45);
 };
 
 
@@ -6284,7 +6288,6 @@ class ChildThriftPath<::facebook::fboss::cfg::FlowletSwitchingConfig, ::facebook
     STRUCT_CHILD_GETTERS(standbySwitchingMode, 20);
     STRUCT_CHILD_GETTERS(standbyInactivityIntervalUsecs, 21);
     STRUCT_CHILD_GETTERS(standbyFlowletTableSize, 22);
-    STRUCT_CHILD_GETTERS(sourcePortPrune, 23);
 };
 
 
@@ -11525,6 +11528,13 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(fecCorrectedSymbols_, 102);
     STRUCT_CHILD_GETTERS(llrTxStatus_, 103);
     STRUCT_CHILD_GETTERS(llrRxStatus_, 104);
+    STRUCT_CHILD_GETTERS(llrTxEligiblePkts_, 105);
+    STRUCT_CHILD_GETTERS(llrTxIneligiblePkts_, 106);
+    STRUCT_CHILD_GETTERS(llrRxEligiblePkts_, 107);
+    STRUCT_CHILD_GETTERS(llrRxIneligiblePkts_, 108);
+    STRUCT_CHILD_GETTERS(llrTxNackReplayEvent_, 109);
+    STRUCT_CHILD_GETTERS(llrTxTimerReplayEvent_, 110);
+    STRUCT_CHILD_GETTERS(llrTxError_, 111);
 };
 
 
@@ -12952,6 +12962,8 @@ class ChildThriftPath<::facebook::fboss::phy::RsFecInfo, ::facebook::fboss::fsdb
     STRUCT_CHILD_GETTERS(codewordStats, 5);
     STRUCT_CHILD_GETTERS(fecTail, 6);
     STRUCT_CHILD_GETTERS(maxSupportedFecTail, 7);
+    STRUCT_CHILD_GETTERS(correctedSymbols, 8);
+    STRUCT_CHILD_GETTERS(preFECBerSource, 9);
 };
 
 

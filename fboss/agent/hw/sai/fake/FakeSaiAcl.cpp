@@ -107,9 +107,28 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return true;
     case SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST:
       return true;
+    case SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED:
+      return true;
     default:
       return false;
   }
+}
+
+void FakeAclEntry::setLabelExtended(const sai_attribute_t* attr) {
+  labelExtended.assign(
+      attr->value.s8list.list,
+      attr->value.s8list.list + attr->value.s8list.count);
+}
+
+sai_status_t FakeAclEntry::getLabelExtended(sai_attribute_t* attr) const {
+  if (attr->value.s8list.count < labelExtended.size()) {
+    attr->value.s8list.count = static_cast<uint32_t>(labelExtended.size());
+    return SAI_STATUS_BUFFER_OVERFLOW;
+  }
+  attr->value.s8list.count = static_cast<uint32_t>(labelExtended.size());
+  std::copy(
+      labelExtended.begin(), labelExtended.end(), attr->value.s8list.list);
+  return SAI_STATUS_SUCCESS;
 }
 } // namespace facebook::fboss
 
@@ -950,6 +969,10 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldRouteDestinationMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED:
+      aclEntry.setLabelExtended(attr);
+      res = SAI_STATUS_SUCCESS;
+      break;
     default:
       res = SAI_STATUS_NOT_SUPPORTED;
       break;
@@ -1280,6 +1303,13 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.mask.u32 =
             aclEntry.fieldRouteDestinationMask;
         break;
+      case SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED: {
+        auto status = aclEntry.getLabelExtended(&attr_list[i]);
+        if (status != SAI_STATUS_SUCCESS) {
+          return status;
+        }
+        break;
+      }
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }

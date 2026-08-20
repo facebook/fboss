@@ -367,7 +367,10 @@ class PhyManager {
     }
     auto* xphy = getExternalPhyLocked(lockedCache);
     return xphy->getConfigOnePort(
-        lockedCache->systemLanes, lockedCache->lineLanes, readFromHw);
+        lockedCache->systemLanes,
+        lockedCache->lineLanes,
+        lockedCache->profile.value_or(cfg::PortProfileID::PROFILE_DEFAULT),
+        readFromHw);
   }
 
   // Number of slot in the platform

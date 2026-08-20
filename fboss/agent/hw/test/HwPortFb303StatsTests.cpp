@@ -194,6 +194,13 @@ HwPortStats getInitedStats() {
       // expects every kPortFb303CounterStatKeys() counter to read 1.
       LlrTxStatus::INIT, // llrTxStatus
       LlrRxStatus::SEND_ACKS, // llrRxStatus
+      0, // llrTxEligiblePkts
+      0, // llrTxIneligiblePkts
+      0, // llrRxEligiblePkts
+      0, // llrRxIneligiblePkts
+      0, // llrTxNackReplayEvent
+      0, // llrTxTimerReplayEvent
+      0, // llrTxError
   };
 }
 

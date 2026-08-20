@@ -1183,6 +1183,18 @@ enum PortDrainState {
   DRAINED = 1,
 }
 
+/*
+ * Who notices that a port's link status changed: the SDK's software
+ * linkscan thread, or the ASIC itself.
+ *
+ * Unset leaves whatever the SDK came up with alone - FBOSS never
+ * programs the mode. Either value is written down to the SDK.
+ */
+enum LinkScanMode {
+  SOFTWARE = 1,
+  HARDWARE = 2,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1415,6 +1427,13 @@ struct Port {
   // Controls whether RX precoding settings from the platform mapping are
   // applied to the port.
   44: optional bool rxPrecoding;
+
+  /*
+   * Whether link status changes on this port are noticed by the SDK's
+   * software linkscan thread or by the ASIC.
+   * Unset = leave whatever the SDK came up with untouched.
+   */
+  45: optional LinkScanMode linkScanMode;
 }
 
 enum LacpPortRate {
@@ -2106,6 +2125,9 @@ struct SwitchSettings {
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
   36: optional PacketForwardingMode packetForwardingMode;
+  // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
+  // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
+  37: optional i32 ecmpWidth;
 }
 
 // Global buffer pool
@@ -2478,8 +2500,6 @@ struct FlowletSwitchingConfig {
   21: optional i16 standbyInactivityIntervalUsecs;
   // flow set table size for standby DLB groups
   22: optional i16 standbyFlowletTableSize;
-  // Source Port Prune, prevents forwarding traffic back to received port
-  23: optional bool sourcePortPrune;
 }
 
 /*

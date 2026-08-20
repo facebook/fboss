@@ -84,6 +84,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "ipv6.hop_limit1_mine",
           SUM,
           RATE),
+      mplsTtlExceeded_(map, kCounterPrefix + "mpls.ttl_exceeded", SUM, RATE),
       srv6DecapMySidToMe_(
           map,
           kCounterPrefix + "srv6.decap_mysid_to_me",

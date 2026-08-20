@@ -338,6 +338,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
+  void getRouteCounters(
+      std::map<std::string, HwSwitchCounter>& routeCounters) override;
   void getHwRouterInterfaceStats(
       std::map<std::string, HwRouterInterfaceStats>& hwRouterInterfaceStats)
       override;

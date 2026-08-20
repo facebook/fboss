@@ -354,6 +354,11 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+  return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }
@@ -952,6 +957,23 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -990,6 +1012,16 @@ SaiSystemPortTraits::Attributes::AttributePushQueueEnable::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
 }
 
 std::optional<sai_attr_id_t>
@@ -1119,6 +1151,11 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
   return SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
+  return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
 }
 
 std::optional<sai_attr_id_t>

@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ServerStreamMultiPublisher.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
@@ -170,6 +171,27 @@ class MultiSwitchThriftHandlerMock : public MultiSwitchThriftHandler {
   folly::coro::UnboundedQueue<multiswitch::RxPacket, true, true>
       receivedPktsQueue_;
 };
+
+TEST_F(ThriftServerTest, getNextStateOperDeltaUnknownSwitchIdThrows) {
+  setupServerAndClients();
+  // A crafted RPC with an unknown switchId must surface as a Thrift exception,
+  // not crash the agent (previously a CHECK -> SIGABRT). switchIds 0 and 1 are
+  // configured; 42 is not.
+  multiswitch::StateOperDelta prevDelta;
+  EXPECT_THROW(
+      folly::coro::blockingWait(multiSwitchClient_->co_getNextStateOperDelta(
+          42 /* unknown switchId */, prevDelta, 0 /* lastUpdateSeqNum */)),
+      apache::thrift::TApplicationException);
+}
+
+TEST_F(ThriftServerTest, gracefulExitUnknownSwitchIdThrows) {
+  setupServerAndClients();
+  // Same for gracefulExit: an unknown switchId must not abort the agent.
+  EXPECT_THROW(
+      folly::coro::blockingWait(
+          multiSwitchClient_->co_gracefulExit(42 /* unknown switchId */)),
+      apache::thrift::TApplicationException);
+}
 
 TEST_F(ThriftServerTest, setPortStateBlocking) {
   // setup server and clients
@@ -695,8 +717,13 @@ TEST_F(ThriftServerTest, counterStatsAccumulation) {
   stats1.counterStats()->routeCounters()["baz"] = counter1baz;
   sw_->updateHwSwitchStats(1, stats1);
 
+  auto routeCounters = sw_->getRouteCounters();
+  ThriftHandler handler(sw_);
+  std::map<std::string, HwSwitchCounter> thriftRouteCounters;
+  handler.getRouteCounters(thriftRouteCounters);
+  EXPECT_EQ(routeCounters, thriftRouteCounters);
   auto agentStats = sw_->fillFsdbStats();
-  auto& routeCounters = *agentStats.counterStats()->routeCounters();
+  EXPECT_EQ(routeCounters, *agentStats.counterStats()->routeCounters());
 
   // "foo" exists on both switches — values should be summed
   EXPECT_EQ(routeCounters.size(), 3);

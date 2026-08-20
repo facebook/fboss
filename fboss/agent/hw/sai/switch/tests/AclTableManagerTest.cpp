@@ -250,7 +250,7 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
 
   EXPECT_TRUE(aclEntryHandle);
   EXPECT_TRUE(aclEntryHandle->aclEntry);
@@ -264,7 +264,7 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
 }
 
@@ -311,7 +311,7 @@ TEST_F(AclTableManagerTest, addAclEntryWithL4DstPortRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   ASSERT_TRUE(aclEntryHandle);
   ASSERT_TRUE(aclEntryHandle->dstPortRange);
 
@@ -350,7 +350,7 @@ TEST_F(AclTableManagerTest, removeAclEntryWithRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
   EXPECT_EQ(rangeStore.size(), 0);
 }
@@ -384,9 +384,9 @@ TEST_F(AclTableManagerTest, twoEntriesSameRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   auto handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority2());
+      aclTableHandle, kPriority2(), std::string("AclEntry2"));
   ASSERT_TRUE(handle1->dstPortRange);
   ASSERT_TRUE(handle2->dstPortRange);
   EXPECT_EQ(
@@ -456,7 +456,7 @@ TEST_F(AclTableManagerPbrTest, addPbrAclEntryWithMatchAndRedirectNhg) {
   auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto* entryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("PbrEntry"));
   ASSERT_NE(entryHandle, nullptr);
   ASSERT_NE(entryHandle->matchNhgHandle, nullptr);
   ASSERT_NE(entryHandle->redirectNhgHandle, nullptr);
@@ -482,7 +482,7 @@ TEST_F(AclTableManagerPbrTest, addPbrAclEntryWithMatchAndRedirectNhg) {
       state);
   EXPECT_EQ(
       saiManagerTable->aclTableManager().getAclEntryHandle(
-          aclTableHandle, kPriority()),
+          aclTableHandle, kPriority(), std::string("PbrEntry")),
       nullptr);
 }
 

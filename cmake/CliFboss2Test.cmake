@@ -58,7 +58,9 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowAggregatePortTest.cpp
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
   fboss/cli/fboss2/test/CmdShowDsfNodesTest.cpp
+  fboss/cli/fboss2/test/CmdShowDsfSubscriptionTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricInputBalanceTest.cpp
   fboss/cli/fboss2/test/CmdShowFabricReachabilityTest.cpp
   fboss/cli/fboss2/test/CmdShowFabricTest.cpp
   fboss/cli/fboss2/test/CmdShowFabricTopologyTest.cpp
@@ -74,6 +76,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowInterfaceErrorsTest.cpp
   # fboss/cli/fboss2/test/CmdShowInterfaceFlapsTest.cpp - excluded (depends on hardware model not built in CMake)
   fboss/cli/fboss2/test/CmdShowInterfacePhyTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfacePrbsTest.cpp
   fboss/cli/fboss2/test/CmdShowMacDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowMirrorTest.cpp
   fboss/cli/fboss2/test/CmdShowMySidTest.cpp
@@ -85,6 +88,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/CmdConfigIpRouteTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp
+  fboss/cli/fboss2/test/CmdShowRouteCountersTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteTest.cpp

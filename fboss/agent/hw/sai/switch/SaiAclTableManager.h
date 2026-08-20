@@ -87,6 +87,7 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle;
   std::shared_ptr<SaiNextHopGroupHandle> redirectNhgHandle;
   std::shared_ptr<SaiAclEntry> aclEntry;
+  std::string aclEntryName;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
   std::optional<std::string> egressMirror;
@@ -100,8 +101,23 @@ struct SaiAclEntryHandle {
 
 struct SaiAclTableHandle {
   std::shared_ptr<SaiAclTable> aclTable;
-  // SAI ACL priority to corresponding handle
-  folly::F14FastMap<int, std::unique_ptr<SaiAclEntryHandle>> aclTableMembers;
+  // (ACL priority, ACL entry name) to corresponding handle. The name is part
+  // of the key because PBR programs every rule at one priority and tells them
+  // apart by the SAI ACL entry label, which carries this name.
+  folly::F14FastMap<
+      std::pair<int, std::string>,
+      std::unique_ptr<SaiAclEntryHandle>>
+      aclTableMembers;
+
+  // Name of an entry already programmed at this priority, else nullptr.
+  const std::string* FOLLY_NULLABLE entryNameAtPriority(int priority) const {
+    for (const auto& [key, _] : aclTableMembers) {
+      if (key.first == priority) {
+        return &key.second;
+      }
+    }
+    return nullptr;
+  }
 };
 
 class SaiAclTableManager {
@@ -211,7 +227,8 @@ class SaiAclTableManager {
 
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
-      int priority) const;
+      int priority,
+      const std::string& aclEntryName) const;
 
   std::pair<
       std::shared_ptr<SaiAclCounter>,
@@ -280,7 +297,7 @@ class SaiAclTableManager {
     if (!table) {
       throw FbossError("ACL table ", aclTableName, " not found.");
     }
-    return (getAclEntryHandle(table, priority) != nullptr);
+    return table->entryNameAtPriority(priority) != nullptr;
   }
 
   void removeUnclaimedAclCounter();

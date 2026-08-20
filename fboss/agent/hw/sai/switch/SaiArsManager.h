@@ -73,13 +73,6 @@ class SaiArsManager {
   void setArsObject(
       SaiArsHandle* handle,
       const SaiArsTraits::CreateAttributes& attributes);
-
-  // Source port prune stops an ECMP group from load balancing a packet back
-  // out the port it arrived on. Opt-in: returns nullopt when the config does
-  // not carry the field, so platforms whose adapter rejects the attribute are
-  // never asked to program it.
-  std::optional<SaiArsTraits::Attributes::SourcePortPrune> getSourcePortPrune(
-      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) const;
 #endif
 
  private:

@@ -953,6 +953,13 @@ class SaiExtensionAttribute {
     return !(*this == other);
   }
 
+  bool operator<(const SaiExtensionAttribute& other) const {
+    if (id() != other.id()) {
+      return id() < other.id();
+    }
+    return value() < other.value();
+  }
+
   /* implicit */ SaiExtensionAttribute(const ValueType& value)
       : SaiExtensionAttribute() {
     saiAttr_.id = kExtensionAttributeId();

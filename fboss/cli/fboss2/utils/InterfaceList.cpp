@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include <folly/Conv.h>
 #include <folly/String.h>
 #include <stdexcept>
 #include <string>
@@ -44,8 +45,16 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
         }
       }
     } else {
-      // If not found as a port name, try as an interface name
+      // If not found as a port, try as an interface name, then as an
+      // interface ID.
       cfg::Interface* interface = portMap.getInterfaceByName(name);
+      if (!interface) {
+        // A purely-numeric name may be an interface ID.
+        auto id = folly::tryTo<int32_t>(name);
+        if (id.hasValue() && *id >= 0) {
+          interface = portMap.getInterface(InterfaceID(*id));
+        }
+      }
       if (interface) {
         intf.setInterface(interface);
       }
