@@ -33,3 +33,18 @@ struct LinkQsfpTestPortInfo {
   // any.
   14: list<string> verifiedProductionFeatures;
 }
+
+// One row per port-level problem found by a link/qsfp test, e.g. a transceiver
+// that is physically present in the chassis but absent from the config.
+// Serialized as newline delimited JSON for Netcastle to publish to the
+// fboss_link_qsfp_test_port_errors Scuba table. Netcastle stamps the run
+// context (Hw Configuration) on each row; Scuba stamps time.
+struct LinkQsfpTestPortError {
+  1: string machineName;
+  2: string machineType;
+  3: string pool;
+  4: string portName;
+  5: string vendorName;
+  6: string partNumber;
+  7: string error;
+}

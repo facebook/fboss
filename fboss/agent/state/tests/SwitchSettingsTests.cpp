@@ -918,6 +918,38 @@ TEST(SwitchSettingsTest, applyEcmpWidthFromGflag) {
   EXPECT_EQ(64, *switchSettingsV2->getEcmpWidth());
 }
 
+TEST(SwitchSettingsTest, applyEcmpWidthFromConfig) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  // Config value must win over the gflag.
+  FLAGS_ecmp_width = 64;
+  config.switchSettings()->ecmpWidth() = 512;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  ASSERT_TRUE(switchSettingsV1->getEcmpWidth().has_value());
+  EXPECT_EQ(512, *switchSettingsV1->getEcmpWidth());
+}
+
+TEST(SwitchSettingsTest, rejectNonPositiveEcmpWidth) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  FLAGS_ecmp_width = 64;
+  for (const auto invalidEcmpWidth : {-1, 0}) {
+    auto state = make_shared<SwitchState>();
+    cfg::SwitchConfig config;
+    config.switchSettings()->ecmpWidth() = invalidEcmpWidth;
+    EXPECT_THROW(
+        publishAndApplyConfig(state, &config, platform.get()), FbossError);
+  }
+}
+
 TEST(SwitchSettingsTest, ecmpWidthSerializesToThrift) {
   auto settings = make_shared<SwitchSettings>();
   settings->setEcmpWidth(256);

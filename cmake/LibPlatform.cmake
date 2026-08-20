@@ -12,6 +12,7 @@ target_link_libraries(platform_descriptor
   fboss_error
   platform_config_cpp2
   platform_descriptor_cpp2
+  split_platform_mapping_utils
   switch_config_cpp2
   Folly::folly
   gflags

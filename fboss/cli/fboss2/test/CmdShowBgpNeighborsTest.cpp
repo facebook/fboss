@@ -12,12 +12,14 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view> // NOLINT(misc-include-cleaner)
 #include <vector>
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #ifndef IS_OSS
@@ -699,5 +701,31 @@ TEST_F(CmdShowBgpNeighborsTestFixture, printAllNeighbors) {
       "------------------------------------------------------------------\n"
       "\n";
   EXPECT_EQ(output, expectedOutput);
+}
+
+// Unit-test the "Legacy v4 NLRI encoding" line in the Neighbor Capabilities
+// block: it is shown only when the session uses legacy v4-unicast encoding.
+TEST(PrintBgpCapabilitiesTest, LegacyV4NlriEncoding) {
+  TBgpSessionDetail details;
+  details.ipv4_unicast() = true;
+  details.ipv6_unicast() = false;
+  details.rr_client() = false;
+
+  details.legacy_v4_nlri_encoding() = true;
+  {
+    std::ostringstream out;
+    printBgpCapabilities(details, out);
+    EXPECT_THAT(
+        out.str(),
+        HasSubstr(
+            "Legacy v4 NLRI encoding (RFC 4271 classic NLRI + NEXT_HOP): yes"));
+  }
+
+  details.legacy_v4_nlri_encoding() = false;
+  {
+    std::ostringstream out;
+    printBgpCapabilities(details, out);
+    EXPECT_THAT(out.str(), Not(HasSubstr("Legacy v4 NLRI encoding")));
+  }
 }
 } // namespace facebook::fboss

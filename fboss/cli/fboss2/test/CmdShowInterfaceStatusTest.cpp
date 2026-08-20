@@ -138,4 +138,11 @@ TEST_F(CmdShowInterfaceStatusTestFixture, printOutput) {
 
   EXPECT_EQ(output, expectedOutput);
 }
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceStatusTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceStatusTraits::description().empty());
+  EXPECT_FALSE(CmdShowInterfaceStatus::sampleModel().interfaces()->empty());
+}
 } // namespace facebook::fboss

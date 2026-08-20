@@ -47,6 +47,8 @@ add_library(state
   fboss/agent/state/ArpResponseEntry.cpp
   fboss/agent/state/ArpResponseTable.cpp
   fboss/agent/state/ArpTable.cpp
+  fboss/agent/state/ClassBasedPolicyMap.cpp
+  fboss/agent/state/ClassBasedPolicyNode.cpp
   fboss/agent/state/ControlPlane.cpp
   fboss/agent/state/DsfNode.cpp
   fboss/agent/state/DsfNodeMap.cpp

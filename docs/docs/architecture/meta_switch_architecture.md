@@ -3,8 +3,7 @@
 ## About this document
 
 This document describes the high level system architecture requirements for all
-network switches for Meta data centers. This document will eventually replace
-the existing BMC-Lite Specification.
+network switches for Meta data centers.
 
 ## Table Of Contents
 
@@ -143,9 +142,6 @@ As shown in the reference design:
    controller directly, and baud rate is set to 9600 bps in the Meta environment.
 2. There must be a UART connection between BMC and CPU/X86, usually muxed by a
    CPLD, for SOL application: the baud rate between BMC and CPU is 57600 bps.
-3. The debug UART (USB 3.0 Debug card) shall be supported. Support UART
-   multiplexing between the Meta OCP Debug Card USB port, RunBMC, and
-   Microserver (HSUART).
 
 ### 2.4 Management Network Topology (Internal Control Plane Switch)
 
@@ -555,7 +551,7 @@ A few notes:
 ## 9. Provisioning Requirements
 
 * The system shall be compliant to Meta’s provisioning process.
-  * Refer to [Meta's Provisioning Requirements](https://github.com/facebook/fboss/blob/main/fboss/docs/provisioning/provisioning_requirements_npi.md)
+  * Refer to [Meta's Provisioning Requirements](/docs/provisioning/provisioning_requirements_npi)
     on meeting Meta’s provisioning standards.
 
 ## 10. Software Deliverables and its schedule

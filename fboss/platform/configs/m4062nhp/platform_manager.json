@@ -35,6 +35,13 @@
               "startAdapterIndex": 0,
               "numAdapters": 10
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCM_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
           ]
         }
       ],
@@ -57,6 +64,16 @@
           "kernelDeviceName": "24c64",
           "pmUnitScopedName": "CHASSIS_EEPROM",
           "isEeprom": true
+        }
+      ],
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "DIMM1_TEMP",
+          "sysfsPath": "/sys/bus/i2c/devices/1-0050"
+        },
+        {
+          "pmUnitScopedName": "DIMM2_TEMP",
+          "sysfsPath": "/sys/bus/i2c/devices/1-0051"
         }
       ],
       "outgoingSlotConfigs": {
@@ -137,7 +154,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x60",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 33
             },
             {
@@ -145,7 +162,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x64",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 41
             },
             {
@@ -153,7 +170,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x68",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 49
             },
             {
@@ -161,7 +178,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x6c",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 57
             },
             {
@@ -169,7 +186,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x70",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 65
             },
             {
@@ -177,7 +194,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x74",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 73
             },
             {
@@ -185,7 +202,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x78",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 81
             },
             {
@@ -193,7 +210,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x7c",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 89
             },
             {
@@ -201,7 +218,7 @@
               "deviceName": "mgmt_qsfp_led",
               "csrOffsetCalc": "0x9c",
               "numPorts": 1,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "lanesPerPort": 4,
               "startPort": 129
             }
@@ -213,6 +230,13 @@
               "csrOffsetCalc": "0x0",
               "startPort": 129,
               "numPorts": 1
+            }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SMB0_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
             }
           ]
         },
@@ -261,7 +285,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x90",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 1
             },
             {
@@ -269,7 +293,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x94",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 9
             },
             {
@@ -277,7 +301,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x98",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 17
             },
             {
@@ -285,7 +309,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x9c",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 25
             },
             {
@@ -293,7 +317,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x80",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 97
             },
             {
@@ -301,7 +325,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x84",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 105
             },
             {
@@ -309,7 +333,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x88",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 113
             },
             {
@@ -317,7 +341,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x8c",
               "numPorts": 8,
-              "ledPerPort": 2,
+              "ledPerPort": 1,
               "startPort": 121
             }
           ],
@@ -327,28 +351,14 @@
               "deviceName": "xcvr_ctrl",
               "csrOffsetCalc": "0x0",
               "startPort": 1,
-              "numPorts": 32
-            },
+              "numPorts": 128
+            }
+          ],
+          "infoRomConfigs": [
             {
-              "pmUnitScopedNamePrefix": "OSFP",
-              "deviceName": "xcvr_ctrl",
-              "csrOffsetCalc": "0x0",
-              "startPort": 33,
-              "numPorts": 32
-            },
-            {
-              "pmUnitScopedNamePrefix": "OSFP",
-              "deviceName": "xcvr_ctrl",
-              "csrOffsetCalc": "0x0",
-              "startPort": 65,
-              "numPorts": 32
-            },
-            {
-              "pmUnitScopedNamePrefix": "OSFP",
-              "deviceName": "xcvr_ctrl",
-              "csrOffsetCalc": "0x0",
-              "startPort": 97,
-              "numPorts": 32
+              "pmUnitScopedName": "SMB1_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
             }
           ]
         }
@@ -430,8 +440,11 @@
     "/run/devmap/eeproms/PSU4_EEPROM": "/SMB_SLOT@0/[PSU4_EEPROM]",
     "/run/devmap/sensors/DPM": "/[DPM]",
     "/run/devmap/sensors/DPM_2": "/[DPM_2]",
+    "/run/devmap/sensors/DIMM1_TEMP": "/[DIMM1_TEMP]",
+    "/run/devmap/sensors/DIMM2_TEMP": "/[DIMM2_TEMP]",
     "/run/devmap/sensors/SWITCH_CARD_TEMP_SENSOR": "/SMB_SLOT@0/[SWITCH_CARD_TEMP_SENSOR]",
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
+    "/run/devmap/inforoms/SCM_IOB_INFO_ROM": "/[SCM_IOB_INFO_ROM]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_0": "/[SCM_IOB_I2C_0]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_1": "/[SCM_IOB_I2C_1]",
     "/run/devmap/i2c-busses/SCM_IOB_I2C_2": "/[SCM_IOB_I2C_2]",
@@ -444,6 +457,8 @@
     "/run/devmap/i2c-busses/SCM_IOB_I2C_9": "/[SCM_IOB_I2C_9]",
     "/run/devmap/fpgas/SMB_IOB_0": "/SMB_SLOT@0/[SMB_IOB_0]",
     "/run/devmap/fpgas/SMB_IOB_1": "/SMB_SLOT@0/[SMB_IOB_1]",
+    "/run/devmap/inforoms/SMB0_IOB_INFO_ROM": "/SMB_SLOT@0/[SMB0_IOB_INFO_ROM]",
+    "/run/devmap/inforoms/SMB1_IOB_INFO_ROM": "/SMB_SLOT@0/[SMB1_IOB_INFO_ROM]",
     "/run/devmap/sensors/ASIC_TEMP": "/SMB_SLOT@0/[SMB_IOB_ASIC_TEMP]",
     "/run/devmap/sensors/PSU_PRESENT": "/SMB_SLOT@0/[SMB_IOB_PSU_PRESENT]",
     "/run/devmap/i2c-busses/SMB0_IOB_I2C_0": "/SMB_SLOT@0/[SMB0_IOB_I2C_0]",
@@ -724,6 +739,8 @@
   "bspKmodsRpmVersion": "1.0.0-1",
   "nonBspKmodsToLoad": [
     "i2c_i801",
+    "i2c_piix4",
+    "spd5118",
     "i2c_mux",
     "fbiob_pci",
     "nh_fpga_i2c",

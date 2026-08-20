@@ -277,6 +277,38 @@ std::string CmdShowHwAgentStatus::getRunStateStr(
   throw std::invalid_argument("Invalid Run State");
 }
 
+std::string_view CmdShowHwAgentStatusTraits::description() {
+  return "Displays each HwAgent's synchronization state with the SwSwitch: switch index and ID, overall state, and per-channel in-sync status with events sent/received (Link, Stats, Fdb, RxPkt, TxPkt, SwitchReachability). Use it to check HwAgent sync health in multi-switch mode.";
+}
+
+RetType CmdShowHwAgentStatus::sampleModel() {
+  RetType model;
+  cli::HwAgentStatusEntry entry;
+  entry.switchIndex() = 0;
+  entry.switchId() = 0;
+  entry.runState() = "CONFIGURED";
+  entry.linkSyncActive() = 1;
+  entry.linkEventsSent() = 140;
+  entry.linkEventsReceived() = 140;
+  entry.statsSyncActive() = 1;
+  entry.HwSwitchStatsEventsSent() = 48480;
+  entry.HwSwitchStatsEventsReceived() = 48480;
+  entry.fdbSyncActive() = 1;
+  entry.fdbEventsSent() = 0;
+  entry.fdbEventsReceived() = 0;
+  entry.rxPktSyncActive() = 1;
+  entry.rxPktEventsSent() = 24922839;
+  entry.rxPktEventsReceived() = 24922839;
+  entry.txPktSyncActive() = 1;
+  entry.txPktEventsSent() = 25316355;
+  entry.txPktEventsReceived() = 25316355;
+  entry.switchReachabilityChangeSyncActive() = 1;
+  entry.switchReachabilityChangeEventsSent() = 0;
+  entry.switchReachabilityChangeEventsReceived() = 0;
+  model.hwAgentStatusEntries()->push_back(entry);
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowHwAgentStatus, CmdShowHwAgentStatusTraits>::run();

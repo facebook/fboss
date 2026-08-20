@@ -29,6 +29,7 @@ using facebook::neteng::fboss::bgp::thrift::TUpdateGroupInfo;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupKey;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupPeerInfo;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupStats;
+using facebook::neteng::fboss::bgp::thrift::TUpdateGroupSummary;
 
 struct CmdShowBgpUpdateGroupTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -48,39 +49,42 @@ class CmdShowBgpUpdateGroup
     auto client = utils::createClient<apache::thrift::Client<
         facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
 
-    facebook::neteng::fboss::bgp::thrift::TGetUpdateGroupInfoRequest request;
-    bool detailMode = false;
-
-    if (!args.empty()) {
-      int64_t targetId;
-      try {
-        size_t pos = 0;
-        targetId = std::stoll(args[0], &pos);
-        if (pos != args[0].size()) {
-          throw std::invalid_argument("trailing characters");
-        }
-      } catch (const std::exception& e) {
-        throw std::invalid_argument(
-            fmt::format("Invalid update-group ID '{}': {}", args[0], e.what()));
-      }
-      request.group_id() = targetId;
-      detailMode = true;
+    RetType model;
+    if (args.empty()) {
+      facebook::neteng::fboss::bgp::thrift::TGetUpdateGroupSummariesResponse
+          response;
+      client->sync_getUpdateGroupSummaries(response);
+      model.enable_update_group() = response.enable_update_group().value();
+      model.update_group_summaries() = std::move(*response.update_groups());
+      model.detail_mode() = false;
+      return model;
     }
 
+    int64_t targetId;
+    try {
+      size_t pos = 0;
+      targetId = std::stoll(args[0], &pos);
+      if (pos != args[0].size()) {
+        throw std::invalid_argument("trailing characters");
+      }
+    } catch (const std::exception& e) {
+      throw std::invalid_argument(
+          fmt::format("Invalid update-group ID '{}': {}", args[0], e.what()));
+    }
+
+    facebook::neteng::fboss::bgp::thrift::TGetUpdateGroupInfoRequest request;
+    request.group_id() = targetId;
     facebook::neteng::fboss::bgp::thrift::TGetUpdateGroupInfoResponse response;
     client->sync_getUpdateGroupInfo(response, request);
 
-    RetType model;
     model.enable_update_group() = response.enable_update_group().value();
     model.update_groups() = std::move(*response.update_groups());
-    model.detail_mode() = detailMode;
+    model.detail_mode() = true;
 
     return model;
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    const auto& updateGroups = model.update_groups().value();
-
     out.imbue(std::locale("C"));
 
     if (!model.enable_update_group().value()) {
@@ -88,20 +92,22 @@ class CmdShowBgpUpdateGroup
       return;
     }
 
-    if (updateGroups.empty()) {
-      if (model.detail_mode().value()) {
+    if (model.detail_mode().value()) {
+      const auto& updateGroups = model.update_groups().value();
+      if (updateGroups.empty()) {
         out << "Update group not found." << std::endl;
-      } else {
-        out << "No active update groups." << std::endl;
+        return;
       }
+      printDetailView(updateGroups[0], out);
       return;
     }
 
-    if (model.detail_mode().value()) {
-      printDetailView(updateGroups[0], out);
-    } else {
-      printSummaryView(model, updateGroups, out);
+    const auto& summaries = model.update_group_summaries().value();
+    if (summaries.empty()) {
+      out << "No active update groups." << std::endl;
+      return;
     }
+    printSummaryView(summaries, out);
   }
 
  private:
@@ -120,8 +126,7 @@ class CmdShowBgpUpdateGroup
   }
 
   void printSummaryView(
-      const RetType& /*model*/,
-      const std::vector<TUpdateGroupInfo>& groups,
+      const std::vector<TUpdateGroupSummary>& groups,
       std::ostream& out) {
     out << "Update group: ENABLED" << std::endl;
     out << "Update Groups: " << groups.size() << std::endl;
@@ -139,18 +144,16 @@ class CmdShowBgpUpdateGroup
          "RIB Ver"});
 
     for (const auto& group : groups) {
-      const auto& key = group.group_key().value();
-      const auto& stats = group.stats().value();
       auto prefixes = fmt::format(
           "{}({}/{})",
-          stats.post_out_prefix_count().value(),
-          stats.post_out_prefix_count_ipv4().value(),
-          stats.post_out_prefix_count_ipv6().value());
+          group.post_out_prefix_count().value(),
+          group.post_out_prefix_count_ipv4().value(),
+          group.post_out_prefix_count_ipv6().value());
 
       auto ribVer = group.last_seen_rib_version().value();
       table.addRow(
           {std::to_string(group.group_id().value()),
-           key.egress_policy_name().value(),
+           group.egress_policy_name().value(),
            group.group_state().value(),
            std::to_string(group.member_count().value()),
            std::to_string(group.in_sync_peer_count().value()),
@@ -219,6 +222,12 @@ class CmdShowBgpUpdateGroup
     out << "  Ext NH Encoding:         "
         << boolStr(key.ext_nh_encoding_capable().value()) << std::endl;
     out << "  Peer Override:           " << boolStr(key.peer_override().value())
+        << std::endl;
+    out << "  Local AS:                " << key.local_as().value() << std::endl;
+    out << "  AS Confederation ID:     "
+        << (key.as_confed_id().has_value()
+                ? std::to_string(key.as_confed_id().value())
+                : "-")
         << std::endl;
 
     out << std::endl;

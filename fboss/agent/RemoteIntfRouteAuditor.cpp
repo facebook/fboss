@@ -3,7 +3,10 @@
 #include "fboss/agent/RemoteIntfRouteAuditor.h"
 
 #include "fboss/agent/FibHelpers.h"
-#include "fboss/agent/SwitchStats.h"
+// SwitchStats.h is provided by both :stats and :core; pin to :stats since :core
+// depends on :remote_intf_route_auditor (SwSwitch.cpp) - resolving to :core
+// here would create a :core <-> :remote_intf_route_auditor dependency cycle.
+#include "fboss/agent/SwitchStats.h" // @manual=//fboss/agent:stats
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"

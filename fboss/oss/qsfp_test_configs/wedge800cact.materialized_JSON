@@ -5,6 +5,7 @@
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "wedge800cact",
+    "platform_descriptor_config_path": "/tmp/platform_descriptors/",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -65,42 +66,12 @@
       {
         "aPortName": "eth1/11/1",
         "zPortName": "eth1/12/1",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/2",
-        "zPortName": "eth1/12/2",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/3",
-        "zPortName": "eth1/12/3",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/4",
-        "zPortName": "eth1/12/4",
-        "profileID": 56
+        "profileID": 24
       },
       {
         "aPortName": "eth1/11/5",
         "zPortName": "eth1/12/5",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/6",
-        "zPortName": "eth1/12/6",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/7",
-        "zPortName": "eth1/12/7",
-        "profileID": 56
-      },
-      {
-        "aPortName": "eth1/11/8",
-        "zPortName": "eth1/12/8",
-        "profileID": 56
+        "profileID": 24
       },
       {
         "aPortName": "eth1/33/1",
@@ -175,7 +146,31 @@
             }
           ]
       },
+      "DP08SFP8-LRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
       "DP08SFP8-LRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
           "versions": [
             {
               "fwType": 1,

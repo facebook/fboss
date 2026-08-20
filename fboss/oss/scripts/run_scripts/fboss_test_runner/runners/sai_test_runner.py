@@ -51,13 +51,17 @@ class SaiTestRunner(TestRunner):
     ) -> list[str]:
         if sai_replayer_log_path is None:
             return []
-        return [
+        flags = [
             "--enable-replayer",
             "--enable_get_attr_log",
             "--enable_packet_log",
             "--sai-log",
             sai_replayer_log_path,
         ]
+        level = getattr(self.args, "sai_replayer_sdk_log_level", None)
+        if level is not None:
+            flags.extend(["--sai_replayer_sdk_log_level", level])
+        return flags
 
     def _get_sai_logging_flags(self) -> list[str]:
         return ["--enable_sai_log", self.args.sai_logging]

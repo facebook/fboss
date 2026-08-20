@@ -600,6 +600,27 @@ TransceiverManagementInterface getModuleTypeDirect(
 }
 
 /*
+ * This function returns the major number of the CMIS revision the module
+ * complies with, by reading the register 1 directly from module. The upper
+ * nibble of that byte is the major number. Returns 0 on a read error, which
+ * keeps the legacy behavior of writing the MSA password during f/w upgrade.
+ */
+uint8_t getCmisMajorRevisionDirect(TransceiverI2CApi* bus, unsigned int port) {
+  uint8_t revisionCompliance = 0;
+  try {
+    bus->moduleRead(
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 1, 1},
+        &revisionCompliance);
+  } catch (const I2cError&) {
+    fprintf(
+        stderr, "QSFP %d: could not read the CMIS revision compliance\n", port);
+    return 0;
+  }
+  return revisionCompliance >> 4;
+}
+
+/*
  * This function returns the transceiver management interfaces
  * by reading the register 0 indirectly from modules. If there is an error,
  * this function returns an empty interface map.
@@ -3195,7 +3216,10 @@ bool cliModulefirmwareUpgrade(
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
 
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-      qsfpImpl.get(), port, fbossFwObj.get());
+      qsfpImpl.get(),
+      port,
+      fbossFwObj.get(),
+      getCmisMajorRevisionDirect(i2cInfo.bus, port));
 
   // Do the standalone upgrade in the same process as wedge_qsfp_util
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
@@ -3356,7 +3380,10 @@ void fwUpgradeThreadHandler(
         i2cInfo.transceiverManager,
         /*logBuffer*/ nullptr);
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-        qsfpImpl.get(), module, fbossFwObj.get());
+        qsfpImpl.get(),
+        module,
+        fbossFwObj.get(),
+        getCmisMajorRevisionDirect(i2cInfo.bus, module));
 
     // Do the upgrade in this thread
     bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();

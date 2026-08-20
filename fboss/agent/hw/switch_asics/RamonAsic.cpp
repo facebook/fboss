@@ -38,6 +38,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     default:
       return false;
   }

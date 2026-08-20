@@ -53,6 +53,7 @@ class StateUpdateValidator {
   }
 
  private:
+  bool isEcmpWidthUpdateValid(const StateDelta& delta) const;
   bool isValidUpdateCommon(const StateDelta& delta);
   bool isValidUpdateMultiSwitch(const StateDelta& delta) const;
 

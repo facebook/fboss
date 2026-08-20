@@ -48,6 +48,17 @@ class AclTableStoreTest : public SaiStoreTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::4"));
   }
 
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word3() const {
+    return std::make_pair(
+        folly::IPAddressV6("1234:5678::"), folly::IPAddressV6("ffff:ffff::"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word2() const {
+    return std::make_pair(
+        folly::IPAddressV6("0:0:9abc:def0::"),
+        folly::IPAddressV6("0:0:ffff:ffff::"));
+  }
+
   std::pair<folly::IPAddressV4, folly::IPAddressV4> kSrcIpV4() const {
     return std::make_pair(
         folly::IPAddressV4("10.0.0.1"), folly::IPAddressV4("255.255.255.0"));
@@ -185,8 +196,13 @@ class AclTableStoreTest : public SaiStoreTest {
     return true;
   }
 
-  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+  std::pair<sai_object_id_t, sai_uint32_t> kRouteDestination() const {
     return std::make_pair(81, 0);
+  }
+
+  std::vector<int8_t> kLabelExtended() const {
+    static const std::string kLabel{"acl-entry-label"};
+    return std::vector<int8_t>(kLabel.begin(), kLabel.end());
   }
 
   sai_uint8_t kSetTC() const {
@@ -247,6 +263,8 @@ class AclTableStoreTest : public SaiStoreTest {
             kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
+            true, // dstIpv6Word3
+            true, // dstIpv6Word2
             true, // srcIpv4
             true, // dstIpv4
             true, // l4SrcPort
@@ -291,6 +309,8 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // enabled
             AclEntryFieldIpV6(this->kSrcIpV6()),
             AclEntryFieldIpV6(this->kDstIpV6()),
+            AclEntryFieldIpV6(this->kDstIpV6Word3()),
+            AclEntryFieldIpV6(this->kDstIpV6Word2()),
             AclEntryFieldIpV4(this->kSrcIpV4()),
             AclEntryFieldIpV4(this->kDstIpV4()),
             AclEntryFieldSaiObjectIdT(this->kSrcPort()),
@@ -335,7 +355,8 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionBool(this->kDisableArsForwarding()),
             AclEntryActionU32(this->kHashAlgorithm()),
             AclEntryActionBool(this->kL3SwitchCancel()),
-            AclEntryFieldSaiObjectIdT(this->kNextHopGroupId()),
+            AclEntryFieldSaiObjectIdT(this->kRouteDestination()),
+            this->kLabelExtended(),
         },
         0);
   }
@@ -389,7 +410,8 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
   s.reload();
   auto& store = s.get<SaiAclEntryTraits>();
 
-  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
+  SaiAclEntryTraits::AdapterHostKey k{
+      aclTableId, this->kPriority(), this->kLabelExtended()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -446,6 +468,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       this->kActionTypeList(),
       true, // srcIpv6
       true, // dstIpv6
+      true, // dstIpv6Word3
+      true, // dstIpv6Word2
       true, // srcIpv4
       true, // dstIpv4
       true, // l4SrcPort
@@ -489,7 +513,8 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
-  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
+  SaiAclEntryTraits::AdapterHostKey k{
+      aclTableId, this->kPriority(), this->kLabelExtended()};
 
   SaiAclEntryTraits::CreateAttributes c{
       aclTableId,
@@ -497,6 +522,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       true, // enabled
       this->kSrcIpV6(),
       this->kDstIpV6(),
+      this->kDstIpV6Word3(),
+      this->kDstIpV6Word2(),
       this->kSrcIpV4(),
       this->kDstIpV4(),
       this->kSrcPort(),
@@ -541,7 +568,8 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kDisableArsForwarding(),
       this->kHashAlgorithm(),
       this->kL3SwitchCancel(),
-      this->kNextHopGroupId()};
+      this->kRouteDestination(),
+      this->kLabelExtended()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);

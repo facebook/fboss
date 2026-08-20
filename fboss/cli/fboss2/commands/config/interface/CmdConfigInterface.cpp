@@ -34,6 +34,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -49,6 +50,7 @@ namespace {
 const std::unordered_set<std::string> kKnownAttributes = [] {
   std::unordered_set<std::string> attrs = {
       "description",
+      "name",
       "mtu",
       "ip-address",
       "ipv6-address",
@@ -60,6 +62,7 @@ const std::unordered_set<std::string> kKnownAttributes = [] {
       "shutdown",
       "no-shutdown",
       "lookup-class",
+      "queue-config",
   };
   for (const auto& name : lldpAttrNames()) {
     attrs.insert(name);
@@ -74,9 +77,9 @@ const std::unordered_set<std::string> kValuelessAttributes = {
 };
 
 constexpr auto kValidConfigAttrs =
-    "description, mtu, ip-address, ipv6-address, profile, loopback-mode, "
+    "description, name, mtu, ip-address, ipv6-address, profile, loopback-mode, "
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
-    "no-shutdown, lookup-class";
+    "no-shutdown, lookup-class, queue-config";
 
 // The value of the `profile` attribute if the parsed attribute list configures
 // one, else nullopt. Centralized (single scan) so the InterfacesConfig
@@ -504,6 +507,99 @@ bool applyLookupClass(
   return changed;
 }
 
+// Set the name of the L3 interface(s) targeted by the command. Since an
+// interface name must be unique, only a single target interface is allowed,
+// and the new name must not collide with an existing port or interface name.
+// Purely-numeric names are rejected: they would shadow lookups by port
+// logical ID or interface ID.
+bool applyInterfaceName(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  if (value.empty()) {
+    throw std::invalid_argument("Interface name cannot be empty");
+  }
+  if (std::all_of(value.begin(), value.end(), ::isdigit)) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid interface name '{}': a purely-numeric name would "
+            "conflict with lookups by port or interface ID",
+            value));
+  }
+
+  std::vector<cfg::Interface*> targets;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Interface* interface = intf.getInterface();
+    if (interface) {
+      targets.push_back(interface);
+    }
+  }
+  if (targets.size() > 1) {
+    throw std::invalid_argument(
+        "Cannot set the same name on multiple interfaces");
+  }
+
+  auto& portMap = ConfigSession::getInstance().getPortMap();
+  if (portMap.hasPort(value)) {
+    throw std::invalid_argument(
+        fmt::format("'{}' is already in use as a port name", value));
+  }
+  cfg::Interface* existing = portMap.getInterfaceByName(value);
+  if (existing && (targets.empty() || existing != targets[0])) {
+    throw std::invalid_argument(
+        fmt::format(
+            "'{}' is already in use by interface {}",
+            value,
+            *existing->intfID()));
+  }
+
+  if (targets.empty()) {
+    return false;
+  }
+  targets[0]->name() = value;
+  // Refresh the name-based lookup maps so the rest of the session sees the
+  // new name.
+  ConfigSession::getInstance().rebuildPortMap();
+  return true;
+}
+
+// Binds a named queue config to each port, or clears the binding for the
+// reserved `default`.
+//
+// `default` is not a portQueueConfigs entry, so there is nothing to look up and
+// nothing to bind: per Port::portQueueConfigName's contract a port with the
+// field unset already resolves to SwitchConfig::defaultPortQueues. Selecting it
+// therefore clears any existing override rather than writing a name that
+// resolves to nothing.
+bool applyQueueConfig(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  // Validate the name up front so a typo fails before any port is touched.
+  const utils::QueueConfigName name({value});
+
+  if (!name.isDefault()) {
+    const auto& portQueueConfigs =
+        *ConfigSession::getInstance().getAgentConfig().sw()->portQueueConfigs();
+    if (portQueueConfigs.find(name.getName()) == portQueueConfigs.end()) {
+      throw std::invalid_argument(
+          fmt::format("Queue config '{}' does not exist.", name.getName()));
+    }
+  }
+
+  bool changed = false;
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      if (name.isDefault()) {
+        port->portQueueConfigName().reset();
+      } else {
+        port->portQueueConfigName() = name.getName();
+      }
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -561,6 +657,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("description=\"{}\"", value));
+    } else if (attr == "name") {
+      changed |= applyInterfaceName(value, effectiveInterfaces);
+      results.push_back(fmt::format("name=\"{}\"", value));
     } else if (attr == "ip-address" || attr == "ipv6-address") {
       validateInterfaceIpAttr(attr, value);
 
@@ -646,6 +745,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.emplace_back("state=enabled");
+    } else if (attr == "queue-config") {
+      changed |= applyQueueConfig(value, effectiveInterfaces);
+      results.push_back(fmt::format("queue-config={}", value));
     }
   }
 

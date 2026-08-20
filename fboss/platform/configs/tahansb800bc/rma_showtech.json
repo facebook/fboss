@@ -1,3 +1,20 @@
 {
-  "i2cBusIgnore": []
+  "i2cBusIgnore": [],
+  "i2cDumpDevices": [
+    "/run/devmap/cplds/MCB_CPLD",
+    "/run/devmap/cplds/SCM_CPLD",
+    "/run/devmap/cplds/SMB_CPLD"
+  ],
+  "scPowerGood": {
+    "sysfsAttributes": [
+      {
+        "name": "SMB_POWERGOOD",
+        "path": "/run/devmap/cplds/MCB_CPLD/smb_pg"
+      },
+      {
+        "name": "ASIC_POWERSTATE",
+        "path": "/run/devmap/cplds/SMB_CPLD/th6_pwr_en"
+      }
+    ]
+  }
 }

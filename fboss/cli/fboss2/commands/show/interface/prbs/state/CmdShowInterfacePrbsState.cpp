@@ -168,6 +168,39 @@ prbs::InterfacePrbsState getPrbsState(
 
 } // namespace
 
+std::string_view CmdShowInterfacePrbsStateTraits::description() {
+  return "Displays the current PRBS configuration for each component of an interface: whether the generator and checker are enabled and which polynomial is programmed. Components that do not report a polynomial show the raw enum value. Accepts an optional component name to narrow the output. Use it to confirm whether a PRBS test is running on a link.";
+}
+
+CmdShowInterfacePrbsState::RetType CmdShowInterfacePrbsState::sampleModel() {
+  RetType model;
+  cli::PrbsStateInterfaceEntry interfaceEntry;
+
+  cli::PrbsStateComponentEntry asic;
+  asic.interfaceName() = "eth1/1/1";
+  asic.component() = phy::PortComponent::ASIC;
+  asic.prbsState()->polynomial() = prbs::PrbsPolynomial::PRBS31;
+  asic.prbsState()->generatorEnabled() = false;
+  asic.prbsState()->checkerEnabled() = false;
+  interfaceEntry.componentEntries()->push_back(asic);
+
+  for (const auto component :
+       {phy::PortComponent::GB_SYSTEM,
+        phy::PortComponent::GB_LINE,
+        phy::PortComponent::TRANSCEIVER_SYSTEM,
+        phy::PortComponent::TRANSCEIVER_LINE}) {
+    cli::PrbsStateComponentEntry entry;
+    entry.interfaceName() = "eth1/1/1";
+    entry.component() = component;
+    entry.prbsState()->generatorEnabled() = false;
+    entry.prbsState()->checkerEnabled() = false;
+    interfaceEntry.componentEntries()->push_back(entry);
+  }
+
+  model.interfaceEntries()->push_back(interfaceEntry);
+  return model;
+}
+
 // Template instantiations
 template void
 CmdHandler<CmdShowInterfacePrbsState, CmdShowInterfacePrbsStateTraits>::run();

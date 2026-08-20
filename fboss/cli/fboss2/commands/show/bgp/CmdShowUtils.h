@@ -150,6 +150,17 @@ const std::string formatBytes(size_t n);
 //     std::ostream& out,
 //     bool detailed,
 //     bool tag2Name = false);
+/*
+ * Marker legend printed above every RIB-entry listing. Single source of truth
+ * shared by the internal and OSS printRIBEntries copies and by the golden
+ * tests, so the legend cannot drift from the markers it describes.
+ *
+ * "!" marks a path excluded from selection before comparison.
+ */
+inline constexpr auto kRibEntryMarkersLegend =
+    "Markers: * - One of the best entries, @ - Best entry, "
+    "% - Pending selection, ! - Inactive path";
+
 // Prints entries for bgp table commands
 void printRIBEntries(
     std::ostream& out,

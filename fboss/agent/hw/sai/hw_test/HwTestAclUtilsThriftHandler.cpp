@@ -129,8 +129,8 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
                                       ->aclTableManager();
     auto aclTableHandle =
         aclTableManager.getAclTableHandle(getActualAclTableName(*tableName));
-    auto aclEntryHandle =
-        aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+    auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+        aclTableHandle, swAcl->getPriority(), swAcl->getID());
     auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
     // Get counter corresponding to the ACL entry
@@ -342,8 +342,8 @@ bool HwTestThriftHandler::isAclEntrySame(
   auto tableName = aclTableName ? getActualAclTableName(*aclTableName)
                                 : getActualAclTableName(std::nullopt);
   auto aclTableHandle = aclTableManager.getAclTableHandle(tableName);
-  auto aclEntryHandle =
-      aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+  auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+      aclTableHandle, swAcl->getPriority(), swAcl->getID());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
   auto aclFieldPriorityExpected =

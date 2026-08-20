@@ -137,6 +137,7 @@ cpp_library(
         ":transceiver-manager",
         "//common/time:time",
         "//fb303:thread_cached_service_data",
+        "//fboss/lib/phy:phy_management_base",
         "//folly/logging:logging",
     ],
     exported_deps = [

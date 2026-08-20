@@ -151,6 +151,52 @@ RetType CmdShowFabric::createModel(
   return model;
 }
 
+std::string_view CmdShowFabricTraits::description() {
+  return "Displays the switch's fabric links: for each local fabric port, the discovered and expected peer switch (with switch ID), peer port, and whether they match. DSF-only — applies to disaggregated scheduled fabric (DSF) switches and returns data only in a DSF topology.";
+}
+
+RetType CmdShowFabric::sampleModel() {
+  RetType model;
+
+  cli::FabricEntry entry1;
+  entry1.localPort() = "fab1/1/1";
+  entry1.remoteSwitchName() = "fdsw001";
+  entry1.remoteSwitchId() = 2722;
+  entry1.expectedRemoteSwitchName() = "fdsw001";
+  entry1.expectedRemoteSwitchId() = 2722;
+  entry1.remotePortName() = "fab1/103/5";
+  entry1.remotePortId() = 63;
+  entry1.expectedRemotePortName() = "fab1/103/5";
+  entry1.expectedRemotePortId() = 63;
+  model.fabricEntries()->push_back(entry1);
+
+  cli::FabricEntry entry2;
+  entry2.localPort() = "fab1/1/2";
+  entry2.remoteSwitchName() = "fdsw001";
+  entry2.remoteSwitchId() = 2720;
+  entry2.expectedRemoteSwitchName() = "fdsw001";
+  entry2.expectedRemoteSwitchId() = 2720;
+  entry2.remotePortName() = "fab1/103/6";
+  entry2.remotePortId() = 195;
+  entry2.expectedRemotePortName() = "fab1/103/6";
+  entry2.expectedRemotePortId() = 195;
+  model.fabricEntries()->push_back(entry2);
+
+  cli::FabricEntry entry3;
+  entry3.localPort() = "fab1/1/5";
+  entry3.remoteSwitchName() = "fdsw002";
+  entry3.remoteSwitchId() = 2726;
+  entry3.expectedRemoteSwitchName() = "fdsw002";
+  entry3.expectedRemoteSwitchId() = 2726;
+  entry3.remotePortName() = "fab1/103/5";
+  entry3.remotePortId() = 63;
+  entry3.expectedRemotePortName() = "fab1/103/5";
+  entry3.expectedRemotePortId() = 63;
+  model.fabricEntries()->push_back(entry3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
 template const ValidFilterMapType

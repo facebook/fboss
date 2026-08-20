@@ -27,9 +27,13 @@
 #include <folly/logging/xlog.h>
 
 DEFINE_bool(
-    enable_xphy_link_training,
+    enable_xphy_link_training_line_side,
     false,
-    "Enable/disable link training for XPHY ports");
+    "Enable/disable link training on the line side of XPHY ports");
+DEFINE_bool(
+    enable_xphy_link_training_sys_side,
+    false,
+    "Enable/disable link training on the system side of XPHY ports");
 
 namespace facebook::fboss {
 
@@ -312,7 +316,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,
 #endif
-      FLAGS_enable_xphy_link_training
+      (lineSide ? FLAGS_enable_xphy_link_training_line_side
+                : FLAGS_enable_xphy_link_training_sys_side)
           ? std::make_optional<SaiPortTraits::Attributes::LinkTrainingEnable>(
                 true)
           : std::nullopt, // Link Training Enable
@@ -355,6 +360,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrProfile
 #endif
       std::nullopt, // PfcPauseDurationOverride
+      std::nullopt, // LinkScanMode
   };
 }
 
@@ -420,6 +426,54 @@ void SaiPortManager::programSerdes(
 
   // create System port serdes
   portHandle->sysSerdes = store.setObject(sysSerdesKey, serdesAttributes);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // Apply TX/RX precoding from the platform mapping pin configs. These aren't
+  // serdes CreateAttributes, so set them after the serdes object is created.
+  // Skip precoding on a side when link training is enabled on that side: LT
+  // negotiates the precoder with the link partner, so forcing precoding (and
+  // the derived ER mode) conflicts with LT and can drive the TX FIR through the
+  // Agera3 NLC path (which rejects those taps when precoding resolves to 0).
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    auto applyPrecoding = [](const std::shared_ptr<SaiPortSerdes>& serdes,
+                             const std::vector<phy::PinConfig>& pinConfigs) {
+      if (!serdes) {
+        return;
+      }
+      SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+      SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+      for (const auto& pinConfig : pinConfigs) {
+        if (auto tx = pinConfig.tx()) {
+          if (auto precoding = tx->precoding()) {
+            txPrecoding.push_back(precoding.value());
+          }
+        }
+        if (auto rx = pinConfig.rx()) {
+          if (auto precoding = rx->precoding()) {
+            rxPrecoding.push_back(precoding.value());
+          }
+        }
+      }
+      if (!txPrecoding.empty()) {
+        SaiApiTable::getInstance()->portApi().setAttribute(
+            serdes->adapterKey(),
+            SaiPortSerdesTraits::Attributes::TxPrecoding{txPrecoding});
+      }
+      if (!rxPrecoding.empty()) {
+        SaiApiTable::getInstance()->portApi().setAttribute(
+            serdes->adapterKey(),
+            SaiPortSerdesTraits::Attributes::RxPrecoding{rxPrecoding});
+      }
+    };
+    if (!FLAGS_enable_xphy_link_training_line_side) {
+      applyPrecoding(portHandle->serdes, swPort->getLinePinConfigs().value());
+    }
+    if (!FLAGS_enable_xphy_link_training_sys_side) {
+      applyPrecoding(portHandle->sysSerdes, swPort->getPinConfigs());
+    }
+  }
+#endif
 }
 
 /*

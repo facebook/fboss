@@ -43,8 +43,10 @@ PhysicalMemory::PhysicalMemory(uint64_t phyAddr, uint32_t size, bool mustLock)
   // construct the lock file name
   const auto lockFN = fmt::format("{}/pmem_{:x}_lock", kLockPath, phyAddr_);
 
-  // lock it
-  lockFile_ = folly::File(lockFN, O_CREAT | O_WRONLY);
+  // lock it. O_NOFOLLOW refuses a pre-planted symlink at the predictable /tmp
+  // lock path (this process runs as root), and O_CLOEXEC avoids leaking the fd
+  // across exec.
+  lockFile_ = folly::File(lockFN, O_CREAT | O_WRONLY | O_NOFOLLOW | O_CLOEXEC);
   auto locked = lockFile_.try_lock();
   XLOG(DBG1) << folly::format(
       "{} to acquire lock, {}({})",

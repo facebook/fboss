@@ -9,6 +9,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+from .constants import DEFAULT_NETCASTLE_TIMEOUT
 from .enums import (
     AsicType,
     BootType,
@@ -42,6 +43,7 @@ class AsicTestOptions:
     regex: Optional[str] = None
     num_jobs: int = 4
     runner_options: Optional[str] = None
+    timeout: str = DEFAULT_NETCASTLE_TIMEOUT
 
 
 @dataclass

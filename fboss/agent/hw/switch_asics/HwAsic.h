@@ -122,6 +122,10 @@ class HwAsic {
     //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
     ACL_ENTRY_ETHER_TYPE,
 
+    // Set to true if the SAI implementation supports ACL matchers for
+    // destination IPv6 word3 and word2.
+    ACL_DST_IPV6_WORD_QUALIFIERS,
+
     // Set to true if the SAI implementation supports ACL Byte counters
     // For SAI, this maps to whether SAI_ACL_COUNTER_ATTR_BYTES can be queried.
     // TODO:
@@ -448,7 +452,10 @@ class HwAsic {
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
     CREDIT_WATCHDOG,
+    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
     SAI_FEC_CORRECTED_BITS,
+    // SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS,
+    SAI_FEC_SYMBOL_ERRORS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
     SWITCH_ISOLATE,
@@ -519,6 +526,7 @@ class HwAsic {
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
     ARS_FUTURE_PORT_LOAD,
+    ARS_CURRENT_PORT_LOAD,
     RESERVED_BYTES_FOR_BUFFER_POOL,
     // Indicates the buffer pool size excludes the headroom
     // pool size given the buffer pool size determination is
@@ -902,6 +910,13 @@ class HwAsic {
   // Applicable only when IP_IN_IP_DECAP feature is enabled.
   virtual cfg::TunnelMode getTunnelDscpMode() const {
     return cfg::TunnelMode::PIPE;
+  }
+
+  // Applicable only when PORT_DEBOUNCE feature is enabled. True means each
+  // read reports the count since the previous read, false means the retrigger
+  // counters report a running total.
+  virtual bool isPortDebounceRetriggerCountClearOnRead() const {
+    return true;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

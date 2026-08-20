@@ -24,6 +24,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/lib/platforms/PlatformMappingUtils.h"
 
 DEFINE_string(
     platform_descriptor_config_path,
@@ -39,6 +40,7 @@ namespace {
 
 constexpr auto kPlatformDescriptorFileName = "platform_descriptor.json";
 constexpr auto kPlatformMappingFileName = "platform_mapping.json";
+constexpr auto kRawPlatformMappingFileName = "raw_platform_mapping.json";
 
 std::string normalize(std::string_view value) {
   return boost::algorithm::to_lower_copy(std::string(value));
@@ -260,6 +262,33 @@ std::optional<std::string> PlatformDescriptorRegistry::loadPlatformMapping(
   return mappingJson;
 }
 
+cfg::PlatformMapping PlatformDescriptorRegistry::loadPlatformMappingFromRaw(
+    PlatformType type,
+    const cfg::PlatformConfig& platformConfig) const {
+  if (FLAGS_platform_descriptor_config_path.empty()) {
+    throw FbossError(
+        "--platform_descriptor_config_path must be set when --use_raw_platform_mapping is enabled");
+  }
+  const auto& portIdToPortAssignment = platformConfig.portIdToPortAssignment();
+  if (!portIdToPortAssignment.has_value()) {
+    throw FbossError(
+        "portIdToPortAssignment must be set when loading a raw platform mapping");
+  }
+  if (portIdToPortAssignment->empty()) {
+    throw FbossError(
+        "portIdToPortAssignment must not be empty when loading a raw platform mapping");
+  }
+  const auto entry = getDescriptorEntry(type);
+  if (!entry || entry->rawPlatformMappingPath.empty()) {
+    throw FbossError(
+        "Selected platform descriptor is missing sibling raw_platform_mapping.json");
+  }
+
+  return reconstructPlatformMapping(
+      readRawPlatformMapping(entry->rawPlatformMappingPath),
+      *portIdToPortAssignment);
+}
+
 PlatformDescriptor PlatformDescriptorRegistry::loadPlatformDescriptorFromFile(
     const std::string& path) {
   if (!fs::exists(path)) {
@@ -309,11 +338,13 @@ PlatformDescriptorRegistry::loadPlatformDescriptorEntriesFromDirectory(
         getRequiredPlatformFile(platformDir, kPlatformDescriptorFileName);
     auto mappingFile =
         getRequiredPlatformFile(platformDir, kPlatformMappingFileName);
+    auto rawMappingFile = platformDir / kRawPlatformMappingFileName;
 
     descriptorEntries.push_back(
         PlatformDescriptorEntry{
             loadPlatformDescriptorFromFile(descriptorFile.string()),
-            mappingFile.string()});
+            mappingFile.string(),
+            fs::exists(rawMappingFile) ? rawMappingFile.string() : ""});
   }
   return descriptorEntries;
 }

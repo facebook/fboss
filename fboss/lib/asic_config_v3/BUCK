@@ -4,9 +4,16 @@ load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 oncall("fboss_agent")
 
 python_library(
+    name = "paths",
+    srcs = ["paths.py"],
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
     name = "base_generator",
     srcs = ["base_generator.py"],
     labels = ["autodeps2_generated"],
+    deps = [":paths"],
 )
 
 python_library(
@@ -16,6 +23,7 @@ python_library(
     deps = [
         "fbsource//third-party/pypi/pyyaml:pyyaml",
         ":base_generator",
+        ":paths",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
         "//fboss/lib/platform_mapping_v2:read_files_utils",
     ],
@@ -30,5 +38,6 @@ python_binary(
     deps = [
         ":base_generator",
         ":broadcom_xgs_generator",
+        ":paths",
     ],
 )

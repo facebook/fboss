@@ -22,6 +22,16 @@ struct ShowRouteSummaryModel {
   5: i32 hwEntriesUsed;
 }
 
+struct RouteCounterEntry {
+  1: string counterID;
+  2: optional i64 bytes;
+  3: optional i64 packets;
+}
+
+struct ShowRouteCountersModel {
+  1: list<RouteCounterEntry> routeCounters;
+}
+
 struct MplsActionInfo {
   1: string action;
   2: optional i32 swapLabel;
@@ -37,6 +47,7 @@ struct NextHopInfo {
   6: optional common.NetworkTopologyInformation topologyInfo;
   7: optional list<string> srv6SegmentList;
   8: optional i32 cost;
+  9: bool isBackup = false;
 }
 
 struct ClientAndNextHops {

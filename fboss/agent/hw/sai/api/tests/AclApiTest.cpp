@@ -65,6 +65,28 @@ class AclApiTest : public ::testing::Test {
         folly::IPAddressV6("2620:0:1cfe:face:c00c::4"));
   }
 
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word3() const {
+    return std::make_pair(
+        folly::IPAddressV6("1234:5678::"), folly::IPAddressV6("ffff:ffff::"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word3_2() const {
+    return std::make_pair(
+        folly::IPAddressV6("2345:6789::"), folly::IPAddressV6("ffff:ffff::"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word2() const {
+    return std::make_pair(
+        folly::IPAddressV6("0:0:9abc:def0::"),
+        folly::IPAddressV6("0:0:ffff:ffff::"));
+  }
+
+  std::pair<folly::IPAddressV6, folly::IPAddressV6> kDstIpV6Word2_2() const {
+    return std::make_pair(
+        folly::IPAddressV6("0:0:abcd:ef01::"),
+        folly::IPAddressV6("0:0:ffff:ffff::"));
+  }
+
   std::pair<folly::IPAddressV4, folly::IPAddressV4> kSrcIpV4() const {
     return std::make_pair(
         folly::IPAddressV4("10.0.0.1"), folly::IPAddressV4("255.255.255.0"));
@@ -346,11 +368,16 @@ class AclApiTest : public ::testing::Test {
     return true;
   }
 
-  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId() const {
+  std::pair<sai_object_id_t, sai_uint32_t> kRouteDestination() const {
     return std::make_pair(81, 0);
   }
 
-  std::pair<sai_object_id_t, sai_uint32_t> kNextHopGroupId2() const {
+  std::vector<int8_t> kLabelExtended() const {
+    static const std::string kLabel{"acl-entry-label"};
+    return std::vector<int8_t>(kLabel.begin(), kLabel.end());
+  }
+
+  std::pair<sai_object_id_t, sai_uint32_t> kRouteDestination2() const {
     return std::make_pair(810, 0);
   }
 
@@ -404,6 +431,8 @@ class AclApiTest : public ::testing::Test {
             kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
+            true, // dstIpv6Word3
+            true, // dstIpv6Word2
             true, // srcIpv4
             true, // dstIpv4
             true, // l4SrcPort
@@ -469,6 +498,10 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldIpV6(kSrcIpV6())};
     SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6{
         AclEntryFieldIpV6(kDstIpV6())};
+    SaiAclEntryTraits::Attributes::FieldDstIpV6Word3 aclFieldDstIpV6Word3{
+        AclEntryFieldIpV6(kDstIpV6Word3())};
+    SaiAclEntryTraits::Attributes::FieldDstIpV6Word2 aclFieldDstIpV6Word2{
+        AclEntryFieldIpV6(kDstIpV6Word2())};
     SaiAclEntryTraits::Attributes::FieldSrcIpV4 aclFieldSrcIpV4{
         AclEntryFieldIpV4(kSrcIpV4())};
     SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4{
@@ -558,8 +591,11 @@ class AclApiTest : public ::testing::Test {
             AclEntryActionU32(kSetEcmpHashAlgorithm())};
     SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
         AclEntryActionBool(kL3SwitchCancel())};
-    SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId{
-        AclEntryFieldSaiObjectIdT(kNextHopGroupId())};
+    SaiAclEntryTraits::Attributes::FieldRouteDestination
+        aclFieldRouteDestination{
+            AclEntryFieldSaiObjectIdT(kRouteDestination())};
+    SaiAclEntryTraits::Attributes::LabelExtended aclLabelExtended{
+        kLabelExtended()};
 
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
@@ -567,6 +603,8 @@ class AclApiTest : public ::testing::Test {
          true, // enabled
          aclFieldSrcIpV6,
          aclFieldDstIpV6,
+         aclFieldDstIpV6Word3,
+         aclFieldDstIpV6Word2,
          aclFieldSrcIpV4,
          aclFieldDstIpV4,
          aclFieldSrcPort,
@@ -611,7 +649,8 @@ class AclApiTest : public ::testing::Test {
          aclActionDisableArsForwarding,
          aclActionSetEcmpHashAlgorithm,
          aclActionL3SwitchCancel,
-         aclFieldNextHopGroupId},
+         aclFieldRouteDestination,
+         aclLabelExtended},
         kSwitchID());
   }
 
@@ -711,6 +750,8 @@ class AclApiTest : public ::testing::Test {
       sai_uint32_t priority,
       const std::pair<folly::IPAddressV6, folly::IPAddressV6>& srcIpV6,
       const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6,
+      const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6Word3,
+      const std::pair<folly::IPAddressV6, folly::IPAddressV6>& dstIpV6Word2,
       const std::pair<folly::IPAddressV4, folly::IPAddressV4>& srcIpV4,
       const std::pair<folly::IPAddressV4, folly::IPAddressV4>& dstIpV4,
       const std::pair<sai_object_id_t, sai_uint32_t>& srcPort,
@@ -753,7 +794,7 @@ class AclApiTest : public ::testing::Test {
       bool disableArsForwarding,
       sai_uint32_t setEcmpHashAlgorithm,
       bool l3SwitchCancel,
-      const std::pair<sai_object_id_t, sai_uint32_t>& nextHopGroupId,
+      const std::pair<sai_object_id_t, sai_uint32_t>& routeDestination,
       bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
@@ -764,6 +805,10 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
     auto aclFieldDstIpV6Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6());
+    auto aclFieldDstIpV6Word3Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6Word3());
+    auto aclFieldDstIpV6Word2Got = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldDstIpV6Word2());
     auto aclFieldSrcIpV4Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV4());
     auto aclFieldDstIpV4Got = aclApi->getAttribute(
@@ -851,14 +896,18 @@ class AclApiTest : public ::testing::Test {
         SaiAclEntryTraits::Attributes::ActionSetEcmpHashAlgorithm());
     auto aclActionL3SwitchCancelGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionL3SwitchCancel());
-    auto aclFieldNextHopGroupIdGot = aclApi->getAttribute(
-        aclEntryId, SaiAclEntryTraits::Attributes::FieldNextHopGroupId());
+    auto aclFieldRouteDestinationGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldRouteDestination());
+    auto aclLabelExtendedGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::LabelExtended());
 
     EXPECT_EQ(aclPriorityGot, priority);
     EXPECT_EQ(aclEnabledGot, enabled);
 
     EXPECT_EQ(aclFieldSrcIpV6Got.getDataAndMask(), srcIpV6);
     EXPECT_EQ(aclFieldDstIpV6Got.getDataAndMask(), dstIpV6);
+    EXPECT_EQ(aclFieldDstIpV6Word3Got.getDataAndMask(), dstIpV6Word3);
+    EXPECT_EQ(aclFieldDstIpV6Word2Got.getDataAndMask(), dstIpV6Word2);
     EXPECT_EQ(aclFieldSrcIpV4Got.getDataAndMask(), srcIpV4);
     EXPECT_EQ(aclFieldDstIpV4Got.getDataAndMask(), dstIpV4);
     EXPECT_EQ(aclFieldSrcPortGot.getDataAndMask(), srcPort);
@@ -903,7 +952,8 @@ class AclApiTest : public ::testing::Test {
     EXPECT_EQ(aclActionDisableArsForwardingGot.getData(), disableArsForwarding);
     EXPECT_EQ(aclActionSetEcmpHashAlgorithmGot.getData(), setEcmpHashAlgorithm);
     EXPECT_EQ(aclActionL3SwitchCancelGot.getData(), l3SwitchCancel);
-    EXPECT_EQ(aclFieldNextHopGroupIdGot.getDataAndMask(), nextHopGroupId);
+    EXPECT_EQ(aclFieldRouteDestinationGot.getDataAndMask(), routeDestination);
+    EXPECT_EQ(aclLabelExtendedGot, kLabelExtended());
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -1010,6 +1060,10 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldSrcIpV6());
   auto aclTableFieldDstIpV6Got = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV6());
+  auto aclTableFieldDstIpV6Word3Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV6Word3());
+  auto aclTableFieldDstIpV6Word2Got = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldDstIpV6Word2());
   auto aclTableFieldSrcIpV4Got = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldSrcIpV4());
   auto aclTableFieldDstIpV4Got = aclApi->getAttribute(
@@ -1071,6 +1125,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
 
   EXPECT_EQ(aclTableFieldSrcIpV6Got, true);
   EXPECT_EQ(aclTableFieldDstIpV6Got, true);
+  EXPECT_EQ(aclTableFieldDstIpV6Word3Got, true);
+  EXPECT_EQ(aclTableFieldDstIpV6Word2Got, true);
   EXPECT_EQ(aclTableFieldSrcIpV4Got, true);
   EXPECT_EQ(aclTableFieldDstIpV4Got, true);
   EXPECT_EQ(aclTableFieldL4SrcPortGot, true);
@@ -1110,6 +1166,8 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kPriority(),
       kSrcIpV6(),
       kDstIpV6(),
+      kDstIpV6Word3(),
+      kDstIpV6Word2(),
       kSrcIpV4(),
       kDstIpV4(),
       kSrcPort(),
@@ -1152,7 +1210,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
       kL3SwitchCancel(),
-      kNextHopGroupId());
+      kRouteDestination());
 }
 
 TEST_F(AclApiTest, getAclCounterAttribute) {
@@ -1280,6 +1338,10 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldIpV6(kSrcIpV6_2())};
   SaiAclEntryTraits::Attributes::FieldDstIpV6 aclFieldDstIpV6Attribute2{
       AclEntryFieldIpV6(kDstIpV6_2())};
+  SaiAclEntryTraits::Attributes::FieldDstIpV6Word3
+      aclFieldDstIpV6Word3Attribute2{AclEntryFieldIpV6(kDstIpV6Word3_2())};
+  SaiAclEntryTraits::Attributes::FieldDstIpV6Word2
+      aclFieldDstIpV6Word2Attribute2{AclEntryFieldIpV6(kDstIpV6Word2_2())};
   SaiAclEntryTraits::Attributes::FieldSrcIpV4 aclFieldSrcIpV4Attribute2{
       AclEntryFieldIpV4(kSrcIpV4_2())};
   SaiAclEntryTraits::Attributes::FieldDstIpV4 aclFieldDstIpV4Attribute2{
@@ -1368,13 +1430,16 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       aclActionSetEcmpHashAlgorithm{AclEntryActionU32(kSetEcmpHashAlgorithm())};
   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel aclActionL3SwitchCancel{
       AclEntryActionBool(kL3SwitchCancel())};
-  SaiAclEntryTraits::Attributes::FieldNextHopGroupId aclFieldNextHopGroupId2{
-      AclEntryFieldSaiObjectIdT(kNextHopGroupId2())};
+  SaiAclEntryTraits::Attributes::FieldRouteDestination
+      aclFieldRouteDestination2{
+          AclEntryFieldSaiObjectIdT(kRouteDestination2())};
 
   aclApi->setAttribute(aclEntryId, aclPriorityAttribute2);
 
   aclApi->setAttribute(aclEntryId, aclFieldSrcIpV6Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Word3Attribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldDstIpV6Word2Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldSrcIpV4Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldDstIpV4Attribute2);
   aclApi->setAttribute(aclEntryId, aclFieldSrcPortAttribute2);
@@ -1417,13 +1482,15 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclActionDisableArsForwarding);
   aclApi->setAttribute(aclEntryId, aclActionSetEcmpHashAlgorithm);
   aclApi->setAttribute(aclEntryId, aclActionL3SwitchCancel);
-  aclApi->setAttribute(aclEntryId, aclFieldNextHopGroupId2);
+  aclApi->setAttribute(aclEntryId, aclFieldRouteDestination2);
 
   getAndVerifyAclEntryAttribute(
       aclEntryId,
       kPriority2(),
       kSrcIpV6_2(),
       kDstIpV6_2(),
+      kDstIpV6Word3_2(),
+      kDstIpV6Word2_2(),
       kSrcIpV4_2(),
       kDstIpV4_2(),
       kSrcPort2(),
@@ -1466,7 +1533,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kDisableArsForwarding(),
       kSetEcmpHashAlgorithm(),
       kL3SwitchCancel(),
-      kNextHopGroupId2());
+      kRouteDestination2());
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction3{
       AclEntryActionU32(kPacketAction3())};

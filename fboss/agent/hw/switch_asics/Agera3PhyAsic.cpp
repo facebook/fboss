@@ -7,6 +7,9 @@ namespace facebook::fboss {
 bool Agera3PhyAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
       return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
@@ -14,8 +17,6 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
@@ -30,8 +31,8 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
-    case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
       return false;
     default:
       return false;

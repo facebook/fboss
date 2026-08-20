@@ -165,7 +165,10 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
                              const auto& nhToTopoInfo) {
       out << fmt::format("  {}\n", header);
       std::string overrideStr = (isOverride ? "(override) :" : "");
+      const bool isFpf = show::route::utils::isFpfEncoding(
+          model.nsfTeWeightEncoding().to_optional());
       std::map<int, int> planeIdToPathCount;
+      std::map<int, int> stswIdToPathCount;
       for (const auto& nextHop : nextHops) {
         out << fmt::format(
             "  {}  {}\n",
@@ -179,13 +182,23 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
         auto it = nhToTopoInfo.find(nextHop.addr().value());
         if (it != nhToTopoInfo.end()) {
           const auto& topologyInfo = it->second;
-          if (topologyInfo.plane_id().has_value()) {
-            int planeId = topologyInfo.plane_id().value();
-            planeIdToPathCount[planeId]++;
+          if (isFpf) {
+            if (topologyInfo.spine_id().has_value()) {
+              stswIdToPathCount[topologyInfo.spine_id().value()]++;
+            }
+          } else if (topologyInfo.plane_id().has_value()) {
+            planeIdToPathCount[topologyInfo.plane_id().value()]++;
           }
         }
       }
-      if (planeIdToPathCount.size() > 0) {
+      if (isFpf) {
+        if (stswIdToPathCount.size() > 0) {
+          out << fmt::format("  Paths per stsw:\n");
+          for (const auto& [stswId, pathCount] : stswIdToPathCount) {
+            out << fmt::format("    Stsw {}: {}\n", stswId, pathCount);
+          }
+        }
+      } else if (planeIdToPathCount.size() > 0) {
         out << fmt::format("  Paths per plane:\n");
         for (const auto& [planeId, pathCount] : planeIdToPathCount) {
           out << fmt::format("    Plane {}: {}\n", planeId, pathCount);
@@ -420,6 +433,64 @@ std::string CmdShowRouteDetails::getClassID(cfg::AclLookupClass classID) {
   }
   throw std::runtime_error(
       "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));
+}
+
+std::string_view CmdShowRouteDetailsTraits::description() {
+  return "Displays the full routing-table entry for each prefix: the advertising client and admin distance, the ECMP nexthop set with weights, counter/class IDs, and the resolved forwarding nexthops with egress interfaces. Use it to inspect how a route is programmed and forwarded.";
+}
+
+CmdShowRouteDetails::RetType CmdShowRouteDetails::sampleModel() {
+  RetType model;
+
+  cli::RouteDetailEntry entry;
+  entry.ip() = "2001:db8:101c::";
+  entry.prefixLength() = 47;
+  entry.action() = "Nexthops";
+  entry.isConnected() = false;
+  entry.adminDistance() = "None";
+  entry.counterID() = "None";
+  entry.classID() = "None";
+  entry.overridenEcmpMode() = "None";
+
+  cli::ClientAndNextHops clientAndNH;
+  clientAndNH.clientId() = 0;
+  clientAndNH.adminDistance() = "20";
+  clientAndNH.isPreferred() = true;
+  clientAndNH.counterID() = "None";
+  clientAndNH.classID() = "None";
+
+  cli::NextHopInfo nh1, nh2, nh3;
+  nh1.addr() = "2001:db8:e03f:1af8::28";
+  nh1.weight() = 8;
+  nh2.addr() = "2001:db8:e03f:1af9::28";
+  nh2.weight() = 7;
+  nh3.addr() = "2001:db8:e03f:1afa::28";
+  nh3.weight() = 8;
+
+  clientAndNH.nextHops()->push_back(nh1);
+  clientAndNH.nextHops()->push_back(nh2);
+  clientAndNH.nextHops()->push_back(nh3);
+
+  entry.nextHopMulti()->push_back(clientAndNH);
+
+  cli::NextHopInfo fwd1, fwd2, fwd3;
+  fwd1.addr() = "2001:db8:e03f:1af8::28";
+  fwd1.weight() = 8;
+  fwd1.ifName() = "eth9/1/1";
+  fwd2.addr() = "2001:db8:e03f:1af9::28";
+  fwd2.weight() = 7;
+  fwd2.ifName() = "eth9/3/1";
+  fwd3.addr() = "2001:db8:e03f:1afa::28";
+  fwd3.weight() = 8;
+  fwd3.ifName() = "eth9/5/1";
+
+  entry.nextHops()->push_back(fwd1);
+  entry.nextHops()->push_back(fwd2);
+  entry.nextHops()->push_back(fwd3);
+
+  model.routeEntries()->push_back(entry);
+
+  return model;
 }
 
 // Explicit template instantiation

@@ -51,6 +51,31 @@ TestStruct createTestStructForExtendedTests() {
       testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
+// Populates TestStruct.recursiveMember with a multi-depth self-referential
+// (recursive) RecursiveStruct tree, used to exercise self-referential paths:
+//   recursiveMember[0]            name="r0"  simpleMember{min=11,  max=111}
+//     children[0]                 name="c0"  simpleMember{min=22,  max=222}
+//     children[1]                 name="c1"  simpleMember{min=33,  max=333}
+//       children[0]               name="gc0" simpleMember{min=44,  max=444}
+void populateRecursiveMember(TestStruct& testStruct) {
+  auto makeNode = [](std::string name, int32_t min, int32_t max) {
+    RecursiveStruct node;
+    node.name() = std::move(name);
+    node.simpleMember()->min() = min;
+    node.simpleMember()->max() = max;
+    return node;
+  };
+
+  auto r0 = makeNode("r0", 11, 111);
+  auto c0 = makeNode("c0", 22, 222);
+  auto c1 = makeNode("c1", 33, 333);
+  auto gc0 = makeNode("gc0", 44, 444);
+  c1.children()->push_back(std::move(gc0));
+  r0.children()->push_back(std::move(c0));
+  r0.children()->push_back(std::move(c1));
+  testStruct.recursiveMember()->push_back(std::move(r0));
+}
+
 template <typename T, typename = void>
 struct IsPublishable : std::false_type {};
 
@@ -175,6 +200,7 @@ TYPED_TEST(CowStorageTests, GetThrift) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  populateRecursiveMember(testStruct);
 
   auto storage = this->initStorage(testStruct);
 
@@ -183,7 +209,68 @@ TYPED_TEST(CowStorageTests, GetThrift) {
   EXPECT_EQ(storage.get(root.member()).value(), testStruct.member().value());
   EXPECT_EQ(
       storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
+
+  // self-referential (recursive) struct paths via typed thriftpath accessors
+  EXPECT_EQ(storage.get(root.recursiveMember()[0].name()).value(), "r0");
+  EXPECT_EQ(
+      storage.get(root.recursiveMember()[0].simpleMember().min()).value(), 11);
+  auto gotSimple =
+      storage.get(root.recursiveMember()[0].simpleMember()).value();
+  EXPECT_EQ(*gotSimple.min(), 11);
+  EXPECT_EQ(*gotSimple.max(), 111);
+  // deeper recursion reached via raw token paths (typed accessors stop at the
+  // self-referential boundary)
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember", "0", "children", "1", "name"})
+          .value(),
+      "c1");
+  EXPECT_EQ(
+      storage
+          .template get<int32_t>(
+              {"recursiveMember",
+               "0",
+               "children",
+               "1",
+               "children",
+               "0",
+               "simpleMember",
+               "min"})
+          .value(),
+      44);
+
   EXPECT_EQ(storage.get(root).value(), testStruct);
+}
+
+TYPED_TEST(CowStorageTests, GetRecursiveStructTyped) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  populateRecursiveMember(testStruct);
+  auto storage = this->initStorage(testStruct);
+
+  // Typed access to a recursiveMember list element returns a RecursiveStruct.
+  auto elem = storage.get(root.recursiveMember()[0]);
+  static_assert(
+      std::is_same_v<typename decltype(elem)::value_type, RecursiveStruct>);
+  ASSERT_TRUE(elem.hasValue());
+  EXPECT_EQ(*elem->name(), "r0");
+  EXPECT_EQ(*elem->simpleMember()->min(), 11);
+  EXPECT_EQ(elem->children()->size(), 2);
+
+  // Typed access to a first-level child (a self-referential element) also
+  // returns a RecursiveStruct.
+  auto child = storage.get(root.recursiveMember()[0].children()[1]);
+  static_assert(
+      std::is_same_v<typename decltype(child)::value_type, RecursiveStruct>);
+  ASSERT_TRUE(child.hasValue());
+  EXPECT_EQ(*child->name(), "c1");
+  EXPECT_EQ(*child->simpleMember()->min(), 33);
+  EXPECT_EQ(child->children()->size(), 1);
 }
 
 TYPED_TEST(CowStorageTests, GetEncoded) {
@@ -193,6 +280,7 @@ TYPED_TEST(CowStorageTests, GetEncoded) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  populateRecursiveMember(testStruct);
   auto storage = this->initStorage(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
@@ -219,6 +307,34 @@ TYPED_TEST(CowStorageTests, GetEncoded) {
       facebook::fboss::thrift_cow::serialize<
           apache::thrift::type_class::structure>(
           OperProtocol::SIMPLE_JSON, testStruct.structMap()->at(3)));
+
+  // self-referential (recursive) struct paths
+  result = storage.get_encoded(
+      root.recursiveMember()[0].simpleMember().min(),
+      OperProtocol::SIMPLE_JSON);
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::integral>(OperProtocol::SIMPLE_JSON, 11));
+  // deeper recursion reached via raw token paths
+  result = storage.get_encoded(
+      {"recursiveMember",
+       "0",
+       "children",
+       "1",
+       "children",
+       "0",
+       "simpleMember"},
+      OperProtocol::SIMPLE_JSON);
+  TestStructSimple deepSimple;
+  deepSimple.min() = 44;
+  deepSimple.max() = 444;
+  EXPECT_EQ(
+      *result->contents(),
+      facebook::fboss::thrift_cow::serialize<
+          apache::thrift::type_class::structure>(
+          OperProtocol::SIMPLE_JSON, deepSimple));
+
   result = storage.get_encoded(root, OperProtocol::SIMPLE_JSON);
   EXPECT_EQ(
       *result->contents(),
@@ -280,6 +396,7 @@ TYPED_TEST(CowStorageTests, SetThrift) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  populateRecursiveMember(testStruct);
   auto storage = this->initStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -305,6 +422,58 @@ TYPED_TEST(CowStorageTests, SetThrift) {
   EXPECT_EQ(storage.get(root.rx()).value(), true);
   EXPECT_EQ(storage.get(root.member()).value(), newMember);
   EXPECT_EQ(storage.get(root.structMap()[3]).value(), newStructMapMember);
+
+  // self-referential (recursive) struct paths: set a leaf via typed accessor
+  EXPECT_EQ(
+      storage.get(root.recursiveMember()[0].simpleMember().min()).value(), 11);
+  EXPECT_EQ(
+      storage.set(root.recursiveMember()[0].simpleMember().min(), 999),
+      std::nullopt);
+  EXPECT_EQ(
+      storage.get(root.recursiveMember()[0].simpleMember().min()).value(), 999);
+
+  // set a leaf at a deeper recursion level via raw token path
+  EXPECT_EQ(
+      storage.template set<int32_t>(
+          {"recursiveMember",
+           "0",
+           "children",
+           "1",
+           "children",
+           "0",
+           "simpleMember",
+           "min"},
+          888),
+      std::nullopt);
+  EXPECT_EQ(
+      storage
+          .template get<int32_t>(
+              {"recursiveMember",
+               "0",
+               "children",
+               "1",
+               "children",
+               "0",
+               "simpleMember",
+               "min"})
+          .value(),
+      888);
+
+  // replace an entire struct member reached through a recursive path
+  TestStructSimple newRecursiveSimple;
+  newRecursiveSimple.min() = 1;
+  newRecursiveSimple.max() = 2;
+  EXPECT_EQ(
+      storage.set(
+          {"recursiveMember", "0", "children", "0", "simpleMember"},
+          newRecursiveSimple),
+      std::nullopt);
+  EXPECT_EQ(
+      storage
+          .template get<TestStructSimple>(
+              {"recursiveMember", "0", "children", "0", "simpleMember"})
+          .value(),
+      newRecursiveSimple);
 }
 
 TYPED_TEST(CowStorageTests, AddDynamic) {
@@ -341,6 +510,7 @@ TYPED_TEST(CowStorageTests, RemoveThrift) {
   (*testStruct.structMap())[1] = member1;
   (*testStruct.structMap())[2] = member2;
   (*testStruct.structList()) = {member2, member1, member1};
+  populateRecursiveMember(testStruct);
 
   auto storage = this->initStorage(testStruct);
 
@@ -380,6 +550,67 @@ TYPED_TEST(CowStorageTests, RemoveThrift) {
   EXPECT_EQ(
       storage.get(root.structList()[5]).error().code(),
       StorageError::Code::INVALID_PATH);
+
+  // self-referential (recursive) struct paths
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember",
+               "0",
+               "children",
+               "1",
+               "children",
+               "0",
+               "name"})
+          .value(),
+      "gc0");
+  // remove a deeply-nested recursive element
+  EXPECT_EQ(
+      storage.remove(
+          std::vector<std::string>{
+              "recursiveMember", "0", "children", "1", "children", "0"}),
+      std::nullopt);
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember",
+               "0",
+               "children",
+               "1",
+               "children",
+               "0",
+               "name"})
+          .error()
+          .code(),
+      StorageError::Code::INVALID_PATH);
+  // the parent recursive node is left intact
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember", "0", "children", "1", "name"})
+          .value(),
+      "c1");
+  // removing a list element shifts subsequent recursive children down
+  EXPECT_EQ(
+      storage.remove(
+          std::vector<std::string>{"recursiveMember", "0", "children", "0"}),
+      std::nullopt);
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember", "0", "children", "0", "name"})
+          .value(),
+      "c1");
+  EXPECT_EQ(
+      storage
+          .template get<std::string>(
+              {"recursiveMember", "0", "children", "1", "name"})
+          .error()
+          .code(),
+      StorageError::Code::INVALID_PATH);
+  // typed removal of the whole recursive list element
+  EXPECT_EQ(storage.remove(root.recursiveMember()[0]), std::nullopt);
+  EXPECT_EQ(storage.get(root.recursiveMember())->size(), 0);
 }
 
 TYPED_TEST(CowStorageTests, PatchDelta) {
@@ -390,6 +621,7 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
 
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       createTestDynamic(), facebook::thrift::dynamic_format::JSON_1);
+  populateRecursiveMember(testStruct);
   auto storage = this->initStorage(testStruct);
 
   // publish to ensure we can patch published storage
@@ -434,7 +666,24 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
       deltaUnit(
           {"enumMap", "FIRST", "min"},
           std::nullopt,
-          makeState(integral{}, 2001))};
+          makeState(integral{}, 2001)),
+      // self-referential (recursive) struct paths
+      deltaUnit(
+          {"recursiveMember", "0", "simpleMember", "min"},
+          std::nullopt,
+          makeState(integral{}, 777)),
+      // deeper recursion level
+      deltaUnit(
+          {"recursiveMember",
+           "0",
+           "children",
+           "1",
+           "children",
+           "0",
+           "simpleMember",
+           "min"},
+          std::nullopt,
+          makeState(integral{}, 555))};
   delta.changes() = std::move(changes);
   delta.protocol() = OperProtocol::SIMPLE_JSON;
   storage.patch(delta);
@@ -447,6 +696,21 @@ TYPED_TEST(CowStorageTests, PatchDelta) {
   EXPECT_EQ(storage.get(root.member().min()).value(), 100);
   EXPECT_EQ(storage.get(root.structMap()[5].min()).value(), 1001);
   EXPECT_EQ(storage.get(root.enumMap()[TestEnum::FIRST].min()).value(), 2001);
+  EXPECT_EQ(
+      storage.get(root.recursiveMember()[0].simpleMember().min()).value(), 777);
+  EXPECT_EQ(
+      storage
+          .template get<int32_t>(
+              {"recursiveMember",
+               "0",
+               "children",
+               "1",
+               "children",
+               "0",
+               "simpleMember",
+               "min"})
+          .value(),
+      555);
 }
 
 template <typename Node>

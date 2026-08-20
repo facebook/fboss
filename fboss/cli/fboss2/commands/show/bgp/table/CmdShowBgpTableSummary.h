@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 
@@ -60,8 +62,31 @@ class CmdShowBgpTableSummary
     for (const auto& summary : model.summaries().value()) {
       out << "Address Family: " << enumNameSafe(summary.afi().value())
           << std::endl;
+      const auto displayedTotalPaths =
+          std::max<int64_t>(summary.total_paths().value(), 0);
       out << "Total Prefixes: " << summary.total_prefixes().value()
-          << "  Total Paths: " << summary.total_paths().value() << std::endl;
+          << "  Total Paths: " << displayedTotalPaths;
+      /*
+       * Omit the split entirely when the server did not report it (an older
+       * bgpd predating inactive_paths), rather than deriving one from a default
+       * and reporting a fully active RIB that was never measured.
+       */
+      if (const auto inactivePaths = summary.inactive_paths().to_optional()) {
+        /*
+         * total_paths moves synchronously on announce/withdraw while
+         * inactive_paths is reconciled at the next selection pass. Bound both
+         * server-supplied values to the subset invariant so that transient
+         * skew or corrupt negative input cannot print an impossible split (for
+         * example, 8 total and 10 inactive). The raw Thrift values remain
+         * available to callers.
+         */
+        const auto displayedInactivePaths =
+            std::clamp<int64_t>(*inactivePaths, 0, displayedTotalPaths);
+        const auto activePaths = displayedTotalPaths - displayedInactivePaths;
+        out << " (Active: " << activePaths
+            << ", Inactive: " << displayedInactivePaths << ")";
+      }
+      out << std::endl;
       out << "  External (eBGP): " << summary.ebgp_prefixes().value()
           << "  Internal (iBGP): " << summary.ibgp_prefixes().value()
           << "  Confed-eBGP: " << summary.confed_ebgp_prefixes().value()

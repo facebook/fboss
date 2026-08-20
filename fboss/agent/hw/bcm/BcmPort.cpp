@@ -1310,6 +1310,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           rsFec, /* current RsFecInfo to update */
           lastRsFec, /* previous RsFecInfo */
           correctedBitsFromHw, /* counter if available from hardware */
+          std::nullopt, /* corrected symbols counter not available */
           now.count() -
               *lastPhyInfo_.state()->timeCollected(), /* timeDeltaInSeconds */
           fecMode, /* operational FecMode */

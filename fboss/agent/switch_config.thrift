@@ -669,6 +669,16 @@ struct AclEntry {
   35: optional list<AclUdfEntry> udfTable;
 
   36: optional Range l4DstPortRange;
+
+  // Thrift has no unsigned 32-bit integer type. Use i64 as the carrier type so
+  // the full IPv6 word range [0, 0xffffffff] is representable. ACL config
+  // application validates the range before programming.
+  //
+  // dstIpV6Word3 matches destination IPv6 bits 127:96, and dstIpV6Word2
+  // matches bits 95:64. For AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222,
+  // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
+  37: optional i64 dstIpV6Word3;
+  38: optional i64 dstIpV6Word2;
 }
 
 enum AclTableActionType {
@@ -716,6 +726,8 @@ enum AclTableQualifier {
   L4_DST_PORT_RANGE = 27,
   TC = 28,
   NEXT_HOP_GROUP_ID = 29,
+  DST_IPV6_WORD3 = 30,
+  DST_IPV6_WORD2 = 31,
 }
 
 struct AclTable {
@@ -1171,6 +1183,18 @@ enum PortDrainState {
   DRAINED = 1,
 }
 
+/*
+ * Who notices that a port's link status changed: the SDK's software
+ * linkscan thread, or the ASIC itself.
+ *
+ * Unset leaves whatever the SDK came up with alone - FBOSS never
+ * programs the mode. Either value is written down to the SDK.
+ */
+enum LinkScanMode {
+  SOFTWARE = 1,
+  HARDWARE = 2,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1396,6 +1420,20 @@ struct Port {
   // UEC Link Layer Retry: name of the LlrConfig profile to apply to this port.
   // Presence enables LLR on the port (UE Spec 1.0.2 section 5.1).
   42: optional LlrConfigName llrConfigName;
+
+  // Controls whether TX precoding settings from the platform mapping are
+  // applied to the port.
+  43: optional bool txPrecoding;
+  // Controls whether RX precoding settings from the platform mapping are
+  // applied to the port.
+  44: optional bool rxPrecoding;
+
+  /*
+   * Whether link status changes on this port are noticed by the SDK's
+   * software linkscan thread or by the ASIC.
+   * Unset = leave whatever the SDK came up with untouched.
+   */
+  45: optional LinkScanMode linkScanMode;
 }
 
 enum LacpPortRate {
@@ -2087,6 +2125,9 @@ struct SwitchSettings {
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
   36: optional PacketForwardingMode packetForwardingMode;
+  // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
+  // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
+  37: optional i32 ecmpWidth;
 }
 
 // Global buffer pool
@@ -2452,6 +2493,13 @@ struct FlowletSwitchingConfig {
   18: optional i32 maxArsVirtualGroupWidth;
   // maximum number of ARS virtual groups
   19: optional i32 maxArsVirtualGroups;
+  // standby DLB group switching mode
+  20: optional SwitchingMode standbySwitchingMode;
+  // wait for lack of activity interval on the flow before load balancing,
+  // for standby DLB groups
+  21: optional i16 standbyInactivityIntervalUsecs;
+  // flow set table size for standby DLB groups
+  22: optional i16 standbyFlowletTableSize;
 }
 
 /*

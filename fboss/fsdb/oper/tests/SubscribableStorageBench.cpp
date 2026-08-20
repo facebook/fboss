@@ -4,23 +4,19 @@
 #include <folly/coro/AsyncScope.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Task.h>
-#include <folly/coro/Timeout.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
 #include <folly/synchronization/Baton.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include <algorithm>
-#include <atomic>
-#include <cmath>
 #include <memory>
+#include <optional>
 #include <vector>
 
-#include <common/base/Proc.h>
 #include <fboss/fsdb/if/FsdbModel.h>
+#include <fboss/fsdb/oper/ExtendedPathBuilder.h>
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
-#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
 #include "fboss/thrift_cow/storage/tests/CowStorageBenchHelper.h"
@@ -34,7 +30,6 @@ namespace {
 constexpr auto kReadsPerTask = 1000;
 constexpr auto kWritesPerTask = 200;
 constexpr auto kNumIncrementalUpdates = 10;
-constexpr auto kSubscriptionServeIntervalMsec = 1;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
@@ -46,7 +41,7 @@ void bm_get(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(dataGen);
+  StorageBenchmarkHelper<> helper(dataGen);
   helper.startStorage();
 
   // launch get requests from multiple threads
@@ -73,9 +68,9 @@ void bm_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2));
   helper.startStorage();
@@ -107,9 +102,9 @@ void bm_concurrent_get_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2)
           .setServeGetWithLastPublished(
@@ -142,9 +137,9 @@ void bm_serve_initialSync(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setStartWithInitializedData(false));
+      StorageBenchmarkHelper<>::Params().setStartWithInitializedData(false));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -199,9 +194,9 @@ void bm_serve_update_state(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setNumUpdates(kNumIncrementalUpdates));
+      StorageBenchmarkHelper<>::Params().setNumUpdates(kNumIncrementalUpdates));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -267,100 +262,6 @@ void bm_serve_update_state(
 
 namespace {
 
-// Empty-storage construction. trackMetadata stays false because subscribing at
-// the root path triggers OperPathToPublisherRoot::checkNonEmpty() and throws
-// when trackMetadata is true. With trackMetadata=false, registerPublisher() is
-// an explicit no-op (early-returns), but set_encoded() still drives the
-// per-subscription serve loop and delivers updates to patch subscribers.
-// requireResponseOnInitialSync=true ensures each subscriber receives an initial
-// sync value on attach even when the storage is empty, giving the helper a
-// known sync point before measurement starts.
-template <typename RootT>
-std::unique_ptr<NaivePeriodicSubscribableCowStorage<RootT>>
-initEmptySubscribableStorage() {
-  return std::make_unique<NaivePeriodicSubscribableCowStorage<RootT>>(
-      RootT{},
-      NaivePeriodicSubscribableStorageBase::StorageParams(
-          std::chrono::milliseconds(kSubscriptionServeIntervalMsec),
-          std::chrono::seconds(5),
-          /*trackMetadata=*/false,
-          "fsdb",
-          /*convertToIDPaths=*/true,
-          /*requireResponseOnInitialSync=*/true));
-}
-
-int64_t bm_ribmap_pubsub_mem_helper(
-    test_data::BgpRibMapDataGenerator& gen,
-    int num_subscribers) {
-  using RootT = test_data::BgpRibMapDataGenerator::RootT;
-
-  folly::BenchmarkSuspender suspender;
-  auto state = gen.getStateUpdate(0, false);
-  // Allow the allocator to settle so the baseline memory snapshot is stable.
-  sleep(2);
-
-  // (a) empty storage, then start serving subscriptions.
-  auto storage = initEmptySubscribableStorage<RootT>();
-  storage->start();
-
-  // (b) num_subscribers patch-subscriber tasks subscribed to root path.
-  std::vector<std::string> rootPath;
-  folly::coro::AsyncScope scope;
-  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(
-      std::max(num_subscribers, 1));
-
-  folly::Baton<> initSyncDone;
-  folly::Baton<> updateReceived;
-  std::atomic<int> initSyncCount{0};
-  std::atomic<int> updateCount{0};
-
-  auto subscriberTask = [&](int subIndex) -> folly::coro::Task<void> {
-    auto streamReader = storage->subscribe_patch(
-        SubscriptionIdentifier(
-            SubscriberId(fmt::format("patch_sub_{}", subIndex))),
-        rootPath.begin(),
-        rootPath.end());
-    auto generator = std::move(streamReader.generator_);
-    co_await generator.next();
-    if (initSyncCount.fetch_add(1) + 1 == num_subscribers) {
-      initSyncDone.post();
-    }
-    co_await generator.next();
-    if (updateCount.fetch_add(1) + 1 == num_subscribers) {
-      updateReceived.post();
-    }
-  };
-
-  for (int i = 0; i < num_subscribers; i++) {
-    scope.add(co_withExecutor(executor.get(), subscriberTask(i)));
-  }
-
-  // (c) PATH publisher registration on root path. Effective only when
-  // trackMetadata=true (see initEmptySubscribableStorage).
-  storage->registerPublisher(
-      rootPath.begin(),
-      rootPath.end(),
-      /*skipThriftStreamLivenessCheck=*/true);
-
-  // (d) wait for all subscribers to receive initial sync.
-  initSyncDone.wait();
-
-  // (e) begin measurement around publish + fanout.
-  auto startMem = facebook::Proc::getMemoryUsage();
-  suspender.dismiss();
-
-  // (f) publish state; wait for all subscribers to receive the update.
-  storage->set_encoded(*state.path()->path(), *state.state());
-  updateReceived.wait();
-
-  // (g) end measurement.
-  suspender.rehire();
-  auto endMem = facebook::Proc::getMemoryUsage();
-
-  folly::coro::blockingWait(scope.joinAsync());
-  return endMem - startMem;
-}
-
 void bm_ribmap_pubsub_mem(
     folly::UserCounters& counters,
     unsigned /* iters */,
@@ -370,43 +271,49 @@ void bm_ribmap_pubsub_mem(
   auto scale =
       test_data::BgpRibMapDataGenerator::makeGtswScale(prefixScale, paths);
   test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  std::vector<std::string> rootPath;
+  auto subscribeFunc = [&](auto& storage, SubscriptionIdentifier&& subId) {
+    return storage.subscribe_patch(
+        std::move(subId), rootPath.begin(), rootPath.end());
+  };
+  StorageBenchmarkHelper<test_data::BgpRibMapDataGenerator::RootT>::
+      reportPubSubMemStats(
+          counters,
+          gen,
+          num_subscribers,
+          FLAGS_bm_subbench_memory_iters,
+          subscribeFunc);
+}
 
-  std::vector<int64_t> memoryMeasurements;
-  for (int i = 0; i < FLAGS_bm_subbench_memory_iters; i++) {
-    auto delta = bm_ribmap_pubsub_mem_helper(gen, num_subscribers);
-    if (delta > 0) {
-      memoryMeasurements.push_back(delta);
-    }
-  }
-
-  if (memoryMeasurements.empty()) {
-    return;
-  }
-
-  int64_t sum = 0;
-  for (int64_t m : memoryMeasurements) {
-    sum += m;
-  }
-  int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
-  int64_t maxMem =
-      *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
-
-  double stddev = 0.0;
-  if (memoryMeasurements.size() > 1) {
-    double variance = 0.0;
-    for (int64_t m : memoryMeasurements) {
-      double diff = static_cast<double>(m - avgMem);
-      variance += diff * diff;
-    }
-    variance /= static_cast<double>(memoryMeasurements.size() - 1);
-    stddev = std::sqrt(variance);
-  }
-
-  counters["avg_memory_KB"] =
-      folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-  counters["max_memory_KB"] =
-      folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-  counters["stddev_memory_KB"] = folly::UserMetric(stddev / 1024.0);
+// FPF canonicalRib pub/sub memory: measures fanout of the compact,
+// best-path-only bgpData.canonicalRib() payload (numPods x numPrefixesPerPod
+// entries) that HostReachTracker subscribes to, instead of ribMap.
+void bm_canonicalrib_pubsub_mem(
+    folly::UserCounters& counters,
+    unsigned /* iters */,
+    int numPods,
+    int numPrefixesPerPod,
+    int num_subscribers) {
+  auto scale = test_data::BgpRibMapDataGenerator::makeGtswScale(
+      /*isFPF=*/true, numPods, numPrefixesPerPod);
+  test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  auto subscribeFunc = [&](auto& storage, SubscriptionIdentifier&& subId) {
+    auto extPath = ext_path_builder::raw("bgp")
+                       .raw("canonicalRib")
+                       .raw("rib_entries")
+                       .any()
+                       .raw("best_path")
+                       .get();
+    return storage.subscribe_patch_extended(
+        std::move(subId), {{0, std::move(extPath)}});
+  };
+  StorageBenchmarkHelper<test_data::BgpRibMapDataGenerator::RootT>::
+      reportPubSubMemStats(
+          counters,
+          gen,
+          num_subscribers,
+          FLAGS_bm_subbench_memory_iters,
+          subscribeFunc);
 }
 
 } // namespace
@@ -450,6 +357,33 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     70000,
     120,
     1);
+
+// FPF canonicalRib: 144 pods x 240 prefixes/pod = 34560 entries, single
+// subscriber (matches inject_bgp_prefixes --pods 144 --prefixes-per-pod 240).
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S1,
+    144,
+    240,
+    1);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S240,
+    144,
+    240,
+    240);
+
+// YUGE scale: 196 pods * 216 GPUs/pod = ~42K prefixes / vf
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_196x216_S216,
+    196,
+    216,
+    216);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 

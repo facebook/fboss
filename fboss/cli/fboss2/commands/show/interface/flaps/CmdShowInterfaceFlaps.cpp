@@ -32,12 +32,14 @@ CmdShowInterfaceFlapsTraits::RetType createModel(
       std::string tenMinutes = interface + ".link_state.flap.sum.600";
       std::string oneHour = interface + ".link_state.flap.sum.3600";
       std::string totalFlaps = interface + ".link_state.flap.sum";
+      std::string totalLinkFaults = interface + ".link_fault.sum";
 
       counter.interfaceName() = interface;
       counter.oneMinute() = wedgeCounters[oneMinute];
       counter.tenMinute() = wedgeCounters[tenMinutes];
       counter.oneHour() = wedgeCounters[oneHour];
       counter.totalFlaps() = wedgeCounters[totalFlaps];
+      counter.totalLinkFaults() = wedgeCounters[totalLinkFaults];
 
       ret.flap_counters()->push_back(counter);
     }
@@ -80,7 +82,8 @@ CmdShowInterfaceFlapsTraits::RetType CmdShowInterfaceFlaps::queryClient(
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
   std::map<std::string, int64_t> wedgeCounters;
-  client->sync_getRegexCounters(wedgeCounters, "^(eth|fab).*flap.sum.*");
+  client->sync_getRegexCounters(
+      wedgeCounters, "^(eth|fab).*(flap|link_fault).sum.*");
   std::unordered_set<std::string> distinctInterfaceNames;
   for (const auto& counter : wedgeCounters) {
     std::vector<std::string> result;
@@ -103,7 +106,8 @@ void CmdShowInterfaceFlaps::printOutput(
        "1 Min",
        "10 Min",
        "60 Min",
-       "Total (since last reboot)"});
+       "Total (since last reboot)",
+       "Total Link Faults"});
 
   for (const auto& counter : model.flap_counters().value()) {
     table.addRow({
@@ -120,10 +124,47 @@ void CmdShowInterfaceFlaps::printOutput(
         Table::StyledCell(
             std::to_string(folly::copy(counter.totalFlaps().value())),
             get_FlapStyle(folly::copy(counter.totalFlaps().value()))),
+        Table::StyledCell(
+            std::to_string(folly::copy(counter.totalLinkFaults().value())),
+            get_FlapStyle(folly::copy(counter.totalLinkFaults().value()))),
     });
   }
 
   out << table << std::endl;
+}
+
+std::string_view CmdShowInterfaceFlapsTraits::description() {
+  return "Displays per-interface link-flap counts over the last 1, 10, and 60 minutes, plus the total since the last reboot. Use it to identify unstable links.";
+}
+
+CmdShowInterfaceFlaps::RetType CmdShowInterfaceFlaps::sampleModel() {
+  RetType model;
+
+  cli::FlapCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.oneMinute() = 0;
+  counter1.tenMinute() = 0;
+  counter1.oneHour() = 0;
+  counter1.totalFlaps() = 13;
+  model.flap_counters()->push_back(counter1);
+
+  cli::FlapCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.oneMinute() = 0;
+  counter2.tenMinute() = 0;
+  counter2.oneHour() = 0;
+  counter2.totalFlaps() = 1;
+  model.flap_counters()->push_back(counter2);
+
+  cli::FlapCounters counter3;
+  counter3.interfaceName() = "eth1/11/1";
+  counter3.oneMinute() = 0;
+  counter3.tenMinute() = 0;
+  counter3.oneHour() = 0;
+  counter3.totalFlaps() = 0;
+  model.flap_counters()->push_back(counter3);
+
+  return model;
 }
 
 // Template instantiations

@@ -92,6 +92,7 @@ cpp_unittest(
     preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",

@@ -194,6 +194,29 @@ void CmdShowInterfaceCountersFecBer::printOutput(
   out << table << std::endl;
 }
 
+// CLI reference wiki hooks
+std::string_view CmdShowInterfaceCountersFecBerTraits::description() {
+  return "Displays per-interface FEC pre-correction bit error rate (BER). Takes a system or line argument: system shows the XPHY (gearbox) system-side and transceiver-system BER; line shows the ASIC, XPHY line-side, and transceiver-line BER. Use it to gauge link error rates.";
+}
+
+CmdShowInterfaceCountersFecBer::RetType
+CmdShowInterfaceCountersFecBer::sampleModel() {
+  cli::ShowInterfaceCountersFecBerModel model;
+  model.direction() = phy::Direction::TRANSMIT;
+  model.hasXphy() = true;
+
+  // eth2/1/1: GB_SYSTEM BER = 3e-10
+  model.fecBer()["eth2/1/1"][phy::PortComponent::GB_SYSTEM] = 3e-10;
+
+  // eth2/2/1: GB_SYSTEM BER = 4.95e-09
+  model.fecBer()["eth2/2/1"][phy::PortComponent::GB_SYSTEM] = 4.95e-09;
+
+  // eth2/5/1: GB_SYSTEM BER = 4.14e-08
+  model.fecBer()["eth2/5/1"][phy::PortComponent::GB_SYSTEM] = 4.14e-08;
+
+  return model;
+}
+
 // Template instantiations
 template void CmdHandler<
     CmdShowInterfaceCountersFecBer,

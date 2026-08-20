@@ -25,6 +25,10 @@ namespace facebook::fboss {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+  auto switchingMode = flowletSwitchConfig->getSwitchingMode();
+  auto idleTime = flowletSwitchConfig->getInactivityIntervalUsecs();
+  auto maxFlows = flowletSwitchConfig->getFlowletTableSize();
+
   std::optional<SaiArsTraits::Attributes::AlternatePathCost>
       alternatePathCostForArs = std::nullopt;
   std::optional<SaiArsTraits::Attributes::AlternatePathBias>
@@ -43,80 +47,78 @@ void SaiArsManager::addArs(
   nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
       SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
 #endif
-  SaiArsTraits::CreateAttributes attributes{
-      SaiArsTraits::Attributes::Mode{
-          cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-      SaiArsTraits::Attributes::IdleTime{
-          flowletSwitchConfig->getInactivityIntervalUsecs()},
-      SaiArsTraits::Attributes::MaxFlows{
-          flowletSwitchConfig->getFlowletTableSize()},
-      std::nullopt, // PrimaryPathQualityThreshold
-      alternatePathCostForArs,
-      alternatePathBiasForArs,
-      nextHopGroupType};
 
-  auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(getAdapterHostKey(attributes), attributes);
+  setArsObject(
+      arsHandle_.get(),
+      makeArsAttributes(
+          switchingMode,
+          idleTime,
+          maxFlows,
+          std::nullopt,
+          alternatePathCostForArs,
+          alternatePathBiasForArs,
+          nextHopGroupType,
+          std::nullopt));
 
-  bool needAlternateArs =
-      flowletSwitchConfig->getAlternatePathCost().has_value() &&
-      flowletSwitchConfig->getAlternatePathBias().has_value();
-
-  if (needAlternateArs) {
-    std::optional<SaiArsTraits::Attributes::AlternatePathCost>
-        alternatePathCost = std::nullopt;
-    std::optional<SaiArsTraits::Attributes::AlternatePathBias>
-        alternatePathBias = std::nullopt;
+  auto cost = flowletSwitchConfig->getAlternatePathCost();
+  auto bias = flowletSwitchConfig->getAlternatePathBias();
+  if (cost.has_value() && bias.has_value()) {
     std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
         primaryPathQualityThreshold = std::nullopt;
-    if (auto cost = flowletSwitchConfig->getAlternatePathCost()) {
-      alternatePathCost = SaiArsTraits::Attributes::AlternatePathCost{
-          static_cast<sai_uint32_t>(*cost)};
-    }
-
-    if (auto bias = flowletSwitchConfig->getAlternatePathBias()) {
-      alternatePathBias = SaiArsTraits::Attributes::AlternatePathBias{
-          static_cast<sai_uint32_t>(*bias)};
-    }
-
     if (auto threshold =
             flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
       primaryPathQualityThreshold =
           SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
               static_cast<sai_uint32_t>(*threshold)};
     }
-    SaiArsTraits::CreateAttributes alternateMemAttributes{
-        SaiArsTraits::Attributes::Mode{
-            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-        SaiArsTraits::Attributes::IdleTime{
-            flowletSwitchConfig->getInactivityIntervalUsecs()},
-        SaiArsTraits::Attributes::MaxFlows{
-            flowletSwitchConfig->getFlowletTableSize()},
-        primaryPathQualityThreshold,
-        alternatePathCost,
-        alternatePathBias,
-        nextHopGroupType};
-    alternateMemberArsHandle_->ars = store.setObject(
-        getAdapterHostKey(alternateMemAttributes), alternateMemAttributes);
+    setArsObject(
+        alternateMemberArsHandle_.get(),
+        makeArsAttributes(
+            switchingMode,
+            idleTime,
+            maxFlows,
+            primaryPathQualityThreshold,
+            SaiArsTraits::Attributes::AlternatePathCost{
+                static_cast<sai_uint32_t>(*cost)},
+            SaiArsTraits::Attributes::AlternatePathBias{
+                static_cast<sai_uint32_t>(*bias)},
+            nextHopGroupType,
+            std::nullopt));
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto standbySwitchingMode = flowletSwitchConfig->getStandbySwitchingMode();
+  if (standbySwitchingMode.has_value()) {
+    // ThriftConfigApplier guarantees the standby idle time and table size are
+    // set alongside the mode, and that the mode differs from the primary's.
+    setArsObject(
+        standbyArsHandle_.get(),
+        makeArsAttributes(
+            *standbySwitchingMode,
+            *flowletSwitchConfig->getStandbyInactivityIntervalUsecs(),
+            *flowletSwitchConfig->getStandbyFlowletTableSize(),
+            std::nullopt,
+            alternatePathCostForArs,
+            alternatePathBiasForArs,
+            nextHopGroupType,
+            std::nullopt));
+  }
+#endif
 
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
-    SaiArsTraits::CreateAttributes virtualArsGroupAttributes{
-        SaiArsTraits::Attributes::Mode{
-            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-        SaiArsTraits::Attributes::IdleTime{
-            flowletSwitchConfig->getInactivityIntervalUsecs()},
-        SaiArsTraits::Attributes::MaxFlows{
-            flowletSwitchConfig->getFlowletTableSize()},
-        std::nullopt, // PrimaryPathQualityThreshold
-        std::nullopt, // AlternatePathCost
-        std::nullopt, // AlternatePathBias
-        SaiArsTraits::Attributes::NextHopGroupType{
-            SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL}};
-    virtualArsGroupHandle_->ars = store.setObject(
-        getAdapterHostKey(virtualArsGroupAttributes),
-        virtualArsGroupAttributes);
+    setArsObject(
+        virtualArsGroupHandle_.get(),
+        makeArsAttributes(
+            switchingMode,
+            idleTime,
+            maxFlows,
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            SaiArsTraits::Attributes::NextHopGroupType{
+                SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
+            std::nullopt));
   }
 #endif
 }

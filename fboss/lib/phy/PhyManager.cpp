@@ -526,7 +526,10 @@ void PhyManager::restoreFromWarmbootState(
         // qsfp_service doesn't cache these two fields in the cache.
         // TODO(joseph5wu) Will remove this after next push
         hwPortConfig = xphy->getConfigOnePort(
-            wLockedCache->systemLanes, wLockedCache->lineLanes);
+            wLockedCache->systemLanes,
+            wLockedCache->lineLanes,
+            wLockedCache->profile.value_or(
+                cfg::PortProfileID::PROFILE_DEFAULT));
         auto speed = hwPortConfig->profile.speed;
         wLockedCache->speed = speed;
         wLockedCache->profile =
@@ -549,7 +552,10 @@ void PhyManager::restoreFromWarmbootState(
         if (*sysPrbsState.enabled() || *linePrbsState.enabled()) {
           if (!hwPortConfig) {
             hwPortConfig = xphy->getConfigOnePort(
-                wLockedCache->systemLanes, wLockedCache->lineLanes);
+                wLockedCache->systemLanes,
+                wLockedCache->lineLanes,
+                wLockedCache->profile.value_or(
+                    cfg::PortProfileID::PROFILE_DEFAULT));
           }
           hwPortConfig = getHwPhyPortConfigLocked(wLockedCache, portIDStrong);
 
@@ -899,6 +905,14 @@ PhyManager::PortStatsWLockedPtr PhyManager::getWLockedStats(
         "Unrecoginized port=", portID, ", which is not in PlatformMapping");
   }
   return statsInfo->second->wlock();
+}
+
+size_t PhyManager::getNumXphys() const {
+  size_t numXphys = 0;
+  for (const auto& pimAndXphy : xphyMap_) {
+    numXphys += pimAndXphy.second.size();
+  }
+  return numXphys;
 }
 
 void PhyManager::publishPhyIOStatsToFb303() const {

@@ -103,6 +103,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -467,6 +468,11 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, arsPortLoadFutureWeight_attr);
   EXPECT_EQ(portApi->getAttribute(portId, arsPortLoadFutureWeight_attr), 20);
 #endif
+
+  // Link scan mode get/set (SAI_PORT_LINKSCAN_MODE_HW == 2)
+  SaiPortTraits::Attributes::LinkScanMode linkScanMode{2};
+  portApi->setAttribute(portId, linkScanMode);
+  EXPECT_EQ(portApi->getAttribute(portId, linkScanMode), 2);
 }
 
 // ObjectApi tests
@@ -538,6 +544,35 @@ TEST_F(PortApiTest, serdesApi) {
   EXPECT_EQ(rxAcCouplingByPass, std::vector<sai_int32_t>{7});
   EXPECT_EQ(rxAfeAdaptiveEnable, std::vector<sai_int32_t>{8});
   EXPECT_EQ(txFirPre3, std::vector<sai_uint32_t>{9});
+}
+
+// The precoding vendor extensions are programmed after serdes create, the way
+// SaiPortManager does it
+TEST_F(PortApiTest, serdesPrecodingState) {
+  auto id = createPort(100000, {42}, true);
+  auto serdesId =
+      createPortSerdes(id, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});
+  const std::vector<sai_int32_t> enabled{1};
+
+  portApi->setAttribute(
+      serdesId,
+      SaiPortSerdesTraits::Attributes::TransmitPrecodingState{enabled});
+  portApi->setAttribute(
+      serdesId,
+      SaiPortSerdesTraits::Attributes::ReceivePrecodingState{enabled});
+
+  EXPECT_EQ(
+      portApi->getAttribute(
+          serdesId,
+          SaiPortSerdesTraits::Attributes::TransmitPrecodingState{
+              std::vector<sai_int32_t>(1)}),
+      enabled);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          serdesId,
+          SaiPortSerdesTraits::Attributes::ReceivePrecodingState{
+              std::vector<sai_int32_t>(1)}),
+      enabled);
 }
 
 #if !defined(IS_OSS)

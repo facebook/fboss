@@ -13,6 +13,11 @@ J3AI_REV_NOT_A0 = "asic_rev_not_A0=yes"
 # List of ASICs for BRCM DNX platforms
 BRCM_DNX_ASICS = ["jericho3", "ramon3"]
 
+# Default netcastle --timeout for the run-test step. Per netcastle, the overall
+# Sandcastle job timeout is adjusted from this value. Overridable per-test via
+# AsicTestOptions.timeout.
+DEFAULT_NETCASTLE_TIMEOUT = "12h"
+
 # Team mappings for different test types in meta-internal mode
 TEST_TYPE_TEAM_MAPPING = {
     "hw": "sai_test",

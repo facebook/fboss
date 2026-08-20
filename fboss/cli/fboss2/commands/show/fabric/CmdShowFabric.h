@@ -12,6 +12,7 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 #include "fboss/agent/if/gen-cpp2/hw_ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_types.h"
@@ -26,6 +27,10 @@ struct CmdShowFabricTraits : public ReadCommandTraits {
   using RetType = cli::ShowFabricModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
@@ -39,6 +44,10 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
       const std::string& actualId,
       const std::string& expectedId);
   RetType createModel(std::map<std::string, FabricEndpoint> fabricEntries);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

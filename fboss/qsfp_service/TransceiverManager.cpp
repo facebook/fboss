@@ -343,8 +343,10 @@ QsfpServiceRunState TransceiverManager::getRunState() const {
 }
 
 void TransceiverManager::restoreAgentConfigAppliedInfo() {
+  // Reached in Port Manager mode via init(); PortManager::init() restores its
+  // own copy.
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("restoreAgentConfigAppliedInfo");
+    PORT_MGR_INTENTIONAL_SKIP_LOG("restoreAgentConfigAppliedInfo");
     return;
   }
   if (warmBootState_.isNull()) {
@@ -1183,7 +1185,10 @@ bool TransceiverManager::updateState(
 
 void TransceiverManager::handlePendingUpdates() {
   // Try to run one state machine updates on each transceiver.
-  XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
+  // Invoked once per enqueued state update, so rate limit to keep this from
+  // dominating the log on large transceiver-count platforms.
+  XLOG_EVERY_MS(DBG2, 60000)
+      << "Trying to update all TransceiverStateMachines";
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
@@ -1333,8 +1338,7 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
 
 void TransceiverManager::programInternalPhyPorts(TransceiverID id) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programInternalPhyPorts");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programInternalPhyPorts");
   }
 
   std::map<int32_t, cfg::PortProfileID> programmedIphyPorts;
@@ -1432,8 +1436,7 @@ void TransceiverManager::programExternalPhyPorts(
     TransceiverID id,
     bool needResetDataPath) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programExternalPhyPorts");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programExternalPhyPorts");
   }
 
   auto phyManager = getPhyManager();
@@ -1920,8 +1923,7 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
 void TransceiverManager::syncNpuPortStatusUpdate(
     std::map<int, facebook::fboss::NpuPortStatus>& portStatus) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("syncNpuPortStatusUpdate");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("syncNpuPortStatusUpdate");
   }
   XLOG(INFO) << "Syncing NPU port status update";
   updateNpuPortStatusCache(portStatus);
@@ -1936,8 +1938,7 @@ void TransceiverManager::updateNpuPortStatusCache(
 
 void TransceiverManager::updateTransceiverPortStatus() noexcept {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("updateTransceiverPortStatus");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("updateTransceiverPortStatus");
   }
   steady_clock::time_point begin = steady_clock::now();
   std::map<int32_t, NpuPortStatus> newPortToPortStatus;
@@ -2162,8 +2163,7 @@ void TransceiverManager::updateTransceiverActiveState(
     const std::set<TransceiverID>& tcvrs,
     const std::map<int32_t, PortStatus>& portStatus) noexcept {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("updateTransceiverActiveState");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("updateTransceiverActiveState");
   }
   std::map<int32_t, NpuPortStatus> npuPortStatus = getNpuPortStatus(portStatus);
   int numPortStatusChanged{0};
@@ -2533,8 +2533,7 @@ void TransceiverManager::completeRefresh() {
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("triggerAgentConfigChangeEvent");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("triggerAgentConfigChangeEvent");
   }
   auto wedgeAgentClient = utils::createWedgeAgentClient();
   ConfigAppliedInfo newConfigAppliedInfo;
@@ -3051,8 +3050,10 @@ void TransceiverManager::setCanWarmBoot() {
 }
 
 void TransceiverManager::restoreWarmBootPhyState() {
+  // Reached in Port Manager mode via WedgeManager::initExternalPhyMap();
+  // PortManager::initExternalPhyMap() restores its own copy afterwards.
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("restoreWarmbootPhyState");
+    PORT_MGR_INTENTIONAL_SKIP_LOG("restoreWarmbootPhyState");
     return;
   }
 

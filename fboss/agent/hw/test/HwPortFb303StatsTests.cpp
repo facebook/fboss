@@ -171,7 +171,6 @@ HwPortStats getInitedStats() {
       0, // llrTxOk
       0, // llrTxReplay
       0, // llrRxOk
-      0, // llrRxBad
       0, // llrRxMissingSeq
       0, // llrRxDuplicateSeq
       0, // llrRxAckNackSeqError
@@ -190,6 +189,18 @@ HwPortStats getInitedStats() {
       0, // llrRxExpectedSeqPoisoned
       0, // llrRxExpectedSeqBad
       0, // linkFault_
+      0, // fecCorrectedSymbols
+      // Both statuses must have the numeric value 1 -- verifyUpdatedStats
+      // expects every kPortFb303CounterStatKeys() counter to read 1.
+      LlrTxStatus::INIT, // llrTxStatus
+      LlrRxStatus::SEND_ACKS, // llrRxStatus
+      0, // llrTxEligiblePkts
+      0, // llrTxIneligiblePkts
+      0, // llrRxEligiblePkts
+      0, // llrRxIneligiblePkts
+      0, // llrTxNackReplayEvent
+      0, // llrTxTimerReplayEvent
+      0, // llrTxError
   };
 }
 

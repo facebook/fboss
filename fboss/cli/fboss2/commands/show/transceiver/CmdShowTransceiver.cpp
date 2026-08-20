@@ -365,6 +365,61 @@ CmdShowTransceiver::RetType CmdShowTransceiver::createModel(
   return model;
 }
 
+std::string_view CmdShowTransceiverTraits::description() {
+  return "Displays each interface's transceiver: presence and status, config-validation result, vendor/serial/part number, firmware versions, and live optics readings (temperature, voltage, current, Tx/Rx power, SNR). Use it to check optic health and inventory.";
+}
+
+CmdShowTransceiver::RetType CmdShowTransceiver::sampleModel() {
+  RetType model;
+
+  cli::TransceiverDetail entry1;
+  entry1.name() = "eth1/11/1";
+  entry1.isUp() = true;
+  entry1.isPresent() = true;
+  entry1.mediaInterface() = MediaInterfaceCode::DR4_400G;
+  entry1.validationStatus() = "--";
+  entry1.notValidatedReason() = "--";
+  entry1.vendor() = "Arista Networks";
+  entry1.serial() = "MOCKSERIAL001";
+  entry1.partNumber() = "FB-P800G-2XDR4-1";
+  entry1.appFwVer() = "3.7.0";
+  entry1.dspFwVer() = "0.0";
+  entry1.temperature() = 62.09;
+  entry1.voltage() = 3.28;
+  entry1.tempFlags() = FlagLevels{};
+  entry1.vccFlags() = FlagLevels{};
+  entry1.currentMA() = {80.20, 80.20, 64.98, 74.53};
+  entry1.txPower() = {1.25, 1.14, 1.07, 1.15};
+  entry1.rxPower() = {1.25, 0.78, 1.43, 1.41};
+  entry1.rxSnr() = {22.70, 22.63, 22.39, 22.43};
+
+  cli::TransceiverDetail entry2;
+  entry2.name() = "eth1/11/5";
+  entry2.isUp() = true;
+  entry2.isPresent() = true;
+  entry2.mediaInterface() = MediaInterfaceCode::DR4_400G;
+  entry2.validationStatus() = "--";
+  entry2.notValidatedReason() = "--";
+  entry2.vendor() = "Arista Networks";
+  entry2.serial() = "MOCKSERIAL001";
+  entry2.partNumber() = "FB-P800G-2XDR4-1";
+  entry2.appFwVer() = "3.7.0";
+  entry2.dspFwVer() = "0.0";
+  entry2.temperature() = 62.09;
+  entry2.voltage() = 3.28;
+  entry2.tempFlags() = FlagLevels{};
+  entry2.vccFlags() = FlagLevels{};
+  entry2.currentMA() = {};
+  entry2.txPower() = {};
+  entry2.rxPower() = {};
+  entry2.rxSnr() = {};
+
+  model.transceivers()->emplace("eth1/11/1", std::move(entry1));
+  model.transceivers()->emplace("eth1/11/5", std::move(entry2));
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 template const ValidFilterMapType

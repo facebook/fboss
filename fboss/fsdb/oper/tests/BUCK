@@ -98,11 +98,22 @@ cpp_library(
     headers = [
         "SubscribableStorageBenchHelper.h",
     ],
-    deps = ["//folly/coro:blocking_wait"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/thrift_cow/storage/tests:benchmark_helper",
+        "//folly/coro:async_scope",
+        "//folly/executors:cpu_thread_pool_executor",
+        "//folly/synchronization:baton",
+    ],
     exported_deps = [
         "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly:benchmark",
+        "//folly:function",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
     ],
 )
 
@@ -114,17 +125,15 @@ cpp_benchmark(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":subscribable_storage_bench_helper",
-        "//common/base:proc",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/oper:subscribable_storage",
-        "//fboss/thrift_cow/nodes:serializer",
         "//fboss/thrift_cow/storage/tests:benchmark_helper",
         "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",
         "//folly/coro:async_scope",
         "//folly/coro:blocking_wait",
         "//folly/coro:task",
-        "//folly/coro:timeout",
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/init:init",
         "//folly/json:dynamic",

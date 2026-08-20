@@ -48,10 +48,13 @@ sai_status_t create_next_hop_group_fn(
   if (!type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  if (type.value() != SAI_NEXT_HOP_GROUP_TYPE_ECMP &&
-      type.value() != SAI_NEXT_HOP_GROUP_TYPE_PROTECTION &&
-      type.value() != SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION) {
-    return SAI_STATUS_INVALID_PARAMETER;
+  switch (type.value()) {
+    case SAI_NEXT_HOP_GROUP_TYPE_ECMP:
+    case SAI_NEXT_HOP_GROUP_TYPE_PROTECTION:
+    case SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION:
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
   }
   *next_hop_group_id = fs->nextHopGroupManager.create(
       type.value(), ars_id, hash_algorithm, hierarchical_nexthop);

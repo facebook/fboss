@@ -6,6 +6,10 @@
     "required": ["global"],
     "additionalProperties": false,
     "properties": {
+        "_comment": {
+            "type": "string",
+            "description": "Optional human-readable context for this common configuration."
+        },
         "global": {
             "type": "object",
             "description": "Pass-through SDK or SAI settings copied to the 'global' output table.",

@@ -28,6 +28,7 @@ SaiArsManager::SaiArsManager(
   arsHandle_ = std::make_unique<SaiArsHandle>();
   alternateMemberArsHandle_ = std::make_unique<SaiArsHandle>();
   virtualArsGroupHandle_ = std::make_unique<SaiArsHandle>();
+  standbyArsHandle_ = std::make_unique<SaiArsHandle>();
 #endif
 }
 
@@ -49,6 +50,45 @@ sai_int32_t SaiArsManager::cfgSwitchingModeToSai(
   throw FbossError("Unsupported flowlet switching mode");
 }
 
+SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
+    cfg::SwitchingMode switchingMode,
+    std::optional<sai_uint32_t> idleTime,
+    std::optional<sai_uint32_t> maxFlows,
+    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+        primaryPathQualityThreshold,
+    std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+        alternatePathCost,
+    std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+        alternatePathBias,
+    std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType,
+    std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune)
+    const {
+  std::optional<SaiArsTraits::Attributes::IdleTime> idleTimeAttr = std::nullopt;
+  if (idleTime) {
+    idleTimeAttr = SaiArsTraits::Attributes::IdleTime{*idleTime};
+  }
+  std::optional<SaiArsTraits::Attributes::MaxFlows> maxFlowsAttr = std::nullopt;
+  if (maxFlows) {
+    maxFlowsAttr = SaiArsTraits::Attributes::MaxFlows{*maxFlows};
+  }
+  return SaiArsTraits::CreateAttributes{
+      SaiArsTraits::Attributes::Mode{cfgSwitchingModeToSai(switchingMode)},
+      idleTimeAttr,
+      maxFlowsAttr,
+      primaryPathQualityThreshold,
+      alternatePathCost,
+      alternatePathBias,
+      nextHopGroupType,
+      sourcePortPrune};
+}
+
+void SaiArsManager::setArsObject(
+    SaiArsHandle* handle,
+    const SaiArsTraits::CreateAttributes& attributes) {
+  handle->ars = saiStore_->get<SaiArsTraits>().setObject(
+      getAdapterHostKey(attributes), attributes);
+}
+
 void SaiArsManager::removeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
   if (arsHandle_->ars) {
@@ -59,6 +99,9 @@ void SaiArsManager::removeArs(
   }
   if (virtualArsGroupHandle_->ars) {
     virtualArsGroupHandle_->ars.reset();
+  }
+  if (standbyArsHandle_->ars) {
+    standbyArsHandle_->ars.reset();
   }
 }
 
@@ -78,6 +121,10 @@ SaiArsHandle* SaiArsManager::getAlternateMemberArsHandle() const {
 
 SaiArsHandle* SaiArsManager::getVirtualArsGroupHandle() const {
   return virtualArsGroupHandle_.get();
+}
+
+SaiArsHandle* SaiArsManager::getStandbyArsHandle() const {
+  return standbyArsHandle_.get();
 }
 
 #endif

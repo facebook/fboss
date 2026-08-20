@@ -179,7 +179,8 @@ struct SaiNextHopGroupMemberTraits {
     using Weight = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiInt1Default>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     // Protection-group member attributes (only valid when the owning group is
     // SAI_NEXT_HOP_GROUP_TYPE_PROTECTION). ConfiguredRole selects PRIMARY vs

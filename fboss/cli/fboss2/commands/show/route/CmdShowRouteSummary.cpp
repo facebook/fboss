@@ -64,6 +64,22 @@ CmdShowRouteSummary::RetType CmdShowRouteSummary::createModel(
   return model;
 }
 
+std::string_view CmdShowRouteSummaryTraits::description() {
+  return "Displays a summary of the routing table: counts of IPv4 routes, IPv6 routes by prefix length, the total, and the approximate hardware route entries used. Use it for a quick capacity and scale check.";
+}
+
+CmdShowRouteSummary::RetType CmdShowRouteSummary::sampleModel() {
+  RetType model;
+
+  model.numV4Routes() = 10202;
+  model.numV6Small() = 15517;
+  model.numV6Big() = 2476;
+  model.numV6() = 17993;
+  model.hwEntriesUsed() = 51140;
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits>::run();
 template const ValidFilterMapType

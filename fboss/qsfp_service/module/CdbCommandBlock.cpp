@@ -118,7 +118,8 @@ void CdbCommandBlock::i2cWriteAndContinue(
 bool CdbCommandBlock::cmisRunCdbCommand(
     TransceiverImpl* bus,
     std::optional<uint64_t> overrideTimeoutUsec,
-    bool cdbCmdCompleteFlagSupported) {
+    bool cdbCmdCompleteFlagSupported,
+    uint32_t delayAfterFwDownloadCompleteSec) {
   // Command block length is 8 plus lpl memory length
   int len = this->cdbFields_.cdbLplLength + 8;
 
@@ -201,10 +202,32 @@ bool CdbCommandBlock::cmisRunCdbCommand(
   // Now read the CDB command status register till the status becomes success
   // or fail
   uint8_t status = 0;
+  const bool delayAfterFwDownloadComplete = this->cdbFields_.cdbCommandCode ==
+          htons(kCdbCommandFirmwareDownloadComplete) &&
+      delayAfterFwDownloadCompleteSec > 0;
   auto startTime = std::chrono::steady_clock::now();
-  auto finishTime = startTime + std::chrono::microseconds(timeoutUsec);
+  // The poll interval and the post-download-complete delay below are both
+  // spent before the first status read, so they have to be added on top of
+  // timeoutUsec - otherwise they eat into the polling budget and a delay
+  // larger than the timeout would make the loop expire immediately.
+  auto finishTime =
+      startTime +
+      std::chrono::microseconds(
+          timeoutUsec + cdbCommandStatusPollIntervalUsec) +
+      std::chrono::seconds(
+          delayAfterFwDownloadComplete ? delayAfterFwDownloadCompleteSec : 0);
   /* sleep override */
   usleep(cdbCommandStatusPollIntervalUsec);
+
+  if (delayAfterFwDownloadComplete) {
+    XLOG(INFO) << fmt::format(
+        "Sleeping for {:d} s after CDB command {:#06x} (Firmware Download Complete)",
+        delayAfterFwDownloadCompleteSec,
+        kCdbCommandFirmwareDownloadComplete);
+    /* sleep override */
+    sleep(delayAfterFwDownloadCompleteSec);
+  }
+
   while (true) {
     // If CdbCmdCompleteFlag is supported, wait for it to be set before
     // reading the command status register

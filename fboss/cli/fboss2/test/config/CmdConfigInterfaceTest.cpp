@@ -71,6 +71,13 @@ class CmdConfigInterfaceTestFixture : public CmdConfigTestBase {
         "vlanID": 2,
         "name": "eth1/2/1",
         "mtu": 1500
+      },
+      {
+        "intfID": 3001,
+        "routerID": 0,
+        "vlanID": 0,
+        "name": "",
+        "mtu": 1500
       }
     ]
   }
@@ -394,6 +401,97 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsMtu) {
       EXPECT_EQ(*intf.mtu(), 1500);
     }
   }
+}
+
+// Test renaming an interface addressed by its port name
+TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsInterfaceName) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 name uplink_1");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "name", "uplink_1"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("name=\"uplink_1\""));
+
+  auto& intfs =
+      *ConfigSession::getInstance().getAgentConfig().sw()->interfaces();
+  for (const auto& intf : intfs) {
+    if (*intf.intfID() == 1) {
+      EXPECT_EQ(*intf.name(), "uplink_1");
+    } else if (*intf.intfID() == 2) {
+      EXPECT_EQ(*intf.name(), "eth1/2/1");
+    }
+  }
+}
+
+// A nameless interface (name set to the empty string) can still be addressed
+// by its interface ID to give it a name.
+TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsNameOnNamelessInterface) {
+  setupTestableConfigSession(cmdPrefix_, "3001 name svi_mgmt");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"3001", "name", "svi_mgmt"});
+
+  auto result = cmd.queryClient(localhost(), config);
+
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("name=\"svi_mgmt\""));
+
+  auto& intfs =
+      *ConfigSession::getInstance().getAgentConfig().sw()->interfaces();
+  bool found = false;
+  for (const auto& intf : intfs) {
+    if (*intf.intfID() == 3001) {
+      found = true;
+      EXPECT_EQ(*intf.name(), "svi_mgmt");
+    }
+  }
+  EXPECT_TRUE(found);
+
+  // The interface is now also addressable by its new name.
+  utils::InterfaceList relist({"svi_mgmt"});
+  ASSERT_EQ(relist.size(), 1);
+  ASSERT_NE(relist[0].getInterface(), nullptr);
+  EXPECT_EQ(*relist[0].getInterface()->intfID(), 3001);
+}
+
+// A purely-numeric name is rejected: it would shadow ID-based lookups.
+TEST_F(CmdConfigInterfaceTestFixture, queryClientNumericNameThrows) {
+  setupTestableConfigSession(cmdPrefix_, "3001 name 1234");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"3001", "name", "1234"});
+
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+// A name already used by another interface or by a port is rejected.
+TEST_F(CmdConfigInterfaceTestFixture, queryClientDuplicateNameThrows) {
+  setupTestableConfigSession(cmdPrefix_, "3001 name eth1/2/1");
+  auto cmd = CmdConfigInterface();
+
+  // eth1/2/1 is both a port name and another interface's name.
+  InterfacesConfig config({"3001", "name", "eth1/2/1"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+// Renaming an interface to the name it already has is idempotent.
+TEST_F(CmdConfigInterfaceTestFixture, queryClientRenameToSameName) {
+  setupTestableConfigSession(cmdPrefix_, "3001 name svi_mgmt");
+  auto cmd = CmdConfigInterface();
+
+  InterfacesConfig config({"3001", "name", "svi_mgmt"});
+  cmd.queryClient(localhost(), config);
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+}
+
+// Setting the same name on multiple interfaces is rejected.
+TEST_F(CmdConfigInterfaceTestFixture, queryClientNameOnMultipleThrows) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 name uplink_1");
+  auto cmd = CmdConfigInterface();
+
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "name", "uplink_1"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
 }
 
 // Regression test: ip-address/ipv6-address must persist the session config
@@ -2299,6 +2397,130 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientLookupClassRejectsBadInList) {
   for (const auto& port : ports) {
     EXPECT_TRUE(port.lookupClasses()->empty());
   }
+}
+
+// ============================================================================
+// queue-config attribute
+// ============================================================================
+
+// Needs its own seed: portQueueConfigs entries to bind to, and a port that
+// starts out already bound so the clear path is reachable.
+class QueueConfigAttrTestFixture : public CmdConfigTestBase {
+ public:
+  QueueConfigAttrTestFixture()
+      : CmdConfigTestBase(
+            "fboss_ifqc_attr_test_%%%%-%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1,
+        "portQueueConfigName": "rsw_queues"
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/2/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1
+      }
+    ],
+    "portQueueConfigs": {
+      "rsw_queues": [
+        {"id": 0, "streamType": 1, "weight": 1, "scheduling": 5}
+      ]
+    }
+  }
+})") {}
+
+ protected:
+  static const cfg::Port* findPort(const std::string& name) {
+    const auto& ports =
+        *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+    for (const auto& port : ports) {
+      if (*port.name() == name) {
+        return &port;
+      }
+    }
+    return nullptr;
+  }
+
+  std::string configure(const std::vector<std::string>& args) {
+    auto cmd = CmdConfigInterface();
+    return cmd.queryClient(localhost(), InterfacesConfig(args));
+  }
+};
+
+TEST_F(QueueConfigAttrTestFixture, bindsNamedQueueConfig) {
+  setupTestableConfigSession();
+  auto result = configure({"eth1/2/1", "queue-config", "rsw_queues"});
+
+  EXPECT_THAT(result, ::testing::HasSubstr("queue-config=rsw_queues"));
+  const auto* port = findPort("eth1/2/1");
+  ASSERT_NE(port, nullptr);
+  ASSERT_TRUE(port->portQueueConfigName().has_value());
+  EXPECT_EQ(*port->portQueueConfigName(), "rsw_queues");
+}
+
+// `default` is not a portQueueConfigs entry; per Port::portQueueConfigName's
+// contract an unset field already resolves to defaultPortQueues, so selecting
+// it clears the override rather than writing an unresolvable name.
+TEST_F(QueueConfigAttrTestFixture, defaultClearsExistingBinding) {
+  setupTestableConfigSession();
+  ASSERT_TRUE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+
+  configure({"eth1/1/1", "queue-config", "default"});
+
+  EXPECT_FALSE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+}
+
+TEST_F(QueueConfigAttrTestFixture, defaultOnUnboundPortIsNoOp) {
+  setupTestableConfigSession();
+  EXPECT_NO_THROW(configure({"eth1/2/1", "queue-config", "default"}));
+  EXPECT_FALSE(findPort("eth1/2/1")->portQueueConfigName().has_value());
+}
+
+// A named config must exist before it can be bound; `default` bypasses this
+// check because it never has a portQueueConfigs entry to find.
+TEST_F(QueueConfigAttrTestFixture, unknownNameThrows) {
+  setupTestableConfigSession();
+  try {
+    configure({"eth1/1/1", "queue-config", "no_such_config"});
+    FAIL() << "expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("no_such_config"));
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("does not exist"));
+  }
+  // The failed bind must leave the previously-bound port alone.
+  EXPECT_EQ(*findPort("eth1/1/1")->portQueueConfigName(), "rsw_queues");
+}
+
+TEST_F(QueueConfigAttrTestFixture, invalidNameThrows) {
+  setupTestableConfigSession();
+  EXPECT_THROW(
+      configure({"eth1/1/1", "queue-config", "9bad"}), std::invalid_argument);
+}
+
+// The payoff of folding this into the attribute model: queue-config composes
+// with other attributes in a single command, which the old standalone
+// subcommand could not do.
+TEST_F(QueueConfigAttrTestFixture, composesWithOtherAttributes) {
+  setupTestableConfigSession();
+  auto result = configure(
+      {"eth1/2/1", "description", "uplink", "queue-config", "rsw_queues"});
+
+  EXPECT_THAT(result, ::testing::HasSubstr("queue-config=rsw_queues"));
+  EXPECT_THAT(result, ::testing::HasSubstr("description"));
+
+  const auto* port = findPort("eth1/2/1");
+  ASSERT_NE(port, nullptr);
+  ASSERT_TRUE(port->portQueueConfigName().has_value());
+  EXPECT_EQ(*port->portQueueConfigName(), "rsw_queues");
+  EXPECT_EQ(*port->description(), "uplink");
 }
 
 } // namespace facebook::fboss

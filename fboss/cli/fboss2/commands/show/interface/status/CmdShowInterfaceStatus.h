@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
@@ -28,6 +29,10 @@ struct CmdShowInterfaceStatusTraits : public ReadCommandTraits {
   using RetType = cli::ShowIntStatusModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowInterfaceStatus
@@ -48,6 +53,10 @@ class CmdShowInterfaceStatus
       std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
       const std::vector<std::string>& queriedIfs);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

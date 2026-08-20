@@ -153,6 +153,13 @@
                 "type": ["integer", "string"]
             }
         },
+        "phb_control_defaults": {
+            "type": "object",
+            "description": "Defaults for the PHB_CONTROL output table. Applied conditionally via conditional_settings, gated by the generate_phb_control feature.",
+            "additionalProperties": {
+            "type": ["integer", "string"]
+            }
+        },
         "pass_through_settings": {
             "type": "array",
             "description": "Declarative list of data blocks copied to output tables after the layered global settings have been applied.",
