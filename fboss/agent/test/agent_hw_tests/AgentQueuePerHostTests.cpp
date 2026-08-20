@@ -336,7 +336,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
             EXPECT_EVENTUALLY_GE(pktsOnQueue, 1);
           } else {
             EXPECT_EVENTUALLY_EQ(
-                pktsOnQueue, 2 /* 1 pkt each for ttl < 128 and ttl >= 128 */);
+                pktsOnQueue,
+                utility::getQueuePerHostExpectedLoopbackPktCount(
+                    getAgentEnsemble()->getL3Asics(), 2));
           }
         }
       }
