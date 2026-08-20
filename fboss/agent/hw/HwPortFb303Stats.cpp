@@ -56,8 +56,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
-      kOutDiscardsSll(),
-      kOutDiscardsHll(),
       kLlrTxOk(),
       kLlrRxOk(),
       kLlrTxReplay(),
@@ -341,13 +339,15 @@ void HwPortFb303Stats::updateStats(
         kFabricControlTxPackets(),
         *curPortStats.fabricControlTxPackets_());
   }
-  if (curPortStats.outDiscardsSll_().has_value()) {
-    updateStat(
-        timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
-  }
-  if (curPortStats.outDiscardsHll_().has_value()) {
-    updateStat(
-        timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+  if (isSllHllDiscardCounterSupported()) {
+    if (curPortStats.outDiscardsSll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+    }
+    if (curPortStats.outDiscardsHll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+    }
   }
 
   // UEC LLR counters -- populated only on LLR-capable ASICs (Tomahawk Ultra).
