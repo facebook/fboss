@@ -106,11 +106,15 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, setRemoteAsn) {
 TEST_F(CmdConfigBgpPeerGroupTestFixture, timersAccumulate) {
   run({"SPINE", "timers", "hold-time", "90"});
   run({"SPINE", "timers", "keepalive", "30"});
+  run({"SPINE", "timers", "out-delay", "5"});
+  run({"SPINE", "timers", "withdraw-unprog-delay", "10"});
   run({"SPINE", "graceful-restart", "restart-time", "120"});
   ASSERT_EQ(groups().size(), 1);
   const auto& timers = *groups()[0].bgp_peer_timers();
   EXPECT_EQ(*timers.hold_time_seconds(), 90);
   EXPECT_EQ(*timers.keep_alive_seconds(), 30);
+  EXPECT_EQ(*timers.out_delay_seconds(), 5);
+  EXPECT_EQ(*timers.withdraw_unprog_delay_seconds(), 10);
   EXPECT_EQ(timers.graceful_restart_seconds().value_or(0), 120);
 }
 
@@ -200,17 +204,50 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, valueValidation) {
   EXPECT_THAT(
       run({"SPINE", "local-asn", "18446744073709551615"}),
       HasSubstr("Invalid"));
+  // The rejected value implicitly created SPINE; the rollback must remove it,
+  // not just skip persisting it.
+  EXPECT_TRUE(groups().empty())
+      << "rejected first attribute must not leave a half-created group";
   EXPECT_FALSE(sessionFileExists())
       << "session file should not exist after rejected input";
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, wrongValueCountRejected) {
+  // Known attribute, but no value: parses fine, handler rejects at runtime.
+  EXPECT_THAT(run({"SPINE", "remote-asn"}), HasSubstr("requires"));
+  EXPECT_THAT(run({"SPINE", "timers", "hold-time"}), HasSubstr("requires"));
+  EXPECT_THAT(run({"SPINE", "description"}), HasSubstr("requires"));
+  // Too many values for single-value attributes.
+  EXPECT_THAT(
+      run({"SPINE", "remote-asn", "65000", "65001"}), HasSubstr("requires"));
+  EXPECT_THAT(
+      run({"SPINE", "rr-client", "true", "false"}), HasSubstr("requires"));
+  EXPECT_TRUE(groups().empty())
+      << "rejected first attribute must not leave a half-created group";
+  EXPECT_FALSE(sessionFileExists())
+      << "session file should not exist after rejected input";
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, overwriteSameAttributeLastWins) {
+  run({"SPINE", "remote-asn", "65000"});
+  run({"SPINE", "remote-asn", "65001"});
+  ASSERT_EQ(groups().size(), 1);
+  EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65001);
 }
 
 TEST_F(CmdConfigBgpPeerGroupTestFixture, namedGroupsAreDistinct) {
   run({"SPINE", "remote-asn", "65000"});
   run({"LEAF", "remote-asn", "65001"});
   ASSERT_EQ(groups().size(), 2);
-  // Re-referencing an existing group by name updates it, not appends.
+  // Re-referencing an existing group by name updates it, not appends —
+  // and mutating one field preserves the group's other fields and leaves
+  // the sibling group untouched.
   run({"SPINE", "local-asn", "64512"});
-  EXPECT_EQ(groups().size(), 2);
+  ASSERT_EQ(groups().size(), 2);
+  EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65000);
+  EXPECT_EQ(groups()[0].local_as_4_byte().value_or(0), 64512);
+  EXPECT_EQ(groups()[1].remote_as_4_byte().value_or(0), 65001);
+  EXPECT_FALSE(groups()[1].local_as_4_byte().has_value());
 }
 
 // ==============================================================================
