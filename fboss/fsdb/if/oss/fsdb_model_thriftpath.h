@@ -322,6 +322,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QsfpServiceConfig, ::facebook::fbo
     STRUCT_CHILD_GETTERS(transceiverValidationConfig, 7);
     STRUCT_CHILD_GETTERS(tunableOpticsConfig, 8);
     STRUCT_CHILD_GETTERS(phyConfig, 9);
+    STRUCT_CHILD_GETTERS(thriftApiToRateLimitInQps, 10);
 };
 
 
