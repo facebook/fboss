@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <algorithm>
 #include <iostream>
@@ -60,6 +61,23 @@ CmdDeleteProtocolBgpPeerGroup::queryClient(
   });
   if (it == groups.end()) {
     return fmt::format("Error: BGP peer-group {} not found", args.groupName());
+  }
+  // A neighbor's peer_group_name resolves against this group by name at
+  // daemon load; erasing the group while a neighbor still points at it would
+  // commit a dangling reference. Refuse and name the neighbors instead.
+  std::vector<std::string> referencingPeers;
+  for (const auto& peer : *cfg.peers()) {
+    if (peer.peer_group_name().has_value() &&
+        *peer.peer_group_name() == args.groupName()) {
+      referencingPeers.push_back(*peer.peer_addr());
+    }
+  }
+  if (!referencingPeers.empty()) {
+    return fmt::format(
+        "Error: BGP peer-group {} is still referenced by neighbor(s): {}; "
+        "delete or re-point those neighbors first",
+        args.groupName(),
+        folly::join(", ", referencingPeers));
   }
   groups.erase(it);
   session.saveBgpConfig();

@@ -49,6 +49,20 @@ class CmdDeleteBgpPeerGroupTestFixture : public CmdConfigTestBase {
     return ConfigSession::getInstance().getBgpConfig().peer_groups().ensure();
   }
 
+  // Reference a peer-group from a neighbor the way a committed config would,
+  // without pulling the neighbor command (and its whole dispatch table) into
+  // this test binary.
+  void addPeerReferencing(
+      const std::string& peerAddr,
+      const std::string& groupName) {
+    bgp::thrift::BgpPeer peer;
+    peer.local_addr() = "10.0.0.1";
+    peer.peer_addr() = peerAddr;
+    peer.peer_group_name() = groupName;
+    ConfigSession::getInstance().getBgpConfig().peers()->push_back(
+        std::move(peer));
+  }
+
   bool sessionFileExists() {
     return std::filesystem::exists(
         ConfigSession::getInstance().getBgpSessionConfigPath());
@@ -101,6 +115,46 @@ TEST_F(CmdDeleteBgpPeerGroupTestFixture, deleteUnknownLeavesOthersIntact) {
   EXPECT_THAT(result, HasSubstr("not found"));
   ASSERT_EQ(groups().size(), 1);
   EXPECT_EQ(*groups()[0].name(), "SPINE");
+}
+
+TEST_F(CmdDeleteBgpPeerGroupTestFixture, deleteReferencedGroupRejected) {
+  configure({"SPINE", "remote-asn", "65000"});
+  addPeerReferencing("10.0.0.2", "SPINE");
+  addPeerReferencing("10.0.0.3", "SPINE");
+
+  auto result = del({"SPINE"});
+  EXPECT_THAT(result, HasSubstr("still referenced"));
+  // The refusal names every referencing neighbor so the user can act on it.
+  EXPECT_THAT(result, HasSubstr("10.0.0.2"));
+  EXPECT_THAT(result, HasSubstr("10.0.0.3"));
+  ASSERT_EQ(groups().size(), 1);
+  EXPECT_EQ(*groups()[0].name(), "SPINE");
+  EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65000);
+}
+
+TEST_F(CmdDeleteBgpPeerGroupTestFixture, deleteUnreferencedGroupSucceeds) {
+  configure({"SPINE", "remote-asn", "65000"});
+  configure({"LEAF", "remote-asn", "65001"});
+  // A neighbor referencing SPINE must not block deleting LEAF.
+  addPeerReferencing("10.0.0.2", "SPINE");
+
+  auto result = del({"LEAF"});
+  EXPECT_THAT(result, HasSubstr("Successfully deleted BGP peer-group LEAF"));
+  ASSERT_EQ(groups().size(), 1);
+  EXPECT_EQ(*groups()[0].name(), "SPINE");
+}
+
+TEST_F(CmdDeleteBgpPeerGroupTestFixture, deleteThenRecreateStartsClean) {
+  configure({"SPINE", "remote-asn", "65000"});
+  auto result = del({"SPINE"});
+  EXPECT_THAT(result, HasSubstr("Successfully deleted"));
+  EXPECT_TRUE(groups().empty());
+
+  configure({"SPINE"});
+  ASSERT_EQ(groups().size(), 1);
+  // The recreated group starts clean — no fields leak across the
+  // delete/recreate boundary.
+  EXPECT_FALSE(groups()[0].remote_as_4_byte().has_value());
 }
 
 } // namespace facebook::fboss
