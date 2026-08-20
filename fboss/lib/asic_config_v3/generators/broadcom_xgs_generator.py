@@ -71,19 +71,13 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             self.ocp_sai_common = {"global": {}}
 
         vendor_sdk_common_path = os.path.join(
-            self.paths.asic_vendors_dir,
-            vendor,
-            self.ASIC_FAMILY,
-            "sdk_common.json",
+            self.paths.asic_vendors_dir, vendor, self.ASIC_FAMILY, "sdk_common.json"
         )
         with open(vendor_sdk_common_path) as f:
             self.vendor_sdk_common = json.load(f)
 
         vendor_sai_common_path = os.path.join(
-            self.paths.asic_vendors_dir,
-            vendor,
-            self.ASIC_FAMILY,
-            "sai_common.json",
+            self.paths.asic_vendors_dir, vendor, self.ASIC_FAMILY, "sai_common.json"
         )
         with open(vendor_sai_common_path) as f:
             self.vendor_sai_common = json.load(f)
@@ -398,6 +392,11 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             f"FEC_MODE: {fec}",
             f"MAX_FRAME_SIZE: {self.mmu_size}",
         )
+        # Optional pass-through PC_PORT settings, appended in declaration order.
+        for setting_key, setting_value in port_config.get(
+            "pc_port_overrides", {}
+        ).items():
+            pc_value = (*pc_value, f"{setting_key}: {setting_value}")
         self.values["PC_PORT"][pc_key] = pc_value
 
         if mgmt_port and mgmt_port_config.get("enabled", False):
@@ -492,6 +491,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                     "FP_CONFIG",
                     "CTR_EFLEX_CONFIG",
                     "DLB_ECMP_CONFIG",
+                    "PHB_CONTROL",
                 )
             ):
                 device = "device"

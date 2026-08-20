@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
+#include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 namespace facebook::fboss {
@@ -15,6 +16,14 @@ TEST_F(CmdShowFabricReachabilityTestFixture, wikiDocHooks) {
   EXPECT_FALSE(CmdShowFabricReachabilityTraits::description().empty());
   EXPECT_FALSE(
       CmdShowFabricReachability::sampleModel().reachabilityEntries()->empty());
+}
+
+TEST_F(CmdShowFabricReachabilityTestFixture, wikiDocHooksUncached) {
+  EXPECT_FALSE(CmdShowFabricReachabilityUncachedTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowFabricReachabilityUncached::sampleModel()
+          .reachabilityEntries()
+          ->empty());
 }
 
 } // namespace facebook::fboss

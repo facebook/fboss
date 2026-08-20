@@ -67,6 +67,11 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kLlrRxAckNackSeqError(),
       kLlrRxExpectedSeqPoisoned(),
       kLlrRxExpectedSeqBad(),
+      kLlrTxIneligiblePkts(),
+      kLlrRxIneligiblePkts(),
+      kLlrTxNackReplayEvent(),
+      kLlrTxTimerReplayEvent(),
+      kLlrTxError(),
   };
   return kPortKeys;
 }
@@ -385,6 +390,33 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLlrRxExpectedSeqBad(),
         *curPortStats.llrRxExpectedSeqBad_());
+  }
+  if (curPortStats.llrTxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxIneligiblePkts(),
+        *curPortStats.llrTxIneligiblePkts_());
+  }
+  if (curPortStats.llrRxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxIneligiblePkts(),
+        *curPortStats.llrRxIneligiblePkts_());
+  }
+  if (curPortStats.llrTxNackReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxNackReplayEvent(),
+        *curPortStats.llrTxNackReplayEvent_());
+  }
+  if (curPortStats.llrTxTimerReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxTimerReplayEvent(),
+        *curPortStats.llrTxTimerReplayEvent_());
+  }
+  if (curPortStats.llrTxError_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxError(), *curPortStats.llrTxError_());
   }
 
   // Update queue stats

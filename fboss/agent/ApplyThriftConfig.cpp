@@ -5183,9 +5183,6 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
         "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
         "standbySwitchingMode to be set");
   }
-  if (config.sourcePortPrune()) {
-    newFlowletSwitchingConfig->setSourcePortPrune(*config.sourcePortPrune());
-  }
   return newFlowletSwitchingConfig;
 }
 
@@ -6048,11 +6045,25 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
-  // Snapshot FLAGS_ecmp_width into switch_state. On warmboot replay a
-  // mismatch between the stored value and the current FLAGS_ecmp_width
-  // triggers assert and coldboot.
+  // Source ecmpWidth from cfg.SwitchSettings, falling back to FLAGS_ecmp_width
+  // during the flag->config migration. Changing it requires a coldboot; see
+  // StateUpdateValidator.
   {
-    int32_t newEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto& configEcmpWidth = cfg_->switchSettings()->ecmpWidth();
+    const auto flagEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto newEcmpWidth =
+        configEcmpWidth.has_value() ? *configEcmpWidth : flagEcmpWidth;
+    if (newEcmpWidth <= 0) {
+      throw FbossError("ECMP width must be positive, got ", newEcmpWidth);
+    }
+    // During the flag->config migration both knobs can be set. Config wins;
+    // warn on a mismatch so the precedence isn't silent. Remove once
+    // FLAGS_ecmp_width is retired.
+    if (configEcmpWidth.has_value() && newEcmpWidth != flagEcmpWidth) {
+      XLOG(WARN) << "Config SwitchSettings.ecmpWidth (" << newEcmpWidth
+                 << ") differs from FLAGS_ecmp_width (" << FLAGS_ecmp_width
+                 << "); config value takes precedence";
+    }
     if (origSwitchSettings->getEcmpWidth() != newEcmpWidth) {
       newSwitchSettings->setEcmpWidth(newEcmpWidth);
       switchSettingsChange = true;

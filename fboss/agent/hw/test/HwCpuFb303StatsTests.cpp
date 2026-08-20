@@ -122,6 +122,13 @@ HwPortStats getInitedStats() {
       0, // fecCorrectedSymbols
       LlrTxStatus::OFF, // llrTxStatus
       LlrRxStatus::OFF, // llrRxStatus
+      0, // llrTxEligiblePkts
+      0, // llrTxIneligiblePkts
+      0, // llrRxEligiblePkts
+      0, // llrRxIneligiblePkts
+      0, // llrTxNackReplayEvent
+      0, // llrTxTimerReplayEvent
+      0, // llrTxError
   };
 }
 

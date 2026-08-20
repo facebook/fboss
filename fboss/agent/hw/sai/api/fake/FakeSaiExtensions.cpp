@@ -952,6 +952,23 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -1129,6 +1146,11 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
   return SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
+  return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
 }
 
 std::optional<sai_attr_id_t>

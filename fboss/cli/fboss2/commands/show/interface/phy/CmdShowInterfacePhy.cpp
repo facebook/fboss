@@ -154,6 +154,11 @@ void CmdShowInterfacePhy::printSideStateAndStat(
         std::ostringstream outStringStream;
         outStringStream << *rsFec->preFECBer();
         rsFecTable.addRow({prefix + "Pre-FEC BER", outStringStream.str()});
+        if (rsFec->preFECBerSource().has_value()) {
+          rsFecTable.addRow(
+              {prefix + "Pre-FEC BER Source",
+               apache::thrift::util::enumNameSafe(*rsFec->preFECBerSource())});
+        }
         if (rsFec->fecTail().has_value()) {
           rsFecTable.addRow(
               {prefix + "FEC Tail", std::to_string(rsFec->fecTail().value())});

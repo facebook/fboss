@@ -421,4 +421,37 @@ inline folly::StringPiece constexpr kLlrTxStatus() {
 inline folly::StringPiece constexpr kLlrRxStatus() {
   return "llr_rx_status";
 }
+
+// Broadcom LLR stat extensions. Only the subset that is actionable per port is
+// exported; llrTxEligiblePkts_ and llrRxEligiblePkts_ stay FSDB-only, because
+// eligible plus ineligible is the port packet count that out_unicast_pkts /
+// in_unicast_pkts already carry, so the protected fraction is derivable from
+// the ineligible counter alone.
+//
+// A non-zero ineligible rate on a port with an LLR profile bound is the signal
+// that LLR is not protecting traffic -- it is what a port whose TX state
+// machine never left OFF looks like from ODS.
+inline folly::StringPiece constexpr kLlrTxIneligiblePkts() {
+  return "llr_tx_ineligible_pkts";
+}
+
+inline folly::StringPiece constexpr kLlrRxIneligiblePkts() {
+  return "llr_rx_ineligible_pkts";
+}
+
+// Replay episodes, as opposed to the frames replayed in them that
+// llr_tx_replay already counts. NACK-triggered means the partner detected a
+// bad frame; timer-triggered means an ACK never arrived, which is the
+// precursor to a data-age flush and a distinct failure to alert on.
+inline folly::StringPiece constexpr kLlrTxNackReplayEvent() {
+  return "llr_tx_nack_replay_event";
+}
+
+inline folly::StringPiece constexpr kLlrTxTimerReplayEvent() {
+  return "llr_tx_timer_replay_event";
+}
+
+inline folly::StringPiece constexpr kLlrTxError() {
+  return "llr_tx_error";
+}
 } // namespace facebook::fboss

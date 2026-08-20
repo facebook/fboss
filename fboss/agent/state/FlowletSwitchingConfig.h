@@ -297,21 +297,6 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
-  void setSourcePortPrune(const std::optional<bool>& sourcePortPrune) {
-    if (sourcePortPrune) {
-      set<switch_config_tags::sourcePortPrune>(*sourcePortPrune);
-    } else {
-      ref<switch_config_tags::sourcePortPrune>().reset();
-    }
-  }
-
-  std::optional<bool> getSourcePortPrune() const {
-    if (auto sourcePortPrune = get<switch_config_tags::sourcePortPrune>()) {
-      return sourcePortPrune->cref();
-    }
-    return std::nullopt;
-  }
-
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

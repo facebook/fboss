@@ -90,6 +90,10 @@ if ($ENV{SAI_BRCM_PAI_IMPL})
   # local directory
   # Header files for libpai.a, the whole inc directory from SDK
   set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
+  # PAI vendor headers that sit at the root of the SDK's inc/, notably
+  # brcm_pai_extensions.h. These are siblings of the sai/ and pai_macsec/
+  # subdirs, not members of them, so the root needs its own entry.
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}")
   # macsec headers
   include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
   # epdm headers

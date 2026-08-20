@@ -19,7 +19,6 @@ thrift_library(
         "cpp2",
         "go",
         "py3-deprecated",
-        "py-deprecated",
         "python",
     ],
     plugins = [
@@ -27,7 +26,6 @@ thrift_library(
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "reflection,json",
     thrift_srcs = {
         "fsdb_model.thrift": [],

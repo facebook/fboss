@@ -2106,6 +2106,9 @@ struct SwitchSettings {
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
   36: optional PacketForwardingMode packetForwardingMode;
+  // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
+  // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
+  37: optional i32 ecmpWidth;
 }
 
 // Global buffer pool
@@ -2478,8 +2481,6 @@ struct FlowletSwitchingConfig {
   21: optional i16 standbyInactivityIntervalUsecs;
   // flow set table size for standby DLB groups
   22: optional i16 standbyFlowletTableSize;
-  // Source Port Prune, prevents forwarding traffic back to received port
-  23: optional bool sourcePortPrune;
 }
 
 /*

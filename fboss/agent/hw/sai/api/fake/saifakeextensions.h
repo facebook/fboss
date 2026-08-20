@@ -210,6 +210,7 @@ typedef enum _sai_acl_entry_extensions_attr_t {
   SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL =
       SAI_ACL_ENTRY_ATTR_CUSTOM_RANGE_START,
   SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST,
+  SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED,
 } sai_acl_entry_extensions_attr_t;
 
 #define SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL \

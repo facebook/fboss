@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
-
+#include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -59,6 +59,37 @@ bool hasValidPortQueues(
     }
   }
   return true;
+}
+
+bool StateUpdateValidator::isEcmpWidthUpdateValid(
+    const StateDelta& delta) const {
+  bool isValid = true;
+  // ecmpWidth drives route normalization and HW ECMP sizing; it cannot change
+  // under a running agent. Reject any change to an already-set width, including
+  // clearing it (set->unset), since clearing makes the effective width fall
+  // back to FLAGS_ecmp_width and would desync forwarding state normalized
+  // against the old width. unset->set is intentionally allowed: it is the
+  // warm-boot upgrade path where a pre-migration state (no ecmpWidth) adopts
+  // the flag-derived value, preserving the effective width. On a coldboot the
+  // width is a first time add (not a change), so this lambda does not fire and
+  // it applies cleanly.
+  forEachChanged(
+      delta.getSwitchSettingsDelta(),
+      [&isValid](
+          const shared_ptr<SwitchSettings>& oldSettings,
+          const shared_ptr<SwitchSettings>& newSettings) {
+        auto oldEcmpWidth = oldSettings->getEcmpWidth();
+        auto newEcmpWidth = newSettings->getEcmpWidth();
+        if (oldEcmpWidth.has_value() && oldEcmpWidth != newEcmpWidth) {
+          XLOG(ERR) << "ecmpWidth cannot change on a running agent ("
+                    << *oldEcmpWidth << " -> "
+                    << (newEcmpWidth.has_value() ? std::to_string(*newEcmpWidth)
+                                                 : "unset")
+                    << "); a coldboot is required to change ECMP width";
+          isValid = false;
+        }
+      });
+  return isValid;
 }
 
 bool isStateUpdateValidCommon(
@@ -132,6 +163,7 @@ bool isStateUpdateValidCommon(
     XLOG(ERR) << "Only one sflow mirror can be configured across all ports";
     isValid = false;
   }
+
   return isValid;
 }
 
@@ -273,6 +305,11 @@ StateUpdateValidator::StateUpdateValidator(
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
     SwitchStats* stats) {
+  if (!isEcmpWidthUpdateValid(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
+  }
+
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats->resourceAccountantRejectedUpdates();
     XLOG(ERR) << "State updated rejected by resource accountant.";

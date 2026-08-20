@@ -2047,7 +2047,8 @@ service TBgpService extends fb303.FacebookService {
   monitored_queue_size_map getMonitoredQueueSizes(1: list<string> paths);
 
   /**
-   * Get attribute memory statistics
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB. Use getDeduplicatorStats instead.
    */
   TAttributeStats getAttributeStats();
 
@@ -2059,7 +2060,8 @@ service TBgpService extends fb303.FacebookService {
   );
 
   /**
-   * Get attribute memory statistics filtered by ingress/egress and pre/post policy
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB.
    */
   TAttributeStats getAttributeStatsFiltered(1: TAttributeStatsFilter filter);
 

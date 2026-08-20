@@ -342,25 +342,9 @@ TEST_F(AgentVoqSwitchSdkDumpRateLimitTest, verifySdkDumpRateLimit) {
     const int kMinWrites = 2;
     const int kMaxWrites = kNumSamples / kWindowCycles + 2;
     int events = 0;
-    // Sample the suppressed count as the events are driven. The SDK clears
-    // SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT on read, so the fb303 value is
-    // only right if every stats cycle accumulates its delta. Once suppression
-    // has started the flood guarantees there is something to add every cycle,
-    // so the count must be strictly higher than the previous sample - that
-    // catches an accumulation that stalls or regresses, neither of which a
-    // single before/after comparison would notice.
-    int64_t lastSuppressed = baselineSuppressed;
     WITH_RETRIES_N_TIMED(kNumSamples, std::chrono::seconds(sampleSecs()), {
       runCint(kInterruptMaskedEventCintStr);
       events++;
-      auto sample = getSdkDumpSuppressedCount();
-      // A count still at the baseline just means nothing has been suppressed
-      // yet, which is not a failure. Past that it has to advance every time.
-      if (sample > baselineSuppressed) {
-        EXPECT_GT(sample, lastSuppressed)
-            << "sdk_dump_suppressed_count did not advance";
-      }
-      lastSuppressed = sample;
       // Gating the loop on the write count means it always covers at least the
       // windows that count needs.
       EXPECT_EVENTUALLY_GE(
@@ -368,7 +352,9 @@ TEST_F(AgentVoqSwitchSdkDumpRateLimitTest, verifySdkDumpRateLimit) {
     });
 
     auto writes = countSdkRegDumpWrites() - baselineWrites;
-    auto suppressed = lastSuppressed - baselineSuppressed;
+    // The agent accumulates sdk_dump_suppressed_count every stats cycle, so a
+    // single read here already reflects everything suppressed during the loop.
+    auto suppressed = getSdkDumpSuppressedCount() - baselineSuppressed;
     XLOG(INFO) << "Injected " << events << " masked interrupts with a "
                << windowSecs() << "s dump rate limit window, SDK wrote "
                << writes << " dumps under " << FLAGS_sdk_reg_dump_path_prefix

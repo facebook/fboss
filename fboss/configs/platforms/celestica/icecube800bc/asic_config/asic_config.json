@@ -1,8 +1,8 @@
 {
-  "platform_name": "wedge800bact",
+  "platform_name": "icecube800bc",
   "vendor": "broadcom",
-  "asic": "tomahawk5",
-  "num_ports_per_core": 1,
+  "asic": "tomahawk6",
+  "num_ports_per_core": 2,
   "defaults": {
     "asic_config_params": {
       "config_type": "YAML_CONFIG",
@@ -29,28 +29,16 @@
         "100000": {
           "num_lanes": 4,
           "fec": "PC_FEC_RS528"
-        },
-        "10000": {
-          "num_lanes": 1,
-          "fec": "PC_FEC_NONE",
-          "pmd_firmware": {
-            "MEDIUM_TYPE_AUTO": 0,
-            "MEDIUM_TYPE": "PC_PHY_MEDIUM_COPPER"
-          }
         }
       }
     },
-    "port_mapping_overrides": {
-      "core_range": "0-15,48-63",
-      "num_lp_ports_on_even_core": 4
-    },
     "features": {
-      "generate_dlb_config": true,
+      "generate_dlb_config": false,
       "generate_low_clock_freq_settings": false,
       "generate_autoload_board_settings": true
     }
   },
   "variants": {
-    "default": {}
+    "": {}
   }
 }

@@ -8,11 +8,17 @@
     "wedge800bact/brcm-13.3.0.0_odp": [
         {
           "test_name_regex": "ConfigPfcTest\\.BufferPoolPriorityGroupAndPortPfc$"
+        },
+        {
+          "test_name_regex": "ConfigPortQueueConfigTest\\.BuildAndAssignPolicy$"
         }
     ],
     "wedge800bnhp/brcm-13.3.0.0_odp": [
         {
           "test_name_regex": "ConfigPfcTest\\.BufferPoolPriorityGroupAndPortPfc$"
+        },
+        {
+          "test_name_regex": "ConfigPortQueueConfigTest\\.BuildAndAssignPolicy$"
         }
     ]
   }

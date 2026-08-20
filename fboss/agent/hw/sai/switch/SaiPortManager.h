@@ -415,6 +415,7 @@ class SaiPortManager {
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
   void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
+  void reissueLlrModeRemote(SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

@@ -123,6 +123,35 @@ ACTION(ThrowException) {
   throw std::exception();
 }
 
+TEST_F(SwSwitchTest, VerifyEcmpWidthChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  auto withEcmpWidth = [](const std::shared_ptr<SwitchState>& base,
+                          std::optional<int32_t> width) {
+    auto state = base->clone();
+    auto settings = utility::getFirstNodeIf(state->getSwitchSettings());
+    settings->modify(&state)->setEcmpWidth(width);
+    state->publish();
+    return state;
+  };
+
+  auto baseState = withEcmpWidth(sw->getState(), 64);
+
+  // Unchanged width is valid.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 64))));
+
+  // First-time set (old side unset, as on coldboot) is valid.
+  auto unsetState = withEcmpWidth(sw->getState(), std::nullopt);
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(unsetState, withEcmpWidth(unsetState, 128))));
+
+  // Changing the width on a running agent is rejected regardless of boot type.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 128))));
+}
+
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));

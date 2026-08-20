@@ -58,7 +58,7 @@ void SaiArsManager::addArs(
           alternatePathCostForArs,
           alternatePathBiasForArs,
           nextHopGroupType,
-          getSourcePortPrune(flowletSwitchConfig)));
+          std::nullopt));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();
@@ -83,7 +83,7 @@ void SaiArsManager::addArs(
             SaiArsTraits::Attributes::AlternatePathBias{
                 static_cast<sai_uint32_t>(*bias)},
             nextHopGroupType,
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -101,7 +101,7 @@ void SaiArsManager::addArs(
             alternatePathCostForArs,
             alternatePathBiasForArs,
             nextHopGroupType,
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 #endif
 
@@ -118,7 +118,7 @@ void SaiArsManager::addArs(
             std::nullopt,
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 #endif
 }

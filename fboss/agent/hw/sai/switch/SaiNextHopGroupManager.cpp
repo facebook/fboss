@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -321,7 +322,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
   bool canBulkCreateMembers = !isProtectionNextHopGroupType(nextHopGroupType);
-  if (canBulkCreateMembers &&
+  if (FLAGS_enable_bulk_create_ecmp_members && canBulkCreateMembers &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     // TODO(zecheng): Use bulk create for warmboot handle reclaiming as well.
@@ -373,7 +374,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_->getAsic()->isSupported(
+  if (FLAGS_enable_bulk_create_ecmp_members &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     nextHopGroupHandle->bulkCreate = false;
 
@@ -717,7 +719,8 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
   }
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-  if (nhgroup_ && nhgroup_->bulkCreate) {
+  if (FLAGS_enable_bulk_create_ecmp_members && nhgroup_ &&
+      nhgroup_->bulkCreate) {
     adapterHostKey_ = adapterHostKey;
     createAttributes_ = createAttributes;
   } else {
@@ -865,7 +868,7 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_ &&
+  if (FLAGS_enable_bulk_create_ecmp_members && platform_ &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;

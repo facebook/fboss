@@ -630,11 +630,20 @@ struct SaiAclEntryTraits {
         AclEntryFieldSaiObjectIdT,
         AttributeFieldRouteDestination,
         SaiAclEntryFieldSaiObjectIdTDefault>;
+    struct AttributeLabelExtendedWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LabelExtended = SaiExtensionAttribute<
+        std::vector<int8_t>,
+        AttributeLabelExtendedWrapper,
+        SaiS8ListDefault>;
   };
 
   using AdapterKey = AclEntrySaiId;
-  using AdapterHostKey =
-      std::tuple<Attributes::TableId, std::optional<Attributes::Priority>>;
+  using AdapterHostKey = std::tuple<
+      Attributes::TableId,
+      std::optional<Attributes::Priority>,
+      std::optional<Attributes::LabelExtended>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
@@ -707,9 +716,11 @@ struct SaiAclEntryTraits {
       ,
       std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
       std::optional<Attributes::ActionL3SwitchCancel>,
-      std::optional<Attributes::FieldRouteDestination>>;
+      std::optional<Attributes::FieldRouteDestination>,
+      std::optional<Attributes::LabelExtended>>;
 #else
-      >;
+      ,
+      std::optional<Attributes::LabelExtended>>;
 #endif
 };
 
@@ -782,6 +793,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDestination);
 #endif
+SAI_ATTRIBUTE_NAME(AclEntry, LabelExtended);
 
 struct SaiAclCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_COUNTER;

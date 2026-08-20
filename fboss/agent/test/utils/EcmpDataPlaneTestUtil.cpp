@@ -11,6 +11,7 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -164,12 +165,24 @@ void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
           portIds->push_back(port);
         }
         ensemble_->clearPortStats(portIds);
+        WITH_RETRIES({
+          auto clearedStats = ensemble_->getLatestPortStats(ports);
+          for (const auto& clearedStat : clearedStats) {
+            EXPECT_EVENTUALLY_EQ(0, *clearedStat.second.outBytes_());
+          }
+        });
       },
-      [=, this]() {
+      [=, this]() -> std::optional<uint64_t> {
         const auto portStats = ensemble_->getLatestPortStats(ports);
         uint64_t totalOutPackets{0};
         for (const auto& port : ports) {
-          totalOutPackets += *portStats.at(port).outUnicastPkts_();
+          // Stats collection is async and may not have caught up for every
+          // port yet. Report "not ready" so the caller retries.
+          auto portStat = portStats.find(port);
+          if (portStat == portStats.end()) {
+            return std::nullopt;
+          }
+          totalOutPackets += *portStat->second.outUnicastPkts_();
         }
         return totalOutPackets;
       },

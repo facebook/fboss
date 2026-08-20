@@ -47,6 +47,7 @@ cpp_unittest(
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "CmdDeleteInterfaceTest.cpp",
         "CmdDeleteQosDefaultPolicyTest.cpp",
+        "CmdDeleteQosPolicyTest.cpp",
         "CmdDeleteQosQueueConfigTest.cpp",
         "CmdDeleteTunnelIpInIpTest.cpp",
         "CmdDeleteVlanTest.cpp",

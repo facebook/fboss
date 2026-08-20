@@ -25,7 +25,7 @@ The configuration files contain two kinds of keys.
 
 Platform configuration, defined by `platform_config.schema.json`. This schema
 validates every
-`fboss/configs/platforms/<system_vendor>/<platform>/asic_config_v3/asic_config.json`
+`fboss/configs/platforms/<system_vendor>/<platform>/asic_config/asic_config.json`
 file.
 
 ### Top-level fields

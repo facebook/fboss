@@ -1393,8 +1393,10 @@ bcm_device:
       bcm_tunnel_term_compatible_mode: 1
       sai_l2_cpu_fdb_event_suppress: 1
       sai_port_phy_time_sync_en: 1
-      sai_stats_support_mask: 0x2
+      sai_stats_support_mask: 0x802
       sai_disable_internal_port_serdes: 1
+      stat_custom_receive0_management_mode: 1
+      sai_stats_disable_mask: 0x800
       global_flexctr_ing_action_num_reserved: 20
       global_flexctr_ing_pool_num_reserved: 8
       global_flexctr_ing_op_profile_num_reserved: 20

@@ -1020,21 +1020,25 @@ void pumpTrafficAndVerifyLoadBalanced(
 void pumpTrafficAndVerifyLoadBalanced(
     const std::function<void()>& pumpTraffic,
     const std::function<void()>& clearPortStats,
-    const std::function<uint64_t()>& getPortOutPackets,
+    const std::function<std::optional<uint64_t>()>& getPortOutPackets,
     uint64_t numPacketsSent,
     const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected) {
   clearPortStats();
-  auto portOutPacketsBefore = getPortOutPackets();
+  auto portOutPacketsBefore = uint64_t{0};
   WITH_RETRIES({
-    portOutPacketsBefore = getPortOutPackets();
+    auto portOutPackets = getPortOutPackets();
+    ASSERT_EVENTUALLY_TRUE(portOutPackets.has_value());
+    portOutPacketsBefore = *portOutPackets;
     ASSERT_EVENTUALLY_EQ(0, portOutPacketsBefore);
   });
 
   pumpTraffic();
   auto portOutPacketsAfter = uint64_t{0};
   WITH_RETRIES({
-    portOutPacketsAfter = getPortOutPackets();
+    auto portOutPackets = getPortOutPackets();
+    ASSERT_EVENTUALLY_TRUE(portOutPackets.has_value());
+    portOutPacketsAfter = *portOutPackets;
     XLOG(DBG2) << "Port out packets before: " << portOutPacketsBefore
                << ", after: " << portOutPacketsAfter
                << ", packets sent: " << numPacketsSent;
