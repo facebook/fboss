@@ -195,6 +195,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

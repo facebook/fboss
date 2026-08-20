@@ -126,6 +126,7 @@ struct FakePort {
   sai_int32_t cablePropagationDelayMediaType{0};
   sai_uint16_t pfcPauseDurationOverride{0};
   bool cablePropagationDelayMeasure{false};
+  sai_int32_t linkScanMode{0};
   std::function<void()> onGetAttribute; // test-only hook
 };
 

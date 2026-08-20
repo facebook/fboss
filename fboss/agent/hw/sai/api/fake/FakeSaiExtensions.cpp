@@ -354,6 +354,11 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+  return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }

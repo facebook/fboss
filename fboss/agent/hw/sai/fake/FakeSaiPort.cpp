@@ -863,6 +863,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
       port.cablePropagationDelayMeasure = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_EXT_LINKSCAN_MODE:
+      port.linkScanMode = attr->value.s32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1300,6 +1303,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
         attr[i].value.booldata = port.cablePropagationDelayMeasure;
+        break;
+      case SAI_PORT_ATTR_EXT_LINKSCAN_MODE:
+        attr[i].value.s32 = port.linkScanMode;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

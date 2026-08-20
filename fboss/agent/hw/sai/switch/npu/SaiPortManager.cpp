@@ -1003,6 +1003,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1115,6 +1116,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
+      std::nullopt, // LinkScanMode
   };
 }
 

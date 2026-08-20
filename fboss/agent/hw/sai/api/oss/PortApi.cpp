@@ -475,4 +475,9 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
   return stats;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
