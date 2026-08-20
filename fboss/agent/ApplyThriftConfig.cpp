@@ -3241,6 +3241,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getRxPrecoding().value_or(false) &&
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
+      portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3358,6 +3359,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   } else {
     newPort->setRxPrecoding(std::nullopt);
   }
+  newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {

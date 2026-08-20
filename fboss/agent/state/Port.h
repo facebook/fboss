@@ -941,6 +941,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get who notices link status changes: the SDK or the ASIC */
+  std::optional<cfg::LinkScanMode> getLinkScanMode() const {
+    if (auto linkScanMode = cref<switch_state_tags::linkScanMode>()) {
+      return linkScanMode->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set who notices link status changes: the SDK or the ASIC */
+  void setLinkScanMode(std::optional<cfg::LinkScanMode> linkScanMode) {
+    if (!linkScanMode.has_value()) {
+      ref<switch_state_tags::linkScanMode>().reset();
+    } else {
+      set<switch_state_tags::linkScanMode>(linkScanMode.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

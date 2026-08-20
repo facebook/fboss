@@ -1183,6 +1183,18 @@ enum PortDrainState {
   DRAINED = 1,
 }
 
+/*
+ * Who notices that a port's link status changed: the SDK's software
+ * linkscan thread, or the ASIC itself.
+ *
+ * Unset leaves whatever the SDK came up with alone - FBOSS never
+ * programs the mode. Either value is written down to the SDK.
+ */
+enum LinkScanMode {
+  SOFTWARE = 1,
+  HARDWARE = 2,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1415,6 +1427,13 @@ struct Port {
   // Controls whether RX precoding settings from the platform mapping are
   // applied to the port.
   44: optional bool rxPrecoding;
+
+  /*
+   * Whether link status changes on this port are noticed by the SDK's
+   * software linkscan thread or by the ASIC.
+   * Unset = leave whatever the SDK came up with untouched.
+   */
+  45: optional LinkScanMode linkScanMode;
 }
 
 enum LacpPortRate {
