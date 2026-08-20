@@ -102,6 +102,17 @@ target_link_libraries(thrift_method_rate_limit
   FBThrift::thriftcpp2
 )
 
+add_library(thrift_method_rate_limit_setup
+  fboss/lib/ThriftMethodRateLimitSetup.cpp
+)
+
+target_link_libraries(thrift_method_rate_limit_setup
+  thrift_method_rate_limit
+  fb303::fb303
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 find_library(PCIACCESS pciaccess)
 add_library(pci_device
   fboss/lib/PciDevice.cpp
