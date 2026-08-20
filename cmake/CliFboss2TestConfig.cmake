@@ -32,6 +32,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigSessionTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
+  fboss/cli/fboss2/test/config/CmdConfigTrafficCounterTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanDefaultTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTunnelIpInIpTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigVlanManagerTest.cpp
@@ -47,6 +48,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdDeleteQosPolicyTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteQosQueueConfigTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteTunnelIpInIpTest.cpp
+  fboss/cli/fboss2/test/config/CmdDeleteTrafficCounterTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteVlanTest.cpp
   fboss/cli/fboss2/test/config/ConfigSessionSystemdTest.cpp
   fboss/cli/fboss2/test/config/ProfileValidationTest.cpp
