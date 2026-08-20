@@ -258,6 +258,30 @@ TEST_F(MySidApplyConfigTest, LocatorPrefixChange) {
       getMySid("3002:db8:7fff::/48")->getClientId(), ClientID::STATIC_ROUTE);
 }
 
+TEST_F(MySidApplyConfigTest, ReapplySameConfigSyncsMySidFromRib) {
+  auto config = baseConfig_;
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = "3001:db8::/32";
+  cfg::MySidEntryConfig entry;
+  entry.decap() = cfg::DecapMySidConfig{};
+  mySidConfig.entries()[0x100] = entry;
+  config.mySidConfig() = mySidConfig;
+  applyConfig(config);
+  ASSERT_NE(getMySid("3001:db8:100::/48"), nullptr);
+
+  // Simulate stale SwitchState (RIB still has static MySID after reload).
+  sw_->updateStateBlocking("clear mySids", [](const auto& state) {
+    auto newState = state->clone();
+    newState->resetMySids(std::make_shared<MultiSwitchMySidMap>());
+    return newState;
+  });
+  EXPECT_EQ(getMySidCount(), 0);
+
+  applyConfig(config);
+  EXPECT_EQ(getMySidCount(), 1);
+  EXPECT_NE(getMySid("3001:db8:100::/48"), nullptr);
+}
+
 TEST_F(MySidApplyConfigTest, InvalidPortNameThrows) {
   auto config = baseConfig_;
   cfg::MySidConfig mySidConfig;
