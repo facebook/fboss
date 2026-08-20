@@ -273,6 +273,15 @@ bool MultiHwSwitchHandler::isHwSwitchConnected(const SwitchID& switchId) {
   return connectionStatusTable_.getConnectionStatus(switchId) == 1;
 }
 
+bool MultiHwSwitchHandler::hasActiveHwSwitchConnections() {
+  // for monolithic mode, we always return true, as we are not using
+  // connectionStatusTable_ in this case
+  if (sw_->isRunModeMonolithic()) {
+    return true;
+  }
+  return connectionStatusTable_.hasActiveConnections();
+}
+
 std::unique_ptr<TxPacket> MultiHwSwitchHandler::allocatePacket(uint32_t size) {
   // TODO - support with multiple switches
   CHECK_GE(hwSwitchSyncers_.size(), 1);

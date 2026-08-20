@@ -122,4 +122,9 @@ int HwSwitchConnectionStatusTable::getConnectionStatus(SwitchID switchId) {
   return connectedSwitches_.find(switchId) != connectedSwitches_.end() ? 1 : 0;
 }
 
+bool HwSwitchConnectionStatusTable::hasActiveConnections() {
+  std::lock_guard<std::mutex> lk(hwSwitchConnectedMutex_);
+  return !connectedSwitches_.empty();
+}
+
 } // namespace facebook::fboss

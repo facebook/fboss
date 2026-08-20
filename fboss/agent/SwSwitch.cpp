@@ -227,6 +227,8 @@ facebook::fboss::PortStatus fillInPortStatus(
 }
 
 auto constexpr kHwUpdateFailures = "hw_update_failures";
+auto constexpr kHwUpdateDroppedNoConnection =
+    "hwswitch_disconnected_update_drop";
 
 std::string getDrainStateChangedStr(
     const std::shared_ptr<facebook::fboss::SwitchState>& oldState,
@@ -2054,6 +2056,36 @@ void SwSwitch::handlePendingUpdates() {
           update->onError(ex);
         }
         return;
+      } else if (!multiHwSwitchHandler_->hasActiveHwSwitchConnections()) {
+        /*
+         * All HwSwitch connections are gone (e.g. hw_agent restarted right
+         * after sw_agent came up and the oper delta ack timed out or the
+         * stream disconnected). HwSwitchConnectionStatusTable::disconnected()
+         * has already created cold boot markers and scheduled a graceful
+         * shutdown, but the EXITING run state may not be set yet on this
+         * thread, so isExiting() can still be false here. Treat this like
+         * the exiting case instead of crashing: state will be resynced via
+         * the cold boot on restart.
+         *
+         * TODO: this connection-table check is a proxy for the
+         * HWSWITCH_STATE_UPDATE_CANCELLED status that
+         * MultiHwSwitchHandler::stateChanged computes per switch and then
+         * drops. It is correct only because both cancellation paths erase
+         * the connection-table entry before stateChanged returns to this
+         * thread. Propagating the aggregate update status out of
+         * MultiHwSwitchHandler::stateChanged would be exact, and would also
+         * let us handle partial cancellation (one of several HwSwitches
+         * cancelled) which today either still FATALs here or silently leaves
+         * the cancelled switch out of sync.
+         */
+        fb303::fbData->incrementCounter(kHwUpdateDroppedNoConnection);
+        XLOG(ERR) << "Failed to apply update to HW since all HwSwitch "
+                     "connections are lost; shutdown is in progress";
+        // Belt and braces: every path that empties the connection table
+        // already requests this (and call_once collapses the requests), but
+        // do not rely on that here - dropping updates without a pending
+        // teardown would leave a zombie agent acking updates forever.
+        requestGracefulShutdown();
       } else {
         XLOG(FATAL)
             << " Failed to apply update to HW and the update is not marked for "

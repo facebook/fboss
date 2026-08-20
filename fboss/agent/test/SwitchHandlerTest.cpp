@@ -8,10 +8,11 @@
  *
  */
 
+#include <fb303/ServiceData.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/MultiHwSwitchHandler.h"
-#include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
@@ -20,7 +21,7 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-#include <algorithm>
+#include <atomic>
 
 using facebook::fboss::HwSwitchMatcher;
 using facebook::fboss::SwitchID;
@@ -57,6 +58,13 @@ class SwSwitchHandlerTest : public ::testing::Test {
   void TearDown() override {
     sw_->getHwSwitchHandler()->stop();
     sw_.reset();
+    // stop the shutdown evb only after sw_ is gone: sw_ holds a pointer to
+    // it (and a handler capturing this fixture) once
+    // registerShutdownCounterHandler() has run
+    if (shutdownEvbThread_.joinable()) {
+      shutdownEvb_.terminateLoopSoon();
+      shutdownEvbThread_.join();
+    }
   }
 
  protected:
@@ -108,9 +116,28 @@ class SwSwitchHandlerTest : public ::testing::Test {
     return sw_->getHwSwitchHandler();
   }
 
+  // Register a graceful shutdown handler that only counts invocations, on a
+  // fixture-owned event base (sw_ keeps pointers to both, so they must
+  // outlive it - see TearDown()).
+  void registerShutdownCounterHandler() {
+    shutdownEvbThread_ = std::thread([this]() { shutdownEvb_.loopForever(); });
+    shutdownEvb_.waitUntilRunning();
+    sw_->registerGracefulShutdownHandler(
+        &shutdownEvb_, [this]() { shutdownCount_.fetch_add(1); });
+  }
+
+  // Flush the shutdown evb and return how many times the handler ran.
+  int shutdownHandlerRunCount() {
+    shutdownEvb_.runInFbossEventBaseThreadAndWait([]() {});
+    return shutdownCount_.load();
+  }
+
   std::unique_ptr<SwSwitch> sw_;
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<AgentDirectoryUtil> agentDirUtil_;
+  FbossEventBase shutdownEvb_{"GracefulShutdownTestEvb"};
+  std::thread shutdownEvbThread_;
+  std::atomic<int> shutdownCount_{0};
 };
 
 TEST_F(SwSwitchHandlerTest, GetOperDelta) {
@@ -961,4 +988,71 @@ TEST_F(SwSwitchHandlerTest, verifyRollback) {
   stateUpdateThread.join();
   clientRequestThread1.join();
   clientRequestThread2.join();
+}
+
+/*
+ * hw_agent restarts right after sw_agent starts. All HwSwitch connections
+ * drop, which creates cold boot markers and schedules a
+ * graceful shutdown, but the update thread can fail a pending (non
+ * HW-failure-protected) update before the EXITING run state is set. That
+ * must be treated like the exiting case and not crash the agent.
+ */
+TEST_F(
+    SwSwitchHandlerTest,
+    updateFailureWithNoActiveHwConnectionsDoesNotCrash) {
+  getHwSwitchHandler()->connected(SwitchID(1));
+  getHwSwitchHandler()->connected(SwitchID(2));
+  sw_->init(HwWriteBehavior::WRITE, SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
+
+  // Register a graceful shutdown handler (the split-agent initializer always
+  // does) so we can verify the connection-loss path actually requests one.
+  // The handler only counts invocations - it does not stop the SwSwitch - so
+  // isExiting() deterministically stays false, which is the race window this
+  // test exercises.
+  registerShutdownCounterHandler();
+
+  // read fb303 directly: CounterCache::checkDelta is a no-op in OSS builds
+  constexpr auto kDropCounter = "hwswitch_disconnected_update_drop";
+  auto dropsBefore = facebook::fb303::fbData->getCounters()[kDropCounter];
+
+  // Drop all HwSwitch connections. This empties the connection status table
+  // (what handlePendingUpdates consults) and requests the graceful shutdown.
+  getHwSwitchHandler()->disconnected(SwitchID(1));
+  getHwSwitchHandler()->disconnected(SwitchID(2));
+  ASSERT_FALSE(sw_->isExiting());
+
+  // The update itself gets cancelled because no oper delta client ever
+  // attached (operDeltaSyncState_ is still DISCONNECTED) - independent of
+  // the connected()/disconnected() calls above, which only drive the
+  // connection status table. Net effect: applied state != desired state
+  // while isExiting() is false. Without connection-loss handling this hits
+  // "Failed to apply update to HW and the update is not marked for HW
+  // failure protection" and aborts.
+  sw_->updateStateBlocking(
+      "update with no active hw connections",
+      [](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        auto aclEntry = make_shared<AclEntry>(1, std::string("acl1"));
+        // an ACL entry needs at least one qualifier to pass
+        // StateUpdateValidator, else the update is rejected before
+        // reaching the HwSwitch handler
+        aclEntry->setDscp(0x24);
+        auto acls = newState->getAcls()->modify(&newState);
+        acls->addNode(aclEntry, scope());
+        return newState;
+      });
+  waitForStateUpdates(sw_.get());
+
+  // Nothing was applied: the cancelled update must not land in the
+  // published (applied) state.
+  EXPECT_EQ(sw_->getState()->getAcls()->getNodeIf("acl1"), nullptr);
+
+  // The drop is accounted, so it is alertable.
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounters()[kDropCounter], dropsBefore + 1);
+
+  // The graceful shutdown was requested exactly once (by the disconnect;
+  // the update-drop path's defensive request collapses into it).
+  EXPECT_EQ(shutdownHandlerRunCount(), 1);
 }

@@ -89,6 +89,23 @@ target_link_libraries(async_logger_test
 
 gtest_discover_tests(async_logger_test)
 
+add_executable(switch_handler_test
+  fboss/util/oss/TestMain.cpp
+  fboss/agent/test/SwitchHandlerTest.cpp
+)
+
+target_link_libraries(switch_handler_test
+  agent_test_utils
+  core
+  multi_switch_hw_switch_handler
+  multiswitch_service
+  common_utils
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(switch_handler_test)
+
 add_library(agent_test_lib
   fboss/agent/test/AgentTest.cpp
 )
