@@ -39,13 +39,11 @@
     },
     "platform_sai_overrides": {
       "sai_port_phy_time_sync_en": "0",
-      "sai_eapol_trap_use_bcast_mac": "1",
-      "l3_ecmp_member_secondary_mem_size": "24576",
-      "l3_ecmp_member_first_lkup_mem_size": "8192",
-      "dlb_quality_adjustment_default_value_select": "1"
+      "sai_eapol_trap_use_bcast_mac": "1"
     },
     "features": {
       "generate_autoload_board_settings": true,
+      "generate_dlb_config": true,
       "generate_dlb_ecmp_config": true
     }
   },

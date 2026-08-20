@@ -1340,7 +1340,7 @@ device:
         534], [540, 540], [544, 544], [548, 548], [552, 552], [558, 558], [562, 562],
         [566, 566], [570, 570]]
       :
-        ENABLE: 0
+        ENABLE: 1
         SPEED: 800000
         NUM_LANES: 4
         FEC_MODE: PC_FEC_RS544_2XN_IEEE
@@ -1348,7 +1348,7 @@ device:
       ?
         PORT_ID: 268
       :
-        ENABLE: 0
+        ENABLE: 1
         SPEED: 100000
         NUM_LANES: 4
         FEC_MODE: PC_FEC_RS528
@@ -1397,9 +1397,8 @@ bcm_device:
       sai_stats_support_mask: 0x802
       sai_disable_internal_port_serdes: 1
       stat_custom_receive0_management_mode: 1
-      sai_stats_disable_mask: 0x800
-      l3_ecmp_member_secondary_mem_size: 8192
       sai_eapol_trap_use_bcast_mac: 1
+      sai_stats_disable_mask: 0x800
       global_flexctr_ing_action_num_reserved: 20
       global_flexctr_ing_pool_num_reserved: 8
       global_flexctr_ing_op_profile_num_reserved: 20
@@ -1408,6 +1407,9 @@ bcm_device:
       global_flexctr_egr_pool_num_reserved: 5
       global_flexctr_egr_op_profile_num_reserved: 10
       global_flexctr_egr_group_num_reserved: 1
+      l3_ecmp_member_secondary_mem_size: 24576
+      l3_ecmp_member_first_lkup_mem_size: 8192
+      dlb_quality_adjustment_default_value_select: 1
 ...
 ---
 device:
@@ -1464,4 +1466,10 @@ device:
       CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1
       CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1
       CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1
+...
+---
+device:
+  0:
+    DLB_ECMP_CONFIG:
+      PATH_QUALITY_PROFILE_MODE: WIDE
 ...
