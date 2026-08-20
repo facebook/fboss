@@ -468,6 +468,52 @@ When running hardware tests or unit tests:
   2>&1 | tee test_output.log
 ```
 
+### SAI Logging via run_test.py
+
+When running tests through `run_test.py`, SAI logging is controlled by two separate
+flags. They accept the same level values but affect different things.
+
+| Flag | Default | Affects |
+| --- | --- | --- |
+| `--sai_logging` | `WARN` | SAI SDK verbosity of the test run happening now |
+| `--sai_replayer_sdk_log_level` | unset | SAI SDK verbosity baked into the generated SAI Replayer log, applied when that log is later replayed |
+
+`--sai_logging` is passed to the test binary as `--enable_sai_log`, so it is the
+`run_test.py` equivalent of the flag described above.
+
+`--sai_replayer_sdk_log_level` does **not** change the verbosity of the current run.
+The SAI Replayer records a C++ program that reproduces the run's SAI calls, and this
+level is emitted into that program's `sai_log_set()` calls. It only takes effect when
+the recorded log is compiled and replayed, and it is ignored unless
+`--sai_replayer_logging` is also passed (`run_test.py` prints a warning in that case).
+
+```bash
+# Verbose SAI logging for the current run only
+./bin/run_test.py sai_agent \
+  --config $CONFIG_FILE \
+  --filter AgentEmptyTest.CheckInit \
+  --sai_logging DEBUG
+
+# Record a replayer log, and make the *replay* log at DEBUG
+./bin/run_test.py sai_agent \
+  --config $CONFIG_FILE \
+  --filter AgentEmptyTest.CheckInit \
+  --sai_replayer_logging /tmp/sai_replayer_logs \
+  --sai_replayer_sdk_log_level DEBUG
+
+# Both: verbose now, and verbose on replay
+./bin/run_test.py sai \
+  --config $CONFIG_FILE \
+  --sai_logging DEBUG \
+  --sai_replayer_logging /tmp/sai_replayer_logs \
+  --sai_replayer_sdk_log_level DEBUG
+```
+
+Both flags accept `DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL` and are available on the
+`sai`, `sai_agent`, `sai_agent_scale`, `sai_invariant_agent`, and `link`
+subcommands. `--sai_replayer_logging` must point at a path that does not yet exist;
+`run_test.py` creates it and writes one log per test and boot type.
+
 ### Persistent Logging Configuration
 
 To enable detailed logging permanently for a service, edit the systemd service file:
