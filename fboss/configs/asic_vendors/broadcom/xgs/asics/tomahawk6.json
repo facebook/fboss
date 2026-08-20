@@ -23,7 +23,8 @@
     "DEVICE_CONFIG",
     "FP_CONFIG",
     "CTR_EFLEX_CONFIG",
-    "DLB_ECMP_CONFIG"
+    "DLB_ECMP_CONFIG",
+    "PHB_CONTROL"
   ],
   "mgmt_port_defaults": {
     "logical_id": 76,
@@ -48,8 +49,10 @@
     "bcm_tunnel_term_compatible_mode": 1,
     "sai_l2_cpu_fdb_event_suppress": 1,
     "sai_port_phy_time_sync_en": 1,
-    "sai_stats_support_mask": "0x2",
-    "sai_disable_internal_port_serdes": 1
+    "sai_stats_support_mask": "0x802",
+    "sai_disable_internal_port_serdes": 1,
+    "stat_custom_receive0_management_mode": 1,
+    "sai_stats_disable_mask": "0x800"
   },
   "flex_counter_settings": {
     "global_flexctr_ing_action_num_reserved": 20,
@@ -73,6 +76,9 @@
   },
   "dlb_ecmp_config_defaults": {
     "PATH_QUALITY_PROFILE_MODE": "WIDE"
+  },
+  "phb_control_defaults": {
+    "INT_PRI_TAGGED_TO_INPUT_PRI": 1
   },
 
   "port_config_defaults": {"PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE": 1},
@@ -126,6 +132,12 @@
       "apply": {
         "DEVICE_CONFIG": {"AUTOLOAD_BOARD_SETTINGS": 0}
       }
+    },
+    {
+      "name": "phb_control",
+      "description": "Emits the PHB_CONTROL priority-mapping settings.",
+      "condition": {"source": "features", "param": "generate_phb_control", "equals": true},
+      "apply_from": {"source": "phb_control_defaults", "target_table": "PHB_CONTROL"}
     }
   ]
 }

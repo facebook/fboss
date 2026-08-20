@@ -1,7 +1,7 @@
 {
   "platform_name": "ladakh800bcls",
   "vendor": "broadcom",
-  "asic": "tomahawk5",
+  "asic": "tomahawk6",
   "num_ports_per_core": 4,
   "defaults": {
     "asic_config_params": {

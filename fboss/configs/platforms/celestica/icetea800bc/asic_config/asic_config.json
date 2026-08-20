@@ -1,7 +1,7 @@
 {
   "platform_name": "icetea800bc",
   "vendor": "broadcom",
-  "asic": "tomahawk5",
+  "asic": "tomahawk6",
   "num_ports_per_core": 2,
   "defaults": {
     "asic_config_params": {
