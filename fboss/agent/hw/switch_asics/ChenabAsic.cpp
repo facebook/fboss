@@ -98,6 +98,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return true;
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
@@ -262,6 +263,7 @@ bool ChenabAsic::isSupportedFabric(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return true;
     default:
       return false;
