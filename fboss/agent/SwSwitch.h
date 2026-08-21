@@ -848,8 +848,11 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Allow hardware to perform any cleanup needed to gracefully restart the
    * agent before we exit application.
+   *
+   * skipWarmBootStateSave: tear down without persisting warm-boot state or
+   * setting the can_warm_boot marker.
    */
-  void gracefulExit();
+  void gracefulExit(bool skipWarmBootStateSave = false);
 
   BootType getBootType() const {
     return bootType_;
@@ -878,6 +881,20 @@ class SwSwitch : public HwSwitchCallback {
   void invokeNeighborListener(
       const std::vector<std::string>& added,
       const std::vector<std::string>& deleted);
+
+  /*
+   * Register a graceful shutdown handler, run on the given event base when
+   * requestGracefulShutdown() is called.
+   */
+  void registerGracefulShutdownHandler(
+      FbossEventBase* evb,
+      std::function<void()> handler);
+
+  /*
+   * Schedule the registered graceful shutdown handler. Safe to call from any
+   * thread; the handler runs at most once.
+   */
+  void requestGracefulShutdown();
 
   std::string getConfigStr() const;
   cfg::SwitchConfig getConfig() const;
@@ -1266,6 +1283,11 @@ class SwSwitch : public HwSwitchCallback {
   bool supportsAddRemovePort_;
   const std::unique_ptr<PlatformProductInfo> platformProductInfo_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
+
+  std::function<void()> gracefulShutdownHandler_{nullptr};
+  FbossEventBase* gracefulShutdownEvb_{nullptr};
+  std::once_flag gracefulShutdownOnceFlag_;
+
   folly::ThreadLocalPtr<SwitchStats, SwSwitch> stats_;
   /**
    * The object to sync the interfaces to the system. This pointer could

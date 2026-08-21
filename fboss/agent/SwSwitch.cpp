@@ -907,10 +907,12 @@ state::WarmbootState SwSwitch::gracefulExitState() const {
   return thriftSwitchState;
 }
 
-void SwSwitch::gracefulExit() {
+void SwSwitch::gracefulExit(bool skipWarmBootStateSave) {
   if (isFullyInitialized()) {
     steady_clock::time_point begin = steady_clock::now();
-    XLOG(DBG2) << "[Exit] Starting SwSwitch graceful exit";
+    XLOG(DBG2) << "[Exit] Starting SwSwitch graceful exit"
+               << (skipWarmBootStateSave ? " (skipping warm boot state save)"
+                                         : "");
     ipv6_->floodNeighborAdvertisements();
     arp_->floodGratuituousArp();
     steady_clock::time_point neighborFloodDone = steady_clock::now();
@@ -926,22 +928,27 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    state::WarmbootState thriftSwitchState;
-    std::thread swWarmbootStateThread([this,
-                                       &thriftSwitchState,
-                                       stopThreadsAndHandlersDone]() {
-      thriftSwitchState = gracefulExitState();
-      steady_clock::time_point switchStateToThriftDone = steady_clock::now();
-      XLOG(DBG2) << "[Exit] Switch state to thrift "
-                 << duration_cast<duration<float>>(
-                        switchStateToThriftDone - stopThreadsAndHandlersDone)
-                        .count();
-    });
-    // Cleanup if we ever initialized
-    stopHwSwitchHandler();
+    if (!skipWarmBootStateSave) {
+      state::WarmbootState thriftSwitchState;
+      std::thread swWarmbootStateThread([this,
+                                         &thriftSwitchState,
+                                         stopThreadsAndHandlersDone]() {
+        thriftSwitchState = gracefulExitState();
+        steady_clock::time_point switchStateToThriftDone = steady_clock::now();
+        XLOG(DBG2) << "[Exit] Switch state to thrift "
+                   << duration_cast<duration<float>>(
+                          switchStateToThriftDone - stopThreadsAndHandlersDone)
+                          .count();
+      });
+      // Cleanup if we ever initialized
+      stopHwSwitchHandler();
 
-    swWarmbootStateThread.join();
-    storeWarmBootState(thriftSwitchState);
+      swWarmbootStateThread.join();
+      storeWarmBootState(thriftSwitchState);
+    } else {
+      // Cleanup if we ever initialized
+      stopHwSwitchHandler();
+    }
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();
@@ -1406,6 +1413,27 @@ void SwSwitch::invokeNeighborListener(
   if (neighborListener_ && !isExiting()) {
     neighborListener_(added, removed);
   }
+}
+
+void SwSwitch::registerGracefulShutdownHandler(
+    FbossEventBase* evb,
+    std::function<void()> handler) {
+  gracefulShutdownEvb_ = evb;
+  gracefulShutdownHandler_ = std::move(handler);
+}
+
+void SwSwitch::requestGracefulShutdown() {
+  if (!gracefulShutdownHandler_ || !gracefulShutdownEvb_) {
+    XLOG(ERR)
+        << "requestGracefulShutdown called but no graceful shutdown handler registered";
+    return;
+  }
+  // Run teardown on the registered event base, not the caller's thread;
+  // once_flag collapses concurrent requests into a single shutdown.
+  std::call_once(gracefulShutdownOnceFlag_, [this]() {
+    gracefulShutdownEvb_->runInEventBaseThread(
+        [handler = gracefulShutdownHandler_]() { handler(); });
+  });
 }
 
 void SwSwitch::exitFatal() const noexcept {

@@ -110,7 +110,9 @@ void MonolithicAgentInitializer::createSwitch(
       sw_.get(), hwAgent_.get());
 }
 
-void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
+void MonolithicAgentInitializer::handleExitSignal(
+    bool gracefulExit,
+    bool skipWarmBootStateSave) {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
   XLOG(DBG2) << "[Exit] Signal received ";
   steady_clock::time_point begin = steady_clock::now();
@@ -132,7 +134,7 @@ void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
-  sw_->gracefulExit();
+  sw_->gracefulExit(skipWarmBootStateSave);
   steady_clock::time_point switchGracefulExit = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
