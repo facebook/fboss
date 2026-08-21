@@ -1122,7 +1122,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrModeRemote
       std::nullopt, // LlrProfile
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
+#if defined(CHENAB_SAI_SDK)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride
