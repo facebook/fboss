@@ -48,6 +48,18 @@ class ConfigBgpTestBase : public Fboss2IntegrationTest {
     if (bgpDaemonActiveState() != "active") {
       GTEST_SKIP() << "skipping because bgp is not active";
     }
+    // systemd "active" is a point sample: on an image where bgpd cannot hold
+    // its boot config it flaps activating -> active -> failed, and a single
+    // sample can land inside the brief active window (seen on fboss-sim,
+    // where the sibling tests' samples all landed on inactive and skipped).
+    // Require the daemon to actually answer its thrift RPC before running,
+    // and skip otherwise — the same skip the rest of the flap cycle produces.
+    try {
+      readRunningBgpConfigViaRpc(std::chrono::seconds(10));
+    } catch (const std::exception& ex) {
+      GTEST_SKIP() << "skipping because bgpd is active but not answering its "
+                   << "thrift RPC (flapping unit?): " << ex.what();
+    }
     // Snapshot the config bgpd runs with; TearDown restores it, so committed
     // test objects never outlive the test regardless of where it failed.
     haveBgpSnapshot_ = folly::readFile(kBgpDaemonConfigPath, bgpSnapshot_);
