@@ -16,7 +16,44 @@
 
 using namespace facebook::fboss;
 
-class ArsManagerTest : public ManagerTestBase {};
+class ArsManagerTest : public ManagerTestBase {
+ protected:
+  std::shared_ptr<FlowletSwitchingConfig> makeFlowletSwitchingConfig() {
+    auto fsc = std::make_shared<FlowletSwitchingConfig>();
+    fsc->setInactivityIntervalUsecs(1000);
+    fsc->setFlowletTableSize(2000);
+    fsc->setSwitchingMode(cfg::SwitchingMode::FLOWLET_QUALITY);
+    return fsc;
+  }
+
+  std::optional<SaiArsTraits::Attributes::SourcePortPrune> addArsAndGetPrune(
+      std::optional<bool> l3EcmpIngressPortPrune) {
+    saiManagerTable->arsManager().addArs(
+        makeFlowletSwitchingConfig(), l3EcmpIngressPortPrune);
+    return std::get<std::optional<SaiArsTraits::Attributes::SourcePortPrune>>(
+        saiManagerTable->arsManager().getArsHandle()->ars->attributes());
+  }
+};
+
+TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenTrue) {
+  auto sourcePortPrune = addArsAndGetPrune(true);
+  ASSERT_TRUE(sourcePortPrune.has_value());
+  EXPECT_TRUE(sourcePortPrune->value());
+}
+
+// A configured false is programmed as false, so a true to false config change
+// clears the bit on the next create rather than leaving it set.
+TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenFalse) {
+  auto sourcePortPrune = addArsAndGetPrune(false);
+  ASSERT_TRUE(sourcePortPrune.has_value());
+  EXPECT_FALSE(sourcePortPrune->value());
+}
+
+// Unset is distinct from false: the create-only attribute is left out of the
+// create call entirely rather than being programmed as false.
+TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneNotProgrammedWhenUnset) {
+  EXPECT_FALSE(addArsAndGetPrune(std::nullopt).has_value());
+}
 
 TEST_F(ArsManagerTest, testArsManager) {
   std::shared_ptr<FlowletSwitchingConfig> oldFsc =
