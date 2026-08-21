@@ -689,6 +689,16 @@ struct MySidFields {
   7: optional bool isV6;
   # Optional named next hop group for the MySid entry.
   8: optional string namedNextHopGroup;
+  # SRv6 midpoint FRR: when set, this MySid entry is programmed as a hardware
+  # protection group. resolvedNextHopsId (field 4) is the PRIMARY path; this is
+  # the resolved BACKUP (standby) next hop set id (typically an ECMP of
+  # SRv6-encap next hops that impose a repair SID).
+  9: optional i64 backupResolvedNextHopsId;
+  # SRv6 midpoint FRR: the requested (unresolved) BACKUP next hop set id, set by
+  # the addAdjacencyFrr thrift API. RibMySidUpdater resolves it into
+  # backupResolvedNextHopsId (field 9), symmetric to unresolveNextHopsId
+  # (field 3) -> resolvedNextHopsId (field 4).
+  12: optional i64 backupUnresolveNextHopsId;
 }
 
 struct QosPolicyFields {

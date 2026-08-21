@@ -7589,6 +7589,8 @@ class ChildThriftPath<::facebook::fboss::state::MySidFields, ::facebook::fboss::
     STRUCT_CHILD_GETTERS(clientId, 6);
     STRUCT_CHILD_GETTERS(isV6, 7);
     STRUCT_CHILD_GETTERS(namedNextHopGroup, 8);
+    STRUCT_CHILD_GETTERS(backupResolvedNextHopsId, 9);
+    STRUCT_CHILD_GETTERS(backupUnresolveNextHopsId, 12);
 };
 
 
