@@ -5228,6 +5228,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
         break;
+      case HwObjectType::SAMPLE_PACKET:
+        objTypes.push_back(SAI_OBJECT_TYPE_SAMPLEPACKET);
+        break;
     }
   }
   FineGrainedLockPolicy policy(saiSwitchMutex_);

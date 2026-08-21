@@ -144,6 +144,10 @@ TEST(CmdArgsTest, HwObjectList) {
   EXPECT_THAT(
       utils::HwObjectList({"LAG", "MIRROR"}).data(),
       ElementsAre(HwObjectType::LAG, HwObjectType::MIRROR));
+  ASSERT_NO_THROW(utils::HwObjectList({"SAMPLE_PACKET"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"SAMPLE_PACKET"}).data(),
+      ElementsAre(HwObjectType::SAMPLE_PACKET));
 
   // test invalid arguments
   ASSERT_THROW(utils::HwObjectList({"M"}), std::out_of_range);
