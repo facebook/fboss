@@ -15,7 +15,6 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
 #include <gflags/gflags.h>
-#include "fboss/agent/InitHookRegistry.h"
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
 #include "common/fb303/cpp/DefaultMonitor.h"
