@@ -10,7 +10,12 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
+SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
   return std::nullopt;
 }
 

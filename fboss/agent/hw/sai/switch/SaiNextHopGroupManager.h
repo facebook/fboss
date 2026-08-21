@@ -25,6 +25,8 @@
 #include "fboss/lib/RefMap.h"
 
 #include <memory>
+#include <tuple>
+#include <utility>
 #include "folly/container/F14Map.h"
 #include "folly/container/F14Set.h"
 
@@ -48,8 +50,30 @@ using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 using SaiNextHopGroupMemberInfo = std::pair<
     SaiNextHopGroupMemberTraits::AdapterHostKey,
     SaiNextHopGroupMemberTraits::Attributes::Weight>;
-using SaiNextHopGroupKey =
-    std::pair<RouteNextHopEntry::NextHopSet, std::optional<cfg::SwitchingMode>>;
+
+struct SaiNextHopGroupKey {
+  SaiNextHopGroupKey(
+      RouteNextHopEntry::NextHopSet nextHops,
+      std::optional<cfg::SwitchingMode> switchingMode,
+      sai_next_hop_group_type_t groupType = SAI_NEXT_HOP_GROUP_TYPE_ECMP)
+      : nextHops(std::move(nextHops)),
+        switchingMode(switchingMode),
+        groupType(groupType) {}
+
+  bool operator==(const SaiNextHopGroupKey& other) const {
+    return nextHops == other.nextHops && switchingMode == other.switchingMode &&
+        groupType == other.groupType;
+  }
+
+  bool operator<(const SaiNextHopGroupKey& other) const {
+    return std::tie(nextHops, switchingMode, groupType) <
+        std::tie(other.nextHops, other.switchingMode, other.groupType);
+  }
+
+  RouteNextHopEntry::NextHopSet nextHops;
+  std::optional<cfg::SwitchingMode> switchingMode;
+  sai_next_hop_group_type_t groupType;
+};
 
 template <typename T>
 class ManagedNextHop;

@@ -37,7 +37,9 @@
 
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
 #include <chrono>
+#include <limits>
 
 #include <fmt/ranges.h>
 
@@ -67,6 +69,40 @@ namespace {
 void setUninitializedStatsToZero(long& counter) {
   counter =
       counter == hardware_stats_constants::STAT_UNINITIALIZED() ? 0 : counter;
+}
+
+[[maybe_unused]] void
+setUnsignedCounter(long& counter, uint64_t value, const char* counterName) {
+  constexpr auto kMaxCounterValue =
+      static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+  if (value > kMaxCounterValue) {
+    XLOG_EVERY_MS(ERR, 60000)
+        << "Saturating " << counterName << " counter value " << value
+        << " to the maximum signed 64-bit value";
+    counter = std::numeric_limits<int64_t>::max();
+    return;
+  }
+  counter = static_cast<int64_t>(value);
+}
+
+[[maybe_unused]] void accumulateUnsignedCounter(
+    long& counter,
+    uint64_t value,
+    const char* counterName) {
+  constexpr auto kMaxCounterValue =
+      static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+  setUninitializedStatsToZero(counter);
+  // A residual negative value would wrap to a huge unsigned count
+  const auto currentValue =
+      static_cast<uint64_t>(std::max<int64_t>(counter, 0));
+  if (value > kMaxCounterValue - currentValue) {
+    XLOG_EVERY_MS(ERR, 60000)
+        << counterName << " counter would overflow adding " << value << " to "
+        << currentValue << ", saturating to the maximum signed 64-bit value";
+    counter = std::numeric_limits<int64_t>::max();
+    return;
+  }
+  counter = static_cast<int64_t>(currentValue + value);
 }
 
 uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
@@ -108,6 +144,76 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   }
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::optional<LlrTxStatus> saiToLlrTxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_TX_STATUS_OFF:
+      return LlrTxStatus::OFF;
+    case SAI_PORT_LLR_TX_STATUS_INIT:
+      return LlrTxStatus::INIT;
+    case SAI_PORT_LLR_TX_STATUS_ADVANCE:
+      return LlrTxStatus::ADVANCE;
+    case SAI_PORT_LLR_TX_STATUS_REPLAY:
+      return LlrTxStatus::REPLAY;
+    case SAI_PORT_LLR_TX_STATUS_FLUSH:
+      return LlrTxStatus::FLUSH;
+  }
+  return std::nullopt;
+}
+
+std::optional<LlrRxStatus> saiToLlrRxStatus(sai_int32_t status) {
+  switch (status) {
+    case SAI_PORT_LLR_RX_STATUS_OFF:
+      return LlrRxStatus::OFF;
+    case SAI_PORT_LLR_RX_STATUS_SEND_ACKS:
+      return LlrRxStatus::SEND_ACKS;
+    case SAI_PORT_LLR_RX_STATUS_SEND_NACK:
+      return LlrRxStatus::SEND_NACK;
+    case SAI_PORT_LLR_RX_STATUS_NACK_SENT:
+      return LlrRxStatus::NACK_SENT;
+  }
+  return std::nullopt;
+}
+
+/*
+ * Read the LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
+ * 5.1.7) for a port with an LLR profile bound. Valid regardless of link state:
+ * the SDK reads the MAC LLR status register with no link-state precondition,
+ * so a down port simply reports inactive (OFF).
+ *
+ * Read through the throwing getAttribute overload, not the std::optional one:
+ * these attrs carry a SaiIntDefault getter, and the optional overload
+ * substitutes that default (0 == LLR_*_STATUS_OFF) without surfacing an error,
+ * so an unserved attribute would read back as a healthy-looking "LLR off".
+ * Catch locally like every other per-port read here, so one failure does not
+ * drop the port's stats round.
+ */
+void readLlrStatus(
+    PortID portId,
+    const std::string& portName,
+    PortSaiId portSaiId,
+    HwPortStats& stats) {
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  try {
+    auto txStatus = saiToLlrTxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrTxStatus{}));
+    auto rxStatus = saiToLlrRxStatus(portApi.getAttribute(
+        portSaiId, SaiPortTraits::Attributes::LlrRxStatus{}));
+    if (!txStatus.has_value() || !rxStatus.has_value()) {
+      XLOG_EVERY_MS(ERR, 10000) << "Unrecognized LLR status value for port "
+                                << portName << " (portId: " << portId << ")";
+      return;
+    }
+    stats.llrTxStatus_() = *txStatus;
+    stats.llrRxStatus_() = *rxStatus;
+  } catch (const SaiApiError& e) {
+    XLOG_EVERY_MS(ERR, 10000)
+        << "Failed to get LLR status for port " << portName
+        << " (portId: " << portId << "): " << e.what();
+  }
+}
+#endif
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
 // TODO(nivinl): Retire the extension attribute based support once the
@@ -189,6 +295,7 @@ void fillHwPortStats(
     const cfg::PortType& portType,
     bool updateFecStats,
     [[maybe_unused]] bool updateLlrStats,
+    [[maybe_unused]] bool updateLlrExtensionStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -320,7 +427,18 @@ void fillHwPortStats(
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS:
         if (updateFecStats) {
-          hwPortStats.fecCorrectedBits_() = value;
+          setUnsignedCounter(
+              *hwPortStats.fecCorrectedBits_(), value, "FEC corrected bits");
+        }
+        break;
+      case SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS:
+        if (updateFecStats) {
+          // This counter is clear-on-read, so accumulate into a monotonic
+          // software counter.
+          accumulateUnsignedCounter(
+              *hwPortStats.fecCorrectedSymbols_(),
+              value,
+              "FEC corrected symbols");
         }
         break;
 #endif
@@ -419,6 +537,48 @@ void fillHwPortStats(
       case SAI_PORT_STAT_LLR_RX_EXPECTED_SEQ_BAD:
         if (updateLlrStats) {
           hwPortStats.llrRxExpectedSeqBad_() = value;
+        }
+        break;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+      // Broadcom LLR stat extensions, gated on their own read (see
+      // SaiPortTraits::llrExtensionStats) so a failure here does not suppress
+      // the standard LLR counters above, or the reverse. There is no case for
+      // SAI_PORT_STAT_LLR_REPLAY because it is not requested: it resolves to
+      // the same SDK counter as SAI_PORT_STAT_LLR_TX_REPLAY.
+      case SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_REPLAY_EVENT:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxNackReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_TIMER_REPLAY:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxTimerReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TOTAL_ERROR:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxError_() = value;
         }
         break;
 #endif
@@ -2241,7 +2401,7 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
       utility::isReedSolomonFec(getFECMode(portId));
 }
 
-bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+bool SaiPortManager::fecCorrectedCounterSupported(PortID portId) const {
   if ((platform_->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
        platform_->getAsic()->getAsicType() ==
@@ -2252,14 +2412,27 @@ bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
     return false;
 #endif
   }
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&
+  if ((platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_FEC_CORRECTED_BITS) ||
+       platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS)) &&
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
     return true;
 #endif
   }
   return false;
+}
+
+bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+  return fecCorrectedCounterSupported(portId) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_FEC_CORRECTED_BITS);
+}
+
+bool SaiPortManager::fecCorrectedSymbolsSupported(PortID portId) const {
+  return fecCorrectedCounterSupported(portId) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS);
 }
 
 bool SaiPortManager::rxFrequencyRPMSupported() const {
@@ -2627,19 +2800,19 @@ void SaiPortManager::updateStats(
       (now.count() - lastFecReadTimeIt->second) >=
           FLAGS_fec_counters_update_interval_s) {
     bool fecCollectionSucceeded = true;
-    if (fecStatsSupported(portId)) {
-      fecCollectionSucceeded &= collectStats(
-          {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
-           SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-          SAI_STATS_MODE_READ_AND_CLEAR,
-          "FEC correctable/uncorrectable frames");
-    }
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    std::vector<sai_stat_id_t> correctedFecCounters;
     if (fecCorrectedBitsSupported(portId)) {
+      correctedFecCounters.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS);
+    }
+    if (fecCorrectedSymbolsSupported(portId)) {
+      correctedFecCounters.push_back(SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS);
+    }
+    if (!correctedFecCounters.empty()) {
       fecCollectionSucceeded &= collectStats(
-          {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS},
+          correctedFecCounters,
           SAI_STATS_MODE_READ,
-          "FEC corrected bits");
+          "FEC corrected bits and symbols");
     }
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
@@ -2660,12 +2833,24 @@ void SaiPortManager::updateStats(
           fecCodewordsToRead, SAI_STATS_MODE_READ, "FEC codeword errors");
     }
 #endif
+    // Keep this last. READ_AND_CLEAR clears every counter in the same hardware
+    // group, not just the ones named here -- on Nvidia all the FEC counters
+    // share the PHY layer group, so clearing first would zero the corrected
+    // bits/symbols counters before we read them.
+    if (fecStatsSupported(portId)) {
+      fecCollectionSucceeded &= collectStats(
+          {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
+           SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
+          SAI_STATS_MODE_READ_AND_CLEAR,
+          "FEC correctable/uncorrectable frames");
+    }
     if (fecCollectionSucceeded) {
       lastFecCounterReadTime_[portId] = now.count();
       updateFecStats = true;
     }
   }
   bool updateLlrStats = false;
+  bool updateLlrExtensionStats = false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // LLR counters are collected in their own isolated read (not bundled with the
   // basic port counters) so that on a drop whose SDK does not yet implement the
@@ -2678,6 +2863,16 @@ void SaiPortManager::updateStats(
           HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
     updateLlrStats = collectStats(
         SaiPortTraits::llrStats(), SAI_STATS_MODE_READ, "LLR port counters");
+    // The Broadcom extension counters are a different SAI enum family and get
+    // their own read for the same reason: an SDK can implement one family and
+    // not the other, and get_port_stats is all-or-nothing.
+    const auto& llrExtensionStats = SaiPortTraits::llrExtensionStats();
+    if (!llrExtensionStats.empty()) {
+      updateLlrExtensionStats = collectStats(
+          llrExtensionStats,
+          SAI_STATS_MODE_READ,
+          "LLR extension port counters");
+    }
   }
 #endif
   const auto& counters = handle->port->getStats();
@@ -2689,6 +2884,7 @@ void SaiPortManager::updateStats(
       portType,
       updateFecStats,
       updateLlrStats,
+      updateLlrExtensionStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -2737,27 +2933,63 @@ void SaiPortManager::updateStats(
       stat =
           retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
     };
+    // 26.2.4210 replaced the retrigger attributes with port stats served by
+    // get_port_stats
+    auto readRetriggerCount =
+        [&](const std::vector<sai_stat_id_t>& statIds,
+            auto&& readAttr,
+            const char* statsGroup) -> std::optional<int64_t> {
+      if (statIds.empty()) {
+        return static_cast<int64_t>(readAttr());
+      }
+      try {
+        auto values = portApi.getStats<SaiPortTraits>(
+            adapterKey, statIds, SAI_STATS_MODE_READ);
+        if (values.empty()) {
+          return std::nullopt;
+        }
+        return static_cast<int64_t>(values.front());
+      } catch (const SaiApiError& e) {
+        XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
+                  << " (portId: " << portId << "): " << e.what();
+        return std::nullopt;
+      }
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
-    if (downPeriod.has_value() && downPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkDownDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
-    }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
+    if (downPeriod.has_value() && downPeriod->value() > 0) {
+      auto downCount = readRetriggerCount(
+          SaiPortTraits::linkDownDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+          },
+          "link down debounce retrigger count");
+      if (downCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkDownDebounceRetriggerCount_(), *downCount);
+      }
+    }
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkUpDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
+      auto upCount = readRetriggerCount(
+          SaiPortTraits::linkUpDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+          },
+          "link up debounce retrigger count");
+      if (upCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkUpDebounceRetriggerCount_(), *upCount);
+      }
     }
   }
 #endif
@@ -2847,6 +3079,19 @@ void SaiPortManager::updateStats(
       curPortStats.dataCellsFilterOn() = false;
     }
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // Unlike the LLR counters, the status is a snapshot of a state machine, so a
+  // stale value is worse than none: clear it before every round and let the
+  // read below set it, leaving the fields unset when the port has no LLR
+  // profile bound or the read fails.
+  curPortStats.llrTxStatus_().reset();
+  curPortStats.llrRxStatus_().reset();
+  if (handle->llrProfile &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+    readLlrStatus(portId, portName, handle->port->adapterKey(), curPortStats);
+  }
+#endif
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
   if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||
@@ -2926,6 +3171,7 @@ void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
   auto curPortStats = portStatItr->second->portStats();
   curPortStats.fecCorrectableErrors() = 0;
   curPortStats.fecUncorrectableErrors() = 0;
+  curPortStats.fecCorrectedSymbols_() = 0;
 
   portStatItr->second->clearStat(kFecCorrectable());
   portStatItr->second->clearStat(kFecUncorrectable());
@@ -3792,6 +4038,37 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.tpChn0() = val; });
 
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    getSerdesParam(
+        "RxReach",
+        SaiPortSerdesTraits::Attributes::RxReach{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [swPortID](auto& param, auto val) {
+          if (val == SAI_PORT_SERDES_REACH_MODE_NR) {
+            param.rxReach() = phy::RxReach::RX_NORMAL_REACH;
+          } else if (val == SAI_PORT_SERDES_REACH_MODE_ER) {
+            param.rxReach() = phy::RxReach::RX_EXTENDED_REACH;
+          } else {
+            XLOG_EVERY_MS(WARNING, 10000)
+                << "Port " << swPortID << " lane " << *param.lane()
+                << ": leaving rxReach unset for unknown SAI reach mode " << val;
+          }
+        });
+  }
+#endif
+
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    getSerdesParam(
+        "RxPrecoding",
+        SaiPortSerdesTraits::Attributes::RxPrecodingAttr{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [](auto& param, auto val) { param.rxPrecoding() = val; });
+  }
+#endif
+
   return serdesParams;
 }
 
@@ -3863,6 +4140,17 @@ std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
       SaiPortSerdesTraits::Attributes::TxFirPost3{
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
+
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    getTxParam(
+        "TxPrecoding",
+        SaiPortSerdesTraits::Attributes::TxPrecodingAttr{
+            std::vector<sai_int32_t>(numPmdLanes)},
+        [](auto& param, auto val) { param.precoding() = val; });
+  }
+#endif
 
   return txSettings;
 }
@@ -4289,6 +4577,25 @@ void SaiPortManager::changePortShelEnable(
   }
 #endif
 }
+
+SaiPortTraits::Attributes::LinkScanMode SaiPortManager::linkScanModeAttribute(
+    cfg::LinkScanMode mode) {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  switch (mode) {
+    case cfg::LinkScanMode::SOFTWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_SW};
+    case cfg::LinkScanMode::HARDWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_HW};
+  }
+  throw FbossError("Unknown linkScanMode ", static_cast<int>(mode));
+#else
+  throw FbossError(
+      "linkScanMode is only supported on BRCM XGS SAI SDK 15.0 or newer; "
+      "cannot apply ",
+      apache::thrift::util::enumNameSafe(mode));
+#endif
+}
+
 /**
  * Increment the PFC counter for a given port and counter type.
  *

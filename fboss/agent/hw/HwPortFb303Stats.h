@@ -33,7 +33,8 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
       bool inCongestionDiscardSeenSupported = false,
       bool srv6MysidDiscardCounterSupported = false,
       bool mplsLabelLookupFailCounterSupported = false,
-      bool linkDebounceRetriggerCounterSupported = false)
+      bool linkDebounceRetriggerCounterSupported = false,
+      bool sllHllDiscardCounterSupported = false)
       : HwBasePortFb303Stats(
             portName,
             std::move(queueId2Name),
@@ -43,7 +44,8 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
             inCongestionDiscardSeenSupported,
             srv6MysidDiscardCounterSupported,
             mplsLabelLookupFailCounterSupported,
-            linkDebounceRetriggerCounterSupported) {
+            linkDebounceRetriggerCounterSupported,
+            sllHllDiscardCounterSupported) {
     portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }

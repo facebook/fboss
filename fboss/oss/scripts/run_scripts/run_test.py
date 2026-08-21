@@ -56,6 +56,7 @@
 #
 # Enable SAI replayer logging:
 #   ./run_test.py sai --config $CONFIG --sai_replayer_logging /tmp/logs
+#   ./run_test.py sai --config $CONFIG --sai_replayer_logging /tmp/logs --sai_replayer_sdk_log_level DEBUG
 #
 # Enable FBOSS logging:
 #   ./run_test.py sai --config $CONFIG --fboss_logging DBG5

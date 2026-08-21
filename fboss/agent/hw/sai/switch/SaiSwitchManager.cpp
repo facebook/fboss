@@ -1456,10 +1456,24 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
       logDropBitmapReasons(switchDropBitmapStats_);
     }
   }
+  updateSdkDumpSuppressedCounter();
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
   publishSwitchTemperatureStats(switchTemperatureStats_);
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
+}
+
+void SaiSwitchManager::updateSdkDumpSuppressedCounter() {
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SDK_REGISTER_DUMP)) {
+    return;
+  }
+  auto suppressed = SaiApiTable::getInstance()->switchApi().getAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::SdkDumpSuppressedCount{});
+  platform_->getHwSwitch()->getSwitchStats()->sdkDumpSuppressedCount(
+      suppressed);
+#endif
 }
 
 void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {

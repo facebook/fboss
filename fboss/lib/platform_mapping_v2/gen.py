@@ -3,12 +3,11 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 from fboss.lib.platform_mapping_v2.read_files_utils import (
-    _FBOSS_DIR,
-    INPUT_DIR,
     read_all_vendor_data,
     read_platform_descriptor,
 )
@@ -19,10 +18,50 @@ from thrift.python.serializer import Protocol, serialize
 
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
 PlatformDescriptorData = Tuple[str, Dict[str, Any]]
+VendorDataMap = Dict[str, Dict[str, str]]
+
+
+@dataclass(frozen=True)
+class PlatformMappingPaths:
+    fboss_root: str
+    input_dir: str
+    output_dir: str
+
+    @classmethod
+    def from_root(
+        cls,
+        fboss_root: str,
+        input_dir: Optional[str] = None,
+        output_dir: Optional[str] = None,
+    ) -> "PlatformMappingPaths":
+        root = os.path.abspath(os.path.expanduser(fboss_root))
+
+        def resolve(path: str) -> str:
+            return os.path.abspath(os.path.expanduser(path))
+
+        return cls(
+            fboss_root=root,
+            input_dir=resolve(
+                input_dir
+                or os.path.join(root, "lib", "platform_mapping_v2", "platforms")
+            ),
+            output_dir=resolve(
+                output_dir
+                or os.path.join(
+                    root, "lib", "platform_mapping_v2", "generated_platform_mappings"
+                )
+            ),
+        )
+
 
 _RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
-    "montblanc": ("montblanc", "montblanc_odd_ports_8x100G"),
+    "montblanc": (
+        "montblanc",
+        "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
+    ),
+    "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
     "wedge800bact": ("wedge800bact",),
     "wedge800cact": ("wedge800cact",),
 }
@@ -88,18 +127,33 @@ def _dump(
 def get_command_line_args() -> Tuple[str, str, str, bool]:
     parser = argparse.ArgumentParser(description="OSS platform mapping generation.")
     parser.add_argument(
+        "--fboss-root",
+        type=str,
+        required=True,
+        help=(
+            "Path to the fboss/ source directory itself, for example "
+            "/path/to/fbcode/fboss."
+        ),
+    )
+    parser.add_argument(
         "--input-dir",
         type=str,
-        default=INPUT_DIR,  # temporary location until platform name is read in
+        default=None,
         required=False,
-        help="Path to input directory holding CSVs (default: fboss/lib/platform_mapping_v2/platforms/PLATFORM_NAME)",
+        help=(
+            "Path to the directory containing platform input directories. "
+            "When omitted, uses FBOSS_ROOT/lib/platform_mapping_v2/platforms."
+        ),
     )
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=f"{_FBOSS_DIR}/lib/platform_mapping_v2/generated_platform_mappings/",
+        default=None,
         required=False,
-        help="Path to output directory for JSON (default: fboss/lib/platform_mapping_v2/generated_platform_mappings/)",
+        help=(
+            "Path to the output directory for JSON. When omitted, uses "
+            "FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings."
+        ),
     )
     parser.add_argument(
         "--platform-name",
@@ -114,9 +168,12 @@ def get_command_line_args() -> Tuple[str, str, str, bool]:
     )
 
     args = parser.parse_args()
+    paths = PlatformMappingPaths.from_root(
+        args.fboss_root, args.input_dir, args.output_dir
+    )
     return (
-        args.input_dir + args.platform_name,
-        args.output_dir,
+        paths.input_dir,
+        paths.output_dir,
         args.platform_name,
         args.multi_npu,
     )
@@ -127,8 +184,18 @@ def generate_platform_mappings(
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
-    vendor_data_map = read_all_vendor_data()
+    vendor_data_map = read_all_vendor_data(input_dir)
+    generate_platform_mappings_from_vendor_data(
+        vendor_data_map, output_dir, platform_name, is_multi_npu
+    )
 
+
+def generate_platform_mappings_from_vendor_data(
+    vendor_data_map: VendorDataMap,
+    output_dir: str,
+    platform_name: str,
+    is_multi_npu: bool,
+) -> None:
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
         exit(1)

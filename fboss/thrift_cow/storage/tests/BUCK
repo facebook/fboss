@@ -52,7 +52,6 @@ cpp_library(
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/thrift_cow/nodes:serializer",
-        "//folly:base64",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -65,7 +64,21 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//folly:network_address",
+        "//neteng/fboss/bgp/if:bgp_route_types-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+    ],
+)
+
+cpp_unittest(
+    name = "data_factory_tests",
+    srcs = [
+        "TestDataFactoryTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":data_factory",
+        "//fboss/thrift_cow/nodes:serializer",
     ],
 )
 

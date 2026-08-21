@@ -51,8 +51,6 @@ constexpr uint32_t kMagic = 0xFB0550EDu;
 constexpr uint8_t kTypeBootHeader = 0x00;
 constexpr uint8_t kTypeInitialState = 0x01;
 constexpr uint8_t kTypeDelta = 0x02; // PRE_MANAGER_DELTA
-constexpr size_t kHeaderBytes = 4 + 1 + 8 + 4;
-constexpr size_t kTrailerBytes = 4;
 
 constexpr auto kBuildRevision = "build_revision";
 constexpr auto kVerboseSdkVersion = "Verbose SDK Version";

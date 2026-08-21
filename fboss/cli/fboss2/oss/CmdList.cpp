@@ -177,7 +177,7 @@ const CommandTree& kBaseAdditionalCommandTree() {
         {"stats",
          "Show BGP statistics",
          {{"attrs",
-           "Show BGP attribute statistics",
+           "Show BGP attribute deduplicator statistics",
            commandHandler<CmdShowBgpStatsAttrs>,
            argTypeHandler<CmdShowBgpStatsAttrsTraits>},
           {"entries",

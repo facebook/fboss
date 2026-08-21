@@ -474,6 +474,16 @@ struct PcsStats {
   1: optional RsFecInfo rsFec;
 }
 
+// Counter that correctedBits (and therefore preFECBer) was derived from.
+// Accuracy degrades down the list: corrected bits are exact, corrected symbols
+// are within ~2x, and corrected codewords can be off by orders of magnitude.
+enum PreFECBerSource {
+  UNKNOWN = 0,
+  CORRECTED_BITS = 1,
+  CORRECTED_SYMBOLS = 2,
+  CORRECTED_CODEWORDS = 3,
+}
+
 struct RsFecInfo {
   1: i64 correctedCodewords;
   2: i64 uncorrectedCodewords;
@@ -488,6 +498,10 @@ struct RsFecInfo {
   6: optional i16 fecTail;
   // maxSupportedFecTail = 7 for RS-528, 15 for RS-544
   7: optional i16 maxSupportedFecTail;
+  // Number of FEC symbols corrected by hardware, when available.
+  8: optional i64 correctedSymbols;
+  // Unset by PHYs that do not route BER through updateCorrectedBitsAndPreFECBer.
+  9: optional PreFECBerSource preFECBerSource;
 }
 
 struct PmdInfo {
@@ -633,7 +647,8 @@ struct TxRxEnableResponse {
  * external PHYs (xphy) and Optics. Any APIs that are specific to
  * iphy or xphy or optics should go to their respective interfaces
  * (FbossCtrl service for iphy and QsfpService for xphy and optics)
-*/
+ */
+// @lint-ignore THRIFTCHECKS facebook-service-deprecated Migrate separately.
 service FbossCommonPhyCtrl extends fb303.FacebookService {
   void publishLinkSnapshots(1: list<string> portNames) throws (
     1: fboss.FbossBaseError error,

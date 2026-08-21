@@ -863,6 +863,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
       port.cablePropagationDelayMeasure = attr->value.booldata;
       break;
+    case SAI_PORT_ATTR_EXT_LINKSCAN_MODE:
+      port.linkScanMode = attr->value.s32;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1301,6 +1304,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
         attr[i].value.booldata = port.cablePropagationDelayMeasure;
         break;
+      case SAI_PORT_ATTR_EXT_LINKSCAN_MODE:
+        attr[i].value.s32 = port.linkScanMode;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -1510,6 +1516,27 @@ sai_status_t set_port_serdes_attribute_fn(
           attr->value.s32list.list,
           attr->value.s32list.count);
       if (!checkLanes(portSerdes.rxReach)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    // The vendor extensions alias the standard precoding attributes
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE:
+      fillVec(
+          portSerdes.txPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.txPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE:
+      fillVec(
+          portSerdes.rxPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxPrecoding)) {
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
@@ -1973,6 +2000,24 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.rxReach, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.txPrecoding)) {
+          attr_list[i].value.s32list.count =
+              static_cast<uint32_t>(portSerdes.txPrecoding.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txPrecoding, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxPrecoding)) {
+          attr_list[i].value.s32list.count =
+              static_cast<uint32_t>(portSerdes.rxPrecoding.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxPrecoding, attr_list[i].value.s32list);
         break;
       case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
         if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {

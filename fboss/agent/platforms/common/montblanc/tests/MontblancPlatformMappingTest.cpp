@@ -19,17 +19,10 @@
 namespace facebook::fboss {
 namespace {
 
-// Downlink (host/NIC-facing) transceivers for a San Miguel/VR200 montblanc RSW:
-// eth1/33-63 excluding every 4th port. These are the only ports that should
-// carry precoding in the precoding variant.
+// Downlink (host/NIC-facing) transceivers for a San Miguel/VR200 montblanc RSW,
+// per the cabling plan in P2466723647
 std::set<int> downlinkTransceivers() {
-  std::set<int> tcvrs;
-  for (int t = 33; t <= 63; ++t) {
-    if (t % 4 != 0) {
-      tcvrs.insert(t);
-    }
-  }
-  return tcvrs;
+  return {2, 3, 10, 11, 18, 19, 26, 27, 34, 35, 38, 39, 46, 47, 54, 55, 62, 63};
 }
 
 int transceiverOf(const std::string& portName) {

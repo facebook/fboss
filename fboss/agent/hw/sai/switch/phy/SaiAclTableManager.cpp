@@ -87,6 +87,8 @@ std::
       std::nullopt, // actionTypeList
       std::nullopt, // srcIpv6
       std::nullopt, // dstIpv6
+      std::nullopt, // dstIpv6Word3
+      std::nullopt, // dstIpv6Word2
       std::nullopt, // srcIpV4
       std::nullopt, // dstIpV4
       std::nullopt, // fieldL4SrcPort

@@ -77,4 +77,5 @@ struct AgentStats {
   // Link flaps plus debounce retriggers suppressed by the port debounce hold
   // timers, summed across all ports.
   35: i64 linkFaults;
+  36: map<i16, hardware_stats.AclStats> aclStatsMap;
 }

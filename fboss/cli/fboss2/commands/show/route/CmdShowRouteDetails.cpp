@@ -165,7 +165,10 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
                              const auto& nhToTopoInfo) {
       out << fmt::format("  {}\n", header);
       std::string overrideStr = (isOverride ? "(override) :" : "");
+      const bool isFpf = show::route::utils::isFpfEncoding(
+          model.nsfTeWeightEncoding().to_optional());
       std::map<int, int> planeIdToPathCount;
+      std::map<int, int> stswIdToPathCount;
       for (const auto& nextHop : nextHops) {
         out << fmt::format(
             "  {}  {}\n",
@@ -179,13 +182,23 @@ void CmdShowRouteDetails::printOutput(const RetType& model, std::ostream& out) {
         auto it = nhToTopoInfo.find(nextHop.addr().value());
         if (it != nhToTopoInfo.end()) {
           const auto& topologyInfo = it->second;
-          if (topologyInfo.plane_id().has_value()) {
-            int planeId = topologyInfo.plane_id().value();
-            planeIdToPathCount[planeId]++;
+          if (isFpf) {
+            if (topologyInfo.spine_id().has_value()) {
+              stswIdToPathCount[topologyInfo.spine_id().value()]++;
+            }
+          } else if (topologyInfo.plane_id().has_value()) {
+            planeIdToPathCount[topologyInfo.plane_id().value()]++;
           }
         }
       }
-      if (planeIdToPathCount.size() > 0) {
+      if (isFpf) {
+        if (stswIdToPathCount.size() > 0) {
+          out << fmt::format("  Paths per stsw:\n");
+          for (const auto& [stswId, pathCount] : stswIdToPathCount) {
+            out << fmt::format("    Stsw {}: {}\n", stswId, pathCount);
+          }
+        }
+      } else if (planeIdToPathCount.size() > 0) {
         out << fmt::format("  Paths per plane:\n");
         for (const auto& [planeId, pathCount] : planeIdToPathCount) {
           out << fmt::format("    Plane {}: {}\n", planeId, pathCount);

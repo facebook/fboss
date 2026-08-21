@@ -200,6 +200,12 @@ void fillPortStats(
   if (auto cableLen = hwPortStats.cableLengthMeters()) {
     portInfo.cableLengthMeters() = *cableLen;
   }
+  if (auto llrTxStatus = hwPortStats.llrTxStatus_()) {
+    portInfo.llrTxStatus() = *llrTxStatus;
+  }
+  if (auto llrRxStatus = hwPortStats.llrRxStatus_()) {
+    portInfo.llrRxStatus() = *llrRxStatus;
+  }
 
   for (int16_t i = 0; i < numPortQs; i++) {
     QueueStats stats;
@@ -3709,6 +3715,13 @@ void ThriftHandler::getHwPortStats(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllHwPortStats(hwPortStats);
+}
+
+void ThriftHandler::getRouteCounters(
+    std::map<std::string, HwSwitchCounter>& routeCounters) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  routeCounters = sw_->getRouteCounters();
 }
 
 void ThriftHandler::getHwRouterInterfaceStats(

@@ -136,6 +136,10 @@ TEST(CmdArgsTest, HwObjectList) {
   ASSERT_NO_THROW(utils::HwObjectList({"PORT"}));
   EXPECT_THAT(
       utils::HwObjectList({"PORT"}).data(), ElementsAre(HwObjectType::PORT));
+  ASSERT_NO_THROW(utils::HwObjectList({"NEXT_HOP_GROUP_MEMBER"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"NEXT_HOP_GROUP_MEMBER"}).data(),
+      ElementsAre(HwObjectType::NEXT_HOP_GROUP_MEMBER));
   ASSERT_NO_THROW(utils::HwObjectList({"LAG", "MIRROR"}));
   EXPECT_THAT(
       utils::HwObjectList({"LAG", "MIRROR"}).data(),

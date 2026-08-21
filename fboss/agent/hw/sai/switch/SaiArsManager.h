@@ -42,13 +42,17 @@ class SaiArsManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // l3EcmpIngressPortPrune is threaded in from the state being applied; the
+  // programmed state would still hold the pre-delta value here.
   void addArs(
-      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
+      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig,
+      std::optional<bool> l3EcmpIngressPortPrune = std::nullopt);
   void removeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
   void changeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchingConfig,
-      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig);
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig,
+      std::optional<bool> l3EcmpIngressPortPrune = std::nullopt);
   SaiArsHandle* getArsHandle() const;
   SaiArsHandle* getAlternateMemberArsHandle() const;
   SaiArsHandle* getVirtualArsGroupHandle() const;
@@ -74,12 +78,9 @@ class SaiArsManager {
       SaiArsHandle* handle,
       const SaiArsTraits::CreateAttributes& attributes);
 
-  // Source port prune stops an ECMP group from load balancing a packet back
-  // out the port it arrived on. Opt-in: returns nullopt when the config does
-  // not carry the field, so platforms whose adapter rejects the attribute are
-  // never asked to program it.
-  std::optional<SaiArsTraits::Attributes::SourcePortPrune> getSourcePortPrune(
-      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) const;
+  // An unset setting leaves the create-only attribute alone.
+  static std::optional<SaiArsTraits::Attributes::SourcePortPrune>
+  toSourcePortPruneAttribute(std::optional<bool> l3EcmpIngressPortPrune);
 #endif
 
  private:

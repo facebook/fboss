@@ -90,7 +90,7 @@
             "phyAddress": 0,
             "regAddress": 35585,
             "__comment__": "0x8B01 is the retimer chip ID register high word. ",
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -113,7 +113,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -136,7 +136,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -159,7 +159,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -182,7 +182,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -205,7 +205,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -228,7 +228,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -251,7 +251,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -274,7 +274,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -297,7 +297,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -320,7 +320,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -343,7 +343,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -366,7 +366,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -389,7 +389,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -412,7 +412,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -435,7 +435,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -458,7 +458,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -481,7 +481,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -504,7 +504,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -527,7 +527,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -550,7 +550,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -573,7 +573,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -596,7 +596,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -619,7 +619,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -642,7 +642,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -665,7 +665,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -688,7 +688,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -711,7 +711,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -734,7 +734,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -757,7 +757,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -780,7 +780,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }
@@ -803,7 +803,7 @@
           {
             "phyAddress": 0,
             "regAddress": 35585,
-            "expected": 32928
+            "expected": 32929
           }
         ]
       }

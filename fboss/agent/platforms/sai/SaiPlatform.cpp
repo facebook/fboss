@@ -900,6 +900,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
 #endif
 
+  std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
+      sdkDumpRateLimitWindow{std::nullopt};
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
+#endif
+
   return {
       initSwitch,
       hwInfo, // hardware info
@@ -987,6 +993,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
+      sdkDumpRateLimitWindow, // SDK dump rate limit window
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
       pfcWatchdogTimerGranularityMap, // PFC watchdog timer granularity
@@ -1000,6 +1007,10 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       measureCableLengths, // enable cable propagation delay measurement
       portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
+#if defined(SAI_BRCM_PAI_IMPL)
+      std::nullopt, // SyncLock
+      std::nullopt, // SyncUnlock
+#endif
   };
 }
 

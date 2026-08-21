@@ -14,7 +14,10 @@
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+#include <folly/ScopeGuard.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
+DECLARE_bool(multi_switch);
 
 using namespace facebook::fboss;
 
@@ -94,4 +97,17 @@ TEST(AgentConfigTest, AcceptsNewAndOldStyleConfigs) {
   auto fromNewStyle = AgentConfig::fromRawConfig(oldStyleRaw);
 
   EXPECT_EQ(fromOldStyle->swConfigRaw(), fromNewStyle->swConfigRaw());
+}
+
+TEST(AgentConfigTest, RunModeDoesNotRequireAgentConfig) {
+  const auto savedMultiSwitch = FLAGS_multi_switch;
+  SCOPE_EXIT {
+    FLAGS_multi_switch = savedMultiSwitch;
+  };
+
+  FLAGS_multi_switch = false;
+  EXPECT_EQ(AgentConfig::getRunMode(), cfg::AgentRunMode::MONO);
+
+  FLAGS_multi_switch = true;
+  EXPECT_EQ(AgentConfig::getRunMode(), cfg::AgentRunMode::MULTI_SWITCH);
 }

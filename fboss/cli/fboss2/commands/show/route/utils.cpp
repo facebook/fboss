@@ -7,6 +7,14 @@ namespace facebook::fboss::show::route::utils {
 using facebook::fboss::NextHopThrift;
 using facebook::fboss::utils::getAddrStr;
 
+bool isFpfEncoding(
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding) {
+  return encoding.has_value() &&
+      encoding->getType() ==
+      facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::fpf_l2_encoding;
+}
+
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode) {
   switch (mplsActionCode) {
     case MplsActionCode::PUSH:
@@ -106,49 +114,39 @@ std::string getTopologyInfoStr(
     const cli::NextHopInfo& nextHopInfo,
     const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
         encoding) {
-  std::string topoStr;
   auto topoInfoPtr = apache::thrift::get_pointer(nextHopInfo.topologyInfo());
-  if (topoInfoPtr != nullptr) {
-    std::string remoteRackCapacityStr = "none";
-    if (topoInfoPtr->remote_rack_capacity().has_value()) {
-      remoteRackCapacityStr =
-          std::to_string(topoInfoPtr->remote_rack_capacity().value());
-    }
-    std::string rackStr = topoInfoPtr->rack_id().has_value()
-        ? std::to_string(topoInfoPtr->rack_id().value())
-        : "none";
-    if (encoding.has_value() &&
-        encoding->getType() ==
-            facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
-                fpf_l2_encoding) {
-      std::string spineStr = topoInfoPtr->spine_id().has_value()
-          ? std::to_string(topoInfoPtr->spine_id().value())
-          : "none";
-      return fmt::format(
-          " rack {} spine id {} remote weight {}",
-          rackStr,
-          spineStr,
-          remoteRackCapacityStr);
-    }
-    std::string rackCapacityStr = "none";
-    if (topoInfoPtr->local_rack_capacity().has_value()) {
-      rackCapacityStr =
-          std::to_string(topoInfoPtr->local_rack_capacity().value());
-    }
-    std::string spineCapacityStr = "none";
-    if (topoInfoPtr->spine_capacity().has_value()) {
-      spineCapacityStr = std::to_string(topoInfoPtr->spine_capacity().value());
-    }
-    std::string planeStr = topoInfoPtr->plane_id().has_value()
-        ? std::to_string(topoInfoPtr->plane_id().value())
-        : "none";
-    topoStr = fmt::format(
-        " rack {} plane {} remote weight {} spine weight {} local weight {}",
-        rackStr,
-        planeStr,
-        remoteRackCapacityStr,
-        spineCapacityStr,
-        rackCapacityStr);
+  if (topoInfoPtr == nullptr) {
+    return "";
+  }
+  // The two encodings populate disjoint topology fields, so gate each field on
+  // the encoding: FPF carries spine_id, while the non-FPF (L2) encoding carries
+  // plane_id together with the spine_capacity/local_rack_capacity weights.
+  // rack_id and remote_rack_capacity are common to both.
+  const bool isFpf = isFpfEncoding(encoding);
+  std::string topoStr;
+  if (topoInfoPtr->rack_id().has_value()) {
+    topoStr += fmt::format(" rack {}", topoInfoPtr->rack_id().value());
+  }
+  // Group topology identifiers (spine id / plane) right after rack and before
+  // the weight fields, so both encodings order identifiers first. The explicit
+  // "spine id" label also disambiguates it from the non-FPF "spine weight".
+  if (isFpf && topoInfoPtr->spine_id().has_value()) {
+    topoStr += fmt::format(" spine id {}", topoInfoPtr->spine_id().value());
+  }
+  if (!isFpf && topoInfoPtr->plane_id().has_value()) {
+    topoStr += fmt::format(" plane {}", topoInfoPtr->plane_id().value());
+  }
+  if (topoInfoPtr->remote_rack_capacity().has_value()) {
+    topoStr += fmt::format(
+        " remote weight {}", topoInfoPtr->remote_rack_capacity().value());
+  }
+  if (!isFpf && topoInfoPtr->spine_capacity().has_value()) {
+    topoStr +=
+        fmt::format(" spine weight {}", topoInfoPtr->spine_capacity().value());
+  }
+  if (!isFpf && topoInfoPtr->local_rack_capacity().has_value()) {
+    topoStr += fmt::format(
+        " local weight {}", topoInfoPtr->local_rack_capacity().value());
   }
   return topoStr;
 }

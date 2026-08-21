@@ -159,6 +159,8 @@ void handleExtensionAttributes() {
 #endif
   SAI_EXT_ATTR_MAP(Switch, SflowAggrNofSamples);
   SAI_EXT_ATTR_MAP(Switch, SdkRegDumpLogPath);
+  SAI_EXT_ATTR_MAP(Switch, SdkDumpRateLimitWindow);
+  SAI_EXT_ATTR_MAP(Switch, SdkDumpSuppressedCount);
   SAI_EXT_ATTR_MAP(Switch, FirmwareObjectList);
   SAI_EXT_ATTR_MAP(Switch, TcRateLimitList);
   SAI_EXT_ATTR_MAP(Switch, PfcTcDldTimerGranularityInterval);
@@ -178,6 +180,10 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PortCl72RetryEnable);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
+#endif
+#if defined(SAI_BRCM_PAI_IMPL)
+  SAI_EXT_ATTR_MAP(Switch, SyncLock)
+  SAI_EXT_ATTR_MAP(Switch, SyncUnlock)
 #endif
 }
 

@@ -122,6 +122,10 @@ class HwAsic {
     //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
     ACL_ENTRY_ETHER_TYPE,
 
+    // Set to true if the SAI implementation supports ACL matchers for
+    // destination IPv6 word3 and word2.
+    ACL_DST_IPV6_WORD_QUALIFIERS,
+
     // Set to true if the SAI implementation supports ACL Byte counters
     // For SAI, this maps to whether SAI_ACL_COUNTER_ATTR_BYTES can be queried.
     // TODO:
@@ -448,7 +452,10 @@ class HwAsic {
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
     CREDIT_WATCHDOG,
+    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
     SAI_FEC_CORRECTED_BITS,
+    // SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS,
+    SAI_FEC_SYMBOL_ERRORS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
     SWITCH_ISOLATE,
@@ -519,6 +526,7 @@ class HwAsic {
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
     ARS_FUTURE_PORT_LOAD,
+    ARS_CURRENT_PORT_LOAD,
     RESERVED_BYTES_FOR_BUFFER_POOL,
     // Indicates the buffer pool size excludes the headroom
     // pool size given the buffer pool size determination is
@@ -562,6 +570,10 @@ class HwAsic {
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,
+    // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
+    // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
+    // only; the counters are collected via fillInSupportedVendorExtStats().
+    SLL_HLL_DISCARD_COUNTERS,
   };
 
   enum class AsicMode {

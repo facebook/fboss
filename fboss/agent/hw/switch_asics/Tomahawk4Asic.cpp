@@ -127,6 +127,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return true;
     // features not working well with bcmsim
@@ -182,6 +183,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
@@ -258,6 +260,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return false;
   }
   return false;

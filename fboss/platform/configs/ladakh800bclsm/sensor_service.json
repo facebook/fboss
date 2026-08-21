@@ -1190,21 +1190,21 @@
           "compute": "10*@/1000.0"
         },
         {
-          "name": "COME_U28_INLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
+          "name": "COME_U28_OUTLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 46.3,
+            "maxAlarmVal": 66.4,
             "upperCriticalVal": 100
           },
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_U29_OUTLET_SENSOR_TMP75_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
+          "name": "COME_U29_INLET_SENSOR_TMP75_TEMP",
+          "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 65.4,
+            "maxAlarmVal": 47.3,
             "upperCriticalVal": 100
           },
           "compute": "@/1000.0"
@@ -2810,8 +2810,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_L_ADC2_SENSOR/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.13,
-            "minAlarmVal": 1.08,
+            "maxAlarmVal": 1.14,
+            "minAlarmVal": 1.067,
             "upperCriticalVal": 1.155,
             "lowerCriticalVal": 1.045
           },
@@ -2822,8 +2822,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_L_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 3.399,
-            "minAlarmVal": 3.201,
+            "maxAlarmVal": 3.42,
+            "minAlarmVal": 3.18,
             "upperCriticalVal": 3.465,
             "lowerCriticalVal": 3.135
           },
@@ -3892,8 +3892,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_R_ADC2_SENSOR/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.13,
-            "minAlarmVal": 1.08,
+            "maxAlarmVal": 1.14,
+            "minAlarmVal": 1.067,
             "upperCriticalVal": 1.155,
             "lowerCriticalVal": 1.045
           },
@@ -3904,8 +3904,8 @@
           "sysfsPath": "/run/devmap/sensors/RTM_R_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 3.399,
-            "minAlarmVal": 3.201,
+            "maxAlarmVal": 3.42,
+            "minAlarmVal": 3.18,
             "upperCriticalVal": 3.465,
             "lowerCriticalVal": 3.135
           },

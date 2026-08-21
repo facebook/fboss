@@ -116,6 +116,7 @@ DECLARE_bool(run_forever_on_failure);
 
 DECLARE_string(sdk_reg_dump_path_prefix);
 DECLARE_bool(skip_sdk_reg_dump);
+DECLARE_uint32(sdk_dump_rate_limit_window_ms);
 DECLARE_bool(type_dctype1_janga);
 DECLARE_bool(prod_invariant_config_test);
 DECLARE_int32(max_unprocessed_switch_reachability_changes);
@@ -171,6 +172,7 @@ DECLARE_bool(verify_fib_nexthop_id_consistency);
 DECLARE_bool(enforce_single_nbr_mac_per_intf);
 DECLARE_int32(max_tx_packets);
 DECLARE_bool(enable_acl_table_redirect_action);
+DECLARE_bool(enable_bulk_create_ecmp_members);
 DECLARE_bool(enable_pfc_priority_to_pg_map);
 DECLARE_bool(enable_port_cl72_retry);
 DECLARE_bool(enable_remote_intf_route_reconcile);

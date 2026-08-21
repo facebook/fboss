@@ -212,6 +212,16 @@ const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getAcls() const {
   return safe_cref<switch_state_tags::aclMaps>();
 }
 
+void SwitchState::resetClassBasedPolicies(
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies) {
+  ref<switch_state_tags::classBasedPolicyMaps>() = policies;
+}
+
+const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+SwitchState::getClassBasedPolicies() const {
+  return safe_cref<switch_state_tags::classBasedPolicyMaps>();
+}
+
 void SwitchState::resetAclTableGroups(
     std::shared_ptr<MultiSwitchAclTableGroupMap> aclTableGroups) {
   ref<switch_state_tags::aclTableGroupMaps>() = aclTableGroups;
@@ -618,6 +628,10 @@ const std::shared_ptr<UdfConfig> SwitchState::getUdfConfig() const {
 const std::shared_ptr<FlowletSwitchingConfig>
 SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
+}
+
+std::optional<bool> SwitchState::getL3EcmpIngressPortPrune() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getL3EcmpIngressPortPrune();
 }
 
 void SwitchState::revertNewTeFlowEntry(

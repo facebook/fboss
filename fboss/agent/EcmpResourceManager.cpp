@@ -214,6 +214,16 @@ bool checkDeltasPublished(const std::vector<StateDelta>& deltas) {
   return published;
 }
 
+bool hasBackupNextHop(const RouteNextHopSet& nhops) {
+  return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+    return nhop.role() == NextHopRole::BACKUP;
+  });
+}
+
+bool shouldManageEcmpGroup(const RouteNextHopSet& nhops) {
+  return nhops.size() > 1 && !hasBackupNextHop(nhops);
+}
+
 std::optional<cfg::SwitchingMode> getBackupSwitchingMode(
     const std::shared_ptr<SwitchState>& state) {
   std::optional<cfg::SwitchingMode> backupMode;
@@ -1762,6 +1772,8 @@ void EcmpResourceManager::routeAddedOrUpdated(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
+  DCHECK(shouldManageEcmpGroup(getNonOverrideNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo())));
   DCHECK_LE(
       inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   bool ecmpLimitReached = config_.ecmpLimitReached(
@@ -1979,30 +1991,31 @@ void EcmpResourceManager::routeUpdated(
       inOutState->getInputOldState(), oldRoute->getForwardInfo());
   const auto newNHops = getNonOverrideNormalizedNextHops(
       inOutState->getInputNewState(), newRoute->getForwardInfo());
-  if (oldNHops.size() > 1 && newNHops.size() > 1) {
+  const auto manageOldNHops = shouldManageEcmpGroup(oldNHops);
+  const auto manageNewNHops = shouldManageEcmpGroup(newNHops);
+  if (manageOldNHops && manageNewNHops) {
     routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
-  } else if (newNHops.size() > 1) {
-    // Old route was not pointing to a ECMP group
+  } else if (manageNewNHops) {
+    // Old route was not pointing to a managed ECMP group
     // but newRoute is
     XLOG(DBG2) << " Route:" << newRoute->str()
-               << " transitioned from single nhop to ECMP";
+               << " transitioned to a managed ECMP group";
     routeAdded(rid, newRoute, inOutState);
-  } else if (oldNHops.size() > 1) {
-    // Old route was pointing to a ECMP group
+  } else if (manageOldNHops) {
+    // Old route was pointing to a managed ECMP group
     // but newRoute is not
     XLOG(DBG2) << " Route:" << newRoute->str()
-               << " transitioned from ECMP to single nhop";
+               << " transitioned away from a managed ECMP group";
     routeDeleted(rid, oldRoute, false /*isUpdate*/, inOutState);
     // Just update deltas, no need to account for update route as a ECMP group
     // This and previous delete still create a single delta since ecmp demand
     // is never exceeded in these 2 steps
     inOutState->addOrUpdateRoute(rid, newRoute);
   } else {
-    // Neither of the routes point to > 1 nhops. Nothing to do
-    CHECK_LE(oldNHops.size(), 1);
-    CHECK_LE(newNHops.size(), 1);
+    // Neither route points to a managed ECMP group - single nhop routes and
+    // protection groups. Nothing to account for.
     XLOG(DBG2) << " Route:" << newRoute->str()
-               << " transitioned from single nhop to a different single nhop";
+               << " stayed outside managed ECMP groups";
     // Just update deltas, no need to account for this as a ECMP group
     inOutState->addOrUpdateRoute(rid, newRoute);
   }
@@ -2016,9 +2029,8 @@ void EcmpResourceManager::routeAdded(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  if (getNonOverrideNormalizedNextHops(
-          inOutState->getInputNewState(), newRoute->getForwardInfo())
-          .size() > 1) {
+  if (shouldManageEcmpGroup(getNonOverrideNormalizedNextHops(
+          inOutState->getInputNewState(), newRoute->getForwardInfo()))) {
     routeAddedOrUpdated(
         rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
   } else {
@@ -2037,7 +2049,7 @@ void EcmpResourceManager::routeDeleted(
   CHECK(removed->isPublished());
   const auto routeNhops = getNonOverrideNormalizedNextHops(
       inOutState->getInputOldState(), removed->getForwardInfo());
-  if (routeNhops.size() <= 1) {
+  if (!shouldManageEcmpGroup(routeNhops)) {
     // Just update deltas, no need to account for this as a ECMP group
     inOutState->deleteRoute(rid, removed);
     return;

@@ -14,6 +14,7 @@
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
@@ -53,6 +54,13 @@ const std::optional<cfg::SdkVersion> getSdkVersionFromConfig();
 
 const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
     const AgentConfig* config);
+
+/*
+ * Get platform config from config
+ */
+cfg::PlatformConfig getPlatformConfigFromConfig(const AgentConfig* config);
+
+cfg::PlatformConfig getPlatformConfigFromConfig();
 
 bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId);
 

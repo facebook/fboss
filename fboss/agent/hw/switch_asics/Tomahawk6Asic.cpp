@@ -87,6 +87,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:
@@ -124,6 +125,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
+    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -157,7 +159,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
-    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
@@ -180,6 +181,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -235,12 +237,14 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return false;
   }
   return false;

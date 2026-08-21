@@ -3233,6 +3233,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getLinkTraining().value_or(false) &&
       portConf->linkTraining().has_value() ==
           orig->getLinkTraining().has_value() &&
+      portConf->txPrecoding().value_or(false) ==
+          orig->getTxPrecoding().value_or(false) &&
+      portConf->txPrecoding().has_value() ==
+          orig->getTxPrecoding().has_value() &&
+      portConf->rxPrecoding().value_or(false) ==
+          orig->getRxPrecoding().value_or(false) &&
+      portConf->rxPrecoding().has_value() ==
+          orig->getRxPrecoding().has_value() &&
+      portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3340,6 +3349,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   } else {
     newPort->setLinkTraining(std::nullopt);
   }
+  if (portConf->txPrecoding().has_value()) {
+    newPort->setTxPrecoding(portConf->txPrecoding().value());
+  } else {
+    newPort->setTxPrecoding(std::nullopt);
+  }
+  if (portConf->rxPrecoding().has_value()) {
+    newPort->setRxPrecoding(portConf->rxPrecoding().value());
+  } else {
+    newPort->setRxPrecoding(std::nullopt);
+  }
+  newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {
@@ -4459,6 +4479,10 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
       throw FbossError("l4DstPort and l4DstPortRange cannot both be set");
     }
   }
+  if (config->dstIp() && (config->dstIpV6Word3() || config->dstIpV6Word2())) {
+    throw FbossError(
+        "dstIp cannot be combined with dstIpV6Word3 or dstIpV6Word2");
+  }
   if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
@@ -4524,6 +4548,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto dstIp = config->dstIp()) {
     newAcl->setDstIp(IPAddress::createNetwork(*dstIp));
+  }
+  if (auto dstIpV6Word3 = config->dstIpV6Word3()) {
+    newAcl->setDstIpV6Word3(*dstIpV6Word3);
+  }
+  if (auto dstIpV6Word2 = config->dstIpV6Word2()) {
+    newAcl->setDstIpV6Word2(*dstIpV6Word2);
   }
   if (auto proto = config->proto()) {
     newAcl->setProto(*proto);
@@ -5154,9 +5184,6 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     throw FbossError(
         "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
         "standbySwitchingMode to be set");
-  }
-  if (config.sourcePortPrune()) {
-    newFlowletSwitchingConfig->setSourcePortPrune(*config.sourcePortPrune());
   }
   return newFlowletSwitchingConfig;
 }
@@ -6020,11 +6047,25 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
-  // Snapshot FLAGS_ecmp_width into switch_state. On warmboot replay a
-  // mismatch between the stored value and the current FLAGS_ecmp_width
-  // triggers assert and coldboot.
+  // Source ecmpWidth from cfg.SwitchSettings, falling back to FLAGS_ecmp_width
+  // during the flag->config migration. Changing it requires a coldboot; see
+  // StateUpdateValidator.
   {
-    int32_t newEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto& configEcmpWidth = cfg_->switchSettings()->ecmpWidth();
+    const auto flagEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto newEcmpWidth =
+        configEcmpWidth.has_value() ? *configEcmpWidth : flagEcmpWidth;
+    if (newEcmpWidth <= 0) {
+      throw FbossError("ECMP width must be positive, got ", newEcmpWidth);
+    }
+    // During the flag->config migration both knobs can be set. Config wins;
+    // warn on a mismatch so the precedence isn't silent. Remove once
+    // FLAGS_ecmp_width is retired.
+    if (configEcmpWidth.has_value() && newEcmpWidth != flagEcmpWidth) {
+      XLOG(WARN) << "Config SwitchSettings.ecmpWidth (" << newEcmpWidth
+                 << ") differs from FLAGS_ecmp_width (" << FLAGS_ecmp_width
+                 << "); config value takes precedence";
+    }
     if (origSwitchSettings->getEcmpWidth() != newEcmpWidth) {
       newSwitchSettings->setEcmpWidth(newEcmpWidth);
       switchSettingsChange = true;
@@ -6040,6 +6081,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()) {
       newSwitchSettings->setFabricLinkMonitoringSystemPortOffset(
           fabricLinkMonitoringSystemPortOffset);
+      switchSettingsChange = true;
+    }
+  }
+  {
+    std::optional<bool> l3EcmpIngressPortPrune;
+    if (cfg_->switchSettings()->l3EcmpIngressPortPrune().has_value()) {
+      l3EcmpIngressPortPrune =
+          *cfg_->switchSettings()->l3EcmpIngressPortPrune();
+    }
+    if (l3EcmpIngressPortPrune !=
+        origSwitchSettings->getL3EcmpIngressPortPrune()) {
+      newSwitchSettings->setL3EcmpIngressPortPrune(l3EcmpIngressPortPrune);
       switchSettingsChange = true;
     }
   }

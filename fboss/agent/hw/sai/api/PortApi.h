@@ -595,6 +595,13 @@ struct SaiPortTraits {
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkScanMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkScanMode = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeLinkScanMode,
+        SaiIntDefault<sai_int32_t>>;
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
@@ -787,7 +794,8 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrModeRemote>,
       std::optional<Attributes::LlrProfile>,
 #endif
-      std::optional<Attributes::PfcPauseDurationOverride>>;
+      std::optional<Attributes::PfcPauseDurationOverride>,
+      std::optional<Attributes::LinkScanMode>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -869,6 +877,12 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
   static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
   static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
+  static const std::vector<sai_stat_id_t>& linkDownDebounceRetriggerStats();
+  static const std::vector<sai_stat_id_t>& linkUpDebounceRetriggerStats();
+  // Broadcom LLR stat extensions. Unlike llrStats() above these are not
+  // standard SAI 1.18 enums, so the list is vendor-defined and empty everywhere
+  // except a Broadcom SDK new enough to declare them.
+  static const std::vector<sai_stat_id_t>& llrExtensionStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
@@ -967,6 +981,7 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
+SAI_ATTRIBUTE_NAME(Port, LinkScanMode);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);
@@ -1090,6 +1105,12 @@ struct SaiPortSerdesTraits {
     struct AttributeRxReachWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeTransmitPrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeReceivePrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRVgaWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1169,6 +1190,23 @@ struct SaiPortSerdesTraits {
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxReachWrapper>;
+    // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
+    // These vendor extensions work from 13.3
+    using TransmitPrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTransmitPrecodingStateWrapper>;
+    using ReceivePrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeReceivePrecodingStateWrapper>;
+// Alias to vendor extension attributes on bcm SAI
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+    using TxPrecodingAttr = TransmitPrecodingState;
+    using RxPrecodingAttr = ReceivePrecodingState;
+#elif SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    // If not BCM, alias to standard SAI attributes
+    using TxPrecodingAttr = TxPrecoding;
+    using RxPrecodingAttr = RxPrecoding;
+#endif
     using RVga =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
     using Dco =
@@ -1545,6 +1583,8 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxReach);
+SAI_ATTRIBUTE_NAME(PortSerdes, TransmitPrecodingState);
+SAI_ATTRIBUTE_NAME(PortSerdes, ReceivePrecodingState);
 SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
 SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);

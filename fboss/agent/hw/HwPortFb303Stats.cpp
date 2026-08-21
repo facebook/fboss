@@ -56,8 +56,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
-      kOutDiscardsSll(),
-      kOutDiscardsHll(),
       kLlrTxOk(),
       kLlrRxOk(),
       kLlrTxReplay(),
@@ -67,6 +65,11 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kLlrRxAckNackSeqError(),
       kLlrRxExpectedSeqPoisoned(),
       kLlrRxExpectedSeqBad(),
+      kLlrTxIneligiblePkts(),
+      kLlrRxIneligiblePkts(),
+      kLlrTxNackReplayEvent(),
+      kLlrTxTimerReplayEvent(),
+      kLlrTxError(),
   };
   return kPortKeys;
 }
@@ -77,6 +80,8 @@ HwPortFb303Stats::kPortFb303CounterStatKeys() const {
       kCableLengthMeters(),
       kCableDelayNsec(),
       kDataCellsFilterOn(),
+      kLlrTxStatus(),
+      kLlrRxStatus(),
   };
   return kPortKeys;
 }
@@ -297,6 +302,19 @@ void HwPortFb303Stats::updateStats(
         statName(kDataCellsFilterOn(), portName()),
         *curPortStats.dataCellsFilterOn() ? 1 : 0);
   }
+  // LLR state machine status. A gauge, not a timeseries: the value is the
+  // current state, not a count. Set only while the port has LLR bound and the
+  // hardware read succeeded.
+  if (curPortStats.llrTxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrTxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrTxStatus_()));
+  }
+  if (curPortStats.llrRxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrRxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrRxStatus_()));
+  }
   if (curPortStats.linkLayerFlowControlWatermark_().has_value()) {
     updateStat(
         timeRetrieved_,
@@ -321,13 +339,15 @@ void HwPortFb303Stats::updateStats(
         kFabricControlTxPackets(),
         *curPortStats.fabricControlTxPackets_());
   }
-  if (curPortStats.outDiscardsSll_().has_value()) {
-    updateStat(
-        timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
-  }
-  if (curPortStats.outDiscardsHll_().has_value()) {
-    updateStat(
-        timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+  if (isSllHllDiscardCounterSupported()) {
+    if (curPortStats.outDiscardsSll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+    }
+    if (curPortStats.outDiscardsHll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+    }
   }
 
   // UEC LLR counters -- populated only on LLR-capable ASICs (Tomahawk Ultra).
@@ -370,6 +390,33 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLlrRxExpectedSeqBad(),
         *curPortStats.llrRxExpectedSeqBad_());
+  }
+  if (curPortStats.llrTxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxIneligiblePkts(),
+        *curPortStats.llrTxIneligiblePkts_());
+  }
+  if (curPortStats.llrRxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxIneligiblePkts(),
+        *curPortStats.llrRxIneligiblePkts_());
+  }
+  if (curPortStats.llrTxNackReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxNackReplayEvent(),
+        *curPortStats.llrTxNackReplayEvent_());
+  }
+  if (curPortStats.llrTxTimerReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxTimerReplayEvent(),
+        *curPortStats.llrTxTimerReplayEvent_());
+  }
+  if (curPortStats.llrTxError_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxError(), *curPortStats.llrTxError_());
   }
 
   // Update queue stats

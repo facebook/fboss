@@ -911,6 +911,53 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getTxPrecoding() const {
+    if (auto txPrecoding = cref<switch_state_tags::txPrecoding>()) {
+      return txPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTxPrecoding(std::optional<bool> txPrecoding) {
+    if (!txPrecoding.has_value()) {
+      ref<switch_state_tags::txPrecoding>().reset();
+    } else {
+      set<switch_state_tags::txPrecoding>(txPrecoding.value());
+    }
+  }
+
+  std::optional<bool> getRxPrecoding() const {
+    if (auto rxPrecoding = cref<switch_state_tags::rxPrecoding>()) {
+      return rxPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRxPrecoding(std::optional<bool> rxPrecoding) {
+    if (!rxPrecoding.has_value()) {
+      ref<switch_state_tags::rxPrecoding>().reset();
+    } else {
+      set<switch_state_tags::rxPrecoding>(rxPrecoding.value());
+    }
+  }
+
+  /** @brief Get who notices link status changes: the SDK or the ASIC */
+  std::optional<cfg::LinkScanMode> getLinkScanMode() const {
+    if (auto linkScanMode = cref<switch_state_tags::linkScanMode>()) {
+      return linkScanMode->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set who notices link status changes: the SDK or the ASIC */
+  void setLinkScanMode(std::optional<cfg::LinkScanMode> linkScanMode) {
+    if (!linkScanMode.has_value()) {
+      ref<switch_state_tags::linkScanMode>().reset();
+    } else {
+      set<switch_state_tags::linkScanMode>(linkScanMode.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

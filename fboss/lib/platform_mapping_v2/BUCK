@@ -53,6 +53,30 @@ export_file(
 
 [
     export_file(
+        name = "tahansb800bc_" + artifact,
+        src = "generated_platform_mappings/celestica/tahansb800bc/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
+[
+    export_file(
+        name = "tahansb800bc_test_fixture_" + artifact,
+        src = "generated_platform_mappings/celestica/tahansb800bc_test_fixture/" + artifact,
+    )
+    for artifact in [
+        "platform_mapping.json",
+        "port_id_to_port_assignment.json",
+        "raw_platform_mapping.json",
+    ]
+]
+
+[
+    export_file(
         name = "wedge800bact_" + artifact,
         src = "generated_platform_mappings/accton/wedge800bact/" + artifact,
     )
@@ -116,17 +140,12 @@ thrift_library(
         "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
     },
     languages = [
-        "py-deprecated",
         "py3-deprecated",
         "python",
-        "py-deprecated-asyncio",
         "cpp2",
     ],
     py3_namespace = "neteng.fboss",
-    py_asyncio_base_module = "neteng.fboss.asyncio",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "json",
-    thrift_py_options = "json,sort_keys",
     thrift_srcs = {
         "platform_mapping_config.thrift": [],
     },

@@ -26,6 +26,8 @@
 #include <folly/Conv.h>
 #include <memory>
 
+#include <mutex>
+
 namespace facebook::fboss {
 class SaiPlatform;
 class StateObserver;
@@ -99,6 +101,7 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   PhyPortConfig getConfigOnePort(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes,
+      cfg::PortProfileID profileID,
       bool readFromHw = false) override;
 
   void dump() override {
@@ -171,6 +174,10 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   void* getRegisterWriteFuncPtr();
   SaiSwitchTraits::CreateAttributes getSwitchAttributes();
 
+  std::mutex& getPaiMutex() {
+    return paiMutex_;
+  }
+
  protected:
   void dumpImpl() const;
 
@@ -186,6 +193,7 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   SaiPlatform* platform_;
   BspPhyIO* xphyIO_;
   std::optional<SwitchSaiId> switchId_;
+  std::mutex paiMutex_;
 };
 
 } // namespace facebook::fboss::phy

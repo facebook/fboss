@@ -81,7 +81,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
-    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
@@ -117,6 +116,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
@@ -163,6 +163,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -220,6 +221,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
@@ -245,6 +247,8 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return false;
   }
   return false;

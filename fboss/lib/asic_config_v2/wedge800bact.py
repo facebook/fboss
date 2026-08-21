@@ -14,11 +14,14 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
     def __init__(
         self,
         asic_config_params: asic_config_thrift.AsicConfigParameters,
+        platform_mapping_input_dir: str,
         mgmt_port_speed: Optional[int] = None,
     ) -> None:
         super(Wedge800bActAsicConfig, self).__init__(asic_config_params)
 
-        self.parser = PlatformMappingParser(read_all_vendor_data(), "wedge800bact")
+        self.parser = PlatformMappingParser(
+            read_all_vendor_data(platform_mapping_input_dir), "wedge800bact"
+        )
         self.num_ports_per_core = 1
         if mgmt_port_speed == 10000:
             self.MGMT_PORT_SPEED: int = mgmt_port_speed
@@ -32,7 +35,6 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: cross-boundary type mismatch until platform_mapping_v2 migrates
         return self.parser.get_static_mapping().get_static_mapping()
 
     def generate_port_config(self, mgmt_port: bool = False) -> None:
@@ -136,8 +138,11 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
 
 def gen_wedge800bact_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
+    platform_mapping_input_dir: str,
     mgmt_port_speed: Optional[int] = None,
 ) -> Wedge800bActAsicConfig:
-    cfg = Wedge800bActAsicConfig(asic_config_params, mgmt_port_speed)
+    cfg = Wedge800bActAsicConfig(
+        asic_config_params, platform_mapping_input_dir, mgmt_port_speed
+    )
     cfg.generate_asic_config()
     return cfg

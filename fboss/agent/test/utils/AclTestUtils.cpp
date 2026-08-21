@@ -898,6 +898,14 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
             qualifier);
         break;
 
+      case cfg::AclTableQualifier::DST_IPV6_WORD3:
+        addQualifier(aclEntry.dstIpV6Word3().has_value(), qualifier);
+        break;
+
+      case cfg::AclTableQualifier::DST_IPV6_WORD2:
+        addQualifier(aclEntry.dstIpV6Word2().has_value(), qualifier);
+        break;
+
       case cfg::AclTableQualifier::SRC_IPV4:
         addQualifier(
             aclEntry.srcIp().has_value() &&

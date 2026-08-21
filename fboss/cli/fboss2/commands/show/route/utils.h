@@ -9,6 +9,10 @@
 
 namespace facebook::fboss::show::route::utils {
 
+bool isFpfEncoding(
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding);
+
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode);
 
 std::string getMplsActionInfoStr(const cli::MplsActionInfo& mplsActionInfo);

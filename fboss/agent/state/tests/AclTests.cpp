@@ -1503,3 +1503,99 @@ TEST(Acl, L4DstPortRangeValidation) {
     EXPECT_EQ(*acl->getL4DstPortRange()->maximum(), 2000);
   }
 }
+
+TEST(Acl, DstIpV6WordValidation) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  auto makeConfig = []() {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(config.ports()[0], 1);
+    config.acls()->resize(1);
+    config.acls()[0].name() = "acl0";
+    config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    return config;
+  };
+
+  auto applyConfig = [&](cfg::SwitchConfig* config) {
+    return publishAndApplyConfig(stateV0, config, platform.get());
+  };
+
+  // dstIp alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_EQ(acl->getDstIp().first.str(), "1234:5678:9abc:def0::1");
+    EXPECT_EQ(acl->getDstIp().second, 128);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word2 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word3 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIpV6Word2 and dstIpV6Word3 together are valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word2.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word3.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with both DST IPv6 word qualifiers.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+}

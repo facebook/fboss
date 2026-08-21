@@ -18,6 +18,7 @@
 #include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoDelta.h"
@@ -96,6 +97,9 @@ class StateDelta {
   ThriftMapDelta<MultiControlPlane> getControlPlaneDelta() const;
   ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta() const;
   ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
+
+  MultiSwitchMapDelta<MultiSwitchClassBasedPolicyMap>
+  getClassBasedPoliciesDelta() const;
 
   MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
   MultiSwitchMapDelta<MultiSwitchMirrorOnDropReportMap>

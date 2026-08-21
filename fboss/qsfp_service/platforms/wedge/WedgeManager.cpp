@@ -436,8 +436,7 @@ void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("syncPorts");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("syncPorts");
   }
 
   std::set<TransceiverID> tcvrIDs;
@@ -967,8 +966,7 @@ void WedgeManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programXphyPort");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programXphyPort");
   }
 
   if (phyManager_ == nullptr) {
@@ -1103,8 +1101,7 @@ void WedgeManager::programXphyPortPrbs(
     phy::Side side,
     const phy::PortPrbsState& prbs) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programXphyPortPrbs");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programXphyPortPrbs");
   }
   phyManager_->setPortPrbs(portID, side, prbs);
 }
@@ -1117,8 +1114,7 @@ phy::PortPrbsState WedgeManager::getXphyPortPrbs(
 
 void WedgeManager::updateAllXphyPortsStats() {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("updateAllXphyPortsStats");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("updateAllXphyPortsStats");
   }
 
   if (!phyManager_) {

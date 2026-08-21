@@ -1,5 +1,4 @@
 "Test Case","Transceiver","Qualifying FW","Previous FW","Status"
-"T0HalTest.FirmwareUpgrade","FTCF4719E6PCB-FB","3.2","3.1","PASSED"
 "T2SpeedChange/T2HalTestSpeedChange.speedChange/2x800G_FR4_to_4x400G_FR2","FTCF4719E6PCB-FB","3.2","3.1","PASSED"
 "T2SpeedChange/T2HalTestSpeedChange.speedChange/2x400G_LR4_to_400G_LR4_200G_LR4","FTCF4719E6PCB-FB","3.2","3.1","SKIPPED"
 "T2SpeedChange/T2HalTestSpeedChange.speedChange/2x400G_LR4_to_2x200G_LR4","FTCF4719E6PCB-FB","3.2","3.1","SKIPPED"
@@ -46,3 +45,4 @@
 "T1HalTest.verifyModuleMediaInterfaceIsNotUnknown","FTCF4719E6PCB-FB","3.2","3.1","PASSED"
 "T1HalTest.verifyDatapathMaxDelayFromModuleSpec","FTCF4719E6PCB-FB","3.2","3.1","PASSED"
 "T0HalTest.FirmwareUpgradeInterruptRecovery","FTCF4719E6PCB-FB","3.2","3.1","PASSED"
+"T0HalTest.FirmwareUpgrade","FTCF4719E6PCB-FB","3.2","3.1","PASSED"

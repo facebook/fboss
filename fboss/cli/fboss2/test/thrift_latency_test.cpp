@@ -213,7 +213,6 @@ int main(int argc, char** argv) {
                   .setInitialProvidedBuffers(2048, 2000)
                   .setUseRegisteredFds(2048)
                   .setDeferTaskRun(true)
-                  .setNativeAsyncSocketSupport(true)
                   .setCapacity(512);
               return std::make_unique<folly::IoUringBackend>(
                   std::move(options));

@@ -185,7 +185,31 @@
             }
           ]
       },
+      "DP08SFP8-LRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
       "DP08SFP8-LRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
           "versions": [
             {
               "fwType": 1,

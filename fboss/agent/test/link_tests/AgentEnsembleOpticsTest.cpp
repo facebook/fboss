@@ -389,10 +389,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  * Check VDM parameters are within the threshold for VDM supported optics
  * Steps:
  * 1. Find the list of optical ports with VDM supported optics
- * 2. Wait till we have data for 20 seconds
- * 3. Get the TransceiverInfo from qsfp_service
- * 4. validate the VDM Performance Monitoring parameters within the thresholds
- *    defined in spec
+ * 2. Wait for a VDM interval that started after the test began
+ * 3. Wait for a fresh TransceiverInfo update from qsfp_service and validate the
+ *    VDM Performance Monitoring parameters within the thresholds defined in
+ *    spec, repeating for every iteration
  * Note: Bypass LPO Transceivers for this test since the LPO
  *       transceivers don't have a DSP and there are no VDM stats.
  */
@@ -482,14 +482,21 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     }
   };
 
-  // 4. validate the VDM Performance Monitoring parameters within the threshold
+  // 3. validate the VDM Performance Monitoring parameters within the threshold
   int testIterations = FLAGS_link_stress_test ? 60 : 1;
   do {
+    std::map<int32_t, TransceiverInfo> freshInfos;
+    if (!utility::waitForFreshTransceiverInfo(
+            transceiverIds,
+            transceiverInfos,
+            freshInfos,
+            /*includeLpo*/ false)) {
+      ADD_FAILURE() << "qsfp_service published no fresh transceiverInfo";
+      break;
+    }
+    transceiverInfos = std::move(freshInfos);
     validateVdm(transceiverInfos, transceiverIds);
     accumulateVdm(transceiverInfos);
-    /* sleep override */ std::this_thread::sleep_for(10s);
-    transceiverInfos =
-        utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
   } while (testIterations-- && !::testing::Test::HasFailure());
 
   for (const auto& [port, ber] : mediaWorstPreFecBer) {

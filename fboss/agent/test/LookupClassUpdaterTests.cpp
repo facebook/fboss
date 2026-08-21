@@ -447,6 +447,16 @@ class LookupClassUpdaterTest : public ::testing::Test {
           }
           return newState;
         });
+    // Changing the MAC OUIs makes LookupClassUpdater recompute neighbor class
+    // IDs, and that half of the work is fanned out through the neighbor cache
+    // evb rather than applied inline. waitForStateUpdates alone drains only the
+    // update evb, so it returns while the neighbor entries still carry their
+    // previous class IDs, and anything asserting on them reads stale values.
+    // This is the same barrier updateLookupClasses uses above, for the same
+    // reason.
+    waitForStateUpdates(this->sw_);
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
     waitForStateUpdates(this->sw_);
   }
 

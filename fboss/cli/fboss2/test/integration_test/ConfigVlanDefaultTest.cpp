@@ -7,6 +7,7 @@
  * where ports have already been moved off the current default VLAN.
  */
 
+#include <folly/ScopeGuard.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
@@ -30,10 +31,22 @@ class ConfigVlanDefaultTest : public Fboss2IntegrationTest {};
 TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
   waitForAgentReady();
 
+  // The command auto-creates the target VLAN, which also creates a backing
+  // interface and consumes a Linux route table — so the ID has to come from
+  // pickUnusedVlanId() rather than a constant (T284228086).
+  const int targetVlanId = pickUnusedVlanId();
+  if (targetVlanId == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  SCOPE_EXIT {
+    deleteVlanIfPresent(targetVlanId);
+  };
+
   auto initialConfig = getRunningConfig();
   int64_t currentDefault =
       initialConfig["sw"].getDefault("defaultVlan", 1).asInt();
-  const std::string targetVlan = (currentDefault == 300) ? "301" : "300";
+  const std::string targetVlan = std::to_string(targetVlanId);
   XLOG(INFO) << "[Test] currentDefault=" << currentDefault
              << " targetVlan=" << targetVlan;
 
@@ -199,8 +212,15 @@ TEST_F(ConfigVlanDefaultTest, RefuseWhenPortOnDefaultVlanWithNoInterface) {
     XLOG(INFO) << "[Setup] Moved " << ifName << " to VLAN " << currentDefault;
   }
 
-  // Now the guard should refuse: port on default VLAN, no interface.
-  const std::string nextVlan = (currentDefault == 300) ? "301" : "300";
+  // Now the guard should refuse: port on default VLAN, no interface. The
+  // command is expected to fail before creating anything, but use a valid ID
+  // anyway so a regression in the guard cannot abort the agent.
+  const int nextVlanId = pickUnusedVlanId();
+  if (nextVlanId == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  const std::string nextVlan = std::to_string(nextVlanId);
   auto result = runCli({"config", "vlan", "default", nextVlan});
   EXPECT_NE(result.exitCode, 0);
   EXPECT_THAT(
@@ -288,8 +308,16 @@ TEST_F(ConfigVlanDefaultTest, ChangeDefaultVlanWithPortInNonDefaultVlan) {
   XLOG(INFO) << "[Step 1] Moved " << ifName << " to VLAN " << sideVlan;
 
   // Set a new default VLAN — the command must succeed even when no ports
-  // remain on the old default VLAN.
-  const int64_t newDefault = 4093;
+  // remain on the old default VLAN. The target is auto-created, so it must be
+  // an ID the agent can back with a route table (T284228086).
+  const int newDefault = pickUnusedVlanId();
+  if (newDefault == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  SCOPE_EXIT {
+    deleteVlanIfPresent(newDefault);
+  };
   auto result =
       runCli({"config", "vlan", "default", std::to_string(newDefault)});
   ASSERT_EQ(result.exitCode, 0)
