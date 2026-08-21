@@ -204,6 +204,20 @@ def build_fboss_builder_image() -> None:
     should_build, checksum, reason = _should_build_image(root_dir)
 
     if not should_build:
+        try:
+            subprocess.run(
+                [
+                    "docker",
+                    "tag",
+                    f"{FBOSS_BUILDER_IMAGE}:{checksum}",
+                    f"{FBOSS_BUILDER_IMAGE}:latest",
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"Failed to activate cached {FBOSS_BUILDER_IMAGE} image: {e}"
+            ) from e
         logger.info(
             f"{FBOSS_BUILDER_IMAGE} image with checksum {checksum[:12]} "
             f"{reason}, skipping build"
