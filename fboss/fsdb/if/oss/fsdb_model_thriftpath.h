@@ -1659,6 +1659,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SwitchSettings, ::facebook::fboss:
     STRUCT_CHILD_GETTERS(measureCableLengths, 35);
     STRUCT_CHILD_GETTERS(packetForwardingMode, 36);
     STRUCT_CHILD_GETTERS(ecmpWidth, 37);
+    STRUCT_CHILD_GETTERS(l3EcmpIngressPortPrune, 38);
 };
 
 
@@ -4543,6 +4544,7 @@ class ChildThriftPath<::facebook::fboss::state::SwitchSettingsFields, ::facebook
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortOffset, 60);
     STRUCT_CHILD_GETTERS(packetForwardingMode, 61);
     STRUCT_CHILD_GETTERS(ecmpWidth, 62);
+    STRUCT_CHILD_GETTERS(l3EcmpIngressPortPrune, 63);
 };
 
 
