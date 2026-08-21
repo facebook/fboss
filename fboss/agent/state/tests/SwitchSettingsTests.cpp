@@ -206,6 +206,45 @@ TEST(SwitchSettingsTest, applyPacketForwardingMode) {
   EXPECT_FALSE(switchSettingsV3->getPacketForwardingMode().has_value());
 }
 
+TEST(SwitchSettingsTest, applyL3EcmpIngressPortPrune) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Unset when the config does not carry the field
+  cfg::SwitchConfig config;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->getL3EcmpIngressPortPrune().has_value());
+
+  config.switchSettings()->l3EcmpIngressPortPrune() = true;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_FALSE(switchSettingsV2->isPublished());
+  ASSERT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().value());
+
+  // A configured false is carried through as false, not as unset
+  config.switchSettings()->l3EcmpIngressPortPrune() = false;
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  auto switchSettingsV3 = utility::getFirstNodeIf(stateV3->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV3);
+  ASSERT_TRUE(switchSettingsV3->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_FALSE(switchSettingsV3->getL3EcmpIngressPortPrune().value());
+
+  // Dropping the field from config resets the state back to unset
+  config.switchSettings()->l3EcmpIngressPortPrune().reset();
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  EXPECT_NE(nullptr, stateV4);
+  auto switchSettingsV4 = utility::getFirstNodeIf(stateV4->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV4);
+  EXPECT_FALSE(switchSettingsV4->getL3EcmpIngressPortPrune().has_value());
+}
+
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
