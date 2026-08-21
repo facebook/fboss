@@ -343,6 +343,10 @@ class SaiPortManager {
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  // Throws on SDKs that cannot program the attribute, rather than dropping a
+  // mode the config asked for.
+  static SaiPortTraits::Attributes::LinkScanMode linkScanModeAttribute(
+      cfg::LinkScanMode mode);
   /**
    * Increment the PFC deadlock detection counter for a given port.
    *

@@ -910,6 +910,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  // Left out of the create list unless the port configures a linkscan mode: an
+  // attribute the SDK does not accept fails the port create outright.
+  std::optional<SaiPortTraits::Attributes::LinkScanMode> linkScanMode;
+  if (const auto mode = swPort->getLinkScanMode()) {
+    linkScanMode = linkScanModeAttribute(*mode);
+  }
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1120,7 +1127,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
-      std::nullopt, // LinkScanMode
+      linkScanMode, // LinkScanMode
   };
 }
 

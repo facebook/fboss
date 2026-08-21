@@ -4577,6 +4577,25 @@ void SaiPortManager::changePortShelEnable(
   }
 #endif
 }
+
+SaiPortTraits::Attributes::LinkScanMode SaiPortManager::linkScanModeAttribute(
+    cfg::LinkScanMode mode) {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  switch (mode) {
+    case cfg::LinkScanMode::SOFTWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_SW};
+    case cfg::LinkScanMode::HARDWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_HW};
+  }
+  throw FbossError("Unknown linkScanMode ", static_cast<int>(mode));
+#else
+  throw FbossError(
+      "linkScanMode is only supported on BRCM XGS SAI SDK 15.0 or newer; "
+      "cannot apply ",
+      apache::thrift::util::enumNameSafe(mode));
+#endif
+}
+
 /**
  * Increment the PFC counter for a given port and counter type.
  *
