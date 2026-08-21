@@ -4189,6 +4189,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
   int numExistingProcessed = 0;
   int dataPriority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
+  CHECK_LT(FLAGS_pbr_acl_priority, AclTable::kDataplaneAclMaxPriority)
+      << "PBR must sit below the dataplane band so no config ACL can reach it";
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
   folly::gen::from(*cfg_->trafficCounters()) |
@@ -4320,10 +4322,20 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         ma = &matchAction;
       }
 
+      int aclPriority = isCoppAcl ? cpuPriority++ : dataPriority++;
+      if (aclPriority == FLAGS_pbr_acl_priority) {
+        throw FbossError(
+            "ACL ",
+            *aclCfg.name(),
+            " was assigned priority ",
+            aclPriority,
+            ", which is reserved for PBR ACL entries");
+      }
+
       auto acl = updateAcl(
           aclStage,
           aclCfg,
-          isCoppAcl ? cpuPriority++ : dataPriority++,
+          aclPriority,
           &numExistingProcessed,
           &changed,
           tableName,

@@ -627,6 +627,12 @@ DEFINE_bool(
     false,
     "Enable bulk programming of ECMP members");
 
+DEFINE_int32(
+    pbr_acl_priority,
+    50000,
+    "Priority shared by every synthesized PBR ACL entry. Must stay below "
+    "AclTable::kDataplaneAclMaxPriority so no config ACL can be assigned it");
+
 DEFINE_bool(
     enable_pfc_priority_to_pg_map,
     false,
