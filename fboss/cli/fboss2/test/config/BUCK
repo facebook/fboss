@@ -5,6 +5,10 @@ oncall("fboss_oss")
 
 cpp_unittest(
     name = "cmd_config_test",
+    # The suite is ~60 files of ConfigSession tests, each doing several
+    # fsync-backed writeFileAtomic calls; on CI disks the run can exceed the
+    # default "moderate" (300s) Bazel test timeout.
+    size = "large",
     srcs = [
         "BgpConfigSessionTest.cpp",
         "CmdConfigAclRuleTest.cpp",
