@@ -20,6 +20,8 @@
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
 #include "fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
@@ -44,11 +46,11 @@ const std::map<std::string, std::string> kSrv6MySidTestDescriptions = {
     {"mySidInit_rejectsSecondInit",
      "Second config srv6 my-sid init for same prefix is rejected"},
     {"mySidAdd_validAdjacency",
-     "Parses add entry adjacency args (fn, is-v6, port-name)"},
-    {"mySidAdd_validNode", "Parses add entry node args (fn, node-address)"},
-    {"mySidAdd_validDecap", "Parses add entry decap args (fn only)"},
+     "Parses entry adjacency args (fn, is-v6, port-name)"},
+    {"mySidAdd_validNode", "Parses entry node args (fn, node-address)"},
+    {"mySidAdd_validDecap", "Parses entry decap args (fn only)"},
     {"mySidAdd_noLocatorThrows",
-     "add entry before my-sid init fails with runtime_error"},
+     "entry before my-sid init fails with runtime_error"},
     {"mySidAdd_invalidEntry",
      "Rejects function values 0, 99999, and non-numeric abc"},
     {"mySidAdd_unknownType", "Rejects unknown entry type 'binding'"},
@@ -58,11 +60,22 @@ const std::map<std::string, std::string> kSrv6MySidTestDescriptions = {
     {"mySidAdd_nodeAddressOnAdjacency",
      "Rejects node-address on adjacency-type entry"},
     {"mySidAdd_insertsEntry",
-     "add entry adjacency stages entry in session mySidConfig"},
-    {"mySidAdd_prefixMismatch",
-     "add entry with wrong locator prefix is rejected"},
+     "entry adjacency stages entry in session mySidConfig"},
+    {"mySidAdd_prefixMismatch", "entry with wrong locator prefix is rejected"},
     {"mySidAdd_upserts",
      "Re-adding same function ID overwrites prior entry with warning"},
+    {"mySidDeleteEntry_removesEntry",
+     "delete srv6 my-sid <prefix> entry <fn> removes entry"},
+    {"mySidDeleteEntry_noOpWhenMissing",
+     "delete entry for missing function ID returns informational message"},
+    {"mySidDeleteEntry_noOpWhenNoConfig",
+     "delete entry with no mySidConfig returns informational message"},
+    {"deleteMySid_removesEntireConfig",
+     "delete srv6 my-sid <prefix> removes entire mySidConfig block"},
+    {"deleteMySid_wrongPrefix",
+     "delete srv6 my-sid with mismatched prefix is rejected"},
+    {"deleteMySid_noConfig",
+     "delete srv6 my-sid when nothing configured returns informational message"},
 };
 
 class Srv6MySidTestLogListener : public ::testing::EmptyTestEventListener {
@@ -173,8 +186,7 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidInit_rejectsSecondInit) {
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validAdjacency) {
   MySidAddArg arg(
-      {"entry",
-       "10188",
+      {"10188",
        "type",
        "adjacency",
        "is-v6",
@@ -188,30 +200,28 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validAdjacency) {
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validNode) {
-  MySidAddArg arg(
-      {"entry", "20001", "type", "node", "node-address", "2001:db8::1"});
+  MySidAddArg arg({"20001", "type", "node", "node-address", "2001:db8::1"});
   EXPECT_EQ(arg.getFunctionValue(), 20001);
   EXPECT_EQ(arg.getType(), MySidConfigEntryType::NODE);
   EXPECT_EQ(arg.getNodeAddress(), "2001:db8::1");
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validDecap) {
-  MySidAddArg arg({"entry", "32767", "type", "decap"});
+  MySidAddArg arg({"32767", "type", "decap"});
   EXPECT_EQ(arg.getFunctionValue(), 32767);
   EXPECT_EQ(arg.getType(), MySidConfigEntryType::DECAP);
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_noLocatorThrows) {
   setupTestableConfigSession(
-      "config srv6 my-sid add",
+      "config srv6 my-sid entry",
       fmt::format(
-          "{} entry 10188 type adjacency is-v6 true port-name Port-Channel190412",
+          "{} 10188 type adjacency is-v6 true port-name Port-Channel190412",
           kLocatorPrefix));
   CmdConfigSrv6MySidAdd cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
   MySidAddArg addArg(
-      {"entry",
-       "10188",
+      {"10188",
        "type",
        "adjacency",
        "is-v6",
@@ -223,24 +233,19 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_noLocatorThrows) {
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidEntry) {
-  EXPECT_THROW(
-      MySidAddArg({"entry", "0", "type", "decap"}), std::invalid_argument);
-  EXPECT_THROW(
-      MySidAddArg({"entry", "99999", "type", "decap"}), std::invalid_argument);
-  EXPECT_THROW(
-      MySidAddArg({"entry", "abc", "type", "decap"}), std::invalid_argument);
+  EXPECT_THROW(MySidAddArg({"0", "type", "decap"}), std::invalid_argument);
+  EXPECT_THROW(MySidAddArg({"99999", "type", "decap"}), std::invalid_argument);
+  EXPECT_THROW(MySidAddArg({"abc", "type", "decap"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_unknownType) {
-  EXPECT_THROW(
-      MySidAddArg({"entry", "1", "type", "binding"}), std::invalid_argument);
+  EXPECT_THROW(MySidAddArg({"1", "type", "binding"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidIsV6) {
   EXPECT_THROW(
       MySidAddArg(
-          {"entry",
-           "1",
+          {"1",
            "type",
            "adjacency",
            "is-v6",
@@ -252,15 +257,14 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidIsV6) {
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_portNameOnNode) {
   EXPECT_THROW(
-      MySidAddArg({"entry", "1", "type", "node", "port-name", "Port-Channel1"}),
+      MySidAddArg({"1", "type", "node", "port-name", "Port-Channel1"}),
       std::invalid_argument);
 }
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_nodeAddressOnAdjacency) {
   EXPECT_THROW(
       MySidAddArg(
-          {"entry",
-           "1",
+          {"1",
            "type",
            "adjacency",
            "is-v6",
@@ -275,8 +279,7 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_insertsEntry) {
   CmdConfigSrv6MySidAdd cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
   MySidAddArg addArg(
-      {"entry",
-       "10188",
+      {"10188",
        "type",
        "adjacency",
        "is-v6",
@@ -299,8 +302,7 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_prefixMismatch) {
   CmdConfigSrv6MySidAdd cmd;
   LocatorPrefixArg prefix({kOtherLocatorPrefix});
   MySidAddArg addArg(
-      {"entry",
-       "10188",
+      {"10188",
        "type",
        "adjacency",
        "is-v6",
@@ -315,10 +317,9 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_upserts) {
   initMySidConfig();
   CmdConfigSrv6MySidAdd cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
-  MySidAddArg firstArg({"entry", "10188", "type", "decap"});
+  MySidAddArg firstArg({"10188", "type", "decap"});
   MySidAddArg secondArg(
-      {"entry",
-       "10188",
+      {"10188",
        "type",
        "adjacency",
        "is-v6",
@@ -329,6 +330,74 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_upserts) {
   cmd.queryClient(hostInfo_, prefix, firstArg);
   auto result = cmd.queryClient(hostInfo_, prefix, secondArg);
   EXPECT_THAT(result, HasSubstr("Warning: MySID entry 10188 overwritten"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_removesEntry) {
+  initMySidConfig();
+  CmdConfigSrv6MySidAdd addCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidAddArg addArg({"32767", "type", "decap"});
+  addCmd.queryClient(hostInfo_, prefix, addArg);
+
+  CmdDeleteSrv6MySidEntry deleteCmd;
+  MySidDeleteEntryArg deleteArg({"32767"});
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("Successfully deleted MySID entry 32767"));
+
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  EXPECT_EQ(config.sw()->mySidConfig()->entries()->count(32767), 0);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_noOpWhenMissing) {
+  initMySidConfig();
+  CmdDeleteSrv6MySidEntry deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidDeleteEntryArg deleteArg({"10188"});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("does not exist"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_noOpWhenNoConfig) {
+  setupTestableConfigSession(
+      "delete srv6 my-sid entry", fmt::format("{} 10188", kLocatorPrefix));
+  CmdDeleteSrv6MySidEntry deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+  MySidDeleteEntryArg deleteArg({"10188"});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix, deleteArg);
+  EXPECT_THAT(result, HasSubstr("no mySidConfig configured"));
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_removesEntireConfig) {
+  initMySidConfig();
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix);
+  EXPECT_THAT(
+      result, HasSubstr("Successfully deleted SRv6 MySID configuration"));
+  EXPECT_THAT(result, HasSubstr(kLocatorPrefix));
+
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  EXPECT_FALSE(config.sw()->mySidConfig().has_value());
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_wrongPrefix) {
+  initMySidConfig();
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kOtherLocatorPrefix});
+
+  EXPECT_THROW(deleteCmd.queryClient(hostInfo_, prefix), std::runtime_error);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, deleteMySid_noConfig) {
+  setupTestableConfigSession("delete srv6 my-sid", kLocatorPrefix);
+  CmdDeleteSrv6MySid deleteCmd;
+  LocatorPrefixArg prefix({kLocatorPrefix});
+
+  auto result = deleteCmd.queryClient(hostInfo_, prefix);
+  EXPECT_THAT(result, HasSubstr("nothing configured"));
 }
 
 } // namespace facebook::fboss
