@@ -6,7 +6,7 @@
  * Tests:
  *
  * 1. StaticMacAddDeleteOnExistingVlan
- *    - Add a static MAC entry to a VLAN already configured on this DUT
+ *    - Add a static MAC entry to an existing VLAN (provisioned on demand)
  *    - Commit and verify
  *    - Delete the entry and commit
  *    This is the primary use case for static-mac add/delete.
@@ -33,7 +33,11 @@
  *    - Re-running the command in the same session reports "already exists"
  *    - Commit succeeds (VlanManager also created the barebone interface)
  *
- * 5. SwitchportAccessVlanAutoCreates
+ * 5. CreateVlanAlreadyExists
+ *    - "config vlan <id>" on a VLAN present in the running config reports
+ *      "already exists" and does not create anything
+ *
+ * 6. SwitchportAccessVlanAutoCreates
  *    - "config interface <port> switchport access vlan <id>" on a missing
  *      VLAN auto-creates it and appends "(VLAN <id> created)" to the output
  *    - Second run in the same session does not print the created suffix
@@ -42,6 +46,11 @@
  * Requirements:
  * - FBOSS agent must be running with a valid configuration
  * - The test must be run as root (or with appropriate permissions)
+ *
+ * These tests do not assume the DUT is configured any particular way: the
+ * fixture picks an ethernet port and provisions the VLANs it needs (see
+ * SetUpTestSuite / ensureCommittedVlan / TearDown), so they run on both L2-
+ * and pure routed-mode DUTs instead of skipping.
  */
 
 #include <folly/logging/xlog.h>
@@ -64,25 +73,30 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
       std::string getFirstEthInterface() {
         return getRandomInterfacePortName();
       }
-      int getUnusedVlanId() {
-        return pickUnusedVlanId();
+      int getUnusedVlanId(const std::set<int>& exclude = {}) {
+        return pickUnusedVlanId(exclude);
       }
     };
     Helper h;
     s_testInterfaceName_ = h.getFirstEthInterface();
     s_newVlanId_ = h.getUnusedVlanId();
+    s_existingVlanId_ = h.getUnusedVlanId({s_newVlanId_});
     XLOG(INFO) << "SetUpTestSuite: cached test interface = "
                << s_testInterfaceName_
-               << ", auto-create VLAN = " << s_newVlanId_;
+               << ", auto-create VLAN = " << s_newVlanId_
+               << ", existing VLAN = " << s_existingVlanId_;
   }
 
  protected:
   void TearDown() override {
-    // The VLAN this suite creates is backed by a cfg::Interface, and the agent
-    // gives that interface a TUN device that outlives the process. Leaving it
-    // behind leaks kernel state into every later test and agent restart.
-    if (s_newVlanId_ != 0) {
-      deleteVlanIfPresent(s_newVlanId_);
+    // The VLANs this suite creates are backed by a cfg::Interface, and the
+    // agent gives that interface a TUN device that outlives the process.
+    // Leaving one behind leaks kernel state into every later test and agent
+    // restart.
+    for (int vlanId : {s_newVlanId_, s_existingVlanId_}) {
+      if (vlanId != 0) {
+        deleteVlanIfPresent(vlanId);
+      }
     }
     Fboss2IntegrationTest::TearDown();
   }
@@ -95,6 +109,50 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
   // VLAN ID used to exercise auto-create, chosen from the running config by
   // SetUpTestSuite. 0 when the platform has none free.
   static int s_newVlanId_;
+  // VLAN the fixture creates + commits (via ensureCommittedVlan) for the
+  // cases that need a VLAN already present in the running config. 0 when the
+  // platform has none free.
+  static int s_existingVlanId_;
+
+  // Create `vlanId` in the running config (idempotent) so a fresh session sees
+  // it as already existing. Creating a barebone VLAN + its cfg::Interface is
+  // accepted by the agent regardless of L2/L3 mode (same path exercised by
+  // AutoCreateVlanInSession and Fboss2IntegrationTest::ensureUnderlayIntfId).
+  void ensureCommittedVlan(int vlanId) {
+    auto hasVlan = [vlanId](const folly::dynamic& c) {
+      if (!c.isObject() || !c.count("sw") || !c["sw"].count("vlans")) {
+        return false;
+      }
+      for (const auto& v : c["sw"]["vlans"]) {
+        if (v.count("id") && v["id"].asInt() == vlanId) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Nothing to commit if the VLAN is already present (e.g. leftover from a
+    // prior run that didn't reach TearDown) — a no-op commit would error.
+    if (hasVlan(getRunningConfig())) {
+      discardSession();
+      return;
+    }
+
+    discardSession();
+    auto result = runCli({"config", "vlan", std::to_string(vlanId)});
+    ASSERT_EQ(result.exitCode, 0)
+        << "Failed to create VLAN " << vlanId << ": " << result.stderr;
+    commitConfig();
+
+    // A commit that creates a VLAN can warmboot the agent; wait until the VLAN
+    // is visible in the running config before the test relies on it.
+    auto cfg = waitForRunningConfig(hasVlan);
+    ASSERT_TRUE(hasVlan(cfg))
+        << "VLAN " << vlanId << " not in running config after commit";
+
+    // Start the test proper from a clean session built on the committed config.
+    discardSession();
+  }
 
   void
   addStaticMac(int vlanId, const std::string& mac, const std::string& port) {
@@ -127,30 +185,30 @@ class ConfigVlanCreateTest : public Fboss2IntegrationTest {
 
 std::string ConfigVlanCreateTest::s_testInterfaceName_;
 int ConfigVlanCreateTest::s_newVlanId_ = 0;
+int ConfigVlanCreateTest::s_existingVlanId_ = 0;
 
 TEST_F(ConfigVlanCreateTest, StaticMacAddDeleteOnExistingVlan) {
-  auto vp = findConfiguredVlanPort();
-  if (!vp.has_value()) {
-    GTEST_SKIP()
-        << "This DUT has no port that is a member of a configured VLAN via "
-           "sw.vlanPorts; 'config vlan <id> static-mac' requires that.";
+  if (s_existingVlanId_ == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
   }
-  const int existingVlanId = vp->first;
-  const std::string& portName = vp->second;
-  XLOG(INFO) << "[Step 1] Using " << portName << " (VLAN: " << existingVlanId
-             << ")";
+  // Provision the "existing" VLAN so the add below operates on a VLAN that is
+  // already present (no "Created VLAN" message expected).
+  ensureCommittedVlan(s_existingVlanId_);
+  XLOG(INFO) << "[Step 1] Using VLAN=" << s_existingVlanId_
+             << " port=" << s_testInterfaceName_;
 
   // Step 2: Add a static MAC to an existing VLAN - no creation message expected
-  XLOG(INFO) << "[Step 2] Adding static MAC to existing VLAN " << existingVlanId
-             << "...";
+  XLOG(INFO) << "[Step 2] Adding static MAC to existing VLAN "
+             << s_existingVlanId_ << "...";
   auto addResult = runCli(
       {"config",
        "vlan",
-       std::to_string(existingVlanId),
+       std::to_string(s_existingVlanId_),
        "static-mac",
        "add",
        kTestMac,
-       portName});
+       s_testInterfaceName_});
   ASSERT_EQ(addResult.exitCode, 0)
       << "Failed to add static MAC: " << addResult.stderr;
   EXPECT_THAT(
@@ -165,7 +223,7 @@ TEST_F(ConfigVlanCreateTest, StaticMacAddDeleteOnExistingVlan) {
 
   // Step 3: Clean up - delete the static MAC entry
   XLOG(INFO) << "[Step 3] Cleaning up static MAC entry...";
-  deleteStaticMac(existingVlanId, kTestMac);
+  deleteStaticMac(s_existingVlanId_, kTestMac);
   XLOG(INFO) << "  Cleanup complete. TEST PASSED";
 }
 
@@ -302,6 +360,30 @@ TEST_F(ConfigVlanCreateTest, CreateVlanCommand) {
              << " removed by TearDown)";
 }
 
+TEST_F(ConfigVlanCreateTest, CreateVlanAlreadyExists) {
+  if (s_existingVlanId_ == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  // Provision a VLAN in the running config, then verify 'config vlan' reports
+  // it as already existing.
+  ensureCommittedVlan(s_existingVlanId_);
+  XLOG(INFO) << "Testing 'config vlan' on existing VLAN " << s_existingVlanId_
+             << "...";
+  auto result = runCli({"config", "vlan", std::to_string(s_existingVlanId_)});
+  ASSERT_EQ(result.exitCode, 0) << "Command failed: " << result.stderr;
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::HasSubstr(
+          "VLAN " + std::to_string(s_existingVlanId_) + " already exists"));
+  EXPECT_THAT(
+      result.stdout,
+      ::testing::Not(::testing::HasSubstr("Successfully created")));
+  // Nothing was modified; discard the session.
+  discardSession();
+  XLOG(INFO) << "  Output: " << result.stdout << " TEST PASSED";
+}
+
 TEST_F(ConfigVlanCreateTest, SwitchportAccessVlanAutoCreates) {
   if (s_newVlanId_ == 0) {
     GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
@@ -314,7 +396,7 @@ TEST_F(ConfigVlanCreateTest, SwitchportAccessVlanAutoCreates) {
   // is untouched.
   discardSession();
 
-  // Step 1: Assign the port to a non-existent VLAN — it gets auto-created.
+  // Step 2: Assign the port to a non-existent VLAN — it gets auto-created.
   XLOG(INFO) << "[Step 2] switchport access vlan " << s_newVlanId_
              << " (auto-create expected)...";
   auto result = runCli(
@@ -334,7 +416,7 @@ TEST_F(ConfigVlanCreateTest, SwitchportAccessVlanAutoCreates) {
           "(VLAN " + std::to_string(s_newVlanId_) + " created)"));
   XLOG(INFO) << "  Output: " << result.stdout;
 
-  // Step 2: Second run in the same session — VLAN now exists, no suffix.
+  // Step 3: Second run in the same session — VLAN now exists, no suffix.
   XLOG(INFO) << "[Step 3] Second run (no creation suffix expected)...";
   auto result2 = runCli(
       {"config",
@@ -350,7 +432,7 @@ TEST_F(ConfigVlanCreateTest, SwitchportAccessVlanAutoCreates) {
   EXPECT_THAT(result2.stdout, ::testing::Not(::testing::HasSubstr("created")));
   XLOG(INFO) << "  Output: " << result2.stdout;
 
-  // Step 3: Discard the session — never committed, DUT is unchanged.
+  // Step 4: Discard the session — never committed, DUT is unchanged.
   XLOG(INFO) << "[Step 4] Clearing session (no commit)...";
   discardSession();
   XLOG(INFO) << "  TEST PASSED";

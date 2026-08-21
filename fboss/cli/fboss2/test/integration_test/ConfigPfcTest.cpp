@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 #include <cstdint>
 #include <initializer_list>
-#include <optional>
 #include <string>
 #include <vector>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
@@ -58,47 +57,26 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
     Fboss2IntegrationTest::SetUp();
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
     XLOG(INFO) << "Using pg-policy:  " << policyName_;
+    // Snapshot the full config BEFORE this test mutates it. The buffer-pool
+    // / priority-group-policy / port-PFC objects this test creates have no
+    // `delete` CLI, so a per-field revert is impossible; TearDown restores
+    // the whole snapshot. restoreConfig() commits with a restart — a
+    // *hitless* apply of this revert is exactly the path that aborts the
+    // agent (EventBase re-entrancy on gracefulExit).
+    configSnapshotJson_ = snapshotConfig();
   }
 
   void TearDown() override {
-    if (pfcIntfName_.has_value()) {
-      // Disable PFC so subsequent tests (e.g. flow-control/PAUSE tests) can
-      // use the same port without hitting the "PAUSE and PFC cannot be enabled
-      // on the same port" rejection from the agent.
-      XLOG(INFO) << "TearDown: disabling PFC on " << *pfcIntfName_
-                 << " (port used by this test)";
-      bool anyFailed = false;
-      for (const auto* dir : {"tx", "rx"}) {
-        auto result = runCli(
-            {"config",
-             "interface",
-             *pfcIntfName_,
-             "pfc-config",
-             dir,
-             "disabled"});
-        if (result.exitCode != 0) {
-          XLOG(WARN) << "TearDown: failed to disable pfc-config " << dir
-                     << " on " << *pfcIntfName_ << ": " << result.stderr;
-          anyFailed = true;
-        } else {
-          XLOG(INFO) << "TearDown: pfc-config " << dir << " disabled on "
-                     << *pfcIntfName_;
-        }
-      }
-      auto commitResult = runCli({"config", "session", "commit"});
-      if (commitResult.exitCode != 0) {
-        XLOG(WARN) << "TearDown: commit after PFC disable failed: "
-                   << commitResult.stderr;
-      } else if (!anyFailed) {
-        XLOG(INFO) << "TearDown: PFC cleanup committed successfully on "
-                   << *pfcIntfName_;
-      }
+    try {
+      restoreConfig(configSnapshotJson_);
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "TearDown: failed to restore config snapshot: " << e.what();
     }
     Fboss2IntegrationTest::TearDown();
   }
 
-  // Recorded by the test body so TearDown knows which interface to clean up.
-  std::optional<std::string> pfcIntfName_;
+  // Full config captured in SetUp, restored in TearDown.
+  std::string configSnapshotJson_;
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {
     ASSERT_EQ(
@@ -187,7 +165,6 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
 
 TEST_F(ConfigPfcTest, BufferPoolPriorityGroupAndPortPfc) {
   std::string ifName = getRandomInterfacePortName();
-  pfcIntfName_ = ifName;
   XLOG(INFO) << "Using test interface " << ifName;
 
   XLOG(INFO) << "[Step 1] Configuring buffer pool...";
