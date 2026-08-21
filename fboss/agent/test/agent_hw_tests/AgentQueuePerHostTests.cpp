@@ -280,7 +280,8 @@ class AgentQueuePerHostTest : public AgentHwTest {
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
-    auto statBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
+    auto statBefore =
+        utility::waitForAndGetAclInOutPackets(getSw(), ttlCounterName);
 
     std::map<int, int64_t> beforeQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
@@ -441,10 +442,11 @@ class AgentQueuePerHostTest : public AgentHwTest {
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
     for (bool frontPanel : {false, true}) {
-      auto packetsBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
+      auto packetsBefore =
+          utility::waitForAndGetAclInOutPackets(getSw(), ttlCounterName);
 
       auto bytesBefore =
-          utility::getAclInOutPackets(getSw(), ttlCounterName, true);
+          utility::waitForAndGetAclInOutPackets(getSw(), ttlCounterName, true);
 
       auto dstIP = getIpToMacAndClassID<AddrT>().begin()->first;
       sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
