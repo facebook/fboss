@@ -16,6 +16,9 @@
 #include <thrift/lib/cpp2/async/MultiplexAsyncProcessor.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+#include <stdexcept>
+#include <variant>
+
 #include "fboss/lib/ThriftServiceUtils.h"
 
 DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
@@ -51,6 +54,33 @@ constexpr auto kThriftServerQueueTimeout = std::chrono::seconds(30);
 } // namespace
 
 namespace facebook::fboss {
+void markThriftMethodsInternalAndBypassLimits(
+    apache::thrift::ThriftServer& server,
+    const std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>&
+        interfaces) {
+  auto internalMethods = server.getInternalMethods();
+  auto bypassMethods = server.getMethodsBypassMaxRequestsLimit();
+  std::vector<std::string> methods;
+  for (const auto& interface : interfaces) {
+    const auto metadata = interface->createMethodMetadata();
+    const auto* methodMap =
+        std::get_if<apache::thrift::AsyncProcessorFactory::MethodMetadataMap>(
+            &metadata);
+    if (methodMap == nullptr) {
+      throw std::logic_error("Thrift interface requires method metadata");
+    }
+    methods.reserve(methods.size() + methodMap->size());
+    for (const auto& [method, _] : *methodMap) {
+      methods.push_back(method);
+    }
+  }
+  internalMethods.insert(methods.begin(), methods.end());
+  bypassMethods.insert(methods.begin(), methods.end());
+  server.setInternalMethods(std::move(internalMethods));
+  server.setMethodsBypassMaxRequestsLimit(
+      {bypassMethods.begin(), bypassMethods.end()});
+}
+
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
     const std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>&
