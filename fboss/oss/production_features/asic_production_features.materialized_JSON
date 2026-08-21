@@ -583,7 +583,8 @@
         102,
         104,
         117,
-        122
+        122,
+        123
     ],
     "tomahawk6": [
         2,
@@ -652,7 +653,8 @@
         100,
         102,
         104,
-        117
+        117,
+        123
     ],
     "tomahawkultra1": [
         2,
@@ -1351,7 +1353,8 @@
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
         "CABLE_LENGTH_MEASUREMENT",
-        "ARS_SOURCE_PORT_PRUNE"
+        "ARS_SOURCE_PORT_PRUNE",
+        "DROP_REASON_LIST_SUPPORT"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -1420,7 +1423,8 @@
         "SRV6_ENCAP",
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
-        "CABLE_LENGTH_MEASUREMENT"
+        "CABLE_LENGTH_MEASUREMENT",
+        "DROP_REASON_LIST_SUPPORT"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1904,6 +1908,20 @@
           "sdk": 1,
           "minSdkVersion": "14.2.0.0_odp",
           "note": "Cable length measurement is supported on SAI Tomahawk6 from SDK 14.2 onwards"
+        }
+      ]
+    },
+    {
+      "feature": 123,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5",
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "15.4.0.0_odp",
+          "note": "Active drop reason lists are reported by BRCM_SAI ASICs starting SDK 15.4.0.0_odp"
         }
       ]
     }
