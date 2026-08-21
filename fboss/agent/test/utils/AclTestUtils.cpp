@@ -667,12 +667,12 @@ std::vector<cfg::CounterType> getAclCounterTypes(
   // one of the two is enabled. FBOSS use case does not require enabling
   // only one, but always enables both packets and bytes counters. Thus,
   // enable both in the test. Reference: CS00012271364
-  if (asic->isSupported(
+  if (!asic->isSupported(HwAsic::Feature::ACL_BYTE_COUNTER) ||
+      asic->isSupported(
           HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER)) {
     return {cfg::CounterType::PACKETS};
-  } else {
-    return {cfg::CounterType::BYTES, cfg::CounterType::PACKETS};
   }
+  return {cfg::CounterType::BYTES, cfg::CounterType::PACKETS};
 }
 
 uint64_t getAclInOutPackets(
