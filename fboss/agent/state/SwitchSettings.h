@@ -490,6 +490,23 @@ class SwitchSettings
     }
   }
 
+  std::optional<bool> getL3EcmpIngressPortPrune() const {
+    if (auto l3EcmpIngressPortPrune =
+            cref<switch_state_tags::l3EcmpIngressPortPrune>()) {
+      return l3EcmpIngressPortPrune->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setL3EcmpIngressPortPrune(std::optional<bool> l3EcmpIngressPortPrune) {
+    if (!l3EcmpIngressPortPrune) {
+      ref<switch_state_tags::l3EcmpIngressPortPrune>().reset();
+    } else {
+      set<switch_state_tags::l3EcmpIngressPortPrune>(
+          l3EcmpIngressPortPrune.value());
+    }
+  }
+
   std::optional<bool> getCreditWatchdog() const {
     if (auto creditWatchdog = cref<switch_state_tags::creditWatchdog>()) {
       return creditWatchdog->toThrift();
