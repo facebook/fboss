@@ -5,12 +5,28 @@ oncall("fboss_oss")
 
 cpp_unittest(
     name = "cmd_config_test",
+    # The suite is ~60 files of ConfigSession tests, each doing several
+    # fsync-backed writeFileAtomic calls; on CI disks the run can exceed the
+    # default "moderate" (300s) Bazel test timeout.
+    size = "large",
     srcs = [
         "BgpConfigSessionTest.cpp",
         "CmdConfigAclRuleTest.cpp",
         "CmdConfigAdminDistanceTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
+        "CmdConfigBgpNeighborTest.cpp",
+        "CmdConfigBgpPeerGroupTest.cpp",
+        "CmdConfigBgpPolicyAsPathListEntryTest.cpp",
+        "CmdConfigBgpPolicyAsPathListTest.cpp",
+        "CmdConfigBgpPolicyCommunityListCommunityTest.cpp",
+        "CmdConfigBgpPolicyCommunityListTest.cpp",
+        "CmdConfigBgpPolicyPrefixListEntryTest.cpp",
+        "CmdConfigBgpPolicyPrefixListTest.cpp",
+        "CmdConfigBgpPolicyRoutingPolicyTest.cpp",
+        "CmdConfigBgpPolicyRoutingPolicyTermTest.cpp",
+        "CmdConfigBgpPolicyRoutingPolicyTermActionTest.cpp",
+        "CmdConfigBgpPolicyRoutingPolicyTermMatchTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDhcpTest.cpp",
         "CmdConfigHistoryTest.cpp",
@@ -42,6 +58,7 @@ cpp_unittest(
         "CmdConfigVlanTest.cpp",
         "CmdDeleteAclRuleTest.cpp",
         "CmdDeleteArpTest.cpp",
+        "CmdDeleteBgpNeighborTest.cpp",
         "CmdDeleteConfigInterfaceTest.cpp",
         "CmdDeleteDhcpTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
@@ -52,6 +69,12 @@ cpp_unittest(
         "CmdDeleteTunnelIpInIpTest.cpp",
         "CmdDeleteVlanTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdDeleteBgpPeerGroupTest.cpp",
+        "CmdDeleteBgpPolicyAsPathListTest.cpp",
+        "CmdDeleteBgpPolicyCommunityListTest.cpp",
+        "CmdDeleteBgpPolicyPrefixListTest.cpp",
+        "CmdDeleteBgpPolicyRoutingPolicyTest.cpp",
+        "CmdDeleteBgpPolicyRoutingPolicyTermTest.cpp",
         "ProfileValidationTest.cpp",
     ],
     headers = [
