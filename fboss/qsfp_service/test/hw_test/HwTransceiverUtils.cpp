@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
+#include <algorithm>
 #include <set>
 
 #include <fmt/format.h>
@@ -18,8 +19,10 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 namespace facebook::fboss::utility {
@@ -354,6 +357,14 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     mediaInterfaces.push_back(allMediaInterfaces[mediaLane]);
   }
 
+  if (isAoc(tcvrState)) {
+    // An AOC programs like an active cable regardless of the profile's
+    // copper/optical suffix, so the per-profile verifiers below (which
+    // read smfCode or expect a copper transmitter) don't apply.
+    verifyActiveOpticalCableProfile(mgmtInterface, mediaInterfaces, profile);
+    return;
+  }
+
   switch (profile) {
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
       verify10gProfile(tcvrState, mgmtInterface, mediaInterfaces);
@@ -648,6 +659,41 @@ void HwTransceiverUtils::verifyCopper800gProfile(
           *mediaId.media()->activeCuCode() ==
           ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G);
     }
+  }
+}
+
+bool HwTransceiverUtils::isAoc(const TcvrState& tcvrState) {
+  return TransceiverManager::activeCable(tcvrState) &&
+      *tcvrState.cable()->transmitterTech() == TransmitterTechnology::OPTICAL;
+}
+
+void HwTransceiverUtils::verifyActiveOpticalCableProfile(
+    const TransceiverManagementInterface mgmtInterface,
+    const std::vector<MediaInterfaceId>& mediaInterfaces,
+    cfg::PortProfileID profile) {
+  EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
+
+  const auto& speedApplications = CmisHelper::getActiveSpeedApplication();
+  auto expectedCodesIt = speedApplications.find(utility::getSpeed(profile));
+  if (expectedCodesIt == speedApplications.end()) {
+    throw FbossError(
+        "No active cable application for profile ",
+        apache::thrift::util::enumNameSafe(profile));
+  }
+  const auto& expectedCodes = expectedCodesIt->second;
+  const auto& activeMediaMap = CmisHelper::getActiveMediaInterfaceMapping();
+
+  for (const auto& mediaId : mediaInterfaces) {
+    auto activeCuCode = *mediaId.media()->activeCuCode();
+    EXPECT_TRUE(
+        std::find(expectedCodes.begin(), expectedCodes.end(), activeCuCode) !=
+        expectedCodes.end())
+        << "Unexpected activeCuCode "
+        << apache::thrift::util::enumNameSafe(activeCuCode) << " for profile "
+        << apache::thrift::util::enumNameSafe(profile);
+    auto mediaCodeIt = activeMediaMap.find(activeCuCode);
+    ASSERT_TRUE(mediaCodeIt != activeMediaMap.end());
+    EXPECT_EQ(*mediaId.code(), mediaCodeIt->second);
   }
 }
 
