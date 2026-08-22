@@ -521,8 +521,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   usleep(2 * moduleDatapathInitDurationUsec);
 
-  // Poll for module ready state after firmware run (tunable optics only)
-  if (isTunable) {
+  // Poll for module ready state after firmware run.
+  // Limiting this to cmis version >= 5.0 for now to reduce the scope of
+  // testing. No real reason to not poll for module ready on older modules.
+  if (cmisMajorRevision_ >= kMinCmisMajorRevForModuleReadyPoll) {
     pollForModuleReady();
   }
 
