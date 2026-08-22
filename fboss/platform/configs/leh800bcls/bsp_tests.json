@@ -57,7 +57,9 @@
           "fan7",
           "fan8"
         ]
-      },
+      }
+    },
+    "PDB.PDB_FAN_CPLD": {
       "watchdogTestData": {
         "numWatchdogs": 1
       }
