@@ -59,7 +59,10 @@ SendPacketFunc getSendPacketFunc(AgentEnsemble* ensemble) {
       return ensemble->getSw()->sendPacketOutOfPortAsync(
           std::move(pkt), portIds[1]);
     } else {
-      return ensemble->getSw()->sendPacketSwitchedAsync(std::move(pkt));
+      auto switchId =
+          ensemble->getSw()->getScopeResolver()->scope(portIds[0]).switchId();
+      return ensemble->getSw()->sendPacketSwitchedAsync(
+          std::move(pkt), {switchId});
     }
   };
 }
