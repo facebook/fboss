@@ -13,6 +13,18 @@ bool isFpfEncoding(
     const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
         encoding);
 
+// CLI-facing protocol name for a route client ("bgp", "static", ...).
+std::string getProtocolStr(ClientID clientId);
+
+// The client whose entry the RIB prefers for this route, derived from the
+// default client -> admin-distance ranking (RouteDetails does not export the
+// RIB's lowestAdminDistanceClientId). Routes with reconfigured admin
+// distances and multiple clients on one prefix may be mislabeled.
+ClientID getBestClientId(const facebook::fboss::RouteDetails& entry);
+
+// "ipv4" or "ipv6", from the route's destination prefix.
+std::string getAddressFamilyStr(const facebook::fboss::RouteDetails& entry);
+
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode);
 
 std::string getMplsActionInfoStr(const cli::MplsActionInfo& mplsActionInfo);

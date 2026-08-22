@@ -2,6 +2,10 @@
 
 #include "fboss/cli/fboss2/commands/show/route/utils.h"
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <limits>
+#include "fboss/agent/AddressUtil.h"
+
 namespace facebook::fboss::show::route::utils {
 
 using facebook::fboss::NextHopThrift;
@@ -13,6 +17,72 @@ bool isFpfEncoding(
   return encoding.has_value() &&
       encoding->getType() ==
       facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::fpf_l2_encoding;
+}
+
+std::string getProtocolStr(ClientID clientId) {
+  switch (clientId) {
+    case ClientID::BGPD:
+      return "bgp";
+    case ClientID::STATIC_ROUTE:
+      return "static";
+    case ClientID::INTERFACE_ROUTE:
+      return "connected";
+    case ClientID::REMOTE_INTERFACE_ROUTE:
+      return "remote-connected";
+    case ClientID::LINKLOCAL_ROUTE:
+      return "link-local";
+    case ClientID::STATIC_INTERNAL:
+      return "static-internal";
+    case ClientID::OPENR:
+      return "openr";
+    case ClientID::TE_AGENT:
+      return "te-agent";
+  }
+  return apache::thrift::util::enumNameSafe(clientId);
+}
+
+namespace {
+// Default admin distance per client, mirroring the agent's default
+// clientIdToAdminDistance config (fboss/agent/if/ctrl.thrift AdminDistance).
+int getDefaultAdminDistance(ClientID clientId) {
+  switch (clientId) {
+    case ClientID::INTERFACE_ROUTE:
+    case ClientID::REMOTE_INTERFACE_ROUTE:
+    case ClientID::LINKLOCAL_ROUTE:
+      return 0; // DIRECTLY_CONNECTED
+    case ClientID::STATIC_ROUTE:
+      return 1; // STATIC_ROUTE
+    case ClientID::TE_AGENT:
+      return 2; // TE_AGENT
+    case ClientID::OPENR:
+      return 10; // OPENR
+    case ClientID::BGPD:
+      return 20; // EBGP
+    case ClientID::STATIC_INTERNAL:
+      return 255; // MAX_ADMIN_DISTANCE
+  }
+  return 255;
+}
+} // namespace
+
+ClientID getBestClientId(const facebook::fboss::RouteDetails& entry) {
+  const auto& multi = entry.nextHopMulti().value();
+  auto best = ClientID::STATIC_INTERNAL;
+  auto bestDistance = std::numeric_limits<int>::max();
+  for (const auto& clAndNh : multi) {
+    auto client = static_cast<ClientID>(*clAndNh.clientId());
+    auto distance = getDefaultAdminDistance(client);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = client;
+    }
+  }
+  return best;
+}
+
+std::string getAddressFamilyStr(const facebook::fboss::RouteDetails& entry) {
+  return facebook::network::toIPAddress(*entry.dest()->ip()).isV4() ? "ipv4"
+                                                                    : "ipv6";
 }
 
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode) {
