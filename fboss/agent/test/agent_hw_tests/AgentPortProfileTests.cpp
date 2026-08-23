@@ -47,6 +47,43 @@ class AgentPortProfileTest : public AgentHwTest {
     initInfo.overrideTransceiverInfo = utility::getTransceiverInfo(Profile);
   }
 
+  // Chenab router interfaces are port scoped (utility::getInterfaceType returns
+  // InterfaceType::PORT), and SaiPortManager::changePortByRecreate does not
+  // chain delete them. Reprogramming a port to a profile with a different lane
+  // count therefore removes the port while its RIF is still attached, which the
+  // SDK rejects with OBJECT IN USE. Program the profile as part of the initial
+  // config instead, so the ports come up on it at cold boot and are never
+  // recreated.
+  static bool programProfileInInitialConfig(const AgentEnsemble& ensemble) {
+    auto l3Asics = ensemble.getHwAsicTable()->getL3Asics();
+    return !l3Asics.empty() &&
+        l3Asics.front()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentHwTest::initialConfig(ensemble);
+    if (!programProfileInInitialConfig(ensemble)) {
+      return config;
+    }
+    auto availablePorts = findAvailablePorts(ensemble);
+    if (availablePorts.size() < 2) {
+      // runTest() skips this profile, leave the config as is.
+      return config;
+    }
+    for (const auto& port : {availablePorts[0], availablePorts[1]}) {
+      utility::configurePortProfile(
+          ensemble.getPlatformMapping(),
+          ensemble.supportsAddRemovePort(),
+          config,
+          Profile,
+          utility::getAllPortsInGroup(ensemble.getPlatformMapping(), port),
+          port);
+    }
+    return config;
+  }
+
   void verifyPort(PortID portID) {
     auto port = getProgrammedState()->getPorts()->getNodeIf(portID);
     auto switchId =
@@ -185,6 +222,11 @@ class AgentPortProfileTest : public AgentHwTest {
       GTEST_SKIP() << "Not enough ports supporting this profile";
     }
     auto setup = [=, this]() {
+      if (programProfileInInitialConfig(*getAgentEnsemble())) {
+        // Profile is already programmed by initialConfig(). Reapplying it here
+        // would recreate the ports, which Chenab does not support.
+        return;
+      }
       auto lbMode =
           getAgentEnsemble()->getL3Asics().front()->desiredLoopbackModes();
       auto config = utility::oneL3IntfTwoPortConfig(
@@ -209,6 +251,14 @@ class AgentPortProfileTest : public AgentHwTest {
     auto verify = [=, this]() {
       std::vector<PortID> testPorts = {availablePorts[0], availablePorts[1]};
       for (auto portID : testPorts) {
+        // verifyPort() checks the hardware against whatever profile the port
+        // currently carries, so a port left on its default profile would still
+        // pass and the test would silently cover the wrong profile. On Chenab
+        // setup() is a no-op and nothing else asserts the profile was applied,
+        // so assert it here.
+        auto port = getProgrammedState()->getPorts()->getNodeIf(portID);
+        ASSERT_NE(port, nullptr);
+        EXPECT_EQ(port->getProfileID(), Profile);
         verifyPort(portID);
       }
       // PHY info (line state, PMD lanes, FEC counters) is only available when
