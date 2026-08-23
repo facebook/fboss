@@ -137,6 +137,8 @@ struct TBgpPath {
   // Set by the loc-RIB getters; left unset by shadow-RIB views, which only hold
   // selected paths.
   28: optional bool is_inactive;
+  // Locally configured backup address. This is not a BGP wire attribute.
+  29: optional bgp_attr.TIpPrefix backup_addr;
 }
 
 /**
@@ -386,6 +388,8 @@ struct TBgpDedupedPath {
   12: optional map<string, i64> topology_info;
   /** Cisco-style local BGP weight (path-selection attr). Mirrors TBgpPath.weight. */
   13: optional i32 weight;
+  /** Locally configured backup address. Mirrors TBgpPath.backup_addr. */
+  14: optional bgp_attr.TIpPrefix backup_addr;
 }
 
 /**

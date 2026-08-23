@@ -121,6 +121,7 @@ std::optional<TBgpPath> resolveCanonicalPath(
   assignIfSet(path.aggregator(), dedupPath.aggregator());
   assignIfSet(path.topologyInfo(), dedupPath.topology_info());
   assignIfSet(path.weight(), dedupPath.weight());
+  assignIfSet(path.backup_addr(), dedupPath.backup_addr());
 
   // Peer attribution resolves through the shared peers pool by index.
   if (canonPath.peer_idx().has_value()) {

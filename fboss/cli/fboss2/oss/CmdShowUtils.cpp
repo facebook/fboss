@@ -419,13 +419,25 @@ void printRIBEntries(
           extCommunitiesStr = printExtCommunities(*extCommunities);
         }
 
+        std::string backupAddrStr;
+        if (const auto* backupAddr =
+                apache::thrift::get_pointer(path.backup_addr())) {
+          backupAddrStr = fmt::format(
+              " (backup: {})",
+              IPAddress::fromBinary(
+                  folly::ByteRange(
+                      folly::StringPiece(*backupAddr->prefix_bin())))
+                  .str());
+        }
+
         std::string pathToPrint = fmt::format(
-            "{} from {} ({}) via {} | LBW: {} | Origin: {} | "
+            "{} from {} ({}) via {}{} | LBW: {} | Origin: {} | "
             "LP: {} | ASP: {} | LM: {} | NH Weight: {} | MED: {} | ID: {} (rcvd) {} (sent) | Weight: {}{} | IgpCost: {}",
             marker,
             peerIdStr,
             peerDescriptionStr,
             nextHopStr,
+            backupAddrStr,
             lbwStr,
             (originStr != nettools::bgplib::kNullMessage)
                 ? originStr.substr(11) // Trim BGP_ORIGIN_ from origin string
