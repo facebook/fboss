@@ -24,7 +24,9 @@ namespace facebook::fboss {
 
 namespace {
 constexpr std::string_view kAttrSampleDest = "sample-dest";
-constexpr auto kValidSflowAttrs = "sample-dest";
+constexpr std::string_view kAttrIngressRate = "ingress-rate";
+constexpr std::string_view kAttrEgressRate = "egress-rate";
+constexpr auto kValidSflowAttrs = "sample-dest, ingress-rate, egress-rate";
 } // namespace
 
 SflowDeleteAttrArg::SflowDeleteAttrArg(std::vector<std::string> v) {
@@ -51,11 +53,13 @@ CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  if (sflowAttr.attr() != kAttrSampleDest) {
+  const std::string& attr = sflowAttr.attr();
+  if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
+      attr != kAttrEgressRate) {
     throw std::invalid_argument(
         fmt::format(
             "Unknown sflow attribute '{}'. Valid attributes are: {}",
-            sflowAttr.attr(),
+            attr,
             kValidSflowAttrs));
   }
 
@@ -66,13 +70,19 @@ CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {
-      // Resolved as an L3 interface only (e.g. an SVI): sampleDest is a Port
-      // attribute, so there is nothing to clear — report it rather than
-      // silently succeeding.
+      // Resolved as an L3 interface only (e.g. an SVI): these sflow
+      // attributes are all Port attributes, so there is nothing to clear --
+      // report it rather than silently succeeding.
       skippedNames.push_back(intf.name());
       continue;
     }
-    port->sampleDest().reset();
+    if (attr == kAttrSampleDest) {
+      port->sampleDest().reset();
+    } else if (attr == kAttrIngressRate) {
+      port->sFlowIngressRate() = 0;
+    } else {
+      port->sFlowEgressRate() = 0;
+    }
     updatedNames.push_back(intf.name());
   }
   if (updatedNames.empty()) {
@@ -81,8 +91,12 @@ CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
 
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
+  std::string attrLabel = attr == kAttrSampleDest
+      ? "sample destination"
+      : (attr == kAttrIngressRate ? "ingress-rate" : "egress-rate");
   std::string message = fmt::format(
-      "Reset sFlow sample destination for interface(s) {}",
+      "Reset sFlow {} for interface(s) {}",
+      attrLabel,
       folly::join(", ", updatedNames));
   if (!skippedNames.empty()) {
     message +=

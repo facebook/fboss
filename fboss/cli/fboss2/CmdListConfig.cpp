@@ -282,7 +282,8 @@ const CommandTree& kConfigCommandTree() {
            },
            {
                "sflow",
-               "Configure sFlow settings: sample-dest <cpu|mirror>",
+               "Configure sFlow settings: sample-dest <cpu|mirror>, "
+               "ingress-rate <N>, egress-rate <N>",
                commandHandler<CmdConfigInterfaceSflow>,
                argRegistrar<CmdConfigInterfaceSflowTraits>,
            },
@@ -1107,7 +1108,8 @@ const CommandTree& kConfigCommandTree() {
            },
            {
                "sflow",
-               "Delete (reset to default) sFlow settings for interface: sample-dest",
+               "Delete (reset to default) sFlow settings for interface: "
+               "sample-dest, ingress-rate, egress-rate",
                commandHandler<CmdDeleteInterfaceSflow>,
                argRegistrar<CmdDeleteInterfaceSflowTraits>,
            }},

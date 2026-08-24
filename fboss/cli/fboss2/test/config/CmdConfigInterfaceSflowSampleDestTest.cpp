@@ -71,6 +71,26 @@ class CmdConfigInterfaceSflowSampleDestTestFixture : public CmdConfigTestBase {
     }
     throw std::runtime_error("port not found: " + portName);
   }
+
+  static int64_t ingressRateOf(const std::string& portName) {
+    auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+    for (const auto& port : *swConfig.ports()) {
+      if (*port.name() == portName) {
+        return *port.sFlowIngressRate();
+      }
+    }
+    throw std::runtime_error("port not found: " + portName);
+  }
+
+  static int64_t egressRateOf(const std::string& portName) {
+    auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+    for (const auto& port : *swConfig.ports()) {
+      if (*port.name() == portName) {
+        return *port.sFlowEgressRate();
+      }
+    }
+    throw std::runtime_error("port not found: " + portName);
+  }
 };
 
 // SflowAttrArgs / SflowDeleteAttrArg arity validation
@@ -137,8 +157,69 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, unknownAttr) {
   utils::InterfaceList interfaces({"eth1/1/1"});
   EXPECT_THROW(
       cmd.queryClient(
-          localhost(), interfaces, SflowAttrArgs({"ingress-rate", "100"})),
+          localhost(), interfaces, SflowAttrArgs({"bogus-attr", "100"})),
       std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setIngressRate) {
+  ASSERT_EQ(ingressRateOf("eth1/1/1"), 0);
+
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  auto result = cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"ingress-rate", "256"}));
+
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("256"));
+  EXPECT_EQ(ingressRateOf("eth1/1/1"), 256);
+  // The other port is untouched.
+  EXPECT_EQ(ingressRateOf("eth1/2/1"), 512);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setEgressRate) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  auto result = cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"egress-rate", "256"}));
+
+  EXPECT_THAT(result, HasSubstr("256"));
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 256);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, rateValueInvalid) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"ingress-rate", "abc"})),
+      std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"egress-rate", "-5"})),
+      std::invalid_argument);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    egressRateRefusedWhenMirror) {
+  // eth1/1/1 starts with sFlowEgressRate 0, so mirror is accepted first.
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "mirror"}));
+  ASSERT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::MIRROR);
+
+  // A non-zero egress-rate now conflicts with the existing mirror
+  // destination, same constraint as setting mirror onto a non-zero rate.
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"egress-rate", "100"})),
+      std::invalid_argument);
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 0);
+
+  // Zero is always fine.
+  cmd.queryClient(localhost(), interfaces, SflowAttrArgs({"egress-rate", "0"}));
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 0);
 }
 
 TEST_F(
@@ -224,8 +305,34 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteUnknownAttrThrows) {
   utils::InterfaceList interfaces({"eth1/1/1"});
   EXPECT_THROW(
       cmd.queryClient(
-          localhost(), interfaces, SflowDeleteAttrArg({"ingress-rate"})),
+          localhost(), interfaces, SflowDeleteAttrArg({"bogus-attr"})),
       std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsIngressRate) {
+  ASSERT_EQ(ingressRateOf("eth1/2/1"), 512);
+  utils::InterfaceList interfaces({"eth1/2/1"});
+
+  auto deleteCmd = CmdDeleteInterfaceSflow();
+  auto result = deleteCmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArg({"ingress-rate"}));
+
+  EXPECT_THAT(result, HasSubstr("Reset sFlow ingress-rate"));
+  EXPECT_EQ(ingressRateOf("eth1/2/1"), 0);
+  // egress-rate is untouched.
+  EXPECT_EQ(egressRateOf("eth1/2/1"), 512);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsEgressRate) {
+  ASSERT_EQ(egressRateOf("eth1/2/1"), 512);
+  utils::InterfaceList interfaces({"eth1/2/1"});
+
+  auto deleteCmd = CmdDeleteInterfaceSflow();
+  auto result = deleteCmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArg({"egress-rate"}));
+
+  EXPECT_THAT(result, HasSubstr("Reset sFlow egress-rate"));
+  EXPECT_EQ(egressRateOf("eth1/2/1"), 0);
 }
 
 TEST_F(

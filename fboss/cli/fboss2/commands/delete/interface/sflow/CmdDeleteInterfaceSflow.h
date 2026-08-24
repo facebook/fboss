@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 // Parses the single positional token of
 //   delete interface <name> sflow <attr>
-// where <attr> is currently one of: sample-dest.
+// where <attr> is one of: sample-dest, ingress-rate, egress-rate.
 class SflowDeleteAttrArg : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ SflowDeleteAttrArg( // NOLINT(google-explicit-constructor)
@@ -41,7 +41,8 @@ struct CmdDeleteInterfaceSflowTraits : public WriteCommandTraits {
     cmd.add_option(
         "sflow_attr",
         args,
-        "<attr> - which sflow attribute to reset: sample-dest");
+        "<attr> - which sflow attribute to reset: sample-dest, "
+        "ingress-rate, egress-rate");
   }
   using ObjectArgType = SflowDeleteAttrArg;
   using RetType = std::string;

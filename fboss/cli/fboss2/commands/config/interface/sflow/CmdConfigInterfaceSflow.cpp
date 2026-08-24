@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/format.h>
+#include <folly/Conv.h>
 #include <folly/String.h>
 #include <algorithm>
 #include <cctype>
@@ -24,9 +25,11 @@ namespace facebook::fboss {
 
 namespace {
 constexpr std::string_view kAttrSampleDest = "sample-dest";
+constexpr std::string_view kAttrIngressRate = "ingress-rate";
+constexpr std::string_view kAttrEgressRate = "egress-rate";
 constexpr std::string_view kSampleDestCpu = "cpu";
 constexpr std::string_view kSampleDestMirror = "mirror";
-constexpr auto kValidSflowAttrs = "sample-dest";
+constexpr auto kValidSflowAttrs = "sample-dest, ingress-rate, egress-rate";
 
 std::string toLower(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
@@ -48,6 +51,27 @@ cfg::SampleDestination parseSampleDest(const std::string& token) {
           token,
           kSampleDestCpu,
           kSampleDestMirror));
+}
+
+// sFlowIngressRate/sFlowEgressRate are "every 1/rate packets sampled"; 0
+// disables sampling. Negative values are meaningless and would wrap when
+// handed to the SAI SDK's unsigned rate attribute.
+int64_t parseSampleRate(const std::string& attr, const std::string& value) {
+  int64_t rate = 0;
+  try {
+    rate = folly::to<int64_t>(value);
+  } catch (const std::exception&) {
+    throw std::invalid_argument(
+        fmt::format("Invalid {} value '{}': must be an integer", attr, value));
+  }
+  if (rate < 0) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid {} value '{}': must be a non-negative integer",
+            attr,
+            value));
+  }
+  return rate;
 }
 } // namespace
 
@@ -75,16 +99,26 @@ CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  if (sflowAttr.attr() != kAttrSampleDest) {
+  const std::string& attr = sflowAttr.attr();
+  if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
+      attr != kAttrEgressRate) {
     throw std::invalid_argument(
         fmt::format(
             "Unknown sflow attribute '{}'. Valid attributes are: {}",
-            sflowAttr.attr(),
+            attr,
             kValidSflowAttrs));
   }
 
-  std::string token = toLower(sflowAttr.value());
-  cfg::SampleDestination dest = parseSampleDest(token);
+  cfg::SampleDestination dest = cfg::SampleDestination::CPU;
+  int64_t rate = 0;
+  std::string displayValue;
+  if (attr == kAttrSampleDest) {
+    displayValue = toLower(sflowAttr.value());
+    dest = parseSampleDest(displayValue);
+  } else {
+    rate = parseSampleRate(attr, sflowAttr.value());
+    displayValue = folly::to<std::string>(rate);
+  }
 
   auto& session = ConfigSession::getInstance();
 
@@ -93,25 +127,43 @@ CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
     if (!port) {
-      // Resolved as an L3 interface only (e.g. an SVI): sampleDest is a Port
-      // attribute, so there is nothing to set — report it rather than
-      // silently succeeding.
+      // Resolved as an L3 interface only (e.g. an SVI): these sflow
+      // attributes are all Port attributes, so there is nothing to set --
+      // report it rather than silently succeeding.
       skippedNames.push_back(intf.name());
       continue;
     }
-    // The agent rejects egress sampling to a mirror destination
-    // (ApplyThriftConfig throws for MIRROR + sFlowEgressRate > 0); fail here
-    // with a targeted message before touching the config.
-    if (dest == cfg::SampleDestination::MIRROR &&
-        *port->sFlowEgressRate() > 0) {
-      throw std::invalid_argument(
-          fmt::format(
-              "Port {}: sample-dest {} requires sFlowEgressRate 0 — egress "
-              "sampling to a mirror destination is unsupported",
-              *port->name(),
-              kSampleDestMirror));
+    if (attr == kAttrSampleDest) {
+      // The agent rejects egress sampling to a mirror destination
+      // (ApplyThriftConfig throws for MIRROR + sFlowEgressRate > 0); fail
+      // here with a targeted message before touching the config.
+      if (dest == cfg::SampleDestination::MIRROR &&
+          *port->sFlowEgressRate() > 0) {
+        throw std::invalid_argument(
+            fmt::format(
+                "Port {}: sample-dest {} requires sFlowEgressRate 0 — egress "
+                "sampling to a mirror destination is unsupported",
+                *port->name(),
+                kSampleDestMirror));
+      }
+      port->sampleDest() = dest;
+    } else if (attr == kAttrIngressRate) {
+      port->sFlowIngressRate() = rate;
+    } else {
+      // Same MIRROR/egress-rate constraint as above, checked from the other
+      // side: refuse a non-zero egress-rate on a port whose sampleDest is
+      // already MIRROR.
+      if (rate > 0 && port->sampleDest().has_value() &&
+          *port->sampleDest() == cfg::SampleDestination::MIRROR) {
+        throw std::invalid_argument(
+            fmt::format(
+                "Port {}: egress-rate must be 0 while sample-dest is {} — "
+                "egress sampling to a mirror destination is unsupported",
+                *port->name(),
+                kSampleDestMirror));
+      }
+      port->sFlowEgressRate() = rate;
     }
-    port->sampleDest() = dest;
     updatedNames.push_back(intf.name());
   }
   if (updatedNames.empty()) {
@@ -120,10 +172,14 @@ CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
 
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
+  std::string attrLabel = attr == kAttrSampleDest
+      ? "sample destination"
+      : (attr == kAttrIngressRate ? "ingress-rate" : "egress-rate");
   std::string message = fmt::format(
-      "Successfully set sFlow sample destination for interface(s) {} to {}",
+      "Successfully set sFlow {} for interface(s) {} to {}",
+      attrLabel,
       folly::join(", ", updatedNames),
-      token);
+      displayValue);
   if (!skippedNames.empty()) {
     message +=
         fmt::format("; skipped (no port): {}", folly::join(", ", skippedNames));

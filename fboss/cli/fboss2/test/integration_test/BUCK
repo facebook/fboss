@@ -19,6 +19,7 @@ cpp_binary(
         "ConfigAclRuleTest.cpp",
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
+        "ConfigSflowRateTest.cpp",
         "ConfigSflowSampleDestTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",

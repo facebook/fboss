@@ -21,7 +21,7 @@ namespace facebook::fboss {
 
 // Parses the two positional tokens of
 //   config interface <name> sflow <attr> <value>
-// where <attr> is currently one of: sample-dest.
+// where <attr> is one of: sample-dest, ingress-rate, egress-rate.
 class SflowAttrArgs : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ SflowAttrArgs( // NOLINT(google-explicit-constructor)
@@ -45,7 +45,8 @@ struct CmdConfigInterfaceSflowTraits : public WriteCommandTraits {
     cmd.add_option(
         "sflow_attr",
         args,
-        "<attr> <value> where <attr> is one of: sample-dest");
+        "<attr> <value> where <attr> is one of: sample-dest, ingress-rate, "
+        "egress-rate");
   }
   using ObjectArgType = SflowAttrArgs;
   using RetType = std::string;
