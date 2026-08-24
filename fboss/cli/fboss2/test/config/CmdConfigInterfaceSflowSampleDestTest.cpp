@@ -93,22 +93,37 @@ class CmdConfigInterfaceSflowSampleDestTestFixture : public CmdConfigTestBase {
   }
 };
 
-// SflowAttrArgs / SflowDeleteAttrArg arity validation
+// SflowAttrArgs / SflowDeleteAttrArgs parsing
 
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, configArgsWrongArity) {
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, configArgsEmptyThrows) {
   EXPECT_THROW(SflowAttrArgs({}), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, configArgsOddCountThrows) {
   EXPECT_THROW(SflowAttrArgs({"sample-dest"}), std::invalid_argument);
   EXPECT_THROW(
       SflowAttrArgs({"sample-dest", "cpu", "extra"}), std::invalid_argument);
 }
 
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteArgsWrongArity) {
-  EXPECT_THROW(SflowDeleteAttrArg({}), std::invalid_argument);
-  EXPECT_THROW(
-      SflowDeleteAttrArg({"sample-dest", "extra"}), std::invalid_argument);
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    configArgsMultiplePairsValid) {
+  auto args = SflowAttrArgs(
+      {"sample-dest", "cpu", "ingress-rate", "100", "egress-rate", "50"});
+  EXPECT_EQ(args.getAttributes().size(), 3u);
 }
 
-// config queryClient
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteArgsEmptyThrows) {
+  EXPECT_THROW(SflowDeleteAttrArgs({}), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteArgsMultipleValid) {
+  auto args =
+      SflowDeleteAttrArgs({"sample-dest", "ingress-rate", "egress-rate"});
+  EXPECT_EQ(args.getAttributes().size(), 3u);
+}
+
+// config queryClient: single attribute
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setCpu) {
   ASSERT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
@@ -153,12 +168,7 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueInvalid) {
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, unknownAttr) {
-  auto cmd = CmdConfigInterfaceSflow();
-  utils::InterfaceList interfaces({"eth1/1/1"});
-  EXPECT_THROW(
-      cmd.queryClient(
-          localhost(), interfaces, SflowAttrArgs({"bogus-attr", "100"})),
-      std::invalid_argument);
+  EXPECT_THROW(SflowAttrArgs({"bogus-attr", "100"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setIngressRate) {
@@ -241,6 +251,88 @@ TEST_F(
   EXPECT_EQ(sampleDestOf("eth1/2/1"), cfg::SampleDestination::CPU);
 }
 
+// config queryClient: multiple attributes in one call
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    combinedAttributesAppliedTogether) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  auto result = cmd.queryClient(
+      localhost(),
+      interfaces,
+      SflowAttrArgs(
+          {"sample-dest", "cpu", "ingress-rate", "100", "egress-rate", "50"}));
+
+  EXPECT_THAT(result, HasSubstr("cpu"));
+  EXPECT_THAT(result, HasSubstr("100"));
+  EXPECT_THAT(result, HasSubstr("50"));
+  EXPECT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::CPU);
+  EXPECT_EQ(ingressRateOf("eth1/1/1"), 100);
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 50);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    combinedMirrorWithZeroEgressRateSucceeds) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  cmd.queryClient(
+      localhost(),
+      interfaces,
+      SflowAttrArgs({"sample-dest", "mirror", "egress-rate", "0"}));
+
+  EXPECT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::MIRROR);
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 0);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    combinedMirrorWithNonzeroEgressRateFails) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          interfaces,
+          SflowAttrArgs({"sample-dest", "mirror", "egress-rate", "50"})),
+      std::invalid_argument);
+  // Neither attribute was applied.
+  EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 0);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    combinedRejectionIsOrderIndependent) {
+  // Same combination as above with the attribute order swapped: the
+  // cross-attribute check must consider the combined effect regardless of
+  // which attribute was given first.
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          interfaces,
+          SflowAttrArgs({"egress-rate", "50", "sample-dest", "mirror"})),
+      std::invalid_argument);
+  EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
+  EXPECT_EQ(egressRateOf("eth1/1/1"), 0);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    repeatedAttributeLastValueWins) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  cmd.queryClient(
+      localhost(),
+      interfaces,
+      SflowAttrArgs({"ingress-rate", "10", "ingress-rate", "20"}));
+
+  EXPECT_EQ(ingressRateOf("eth1/1/1"), 20);
+}
+
 TEST_F(
     CmdConfigInterfaceSflowSampleDestTestFixture,
     mixedListReportsSkippedNonPortNames) {
@@ -256,7 +348,7 @@ TEST_F(
 
   auto deleteCmd = CmdDeleteInterfaceSflow();
   auto deleteResult = deleteCmd.queryClient(
-      localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
+      localhost(), interfaces, SflowDeleteAttrArgs({"sample-dest"}));
   EXPECT_THAT(deleteResult, HasSubstr("skipped (no port): vlan1"));
   EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
 }
@@ -283,9 +375,9 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsSampleDest) {
 
   auto deleteCmd = CmdDeleteInterfaceSflow();
   auto result = deleteCmd.queryClient(
-      localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
+      localhost(), interfaces, SflowDeleteAttrArgs({"sample-dest"}));
 
-  EXPECT_THAT(result, HasSubstr("Reset sFlow sample destination"));
+  EXPECT_THAT(result, HasSubstr("Reset sFlow sample-dest"));
   EXPECT_THAT(result, HasSubstr("eth1/1/1"));
   EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
 }
@@ -294,19 +386,16 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteIsIdempotent) {
   auto cmd = CmdDeleteInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1"});
 
-  cmd.queryClient(localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
-  cmd.queryClient(localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
+  cmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArgs({"sample-dest"}));
+  cmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArgs({"sample-dest"}));
 
   EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteUnknownAttrThrows) {
-  auto cmd = CmdDeleteInterfaceSflow();
-  utils::InterfaceList interfaces({"eth1/1/1"});
-  EXPECT_THROW(
-      cmd.queryClient(
-          localhost(), interfaces, SflowDeleteAttrArg({"bogus-attr"})),
-      std::invalid_argument);
+  EXPECT_THROW(SflowDeleteAttrArgs({"bogus-attr"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsIngressRate) {
@@ -315,7 +404,7 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsIngressRate) {
 
   auto deleteCmd = CmdDeleteInterfaceSflow();
   auto result = deleteCmd.queryClient(
-      localhost(), interfaces, SflowDeleteAttrArg({"ingress-rate"}));
+      localhost(), interfaces, SflowDeleteAttrArgs({"ingress-rate"}));
 
   EXPECT_THAT(result, HasSubstr("Reset sFlow ingress-rate"));
   EXPECT_EQ(ingressRateOf("eth1/2/1"), 0);
@@ -329,9 +418,34 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsEgressRate) {
 
   auto deleteCmd = CmdDeleteInterfaceSflow();
   auto result = deleteCmd.queryClient(
-      localhost(), interfaces, SflowDeleteAttrArg({"egress-rate"}));
+      localhost(), interfaces, SflowDeleteAttrArgs({"egress-rate"}));
 
   EXPECT_THAT(result, HasSubstr("Reset sFlow egress-rate"));
+  EXPECT_EQ(egressRateOf("eth1/2/1"), 0);
+}
+
+TEST_F(
+    CmdConfigInterfaceSflowSampleDestTestFixture,
+    deleteClearsMultipleAttributesTogether) {
+  auto configCmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/2/1"});
+  configCmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "cpu"}));
+  ASSERT_EQ(sampleDestOf("eth1/2/1"), cfg::SampleDestination::CPU);
+  ASSERT_EQ(ingressRateOf("eth1/2/1"), 512);
+  ASSERT_EQ(egressRateOf("eth1/2/1"), 512);
+
+  auto deleteCmd = CmdDeleteInterfaceSflow();
+  auto result = deleteCmd.queryClient(
+      localhost(),
+      interfaces,
+      SflowDeleteAttrArgs({"sample-dest", "ingress-rate", "egress-rate"}));
+
+  EXPECT_THAT(result, HasSubstr("sample-dest"));
+  EXPECT_THAT(result, HasSubstr("ingress-rate"));
+  EXPECT_THAT(result, HasSubstr("egress-rate"));
+  EXPECT_EQ(sampleDestOf("eth1/2/1"), std::nullopt);
+  EXPECT_EQ(ingressRateOf("eth1/2/1"), 0);
   EXPECT_EQ(egressRateOf("eth1/2/1"), 0);
 }
 
@@ -342,7 +456,7 @@ TEST_F(
   utils::InterfaceList emptyInterfaces({});
   EXPECT_THROW(
       cmd.queryClient(
-          localhost(), emptyInterfaces, SflowDeleteAttrArg({"sample-dest"})),
+          localhost(), emptyInterfaces, SflowDeleteAttrArgs({"sample-dest"})),
       std::invalid_argument);
 }
 

@@ -29,38 +29,37 @@ constexpr std::string_view kAttrEgressRate = "egress-rate";
 constexpr auto kValidSflowAttrs = "sample-dest, ingress-rate, egress-rate";
 } // namespace
 
-SflowDeleteAttrArg::SflowDeleteAttrArg(std::vector<std::string> v) {
-  if (v.size() != 1) {
+SflowDeleteAttrArgs::SflowDeleteAttrArgs(std::vector<std::string> v) {
+  if (v.empty()) {
     throw std::invalid_argument(
         fmt::format(
-            "Expected exactly one sflow attribute to reset. Valid "
-            "attributes are: {}",
+            "No sflow attribute provided. Valid attributes are: {}",
             kValidSflowAttrs));
   }
-  attr_ = v[0];
-  std::transform(
-      attr_.begin(), attr_.end(), attr_.begin(), [](unsigned char c) {
-        return std::tolower(c);
-      });
+  for (const auto& raw : v) {
+    std::string attr = raw;
+    std::transform(attr.begin(), attr.end(), attr.begin(), [](unsigned char c) {
+      return std::tolower(c);
+    });
+    if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
+        attr != kAttrEgressRate) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Unknown sflow attribute '{}'. Valid attributes are: {}",
+              attr,
+              kValidSflowAttrs));
+    }
+    attributes_.push_back(std::move(attr));
+  }
   data_ = std::move(v);
 }
 
 CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
     const HostInfo& /* hostInfo */,
     const utils::InterfaceList& interfaces,
-    const ObjectArgType& sflowAttr) {
+    const ObjectArgType& sflowAttrs) {
   if (interfaces.empty()) {
     throw std::invalid_argument("No interface name provided");
-  }
-
-  const std::string& attr = sflowAttr.attr();
-  if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
-      attr != kAttrEgressRate) {
-    throw std::invalid_argument(
-        fmt::format(
-            "Unknown sflow attribute '{}'. Valid attributes are: {}",
-            attr,
-            kValidSflowAttrs));
   }
 
   auto& session = ConfigSession::getInstance();
@@ -76,12 +75,14 @@ CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
       skippedNames.push_back(intf.name());
       continue;
     }
-    if (attr == kAttrSampleDest) {
-      port->sampleDest().reset();
-    } else if (attr == kAttrIngressRate) {
-      port->sFlowIngressRate() = 0;
-    } else {
-      port->sFlowEgressRate() = 0;
+    for (const auto& attr : sflowAttrs.getAttributes()) {
+      if (attr == kAttrSampleDest) {
+        port->sampleDest().reset();
+      } else if (attr == kAttrIngressRate) {
+        port->sFlowIngressRate() = 0;
+      } else {
+        port->sFlowEgressRate() = 0;
+      }
     }
     updatedNames.push_back(intf.name());
   }
@@ -91,12 +92,9 @@ CmdDeleteInterfaceSflowTraits::RetType CmdDeleteInterfaceSflow::queryClient(
 
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  std::string attrLabel = attr == kAttrSampleDest
-      ? "sample destination"
-      : (attr == kAttrIngressRate ? "ingress-rate" : "egress-rate");
   std::string message = fmt::format(
       "Reset sFlow {} for interface(s) {}",
-      attrLabel,
+      folly::join(", ", sflowAttrs.getAttributes()),
       folly::join(", ", updatedNames));
   if (!skippedNames.empty()) {
     message +=

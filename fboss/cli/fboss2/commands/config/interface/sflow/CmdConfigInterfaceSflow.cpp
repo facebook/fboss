@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <optional>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
@@ -82,42 +83,55 @@ SflowAttrArgs::SflowAttrArgs(std::vector<std::string> v) {
             "No sflow attribute provided. Valid attributes are: {}",
             kValidSflowAttrs));
   }
-  attr_ = toLower(v[0]);
-  if (v.size() != 2) {
+  if (v.size() % 2 != 0) {
     throw std::invalid_argument(
-        fmt::format("Expected exactly one value for '{}'", attr_));
+        "Expected <attr> <value> pairs; got an odd number of tokens");
   }
-  value_ = v[1];
+  for (size_t i = 0; i < v.size(); i += 2) {
+    std::string attr = toLower(v[i]);
+    if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
+        attr != kAttrEgressRate) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Unknown sflow attribute '{}'. Valid attributes are: {}",
+              attr,
+              kValidSflowAttrs));
+    }
+    attributes_.emplace_back(std::move(attr), v[i + 1]);
+  }
   data_ = std::move(v);
 }
 
 CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
     const HostInfo& /* hostInfo */,
     const utils::InterfaceList& interfaces,
-    const ObjectArgType& sflowAttr) {
+    const ObjectArgType& sflowAttrs) {
   if (interfaces.empty()) {
     throw std::invalid_argument("No interface name provided");
   }
-
-  const std::string& attr = sflowAttr.attr();
-  if (attr != kAttrSampleDest && attr != kAttrIngressRate &&
-      attr != kAttrEgressRate) {
-    throw std::invalid_argument(
+  if (sflowAttrs.getAttributes().empty()) {
+    throw std::runtime_error(
         fmt::format(
-            "Unknown sflow attribute '{}'. Valid attributes are: {}",
-            attr,
+            "Incomplete command. Provide one or more attributes ({})",
             kValidSflowAttrs));
   }
 
-  cfg::SampleDestination dest = cfg::SampleDestination::CPU;
-  int64_t rate = 0;
-  std::string displayValue;
-  if (attr == kAttrSampleDest) {
-    displayValue = toLower(sflowAttr.value());
-    dest = parseSampleDest(displayValue);
-  } else {
-    rate = parseSampleRate(attr, sflowAttr.value());
-    displayValue = folly::to<std::string>(rate);
+  // Parse every <attr> <value> pair up front (last occurrence of a repeated
+  // attribute wins) so all attributes present in this call can be applied
+  // together, rather than one attribute excluding the others.
+  std::optional<cfg::SampleDestination> newDest;
+  std::optional<int64_t> newIngressRate;
+  std::optional<int64_t> newEgressRate;
+  std::string destToken;
+  for (const auto& [attr, value] : sflowAttrs.getAttributes()) {
+    if (attr == kAttrSampleDest) {
+      destToken = toLower(value);
+      newDest = parseSampleDest(destToken);
+    } else if (attr == kAttrIngressRate) {
+      newIngressRate = parseSampleRate(attr, value);
+    } else {
+      newEgressRate = parseSampleRate(attr, value);
+    }
   }
 
   auto& session = ConfigSession::getInstance();
@@ -133,36 +147,37 @@ CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
       skippedNames.push_back(intf.name());
       continue;
     }
-    if (attr == kAttrSampleDest) {
-      // The agent rejects egress sampling to a mirror destination
-      // (ApplyThriftConfig throws for MIRROR + sFlowEgressRate > 0); fail
-      // here with a targeted message before touching the config.
-      if (dest == cfg::SampleDestination::MIRROR &&
-          *port->sFlowEgressRate() > 0) {
-        throw std::invalid_argument(
-            fmt::format(
-                "Port {}: sample-dest {} requires sFlowEgressRate 0 — egress "
-                "sampling to a mirror destination is unsupported",
-                *port->name(),
-                kSampleDestMirror));
-      }
-      port->sampleDest() = dest;
-    } else if (attr == kAttrIngressRate) {
-      port->sFlowIngressRate() = rate;
-    } else {
-      // Same MIRROR/egress-rate constraint as above, checked from the other
-      // side: refuse a non-zero egress-rate on a port whose sampleDest is
-      // already MIRROR.
-      if (rate > 0 && port->sampleDest().has_value() &&
-          *port->sampleDest() == cfg::SampleDestination::MIRROR) {
-        throw std::invalid_argument(
-            fmt::format(
-                "Port {}: egress-rate must be 0 while sample-dest is {} — "
-                "egress sampling to a mirror destination is unsupported",
-                *port->name(),
-                kSampleDestMirror));
-      }
-      port->sFlowEgressRate() = rate;
+
+    // The agent rejects egress sampling to a mirror destination
+    // (ApplyThriftConfig throws for MIRROR + sFlowEgressRate > 0). Evaluate
+    // the constraint against the state this port will actually end up in --
+    // either value may come from this call or, if not given here, from the
+    // port's current config -- so a combined "sample-dest mirror egress-rate
+    // 0" succeeds and a combined "sample-dest mirror egress-rate 50" fails,
+    // regardless of the order the attributes were given in.
+    bool destIsMirror = newDest.has_value()
+        ? (*newDest == cfg::SampleDestination::MIRROR)
+        : (port->sampleDest().has_value() &&
+           *port->sampleDest() == cfg::SampleDestination::MIRROR);
+    int64_t effectiveEgressRate =
+        newEgressRate.value_or(*port->sFlowEgressRate());
+    if (destIsMirror && effectiveEgressRate > 0) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Port {}: sample-dest {} requires sFlowEgressRate 0 — egress "
+              "sampling to a mirror destination is unsupported",
+              *port->name(),
+              kSampleDestMirror));
+    }
+
+    if (newDest.has_value()) {
+      port->sampleDest() = *newDest;
+    }
+    if (newIngressRate.has_value()) {
+      port->sFlowIngressRate() = *newIngressRate;
+    }
+    if (newEgressRate.has_value()) {
+      port->sFlowEgressRate() = *newEgressRate;
     }
     updatedNames.push_back(intf.name());
   }
@@ -172,14 +187,20 @@ CmdConfigInterfaceSflowTraits::RetType CmdConfigInterfaceSflow::queryClient(
 
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
-  std::string attrLabel = attr == kAttrSampleDest
-      ? "sample destination"
-      : (attr == kAttrIngressRate ? "ingress-rate" : "egress-rate");
+  std::vector<std::string> setParts;
+  if (newDest.has_value()) {
+    setParts.push_back(fmt::format("sample-dest={}", destToken));
+  }
+  if (newIngressRate.has_value()) {
+    setParts.push_back(fmt::format("ingress-rate={}", *newIngressRate));
+  }
+  if (newEgressRate.has_value()) {
+    setParts.push_back(fmt::format("egress-rate={}", *newEgressRate));
+  }
   std::string message = fmt::format(
-      "Successfully set sFlow {} for interface(s) {} to {}",
-      attrLabel,
-      folly::join(", ", updatedNames),
-      displayValue);
+      "Successfully set sFlow {} for interface(s) {}",
+      folly::join(", ", setParts),
+      folly::join(", ", updatedNames));
   if (!skippedNames.empty()) {
     message +=
         fmt::format("; skipped (no port): {}", folly::join(", ", skippedNames));

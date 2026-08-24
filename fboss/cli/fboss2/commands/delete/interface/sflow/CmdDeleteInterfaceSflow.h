@@ -19,32 +19,33 @@
 
 namespace facebook::fboss {
 
-// Parses the single positional token of
-//   delete interface <name> sflow <attr>
-// where <attr> is one of: sample-dest, ingress-rate, egress-rate.
-class SflowDeleteAttrArg : public utils::BaseObjectArgType<std::string> {
+// Parses one or more positional tokens of
+//   delete interface <name> sflow <attr> [<attr> ...]
+// where <attr> is one of: sample-dest, ingress-rate, egress-rate. All
+// attributes present are reset together in a single commit.
+class SflowDeleteAttrArgs : public utils::BaseObjectArgType<std::string> {
  public:
-  /* implicit */ SflowDeleteAttrArg( // NOLINT(google-explicit-constructor)
+  /* implicit */ SflowDeleteAttrArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
-  const std::string& attr() const {
-    return attr_;
+  const std::vector<std::string>& getAttributes() const {
+    return attributes_;
   }
 
  private:
-  std::string attr_;
+  std::vector<std::string> attributes_;
 };
 
 struct CmdDeleteInterfaceSflowTraits : public WriteCommandTraits {
   using ParentCmd = CmdDeleteInterface;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
-        "sflow_attr",
+        "sflow_attrs",
         args,
-        "<attr> - which sflow attribute to reset: sample-dest, "
-        "ingress-rate, egress-rate");
+        "<attr> [<attr> ...] - which sflow attribute(s) to reset: "
+        "sample-dest, ingress-rate, egress-rate");
   }
-  using ObjectArgType = SflowDeleteAttrArg;
+  using ObjectArgType = SflowDeleteAttrArgs;
   using RetType = std::string;
 };
 
@@ -58,7 +59,7 @@ class CmdDeleteInterfaceSflow : public CmdHandler<
   RetType queryClient(
       const HostInfo& hostInfo,
       const utils::InterfaceList& interfaces,
-      const ObjectArgType& sflowAttr);
+      const ObjectArgType& sflowAttrs);
 
   void printOutput(const RetType& logMsg);
 };

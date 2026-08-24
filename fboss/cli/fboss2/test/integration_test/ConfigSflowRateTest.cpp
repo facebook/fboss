@@ -2,12 +2,13 @@
 
 /**
  * End-to-end test for:
- *   fboss2-dev config interface <name> sflow ingress-rate|egress-rate <N>
- *   fboss2-dev delete interface <name> sflow ingress-rate|egress-rate
+ *   fboss2-dev config interface <name> sflow ingress-rate <N> egress-rate <N>
+ *   fboss2-dev delete interface <name> sflow ingress-rate egress-rate
  *
- * Picks a port, sets its ingress-rate and egress-rate, verifies both
- * round-trip through the agent's running config, deletes them, and verifies
- * the port returns to rate 0 on both.
+ * Picks a port, sets both ingress-rate and egress-rate in a single combined
+ * command, verifies both round-trip through the agent's running config,
+ * deletes both in a single combined command, and verifies the port returns
+ * to rate 0 on both.
  *
  * Requirements:
  *   - FBOSS agent is running with a valid configuration
@@ -96,7 +97,7 @@ class ConfigSflowRateTest : public Fboss2IntegrationTest {
   }
 };
 
-TEST_F(ConfigSflowRateTest, SetThenDeleteIngressAndEgressRate) {
+TEST_F(ConfigSflowRateTest, SetThenDeleteIngressAndEgressRateCombined) {
   auto initial = getRunningConfig();
   ASSERT_TRUE(initial.isObject() && initial.count("sw"));
 
@@ -105,52 +106,43 @@ TEST_F(ConfigSflowRateTest, SetThenDeleteIngressAndEgressRate) {
   committedPort_ = portName;
 
   XLOG(INFO) << "[Step 1] config interface " << portName
-             << " sflow ingress-rate " << kTestRate;
+             << " sflow ingress-rate " << kTestRate << " egress-rate "
+             << kTestRate << " (combined)";
   runCliOkOrDiscard(
       {"config",
        "interface",
        portName,
        "sflow",
        "ingress-rate",
-       std::to_string(kTestRate)});
-  commitConfig();
-  waitForAgentReady();
-  {
-    auto config = waitForRunningConfig([&](const folly::dynamic& c) {
-      return ingressRateOf(c, portName) == kTestRate;
-    });
-    ASSERT_EQ(ingressRateOf(config, portName), kTestRate)
-        << "ingress-rate not in running config for " << portName;
-  }
-
-  XLOG(INFO) << "[Step 2] config interface " << portName
-             << " sflow egress-rate " << kTestRate;
-  runCliOkOrDiscard(
-      {"config",
-       "interface",
-       portName,
-       "sflow",
+       std::to_string(kTestRate),
        "egress-rate",
        std::to_string(kTestRate)});
   commitConfig();
   waitForAgentReady();
   {
     auto config = waitForRunningConfig([&](const folly::dynamic& c) {
-      return egressRateOf(c, portName) == kTestRate;
+      return ingressRateOf(c, portName) == kTestRate &&
+          egressRateOf(c, portName) == kTestRate;
     });
+    ASSERT_EQ(ingressRateOf(config, portName), kTestRate)
+        << "ingress-rate not in running config for " << portName;
     ASSERT_EQ(egressRateOf(config, portName), kTestRate)
         << "egress-rate not in running config for " << portName;
   }
 
-  XLOG(INFO) << "[Step 3] delete interface " << portName
-             << " sflow ingress-rate, egress-rate";
-  runCliOkOrDiscard({"delete", "interface", portName, "sflow", "ingress-rate"});
-  commitConfig();
-  runCliOkOrDiscard({"delete", "interface", portName, "sflow", "egress-rate"});
+  XLOG(INFO) << "[Step 2] delete interface " << portName
+             << " sflow ingress-rate egress-rate (combined)";
+  runCliOkOrDiscard(
+      {"delete",
+       "interface",
+       portName,
+       "sflow",
+       "ingress-rate",
+       "egress-rate"});
   commitConfig();
   waitForAgentReady();
 
-  XLOG(INFO) << "[Step 4] Verify " << portName << " has rate 0 on both again";
+  XLOG(INFO) << "[Step 3] Verify " << portName << " has rate 0 on both again";
   auto config = waitForRunningConfig([&](const folly::dynamic& c) {
     return ingressRateOf(c, portName) == 0 && egressRateOf(c, portName) == 0;
   });

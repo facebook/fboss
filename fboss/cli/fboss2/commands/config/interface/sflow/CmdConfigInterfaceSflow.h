@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
@@ -19,34 +20,33 @@
 
 namespace facebook::fboss {
 
-// Parses the two positional tokens of
-//   config interface <name> sflow <attr> <value>
-// where <attr> is one of: sample-dest, ingress-rate, egress-rate.
+// Parses one or more <attr> <value> pairs of
+//   config interface <name> sflow <attr> <value> [<attr> <value> ...]
+// where <attr> is one of: sample-dest, ingress-rate, egress-rate. All
+// attributes present are applied together in a single commit (e.g.
+// "sample-dest cpu ingress-rate 100 egress-rate 50" in one call).
 class SflowAttrArgs : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ SflowAttrArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
-  const std::string& attr() const {
-    return attr_;
-  }
-  const std::string& value() const {
-    return value_;
+  const std::vector<std::pair<std::string, std::string>>& getAttributes()
+      const {
+    return attributes_;
   }
 
  private:
-  std::string attr_;
-  std::string value_;
+  std::vector<std::pair<std::string, std::string>> attributes_;
 };
 
 struct CmdConfigInterfaceSflowTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
-        "sflow_attr",
+        "sflow_attrs",
         args,
-        "<attr> <value> where <attr> is one of: sample-dest, ingress-rate, "
-        "egress-rate");
+        "<attr> <value> [<attr> <value> ...] where <attr> is one of: "
+        "sample-dest, ingress-rate, egress-rate");
   }
   using ObjectArgType = SflowAttrArgs;
   using RetType = std::string;
@@ -62,7 +62,7 @@ class CmdConfigInterfaceSflow : public CmdHandler<
   RetType queryClient(
       const HostInfo& hostInfo,
       const utils::InterfaceList& interfaces,
-      const ObjectArgType& sflowAttr);
+      const ObjectArgType& sflowAttrs);
 
   void printOutput(const RetType& logMsg);
 };
