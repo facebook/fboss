@@ -282,6 +282,32 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimit) {
   assertEndState(newState, overflowPrefixes);
 }
 
+TEST_F(EcmpBackupGroupTypeTest, managedAndProtectionRoutesInSameDelta) {
+  auto newState = state_->clone();
+  auto fib6 = fib(newState);
+  const auto routesBefore = getPostConfigResolvedRoutes(newState).size();
+  const auto managedPrefix = makePrefix(routesBefore);
+  const auto protectionPrefix = makePrefix(routesBefore + 1);
+  const auto managedNhops = nextNhopSets(1).front();
+  const auto protectionNhops = withBackupNextHops(defaultNhops());
+  fib6->addNode(makeRoute(managedPrefix, managedNhops));
+  fib6->addNode(makeRoute(protectionPrefix, protectionNhops));
+
+  const auto deltas = consolidate(newState);
+
+  ASSERT_FALSE(deltas.empty());
+  assertEndState(newState, {managedPrefix});
+  const auto protectionRoute = cfib(state_)->getRouteIf(protectionPrefix);
+  ASSERT_NE(protectionRoute, nullptr);
+  EXPECT_EQ(protectionRoute->getForwardInfo().getNextHopSet(), protectionNhops);
+  EXPECT_FALSE(
+      protectionRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+  EXPECT_EQ(
+      consolidator_->getGroupInfo(
+          RouterID(0), protectionPrefix.toCidrNetwork()),
+      nullptr);
+}
+
 TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
   // Add new routes pointing to new nhops. ECMP limit is breached.
   auto nhopSets = nextNhopSets();

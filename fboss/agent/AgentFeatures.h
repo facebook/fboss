@@ -172,6 +172,8 @@ DECLARE_bool(verify_fib_nexthop_id_consistency);
 DECLARE_bool(enforce_single_nbr_mac_per_intf);
 DECLARE_int32(max_tx_packets);
 DECLARE_bool(enable_acl_table_redirect_action);
+DECLARE_bool(enable_bulk_create_ecmp_members);
+DECLARE_int32(pbr_acl_priority);
 DECLARE_bool(enable_pfc_priority_to_pg_map);
 DECLARE_bool(enable_port_cl72_retry);
 DECLARE_bool(enable_remote_intf_route_reconcile);

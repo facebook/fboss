@@ -2850,6 +2850,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<TransceiverSpec>& transceiver) {
   CHECK_EQ(orig->getID(), PortID(*portConf->logicalID()));
 
+  if (portConf->linkTraining().value_or(false) &&
+      (portConf->txPrecoding().value_or(false) ||
+       portConf->rxPrecoding().value_or(false))) {
+    throw FbossError(
+        "Port ",
+        orig->getID(),
+        " linkTraining and precoding cannot both be enabled");
+  }
+
   auto vlans = portVlans_[orig->getID()];
 
   std::vector<cfg::PortQueue> cfgPortQueues;
@@ -3241,6 +3250,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getRxPrecoding().value_or(false) &&
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
+      portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3358,6 +3368,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   } else {
     newPort->setRxPrecoding(std::nullopt);
   }
+  newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {
@@ -4187,6 +4198,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
   int numExistingProcessed = 0;
   int dataPriority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
+  CHECK_LT(FLAGS_pbr_acl_priority, AclTable::kDataplaneAclMaxPriority)
+      << "PBR must sit below the dataplane band so no config ACL can reach it";
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
   folly::gen::from(*cfg_->trafficCounters()) |
@@ -4318,10 +4331,20 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         ma = &matchAction;
       }
 
+      int aclPriority = isCoppAcl ? cpuPriority++ : dataPriority++;
+      if (aclPriority == FLAGS_pbr_acl_priority) {
+        throw FbossError(
+            "ACL ",
+            *aclCfg.name(),
+            " was assigned priority ",
+            aclPriority,
+            ", which is reserved for PBR ACL entries");
+      }
+
       auto acl = updateAcl(
           aclStage,
           aclCfg,
-          isCoppAcl ? cpuPriority++ : dataPriority++,
+          aclPriority,
           &numExistingProcessed,
           &changed,
           tableName,
@@ -5182,9 +5205,6 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     throw FbossError(
         "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
         "standbySwitchingMode to be set");
-  }
-  if (config.sourcePortPrune()) {
-    newFlowletSwitchingConfig->setSourcePortPrune(*config.sourcePortPrune());
   }
   return newFlowletSwitchingConfig;
 }
@@ -6048,11 +6068,25 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
-  // Snapshot FLAGS_ecmp_width into switch_state. On warmboot replay a
-  // mismatch between the stored value and the current FLAGS_ecmp_width
-  // triggers assert and coldboot.
+  // Source ecmpWidth from cfg.SwitchSettings, falling back to FLAGS_ecmp_width
+  // during the flag->config migration. Changing it requires a coldboot; see
+  // StateUpdateValidator.
   {
-    int32_t newEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto& configEcmpWidth = cfg_->switchSettings()->ecmpWidth();
+    const auto flagEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto newEcmpWidth =
+        configEcmpWidth.has_value() ? *configEcmpWidth : flagEcmpWidth;
+    if (newEcmpWidth <= 0) {
+      throw FbossError("ECMP width must be positive, got ", newEcmpWidth);
+    }
+    // During the flag->config migration both knobs can be set. Config wins;
+    // warn on a mismatch so the precedence isn't silent. Remove once
+    // FLAGS_ecmp_width is retired.
+    if (configEcmpWidth.has_value() && newEcmpWidth != flagEcmpWidth) {
+      XLOG(WARN) << "Config SwitchSettings.ecmpWidth (" << newEcmpWidth
+                 << ") differs from FLAGS_ecmp_width (" << FLAGS_ecmp_width
+                 << "); config value takes precedence";
+    }
     if (origSwitchSettings->getEcmpWidth() != newEcmpWidth) {
       newSwitchSettings->setEcmpWidth(newEcmpWidth);
       switchSettingsChange = true;
@@ -6068,6 +6102,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()) {
       newSwitchSettings->setFabricLinkMonitoringSystemPortOffset(
           fabricLinkMonitoringSystemPortOffset);
+      switchSettingsChange = true;
+    }
+  }
+  {
+    std::optional<bool> l3EcmpIngressPortPrune;
+    if (cfg_->switchSettings()->l3EcmpIngressPortPrune().has_value()) {
+      l3EcmpIngressPortPrune =
+          *cfg_->switchSettings()->l3EcmpIngressPortPrune();
+    }
+    if (l3EcmpIngressPortPrune !=
+        origSwitchSettings->getL3EcmpIngressPortPrune()) {
+      newSwitchSettings->setL3EcmpIngressPortPrune(l3EcmpIngressPortPrune);
       switchSettingsChange = true;
     }
   }

@@ -135,13 +135,16 @@ Below are the command line arguments that are relevant to this script.
 
 | Argument                    | Description                                          |
 |------------------------------------|-------------------------------------------------------------|
+| --fboss-root (required) | Path to the `fboss/` source directory. The helper supplies `fboss` when it is run from the repository root. |
 | --platform-name (required)  | Platform name that each CSV file has as prefix (e.g. montblanc in `montblanc_static_mapping.csv`).   |
-| --input-dir | Full directory path that has all vendor source files (default: `fboss/lib/platform_mapping_v2/platforms/PLATFORM/`). |
-| --output-dir  | Directory to write platform mapping config (default: `fboss/lib/platform_mapping_v2/generated_platform_mappings/`).   |
+| --input-dir | Directory containing the per-platform vendor input directories (default: `FBOSS_ROOT/lib/platform_mapping_v2/platforms/`). |
+| --output-dir  | Directory to write platform mapping config (default: `FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings/`).   |
 | --multi-npu  | Generates multi-NPU platform mapping config (default: `False`).   |
 
 
-To use this command, your input directory, either the default location or the one specified by `--input-dir`, needs to include the following files, with `PLATFORM` being a common string that identifies your platform:
+To use this command, the selected platform directory under the input directory
+needs to include the following files, with `PLATFORM` being a common string that
+identifies your platform:
 - `PLATFORM_port_profile_mapping.csv`
 - `PLATFORM_profile_settings.csv`
 - `PLATFORM_si_settings.csv`

@@ -570,6 +570,10 @@ class HwAsic {
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,
+    // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
+    // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
+    // only; the counters are collected via fillInSupportedVendorExtStats().
+    SLL_HLL_DISCARD_COUNTERS,
   };
 
   enum class AsicMode {

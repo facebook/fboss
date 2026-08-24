@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -24,6 +25,8 @@ struct CmdShowPortQueueTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
+
+  static std::string_view description();
 };
 
 class CmdShowPortQueue
@@ -39,6 +42,8 @@ class CmdShowPortQueue
   void printOutput(
       const RetType& portId2PortInfoThrift,
       std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

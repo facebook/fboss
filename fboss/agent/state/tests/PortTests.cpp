@@ -1474,6 +1474,72 @@ TEST(Port, precodingConfig) {
   EXPECT_EQ(serializedPort->getRxPrecoding(), true);
 }
 
+TEST(Port, rejectsLinkTrainingWithPrecoding) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto expectInvalidConfig = [&](bool txPrecoding, bool rxPrecoding) {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    config.ports()[0].linkTraining() = true;
+    config.ports()[0].txPrecoding() = txPrecoding;
+    config.ports()[0].rxPrecoding() = rxPrecoding;
+
+    EXPECT_THROW(
+        publishAndApplyConfig(state, &config, platform.get()), FbossError);
+  };
+
+  expectInvalidConfig(true, false);
+  expectInvalidConfig(false, true);
+}
+
+TEST(Port, linkScanModeConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto applyAndVerify = [&](std::optional<cfg::LinkScanMode> newMode) {
+    auto oldMode = state->getPorts()->getNodeIf(PortID(1))->getLinkScanMode();
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    if (newMode.has_value()) {
+      config.ports()[0].linkScanMode() = newMode.value();
+    }
+    auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+    if (oldMode == newMode) {
+      EXPECT_EQ(nullptr, newState);
+      return;
+    }
+    ASSERT_NE(nullptr, newState);
+    state = newState;
+    EXPECT_EQ(
+        state->getPorts()->getNodeIf(PortID(1))->getLinkScanMode(), newMode);
+  };
+
+  EXPECT_EQ(
+      std::nullopt, state->getPorts()->getNodeIf(PortID(1))->getLinkScanMode());
+
+  applyAndVerify(cfg::LinkScanMode::HARDWARE);
+  applyAndVerify(cfg::LinkScanMode::SOFTWARE);
+  applyAndVerify(cfg::LinkScanMode::SOFTWARE);
+  // Dropping the field from config clears it from switch state
+  applyAndVerify(std::nullopt);
+
+  auto newPort = state->getPorts()->getNodeIf(PortID(1))->clone();
+  newPort->setLinkScanMode(cfg::LinkScanMode::HARDWARE);
+  auto serializedPort = std::make_shared<Port>(newPort->toThrift());
+  EXPECT_EQ(serializedPort->getLinkScanMode(), cfg::LinkScanMode::HARDWARE);
+
+  newPort->setLinkScanMode(std::nullopt);
+  EXPECT_FALSE(newPort->toThrift().linkScanMode().has_value());
+}
+
 // Test holdoff timer fields: default values, applyConfig propagation,
 // getter/setter methods, and serialization/deserialization.
 TEST(Port, holdoffTimerConfig) {

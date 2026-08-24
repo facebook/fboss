@@ -66,6 +66,20 @@ RouteNextHopSet makeV4NextHops(int n) {
   return h;
 }
 
+RouteNextHopSet withBackupNextHops(const RouteNextHopSet& nhops) {
+  RouteNextHopSet protectionNhops;
+  bool primary = true;
+  for (const auto& nhop : nhops) {
+    auto thrift = nhop.toThrift();
+    if (!primary) {
+      *thrift.role() = NextHopRole::BACKUP;
+    }
+    protectionNhops.insert(util::fromThrift(thrift, true));
+    primary = false;
+  }
+  return protectionNhops;
+}
+
 RouteV6::Prefix makePrefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
@@ -665,13 +679,25 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
   EcmpResourceManager::NextHopGroupIds mergedGroupMembers;
+  auto isProtectionRoute = [&](const auto& route) {
+    const auto nhops =
+        getNonOverrideNormalizedNextHops(targetState, route->getForwardInfo());
+    return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+      return nhop.role() == NextHopRole::BACKUP;
+    });
+  };
   auto checkFib = [&](auto fibToCheck, auto targetStateFib) {
     for (auto [_, inRoute] : std::as_const(*fibToCheck)) {
       auto route = targetStateFib->exactMatch(inRoute->prefix());
-      ASSERT_TRUE(route->isResolved());
       ASSERT_NE(route, nullptr);
+      ASSERT_TRUE(route->isResolved());
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
+      if (isProtectionRoute(route)) {
+        EXPECT_EQ(consolidatorGrpInfo, nullptr);
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+        continue;
+      }
       bool isEcmpRoute = route->isResolved() &&
           facebook::fboss::getNextHops(targetState, route->getForwardInfo())
                   .size() > 1;
@@ -752,6 +778,11 @@ void BaseEcmpResourceManagerTest::assertTargetState(
       auto route = targetStateFib->exactMatch(inRoute->prefix());
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
+      if (isProtectionRoute(route)) {
+        EXPECT_EQ(consolidatorGrpInfo, nullptr);
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+        continue;
+      }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
             << " expected route " << route->str()

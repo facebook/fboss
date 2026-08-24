@@ -24,7 +24,8 @@ namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
+    std::optional<bool> l3EcmpIngressPortPrune) {
   auto switchingMode = flowletSwitchConfig->getSwitchingMode();
   auto idleTime = flowletSwitchConfig->getInactivityIntervalUsecs();
   auto maxFlows = flowletSwitchConfig->getFlowletTableSize();
@@ -58,7 +59,7 @@ void SaiArsManager::addArs(
           alternatePathCostForArs,
           alternatePathBiasForArs,
           nextHopGroupType,
-          getSourcePortPrune(flowletSwitchConfig)));
+          toSourcePortPruneAttribute(l3EcmpIngressPortPrune)));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();
@@ -83,7 +84,7 @@ void SaiArsManager::addArs(
             SaiArsTraits::Attributes::AlternatePathBias{
                 static_cast<sai_uint32_t>(*bias)},
             nextHopGroupType,
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -101,7 +102,7 @@ void SaiArsManager::addArs(
             alternatePathCostForArs,
             alternatePathBiasForArs,
             nextHopGroupType,
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 #endif
 
@@ -118,7 +119,7 @@ void SaiArsManager::addArs(
             std::nullopt,
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
-            getSourcePortPrune(flowletSwitchConfig)));
+            std::nullopt));
   }
 #endif
 }

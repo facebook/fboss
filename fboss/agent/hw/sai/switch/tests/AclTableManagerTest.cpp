@@ -232,6 +232,54 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
       FbossError);
 }
 
+TEST_F(AclTableManagerTest, addTwoAclEntriesSamePriority) {
+  // 1. Two entries at one priority, told apart only by name.
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+
+  auto aclEntry2 =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry2"));
+  aclEntry2->setDscp(kDscp2());
+  aclEntry2->setActionType(kActionType());
+
+  // 2. Both program.
+  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+  AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry2,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
+
+  // 3. They are distinct SAI objects, each reachable by its own name.
+  EXPECT_NE(aclEntryId, aclEntryId2);
+  auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  auto* handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
+  auto* handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
+      aclTableHandle, kPriority(), std::string("AclEntry2"));
+  ASSERT_NE(handle1, nullptr);
+  ASSERT_NE(handle2, nullptr);
+  EXPECT_EQ(handle1->aclEntry->adapterKey(), aclEntryId);
+  EXPECT_EQ(handle2->aclEntry->adapterKey(), aclEntryId2);
+
+  // 4. Removing one leaves the other programmed.
+  saiManagerTable->aclTableManager().removeAclEntry(
+      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  EXPECT_EQ(
+      saiManagerTable->aclTableManager().getAclEntryHandle(
+          aclTableHandle, kPriority(), std::string("AclEntry1")),
+      nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableManager().getAclEntryHandle(
+          aclTableHandle, kPriority(), std::string("AclEntry2")),
+      nullptr);
+}
+
 TEST_F(AclTableManagerTest, getAclEntry) {
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
@@ -250,7 +298,7 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
 
   EXPECT_TRUE(aclEntryHandle);
   EXPECT_TRUE(aclEntryHandle->aclEntry);
@@ -264,7 +312,7 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
 }
 
@@ -311,7 +359,7 @@ TEST_F(AclTableManagerTest, addAclEntryWithL4DstPortRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   ASSERT_TRUE(aclEntryHandle);
   ASSERT_TRUE(aclEntryHandle->dstPortRange);
 
@@ -350,7 +398,7 @@ TEST_F(AclTableManagerTest, removeAclEntryWithRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
   EXPECT_EQ(rangeStore.size(), 0);
 }
@@ -384,9 +432,9 @@ TEST_F(AclTableManagerTest, twoEntriesSameRange) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   auto handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority2());
+      aclTableHandle, kPriority2(), std::string("AclEntry2"));
   ASSERT_TRUE(handle1->dstPortRange);
   ASSERT_TRUE(handle2->dstPortRange);
   EXPECT_EQ(
@@ -456,7 +504,7 @@ TEST_F(AclTableManagerPbrTest, addPbrAclEntryWithMatchAndRedirectNhg) {
   auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto* entryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("PbrEntry"));
   ASSERT_NE(entryHandle, nullptr);
   ASSERT_NE(entryHandle->matchNhgHandle, nullptr);
   ASSERT_NE(entryHandle->redirectNhgHandle, nullptr);
@@ -482,7 +530,7 @@ TEST_F(AclTableManagerPbrTest, addPbrAclEntryWithMatchAndRedirectNhg) {
       state);
   EXPECT_EQ(
       saiManagerTable->aclTableManager().getAclEntryHandle(
-          aclTableHandle, kPriority()),
+          aclTableHandle, kPriority(), std::string("PbrEntry")),
       nullptr);
 }
 

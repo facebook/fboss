@@ -337,12 +337,15 @@ class SaiPortManager {
       const PortSaiId& saiPortId,
       PortID portID,
       bool linkTrainingEnabled) const;
-  bool linkTrainingSupportedOnPort(const std::shared_ptr<Port>& swPort) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  // Throws on SDKs that cannot program the attribute, rather than dropping a
+  // mode the config asked for.
+  static SaiPortTraits::Attributes::LinkScanMode linkScanModeAttribute(
+      cfg::LinkScanMode mode);
   /**
    * Increment the PFC deadlock detection counter for a given port.
    *
@@ -415,6 +418,7 @@ class SaiPortManager {
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
   void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
+  void reissueLlrModeRemote(SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

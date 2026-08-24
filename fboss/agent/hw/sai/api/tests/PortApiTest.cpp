@@ -103,6 +103,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -467,6 +468,11 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, arsPortLoadFutureWeight_attr);
   EXPECT_EQ(portApi->getAttribute(portId, arsPortLoadFutureWeight_attr), 20);
 #endif
+
+  // Link scan mode get/set (SAI_PORT_LINKSCAN_MODE_HW == 2)
+  SaiPortTraits::Attributes::LinkScanMode linkScanMode{2};
+  portApi->setAttribute(portId, linkScanMode);
+  EXPECT_EQ(portApi->getAttribute(portId, linkScanMode), 2);
 }
 
 // ObjectApi tests

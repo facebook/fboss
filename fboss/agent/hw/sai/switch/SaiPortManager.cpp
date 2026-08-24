@@ -295,6 +295,7 @@ void fillHwPortStats(
     const cfg::PortType& portType,
     bool updateFecStats,
     [[maybe_unused]] bool updateLlrStats,
+    [[maybe_unused]] bool updateLlrExtensionStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -539,6 +540,48 @@ void fillHwPortStats(
         }
         break;
 #endif
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+      // Broadcom LLR stat extensions, gated on their own read (see
+      // SaiPortTraits::llrExtensionStats) so a failure here does not suppress
+      // the standard LLR counters above, or the reverse. There is no case for
+      // SAI_PORT_STAT_LLR_REPLAY because it is not requested: it resolves to
+      // the same SDK counter as SAI_PORT_STAT_LLR_TX_REPLAY.
+      case SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxEligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrRxIneligiblePkts_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_REPLAY_EVENT:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxNackReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TX_TIMER_REPLAY:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxTimerReplayEvent_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_LLR_TOTAL_ERROR:
+        if (updateLlrExtensionStats) {
+          hwPortStats.llrTxError_() = value;
+        }
+        break;
+#endif
       case SAI_PORT_STAT_PFC_0_RX_PKTS:
       case SAI_PORT_STAT_PFC_1_RX_PKTS:
       case SAI_PORT_STAT_PFC_2_RX_PKTS:
@@ -680,7 +723,7 @@ void fillHwPortStats(
         break;
       }
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
+#if defined(CHENAB_SAI_SDK)
       case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
         hwPortStats.outDiscardsSll_() = value;
         break;
@@ -2807,6 +2850,7 @@ void SaiPortManager::updateStats(
     }
   }
   bool updateLlrStats = false;
+  bool updateLlrExtensionStats = false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // LLR counters are collected in their own isolated read (not bundled with the
   // basic port counters) so that on a drop whose SDK does not yet implement the
@@ -2819,6 +2863,16 @@ void SaiPortManager::updateStats(
           HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
     updateLlrStats = collectStats(
         SaiPortTraits::llrStats(), SAI_STATS_MODE_READ, "LLR port counters");
+    // The Broadcom extension counters are a different SAI enum family and get
+    // their own read for the same reason: an SDK can implement one family and
+    // not the other, and get_port_stats is all-or-nothing.
+    const auto& llrExtensionStats = SaiPortTraits::llrExtensionStats();
+    if (!llrExtensionStats.empty()) {
+      updateLlrExtensionStats = collectStats(
+          llrExtensionStats,
+          SAI_STATS_MODE_READ,
+          "LLR extension port counters");
+    }
   }
 #endif
   const auto& counters = handle->port->getStats();
@@ -2830,6 +2884,7 @@ void SaiPortManager::updateStats(
       portType,
       updateFecStats,
       updateLlrStats,
+      updateLlrExtensionStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
@@ -2878,27 +2933,63 @@ void SaiPortManager::updateStats(
       stat =
           retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
     };
+    // 26.2.4210 replaced the retrigger attributes with port stats served by
+    // get_port_stats
+    auto readRetriggerCount =
+        [&](const std::vector<sai_stat_id_t>& statIds,
+            auto&& readAttr,
+            const char* statsGroup) -> std::optional<int64_t> {
+      if (statIds.empty()) {
+        return static_cast<int64_t>(readAttr());
+      }
+      try {
+        auto values = portApi.getStats<SaiPortTraits>(
+            adapterKey, statIds, SAI_STATS_MODE_READ);
+        if (values.empty()) {
+          return std::nullopt;
+        }
+        return static_cast<int64_t>(values.front());
+      } catch (const SaiApiError& e) {
+        XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
+                  << " (portId: " << portId << "): " << e.what();
+        return std::nullopt;
+      }
+    };
     // Only read the retrigger counts for ports that actually have a debounce
     // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
-    if (downPeriod.has_value() && downPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkDownDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{}));
-    }
     auto upPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
+    if (downPeriod.has_value() && downPeriod->value() > 0) {
+      auto downCount = readRetriggerCount(
+          SaiPortTraits::linkDownDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
+          },
+          "link down debounce retrigger count");
+      if (downCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkDownDebounceRetriggerCount_(), *downCount);
+      }
+    }
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      storeRetriggerCount(
-          curPortStats.linkUpDebounceRetriggerCount_(),
-          portApi.getAttribute(
-              adapterKey,
-              SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{}));
+      auto upCount = readRetriggerCount(
+          SaiPortTraits::linkUpDebounceRetriggerStats(),
+          [&] {
+            return portApi.getAttribute(
+                adapterKey,
+                SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
+          },
+          "link up debounce retrigger count");
+      if (upCount.has_value()) {
+        storeRetriggerCount(
+            curPortStats.linkUpDebounceRetriggerCount_(), *upCount);
+      }
     }
   }
 #endif
@@ -4486,6 +4577,25 @@ void SaiPortManager::changePortShelEnable(
   }
 #endif
 }
+
+SaiPortTraits::Attributes::LinkScanMode SaiPortManager::linkScanModeAttribute(
+    cfg::LinkScanMode mode) {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  switch (mode) {
+    case cfg::LinkScanMode::SOFTWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_SW};
+    case cfg::LinkScanMode::HARDWARE:
+      return SaiPortTraits::Attributes::LinkScanMode{SAI_PORT_LINKSCAN_MODE_HW};
+  }
+  throw FbossError("Unknown linkScanMode ", static_cast<int>(mode));
+#else
+  throw FbossError(
+      "linkScanMode is only supported on BRCM XGS SAI SDK 15.0 or newer; "
+      "cannot apply ",
+      apache::thrift::util::enumNameSafe(mode));
+#endif
+}
+
 /**
  * Increment the PFC counter for a given port and counter type.
  *

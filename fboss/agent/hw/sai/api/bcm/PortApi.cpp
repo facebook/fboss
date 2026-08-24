@@ -638,6 +638,15 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMinWatermarkStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
@@ -691,6 +700,41 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
       SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION,
       SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION,
       SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  // 15.4 is the first SDK whose saiportextensions.h declares these; guarding on
+  // BRCM_SAI_SDK_XGS_GTE_15_0 would pull in 15.0, which does not.
+  //
+  // SAI_PORT_STAT_LLR_REPLAY is omitted on purpose: brcm-sai maps it to
+  // snmpBcmTxLlrReplayedPkts, the same SDK counter as
+  // SAI_PORT_STAT_LLR_TX_REPLAY in llrStats(), so fetching it would publish the
+  // same value under two names.
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_REPLAY_EVENT,
+      SAI_PORT_STAT_LLR_TX_TIMER_REPLAY,
+      SAI_PORT_STAT_LLR_TOTAL_ERROR};
 #else
   static const std::vector<sai_stat_id_t> stats;
 #endif

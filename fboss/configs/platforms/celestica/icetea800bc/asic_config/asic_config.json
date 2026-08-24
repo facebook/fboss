@@ -1,5 +1,5 @@
 {
-  "platform_name": "icecube800banw",
+  "platform_name": "icetea800bc",
   "vendor": "broadcom",
   "asic": "tomahawk6",
   "num_ports_per_core": 2,
@@ -17,14 +17,16 @@
         "200000": "PC_FEC_RS544_2XN_IEEE",
         "400000": "PC_FEC_RS544_2XN_IEEE",
         "800000": "PC_FEC_RS544_2XN_IEEE"
-      }
+      },
+      "enable": 1
     },
     "cpu_port": {
       "speed": 10000,
       "num_lanes": 1
     },
     "mgmt_port": {
-      "enabled": true
+      "enabled": true,
+      "enable": 1
     },
     "mgmt_port_overrides": {
       "logical_id": 268,
@@ -36,32 +38,16 @@
       "lp_offset_simple": true
     },
     "platform_sai_overrides": {
-      "l3_ecmp_member_secondary_mem_size": "8192",
       "sai_port_phy_time_sync_en": "0",
-      "sai_eapol_trap_use_bcast_mac": "1",
-      "sai_stats_disable_mask": "0x800"
+      "sai_eapol_trap_use_bcast_mac": "1"
     },
     "features": {
-      "generate_autoload_board_settings": true
-    },
-    "conditional_settings": [
-      {
-        "name": "prod_stat_custom_receive0",
-        "description": "Emits stat_custom_receive0_management_mode when running with the DEFAULT generation profile.",
-        "condition": {
-          "source": "asic_config_params",
-          "param": "config_gen_type",
-          "equals": "DEFAULT"
-        },
-        "apply": {
-          "global": {
-            "stat_custom_receive0_management_mode": 1
-          }
-        }
-      }
-    ]
+      "generate_autoload_board_settings": true,
+      "generate_dlb_config": true,
+      "generate_dlb_ecmp_config": true
+    }
   },
   "variants": {
-    "default": {}
+    "": {}
   }
 }

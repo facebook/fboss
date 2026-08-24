@@ -10,10 +10,10 @@ cpp_library(
     headers = [
         "ErspanParser.h",
     ],
+    deps = ["//nettools/flowtools/sflow:sflow_sample_parser"],
     exported_deps = [
         "//folly:network_address",
         "//folly/io:iobuf",
-        "//nettools/flowtools/sflow:sflow_sample_parser",
     ],
 )
 
@@ -480,6 +480,7 @@ cpp_library(
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:utils",
+        "//fboss/lib:common_utils",
     ],
     exported_deps = [
         "//fboss/agent:fboss-types",

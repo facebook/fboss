@@ -47,6 +47,12 @@ class CmisFirmwareUpgrader {
   // be written to unlock the privileged firmware download operation.
   static constexpr uint8_t kMsaPasswordRequiredBelowCmisMajorRev = 5;
 
+  // Minimum CMIS major revision for which we poll for module ready after
+  // issuing the firmware Run command. This is an independent policy from the
+  // MSA password requirement above (it just happens to share the same
+  // threshold today) so the two can evolve separately.
+  static constexpr uint8_t kMinCmisMajorRevForModuleReadyPoll = 5;
+
   // Constructor. The caller is responsible for interfacing with Firmware
   // Store and provide the FbossFirmware object. cmisMajorRevision is the
   // major number of the CMIS revision the module complies with (Lower Page

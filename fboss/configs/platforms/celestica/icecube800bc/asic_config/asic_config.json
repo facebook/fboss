@@ -14,10 +14,11 @@
       "default_speed": 800000,
       "speed_to_fec": {
         "100000": "PC_FEC_RS544",
-        "200000": "PC_FEC_RS544_2XN",
-        "400000": "PC_FEC_RS544_2XN",
-        "800000": "PC_FEC_RS544_2XN"
-      }
+        "200000": "PC_FEC_RS544_2XN_IEEE",
+        "400000": "PC_FEC_RS544_2XN_IEEE",
+        "800000": "PC_FEC_RS544_2XN_IEEE"
+      },
+      "enable": 1
     },
     "cpu_port": {
       "speed": 10000,
@@ -25,6 +26,7 @@
     },
     "mgmt_port": {
       "enabled": true,
+      "enable": 1,
       "speed_variants": {
         "100000": {
           "num_lanes": 4,
@@ -32,13 +34,23 @@
         }
       }
     },
+    "mgmt_port_overrides": {
+      "logical_id": 268,
+      "physical_id": 514
+    },
+    "port_mapping_overrides": {
+      "num_logical_ports_per_datapath": 18,
+      "lp_start_step_offset": 0,
+      "lp_offset_simple": true
+    },
     "features": {
-      "generate_dlb_config": false,
+      "generate_dlb_config": true,
+      "generate_dlb_ecmp_config": true,
       "generate_low_clock_freq_settings": false,
       "generate_autoload_board_settings": true
     }
   },
   "variants": {
-    "default": {}
+    "": {}
   }
 }

@@ -126,6 +126,16 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqPoisoned_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqBad_().has_value());
+      // Broadcom LLR stat extensions, fetched in their own read. Present
+      // together or not at all, so a partial set here means the extension read
+      // returned NOT_SUPPORTED on some but not all ids.
+      EXPECT_TRUE(stats.llrTxEligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrTxIneligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrRxEligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrRxIneligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrTxNackReplayEvent_().has_value());
+      EXPECT_TRUE(stats.llrTxTimerReplayEvent_().has_value());
+      EXPECT_TRUE(stats.llrTxError_().has_value());
 
       // The LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
       // 5.1.7), read from hardware for every LLR-bound port regardless of link

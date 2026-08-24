@@ -42,6 +42,11 @@ class CmdShowBgpTableDetailTestFixture : public CmdHandlerTestBase {
     entriesIPv4_ = {buildEntry()};
     entriesIPv6_ = {
         buildEntry("2001::1/64", "2001::2", "2001::3", "two00one::three", 7)};
+    entriesIPv6_.front()
+        .paths()
+        ->at(entriesIPv6_.front().best_group().value())
+        .front()
+        .backup_addr() = getPrefix("2001:db8::1");
     combineEntries();
   }
 
@@ -114,7 +119,7 @@ TEST_F(CmdShowBgpTableDetailTestFixture, printOutput) {
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
       "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
-      "*@  from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: 7 | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*@  from 2001::3 (two00one::three) via 2001::2 (backup: 2001:db8::1) | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: 7 | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
       "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"

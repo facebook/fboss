@@ -303,7 +303,7 @@ void pumpTrafficAndVerifyLoadBalanced(
 void pumpTrafficAndVerifyLoadBalanced(
     const std::function<void()>& pumpTraffic,
     const std::function<void()>& clearPortStats,
-    const std::function<uint64_t()>& getPortOutPackets,
+    const std::function<std::optional<uint64_t>()>& getPortOutPackets,
     uint64_t numPacketsSent,
     const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected = true);

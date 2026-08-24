@@ -144,6 +144,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
 #include "fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h"
 #include "fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h"
@@ -1124,6 +1126,18 @@ const CommandTree& kConfigCommandTree() {
                    "Remove only the given queue from the queue config",
                    commandHandler<CmdDeleteQosQueueConfigQueueId>,
                    argRegistrar<CmdDeleteQosQueueConfigQueueIdTraits>,
+               }},
+           },
+           {
+               "policy",
+               "Delete a QoS policy or one of its map entries",
+               commandHandler<CmdDeleteQosPolicy>,
+               argRegistrar<CmdDeleteQosPolicyTraits>,
+               {{
+                   "map",
+                   "Remove a QoS map entry (dscp, tc-to-queue)",
+                   commandHandler<CmdDeleteQosPolicyMap>,
+                   argRegistrar<CmdDeleteQosPolicyMapTraits>,
                }},
            }},
       },

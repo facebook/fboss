@@ -183,6 +183,30 @@ struct HwPortStats {
   // never-completed INIT handshake, which TU1 cannot report as INIT.
   103: optional LlrTxStatus llrTxStatus_;
   104: optional LlrRxStatus llrRxStatus_;
+
+  // Broadcom LLR stat extensions (sai_port_stat_extensions_t), a separate
+  // family from the SAI 1.18 LLR counters above and fetched in a separate read.
+  // Eligible/ineligible partition every frame the MAC sends or receives by
+  // whether LLR was protecting it, which is the only way to tell a port with
+  // LLR running from a port where the profile is bound but the state machine
+  // never came up.
+  //
+  // The SAI names for the last three are misleading, so these follow the SDK
+  // counters they resolve to: LLR_REPLAY_EVENT is snmpBcmTxLlrNackReplayPkts
+  // (NACK-triggered replay episodes), LLR_TX_TIMER_REPLAY is
+  // snmpBcmTxLlrTimerReplayPkts (timer-triggered), and LLR_TOTAL_ERROR is
+  // snmpBcmTxLlrErrorPkts, a transmit-side counter despite the name.
+  //
+  // SAI_PORT_STAT_LLR_REPLAY is deliberately absent: it resolves to
+  // snmpBcmTxLlrReplayedPkts, the same SDK counter as SAI_PORT_STAT_LLR_TX_OK's
+  // sibling SAI_PORT_STAT_LLR_TX_REPLAY, already published as llrTxReplay_.
+  105: optional i64 llrTxEligiblePkts_;
+  106: optional i64 llrTxIneligiblePkts_;
+  107: optional i64 llrRxEligiblePkts_;
+  108: optional i64 llrRxIneligiblePkts_;
+  109: optional i64 llrTxNackReplayEvent_;
+  110: optional i64 llrTxTimerReplayEvent_;
+  111: optional i64 llrTxError_;
 }
 
 struct HwSysPortStats {

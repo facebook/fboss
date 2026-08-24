@@ -3,8 +3,7 @@
 ## About this document
 
 This document describes the high level system architecture requirements for all
-network switches for Meta data centers. This document will eventually replace
-the existing BMC-Lite Specification.
+network switches for Meta data centers.
 
 ## Table Of Contents
 
@@ -143,9 +142,10 @@ As shown in the reference design:
    controller directly, and baud rate is set to 9600 bps in the Meta environment.
 2. There must be a UART connection between BMC and CPU/X86, usually muxed by a
    CPLD, for SOL application: the baud rate between BMC and CPU is 57600 bps.
-3. The debug UART (USB 3.0 Debug card) shall be supported. Support UART
-   multiplexing between the Meta OCP Debug Card USB port, RunBMC, and
-   Microserver (HSUART).
+3. On CPUs which do not expose a native UART, the BMC-to-CPU UART may be
+   provided by an adapter (for example eSPI-to-LPC-to-UART, or eSPI-to-UART).
+   The adapter shall present a standard UART to the BMC, so that the OpenBMC
+   software stack is unaware of the conversion path.
 
 ### 2.4 Management Network Topology (Internal Control Plane Switch)
 
@@ -475,19 +475,30 @@ A few notes:
     specify its version which should be transparent to the upgrade utility.
 * IPMI connection between x86 CPU and BMC
   * There shall be IPMI connection between CPU and BMC for SEL logging (System
-    Event Log) over IPMI bus
-    * The IPMI messages are exchanged between BMC and X86 through LPC bus
-      directly (in the latest CPU, it’s OK to overload HSUART to work as both
-      IPMI and console/SOL.)
-    * eSPI shall NOT be used
-    * SEL Logging
-      * There should be a IPMI connection between CPU and BMC (through LPC bus
-        or HSUART bus multiplexing, which should be configured in BIOS, thus
-        transparent to X86 CPU and BMC)
-      * Any critical system error shall be sent to BMC as IPMI SEL message.
-      * It is vendors’ responsibility to implement HW bus, add configuration
-        routine in BIOS and BMC
-      * Vendors shall test the functionality and the stability of this bus
+    Event Log).
+  * The IPMI transport depends on the X86 CPU and BMC combination: refer to the
+    table below. Vendors shall confirm the selected transport with Meta before
+    fab-out.
+  * Where more than one transport is physically available, the selection is
+    made in BIOS, and shall be transparent to the X86 OS and to OpenBMC.
+  * SEL Logging
+    * Any critical system error shall be sent to BMC as IPMI SEL message.
+    * It is vendors’ responsibility to implement HW bus, add configuration
+      routine in BIOS and BMC
+    * Vendors shall test the functionality and the stability of this bus
+  * POST Codes
+    * On platforms where IPMI runs over I2C (SSIF), the BMC cannot passively
+      snoop BIOS POST codes from the LPC bus, so early-boot POST codes are not
+      captured. Vendors shall discuss the POST code capture mechanism with Meta
+      before fab-out.
+
+Below table shows the supported IPMI transports:
+
+| **X86 CPU**         | **BMC**     | **IPMI transport**                     |
+|---------------------|-------------|----------------------------------------|
+| **Intel Icelake-D** | **AST2620** | KCS over LPC                           |
+| **AMD Firerange**   | **AST2620** | KCS over eSPI-to-LPC, or SSIF over I2C |
+| **AMD Firerange**   | **AST2720** | SSIF over I2C. AST2720 has no LPC.     |
 
 ### 6.2  ASIC and ASIC Protection
 

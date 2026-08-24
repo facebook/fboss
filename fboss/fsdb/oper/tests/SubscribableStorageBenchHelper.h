@@ -23,6 +23,11 @@ namespace facebook::fboss::fsdb::test {
 
 namespace detail {
 constexpr auto kSubscriptionServeIntervalMsec = 1;
+// Heartbeats share the subscriber stream with data chunks, so a heartbeat can
+// satisfy an await that is meant to observe a chunk -- which would cut a
+// measured publish + fanout region short. Benchmarks never rely on heartbeats,
+// so push the interval past any run.
+constexpr auto kSubscriptionHeartbeatIntervalHours = 1;
 } // namespace detail
 
 template <typename Gen>
@@ -74,7 +79,6 @@ class StorageBenchmarkHelper {
         : largeUpdates(false),
           serveGetRequestsWithLastPublishedState(true),
           startWithInitializedData(true),
-          requireResponseOnInitialSync(false),
           numUpdates(0) {}
 
     Params& setLargeUpdates(bool val) {
@@ -92,11 +96,6 @@ class StorageBenchmarkHelper {
       return *this;
     }
 
-    Params& setRequireResponseOnInitialSync(bool val) {
-      requireResponseOnInitialSync = val;
-      return *this;
-    }
-
     Params& setNumUpdates(int val) {
       numUpdates = val;
       return *this;
@@ -105,7 +104,6 @@ class StorageBenchmarkHelper {
     bool largeUpdates;
     bool serveGetRequestsWithLastPublishedState;
     bool startWithInitializedData;
-    bool requireResponseOnInitialSync;
     int numUpdates;
   };
 
@@ -117,22 +115,21 @@ class StorageBenchmarkHelper {
         // trackMetadata stays false because subscribing at the root path
         // triggers OperPathToPublisherRoot::checkNonEmpty() and throws when
         // trackMetadata is true. convertToIDPaths is forced on (required for
-        // patch subscriptions). requireResponseOnInitialSync, when set, ensures
-        // each subscriber receives an initial sync value on attach even when
-        // the storage is empty, giving callers a known sync point before
-        // measurement starts.
+        // patch subscriptions). requireResponseOnInitialSync stays off: it only
+        // covers resolved subscriptions, so it cannot provide a sync point for
+        // a wildcard subscription that resolves to no paths on an empty root.
         storage_(
             NaivePeriodicSubscribableCowStorage<RootType>(
                 {},
                 NaivePeriodicSubscribableStorageBase::StorageParams(
                     std::chrono::milliseconds(
                         detail::kSubscriptionServeIntervalMsec),
-                    std::chrono::seconds(5),
+                    std::chrono::hours(
+                        detail::kSubscriptionHeartbeatIntervalHours),
                     /*trackMetadata=*/false,
                     "fsdb",
                     /*convertToIDPaths=*/true,
-                    /*requireResponseOnInitialSync=*/
-                    params.requireResponseOnInitialSync)
+                    /*requireResponseOnInitialSync=*/false)
                     .setServeGetRequestsWithLastPublishedState(
                         params.serveGetRequestsWithLastPublishedState))) {
     // initialize test data versions
@@ -218,13 +215,17 @@ class StorageBenchmarkHelper {
   // `subscribeFn(storage_, SubscriptionIdentifier&&)` and returns the patch
   // stream reader whose `generator_` the helper drives.
   //
+  // Subscribers free each message as they receive it: this measures
+  // storage-side memory while serving the publish, not the subscribers' copies
+  // of it.
+  //
   // One instance measures once: the storage and its subscriptions are consumed.
   // Defined in the .cpp (explicitly instantiated) so the AsyncScope / executor
   // / Baton / jemalloc machinery stays out of this header.
   int64_t measurePubSubMemory(
       int numSubscribers,
       SubscribeFn subscribeFn,
-      bool measurePeak = false);
+      bool measurePeak);
 
   // Runs `iterations` measurement passes and reports avg/max/stddev counters
   // for both the allocated delta and the observed peak. Each pass constructs a
@@ -239,6 +240,14 @@ class StorageBenchmarkHelper {
       SubscribeFn subscribeFn);
 
  private:
+  // Blocks until the storage reports `numSubscribers` distinct subscribers
+  // registered and past initial sync, and returns how many chunks initial sync
+  // served each of them. That is 1 for a fully resolved path (its node exists
+  // on the empty root, so its encoded value is served) and 0 for a wildcard
+  // path (nothing matches an empty root, so it resolves to no paths). Defined
+  // in the .cpp.
+  int waitForInitialSync(int numSubscribers);
+
   std::vector<std::string> getSubscriptionPath() {
     std::vector<std::string> path;
     return path;

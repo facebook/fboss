@@ -669,6 +669,17 @@ struct BgpSettingConfig {
    * turned off instantly for rollback.
    */
   19: optional bool enable_legacy_v4_nlri_encoding;
+
+  /**
+   * Enable bounded, backpressured egress for thrift stream subscribers (the
+   * MP-BGP monitor). When true, a subscriber's AdjRib writes into a bounded
+   * queue that is drained only under thrift stream credit, so a monitor that
+   * stops consuming throttles the change-list consumer instead of growing an
+   * unbounded buffer inside bgpd. Default (unset or false): the legacy
+   * unbounded egress path, so the feature can be turned off instantly for
+   * rollback.
+   */
+  20: optional bool enable_stream_subscriber_backpressure;
 }
 
 /**

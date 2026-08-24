@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
@@ -316,7 +317,9 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER),
             SaiPortManager::isLinkDebounceRetriggerCounterSupported(
-                platform_->getAsic())));
+                platform_->getAsic()),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -445,7 +448,9 @@ void SaiPortManager::changePortImpl(
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER),
               SaiPortManager::isLinkDebounceRetriggerCounterSupported(
-                  platform_->getAsic())));
+                  platform_->getAsic()),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -491,6 +496,9 @@ void SaiPortManager::changePortImpl(
   if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
       oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
     programLlr(newPort, existingPort);
+  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
+    // The LLR TX trigger only takes effect once the link is up.
+    reissueLlrModeRemote(existingPort);
   }
   changeClm(oldPort, newPort);
 }
@@ -744,10 +752,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
       linkTrainingEnable;
-  if (linkTrainingSupportedOnPort(swPort)) {
-    // Use config value if set, otherwise default to false (backward-compatible)
-    linkTrainingEnable = swPort->getLinkTraining().value_or(false);
-  }
+  linkTrainingEnable = swPort->getLinkTraining().value_or(false);
 
   std::optional<bool> fdrEnable;
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -903,6 +908,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 #endif
 
+  // Left out of the create list unless the port configures a linkscan mode: an
+  // attribute the SDK does not accept fails the port create outright.
+  std::optional<SaiPortTraits::Attributes::LinkScanMode> linkScanMode;
+  if (const auto mode = swPort->getLinkScanMode()) {
+    linkScanMode = linkScanModeAttribute(*mode);
+  }
+
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1000,6 +1012,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // LinkScanMode
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1107,18 +1120,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrModeRemote
       std::nullopt, // LlrProfile
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
+#if defined(CHENAB_SAI_SDK)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
+      linkScanMode, // LinkScanMode
   };
-}
-
-bool SaiPortManager::linkTrainingSupportedOnPort(
-    const std::shared_ptr<Port>& swPort) const {
-  return platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
-      swPort->getPortType() != cfg::PortType::HYPER_PORT;
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -1213,6 +1221,32 @@ void SaiPortManager::programLlr(
 #endif
 }
 
+// Re-assert LLR mode remote on a port that has just come up.
+//
+// SAI_PORT_ATTR_LLR_MODE_REMOTE is not a persistent enable: the SDK maps it
+// onto the MAC's one-shot, self-clearing SEND_TX_INIT trigger. programLlr()
+// asserts it at port creation, before link up, where bring-up consumes it and
+// no LLR_INIT is sent -- silently, as the field cannot be read back. Verified
+// on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
+// brings a link-up port to 1.
+//
+// The false write is required: setOptionalAttribute elides a set whose value
+// already matches, and mode remote is already true in the store. Only remote
+// is cycled -- local is a persistent enable, and clearing it would stop this
+// port acknowledging the partner's frames.
+void SaiPortManager::reissueLlrModeRemote(
+    [[maybe_unused]] SaiPortHandle* portHandle) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!portHandle->llrProfile) {
+    return;
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{true});
+#endif
+}
+
 void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
@@ -1302,8 +1336,7 @@ void SaiPortManager::programSerdes(
       HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS);
 #endif
 
-  bool linkTrainingEnabled = linkTrainingSupportedOnPort(swPort) &&
-      swPort->getLinkTraining().value_or(false);
+  bool linkTrainingEnabled = swPort->getLinkTraining().value_or(false);
 
   // Note: We currently use LT only on broadcom, we will need to see if any
   // attributes need to be programmed on other vendors
@@ -1426,14 +1459,24 @@ void SaiPortManager::programSerdes(
         }
       }
     }
-    // Precoding is handled by link training
-    if (!rxPrecoding.empty() && !linkTrainingEnabled) {
+
+    // TODO: Remove the flag fallback once precoding is populated in all port
+    // configs.
+    const auto txPrecodingEnabled =
+        (FLAGS_montblanc_precoding ||
+         swPort->getTxPrecoding().value_or(false)) &&
+        !txPrecoding.empty();
+    const auto rxPrecodingEnabled =
+        (FLAGS_montblanc_precoding ||
+         swPort->getRxPrecoding().value_or(false)) &&
+        !rxPrecoding.empty();
+    if (rxPrecodingEnabled) {
       SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
           rxPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxPrecodingAttr);
     }
-    if (!txPrecoding.empty() && !linkTrainingEnabled) {
+    if (txPrecodingEnabled) {
       SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
           txPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(

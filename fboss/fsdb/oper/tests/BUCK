@@ -126,6 +126,7 @@ cpp_benchmark(
         "fbsource//third-party/googletest:gtest",
         ":subscribable_storage_bench_helper",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/thrift_cow/storage/tests:benchmark_helper",
         "//fboss/thrift_cow/storage/tests:data_factory",

@@ -62,6 +62,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/boost:boost_container",
         "fbsource//third-party/fmt:fmt",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
@@ -100,7 +101,6 @@ cpp_unittest(
         "//folly/logging:logging",
     ],
     external_deps = [
-        ("boost", None, "boost_container"),
         "gflags",
     ],
 )

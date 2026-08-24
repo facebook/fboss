@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <fboss/fsdb/if/FsdbModel.h>
+#include <fboss/fsdb/oper/ExtendedPathBuilder.h>
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
@@ -296,10 +297,15 @@ void bm_canonicalrib_pubsub_mem(
   auto scale = test_data::BgpRibMapDataGenerator::makeGtswScale(
       /*isFPF=*/true, numPods, numPrefixesPerPod);
   test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
-  std::vector<std::string> rootPath;
   auto subscribeFunc = [&](auto& storage, SubscriptionIdentifier&& subId) {
-    return storage.subscribe_patch(
-        std::move(subId), rootPath.begin(), rootPath.end());
+    auto extPath = ext_path_builder::raw("bgp")
+                       .raw("canonicalRib")
+                       .raw("rib_entries")
+                       .any()
+                       .raw("best_path")
+                       .get();
+    return storage.subscribe_patch_extended(
+        std::move(subId), {{0, std::move(extPath)}});
   };
   StorageBenchmarkHelper<test_data::BgpRibMapDataGenerator::RootT>::
       reportPubSubMemStats(

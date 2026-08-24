@@ -11,6 +11,7 @@
 
 #include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
+#include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
@@ -481,6 +482,11 @@ TEST_F(CmdShowPortTestFixture, queryClient) {
 TEST_F(CmdShowPortTestFixture, wikiDocHooks) {
   EXPECT_FALSE(CmdShowPortTraits::description().empty());
   EXPECT_FALSE(CmdShowPort::sampleModel().portEntries()->empty());
+}
+
+TEST_F(CmdShowPortTestFixture, wikiDocHooksQueue) {
+  EXPECT_FALSE(CmdShowPortQueueTraits::description().empty());
+  EXPECT_FALSE(CmdShowPortQueue::sampleModel().empty());
 }
 
 } // namespace facebook::fboss

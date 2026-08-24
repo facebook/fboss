@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -29,16 +30,6 @@ DEFINE_bool(
 namespace facebook::fboss::phy {
 
 namespace {
-
-FecMode getFecMode(sai_port_fec_mode_t fec, cfg::PortSpeed /* speed */) {
-  if (fec == SAI_PORT_FEC_MODE_NONE) {
-    return FecMode::NONE;
-  }
-  throw FbossError(
-      "Unsupported FEC mode: ",
-      static_cast<int>(fec),
-      ". Only SAI_PORT_FEC_MODE_NONE is supported for now");
-}
 
 #if defined(SAI_BRCM_PAI_IMPL)
 // Global mutex fallback, used when the enable_xphy_global_lock gflag is set.
@@ -542,6 +533,7 @@ std::vector<sai_uint32_t> getSerdesAttrFromHw(
 PhyPortConfig SaiPhyRetimer::getConfigOnePort(
     const std::vector<LaneID>& sysLanes,
     const std::vector<LaneID>& lineLanes,
+    cfg::PortProfileID profileID,
     bool readFromHw) {
   if (!platform_) {
     throw FbossError("Platform is null for xphyID=", xphyID_);
@@ -668,7 +660,7 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
 
   // Helper to build ProfileSideConfig (FEC, numLanes, modulation)
   auto buildProfileSideConfig =
-      [&config, readFromHw](
+      [readFromHw, profileID](
           std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
           cfg::PortSpeed speed) -> ProfileSideConfig {
     ProfileSideConfig side;
@@ -692,7 +684,7 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
       numLanes = GET_ATTR(Port, HwLaneList, portObj->adapterHostKey()).size();
     }
 
-    side.fec() = getFecMode(fecValue, config.profile.speed);
+    side.fec() = utility::getFecModeFromSaiFecMode(fecValue, profileID);
     side.numLanes() = numLanes;
     side.modulation() = getModulation(speed, numLanes);
 
