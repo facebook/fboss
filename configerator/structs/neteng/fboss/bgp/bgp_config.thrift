@@ -680,6 +680,12 @@ struct BgpSettingConfig {
    * rollback.
    */
   20: optional bool enable_stream_subscriber_backpressure;
+
+  /**
+   * Enable link-flap dampening in nexthop tracking. A link-down publishes
+   * immediately; a link-up is held until the interface is stable.
+   */
+  21: optional bool enable_netlink_dampening;
 }
 
 /**
