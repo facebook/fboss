@@ -96,32 +96,58 @@ class CmdConfigCoppTestFixture : public CmdConfigTestBase {
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_idOnly) {
   CoppQueueArgs a({"0"});
   EXPECT_EQ(a.getQueueId(), 0);
-  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::NONE);
+  EXPECT_FALSE(a.hasEdits());
 
   CoppQueueArgs b({"9"});
   EXPECT_EQ(b.getQueueId(), 9);
-  EXPECT_EQ(b.getOp(), CoppQueueArgs::Op::NONE);
+  EXPECT_FALSE(b.hasEdits());
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_name) {
   CoppQueueArgs a({"2", "name", "cpuQueue-mid"});
   EXPECT_EQ(a.getQueueId(), 2);
-  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::NAME);
-  EXPECT_EQ(a.getName(), "cpuQueue-mid");
+  ASSERT_TRUE(a.getName().has_value());
+  EXPECT_EQ(*a.getName(), "cpuQueue-mid");
+  EXPECT_TRUE(a.getAttributes().empty());
 }
 
-TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimitKbps) {
+TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimit) {
   CoppQueueArgs a({"0", "rate-limit", "kbps", "1500"});
   EXPECT_EQ(a.getQueueId(), 0);
-  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::RATE_LIMIT_KBPS);
-  EXPECT_EQ(a.getRateMax(), 1500);
+  ASSERT_TRUE(a.getRateLimit().has_value());
+  EXPECT_EQ(a.getRateLimit()->first, CoppQueueArgs::RateUnit::KBPS);
+  EXPECT_EQ(a.getRateLimit()->second, 1500);
+
+  CoppQueueArgs b({"1", "rate-limit", "pps", "750"});
+  ASSERT_TRUE(b.getRateLimit().has_value());
+  EXPECT_EQ(b.getRateLimit()->first, CoppQueueArgs::RateUnit::PPS);
+  EXPECT_EQ(b.getRateLimit()->second, 750);
 }
 
-TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimitPps) {
-  CoppQueueArgs a({"1", "rate-limit", "pps", "750"});
-  EXPECT_EQ(a.getQueueId(), 1);
-  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::RATE_LIMIT_PPS);
-  EXPECT_EQ(a.getRateMax(), 750);
+// Generic attributes flow through as <attr, value> pairs for
+// utils::applyPortQueueConfig; the aqm keyword captures the tail.
+TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_genericAttributes) {
+  CoppQueueArgs a({"2", "scheduling", "wrr", "weight", "4"});
+  EXPECT_EQ(a.getQueueId(), 2);
+  ASSERT_EQ(a.getAttributes().size(), 2);
+  EXPECT_EQ(
+      a.getAttributes()[0],
+      std::make_pair(std::string("scheduling"), std::string("wrr")));
+  EXPECT_EQ(
+      a.getAttributes()[1],
+      std::make_pair(std::string("weight"), std::string("4")));
+
+  // name/rate-limit combine with generic attributes in one invocation.
+  CoppQueueArgs b(
+      {"2", "name", "q2", "rate-limit", "pps", "100", "weight", "8"});
+  EXPECT_TRUE(b.getName().has_value());
+  EXPECT_TRUE(b.getRateLimit().has_value());
+  ASSERT_EQ(b.getAttributes().size(), 1);
+
+  CoppQueueArgs c(
+      {"2", "aqm", "congestion-behavior", "ECN", "detection", "linear"});
+  EXPECT_TRUE(c.getAttributes().empty());
+  EXPECT_EQ(c.getAqmAttributes().size(), 4);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badArity) {
@@ -132,12 +158,7 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badArity) {
   EXPECT_THROW(
       CoppQueueArgs({"0", "rate-limit", "kbps"}), std::invalid_argument);
   EXPECT_THROW(CoppQueueArgs({"0", "rate-limit"}), std::invalid_argument);
-}
-
-TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_unknownSubCmd) {
-  EXPECT_THROW(CoppQueueArgs({"0", "weight", "4"}), std::invalid_argument);
-  EXPECT_THROW(
-      CoppQueueArgs({"0", "rate-limit", "mbps", "100"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"0", "weight"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badValues) {
@@ -149,6 +170,8 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badValues) {
       CoppQueueArgs({"0", "rate-limit", "kbps", "abc"}), std::invalid_argument);
   EXPECT_THROW(
       CoppQueueArgs({"0", "rate-limit", "pps", "-5"}), std::invalid_argument);
+  EXPECT_THROW(
+      CoppQueueArgs({"0", "rate-limit", "mbps", "100"}), std::invalid_argument);
 }
 
 // =============================================================
@@ -280,6 +303,82 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitPps) {
   EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->maximum(), 2000);
 }
 
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_setSchedulingSp) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "9 scheduling sp");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+  CoppQueueArgs args({"9", "scheduling", "sp"});
+
+  cmd.queryClient(hostInfo, args);
+
+  const auto* q = findQueue(9);
+  ASSERT_NE(q, nullptr);
+  EXPECT_EQ(*q->scheduling(), cfg::QueueScheduling::STRICT_PRIORITY);
+  // Switching to SP must not clear the existing weight; the agent ignores
+  // it for SP queues and it is restored if the user switches back to WRR.
+  ASSERT_TRUE(q->weight().has_value());
+  EXPECT_EQ(*q->weight(), 4);
+}
+
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_setSchedulingAndWeight) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "2 scheduling wrr weight 8");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+  CoppQueueArgs args({"2", "scheduling", "wrr", "weight", "8"});
+
+  auto result = cmd.queryClient(hostInfo, args);
+  EXPECT_THAT(result, HasSubstr("weight 8"));
+
+  const auto* q = findQueue(2);
+  ASSERT_NE(q, nullptr);
+  EXPECT_EQ(*q->scheduling(), cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);
+  ASSERT_TRUE(q->weight().has_value());
+  EXPECT_EQ(*q->weight(), 8);
+  // Other fields on the queue must be untouched.
+  EXPECT_EQ(q->name(), "cpuQueue-mid");
+}
+
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_setReservedBytes) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "2 reserved-bytes 3000");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+  CoppQueueArgs args({"2", "reserved-bytes", "3000"});
+
+  cmd.queryClient(hostInfo, args);
+
+  const auto* q = findQueue(2);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->reservedBytes().has_value());
+  EXPECT_EQ(*q->reservedBytes(), 3000);
+}
+
+// Weight outside the SAI uint8 range must be refused at apply time; the
+// shared qos helper only checks non-negativity.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_weightOutOfRange) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "2 weight 256");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
+  EXPECT_THROW(
+      cmd.queryClient(hostInfo, CoppQueueArgs({"2", "weight", "256"})),
+      std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(hostInfo, CoppQueueArgs({"2", "weight", "0"})),
+      std::invalid_argument);
+}
+
+// Unknown attributes parse as generic pairs and are rejected by
+// utils::applyPortQueueConfig with its valid-attribute list.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_unknownAttribute) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "2 wait 4");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
+  EXPECT_THROW(
+      cmd.queryClient(hostInfo, CoppQueueArgs({"2", "wait", "4"})),
+      std::invalid_argument);
+}
+
 // =============================================================
 // queryClient() tests — reason
 // =============================================================
@@ -335,6 +434,87 @@ TEST_F(CmdConfigCoppTestFixture, reason_preservesOrderingOnUpdate) {
       *config.sw()->cpuTrafficPolicy()->rxReasonToQueueOrderedList();
   EXPECT_EQ(*list[2].rxReason(), cfg::PacketRxReason::BGP);
   EXPECT_EQ(*list[2].queueId(), 0);
+}
+
+TEST_F(CmdConfigCoppTestFixture, reasonArgs_order) {
+  CoppReasonArgs a({"arp", "queue", "9", "order", "0"});
+  ASSERT_TRUE(a.getOrder().has_value());
+  EXPECT_EQ(*a.getOrder(), 0);
+
+  EXPECT_FALSE(CoppReasonArgs({"arp", "queue", "9"}).getOrder().has_value());
+
+  EXPECT_THROW(
+      CoppReasonArgs({"arp", "queue", "9", "order"}), std::invalid_argument);
+  EXPECT_THROW(
+      CoppReasonArgs({"arp", "queue", "9", "position", "0"}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      CoppReasonArgs({"arp", "queue", "9", "order", "abc"}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      CoppReasonArgs({"arp", "queue", "9", "order", "-1"}),
+      std::invalid_argument);
+}
+
+// Seed list order: NDP(8)->9, ARP(1)->9, BGP(11)->9, LACP(13)->2,
+// UNMATCHED(0)->1. `order <n>` places the entry at 0-based index n of the
+// final list.
+TEST_F(CmdConfigCoppTestFixture, reason_insertNewAtFront) {
+  setupTestableConfigSession(reasonCmdPrefix_, "dhcp queue 2 order 0");
+  CmdConfigCoppReason cmd;
+  HostInfo hostInfo("testhost");
+
+  CoppReasonArgs args({"dhcp", "queue", "2", "order", "0"});
+  cmd.queryClient(hostInfo, args);
+
+  const auto& list = *ConfigSession::getInstance()
+                          .getAgentConfig()
+                          .sw()
+                          ->cpuTrafficPolicy()
+                          ->rxReasonToQueueOrderedList();
+  ASSERT_EQ(list.size(), 6);
+  EXPECT_EQ(*list[0].rxReason(), cfg::PacketRxReason::DHCP);
+  EXPECT_EQ(*list[0].queueId(), 2);
+  // Previous head shifted down.
+  EXPECT_EQ(*list[1].rxReason(), cfg::PacketRxReason::NDP);
+}
+
+TEST_F(CmdConfigCoppTestFixture, reason_moveExisting) {
+  setupTestableConfigSession(reasonCmdPrefix_, "bgp queue 2 order 0");
+  CmdConfigCoppReason cmd;
+  HostInfo hostInfo("testhost");
+
+  // BGP sits at index 2 in the seed; move it to the front.
+  CoppReasonArgs args({"bgp", "queue", "2", "order", "0"});
+  cmd.queryClient(hostInfo, args);
+
+  const auto& list = *ConfigSession::getInstance()
+                          .getAgentConfig()
+                          .sw()
+                          ->cpuTrafficPolicy()
+                          ->rxReasonToQueueOrderedList();
+  // Moving must not grow the list.
+  ASSERT_EQ(list.size(), 5);
+  EXPECT_EQ(*list[0].rxReason(), cfg::PacketRxReason::BGP);
+  EXPECT_EQ(*list[0].queueId(), 2);
+  EXPECT_EQ(*list[1].rxReason(), cfg::PacketRxReason::NDP);
+}
+
+TEST_F(CmdConfigCoppTestFixture, reason_orderOutOfRange) {
+  setupTestableConfigSession(reasonCmdPrefix_, "dhcp queue 2 order 6");
+  CmdConfigCoppReason cmd;
+  HostInfo hostInfo("testhost");
+
+  // 5 entries in the seed; a new entry may go at positions 0..5, an existing
+  // one only at 0..4.
+  EXPECT_THROW(
+      cmd.queryClient(
+          hostInfo, CoppReasonArgs({"dhcp", "queue", "2", "order", "6"})),
+      std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(
+          hostInfo, CoppReasonArgs({"bgp", "queue", "2", "order", "5"})),
+      std::invalid_argument);
 }
 
 } // namespace facebook::fboss

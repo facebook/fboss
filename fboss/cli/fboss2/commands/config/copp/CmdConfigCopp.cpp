@@ -15,7 +15,9 @@
 
 #include <fmt/format.h>
 #include <folly/Conv.h>
+#include <folly/String.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
@@ -24,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include "fboss/cli/fboss2/commands/config/copp/CoppUtils.h"
+#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -40,9 +43,10 @@ constexpr std::string_view kRateUnitPps = "pps";
 
 using copp_queue::parseQueueId;
 
-// Literal tokens accepted between the reason name and queue id in
-// `config copp reason <reason-name> queue <id>`.
+// Literal tokens accepted in
+// `config copp reason <reason-name> queue <id> [order <n>]`.
 constexpr std::string_view kSubCmdQueue = "queue";
+constexpr std::string_view kSubCmdOrder = "order";
 
 int32_t parseRateMax(const std::string& s, std::string_view unit) {
   int32_t parsed = 0;
@@ -78,12 +82,15 @@ cfg::PortQueue& findOrCreateCpuQueue(cfg::SwitchConfig& swConfig, int16_t id) {
   return queues.back();
 }
 
-void applyRateLimit(cfg::PortQueue& q, CoppQueueArgs::Op op, int32_t max) {
+void applyRateLimit(
+    cfg::PortQueue& q,
+    CoppQueueArgs::RateUnit unit,
+    int32_t max) {
   cfg::Range range;
   range.minimum() = 0;
   range.maximum() = max;
   cfg::PortQueueRate rate;
-  if (op == CoppQueueArgs::Op::RATE_LIMIT_KBPS) {
+  if (unit == CoppQueueArgs::RateUnit::KBPS) {
     rate.kbitsPerSec() = range;
   } else {
     rate.pktsPerSec() = range;
@@ -91,70 +98,86 @@ void applyRateLimit(cfg::PortQueue& q, CoppQueueArgs::Op op, int32_t max) {
   q.portQueueRate() = rate;
 }
 
+// The SAI scheduler profile carries the WRR weight as a uint8
+// (SaiSchedulerManager::makeSchedulerAttributes), so anything outside
+// [1, 255] cannot be programmed. utils::applyPortQueueConfig only checks
+// non-negativity, so enforce the CPU-queue cap here.
+constexpr int32_t kMinWrrWeight = 1;
+constexpr int32_t kMaxWrrWeight = 255;
+
 } // namespace
 
 CoppQueueArgs::CoppQueueArgs(std::vector<std::string> v) {
   if (v.empty()) {
     throw std::invalid_argument(
-        "Expected <id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
-        "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
+        "Expected <id> [<attr> <value> ...] where <attr> is one of: "
+        "name <string>, rate-limit <kbps|pps> <max>, " +
+        utils::validQueueAttrs());
   }
   queueId_ = parseQueueId(v[0], "queue");
 
-  if (v.size() == 1) {
-    op_ = Op::NONE;
-  } else if (v[1] == kSubCmdName) {
-    if (v.size() != 3) {
+  // Same walk as utils::QueueIdAndAttributes: <attr> <value> pairs, with two
+  // copp-specific extras (name, rate-limit — the latter consumes unit + max)
+  // and active-queue-management consuming every remaining token. Attribute
+  // names destined for utils::applyPortQueueConfig are validated there.
+  for (size_t i = 1; i < v.size();) {
+    const auto& attr = v[i];
+    if (attr == "active-queue-management" || attr == "aqm") {
+      aqmAttributes_.assign(v.begin() + i + 1, v.end());
+      break;
+    }
+    if (attr == kSubCmdName) {
+      if (i + 1 >= v.size() || v[i + 1].empty()) {
+        throw std::invalid_argument("name <string> must be non-empty");
+      }
+      name_ = v[i + 1];
+      i += 2;
+      continue;
+    }
+    if (attr == kSubCmdRateLimit) {
+      if (i + 2 >= v.size()) {
+        throw std::invalid_argument(
+            fmt::format(
+                "'rate-limit' requires '{}|{}' <max>",
+                kRateUnitKbps,
+                kRateUnitPps));
+      }
+      const auto& unit = v[i + 1];
+      RateUnit rateUnit{};
+      if (unit == kRateUnitKbps) {
+        rateUnit = RateUnit::KBPS;
+      } else if (unit == kRateUnitPps) {
+        rateUnit = RateUnit::PPS;
+      } else {
+        throw std::invalid_argument(
+            fmt::format(
+                "rate-limit unit must be '{}' or '{}', got '{}'",
+                kRateUnitKbps,
+                kRateUnitPps,
+                unit));
+      }
+      rateLimit_ = {rateUnit, parseRateMax(v[i + 2], unit)};
+      i += 3;
+      continue;
+    }
+    if (i + 1 >= v.size()) {
       throw std::invalid_argument(
-          fmt::format(
-              "'name' requires exactly one <string> value, got {} arg(s)",
-              v.size() - 2));
+          fmt::format("Attribute '{}' requires a value.", attr));
     }
-    if (v[2].empty()) {
-      throw std::invalid_argument("name <string> must be non-empty");
-    }
-    op_ = Op::NAME;
-    name_ = v[2];
-  } else if (v[1] == kSubCmdRateLimit) {
-    if (v.size() != 4) {
-      throw std::invalid_argument(
-          fmt::format(
-              "'rate-limit' requires '{}|{}' <max>, got {} arg(s)",
-              kRateUnitKbps,
-              kRateUnitPps,
-              v.size() - 2));
-    }
-    if (v[2] == kRateUnitKbps) {
-      op_ = Op::RATE_LIMIT_KBPS;
-    } else if (v[2] == kRateUnitPps) {
-      op_ = Op::RATE_LIMIT_PPS;
-    } else {
-      throw std::invalid_argument(
-          fmt::format(
-              "rate-limit unit must be '{}' or '{}', got '{}'",
-              kRateUnitKbps,
-              kRateUnitPps,
-              v[2]));
-    }
-    rateMax_ = parseRateMax(v[3], v[2]);
-  } else {
-    throw std::invalid_argument(
-        fmt::format(
-            "Unknown queue sub-command '{}'. Valid: {}, {}",
-            v[1],
-            kSubCmdName,
-            kSubCmdRateLimit));
+    attributes_.emplace_back(attr, v[i + 1]);
+    i += 2;
   }
 
   data_ = std::move(v);
 }
 
 CoppReasonArgs::CoppReasonArgs(std::vector<std::string> v) {
-  if (v.size() != 3) {
+  if (v.size() != 3 && v.size() != 5) {
     throw std::invalid_argument(
         fmt::format(
-            "Expected <reason-name> {} <id>, got {} argument(s)",
+            "Expected <reason-name> {} <id> [{} <n>], got {} argument(s)",
             kSubCmdQueue,
+            kSubCmdOrder,
             v.size()));
   }
   cfg::PacketRxReason reason = copp_reason::parseReason(v[0]);
@@ -167,6 +190,27 @@ CoppReasonArgs::CoppReasonArgs(std::vector<std::string> v) {
   }
   reason_ = reason;
   queueId_ = parseQueueId(v[2], "reason");
+  if (v.size() == 5) {
+    if (v[3] != kSubCmdOrder) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Expected '{}' after the queue id, got '{}'",
+              kSubCmdOrder,
+              v[3]));
+    }
+    int32_t parsed = 0;
+    try {
+      parsed = folly::to<int32_t>(v[4]);
+    } catch (const folly::ConversionError&) {
+      throw std::invalid_argument(
+          fmt::format("order value must be an integer, got '{}'", v[4]));
+    }
+    if (parsed < 0) {
+      throw std::invalid_argument(
+          fmt::format("order value must be non-negative, got {}", parsed));
+    }
+    order_ = static_cast<size_t>(parsed);
+  }
   data_ = std::move(v);
 }
 
@@ -176,27 +220,41 @@ std::string applyCpuQueueConfig(
     cfg::SwitchConfig& swConfig,
     const CoppQueueArgs& args) {
   auto& q = findOrCreateCpuQueue(swConfig, args.getQueueId());
-  switch (args.getOp()) {
-    case CoppQueueArgs::Op::NONE:
-      return fmt::format("Ensured queue {} exists", args.getQueueId());
-    case CoppQueueArgs::Op::NAME:
-      q.name() = args.getName();
-      return fmt::format(
-          "Set queue {} name to '{}'", args.getQueueId(), args.getName());
-    case CoppQueueArgs::Op::RATE_LIMIT_KBPS:
-      applyRateLimit(q, args.getOp(), args.getRateMax());
-      return fmt::format(
-          "Set queue {} rate-limit kbps max to {}",
-          args.getQueueId(),
-          args.getRateMax());
-    case CoppQueueArgs::Op::RATE_LIMIT_PPS:
-      applyRateLimit(q, args.getOp(), args.getRateMax());
-      return fmt::format(
-          "Set queue {} rate-limit pps max to {}",
-          args.getQueueId(),
-          args.getRateMax());
+  if (!args.hasEdits()) {
+    return fmt::format("Ensured queue {} exists", args.getQueueId());
   }
-  throw std::runtime_error("Unhandled queue op");
+  // Apply onto a copy so a rejected attribute leaves the queue untouched
+  // (same transactional pattern as the qos queue-config commands).
+  auto work = q;
+  if (args.getName().has_value()) {
+    work.name() = *args.getName();
+  }
+  if (args.getRateLimit().has_value()) {
+    applyRateLimit(
+        work, args.getRateLimit()->first, args.getRateLimit()->second);
+  }
+  if (!args.getAttributes().empty() || !args.getAqmAttributes().empty()) {
+    utils::applyPortQueueConfig(
+        work, args.getAttributes(), args.getAqmAttributes());
+    for (const auto& [attr, value] : args.getAttributes()) {
+      if (attr == "weight" &&
+          (*work.weight() < kMinWrrWeight || *work.weight() > kMaxWrrWeight)) {
+        throw std::invalid_argument(
+            fmt::format(
+                "weight must be in [{}, {}], got {}",
+                kMinWrrWeight,
+                kMaxWrrWeight,
+                *work.weight()));
+      }
+    }
+  }
+  q = std::move(work);
+  // Echo the applied tokens back (everything after <id>).
+  const auto tokens = args.data();
+  return fmt::format(
+      "Updated queue {}: {}",
+      args.getQueueId(),
+      folly::join(" ", tokens.begin() + 1, tokens.end()));
 }
 
 std::string applyReasonConfig(
@@ -212,19 +270,52 @@ std::string applyReasonConfig(
   }
   auto& list = *policy.rxReasonToQueueOrderedList();
   const auto reasonName = apache::thrift::util::enumNameSafe(args.getReason());
-  for (auto& entry : list) {
-    if (*entry.rxReason() == args.getReason()) {
-      *entry.queueId() = args.getQueueId();
+
+  auto it = std::find_if(
+      list.begin(), list.end(), [&args](const cfg::PacketRxReasonToQueue& e) {
+        return *e.rxReason() == args.getReason();
+      });
+  const bool existed = it != list.end();
+
+  cfg::PacketRxReasonToQueue entry;
+  entry.rxReason() = args.getReason();
+  entry.queueId() = args.getQueueId();
+
+  if (!args.getOrder().has_value()) {
+    // No order given: an existing reason keeps its position, a new one
+    // appends.
+    if (existed) {
+      *it = entry;
       return fmt::format(
           "Updated reason {} -> queue {}", reasonName, args.getQueueId());
     }
+    list.push_back(entry);
+    return fmt::format(
+        "Mapped reason {} -> queue {}", reasonName, args.getQueueId());
   }
-  cfg::PacketRxReasonToQueue newEntry;
-  newEntry.rxReason() = args.getReason();
-  newEntry.queueId() = args.getQueueId();
-  list.push_back(newEntry);
+
+  // The list is position-sensitive; place the entry at the requested 0-based
+  // index. The index refers to the final list, so an existing entry doesn't
+  // count towards the bound (it is removed before reinsertion).
+  const size_t order = *args.getOrder();
+  const size_t maxOrder = existed ? list.size() - 1 : list.size();
+  if (order > maxOrder) {
+    throw std::invalid_argument(
+        fmt::format(
+            "order {} is out of range: highest valid position is {}",
+            order,
+            maxOrder));
+  }
+  if (existed) {
+    list.erase(it);
+  }
+  list.insert(list.begin() + order, entry);
   return fmt::format(
-      "Mapped reason {} -> queue {}", reasonName, args.getQueueId());
+      "{} reason {} -> queue {} at position {}",
+      existed ? "Updated" : "Mapped",
+      reasonName,
+      args.getQueueId(),
+      order);
 }
 
 } // namespace

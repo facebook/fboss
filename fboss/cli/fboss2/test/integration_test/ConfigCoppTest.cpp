@@ -5,10 +5,13 @@
  *
  * Covers the two families that mutate control-plane policing state:
  *
- *   - queue <id> [name <string> | rate-limit kbps <max> | rate-limit pps
- *     <max>] — hitless edits to entries in sw.cpuQueues[].
- *   - reason <reason-name> queue <id> — hitless upsert into
- *     sw.cpuTrafficPolicy.rxReasonToQueueOrderedList[].
+ *   - queue <id> [name <string> | rate-limit <kbps|pps> <max> | <attr>
+ *     <value> ...] — hitless edits to entries in sw.cpuQueues[]; generic
+ *     attributes (scheduling, weight, reserved-bytes, ...) flow through
+ *     utils::applyPortQueueConfig.
+ *   - reason <reason-name> queue <id> [order <n>] — hitless upsert into
+ *     sw.cpuTrafficPolicy.rxReasonToQueueOrderedList[], positioned at <n>
+ *     when given.
  *
  * For each attribute the test:
  *   1. Reads the current state from the agent's running config
@@ -252,4 +255,169 @@ TEST_F(ConfigCoppTest, ReasonToQueueUpdate) {
   ASSERT_EQ(result.exitCode, 0) << result.stderr;
   commitConfig();
   EXPECT_EQ(findReasonQueueId(kArpReason), originalQueueId);
+}
+
+// scheduling <sp|wrr>: flip the discipline of an existing queue and restore.
+// The running config serializes cfg::QueueScheduling as an integer
+// (WEIGHTED_ROUND_ROBIN = 0, STRICT_PRIORITY = 1).
+TEST_F(ConfigCoppTest, CpuQueueSetScheduling) {
+  int id = getFirstExistingQueueId();
+  auto before = findQueue(id);
+  ASSERT_FALSE(before.isNull());
+  ASSERT_TRUE(before.count("scheduling"));
+  const int originalScheduling = before["scheduling"].asInt();
+  const bool originalIsWrr = originalScheduling == 0;
+  const std::string newToken = originalIsWrr ? "sp" : "wrr";
+  const int expectedNew = originalIsWrr ? 1 : 0;
+
+  XLOG(INFO) << "queue " << id << " scheduling " << newToken << " (was "
+             << originalScheduling << ")";
+  auto result = runCli(
+      {"config", "copp", "queue", std::to_string(id), "scheduling", newToken});
+  ASSERT_EQ(result.exitCode, 0)
+      << "stdout=" << result.stdout << " stderr=" << result.stderr;
+  commitConfig();
+
+  auto after = findQueue(id);
+  ASSERT_FALSE(after.isNull());
+  EXPECT_EQ(after["scheduling"].asInt(), expectedNew);
+
+  const std::string restoreToken = originalIsWrr ? "wrr" : "sp";
+  XLOG(INFO) << "Restoring scheduling to " << restoreToken;
+  result = runCli(
+      {"config",
+       "copp",
+       "queue",
+       std::to_string(id),
+       "scheduling",
+       restoreToken});
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  commitConfig();
+  EXPECT_EQ(findQueue(id)["scheduling"].asInt(), originalScheduling);
+}
+
+// weight <n>: weight only matters for WRR queues, and shipped configs may
+// run every CPU queue as strict-priority with no weight at all. Make the
+// queue WRR first, set a weight, verify, then restore the original
+// scheduling (and weight, when the queue had one). A weight left behind on
+// a strict-priority queue is ignored by the agent (see the PortQueue.weight
+// comment in switch_config.thrift), and the CLI has no way to unset it.
+// Both edits ride in one invocation — the command applies attribute pairs
+// left to right.
+TEST_F(ConfigCoppTest, CpuQueueSetWeight) {
+  int id = getFirstExistingQueueId();
+  auto before = findQueue(id);
+  ASSERT_FALSE(before.isNull());
+  ASSERT_TRUE(before.count("scheduling"));
+  const int originalScheduling = before["scheduling"].asInt();
+  const std::optional<int> originalWeight = before.count("weight")
+      ? std::make_optional<int>(before["weight"].asInt())
+      : std::nullopt;
+
+  const int newWeight = originalWeight.value_or(0) == 7 ? 8 : 7;
+  XLOG(INFO) << "queue " << id << " scheduling wrr weight " << newWeight
+             << " (was scheduling " << originalScheduling << ", weight "
+             << (originalWeight.has_value() ? std::to_string(*originalWeight)
+                                            : "unset")
+             << ")";
+  auto result = runCli(
+      {"config",
+       "copp",
+       "queue",
+       std::to_string(id),
+       "scheduling",
+       "wrr",
+       "weight",
+       std::to_string(newWeight)});
+  ASSERT_EQ(result.exitCode, 0)
+      << "stdout=" << result.stdout << " stderr=" << result.stderr;
+  commitConfig();
+
+  auto after = findQueue(id);
+  ASSERT_FALSE(after.isNull());
+  EXPECT_EQ(after["scheduling"].asInt(), 0); // WEIGHTED_ROUND_ROBIN
+  ASSERT_TRUE(after.count("weight"));
+  EXPECT_EQ(after["weight"].asInt(), newWeight);
+
+  XLOG(INFO) << "Restoring scheduling " << originalScheduling << " and weight";
+  if (originalWeight.has_value()) {
+    result = runCli(
+        {"config",
+         "copp",
+         "queue",
+         std::to_string(id),
+         "weight",
+         std::to_string(*originalWeight)});
+    ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  }
+  const std::string restoreToken = originalScheduling == 0 ? "wrr" : "sp";
+  result = runCli(
+      {"config",
+       "copp",
+       "queue",
+       std::to_string(id),
+       "scheduling",
+       restoreToken});
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  commitConfig();
+  EXPECT_EQ(findQueue(id)["scheduling"].asInt(), originalScheduling);
+}
+
+// reason ... order <n>: move an existing reason to the front of
+// rxReasonToQueueOrderedList and restore its original position. The list is
+// position-sensitive, so the test asserts on the index, not just membership.
+TEST_F(ConfigCoppTest, ReasonOrderMove) {
+  constexpr int kArpReason = 1; // cfg::PacketRxReason::ARP
+
+  auto findReasonIndex = [this](int rxReason) -> std::optional<size_t> {
+    auto config = getRunningConfig();
+    const auto& policy = config["sw"]["cpuTrafficPolicy"];
+    if (!policy.count("rxReasonToQueueOrderedList")) {
+      return std::nullopt;
+    }
+    const auto& list = policy["rxReasonToQueueOrderedList"];
+    for (size_t i = 0; i < list.size(); ++i) {
+      if (list[i]["rxReason"].asInt() == rxReason) {
+        return i;
+      }
+    }
+    return std::nullopt;
+  };
+
+  auto originalIndex = findReasonIndex(kArpReason);
+  ASSERT_TRUE(originalIndex.has_value())
+      << "Running config has no arp reason mapping — test needs a populated "
+         "rxReasonToQueueOrderedList";
+  auto queueId = findReasonQueueId(kArpReason);
+  ASSERT_TRUE(queueId.has_value());
+
+  XLOG(INFO) << "reason arp queue " << *queueId << " order 0 (was index "
+             << *originalIndex << ")";
+  auto result = runCli(
+      {"config",
+       "copp",
+       "reason",
+       "arp",
+       "queue",
+       std::to_string(*queueId),
+       "order",
+       "0"});
+  ASSERT_EQ(result.exitCode, 0)
+      << "stdout=" << result.stdout << " stderr=" << result.stderr;
+  commitConfig();
+  EXPECT_EQ(findReasonIndex(kArpReason), std::make_optional<size_t>(0));
+
+  XLOG(INFO) << "Restoring arp to index " << *originalIndex;
+  result = runCli(
+      {"config",
+       "copp",
+       "reason",
+       "arp",
+       "queue",
+       std::to_string(*queueId),
+       "order",
+       std::to_string(*originalIndex)});
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  commitConfig();
+  EXPECT_EQ(findReasonIndex(kArpReason), originalIndex);
 }

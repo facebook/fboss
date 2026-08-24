@@ -10,8 +10,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
+#include <optional>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -20,30 +25,31 @@
 
 namespace facebook::fboss {
 
-// Argument for `config copp queue <id> [<sub-cmd> <value>]`.
+// Argument for `config copp queue <id> [<attr> <value> ...]`.
 //
 // Accepted forms (validated by CoppQueueArgs):
 //   <id>                        -> ensure queue <id> exists
 //   <id> name <string>          -> set name
 //   <id> rate-limit kbps <max>  -> set max bandwidth in kbps
 //   <id> rate-limit pps <max>   -> set max packet rate in pps
+//   <id> <attr> <value> [...]   -> any cfg::PortQueue attribute accepted by
+//                                  utils::applyPortQueueConfig (see
+//                                  utils::validQueueAttrs()): reserved-bytes,
+//                                  shared-bytes, weight, scaling-factor,
+//                                  scheduling, stream-type, buffer-pool-name,
+//                                  active-queue-management ...
+//
+// Attributes may be combined in a single invocation. active-queue-management
+// consumes all remaining tokens (same grammar as
+// `config qos queue-config <name>`).
 //
 // The accepted integer range for <id> is 0..255 (CPU queue IDs are a small,
 // platform-bounded set; the exact cap depends on the ASIC via
-// SaiHostifManager::getMaxCpuQueues). Value parsing for <max> is deferred to
+// SaiHostifManager::getMaxCpuQueues). Attribute value parsing is deferred to
 // applyCpuQueueConfig() so error messages can name the specific attribute.
 class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
  public:
-  enum class Op {
-    // No sub-command: just ensure the queue exists.
-    NONE,
-    // name <string>
-    NAME,
-    // rate-limit kbps <max>
-    RATE_LIMIT_KBPS,
-    // rate-limit pps <max>
-    RATE_LIMIT_PPS,
-  };
+  enum class RateUnit { KBPS, PPS };
 
   /* implicit */ CoppQueueArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
@@ -52,32 +58,48 @@ class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
     return queueId_;
   }
 
-  Op getOp() const {
-    return op_;
-  }
-
-  // Only meaningful when op == NAME.
-  const std::string& getName() const {
+  const std::optional<std::string>& getName() const {
     return name_;
   }
 
-  // Only meaningful when op == RATE_LIMIT_KBPS or RATE_LIMIT_PPS.
-  int32_t getRateMax() const {
-    return rateMax_;
+  const std::optional<std::pair<RateUnit, int32_t>>& getRateLimit() const {
+    return rateLimit_;
+  }
+
+  // <attr, value> pairs destined for utils::applyPortQueueConfig.
+  const std::vector<std::pair<std::string, std::string>>& getAttributes()
+      const {
+    return attributes_;
+  }
+
+  // Token stream following active-queue-management, if present.
+  const std::vector<std::string>& getAqmAttributes() const {
+    return aqmAttributes_;
+  }
+
+  bool hasEdits() const {
+    return name_.has_value() || rateLimit_.has_value() ||
+        !attributes_.empty() || !aqmAttributes_.empty();
   }
 
  private:
   int16_t queueId_ = 0;
-  Op op_ = Op::NONE;
-  std::string name_;
-  int32_t rateMax_ = 0;
+  std::optional<std::string> name_;
+  std::optional<std::pair<RateUnit, int32_t>> rateLimit_;
+  std::vector<std::pair<std::string, std::string>> attributes_;
+  std::vector<std::string> aqmAttributes_;
 };
 
-// Argument for `config copp reason <reason-name> queue <id>`.
+// Argument for `config copp reason <reason-name> queue <id> [order <n>]`.
 //
 // <reason-name> is matched case-insensitively against the cfg::PacketRxReason
 // enum (e.g. arp, ndp, bgp, lacp, lldp, dhcp, dhcpv6, bgpv6, ttl_1, ...).
 // <id> is validated as a non-negative int16.
+//
+// rxReasonToQueueOrderedList is position-sensitive (the agent programs the
+// reasons in list order), so `order <n>` places the entry at 0-based index
+// <n>. Without it, a new reason appends and an existing reason keeps its
+// current position.
 class CoppReasonArgs : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ CoppReasonArgs( // NOLINT(google-explicit-constructor)
@@ -91,9 +113,14 @@ class CoppReasonArgs : public utils::BaseObjectArgType<std::string> {
     return queueId_;
   }
 
+  const std::optional<size_t>& getOrder() const {
+    return order_;
+  }
+
  private:
   cfg::PacketRxReason reason_{};
   int16_t queueId_ = 0;
+  std::optional<size_t> order_;
 };
 
 // The `copp` parent node itself is not usable; it only exists to dispatch to
@@ -129,8 +156,10 @@ struct CmdConfigCoppQueueTraits : public WriteCommandTraits {
     cmd.add_option(
         "copp_queue_config",
         args,
-        "<id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
-        "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
+        "<id> [<attr> <value> ...] where <attr> is one of: "
+        "name <string>, rate-limit <kbps|pps> <max>, reserved-bytes, "
+        "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
+        "buffer-pool-name, active-queue-management ...");
   }
 };
 
@@ -158,11 +187,12 @@ struct CmdConfigCoppReasonTraits : public WriteCommandTraits {
     cmd.add_option(
            "copp_reason_config",
            args,
-           "<reason-name> queue <id> where <reason-name> is a "
+           "<reason-name> queue <id> [order <n>] where <reason-name> is a "
            "cfg::PacketRxReason (e.g. arp, ndp, bgp, bgpv6, lacp, "
-           "lldp, dhcp, dhcpv6, ttl_1, ...)")
+           "lldp, dhcp, dhcpv6, ttl_1, ...) and <n> is the 0-based position "
+           "in rxReasonToQueueOrderedList")
         ->required()
-        ->expected(3);
+        ->expected(3, 5);
   }
 };
 
