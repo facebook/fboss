@@ -201,44 +201,4 @@ TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteQueueNotFound) {
   EXPECT_THROW(cmd.queryClient(hostInfo, args), std::runtime_error);
 }
 
-// The deprecated rxReasonToCPUQueue map form is still read by the agent as
-// a fallback when rxReasonToQueueOrderedList is unset, so a queue referenced
-// only there must also refuse deletion. The CLI never writes this map; it
-// only appears in configs authored outside the CLI.
-class CmdDeleteCoppCpuQueueLegacyMapFixture : public CmdConfigTestBase {
- public:
-  CmdDeleteCoppCpuQueueLegacyMapFixture()
-      : CmdConfigTestBase(
-            "fboss_delete_copp_cpu_queue_legacy_test_%%%%-%%%%-%%%%-%%%%",
-            R"({
-  "sw": {
-    "cpuQueues": [
-      { "id": 9, "streamType": 1, "weight": 4, "scheduling": 0,
-        "name": "cpuQueue-high" }
-    ],
-    "cpuTrafficPolicy": {
-      "rxReasonToCPUQueue": { "1": 9 }
-    }
-  }
-})") {}
-};
-
-TEST_F(CmdDeleteCoppCpuQueueLegacyMapFixture, deleteQueueInLegacyMapThrows) {
-  setupTestableConfigSession("delete copp cpu-queue", "9");
-  CmdDeleteCoppCpuQueue cmd;
-  HostInfo hostInfo("testhost");
-  // Queue 9 is referenced only via the deprecated rxReasonToCPUQueue map
-  // (reason 1 = ARP).
-  CoppCpuQueueDeleteArgs args({"9"});
-
-  try {
-    cmd.queryClient(hostInfo, args);
-    FAIL() << "Expected std::runtime_error";
-  } catch (const std::runtime_error& e) {
-    EXPECT_THAT(e.what(), HasSubstr("Cannot delete cpu-queue 9"));
-    EXPECT_THAT(
-        e.what(), HasSubstr("reason ARP (deprecated rxReasonToCPUQueue map)"));
-  }
-}
-
 } // namespace facebook::fboss

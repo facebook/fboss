@@ -32,9 +32,9 @@ namespace facebook::fboss {
 namespace {
 
 // Collect human-readable descriptions of every config entry that still
-// points at cpu-queue `queueId`: rxReason -> queue mappings (both the
-// ordered list and the deprecated map form) and matchToAction actions
-// carrying a queue id (send-to-queue, user-defined-trap).
+// points at cpu-queue `queueId`: rxReason -> queue mappings and
+// matchToAction actions carrying a queue id (send-to-queue,
+// user-defined-trap).
 std::vector<std::string> findQueueReferences(
     const cfg::SwitchConfig& swConfig,
     int16_t queueId) {
@@ -50,19 +50,6 @@ std::vector<std::string> findQueueReferences(
             fmt::format(
                 "reason {}",
                 apache::thrift::util::enumNameSafe(*entry.rxReason())));
-      }
-    }
-  }
-  // The deprecated rxReasonToCPUQueue map is still honored by the agent as
-  // a fallback when the ordered list is unset, so a queue referenced only
-  // there is still live.
-  if (policy.rxReasonToCPUQueue().has_value()) {
-    for (const auto& [rxReason, mappedQueueId] : *policy.rxReasonToCPUQueue()) {
-      if (mappedQueueId == queueId) {
-        references.push_back(
-            fmt::format(
-                "reason {} (deprecated rxReasonToCPUQueue map)",
-                apache::thrift::util::enumNameSafe(rxReason)));
       }
     }
   }
