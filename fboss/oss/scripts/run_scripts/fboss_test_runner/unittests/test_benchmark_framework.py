@@ -357,10 +357,9 @@ def test_run_basic_flow_calls_setup_teardown(
 
 
 @patch.object(BenchmarkFramework, "_list_benchmarks")
-def test_run_list_tests(mock_list, framework, bench_args, capsys):
+def test_list_tests(mock_list, framework, bench_args, capsys):
     mock_list.return_value = ["A", "B"]
-    bench_args.list_tests = True
-    framework.run(bench_args)
+    framework.list_tests(bench_args)
     out = capsys.readouterr().out
     assert "A" in out and "B" in out
 
@@ -418,13 +417,10 @@ def test_run_all_selected_unsupported_reports_skips(
 
 @patch.object(BenchmarkFramework, "_run_benchmark_binary")
 @patch.object(BenchmarkFramework, "_list_benchmarks")
-def test_run_list_tests_does_not_write_results(
-    mock_list, mock_run, framework, bench_args
-):
+def test_list_tests_does_not_write_results(mock_list, mock_run, framework, bench_args):
     mock_list.return_value = ["A"]
-    bench_args.list_tests = True
     with patch.object(framework, "_write_results_and_summary") as mock_write:
-        framework.run(bench_args)
+        framework.list_tests(bench_args)
     mock_run.assert_not_called()
     mock_write.assert_not_called()
 

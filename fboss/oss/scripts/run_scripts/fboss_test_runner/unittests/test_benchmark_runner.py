@@ -99,6 +99,7 @@ def test_run_test_delegates_to_framework_with_sai_suite(runner, args):
     suite = mock_fw.call_args[0][0]
     assert isinstance(suite, SaiBenchmarkSuite)
     mock_fw.return_value.run.assert_called_once_with(args)
+    mock_fw.return_value.list_tests.assert_not_called()
 
 
 def test_run_test_delegates_to_framework_with_qsfp_suite(runner, args):
@@ -111,3 +112,16 @@ def test_run_test_delegates_to_framework_with_qsfp_suite(runner, args):
     suite = mock_fw.call_args[0][0]
     assert isinstance(suite, QsfpBenchmarkSuite)
     mock_fw.return_value.run.assert_called_once_with(args)
+    mock_fw.return_value.list_tests.assert_not_called()
+
+
+def test_list_tests_delegates_to_framework(runner, args):
+    args.list_tests = True
+    with patch(
+        "fboss_test_runner.runners.benchmark_test_runner.BenchmarkFramework"
+    ) as mock_fw:
+        runner.list_tests(args)
+    suite = mock_fw.call_args[0][0]
+    assert isinstance(suite, SaiBenchmarkSuite)
+    mock_fw.return_value.list_tests.assert_called_once_with(args)
+    mock_fw.return_value.run.assert_not_called()

@@ -83,9 +83,22 @@ class PlatformServicesTestRunner(TestRunner):
         self._end_run()
         return all_results
 
+    @staticmethod
+    def _args_for_test_type(args: Namespace, test_type: str) -> Namespace:
+        return Namespace(
+            **{
+                **vars(args),
+                "fruid_path": None,
+                "type": test_type,
+            }
+        )
+
+    def list_tests(self, args: Namespace) -> None:
+        test_types = [args.type] if args.type else self.TEST_TYPE_CHOICES
+        for test_type in test_types:
+            super().list_tests(self._args_for_test_type(args, test_type))
+
     def run_test(self, args: Namespace) -> None:
-        args.fruid_path = None
-        types = [args.type] if args.type else self.TEST_TYPE_CHOICES
-        for test_type in types:
-            args.type = test_type
-            super().run_test(args)
+        test_types = [args.type] if args.type else self.TEST_TYPE_CHOICES
+        for test_type in test_types:
+            super().run_test(self._args_for_test_type(args, test_type))

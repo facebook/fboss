@@ -108,8 +108,14 @@ class BenchmarkTestRunner(TestRunner):
             help="Enable port manager mode (QSFP benchmarks).",
         )
 
-    def run_test(self, args: Namespace) -> None:
+    def _framework_for_args(self, args: Namespace) -> BenchmarkFramework:
         self.args = args
         if getattr(args, "qsfp", False) and not getattr(args, "qsfp_config", None):
             raise ValueError("--qsfp requires --qsfp-config to be set")
-        BenchmarkFramework(self._select_suite(args)).run(args)
+        return BenchmarkFramework(self._select_suite(args))
+
+    def list_tests(self, args: Namespace) -> None:
+        self._framework_for_args(args).list_tests(args)
+
+    def run_test(self, args: Namespace) -> None:
+        self._framework_for_args(args).run(args)

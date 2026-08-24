@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import fboss_test_runner.main as main_mod
-from fboss_test_runner.main import _parse_args, main
+from fboss_test_runner.main import _parse_args, _runner_action, main
 
 
 class ParseArgsValidationTest(unittest.TestCase):
@@ -50,6 +50,24 @@ class LogBundleFlagTest(unittest.TestCase):
             _parse_args(["--log-bundle", "sai"])
 
 
+class RunnerActionTest(unittest.TestCase):
+    def test_dispatches_list_tests(self):
+        args = _parse_args(["sai", "--list_tests"])
+        self.assertEqual(_runner_action(args).__name__, "list_tests")
+
+    def test_dispatches_run_test(self):
+        args = _parse_args(["sai"])
+        self.assertEqual(_runner_action(args).__name__, "run_test")
+
+    def test_feature_filter_implies_list_tests(self):
+        args = _parse_args(
+            ["sai_agent", "--list-tests-for-features", "DLB,ACL_COUNTER"]
+        )
+        self.assertTrue(args.list_tests)
+        self.assertEqual(args.list_tests_for_features, "DLB,ACL_COUNTER")
+        self.assertEqual(_runner_action(args).__name__, "list_tests")
+
+
 class MainLogBundleGatingTest(unittest.TestCase):
     """main() wraps the run in a LogCapture bundle only when --log-bundle is set;
     otherwise it dispatches the runner directly. (LogCapture's own behavior is
@@ -57,6 +75,7 @@ class MainLogBundleGatingTest(unittest.TestCase):
 
     def _run_main(self, *, log_bundle: bool) -> SimpleNamespace:
         dispatched = MagicMock()
+        runner = SimpleNamespace(run_test=dispatched)
         with (
             patch.object(sys, "argv", ["run_test.py", "sai"]),
             patch.dict(
@@ -69,7 +88,11 @@ class MainLogBundleGatingTest(unittest.TestCase):
             patch.object(
                 main_mod,
                 "_parse_args",
-                return_value=Namespace(func=dispatched, log_bundle=log_bundle),
+                return_value=Namespace(
+                    runner=runner,
+                    list_tests=False,
+                    log_bundle=log_bundle,
+                ),
             ),
         ):
             main()

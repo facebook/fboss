@@ -6,12 +6,14 @@ The runner has two unique behaviors worth testing: (1) per-test-type binary
 selection via a dict map with a fallback default, and (2) the multi-type
 iteration in run_test that iterates TEST_TYPE_CHOICES when --type is omitted."""
 
-from unittest.mock import MagicMock, patch
+from argparse import Namespace
+from unittest.mock import patch
 
 import pytest
 from fboss_test_runner.runners.platform_services_test_runner import (
     PlatformServicesTestRunner,
 )
+from fboss_test_runner.runners.test_runner import TestRunner
 
 
 @pytest.fixture
@@ -20,18 +22,18 @@ def platform_runner():
 
 
 def _make_args(**overrides):
-    args = MagicMock()
-    args.type = None
-    args.config = None
-    args.list_tests = False
-    args.skip_known_bad_tests = None
-    args.sai_logging = "WARN"
-    args.fboss_logging = "WARN"
-    args.test_run_timeout = 300
-    args.run_on_reference_board = False
-    for k, v in overrides.items():
-        setattr(args, k, v)
-    return args
+    values = {
+        "type": None,
+        "config": None,
+        "list_tests": False,
+        "skip_known_bad_tests": None,
+        "sai_logging": "WARN",
+        "fboss_logging": "WARN",
+        "test_run_timeout": 300,
+        "run_on_reference_board": False,
+        **overrides,
+    }
+    return Namespace(**values)
 
 
 class TestBinaryNameByType:
@@ -65,8 +67,8 @@ class TestBinaryNameByType:
 
 class TestRunTestMultiTypeIteration:
     """When --type is omitted, run_test iterates over all 7 TEST_TYPE_CHOICES,
-    setting args.type for each pass. This is the unique runner-level behavior
-    (vs the base TestRunner's single-type loop)."""
+    using a per-type argument copy for each pass. This is the unique runner-level
+    behavior (vs the base TestRunner's single-type loop)."""
 
     def test_iterates_all_test_types_when_type_none(self, platform_runner):
         seen_types = []
@@ -74,7 +76,7 @@ class TestRunTestMultiTypeIteration:
         runner_args = _make_args(list_tests=False)
 
         def capture_type():
-            seen_types.append(runner_args.type)
+            seen_types.append(platform_runner.args.type)
             return ["FakeTest.A"]
 
         with (
@@ -95,3 +97,20 @@ class TestRunTestMultiTypeIteration:
 
         # All 7 platform test types are iterated, in the order of TEST_TYPE_CHOICES.
         assert seen_types == list(PlatformServicesTestRunner.TEST_TYPE_CHOICES)
+        assert runner_args.type is None
+
+
+class TestListTestsMultiTypeIteration:
+    def test_lists_each_test_type_without_running_tests(self, platform_runner):
+        runner_args = _make_args(list_tests=True)
+
+        with (
+            patch.object(TestRunner, "list_tests") as list_tests,
+            patch.object(TestRunner, "run_test") as run_test,
+        ):
+            platform_runner.list_tests(runner_args)
+
+        assert [call.args[0].type for call in list_tests.call_args_list] == list(
+            PlatformServicesTestRunner.TEST_TYPE_CHOICES
+        )
+        run_test.assert_not_called()

@@ -5,7 +5,7 @@
 import json
 import subprocess
 import sys
-from argparse import ArgumentParser
+from argparse import Action, ArgumentParser, Namespace
 
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
@@ -33,6 +33,18 @@ ASIC_PRODUCTION_FEATURES = (
 FEATURE_LIST_PREFIX = "Feature List: "
 
 
+class _ListTestsForFeaturesAction(Action):
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: str,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, values)
+        namespace.list_tests = True
+
+
 class SaiAgentTestRunner(TestRunner):
     def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         super().add_subcommand_arguments(sub_parser)
@@ -53,6 +65,7 @@ class SaiAgentTestRunner(TestRunner):
         sub_parser.add_argument(
             OPT_ARG_LIST_TESTS_FOR_FEATURE,
             type=str,
+            action=_ListTestsForFeaturesAction,
             help="Return tests whose production feature tags are all contained "
             "in the supplied comma-separated list e.g. DLB,ACL_COUNTER,SINGLE_ACL_TABLE",
             default=None,

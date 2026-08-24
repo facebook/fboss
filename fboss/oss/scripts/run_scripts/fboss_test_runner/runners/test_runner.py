@@ -66,6 +66,10 @@ def _print_deprecation_banner(lines: list[str]) -> None:
     print(f"{border}{_RESET}\n", flush=True)
 
 
+class _TestBinaryNotFoundError(RuntimeError):
+    """Raised when the selected test binary cannot be resolved."""
+
+
 class TestRunner(abc.ABC):
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
@@ -753,7 +757,7 @@ class TestRunner(abc.ABC):
         ConsoleReporter().print_gtest_summary(results)
         CsvReporter().write_gtest_results(results)
 
-    def run_test(self, args: Namespace) -> None:
+    def _prepare_tests(self, args: Namespace) -> list[str]:
         self.args = args
         test_binary = self._get_test_binary_name()
         # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
@@ -763,11 +767,12 @@ class TestRunner(abc.ABC):
         else:
             binary_found = shutil.which(test_binary) is not None
         if not binary_found:
+            message = f"Test binary not found: {test_binary}"
             print(
-                f"Error: test binary not found: {test_binary}\n"
+                f"Error: {message}\n"
                 f"\tMake sure the binary is installed at the expected path."
             )
-            return
+            raise _TestBinaryNotFoundError(message)
 
         # Initialize test lists once at the start
         self._initialize_test_lists(args)
@@ -784,25 +789,33 @@ class TestRunner(abc.ABC):
         # Sort the tests to run to match internal test infra behavior
         tests_to_run = sorted(tests_to_run)
 
-        # Check if tests need to be run or only listed
-        if (
-            args.list_tests is False
-            and getattr(args, "list_tests_for_features", None) is None
-        ):
-            start_time = datetime.now()
-            original_conf_file = (
-                args.config if (args.config is not None) else self._get_config_path()
-            )
-            conf_file = self._backup_and_modify_config(original_conf_file)
-            results = self._run_tests(tests_to_run, conf_file, args)
-            end_time = datetime.now()
-            delta_time = end_time - start_time
-            print(
-                f"Running all tests took {delta_time} between {start_time} and {end_time}",
-                flush=True,
-            )
-            self._print_output_summary(results)
-        else:
-            # Print the filtered tests
-            for test in tests_to_run:
-                print(test)
+        return tests_to_run
+
+    def list_tests(self, args: Namespace) -> None:
+        try:
+            tests_to_run = self._prepare_tests(args)
+        except _TestBinaryNotFoundError:
+            return
+
+        for test in tests_to_run:
+            print(test)
+
+    def run_test(self, args: Namespace) -> None:
+        try:
+            tests_to_run = self._prepare_tests(args)
+        except _TestBinaryNotFoundError:
+            return
+
+        start_time = datetime.now()
+        original_conf_file = (
+            args.config if (args.config is not None) else self._get_config_path()
+        )
+        conf_file = self._backup_and_modify_config(original_conf_file)
+        results = self._run_tests(tests_to_run, conf_file, args)
+        end_time = datetime.now()
+        delta_time = end_time - start_time
+        print(
+            f"Running all tests took {delta_time} between {start_time} and {end_time}",
+            flush=True,
+        )
+        self._print_output_summary(results)

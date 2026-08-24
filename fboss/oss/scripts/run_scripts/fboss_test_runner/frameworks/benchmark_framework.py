@@ -9,6 +9,7 @@ import subprocess
 import threading
 from argparse import Namespace
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from fboss_test_runner.frameworks.benchmark_suite import BenchmarkSuite
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
@@ -19,6 +20,15 @@ from fboss_test_runner.runners.utils import (
     load_from_file,
     test_matches_any_regex,
 )
+
+
+@dataclass(frozen=True)
+class _BenchmarkSelection:
+    binary_path: str
+    benchmark_names: list[str]
+    skipped_count: int
+    platform_key: str | None
+    thresholds: dict
 
 
 class BenchmarkFramework:
@@ -436,8 +446,8 @@ class BenchmarkFramework:
 
     # ---- top-level orchestration --------------------------------------------
 
-    def run(self, args: Namespace) -> None:
-        """Discover, filter, run, threshold-check, and report benchmarks."""
+    def _prepare_benchmarks(self, args: Namespace) -> _BenchmarkSelection | None:
+        """Discover and filter benchmarks for listing or execution."""
         known_bad_regexes: list[str] = []
         unsupported_regexes: list[str] = []
         all_thresholds: dict = {}
@@ -455,17 +465,17 @@ class BenchmarkFramework:
         binary_path = self.suite.binary_path(args)
         if not os.path.isfile(binary_path):
             print(f"Error: Could not find benchmark binary: {binary_path}")
-            return
+            return None
 
         all_benchmarks = self._list_benchmarks(binary_path)
         if all_benchmarks is None:
             print("Error: Could not discover benchmarks from binary.")
-            return
+            return None
         print(f"Discovered {len(all_benchmarks)} benchmarks in binary")
 
         benchmarks_to_run = self._get_benchmarks_to_run(all_benchmarks, args)
         if not benchmarks_to_run:
-            return
+            return None
 
         benchmarks_to_run, unsupported_skipped = self._filter_unsupported(
             benchmarks_to_run, unsupported_regexes
@@ -474,29 +484,49 @@ class BenchmarkFramework:
             benchmarks_to_run, known_bad_regexes
         )
 
-        if args.list_tests:
-            for name in benchmarks_to_run:
-                print(name)
+        return _BenchmarkSelection(
+            binary_path=binary_path,
+            benchmark_names=benchmarks_to_run,
+            skipped_count=skipped_count + unsupported_skipped,
+            platform_key=platform_key,
+            thresholds=all_thresholds,
+        )
+
+    def list_tests(self, args: Namespace) -> None:
+        """Print the selected benchmark names without running them."""
+        selection = self._prepare_benchmarks(args)
+        if selection is None:
+            return
+        for name in selection.benchmark_names:
+            print(name)
+
+    def run(self, args: Namespace) -> None:
+        """Run selected benchmarks, check thresholds, and report results."""
+        selection = self._prepare_benchmarks(args)
+        if selection is None:
             return
 
-        if not benchmarks_to_run:
+        if not selection.benchmark_names:
             print("No benchmarks to run after filtering known bad/unsupported")
-            self._write_results_and_summary([], skipped_count + unsupported_skipped)
+            self._write_results_and_summary([], selection.skipped_count)
             return
 
-        print(f"\nRunning {len(benchmarks_to_run)} benchmarks")
+        print(f"\nRunning {len(selection.benchmark_names)} benchmarks")
 
         try:
             self.suite.setup(args)
             results = []
-            for name in benchmarks_to_run:
+            for name in selection.benchmark_names:
                 result = self._run_benchmark_binary(
-                    binary_path, args, benchmark_name=name
+                    selection.binary_path, args, benchmark_name=name
                 )
-                self._apply_threshold_check(result, platform_key, all_thresholds, args)
+                self._apply_threshold_check(
+                    result,
+                    selection.platform_key,
+                    selection.thresholds,
+                    args,
+                )
                 results.append(result)
-            self._write_results_and_summary(
-                results, skipped_count + unsupported_skipped
-            )
+            self._write_results_and_summary(results, selection.skipped_count)
         finally:
             self.suite.teardown(args)

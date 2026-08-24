@@ -74,7 +74,7 @@ def _build_parser() -> ArgumentParser:
             ),
         )
         runner = runner_cls()
-        parser.set_defaults(func=runner.run_test)
+        parser.set_defaults(runner=runner)
         runner.add_subcommand_arguments(parser)
 
     _register_runner(SUB_CMD_BCM, "run bcm tests", BcmTestRunner)
@@ -123,6 +123,10 @@ def _parse_args(argv: list[str] | None = None) -> Namespace:
     return args
 
 
+def _runner_action(args: Namespace):
+    return args.runner.list_tests if args.list_tests else args.runner.run_test
+
+
 def main() -> None:
     os.chdir("/opt/fboss")
 
@@ -139,14 +143,15 @@ def main() -> None:
         sys.exit(0)
 
     args = _parse_args()
+    runner_action = _runner_action(args)
 
     # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
     # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
     if not args.log_bundle:
-        args.func(args)
+        runner_action(args)
         return
 
     # LogCapture owns the per-run bundle: it creates the dir, tees output, records
     # the command, and on exit collects the logs/CSVs and zips -- even on failure.
     with LogCapture(test_type):
-        args.func(args)
+        runner_action(args)
