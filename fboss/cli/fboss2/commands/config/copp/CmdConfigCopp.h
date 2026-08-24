@@ -20,9 +20,9 @@
 
 namespace facebook::fboss {
 
-// Argument for `config copp cpu-queue <id> [<sub-cmd> <value>]`.
+// Argument for `config copp queue <id> [<sub-cmd> <value>]`.
 //
-// Accepted forms (validated by CoppCpuQueueArgs):
+// Accepted forms (validated by CoppQueueArgs):
 //   <id>                        -> ensure queue <id> exists
 //   <id> name <string>          -> set name
 //   <id> rate-limit kbps <max>  -> set max bandwidth in kbps
@@ -32,7 +32,7 @@ namespace facebook::fboss {
 // platform-bounded set; the exact cap depends on the ASIC via
 // SaiHostifManager::getMaxCpuQueues). Value parsing for <max> is deferred to
 // applyCpuQueueConfig() so error messages can name the specific attribute.
-class CoppCpuQueueArgs : public utils::BaseObjectArgType<std::string> {
+class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
  public:
   enum class Op {
     // No sub-command: just ensure the queue exists.
@@ -45,7 +45,7 @@ class CoppCpuQueueArgs : public utils::BaseObjectArgType<std::string> {
     RATE_LIMIT_PPS,
   };
 
-  /* implicit */ CoppCpuQueueArgs( // NOLINT(google-explicit-constructor)
+  /* implicit */ CoppQueueArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
   int16_t getQueueId() const {
@@ -97,9 +97,9 @@ class CoppReasonArgs : public utils::BaseObjectArgType<std::string> {
 };
 
 // The `copp` parent node itself is not usable; it only exists to dispatch to
-// cpu-queue and reason. The parent needs a handler (rather than being a pure
+// queue and reason. The parent needs a handler (rather than being a pure
 // branch node) so that addCommandBranch() increments depth before descending
-// into the leaves — without that, cpu-queue and reason would both register
+// into the leaves — without that, queue and reason would both register
 // their positional args at the same CmdArgsLists slot, and CLI11 parsing
 // collides with siblings of `config` whose names happen to also be valid
 // reason names (e.g. `arp`).
@@ -115,30 +115,30 @@ class CmdConfigCopp : public CmdHandler<CmdConfigCopp, CmdConfigCoppTraits> {
 
   RetType queryClient(const HostInfo& /* hostInfo */) {
     throw std::runtime_error(
-        "Incomplete command, please use 'cpu-queue' or 'reason' subcommand");
+        "Incomplete command, please use 'queue' or 'reason' subcommand");
   }
 
   void printOutput(const RetType& /* model */) {}
 };
 
-struct CmdConfigCoppCpuQueueTraits : public WriteCommandTraits {
+struct CmdConfigCoppQueueTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigCopp;
-  using ObjectArgType = CoppCpuQueueArgs;
+  using ObjectArgType = CoppQueueArgs;
   using RetType = std::string;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
-        "cpu_queue_config",
+        "copp_queue_config",
         args,
         "<id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
         "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
   }
 };
 
-class CmdConfigCoppCpuQueue
-    : public CmdHandler<CmdConfigCoppCpuQueue, CmdConfigCoppCpuQueueTraits> {
+class CmdConfigCoppQueue
+    : public CmdHandler<CmdConfigCoppQueue, CmdConfigCoppQueueTraits> {
  public:
-  using ObjectArgType = CmdConfigCoppCpuQueueTraits::ObjectArgType;
-  using RetType = CmdConfigCoppCpuQueueTraits::RetType;
+  using ObjectArgType = CmdConfigCoppQueueTraits::ObjectArgType;
+  using RetType = CmdConfigCoppQueueTraits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& args);
 

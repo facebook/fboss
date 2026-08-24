@@ -62,7 +62,7 @@ class CmdConfigCoppTestFixture : public CmdConfigTestBase {
 })") {}
 
  protected:
-  const std::string cpuQueueCmdPrefix_ = "config copp cpu-queue";
+  const std::string cpuQueueCmdPrefix_ = "config copp queue";
   const std::string reasonCmdPrefix_ = "config copp reason";
 
   // Helper: find the cpuQueues entry with the given id, or nullptr.
@@ -90,68 +90,65 @@ class CmdConfigCoppTestFixture : public CmdConfigTestBase {
 };
 
 // =============================================================
-// CoppCpuQueueArgs validation tests
+// CoppQueueArgs validation tests
 // =============================================================
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_idOnly) {
-  CoppCpuQueueArgs a({"0"});
+  CoppQueueArgs a({"0"});
   EXPECT_EQ(a.getQueueId(), 0);
-  EXPECT_EQ(a.getOp(), CoppCpuQueueArgs::Op::NONE);
+  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::NONE);
 
-  CoppCpuQueueArgs b({"9"});
+  CoppQueueArgs b({"9"});
   EXPECT_EQ(b.getQueueId(), 9);
-  EXPECT_EQ(b.getOp(), CoppCpuQueueArgs::Op::NONE);
+  EXPECT_EQ(b.getOp(), CoppQueueArgs::Op::NONE);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_name) {
-  CoppCpuQueueArgs a({"2", "name", "cpuQueue-mid"});
+  CoppQueueArgs a({"2", "name", "cpuQueue-mid"});
   EXPECT_EQ(a.getQueueId(), 2);
-  EXPECT_EQ(a.getOp(), CoppCpuQueueArgs::Op::NAME);
+  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::NAME);
   EXPECT_EQ(a.getName(), "cpuQueue-mid");
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimitKbps) {
-  CoppCpuQueueArgs a({"0", "rate-limit", "kbps", "1500"});
+  CoppQueueArgs a({"0", "rate-limit", "kbps", "1500"});
   EXPECT_EQ(a.getQueueId(), 0);
-  EXPECT_EQ(a.getOp(), CoppCpuQueueArgs::Op::RATE_LIMIT_KBPS);
+  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::RATE_LIMIT_KBPS);
   EXPECT_EQ(a.getRateMax(), 1500);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimitPps) {
-  CoppCpuQueueArgs a({"1", "rate-limit", "pps", "750"});
+  CoppQueueArgs a({"1", "rate-limit", "pps", "750"});
   EXPECT_EQ(a.getQueueId(), 1);
-  EXPECT_EQ(a.getOp(), CoppCpuQueueArgs::Op::RATE_LIMIT_PPS);
+  EXPECT_EQ(a.getOp(), CoppQueueArgs::Op::RATE_LIMIT_PPS);
   EXPECT_EQ(a.getRateMax(), 750);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badArity) {
-  EXPECT_THROW(CoppCpuQueueArgs({}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueArgs({"0", "name"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"0", "name"}), std::invalid_argument);
   EXPECT_THROW(
-      CoppCpuQueueArgs({"0", "name", "foo", "extra"}), std::invalid_argument);
+      CoppQueueArgs({"0", "name", "foo", "extra"}), std::invalid_argument);
   EXPECT_THROW(
-      CoppCpuQueueArgs({"0", "rate-limit", "kbps"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueArgs({"0", "rate-limit"}), std::invalid_argument);
+      CoppQueueArgs({"0", "rate-limit", "kbps"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"0", "rate-limit"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_unknownSubCmd) {
-  EXPECT_THROW(CoppCpuQueueArgs({"0", "weight", "4"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"0", "weight", "4"}), std::invalid_argument);
   EXPECT_THROW(
-      CoppCpuQueueArgs({"0", "rate-limit", "mbps", "100"}),
-      std::invalid_argument);
+      CoppQueueArgs({"0", "rate-limit", "mbps", "100"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badValues) {
-  EXPECT_THROW(CoppCpuQueueArgs({"abc"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueArgs({"-1"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueArgs({"999"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueArgs({"0", "name", ""}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"abc"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"-1"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"999"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueArgs({"0", "name", ""}), std::invalid_argument);
   EXPECT_THROW(
-      CoppCpuQueueArgs({"0", "rate-limit", "kbps", "abc"}),
-      std::invalid_argument);
+      CoppQueueArgs({"0", "rate-limit", "kbps", "abc"}), std::invalid_argument);
   EXPECT_THROW(
-      CoppCpuQueueArgs({"0", "rate-limit", "pps", "-5"}),
-      std::invalid_argument);
+      CoppQueueArgs({"0", "rate-limit", "pps", "-5"}), std::invalid_argument);
 }
 
 // =============================================================
@@ -202,14 +199,14 @@ TEST_F(CmdConfigCoppTestFixture, reasonArgs_badQueueId) {
 }
 
 // =============================================================
-// queryClient() tests — cpu-queue
+// queryClient() tests — queue
 // =============================================================
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_ensureExists) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "9");
-  CmdConfigCoppCpuQueue cmd;
+  CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueArgs args({"9"});
+  CoppQueueArgs args({"9"});
 
   auto result = cmd.queryClient(hostInfo, args);
   EXPECT_THAT(result, HasSubstr("9"));
@@ -222,11 +219,11 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_ensureExists) {
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_createIfMissing) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "5");
-  CmdConfigCoppCpuQueue cmd;
+  CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
   ASSERT_EQ(findQueue(5), nullptr);
 
-  CoppCpuQueueArgs args({"5"});
+  CoppQueueArgs args({"5"});
   cmd.queryClient(hostInfo, args);
 
   const auto* q = findQueue(5);
@@ -236,9 +233,9 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_createIfMissing) {
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setName) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "2 name cpuQueue-renamed");
-  CmdConfigCoppCpuQueue cmd;
+  CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueArgs args({"2", "name", "cpuQueue-renamed"});
+  CoppQueueArgs args({"2", "name", "cpuQueue-renamed"});
 
   auto result = cmd.queryClient(hostInfo, args);
   EXPECT_THAT(result, HasSubstr("cpuQueue-renamed"));
@@ -250,9 +247,9 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setName) {
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitKbps) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "0 rate-limit kbps 1500");
-  CmdConfigCoppCpuQueue cmd;
+  CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueArgs args({"0", "rate-limit", "kbps", "1500"});
+  CoppQueueArgs args({"0", "rate-limit", "kbps", "1500"});
 
   auto result = cmd.queryClient(hostInfo, args);
   EXPECT_THAT(result, HasSubstr("1500"));
@@ -269,9 +266,9 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitKbps) {
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitPps) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "1 rate-limit pps 2000");
-  CmdConfigCoppCpuQueue cmd;
+  CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueArgs args({"1", "rate-limit", "pps", "2000"});
+  CoppQueueArgs args({"1", "rate-limit", "pps", "2000"});
 
   auto result = cmd.queryClient(hostInfo, args);
   EXPECT_THAT(result, HasSubstr("2000"));

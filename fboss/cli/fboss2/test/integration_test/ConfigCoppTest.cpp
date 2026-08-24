@@ -5,7 +5,7 @@
  *
  * Covers the two families that mutate control-plane policing state:
  *
- *   - cpu-queue <id> [name <string> | rate-limit kbps <max> | rate-limit pps
+ *   - queue <id> [name <string> | rate-limit kbps <max> | rate-limit pps
  *     <max>] — hitless edits to entries in sw.cpuQueues[].
  *   - reason <reason-name> queue <id> — hitless upsert into
  *     sw.cpuTrafficPolicy.rxReasonToQueueOrderedList[].
@@ -52,7 +52,7 @@ class ConfigCoppTest : public Fboss2IntegrationTest {
   }
 
   // Find the cpuQueues entry with the given id, or return a null dynamic.
-  folly::dynamic findCpuQueue(int id) const {
+  folly::dynamic findQueue(int id) const {
     auto config = getRunningConfig();
     const auto& sw = config["sw"];
     if (!sw.count("cpuQueues") || !sw["cpuQueues"].isArray()) {
@@ -97,26 +97,26 @@ class ConfigCoppTest : public Fboss2IntegrationTest {
   }
 };
 
-// cpu-queue <id>: when the id already exists in the running config, the
+// queue <id>: when the id already exists in the running config, the
 // command must be a no-op. We exercise the code path and verify the queue is
 // still present (and unchanged) after commit.
 TEST_F(ConfigCoppTest, CpuQueueEnsureExistsIsNoOp) {
   int id = getFirstExistingQueueId();
-  XLOG(INFO) << "cpu-queue " << id << " (ensure-exists no-op)";
+  XLOG(INFO) << "queue " << id << " (ensure-exists no-op)";
 
-  auto before = findCpuQueue(id);
+  auto before = findQueue(id);
   ASSERT_FALSE(before.isNull());
   std::string originalName = before.count("name") && before["name"].isString()
       ? before["name"].asString()
       : "";
 
-  auto result = runCli({"config", "copp", "cpu-queue", std::to_string(id)});
+  auto result = runCli({"config", "copp", "queue", std::to_string(id)});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   EXPECT_THAT(result.stdout, HasSubstr(std::to_string(id)));
   commitConfig();
 
-  auto after = findCpuQueue(id);
+  auto after = findQueue(id);
   ASSERT_FALSE(after.isNull());
   std::string afterName = after.count("name") && after["name"].isString()
       ? after["name"].asString()
@@ -126,7 +126,7 @@ TEST_F(ConfigCoppTest, CpuQueueEnsureExistsIsNoOp) {
 
 TEST_F(ConfigCoppTest, CpuQueueSetName) {
   int id = getFirstExistingQueueId();
-  auto before = findCpuQueue(id);
+  auto before = findQueue(id);
   ASSERT_FALSE(before.isNull());
   std::string originalName = before.count("name") && before["name"].isString()
       ? before["name"].asString()
@@ -134,15 +134,15 @@ TEST_F(ConfigCoppTest, CpuQueueSetName) {
   const std::string newName = "cpuQueue-test-nos6185";
   ASSERT_NE(originalName, newName);
 
-  XLOG(INFO) << "cpu-queue " << id << " name " << newName;
-  auto result = runCli(
-      {"config", "copp", "cpu-queue", std::to_string(id), "name", newName});
+  XLOG(INFO) << "queue " << id << " name " << newName;
+  auto result =
+      runCli({"config", "copp", "queue", std::to_string(id), "name", newName});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   EXPECT_THAT(result.stdout, HasSubstr(newName));
   commitConfig();
 
-  auto after = findCpuQueue(id);
+  auto after = findQueue(id);
   ASSERT_FALSE(after.isNull());
   ASSERT_TRUE(after["name"].isString());
   EXPECT_EQ(after["name"].asString(), newName);
@@ -150,15 +150,10 @@ TEST_F(ConfigCoppTest, CpuQueueSetName) {
   XLOG(INFO) << "Restoring name to '" << originalName << "'";
   if (!originalName.empty()) {
     result = runCli(
-        {"config",
-         "copp",
-         "cpu-queue",
-         std::to_string(id),
-         "name",
-         originalName});
+        {"config", "copp", "queue", std::to_string(id), "name", originalName});
     ASSERT_EQ(result.exitCode, 0) << result.stderr;
     commitConfig();
-    EXPECT_EQ(findCpuQueue(id)["name"].asString(), originalName);
+    EXPECT_EQ(findQueue(id)["name"].asString(), originalName);
   }
 }
 
@@ -181,11 +176,11 @@ TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
              << ", originalPpsMax=" << originalPpsMax.value_or(-1);
 
   const int newPps = 1234;
-  XLOG(INFO) << "cpu-queue " << targetId << " rate-limit pps " << newPps;
+  XLOG(INFO) << "queue " << targetId << " rate-limit pps " << newPps;
   auto result = runCli(
       {"config",
        "copp",
-       "cpu-queue",
+       "queue",
        std::to_string(targetId),
        "rate-limit",
        "pps",
@@ -194,7 +189,7 @@ TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   commitConfig();
 
-  auto after = findCpuQueue(targetId);
+  auto after = findQueue(targetId);
   ASSERT_FALSE(after.isNull());
   ASSERT_TRUE(after.count("portQueueRate"));
   ASSERT_TRUE(after["portQueueRate"].count("pktsPerSec"));
@@ -205,7 +200,7 @@ TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
     result = runCli(
         {"config",
          "copp",
-         "cpu-queue",
+         "queue",
          std::to_string(targetId),
          "rate-limit",
          "pps",
@@ -213,8 +208,7 @@ TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
     ASSERT_EQ(result.exitCode, 0) << result.stderr;
     commitConfig();
     EXPECT_EQ(
-        findCpuQueue(targetId)["portQueueRate"]["pktsPerSec"]["maximum"]
-            .asInt(),
+        findQueue(targetId)["portQueueRate"]["pktsPerSec"]["maximum"].asInt(),
         *originalPpsMax);
   }
 }

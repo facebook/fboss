@@ -15,7 +15,7 @@
 #include <string>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h"
+#include "fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -31,11 +31,11 @@ namespace facebook::fboss {
 // send-to-queue action, and queue 6 only by the matchToAction
 // user-defined-trap action — covering each side of the referenced-queue
 // guard.
-class CmdDeleteCoppCpuQueueTestFixture : public CmdConfigTestBase {
+class CmdDeleteCoppQueueTestFixture : public CmdConfigTestBase {
  public:
-  CmdDeleteCoppCpuQueueTestFixture()
+  CmdDeleteCoppQueueTestFixture()
       : CmdConfigTestBase(
-            "fboss_delete_copp_cpu_queue_test_%%%%-%%%%-%%%%-%%%%",
+            "fboss_delete_copp_queue_test_%%%%-%%%%-%%%%-%%%%",
             R"({
   "sw": {
     "cpuQueues": [
@@ -77,7 +77,7 @@ class CmdDeleteCoppCpuQueueTestFixture : public CmdConfigTestBase {
 })") {}
 
  protected:
-  const std::string cmdPrefix_ = "delete copp cpu-queue";
+  const std::string cmdPrefix_ = "delete copp queue";
 
   // Helper: find the cpuQueues entry with the given id, or nullptr.
   const cfg::PortQueue* findQueue(int16_t id) const {
@@ -92,40 +92,40 @@ class CmdDeleteCoppCpuQueueTestFixture : public CmdConfigTestBase {
 };
 
 // =============================================================
-// CoppCpuQueueDeleteArgs validation tests
+// CoppQueueDeleteArgs validation tests
 // =============================================================
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, argsIdOnly) {
-  CoppCpuQueueDeleteArgs a({"9"});
+TEST_F(CmdDeleteCoppQueueTestFixture, argsIdOnly) {
+  CoppQueueDeleteArgs a({"9"});
   EXPECT_EQ(a.getQueueId(), 9);
 }
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, argsInvalid) {
+TEST_F(CmdDeleteCoppQueueTestFixture, argsInvalid) {
   // Empty
-  EXPECT_THROW(CoppCpuQueueDeleteArgs({}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueDeleteArgs({}), std::invalid_argument);
 
   // Bad queue id
-  EXPECT_THROW(CoppCpuQueueDeleteArgs({"abc"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueDeleteArgs({"-1"}), std::invalid_argument);
-  EXPECT_THROW(CoppCpuQueueDeleteArgs({"999"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueDeleteArgs({"abc"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueDeleteArgs({"-1"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueDeleteArgs({"999"}), std::invalid_argument);
 
   // No per-attribute sub-commands are accepted
-  EXPECT_THROW(CoppCpuQueueDeleteArgs({"9", "name"}), std::invalid_argument);
+  EXPECT_THROW(CoppQueueDeleteArgs({"9", "name"}), std::invalid_argument);
 }
 
 // =============================================================
 // Whole-queue delete
 // =============================================================
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteWholeQueue) {
+TEST_F(CmdDeleteCoppQueueTestFixture, deleteWholeQueue) {
   setupTestableConfigSession(cmdPrefix_, "0");
-  CmdDeleteCoppCpuQueue cmd;
+  CmdDeleteCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueDeleteArgs args({"0"});
+  CoppQueueDeleteArgs args({"0"});
 
   ASSERT_NE(findQueue(0), nullptr);
   auto result = cmd.queryClient(hostInfo, args);
-  EXPECT_THAT(result, HasSubstr("Deleted cpu-queue 0"));
+  EXPECT_THAT(result, HasSubstr("Deleted queue 0"));
 
   EXPECT_EQ(findQueue(0), nullptr);
   // Siblings untouched.
@@ -134,18 +134,18 @@ TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteWholeQueue) {
   EXPECT_NE(findQueue(1), nullptr);
 }
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteQueueReferencedByReasonThrows) {
+TEST_F(CmdDeleteCoppQueueTestFixture, deleteQueueReferencedByReasonThrows) {
   setupTestableConfigSession(cmdPrefix_, "9");
-  CmdDeleteCoppCpuQueue cmd;
+  CmdDeleteCoppQueue cmd;
   HostInfo hostInfo("testhost");
   // Queue 9 is referenced by the NDP, ARP, and BGP reason mappings.
-  CoppCpuQueueDeleteArgs args({"9"});
+  CoppQueueDeleteArgs args({"9"});
 
   try {
     cmd.queryClient(hostInfo, args);
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_THAT(e.what(), HasSubstr("Cannot delete cpu-queue 9"));
+    EXPECT_THAT(e.what(), HasSubstr("Cannot delete queue 9"));
     EXPECT_THAT(e.what(), HasSubstr("reason NDP"));
     EXPECT_THAT(e.what(), HasSubstr("reason ARP"));
     EXPECT_THAT(e.what(), HasSubstr("reason BGP"));
@@ -154,49 +154,49 @@ TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteQueueReferencedByReasonThrows) {
   EXPECT_NE(findQueue(9), nullptr);
 }
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteQueueReferencedByMatcherThrows) {
+TEST_F(CmdDeleteCoppQueueTestFixture, deleteQueueReferencedByMatcherThrows) {
   setupTestableConfigSession(cmdPrefix_, "4");
-  CmdDeleteCoppCpuQueue cmd;
+  CmdDeleteCoppQueue cmd;
   HostInfo hostInfo("testhost");
   // Queue 4 is referenced only by the cpuPolicy-mid send-to-queue action.
-  CoppCpuQueueDeleteArgs args({"4"});
+  CoppQueueDeleteArgs args({"4"});
 
   try {
     cmd.queryClient(hostInfo, args);
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_THAT(e.what(), HasSubstr("Cannot delete cpu-queue 4"));
+    EXPECT_THAT(e.what(), HasSubstr("Cannot delete queue 4"));
     EXPECT_THAT(e.what(), HasSubstr("matcher 'cpuPolicy-mid' send-to-queue"));
   }
   EXPECT_NE(findQueue(4), nullptr);
 }
 
 TEST_F(
-    CmdDeleteCoppCpuQueueTestFixture,
+    CmdDeleteCoppQueueTestFixture,
     deleteQueueReferencedByUserDefinedTrapThrows) {
   setupTestableConfigSession(cmdPrefix_, "6");
-  CmdDeleteCoppCpuQueue cmd;
+  CmdDeleteCoppQueue cmd;
   HostInfo hostInfo("testhost");
   // Queue 6 is referenced only by the cpuPolicy-trap user-defined-trap
   // action.
-  CoppCpuQueueDeleteArgs args({"6"});
+  CoppQueueDeleteArgs args({"6"});
 
   try {
     cmd.queryClient(hostInfo, args);
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_THAT(e.what(), HasSubstr("Cannot delete cpu-queue 6"));
+    EXPECT_THAT(e.what(), HasSubstr("Cannot delete queue 6"));
     EXPECT_THAT(
         e.what(), HasSubstr("matcher 'cpuPolicy-trap' user-defined-trap"));
   }
   EXPECT_NE(findQueue(6), nullptr);
 }
 
-TEST_F(CmdDeleteCoppCpuQueueTestFixture, deleteQueueNotFound) {
+TEST_F(CmdDeleteCoppQueueTestFixture, deleteQueueNotFound) {
   setupTestableConfigSession(cmdPrefix_, "5");
-  CmdDeleteCoppCpuQueue cmd;
+  CmdDeleteCoppQueue cmd;
   HostInfo hostInfo("testhost");
-  CoppCpuQueueDeleteArgs args({"5"});
+  CoppQueueDeleteArgs args({"5"});
 
   EXPECT_THROW(cmd.queryClient(hostInfo, args), std::runtime_error);
 }

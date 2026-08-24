@@ -19,11 +19,11 @@
 
 namespace facebook::fboss {
 
-// Argument for `delete copp cpu-queue <id>`, which removes the whole
+// Argument for `delete copp queue <id>`, which removes the whole
 // cpuQueues[] entry.
-class CoppCpuQueueDeleteArgs : public utils::BaseObjectArgType<std::string> {
+class CoppQueueDeleteArgs : public utils::BaseObjectArgType<std::string> {
  public:
-  /* implicit */ CoppCpuQueueDeleteArgs( // NOLINT(google-explicit-constructor)
+  /* implicit */ CoppQueueDeleteArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
   int16_t getQueueId() const {
@@ -34,21 +34,21 @@ class CoppCpuQueueDeleteArgs : public utils::BaseObjectArgType<std::string> {
   int16_t queueId_ = 0;
 };
 
-struct CmdDeleteCoppCpuQueueTraits : public WriteCommandTraits {
+struct CmdDeleteCoppQueueTraits : public WriteCommandTraits {
   using ParentCmd = CmdDeleteCopp;
-  using ObjectArgType = CoppCpuQueueDeleteArgs;
+  using ObjectArgType = CoppQueueDeleteArgs;
   using RetType = std::string;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
-        "cpu_queue_delete", args, "<id> of the CPU queue entry to delete");
+        "copp_queue_delete", args, "<id> of the CPU queue entry to delete");
   }
 };
 
-class CmdDeleteCoppCpuQueue
-    : public CmdHandler<CmdDeleteCoppCpuQueue, CmdDeleteCoppCpuQueueTraits> {
+class CmdDeleteCoppQueue
+    : public CmdHandler<CmdDeleteCoppQueue, CmdDeleteCoppQueueTraits> {
  public:
-  using ObjectArgType = CmdDeleteCoppCpuQueueTraits::ObjectArgType;
-  using RetType = CmdDeleteCoppCpuQueueTraits::RetType;
+  using ObjectArgType = CmdDeleteCoppQueueTraits::ObjectArgType;
+  using RetType = CmdDeleteCoppQueueTraits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& args);
 

@@ -32,13 +32,13 @@ namespace facebook::fboss {
 
 namespace {
 
-// Sub-command tokens accepted after `config copp cpu-queue <id>`.
+// Sub-command tokens accepted after `config copp queue <id>`.
 constexpr std::string_view kSubCmdName = "name";
 constexpr std::string_view kSubCmdRateLimit = "rate-limit";
 constexpr std::string_view kRateUnitKbps = "kbps";
 constexpr std::string_view kRateUnitPps = "pps";
 
-using copp_cpu_queue::parseQueueId;
+using copp_queue::parseQueueId;
 
 // Literal tokens accepted between the reason name and queue id in
 // `config copp reason <reason-name> queue <id>`.
@@ -68,7 +68,7 @@ int32_t parseRateMax(const std::string& s, std::string_view unit) {
 // populated cpuQueues list.
 cfg::PortQueue& findOrCreateCpuQueue(cfg::SwitchConfig& swConfig, int16_t id) {
   auto& queues = *swConfig.cpuQueues();
-  auto it = copp_cpu_queue::findCpuQueue(queues, id);
+  auto it = copp_queue::findQueue(queues, id);
   if (it != queues.end()) {
     return *it;
   }
@@ -78,12 +78,12 @@ cfg::PortQueue& findOrCreateCpuQueue(cfg::SwitchConfig& swConfig, int16_t id) {
   return queues.back();
 }
 
-void applyRateLimit(cfg::PortQueue& q, CoppCpuQueueArgs::Op op, int32_t max) {
+void applyRateLimit(cfg::PortQueue& q, CoppQueueArgs::Op op, int32_t max) {
   cfg::Range range;
   range.minimum() = 0;
   range.maximum() = max;
   cfg::PortQueueRate rate;
-  if (op == CoppCpuQueueArgs::Op::RATE_LIMIT_KBPS) {
+  if (op == CoppQueueArgs::Op::RATE_LIMIT_KBPS) {
     rate.kbitsPerSec() = range;
   } else {
     rate.pktsPerSec() = range;
@@ -93,13 +93,13 @@ void applyRateLimit(cfg::PortQueue& q, CoppCpuQueueArgs::Op op, int32_t max) {
 
 } // namespace
 
-CoppCpuQueueArgs::CoppCpuQueueArgs(std::vector<std::string> v) {
+CoppQueueArgs::CoppQueueArgs(std::vector<std::string> v) {
   if (v.empty()) {
     throw std::invalid_argument(
         "Expected <id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
         "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
   }
-  queueId_ = parseQueueId(v[0], "cpu-queue");
+  queueId_ = parseQueueId(v[0], "queue");
 
   if (v.size() == 1) {
     op_ = Op::NONE;
@@ -140,7 +140,7 @@ CoppCpuQueueArgs::CoppCpuQueueArgs(std::vector<std::string> v) {
   } else {
     throw std::invalid_argument(
         fmt::format(
-            "Unknown cpu-queue sub-command '{}'. Valid: {}, {}",
+            "Unknown queue sub-command '{}'. Valid: {}, {}",
             v[1],
             kSubCmdName,
             kSubCmdRateLimit));
@@ -174,29 +174,29 @@ namespace {
 
 std::string applyCpuQueueConfig(
     cfg::SwitchConfig& swConfig,
-    const CoppCpuQueueArgs& args) {
+    const CoppQueueArgs& args) {
   auto& q = findOrCreateCpuQueue(swConfig, args.getQueueId());
   switch (args.getOp()) {
-    case CoppCpuQueueArgs::Op::NONE:
-      return fmt::format("Ensured cpu-queue {} exists", args.getQueueId());
-    case CoppCpuQueueArgs::Op::NAME:
+    case CoppQueueArgs::Op::NONE:
+      return fmt::format("Ensured queue {} exists", args.getQueueId());
+    case CoppQueueArgs::Op::NAME:
       q.name() = args.getName();
       return fmt::format(
-          "Set cpu-queue {} name to '{}'", args.getQueueId(), args.getName());
-    case CoppCpuQueueArgs::Op::RATE_LIMIT_KBPS:
+          "Set queue {} name to '{}'", args.getQueueId(), args.getName());
+    case CoppQueueArgs::Op::RATE_LIMIT_KBPS:
       applyRateLimit(q, args.getOp(), args.getRateMax());
       return fmt::format(
-          "Set cpu-queue {} rate-limit kbps max to {}",
+          "Set queue {} rate-limit kbps max to {}",
           args.getQueueId(),
           args.getRateMax());
-    case CoppCpuQueueArgs::Op::RATE_LIMIT_PPS:
+    case CoppQueueArgs::Op::RATE_LIMIT_PPS:
       applyRateLimit(q, args.getOp(), args.getRateMax());
       return fmt::format(
-          "Set cpu-queue {} rate-limit pps max to {}",
+          "Set queue {} rate-limit pps max to {}",
           args.getQueueId(),
           args.getRateMax());
   }
-  throw std::runtime_error("Unhandled cpu-queue op");
+  throw std::runtime_error("Unhandled queue op");
 }
 
 std::string applyReasonConfig(
@@ -229,7 +229,7 @@ std::string applyReasonConfig(
 
 } // namespace
 
-CmdConfigCoppCpuQueueTraits::RetType CmdConfigCoppCpuQueue::queryClient(
+CmdConfigCoppQueueTraits::RetType CmdConfigCoppQueue::queryClient(
     const HostInfo& /* hostInfo */,
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
@@ -240,7 +240,7 @@ CmdConfigCoppCpuQueueTraits::RetType CmdConfigCoppCpuQueue::queryClient(
   return msg;
 }
 
-void CmdConfigCoppCpuQueue::printOutput(const RetType& logMsg) {
+void CmdConfigCoppQueue::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
@@ -261,8 +261,7 @@ void CmdConfigCoppReason::printOutput(const RetType& logMsg) {
 
 // Explicit template instantiations
 template void CmdHandler<CmdConfigCopp, CmdConfigCoppTraits>::run();
-template void
-CmdHandler<CmdConfigCoppCpuQueue, CmdConfigCoppCpuQueueTraits>::run();
+template void CmdHandler<CmdConfigCoppQueue, CmdConfigCoppQueueTraits>::run();
 template void CmdHandler<CmdConfigCoppReason, CmdConfigCoppReasonTraits>::run();
 
 } // namespace facebook::fboss
