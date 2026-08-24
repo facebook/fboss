@@ -359,6 +359,66 @@
           "pout2"
         ]
       }
+    },
+    "SMB.SMB_POS48V_LHS": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vmon",
+          "temp1",
+          "iin",
+          "pin"
+        ]
+      }
+    },
+    "SMB.SMB_POS48V_RHS": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vmon",
+          "temp1",
+          "iin",
+          "pin"
+        ]
+      }
+    },
+    "SMB.SMB_POS48V_OPTICS_01": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vmon",
+          "temp1",
+          "iin",
+          "pin"
+        ]
+      }
+    },
+    "SMB.SMB_POS48V_OPTICS_23": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vmon",
+          "temp1",
+          "iin",
+          "pin"
+        ]
+      }
+    },
+    "SMB.CPU_POS48V": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "vmon",
+          "temp1",
+          "iin",
+          "pin"
+        ]
+      }
     }
   }
 }

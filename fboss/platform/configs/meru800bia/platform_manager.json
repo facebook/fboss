@@ -39,7 +39,7 @@
         {
           "busName": "SCM_I2C_MASTER_0@0",
           "address": "0x40",
-          "kernelDeviceName": "pmbus",
+          "kernelDeviceName": "apmbus",
           "pmUnitScopedName": "SCM_MPS_PMBUS"
         }
       ],
@@ -237,7 +237,7 @@
         {
           "busName": "SMB_I2C_MASTER_0@0",
           "address": "0x45",
-          "kernelDeviceName": "raa228228",
+          "kernelDeviceName": "bp4a_raa228228",
           "pmUnitScopedName": "SMB_RAA228926_J3"
         },
         {
