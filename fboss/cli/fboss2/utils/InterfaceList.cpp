@@ -9,10 +9,14 @@
  */
 
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
+#include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -20,6 +24,47 @@
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss::utils {
+
+namespace {
+
+constexpr std::string_view kVlanNamePrefix = "vlan";
+
+// Parses a "vlan<digits>" SVI name (lowercase prefix, e.g. "vlan2001") into
+// its VLAN ID. Returns nullopt for any other shape.
+std::optional<VlanID> parseVlanName(const std::string& name) {
+  if (name.size() <= kVlanNamePrefix.size() ||
+      name.compare(0, kVlanNamePrefix.size(), kVlanNamePrefix) != 0) {
+    return std::nullopt;
+  }
+  auto id = folly::tryTo<int32_t>(name.substr(kVlanNamePrefix.size()));
+  if (!id.hasValue() || *id <= 0) {
+    return std::nullopt;
+  }
+  return VlanID(*id);
+}
+
+// A vlan<id> name that reached this point is unambiguously a VLAN SVI
+// reference, so report the VLAN-level cause instead of the generic
+// port-or-interface-not-found error. Never creates the VLAN or the SVI.
+[[noreturn]] void throwVlanNotResolvable(VlanID vlanId) {
+  const auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  const auto& vlans = *swConfig.vlans();
+  bool vlanExists = std::any_of(
+      vlans.cbegin(), vlans.cend(), [vlanId](const cfg::Vlan& vlan) {
+        return *vlan.id() == static_cast<int32_t>(vlanId);
+      });
+  if (vlanExists) {
+    throw std::invalid_argument(
+        fmt::format(
+            "VLAN {} has no L3 interface (SVI) configured",
+            static_cast<int32_t>(vlanId)));
+  }
+  throw std::invalid_argument(
+      fmt::format(
+          "VLAN {} not found in configuration", static_cast<int32_t>(vlanId)));
+}
+
+} // namespace
 
 InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
     : names_(std::move(names)) {
@@ -46,13 +91,23 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
       }
     } else {
       // If not found as a port, try as an interface name, then as an
-      // interface ID.
+      // interface ID, then as a "vlan<id>" SVI name.
       cfg::Interface* interface = portMap.getInterfaceByName(name);
       if (!interface) {
         // A purely-numeric name may be an interface ID.
         auto parsedInterfaceId = folly::tryTo<int32_t>(name);
         if (parsedInterfaceId.hasValue() && *parsedInterfaceId >= 0) {
           interface = portMap.getInterface(InterfaceID(*parsedInterfaceId));
+        }
+      }
+      if (!interface) {
+        // "vlan2001" names the SVI of VLAN 2001: the interface whose vlanID
+        // matches, regardless of the interface's own (often unset) name.
+        if (auto vlanId = parseVlanName(name)) {
+          interface = portMap.getInterfaceForVlan(*vlanId);
+          if (!interface && !allowMissing) {
+            throwVlanNotResolvable(*vlanId);
+          }
         }
       }
       if (interface) {
