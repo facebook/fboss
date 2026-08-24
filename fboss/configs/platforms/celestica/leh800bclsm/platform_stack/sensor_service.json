@@ -323,7 +323,7 @@
             "maxAlarmVal": 115,
             "upperCriticalVal": 120
           },
-          "compute": "2.4*@/1000.0"
+          "compute": "3*@/1000.0"
         },
         {
           "name": "HSCB_UP1_XP48R0V_HOTSWAP_TEMP",
