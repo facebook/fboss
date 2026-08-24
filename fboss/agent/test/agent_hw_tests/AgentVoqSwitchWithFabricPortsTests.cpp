@@ -533,6 +533,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
     setForceTrafficOverFabric(true);
     std::string out;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // Start with a blank command first and then set the FDA drop threshold
+      // This is because, sometimes first diag command doesn't work in some SDK
+      // versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchId);
       getAgentEnsemble()->runDiagCommand(
           "setreg FDA_OFM_CLASS_DROP_TH_CORE 0x001001001001001001001001\n",
           out,

@@ -1808,6 +1808,12 @@ class AgentSflowMirrorEventorTest
   void setSflowTruncation(bool truncate) {
     // Set truncation using shell command, since this is not supported by SDK.
     std::string out;
+    // Start with a blank command first and then set the truncation
+    // This is because, sometimes first diag command doesn't work in some SDK
+    // versions and in FBOSS OSS
+    for (const auto& [switchId, _] : getAsics()) {
+      getAgentEnsemble()->runDiagCommand("\n", out, switchId);
+    }
     for (int core = 0; core < 4; ++core) {
       for (const auto& [switchId, _] : getAsics()) {
         getAgentEnsemble()->runDiagCommand(
