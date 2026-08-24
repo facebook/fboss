@@ -44,6 +44,8 @@ cpp_unittest(
         "CmdDeleteAclRuleTest.cpp",
         "CmdDeleteArpTest.cpp",
         "CmdDeleteConfigInterfaceTest.cpp",
+        "CmdDeleteCoppCpuQueueTest.cpp",
+        "CmdDeleteCoppReasonTest.cpp",
         "CmdDeleteDhcpTest.cpp",
         "CmdDeleteInterfaceIpv6NdpTest.cpp",
         "CmdDeleteInterfaceTest.cpp",

@@ -826,6 +826,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h
+  fboss/cli/fboss2/commands/config/copp/CoppUtils.cpp
+  fboss/cli/fboss2/commands/config/copp/CoppUtils.h
   fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.cpp
   fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h
   fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.cpp
@@ -1096,6 +1098,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.cpp
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
+  fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.cpp
+  fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h
+  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.cpp
+  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h
+  fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
+  fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
