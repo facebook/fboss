@@ -25,7 +25,6 @@
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h"
-#include "fboss/cli/fboss2/commands/config/interface/sflow/sample_dest/CmdConfigInterfaceSflowSampleDest.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -142,7 +141,6 @@
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h"
-#include "fboss/cli/fboss2/commands/delete/interface/sflow/sample_dest/CmdDeleteInterfaceSflowSampleDest.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
@@ -284,15 +282,9 @@ const CommandTree& kConfigCommandTree() {
            },
            {
                "sflow",
-               "Configure sFlow settings",
+               "Configure sFlow settings: sample-dest <cpu|mirror>",
                commandHandler<CmdConfigInterfaceSflow>,
-               argTypeHandler<CmdConfigInterfaceSflowTraits>,
-               {{
-                   "sample-dest",
-                   "Set the sFlow sample destination: <cpu|mirror>",
-                   commandHandler<CmdConfigInterfaceSflowSampleDest>,
-                   argRegistrar<CmdConfigInterfaceSflowSampleDestTraits>,
-               }},
+               argRegistrar<CmdConfigInterfaceSflowTraits>,
            },
            {
                "switchport",
@@ -1115,15 +1107,9 @@ const CommandTree& kConfigCommandTree() {
            },
            {
                "sflow",
-               "Delete (reset to default) sFlow settings for interface",
+               "Delete (reset to default) sFlow settings for interface: sample-dest",
                commandHandler<CmdDeleteInterfaceSflow>,
-               argTypeHandler<CmdDeleteInterfaceSflowTraits>,
-               {{
-                   "sample-dest",
-                   "Clear the sFlow sample destination",
-                   commandHandler<CmdDeleteInterfaceSflowSampleDest>,
-                   argTypeHandler<CmdDeleteInterfaceSflowSampleDestTraits>,
-               }},
+               argRegistrar<CmdDeleteInterfaceSflowTraits>,
            }},
       },
 

@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "fboss/cli/fboss2/commands/config/interface/sflow/sample_dest/CmdConfigInterfaceSflowSampleDest.h"
-#include "fboss/cli/fboss2/commands/delete/interface/sflow/sample_dest/CmdDeleteInterfaceSflowSampleDest.h"
+#include "fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h"
+#include "fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
@@ -73,31 +73,19 @@ class CmdConfigInterfaceSflowSampleDestTestFixture : public CmdConfigTestBase {
   }
 };
 
-// SampleDestValue validation
+// SflowAttrArgs / SflowDeleteAttrArg arity validation
 
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueCpu) {
-  EXPECT_EQ(
-      SampleDestValue({"cpu"}).getDestination(), cfg::SampleDestination::CPU);
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, configArgsWrongArity) {
+  EXPECT_THROW(SflowAttrArgs({}), std::invalid_argument);
+  EXPECT_THROW(SflowAttrArgs({"sample-dest"}), std::invalid_argument);
+  EXPECT_THROW(
+      SflowAttrArgs({"sample-dest", "cpu", "extra"}), std::invalid_argument);
 }
 
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueMirror) {
-  EXPECT_EQ(
-      SampleDestValue({"mirror"}).getDestination(),
-      cfg::SampleDestination::MIRROR);
-}
-
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueCaseInsensitive) {
-  EXPECT_EQ(
-      SampleDestValue({"CPU"}).getDestination(), cfg::SampleDestination::CPU);
-}
-
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueInvalid) {
-  EXPECT_THROW(SampleDestValue({"collector"}), std::invalid_argument);
-}
-
-TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueWrongArity) {
-  EXPECT_THROW(SampleDestValue({}), std::invalid_argument);
-  EXPECT_THROW(SampleDestValue({"cpu", "mirror"}), std::invalid_argument);
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteArgsWrongArity) {
+  EXPECT_THROW(SflowDeleteAttrArg({}), std::invalid_argument);
+  EXPECT_THROW(
+      SflowDeleteAttrArg({"sample-dest", "extra"}), std::invalid_argument);
 }
 
 // config queryClient
@@ -105,10 +93,10 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueWrongArity) {
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setCpu) {
   ASSERT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
 
-  auto cmd = CmdConfigInterfaceSflowSampleDest();
+  auto cmd = CmdConfigInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1"});
-  auto result =
-      cmd.queryClient(localhost(), interfaces, SampleDestValue({"cpu"}));
+  auto result = cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "cpu"}));
 
   EXPECT_THAT(result, HasSubstr("eth1/1/1"));
   EXPECT_THAT(result, HasSubstr("cpu"));
@@ -118,11 +106,39 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setCpu) {
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, setMirror) {
-  auto cmd = CmdConfigInterfaceSflowSampleDest();
+  auto cmd = CmdConfigInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1"});
-  cmd.queryClient(localhost(), interfaces, SampleDestValue({"mirror"}));
+  cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "mirror"}));
 
   EXPECT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::MIRROR);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueCaseInsensitive) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"SAMPLE-DEST", "CPU"}));
+
+  EXPECT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::CPU);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, valueInvalid) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"sample-dest", "collector"})),
+      std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, unknownAttr) {
+  auto cmd = CmdConfigInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"ingress-rate", "100"})),
+      std::invalid_argument);
 }
 
 TEST_F(
@@ -130,15 +146,17 @@ TEST_F(
     mirrorRefusedWithEgressSampling) {
   // eth1/2/1 has sFlowEgressRate 512; the agent rejects MIRROR with egress
   // sampling, so the CLI must refuse before touching the config.
-  auto cmd = CmdConfigInterfaceSflowSampleDest();
+  auto cmd = CmdConfigInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/2/1"});
   EXPECT_THROW(
-      cmd.queryClient(localhost(), interfaces, SampleDestValue({"mirror"})),
+      cmd.queryClient(
+          localhost(), interfaces, SflowAttrArgs({"sample-dest", "mirror"})),
       std::invalid_argument);
   EXPECT_EQ(sampleDestOf("eth1/2/1"), std::nullopt);
 
   // CPU is fine on the same port.
-  cmd.queryClient(localhost(), interfaces, SampleDestValue({"cpu"}));
+  cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "cpu"}));
   EXPECT_EQ(sampleDestOf("eth1/2/1"), cfg::SampleDestination::CPU);
 }
 
@@ -147,16 +165,17 @@ TEST_F(
     mixedListReportsSkippedNonPortNames) {
   // vlan1 resolves only as an L3 interface — sampleDest is a Port attribute,
   // so the command must name it as skipped instead of silently succeeding.
-  auto cmd = CmdConfigInterfaceSflowSampleDest();
+  auto cmd = CmdConfigInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1", "vlan1"});
-  auto result =
-      cmd.queryClient(localhost(), interfaces, SampleDestValue({"cpu"}));
+  auto result = cmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "cpu"}));
 
   EXPECT_THAT(result, HasSubstr("skipped (no port): vlan1"));
   EXPECT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::CPU);
 
-  auto deleteCmd = CmdDeleteInterfaceSflowSampleDest();
-  auto deleteResult = deleteCmd.queryClient(localhost(), interfaces);
+  auto deleteCmd = CmdDeleteInterfaceSflow();
+  auto deleteResult = deleteCmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
   EXPECT_THAT(deleteResult, HasSubstr("skipped (no port): vlan1"));
   EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
 }
@@ -164,23 +183,26 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSflowSampleDestTestFixture,
     setThrowsOnEmptyInterfaceList) {
-  auto cmd = CmdConfigInterfaceSflowSampleDest();
+  auto cmd = CmdConfigInterfaceSflow();
   utils::InterfaceList emptyInterfaces({});
   EXPECT_THROW(
-      cmd.queryClient(localhost(), emptyInterfaces, SampleDestValue({"cpu"})),
+      cmd.queryClient(
+          localhost(), emptyInterfaces, SflowAttrArgs({"sample-dest", "cpu"})),
       std::invalid_argument);
 }
 
 // delete queryClient
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsSampleDest) {
-  auto configCmd = CmdConfigInterfaceSflowSampleDest();
+  auto configCmd = CmdConfigInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1"});
-  configCmd.queryClient(localhost(), interfaces, SampleDestValue({"cpu"}));
+  configCmd.queryClient(
+      localhost(), interfaces, SflowAttrArgs({"sample-dest", "cpu"}));
   ASSERT_EQ(sampleDestOf("eth1/1/1"), cfg::SampleDestination::CPU);
 
-  auto deleteCmd = CmdDeleteInterfaceSflowSampleDest();
-  auto result = deleteCmd.queryClient(localhost(), interfaces);
+  auto deleteCmd = CmdDeleteInterfaceSflow();
+  auto result = deleteCmd.queryClient(
+      localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
 
   EXPECT_THAT(result, HasSubstr("Reset sFlow sample destination"));
   EXPECT_THAT(result, HasSubstr("eth1/1/1"));
@@ -188,22 +210,33 @@ TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteClearsSampleDest) {
 }
 
 TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteIsIdempotent) {
-  auto cmd = CmdDeleteInterfaceSflowSampleDest();
+  auto cmd = CmdDeleteInterfaceSflow();
   utils::InterfaceList interfaces({"eth1/1/1"});
 
-  cmd.queryClient(localhost(), interfaces);
-  cmd.queryClient(localhost(), interfaces);
+  cmd.queryClient(localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
+  cmd.queryClient(localhost(), interfaces, SflowDeleteAttrArg({"sample-dest"}));
 
   EXPECT_EQ(sampleDestOf("eth1/1/1"), std::nullopt);
+}
+
+TEST_F(CmdConfigInterfaceSflowSampleDestTestFixture, deleteUnknownAttrThrows) {
+  auto cmd = CmdDeleteInterfaceSflow();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(), interfaces, SflowDeleteAttrArg({"ingress-rate"})),
+      std::invalid_argument);
 }
 
 TEST_F(
     CmdConfigInterfaceSflowSampleDestTestFixture,
     deleteThrowsOnEmptyInterfaceList) {
-  auto cmd = CmdDeleteInterfaceSflowSampleDest();
+  auto cmd = CmdDeleteInterfaceSflow();
   utils::InterfaceList emptyInterfaces({});
   EXPECT_THROW(
-      cmd.queryClient(localhost(), emptyInterfaces), std::invalid_argument);
+      cmd.queryClient(
+          localhost(), emptyInterfaces, SflowDeleteAttrArg({"sample-dest"})),
+      std::invalid_argument);
 }
 
 } // namespace facebook::fboss

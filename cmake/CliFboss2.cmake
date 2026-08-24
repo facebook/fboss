@@ -846,8 +846,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
   fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.cpp
   fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h
-  fboss/cli/fboss2/commands/config/interface/sflow/sample_dest/CmdConfigInterfaceSflowSampleDest.cpp
-  fboss/cli/fboss2/commands/config/interface/sflow/sample_dest/CmdConfigInterfaceSflowSampleDest.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
   fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.cpp
   fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h
@@ -1090,8 +1088,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.cpp
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h
-  fboss/cli/fboss2/commands/delete/interface/sflow/sample_dest/CmdDeleteInterfaceSflowSampleDest.cpp
-  fboss/cli/fboss2/commands/delete/interface/sflow/sample_dest/CmdDeleteInterfaceSflowSampleDest.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.cpp
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp

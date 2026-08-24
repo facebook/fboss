@@ -10,15 +10,44 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
 
+// Parses the two positional tokens of
+//   config interface <name> sflow <attr> <value>
+// where <attr> is currently one of: sample-dest.
+class SflowAttrArgs : public utils::BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ SflowAttrArgs( // NOLINT(google-explicit-constructor)
+      std::vector<std::string> v);
+
+  const std::string& attr() const {
+    return attr_;
+  }
+  const std::string& value() const {
+    return value_;
+  }
+
+ private:
+  std::string attr_;
+  std::string value_;
+};
+
 struct CmdConfigInterfaceSflowTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigInterface;
-  using ObjectArgType = std::monostate;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "sflow_attr",
+        args,
+        "<attr> <value> where <attr> is one of: sample-dest");
+  }
+  using ObjectArgType = SflowAttrArgs;
   using RetType = std::string;
 };
 
@@ -26,17 +55,15 @@ class CmdConfigInterfaceSflow : public CmdHandler<
                                     CmdConfigInterfaceSflow,
                                     CmdConfigInterfaceSflowTraits> {
  public:
-  RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const utils::InterfaceList& interfaces) {
-    if (interfaces.empty()) {
-      throw std::invalid_argument("No interface name provided");
-    }
-    throw std::runtime_error(
-        "Incomplete command, please use one of the subcommands (e.g. sample-dest)");
-  }
+  using ObjectArgType = CmdConfigInterfaceSflowTraits::ObjectArgType;
+  using RetType = CmdConfigInterfaceSflowTraits::RetType;
 
-  void printOutput(const RetType& /* model */) {}
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const utils::InterfaceList& interfaces,
+      const ObjectArgType& sflowAttr);
+
+  void printOutput(const RetType& logMsg);
 };
 
 } // namespace facebook::fboss
