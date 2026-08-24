@@ -1,0 +1,212 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <folly/String.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include <algorithm>
+#include <string>
+#include <vector>
+
+#include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
+
+using namespace ::testing;
+
+namespace facebook::fboss {
+
+// IP add/remove on VLAN SVIs, addressed as "vlan<id>". The name resolves to
+// the interface whose vlanID matches, so SVIs are reachable even though their
+// interface name is unset or auto-generated (fboss<id>). Seed:
+//   2001 - SVI-backed VLAN: interface fboss2001 (vlanID 2001) with one v4 and
+//          one v6 address
+//   2002 - VLAN with no interface: SVI address commands must refuse
+//   eth1/1/1 - port-backed L3 interface: existing behavior must not change
+class CmdConfigInterfaceVlanIpTestFixture : public CmdConfigTestBase {
+ public:
+  CmdConfigInterfaceVlanIpTestFixture()
+      : CmdConfigTestBase(
+            "config_interface_vlan_ip_test_%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "vlans": [
+      {"id": 2001, "name": "Vlan2001"},
+      {"id": 2002, "name": "Vlan2002"}
+    ],
+    "interfaces": [
+      {"intfID": 2001, "vlanID": 2001, "name": "fboss2001", "routerID": 0,
+       "ipAddresses": ["10.0.1.1/24", "2001:db8:1::1/64"]},
+      {"intfID": 1, "vlanID": 1, "portID": 1, "name": "eth1/1/1",
+       "routerID": 0, "ipAddresses": []}
+    ],
+    "ports": [
+      {"logicalID": 1, "name": "eth1/1/1", "ingressVlan": 1}
+    ],
+    "vlanPorts": [
+      {"vlanID": 2001, "logicalPort": 2}
+    ]
+  }
+})") {}
+
+ protected:
+  cfg::SwitchConfig& swConfig() {
+    return *ConfigSession::getInstance().getAgentConfig().sw();
+  }
+
+  cfg::Interface& sviInterface() {
+    auto& intfs = *swConfig().interfaces();
+    auto it = std::find_if(intfs.begin(), intfs.end(), [](const auto& i) {
+      return *i.intfID() == 2001;
+    });
+    EXPECT_NE(it, intfs.end());
+    return *it;
+  }
+
+  std::string configIp(const std::vector<std::string>& args) {
+    setupTestableConfigSession("config interface", folly::join(" ", args));
+    CmdConfigInterface cmd;
+    return cmd.queryClient(localhost(), InterfacesConfig(args));
+  }
+
+  std::string deleteIp(const std::vector<std::string>& args) {
+    setupTestableConfigSession("delete interface", folly::join(" ", args));
+    CmdDeleteInterface cmd;
+    return cmd.queryClient(localhost(), InterfaceDeleteConfig(args));
+  }
+};
+
+// ============================================================================
+// Add
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, addV4ToSvi) {
+  auto result = configIp({"vlan2001", "ip-address", "10.0.2.1/24"});
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(*sviInterface().ipAddresses(), Contains("10.0.2.1/24"));
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, addV6ToSvi) {
+  auto result = configIp({"vlan2001", "ipv6-address", "2001:db8:2::1/64"});
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(*sviInterface().ipAddresses(), Contains("2001:db8:2::1/64"));
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, duplicateAddIsIdempotent) {
+  auto result = configIp({"vlan2001", "ip-address", "10.0.1.1/24"});
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_EQ(
+      std::count(
+          sviInterface().ipAddresses()->begin(),
+          sviInterface().ipAddresses()->end(),
+          "10.0.1.1/24"),
+      1);
+}
+
+// ============================================================================
+// Delete
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, deleteV4FromSvi) {
+  auto result = deleteIp({"vlan2001", "ip-address", "10.0.1.1/24"});
+  EXPECT_THAT(result, HasSubstr("Successfully removed"));
+  EXPECT_THAT(*sviInterface().ipAddresses(), Not(Contains("10.0.1.1/24")));
+  // The other family's address is untouched.
+  EXPECT_THAT(*sviInterface().ipAddresses(), Contains("2001:db8:1::1/64"));
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, deleteV6FromSvi) {
+  auto result = deleteIp({"vlan2001", "ipv6-address", "2001:db8:1::1/64"});
+  EXPECT_THAT(result, HasSubstr("Successfully removed"));
+  EXPECT_THAT(*sviInterface().ipAddresses(), Not(Contains("2001:db8:1::1/64")));
+}
+
+TEST_F(
+    CmdConfigInterfaceVlanIpTestFixture,
+    deleteAbsentAddressReportsNoChange) {
+  auto result = deleteIp({"vlan2001", "ip-address", "10.9.9.9/24"});
+  EXPECT_THAT(result, HasSubstr("not configured"));
+  EXPECT_THAT(*sviInterface().ipAddresses(), Contains("10.0.1.1/24"));
+}
+
+// ============================================================================
+// Refusals
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, familyMismatchRejected) {
+  setupTestableConfigSession();
+  CmdConfigInterface cmd;
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          InterfacesConfig({"vlan2001", "ip-address", "2001:db8::1/64"})),
+      std::invalid_argument);
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          InterfacesConfig({"vlan2001", "ipv6-address", "10.0.0.1/24"})),
+      std::invalid_argument);
+  // Nothing was mutated.
+  EXPECT_EQ(sviInterface().ipAddresses()->size(), 2);
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, unknownVlanRejected) {
+  setupTestableConfigSession();
+  try {
+    InterfacesConfig config({"vlan999", "ip-address", "10.0.0.1/24"});
+    FAIL() << "expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("VLAN 999 not found"));
+  }
+  // No VLAN or interface was created as a side effect.
+  const auto& vlans = *swConfig().vlans();
+  EXPECT_TRUE(std::none_of(vlans.begin(), vlans.end(), [](const auto& v) {
+    return *v.id() == 999;
+  }));
+  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, vlanWithoutSviRejected) {
+  setupTestableConfigSession();
+  try {
+    InterfacesConfig config({"vlan2002", "ip-address", "10.0.0.1/24"});
+    FAIL() << "expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("no L3 interface"));
+  }
+  // The interface was not auto-created.
+  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+}
+
+// ============================================================================
+// Existing behavior is preserved
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, portInterfaceBehaviorUnchanged) {
+  configIp({"eth1/1/1", "ip-address", "192.168.1.1/24"});
+  const auto& intfs = *swConfig().interfaces();
+  auto it = std::find_if(intfs.begin(), intfs.end(), [](const auto& i) {
+    return *i.intfID() == 1;
+  });
+  ASSERT_NE(it, intfs.end());
+  EXPECT_THAT(*it->ipAddresses(), Contains("192.168.1.1/24"));
+}
+
+// SVI address changes leave the VLAN objects, membership, and unrelated
+// interfaces alone.
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, noUnrelatedMutation) {
+  configIp({"vlan2001", "ip-address", "10.0.3.1/24"});
+  for (const auto& v : *swConfig().vlans()) {
+    EXPECT_THAT(*v.ipAddresses(), IsEmpty());
+  }
+  EXPECT_EQ(swConfig().vlanPorts()->size(), 1);
+  EXPECT_EQ(*swConfig().vlanPorts()->at(0).vlanID(), 2001);
+  const auto& intfs = *swConfig().interfaces();
+  auto eth = std::find_if(intfs.begin(), intfs.end(), [](const auto& i) {
+    return *i.intfID() == 1;
+  });
+  ASSERT_NE(eth, intfs.end());
+  EXPECT_THAT(*eth->ipAddresses(), IsEmpty());
+}
+
+} // namespace facebook::fboss

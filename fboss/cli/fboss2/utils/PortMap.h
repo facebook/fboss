@@ -127,6 +127,14 @@ class PortMap {
   cfg::Interface* FOLLY_NULLABLE
   getInterfaceByName(const std::string& interfaceName) const;
 
+  /**
+   * Get a pointer to the Interface object (SVI) associated with a VLAN.
+   *
+   * @param vlanId The VLAN ID
+   * @return Pointer to the Interface whose vlanID matches, nullptr otherwise
+   */
+  cfg::Interface* FOLLY_NULLABLE getInterfaceForVlan(VlanID vlanId) const;
+
  private:
   // Map from port name to port logical ID
   std::unordered_map<std::string, PortID> portNameToLogicalId_;
