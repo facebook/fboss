@@ -217,10 +217,15 @@ chmod 777 "${TARGET_DIR}"
 
 rm -f "${DESCRIPTION_DIR}/root.tar.gz" # Remove any existing tar file
 
+# Start from an empty overlay. The overlay is populated below by copying
+# root_files/ over it, and a copy can only add files: anything deleted from
+# root_files/ would otherwise survive here from an earlier build and still ship
+# in the image.
+rm -rf "${DESCRIPTION_DIR}/root"
+
 # Hardlink component artifacts to root/repos for processing in config.sh. When
 # no explicit --deps is provided, use /deps (which resolves into the
 # /image_builder filesystem) so that cp -la does not cross mount boundaries.
-rm -rf "${DESCRIPTION_DIR}/root/repos"
 mkdir -p "${DESCRIPTION_DIR}/root/repos"
 
 EFFECTIVE_DEPS_DIR="${DEPS_DIR:-/deps}"
