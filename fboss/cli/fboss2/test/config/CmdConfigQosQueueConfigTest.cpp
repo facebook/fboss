@@ -14,8 +14,9 @@
 #include <string>
 #include <vector>
 
-#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
+#include "fboss/cli/fboss2/commands/config/qos/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/PortQueueConfigUtils.h"
 
 namespace facebook::fboss {
 

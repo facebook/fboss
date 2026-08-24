@@ -34,7 +34,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
-#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
+#include "fboss/cli/fboss2/commands/config/qos/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"

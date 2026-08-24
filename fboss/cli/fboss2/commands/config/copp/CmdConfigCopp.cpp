@@ -26,10 +26,10 @@
 #include <utility>
 #include <vector>
 #include "fboss/cli/fboss2/commands/config/copp/CoppUtils.h"
-#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/cli/fboss2/utils/PortQueueConfigUtils.h"
 
 namespace facebook::fboss {
 
