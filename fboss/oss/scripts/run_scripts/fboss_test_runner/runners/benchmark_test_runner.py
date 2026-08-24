@@ -34,7 +34,7 @@ class BenchmarkTestRunner(TestRunner):
     """
 
     def _get_test_binary_name(self) -> str:
-        return self._select_suite(self.args).binary_path(self.args)
+        return self._select_suite(self.args).binary_name(self.args)
 
     def _get_warmboot_check_file(self) -> str:
         return ""

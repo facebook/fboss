@@ -785,8 +785,7 @@ class TestRunner(abc.ABC):
     def _prepare_tests(self, args: Namespace) -> list[str]:
         self.args = args
         test_binary = self._get_test_binary_name()
-        # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
-        # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).
+        # Resolve packaged binaries through the PATH configured by setup_fboss_env.
         if os.path.isabs(test_binary):
             binary_found = os.path.isfile(test_binary)
         else:

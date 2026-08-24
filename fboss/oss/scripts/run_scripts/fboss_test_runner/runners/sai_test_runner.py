@@ -44,7 +44,7 @@ class SaiTestRunner(TestRunner):
         )
 
     def _get_test_binary_name(self) -> str:
-        return "/opt/fboss/bin/sai_test-sai_impl"
+        return "sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None

@@ -6,7 +6,7 @@ from argparse import Namespace
 
 from fboss_test_runner.runners.test_runner import TestRunner
 
-LED_TEST_BINARY = "/opt/fboss/bin/led_service_hw_test"
+LED_TEST_BINARY = "led_service_hw_test"
 
 
 class LedTestRunner(TestRunner):

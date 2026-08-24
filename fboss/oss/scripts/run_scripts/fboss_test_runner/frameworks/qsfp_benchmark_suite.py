@@ -8,14 +8,14 @@ from argparse import Namespace
 from fboss_test_runner.frameworks.benchmark_suite import BenchmarkSuite
 
 QSFP_BENCH_CONFIG = "./share/hw_benchmark_tests/qsfp_bench.materialized_JSON"
-QSFP_BENCH_BINARY = "/opt/fboss/bin/qsfp_hw_test_benchmark"
+QSFP_BENCH_BINARY = "qsfp_hw_test_benchmark"
 QSFP_BENCH_TARGET = "//fboss/qsfp_service/test/benchmarks:qsfp_bench_test"
 
 
 class QsfpBenchmarkSuite(BenchmarkSuite):
     """Non-agent QSFP benchmark suite (qsfp_hw_test_benchmark, --qsfp-config)."""
 
-    def binary_path(self, args: Namespace) -> str:  # noqa: ARG002
+    def binary_name(self, args: Namespace) -> str:  # noqa: ARG002
         return QSFP_BENCH_BINARY
 
     def config_path(self) -> str:

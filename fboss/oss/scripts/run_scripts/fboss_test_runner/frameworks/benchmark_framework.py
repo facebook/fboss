@@ -5,6 +5,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import threading
 from argparse import Namespace
@@ -462,9 +463,10 @@ class BenchmarkFramework:
                 f"and {len(all_thresholds)} threshold configs for '{platform_key}'"
             )
 
-        binary_path = self.suite.binary_path(args)
-        if not os.path.isfile(binary_path):
-            print(f"Error: Could not find benchmark binary: {binary_path}")
+        binary_name = self.suite.binary_name(args)
+        binary_path = shutil.which(binary_name)
+        if binary_path is None:
+            print(f"Error: Could not find benchmark binary: {binary_name}")
             return None
 
         all_benchmarks = self._list_benchmarks(binary_path)

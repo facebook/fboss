@@ -127,8 +127,14 @@ def _runner_action(args: Namespace):
     return args.runner.list_tests if args.list_tests else args.runner.run_test
 
 
+def _get_fboss_root() -> str:
+    return os.environ.get("FBOSS") or os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")
+    )
+
+
 def main() -> None:
-    os.chdir("/opt/fboss")
+    os.chdir(_get_fboss_root())
 
     # A test-type subcommand is required; derive it from argv before the (slower)
     # env setup so a bare invocation fails fast with help.

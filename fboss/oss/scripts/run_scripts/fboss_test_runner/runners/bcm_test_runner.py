@@ -17,7 +17,7 @@ class BcmTestRunner(TestRunner):
         return "/etc/coop/bcm.conf"
 
     def _get_test_binary_name(self) -> str:
-        return "/opt/fboss/bin/bcm_test"
+        return "bcm_test"
 
     def _get_warmboot_check_file(self) -> str:
         return agent_can_warm_boot_file_path(switch_index=0)

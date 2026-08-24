@@ -80,15 +80,13 @@ def test_run_test_qsfp_without_config_raises(runner, args):
 
 def test_get_test_binary_name_sai(runner, args):
     runner.args = args
-    assert (
-        runner._get_test_binary_name() == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
-    )
+    assert runner._get_test_binary_name() == "sai_all_benchmarks-sai_impl"
 
 
 def test_get_test_binary_name_qsfp(runner, args):
     args.qsfp = True
     runner.args = args
-    assert runner._get_test_binary_name() == "/opt/fboss/bin/qsfp_hw_test_benchmark"
+    assert runner._get_test_binary_name() == "qsfp_hw_test_benchmark"
 
 
 def test_run_test_delegates_to_framework_with_sai_suite(runner, args):

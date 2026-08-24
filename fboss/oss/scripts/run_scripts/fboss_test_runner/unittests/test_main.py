@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import fboss_test_runner.main as main_mod
-from fboss_test_runner.main import _parse_args, _runner_action, main
+from fboss_test_runner.main import _get_fboss_root, _parse_args, _runner_action, main
 
 
 class ParseArgsValidationTest(unittest.TestCase):
@@ -39,6 +39,21 @@ class ParseArgsValidationTest(unittest.TestCase):
     def test_results_json_is_parsed(self):
         args = _parse_args(["sai", "--results-json", "/tmp/results.json"])
         self.assertEqual(args.results_json, "/tmp/results.json")
+
+
+class FbossRootTest(unittest.TestCase):
+    def test_uses_sourced_package_root(self):
+        with patch.dict(os.environ, {"FBOSS": "/tmp/fboss-package"}):
+            self.assertEqual(_get_fboss_root(), "/tmp/fboss-package")
+
+    def test_empty_sourced_root_uses_packaged_fallback(self):
+        with patch.dict(os.environ, {"FBOSS": ""}):
+            self.assertEqual(
+                _get_fboss_root(),
+                os.path.abspath(
+                    os.path.join(os.path.dirname(main_mod.__file__), "..", "..")
+                ),
+            )
 
 
 class LogBundleFlagTest(unittest.TestCase):

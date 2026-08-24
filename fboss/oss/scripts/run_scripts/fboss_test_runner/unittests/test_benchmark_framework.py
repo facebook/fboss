@@ -21,6 +21,7 @@ from fboss_test_runner.frameworks.benchmark_framework import BenchmarkFramework
 from fboss_test_runner.frameworks.benchmark_suite import BenchmarkSuite
 
 _BIN = "/opt/fboss/bin/fake_benchmark"
+_BIN_NAME = "fake_benchmark"
 
 
 class FakeSuite(BenchmarkSuite):
@@ -31,8 +32,8 @@ class FakeSuite(BenchmarkSuite):
         self.setup_called = 0
         self.teardown_called = 0
 
-    def binary_path(self, args):
-        return _BIN
+    def binary_name(self, args):
+        return _BIN_NAME
 
     def config_path(self):
         return self._config_path
@@ -81,7 +82,7 @@ def bench_args():
 
 @pytest.fixture(autouse=True)
 def _binary_present():
-    with patch("os.path.isfile", return_value=True):
+    with patch("shutil.which", return_value=_BIN):
         yield
 
 
@@ -335,7 +336,7 @@ def _ok_result(name):
 
 
 def test_run_no_binary(framework, bench_args, capsys):
-    with patch("os.path.isfile", return_value=False):
+    with patch("shutil.which", return_value=None):
         framework.run(bench_args)
     assert "Could not find benchmark binary" in capsys.readouterr().out
 

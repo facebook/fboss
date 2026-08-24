@@ -71,9 +71,9 @@ class SaiInvariantAgentTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "/opt/fboss/bin/sai_invariant_agent_test-sai_impl"
+            return "sai_invariant_agent_test-sai_impl"
 
-        return "/opt/fboss/bin/multi_switch_invariant_agent_test"
+        return "multi_switch_invariant_agent_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
