@@ -118,6 +118,7 @@
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
 #include "fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
+#include "fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -148,6 +149,7 @@
 #include "fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h"
+#include "fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -1020,6 +1022,12 @@ const CommandTree& kConfigCommandTree() {
             }},
        }}},
 
+      {"config",
+       "traffic-counter",
+       "Create or update a named traffic counter (PACKETS,BYTES)",
+       commandHandler<CmdConfigTrafficCounter>,
+       argRegistrar<CmdConfigTrafficCounterTraits>},
+
       {
           "config",
           "vlan",
@@ -1237,6 +1245,13 @@ const CommandTree& kConfigCommandTree() {
                 argRegistrar<CmdDeleteTunnelIpInIpDecapTraits>,
             }},
        }}},
+
+      {"delete",
+       "traffic-counter",
+       "Delete a traffic counter (refuses while a traffic-policy match action "
+       "references it): <name>",
+       commandHandler<CmdDeleteTrafficCounter>,
+       argRegistrar<CmdDeleteTrafficCounterTraits>},
 
       {"delete",
        "vlan",

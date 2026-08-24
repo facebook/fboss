@@ -1044,6 +1044,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
+  fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.cpp
+  fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.h
   fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.cpp
   fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h
   fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.cpp
@@ -1100,6 +1102,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
+  fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.cpp
+  fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
