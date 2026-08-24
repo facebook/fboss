@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include <folly/logging/xlog.h>
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
@@ -752,7 +751,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>
       linkTrainingEnable;
-  linkTrainingEnable = swPort->getLinkTraining().value_or(false);
+  if (linkTrainingSupportedOnPort(swPort)) {
+    // Use config value if set, otherwise default to false (backward-compatible)
+    linkTrainingEnable = swPort->getLinkTraining().value_or(false);
+  }
 
   std::optional<bool> fdrEnable;
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
@@ -1129,6 +1131,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   };
 }
 
+bool SaiPortManager::linkTrainingSupportedOnPort(
+    const std::shared_ptr<Port>& swPort) const {
+  return platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
+      swPort->getPortType() != cfg::PortType::HYPER_PORT;
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
 static sai_int32_t cfgLlrFrameActionToSai(cfg::LlrFrameAction action) {
   switch (action) {
@@ -1336,7 +1344,8 @@ void SaiPortManager::programSerdes(
       HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS);
 #endif
 
-  bool linkTrainingEnabled = swPort->getLinkTraining().value_or(false);
+  bool linkTrainingEnabled = linkTrainingSupportedOnPort(swPort) &&
+      swPort->getLinkTraining().value_or(false);
 
   // Note: We currently use LT only on broadcom, we will need to see if any
   // attributes need to be programmed on other vendors
@@ -1459,24 +1468,14 @@ void SaiPortManager::programSerdes(
         }
       }
     }
-
-    // TODO: Remove the flag fallback once precoding is populated in all port
-    // configs.
-    const auto txPrecodingEnabled =
-        (FLAGS_montblanc_precoding ||
-         swPort->getTxPrecoding().value_or(false)) &&
-        !txPrecoding.empty();
-    const auto rxPrecodingEnabled =
-        (FLAGS_montblanc_precoding ||
-         swPort->getRxPrecoding().value_or(false)) &&
-        !rxPrecoding.empty();
-    if (rxPrecodingEnabled) {
+    // Precoding is handled by link training
+    if (!rxPrecoding.empty() && !linkTrainingEnabled) {
       SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
           rxPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxPrecodingAttr);
     }
-    if (txPrecodingEnabled) {
+    if (!txPrecoding.empty() && !linkTrainingEnabled) {
       SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
           txPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
