@@ -252,8 +252,8 @@
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_max_raw",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 122
+            "maxAlarmVal": 105,
+            "upperCriticalVal": 112
           },
           "compute": "379.10968 - 0.12984*@"
         },
@@ -262,8 +262,8 @@
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_min_raw",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 122
+            "maxAlarmVal": 105,
+            "upperCriticalVal": 112
           },
           "compute": "379.10968 - 0.12984*@"
         },
