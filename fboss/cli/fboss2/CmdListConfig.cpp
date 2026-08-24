@@ -154,6 +154,9 @@
 #include "fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h"
 #include "fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
 #include "fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
@@ -1002,8 +1005,8 @@ const CommandTree& kConfigCommandTree() {
               commandHandler<CmdConfigSrv6MySid>,
               argRegistrar<CmdConfigSrv6MySidTraits>,
               {{
-                  "add",
-                  "Add uA/uN/uDT46 entry: add entry <fn> type ...",
+                  "entry",
+                  "Configure uA/uN/uDT46 entry: <fn> type ...",
                   commandHandler<CmdConfigSrv6MySidAdd>,
                   argRegistrar<CmdConfigSrv6MySidAddTraits>,
               }},
@@ -1258,6 +1261,26 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdDeleteDhcpReplySourceOverride>,
                argRegistrar<CmdDeleteDhcpReplySourceOverrideTraits>,
            }},
+      },
+
+      {
+          "delete",
+          "srv6",
+          "Delete SRv6 MySID configuration",
+          commandHandler<CmdDeleteSrv6>,
+          argRegistrar<CmdDeleteSrv6Traits>,
+          {{
+              "my-sid",
+              "Remove an entire MySID config or one entry",
+              commandHandler<CmdDeleteSrv6MySid>,
+              argRegistrar<CmdDeleteSrv6MySidTraits>,
+              {{
+                  "entry",
+                  "Remove one MySID function entry",
+                  commandHandler<CmdDeleteSrv6MySidEntry>,
+                  argRegistrar<CmdDeleteSrv6MySidEntryTraits>,
+              }},
+          }},
       },
 
       {"delete",

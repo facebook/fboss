@@ -12,6 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
 namespace facebook::fboss {
 
@@ -25,6 +26,24 @@ TEST(CmdListConfigTest, noDuplicateSubcommands) {
   EXPECT_NO_THROW(
       CmdSubcommands().init(
           app, kCommandTree(), kAdditionalCommandTree(), kSpecialCommands()));
+
+  auto* config = utils::getSubcommandIf(app, "config");
+  ASSERT_NE(config, nullptr);
+  auto* configSrv6 = utils::getSubcommandIf(*config, "srv6");
+  ASSERT_NE(configSrv6, nullptr);
+  auto* configMySid = utils::getSubcommandIf(*configSrv6, "my-sid");
+  ASSERT_NE(configMySid, nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*configMySid, "entry"), nullptr);
+  EXPECT_EQ(utils::getSubcommandIf(*configMySid, "add"), nullptr);
+  EXPECT_EQ(utils::getSubcommandIf(*configMySid, "delete"), nullptr);
+
+  auto* deleteCmd = utils::getSubcommandIf(app, "delete");
+  ASSERT_NE(deleteCmd, nullptr);
+  auto* deleteSrv6 = utils::getSubcommandIf(*deleteCmd, "srv6");
+  ASSERT_NE(deleteSrv6, nullptr);
+  auto* deleteMySid = utils::getSubcommandIf(*deleteSrv6, "my-sid");
+  ASSERT_NE(deleteMySid, nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*deleteMySid, "entry"), nullptr);
 }
 
 } // namespace facebook::fboss
