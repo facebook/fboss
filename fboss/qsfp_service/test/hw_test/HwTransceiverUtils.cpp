@@ -237,7 +237,8 @@ void HwTransceiverUtils::verifyTransceiverSettings(
 
   verifyMediaInterfaceCompliance(tcvrState, profile, portName);
 
-  if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+  if (TransceiverManager::opticalOrActiveCable(tcvrState) &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
     // We use these profiles on Meru400biu and Meru400bfu with 200G optics in
     // a hacky configuration which invalidates the verification of datapath in
