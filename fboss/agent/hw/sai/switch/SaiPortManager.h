@@ -337,7 +337,6 @@ class SaiPortManager {
       const PortSaiId& saiPortId,
       PortID portID,
       bool linkTrainingEnabled) const;
-  bool linkTrainingSupportedOnPort(const std::shared_ptr<Port>& swPort) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(
