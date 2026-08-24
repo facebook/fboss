@@ -38,7 +38,7 @@ A worked example is in `configs/icecube800bc/spec.json`.
 
 ## `platform`
 
-Platform-wide identity. Both fields are required.
+Platform-wide identity. `name` and `silicon` are required.
 
 ```jsonc
 "platform": {
@@ -49,12 +49,24 @@ Platform-wide identity. Both fields are required.
 }
 ```
 
+If the NPU's PCIe address is not yet known, omit `pcie_address` entirely rather
+than supplying a placeholder — `{ "name": "TH6" }` is valid:
+
+```jsonc
+"platform": {
+  "name": "icecube800bc",
+  "silicon": [
+    { "name": "TH6" }
+  ]
+}
+```
+
 | Field | Type | Notes |
 |---|---|---|
 | `name` | string | Lowercase canonical name of the platform (e.g. `"icecube800bc"`). This is the name Meta uses to refer to your platform across all systems — it's the same name that is programmed in the eeprom. The name that was communicated to you by Meta. No spaces, no uppercase. |
 | `silicon` | list of objects | NPU silicon families on the platform. Always a list (even for a single NPU) so dual-NPU platforms can be expressed uniformly. |
 | `silicon[].name` | string | Canonical short token for the silicon family (e.g. `"TH6"`, `"TH5"`, `"J3"`, `"R3"`). |
-| `silicon[].pcie_address` | string | PCIe bus address of the NPU on this platform, format `BB:DD.F` (lowercase hex, e.g. `"00:01.0"`). Aggregated by Meta into the platform's PCIe presence-check list alongside per-component `pcie_address` entries. |
+| `silicon[].pcie_address` | string, optional | PCIe bus address of the NPU on this platform, format `BB:DD.F` (lowercase hex, e.g. `"00:01.0"`). Aggregated by Meta into the platform's PCIe presence-check list alongside per-component `pcie_address` entries. Omit the field if the address is not yet known — do not supply a placeholder or an empty string, both of which will fail pre-flight. |
 
 > **Component PCIe addresses** are declared per-component (see `pcie_address` in the components section), not here. Meta aggregates the silicon addresses with per-component addresses into the platform's PCIe presence-check list at onboarding time.
 

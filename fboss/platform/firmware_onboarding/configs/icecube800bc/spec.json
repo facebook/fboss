@@ -4,7 +4,7 @@
   "platform": {
     "name": "icecube800bc",
     "silicon": [
-      { "name": "TH6", "pcie_address": "00:01.0" }
+      { "name": "TH6" }
     ]
   },
 
@@ -104,7 +104,7 @@
   ],
 
   "_review_notes": [
-    "platform.silicon[0].pcie_address — '00:01.0' is a placeholder; replace with the actual NPU PCIe BB:DD.F address from the platform reference design",
+    "platform.silicon[0].pcie_address — omitted because the NPU PCIe address is not yet known; add it (BB:DD.F, from the platform reference design) once confirmed",
     "components — mirrors the current fbcode/fboss/platform/configs/icecube/fw_util.json. If icecube800bc actually has additional firmware components (e.g. fan_cpld, smb_fpga, psu) that aren't yet in fw_util.json, add them to BOTH this spec AND the platform's fw_util.json. (Note: pre-flight does NOT cross-check fw_util.json — that gate was deferred; the spec is the source of truth for the orchestrator.)",
     "components[*].location and display_location — best-effort placeholders inferred from component name conventions; confirm against the actual icecube800bc reference design",
     "components[*].field_replaceable — confirm each setting matches the actual chassis design",
