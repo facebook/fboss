@@ -28,6 +28,7 @@ from fboss_test_runner.constants import (
     OPT_ARG_NUM_WARMBOOT_ITERATIONS,
     OPT_ARG_PROFILE,
     OPT_ARG_QSFP_CONFIG_FILE,
+    OPT_ARG_RESULTS_JSON,
     OPT_ARG_SAI_LOGGING,
     OPT_ARG_SAI_REPLAYER_LOGGING,
     OPT_ARG_SAI_REPLAYER_SDK_LOG_LEVEL,
@@ -44,7 +45,14 @@ from fboss_test_runner.constants import (
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
-from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
+from fboss_test_runner.reporters.json_reporter import JsonReporter
+from fboss_test_runner.result_types import (
+    compute_exit_code,
+    GtestResult,
+    GtestStatus,
+    RunOutcome,
+    TestExecutionResult,
+)
 from fboss_test_runner.runners.utils import (
     get_test_regexes_from_file,
     load_from_file,
@@ -183,6 +191,11 @@ class TestRunner(abc.ABC):
             action="store_true",
             default=False,
             help="Only lists the tests, do not run any test",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_RESULTS_JSON,
+            default=None,
+            help="Write structured per-test results to this JSON file",
         )
         sub_parser.add_argument(
             OPT_ARG_CONFIG_FILE, type=str, help="run with the specified config file"
@@ -539,13 +552,17 @@ class TestRunner(abc.ABC):
             # boot-phase prefix (cold_boot./warm_boot.).
             results = self._parse_gtest_run_output(run_test_output)
             for result in results:
+                result.filter_name = test_to_run
                 result.test_name = test_prefix + result.test_name
             if not results:
                 # No gtest result line found (e.g. --setup-for-warmboot causes
                 # an early exit); synthesize an OK so the test still appears in
                 # the summary.
                 synthesized = GtestResult(
-                    test_prefix + test_to_run, GtestStatus.OK, elapsed_ms
+                    test_name=test_prefix + test_to_run,
+                    status=GtestStatus.OK,
+                    duration_ms=elapsed_ms,
+                    filter_name=test_to_run,
                 )
                 return RunOutcome(synthesized.as_log_line(), [synthesized])
             return RunOutcome(run_test_output.decode("utf-8"), results)
@@ -557,9 +574,10 @@ class TestRunner(abc.ABC):
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             result = GtestResult(
-                test_prefix + test_to_run,
-                GtestStatus.TIMEOUT,
-                args.test_run_timeout * 1000,
+                test_name=test_prefix + test_to_run,
+                status=GtestStatus.TIMEOUT,
+                duration_ms=args.test_run_timeout * 1000,
+                filter_name=test_to_run,
             )
             return RunOutcome(result.as_log_line(), [result])
         except subprocess.CalledProcessError as e:
@@ -571,7 +589,10 @@ class TestRunner(abc.ABC):
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             result = GtestResult(
-                test_prefix + test_to_run, GtestStatus.FAILED, elapsed_ms
+                test_name=test_prefix + test_to_run,
+                status=GtestStatus.FAILED,
+                duration_ms=elapsed_ms,
+                filter_name=test_to_run,
             )
             return RunOutcome(result.as_log_line(), [result])
 
@@ -753,9 +774,13 @@ class TestRunner(abc.ABC):
             self._end_run()
         return all_results
 
-    def _print_output_summary(self, results: list[GtestResult]) -> None:
+    def _print_output_summary(
+        self, results: list[GtestResult], results_json: str | None = None
+    ) -> None:
         ConsoleReporter().print_gtest_summary(results)
         CsvReporter().write_gtest_results(results)
+        if results_json is not None:
+            JsonReporter().write_gtest_results(results, results_json)
 
     def _prepare_tests(self, args: Namespace) -> list[str]:
         self.args = args
@@ -791,26 +816,38 @@ class TestRunner(abc.ABC):
 
         return tests_to_run
 
-    def list_tests(self, args: Namespace) -> None:
+    def list_tests(self, args: Namespace) -> int:
         try:
             tests_to_run = self._prepare_tests(args)
         except _TestBinaryNotFoundError:
-            return
+            return os.EX_TEMPFAIL
 
         for test in tests_to_run:
             print(test)
+        return 0
 
-    def run_test(self, args: Namespace) -> None:
+    def _execute_test(self, args: Namespace) -> TestExecutionResult:
         try:
             tests_to_run = self._prepare_tests(args)
-        except _TestBinaryNotFoundError:
-            return
+            original_conf_file = (
+                args.config if (args.config is not None) else self._get_config_path()
+            )
+            conf_file = self._backup_and_modify_config(original_conf_file)
+        except _TestBinaryNotFoundError as error:
+            return TestExecutionResult(
+                exit_code=os.EX_TEMPFAIL,
+                setup_failure=str(error),
+            )
+        except Exception as error:
+            return TestExecutionResult(
+                exit_code=os.EX_TEMPFAIL,
+                setup_failure=str(error),
+                error=error,
+            )
 
+        # Test execution failures are not setup failures. Let them propagate so
+        # callers do not report a runner crash as SETUP_FAILED.
         start_time = datetime.now()
-        original_conf_file = (
-            args.config if (args.config is not None) else self._get_config_path()
-        )
-        conf_file = self._backup_and_modify_config(original_conf_file)
         results = self._run_tests(tests_to_run, conf_file, args)
         end_time = datetime.now()
         delta_time = end_time - start_time
@@ -818,4 +855,19 @@ class TestRunner(abc.ABC):
             f"Running all tests took {delta_time} between {start_time} and {end_time}",
             flush=True,
         )
-        self._print_output_summary(results)
+        exit_code = compute_exit_code(results)
+
+        return TestExecutionResult(exit_code=exit_code, results=results)
+
+    def run_test(self, args: Namespace) -> int:
+        execution = self._execute_test(args)
+        if execution.error is not None and args.results_json is None:
+            raise execution.error
+        if execution.setup_failure is not None:
+            if args.results_json is not None:
+                JsonReporter().write_setup_failure(
+                    args.results_json, execution.setup_failure
+                )
+        elif execution.results is not None:
+            self._print_output_summary(execution.results, args.results_json)
+        return execution.exit_code

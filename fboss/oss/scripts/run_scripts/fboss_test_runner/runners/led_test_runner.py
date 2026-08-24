@@ -32,7 +32,7 @@ class LedTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file: str) -> list[str]:  # noqa: ARG002
         return []
 
-    def run_test(self, args: Namespace) -> None:
+    def run_test(self, args: Namespace) -> int:
         # led_service_hw_test does not accept --fruid_filepath (it derives its
         # platform from /etc/coop/led.conf), so null the default fruid path to
         # keep the base runner from appending a gflag the binary would reject.
@@ -43,4 +43,4 @@ class LedTestRunner(TestRunner):
         # pass --setup-for-warmboot to led_service_hw_test.
         args.coldboot_only = True
 
-        super().run_test(args)
+        return super().run_test(args)

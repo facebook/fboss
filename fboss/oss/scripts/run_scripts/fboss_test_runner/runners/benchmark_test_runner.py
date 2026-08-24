@@ -114,8 +114,10 @@ class BenchmarkTestRunner(TestRunner):
             raise ValueError("--qsfp requires --qsfp-config to be set")
         return BenchmarkFramework(self._select_suite(args))
 
-    def list_tests(self, args: Namespace) -> None:
+    def list_tests(self, args: Namespace) -> int:
         self._framework_for_args(args).list_tests(args)
+        return 0
 
-    def run_test(self, args: Namespace) -> None:
+    def run_test(self, args: Namespace) -> int:
         self._framework_for_args(args).run(args)
+        return 0

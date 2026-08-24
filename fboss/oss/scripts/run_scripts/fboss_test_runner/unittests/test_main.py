@@ -36,6 +36,10 @@ class ParseArgsValidationTest(unittest.TestCase):
         self.assertEqual(args.profile, "p")
         self.assertEqual(args.filter_file, "f.conf")
 
+    def test_results_json_is_parsed(self):
+        args = _parse_args(["sai", "--results-json", "/tmp/results.json"])
+        self.assertEqual(args.results_json, "/tmp/results.json")
+
 
 class LogBundleFlagTest(unittest.TestCase):
     def test_log_bundle_defaults_off(self):
@@ -74,7 +78,7 @@ class MainLogBundleGatingTest(unittest.TestCase):
     covered in test_log_capture.)"""
 
     def _run_main(self, *, log_bundle: bool) -> SimpleNamespace:
-        dispatched = MagicMock()
+        dispatched = MagicMock(return_value=0)
         runner = SimpleNamespace(run_test=dispatched)
         with (
             patch.object(sys, "argv", ["run_test.py", "sai"]),
@@ -95,7 +99,8 @@ class MainLogBundleGatingTest(unittest.TestCase):
                 ),
             ),
         ):
-            main()
+            with self.assertRaisesRegex(SystemExit, "0"):
+                main()
         return SimpleNamespace(log_capture=log_capture, dispatched=dispatched)
 
     def test_no_flag_dispatches_without_capture(self):
@@ -110,6 +115,31 @@ class MainLogBundleGatingTest(unittest.TestCase):
         m.log_capture.return_value.__enter__.assert_called_once()
         m.log_capture.return_value.__exit__.assert_called_once()
         m.dispatched.assert_called_once()
+
+    def test_results_json_uses_runner_exit_code(self):
+        dispatched = MagicMock(return_value=1)
+        runner = SimpleNamespace(run_test=dispatched)
+        with (
+            patch.object(sys, "argv", ["run_test.py", "sai"]),
+            patch.dict(
+                os.environ,
+                {"FBOSS_BIN": "/opt/fboss/bin", "FBOSS_LIB": "/opt/fboss/lib"},
+            ),
+            patch.object(main_mod.os, "chdir"),
+            patch.object(main_mod, "setup_fboss_env"),
+            patch.object(
+                main_mod,
+                "_parse_args",
+                return_value=Namespace(
+                    runner=runner,
+                    list_tests=False,
+                    log_bundle=False,
+                    results_json="/tmp/results.json",
+                ),
+            ),
+        ):
+            with self.assertRaisesRegex(SystemExit, "1"):
+                main()
 
 
 if __name__ == "__main__":

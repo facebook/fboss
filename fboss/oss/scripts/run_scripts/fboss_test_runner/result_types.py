@@ -37,6 +37,8 @@ class GtestResult:
     test_name: str
     status: GtestStatus
     duration_ms: int
+    # Exact name emitted by --list_tests and accepted by --filter.
+    filter_name: str | None = None
 
     @property
     def mapped_status(self) -> str:
@@ -74,6 +76,30 @@ class RunOutcome:
 
     console_output: str
     results: list[GtestResult]
+
+
+@dataclass
+class TestExecutionResult:
+    """In-memory result of one runner execution.
+
+    ``results`` is ``None`` when setup failed before test execution. ``error``
+    retains the underlying setup exception so callers without structured
+    reporting can preserve the existing behavior of raising it.
+    """
+
+    exit_code: int
+    results: list[GtestResult] | None = None
+    setup_failure: str | None = None
+    error: Exception | None = None
+
+
+def compute_exit_code(results: list[GtestResult]) -> int:
+    return int(
+        any(
+            result.status in {GtestStatus.FAILED, GtestStatus.TIMEOUT}
+            for result in results
+        )
+    )
 
 
 class BenchmarkResult(t.TypedDict, total=False):

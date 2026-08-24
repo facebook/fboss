@@ -148,10 +148,11 @@ def main() -> None:
     # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
     # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
     if not args.log_bundle:
-        runner_action(args)
-        return
+        exit_code = runner_action(args)
+        sys.exit(exit_code)
 
     # LogCapture owns the per-run bundle: it creates the dir, tees output, records
     # the command, and on exit collects the logs/CSVs and zips -- even on failure.
     with LogCapture(test_type):
-        runner_action(args)
+        exit_code = runner_action(args)
+    sys.exit(exit_code)
