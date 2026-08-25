@@ -103,8 +103,9 @@ custom_unittest(
 )
 
 # Land-blocking diff signal: runs verify_oss_thriftpath whenever any thrift file
-# in the fsdb_model dependency closure changes. Uses ci_deps to auto-derive
-# trigger paths from the buck dependency graph — no manual file list needed.
+# in the fsdb_model dependency closure changes. Uses explicit ci_srcs glob
+# patterns since ci_deps with thrift_library targets does not resolve transitive
+# thrift includes to source files for Citadel triggering.
 # Modeled after neteng/fboss/bgp/tools/oss:verify_oss_thrift_signal.
 # @ci-signal-ack
 ci_sandcastle(
@@ -124,15 +125,26 @@ ci_sandcastle(
         "type": "fbcode",
         "vcs": "full-fbsource",
     },
-    ci_deps = [
-        # Trigger whenever ANY file in the fsdb_model thrift dependency closure changes.
-        # This covers all direct and transitive thrift includes automatically.
-        "fbsource//fboss/fsdb/if/oss:fsdb_model",
-    ],
     ci_srcs = [
-        # Also trigger on changes to the checked-in header itself or the sync script
-        "fbcode/fboss/fsdb/if/oss/fsdb_model_thriftpath.h",
-        "fbcode/fboss/fsdb/if/oss/sync_model_thriftpath.sh",
+        # The FSDB model thrift, header, and sync script
+        "fbcode/fboss/fsdb/if/oss/**",
+        "fbcode/fboss/fsdb/if/fsdb_common.thrift",
+        # Agent thrift files included by fsdb_model.thrift
+        "fbcode/fboss/agent/if/agent_config.thrift",
+        "fbcode/fboss/agent/if/agent_info.thrift",
+        "fbcode/fboss/agent/if/agent_stats.thrift",
+        "fbcode/fboss/agent/if/switch_state.thrift",
+        "fbcode/fboss/agent/if/switch_reachability.thrift",
+        # QSFP thrift files
+        "fbcode/fboss/qsfp_service/if/qsfp_state.thrift",
+        "fbcode/fboss/qsfp_service/if/qsfp_stats.thrift",
+        # Sensor service
+        "fbcode/fboss/platform/sensor_service/sensor_service_stats.thrift",
+        # BGP thrift files (the original source of breakage)
+        "fbcode/neteng/fboss/bgp/if/**",
+        # BGP config thrift
+        "fbcode/neteng/fboss/bgp/public_tld/configerator/structs/**",
+        "fbcode/configerator/structs/neteng/bgp_policy/thrift/**",
     ],
     command = "SandcastleUniversalCommand",
     oncall = "fboss_agent_push",
