@@ -161,6 +161,15 @@ class TestRunner(abc.ABC):
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:  # noqa: B027
         pass
 
+    def _on_suite_start(self, suite: str) -> None:  # noqa: B027
+        """Called before the first test of each gtest suite (the `Suite` in
+        `Suite.Case`). The test list is sorted, so a suite's cases are
+        contiguous and this fires once per suite per run."""
+
+    def _on_suite_end(self, suite: str) -> None:  # noqa: B027
+        """Called after the last test of each gtest suite, including the final
+        suite (before _end_run). Runs even when the loop is aborted mid-suite."""
+
     def _end_run(self) -> None:  # noqa: B027
         pass
 
@@ -656,7 +665,7 @@ class TestRunner(abc.ABC):
         elif simulator in DNX_SIMULATOR_ASICS:
             self.env_var.update(DNX_SIMULATOR_ENV)
 
-    def _run_tests(
+    def _run_tests(  # noqa: PLR0912, PLR0915
         self, tests_to_run: list[str], conf_file: str, args: Namespace
     ) -> list[GtestResult]:
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
@@ -689,10 +698,19 @@ class TestRunner(abc.ABC):
             return []
 
         all_results: list[GtestResult] = []
+        # The gtest suite whose tests are currently running; None outside a
+        # suite. Drives the _on_suite_start/_on_suite_end hooks.
+        current_suite: str | None = None
         try:
             self._setup_run(conf_file)
             num_tests = len(tests_to_run)
             for idx, test_to_run in enumerate(tests_to_run):
+                suite = test_to_run.split(".", 1)[0]
+                if suite != current_suite:
+                    if current_suite is not None:
+                        self._on_suite_end(current_suite)
+                    current_suite = suite
+                    self._on_suite_start(suite)
                 test_prefix = self.COLDBOOT_PREFIX
                 sai_replayer_log_path = self._get_sai_replayer_log_path(
                     test_prefix, test_to_run, sai_replayer_logging
@@ -771,6 +789,8 @@ class TestRunner(abc.ABC):
                     if any(r.status != GtestStatus.OK for r in run_outcome.results):
                         break
         finally:
+            if current_suite is not None:
+                self._on_suite_end(current_suite)
             self._end_run()
         return all_results
 
@@ -811,9 +831,7 @@ class TestRunner(abc.ABC):
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
         # Sort the tests to run to match internal test infra behavior
-        tests_to_run = sorted(tests_to_run)
-
-        return tests_to_run
+        return sorted(tests_to_run)
 
     def list_tests(self, args: Namespace) -> int:
         try:
@@ -834,14 +852,11 @@ class TestRunner(abc.ABC):
             conf_file = self._backup_and_modify_config(original_conf_file)
         except _TestBinaryNotFoundError as error:
             return TestExecutionResult(
-                exit_code=os.EX_TEMPFAIL,
-                setup_failure=str(error),
+                exit_code=os.EX_TEMPFAIL, setup_failure=str(error)
             )
         except Exception as error:
             return TestExecutionResult(
-                exit_code=os.EX_TEMPFAIL,
-                setup_failure=str(error),
-                error=error,
+                exit_code=os.EX_TEMPFAIL, setup_failure=str(error), error=error
             )
 
         # Test execution failures are not setup failures. Let them propagate so
