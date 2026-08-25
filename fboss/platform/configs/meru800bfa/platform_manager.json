@@ -39,7 +39,7 @@
         {
           "busName": "SCM_I2C_MASTER_0@0",
           "address": "0x40",
-          "kernelDeviceName": "pmbus",
+          "kernelDeviceName": "apmbus",
           "pmUnitScopedName": "SCM_MPS_PMBUS"
         }
       ],
@@ -141,7 +141,7 @@
         {
           "busName": "INCOMING@1",
           "address": "0x60",
-          "kernelDeviceName": "raa228228",
+          "kernelDeviceName": "bp4a_raa228228",
           "pmUnitScopedName": "SMB_RAA228926_R3R0_CORE"
         },
         {
@@ -159,7 +159,7 @@
         {
           "busName": "INCOMING@1",
           "address": "0x61",
-          "kernelDeviceName": "raa228228",
+          "kernelDeviceName": "bp4a_raa228228",
           "pmUnitScopedName": "SMB_RAA228926_R3R1_CORE"
         },
         {
@@ -239,6 +239,18 @@
           "address": "0x62",
           "kernelDeviceName": "fan_cpld2",
           "pmUnitScopedName": "FAN2_CPLD"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x45",
+          "kernelDeviceName": "bp4a_mp5990",
+          "pmUnitScopedName": "SMB_MP5990_L"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x46",
+          "kernelDeviceName": "bp4a_mp5990",
+          "pmUnitScopedName": "SMB_MP5990_R"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1355,6 +1367,8 @@
     "/run/devmap/sensors/FAN2_TMP75": "/SMB_SLOT@0/[FAN2_TMP75]",
     "/run/devmap/cplds/FAN2_CPLD": "/SMB_SLOT@0/[FAN2_CPLD]",
     "/run/devmap/sensors/FAN_CPLD2": "/SMB_SLOT@0/[FAN2_CPLD]",
+    "/run/devmap/sensors/SMB_MP5990_L": "/SMB_SLOT@0/[SMB_MP5990_L]",
+    "/run/devmap/sensors/SMB_MP5990_R": "/SMB_SLOT@0/[SMB_MP5990_R]",
     "/run/devmap/flashes/SMB_SPI0_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI0_MASTER0_DEVICE1]",
     "/run/devmap/flashes/SMB_SPI1_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI1_MASTER0_DEVICE1]",
     "/run/devmap/flashes/SMB_SPI2_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI2_MASTER0_DEVICE1]",
