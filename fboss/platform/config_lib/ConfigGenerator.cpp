@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <vector>
 
 #include <folly/FileUtil.h>
 #include <folly/init/Init.h>
@@ -30,7 +31,7 @@
 // rule which passes in the install location of the header.
 DEFINE_string(install_dir, "", "output dir where generated header is placed");
 
-DEFINE_string(json_config_dir, "fboss/platform/configs", "");
+DEFINE_string(json_config_dir, "fboss/configs/platforms", "");
 
 namespace fs = std::filesystem;
 using namespace facebook::fboss::platform;
@@ -102,6 +103,25 @@ namespace facebook::fboss::platform::configs {
 constexpr auto kHdrEnd = R"(
 } // facebook::fboss::platform::configs
 )";
+
+std::vector<fs::path> getPlatformServiceConfigDirs() {
+  std::vector<fs::path> configDirs;
+  for (const auto& vendorDir : fs::directory_iterator(FLAGS_json_config_dir)) {
+    if (!vendorDir.is_directory()) {
+      continue;
+    }
+    for (const auto& platformDir : fs::directory_iterator(vendorDir)) {
+      if (!platformDir.is_directory()) {
+        continue;
+      }
+      auto platformStackDir = platformDir.path() / "platform_stack";
+      if (fs::is_directory(platformStackDir)) {
+        configDirs.push_back(std::move(platformStackDir));
+      }
+    }
+  }
+  return configDirs;
+}
 } // namespace
 
 // Returns configs in a two level map.
@@ -113,18 +133,13 @@ std::map<std::string, std::map<std::string, std::string>> getConfigs() {
       std::map<std::string /* platformName */, std::string /* config */>>
       configs{};
 
-  // Iterate over the per platform directories in FLAGS_json_config_dir.
-  for (const auto& perPlatformDir :
-       fs::directory_iterator(FLAGS_json_config_dir)) {
-    std::string platformName = perPlatformDir.path().filename();
+  for (const auto& platformStackDir : getPlatformServiceConfigDirs()) {
+    std::string platformName = platformStackDir.parent_path().filename();
     XLOG(INFO) << fmt::format(
-        "Processing platform {} in {}",
-        platformName,
-        perPlatformDir.path().c_str());
+        "Processing platform {} in {}", platformName, platformStackDir.c_str());
 
     std::unordered_map<std::string, std::any> deserializedConfigs;
-    // Fetch service configs by iterating over each platform directory
-    for (const auto& jsonConfig : fs::directory_iterator(perPlatformDir)) {
+    for (const auto& jsonConfig : fs::directory_iterator(platformStackDir)) {
       XLOG(INFO) << "Processing config " << jsonConfig.path();
       std::string jsonConfigStr{};
       if (!folly::readFile(jsonConfig.path().c_str(), jsonConfigStr)) {

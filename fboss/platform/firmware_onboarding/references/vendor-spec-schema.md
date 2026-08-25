@@ -8,7 +8,7 @@ A spec lives at:
 fbcode/fboss/platform/firmware_onboarding/configs/<platform_name>/spec.json
 ```
 
-One directory per platform — same convention used by `fbcode/fboss/platform/configs/<platform>/`. Per-platform sidecar files (READMEs, change overlays, vendor handoff notes) can live in the same directory alongside `spec.json`.
+One directory per platform. Platform service configs use `fbcode/fboss/configs/platforms/<vendor>/<platform>/platform_stack/`. Per-platform sidecar files (READMEs, change overlays, vendor handoff notes) can live in the same directory alongside `spec.json`.
 
 A worked example is in `configs/icecube800bc/spec.json`.
 

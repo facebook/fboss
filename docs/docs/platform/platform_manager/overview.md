@@ -36,7 +36,7 @@ files such that the same generic software can run on all platforms.
 
   The configuration format is defined in [platform_manager_config.thrift](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_config.thrift).
 
-  See here for a [sample config](https://github.com/facebook/fboss/blob/main/fboss/platform/configs/sample/platform_manager.json) .
+  See here for a [sample config](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/generic/sample/platform_stack/platform_manager.json) .
 
 
 - **Platform Agnostic Software (developed by Meta):** Meta will write and maintain the software.
