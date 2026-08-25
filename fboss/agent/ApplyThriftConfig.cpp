@@ -2850,6 +2850,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<TransceiverSpec>& transceiver) {
   CHECK_EQ(orig->getID(), PortID(*portConf->logicalID()));
 
+  if (portConf->linkTraining().value_or(false) &&
+      (portConf->txPrecoding().value_or(false) ||
+       portConf->rxPrecoding().value_or(false))) {
+    throw FbossError(
+        "Port ",
+        orig->getID(),
+        " linkTraining and precoding cannot both be enabled");
+  }
+
   auto vlans = portVlans_[orig->getID()];
 
   std::vector<cfg::PortQueue> cfgPortQueues;

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
@@ -1511,14 +1512,19 @@ void SaiPortManager::programSerdes(
         }
       }
     }
-    // Precoding is handled by link training
-    if (!rxPrecoding.empty() && !linkTrainingEnabled) {
+    // TODO: Remove the flag fallback once precoding is populated in all port
+    // configs.
+    const auto txPrecodingEnabled =
+        FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
+    const auto rxPrecodingEnabled =
+        FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
+    if (!rxPrecoding.empty() && rxPrecodingEnabled) {
       SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
           rxPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxPrecodingAttr);
     }
-    if (!txPrecoding.empty() && !linkTrainingEnabled) {
+    if (!txPrecoding.empty() && txPrecodingEnabled) {
       SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
           txPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(

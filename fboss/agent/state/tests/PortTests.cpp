@@ -1474,6 +1474,28 @@ TEST(Port, precodingConfig) {
   EXPECT_EQ(serializedPort->getRxPrecoding(), true);
 }
 
+TEST(Port, rejectsLinkTrainingWithPrecoding) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto expectInvalidConfig = [&](bool txPrecoding, bool rxPrecoding) {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(
+        config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+    config.ports()[0].linkTraining() = true;
+    config.ports()[0].txPrecoding() = txPrecoding;
+    config.ports()[0].rxPrecoding() = rxPrecoding;
+
+    EXPECT_THROW(
+        publishAndApplyConfig(state, &config, platform.get()), FbossError);
+  };
+
+  expectInvalidConfig(true, false);
+  expectInvalidConfig(false, true);
+}
+
 TEST(Port, linkScanModeConfig) {
   auto platform = createMockPlatform();
   auto state = make_shared<SwitchState>();
