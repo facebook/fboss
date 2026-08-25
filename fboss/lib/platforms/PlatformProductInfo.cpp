@@ -253,6 +253,9 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("M4062nhp") == 0 || modelName.find("M4062NHP") == 0) {
       type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (
+        modelName.find("M4061CLSC") == 0 || modelName.find("M4061clsc") == 0) {
+      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -344,6 +347,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_SAINTPAUL;
     } else if (FLAGS_mode == "m4062nhp") {
       type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (FLAGS_mode == "m4061clsc") {
+      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else if (FLAGS_mode == "wedge800bnhp") {
       type_ = PlatformType::PLATFORM_WEDGE800BNHP;
     } else {

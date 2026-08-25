@@ -4,7 +4,9 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
+
+from thrift.python.serializer import Protocol, serialize
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 from fboss.lib.platform_mapping_v2.read_files_utils import (
@@ -14,11 +16,10 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 from neteng.fboss.platform_config.platform_config.thrift_types import (
     PortIdToPortAssignmentConfig,
 )
-from thrift.python.serializer import Protocol, serialize
 
-JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
-PlatformDescriptorData = Tuple[str, Dict[str, Any]]
-VendorDataMap = Dict[str, Dict[str, str]]
+JsonValue = Union[dict[str, Any], list[Any], str, int, float, bool, None]
+PlatformDescriptorData = tuple[str, dict[str, Any]]
+VendorDataMap = dict[str, dict[str, str]]
 
 
 @dataclass(frozen=True)
@@ -54,13 +55,9 @@ class PlatformMappingPaths:
         )
 
 
-_RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
+_RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
-    "montblanc": (
-        "montblanc",
-        "montblanc_odd_ports_8x100G",
-        "montblanc_gtsw_yolo",
-    ),
+    "montblanc": ("montblanc", "montblanc_odd_ports_8x100G", "montblanc_gtsw_yolo"),
     "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
     "wedge800bact": ("wedge800bact",),
     "wedge800cact": ("wedge800cact",),
@@ -78,10 +75,7 @@ def _format_json(obj: JsonValue) -> str:
 
 
 def _dump(
-    obj: JsonValue,
-    depth: int,
-    extra: int,
-    close_extra: Optional[int] = None,
+    obj: JsonValue, depth: int, extra: int, close_extra: Optional[int] = None
 ) -> str:
     """Recursively serialize *obj* to a JSON string.
 
@@ -100,7 +94,7 @@ def _dump(
     if isinstance(obj, dict):
         if not obj:
             return "{}"
-        parts: List[str] = []
+        parts: list[str] = []
         is_map = _is_thrift_map(obj)
         for i, (k, v) in enumerate(obj.items()):
             comma = "," if i < len(obj) - 1 else ""
@@ -124,7 +118,7 @@ def _dump(
     return json.dumps(obj)
 
 
-def get_command_line_args() -> Tuple[str, str, str, bool]:
+def get_command_line_args() -> tuple[str, str, str, bool]:
     parser = argparse.ArgumentParser(description="OSS platform mapping generation.")
     parser.add_argument(
         "--fboss-root",
@@ -171,12 +165,7 @@ def get_command_line_args() -> Tuple[str, str, str, bool]:
     paths = PlatformMappingPaths.from_root(
         args.fboss_root, args.input_dir, args.output_dir
     )
-    return (
-        paths.input_dir,
-        paths.output_dir,
-        args.platform_name,
-        args.multi_npu,
-    )
+    return (paths.input_dir, paths.output_dir, args.platform_name, args.multi_npu)
 
 
 def generate_platform_mappings(
@@ -198,7 +187,7 @@ def generate_platform_mappings_from_vendor_data(
 ) -> None:
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     print("Generating platform mapping...", file=sys.stderr)
     generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
@@ -232,11 +221,7 @@ def generate_platform_mappings_from_vendor_data(
         f.write(platform_mapping_json)
 
     write_raw_platform_mapping_artifacts(
-        vendor_data_map,
-        output_dir,
-        platform_name,
-        is_multi_npu,
-        generator,
+        vendor_data_map, output_dir, platform_name, is_multi_npu, generator
     )
 
     generate_platform_descriptor(
@@ -244,7 +229,7 @@ def generate_platform_mappings_from_vendor_data(
     )
 
 
-def _get_raw_platform_mapping_family(platform_name: str) -> Optional[Tuple[str, ...]]:
+def _get_raw_platform_mapping_family(platform_name: str) -> Optional[tuple[str, ...]]:
     for base_platform, family in _RAW_PLATFORM_MAPPING_FAMILIES.items():
         if platform_name == base_platform or platform_name in family:
             return family
@@ -267,7 +252,7 @@ def _serialize_port_assignments(generator: PlatformMappingV2) -> str:
 
 
 def write_raw_platform_mapping_artifacts(
-    vendor_data_map: Dict[str, Dict[str, str]],
+    vendor_data_map: dict[str, dict[str, str]],
     output_dir: str,
     platform_name: str,
     is_multi_npu: bool,
@@ -303,7 +288,7 @@ def write_raw_platform_mapping_artifacts(
 
 
 def get_platform_descriptor_data(
-    vendor_data_map: Dict[str, Dict[str, str]], platform_name: str
+    vendor_data_map: dict[str, dict[str, str]], platform_name: str
 ) -> Optional[PlatformDescriptorData]:
     try:
         platform_descriptor = read_platform_descriptor(
@@ -320,7 +305,7 @@ def get_platform_descriptor_data(
 
 
 def generate_platform_descriptor(
-    vendor_data_map: Dict[str, Dict[str, str]],
+    vendor_data_map: dict[str, dict[str, str]],
     output_dir: str,
     platform_name: str,
     platform_descriptor_data: Optional[PlatformDescriptorData] = None,

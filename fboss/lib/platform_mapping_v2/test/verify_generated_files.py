@@ -5,7 +5,6 @@ import filecmp
 import os
 import sys
 import unittest
-from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
     generate_platform_mappings_from_vendor_data,
@@ -22,7 +21,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     This test will be run in OSS for all open-sourced platforms.
     """
 
-    _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: Dict[bool, List[str]] = {
+    _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {  # noqa: RUF012
         False: [
             "montblanc",
             "montblanc_odd_ports_8x100G",
@@ -57,6 +56,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahansb800bc_test_fixture",
             "wedge800bact",
             "m4062nhp",
+            "m4061clsc",
             "wedge800bnhp",
             "wedge800cact",
             "blackwolf800banw",
@@ -105,8 +105,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
                         os.rmdir(dir_path)
                     except OSError as e:
                         print(
-                            f"Failed to delete {dir_path}. Reason: {e}",
-                            file=sys.stderr,
+                            f"Failed to delete {dir_path}. Reason: {e}", file=sys.stderr
                         )
 
     def _generate_all_oss_platform_mappings_in_tmp(self) -> None:
@@ -114,13 +113,10 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         for is_multi_npu, platforms in self._OSS_MULTI_NPU_SUPPORTED_PLATFORMS.items():
             for platform in platforms:
                 generate_platform_mappings_from_vendor_data(
-                    vendor_data_map,
-                    self._TMP_GENERATED_DIR,
-                    platform,
-                    is_multi_npu,
+                    vendor_data_map, self._TMP_GENERATED_DIR, platform, is_multi_npu
                 )
 
-    def _get_relative_files(self, directory: str) -> List[str]:
+    def _get_relative_files(self, directory: str) -> list[str]:
         relative_files = []
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
@@ -166,9 +162,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         gen_files = self._get_relative_files(self._TMP_GENERATED_DIR)
 
         self.assertEqual(
-            ref_files,
-            gen_files,
-            "Fbcode and tmp generated files don't match",
+            ref_files, gen_files, "Fbcode and tmp generated files don't match"
         )
 
         for filename in ref_files:
