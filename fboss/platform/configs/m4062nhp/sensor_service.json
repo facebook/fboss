@@ -18,6 +18,18 @@
           "compute": "@/1000.0"
         },
         {
+          "name": "DPM_1_POS12V",
+          "sysfsPath": "/run/devmap/sensors/DPM_1/in1_input",
+          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 13.2,
+            "minAlarmVal": 10.8,
+            "upperCriticalVal": 13.8,
+            "lowerCriticalVal": 10.2
+          },
+          "compute": "@/1000.0"
+        },
+        {
           "name": "DPM_2_POS12V",
           "sysfsPath": "/run/devmap/sensors/DPM_2/in1_input",
           "type": 1,
