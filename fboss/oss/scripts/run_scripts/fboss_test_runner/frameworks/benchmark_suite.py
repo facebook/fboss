@@ -21,8 +21,8 @@ class BenchmarkSuite(abc.ABC):
     """
 
     @abc.abstractmethod
-    def binary_path(self, args: Namespace) -> str:
-        """Absolute path to the benchmark binary to run."""
+    def binary_name(self, args: Namespace) -> str:
+        """Name of the benchmark binary to resolve through PATH."""
 
     @abc.abstractmethod
     def config_path(self) -> str:

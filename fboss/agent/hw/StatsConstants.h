@@ -422,11 +422,7 @@ inline folly::StringPiece constexpr kLlrRxStatus() {
   return "llr_rx_status";
 }
 
-// Broadcom LLR stat extensions. Only the subset that is actionable per port is
-// exported; llrTxEligiblePkts_ and llrRxEligiblePkts_ stay FSDB-only, because
-// eligible plus ineligible is the port packet count that out_unicast_pkts /
-// in_unicast_pkts already carry, so the protected fraction is derivable from
-// the ineligible counter alone.
+// Broadcom LLR stat extensions.
 //
 // A non-zero ineligible rate on a port with an LLR profile bound is the signal
 // that LLR is not protecting traffic -- it is what a port whose TX state
@@ -437,6 +433,23 @@ inline folly::StringPiece constexpr kLlrTxIneligiblePkts() {
 
 inline folly::StringPiece constexpr kLlrRxIneligiblePkts() {
   return "llr_rx_ineligible_pkts";
+}
+
+// The eligible counters are the protected-frame count. They were originally
+// left FSDB-only on the reasoning that eligible plus ineligible is just the
+// port packet count already carried by out_unicast_pkts / in_unicast_pkts, so
+// the protected fraction was derivable from the ineligible counter alone. That
+// no longer holds: on Tomahawk Ultra in_unicast_pkts, llr_tx_ok and llr_rx_ok
+// all under-report by a factor of 25/6, while the eligible counters agree with
+// out_unicast_pkts and with the byte counters. Until Broadcom explains the
+// discrepancy these are the only correct protected-frame count, so they are
+// exported rather than derived.
+inline folly::StringPiece constexpr kLlrTxEligiblePkts() {
+  return "llr_tx_eligible_pkts";
+}
+
+inline folly::StringPiece constexpr kLlrRxEligiblePkts() {
+  return "llr_rx_eligible_pkts";
 }
 
 // Replay episodes, as opposed to the frames replayed in them that

@@ -350,8 +350,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       std::nullopt, // CablePropagationDelayMediaType
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      std::nullopt, // LinkScanMode
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
       std::nullopt, // LinkUpDebouncePeriodMs
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
       std::nullopt, // LinkDownDebouncePeriodMs
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -360,7 +363,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrProfile
 #endif
       std::nullopt, // PfcPauseDurationOverride
-      std::nullopt, // LinkScanMode
   };
 }
 

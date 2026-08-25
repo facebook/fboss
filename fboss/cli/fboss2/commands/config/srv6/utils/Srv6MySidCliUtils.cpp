@@ -46,7 +46,9 @@ std::string canonicalLocatorPrefix(const std::string& prefix) {
 
   folly::CIDRNetwork network;
   try {
-    network = folly::IPAddress::createNetwork(prefix);
+    // mask=false so a typo'd locator's host bits are rejected below rather
+    // than silently masked away.
+    network = folly::IPAddress::createNetwork(prefix, -1, /*mask=*/false);
   } catch (const std::exception& e) {
     throw std::invalid_argument(
         fmt::format("Invalid locator prefix '{}': {}", prefix, e.what()));
@@ -66,8 +68,18 @@ std::string canonicalLocatorPrefix(const std::string& prefix) {
             prefix));
   }
 
+  auto masked = network.first.mask(network.second);
+  if (masked != network.first) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Locator prefix '{}' has non-zero host bits; did you mean {}?",
+            prefix,
+            folly::IPAddress::networkToString(
+                std::make_pair(masked, network.second))));
+  }
+
   return folly::IPAddress::networkToString(
-      std::make_pair(network.first, static_cast<uint8_t>(network.second)));
+      std::make_pair(masked, network.second));
 }
 
 int16_t parseMySidFunctionValue(const std::string& value) {
@@ -149,9 +161,8 @@ std::string MySidAddArg::getTypeStr() const {
 
 MySidAddArg::MySidAddArg(std::vector<std::string> v) {
   size_t index = 0;
-  expectKeyword(v, index, "entry");
   if (index >= v.size()) {
-    throw std::invalid_argument("Missing function value after 'entry'");
+    throw std::invalid_argument("Missing MySID function value");
   }
   functionValue_ = parseMySidFunctionValue(v[index++]);
 
@@ -228,6 +239,16 @@ cfg::MySidEntryConfig MySidAddArg::buildEntryConfig() const {
       break;
   }
   return entry;
+}
+
+MySidDeleteEntryArg::MySidDeleteEntryArg(std::vector<std::string> v) {
+  if (v.size() != 1) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Expected exactly one MySID function value, got {}", v.size()));
+  }
+  functionValue_ = parseMySidFunctionValue(v[0]);
+  data_.push_back(fmt::format("{}", functionValue_));
 }
 
 } // namespace facebook::fboss

@@ -24,6 +24,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
+#include "fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -118,6 +119,7 @@
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
 #include "fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h"
+#include "fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h"
@@ -133,12 +135,16 @@
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
 #include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
+#include "fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h"
+#include "fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
+#include "fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
@@ -151,6 +157,10 @@
 #include "fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h"
 #include "fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h"
 #include "fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
+#include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
+#include "fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
@@ -282,6 +292,13 @@ const CommandTree& kConfigCommandTree() {
                    commandHandler<CmdConfigInterfaceIpv6Ndp>,
                    argRegistrar<CmdConfigInterfaceIpv6NdpTraits>,
                }},
+           },
+           {
+               "sflow",
+               "Configure sFlow settings: sample-dest <cpu|mirror>, "
+               "ingress-rate <N>, egress-rate <N>",
+               commandHandler<CmdConfigInterfaceSflow>,
+               argRegistrar<CmdConfigInterfaceSflowTraits>,
            },
            {
                "switchport",
@@ -991,8 +1008,8 @@ const CommandTree& kConfigCommandTree() {
               commandHandler<CmdConfigSrv6MySid>,
               argRegistrar<CmdConfigSrv6MySidTraits>,
               {{
-                  "add",
-                  "Add uA/uN/uDT46 entry: add entry <fn> type ...",
+                  "entry",
+                  "Configure uA/uN/uDT46 entry: <fn> type ...",
                   commandHandler<CmdConfigSrv6MySidAdd>,
                   argRegistrar<CmdConfigSrv6MySidAddTraits>,
               }},
@@ -1022,6 +1039,12 @@ const CommandTree& kConfigCommandTree() {
                 argRegistrar<CmdConfigTunnelIpInIpDecapTraits>,
             }},
        }}},
+
+      {"config",
+       "traffic-counter",
+       "Create or update a named traffic counter (PACKETS,BYTES)",
+       commandHandler<CmdConfigTrafficCounter>,
+       argRegistrar<CmdConfigTrafficCounterTraits>},
 
       {
           "config",
@@ -1091,17 +1114,24 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteInterface>,
           argRegistrar<CmdDeleteInterfaceTraits>,
           {{
-              "ipv6",
-              "Delete (reset to default) IPv6 settings for interface",
-              commandHandler<CmdDeleteInterfaceIpv6>,
-              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
-              {{
-                  "ndp",
-                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
-                  commandHandler<CmdDeleteInterfaceIpv6Ndp>,
-                  argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
-              }},
-          }},
+               "ipv6",
+               "Delete (reset to default) IPv6 settings for interface",
+               commandHandler<CmdDeleteInterfaceIpv6>,
+               argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+               {{
+                   "ndp",
+                   "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                   commandHandler<CmdDeleteInterfaceIpv6Ndp>,
+                   argRegistrar<CmdDeleteInterfaceIpv6NdpTraits>,
+               }},
+           },
+           {
+               "sflow",
+               "Delete (reset to default) sFlow settings for interface: "
+               "sample-dest, ingress-rate, egress-rate",
+               commandHandler<CmdDeleteInterfaceSflow>,
+               argRegistrar<CmdDeleteInterfaceSflowTraits>,
+           }},
       },
 
       {
@@ -1198,6 +1228,26 @@ const CommandTree& kConfigCommandTree() {
 
       {
           "delete",
+          "copp",
+          "Delete COPP (Control Plane Policing) configuration",
+          commandHandler<CmdDeleteCopp>,
+          argRegistrar<CmdDeleteCoppTraits>,
+          {{
+               "cpu-queue",
+               "Delete a CPU queue entry",
+               commandHandler<CmdDeleteCoppCpuQueue>,
+               argRegistrar<CmdDeleteCoppCpuQueueTraits>,
+           },
+           {
+               "reason",
+               "Delete a packet-rx reason to CPU queue mapping",
+               commandHandler<CmdDeleteCoppReason>,
+               argRegistrar<CmdDeleteCoppReasonTraits>,
+           }},
+      },
+
+      {
+          "delete",
           "dhcp",
           "Remove DHCP source-override settings",
           commandHandler<CmdDeleteDhcp>,
@@ -1214,6 +1264,26 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdDeleteDhcpReplySourceOverride>,
                argRegistrar<CmdDeleteDhcpReplySourceOverrideTraits>,
            }},
+      },
+
+      {
+          "delete",
+          "srv6",
+          "Delete SRv6 MySID configuration",
+          commandHandler<CmdDeleteSrv6>,
+          argRegistrar<CmdDeleteSrv6Traits>,
+          {{
+              "my-sid",
+              "Remove an entire MySID config or one entry",
+              commandHandler<CmdDeleteSrv6MySid>,
+              argRegistrar<CmdDeleteSrv6MySidTraits>,
+              {{
+                  "entry",
+                  "Remove one MySID function entry",
+                  commandHandler<CmdDeleteSrv6MySidEntry>,
+                  argRegistrar<CmdDeleteSrv6MySidEntryTraits>,
+              }},
+          }},
       },
 
       {"delete",
@@ -1240,6 +1310,13 @@ const CommandTree& kConfigCommandTree() {
                 argRegistrar<CmdDeleteTunnelIpInIpDecapTraits>,
             }},
        }}},
+
+      {"delete",
+       "traffic-counter",
+       "Delete a traffic counter (refuses while a traffic-policy match action "
+       "references it): <name>",
+       commandHandler<CmdDeleteTrafficCounter>,
+       argRegistrar<CmdDeleteTrafficCounterTraits>},
 
       {"delete",
        "vlan",

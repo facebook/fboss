@@ -6,7 +6,7 @@ import subprocess
 
 from fboss_test_runner.services import service_utils
 
-_DEFAULT_OSS_HW_AGENT_SERVICE_PATH = "/opt/fboss/bin/fboss_hw_agent-sai_impl"
+_DEFAULT_OSS_HW_AGENT_SERVICE_BINARY = "fboss_hw_agent-sai_impl"
 _PLATFORM_MAPPING_OVERRIDE_PATH_ARG = "--platform_mapping_override_path"
 
 # Default values synced from fboss/agent/AgentDirectoryUtil.cpp
@@ -18,7 +18,7 @@ HW_AGENT_SERVICE_PROD = "fboss_hw_agent@"
 _HW_AGENT_SERVICE_FOR_TESTING = "fboss_hw_agent_for_testing_"
 
 SW_AGENT_SERVICE_PROD = "fboss_sw_agent"
-_DEFAULT_OSS_SW_AGENT_SERVICE_PATH = "/opt/fboss/bin/fboss_sw_agent"
+_DEFAULT_OSS_SW_AGENT_SERVICE_BINARY = "fboss_sw_agent"
 
 FBOSS_WARMBOOT_DIR = f"{FBOSS_AGENT_VOLATILE_STATE_DIR}/warm_boot"
 
@@ -138,8 +138,8 @@ def _setup_hw_agent_service(
     additional_args: list[str] | None = None,
 ) -> None:
     if not hw_agent_service_bin_path:
-        hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_PATH
-    service_utils.validate_path(
+        hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_BINARY
+    hw_agent_service_bin_path = service_utils.resolve_binary(
         hw_agent_service_bin_path, "HW Agent Service binary path"
     )
     service_utils.validate_path(fboss_agent_config_path, "FBOSS Agent config path")
@@ -334,8 +334,8 @@ def _setup_sw_agent_service(
     sw_agent_service_name: str = SW_AGENT_SERVICE_PROD,
 ) -> None:
     if not sw_agent_service_bin_path:
-        sw_agent_service_bin_path = _DEFAULT_OSS_SW_AGENT_SERVICE_PATH
-    service_utils.validate_path(
+        sw_agent_service_bin_path = _DEFAULT_OSS_SW_AGENT_SERVICE_BINARY
+    sw_agent_service_bin_path = service_utils.resolve_binary(
         sw_agent_service_bin_path, "SW Agent Service binary path"
     )
     service_utils.validate_path(fboss_agent_config_path, "FBOSS Agent config path")

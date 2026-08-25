@@ -161,11 +161,15 @@ class _Silicon(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
-    pcie_address: str
+    # Optional: omit when the NPU's PCIe address is not yet known. Meta skips
+    # the entry when aggregating the platform's PCIe presence-check list.
+    pcie_address: str | None = None
 
     @model_validator(mode="after")
     def _check(self) -> _Silicon:  # noqa: B902 — pydantic mode="after" instance method
-        if not _PCIE_ADDRESS_RE.match(self.pcie_address):
+        if self.pcie_address is not None and not _PCIE_ADDRESS_RE.match(
+            self.pcie_address
+        ):
             raise ValueError(
                 f"silicon '{self.name}': pcie_address '{self.pcie_address}' "
                 "is not in BB:DD.F format (lowercase hex)"

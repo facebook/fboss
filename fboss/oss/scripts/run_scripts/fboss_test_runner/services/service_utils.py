@@ -3,6 +3,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import os
+import shutil
 import subprocess
 
 _DEFAULT_OSS_LOG_DIR = "/opt/fboss/logs/"
@@ -115,6 +116,17 @@ def validate_path(path: str, label: str) -> None:
     print(f"{label}: {path}")
 
 
+def resolve_binary(binary: str, label: str) -> str:
+    if os.path.isabs(binary):
+        validate_path(binary, label)
+        return binary
+    binary_path = shutil.which(binary)
+    if binary_path is None:
+        raise Exception(f"{label}: {binary} does not exist")
+    print(f"{label}: {binary_path}")
+    return binary_path
+
+
 def build_unit_file_content(
     description: str,
     exec_start_cmd: str,
@@ -122,6 +134,7 @@ def build_unit_file_content(
     memory_max: str = "3.75G",
     tsan_options: str = "die_after_fork=0",
 ) -> str:
+    library_path = os.environ.get("LD_LIBRARY_PATH") or "/opt/fboss/lib"
     return f"""
 [Unit]
 Description={description}
@@ -133,7 +146,7 @@ MemoryMax={memory_max}
 MemorySwapMax=0
 
 Environment=TSAN_OPTIONS={tsan_options}
-Environment=LD_LIBRARY_PATH=/opt/fboss/lib
+Environment=LD_LIBRARY_PATH={library_path}
 ExecStart={exec_start_cmd}
 SyslogIdentifier={syslog_identifier}
 Restart=no

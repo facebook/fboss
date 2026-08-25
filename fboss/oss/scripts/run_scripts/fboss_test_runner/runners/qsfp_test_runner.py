@@ -56,7 +56,7 @@ class QsfpTestRunner(TestRunner):
         )
 
     def _get_test_binary_name(self) -> str:
-        return "/opt/fboss/bin/qsfp_hw_test"
+        return "qsfp_hw_test"
 
     def _get_warmboot_check_file(self) -> str:
         return QSFP_WARMBOOT_CHECK_FILE

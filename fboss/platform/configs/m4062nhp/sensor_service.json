@@ -252,8 +252,8 @@
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_max_raw",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 122
+            "maxAlarmVal": 105,
+            "upperCriticalVal": 112
           },
           "compute": "379.10968 - 0.12984*@"
         },
@@ -262,8 +262,8 @@
           "sysfsPath": "/run/devmap/sensors/ASIC_TEMP/asic_temp_min_raw",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 115,
-            "upperCriticalVal": 122
+            "maxAlarmVal": 105,
+            "upperCriticalVal": 112
           },
           "compute": "379.10968 - 0.12984*@"
         },
@@ -318,7 +318,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "FAN1_RPM",
+          "name": "FAN1_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan1_input",
           "type": 4,
           "thresholds": {
@@ -327,7 +327,7 @@
           }
         },
         {
-          "name": "FAN2_RPM",
+          "name": "FAN1_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan2_input",
           "type": 4,
           "thresholds": {
@@ -336,7 +336,7 @@
           }
         },
         {
-          "name": "FAN3_RPM",
+          "name": "FAN2_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan3_input",
           "type": 4,
           "thresholds": {
@@ -345,7 +345,7 @@
           }
         },
         {
-          "name": "FAN4_RPM",
+          "name": "FAN2_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan4_input",
           "type": 4,
           "thresholds": {
@@ -354,7 +354,7 @@
           }
         },
         {
-          "name": "FAN5_RPM",
+          "name": "FAN3_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan5_input",
           "type": 4,
           "thresholds": {
@@ -363,7 +363,7 @@
           }
         },
         {
-          "name": "FAN6_RPM",
+          "name": "FAN3_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan6_input",
           "type": 4,
           "thresholds": {
@@ -372,7 +372,7 @@
           }
         },
         {
-          "name": "FAN7_RPM",
+          "name": "FAN4_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan7_input",
           "type": 4,
           "thresholds": {
@@ -381,7 +381,7 @@
           }
         },
         {
-          "name": "FAN8_RPM",
+          "name": "FAN4_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan8_input",
           "type": 4,
           "thresholds": {
@@ -390,7 +390,7 @@
           }
         },
         {
-          "name": "FAN9_RPM",
+          "name": "FAN5_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan9_input",
           "type": 4,
           "thresholds": {
@@ -399,7 +399,7 @@
           }
         },
         {
-          "name": "FAN10_RPM",
+          "name": "FAN5_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan10_input",
           "type": 4,
           "thresholds": {
@@ -408,7 +408,7 @@
           }
         },
         {
-          "name": "FAN11_RPM",
+          "name": "FAN6_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan11_input",
           "type": 4,
           "thresholds": {
@@ -417,7 +417,7 @@
           }
         },
         {
-          "name": "FAN12_RPM",
+          "name": "FAN6_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan12_input",
           "type": 4,
           "thresholds": {
@@ -426,7 +426,7 @@
           }
         },
         {
-          "name": "FAN13_RPM",
+          "name": "FAN7_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan13_input",
           "type": 4,
           "thresholds": {
@@ -435,7 +435,7 @@
           }
         },
         {
-          "name": "FAN14_RPM",
+          "name": "FAN7_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan14_input",
           "type": 4,
           "thresholds": {
@@ -444,7 +444,7 @@
           }
         },
         {
-          "name": "FAN15_RPM",
+          "name": "FAN8_INNER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan15_input",
           "type": 4,
           "thresholds": {
@@ -453,7 +453,7 @@
           }
         },
         {
-          "name": "FAN16_RPM",
+          "name": "FAN8_OUTER_RPM",
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan16_input",
           "type": 4,
           "thresholds": {

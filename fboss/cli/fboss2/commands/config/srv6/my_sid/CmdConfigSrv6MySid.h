@@ -18,7 +18,7 @@ namespace facebook::fboss {
 
 // CLI: `config srv6 my-sid <prefix>`
 // Creates the mySidConfig block (locator + empty entries map) when none exists.
-// Also acts as the parent context for the add-entry subcommand.
+// Also acts as the parent context for the entry subcommand.
 struct CmdConfigSrv6MySidTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigSrv6;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {

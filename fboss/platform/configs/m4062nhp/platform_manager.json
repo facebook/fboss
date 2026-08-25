@@ -69,11 +69,11 @@
       "embeddedSensorConfigs": [
         {
           "pmUnitScopedName": "DIMM1_TEMP",
-          "sysfsPath": "/sys/bus/i2c/devices/1-0050"
+          "sysfsPath": "/run/nexthop_bsp/sensors/DIMM1_TEMP"
         },
         {
           "pmUnitScopedName": "DIMM2_TEMP",
-          "sysfsPath": "/sys/bus/i2c/devices/1-0051"
+          "sysfsPath": "/run/nexthop_bsp/sensors/DIMM2_TEMP"
         }
       ],
       "outgoingSlotConfigs": {

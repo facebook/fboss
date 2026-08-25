@@ -2927,6 +2927,7 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TBgpPath, ::facebo
     STRUCT_CHILD_GETTERS(igp_cost, 26);
     STRUCT_CHILD_GETTERS(path_id_to_send, 27);
     STRUCT_CHILD_GETTERS(is_inactive, 28);
+    STRUCT_CHILD_GETTERS(backup_addr, 29);
 };
 
 
@@ -6601,6 +6602,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpSettingConfig, ::facebook::fbo
     STRUCT_CHILD_GETTERS(enable_addpath_gr_reconcile, 18);
     STRUCT_CHILD_GETTERS(enable_legacy_v4_nlri_encoding, 19);
     STRUCT_CHILD_GETTERS(enable_stream_subscriber_backpressure, 20);
+    STRUCT_CHILD_GETTERS(enable_netlink_dampening, 21);
 };
 
 

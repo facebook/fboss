@@ -71,9 +71,9 @@ class SaiAgentScaleTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "/opt/fboss/bin/sai_agent_scale_test-sai_impl"
+            return "sai_agent_scale_test-sai_impl"
 
-        return "/opt/fboss/bin/multi_switch_agent_scale_test"
+        return "multi_switch_agent_scale_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None

@@ -45,6 +45,10 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
     for (auto voqSwitchId : getSw()->getSwitchInfoTable().getSwitchIdsOfType(
              cfg::SwitchType::VOQ)) {
       std::string out;
+      // Start with a blank command first and then run the actual command
+      // This is because, sometimes first diag command doesn't work in some SDK
+      // versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, voqSwitchId);
       getAgentEnsemble()->runDiagCommand(cmd, out, voqSwitchId);
     }
   }

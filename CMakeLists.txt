@@ -52,11 +52,34 @@ if ($ENV{SKIP_ALL_INSTALL})
   set (SKIP_ALL_INSTALL ON)
 endif()
 
-if (SKIP_ALL_INSTALL)
+set(FBOSS_BUILD_PROFILE "full" CACHE STRING "Build profile: full | fsdb_client")
+# Env wins over -D: the OSS CI rules pass the profile as a container env var
+# while getdeps passes a cache define, and a rule must be able to override.
+if (NOT "$ENV{FBOSS_BUILD_PROFILE}" STREQUAL "")
+  set(FBOSS_BUILD_PROFILE "$ENV{FBOSS_BUILD_PROFILE}")
+endif()
+if (NOT FBOSS_BUILD_PROFILE MATCHES "^(full|fsdb_client)$")
+  message(FATAL_ERROR "Unknown FBOSS_BUILD_PROFILE '${FBOSS_BUILD_PROFILE}'")
+endif()
+set_property(CACHE FBOSS_BUILD_PROFILE PROPERTY STRINGS full fsdb_client)
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  message(STATUS "FBOSS build profile: ${FBOSS_BUILD_PROFILE}")
+endif()
+
+# One macro with a runtime switch, never two: CMake's _name shadowing is a
+# single level, so a second macro(install) makes _install resolve to the first.
+if (SKIP_ALL_INSTALL OR NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  set(FBOSS_INSTALL_ENABLED FALSE)
   install(FILES README.md DESTINATION .)
   macro (install)
-    message(STATUS "Skipping installing ${ARGV} fboss artifact")
-    _install(${ARGV} EXCLUDE_FROM_ALL)
+    if (FBOSS_INSTALL_ENABLED)
+      _install(${ARGV})
+    elseif (SKIP_ALL_INSTALL)
+      message(STATUS "Skipping installing ${ARGV} fboss artifact")
+      _install(${ARGV} EXCLUDE_FROM_ALL)
+    else()
+      message(STATUS "Profile ${FBOSS_BUILD_PROFILE}: skip install ${ARGV}")
+    endif()
   endmacro ()
 endif()
 
@@ -1335,37 +1358,44 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/stru
     SYMBOLIC)
 endif()
 
-# Build all cmake files under cmake/*cmake
-file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
-foreach(cmakeFile ${cmakeFiles})
-  message(status " INCLUDE ${cmakeFile}")
-  INCLUDE(${cmakeFile})
-endforeach(cmakeFile)
+# Deferred to end-of-directory: targets are still created after this file's last
+# line (FbossImageDistroCliTests.cmake, and the SAI groups under
+# BUILD_SAI_FAKE), and anything created later would escape the sweep.
+function(fboss_prune_to_exported_targets)
+  # Only the exported targets need to be in `all`; ninja pulls their transitive
+  # dependencies in anyway, because EXCLUDE_FROM_ALL does not stop a target
+  # being built when something still in `all` depends on it. That covers every
+  # dependency edge but not `add_custom_target(... ALL ...)`, whose only tie to
+  # `all` is the keyword this sweep overrides.
+  get_property(_all DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+               PROPERTY BUILDSYSTEM_TARGETS)
+  set(_dropped 0)
+  set(_found 0)
+  foreach(_t IN LISTS _all)
+    get_target_property(_type ${_t} TYPE)
+    if(_t IN_LIST FBOSS_EXPORTED_TARGETS)
+      math(EXPR _found "${_found} + 1")
+    elseif(NOT _type STREQUAL "INTERFACE_LIBRARY")
+      set_target_properties(${_t} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+      math(EXPR _dropped "${_dropped} + 1")
+    endif()
+  endforeach()
+  message(STATUS "FBOSS profile ${FBOSS_BUILD_PROFILE}: kept ${_found} "
+    "exported targets, excluded ${_dropped}")
+endfunction()
 
-# Install headers and libraries for downstream consumers (e.g., BGP++).
-# Both blocks live here (after the SKIP_ALL_INSTALL macro override) so they
-# behave consistently: when SKIP_ALL_INSTALL is set, both are excluded.
-#
-# Header sources are installed per-subdirectory rather than via
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/ ...) because
-# ${CMAKE_SOURCE_DIR}/fboss is a symlink (github/fboss -> ..) and CMake
-# materialises that symlink at the destination, causing the subsequent
-# install of ${CMAKE_BINARY_DIR}/fboss/ to fail with "File exists".
-foreach(_fboss_header_subdir
-  agent cli common fsdb led_service lib mdio mka_service platform
-  qsfp_service thrift_cow thrift_visitors thriftpath_plugin)
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/${_fboss_header_subdir}
-    DESTINATION include/fboss
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
-endforeach()
-install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
-  DESTINATION include/fboss
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
-install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
-  DESTINATION include/configerator
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  # The pruned path needs cmake_language(DEFER) (3.19); the file's declared
+  # 3.8 minimum only covers the full build.
+  if (CMAKE_VERSION VERSION_LESS 3.19)
+    message(FATAL_ERROR
+      "FBOSS_BUILD_PROFILE ${FBOSS_BUILD_PROFILE} needs CMake >= 3.19, "
+      "found ${CMAKE_VERSION}; build the default 'full' profile instead")
+  endif()
+  cmake_language(DEFER CALL fboss_prune_to_exported_targets)
+endif()
 
-install(TARGETS
+set(FBOSS_EXPORTED_TARGETS
   nodebase address_utils radix_tree exponential_back_off
   switch_config_cpp2 ctrl_cpp2 common_cpp2 fboss_cpp2
   fboss_common_cpp2 fboss_error fboss_types
@@ -1418,6 +1448,44 @@ install(TARGETS
   transceiver_validation_cpp2
   sensor_config_cpp2
   qsfp_cpp2
+)
+
+# Build all cmake files under cmake/*cmake
+file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
+foreach(cmakeFile ${cmakeFiles})
+  message(status " INCLUDE ${cmakeFile}")
+  INCLUDE(${cmakeFile})
+endforeach(cmakeFile)
+
+if (NOT SKIP_ALL_INSTALL AND NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  set(FBOSS_INSTALL_ENABLED TRUE)
+endif()
+
+# Install headers and libraries for downstream consumers (e.g., BGP++).
+# Both blocks live here, after the install() override and after
+# FBOSS_INSTALL_ENABLED is flipped, so SKIP_ALL_INSTALL and a pruned profile
+# both apply to them consistently.
+#
+# Header sources are installed per-subdirectory rather than via
+# install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/ ...) because
+# ${CMAKE_SOURCE_DIR}/fboss is a symlink (github/fboss -> ..) and CMake
+# materialises that symlink at the destination, causing the subsequent
+# install of ${CMAKE_BINARY_DIR}/fboss/ to fail with "File exists".
+foreach(_fboss_header_subdir
+  agent cli common fsdb led_service lib mdio mka_service platform
+  qsfp_service thrift_cow thrift_visitors thriftpath_plugin)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/${_fboss_header_subdir}
+    DESTINATION include/fboss
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+endforeach()
+install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
+  DESTINATION include/fboss
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
+  DESTINATION include/configerator
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+
+install(TARGETS ${FBOSS_EXPORTED_TARGETS}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )

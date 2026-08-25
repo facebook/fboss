@@ -80,25 +80,25 @@ def test_run_test_qsfp_without_config_raises(runner, args):
 
 def test_get_test_binary_name_sai(runner, args):
     runner.args = args
-    assert (
-        runner._get_test_binary_name() == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
-    )
+    assert runner._get_test_binary_name() == "sai_all_benchmarks-sai_impl"
 
 
 def test_get_test_binary_name_qsfp(runner, args):
     args.qsfp = True
     runner.args = args
-    assert runner._get_test_binary_name() == "/opt/fboss/bin/qsfp_hw_test_benchmark"
+    assert runner._get_test_binary_name() == "qsfp_hw_test_benchmark"
 
 
 def test_run_test_delegates_to_framework_with_sai_suite(runner, args):
     with patch(
         "fboss_test_runner.runners.benchmark_test_runner.BenchmarkFramework"
     ) as mock_fw:
-        runner.run_test(args)
+        exit_code = runner.run_test(args)
     suite = mock_fw.call_args[0][0]
     assert isinstance(suite, SaiBenchmarkSuite)
     mock_fw.return_value.run.assert_called_once_with(args)
+    mock_fw.return_value.list_tests.assert_not_called()
+    assert exit_code == 0
 
 
 def test_run_test_delegates_to_framework_with_qsfp_suite(runner, args):
@@ -107,7 +107,22 @@ def test_run_test_delegates_to_framework_with_qsfp_suite(runner, args):
     with patch(
         "fboss_test_runner.runners.benchmark_test_runner.BenchmarkFramework"
     ) as mock_fw:
-        runner.run_test(args)
+        exit_code = runner.run_test(args)
     suite = mock_fw.call_args[0][0]
     assert isinstance(suite, QsfpBenchmarkSuite)
     mock_fw.return_value.run.assert_called_once_with(args)
+    mock_fw.return_value.list_tests.assert_not_called()
+    assert exit_code == 0
+
+
+def test_list_tests_delegates_to_framework(runner, args):
+    args.list_tests = True
+    with patch(
+        "fboss_test_runner.runners.benchmark_test_runner.BenchmarkFramework"
+    ) as mock_fw:
+        exit_code = runner.list_tests(args)
+    suite = mock_fw.call_args[0][0]
+    assert isinstance(suite, SaiBenchmarkSuite)
+    mock_fw.return_value.list_tests.assert_called_once_with(args)
+    mock_fw.return_value.run.assert_not_called()
+    assert exit_code == 0
