@@ -3672,6 +3672,44 @@ void SaiPortManager::programSamplingMirror(
         SaiPortTraits::Attributes::EgressSampleMirrorSession{mirrorOidList});
   }
 
+  // Setting the sampled-mirror session may change the sample-packet binding.
+  // Reconcile the hardware value with the handle retained by FBOSS. Use
+  // PortApi directly because SaiObject caches the expected OID and would skip
+  // the repair write.
+  auto samplePacketHandle = direction == MirrorDirection::INGRESS
+      ? portHandle->ingressSamplePacket
+      : portHandle->egressSamplePacket;
+
+  if (samplePacketHandle) {
+    auto& portApi = SaiApiTable::getInstance()->portApi();
+    auto portSaiId = portHandle->port->adapterKey();
+    auto expectedSamplePacketId = samplePacketHandle->adapterKey();
+    auto reconcileSamplePacketBinding = [&](auto samplePacketEnable) {
+      using SamplePacketEnable = decltype(samplePacketEnable);
+      auto actualSamplePacketId =
+          portApi.getAttribute(portSaiId, samplePacketEnable);
+      if (actualSamplePacketId == expectedSamplePacketId) {
+        return;
+      }
+      XLOG(WARNING) << "Restoring "
+                    << (direction == MirrorDirection::INGRESS ? "ingress"
+                                                              : "egress")
+                    << " sample packet on port " << portId << ": expected "
+                    << expectedSamplePacketId << ", got "
+                    << actualSamplePacketId;
+      portApi.setAttribute(
+          portSaiId, SamplePacketEnable{expectedSamplePacketId});
+    };
+
+    if (direction == MirrorDirection::INGRESS) {
+      reconcileSamplePacketBinding(
+          SaiPortTraits::Attributes::IngressSamplePacketEnable{});
+    } else {
+      reconcileSamplePacketBinding(
+          SaiPortTraits::Attributes::EgressSamplePacketEnable{});
+    }
+  }
+
   XLOG(DBG) << "Programming sampling mirror on port: " << std::hex
             << portHandle->port->adapterKey()
             << " action: " << (action == MirrorAction::START ? "start" : "stop")
