@@ -726,6 +726,9 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
   // 15.4 is the first SDK whose saiportextensions.h declares these; guarding on
   // BRCM_SAI_SDK_XGS_GTE_15_0 would pull in 15.0, which does not.
   //
+  // All eight are gettable on Tomahawk Ultra 1 (Broadcom CS00012472055); the
+  // SDK counter each resolves to is named in hardware_stats.thrift.
+  //
   // SAI_PORT_STAT_LLR_REPLAY is omitted on purpose: brcm-sai maps it to
   // snmpBcmTxLlrReplayedPkts, the same SDK counter as
   // SAI_PORT_STAT_LLR_TX_REPLAY in llrStats(), so fetching it would publish the
