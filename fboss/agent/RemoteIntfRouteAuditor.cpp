@@ -36,12 +36,14 @@ std::pair<FibRemoteIntfRoutes, size_t> collectRemoteIntfRoutesFromFib(
   FibRemoteIntfRoutes result;
   size_t malformedCount = 0;
   forAllRoutes(
-      state, [&result, &malformedCount](RouterID rid, const auto& route) {
+      state,
+      [&state, &result, &malformedCount](RouterID rid, const auto& route) {
         auto entry = route->getEntryForClient(ClientID::REMOTE_INTERFACE_ROUTE);
         if (!entry) {
           return;
         }
-        const auto& nhSet = entry->getNextHopSet();
+        // Per-client entry: resolve via clientNextHopSetID, not inline.
+        const auto nhSet = getClientNextHops(state, *entry);
         if (nhSet.size() != 1) {
           ++malformedCount;
           XLOG(ERR) << "REMOTE_INTERFACE_ROUTE entry has " << nhSet.size()

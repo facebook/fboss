@@ -85,9 +85,10 @@ class AgentVoqSwitchWarmbootReconcileTest : public AgentVoqSwitchTest {
     if (!entry) {
       return false;
     }
-    // Use the ID-aware resolver rather than reading inline nexthops off the
-    // entry directly (see FibHelpers::getNextHops / RouteNextHopEntry).
-    auto nhSet = getNextHops(state, *entry);
+    // Per-client entries carry clientNextHopSetID; resolvedNextHopSetID only
+    // ever lives on the route's fwd, so getNextHops() would CHECK-fail here
+    // once FLAGS_resolve_nexthops_from_id is on.
+    auto nhSet = getClientNextHops(state, *entry);
     return nhSet.size() == 1 && nhSet.begin()->intf() == intfId;
   }
 
