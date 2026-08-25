@@ -18,7 +18,7 @@
 #include <string>
 
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
-#include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/entry/CmdConfigSrv6MySidEntry.h"
 #include "fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
@@ -47,24 +47,25 @@ const std::map<std::string, std::string> kSrv6MySidTestDescriptions = {
      "config srv6 my-sid <prefix> creates empty mySidConfig in session"},
     {"mySidInit_rejectsSecondInit",
      "Second config srv6 my-sid init for same prefix is rejected"},
-    {"mySidAdd_validAdjacency",
+    {"mySidEntry_validAdjacency",
      "Parses entry adjacency args (fn, is-v6, port-name)"},
-    {"mySidAdd_validNode", "Parses entry node args (fn, node-address)"},
-    {"mySidAdd_validDecap", "Parses entry decap args (fn only)"},
-    {"mySidAdd_noLocatorThrows",
+    {"mySidEntry_validNode", "Parses entry node args (fn, node-address)"},
+    {"mySidEntry_validDecap", "Parses entry decap args (fn only)"},
+    {"mySidEntry_noLocatorThrows",
      "entry before my-sid init fails with runtime_error"},
-    {"mySidAdd_invalidEntry",
+    {"mySidEntry_invalidEntry",
      "Rejects function values 0, 99999, and non-numeric abc"},
-    {"mySidAdd_unknownType", "Rejects unknown entry type 'binding'"},
-    {"mySidAdd_invalidIsV6",
+    {"mySidEntry_unknownType", "Rejects unknown entry type 'binding'"},
+    {"mySidEntry_invalidIsV6",
      "Rejects non-boolean is-v6 value on adjacency entry"},
-    {"mySidAdd_portNameOnNode", "Rejects port-name on node-type entry"},
-    {"mySidAdd_nodeAddressOnAdjacency",
+    {"mySidEntry_portNameOnNode", "Rejects port-name on node-type entry"},
+    {"mySidEntry_nodeAddressOnAdjacency",
      "Rejects node-address on adjacency-type entry"},
-    {"mySidAdd_insertsEntry",
+    {"mySidEntry_insertsEntry",
      "entry adjacency stages entry in session mySidConfig"},
-    {"mySidAdd_prefixMismatch", "entry with wrong locator prefix is rejected"},
-    {"mySidAdd_upserts",
+    {"mySidEntry_prefixMismatch",
+     "entry with wrong locator prefix is rejected"},
+    {"mySidEntry_upserts",
      "Re-adding same function ID overwrites prior entry with warning"},
     {"mySidDeleteEntry_removesEntry",
      "delete srv6 my-sid <prefix> entry <fn> removes entry"},
@@ -191,8 +192,8 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidInit_rejectsSecondInit) {
   EXPECT_THROW(cmd.queryClient(hostInfo_, prefix), std::runtime_error);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validAdjacency) {
-  MySidAddArg arg(
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_validAdjacency) {
+  MySidEntryArg arg(
       {"10188",
        "type",
        "adjacency",
@@ -206,28 +207,28 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validAdjacency) {
   EXPECT_EQ(arg.getPortName(), "Port-Channel190412");
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validNode) {
-  MySidAddArg arg({"20001", "type", "node", "node-address", "2001:db8::1"});
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_validNode) {
+  MySidEntryArg arg({"20001", "type", "node", "node-address", "2001:db8::1"});
   EXPECT_EQ(arg.getFunctionValue(), 20001);
   EXPECT_EQ(arg.getType(), MySidConfigEntryType::NODE);
   EXPECT_EQ(arg.getNodeAddress(), "2001:db8::1");
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_validDecap) {
-  MySidAddArg arg({"32767", "type", "decap"});
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_validDecap) {
+  MySidEntryArg arg({"32767", "type", "decap"});
   EXPECT_EQ(arg.getFunctionValue(), 32767);
   EXPECT_EQ(arg.getType(), MySidConfigEntryType::DECAP);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_noLocatorThrows) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_noLocatorThrows) {
   setupTestableConfigSession(
       "config srv6 my-sid entry",
       fmt::format(
           "{} 10188 type adjacency is-v6 true port-name Port-Channel190412",
           kLocatorPrefix));
-  CmdConfigSrv6MySidAdd cmd;
+  CmdConfigSrv6MySidEntry cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
-  MySidAddArg addArg(
+  MySidEntryArg entryArg(
       {"10188",
        "type",
        "adjacency",
@@ -236,22 +237,24 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_noLocatorThrows) {
        "port-name",
        "Port-Channel190412"});
 
-  EXPECT_THROW(cmd.queryClient(hostInfo_, prefix, addArg), std::runtime_error);
-}
-
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidEntry) {
-  EXPECT_THROW(MySidAddArg({"0", "type", "decap"}), std::invalid_argument);
-  EXPECT_THROW(MySidAddArg({"99999", "type", "decap"}), std::invalid_argument);
-  EXPECT_THROW(MySidAddArg({"abc", "type", "decap"}), std::invalid_argument);
-}
-
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_unknownType) {
-  EXPECT_THROW(MySidAddArg({"1", "type", "binding"}), std::invalid_argument);
-}
-
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidIsV6) {
   EXPECT_THROW(
-      MySidAddArg(
+      cmd.queryClient(hostInfo_, prefix, entryArg), std::runtime_error);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_invalidEntry) {
+  EXPECT_THROW(MySidEntryArg({"0", "type", "decap"}), std::invalid_argument);
+  EXPECT_THROW(
+      MySidEntryArg({"99999", "type", "decap"}), std::invalid_argument);
+  EXPECT_THROW(MySidEntryArg({"abc", "type", "decap"}), std::invalid_argument);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_unknownType) {
+  EXPECT_THROW(MySidEntryArg({"1", "type", "binding"}), std::invalid_argument);
+}
+
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_invalidIsV6) {
+  EXPECT_THROW(
+      MySidEntryArg(
           {"1",
            "type",
            "adjacency",
@@ -262,15 +265,15 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_invalidIsV6) {
       std::invalid_argument);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_portNameOnNode) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_portNameOnNode) {
   EXPECT_THROW(
-      MySidAddArg({"1", "type", "node", "port-name", "Port-Channel1"}),
+      MySidEntryArg({"1", "type", "node", "port-name", "Port-Channel1"}),
       std::invalid_argument);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_nodeAddressOnAdjacency) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_nodeAddressOnAdjacency) {
   EXPECT_THROW(
-      MySidAddArg(
+      MySidEntryArg(
           {"1",
            "type",
            "adjacency",
@@ -281,11 +284,11 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_nodeAddressOnAdjacency) {
       std::invalid_argument);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_insertsEntry) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_insertsEntry) {
   initMySidConfig();
-  CmdConfigSrv6MySidAdd cmd;
+  CmdConfigSrv6MySidEntry cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
-  MySidAddArg addArg(
+  MySidEntryArg entryArg(
       {"10188",
        "type",
        "adjacency",
@@ -294,7 +297,7 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_insertsEntry) {
        "port-name",
        "Port-Channel190412"});
 
-  auto result = cmd.queryClient(hostInfo_, prefix, addArg);
+  auto result = cmd.queryClient(hostInfo_, prefix, entryArg);
   EXPECT_THAT(result, HasSubstr("Successfully added adjacency SID"));
 
   auto& config = ConfigSession::getInstance().getAgentConfig();
@@ -304,11 +307,11 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_insertsEntry) {
       config.sw()->mySidConfig()->entries()->at(10188).adjacency().has_value());
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_prefixMismatch) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_prefixMismatch) {
   initMySidConfig();
-  CmdConfigSrv6MySidAdd cmd;
+  CmdConfigSrv6MySidEntry cmd;
   LocatorPrefixArg prefix({kOtherLocatorPrefix});
-  MySidAddArg addArg(
+  MySidEntryArg entryArg(
       {"10188",
        "type",
        "adjacency",
@@ -317,15 +320,16 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_prefixMismatch) {
        "port-name",
        "Port-Channel190412"});
 
-  EXPECT_THROW(cmd.queryClient(hostInfo_, prefix, addArg), std::runtime_error);
+  EXPECT_THROW(
+      cmd.queryClient(hostInfo_, prefix, entryArg), std::runtime_error);
 }
 
-TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_upserts) {
+TEST_F(CmdConfigSrv6MySidTestFixture, mySidEntry_upserts) {
   initMySidConfig();
-  CmdConfigSrv6MySidAdd cmd;
+  CmdConfigSrv6MySidEntry cmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
-  MySidAddArg firstArg({"10188", "type", "decap"});
-  MySidAddArg secondArg(
+  MySidEntryArg firstArg({"10188", "type", "decap"});
+  MySidEntryArg secondArg(
       {"10188",
        "type",
        "adjacency",
@@ -341,10 +345,10 @@ TEST_F(CmdConfigSrv6MySidTestFixture, mySidAdd_upserts) {
 
 TEST_F(CmdConfigSrv6MySidTestFixture, mySidDeleteEntry_removesEntry) {
   initMySidConfig();
-  CmdConfigSrv6MySidAdd addCmd;
+  CmdConfigSrv6MySidEntry entryCmd;
   LocatorPrefixArg prefix({kLocatorPrefix});
-  MySidAddArg addArg({"32767", "type", "decap"});
-  addCmd.queryClient(hostInfo_, prefix, addArg);
+  MySidEntryArg entryArg({"32767", "type", "decap"});
+  entryCmd.queryClient(hostInfo_, prefix, entryArg);
 
   CmdDeleteSrv6MySidEntry deleteCmd;
   MySidDeleteEntryArg deleteArg({"32767"});

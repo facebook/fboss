@@ -51,9 +51,9 @@ class LocatorPrefixArg : public utils::BaseObjectArgType<std::string> {
 
 enum class MySidConfigEntryType { ADJACENCY, NODE, DECAP };
 
-class MySidAddArg : public utils::BaseObjectArgType<std::string> {
+class MySidEntryArg : public utils::BaseObjectArgType<std::string> {
  public:
-  /* implicit */ MySidAddArg(std::vector<std::string> v);
+  /* implicit */ MySidEntryArg(std::vector<std::string> v);
 
   int16_t getFunctionValue() const {
     return functionValue_;

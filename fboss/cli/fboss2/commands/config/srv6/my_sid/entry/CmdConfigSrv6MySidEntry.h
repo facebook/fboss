@@ -18,7 +18,7 @@ namespace facebook::fboss {
 
 // CLI: `config srv6 my-sid <prefix> entry <fn> type adjacency|node|decap ...`
 // Upserts one MySID function entry under the configured locator prefix.
-struct CmdConfigSrv6MySidAddTraits : public WriteCommandTraits {
+struct CmdConfigSrv6MySidEntryTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigSrv6MySid;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
     cmd.add_option(
@@ -26,20 +26,21 @@ struct CmdConfigSrv6MySidAddTraits : public WriteCommandTraits {
         args,
         "<function> type <adjacency|node|decap> [type-specific args]");
   }
-  using ObjectArgType = MySidAddArg;
+  using ObjectArgType = MySidEntryArg;
   using RetType = std::string;
 };
 
-class CmdConfigSrv6MySidAdd
-    : public CmdHandler<CmdConfigSrv6MySidAdd, CmdConfigSrv6MySidAddTraits> {
+class CmdConfigSrv6MySidEntry : public CmdHandler<
+                                    CmdConfigSrv6MySidEntry,
+                                    CmdConfigSrv6MySidEntryTraits> {
  public:
-  using ObjectArgType = CmdConfigSrv6MySidAddTraits::ObjectArgType;
-  using RetType = CmdConfigSrv6MySidAddTraits::RetType;
+  using ObjectArgType = CmdConfigSrv6MySidEntryTraits::ObjectArgType;
+  using RetType = CmdConfigSrv6MySidEntryTraits::RetType;
 
   RetType queryClient(
       const HostInfo& hostInfo,
       const LocatorPrefixArg& prefix,
-      const ObjectArgType& addArg);
+      const ObjectArgType& entryArg);
 
   void printOutput(const RetType& output);
 };

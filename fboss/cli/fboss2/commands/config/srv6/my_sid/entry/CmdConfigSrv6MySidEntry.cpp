@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/entry/CmdConfigSrv6MySidEntry.h"
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
@@ -19,18 +19,18 @@
 namespace facebook::fboss {
 
 // Validates prefix, then upserts mySidConfig.entries[function].
-CmdConfigSrv6MySidAddTraits::RetType CmdConfigSrv6MySidAdd::queryClient(
+CmdConfigSrv6MySidEntryTraits::RetType CmdConfigSrv6MySidEntry::queryClient(
     const HostInfo& /* hostInfo */,
     const LocatorPrefixArg& prefixArg,
-    const ObjectArgType& addArg) {
+    const ObjectArgType& entryArg) {
   auto& session = ConfigSession::getInstance();
   auto& swConfig = *session.getAgentConfig().sw();
 
   auto& mySidConfig = requireMySidConfig(swConfig);
   requireMatchingLocatorPrefix(mySidConfig, prefixArg.getPrefix());
 
-  auto entry = addArg.buildEntryConfig();
-  auto functionValue = addArg.getFunctionValue();
+  auto entry = entryArg.buildEntryConfig();
+  auto functionValue = entryArg.getFunctionValue();
   auto& entries = *mySidConfig.entries();
 
   auto it = entries.find(functionValue);
@@ -45,22 +45,22 @@ CmdConfigSrv6MySidAddTraits::RetType CmdConfigSrv6MySidAdd::queryClient(
     return fmt::format(
         "Warning: MySID entry {} overwritten with new {} SID",
         functionValue,
-        addArg.getTypeStr());
+        entryArg.getTypeStr());
   }
 
   entries[functionValue] = entry;
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   return fmt::format(
       "Successfully added {} SID: entry={}",
-      addArg.getTypeStr(),
+      entryArg.getTypeStr(),
       functionValue);
 }
 
-void CmdConfigSrv6MySidAdd::printOutput(const RetType& output) {
+void CmdConfigSrv6MySidEntry::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
 
 template void
-CmdHandler<CmdConfigSrv6MySidAdd, CmdConfigSrv6MySidAddTraits>::run();
+CmdHandler<CmdConfigSrv6MySidEntry, CmdConfigSrv6MySidEntryTraits>::run();
 
 } // namespace facebook::fboss

@@ -114,7 +114,7 @@
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
 #include "fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.h"
 #include "fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h"
-#include "fboss/cli/fboss2/commands/config/srv6/my_sid/add/CmdConfigSrv6MySidAdd.h"
+#include "fboss/cli/fboss2/commands/config/srv6/my_sid/entry/CmdConfigSrv6MySidEntry.h"
 #include "fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h"
 #include "fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h"
 #include "fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h"
@@ -1007,8 +1007,8 @@ const CommandTree& kConfigCommandTree() {
               {{
                   "entry",
                   "Configure uA/uN/uDT46 entry: <fn> type ...",
-                  commandHandler<CmdConfigSrv6MySidAdd>,
-                  argRegistrar<CmdConfigSrv6MySidAddTraits>,
+                  commandHandler<CmdConfigSrv6MySidEntry>,
+                  argRegistrar<CmdConfigSrv6MySidEntryTraits>,
               }},
           }},
       },

@@ -147,7 +147,7 @@ LocatorPrefixArg::LocatorPrefixArg(std::vector<std::string> v) {
   data_.push_back(prefix_);
 }
 
-std::string MySidAddArg::getTypeStr() const {
+std::string MySidEntryArg::getTypeStr() const {
   switch (type_) {
     case MySidConfigEntryType::ADJACENCY:
       return "adjacency";
@@ -159,7 +159,7 @@ std::string MySidAddArg::getTypeStr() const {
   return "unknown";
 }
 
-MySidAddArg::MySidAddArg(std::vector<std::string> v) {
+MySidEntryArg::MySidEntryArg(std::vector<std::string> v) {
   size_t index = 0;
   if (index >= v.size()) {
     throw std::invalid_argument("Missing MySID function value");
@@ -218,7 +218,7 @@ MySidAddArg::MySidAddArg(std::vector<std::string> v) {
   data_.push_back(fmt::format("{}", functionValue_));
 }
 
-cfg::MySidEntryConfig MySidAddArg::buildEntryConfig() const {
+cfg::MySidEntryConfig MySidEntryArg::buildEntryConfig() const {
   cfg::MySidEntryConfig entry;
   switch (type_) {
     case MySidConfigEntryType::ADJACENCY: {
