@@ -865,7 +865,11 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
           fwd.getAdminDistance(),
           fwd.getCounterID(),
           fwd.getClassID(),
-          std::optional<cfg::SwitchingMode>(switchingMode));
+          std::optional<cfg::SwitchingMode>(switchingMode),
+          fwd.getOverrideNextHops(),
+          fwd.getNormalizedResolvedNextHopSetID(),
+          fwd.getResolvedNextHopSetID(),
+          fwd.getClientNextHopSetID());
       fib.value().at(routeName).fwd() = newFwd.toThrift();
     }
   };
