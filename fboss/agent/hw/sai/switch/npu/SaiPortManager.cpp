@@ -1282,6 +1282,10 @@ void SaiPortManager::programLlr(
 // on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
 // brings a link-up port to 1.
 //
+// Raised with Broadcom as CS00012475411: whether the adapter host is expected
+// to re-apply mode remote on link up, or brcm-sai should, is unanswered, so
+// this works around it here.
+//
 // The false write is required: setOptionalAttribute elides a set whose value
 // already matches, and mode remote is already true in the store. Only remote
 // is cycled -- local is a persistent enable, and clearing it would stop this
