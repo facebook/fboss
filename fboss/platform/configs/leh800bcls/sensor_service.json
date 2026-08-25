@@ -345,7 +345,7 @@
             "maxAlarmVal": 7150,
             "upperCriticalVal": 9600
           },
-          "compute": "0.0024*@/1000.0"
+          "compute": "0.003*@/1000.0"
         },
         {
           "name": "HSCB_U132_LM75_INLET_TEMP",
