@@ -426,6 +426,8 @@ add_library(qsfp_core
 
 target_link_libraries(qsfp_core
   qsfp_handler
+  qsfp_config
+  thrift_method_rate_limit_setup
   thrift_service_utils
 )
 

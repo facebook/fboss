@@ -4,10 +4,13 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+#include "fboss/lib/ThriftMethodRateLimitSetup.h"
 #include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/PlatformThriftAcceptor.h"
 #include "fboss/platform/helpers/PlatformThriftAcceptorUtil.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
@@ -30,6 +33,12 @@ DEFINE_string(
     "Comma-separated CIDR subnets, in addition to loopback (which is always "
     "permitted), allowed to connect when --qsfp_enable_thrift_acceptor is set. "
     "FBOSS control traffic is IPv6-only; e.g. \"2001:db8::/32\".");
+
+DEFINE_bool(
+    qsfp_thrift_rate_limit_shadow_mode,
+    true,
+    "Run qsfp_service thrift rate limit in shadow mode: log and count "
+    "violations but still serve the request.");
 
 namespace facebook::fboss {
 
@@ -69,6 +78,22 @@ setupThriftServer(
   }
   server->setAddresses(addresses);
   server->setInterface(handler);
+
+  // Reuse the config already parsed by the transceiver manager during
+  // handler->init() above rather than re-reading the config file.
+  // getQsfpConfig() is null if config load was skipped (e.g. I2C bus init
+  // failed), in which case no rate limits are installed.
+  std::map<std::string, double> method2QpsLimit = {};
+  if (const auto* qsfpConfig =
+          handler->getTransceiverManager()->getQsfpConfig()) {
+    for (const auto& item : *qsfpConfig->thrift.thriftApiToRateLimitInQps()) {
+      XLOG(DBG2) << "set rate limit " << item.second << " qps to thrift method "
+                 << item.first;
+      method2QpsLimit[item.first] = item.second;
+    }
+  }
+  installThriftMethodRateLimit(
+      *server, method2QpsLimit, FLAGS_qsfp_thrift_rate_limit_shadow_mode);
 
   // MACsec SAK install/delete and other qsfp_service RPCs are otherwise
   // unauthenticated on a wildcard-bound port. When enabled, admit only
