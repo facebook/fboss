@@ -18,11 +18,11 @@ device:
         PC_PM_ID: 2
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x01645732
+        RX_LANE_MAP: 0x46105732
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x45236701
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0xB6
+        RX_POLARITY_FLIP: 0x26
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0x47
         TX_POLARITY_FLIP_AUTO: 0
@@ -198,11 +198,11 @@ device:
         PC_PM_ID: 18
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x10675423
+        RX_LANE_MAP: 0x76015423
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x45027613
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0x45
+        RX_POLARITY_FLIP: 0xD5
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0xB8
         TX_POLARITY_FLIP_AUTO: 0
@@ -294,11 +294,11 @@ device:
         PC_PM_ID: 26
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x10675423
+        RX_LANE_MAP: 0x76015423
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x45027613
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0x45
+        RX_POLARITY_FLIP: 0xD5
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0xBA
         TX_POLARITY_FLIP_AUTO: 0
@@ -438,11 +438,11 @@ device:
         PC_PM_ID: 38
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x76013245
+        RX_LANE_MAP: 0x10673245
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x20543167
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0xD5
+        RX_POLARITY_FLIP: 0x45
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0x2A
         TX_POLARITY_FLIP_AUTO: 0
@@ -534,11 +534,11 @@ device:
         PC_PM_ID: 46
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x76013245
+        RX_LANE_MAP: 0x10673245
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x20543167
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0xD5
+        RX_POLARITY_FLIP: 0x45
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0x2E
         TX_POLARITY_FLIP_AUTO: 0
@@ -714,11 +714,11 @@ device:
         PC_PM_ID: 62
         CORE_INDEX: 0
       :
-        RX_LANE_MAP: 0x46102375
+        RX_LANE_MAP: 0x01642375
         RX_LANE_MAP_AUTO: 0
         TX_LANE_MAP: 0x32541076
         TX_LANE_MAP_AUTO: 0
-        RX_POLARITY_FLIP: 0x29
+        RX_POLARITY_FLIP: 0xB9
         RX_POLARITY_FLIP_AUTO: 0
         TX_POLARITY_FLIP: 0xD1
         TX_POLARITY_FLIP_AUTO: 0
