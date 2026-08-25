@@ -34,7 +34,17 @@
       "num_logical_ports_per_datapath": 18,
       "lp_start_step_offset": 0,
       "lp_offset_simple": true,
-      "core_range": "0-8,10-52,54-63"
+      "core_range": "0-8,10-52,54-63",
+      "exclude_logical_ports": [
+        36,
+        38,
+        54,
+        56,
+        504,
+        506,
+        522,
+        524
+      ]
     },
     "platform_sai_overrides": {
       "sai_port_phy_time_sync_en": "0",
@@ -49,6 +59,7 @@
     }
   },
   "variants": {
+    "": {},
     "test_fixture": {
       "platform_mapping_name": "tahansb800bc_test_fixture"
     }
