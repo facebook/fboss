@@ -197,6 +197,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

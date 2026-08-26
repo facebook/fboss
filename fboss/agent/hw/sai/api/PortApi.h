@@ -250,6 +250,11 @@ struct SaiPortTraits {
         sai_prbs_rx_state_t,
         SaiPrbsRxStateDefault>;
 #endif
+    using IngressAcl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -826,7 +831,8 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrModeRemote>,
       std::optional<Attributes::LlrProfile>,
 #endif
-      std::optional<Attributes::PfcPauseDurationOverride>>;
+      std::optional<Attributes::PfcPauseDurationOverride>,
+      std::optional<Attributes::IngressAcl>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -968,6 +974,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
+SAI_ATTRIBUTE_NAME(Port, IngressAcl)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)

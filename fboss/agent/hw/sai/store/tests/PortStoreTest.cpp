@@ -97,6 +97,7 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
     };
   }
 
@@ -252,6 +253,22 @@ TEST_F(PortStoreTest, portSetMtu) {
   auto apiMtu = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::Mtu{});
   EXPECT_EQ(apiMtu, kMtu);
+}
+
+TEST_F(PortStoreTest, portSetIngressAcl) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  constexpr sai_object_id_t kIngressAclId{42};
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(newAttrs) =
+      kIngressAclId;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, IngressAcl, portObj.attributes()), kIngressAclId);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portId, SaiPortTraits::Attributes::IngressAcl{}),
+      kIngressAclId);
 }
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 TEST_F(PortStoreTest, portFabricIsolate) {

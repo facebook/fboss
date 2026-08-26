@@ -104,6 +104,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -232,11 +233,14 @@ TEST_F(PortApiTest, setPortAttributes) {
 
   SaiPortTraits::Attributes::AdminState as_attr(true);
   SaiPortTraits::Attributes::Speed speed_attr(50000);
+  constexpr sai_object_id_t kIngressAclId{42};
+  SaiPortTraits::Attributes::IngressAcl ingressAclAttr{kIngressAclId};
   // set speeds
   portApi->setAttribute(portIds[0], speed_attr);
   portApi->setAttribute(portIds[2], speed_attr);
   // set admin state
   portApi->setAttribute(portIds[2], as_attr);
+  portApi->setAttribute(portIds[0], ingressAclAttr);
   // confirm admin states
   EXPECT_EQ(portApi->getAttribute(portIds[0], as_attr), true);
   EXPECT_EQ(portApi->getAttribute(portIds[1], as_attr), false);
@@ -247,6 +251,7 @@ TEST_F(PortApiTest, setPortAttributes) {
   EXPECT_EQ(portApi->getAttribute(portIds[1], speed_attr), 25000);
   EXPECT_EQ(portApi->getAttribute(portIds[2], speed_attr), 50000);
   EXPECT_EQ(portApi->getAttribute(portIds[3], speed_attr), 25000);
+  EXPECT_EQ(portApi->getAttribute(portIds[0], ingressAclAttr), kIngressAclId);
   // confirm consistency internally, too
   for (const auto& portId : portIds) {
     checkPort(portId);

@@ -54,6 +54,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
     SAI_ATTR_MAP(Port, PrbsRxState),
 #endif
+    SAI_ATTR_MAP(Port, IngressAcl),
     SAI_ATTR_MAP(Port, IngressMacSecAcl),
     SAI_ATTR_MAP(Port, EgressMacSecAcl),
     SAI_ATTR_MAP(Port, PtpMode),
