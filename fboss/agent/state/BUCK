@@ -22,7 +22,7 @@ cpp_library(
         "fbsource//third-party/glog:glog",
         "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
+        "//fboss/agent:strong-types",
         "//folly/functional:apply_tuple",
         "//folly/json:dynamic",
     ],

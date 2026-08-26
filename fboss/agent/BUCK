@@ -1385,6 +1385,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "strong-types",
+    headers = [
+        "StrongTypes.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:conv",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_serialization"),
+    ],
+)
+
+cpp_library(
     name = "fboss-types",
     srcs = [
         "PortDescriptorTemplate.cpp",
@@ -1396,8 +1410,8 @@ cpp_library(
         "types.h",
     ],
     exported_deps = [
-        "fbsource//third-party/fmt:fmt",
         ":fboss-error",
+        ":strong-types",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",

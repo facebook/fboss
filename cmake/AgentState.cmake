@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(nodebase
+  fboss/agent/StrongTypes.h
   fboss/agent/state/DeltaFunctions.h
   fboss/agent/state/DeltaFunctions-detail.h
   fboss/agent/state/MapDelta.h
@@ -17,10 +18,9 @@ add_library(nodebase
 )
 
 target_link_libraries(nodebase
-  switch_config_cpp2
   fboss_error
-  fboss_types
   Folly::folly
+  fmt::fmt
 )
 
 add_library(lacp_types
