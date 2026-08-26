@@ -1105,8 +1105,14 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
 }
 
 RoutingInformationBase::RoutingInformationBase() {
-  XLOG(INFO) << "NextHop ID manager "
-             << (FLAGS_enable_nexthop_id_manager ? "enabled" : "disabled");
+  XLOG(INFO) << "[NextHop ID Manager] flags:"
+             << " enable_nexthop_id_manager="
+             << (FLAGS_enable_nexthop_id_manager ? "enabled" : "disabled")
+             << " resolve_nexthops_from_id="
+             << (FLAGS_resolve_nexthops_from_id ? "enabled" : "disabled")
+             << " verify_fib_nexthop_id_consistency="
+             << (FLAGS_verify_fib_nexthop_id_consistency ? "enabled"
+                                                         : "disabled");
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
     ribUpdateEventBase_.loopForever();
