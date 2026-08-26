@@ -65,7 +65,7 @@
         },
         {
           "name": "MCB_U1_ADC0_B_DIE",
-          "sysfsPath": "/run/devmap/sensors/MCB_LTC2979_0X60/temp1_input",
+          "sysfsPath": "/run/devmap/sensors/MCB_LTC2979_0X61/temp1_input",
           "type": 3,
           "thresholds": {
             "upperCriticalVal": 80,
@@ -339,10 +339,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 5.75,
-            "maxAlarmVal": 5.8,
-            "minAlarmVal": 4.2,
-            "lowerCriticalVal": 4.5
+            "upperCriticalVal": 5.8,
+            "maxAlarmVal": 5.75,
+            "minAlarmVal": 4.5,
+            "lowerCriticalVal": 4.2
           },
           "compute": "@/1000"
         },
@@ -351,10 +351,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.795,
-            "maxAlarmVal": 3.828,
-            "minAlarmVal": 2.772,
-            "lowerCriticalVal": 2.97
+            "upperCriticalVal": 3.828,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.97,
+            "lowerCriticalVal": 2.772
           },
           "compute": "@/1000"
         },
@@ -363,10 +363,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 13.8,
-            "maxAlarmVal": 13.92,
-            "minAlarmVal": 10.08,
-            "lowerCriticalVal": 10.8
+            "upperCriticalVal": 13.92,
+            "maxAlarmVal": 13.8,
+            "minAlarmVal": 10.8,
+            "lowerCriticalVal": 10.08
           },
           "compute": "@/1000*3.428571429"
         },
@@ -375,10 +375,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.15,
-            "maxAlarmVal": 1.16,
-            "minAlarmVal": 0.84,
-            "lowerCriticalVal": 0.9
+            "upperCriticalVal": 1.16,
+            "maxAlarmVal": 1.15,
+            "minAlarmVal": 0.9,
+            "lowerCriticalVal": 0.84
           },
           "compute": "@/1000"
         },
@@ -387,10 +387,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.795,
-            "maxAlarmVal": 3.828,
-            "minAlarmVal": 2.772,
-            "lowerCriticalVal": 2.97
+            "upperCriticalVal": 3.828,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.97,
+            "lowerCriticalVal": 2.772
           },
           "compute": "@/1000"
         },
@@ -399,10 +399,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X62/in9_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.07,
-            "maxAlarmVal": 2.088,
-            "minAlarmVal": 1.512,
-            "lowerCriticalVal": 1.62
+            "upperCriticalVal": 2.088,
+            "maxAlarmVal": 2.07,
+            "minAlarmVal": 1.62,
+            "lowerCriticalVal": 1.512
           },
           "compute": "@/1000"
         },
@@ -420,10 +420,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.265,
-            "maxAlarmVal": 1.276,
-            "minAlarmVal": 0.924,
-            "lowerCriticalVal": 0.99
+            "upperCriticalVal": 1.276,
+            "maxAlarmVal": 1.265,
+            "minAlarmVal": 0.99,
+            "lowerCriticalVal": 0.924
           },
           "compute": "@/1000"
         },
@@ -432,10 +432,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 5.75,
-            "maxAlarmVal": 5.8,
-            "minAlarmVal": 4.2,
-            "lowerCriticalVal": 4.5
+            "upperCriticalVal": 5.8,
+            "maxAlarmVal": 5.75,
+            "minAlarmVal": 4.5,
+            "lowerCriticalVal": 4.2
           },
           "compute": "@/1000"
         },
@@ -444,10 +444,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 0.862,
-            "maxAlarmVal": 0.87,
-            "minAlarmVal": 0.63,
-            "lowerCriticalVal": 0.675
+            "upperCriticalVal": 0.87,
+            "maxAlarmVal": 0.862,
+            "minAlarmVal": 0.675,
+            "lowerCriticalVal": 0.63
           },
           "compute": "@/1000"
         },
@@ -456,10 +456,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in5_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.07,
-            "maxAlarmVal": 2.088,
-            "minAlarmVal": 1.512,
-            "lowerCriticalVal": 1.62
+            "upperCriticalVal": 2.088,
+            "maxAlarmVal": 2.07,
+            "minAlarmVal": 1.62,
+            "lowerCriticalVal": 1.512
           },
           "compute": "@/1000"
         },
@@ -468,10 +468,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in6_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.795,
-            "maxAlarmVal": 3.828,
-            "minAlarmVal": 2.772,
-            "lowerCriticalVal": 2.97
+            "upperCriticalVal": 3.828,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.97,
+            "lowerCriticalVal": 2.772
           },
           "compute": "@/1000"
         },
@@ -480,10 +480,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X63/in7_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.07,
-            "maxAlarmVal": 2.088,
-            "minAlarmVal": 1.512,
-            "lowerCriticalVal": 1.62
+            "upperCriticalVal": 2.088,
+            "maxAlarmVal": 2.07,
+            "minAlarmVal": 1.62,
+            "lowerCriticalVal": 1.512
           },
           "compute": "@/1000"
         },
@@ -501,9 +501,9 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X64/in2_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.26,
-            "maxAlarmVal": 1.32,
-            "minAlarmVal": 0.55,
+            "upperCriticalVal": 1.32,
+            "maxAlarmVal": 1.26,
+            "minAlarmVal": 0.57,
             "lowerCriticalVal": 0.57
           },
           "compute": "@/1000"
@@ -513,10 +513,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X64/in4_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 2.07,
-            "maxAlarmVal": 2.088,
-            "minAlarmVal": 1.512,
-            "lowerCriticalVal": 1.62
+            "upperCriticalVal": 2.088,
+            "maxAlarmVal": 2.07,
+            "minAlarmVal": 1.62,
+            "lowerCriticalVal": 1.512
           },
           "compute": "@/1000"
         },
@@ -525,10 +525,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X64/in6_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 3.795,
-            "maxAlarmVal": 3.828,
-            "minAlarmVal": 2.772,
-            "lowerCriticalVal": 2.97
+            "upperCriticalVal": 3.828,
+            "maxAlarmVal": 3.795,
+            "minAlarmVal": 2.97,
+            "lowerCriticalVal": 2.772
           },
           "compute": "@/1000"
         },
@@ -537,10 +537,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X64/in8_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.26,
-            "maxAlarmVal": 1.32,
-            "minAlarmVal": 0.55,
-            "lowerCriticalVal": 0.57
+            "upperCriticalVal": 1.32,
+            "maxAlarmVal": 1.26,
+            "minAlarmVal": 0.57,
+            "lowerCriticalVal": 0.55
           },
           "compute": "@/1000"
         },
@@ -549,10 +549,10 @@
           "sysfsPath": "/run/devmap/sensors/SCM_LTC2980_0X64/in9_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 1.626,
-            "maxAlarmVal": 1.705,
-            "minAlarmVal": 0.55,
-            "lowerCriticalVal": 0.57
+            "upperCriticalVal": 1.705,
+            "maxAlarmVal": 1.626,
+            "minAlarmVal": 0.57,
+            "lowerCriticalVal": 0.55
           },
           "compute": "@/1000"
         },
@@ -601,7 +601,7 @@
             "upperCriticalVal": 44.99,
             "maxAlarmVal": 42.848
           },
-          "compute": "@/1000*0.01"
+          "compute": "@/1000*0.1"
         },
         {
           "name": "SMB_NP_CVDDC1_K0_IOUT",
@@ -611,7 +611,7 @@
             "upperCriticalVal": 616.455,
             "maxAlarmVal": 587.1
           },
-          "compute": "@/1000*0.1"
+          "compute": "@/1000*1.0"
         },
         {
           "name": "SMB_NP_IFG_VDDM_K0INT",
@@ -643,7 +643,7 @@
             "upperCriticalVal": 25.085,
             "maxAlarmVal": 23.227
           },
-          "compute": "@/1000*0.01"
+          "compute": "@/1000*0.1"
         },
         {
           "name": "SMB_NP_VDDC1_K00_IOUT",
@@ -653,7 +653,7 @@
             "upperCriticalVal": 350.406,
             "maxAlarmVal": 324.45
           },
-          "compute": "@/1000*0.1"
+          "compute": "@/1000*1.0"
         },
         {
           "name": "SMB_NP_VDDC1_K0INT",
@@ -1664,10 +1664,10 @@
           "sysfsPath": "/run/devmap/sensors/PDB0_PSU_0X58/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14400000,
-            "maxAlarmVal": 14400000,
-            "minAlarmVal": 0,
-            "lowerCriticalVal": 0
+            "upperCriticalVal": 14.4,
+            "maxAlarmVal": 13.8,
+            "minAlarmVal": 10.2,
+            "lowerCriticalVal": 9.6
           },
           "compute": "@/1000"
         }
@@ -1774,10 +1774,10 @@
           "sysfsPath": "/run/devmap/sensors/PDB1_PSU_0X58/in3_input",
           "type": 1,
           "thresholds": {
-            "upperCriticalVal": 14400000,
-            "maxAlarmVal": 14400000,
-            "minAlarmVal": 0,
-            "lowerCriticalVal": 0
+            "upperCriticalVal": 14.4,
+            "maxAlarmVal": 13.8,
+            "minAlarmVal": 10.2,
+            "lowerCriticalVal": 9.6
           },
           "compute": "@/1000"
         }
