@@ -124,20 +124,22 @@ class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
         .cancel = read(AclType::ECMP_HASH_CANCEL)};
   }
 
-  void applyAclConfig() {
+  void applyAclConfig(bool withSprayMiss = true) {
     auto newCfg{initialConfig(*getAgentEnsemble())};
     std::vector<std::string> udfGroups =
         getUdfGroupsForAcl(AclType::UDF_FLOWLET_WITH_UDF_ACK);
     addAclTableConfig(newCfg, udfGroups);
-    ASSERT_NO_FATAL_FAILURE(addSprayMissAcls(newCfg));
+    ASSERT_NO_FATAL_FAILURE(addSprayMissAcls(newCfg, withSprayMiss));
     applyNewConfig(newCfg);
   }
 
-  void addSprayMissAcls(cfg::SwitchConfig& cfg) {
+  void addSprayMissAcls(cfg::SwitchConfig& cfg, bool withSprayMiss = true) {
     const bool isSai = getAgentEnsemble()->isSai();
     // Entry order sets ACL priority, so this reproduces production's block.
     addAclAndStat(&cfg, AclType::UDF_FLOWLET_WITH_UDF_ACK, isSai);
-    addAclAndStat(&cfg, AclType::ROCE_SPRAY_MISS, isSai);
+    if (withSprayMiss) {
+      addAclAndStat(&cfg, AclType::ROCE_SPRAY_MISS, isSai);
+    }
     addAclAndStat(&cfg, AclType::ECMP_HASH_CANCEL, isSai);
 
     // Production pairs the flowlet counter with the flowlet action.
@@ -1546,6 +1548,38 @@ TEST_F(AgentFlowletAclPriorityTest, VerifyRoceSprayMissAcl) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+// Reaching the four-entry block from the three-entry form production runs
+// today. Inserting third renumbers the catch-all, which SAI can only do by
+// removing and re-creating it.
+TEST_F(AgentFlowletAclPriorityTest, VerifyRoceSprayMissAclInsertion) {
+  auto setup = [this]() {
+    this->setup();
+    applyAclConfig(/*withSprayMiss*/ false);
+  };
+
+  auto setupPostWarmboot = [this]() { applyAclConfig(/*withSprayMiss*/ true); };
+
+  auto verifyPostWarmboot = [this]() {
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        0,
+        utility::kUdfL4DstPort,
+        ExpectedHit::RoceSprayMiss);
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        0,
+        kNonRoceL4DstPort,
+        ExpectedHit::Cancel);
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        utility::kRoceReserved,
+        utility::kUdfL4DstPort,
+        ExpectedHit::Flowlet);
+  };
+
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 } // namespace facebook::fboss
