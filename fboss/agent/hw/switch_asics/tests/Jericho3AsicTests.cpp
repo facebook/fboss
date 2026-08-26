@@ -14,6 +14,8 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+#include "fboss/agent/AgentFeatures.h"
+
 using namespace facebook::fboss;
 
 class Jericho3AsicTest : public ::testing::Test {
@@ -31,6 +33,73 @@ class Jericho3AsicTest : public ::testing::Test {
   }
   std::unique_ptr<Jericho3Asic> asic_;
 };
+
+// The group cap must never let the member table be oversubscribed:
+// groups * ecmp_width <= getMaxEcmpMembers(). Hyperport EDSW runs 2K wide
+// without 3q2q mode set, so a stage-keyed cap hands it 64 groups against a
+// member table that holds 16 of them.
+class Jericho3AsicMaxEcmpGroupsTest : public Jericho3AsicTest {
+ public:
+  void SetUp() override {
+    Jericho3AsicTest::SetUp();
+    savedEcmpWidth_ = FLAGS_ecmp_width;
+    savedDualStageEdsw_ = FLAGS_dual_stage_edsw_3q_2q;
+    savedDualStageRdsw_ = FLAGS_dual_stage_rdsw_3q_2q;
+  }
+  void TearDown() override {
+    FLAGS_ecmp_width = savedEcmpWidth_;
+    FLAGS_dual_stage_edsw_3q_2q = savedDualStageEdsw_;
+    FLAGS_dual_stage_rdsw_3q_2q = savedDualStageRdsw_;
+  }
+
+ private:
+  uint32_t savedEcmpWidth_{};
+  bool savedDualStageEdsw_{};
+  bool savedDualStageRdsw_{};
+};
+
+TEST_F(Jericho3AsicMaxEcmpGroupsTest, singleStageWidth) {
+  FLAGS_dual_stage_edsw_3q_2q = false;
+  FLAGS_dual_stage_rdsw_3q_2q = false;
+  FLAGS_ecmp_width = 512;
+  EXPECT_EQ(asic_->getMaxEcmpGroups(), 64);
+}
+
+TEST_F(Jericho3AsicMaxEcmpGroupsTest, dualStageWidth) {
+  FLAGS_dual_stage_rdsw_3q_2q = true;
+  FLAGS_ecmp_width = 2048;
+  EXPECT_EQ(asic_->getMaxEcmpGroups(), 16);
+}
+
+// Hyperport EDSW: 2K wide, but not 3q2q. Must get the 2K-wide cap.
+TEST_F(Jericho3AsicMaxEcmpGroupsTest, wideEcmpOutsideDualStage) {
+  FLAGS_dual_stage_edsw_3q_2q = false;
+  FLAGS_dual_stage_rdsw_3q_2q = false;
+  FLAGS_ecmp_width = 2048;
+  EXPECT_EQ(asic_->getMaxEcmpGroups(), 16);
+}
+
+// The invariant the cap exists to enforce, checked independently of any
+// single expected value.
+TEST_F(Jericho3AsicMaxEcmpGroupsTest, capNeverOversubscribesMemberTable) {
+  ASSERT_TRUE(asic_->getMaxEcmpMembers().has_value());
+  const auto maxMembers = *asic_->getMaxEcmpMembers();
+  for (auto width : {64u, 128u, 256u, 512u, 1024u, 2048u}) {
+    FLAGS_ecmp_width = width;
+    auto groups = asic_->getMaxEcmpGroups();
+    ASSERT_TRUE(groups.has_value());
+    EXPECT_LE(*groups * width, maxMembers)
+        << "width " << width << " x " << *groups << " groups oversubscribes "
+        << maxMembers << " members";
+  }
+}
+
+// Narrow widths can use more groups than the legacy 64-group limit while
+// remaining bounded by both the member table and the 4K group table.
+TEST_F(Jericho3AsicMaxEcmpGroupsTest, narrowWidthUsesMemberTableCapacity) {
+  FLAGS_ecmp_width = 64;
+  EXPECT_EQ(asic_->getMaxEcmpGroups(), 512);
+}
 
 TEST_F(Jericho3AsicTest, checkPortGroups) {
   const std::vector<std::pair<int, int>> kExpectedPortGroups{

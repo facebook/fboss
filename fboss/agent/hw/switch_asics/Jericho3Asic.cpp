@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
 #include "fboss/agent/AgentFeatures.h"
 
 namespace {
@@ -486,8 +487,15 @@ int Jericho3Asic::getHiPriCpuQueueId() const {
 
 std::optional<uint32_t> Jericho3Asic::getMaxEcmpGroups() const {
   // CS00012342521
-  // For 2-stage DSF with 2K wide ecmp we only support 16 ecmp groups
-  // No other use case exists.
-  return (isDualStage3Q2QMode() && FLAGS_ecmp_width >= 2048) ? 16 : 64;
+  // J3 supports up to 4K ECMP groups, but each group consumes
+  // FLAGS_ecmp_width entries from the fixed-size member table. Deriving the
+  // member-limited maximum also covers Hyperport EDSW, which uses 2K-wide ECMP
+  // without running in 3q2q mode.
+  constexpr uint32_t kMaxEcmpGroups = 4096;
+  auto maxMembers = getMaxEcmpMembers();
+  if (!maxMembers.has_value() || FLAGS_ecmp_width == 0) {
+    return kMaxEcmpGroups;
+  }
+  return std::min(kMaxEcmpGroups, *maxMembers / FLAGS_ecmp_width);
 }
 } // namespace facebook::fboss
