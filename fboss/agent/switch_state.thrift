@@ -763,6 +763,10 @@ struct InterfaceFields {
   /* These fields contains information of remote GPU */
   24: optional string desiredPeerName;
   25: optional string desiredPeerAddressIPv6;
+  /* applicable only for port type of interface bound to an aggregate port
+   * rather than a physical port. Exactly one of portId and aggregatePortId
+   * is set. */
+  26: optional i32 aggregatePortId;
 }
 
 enum LacpState {

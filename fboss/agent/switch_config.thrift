@@ -1734,6 +1734,12 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
+  /* valid only for port type of interface. Holds the key of the
+   * cfg::AggregatePort this interface is bound to, for a port router interface
+   * over an aggregate port. Exactly one of portID and aggregatePortID is set.
+   * Kept separate from portID because AggregatePortID and PortID share a
+   * numeric space, so a single field could not be disambiguated. */
+  20: optional i32 aggregatePortID;
 }
 
 struct StaticRouteWithNextHops {
