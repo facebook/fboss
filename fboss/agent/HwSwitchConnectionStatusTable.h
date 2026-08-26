@@ -22,7 +22,12 @@ class HwSwitchConnectionStatusTable {
   explicit HwSwitchConnectionStatusTable(SwSwitch* sw) : sw_(sw) {}
   void connected(SwitchID switchId);
   bool disconnected(SwitchID switchId);
-  bool waitUntilHwSwitchConnected();
+  // Blocks until at least numSwitches are connected. One is enough for a
+  // caller that just needs somewhere to send to. A caller that fans an update
+  // out to every switch has to ask for all of them, because a switch that has
+  // not registered yet takes no part in the update and reports it cancelled
+  // rather than applied or failed.
+  bool waitUntilHwSwitchConnected(size_t numSwitches = 1);
   void cancelWait();
   int getConnectionStatus(SwitchID switchId);
 
