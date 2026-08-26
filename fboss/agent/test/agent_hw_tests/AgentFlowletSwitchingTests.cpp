@@ -90,6 +90,108 @@ class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
         utility::kUdfOffsetAethSyndrome | utility::kUdfOffsetRethDmaLength);
     return cfg;
   }
+
+ protected:
+  static constexpr int kNonRoceL4DstPort = 12345;
+  static constexpr int kPacketCount = 1;
+
+  struct AclCounters {
+    int64_t roceAck{0};
+    int64_t flowlet{0};
+    int64_t sprayMiss{0};
+    int64_t cancel{0};
+
+    AclCounters operator-(const AclCounters& before) const {
+      return AclCounters{
+          .roceAck = roceAck - before.roceAck,
+          .flowlet = flowlet - before.flowlet,
+          .sprayMiss = sprayMiss - before.sprayMiss,
+          .cancel = cancel - before.cancel};
+    }
+  };
+
+  enum class ExpectedHit { RoceAck, Flowlet, RoceSprayMiss, Cancel };
+
+  AclCounters readCounters() {
+    auto read = [this](AclType aclType) {
+      return static_cast<int64_t>(
+          utility::getAclInOutPackets(getSw(), getCounterName(aclType)));
+    };
+    return AclCounters{
+        .roceAck = read(AclType::UDF_ACK),
+        .flowlet = read(AclType::UDF_FLOWLET),
+        .sprayMiss = read(AclType::ROCE_SPRAY_MISS),
+        .cancel = read(AclType::ECMP_HASH_CANCEL)};
+  }
+
+  void applyAclConfig() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    std::vector<std::string> udfGroups =
+        getUdfGroupsForAcl(AclType::UDF_FLOWLET_WITH_UDF_ACK);
+    addAclTableConfig(newCfg, udfGroups);
+    ASSERT_NO_FATAL_FAILURE(addSprayMissAcls(newCfg));
+    applyNewConfig(newCfg);
+  }
+
+  void addSprayMissAcls(cfg::SwitchConfig& cfg) {
+    const bool isSai = getAgentEnsemble()->isSai();
+    // Entry order sets ACL priority, so this reproduces production's block.
+    addAclAndStat(&cfg, AclType::UDF_FLOWLET_WITH_UDF_ACK, isSai);
+    addAclAndStat(&cfg, AclType::ROCE_SPRAY_MISS, isSai);
+    addAclAndStat(&cfg, AclType::ECMP_HASH_CANCEL, isSai);
+
+    // Production pairs the flowlet counter with the flowlet action.
+    bool patched = false;
+    for (auto& matchToAction : *cfg.dataPlaneTrafficPolicy()->matchToAction()) {
+      if (*matchToAction.matcher() == getAclName(AclType::UDF_FLOWLET)) {
+        matchToAction.action()->flowletAction() = cfg::FlowletAction::FORWARD;
+        patched = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(patched) << "no matcher found for "
+                         << getAclName(AclType::UDF_FLOWLET);
+  }
+
+  // Asserts the whole counter vector: the other three staying at zero is how
+  // an over-matching entry is caught.
+  void
+  runStep(int roceOpcode, uint8_t bthReserved, int l4DstPort, ExpectedHit hit) {
+    auto before = readCounters();
+
+    sendRoceTraffic(
+        helper_->ecmpPortDescriptorAt(kFrontPanelPortForTest).phyPortID(),
+        roceOpcode,
+        std::optional<std::vector<uint8_t>>(),
+        kPacketCount,
+        l4DstPort,
+        bthReserved);
+
+    AclCounters deltas;
+    WITH_RETRIES({
+      deltas = readCounters() - before;
+      auto expectDelta = [&](ExpectedHit owner, int64_t delta) {
+        const int64_t expected = hit == owner ? kPacketCount : 0;
+        EXPECT_EVENTUALLY_EQ(expected, delta);
+      };
+      expectDelta(ExpectedHit::RoceAck, deltas.roceAck);
+      expectDelta(ExpectedHit::Flowlet, deltas.flowlet);
+      expectDelta(ExpectedHit::RoceSprayMiss, deltas.sprayMiss);
+      expectDelta(ExpectedHit::Cancel, deltas.cancel);
+    });
+
+    XLOG(DBG2) << fmt::format(
+        "traffic={},opcode={},BTH.reserved=0x{:02x},dport={} "
+        "udf_roce_ack={:+} flowlet={:+} spray_miss={:+} hash_cancel={:+}",
+        l4DstPort == utility::kUdfL4DstPort ? "RoCE" : "non-RoCE",
+        roceOpcode,
+        bthReserved,
+        l4DstPort,
+        deltas.roceAck,
+        deltas.flowlet,
+        deltas.sprayMiss,
+        deltas.cancel);
+  }
 };
 
 class AgentFlowletMirrorTest : public AgentFlowletSwitchingTest {
@@ -1404,6 +1506,46 @@ TEST_F(AgentFlowletBcmTest, VerifySwitchingModeUpdateSwState) {
             cfg::SwitchingMode::PER_PACKET_RANDOM));
   };
   verifyAcrossWarmBoots(setup, [] {}, [] {}, verifyPostWarmboot);
+}
+
+/*
+ * roce-spray-miss: an unqualified RoCEv2 entry below the DLB enable ACL,
+ * splitting non-sprayed RDMA out of the catch-all so it can be counted.
+ *
+ * It is the non-sprayed bucket only because it is appended after udf-flowlet
+ * and first match wins. Swapping the two would disable spray with no config
+ * error, so every step asserts the whole counter vector, not just its own.
+ */
+TEST_F(AgentFlowletAclPriorityTest, VerifyRoceSprayMissAcl) {
+  auto setup = [this]() {
+    this->setup();
+    applyAclConfig();
+  };
+
+  auto verify = [this]() {
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        utility::kRoceReserved,
+        utility::kUdfL4DstPort,
+        ExpectedHit::Flowlet);
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        0,
+        utility::kUdfL4DstPort,
+        ExpectedHit::RoceSprayMiss);
+    runStep(
+        utility::kUdfRoceOpcodeWriteImmediate,
+        0,
+        kNonRoceL4DstPort,
+        ExpectedHit::Cancel);
+    runStep(
+        utility::kUdfRoceOpcodeAck,
+        utility::kRoceReserved,
+        utility::kUdfL4DstPort,
+        ExpectedHit::RoceAck);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

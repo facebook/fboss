@@ -30,6 +30,7 @@ enum class AclType {
   UDF_FLOWLET_WITH_UDF_ACK,
   UDF_FLOWLET_WITH_UDF_NAK,
   ECMP_HASH_CANCEL,
+  ROCE_SPRAY_MISS,
 };
 
 class AgentArsBase : public AgentHwTest {
@@ -62,7 +63,8 @@ class AgentArsBase : public AgentHwTest {
       const std::optional<std::vector<uint8_t>>& nxtHdr =
           std::optional<std::vector<uint8_t>>(),
       int packetCount = 1,
-      int destPort = utility::kUdfL4DstPort);
+      int destPort = utility::kUdfL4DstPort,
+      uint8_t reserved = utility::kRoceReserved);
   auto verifyAclType(bool bumpOnHit, AclType aclType);
   void verifyAcl(AclType aclType);
   std::vector<cfg::AclUdfEntry> addUdfTable(
