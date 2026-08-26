@@ -14,11 +14,14 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/RadixTree.h"
 
 #include <boost/container/flat_map.hpp>
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
+#include <folly/Synchronized.h>
 #include <memory>
+#include <unordered_set>
 
 DECLARE_bool(send_icmp_time_exceeded);
 
@@ -216,8 +219,16 @@ class IPv6Handler : public StateObserver {
       SwSwitch* sw,
       const folly::IPAddressV6& ipAddr);
 
+  void rebuildDecapMySidCache(const std::shared_ptr<SwitchState>& state);
+
+  struct DecapMySidCache {
+    std::unordered_set<folly::IPAddressV6> decapMySids;
+    facebook::network::RadixTree<folly::IPAddressV6, bool> decapMySidSubnets;
+  };
+
   SwSwitch* sw_{nullptr};
   RAMap routeAdvertisers_;
+  folly::Synchronized<DecapMySidCache> decapMySidCache_;
 };
 
 } // namespace facebook::fboss

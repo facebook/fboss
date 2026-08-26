@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -10,6 +11,8 @@ cpp_unittest(
         "AclTests.cpp",
         "AggregatePortTests.cpp",
         "BufferPoolConfigTests.cpp",
+        "ClassBasedPolicyMapTests.cpp",
+        "ClassBasedPolicyNodeTests.cpp",
         "ControlPlaneTests.cpp",
         "DsfNodeTests.cpp",
         "FibsInfoDeltaTests.cpp",
@@ -21,6 +24,7 @@ cpp_unittest(
         "LabelFIBTests.cpp",
         "LabelForwardingActionTests.cpp",
         "LabelForwardingEntryTests.cpp",
+        "LlrConfigTests.cpp",
         "LoadBalancerTests.cpp",
         "MacEntryTests.cpp",
         "MacTableTests.cpp",
@@ -55,20 +59,22 @@ cpp_unittest(
         "UdfTests.cpp",
         "VlanTests.cpp",
     ],
+    network_access = network_access_utils.none(),
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/boost:boost_container",
         "fbsource//third-party/fmt:fmt",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_features",
         "//fboss/agent:apply_thrift_config",
+        "//fboss/agent:core",
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fsdb_helper",
         "//fboss/agent:hwswitch_matcher",
-        "//fboss/agent:stats",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
@@ -81,7 +87,6 @@ cpp_unittest(
         "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
-        "//fboss/agent/state:state_utils",
         "//fboss/agent/test:config_helper",
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:label_forwarding_utils",
@@ -96,6 +101,6 @@ cpp_unittest(
         "//folly/logging:logging",
     ],
     external_deps = [
-        ("boost", None, "boost_container"),
+        "gflags",
     ],
 )

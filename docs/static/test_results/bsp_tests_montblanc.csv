@@ -12,6 +12,7 @@
 "LedTest.DeviceLedsCreated","montblanc","PASSED"
 "KmodTest.UnloadKmods","montblanc","PASSED"
 "KmodTest.LoadKmods","montblanc","PASSED"
+"KmodTest.KmodsJsonComplete","montblanc","PASSED"
 "KmodTest.FbspRemove","montblanc","PASSED"
 "KmodStressTest.KmodLoadUnloadStress","montblanc","SKIPPED"
 "I2CTest.I2CTransactions","montblanc","PASSED"

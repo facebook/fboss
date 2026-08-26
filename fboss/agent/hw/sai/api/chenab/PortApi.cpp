@@ -54,6 +54,16 @@ SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
   return std::nullopt;
@@ -212,6 +222,18 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::fabricControlTxPacketStats() {
 }
 
 const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
@@ -412,16 +434,16 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
-#if !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
   return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
-#else
-  return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+#if defined(CHENAB_SAI_SDK_GTE_2511_36)
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE;
+#else
   return std::nullopt;
+#endif
 }
 
 std::optional<sai_attr_id_t>
@@ -431,6 +453,26 @@ SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeLinkDownDebounceRetriggerCount::operator()() {
+  return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
   return std::nullopt;
 }
 

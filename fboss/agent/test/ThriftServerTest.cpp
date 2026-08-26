@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/ServerStreamMultiPublisher.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
@@ -170,6 +171,27 @@ class MultiSwitchThriftHandlerMock : public MultiSwitchThriftHandler {
   folly::coro::UnboundedQueue<multiswitch::RxPacket, true, true>
       receivedPktsQueue_;
 };
+
+TEST_F(ThriftServerTest, getNextStateOperDeltaUnknownSwitchIdThrows) {
+  setupServerAndClients();
+  // A crafted RPC with an unknown switchId must surface as a Thrift exception,
+  // not crash the agent (previously a CHECK -> SIGABRT). switchIds 0 and 1 are
+  // configured; 42 is not.
+  multiswitch::StateOperDelta prevDelta;
+  EXPECT_THROW(
+      folly::coro::blockingWait(multiSwitchClient_->co_getNextStateOperDelta(
+          42 /* unknown switchId */, prevDelta, 0 /* lastUpdateSeqNum */)),
+      apache::thrift::TApplicationException);
+}
+
+TEST_F(ThriftServerTest, gracefulExitUnknownSwitchIdThrows) {
+  setupServerAndClients();
+  // Same for gracefulExit: an unknown switchId must not abort the agent.
+  EXPECT_THROW(
+      folly::coro::blockingWait(
+          multiSwitchClient_->co_gracefulExit(42 /* unknown switchId */)),
+      apache::thrift::TApplicationException);
+}
 
 TEST_F(ThriftServerTest, setPortStateBlocking) {
   // setup server and clients
@@ -558,7 +580,9 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   ThriftHandler handler(sw_);
   auto portName = sw_->getState()->getPorts()->getNodeIf(PortID(5))->getName();
 
-  auto getTestStatUpdate = [&portName]() {
+  auto getTestStatUpdate = [&portName](
+                               int64_t sysPortQueue1Bytes = 10,
+                               int64_t sysPortQueue2Bytes = 20) {
     multiswitch::HwSwitchStats stats;
     stats.timestamp() = 1000;
 
@@ -577,7 +601,8 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
 
     // sys port stats
     HwSysPortStats sysPortStats;
-    sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
+    sysPortStats.queueOutBytes_() = {
+        {1, sysPortQueue1Bytes}, {2, sysPortQueue2Bytes}};
     stats.sysPortStats() = {{portName, std::move(sysPortStats)}};
 
     // fabric reachability stats
@@ -611,13 +636,28 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
       }());
   EXPECT_TRUE(ret);
   EXPECT_EQ(sw_->getHwSwitchStatsExpensive(switchIndex), getTestStatUpdate());
+  auto result1 = co_await multiSwitchClient_->co_syncHwStats(1);
+  auto ret1 = co_await result1.sink(
+      [&]() -> folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> {
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.1.stats_event_sync_active"), 1);
+        });
+        co_yield getTestStatUpdate(30, 40);
+      }());
+  EXPECT_TRUE(ret1);
+  EXPECT_EQ(sw_->getHwSwitchStatsExpensive(1), getTestStatUpdate(30, 40));
   sw_->updateStats();
-  EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 10);
-  EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 20);
+  EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 20);
+  EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 40);
   auto agentStats = sw_->fillFsdbStats();
   EXPECT_EQ(agentStats.hwPortStats()[portName].inBytes_().value(), 10000);
   EXPECT_EQ(
       agentStats.sysPortStats()[portName].queueOutBytes_().value()[1], 10);
+  EXPECT_EQ(
+      agentStats.sysPortStatsMap()[1][portName].queueOutBytes_().value()[1],
+      30);
   // CHECK entry in switchIndex map
   EXPECT_EQ(
       agentStats.hwResourceStatsMap()[switchIndex].acl_counters_free().value(),
@@ -637,8 +677,17 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   EXPECT_EQ(hwPortStats[portName].outBytes_(), 20000);
   std::map<std::string, HwSysPortStats> hwSysPortStats;
   handler.getSysPortStats(hwSysPortStats);
-  EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[1], 10);
-  EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[2], 20);
+  EXPECT_FALSE(hwSysPortStats.contains(portName));
+  EXPECT_EQ(
+      hwSysPortStats[folly::to<std::string>("switch.0.", portName)]
+          .queueOutBytes_()
+          .value()[1],
+      10);
+  EXPECT_EQ(
+      hwSysPortStats[folly::to<std::string>("switch.1.", portName)]
+          .queueOutBytes_()
+          .value()[1],
+      30);
   std::map<int, CpuPortStats> cpuPortStats;
   handler.getAllCpuPortStats(cpuPortStats);
   EXPECT_EQ(cpuPortStats[0], getTestStatUpdate().cpuPortStats().value());
@@ -668,8 +717,13 @@ TEST_F(ThriftServerTest, counterStatsAccumulation) {
   stats1.counterStats()->routeCounters()["baz"] = counter1baz;
   sw_->updateHwSwitchStats(1, stats1);
 
+  auto routeCounters = sw_->getRouteCounters();
+  ThriftHandler handler(sw_);
+  std::map<std::string, HwSwitchCounter> thriftRouteCounters;
+  handler.getRouteCounters(thriftRouteCounters);
+  EXPECT_EQ(routeCounters, thriftRouteCounters);
   auto agentStats = sw_->fillFsdbStats();
-  auto& routeCounters = *agentStats.counterStats()->routeCounters();
+  EXPECT_EQ(routeCounters, *agentStats.counterStats()->routeCounters());
 
   // "foo" exists on both switches — values should be summed
   EXPECT_EQ(routeCounters.size(), 3);

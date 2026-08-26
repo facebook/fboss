@@ -32,6 +32,8 @@ class EbroAsic : public TajoAsic {
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_EBRO;
   }
+  std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const override;
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
   }

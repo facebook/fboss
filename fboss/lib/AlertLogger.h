@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <fmt/format.h>
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
 
@@ -50,9 +51,9 @@ struct AlertTag {
   const std::string str(void) const {
     // Note: outputs a blank space at end
     if (!sub_type_.empty()) {
-      return folly::sformat("{}({}): ", prefix_, sub_type_);
+      return fmt::format("{}({}): ", prefix_, sub_type_);
     } else {
-      return folly::sformat("{}: ", prefix_);
+      return fmt::format("{}: ", prefix_);
     }
   }
 
@@ -108,6 +109,10 @@ class TransceiverValidationAlert : public AlertTag {
  public:
   TransceiverValidationAlert();
 };
+class LinkAlert : public AlertTag {
+ public:
+  LinkAlert();
+};
 class FirmwareUpgradeAlert : public AlertTag {
  public:
   FirmwareUpgradeAlert();
@@ -124,7 +129,7 @@ struct AlertParam {
 
   const std::string str() const {
     // Note: outputs a blank space at front
-    return folly::sformat(" <{}:{}>", type_, value_);
+    return fmt::format(" <{}:{}>", type_, value_);
   }
 
   const std::string type_;

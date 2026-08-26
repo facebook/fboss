@@ -147,7 +147,7 @@ void LedManager::updateLedStatus(
     portInfo.drained = switchStateUpdate.drained;
 
     portDisplayMap_[portId] = portInfo;
-    portsToTriggerLedUpdate.push_back(PortID(portId));
+    portsToTriggerLedUpdate.emplace_back(portId);
   }
 
   triggerLedUpdate(portsToTriggerLedUpdate);

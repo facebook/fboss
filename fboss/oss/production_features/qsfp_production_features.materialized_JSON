@@ -62,6 +62,18 @@
         7,
         8
     ],
+    "ladakh800bcls": [
+        1,
+        4,
+        6,
+        8
+    ],
+    "leh800bcls": [
+        1,
+        4,
+        6,
+        8
+    ],
     "meru400bfu": [
         
     ],
@@ -111,6 +123,10 @@
         8
     ],
     "tahansb800bc": [
+        7,
+        8
+    ],
+    "tahansb800bc_fp_only": [
         7,
         8
     ],
@@ -210,6 +226,18 @@
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],
+    "ladakh800bcls": [
+        "EXTERNAL_PHY",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE",
+        "BMC_LITE"
+    ],
+    "leh800bcls": [
+        "EXTERNAL_PHY",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE",
+        "BMC_LITE"
+    ],
     "meru400bfu": [
         
     ],
@@ -259,6 +287,10 @@
         "BMC_LITE"
     ],
     "tahansb800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc_fp_only": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],

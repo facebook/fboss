@@ -20,11 +20,4 @@ void BcmLedUtils::setWedge100PortStatus(
 uint32_t BcmLedUtils::getWedge100PortStatus(int /*unit*/, int /*port*/) {
   return 0;
 }
-void BcmLedUtils::setWedge40PortStatus(
-    int /*unit*/,
-    int /*port*/,
-    uint32_t /*status*/) {}
-uint32_t BcmLedUtils::getWedge40PortStatus(int /*unit*/, int /*port*/) {
-  return 0;
-}
 } // namespace facebook::fboss

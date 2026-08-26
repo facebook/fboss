@@ -2,11 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/AclApi.h"
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiaclextensions.h>
-#else
-#include <saiaclextensions.h>
-#endif
 
 namespace facebook::fboss {
 
@@ -17,6 +13,18 @@ SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  // TODO(zecheng): return the real BCM SAI extension id for the PBR
+  // route-destination ACL match field once the vendor SDK exposes it (phase 2).
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

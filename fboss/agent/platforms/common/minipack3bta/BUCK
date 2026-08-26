@@ -11,6 +11,7 @@ cpp_library(
         "Minipack3BTAPlatformMapping.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
     ],
 )

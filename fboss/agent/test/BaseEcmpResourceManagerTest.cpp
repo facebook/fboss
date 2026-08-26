@@ -8,18 +8,35 @@
  *
  */
 
-#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
+#include <fmt/format.h>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/FileBasedWarmbootUtils.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 #include <functional>
 
 namespace facebook::fboss {
+namespace {
+
+UnicastRoute stripNonLinkLocalInterfaceNames(UnicastRoute route) {
+  for (auto& nextHop : *route.nextHops()) {
+    const auto address = network::toIPAddress(*nextHop.address());
+    if (!address.isV6() || !address.isLinkLocal()) {
+      nextHop.address()->ifName().reset();
+    }
+  }
+  return route;
+}
+
+} // namespace
 
 RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
   RouteNextHopSet h;
@@ -30,7 +47,7 @@ RouteNextHopSet makeNextHops(int n, int numNhopsPerIntf, int startOffset) {
     ss << std::hex << subnetIndex;
     // ::1 is local interface address, start nhop addressed from 2
     auto lastQuad = 2 + startOffset + i % numNhopsPerIntf;
-    auto ipStr = folly::sformat("2400:db00:2110:{}::{}", ss.str(), lastQuad);
+    auto ipStr = fmt::format("2400:db00:2110:{}::{}", ss.str(), lastQuad);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr),
         InterfaceID(interfaceId),
@@ -42,25 +59,39 @@ RouteNextHopSet makeV4NextHops(int n) {
   CHECK_LT(n, 253);
   RouteNextHopSet h;
   for (int i = 0; i < n; i++) {
-    auto ipStr = folly::sformat("200.0.{}.2", i);
+    auto ipStr = fmt::format("200.0.{}.2", i);
     h.emplace(ResolvedNextHop(
         folly::IPAddress(ipStr), InterfaceID(i + 1), UCMP_DEFAULT_WEIGHT));
   }
   return h;
 }
 
+RouteNextHopSet withBackupNextHops(const RouteNextHopSet& nhops) {
+  RouteNextHopSet protectionNhops;
+  bool primary = true;
+  for (const auto& nhop : nhops) {
+    auto thrift = nhop.toThrift();
+    if (!primary) {
+      *thrift.role() = NextHopRole::BACKUP;
+    }
+    protectionNhops.insert(util::fromThrift(thrift, true));
+    primary = false;
+  }
+  return protectionNhops;
+}
+
 RouteV6::Prefix makePrefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
   return RouteV6::Prefix(
-      folly::IPAddressV6(folly::sformat("2601:db00:2110:{}::", ss.str())), 64);
+      folly::IPAddressV6(fmt::format("2601:db00:2110:{}::", ss.str())), 64);
 }
 
 RouteV4::Prefix makeV4Prefix(int offset) {
   std::stringstream ss;
   ss << std::hex << offset;
   return RouteV4::Prefix(
-      folly::IPAddressV4(folly::sformat("150.0.{}.0", ss.str())), 24);
+      folly::IPAddressV4(fmt::format("150.0.{}.0", ss.str())), 24);
 }
 
 std::shared_ptr<RouteV6> makeRoute(
@@ -83,6 +114,48 @@ std::shared_ptr<RouteV4> makeV4Route(
   rt->setResolved(nhopEntry);
   rt->publish();
   return rt;
+}
+
+// Reset all NextHop IDs on a (mutable, unpublished) state's routes so they can
+// be re-stamped uniformly from a single manager.
+void clearNextHopIds(std::shared_ptr<SwitchState>& state) {
+  auto clearFib = [](auto* fib) {
+    for (const auto& [_, route] : std::as_const(*fib)) {
+      const auto& fwd = route->getForwardInfo();
+      if (!fwd.getResolvedNextHopSetID().has_value() &&
+          !fwd.getNormalizedResolvedNextHopSetID().has_value()) {
+        continue;
+      }
+      RouteNextHopEntry updated;
+      updated.fromThrift(fwd.toThrift());
+      std::optional<NextHopSetID> none;
+      updated.setResolvedNextHopSetID(none);
+      updated.setNormalizedResolvedNextHopSetID(none);
+      auto cloned = route->clone();
+      cloned->setResolved(updated);
+      cloned->publish();
+      fib->updateNode(cloned);
+    }
+  };
+  auto* fib6 = fibImpl<folly::IPAddressV6>(state);
+  auto* fib4 = fibImpl<folly::IPAddressV4>(state);
+  clearFib(fib6);
+  clearFib(fib4);
+}
+
+// Stamp a complete, self-consistent set of NextHop IDs + FibInfo on a state so
+// the ID-aware getNextHops() in updateRoutes() resolves. The input may carry
+// IDs from sw_'s manager (via copyNextHopIdsToState) that aren't in our local
+// FibInfo, so clear them and re-stamp uniformly. The agent re-allocates its own
+// IDs when the routes are added, so the values here are throwaway.
+std::shared_ptr<SwitchState> withNextHopIds(
+    std::shared_ptr<SwitchState> state) {
+  auto out = state->clone();
+  clearNextHopIds(out);
+  NextHopIDManager mgr;
+  assignNextHopIdsToAllRoutes(&mgr, out);
+  out->publish();
+  return out;
 }
 
 cfg::SwitchConfig onePortPerIntfConfig(
@@ -114,8 +187,8 @@ cfg::SwitchConfig onePortPerIntfConfig(
     std::stringstream ss;
     ss << std::hex << p;
     cfg.interfaces()[p].ipAddresses()[0] =
-        folly::sformat("2400:db00:2110:{}::1/64", ss.str());
-    cfg.interfaces()[p].ipAddresses()[1] = folly::sformat("200.0.{}.1/24", p);
+        fmt::format("2400:db00:2110:{}::1/64", ss.str());
+    cfg.interfaces()[p].ipAddresses()[1] = fmt::format("200.0.{}.1/24", p);
   }
   if (ecmpCompressionThresholdPct) {
     cfg.switchSettings()->ecmpCompressionThresholdPct() =
@@ -477,7 +550,11 @@ void BaseEcmpResourceManagerTest::updateFlowletSwitchingConfig(
 }
 
 void BaseEcmpResourceManagerTest::updateRoutes(
-    const std::shared_ptr<SwitchState>& newState) {
+    const std::shared_ptr<SwitchState>& newStateIn) {
+  // Stamp IDs so consumer-side getNextHops() reads in the lambdas below
+  // resolve under FLAGS_resolve_nexthops_from_id. Rebind so nested captures
+  // of `newState` pick up the stamped version. Idempotent.
+  auto newState = withNextHopIds(newStateIn);
   StateDelta delta(sw_->getState(), newState);
 
   auto routesToAddOrUpdate = std::make_unique<std::vector<UnicastRoute>>();
@@ -485,18 +562,22 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
   processFibsDeltaInHwSwitchOrder(
       delta,
-      [&routesToAddOrUpdate](
+      [&routesToAddOrUpdate, &newState](
           RouterID rid, const auto& /*oldRoute*/, const auto& newRoute) {
-        routesToAddOrUpdate->emplace_back(
+        const auto& fwdInfo = newRoute->getForwardInfo();
+        routesToAddOrUpdate->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
-                newRoute->getForwardInfo()));
+                fwdInfo,
+                facebook::fboss::getNextHops(newState, fwdInfo))));
       },
-      [&routesToAddOrUpdate](RouterID rid, const auto& newRoute) {
-        routesToAddOrUpdate->emplace_back(
+      [&routesToAddOrUpdate, &newState](RouterID rid, const auto& newRoute) {
+        const auto& fwdInfo = newRoute->getForwardInfo();
+        routesToAddOrUpdate->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
                 newRoute->prefix().toCidrNetwork(),
-                newRoute->getForwardInfo()));
+                fwdInfo,
+                facebook::fboss::getNextHops(newState, fwdInfo))));
       },
       [&prefixesToDelete](RouterID rid, const auto& oldRoute) {
         IpPrefix pfx;
@@ -515,17 +596,19 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 
 std::unique_ptr<std::vector<UnicastRoute>>
 BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
+  auto state = sw_->getState();
   auto fibContainer =
-      sw_->getState()->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(
-          RouterID(0));
+      state->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(RouterID(0));
   auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
-  auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
+  auto fillInRoutes = [&unicastRoutes, &state](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
       auto forwardInfo = route->getEntryForClient(kClientID);
       if (forwardInfo) {
-        unicastRoutes->emplace_back(
+        unicastRoutes->emplace_back(stripNonLinkLocalInterfaceNames(
             util::toUnicastRoute(
-                route->prefix().toCidrNetwork(), *forwardInfo));
+                route->prefix().toCidrNetwork(),
+                *forwardInfo,
+                facebook::fboss::getClientNextHops(state, *forwardInfo))));
       }
     }
   };
@@ -596,13 +679,25 @@ void BaseEcmpResourceManagerTest::assertTargetState(
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
   EcmpResourceManager::NextHopGroupIds mergedGroupMembers;
+  auto isProtectionRoute = [&](const auto& route) {
+    const auto nhops =
+        getNonOverrideNormalizedNextHops(targetState, route->getForwardInfo());
+    return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+      return nhop.role() == NextHopRole::BACKUP;
+    });
+  };
   auto checkFib = [&](auto fibToCheck, auto targetStateFib) {
     for (auto [_, inRoute] : std::as_const(*fibToCheck)) {
       auto route = targetStateFib->exactMatch(inRoute->prefix());
-      ASSERT_TRUE(route->isResolved());
       ASSERT_NE(route, nullptr);
+      ASSERT_TRUE(route->isResolved());
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
+      if (isProtectionRoute(route)) {
+        EXPECT_EQ(consolidatorGrpInfo, nullptr);
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+        continue;
+      }
       bool isEcmpRoute = route->isResolved() &&
           facebook::fboss::getNextHops(targetState, route->getForwardInfo())
                   .size() > 1;
@@ -683,6 +778,11 @@ void BaseEcmpResourceManagerTest::assertTargetState(
       auto route = targetStateFib->exactMatch(inRoute->prefix());
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
+      if (isProtectionRoute(route)) {
+        EXPECT_EQ(consolidatorGrpInfo, nullptr);
+        EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+        continue;
+      }
       if (overflowPrefixes.find(route->prefix()) != overflowPrefixes.end()) {
         EXPECT_TRUE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())
             << " expected route " << route->str()

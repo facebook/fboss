@@ -180,7 +180,7 @@ class AgentFlexPortTest : public AgentHwTest {
       std::vector<PortID> interfacePorts;
       for (const auto& port : *cfg.ports()) {
         if (*port.portType() == cfg::PortType::INTERFACE_PORT) {
-          interfacePorts.push_back(PortID(*port.logicalID()));
+          interfacePorts.emplace_back(*port.logicalID());
         }
       }
       for (auto portId : interfacePorts) {

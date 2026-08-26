@@ -9,20 +9,27 @@
  */
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
+#include <fmt/format.h>
+#include <folly/String.h>
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <algorithm>
+#include <iterator>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
+#include "fboss/lib/if/LinkQsfpTestMachineInfo.h"
+#include "fboss/lib/if/LinkQsfpTestPortInfoUtils.h"
+#include "fboss/lib/if/gen-cpp2/link_qsfp_test_port_info_types.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/QsfpServer.h"
 #include "fboss/qsfp_service/module/CdbCommandBlock.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
-#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 DEFINE_bool(
     setup_for_warmboot,
@@ -38,6 +45,120 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 using namespace std::chrono_literals;
+
+namespace {
+// Per-transceiver info dumped at TearDown for Scuba ingestion. Netcastle
+// downloads this file after each test run and logs it to the
+// fboss_link_qsfp_test_port_info Scuba table. Must match
+// FBOSS_LINK_QSFP_TEST_PORT_INFO_FILE in
+// fbcode/neteng/netcastle/teams/fboss/constants.py and the link test path
+// (kLinkQsfpTestPortInfoForScuba) in
+// fbcode/fboss/agent/test/link_tests/LinkTestUtils.cpp.
+const std::string kLinkQsfpTestPortInfoForScuba =
+    "/tmp/link_qsfp_test_port_info_for_scuba.log";
+
+// Per-port errors dumped alongside the port info at TearDown. Netcastle
+// downloads this file after each test and logs it to the
+// fboss_link_qsfp_test_port_errors Scuba table. Must match
+// FBOSS_LINK_QSFP_TEST_PORT_ERROR_FILE in
+// fbcode/neteng/netcastle/teams/fboss/constants.py.
+const std::string kLinkQsfpTestPortErrorForScuba =
+    "/tmp/link_qsfp_test_port_error_for_scuba.log";
+
+constexpr auto kPresentButNotInConfig = "EXTRA";
+
+// Builds a single Scuba row for a tested transceiver from its TransceiverInfo
+// (vendor, firmware, module/per-port media interface). Returns a row with just
+// the test/transceiver/port identity if the transceiver has no info entry.
+LinkQsfpTestPortInfo buildPortInfoRow(
+    WedgeManager* wedgeManager,
+    const TransceiverID& id,
+    const std::string& testName,
+    const std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  LinkQsfpTestPortInfo portInfo;
+  portInfo.testName() = testName;
+  portInfo.transceiverId() = static_cast<int32_t>(id);
+
+  std::string tcvrPortName;
+  try {
+    tcvrPortName = wedgeManager->getPortName(id);
+    portInfo.portName() = tcvrPortName;
+    if (auto portId = wedgeManager->getPortIDByPortName(tcvrPortName)) {
+      portInfo.portId() = static_cast<int32_t>(*portId);
+    }
+  } catch (const std::exception&) {
+    // Leave port name/id unset if the transceiver has no mapped port.
+  }
+
+  auto tcvrIt = tcvrInfos.find(static_cast<int32_t>(id));
+  if (tcvrIt == tcvrInfos.end()) {
+    return portInfo;
+  }
+  const auto& tcvrState = *tcvrIt->second.tcvrState();
+  utility::populateTransceiverInfoFields(portInfo, tcvrState, tcvrPortName);
+  return portInfo;
+}
+
+// Transceivers qsfp_service sees as physically present that the config does not
+// cable up. Note this is scoped to the platform mapping: WedgeManager only
+// creates Transceiver objects for slots the mapping knows about, so a module in
+// an unmapped slot can never appear in getPresentTransceivers() and is not
+// reported here.
+std::vector<TransceiverID> getPresentTransceiversNotInConfig(
+    WedgeManager* wedgeManager,
+    const std::vector<TransceiverID>& cabledTcvrs) {
+  const auto present = wedgeManager->getPresentTransceivers();
+  // getCabledPortTranceivers() builds its vector from an unordered_set, so it
+  // arrives unsorted; set_difference requires both ranges ordered.
+  const std::set<TransceiverID> expected(
+      cabledTcvrs.begin(), cabledTcvrs.end());
+  std::vector<TransceiverID> unexpected;
+  std::set_difference(
+      present.begin(),
+      present.end(),
+      expected.begin(),
+      expected.end(),
+      std::back_inserter(unexpected));
+  return unexpected;
+}
+
+// Builds one Scuba row per present-but-unconfigured transceiver. pool is left
+// unset: it is Basset lab inventory state, unknown on the switch, and Netcastle
+// stamps it at upload time.
+LinkQsfpTestPortError buildPortErrorRow(
+    WedgeManager* wedgeManager,
+    const TransceiverID& id,
+    const std::string& machineName,
+    const std::string& machineType,
+    const std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  LinkQsfpTestPortError portError;
+  portError.machineName() = machineName;
+  portError.machineType() = machineType;
+  portError.error() = kPresentButNotInConfig;
+
+  // Non-empty for every id reachable here (presence implies a mapped port), but
+  // fall back to the transceiver name so a row is never anonymous. Guarded like
+  // buildPortInfoRow: these transceivers are by definition in unusual mapping
+  // state, and one that cannot be named must not abort the whole dump.
+  std::string portName;
+  try {
+    portName = wedgeManager->getPortName(id);
+    if (portName.empty()) {
+      portName = wedgeManager->getTransceiverName(id);
+    }
+  } catch (const std::exception&) {
+    // Leave the port name empty if the transceiver has no mapped port.
+  }
+  portError.portName() = std::move(portName);
+
+  auto tcvrIt = tcvrInfos.find(static_cast<int32_t>(id));
+  if (tcvrIt != tcvrInfos.end()) {
+    utility::populateTransceiverErrorFields(
+        portError, *tcvrIt->second.tcvrState());
+  }
+  return portError;
+}
+} // namespace
 
 HwTest::HwTest(bool setupOverrideTcvrToPortAndProfile)
     : setupOverrideTcvrToPortAndProfile_(setupOverrideTcvrToPortAndProfile) {}
@@ -97,6 +218,13 @@ void HwTest::SetUp() {
 }
 
 void HwTest::TearDown() {
+  // Dump per-transceiver metadata for any transceivers the test registered.
+  // Runs before the ensemble is torn down so transceiver info is still
+  // available. Best effort; never fails the test. gtest TearDown() runs on both
+  // the cold-boot (--setup_for_warmboot) and warm-boot phases for qsfp hw
+  // tests, so both phases emit rows.
+  dumpTestMetadata();
+
   // At the end of the test, expect the watchdog fired count to be 0 because we
   // don't expect any deadlocked threads
 
@@ -289,6 +417,168 @@ std::vector<int> HwTest::getCabledOpticalAndActiveTransceiverIDs() {
       folly::gen::as<std::vector>();
 }
 
+void HwTest::addTestedTransceiver(const TransceiverID& id) {
+  testedTransceivers_.insert(id);
+}
+
+void HwTest::addTestedTransceivers(const std::vector<TransceiverID>& ids) {
+  testedTransceivers_.insert(ids.begin(), ids.end());
+}
+
+void HwTest::addTestedTransceiverIds(const std::vector<int32_t>& ids) {
+  for (auto id : ids) {
+    testedTransceivers_.insert(TransceiverID(id));
+  }
+}
+
+void HwTest::addTestedPorts(const std::vector<PortID>& portIds) {
+  auto* platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
+  for (const auto& portId : portIds) {
+    try {
+      testedTransceivers_.insert(
+          TransceiverID(platformMapping->getTransceiverIdFromSwPort(portId)));
+    } catch (const std::exception& ex) {
+      XLOG(WARN) << "Could not map port " << portId
+                 << " to a transceiver for test metadata: "
+                 << folly::exceptionStr(ex);
+    }
+  }
+}
+
+void HwTest::addTestMetadata(
+    const TransceiverID& id,
+    const std::string& key,
+    const std::string& value) {
+  perTransceiverMetadata_[id][key] = value;
+}
+
+void HwTest::addVerifiedProductionFeatures(
+    const std::vector<qsfp_production_features::QsfpProductionFeature>&
+        features) {
+  verifiedProductionFeatures_.insert(
+      verifiedProductionFeatures_.end(), features.begin(), features.end());
+}
+
+void HwTest::dumpTestMetadata() {
+  // ensemble_ is nullptr in --list_production_feature mode; nothing to dump.
+  if (ensemble_ == nullptr) {
+    return;
+  }
+
+  std::vector<std::string> jsonLines;
+  try {
+    if (!testedTransceivers_.empty()) {
+      auto testInfo = testing::UnitTest::GetInstance()->current_test_info();
+      auto testName =
+          fmt::format("{}.{}", testInfo->test_suite_name(), testInfo->name());
+
+      std::vector<std::string> featureNames;
+      featureNames.reserve(verifiedProductionFeatures_.size());
+      for (const auto& feature : verifiedProductionFeatures_) {
+        featureNames.push_back(apache::thrift::util::enumNameSafe(feature));
+      }
+
+      auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+
+      std::vector<int32_t> tcvrIds;
+      tcvrIds.reserve(testedTransceivers_.size());
+      for (const auto& id : testedTransceivers_) {
+        tcvrIds.push_back(static_cast<int32_t>(id));
+      }
+
+      std::map<int32_t, TransceiverInfo> tcvrInfos;
+      wedgeManager->getTransceiversInfo(
+          tcvrInfos, std::make_unique<std::vector<int32_t>>(tcvrIds));
+
+      for (const auto& id : testedTransceivers_) {
+        auto portInfo = buildPortInfoRow(wedgeManager, id, testName, tcvrInfos);
+        portInfo.verifiedProductionFeatures() = featureNames;
+        if (auto it = perTransceiverMetadata_.find(id);
+            it != perTransceiverMetadata_.end()) {
+          portInfo.extraMetadata() = it->second;
+        }
+        jsonLines.push_back(
+            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                portInfo));
+      }
+    }
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to build qsfp hw test port info: "
+               << folly::exceptionStr(ex);
+  }
+
+  // Always (over)write the file, even when there are no rows, so that a test
+  // which registered no transceivers clears any file left by a previous test.
+  // The dump path is shared across tests (and with link tests), so without this
+  // Netcastle would re-upload a stale file and mis-attribute its rows to the
+  // current test.
+  auto content = folly::join("\n", jsonLines);
+  if (writeSysfs(kLinkQsfpTestPortInfoForScuba, content)) {
+    XLOG(DBG2) << "Dumped qsfp hw test port info for " << jsonLines.size()
+               << " transceivers to " << kLinkQsfpTestPortInfoForScuba;
+  } else {
+    XLOG(ERR) << "Failed to write qsfp hw test port info to "
+              << kLinkQsfpTestPortInfoForScuba;
+  }
+  dumpPortErrors();
+
+  testedTransceivers_.clear();
+  perTransceiverMetadata_.clear();
+  verifiedProductionFeatures_.clear();
+}
+
+void HwTest::dumpPortErrors() {
+  std::vector<std::string> jsonLines;
+  try {
+    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto unexpected = getPresentTransceiversNotInConfig(
+        wedgeManager, utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+
+    if (!unexpected.empty()) {
+      std::vector<int32_t> tcvrIds;
+      tcvrIds.reserve(unexpected.size());
+      for (const auto& id : unexpected) {
+        tcvrIds.push_back(static_cast<int32_t>(id));
+      }
+      std::map<int32_t, TransceiverInfo> tcvrInfos;
+      wedgeManager->getTransceiversInfo(
+          tcvrInfos, std::make_unique<std::vector<int32_t>>(tcvrIds));
+
+      auto machineName = utility::getMachineName();
+      auto machineType = utility::getMachineType();
+      for (const auto& id : unexpected) {
+        auto portError = buildPortErrorRow(
+            wedgeManager, id, machineName, machineType, tcvrInfos);
+        jsonLines.push_back(
+            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                portError));
+        XLOG(WARN) << "Transceiver " << static_cast<int32_t>(id) << " ("
+                   << *portError.portName()
+                   << ") is present but not in the config";
+      }
+    }
+  } catch (const std::exception& ex) {
+    // Drop anything already collected: a partially built set is
+    // indistinguishable in Scuba from a complete one, so publishing it would
+    // silently under-report. Better to emit nothing than a truncated set.
+    jsonLines.clear();
+    XLOG(WARN) << "Failed to build qsfp hw test port errors: "
+               << folly::exceptionStr(ex);
+  }
+
+  // Always (over)write, even with no rows, so a file left by a previous test is
+  // never re-uploaded and mis-attributed to this one.
+  auto content = folly::join("\n", jsonLines);
+  if (writeSysfs(kLinkQsfpTestPortErrorForScuba, content)) {
+    XLOG(DBG2) << "Dumped " << jsonLines.size()
+               << " qsfp hw test port errors to "
+               << kLinkQsfpTestPortErrorForScuba;
+  } else {
+    XLOG(ERR) << "Failed to write qsfp hw test port errors to "
+              << kLinkQsfpTestPortErrorForScuba;
+  }
+}
+
 std::vector<qsfp_production_features::QsfpProductionFeature>
 HwTest::getProductionFeatures() const {
   return {};
@@ -304,6 +594,9 @@ void HwTest::printProductionFeatures() const {
 }
 
 TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_DETECTION});
+  addTestedTransceivers(utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> insertedTransceiversMap;
   wedgeManager->getTransceiversInfo(
@@ -338,11 +631,16 @@ TEST_F(HwTest, CheckTcvrNameAndInterfaces) {
   }
 }
 TEST_F(HwTest, checkCmisModuleFirmwareUpgradeCdbTimeout) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::
+           TRANSCEIVER_ADVERTISEMENTS});
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   refreshTransceiversWithRetry();
 
-  auto cabledTransceivers = utility::legacyTransceiverIds(
-      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  auto cabledTransceiverIds =
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble());
+  addTestedTransceivers(cabledTransceiverIds);
+  auto cabledTransceivers = utility::legacyTransceiverIds(cabledTransceiverIds);
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   wedgeManager->getTransceiversInfo(
       transceiversInfo,

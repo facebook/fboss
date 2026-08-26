@@ -187,6 +187,15 @@ std::string HwSwitchThriftClientTable::getHwDebugDump(SwitchID switchId) {
   return out;
 }
 
+void HwSwitchThriftClientTable::setSdkRegDumpEnabled(
+    SwitchID switchId,
+    bool enabled) {
+  // Let exceptions (e.g. unsupported on this device) propagate so callers can
+  // surface them to the user.
+  auto client = getClient(switchId);
+  client->sync_setSdkRegDumpEnabled(enabled);
+}
+
 std::vector<phy::PrbsLaneStats> HwSwitchThriftClientTable::getPortAsicPrbsStats(
     const SwitchID& switchId,
     const PortID& portId) {

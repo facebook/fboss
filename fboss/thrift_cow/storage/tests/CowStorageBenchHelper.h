@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <folly/Benchmark.h>
@@ -60,6 +61,20 @@ class StorageBenchmarkHelper {
 // application). Requires jemalloc; returns 0 if unavailable so callers can
 // drop the measurement. Defined in CowStorageBenchHelper.cpp.
 int64_t getJemallocAllocatedBytes();
+
+struct MemoryStats {
+  double avgKB{0.0};
+  double maxKB{0.0};
+  double stddevKB{0.0};
+};
+
+std::optional<MemoryStats> computeMemoryStats(
+    const std::vector<int64_t>& measurements);
+
+void reportMemoryCounters(
+    folly::UserCounters& counters,
+    std::string_view prefix,
+    const MemoryStats& stats);
 
 template <typename RootType>
 int64_t bm_storage_helper(
@@ -116,38 +131,10 @@ void bm_storage_metrics_helper(
     }
   }
 
-  // Calculate and report metrics via UserCounters
-  if (!allocatedMeasurements.empty()) {
-    int64_t sum = 0;
-    int64_t maxAlloc = *std::max_element(
-        allocatedMeasurements.begin(), allocatedMeasurements.end());
-
-    for (int64_t bytes : allocatedMeasurements) {
-      sum += bytes;
-    }
-
-    int64_t avgAlloc = sum / static_cast<int64_t>(allocatedMeasurements.size());
-
-    // Compute standard deviation (sample stddev requires at least 2 points)
-    double stddev = 0.0;
-    if (allocatedMeasurements.size() > 1) {
-      double variance = 0.0;
-      for (int64_t bytes : allocatedMeasurements) {
-        double diff = static_cast<double>(bytes - avgAlloc);
-        variance += diff * diff;
-      }
-      variance /= static_cast<double>(allocatedMeasurements.size() - 1);
-      stddev = std::sqrt(variance);
-    }
-
-    // Report metrics - these will appear as columns in benchmark output.
-    // Values are deltas of jemalloc `stats.allocated` across building one
-    // storage instance (bytes currently allocated to the application).
-    counters["avg_allocated_KB"] =
-        folly::UserMetric(static_cast<double>(avgAlloc) / 1024.0);
-    counters["max_allocated_KB"] =
-        folly::UserMetric(static_cast<double>(maxAlloc) / 1024.0);
-    counters["stddev_allocated_KB"] = folly::UserMetric(stddev / 1024.0);
+  // Values are deltas of jemalloc `stats.allocated` across building one
+  // storage instance (bytes currently allocated to the application).
+  if (auto stats = computeMemoryStats(allocatedMeasurements)) {
+    reportMemoryCounters(counters, "allocated", *stats);
   }
 }
 

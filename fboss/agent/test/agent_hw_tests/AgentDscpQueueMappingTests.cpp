@@ -24,6 +24,8 @@
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss {
 
 class AgentDscpQueueMappingTestBase : public AgentHwTest {
@@ -122,13 +124,6 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     // QosMap
     auto l3Asics = ensemble.getL3Asics();
     utility::addOlympicV2QosMaps(cfg, l3Asics);
-    auto kAclName = "acl1";
-    auto asic = checkSameAndGetAsicForTesting(l3Asics);
-    utility::addDscpAclToCfg(asic, &cfg, kAclName, kDscp());
-    utility::addTrafficCounter(
-        &cfg, kCounterName(), utility::getAclCounterTypes(l3Asics));
-    utility::addQueueMatcher(
-        &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
     return cfg;
   }
 
@@ -151,9 +146,11 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
       sendPacket(frontPanel, kDscp);
 
       WITH_RETRIES({
-        auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
-                                     .get_queueOutPackets_()
-                                     .at(kQueueId);
+        auto afterQueueOutPkts =
+            folly::copy(getLatestPortStats(this->portIdToTest())
+                            .queueOutPackets_()
+                            .value())
+                .at(kQueueId);
 
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched")
@@ -232,12 +229,28 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
-    auto* acl = utility::addAcl_DEPRECATED(&cfg, "acl0");
-    cfg::Ttl ttl; // Match packets with hop limit > 127
-    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
-    acl->ttl() = ttl;
     auto l3Asics = ensemble.getL3Asics();
     auto asic = checkSameAndGetAsicForTesting(l3Asics);
+    // acl0 qualifies on TTL + IPv6 etherType only; on Q4D/J4 those shared
+    // qualifiers would route it to the IPv4 default table, so target the IPv6
+    // table explicitly there.
+    std::optional<std::string> aclTableName;
+    if (FLAGS_enable_acl_table_group &&
+        (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+         asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4)) {
+      aclTableName = utility::kIpv6AclTable();
+    }
+    auto* acl = utility::addAcl_DEPRECATED(
+        &cfg, "acl0", cfg::AclActionType::PERMIT, aclTableName);
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
+      // TU1 does not support the TTL ACL qualifier; qualify on dstIp instead.
+      // ::/0 matches any IPv6 destination, so the test packet still hits acl0.
+      acl->dstIp() = "::/0";
+    } else {
+      cfg::Ttl ttl; // Match packets with hop limit > 127
+      std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+      acl->ttl() = ttl;
+    }
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
     utility::addAclStat(
         &cfg,
@@ -268,9 +281,11 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         sendPacket(frontPanel, kDscp(), 255 /* ttl, > 127 to match ACL */);
 
         WITH_RETRIES({
-          auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
-                                       .get_queueOutPackets_()
-                                       .at(kQueueId());
+          auto afterQueueOutPkts =
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
+                  .at(kQueueId());
           auto afterAclInOutPkts =
               utility::getAclInOutPackets(getSw(), kCounterName());
 
@@ -344,12 +359,15 @@ class AgentAclConflictAndDscpQueueMappingTest
         sendPacket(frontPanel, kDscp());
 
         WITH_RETRIES({
-          auto afterQueueOutPktsAcl = getLatestPortStats(this->portIdToTest())
-                                          .get_queueOutPackets_()
-                                          .at(kQueueIdAcl());
+          auto afterQueueOutPktsAcl =
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
+                  .at(kQueueIdAcl());
           auto afterQueueOutPktsQosMap =
-              getLatestPortStats(this->portIdToTest())
-                  .get_queueOutPackets_()
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
                   .at(kQueueIdQosMap());
 
           auto afterAclInOutPkts =

@@ -130,6 +130,26 @@ void sendDHCPPacket(
   sw->sendPacketSwitchedAsync(std::move(txPacket));
 }
 
+// Returns true iff the option starting at optIndex fits entirely within
+// optionsIn: its code byte, and (for options that carry a length) the length
+// byte plus all declared data bytes. Mirrors the option-length validation in
+// DHCPv6Packet::extractOptions; a malformed option whose declared length runs
+// past the buffer would otherwise cause an out-of-bounds read in processOption.
+bool isOptionInBounds(const DHCPv4Packet::Options& optionsIn, int optIndex) {
+  if (static_cast<size_t>(optIndex) >= optionsIn.size()) {
+    return false;
+  }
+  if (DHCPv4Packet::isOptionWithoutLength(optionsIn[optIndex])) {
+    return true;
+  }
+  if (static_cast<size_t>(optIndex) + 1 >= optionsIn.size()) {
+    return false;
+  }
+  const size_t optLen = optionsIn[optIndex + 1];
+  const size_t optDataIndex = static_cast<size_t>(optIndex) + 2;
+  return optDataIndex + optLen <= optionsIn.size();
+}
+
 int processOption(
     const DHCPv4Packet::Options& optionsIn,
     int optIndex,
@@ -427,14 +447,32 @@ bool DHCPv4Handler::addAgentOptions(
   bool done = false;
   uint16_t maxMsgSize = 0;
   while (optIndex < optionsIn.size() && !done) {
+    if (!isOptionInBounds(optionsIn, optIndex)) {
+      XLOG(DBG2) << "Dropping DHCP request: malformed option at offset "
+                 << optIndex << " (code "
+                 << (static_cast<size_t>(optIndex) < optionsIn.size()
+                         ? static_cast<int>(optionsIn[optIndex])
+                         : -1)
+                 << ", options size " << optionsIn.size() << ")";
+      return false; // truncated/malformed option -> drop packet
+    }
     bool appendOption = true;
     switch (optionsIn[optIndex]) {
       case DHCP_MESSAGE_TYPE:
         isDHCP = true;
         break;
-      case DHCP_MAX_MESSAGE_SIZE:
-        maxMsgSize = ntohs(optionsIn[optIndex + 2]);
+      case DHCP_MAX_MESSAGE_SIZE: {
+        // Only read the value when the option actually declares data.
+        // isOptionInBounds() already guarantees optIndex + 2 + optLen <= size,
+        // so with optLen > 0 the read at optIndex + 2 is in bounds; a length-0
+        // option (which still passes isOptionInBounds) is skipped to avoid an
+        // out-of-bounds read.
+        const size_t optLen = optionsIn[optIndex + 1];
+        if (optLen > 0) {
+          maxMsgSize = ntohs(optionsIn[optIndex + 2]);
+        }
         break;
+      }
       case DHCP_AGENT_OPTIONS:
         if (isDHCP) {
           // FIXME We should really forward this along unchanged.
@@ -479,6 +517,15 @@ bool DHCPv4Handler::stripAgentOptions(
   bool isDHCP = false;
   bool done = false;
   while (optIndex < optionsIn.size() && !done) {
+    if (!isOptionInBounds(optionsIn, optIndex)) {
+      XLOG(DBG2) << "Dropping DHCP reply: malformed option at offset "
+                 << optIndex << " (code "
+                 << (static_cast<size_t>(optIndex) < optionsIn.size()
+                         ? static_cast<int>(optionsIn[optIndex])
+                         : -1)
+                 << ", options size " << optionsIn.size() << ")";
+      return false; // truncated/malformed option -> drop packet
+    }
     bool appendOption = true;
     switch (optionsIn[optIndex]) {
       case DHCP_MESSAGE_TYPE:

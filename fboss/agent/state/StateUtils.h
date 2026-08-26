@@ -10,9 +10,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -20,6 +22,7 @@
 #include <folly/MacAddress.h>
 
 namespace facebook::fboss {
+class AclEntry;
 class SwitchState;
 class Interface;
 class StateDelta;
@@ -43,6 +46,13 @@ auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
   return map->size() ? map->cbegin()->second : nullptr;
 }
 
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName);
+std::optional<std::string> getAclTableNameForEntry(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclEntryId);
+
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan);
@@ -54,7 +64,8 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
     const SwitchID& switchId);
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    const SwitchID& switchId);
+    const SwitchID& switchId,
+    std::optional<cfg::Scope> scope = std::nullopt);
 std::shared_ptr<Interface> firstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state,
     const SwitchID& switchId);

@@ -10,10 +10,8 @@
 #include "fboss/lib/CommonPortUtils.h"
 #include <fmt/core.h>
 #include <folly/Singleton.h>
-#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <stdexcept>
 
 namespace facebook::fboss {
 

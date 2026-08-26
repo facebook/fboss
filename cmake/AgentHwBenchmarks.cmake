@@ -537,6 +537,7 @@ BUILD_HW_BENCHMARK_LIBS(srv6_mysid_scale_benchmark
   DEPS
     config_factory
     ecmp_helper
+    srv6_test_utils
     Folly::folly
     Folly::follybenchmark
 )

@@ -33,18 +33,26 @@ CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::queryClient(
 
   std::map<std::string, int64_t> counters;
   if (utils::isMultiSwitchEnabled(hostInfo)) {
-#ifndef IS_OSS
     auto hwAgentQueryFn =
         [&counters](
             apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
           std::map<std::string, int64_t> hwAgentCounters;
+#ifndef IS_OSS
           apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
               client.getChannelShared()};
           monitoringClient.sync_getCounters(hwAgentCounters);
+#else
+          // FbossHwCtrl does not extend FacebookService; the OSS HwAgent
+          // multiplex serves fb303 methods via a FacebookBase2 handler, so
+          // reuse the channel with an FbossCtrl client (which carries
+          // getCounters) to fetch HwAgent counters.
+          apache::thrift::Client<facebook::fboss::FbossCtrl> fb303Client{
+              client.getChannelShared()};
+          fb303Client.sync_getCounters(hwAgentCounters);
+#endif
           counters.merge(hwAgentCounters);
         };
     utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-#endif
   } else {
     auto entries =
         client->semifuture_getCounters().via(executor.getEventBase());
@@ -441,6 +449,40 @@ void CmdShowInterfaceTraffic::printOutput(
 
   out << errorTable << std::endl;
   out << trafficTable << std::endl;
+}
+
+std::string_view CmdShowInterfaceTrafficTraits::description() {
+  return "Displays per-interface traffic rates against the discovered peer: inbound/outbound Mbps, utilization percent, and Kpps over a sampling interval. Use it to gauge link utilization and spot imbalances.";
+}
+
+CmdShowInterfaceTraffic::RetType CmdShowInterfaceTraffic::sampleModel() {
+  RetType model;
+
+  cli::TrafficCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.peerIf() = "peer001";
+  counter1.inMbps() = 1768.99;
+  counter1.inPct() = 0.44;
+  counter1.inKpps() = 54.00;
+  counter1.outMbps() = 437.21;
+  counter1.outPct() = 0.11;
+  counter1.outKpps() = 29.00;
+  counter1.portSpeed() = 400000;
+  model.traffic_counters()->push_back(counter1);
+
+  cli::TrafficCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.peerIf() = "peer002";
+  counter2.inMbps() = 17.99;
+  counter2.inPct() = 0.00;
+  counter2.inKpps() = 2.00;
+  counter2.outMbps() = 18.61;
+  counter2.outPct() = 0.00;
+  counter2.outKpps() = 3.00;
+  counter2.portSpeed() = 400000;
+  model.traffic_counters()->push_back(counter2);
+
+  return model;
 }
 
 // Explicit template instantiation

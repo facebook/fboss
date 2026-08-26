@@ -8,9 +8,9 @@ import unittest
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
-    generate_platform_mappings,
-    INPUT_DIR as input_dir,
+    generate_platform_mappings_from_vendor_data,
 )
+from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
 
 class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
@@ -26,11 +26,16 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         False: [
             "montblanc",
             "montblanc_odd_ports_8x100G",
+            "montblanc_gtsw_yolo",
+            "montblanc_precoding",
             "minipack3n",
             "minipack3bta",
+            "minipack3bta_16rifs",
             "meru800bia",
             "meru800bia_dual_stage_rdsw",
+            "meru800bia_dual_stage_rdsw_fabric_uniform_local_offset",
             "meru800bia_dual_stage_edsw",
+            "meru800bia_dual_stage_edsw_fabric_uniform_local_offset",
             "meru800bia_100g_nif_port_breakout",
             "meru800bia_800g",
             "meru800bia_800g_hyperport",
@@ -38,7 +43,11 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
             "meru800bia_800g_uniform_local_offset",
             "meru800bia_uniform_local_offset",
+            "meru800bia_fabric_uniform_local_offset",
+            "meru800bia_800g_fabric_uniform_local_offset",
+            "meru800bia_hyperport_fabric_uniform_local_offset",
             "janga800bic_dctype1_prod",
+            "janga800bic_dctype1_prod_fabric_uniform_local_offset",
             "janga800bic_dctype1_test_fixture",
             "tahan800bc_test_fixture",
             "tahan800bc_chassis",
@@ -47,10 +56,13 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahansb800bc",
             "tahansb800bc_test_fixture",
             "wedge800bact",
+            "m4062nhp",
+            "wedge800bnhp",
             "wedge800cact",
             "blackwolf800banw",
             "j4sim",
             "icecube800banw",
+            "example_integrated_optics",
         ],
         True: [
             "meru800bfa",
@@ -59,7 +71,9 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "ladakh800bcls",
             "ladakh800bcls_rack",
             "ladakh800bcls_test_fixture",
+            "ladakh800bcls_osfp_tray",
             "leh800bcls",
+            "leh800bcls_rack",
             "leh800bcls_test_fixture",
             "saintpaul",
         ],
@@ -67,6 +81,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     _FBCODE_GENERATED_DIR: str = (
         "fboss/lib/platform_mapping_v2/generated_platform_mappings"
     )
+    _OSS_INPUT_DIR: str = "fboss/lib/platform_mapping_v2/platforms"
     _TMP_GENERATED_DIR: str = "/tmp/generated_platform_mappings/"
 
     def _clear_tmp_generated_mappings(self) -> None:
@@ -74,25 +89,47 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         Clears out any files in the /tmp/generated_platform_mappings directory.
         """
         if os.path.exists(self._TMP_GENERATED_DIR):
-            for filename in os.listdir(self._TMP_GENERATED_DIR):
-                file_path = os.path.join(self._TMP_GENERATED_DIR, filename)
-                try:
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
+            for root, dirs, files in os.walk(self._TMP_GENERATED_DIR, topdown=False):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    try:
                         os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        os.rmdir(file_path)
-                except Exception as e:
-                    print(f"Failed to delete {file_path}. Reason: {e}", file=sys.stderr)
+                    except OSError as e:
+                        print(
+                            f"Failed to delete {file_path}. Reason: {e}",
+                            file=sys.stderr,
+                        )
+                for dirname in dirs:
+                    dir_path = os.path.join(root, dirname)
+                    try:
+                        os.rmdir(dir_path)
+                    except OSError as e:
+                        print(
+                            f"Failed to delete {dir_path}. Reason: {e}",
+                            file=sys.stderr,
+                        )
 
     def _generate_all_oss_platform_mappings_in_tmp(self) -> None:
+        vendor_data_map = read_all_vendor_data(self._OSS_INPUT_DIR)
         for is_multi_npu, platforms in self._OSS_MULTI_NPU_SUPPORTED_PLATFORMS.items():
             for platform in platforms:
-                generate_platform_mappings(
-                    input_dir + platform,
+                generate_platform_mappings_from_vendor_data(
+                    vendor_data_map,
                     self._TMP_GENERATED_DIR,
                     platform,
                     is_multi_npu,
                 )
+
+    def _get_relative_files(self, directory: str) -> List[str]:
+        relative_files = []
+        for root, _, filenames in os.walk(directory):
+            for filename in filenames:
+                if not filename.endswith(".json"):
+                    continue
+                relative_files.append(
+                    os.path.relpath(os.path.join(root, filename), directory)
+                )
+        return sorted(relative_files)
 
     def test_generated_files_match(self) -> None:
         """
@@ -125,12 +162,12 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             file=sys.stderr,
         )
 
-        ref_files = os.listdir(self._FBCODE_GENERATED_DIR)
-        gen_files = os.listdir(self._TMP_GENERATED_DIR)
+        ref_files = self._get_relative_files(self._FBCODE_GENERATED_DIR)
+        gen_files = self._get_relative_files(self._TMP_GENERATED_DIR)
 
         self.assertEqual(
-            sorted(ref_files),
-            sorted(gen_files),
+            ref_files,
+            gen_files,
             "Fbcode and tmp generated files don't match",
         )
 

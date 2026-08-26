@@ -7,13 +7,9 @@
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 
 extern "C" {
+#include <experimental/saiexperimentaltameventaginggroup.h>
 #include <sai.h>
 #include <saiextensions.h>
-#ifndef IS_OSS_BRCM_SAI
-#include <experimental/saiexperimentaltameventaginggroup.h>
-#else
-#include <saiexperimentaltameventaginggroup.h>
-#endif
 }
 
 namespace facebook::fboss {

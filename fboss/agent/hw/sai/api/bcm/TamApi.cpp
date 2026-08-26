@@ -3,11 +3,7 @@
 #include "fboss/agent/hw/sai/api/TamApi.h"
 
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saitamextensions.h>
-#else
-#include <saitamextensions.h>
-#endif
 }
 
 namespace facebook::fboss {

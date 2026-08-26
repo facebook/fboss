@@ -109,6 +109,19 @@ class PktUtil {
 
   static void padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad = 0);
 
+  /*
+   * Strip an encapsulation header from a packet while preserving the
+   * L2 (Ethernet) header. Replaces the ethertype with innerEtherType
+   * and removes encapHeaderSize bytes after l2HeaderSize bytes.
+   * l2HeaderSize includes MACs + VLAN tags + ethertype.
+   * Used by both MPLS and SRv6 decapsulation.
+   */
+  static void decapsulatePacket(
+      folly::IOBuf* buf,
+      size_t l2HeaderSize,
+      size_t encapHeaderSize,
+      uint16_t innerEtherType);
+
  private:
   // Forbidden copy constructor and assignment operator
   PktUtil(PktUtil const&) = delete;

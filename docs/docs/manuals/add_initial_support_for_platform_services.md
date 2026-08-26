@@ -88,14 +88,14 @@ configuration needs to be created and placed in the repository.
 ### Step 1: Create the Config File
 
 The vendor needs to create the `platform_manager.json` config file. There is a
-[sample file](https://github.com/facebook/fboss/blob/main/fboss/platform/configs/sample/platform_manager.json)
+[sample file](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/generic/sample/platform_stack/platform_manager.json)
 located in the repository. The guidelines for creating the config file are
 specified [here](/docs/platform/platform_manager/).
 
 ### Step 2: Upstream the Changes
 
 After the config is created, raise a PR placing it in its config directory.
-Configs are stored [here](https://github.com/facebook/fboss/tree/main/fboss/platform/configs),
+Configs are stored [here](https://github.com/facebook/fboss/tree/main/fboss/configs/platforms),
 where the name of the directory should be the name of the new platform using all
 lowercase.
 
@@ -129,7 +129,7 @@ Install the KMODS on the switch.
 BSP Tests use the `platform_manager.json` file to know which devices to test,
 but some additional information needs to be provided to the `bsp_tests.json`
 configuration file. More details can be found in the [thrift file](https://github.com/facebook/fboss/blob/main/fboss/platform/bsp_tests/bsp_tests_config.thrift)
-and [bsp_tests.json file](https://github.com/facebook/fboss/tree/main/fboss/platform/configs/sample/bsp_tests.json).
+and [bsp_tests.json file](https://github.com/facebook/fboss/tree/main/fboss/configs/platforms/generic/sample/platform_stack/bsp_tests.json).
 
 ### Step 5: Build BSP Tests
 

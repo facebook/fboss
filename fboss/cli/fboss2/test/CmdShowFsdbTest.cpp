@@ -2,9 +2,12 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -61,6 +64,68 @@ TEST_F(CmdShowFsdbTestFixture, testShowPublishers) {
   pubIds = {"test-client2"};
   pubInfos = CmdShowFsdbPublishers().queryClient(localhost(), pubIds);
   EXPECT_EQ(pubInfos.size(), 0);
+}
+
+// A subscriber path that cannot be resolved against the locally compiled
+// FsdbModel (e.g. schema skew with the switch, or a deprecated path) must not
+// abort the whole command. getSubscriptionPathStr() should fall back to the raw
+// tokens instead of throwing "Invalid extended path".
+TEST_F(CmdShowFsdbTestFixture, testGetSubscriptionPathStrPatchFallback) {
+  fsdb::OperSubscriberInfo subscriber;
+  subscriber.isStats() = false;
+  fsdb::RawOperPath rawPath;
+  // "99999" is not a valid field id/name in FsdbOperStateRoot, so conversion
+  // fails and we expect the raw tokens to be displayed.
+  rawPath.path() = {"99999", "12345"};
+  subscriber.paths() = {{0, rawPath}};
+
+  EXPECT_EQ(utils::getSubscriptionPathStr(subscriber), "99999/12345");
+}
+
+TEST_F(CmdShowFsdbTestFixture, testGetSubscriptionPathStrExtendedFallback) {
+  fsdb::OperSubscriberInfo subscriber;
+  subscriber.isStats() = false;
+  fsdb::ExtendedOperPath extPath;
+  fsdb::OperPathElem elem;
+  elem.raw() = "99999";
+  extPath.path() = {elem};
+  subscriber.extendedPaths() = {extPath};
+
+  EXPECT_EQ(utils::getSubscriptionPathStr(subscriber), "99999");
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksSubscribers) {
+  auto description = CmdShowFsdbSubscriberTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbSubscribers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksPublishers) {
+  auto description = CmdShowFsdbPublisherTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbPublishers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksOperState) {
+  auto description = CmdShowFsdbOperState::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbOperState::sampleModel();
+  ASSERT_TRUE(model.contents().has_value());
+  EXPECT_FALSE(model.contents()->empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksOperStats) {
+  auto description = CmdShowFsdbOperStats::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbOperStats::sampleModel();
+  ASSERT_TRUE(model.contents().has_value());
+  EXPECT_FALSE(model.contents()->empty());
 }
 
 } // namespace facebook::fboss

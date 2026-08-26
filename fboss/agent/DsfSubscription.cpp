@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/DsfSubscription.h"
+#include <fmt/format.h>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
+#include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/DsfUpdateValidator.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
@@ -218,7 +220,7 @@ void DsfSubscription::tearDownSubscription() {
 }
 
 std::string DsfSubscription::remoteEndpointStr() const {
-  return folly::sformat("{}_{}", remoteNodeName_, remoteIp_.str());
+  return fmt::format("{}_{}", remoteNodeName_, remoteIp_.str());
 }
 
 fsdb::FsdbStreamClient::State DsfSubscription::getStreamState() const {
@@ -239,7 +241,7 @@ const fsdb::SubscriptionInfo DsfSubscription::getSubscriptionInfo() const {
 std::string DsfSubscription::makeRemoteEndpoint(
     const std::string& remoteNode,
     const folly::IPAddress& remoteIP) {
-  return folly::sformat("{}::{}", remoteNode, remoteIP.str());
+  return fmt::format("{}::{}", remoteNode, remoteIP.str());
 }
 
 void DsfSubscription::handleFsdbSubscriptionStateUpdate(
@@ -554,7 +556,7 @@ void DsfSubscription::updateDsfState(
   sw_->getRib()->updateStateInRibThread([this, updateDsfStateFn]() {
     try {
       sw_->updateStateWithHwFailureProtection(
-          folly::sformat("Update state for node: {}", localNodeName_),
+          fmt::format("Update state for node: {}", localNodeName_),
           updateDsfStateFn);
     } catch (const std::exception& e) {
       XLOG(DBG2) << kDsfCtrlLogPrefix

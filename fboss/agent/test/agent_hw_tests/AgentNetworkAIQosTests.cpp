@@ -92,7 +92,6 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
         testPortIds,
         {} /*losslessPgIds*/,
         {0} /*lossyPgIds*/,
-        {} /*tcToPgOverride*/,
         bufferParams);
 
     // Set a zero shared limit in order to exercise Qmin.

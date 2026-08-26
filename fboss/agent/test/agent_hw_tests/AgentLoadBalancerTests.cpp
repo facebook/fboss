@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 #include <boost/container/flat_set.hpp>
@@ -39,6 +40,13 @@ class AgentLoadBalancerTest
   void SetUp() override {
     AgentHwTest::SetUp();
     Runner::setEcmpHelper();
+  }
+
+  // FrontPanel variants inject traffic from masterLogicalInterfacePortIds()
+  // at index ecmpWidth (=8), so we need at least 9 INTERFACE_PORTs. CPU and
+  // spray variants are unaffected but harmless at 9.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 9;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -371,6 +379,33 @@ class AgentSrv6EcmpLoadBalancerTest : public AgentLoadBalancerTest<
   }
 };
 
+// SRv6 ECMP load balancing driven purely by the IPv6 flow label (fixed 5-tuple)
+class AgentSrv6FlowLabelEcmpLoadBalancerTest
+    : public AgentLoadBalancerTest<
+          utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil,
+          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP, ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::srv6EcmpInitialConfig(ensemble);
+  }
+
+  std::unique_ptr<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwSrv6FlowLabelEcmpDataPlaneTestUtil>(
+        getEnsemble(), RouterID(0));
+  }
+};
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
@@ -443,8 +478,91 @@ RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
 
+// IPv6 flow label ECMP load balancing (plain IPv6, not tunneled)
+class AgentV6FlowLabelEcmpLoadBalancerTest
+    : public AgentLoadBalancerTest<
+          utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil,
+          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  std::unique_ptr<utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!this->getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwIpV6FlowLabelEcmpDataPlaneTestUtil>(
+        this->getEnsemble(), RouterID(0));
+  }
+};
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
+// Verify that enabling IPv6 flow label hashing via config change
+// (ApplyThriftConfig path) takes effect at runtime.
+// Start with standard full hash (no flow label) where flow-label-only
+// traffic is NOT load balanced, then apply config with flow label and
+// verify traffic IS load balanced.
+TEST_F(
+    AgentV6FlowLabelEcmpLoadBalancerTest,
+    EcmpFlowLabelHashEnabledViaConfigChange) {
+  if (skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  constexpr unsigned int kEcmpWidth = 8;
+  auto* helper = getEcmpSetupHelper();
+  auto setup = [=, this]() {
+    auto fullHashNoFlowLabel = utility::getEcmpFullHashConfig({getHwAsic()});
+    helper->programRoutesAndLoadBalancer(kEcmpWidth, {}, fullHashNoFlowLabel);
+  };
+  auto verify = [=, this]() {
+    auto fullHashNoFlowLabel = utility::getEcmpFullHashConfig({getHwAsic()});
+    auto fullHashWithFlowLabel =
+        utility::getEcmpFullWithFlowLabelHashConfig({getHwAsic()});
+
+    // With standard full hash, flow-label-only traffic should NOT
+    // be load balanced (all packets hash to the same port)
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, false /* loadBalanceExpected */);
+
+    // Enable flow label via config change (ApplyThriftConfig path)
+    helper->programLoadBalancer(fullHashWithFlowLabel);
+
+    // Same traffic should now be load balanced
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, true /* loadBalanceExpected */);
+
+    // Reset to original hash so verify is idempotent across warmboot
+    helper->programLoadBalancer(fullHashNoFlowLabel);
+    // With standard full hash, flow-label-only traffic should NOT
+    // be load balanced (all packets hash to the same port)
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, false /* loadBalanceExpected */);
+  };
+  runTestAcrossWarmBoots(setup, verify, []() {}, []() {});
+}
+
 RUN_HW_LOAD_BALANCER_TEST_CPU(
     AgentSrv6EcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentSrv6FlowLabelEcmpLoadBalancerTest,
     Ecmp,
     FullWithFlowLabel)
 
@@ -493,6 +611,12 @@ template <typename TestType>
 class AgentHashPolarizationTest : public AgentHwTest {
  protected:
   static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
+
+  // AggregatePortID instantiation needs 4*3 trunk fanout + 1 injection = 13
+  // INTERFACE_PORTs. PortID instantiation only needs 9 but 13 is harmless.
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return 13;
+  }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -639,10 +763,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
     auto sqrtN = static_cast<int>(std::sqrt(numPackets));
     for (int i = 0; i < sqrtN; ++i) {
       auto srcIp = folly::IPAddress(
-          folly::sformat("1001::{}:{}", (i + 1) / 256, (i + 1) % 256));
+          fmt::format("1001::{}:{}", (i + 1) / 256, (i + 1) % 256));
       for (int j = 0; j < sqrtN; ++j) {
         auto dstIp = folly::IPAddress(
-            folly::sformat("2001::{}:{}", (j + 1) / 256, (j + 1) % 256));
+            fmt::format("2001::{}:{}", (j + 1) / 256, (j + 1) % 256));
         auto pkt = utility::makeUDPTxPacket(
             allocFn, vlan, srcMac, dstMac, srcIp, dstIp, 10000 + i, 20000 + j);
         sendFn(std::move(pkt), PortDescriptor(injectionPort()), std::nullopt);
@@ -692,8 +816,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
       return captured;
     }
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
     return captured;
   }
 
@@ -734,8 +860,10 @@ class AgentHashPolarizationTest : public AgentHwTest {
     EXPECT_LE(dropped, replay.size() * kMaxReplayDropRatio)
         << "Too many captured frames were skipped during replay";
 
-    auto postStats = getLatestPortStats(ports);
-    EXPECT_TRUE(egressBalanced(preStats, postStats));
+    WITH_RETRIES({
+      auto postStats = getLatestPortStats(ports);
+      EXPECT_EVENTUALLY_TRUE(egressBalanced(preStats, postStats));
+    });
   }
 
   template <typename AddrT>

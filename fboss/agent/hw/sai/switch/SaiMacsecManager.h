@@ -267,6 +267,7 @@ class SaiMacsecManager {
   FRIEND_TEST(MacsecManagerTest, deleteKeysWithSingleSecureAssoc);
   FRIEND_TEST(MacsecManagerTest, invalidLinePort);
   FRIEND_TEST(MacsecManagerTest, installKeys);
+  FRIEND_TEST(MacsecManagerTest, invalidKeyLength);
   friend class HwMacsecTest;
 };
 

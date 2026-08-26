@@ -4,6 +4,10 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    # @autodeps-skip autodeps2 resolves the SAI api includes to the config-pinned
+    # sai_api-brcm-10.2.0.0_odp, which compiles the fake against the brcm SDK and
+    # breaks it. The fake is config-agnostic; its SAI headers come via
+    # sai_fake_extensions / sai_types / sai_version.
     name = "fake_sai",
     srcs = [
         "FakeSai.cpp",
@@ -58,6 +62,7 @@ cpp_library(
         "//folly:singleton",
         "//folly/logging:logging",
     ],
+    external_deps = ["boost"],
     exported_external_deps = [
         "boost",
         "sai",

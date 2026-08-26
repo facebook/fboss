@@ -35,7 +35,8 @@ void verifyEthHeader(
     folly::MacAddress expectedSrc,
     uint16_t expectedEtherType,
     bool hasVlan = false,
-    std::optional<VlanID> expectedVlan = std::nullopt) {
+    std::optional<VlanID> expectedVlan = std::nullopt,
+    std::optional<uint8_t> expectedPcp = std::nullopt) {
   // Read dst MAC
   uint8_t dstBytes[6];
   cursor.pull(dstBytes, 6);
@@ -51,6 +52,10 @@ void verifyEthHeader(
     auto vlanTag = cursor.readBE<uint16_t>();
     if (expectedVlan) {
       EXPECT_EQ(VlanID(vlanTag & 0xFFF), *expectedVlan);
+    }
+    if (expectedPcp) {
+      // PCP is the top 3 bits of the 16-bit TCI.
+      EXPECT_EQ((vlanTag >> 13) & 0x7, *expectedPcp);
     }
   }
   auto etherType = cursor.readBE<uint16_t>();
@@ -78,6 +83,49 @@ TEST(PktFactoryTest, makeEthHdrNoVlan) {
   EXPECT_EQ(hdr.getVlanTags().size(), 0);
   EXPECT_EQ(
       hdr.getEtherType(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
+}
+
+TEST(PktFactoryTest, makeEthHdrWithPcp) {
+  constexpr uint8_t kPcp = 5;
+  auto hdr =
+      makeEthHdr(kSrcMac, kDstMac, kTestVlan, ETHERTYPE::ETHERTYPE_IPV6, kPcp);
+  ASSERT_EQ(hdr.getVlanTags().size(), 1);
+  EXPECT_EQ(VlanID(hdr.getVlanTags()[0].vid()), kTestVlan);
+  // The 802.1p priority must land in the VLAN tag's PCP field.
+  EXPECT_EQ(hdr.getVlanTags()[0].pcp(), kPcp);
+}
+
+TEST(PktFactoryTest, makeEthHdrDefaultPcp) {
+  auto hdr = makeEthHdr(kSrcMac, kDstMac, kTestVlan, ETHERTYPE::ETHERTYPE_IPV6);
+  ASSERT_EQ(hdr.getVlanTags().size(), 1);
+  // PCP defaults to zero when unspecified.
+  EXPECT_EQ(hdr.getVlanTags()[0].pcp(), 0);
+}
+
+// --- pcp propagation (end-to-end) tests ---
+// Verify the pcp passed to the packet-factory helpers is actually serialized
+// into the emitted frame's VLAN tag, not just set on the in-memory EthHdr.
+
+TEST(PktFactoryTest, makeEthTxPacketWithPcp) {
+  constexpr uint8_t kPcp = 5;
+  auto pkt = makeEthTxPacket(
+      &TxPacket::allocateTxPacket,
+      kTestVlan,
+      kSrcMac,
+      kDstMac,
+      ETHERTYPE::ETHERTYPE_IPV6,
+      std::nullopt,
+      kPcp);
+  ASSERT_NE(pkt, nullptr);
+  folly::io::Cursor cursor(pkt->buf());
+  verifyEthHeader(
+      cursor,
+      kDstMac,
+      kSrcMac,
+      static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6),
+      true /* hasVlan */,
+      kTestVlan,
+      kPcp);
 }
 
 // --- makeEthTxPacket tests ---

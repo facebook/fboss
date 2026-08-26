@@ -7,7 +7,12 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
 
+#include "folly/CppAttributes.h"
 #include "folly/container/F14Map.h"
+
+#include <memory>
+#include <optional>
+#include <string>
 
 namespace facebook::fboss {
 
@@ -47,11 +52,16 @@ class SaiSrv6TunnelManager {
     return getSrv6TunnelHandleImpl(swId);
   }
 
+  const SaiSrv6TunnelHandle* FOLLY_NULLABLE getDecapTunnelHandle() const;
+
  private:
   SaiSrv6TunnelHandle* getSrv6TunnelHandleImpl(const std::string& swId) const;
+  void addSrv6DecapTunnel(const std::shared_ptr<Srv6Tunnel>& srv6Tunnel);
+  bool isSrv6DecapTunnelSupported() const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   Handles handles_;
+  std::optional<std::string> decapTunnelId_;
 };
 
 } // namespace facebook::fboss

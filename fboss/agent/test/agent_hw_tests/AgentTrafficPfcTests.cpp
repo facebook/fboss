@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/MapUtil.h>
 
 #include "fboss/agent/AgentFeatures.h"
@@ -38,6 +39,14 @@ static constexpr auto kLosslessTrafficClass{2};
 static constexpr auto kLosslessPriority{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
 static const std::vector<int> kLossyPgIds{0};
+
+// Non-identity (non-1:1) PFC mapping under test: priority-tagged traffic is
+// classified by its 802.1p PCP to a traffic class, which maps to a lossless
+// priority group; the PFC priority maps to that priority group and queue.
+static constexpr auto kNonIdentityPcp{0};
+static constexpr auto kNonIdentityTrafficClass{2};
+static constexpr auto kNonIdentityPgId{2};
+static constexpr auto kNonIdentityPfcPriority{0};
 static const auto kTxForVlanForChenab = facebook::fboss::VlanID(4094);
 
 // On DNX, PFC deadlock cannot be triggered by our test, instead we have to
@@ -193,8 +202,8 @@ void validateIngressPriorityGroupWatermarkCounters(
                                  ->getPorts()
                                  ->getNodeIf(portId)
                                  ->getName();
-      std::string pg = ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
-      auto regex = folly::sformat(
+      std::string pg = ensemble->isSai() ? fmt::format(".pg{}", pri) : "";
+      auto regex = fmt::format(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
       auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
@@ -284,7 +293,11 @@ namespace facebook::fboss {
 class AgentTrafficPfcTest : public AgentHwTest {
  public:
   void TearDown() override {
-    if (!FLAGS_list_production_feature) {
+    // If SetUp() threw before the ensemble was created (e.g. the switch
+    // never came up), getAgentEnsemble() is null. gtest still invokes
+    // TearDown(), so guard the ensemble-dependent teardown to avoid a null
+    // deref in getL3Asics(); AgentHwTest::TearDown() is already null-safe.
+    if (!FLAGS_list_production_feature && getAgentEnsemble() != nullptr) {
       auto asic =
           checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
@@ -353,7 +366,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
     for (const auto& port : *cfg.ports()) {
       if (PortID(*port.logicalID()) == portId) {
-        return folly::sformat(
+        return fmt::format(
             "portId={} name={}", *port.logicalID(), *port.name());
       }
     }
@@ -370,7 +383,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   std::vector<folly::IPAddressV6> getDestinationIps(int count = 2) const {
     std::vector<folly::IPAddressV6> ips;
     for (int i = 4; i < count + 4; i++) {
-      ips.emplace_back(folly::sformat("2620:0:1cfe:face:b00c::{}", i));
+      ips.emplace_back(fmt::format("2620:0:1cfe:face:b00c::{}", i));
     }
     return ips;
   }
@@ -641,8 +654,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
         portIds,
         kLosslessPgIds,
         lossyPgIds,
-        tcToPgOverride,
-        testParams.buffer);
+        testParams.buffer,
+        utility::PfcQosMapParams{.tcToPg = tcToPgOverride});
     auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
       utility::setupMultipleEgressPoolAndQueueConfigs(
@@ -772,7 +785,7 @@ class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
 
     cfg::Vlan vlan;
     vlan.id() = vlanId;
-    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
+    vlan.name() = fmt::format("vlan{}", static_cast<int>(vlanId));
     vlan.routable() = false; // No routing needed, just isolation
     // Set the interface ID for the VLAN
     vlan.intfID() = kTxForVlanForChenab;
@@ -832,13 +845,7 @@ class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
     PfcBufferParams buffer = defaultPfcBufferParams();
     buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
     utility::setupPfcBuffers(
-        getAgentEnsemble(),
-        cfg,
-        {portId},
-        kLosslessPgIds,
-        kLossyPgIds,
-        {},
-        buffer);
+        getAgentEnsemble(), cfg, {portId}, kLosslessPgIds, kLossyPgIds, buffer);
 
     setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
 
@@ -1169,6 +1176,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
       auto switchID = scopeResolver().scope(port).switchId();
+      // Start with a blank command first and then force the PFC frame
+      // generation. This is because, sometimes first diag command doesn't work
+      // in some SDK versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchID);
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
@@ -1337,6 +1348,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
+      // Start with a blank command first and then stop the PFC frame
+      // generation. This is because, sometimes first diag command doesn't work
+      // in some SDK versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchID);
       getAgentEnsemble()->runDiagCommand(
           "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }
@@ -1417,6 +1432,205 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
   };
 
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Validates the non-1:1 PFC priority -> PG mapping using L2-switched, 802.1p
+// priority (PCP) tagged traffic classified via a PCP -> traffic class map (no
+// DSCP map). Follows the AgentTrafficPfcGenTest pattern: the two test ports
+// share one VLAN -- an inject port and a forwarding port whose TX is disabled
+// so its queue/PG builds up and PFC is generated on the inject port. The
+// injected PCP is classified to a traffic class that maps to a lossless PG, and
+// PFC is expected to fire on the PFC priority that maps to that PG.
+//
+// Coverage: validates PCP classification, the TC -> PG mapping, PFC generation
+// on the mapped priority, and that traffic lands in the expected egress queue.
+// The PFC priority -> queue map is not validated -- egress queue placement
+// follows TC -> queue, so this test cannot isolate it.
+//
+// Gated on PFC_NON_IDENTITY_PRIORITY_MAP; the PFC priority -> PG QoS map is
+// programmed only when the feature flag is enabled.
+class AgentTrafficPfcNonIdentityMapTest : public AgentTrafficPfcGenTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::PFC,
+        ProductionFeature::PFC_NON_IDENTITY_PRIORITY_MAP};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentTrafficPfcGenTest::setCmdLineFlagOverrides();
+    // This test exercises only the feature-enabled path.
+    FLAGS_enable_pfc_priority_to_pg_map = true;
+  }
+
+  // Put the two test ports in a single VLAN so traffic is L2-switched between
+  // them (no L3 routing).
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
+    auto ports = ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
+    auto config = utility::oneL3IntfTwoPortConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        ports[0],
+        ports[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
+    // Disable L2 learning so forwarding relies solely on the configured static
+    // MAC entry. Mirrors AgentDot1qMappingTest.
+    config.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
+    return config;
+  }
+
+ protected:
+  // Destination MAC of the injected L2 frames; statically resolved to the
+  // forwarding (TX-disabled) port so frames are switched to it.
+  static folly::MacAddress kL2ForwardMac() {
+    return folly::MacAddress("02:00:00:00:00:02");
+  }
+
+  cfg::SwitchConfig getNonIdentityPfcConfig(
+      const PortID& injectPort,
+      const PortID& txOffPort) {
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    // Non-1:1 PFC priority mapping (a full permutation), used for both the
+    // priority->PG and priority->queue maps. Only the configured lossless
+    // priority maps to the lossless PG, so PFC is expected to fire on that
+    // priority.
+    const std::map<int, int> kPfcPriorityMap = {
+        {0, 2}, {1, 6}, {2, 0}, {3, 3}, {4, 4}, {5, 5}, {6, 1}, {7, 7}};
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        cfg,
+        {injectPort, txOffPort},
+        {kNonIdentityPgId} /* losslessPgIds */,
+        kLossyPgIds,
+        defaultPfcBufferParams(),
+        utility::PfcQosMapParams{
+            .tcToPg = {{kNonIdentityTrafficClass, kNonIdentityPgId}},
+            .pfcPriToPg = kPfcPriorityMap,
+            .pfcPriToQueue = kPfcPriorityMap,
+            .classification = utility::PfcIngressClassification::Pcp,
+            .pcpToTc = {{kNonIdentityPcp, kNonIdentityTrafficClass}}});
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
+      utility::setupMultipleEgressPoolAndQueueConfigs(
+          cfg, {kNonIdentityPgId}, asic->getMMUSizeBytes());
+    }
+    // Configure the ports for 802.1p priority tagging (VLAN id 0 carrying the
+    // PCP, no regular VLAN tag) so the PCP is preserved and used for ingress
+    // classification. Mirrors AgentDot1qMappingTest.
+    for (auto& vlanPort : *cfg.vlanPorts()) {
+      vlanPort.emitPriorityTags() = true;
+      vlanPort.emitTags() = false;
+    }
+    // Statically resolve the destination MAC to the forwarding port so injected
+    // frames are L2-switched to it.
+    cfg::StaticMacEntry staticMac;
+    staticMac.macAddress() = kL2ForwardMac().toString();
+    CHECK(!cfg.vlanPorts()->empty());
+    staticMac.vlanID() = cfg.vlanPorts()[0].vlanID().value();
+    staticMac.egressLogicalPortID() = static_cast<int32_t>(txOffPort);
+    cfg.staticMacAddrs() = {staticMac};
+    return cfg;
+  }
+
+  // Validate that PFC was generated (TX) on the inject port for the given PFC
+  // priority and that the given lossless priority group's shared buffer
+  // watermark built up on the inject port. RX PFC is not validated: RX PFC
+  // counters are known not to increment on TH5/TH6 (CS00012381334).
+  void validateNonIdentityPfc(
+      const PortID& injectPort,
+      const int pfcPriority,
+      const int pgId) {
+    int txPfcCtr = 0, rxPfcCtr = 0, rxPfcXonCtr = 0;
+    WITH_RETRIES({
+      auto portStats = getLatestPortStats(injectPort);
+      std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
+          getPfcTxRxXonHwPortStats(getAgentEnsemble(), portStats, pfcPriority);
+      XLOG(DBG0) << "validateNonIdentityPfc: Port " << injectPort
+                 << " PFC TX/RX/RX_XON " << txPfcCtr << "/" << rxPfcCtr << "/"
+                 << rxPfcXonCtr << ", priority " << pfcPriority;
+      XLOG(DBG0) << facebook::fboss::utility::pfcStatsString(portStats);
+      // PFC must be generated on the given priority.
+      EXPECT_EVENTUALLY_GT(txPfcCtr, 0);
+    });
+    // Lossless traffic must build up the given priority group's shared buffer.
+    validateIngressPriorityGroupWatermarkCounters(
+        getAgentEnsemble(), pgId, {injectPort});
+  }
+
+  // Confirm traffic was forwarded through the mapped egress queue (per the
+  // TC -> queue map) on the forwarding port by checking its per-queue out-byte
+  // counter increased. Call after re-enabling TX so the queued traffic drains.
+  void validateEgressQueueTraffic(const PortID& txOffPort, const int queueId) {
+    WITH_RETRIES({
+      auto portStats = getLatestPortStats(txOffPort);
+      auto queueOutBytes =
+          folly::get_default(*portStats.queueOutBytes_(), queueId, 0);
+      XLOG(DBG0) << "validateEgressQueueTraffic: Port " << txOffPort
+                 << " queue " << queueId << " out bytes " << queueOutBytes;
+      EXPECT_EVENTUALLY_GT(queueOutBytes, 0);
+    });
+  }
+
+  // Inject L2-switched, 802.1p priority (PCP) tagged Ethernet frames on
+  // injectPort, destined to the forwarding port's MAC, so they are L2-switched
+  // (no L3 routing) to the forwarding port and build up its queue / ingress PG.
+  //
+  // The frame uses a non-control ethertype so it is bridged rather than trapped
+  // to the CPU (a control protocol like LLDP would be punted and never reach
+  // the forwarding port). ETHERTYPE_IPV6 is chosen because L2 bridging keys
+  // only on {VLAN, dst MAC} and never parses the L3 payload here (dst MAC is a
+  // static L2 entry, not the router MAC), so the payload need not be a
+  // well-formed IPv6 packet.
+  void pumpL2PriorityTaggedTraffic(uint8_t pcp, const PortID& injectPort) {
+    auto srcMac =
+        utility::MacAddressGenerator().get(kL2ForwardMac().u64HBO() + 1);
+    const auto numPackets =
+        getAgentEnsemble()->getMinPktsForLineRate(injectPort);
+    for (size_t i = 0; i < numPackets; i++) {
+      auto txPacket = utility::makeEthTxPacket(
+          getSw(),
+          VlanID(0) /* priority tag, VLAN id 0 */,
+          srcMac,
+          kL2ForwardMac() /* dst MAC -> L2-switched to txOff port */,
+          ETHERTYPE::ETHERTYPE_IPV6,
+          std::vector<uint8_t>(2000, 0xff),
+          pcp /* 802.1p priority */);
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+    }
+  }
+};
+
+TEST_F(AgentTrafficPfcNonIdentityMapTest, verifyPfcWithNonIdentityMap) {
+  auto ports = masterLogicalInterfacePortIds();
+  const PortID& injectPort = ports[0];
+  const PortID& txOffPort = ports[1];
+  auto cfg = getNonIdentityPfcConfig(injectPort, txOffPort);
+  auto setup = [&]() {
+    applyNewConfig(cfg);
+    // Ensure counters are 0 before we start traffic.
+    validateInitPfcCounters({injectPort}, kNonIdentityPfcPriority);
+  };
+  auto verify = [&]() {
+    // Disable TX on the forwarding port so its queue/PG builds up.
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, false);
+    pumpL2PriorityTaggedTraffic(kNonIdentityPcp, injectPort);
+    // PFC must be generated on the mapped priority (not the traffic class) and
+    // the mapped lossless PG shared buffer must fill on the inject port.
+    validateNonIdentityPfc(
+        injectPort, kNonIdentityPfcPriority, kNonIdentityPgId);
+    // Re-enable TX so the queued traffic drains, then confirm it egressed the
+    // mapped queue. The egress queue equals the traffic class under the default
+    // 1:1 TC -> queue map.
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPort, true);
+    validateEgressQueueTraffic(txOffPort, kNonIdentityTrafficClass);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 

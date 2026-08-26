@@ -115,7 +115,7 @@ TEST_F(ConfigConcurrentSessionsTest, ConflictAndRebase) {
   ASSERT_EQ(probe.exitCode, 0) << probe.stderr;
 
   XLOG(INFO) << "[Step 1] Finding test interface...";
-  Interface intf = findFirstEthInterface();
+  Interface intf = getInterfaceInfo(getRandomInterfacePortName());
   std::string originalDesc = intf.description;
   XLOG(INFO) << "  Interface " << intf.name << ", original description '"
              << originalDesc << "'";

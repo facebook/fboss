@@ -1,11 +1,13 @@
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_common_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.fboss_common
-namespace php fboss_common
 namespace py neteng.fboss.fboss_common
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.fboss_common
@@ -63,6 +65,10 @@ enum PlatformType {
   PLATFORM_YANGRA2 = 50,
   PLATFORM_SAINTPAUL = 51,
   PLATFORM_LEH800BCLS = 52,
+  PLATFORM_M4062NHP = 53,
+  PLATFORM_WEDGE800BNHP = 54,
+  PLATFORM_M5120CSC = 55,
+  PLATFORM_WEDGE800CNHP = 56,
   PLATFORM_UNKNOWN = 1000, # Placeholder for unknown platform type
 }
 

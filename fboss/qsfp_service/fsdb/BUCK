@@ -12,10 +12,12 @@ cpp_library(
     headers = [
         "QsfpFsdbSyncManager.h",
     ],
-    exported_deps = [
-        "//fboss/fsdb/client:fsdb_syncer",
+    deps = [
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_model",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/lib/if:pim_state-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/qsfp_service/if:config-cpp2-types",
@@ -34,16 +36,18 @@ cpp_library(
         "QsfpFsdbSubscriber.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "//fboss/fsdb/client:fsdb_sub_manager",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
     exported_deps = [
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
-        "//fboss/fsdb/client:fsdb_sub_manager",
-        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/qsfp_service:port-manager",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/thrift_cow/nodes:serializer",
-        "//folly/logging:logging",
-        "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

@@ -119,9 +119,6 @@ class PortDescriptorTemplate {
     return !(*this == aggPortID);
   }
   int32_t asThriftPort() const {
-    // TODO(samank): Until PortDescriptorTemplates are exposed in ctrl.ctrl
-    // (tracked in t18482977), we simply multiplex TrunkIdType's
-    // and PortID's over the same field.
     switch (type()) {
       case PortType::PHYSICAL:
         return static_cast<int32_t>(physicalPortID_);

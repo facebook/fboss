@@ -4,6 +4,7 @@
 #include <folly/Conv.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 #include <array>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/PortDescriptor.h"
@@ -21,9 +23,12 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTest.h"
 #include "fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 
+#include <fb303/ServiceData.h>
 #include <gtest/gtest.h>
 
 namespace {
@@ -35,6 +40,19 @@ const facebook::fboss::Label kTopLabel{1101};
 const facebook::fboss::LabelForwardingAction::Label kSwapLabel{201};
 constexpr uint32_t kSinglePushedLabelBase = 101;
 constexpr uint32_t kMaxPushedLabelBase = 1001;
+constexpr uint32_t kPopAndForwardInnerLabelBase = 2202;
+constexpr uint8_t kDefaultPopAndForwardLabelTtl = 128;
+constexpr std::array<size_t, 5> kPopAndForwardLabelStackDepths{
+    2,
+    11,
+    14,
+    16,
+    32};
+
+const facebook::fboss::Label kTtlTrapIngressLabel{3101};
+const facebook::fboss::LabelForwardingAction::Label kTtlTrapSwapLabel{3201};
+const std::string kMplsTtlExceededCounter =
+    facebook::fboss::SwitchStats::kCounterPrefix + "mpls.ttl_exceeded.sum";
 
 using MplsMidpointPortTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
@@ -133,6 +151,14 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         kTopLabel,
         LabelForwardingAction(
             LabelForwardingAction::LabelForwardingType::PUSH, pushStack),
+        egressPortDescriptor());
+  }
+
+  void configureStaticMplsPopAndForwardRoute(cfg::SwitchConfig& config) const {
+    configureStaticMplsRoute(
+        config,
+        kTopLabel,
+        LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
         egressPortDescriptor());
   }
 
@@ -284,12 +310,58 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     return pkt;
   }
 
+  std::unique_ptr<TxPacket> makeMplsLabelStackIngressPacket(
+      size_t labelStackDepth,
+      uint8_t ttl) const {
+    auto vlan = getVlanIDForTx();
+    CHECK(vlan.has_value());
+
+    std::vector<MPLSHdr::Label> labels;
+    labels.reserve(labelStackDepth);
+    labels.emplace_back(
+        static_cast<uint32_t>(kTopLabel.value()), 0, false, ttl);
+    for (size_t i = 1; i < labelStackDepth; ++i) {
+      labels.emplace_back(
+          kPopAndForwardInnerLabelBase + i - 1,
+          0,
+          i + 1 == labelStackDepth,
+          ttl);
+    }
+
+    auto frame = utility::getEthFrame(
+        utility::kLocalCpuMac(),
+        routerMac(),
+        labels,
+        folly::IPAddressV6{"1001::1"},
+        folly::IPAddressV6{"2001::1"},
+        10000,
+        20000,
+        *vlan);
+    return frame.getTxPacket(
+        [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
+  }
+
+  std::vector<uint32_t> expectedPopAndForwardLabels(
+      size_t labelStackDepth) const {
+    std::vector<uint32_t> expectedLabels;
+    expectedLabels.reserve(labelStackDepth);
+    for (size_t i = 1; i < labelStackDepth; ++i) {
+      expectedLabels.push_back(kPopAndForwardInnerLabelBase + i - 1);
+    }
+    return expectedLabels;
+  }
+
   void sendMplsIngressPacket(
       Label label,
       uint8_t ttl,
       bool isV4,
       std::optional<PortID> injectPort) {
     auto pkt = makeMplsIngressPacket(label, ttl, isV4);
+    XLOG(INFO) << "MPLS midpoint injected packet hexdump label "
+               << label.value() << " ttl " << static_cast<int>(ttl)
+               << " payload " << (isV4 ? "IPv4" : "IPv6") << " send "
+               << (injectPort.has_value() ? "front-panel" : "cpu") << ":\n"
+               << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
     if (injectPort.has_value()) {
       EXPECT_TRUE(
           getAgentEnsemble()->ensureSendPacketOutOfPort(
@@ -297,6 +369,20 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     } else {
       EXPECT_TRUE(getAgentEnsemble()->ensureSendPacketSwitched(std::move(pkt)));
     }
+  }
+
+  void sendMplsLabelStackIngressPacket(
+      size_t labelStackDepth,
+      uint8_t ttl,
+      PortID injectPort) {
+    auto pkt = makeMplsLabelStackIngressPacket(labelStackDepth, ttl);
+    XLOG(INFO) << "MPLS midpoint injected " << labelStackDepth
+               << "-label packet hexdump top label " << kTopLabel.value()
+               << " ttl " << static_cast<int>(ttl) << " send front-panel:\n"
+               << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
+    EXPECT_TRUE(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
+            std::move(pkt), injectPort));
   }
 
   void setupStaticMplsRoutePush(
@@ -330,6 +416,18 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
     applyConfigAndEnableTrunks(config);
   }
 
+  void setupStaticMplsPopAndForwardRoute() {
+    auto config = initialConfig(*getAgentEnsemble());
+
+    applyConfigAndEnableTrunks(config);
+    resolveNextHopForPortWithMac(egressPortDescriptor(), routerMac());
+
+    configureStaticMplsPopAndForwardRoute(config);
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    utility::addTrapPacketAcl(asic, &config, egressPort());
+    applyConfigAndEnableTrunks(config);
+  }
+
   void verifyMplsPushAndTrapPacket(
       bool isV4,
       std::optional<PortID> injectPort,
@@ -344,6 +442,58 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         [this, isV4, injectPort](uint8_t ttl) {
           sendMplsIngressPacket(kTopLabel, ttl, isV4, injectPort);
         });
+  }
+
+  void verifyMplsPopAndForward(size_t labelStackDepth) {
+    SCOPED_TRACE(
+        folly::to<std::string>(
+            "send=front-panel isTrunk=",
+            BaseT::kIsTrunk,
+            " labelStackDepth=",
+            labelStackDepth));
+
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mpls-midpoint-pop-and-forward-verifier",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL);
+    snooper.ignoreUnclaimedRxPkts();
+
+    auto outPktsBefore =
+        utility::getPortOutPkts(this->getLatestPortStats(egressPort()));
+
+    sendMplsLabelStackIngressPacket(
+        labelStackDepth, kDefaultPopAndForwardLabelTtl, ingressPort());
+
+    WITH_RETRIES({
+      auto outPktsAfter =
+          utility::getPortOutPkts(this->getLatestPortStats(egressPort()));
+      EXPECT_EVENTUALLY_EQ(1, outPktsAfter - outPktsBefore);
+    });
+
+    auto pktBuf = snooper.waitForPacket(10);
+    ASSERT_TRUE(pktBuf.has_value());
+    ASSERT_TRUE(*pktBuf);
+    XLOG(INFO) << "MPLS dataplane pop-and-forward trapped packet hexdump:\n"
+               << folly::hexDump((*pktBuf)->data(), (*pktBuf)->length());
+
+    folly::io::Cursor cursor((*pktBuf).get());
+    utility::EthFrame frame(cursor);
+
+    auto mplsPayload = frame.mplsPayLoad();
+    ASSERT_TRUE(mplsPayload.has_value());
+
+    const auto& mplsHeader = mplsPayload->header();
+    const auto& labelStack = mplsHeader.stack();
+    XLOG(INFO) << "MPLS dataplane pop-and-forward captured header "
+               << mplsHeader;
+
+    const auto expectedLabels = expectedPopAndForwardLabels(labelStackDepth);
+    const auto capturedLabels = mpls_test::capturedLabelValues(labelStack);
+    EXPECT_EQ(expectedLabels, capturedLabels);
+    EXPECT_TRUE(mpls_test::bottomOfStackBitsValid(labelStack));
   }
 };
 
@@ -410,6 +560,26 @@ TYPED_TEST(AgentMPLSMidpointTest, PushLabelAfterLinkFlap) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+// PopAndForwardPreservesInnerMplsLabels verifies midpoint pop-and-forward
+// behavior for packets that remain MPLS after the outer label is popped:
+// - Program only the top label route, so forwarding is selected by that route.
+// - Inject packets with multiple labels whose inner labels are not separately
+//   programmed.
+// - Verify first-pass egress forwarding to the route nexthop.
+// - Trap the looped post-pop-and-forward packet with src-port ACL and verify
+//   only the outer MPLS label is removed.
+TYPED_TEST(AgentMPLSMidpointTest, PopAndForwardPreservesInnerMplsLabels) {
+  auto setup = [this]() { this->setupStaticMplsPopAndForwardRoute(); };
+
+  auto verify = [this]() {
+    for (auto labelStackDepth : kPopAndForwardLabelStackDepths) {
+      this->verifyMplsPopAndForward(labelStackDepth);
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 // PushMaxLabelStack verifies that midpoint PUSH can impose the maximum label
 // depth reported by the ASIC and that the captured packet carries the full
 // stack in wire/top-first order.
@@ -427,6 +597,108 @@ TYPED_TEST(AgentMPLSMidpointTest, PushMaxLabelStack) {
     for (bool isV4 : {false, true}) {
       for (auto injectPort : injectPorts) {
         this->verifyMplsPushAndTrapPacket(isV4, injectPort, pushStack);
+      }
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentMPLSMidpointTest, MplsTtlExpiryTrap) {
+  auto setup = [this]() {
+    auto config = this->initialConfig(*this->getAgentEnsemble());
+    this->applyConfigAndEnableTrunks(config);
+    this->resolveNextHopForPortWithMac(
+        this->egressPortDescriptor(), this->routerMac());
+    this->configureStaticMplsSwapRoute(
+        config,
+        kTtlTrapIngressLabel,
+        kTtlTrapSwapLabel,
+        this->egressPortDescriptor());
+    this->applyConfigAndEnableTrunks(config);
+  };
+
+  auto verify = [this]() {
+    // TODO: Debug CPU-port packet injection failure and extend this test to
+    // cover both CPU and front-panel injection.
+    const std::optional<PortID> injectPort{this->ingressPort()};
+    for (bool isV4 : {false, true}) {
+      SCOPED_TRACE(
+          folly::to<std::string>(
+              "ipVersion=", isV4 ? "IPv4" : "IPv6", " send=front-panel"));
+
+      // Verify TTL=1 traps to CPU and delivers the trapped packet.
+      {
+        auto cpuBefore = utility::getQueueOutPacketsWithRetry(
+            this->getSw(),
+            this->switchIdForPort(this->egressPort()),
+            utility::kCoppLowPriQueueId,
+            0 /* retryTimes */,
+            0 /* expectedNumPkts */);
+        auto numTtlExceededPktsBefore =
+            fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                .value_or(0);
+        utility::SwSwitchPacketSnooper snooper(
+            this->getSw(),
+            "mpls-ttl-expiry-trap",
+            std::nullopt,
+            std::nullopt,
+            std::nullopt,
+            utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL);
+        snooper.ignoreUnclaimedRxPkts();
+
+        // A packet with MPLS TTL 1 should expire and trap to CPU.
+        this->sendMplsIngressPacket(
+            kTtlTrapIngressLabel, 1 /* ttl */, isV4, injectPort);
+
+        WITH_RETRIES({
+          auto cpuAfter = utility::getQueueOutPacketsWithRetry(
+              this->getSw(),
+              this->switchIdForPort(this->egressPort()),
+              utility::kCoppLowPriQueueId,
+              0 /* retryTimes */,
+              cpuBefore + 1);
+          EXPECT_EVENTUALLY_EQ(1, cpuAfter - cpuBefore);
+        });
+        auto pktBuf = snooper.waitForPacket(10);
+        ASSERT_TRUE(pktBuf.has_value());
+        ASSERT_TRUE(*pktBuf);
+        folly::io::Cursor cursor((*pktBuf).get());
+        utility::EthFrame frame(cursor);
+        ASSERT_TRUE(frame.mplsPayLoad().has_value());
+        WITH_RETRIES({
+          auto numTtlExceededPktsAfter =
+              fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                  .value_or(0);
+          EXPECT_EVENTUALLY_EQ(
+              1, numTtlExceededPktsAfter - numTtlExceededPktsBefore);
+        });
+      }
+
+      // Verify TTL=64 forwards without TTL-expiry trapping.
+      {
+        auto outPktsBefore = utility::getPortOutPkts(
+            this->getLatestPortStats(this->egressPort()));
+        auto numTtlExceededPktsBefore =
+            fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                .value_or(0);
+
+        // A packet with MPLS TTL 64 should not trap. kTtlTrapSwapLabel has no
+        // downstream InSeg entry, so first-pass egress forwarding validates the
+        // non-expired path without relying on a second-pass MPLS route.
+        this->sendMplsIngressPacket(
+            kTtlTrapIngressLabel, 64 /* ttl */, isV4, injectPort);
+
+        WITH_RETRIES({
+          auto statsAfter = this->getLatestPortStats(this->egressPort());
+          auto outPktsAfter = utility::getPortOutPkts(statsAfter);
+          EXPECT_EVENTUALLY_EQ(1, outPktsAfter - outPktsBefore);
+          auto numTtlExceededPktsAfter =
+              fb303::fbData->getCounterIfExists(kMplsTtlExceededCounter)
+                  .value_or(0);
+          EXPECT_EVENTUALLY_EQ(
+              0, numTtlExceededPktsAfter - numTtlExceededPktsBefore);
+        });
       }
     }
   };

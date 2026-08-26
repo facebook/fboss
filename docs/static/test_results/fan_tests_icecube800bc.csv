@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","icecube800bc","PASSED"
+"FanServiceHwTest.ODSCounters","icecube800bc","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","icecube800bc","PASSED"
+"FanServiceHwTest.FanStatusesThrift","icecube800bc","PASSED"
+"FanServiceHwTest.FanControl","icecube800bc","PASSED"

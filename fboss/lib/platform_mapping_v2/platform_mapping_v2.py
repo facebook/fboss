@@ -6,22 +6,30 @@ from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.helpers import (
     get_backplane_chip,
     get_connection_pairs_for_profile,
+    get_laser_source_chip,
     get_mapping_pins,
     get_npu_chip,
+    get_optical_engine_chip,
     get_pin_data_from_connections,
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
     get_xphy_chip,
     is_backplane,
+    is_laser_source,
     is_npu,
+    is_optical_engine,
     is_transceiver,
     is_xphy,
+)
+from fboss.lib.platform_mapping_v2.integrated_transceiver_mapping import (
+    IntegratedTransceiverMapping,
 )
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.read_files_utils import (
     read_asic_vendor_config,
+    read_integrated_transceiver_mapping,
     read_port_profile_mapping,
     read_profile_settings,
     read_si_settings,
@@ -43,6 +51,7 @@ from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformPortEntry,
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
+    PortAssignment,
 )
 from neteng.fboss.platform_mapping_config.thrift_types import ChipType, CoreType
 from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
@@ -53,6 +62,7 @@ from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
 _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "janga800bic": [
         "janga800bic_dctype1_prod",
+        "janga800bic_dctype1_prod_fabric_uniform_local_offset",
         "janga800bic_dctype1_test_fixture",
         "janga800bic_dctypef_prod",
         "janga800bic_dctypef_test_fixture",
@@ -63,10 +73,15 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "meru800bia_800g_hyperport",
         "meru800bia_800g_uniform_local_offset",
         "meru800bia_dual_stage_edsw",
+        "meru800bia_dual_stage_edsw_fabric_uniform_local_offset",
         "meru800bia_dual_stage_rdsw",
+        "meru800bia_dual_stage_rdsw_fabric_uniform_local_offset",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
         "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
         "meru800bia_uniform_local_offset",
+        "meru800bia_fabric_uniform_local_offset",
+        "meru800bia_800g_fabric_uniform_local_offset",
+        "meru800bia_hyperport_fabric_uniform_local_offset",
     ],
     "tahan800bc": [
         "tahan800bc_chassis",
@@ -78,13 +93,26 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "ladakh800bcls": [
         "ladakh800bcls_rack",
         "ladakh800bcls_test_fixture",
+        "ladakh800bcls_osfp_tray",
     ],
     "leh800bcls": [
+        "leh800bcls_rack",
         "leh800bcls_test_fixture",
     ],
     "montblanc": [
         "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
+        "montblanc_precoding",
         "montblanc",
+    ],
+    "minipack3bta": [
+        "minipack3bta_16rifs",
+    ],
+    # Wedge800BNHP shares the exact same board / platform mapping as
+    # Wedge800BACT; it only needs its own platform descriptor (distinct
+    # PlatformType / detection), inheriting all mapping CSVs from the base.
+    "wedge800bact": [
+        "wedge800bnhp",
     ],
 }
 
@@ -112,6 +140,7 @@ class PlatformMappingParser:
         self._profile_settings: Optional[ProfileSettings] = None
         self._si_settings: Optional[SiSettings] = None
         self._asic_vendor_config: Optional[AsicVendorConfig] = None
+        self._integrated_tcvr_mapping: Optional[IntegratedTransceiverMapping] = None
         self._read_csvs()
 
     def get_directory(self, use_base_platform: bool = False) -> Dict[str, str]:
@@ -178,6 +207,15 @@ class PlatformMappingParser:
         except FileNotFoundError:
             print("No asic vendor config found...", file=sys.stderr)
 
+        # Integrated transceiver mapping is optional — only CPO platforms have this CSV
+        try:
+            self._integrated_tcvr_mapping = read_integrated_transceiver_mapping(
+                self.get_directory(),
+                self.get_mapping_prefix(),
+            )
+        except (FileNotFoundError, KeyError):
+            print("No integrated transceiver mapping found...", file=sys.stderr)
+
     def get_static_mapping(self) -> StaticMapping:
         if not self._static_mapping:
             raise TypeError(f"Static mapping file not defined for {self.platform}")
@@ -202,6 +240,11 @@ class PlatformMappingParser:
 
     def get_asic_vendor_config(self) -> Optional[AsicVendorConfig]:
         return self._asic_vendor_config
+
+    def get_integrated_transceiver_mapping(
+        self,
+    ) -> Optional[IntegratedTransceiverMapping]:
+        return self._integrated_tcvr_mapping
 
 
 class PlatformMappingV2:
@@ -244,6 +287,161 @@ class PlatformMappingV2:
 
     def get_platform_port_map(self) -> Mapping[int, PlatformPortEntry]:
         return self.platform_mapping.ports
+
+    def get_port_id_to_port_assignment(self) -> Dict[int, PortAssignment]:
+        return {
+            port_id: PortAssignment(
+                portName=entry.mapping.name,
+                portType=entry.mapping.portType,
+                attachedCorePortIndex=entry.mapping.attachedCorePortIndex,
+                scope=entry.mapping.scope,
+            )
+            for port_id, entry in self.platform_mapping.ports.items()
+        }
+
+    @staticmethod
+    def _to_raw_port_entry(
+        entry: PlatformPortEntry, id_to_name: Mapping[int, str]
+    ) -> PlatformPortEntry:
+        return PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=0,
+                name=entry.mapping.name,
+                controllingPort=0,
+                controllingPortName=id_to_name[entry.mapping.controllingPort],
+                pins=entry.mapping.pins,
+                attachedCoreId=entry.mapping.attachedCoreId,
+                virtualDeviceId=entry.mapping.virtualDeviceId,
+            ),
+            supportedProfiles={
+                profile: PlatformPortConfig(
+                    pins=config.pins,
+                    subsumedPortNames=(
+                        [id_to_name[port_id] for port_id in config.subsumedPorts]
+                        if config.subsumedPorts is not None
+                        else None
+                    ),
+                )
+                for profile, config in entry.supportedProfiles.items()
+            },
+        )
+
+    @staticmethod
+    def _merge_raw_port_entries(
+        existing: PlatformPortEntry, incoming: PlatformPortEntry
+    ) -> PlatformPortEntry:
+        name = existing.mapping.name
+        if (
+            existing.mapping.attachedCoreId != incoming.mapping.attachedCoreId
+            or existing.mapping.virtualDeviceId != incoming.mapping.virtualDeviceId
+            or existing.mapping.controllingPortName
+            != incoming.mapping.controllingPortName
+        ):
+            raise ValueError(f"Conflicting hardware topology for port {name}")
+
+        merged_pins = list(existing.mapping.pins)
+        for pin in incoming.mapping.pins:
+            if pin not in merged_pins:
+                merged_pins.append(pin)
+        merged_pins.sort(key=lambda pin: pin.a.lane)
+
+        merged_profiles = dict(existing.supportedProfiles)
+        for profile, config in incoming.supportedProfiles.items():
+            if profile not in merged_profiles:
+                merged_profiles[profile] = config
+                continue
+
+            existing_config = merged_profiles[profile]
+            if existing_config.pins != config.pins:
+                raise ValueError(
+                    f"Conflicting profile pins for {profile} on port {name}"
+                )
+            subsumed_names: set[str] = set()
+            subsumed_names.update(existing_config.subsumedPortNames or [])
+            subsumed_names.update(config.subsumedPortNames or [])
+            merged_profiles[profile] = PlatformPortConfig(
+                pins=config.pins,
+                subsumedPortNames=sorted(subsumed_names) or None,
+            )
+
+        return PlatformPortEntry(
+            mapping=PlatformPortMapping(
+                id=0,
+                name=name,
+                controllingPort=0,
+                controllingPortName=existing.mapping.controllingPortName,
+                pins=merged_pins,
+                attachedCoreId=existing.mapping.attachedCoreId,
+                virtualDeviceId=existing.mapping.virtualDeviceId,
+            ),
+            supportedProfiles=dict(
+                sorted(merged_profiles.items(), key=lambda item: int(item[0]))
+            ),
+        )
+
+    @staticmethod
+    def _normalize_raw_override(
+        override: PlatformPortConfigOverride, id_to_name: Mapping[int, str]
+    ) -> PlatformPortConfigOverride:
+        factor = override.factor
+        return PlatformPortConfigOverride(
+            factor=PlatformPortConfigOverrideFactor(
+                profiles=factor.profiles,
+                cableLengths=factor.cableLengths,
+                portNames=(
+                    [id_to_name[port_id] for port_id in factor.ports]
+                    if factor.ports is not None
+                    else None
+                ),
+                transceiverManagementInterface=factor.transceiverManagementInterface,
+                chips=factor.chips,
+                mediaInterfaceCode=factor.mediaInterfaceCode,
+                vendor=factor.vendor,
+            ),
+            pins=override.pins,
+            portProfileConfig=override.portProfileConfig,
+            driverPeaking=override.driverPeaking,
+        )
+
+    @staticmethod
+    def generate_raw_platform_mapping(
+        platform_mappings: Sequence[PlatformMapping],
+    ) -> PlatformMapping:
+        if not platform_mappings:
+            raise ValueError("At least one platform mapping is required")
+
+        raw_ports: Dict[str, PlatformPortEntry] = {}
+        raw_overrides: List[PlatformPortConfigOverride] = []
+        for platform_mapping in platform_mappings:
+            id_to_name = {
+                port_id: entry.mapping.name
+                for port_id, entry in platform_mapping.ports.items()
+            }
+            for entry in platform_mapping.ports.values():
+                name = entry.mapping.name
+                incoming = PlatformMappingV2._to_raw_port_entry(entry, id_to_name)
+                if name not in raw_ports:
+                    raw_ports[name] = incoming
+                    continue
+                raw_ports[name] = PlatformMappingV2._merge_raw_port_entries(
+                    raw_ports[name], incoming
+                )
+
+            for override in platform_mapping.portConfigOverrides or []:
+                normalized_override = PlatformMappingV2._normalize_raw_override(
+                    override, id_to_name
+                )
+                if normalized_override not in raw_overrides:
+                    raw_overrides.append(normalized_override)
+
+        first_mapping = platform_mappings[0]
+        return PlatformMapping(
+            ports={},
+            chips=first_mapping.chips,
+            portConfigOverrides=raw_overrides or None,
+            platformSupportedProfiles=first_mapping.platformSupportedProfiles,
+            rawPlatformPorts=dict(sorted(raw_ports.items())),
+        )
 
     def get_chips(self) -> Sequence[DataPlanePhyChip]:
         return self.platform_mapping.chips
@@ -372,6 +570,10 @@ class PlatformMappingV2:
             # TODO(pshaikh): add logic to generate chips for yangra
             return chips
 
+        reverse_tcvr_map = (
+            self.pm_parser.get_static_mapping().get_reverse_transceiver_map()
+        )
+
         for chip in parsed_chips:
             if is_npu(chip.chip_type):
                 # Skip adding NPUs other than the first if it's not multi npu
@@ -379,13 +581,29 @@ class PlatformMappingV2:
                     continue
                 chips.append(get_npu_chip(chip))
             elif is_transceiver(chip.chip_type):
-                chips.append(get_transceiver_chip(chip))
+                key = (chip.chip_id, chip.core_id)
+                if key not in reverse_tcvr_map:
+                    raise Exception(
+                        f"Transceiver chip_id={chip.chip_id}, core_id={chip.core_id} "
+                        f"not found in reverse transceiver map"
+                    )
+                virtual_id = reverse_tcvr_map[key]
+                chips.append(get_transceiver_chip(chip, physical_id=virtual_id - 1))
             elif is_backplane(chip.chip_type):
                 chips.append(get_backplane_chip(chip))
             elif is_xphy(chip.chip_type):
                 chips.append(get_xphy_chip(chip))
             else:
                 raise Exception("Unhandled chip_type ", chip.chip_type)
+
+        integrated_mapping = self.pm_parser.get_integrated_transceiver_mapping()
+        if integrated_mapping is not None:
+            for chip in integrated_mapping.get_chips():
+                if is_optical_engine(chip.chip_type):
+                    chips.append(get_optical_engine_chip(chip))
+                elif is_laser_source(chip.chip_type):
+                    chips.append(get_laser_source_chip(chip))
+
         chips = sorted(chips, key=lambda chip: (chip.type, chip.physicalID, chip.name))
         return chips
 
@@ -475,6 +693,11 @@ class PlatformMappingV2:
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
 
+                lane_speed = (
+                    0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes
+                )
                 [
                     pins,
                     platform_port_config_override,
@@ -483,10 +706,9 @@ class PlatformMappingV2:
                     si_settings=self.pm_parser.get_si_settings(),
                     profile=profile,
                     # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                    lane_speed=0
-                    if speed_setting.num_lanes == 0
-                    else speed_setting.speed / speed_setting.num_lanes,
+                    lane_speed=lane_speed,
                     port_id=port_detail.global_port_id,
+                    integrated_tcvr_mapping=self.pm_parser.get_integrated_transceiver_mapping(),
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)

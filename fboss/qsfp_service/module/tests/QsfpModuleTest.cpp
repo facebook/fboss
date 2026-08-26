@@ -10,6 +10,7 @@
 
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
+#include "fboss/qsfp_service/module/CdbCommandBlock.h"
 #include "fboss/qsfp_service/module/tests/MockSffModule.h"
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 
@@ -519,6 +520,33 @@ TEST_F(QsfpModuleTest, getFirmwareUpgradeData) {
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
   EXPECT_TRUE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
+}
+
+TEST_F(QsfpModuleTest, cdbFwDownloadStartBufferOverflowProtection) {
+  // Test that createCdbCmdFwDownloadStart clamps imageChunkLen to prevent
+  // stack buffer overflow. A malicious module could set
+  // startCommandPayloadSize=0xFF (255) in the CDB reply, attempting to copy 255
+  // bytes into the 112-byte cdbImageHeader buffer. The fix clamps to max 112.
+  CdbCommandBlock testBlock;
+  const uint8_t oversizedPayloadSize = 0xFF; // Malicious value from module
+  const std::vector<uint8_t> fakeImage(256, 0xAA);
+  int imageOffset = 0;
+
+  // Call createCdbCmdFwDownloadStart with oversized payload size
+  testBlock.createCdbCmdFwDownloadStart(
+      oversizedPayloadSize,
+      static_cast<int>(fakeImage.size()),
+      imageOffset,
+      fakeImage.data());
+
+  // Verify that imageOffset (number of bytes copied) is clamped to max header
+  // len
+  EXPECT_EQ(imageOffset, CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen);
+
+  // Verify the LPL length field is also clamped (imageChunkLen + 8)
+  EXPECT_LE(
+      testBlock.getCdbLplLength(),
+      CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen + 8);
 }
 
 } // namespace facebook::fboss

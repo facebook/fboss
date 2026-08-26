@@ -46,3 +46,21 @@ Patterns for code under `fboss/agent/hw/sai/`, `fboss/lib/phy/`, and vendor SDK 
 **Check**: Reconnecting Thrift and stream clients must use explicit cancellation signals, not treat all exceptions as cancellation. Disconnections during normal operation should trigger reconnection, not shutdown.
 **Why**: Treating any exception as cancellation causes clients to permanently stop when they should reconnect. Only explicit cancellation (e.g., shutdown signal) should terminate the client.
 **Confidence**: HIGH (always distinguish reconnectable errors from shutdown signals)
+
+### 10. Preserve Agent Executable Symbol Exports
+**Check**: Exported agent symbols are a runtime ABI. A successful link does not test runtime loading.
+
+| Build | Rule |
+|---|---|
+| Plain `opt` | Export only SDK symbols needed at runtime. |
+| Static SDK | Generate the list from the exact versioned archives with `llvm-nm --no-sort --defined-only --extern-only -j` and `LC_ALL=C sort -u`. Fail on errors; reject manual, globbed, DSO-import, and whole-binary lists. |
+| Dynamic SDK | Use its `DT_NEEDED` libraries unless a known consumer needs binary exports. |
+| Sanitizers | Keep broad exports while link-group DSOs need them. |
+
+Apply this to both agent paths and keep SDK version constraints. Vendor sources: Broadcom `libxgs_robo.a`; NVIDIA SAI and SX archives; static Leaba 1.42.8 `libsai.a`; dynamic Leaba `libsai.so` and `libsdk.so`.
+
+**Validation**: Build the exact target in plain `opt` and a sanitizer mode. Check `.dynsym` for static SDKs and `DT_NEEDED` plus runtime loading for dynamic SDKs. Test cold boot and the relevant warmboot, ISSU, or debug-loader path. Run hardware jobs in plain `opt`. Do not land validation-only diffs.
+
+**Why**: Broad exports add over a million symbols and increase binary size. Removing all exports breaks runtime consumers. Evidence: D114298172, D114301164, D114300221.
+
+**Confidence**: HIGH

@@ -36,48 +36,6 @@ ForwardingInformationBase<AddressT>* ForwardingInformationBase<
   return clonedFib.get();
 }
 
-template <typename AddressT>
-void ForwardingInformationBase<AddressT>::setDisableTTLDecrement(
-    const folly::IPAddress& addr,
-    bool disable) {
-  /* any future routes to same next hop may have their TTL decrement */
-  CHECK(!this->isPublished());
-  for (auto& entry : *this) {
-    auto route = entry.second;
-    const auto& fwd = route->getForwardInfo();
-    auto adminDistance = fwd.getAdminDistance();
-    auto counter = fwd.getCounterID();
-    auto classID = fwd.getClassID();
-    auto overrideEcmpSwitchingMode = fwd.getOverrideEcmpSwitchingMode();
-    auto overrideNextHops = fwd.getOverrideNextHops();
-    auto normalizedResolvedNextHopSetID =
-        fwd.getNormalizedResolvedNextHopSetID();
-    auto resolvedNextHopSetID = fwd.getResolvedNextHopSetID();
-    RouteNextHopEntry::NextHopSet nhops = fwd.getNextHopSet();
-    bool changed = false;
-    for (auto& nhop : nhops) {
-      CHECK(nhop.isResolved());
-      if (nhop.addr() == addr) {
-        changed = true;
-        folly::poly_cast<ResolvedNextHop>(nhop).setDisableTTLDecrement(disable);
-      }
-    }
-    if (changed) {
-      route = route->clone();
-      route->setResolved(RouteNextHopEntry(
-          nhops,
-          adminDistance,
-          counter,
-          classID,
-          overrideEcmpSwitchingMode,
-          overrideNextHops,
-          normalizedResolvedNextHopSetID,
-          resolvedNextHopSetID));
-      entry.second = route;
-    }
-  }
-}
-
 template struct ThriftMapNode<
     ForwardingInformationBase<folly::IPAddressV4>,
     ForwardingInformationBaseTraits<folly::IPAddressV4>>;

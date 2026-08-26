@@ -5,6 +5,8 @@
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 
+#include <folly/hash/Hash.h>
+
 namespace facebook::fboss::fsdb {
 
 // SubscriptionIdentifier: helper to facilitate referencing a
@@ -31,6 +33,21 @@ class SubscriptionIdentifier {
   uint64_t uid() const {
     return uid_;
   }
+
+  bool operator==(const SubscriptionIdentifier& other) const {
+    return subscriberId_ == other.subscriberId_ && uid_ == other.uid_;
+  }
+
+  struct Hash {
+    std::size_t operator()(const SubscriptionIdentifier& id) const {
+      if (id.uid_ != 0) {
+        // if uid is set it is guaranteed to be unique, so only hash that
+        return id.uid_;
+      } else {
+        return folly::hash::hash_combine(id.subscriberId_);
+      }
+    }
+  };
 
  private:
   SubscriberId subscriberId_;

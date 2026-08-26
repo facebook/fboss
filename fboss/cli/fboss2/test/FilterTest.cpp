@@ -228,7 +228,7 @@ TEST_F(FilterTestFixture, noEntrySatisfiesFilter) {
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, emptyFilter, validFilterMap);
   // No entry satisfies (id <= 2 && linkState == "Up")
-  EXPECT_EQ(filteredResult.get_portEntries().size(), 0);
+  EXPECT_EQ(filteredResult.portEntries().value().size(), 0);
 }
 
 TEST_F(FilterTestFixture, allEntriesSatisfyFilter) {
@@ -236,6 +236,6 @@ TEST_F(FilterTestFixture, allEntriesSatisfyFilter) {
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, noModification, validFilterMap);
   // All entries satisfy (linkState == Up || linkState == Down)
-  EXPECT_EQ(filteredResult.get_portEntries().size(), 6);
+  EXPECT_EQ(filteredResult.portEntries().value().size(), 6);
 }
 } // namespace facebook::fboss

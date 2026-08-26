@@ -34,6 +34,7 @@ struct DeviceTestData {
   3: optional GpioTestData gpioTestData;
   4: optional WatchdogTestData watchdogTestData;
   5: optional LedTestData ledTestData;
+  6: optional MdioTestData mdioTestData;
 }
 
 struct I2CTestData {
@@ -80,4 +81,21 @@ struct WatchdogTestData {
 
 struct LedTestData {
   1: bool createsLeds;
+}
+
+struct MdioTestData {
+  1: list<MdioWriteData> mdioWriteData;
+  2: list<MdioReadData> mdioReadData;
+}
+
+struct MdioWriteData {
+  1: i32 phyAddress;
+  2: i32 regAddress;
+  3: i32 setValue;
+}
+
+struct MdioReadData {
+  1: i32 phyAddress;
+  2: i32 regAddress;
+  3: i32 expected;
 }

@@ -660,9 +660,10 @@ ServiceHandler::makeSinkConsumer(
         } catch (const fsdb::FsdbException& ex) {
           XLOG(ERR) << "Publisher " << publisherId
                     << " Server:sink: FsdbException: "
-                    << apache::thrift::util::enumNameSafe(ex.get_errorCode())
-                    << ": " << ex.get_message();
-          *disconnectReason = ex.get_errorCode();
+                    << apache::thrift::util::enumNameSafe(
+                           folly::copy(ex.errorCode().value()))
+                    << ": " << ex.message().value();
+          *disconnectReason = ex.errorCode().value();
           throw;
         } catch (const std::exception& e) {
           XLOG(INFO) << "Publisher " << publisherId
@@ -751,7 +752,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishStats(std::unique_ptr<PubRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
-  PathValidator::validateStatePath(*request->path()->path());
+  PathValidator::validateStatsPath(*request->path()->path());
   co_return {
       {},
       makeSinkConsumer<PublisherMessage>(
@@ -822,6 +823,12 @@ void validatePaths(
   for (const auto& path : paths) {
     validatePath(*path.second.path());
   }
+}
+
+OperSubInitResponse makeOperSubInitResponse(uint64_t subscriptionUid) {
+  OperSubInitResponse resp;
+  resp.subscriptionUid() = subscriptionUid;
+  return resp;
 }
 
 } // namespace
@@ -1579,6 +1586,7 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
   auto subscriberInfo = makeSubscriberInfo(
       *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  auto subscriptionUid = subId.uid();
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1603,7 +1611,7 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
           co_yield std::move((*item).val);
         }
       });
-  co_return {{}, std::move(stream)};
+  co_return {makeOperSubInitResponse(subscriptionUid), std::move(stream)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndServerStream<
@@ -1635,6 +1643,7 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
   auto subscriberInfo = makeSubscriberInfo(
       *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  auto subscriptionUid = subId.uid();
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1660,7 +1669,7 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
           co_yield std::move((*item).val);
         }
       });
-  co_return {{}, std::move(stream)};
+  co_return {makeOperSubInitResponse(subscriptionUid), std::move(stream)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndServerStream<
@@ -1692,8 +1701,9 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
   }
 
   auto subscriberInfo = makeSubscriberInfo(
-      *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
+      *request, PubSubType::PATCH, false, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  auto subscriptionUid = subId.uid();
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1719,7 +1729,7 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
           co_yield std::move((*item).val);
         }
       });
-  co_return {{}, std::move(stream)};
+  co_return {makeOperSubInitResponse(subscriptionUid), std::move(stream)};
 }
 
 folly::coro::Task<apache::thrift::ResponseAndServerStream<
@@ -1753,6 +1763,7 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
   auto subscriberInfo = makeSubscriberInfo(
       *request, PubSubType::PATCH, true, lastSubscriptionUid_.fetch_add(1));
   auto subId = makeSubscriptionIdentifier(subscriberInfo);
+  auto subscriptionUid = subId.uid();
   registerSubscription(subscriberInfo, *request->forceSubscribe());
   auto cleanupSubscriber =
       folly::makeGuard([this, subscriberInfo = std::move(subscriberInfo)]() {
@@ -1778,7 +1789,112 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
           co_yield std::move((*item).val);
         }
       });
-  co_return {{}, std::move(stream)};
+  co_return {makeOperSubInitResponse(subscriptionUid), std::move(stream)};
+}
+
+folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+ServiceHandler::addPatchSubscriptionPathsImpl(
+    std::unique_ptr<AddPatchSubscriptionPathsRequest> request,
+    bool isStats) {
+  const auto clientId = clientIdToString(*request->clientId());
+  const auto subscriptionUid = *request->subscriptionUid();
+  const auto* methodName = isStats ? "addStatsPatchSubscriptionPaths"
+                                   : "addStatePatchSubscriptionPaths";
+  bool hasRawPaths = !request->paths()->empty();
+  bool hasExtPaths = !request->extPaths()->empty();
+  if (hasRawPaths && hasExtPaths) {
+    XLOG(WARN) << "FSDB rejected " << methodName
+               << ": INVALID_REQUEST (both paths and extPaths) clientId="
+               << clientId << " subscriptionUid=" << subscriptionUid;
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "addPatchSubscriptionPaths: cannot set both paths and extPaths");
+  }
+  if (!hasRawPaths && !hasExtPaths) {
+    XLOG(WARN) << "FSDB rejected " << methodName
+               << ": INVALID_REQUEST (no paths) clientId=" << clientId
+               << " subscriptionUid=" << subscriptionUid;
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "addPatchSubscriptionPaths: must set paths or extPaths");
+  }
+  // For patch subscriptions the subscriberId is the clientId instanceId, paired
+  // with the server-assigned uid the client received in OperSubInitResponse.
+  SubscriptionIdentifier id(
+      SubscriberId(*request->clientId()->instanceId()), subscriptionUid);
+  // lastStreamRevision defaults to 0; treat 0 as "not using the round-trip" and
+  // forward nullopt so the storage layer doesn't stamp (and clobber)
+  // OperMetadata.streamRevision on every served patch. Non-zero is opt-in.
+  std::optional<StreamRevision> streamRevision;
+  if (const auto rev = *request->lastStreamRevision(); rev != 0) {
+    streamRevision = rev;
+  }
+  std::optional<FsdbErrorCode> err;
+  // The validators may throw an FsdbException (specific code) or a generic
+  // exception. Rethrow FsdbException unchanged to preserve its code; map
+  // anything else to INVALID_REQUEST so the Thrift `throws (FsdbException)`
+  // contract holds.
+  try {
+    if (hasExtPaths) {
+      // Validate extended paths for parity with the raw branch, so a malformed
+      // path is rejected here rather than deeper in the storage layer.
+      for (const auto& [_, extPath] : *request->extPaths()) {
+        if (isStats) {
+          PathValidator::validateExtendedStatsPath(extPath);
+        } else {
+          PathValidator::validateExtendedStatePath(extPath);
+        }
+      }
+    } else {
+      validatePaths(*request->paths(), isStats);
+    }
+  } catch (const fsdb::FsdbException&) {
+    throw;
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "FSDB rejected " << methodName
+               << ": INVALID_REQUEST (invalid path) clientId=" << clientId
+               << " subscriptionUid=" << subscriptionUid << " : " << ex.what();
+    throw Utils::createFsdbException(
+        FsdbErrorCode::INVALID_REQUEST,
+        "Invalid path in addPatchSubscriptionPaths from: ",
+        clientId);
+  }
+  if (hasExtPaths) {
+    err = isStats
+        ? operStatsStorage_.add_extended_patch_subscription_path(
+              std::move(id), std::move(*request->extPaths()), streamRevision)
+        : operStorage_.add_extended_patch_subscription_path(
+              std::move(id), std::move(*request->extPaths()), streamRevision);
+  } else {
+    err = isStats
+        ? operStatsStorage_.add_patch_subscription_path(
+              std::move(id), std::move(*request->paths()), streamRevision)
+        : operStorage_.add_patch_subscription_path(
+              std::move(id), std::move(*request->paths()), streamRevision);
+  }
+  if (err.has_value()) {
+    XLOG(WARN) << "FSDB rejected " << methodName << ": "
+               << apache::thrift::util::enumNameSafe(*err)
+               << " clientId=" << clientId
+               << " subscriptionUid=" << subscriptionUid;
+    throw Utils::createFsdbException(
+        *err, "addPatchSubscriptionPaths failed for subscriber: ", clientId);
+  }
+  co_return std::make_unique<AddPatchSubscriptionPathsResponse>();
+}
+
+folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+ServiceHandler::co_addStatePatchSubscriptionPaths(
+    std::unique_ptr<AddPatchSubscriptionPathsRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  co_return co_await addPatchSubscriptionPathsImpl(std::move(request), false);
+}
+
+folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+ServiceHandler::co_addStatsPatchSubscriptionPaths(
+    std::unique_ptr<AddPatchSubscriptionPathsRequest> request) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  co_return co_await addPatchSubscriptionPathsImpl(std::move(request), true);
 }
 
 folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperState(

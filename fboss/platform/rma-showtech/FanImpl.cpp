@@ -25,7 +25,7 @@ bool FanImpl::readFanIsPresentOnDevice() const {
     struct gpiod_chip* chip =
         gpiod_chip_open(fan_.presenceGpio()->path()->c_str());
     readVal = GpiodLine(chip, *fan_.presenceGpio()->lineIndex(), "gpioline")
-                  .getValue();
+                  .getValuePreservingDirection();
     return readVal == *fan_.presenceGpio()->desiredValue();
   } else {
     throw std::runtime_error("No fan presence config provided");

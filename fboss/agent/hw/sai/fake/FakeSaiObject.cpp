@@ -28,6 +28,11 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_PORT_CONNECTOR:
       *count = fs->portConnectorManager.map().size();
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    case SAI_OBJECT_TYPE_PORT_LLR_PROFILE:
+      *count = fs->portLlrProfileManager.map().size();
+      break;
+#endif
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       *count = fs->virtualRouteManager.map().size();
       break;
@@ -271,6 +276,14 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    case SAI_OBJECT_TYPE_PORT_LLR_PROFILE: {
+      for (const auto& profile : fs->portLlrProfileManager.map()) {
+        object_list[i++].key.object_id = profile.second.id;
+      }
+      break;
+    }
+#endif
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER: {
       for (const auto& vr : fs->virtualRouteManager.map()) {
         object_list[i++].key.object_id = vr.second.id;

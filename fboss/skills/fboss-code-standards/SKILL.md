@@ -18,6 +18,8 @@ Currently `fboss/` only. TODO: extend to `configerator/source/neteng/fboss`, `ne
 | Area | Pattern | Check |
 |------|---------|-------|
 | Agent | Mono/multi-switch duality | State changes must work in both modes |
+| Agent | SW/HW build boundary | Production HW-agent executables do not depend on SW-agent implementation libraries |
+| SAI/Build | Executable symbol exports | Export only needed SDK symbols in `opt`; keep sanitizer exports working |
 | Agent | Warmboot serialization | New SwitchState fields must serialize/deserialize |
 | SAI | SaiApiTable registration | New SAI attributes must be registered |
 | SAI | SaiStore consistency | SAI objects must be tracked, no orphans |
@@ -67,6 +69,8 @@ Currently `fboss/` only. TODO: extend to `configerator/source/neteng/fboss`, `ne
 | Testing | Consolidate test helpers | Move shared helpers to base classes |
 | Testing | Validation UTs | Pure validation → unit tests, not just HW tests |
 | Testing | No setup changes to existing tests | Create new tests instead; setup changes break warmboot roundtrip CI |
+| Testing | Program routes via routeUpdater | Use `routeUpdater.program()` (`SwSwitchRouteUpdateWrapper`); never hand-build routes and add to FIB; keep `enable_nexthop_id_manager` on so every route gets a nexthop ID |
+| Agent | Read nexthops via ID-aware helpers | State/FIB-side code → `FibHelpers` `getNextHops(state,…)` etc.; RIB-internal code → `*FromRib(manager,…)`; never `getNextHopSet()` (inline nexthops are being removed) |
 
 ## When to Load References
 

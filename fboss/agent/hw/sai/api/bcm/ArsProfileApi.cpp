@@ -14,11 +14,7 @@ extern "C" {
 #include <sai.h>
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiarsprofileextensions.h>
-#else
-#include <saiarsprofileextensions.h>
-#endif
 #endif
 }
 

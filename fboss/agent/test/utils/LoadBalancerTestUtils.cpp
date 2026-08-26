@@ -16,6 +16,7 @@
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fmt/format.h>
 #include <folly/gen/Base.h>
 
 #include <gtest/gtest.h>
@@ -747,6 +748,49 @@ size_t pumpTraffic(
   return pktSize;
 }
 
+size_t pumpTrafficWithFlowLabel(
+    const AllocatePktFunc& allocateFn,
+    SendPktFunc sendFn,
+    folly::MacAddress dstMac,
+    const std::optional<VlanID>& vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit,
+    int numPackets,
+    std::optional<folly::MacAddress> srcMacAddr) {
+  size_t pktSize = 0;
+  folly::MacAddress srcMac(
+      srcMacAddr.has_value() ? *srcMacAddr
+                             : MacAddressGenerator().get(dstMac.u64HBO() + 1));
+  auto srcIp = folly::IPAddressV6("1001::1");
+  auto dstIp = folly::IPAddressV6("2001::1");
+  uint16_t srcPort = 10000;
+  uint16_t dstPort = 20000;
+  for (int i = 0; i < numPackets; ++i) {
+    uint32_t flowLabel = (i + 1) & 0xFFFFF;
+    auto pkt = makeUDPTxPacket(
+        allocateFn,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp,
+        dstIp,
+        srcPort,
+        dstPort,
+        0,
+        hopLimit,
+        std::nullopt,
+        flowLabel);
+    pktSize = pkt->buf()->length();
+    if (frontPanelPortToLoopTraffic) {
+      sendFn(
+          std::move(pkt), PortDescriptor(frontPanelPortToLoopTraffic.value()));
+    } else {
+      sendFn(std::move(pkt));
+    }
+  }
+  return pktSize;
+}
+
 void pumpTraffic(
     const AllocatePktFunc& allocateFn,
     SendPktFunc sendFn,
@@ -831,12 +875,12 @@ void pumpDeterministicRandomTraffic(
   auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
   for (auto i = 0; i < 1000; ++i) {
     auto srcIp = isV6
-        ? folly::IPAddress(folly::sformat("1001::{}", intToHex(srcV6())))
-        : folly::IPAddress(folly::sformat("100.10.0.{}", srcV4()));
+        ? folly::IPAddress(fmt::format("1001::{}", intToHex(srcV6())))
+        : folly::IPAddress(fmt::format("100.10.0.{}", srcV4()));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = isV6
-          ? folly::IPAddress(folly::sformat("2001::{}", intToHex(dstV6())))
-          : folly::IPAddress(folly::sformat("200.10.0.{}", dstV4()));
+          ? folly::IPAddress(fmt::format("2001::{}", intToHex(dstV6())))
+          : folly::IPAddress(fmt::format("200.10.0.{}", dstV4()));
 
       auto pkt = makeUDPTxPacket(
           allocateFn,
@@ -943,11 +987,18 @@ SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble) {
   });
 }
 
-SendPktFunc getSendPktFunc(SwSwitch* sw) {
-  return SendPktFunc([sw](
+SendPktFunc getSendPktFunc(
+    SwSwitch* sw,
+    const std::optional<SwitchID>& switchId) {
+  return SendPktFunc([sw, switchId](
                          std::unique_ptr<TxPacket> pkt,
                          std::optional<PortDescriptor> port,
                          std::optional<uint8_t> queue) {
+    if (switchId.has_value() && !port.has_value()) {
+      CHECK(!queue.has_value());
+      sw->sendPacketSwitchedAsync(std::move(pkt), {*switchId});
+      return;
+    }
     sw->sendPacketAsync(std::move(pkt), std::move(port), queue);
   });
 }
@@ -959,6 +1010,41 @@ void pumpTrafficAndVerifyLoadBalanced(
     bool loadBalanceExpected) {
   clearPortStats();
   pumpTraffic();
+  if (loadBalanceExpected) {
+    WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(isLoadBalanced()));
+  } else {
+    EXPECT_FALSE(isLoadBalanced());
+  }
+}
+
+void pumpTrafficAndVerifyLoadBalanced(
+    const std::function<void()>& pumpTraffic,
+    const std::function<void()>& clearPortStats,
+    const std::function<std::optional<uint64_t>()>& getPortOutPackets,
+    uint64_t numPacketsSent,
+    const std::function<bool()>& isLoadBalanced,
+    bool loadBalanceExpected) {
+  clearPortStats();
+  auto portOutPacketsBefore = uint64_t{0};
+  WITH_RETRIES({
+    auto portOutPackets = getPortOutPackets();
+    ASSERT_EVENTUALLY_TRUE(portOutPackets.has_value());
+    portOutPacketsBefore = *portOutPackets;
+    ASSERT_EVENTUALLY_EQ(0, portOutPacketsBefore);
+  });
+
+  pumpTraffic();
+  auto portOutPacketsAfter = uint64_t{0};
+  WITH_RETRIES({
+    auto portOutPackets = getPortOutPackets();
+    ASSERT_EVENTUALLY_TRUE(portOutPackets.has_value());
+    portOutPacketsAfter = *portOutPackets;
+    XLOG(DBG2) << "Port out packets before: " << portOutPacketsBefore
+               << ", after: " << portOutPacketsAfter
+               << ", packets sent: " << numPacketsSent;
+    ASSERT_EVENTUALLY_EQ(numPacketsSent, portOutPacketsAfter);
+  });
+
   if (loadBalanceExpected) {
     WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(isLoadBalanced()));
   } else {

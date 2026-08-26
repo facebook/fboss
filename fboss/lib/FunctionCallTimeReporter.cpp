@@ -10,6 +10,7 @@
 
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <folly/Format.h>
@@ -48,7 +49,7 @@ FunctionCallTimeReporter::CallTimeTracker::~CallTimeTracker() {
   std::string threadStr;
   auto threadName = folly::getCurrentThreadName();
   if (threadName) {
-    threadStr = folly::sformat("{} ({})", *threadName, threadIdStr);
+    threadStr = fmt::format("{} ({})", *threadName, threadIdStr);
   } else {
     threadStr = threadIdStr;
   }

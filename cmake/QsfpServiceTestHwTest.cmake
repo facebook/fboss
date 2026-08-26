@@ -64,6 +64,8 @@ set(QSFP_HW_TEST_DEPS
   fb303::fb303
   fboss_init
   qsfp_production_features_cpp2
+  link_qsfp_test_port_info_cpp2
+  link_qsfp_test_port_info_utils
 )
 
 if(SAI_BRCM_PAI_IMPL)

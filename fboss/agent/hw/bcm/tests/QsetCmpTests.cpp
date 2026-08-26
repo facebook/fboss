@@ -28,9 +28,7 @@ namespace facebook::fboss {
 
 TEST_F(BcmTest, QsetCmp) {
   // Qset comparison with itself
-  ASSERT_TRUE(qsetsEqual(
-      getAclQset(getAsic()->getAsicType()),
-      getAclQset(getAsic()->getAsicType())));
+  ASSERT_TRUE(qsetsEqual(getAclQset(), getAclQset()));
   auto aclEffectiveQset = getGroupQset(
       getUnit(),
       static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()));
@@ -42,9 +40,7 @@ TEST_F(BcmTest, QsetCmp) {
   // If needsExtraQualifiers == true, the config qset won't equal to HW
   // effective qset.
   // [Ref] FPGroupDesiredQsetCmp::getEffectiveDesiredQset()
-  ASSERT_EQ(
-      qsetsEqual(getAclQset(getAsic()->getAsicType()), aclEffectiveQset),
-      !needsExtraQualifiers);
+  ASSERT_EQ(qsetsEqual(getAclQset(), aclEffectiveQset), !needsExtraQualifiers);
 
   // Comparing via FPGroupDesiredQsetCmp succeeds when comparing qsets
   // of the same group
@@ -52,7 +48,7 @@ TEST_F(BcmTest, QsetCmp) {
       FPGroupDesiredQsetCmp(
           getHwSwitch(),
           static_cast<bcm_field_group_t>(getAsic()->getDefaultACLGroupID()),
-          getAclQset(getAsic()->getAsicType()))
+          getAclQset())
           .hasDesiredQset());
 }
 

@@ -47,6 +47,15 @@ constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
 constexpr auto kL4DstPortRangeMin = 100;
 constexpr auto kL4DstPortRangeMax = 200;
 constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+constexpr auto kDstIpV6WordAclTableName = "dst-ipv6-word-acl-table";
+constexpr auto kDstIpV6WordAclName = "dst-ipv6-word-acl";
+constexpr auto kDstIpV6WordAclCounterName = "dst-ipv6-word-acl-stats";
+constexpr auto kDstIpV6WordEcmpWidth = 1;
+// Program the route to helper port 0, but inject from the next helper port so
+// the packet does not ingress on the same port selected for egress.
+constexpr auto kDstIpV6WordInjectionPortIndex = kDstIpV6WordEcmpWidth;
+constexpr uint32_t kDstIpV6Word3 = 0x12345678;
+constexpr uint32_t kDstIpV6Word2 = 0x9abcdef0;
 } // namespace
 
 namespace facebook::fboss {
@@ -161,7 +170,8 @@ class AgentAclCounterTest : public AgentHwTest {
   void counterBumpOnHitHelper(
       bool bumpOnHit,
       bool frontPanel,
-      std::vector<AclType> aclTypes) {
+      std::vector<AclType> aclTypes,
+      bool alsoVerifyNoHit = false) {
     auto setup = [this, aclTypes]() {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return helper_->resolveNextHops(in, 2);
@@ -175,9 +185,14 @@ class AgentAclCounterTest : public AgentHwTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [this, bumpOnHit, frontPanel, aclTypes]() {
+    auto verify = [this, bumpOnHit, frontPanel, aclTypes, alsoVerifyNoHit]() {
       for (auto aclType : aclTypes) {
         verifyAclType(bumpOnHit, frontPanel, aclType);
+      }
+      if (alsoVerifyNoHit) {
+        for (auto aclType : aclTypes) {
+          verifyAclType(false /* no hit, no bump */, frontPanel, aclType);
+        }
       }
     };
 
@@ -446,12 +461,16 @@ class AgentAclCounterTest : public AgentHwTest {
           EXPECT_EVENTUALLY_GE(
               aclBytesCountAfter + extraBytes,
               aclBytesCountBefore + sizeOfPacketSent);
-          //  On native BCM we see 4 extra bytes in the acl counter. This is
-          //  likely due to ingress vlan getting imposed and getting counted
-          //  when packet hits acl in ingress pipeline
+          //  The ACL byte counter can include the 4-byte FCS for each packet
+          //  that hits the ACL (in addition to bytes from ingress vlan
+          //  imposition seen on native BCM). The ACL is hit once on most ASICs
+          //  but twice on some (the looped-back pkt re-hits the ACL before
+          //  being dropped in the ingress pipeline), so scale the FCS byte
+          //  tolerance by the number of ACL hits.
+          auto numAclHits = aclPktCountAfter - aclPktCountBefore;
           EXPECT_EVENTUALLY_LE(
               aclBytesCountAfter,
-              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + (4 * numAclHits));
         }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
@@ -494,6 +513,41 @@ class AgentAclCounterTest : public AgentHwTest {
             // to trap any packet since intention of the test is to verify if
             // packet ingressing on a specific port is trapped
             acl->ipType() = cfg::IpType::ANY;
+          } else if (
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+              asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+            // Q4D/J4 (DNX) reject FIELD_SRC_PORT + FIELD_ACL_IP_TYPE=NON_IP.
+            // Per Broadcom, install the source-port entry in both ACL tables:
+            // an etherType=IPv4 copy in the default table and an etherType=IPv6
+            // copy in the IPv6 table, so the source-port ACL matches both v4
+            // and v6 traffic. The test sends IPv6 traffic, so the IPv6 copy
+            // keeps the canonical name/counter (the one verifyAclType checks);
+            // the IPv4 copy gets a "-v4" suffix.
+            std::vector<cfg::CounterType> counterTypes{
+                cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+            auto addSrcPortEntry = [&](const std::string& name,
+                                       const std::string& counter,
+                                       cfg::EtherType etherType,
+                                       const std::string& tableName) {
+              cfg::AclEntry entry;
+              entry.name() = name;
+              entry.actionType() = aclActionType_;
+              entry.srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+              entry.etherType() = etherType;
+              utility::addAclEntry(config, entry, tableName);
+              utility::addAclStat(config, name, counter, counterTypes);
+            };
+            addSrcPortEntry(
+                aclName + "-v4",
+                counterName + "-v4",
+                cfg::EtherType::IPv4,
+                utility::kDefaultAclTable());
+            addSrcPortEntry(
+                aclName,
+                counterName,
+                cfg::EtherType::IPv6,
+                utility::kIpv6AclTable());
+            return;
           } else {
             // Set the IP type to NON_IP to match all ingress packets in ASIC
             // SRC port
@@ -716,15 +770,169 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
   }
 };
 
+class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentAclCounterTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::MODIFY_ACL_QUALIFIERS);
+    features.push_back(ProductionFeature::DST_IPV6_WORD_ACL_QUALIFIERS);
+    return features;
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentAclCounterTest::initialConfig(ensemble);
+    if (!FLAGS_enable_acl_table_group) {
+      return cfg;
+    }
+
+    utility::addAclTable(
+        &cfg,
+        kDstIpV6WordAclTableName,
+        1 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {cfg::AclTableQualifier::DST_IPV6_WORD3,
+         cfg::AclTableQualifier::DST_IPV6_WORD2});
+    return cfg;
+  }
+
+  cfg::AclEntry makeDstIpV6WordAcl() const {
+    cfg::AclEntry acl;
+    acl.name() = kDstIpV6WordAclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    acl.dstIpV6Word3() = kDstIpV6Word3;
+    acl.dstIpV6Word2() = kDstIpV6Word2;
+    return acl;
+  }
+
+  void addDstIpV6WordAclAndStat(cfg::SwitchConfig* cfg) const {
+    auto acl = makeDstIpV6WordAcl();
+    if (FLAGS_enable_acl_table_group) {
+      utility::addAclEntry(
+          cfg, acl, kDstIpV6WordAclTableName, cfg::AclStage::INGRESS);
+    } else {
+      utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
+    }
+    utility::addAclStat(
+        cfg,
+        kDstIpV6WordAclName,
+        kDstIpV6WordAclCounterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+  }
+
+  void setupDstIpV6WordAclCounterTest() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, kDstIpV6WordEcmpWidth);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kDstIpV6WordEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addDstIpV6WordAclAndStat(&newCfg);
+    applyNewConfig(newCfg);
+  }
+
+  uint64_t getDstIpV6WordAclPacketCounter() const {
+    return utility::getAclInOutPackets(getSw(), kDstIpV6WordAclCounterName);
+  }
+
+  uint64_t getDstIpV6WordAclByteCounter() const {
+    return utility::getAclInOutPackets(
+        getSw(), kDstIpV6WordAclCounterName, true /* bytes */);
+  }
+
+  size_t sendPacketWithDstIpV6(const folly::IPAddressV6& dstIp) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto txPacket = utility::makeTCPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        kSrcIP(),
+        dstIp,
+        kTestSrcPort,
+        kTestDstPort,
+        0,
+        255);
+    auto txPacketSize = txPacket->buf()->length();
+    auto outPort = helper_->ecmpPortDescriptorAt(kDstIpV6WordInjectionPortIndex)
+                       .phyPortID();
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    return txPacketSize;
+  }
+
+  void verifyDstIpV6WordAclCounter(
+      const std::string& name,
+      const folly::IPAddressV6& dstIp,
+      bool expectHit) {
+    SCOPED_TRACE(name);
+    auto egressPort =
+        helper_->ecmpPortDescriptorAt(kDstIpV6WordEcmpWidth - 1).phyPortID();
+    auto egressPktsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
+    auto aclByteCountBefore = getDstIpV6WordAclByteCounter();
+
+    auto sizeOfPacketSent = sendPacketWithDstIpV6(dstIp);
+
+    WITH_RETRIES({
+      auto egressPktsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      auto aclPktCountAfter = getDstIpV6WordAclPacketCounter();
+      auto aclByteCountAfter = getDstIpV6WordAclByteCounter();
+      XLOG(DBG2) << "\n"
+                 << "egressPacketCounter: " << egressPktsBefore << " -> "
+                 << egressPktsAfter << "\n"
+                 << "aclPacketCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter
+                 << "\n"
+                 << "aclByteCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclByteCountBefore << " -> " << aclByteCountAfter;
+      EXPECT_EVENTUALLY_GE(egressPktsAfter, egressPktsBefore + 1);
+      if (expectHit) {
+        // Some ASICs can count the looped-back packet a second time before it
+        // is dropped later in the ingress pipeline. For one sent packet,
+        // require one or two ACL hits.
+        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
+        EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          auto numAclHits = aclPktCountAfter - aclPktCountBefore;
+          auto expectedByteDelta = numAclHits * sizeOfPacketSent;
+          EXPECT_EVENTUALLY_GE(
+              aclByteCountAfter, aclByteCountBefore + expectedByteDelta);
+          // ACL byte counters may include the 4-byte FCS for each packet that
+          // hits the ACL, so scale the byte tolerance by the observed hit
+          // count.
+          EXPECT_EVENTUALLY_LE(
+              aclByteCountAfter,
+              aclByteCountBefore + expectedByteDelta + (4 * numAclHits));
+        }
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          EXPECT_EVENTUALLY_EQ(aclByteCountBefore, aclByteCountAfter);
+        }
+      }
+    });
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHit) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
@@ -765,37 +973,40 @@ TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
+TEST_F(AgentDstIpV6WordAclCounterTest, VerifyDstIpV6Word2AndWord3AclCounter) {
+  auto setup = [this]() { setupDstIpV6WordAclCounterTest(); };
+  auto verify = [this]() {
+    verifyDstIpV6WordAclCounter(
+        "word2 and word3 hit",
+        folly::IPAddressV6("1234:5678:9abc:def0::1"),
+        true);
+    verifyDstIpV6WordAclCounter(
+        "word2 miss while word3 still matches",
+        folly::IPAddressV6("1234:5678:1111:2222::1"),
+        false);
+    verifyDstIpV6WordAclCounter(
+        "word3 miss while word2 still matches",
+        folly::IPAddressV6("1111:2222:9abc:def0::1"),
+        false);
+    verifyDstIpV6WordAclCounter(
+        "same word2 and word3 with all lower 64 bits different still hits",
+        folly::IPAddressV6("1234:5678:9abc:def0:ffff:ffff:ffff:ffff"),
+        true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
-}
-
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+TEST_F(AgentAclCounterTest, VerifyCounterNoTtlHitNoBump) {
   this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-// Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(AgentAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  this->counterBumpOnHitHelper(
-      false /* no hit, no bump */,
-      false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
@@ -837,13 +1048,6 @@ class AgentUdfAclCounterTest : public AgentAclCounterTest {
     return features;
   }
 };
-
-TEST_F(AgentUdfAclCounterTest, VerifyUdf) {
-  counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_OPCODE_ACK, AclType::UDF_OPCODE_WRITE_IMMEDIATE});
-}
 
 TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
   counterBumpOnHitHelper(
@@ -1027,18 +1231,6 @@ class AgentFlowletAclCounterTest : public AgentAclCounterTest {
     FLAGS_flowletSwitchingEnable = true;
   }
 };
-
-TEST_F(AgentFlowletAclCounterTest, VerifyFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
-}
-
-TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowlet) {
-  counterBumpOnFlowletAclHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF_FLOWLET});
-}
 
 TEST_F(AgentFlowletAclCounterTest, VerifyFlowletNegative) {
   this->roceReservedByte_ = 0x0;

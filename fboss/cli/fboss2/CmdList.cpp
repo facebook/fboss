@@ -10,8 +10,8 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
+#include <fboss/cli/fboss2/utils/CmdUtils.h> // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/CmdHandler.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -27,7 +27,12 @@
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
+#include "fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h"
+#include "fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h"
+#include "fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h"
+#include "fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h"
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
@@ -80,12 +85,17 @@
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
+#include "fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
+#ifndef IS_OSS
+#include "fboss/cli/fboss2/commands/show/port/facebook/cablelength/CmdShowPortCableLength.h"
+#endif
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
 #include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
@@ -94,7 +104,10 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
+#include "fboss/cli/fboss2/commands/start/port/CmdStartPort.h"
+#include "fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
@@ -118,6 +131,10 @@ const CommandTree& kCommandTree() {
             "Show Agent SSL information",
             commandHandler<CmdShowAgentSsl>,
             argTypeHandler<CmdShowAgentSslTraits>},
+           {"boot-type",
+            "Show Agent boot type",
+            commandHandler<CmdShowAgentBootType>,
+            argTypeHandler<CmdShowAgentBootTypeTraits>},
            {"firmware",
             "Show Agent Firmware information",
             commandHandler<CmdShowAgentFirmware>,
@@ -248,7 +265,14 @@ const CommandTree& kCommandTree() {
            {"queue",
             "Show Port queue information",
             commandHandler<CmdShowPortQueue>,
-            argTypeHandler<CmdShowPortQueueTraits>}}},
+            argTypeHandler<CmdShowPortQueueTraits>},
+#ifndef IS_OSS
+           {"cable-length",
+            "Show Port cable length information",
+            commandHandler<CmdShowPortCableLength>,
+            argTypeHandler<CmdShowPortCableLengthTraits>},
+#endif
+       }},
 
       {"show",
        "rif",
@@ -360,14 +384,22 @@ const CommandTree& kCommandTree() {
          {{"dump",
            "Dump all EEPROM pages (3 iterations with 2s delay)",
            commandHandler<CmdShowTransceiverEepromDump>,
-           argTypeHandler<CmdShowTransceiverEepromDumpTraits>}}}}},
+           argTypeHandler<CmdShowTransceiverEepromDumpTraits>}}},
+        {"loopback",
+         "Show transceiver loopback capability and state",
+         commandHandler<CmdShowTransceiverLoopback>,
+         argTypeHandler<CmdShowTransceiverLoopbackTraits>}}},
 
       {"show",
        "route",
        "Show Route information",
        commandHandler<CmdShowRoute>,
        argTypeHandler<CmdShowRouteTraits>,
-       {{"details",
+       {{"counters",
+         "Show route counters",
+         commandHandler<CmdShowRouteCounters>,
+         argTypeHandler<CmdShowRouteCountersTraits>},
+        {"details",
          "Show details of the route table",
          commandHandler<CmdShowRouteDetails>,
          argTypeHandler<CmdShowRouteDetailsTraits>},
@@ -407,6 +439,18 @@ const CommandTree& kCommandTree() {
          "Show details of MPLS routes",
          commandHandler<CmdShowMplsRoute>,
          argTypeHandler<CmdShowMplsRouteTraits>}}},
+
+      {"show",
+       "nexthopgroups",
+       "Show next hop groups",
+       commandHandler<CmdShowNextHopGroups>,
+       argTypeHandler<CmdShowNextHopGroupsTraits>},
+
+      {"show",
+       "namednexthopgroups",
+       "Show named next hop groups",
+       commandHandler<CmdShowNamedNextHopGroups>,
+       argTypeHandler<CmdShowNamedNextHopGroupsTraits>},
 
       {
           "show",
@@ -549,6 +593,24 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdSetPortState>,
          argTypeHandler<CmdSetPortStateTraits>,
          localOptionsHandler<CmdSetPortStateTraits>}}},
+      {"set",
+       "sdk",
+       "Set SDK information",
+       commandHandler<CmdSetSdk>,
+       argRegistrar<CmdSetSdkTraits>,
+       {{"reg-dump",
+         "Enable or disable the SDK dumping register/state logs to disk",
+         commandHandler<CmdSetSdkRegDump>,
+         argRegistrar<CmdSetSdkRegDumpTraits>}}},
+      {"set",
+       "transceiver",
+       "Set Transceiver properties",
+       commandHandler<CmdSetTransceiver>,
+       argTypeHandler<CmdSetTransceiverTraits>,
+       {{"loopback",
+         "Set transceiver loopback mode",
+         commandHandler<CmdSetTransceiverLoopback>,
+         argRegistrar<CmdSetTransceiverLoopbackTraits>}}},
 
       {"start",
        "pcap",
@@ -556,6 +618,16 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdStartPcap>,
        argTypeHandler<CmdStartPcapTraits>,
        localOptionsHandler<CmdStartPcapTraits>},
+
+      {"start",
+       "port",
+       "Start Port event",
+       commandHandler<CmdStartPort>,
+       argTypeHandler<CmdStartPortTraits>,
+       {{"cable-length-measurement",
+         "Trigger cable length measurement",
+         commandHandler<CmdStartPortCableLengthMeasurement>,
+         argTypeHandler<CmdStartPortCableLengthMeasurementTraits>}}},
 
       {"stop",
        "pcap",
@@ -595,7 +667,7 @@ const CommandTree& kCommandTree() {
             argTypeHandler<CmdStreamSubFsdbOperStateTraits>},
        }},
   };
-  sort(root.begin(), root.end());
+  stable_sort(root.begin(), root.end());
   return root;
 }
 

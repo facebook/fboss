@@ -16,8 +16,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/wedge100/Wedge100Platform.h"
-#include "fboss/agent/platforms/wedge/wedge40/FakeWedge40Platform.h"
-#include "fboss/agent/platforms/wedge/wedge40/Wedge40Platform.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss {
@@ -29,13 +27,8 @@ std::unique_ptr<WedgePlatform> createWedgePlatform() {
   auto localMac = getLocalMacAddress();
 
   auto type = productInfo->getType();
-  if (type == PlatformType::PLATFORM_WEDGE) {
-    return std::make_unique<Wedge40Platform>(std::move(productInfo), localMac);
-  } else if (type == PlatformType::PLATFORM_WEDGE100) {
+  if (type == PlatformType::PLATFORM_WEDGE100) {
     return std::make_unique<Wedge100Platform>(std::move(productInfo), localMac);
-  } else if (type == PlatformType::PLATFORM_FAKE_WEDGE40) {
-    return std::make_unique<FakeWedge40Platform>(
-        std::move(productInfo), localMac);
   }
 
   // platform type is neither of the offical platforms above, consider it as a

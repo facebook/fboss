@@ -25,25 +25,19 @@ class RemoteSystemPortTest : public ::testing::Test {
     sw_->stop(false, false);
   }
 
-  void verify(int expectedSize = 2) {
+  void verifyNoGeneratedRemoteSystemPorts(int expectedSize = 0) {
     auto state = sw_->getState();
-    auto local = state->getSystemPorts();
     auto remote = state->getRemoteSystemPorts();
 
     EXPECT_EQ(remote->size(), expectedSize);
 
-    auto systemPorts1 = state->getSystemPorts()->getMapNodeIf(
+    auto remoteSystemPorts1 = remote->getMapNodeIf(
         HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)}));
-    auto systemPorts2 = state->getSystemPorts()->getMapNodeIf(
+    auto remoteSystemPorts2 = remote->getMapNodeIf(
         HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
 
-    auto remoteSystemPorts1 = state->getRemoteSystemPorts()->getMapNodeIf(
-        HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)}));
-    auto remoteSystemPorts2 = state->getRemoteSystemPorts()->getMapNodeIf(
-        HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(2)}));
-
-    EXPECT_EQ(systemPorts1->toThrift(), remoteSystemPorts2->toThrift());
-    EXPECT_EQ(systemPorts2->toThrift(), remoteSystemPorts1->toThrift());
+    EXPECT_EQ(nullptr, remoteSystemPorts1);
+    EXPECT_EQ(nullptr, remoteSystemPorts2);
   }
 
  protected:
@@ -52,7 +46,7 @@ class RemoteSystemPortTest : public ::testing::Test {
 };
 
 TEST_F(RemoteSystemPortTest, ConfigureSystemPorts) {
-  verify();
+  verifyNoGeneratedRemoteSystemPorts();
 }
 
 TEST_F(RemoteSystemPortTest, ReConfigureSystemPorts) {
@@ -76,7 +70,7 @@ TEST_F(RemoteSystemPortTest, ReConfigureSystemPorts) {
     port.minFrameSize() = 1024;
   }
   sw_->applyConfig("Reconfigure", newCfg);
-  verify(3);
+  verifyNoGeneratedRemoteSystemPorts(1);
   auto allRemoteSysPorts1 =
       sw_->getState()->getRemoteSystemPorts()->getMapNodeIf(matchAll);
   EXPECT_NE(nullptr, allRemoteSysPorts1);

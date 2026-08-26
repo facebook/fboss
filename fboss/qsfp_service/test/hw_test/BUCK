@@ -19,17 +19,20 @@ cpp_library(
         "HwTransceiverUtils.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
-    exported_deps = [
+    deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/qsfp_service:transceiver-manager",
-        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
     ],
 )
 
@@ -41,17 +44,12 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py-deprecated",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
     py3_namespace = "neteng.fboss",
-    py_asyncio_base_module = "neteng.fboss.asyncio",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "json",
-    thrift_py_options = "json,sort_keys",
     thrift_rust_options = [
         "deprecated_default_enum_min_i32",
         "serde",
@@ -71,17 +69,12 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py-deprecated",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "rust",
         "python",
     ],
     py3_namespace = "neteng.fboss",
-    py_asyncio_base_module = "neteng.fboss.asyncio",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "json",
-    thrift_py_options = "json,sort_keys",
     thrift_rust_options = [
         "deprecated_default_enum_min_i32",
         "serde",

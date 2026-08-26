@@ -19,8 +19,11 @@ constexpr int kTwentyMB = 20 * 1024 * 1024;
 namespace facebook::fboss {
 
 TEST_F(HwTest, i2cStressRead) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  addTestedTransceiverIds(transceivers);
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
@@ -83,11 +86,14 @@ TEST_F(HwTest, i2cStressRead) {
 }
 
 TEST_F(HwTest, i2cStressWrite) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   // Only work with optical transceivers. The offset that this test is
   // writing is not writable on copper/flatMem modules
 
   auto opticalTransceivers = getCabledOpticalAndActiveTransceiverIDs();
+  addTestedTransceiverIds(opticalTransceivers);
 
   EXPECT_TRUE(!opticalTransceivers.empty());
 
@@ -127,8 +133,11 @@ TEST_F(HwTest, i2cStressWrite) {
 }
 
 TEST_F(HwTest, i2cLogCapacityRead) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  addTestedTransceiverIds(transceivers);
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
@@ -169,8 +178,11 @@ TEST_F(HwTest, i2cLogCapacityRead) {
 }
 
 TEST_F(HwTest, i2cLogCapacityWrite) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto transceivers = getCabledOpticalAndActiveTransceiverIDs();
+  addTestedTransceiverIds(transceivers);
   EXPECT_TRUE(!transceivers.empty());
   WriteRequest request;
   request.ids() = transceivers;
@@ -211,10 +223,13 @@ TEST_F(HwTest, i2cLogCapacityWrite) {
 }
 
 TEST_F(HwTest, cmisPageChange) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::I2C_ACCESS});
   // Switch between page 0x10 and page 0x11 on CMIS modules on all ports and
   // ensure that page 0x10 reads back the same every time
   auto transceivers = utility::legacyTransceiverIds(
       utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  addTestedTransceiverIds(transceivers);
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   std::map<int32_t, TransceiverInfo> transceiversInfo;
   getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(

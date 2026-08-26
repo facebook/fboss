@@ -24,11 +24,7 @@
 
 extern "C" {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saihostifextensions.h>
-#else
-#include <saihostifextensions.h>
-#endif
 #endif
 }
 
@@ -265,7 +261,7 @@ std::shared_ptr<SaiHostifTrapCounter> SaiHostifManager::createHostifTrapCounter(
       rxReasonLabelStr.begin(), rxReasonLabelStr.end(), rxReasonLabel.begin());
   SaiCounterTraits::Attributes::Type type{SAI_COUNTER_TYPE_REGULAR};
   SaiCounterTraits::Attributes::Label label{rxReasonLabel};
-  SaiCounterTraits::CreateAttributes attributes{label, type};
+  SaiCounterTraits::CreateAttributes attributes{label, type, std::nullopt};
   SaiCounterTraits::AdapterHostKey k{attributes};
   auto& store = saiStore_->get<SaiCounterTraits>();
   return store.setObject(k, attributes);

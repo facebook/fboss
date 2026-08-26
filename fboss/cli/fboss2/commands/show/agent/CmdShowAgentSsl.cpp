@@ -38,6 +38,16 @@ std::string CmdShowAgentSsl::sslTypeToString(
   }
 }
 
+std::string_view CmdShowAgentSslTraits::description() {
+  return "Displays the agent's Thrift server SSL/TLS policy (e.g. whether encrypted clients are required). Use it to confirm secure-transport configuration.";
+}
+
+CmdShowAgentSsl::RetType CmdShowAgentSsl::sampleModel() {
+  RetType model{};
+  model.AgentSslStatus() = "REQUIRED (allow encrypted clients only)";
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 

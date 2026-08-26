@@ -11,15 +11,20 @@
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 
 #include <boost/algorithm/string.hpp>
+#include <algorithm>
 #include <filesystem>
+#include <optional>
 #include <utility>
 
 #include <folly/FileUtil.h>
+#include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
 #include <thrift/lib/cpp2/FieldRef.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/lib/platforms/PlatformMappingUtils.h"
 
 DEFINE_string(
     platform_descriptor_config_path,
@@ -35,6 +40,7 @@ namespace {
 
 constexpr auto kPlatformDescriptorFileName = "platform_descriptor.json";
 constexpr auto kPlatformMappingFileName = "platform_mapping.json";
+constexpr auto kRawPlatformMappingFileName = "raw_platform_mapping.json";
 
 std::string normalize(std::string_view value) {
   return boost::algorithm::to_lower_copy(std::string(value));
@@ -51,6 +57,33 @@ bool equalsNormalized(
     std::string_view candidate,
     const std::string& normalizedExpected) {
   return normalize(candidate) == normalizedExpected;
+}
+
+std::optional<bool> getBoolFlagValue(
+    std::string_view flagName,
+    const PlatformDescriptor& descriptor) {
+  gflags::CommandLineFlagInfo flagInfo;
+  auto flagNameStr = std::string{flagName};
+  if (!gflags::GetCommandLineFlagInfo(flagNameStr.c_str(), &flagInfo) ||
+      flagInfo.type != "bool") {
+    XLOG(ERR) << "Platform descriptor for platform type "
+              << static_cast<int>(*descriptor.platformType())
+              << " references unknown or non-bool variant attribute gflag "
+              << flagName;
+    return std::nullopt;
+  }
+  return flagInfo.current_value == "true";
+}
+
+bool matchesVariantAttributes(const PlatformDescriptor& descriptor) {
+  const auto& variantAttributes = descriptor.variantAttributes().value();
+  return std::all_of(
+      variantAttributes.begin(),
+      variantAttributes.end(),
+      [&descriptor](const auto& item) {
+        auto flagValue = getBoolFlagValue(item.first, descriptor);
+        return flagValue.has_value() && *flagValue == item.second;
+      });
 }
 
 void validatePlatformDescriptor(
@@ -148,12 +181,30 @@ const PlatformDescriptorRegistry& PlatformDescriptorRegistry::get() {
 
 const PlatformDescriptor* FOLLY_NULLABLE
 PlatformDescriptorRegistry::getDescriptor(PlatformType type) const {
+  auto entry = getDescriptorEntry(type);
+  return entry ? &entry->descriptor : nullptr;
+}
+
+const PlatformDescriptorRegistry::PlatformDescriptorEntry* FOLLY_NULLABLE
+PlatformDescriptorRegistry::getDescriptorEntry(PlatformType type) const {
+  const PlatformDescriptorEntry* defaultEntry = nullptr;
   for (const auto& entry : descriptorEntries_) {
-    if (entry.descriptor.platformType().value() == type) {
-      return &entry.descriptor;
+    if (entry.descriptor.platformType().value() != type) {
+      continue;
+    }
+    const auto& variantAttributes =
+        entry.descriptor.variantAttributes().value();
+    if (!variantAttributes.empty()) {
+      if (matchesVariantAttributes(entry.descriptor)) {
+        return &entry;
+      }
+      continue;
+    }
+    if (!defaultEntry) {
+      defaultEntry = &entry;
     }
   }
-  return nullptr;
+  return defaultEntry;
 }
 
 std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
@@ -183,34 +234,59 @@ std::optional<PlatformType> PlatformDescriptorRegistry::findPlatformType(
 
 std::optional<std::string> PlatformDescriptorRegistry::loadPlatformMapping(
     PlatformType type) const {
-  for (const auto& entry : descriptorEntries_) {
-    if (entry.descriptor.platformType().value() != type) {
-      continue;
-    }
-    if (entry.platformMappingPath.empty()) {
-      return std::nullopt;
-    }
-
-    std::string mappingJson;
-    if (!folly::readFile(entry.platformMappingPath.c_str(), mappingJson)) {
-      throw FbossError(
-          "Unable to read platform mapping file ", entry.platformMappingPath);
-    }
-
-    try {
-      cfg::PlatformMapping mapping;
-      apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
-          mappingJson, mapping);
-    } catch (const std::exception& ex) {
-      throw FbossError(
-          "Unable to parse platform mapping file ",
-          entry.platformMappingPath,
-          ": ",
-          ex.what());
-    }
-    return mappingJson;
+  auto entry = getDescriptorEntry(type);
+  if (!entry) {
+    return std::nullopt;
   }
-  return std::nullopt;
+  if (entry->platformMappingPath.empty()) {
+    return std::nullopt;
+  }
+
+  std::string mappingJson;
+  if (!folly::readFile(entry->platformMappingPath.c_str(), mappingJson)) {
+    throw FbossError(
+        "Unable to read platform mapping file ", entry->platformMappingPath);
+  }
+
+  try {
+    cfg::PlatformMapping mapping;
+    apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
+        mappingJson, mapping);
+  } catch (const std::exception& ex) {
+    throw FbossError(
+        "Unable to parse platform mapping file ",
+        entry->platformMappingPath,
+        ": ",
+        ex.what());
+  }
+  return mappingJson;
+}
+
+cfg::PlatformMapping PlatformDescriptorRegistry::loadPlatformMappingFromRaw(
+    PlatformType type,
+    const cfg::PlatformConfig& platformConfig) const {
+  if (FLAGS_platform_descriptor_config_path.empty()) {
+    throw FbossError(
+        "--platform_descriptor_config_path must be set when --use_raw_platform_mapping is enabled");
+  }
+  const auto& portIdToPortAssignment = platformConfig.portIdToPortAssignment();
+  if (!portIdToPortAssignment.has_value()) {
+    throw FbossError(
+        "portIdToPortAssignment must be set when loading a raw platform mapping");
+  }
+  if (portIdToPortAssignment->empty()) {
+    throw FbossError(
+        "portIdToPortAssignment must not be empty when loading a raw platform mapping");
+  }
+  const auto entry = getDescriptorEntry(type);
+  if (!entry || entry->rawPlatformMappingPath.empty()) {
+    throw FbossError(
+        "Selected platform descriptor is missing sibling raw_platform_mapping.json");
+  }
+
+  return reconstructPlatformMapping(
+      readRawPlatformMapping(entry->rawPlatformMappingPath),
+      *portIdToPortAssignment);
 }
 
 PlatformDescriptor PlatformDescriptorRegistry::loadPlatformDescriptorFromFile(
@@ -262,11 +338,13 @@ PlatformDescriptorRegistry::loadPlatformDescriptorEntriesFromDirectory(
         getRequiredPlatformFile(platformDir, kPlatformDescriptorFileName);
     auto mappingFile =
         getRequiredPlatformFile(platformDir, kPlatformMappingFileName);
+    auto rawMappingFile = platformDir / kRawPlatformMappingFileName;
 
     descriptorEntries.push_back(
         PlatformDescriptorEntry{
             loadPlatformDescriptorFromFile(descriptorFile.string()),
-            mappingFile.string()});
+            mappingFile.string(),
+            fs::exists(rawMappingFile) ? rawMappingFile.string() : ""});
   }
   return descriptorEntries;
 }

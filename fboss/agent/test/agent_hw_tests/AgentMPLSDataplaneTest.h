@@ -9,6 +9,7 @@
 
 #include <folly/Conv.h>
 #include <folly/MacAddress.h>
+#include <folly/String.h>
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 
@@ -195,6 +196,8 @@ class AgentMPLSDataplaneTest : public AgentHwTest {
     auto pktBuf = snooper.waitForPacket(10);
     ASSERT_TRUE(pktBuf.has_value());
     ASSERT_TRUE(*pktBuf);
+    XLOG(INFO) << "MPLS dataplane PUSH trapped packet hexdump:\n"
+               << folly::hexDump((*pktBuf)->data(), (*pktBuf)->length());
 
     folly::io::Cursor cursor((*pktBuf).get());
     utility::EthFrame frame(cursor);

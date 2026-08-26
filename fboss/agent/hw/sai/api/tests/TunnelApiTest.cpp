@@ -288,7 +288,16 @@ TEST_F(TunnelApiTest, createSrv6Tunnel) {
   SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
   SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
   SaiSrv6TunnelTraits::CreateAttributes a{
-      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+      type,
+      underlay,
+      encapSrcIp,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
 
   EXPECT_EQ(
@@ -310,7 +319,16 @@ TEST_F(TunnelApiTest, removeSrv6Tunnel) {
   SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
   SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
   SaiSrv6TunnelTraits::CreateAttributes a{
-      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+      type,
+      underlay,
+      encapSrcIp,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
   tunnelApi->remove(saiTunnelId);
   EXPECT_THROW(
@@ -330,7 +348,16 @@ TEST_F(TunnelApiTest, getSrv6TunnelAttributes) {
   SaiSrv6TunnelTraits::Attributes::EncapEcnMode encapEcnMode{
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
   SaiSrv6TunnelTraits::CreateAttributes a{
-      encapSrcIp, type, underlay, encapTtlMode, encapEcnMode, encapDscpMode};
+      type,
+      underlay,
+      encapSrcIp,
+      encapTtlMode,
+      encapEcnMode,
+      encapDscpMode,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   auto id = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
 
   EXPECT_EQ(
@@ -363,7 +390,16 @@ TEST_F(TunnelApiTest, setSrv6TunnelAttributes) {
   SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
   SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
   SaiSrv6TunnelTraits::CreateAttributes a{
-      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+      type,
+      underlay,
+      encapSrcIp,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
   auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
 
   tunnelApi->setAttribute(
@@ -392,4 +428,25 @@ TEST_F(TunnelApiTest, setSrv6TunnelAttributes) {
       tunnelApi->getAttribute(
           saiTunnelId, SaiSrv6TunnelTraits::Attributes::EncapEcnMode{}),
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER);
+}
+
+TEST_F(TunnelApiTest, createSrv6DecapTunnelWithQosMap) {
+  SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+  SaiSrv6TunnelTraits::Attributes::DecapQosDscpToTcMap dscpToTcMap{42};
+  SaiSrv6TunnelTraits::CreateAttributes a{
+      type,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      dscpToTcMap};
+  auto id = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::DecapQosDscpToTcMap{}),
+      42);
 }

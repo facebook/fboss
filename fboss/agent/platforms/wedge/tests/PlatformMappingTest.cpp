@@ -12,18 +12,19 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/elbert/Elbert16QPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/Minipack16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 
 #include <gtest/gtest.h>
@@ -100,6 +101,13 @@ TEST_F(PlatformMappingTest, VerifyWedge400CPlatformMapping) {
 
   auto mapping = std::make_unique<Wedge400CPlatformMapping>();
   verify(mapping.get());
+}
+
+TEST(PlatformDescriptorMappingTest, DefaultRegistryHasNoWedge800BACTMapping) {
+  auto externalMappingStr =
+      PlatformDescriptorRegistry::get().loadPlatformMapping(
+          PlatformType::PLATFORM_WEDGE800BACT);
+  EXPECT_FALSE(externalMappingStr.has_value());
 }
 
 TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
@@ -910,24 +918,6 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
   }
 }
 
-TEST_F(PlatformMappingTest, VerifyWedge40PlatformMapping) {
-  // supported profiles
-  std::vector<cfg::PortProfileID> expectedProfiles = {
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER,
-      cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
-      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_COPPER,
-      cfg::PortProfileID::PROFILE_20G_2_NRZ_NOFEC_OPTICAL,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_COPPER,
-      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC_OPTICAL};
-
-  // Wedge40 has 16 * 4 = 64 logical ports
-  // 16 TD2 Warp cores + 16 transceivers
-  setExpectation(64, 16, 0, 16, expectedProfiles);
-
-  auto mapping = std::make_unique<Wedge40PlatformMapping>();
-  verify(mapping.get());
-}
-
 TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
@@ -948,7 +938,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100PlatformMapping) {
       cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1,
       cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1};
 
-  // Wedge40 has 32 * 4 = 128 logical ports
+  // Wedge100 has 32 * 4 = 128 logical ports
   // 32 TH Falcon cores + 32 transceivers
   setExpectation(128, 32, 0, 32, expectedProfiles);
 
@@ -1382,4 +1372,49 @@ TEST_F(PlatformMappingTest, VerifyYampXphyLinePolaritySwap) {
   verifyXphyLinePolaritySwapByProfile(
       mapping.get(), mapping->getPlatformPorts(), expectedPolaritySwap);
 }
+TEST_F(PlatformMappingTest, VerifyGetTransceiverBankIdNoCoreId) {
+  auto mapping = std::make_unique<FakeTestPlatformMapping>(std::vector<int>{1});
+  auto ports = mapping->getPlatformPorts();
+  ASSERT_FALSE(ports.empty());
+
+  auto portId = PortID(ports.begin()->first);
+  auto profiles = *ports.begin()->second.supportedProfiles();
+  ASSERT_FALSE(profiles.empty());
+  auto profileId = profiles.begin()->first;
+
+  auto bankId = mapping->getTransceiverBankId(
+      PlatformPortProfileConfigMatcher(profileId, portId, std::nullopt));
+  EXPECT_FALSE(bankId.has_value());
+}
+
+TEST_F(PlatformMappingTest, VerifyGetTransceiverBankIdWithCoreId) {
+  auto mapping = std::make_unique<FakeTestPlatformMapping>(std::vector<int>{1});
+
+  std::string tcvrChipName;
+  for (const auto& [name, chip] : mapping->getChips()) {
+    if (*chip.type() == phy::DataPlanePhyChipType::TRANSCEIVER) {
+      tcvrChipName = name;
+      break;
+    }
+  }
+  ASSERT_FALSE(tcvrChipName.empty());
+
+  phy::DataPlanePhyChip chipWithCoreId;
+  *chipWithCoreId.name() = tcvrChipName;
+  *chipWithCoreId.type() = phy::DataPlanePhyChipType::TRANSCEIVER;
+  *chipWithCoreId.physicalID() = 0;
+  chipWithCoreId.coreId() = 2;
+  mapping->setChip(tcvrChipName, chipWithCoreId);
+
+  auto ports = mapping->getPlatformPorts();
+  auto portId = PortID(ports.begin()->first);
+  auto profiles = *ports.begin()->second.supportedProfiles();
+  auto profileId = profiles.begin()->first;
+
+  auto bankId = mapping->getTransceiverBankId(
+      PlatformPortProfileConfigMatcher(profileId, portId, std::nullopt));
+  ASSERT_TRUE(bankId.has_value());
+  EXPECT_EQ(*bankId, 2);
+}
+
 } // namespace facebook::fboss::test

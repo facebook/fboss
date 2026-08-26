@@ -92,7 +92,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   aclEntry->setAclAction(matchAction);
 
   saiSwitch->managerTable()->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
   aclEntries_.push_back(aclEntry);
 }
 
@@ -106,7 +108,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   for (auto port : ports) {
     auto aclEntry = getTrapAclEntry(true, port, std::nullopt, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
-        aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+        aclEntry,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        nullptr /*state*/);
     aclEntries_.push_back(aclEntry);
   }
 }
@@ -121,7 +125,9 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
   for (const auto& dstPrefix : dstPrefixes) {
     auto aclEntry = getTrapAclEntry(false, std::nullopt, dstPrefix, priority++);
     saiSwitch->managerTable()->aclTableManager().addAclEntry(
-        aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+        aclEntry,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        nullptr /*state*/);
     aclEntries_.push_back(aclEntry);
   }
 }

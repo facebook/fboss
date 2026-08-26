@@ -5,7 +5,6 @@ package;
 
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.sff
-namespace php fboss
 namespace py neteng.fboss.sff
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.sff

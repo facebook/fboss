@@ -169,9 +169,6 @@
           "test_name_regex": "HwXphyPortInfoTest.*$"
         },
         {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
           "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
         },
         {
@@ -182,6 +179,9 @@
         },
         {
           "test_name_regex": "warm_boot.HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-1.2.8/credo-1.2.8": [
@@ -253,9 +253,6 @@
           "test_name_regex": "HwXphyPortInfoTest.*$"
         },
         {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
           "test_name_regex": "HwXphyPrbsStatsCollectionTest.*$"
         },
         {
@@ -266,6 +263,9 @@
         },
         {
           "test_name_regex": "warm_boot.HwStateMachineTest.CheckAgentConfigChanged$"
+        },
+        {
+          "test_name_regex": "warm_boot.HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-1.2.8/credo-1.2.8": [
@@ -341,9 +341,6 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTestAll.*$"
-        },
-        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -356,9 +353,6 @@
     "fuji_5x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTestAll.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -375,9 +369,6 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest_.*$"
-        },
-        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -390,9 +381,6 @@
     "fuji_8x16Q/physdk-barchetta2-7.4/barchetta2-7.4": [
         {
           "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwPortPrbsTest_.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -570,6 +558,74 @@
         },
         {
           "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "ladakh800bcls/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.*$"
+        }
+    ],
+    "ladakh800bcls/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.*$"
+        }
+    ],
+    "ladakh800bcls/physdk-credo-1.2.8/credo-1.2.8": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.*$"
+        }
+    ],
+    "leh800bcls/physdk-brcm_pai-4.1/brcm_pai-4.1": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "warm_boot.*$"
         }
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -936,6 +992,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -950,6 +1009,9 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
         },
         {
@@ -962,6 +1024,9 @@
     "montblanc/physdk-credo-1.2.8/credo-1.2.8": [
         {
           "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -1086,6 +1151,48 @@
         }
     ],
     "tahansb800bc/physdk-credo-1.2.8/credo-1.2.8": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "tahansb800bc_fp_only/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "tahansb800bc_fp_only/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "tahansb800bc_fp_only/physdk-credo-1.2.8/credo-1.2.8": [
         {
           "test_name_regex": "DummyTest.*$"
         },

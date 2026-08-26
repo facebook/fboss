@@ -18,6 +18,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 
 DECLARE_bool(disable_neighbor_updates);
 
@@ -45,6 +46,12 @@ class AgentWatermarkTest : public AgentHwTest {
     // Disabling because neighbor solicitation packets will cause device
     // watermarks to be non-zero
     FLAGS_disable_neighbor_solicitation = true;
+  }
+
+  // Only the switch under test has ports configured under the multi_switch
+  // harness; scope watermark checks to it (no-op for single-switch agents).
+  std::set<SwitchID> switchIdsUnderTest() const {
+    return {getCurrentSwitchIdForTesting()};
   }
 
   folly::IPAddressV6 kDestIp2() const {
@@ -134,7 +141,7 @@ class AgentWatermarkTest : public AgentHwTest {
     }
 
     if (!FLAGS_multi_switch) {
-      auto counters = fb303::fbData->getRegexCounters({folly::sformat(
+      auto counters = fb303::fbData->getRegexCounters({fmt::format(
           "buffer_watermark_ucast.{}.*.queue{}.*.p100.60", portName, queueId)});
       // Unfortunately since  we use quantile stats, which compute
       // a MAX over a period, we can't really assert on the exact
@@ -161,7 +168,8 @@ class AgentWatermarkTest : public AgentHwTest {
     uint64_t minDeviceWatermarkBytes{0};
     const auto asicType =
         getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType();
-    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
+    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asicType == cfg::AsicType::ASIC_TYPE_P200) {
       /*
        * Ebro will always have some internal buffer utilization even
        * when there is no traffic in the ASIC. The recommendation is
@@ -193,14 +201,16 @@ class AgentWatermarkTest : public AgentHwTest {
     uint64_t lastDeviceWatermarkBytes{0};
     bool sawSwitchWatermarkStats{false};
     bool fb303DeviceCtrPresent{false};
+    const auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     WITH_RETRIES({
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
-      if (!switchWatermarkStats.contains(switchId)) {
+      if (!switchWatermarkStats.contains(switchIndex)) {
         continue;
       }
       sawSwitchWatermarkStats = true;
       auto deviceWatermarkBytes =
-          *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+          *switchWatermarkStats.at(switchIndex).deviceWatermarkBytes();
       lastDeviceWatermarkBytes = deviceWatermarkBytes;
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
       const auto minWatermarkBytes = getMinDeviceWatermarkValue(switchId);
@@ -397,7 +407,7 @@ TEST_F(AgentWatermarkTest, VerifyNonDefaultQueue) {
 TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
   auto setup = [this]() { _setup(true); };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto portToSendTraffic =
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0];
       auto minPktsForLineRate =
@@ -422,7 +432,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
 TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
   auto setup = [this]() {
     _setup(true);
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto minPktsForLineRate = getAgentEnsemble()->getMinPktsForLineRate(
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0]);
       // Sending traffic on 2 queues
@@ -443,7 +453,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     }
   };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto queueIdGold =
           utility::getOlympicQueueId(utility::OlympicQueueType::GOLD);
       auto queueIdSilver =
@@ -479,9 +489,11 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
       });
 
       // Get device watermark now, so that it is > highest queue watermark!
+      const auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
       auto deviceWatermark =
-          *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+          *switchWatermarkStats.at(switchIndex).deviceWatermarkBytes();
       XLOG(DBG2) << "For port: "
                  << getAgentEnsemble()->masterLogicalInterfacePortIds(
                         switchId)[0]
@@ -505,7 +517,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
   auto setup = [this]() { _setup(false); };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
       /*
        * This test ensures that the queue watermark reported is accurate.

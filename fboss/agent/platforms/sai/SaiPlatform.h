@@ -13,7 +13,6 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/StateObserver.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformPort.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"

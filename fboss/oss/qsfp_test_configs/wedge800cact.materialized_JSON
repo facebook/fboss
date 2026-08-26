@@ -5,6 +5,7 @@
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "wedge800cact",
+    "platform_descriptor_config_path": "/tmp/platform_descriptors/",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -15,12 +16,7 @@
       {
         "aPortName": "eth1/1/1",
         "zPortName": "eth1/2/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/1/5",
-        "zPortName": "eth1/2/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/5/1",
@@ -40,7 +36,7 @@
       {
         "aPortName": "eth1/9/5",
         "zPortName": "eth1/10/5",
-        "profileID": 25
+        "profileID": 38
       },
       {
         "aPortName": "eth1/13/1",
@@ -51,36 +47,6 @@
         "aPortName": "eth1/13/5",
         "zPortName": "eth1/14/5",
         "profileID": 23
-      },
-      {
-        "aPortName": "eth1/17/1",
-        "zPortName": "eth1/18/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/17/5",
-        "zPortName": "eth1/18/5",
-        "profileID": 25
-      },
-      {
-        "aPortName": "eth1/21/1",
-        "zPortName": "eth1/22/1",
-        "profileID": 25
-      },
-      {
-        "aPortName": "eth1/21/5",
-        "zPortName": "eth1/22/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/25/1",
-        "zPortName": "eth1/26/1",
-        "profileID": 39
-      },
-      {
-        "aPortName": "eth1/29/1",
-        "zPortName": "eth1/30/1",
-        "profileID": 39
       },
       {
         "aPortName": "eth1/3/1",
@@ -98,6 +64,16 @@
         "profileID": 45
       },
       {
+        "aPortName": "eth1/11/1",
+        "zPortName": "eth1/12/1",
+        "profileID": 24
+      },
+      {
+        "aPortName": "eth1/11/5",
+        "zPortName": "eth1/12/5",
+        "profileID": 24
+      },
+      {
         "aPortName": "eth1/33/1",
         "zPortName": "eth1/33/1",
         "profileID": 48
@@ -106,6 +82,22 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "C-OS08CERNC-MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1.8192"
+            }
+          ]
+      },
+      "C-OS08LERNC-MT": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.1.8192"
+            }
+          ]
+      },
       "CAC812321A1BC1MT": {
           "versions": [
             {
@@ -154,11 +146,51 @@
             }
           ]
       },
+      "DP08SFP8-LRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
+            }
+          ]
+      },
       "DP08SFP8-ZRB-29B": {
           "versions": [
             {
               "fwType": 1,
-              "version": "10.30"
+              "version": "10.40.13"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-29D": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.13"
             }
           ]
       },
@@ -194,6 +226,14 @@
             }
           ]
       },
+      "EOLO-138HG-5H-7B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-138HG-5H-B": {
           "versions": [
             {
@@ -210,11 +250,19 @@
             }
           ]
       },
+      "EOLO-138HG-E5HSD": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.6"
+            }
+          ]
+      },
       "EOLO-13T-5H-1B": {
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -222,7 +270,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -230,7 +278,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.2"
+              "version": "3.3"
             }
           ]
       },
@@ -330,6 +378,14 @@
             }
           ]
       },
+      "EOLO-16T-02-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.3"
+            }
+          ]
+      },
       "FTCD4313E2PCL-FB": {
           "versions": [
             {
@@ -390,7 +446,15 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.5"
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF4719E6PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
             }
           ]
       },
@@ -411,14 +475,6 @@
             {
               "fwType": 1,
               "version": "0.11"
-            }
-          ]
-      },
-      "SPTSHP3CLCK2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "1.2"
             }
           ]
       },
@@ -522,7 +578,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -530,7 +586,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -538,7 +594,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -546,7 +602,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -554,7 +610,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -562,7 +618,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "114.247"
+              "version": "114.149"
             }
           ]
       },
@@ -622,6 +678,14 @@
             }
           ]
       },
+      "T-OP4EDH-NBM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "170.131"
+            }
+          ]
+      },
       "T-RH8ENH-N00": {
           "versions": [
             {
@@ -635,6 +699,14 @@
             {
               "fwType": 1,
               "version": "86.247"
+            }
+          ]
+      },
+      "T-RL8ENT-NMM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "27.248"
             }
           ]
       }

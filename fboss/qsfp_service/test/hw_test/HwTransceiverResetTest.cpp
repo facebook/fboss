@@ -94,6 +94,9 @@ class HwTransceiverResetTest : public HwTransceiverTest {
 };
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
+  addTestedTransceivers(getExpectedTransceivers());
   // Validate that the power control register has been correctly set before we
   // begin resetting the modules
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
@@ -162,6 +165,9 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
 }
 
 TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
+  addTestedTransceivers(getExpectedTransceivers());
   std::map<int32_t, TransceiverInfo> transceivers;
   std::map<int32_t, ModuleStatus> moduleStatuses;
 
@@ -284,6 +290,8 @@ class HwTransceiverResetBmcLiteTest : public HwTransceiverResetTest {
 };
 
 TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   // 1. Put the transceivers in reset one at a time.
   // 2. Verify absence of Transceiver. Read byte 0 10 times and ensure
   //    - for sff, all reads fail
@@ -298,6 +306,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   // Only work with optical transceivers
   auto opticalTransceivers = getCabledOpticalAndActiveTransceiverIDs();
+  addTestedTransceiverIds(opticalTransceivers);
 
   EXPECT_TRUE(!opticalTransceivers.empty());
 
@@ -348,7 +357,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           // Expect presence before reset.
           auto info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_TRUE(*info.get_tcvrState().present());
+          EXPECT_TRUE(*info.tcvrState().value().present());
 
           // 1. Put transceiver in reset
           (wedgeManager->*resetFunc)(tcvrID);
@@ -363,7 +372,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           refreshTransceiversWithRetry();
           info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_FALSE(*info.get_tcvrState().present());
+          EXPECT_FALSE(*info.tcvrState().value().present());
 
           WITH_RETRIES_N_TIMED(
               10 /* retries */,
@@ -390,7 +399,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
               verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
             }
             info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
-            EXPECT_TRUE(*info.get_tcvrState().present());
+            EXPECT_TRUE(*info.tcvrState().value().present());
           }
 
           // 4. Undo reset to put transceiver back in normal operation
@@ -401,7 +410,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           refreshTransceiversWithRetry();
           info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_TRUE(*info.get_tcvrState().present());
+          EXPECT_TRUE(*info.tcvrState().value().present());
 
           // 5. Verify all other transceivers are present and respond to IO.
           for (auto otherTcvrID : opticalTransceivers) {
@@ -414,7 +423,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
               verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
             }
             info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
-            EXPECT_TRUE(*info.get_tcvrState().present());
+            EXPECT_TRUE(*info.tcvrState().value().present());
           }
 
           // 6. Wait up to 10 seconds for transceiver to start responding
@@ -446,8 +455,11 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 }
 
 TEST_F(HwTransceiverResetTest, verifyHardResetAction) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::TRANSCEIVER_RESET});
   // Bring the ports UP, resetTransceiver with a reset_and_clear action, and
   // ensure transceivers come back to ACTIVE state
+  addTestedTransceivers(getExpectedTransceivers());
 
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();

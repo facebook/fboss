@@ -162,49 +162,73 @@ CmdShowMirror::RetType CmdShowMirror::createModel(
   std::unordered_set<std::string> queriedSet(
       queriedMirrors.begin(), queriedMirrors.end());
   auto mirrorMapsEntries = folly::parseJson(mirrorMaps);
-  // TODO: Handle NPU ID for Multi-NPU Cases
-  auto mirrorMapEntries = mirrorMapsEntries.find("id=0");
-  if (mirrorMapEntries == mirrorMapsEntries.items().end()) {
-    return model;
-  }
-  for (const auto& mirrorMapEntryItem : mirrorMapEntries->second.items()) {
-    cli::ShowMirrorModelEntry mirrorDetails;
-    const auto& mirrorMapEntry = mirrorMapEntryItem.second;
-    auto mirrorName = mirrorMapEntry["name"].asString();
-    if (queriedSet.size() > 0 && queriedSet.count(mirrorName) == 0) {
-      continue;
-    }
-    mirrorDetails.mirror() = mirrorMapEntry["name"].asString();
-    mirrorDetails.status() =
-        (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";
-    auto egressPortDesc = mirrorMapEntry.find("egressPortDesc");
-    if (egressPortDesc != mirrorMapEntry.items().end()) {
-      std::string egressPortID;
-      auto& portIdValue = egressPortDesc->second["portId"];
-      if (portIdValue.isInt()) {
-        // PortID is stored as a signed i16 in thrift, need to convert it
-        // to unsigned int so that large port numbers don't show up as -ve.
-        egressPortID =
-            folly::to<std::string>(static_cast<uint16_t>(portIdValue.asInt()));
-      } else {
-        egressPortID = portIdValue.asString();
+  // mirrorMaps is a MultiSwitchMirrorMap keyed by HwSwitchMatcher string
+  // ("id=<switchId>"). Iterate every switch's map so mirrors on switches with a
+  // non-zero switchId (e.g. VOQ/DSF switches) are included, not just "id=0".
+  for (const auto& switchIdAndMirrors : mirrorMapsEntries.items()) {
+    for (const auto& mirrorMapEntryItem : switchIdAndMirrors.second.items()) {
+      cli::ShowMirrorModelEntry mirrorDetails;
+      const auto& mirrorMapEntry = mirrorMapEntryItem.second;
+      auto mirrorName = mirrorMapEntry["name"].asString();
+      if (queriedSet.size() > 0 && queriedSet.count(mirrorName) == 0) {
+        continue;
       }
-      mirrorDetails.egressPort() = egressPortID;
-      mirrorDetails.egressPortName() =
-          getEgressPortName(egressPortID, portInfoEntries);
-    } else {
-      mirrorDetails.egressPort() = "-";
-      mirrorDetails.egressPortName() = "-";
+      mirrorDetails.mirror() = mirrorMapEntry["name"].asString();
+      mirrorDetails.status() =
+          (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";
+      auto egressPortDesc = mirrorMapEntry.find("egressPortDesc");
+      if (egressPortDesc != mirrorMapEntry.items().end()) {
+        std::string egressPortID;
+        auto& portIdValue = egressPortDesc->second["portId"];
+        if (portIdValue.isInt()) {
+          // PortID is stored as a signed i16 in thrift, need to convert it
+          // to unsigned int so that large port numbers don't show up as -ve.
+          egressPortID = folly::to<std::string>(
+              static_cast<uint16_t>(portIdValue.asInt()));
+        } else {
+          egressPortID = portIdValue.asString();
+        }
+        mirrorDetails.egressPort() = egressPortID;
+        mirrorDetails.egressPortName() =
+            getEgressPortName(egressPortID, portInfoEntries);
+      } else {
+        mirrorDetails.egressPort() = "-";
+        mirrorDetails.egressPortName() = "-";
+      }
+      auto tunnel = mirrorMapEntry.find("tunnel");
+      if (tunnel != mirrorMapEntry.items().end()) {
+        processTunnel(tunnel->second, mirrorDetails);
+      } else {
+        processWithNoTunnel(mirrorMapEntry, mirrorDetails);
+      }
+      mirrorDetails.dscp() = mirrorMapEntry["dscp"].asString();
+      model.mirrorEntries()->push_back(mirrorDetails);
     }
-    auto tunnel = mirrorMapEntry.find("tunnel");
-    if (tunnel != mirrorMapEntry.items().end()) {
-      processTunnel(tunnel->second, mirrorDetails);
-    } else {
-      processWithNoTunnel(mirrorMapEntry, mirrorDetails);
-    }
-    mirrorDetails.dscp() = mirrorMapEntry["dscp"].asString();
-    model.mirrorEntries()->push_back(mirrorDetails);
   }
+  return model;
+}
+
+std::string_view CmdShowMirrorTraits::description() {
+  return "Displays configured traffic mirror / sFlow sessions: each mirror's resolution status, egress port, tunnel type (GRE or sFlow), tunnel source/destination MAC, IP and UDP ports, DSCP, and TTL. Use it to verify mirroring and sFlow export configuration.";
+}
+
+CmdShowMirror::RetType CmdShowMirror::sampleModel() {
+  RetType model;
+  cli::ShowMirrorModelEntry entry;
+  entry.mirror() = "fboss_dcflow_traffic_mirror";
+  entry.status() = "Active";
+  entry.egressPort() = "5";
+  entry.egressPortName() = "eth3/5/1";
+  entry.mirrorTunnelType() = "sFlow";
+  entry.srcMAC() = "02:00:11:22:33:01";
+  entry.srcIP() = "2001:db8:a::1";
+  entry.srcUDPPort() = "12355";
+  entry.dstMAC() = "02:00:11:22:33:02";
+  entry.dstIP() = "2001:db8:b::1";
+  entry.dstUDPPort() = "6343";
+  entry.dscp() = "42";
+  entry.ttl() = "127";
+  model.mirrorEntries()->push_back(entry);
   return model;
 }
 

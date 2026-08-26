@@ -18,6 +18,7 @@ dnf install -y --allowerasing \
   rpmdevtools \
   rpmlint \
   bc \
+  curl \
   rsync \
   elfutils-libelf-devel \
   elfutils-devel \

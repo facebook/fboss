@@ -21,10 +21,14 @@ namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
+    [[maybe_unused]] std::optional<bool> l3EcmpIngressPortPrune) {
+  // Source port prune is a Broadcom extension attribute; chenab never programs
+  // it.
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{
           cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      std::nullopt,
       std::nullopt,
       std::nullopt,
       std::nullopt,

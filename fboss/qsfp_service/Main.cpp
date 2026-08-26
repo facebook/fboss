@@ -52,7 +52,19 @@ int main(int argc, char** argv) {
   qsfpServiceInit(&argc, &argv);
 
   auto [tcvrManager, portManager] = createQsfpManagers();
-  StatsPublisher publisher(tcvrManager.get());
+
+  // The PhyManager is owned by PortManager in Port Manager mode and by
+  // TransceiverManager otherwise. Platforms without external PHYs have none.
+  PhyManager* phyManager = nullptr;
+  if (FLAGS_port_manager_mode) {
+    if (portManager) {
+      phyManager = portManager->getPhyManager();
+    }
+  } else if (tcvrManager) {
+    phyManager = tcvrManager->getPhyManager();
+  }
+
+  StatsPublisher publisher(tcvrManager.get(), phyManager);
 
   auto [server, handler] =
       setupThriftServer(std::move(tcvrManager), std::move(portManager));
@@ -79,18 +91,7 @@ int main(int argc, char** argv) {
 
   // Schedule the function to periodically collect xphy stats if there's a
   // PhyManager
-  bool hasPhyManager = false;
-  if (FLAGS_port_manager_mode) {
-    hasPhyManager =
-        (handler->getPortManager() &&
-         handler->getPortManager()->getPhyManager());
-  } else {
-    hasPhyManager =
-        (handler->getTransceiverManager() &&
-         handler->getTransceiverManager()->getPhyManager());
-  }
-
-  if (hasPhyManager) {
+  if (phyManager) {
     scheduler->addFunction(
         [&handler]() { handler->updateAllXphyPortsStats(); },
         std::chrono::seconds(FLAGS_xphy_stats_loop_interval),

@@ -34,18 +34,21 @@ cpp_library(
 # core-{impl} for non-BRCM-PAI impls so handler.so's PaiDiagShell symbols
 # are resolved at the final binary link stage.
 cpp_library(
+    # @autodeps-skip This stub intentionally uses the headers-only pai-diag-shell
+    # library so it stays impl-agnostic. The actual per-impl (brcm_pai-{ver})
+    # PaiDiagShell library is selected per binary via qsfp_service.bzl's
+    # _qsfp_core_lib(); this stub is linked into non-BRCM-PAI binaries (Credo,
+    # native, OSS). Without this, autodeps swaps in a concrete brcm_pai-3.15
+    # variant and causes SAI_API_VERSION redefinition in non-BRCM-PAI binaries.
     name = "pai-diag-shell-stub",
     srcs = [
         "PaiDiagShellStub.cpp",
     ],
-    exported_deps = [
-        # @manual — autodeps wants to swap this for ":pai-diag-shell-brcm_pai-3.15",
-        # but we intentionally use the headers-only library here so this stub is
-        # impl-agnostic. The actual per-impl (brcm_pai-{ver}) PaiDiagShell library
-        # is selected per binary via qsfp_service.bzl's _qsfp_core_lib(); this
-        # stub is linked into non-BRCM-PAI binaries (Credo, native, OSS).
-        ":pai-diag-shell-headers",
+    deps = [
         "//fboss/agent:fboss-error",
+    ],
+    exported_deps = [
+        ":pai-diag-shell-headers",
     ],
 )
 
@@ -72,9 +75,7 @@ cpp_binary(
     ],
     deps = [
         "//fboss/agent/if:common-cpp2-types",
-        "//fboss/qsfp_service/if:qsfp-cpp2-clients",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
-        "//folly:exception",
         "//folly:file_util",
         "//folly:memory",
         "//folly:network_address",

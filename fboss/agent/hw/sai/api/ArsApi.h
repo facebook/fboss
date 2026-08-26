@@ -66,6 +66,15 @@ struct SaiArsTraits {
         sai_int32_t,
         AttributeNextHopGroupType,
         SaiIntDefault<sai_int32_t>>;
+    struct AttributeSourcePortPrune {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    // Prevents an ECMP group from load balancing a packet back out the port it
+    // was received on.
+    using SourcePortPrune = SaiExtensionAttribute<
+        bool,
+        AttributeSourcePortPrune,
+        StdNullOptDefault<bool>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -76,20 +85,26 @@ struct SaiArsTraits {
       std::optional<Attributes::PrimaryPathQualityThreshold>,
       std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>,
-      std::optional<Attributes::NextHopGroupType>>;
+      std::optional<Attributes::NextHopGroupType>,
+      std::optional<Attributes::SourcePortPrune>>;
+#if defined(CHENAB_SAI_SDK)
+  using AdapterHostKey = std::tuple<Attributes::Mode>;
+#else
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-#if defined(BRCM_SAI_SDK_GTE_14_0)
   using AdapterHostKey = std::tuple<
+      Attributes::Mode,
+      std::optional<Attributes::IdleTime>,
+      std::optional<Attributes::MaxFlows>,
       std::optional<Attributes::AlternatePathCost>,
+#if defined(BRCM_SAI_SDK_GTE_14_0)
       std::optional<Attributes::AlternatePathBias>,
       std::optional<Attributes::NextHopGroupType>>;
 #else
-  using AdapterHostKey = std::tuple<
-      std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>>;
 #endif
 #else
   using AdapterHostKey = std::monostate;
+#endif
 #endif
 };
 
@@ -100,12 +115,22 @@ SAI_ATTRIBUTE_NAME(Ars, PrimaryPathQualityThreshold)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
 SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
+SAI_ATTRIBUTE_NAME(Ars, SourcePortPrune)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {
+#if defined(CHENAB_SAI_SDK)
+  return SaiArsTraits::AdapterHostKey{
+      std::get<SaiArsTraits::Attributes::Mode>(createAttributes)};
+#else
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 #if defined(BRCM_SAI_SDK_GTE_14_0)
   return SaiArsTraits::AdapterHostKey{
+      std::get<SaiArsTraits::Attributes::Mode>(createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::IdleTime>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::MaxFlows>>(
+          createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
           createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
@@ -116,6 +141,11 @@ inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
   };
 #else
   return SaiArsTraits::AdapterHostKey{
+      std::get<SaiArsTraits::Attributes::Mode>(createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::IdleTime>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::MaxFlows>>(
+          createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
           createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
@@ -123,6 +153,7 @@ inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
 #endif
 #else
   return SaiArsTraits::AdapterHostKey{};
+#endif
 #endif
 }
 

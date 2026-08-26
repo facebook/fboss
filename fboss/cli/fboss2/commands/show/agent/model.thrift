@@ -6,6 +6,16 @@ struct ShowAgentSslModel {
   1: string AgentSslStatus;
 }
 
+struct AgentBootTypeEntry {
+  1: string agentName;
+  2: optional i32 switchIndex;
+  3: string bootType;
+}
+
+struct ShowAgentBootTypeModel {
+  1: list<AgentBootTypeEntry> bootTypeEntries;
+}
+
 struct AgentFirmwareEntry {
   1: string version;
   2: string opStatus;

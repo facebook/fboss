@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 #include <folly/Utility.h>
@@ -143,7 +144,7 @@ folly::F14FastMap<std::string, HwPortStats> makeLargePortStats(
       queueBytes[queueId] = counterValue;
     }
     stats.queueOutBytes_() = queueBytes;
-    std::string portName = folly::sformat("eth1/1/{}", i);
+    std::string portName = fmt::format("eth1/1/{}", i);
     portStats[portName] = stats;
   }
   return portStats;

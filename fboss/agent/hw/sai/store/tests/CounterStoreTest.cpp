@@ -22,7 +22,8 @@ class CounterStoreTest : public SaiStoreTest {
  public:
   SaiCounterTraits::CreateAttributes counterCreateAtts() const {
     SaiCharArray32 label = {"testCounter"};
-    return SaiCounterTraits::CreateAttributes{label, SAI_COUNTER_TYPE_REGULAR};
+    return SaiCounterTraits::CreateAttributes{
+        label, SAI_COUNTER_TYPE_REGULAR, std::nullopt};
   }
   CounterSaiId createCounter() {
     return saiApiTable->counterApi().create<SaiCounterTraits>(
@@ -65,6 +66,20 @@ TEST_F(CounterStoreTest, counterCreateCtor) {
   auto labelValueGot = GET_ATTR(Counter, Label, obj.attributes());
   SaiCharArray32 labelValueExpected = {"testCounter"};
   EXPECT_EQ(labelValueExpected, labelValueGot);
+}
+
+TEST_F(CounterStoreTest, counterLabelExtended) {
+  SaiCharArray32 label = {"testCounter"};
+  // Label longer than the 32-byte SAI_COUNTER_ATTR_LABEL.
+  std::vector<int8_t> labelExtended(200, 'a');
+  SaiCounterTraits::CreateAttributes attrs{
+      label,
+      SAI_COUNTER_TYPE_REGULAR,
+      SaiCounterTraits::Attributes::LabelExtended{labelExtended}};
+  SaiCounterTraits::AdapterHostKey adapterHostKey = attrs;
+  auto obj = createObj<SaiCounterTraits>(adapterHostKey, attrs, 0);
+  EXPECT_EQ(
+      labelExtended, GET_OPT_ATTR(Counter, LabelExtended, obj.attributes()));
 }
 
 TEST_F(CounterStoreTest, serDeser) {

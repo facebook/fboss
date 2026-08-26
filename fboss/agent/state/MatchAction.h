@@ -119,6 +119,14 @@ class MatchAction {
     redirectToNextHop_ = redirectToNextHop;
   }
 
+  std::optional<int64_t> getRedirectNextHopGroupId() const {
+    return redirectNextHopGroupId_;
+  }
+
+  void setRedirectNextHopGroupId(int64_t redirectNextHopGroupId) {
+    redirectNextHopGroupId_ = redirectNextHopGroupId;
+  }
+
   const std::optional<SetTc>& getSetTc() const {
     return setTc_;
   }
@@ -169,6 +177,7 @@ class MatchAction {
                toCpuAction_,
                macsecFlow_,
                redirectToNextHop_,
+               redirectNextHopGroupId_,
                setTc_,
                userDefinedTrap_,
                flowletAction_,
@@ -183,6 +192,7 @@ class MatchAction {
                action.toCpuAction_,
                action.macsecFlow_,
                action.redirectToNextHop_,
+               action.redirectNextHopGroupId_,
                action.setTc_,
                action.userDefinedTrap_,
                action.flowletAction_,
@@ -200,6 +210,7 @@ class MatchAction {
         toCpuAction_,
         macsecFlow_,
         redirectToNextHop_,
+        redirectNextHopGroupId_,
         setTc_,
         userDefinedTrap_,
         flowletAction_,
@@ -214,6 +225,7 @@ class MatchAction {
             action.toCpuAction_,
             action.macsecFlow_,
             action.redirectToNextHop_,
+            action.redirectNextHopGroupId_,
             action.setTc_,
             action.userDefinedTrap_,
             action.flowletAction_,
@@ -234,6 +246,7 @@ class MatchAction {
   std::optional<cfg::ToCpuAction> toCpuAction_{std::nullopt};
   std::optional<MacsecFlow> macsecFlow_{std::nullopt};
   std::optional<RedirectToNextHopAction> redirectToNextHop_{std::nullopt};
+  std::optional<int64_t> redirectNextHopGroupId_{std::nullopt};
   std::optional<SetTc> setTc_{std::nullopt};
   std::optional<UserDefinedTrap> userDefinedTrap_{std::nullopt};
   std::optional<cfg::FlowletAction> flowletAction_{std::nullopt};

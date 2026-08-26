@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 
 import inspect
 from typing import Callable, Optional

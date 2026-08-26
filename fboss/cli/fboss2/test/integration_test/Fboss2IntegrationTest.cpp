@@ -14,6 +14,7 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <chrono>
 #include <cstddef>
@@ -29,18 +30,28 @@
 #include <stdexcept>
 #include <streambuf>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <thread>
 #include <utility>
 #include <vector>
 
+#include <folly/IPAddressV6.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace fs = std::filesystem;
 
@@ -60,9 +71,6 @@ void Fboss2IntegrationTest::TearDown() {
 }
 
 void Fboss2IntegrationTest::discardSession() const {
-  // Delete the session files to ensure we start with a fresh session
-  // based on the current HEAD. ConfigSession::initializeSession() will
-  // reset internal state when it detects no session file exists.
   // NOLINTNEXTLINE(concurrency-mt-unsafe): HOME is read-only in practice
   const char* home = std::getenv("HOME");
   if (home == nullptr) {
@@ -88,6 +96,10 @@ void Fboss2IntegrationTest::discardSession() const {
       XLOG(WARN) << "Failed to remove session metadata: " << ec.message();
     }
   }
+
+  // Reset the in-memory singleton so the next CLI command starts a fresh
+  // session from the current system config, not stale in-process state.
+  ConfigSession::resetInstance();
 }
 
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
@@ -174,6 +186,24 @@ folly::dynamic Fboss2IntegrationTest::getSwitchState(
   return folly::parseJson(stateJson);
 }
 
+int Fboss2IntegrationTest::getInterfaceIdForPort(
+    const std::string& portName) const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::map<int32_t, InterfaceDetail> intfDetails;
+  client->sync_getAllInterfaces(intfDetails);
+  for (const auto& [intfId, detail] : intfDetails) {
+    for (const auto& name : *detail.portNames()) {
+      if (name == portName) {
+        return *detail.interfaceId();
+      }
+    }
+  }
+  throw std::runtime_error(
+      fmt::format("No L3 interface found for port {}", portName));
+}
+
 std::optional<std::pair<int, std::string>>
 Fboss2IntegrationTest::findConfiguredVlanPort() const {
   auto config = getRunningConfig();
@@ -241,7 +271,9 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
   if (data.count("vlan") && !data["vlan"].isNull()) {
     intf.vlan = static_cast<int>(data["vlan"].asInt());
   }
-  intf.mtu = static_cast<int>(data["mtu"].asInt());
+  if (data.count("mtu")) {
+    intf.mtu = static_cast<int>(data["mtu"].asInt());
+  }
 
   // Parse prefixes
   if (data.count("prefixes")) {
@@ -260,8 +292,19 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
 
 std::map<std::string, Fboss2IntegrationTest::Interface>
 Fboss2IntegrationTest::getAllInterfaces() const {
-  auto json = runCliJson({"show", "interface"});
+  auto result = runCli({"show", "interface"});
+  XLOG(DBG2) << "getAllInterfaces: exitCode=" << result.exitCode
+             << " stdout.size=" << result.stdout.size()
+             << " stderr=" << result.stderr;
+
+  if (result.exitCode != 0 || result.stdout.empty()) {
+    return {};
+  }
+
+  auto json = folly::parseJson(result.stdout);
   std::map<std::string, Fboss2IntegrationTest::Interface> interfaces;
+  int totalIntfs = 0;
+  int withVlan = 0;
 
   // JSON has a host key containing the interfaces
   for (const auto& [host, hostData] : json.items()) {
@@ -269,10 +312,17 @@ Fboss2IntegrationTest::getAllInterfaces() const {
       continue;
     }
     for (const auto& intfData : hostData["interfaces"]) {
+      ++totalIntfs;
       auto intf = parseInterfaceJson(intfData);
+      if (intf.vlan.has_value() && *intf.vlan > 1) {
+        ++withVlan;
+      }
       interfaces[intf.name] = intf;
     }
   }
+
+  XLOG(DBG2) << "getAllInterfaces: total=" << totalIntfs
+             << " withVlan>1=" << withVlan;
 
   return interfaces;
 }
@@ -301,43 +351,101 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::getInterfaceInfo(
       fmt::format("Interface {} not found", interfaceName));
 }
 
-Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
-    const {
+std::string Fboss2IntegrationTest::getRandomInterfacePortName() const {
+  // Retry with backoff to handle the window where the agent is processing a
+  // config reload after a preceding commit. Agent reloads can take up to ~30s.
+  constexpr int kMaxRetries = 60;
+  constexpr auto kRetryDelay = std::chrono::milliseconds(1000);
+
+  // Select from the agent's port list rather than 'show interface' so we only
+  // ever pick an INTERFACE_PORT. Other port types (e.g. MANAGEMENT_PORT) can
+  // still carry an L3 interface, but that interface is virtual and the agent
+  // omits its member ports from getAllInterfaces(); selecting one would make
+  // getInterfaceIdForPort() throw "No L3 interface found for port".
+  for (int attempt = 0; attempt < kMaxRetries; ++attempt) {
+    HostInfo hostInfo("localhost");
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    std::map<int32_t, PortInfoThrift> portEntries;
+    client->sync_getAllPortInfo(portEntries);
+
+    std::vector<std::string> upCandidates;
+    std::vector<std::string> allCandidates;
+    for (const auto& [portId, portInfo] : portEntries) {
+      if (portInfo.portType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      allCandidates.push_back(*portInfo.name());
+      if (portInfo.operState() == PortOperState::UP) {
+        upCandidates.push_back(*portInfo.name());
+      }
+    }
+    const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
+    if (!pool.empty()) {
+      thread_local std::mt19937 rng{std::random_device{}()};
+      std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
+      const auto& chosenName = pool[dist(rng)];
+      XLOG(INFO) << "Selected test interface " << chosenName
+                 << " (pool=" << (!upCandidates.empty() ? "up" : "all")
+                 << ", size=" << pool.size() << ")";
+      // Callers that need vlan/addresses/description can pass this name to
+      // getInterfaceInfo().
+      return chosenName;
+    }
+    if (attempt + 1 < kMaxRetries) {
+      XLOG(WARN) << "getRandomInterfacePortName: no INTERFACE_PORT found "
+                    "(attempt "
+                 << (attempt + 1) << "/" << kMaxRetries
+                 << "), retrying in 1s...";
+      // Polling backoff: the port list is populated asynchronously by the
+      // agent, with no event/future to await, so a short delay between retries
+      // is the appropriate pattern here.
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(kRetryDelay);
+    }
+  }
+  throw std::runtime_error("No INTERFACE_PORT found in getAllPortInfo");
+}
+
+std::optional<Fboss2IntegrationTest::Interface>
+Fboss2IntegrationTest::findFirstEthInterfaceWithMtu() const {
   auto interfaces = getAllInterfaces();
 
-  std::vector<Interface> upCandidates;
-  std::vector<Interface> allCandidates;
   for (const auto& [name, intf] : interfaces) {
-    if (name.rfind("eth", 0) != 0 || !intf.vlan.has_value() ||
-        *intf.vlan <= 1) {
-      continue;
-    }
-    allCandidates.push_back(intf);
-    std::string status = intf.status;
-    std::transform(status.begin(), status.end(), status.begin(), ::tolower);
-    if (status == "up") {
-      upCandidates.push_back(intf);
+    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1 &&
+        intf.mtu > 0) {
+      return intf;
     }
   }
 
-  const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
-  if (pool.empty()) {
-    throw std::runtime_error(
-        "No suitable ethernet interface found with VLAN > 1");
-  }
-
-  thread_local std::mt19937 rng{std::random_device{}()};
-  std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
-  const auto& chosen = pool[dist(rng)];
-  XLOG(INFO) << "Selected test interface " << chosen.name
-             << " (status=" << chosen.status
-             << ", pool=" << (!upCandidates.empty() ? "up" : "all")
-             << ", size=" << pool.size() << ")";
-  return chosen;
+  return std::nullopt;
 }
 
 void Fboss2IntegrationTest::commitConfig() const {
   auto result = runCli({"config", "session", "commit"});
+  if (result.exitCode == 0) {
+    return;
+  }
+  // When a commit triggers an agent restart (warmboot / coldboot to apply the
+  // new config), the thrift call can lose its connection mid-flight. The
+  // commit itself may have been accepted before the restart — callers should
+  // confirm the actual outcome via getRunningConfig() / waitForRunningConfig().
+  // Treat the disconnect signatures as expected: log, wait for the agent to
+  // come back, and return without failing the test here.
+  static constexpr std::array<std::string_view, 3> kRestartSignatures = {
+      "Channel got EOF",
+      "Connection refused",
+      "Socket not open",
+  };
+  for (auto sig : kRestartSignatures) {
+    if (result.stderr.find(sig) != std::string::npos) {
+      XLOG(INFO)
+          << "Commit dropped connection (likely agent restart): " << sig
+          << ". Waiting for agent to come back; caller must verify via running config.";
+      waitForAgentReady();
+      return;
+    }
+  }
   ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
 }
 
@@ -481,6 +589,276 @@ Fboss2IntegrationTest::waitForPortRunningInfo(
              << " — last observed: profile=" << last.profileId
              << ", speed=" << last.speedMbps << " Mbps";
   return last;
+}
+
+PlatformMapping Fboss2IntegrationTest::fetchPlatformMapping() const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  cfg::PlatformMapping thriftMapping;
+  client->sync_getPlatformMapping(thriftMapping);
+  return PlatformMapping(thriftMapping);
+}
+
+std::map<int32_t, Fboss2IntegrationTest::PresentPort>
+Fboss2IntegrationTest::fetchPresentPorts() const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::map<int32_t, PortInfoThrift> portEntries;
+  client->sync_getAllPortInfo(portEntries);
+  std::map<int32_t, PresentPort> present;
+  for (const auto& [id, info] : portEntries) {
+    present[id] = PresentPort{*info.name(), *info.profileID()};
+  }
+  return present;
+}
+
+std::set<std::string> Fboss2IntegrationTest::supportedProfileNames(
+    const PlatformMapping& mapping,
+    int32_t id) const {
+  std::set<std::string> names;
+  const auto& entry = mapping.getPlatformPort(id);
+  for (const auto& [profileId, unused] : *entry.supportedProfiles()) {
+    names.insert(apache::thrift::util::enumNameSafe(profileId));
+  }
+  return names;
+}
+
+std::optional<Fboss2IntegrationTest::CreatableCandidate>
+Fboss2IntegrationTest::findFreeableCandidate() const {
+  auto mapping = fetchPlatformMapping();
+  auto present = fetchPresentPorts();
+  auto groups = utility::getSubsidiaryPortIDs(mapping.getPlatformPorts());
+  for (const auto& [controlling, unused] : groups) {
+    int32_t cid = static_cast<int32_t>(controlling);
+    auto pit = present.find(cid);
+    if (pit == present.end()) {
+      continue;
+    }
+    cfg::PortProfileID currentProfile;
+    if (!apache::thrift::TEnumTraits<cfg::PortProfileID>::findValue(
+            pit->second.profileId.c_str(), &currentProfile)) {
+      continue;
+    }
+    const auto& cEntry = mapping.getPlatformPort(cid);
+    for (auto sp : mapping.getSubsumedPorts(controlling, currentProfile)) {
+      int32_t sid = static_cast<int32_t>(sp);
+      if (present.find(sid) != present.end()) {
+        continue; // S must be absent
+      }
+      const auto& subMapping = mapping.getPlatformPort(sid);
+      if (subMapping.mapping()->portType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      auto subProfiles = supportedProfileNames(mapping, sid);
+      if (subProfiles.empty()) {
+        continue;
+      }
+      // Find a profile C supports that no longer subsumes S and that S also
+      // supports -- so one command can narrow C and create S at that profile.
+      for (const auto& [narrowId, unused2] : *cEntry.supportedProfiles()) {
+        auto narrowName = apache::thrift::util::enumNameSafe(narrowId);
+        if (narrowName == pit->second.profileId) {
+          continue;
+        }
+        if (subProfiles.find(narrowName) == subProfiles.end()) {
+          continue; // S must support the profile we apply to it
+        }
+        const auto freed = mapping.getSubsumedPorts(controlling, narrowId);
+        if (std::find(freed.begin(), freed.end(), sp) != freed.end()) {
+          continue; // still subsumes S
+        }
+        return CreatableCandidate{
+            pit->second.name,
+            pit->second.profileId,
+            *subMapping.mapping()->name(),
+            *subProfiles.begin(),
+            std::move(narrowName)};
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+bool Fboss2IntegrationTest::waitForPortAbsent(
+    const std::string& portName) const {
+  for (int attempt = 0; attempt < 15; ++attempt) {
+    try {
+      getPortRunningInfo(portName);
+    } catch (const std::runtime_error&) {
+      return true;
+    }
+    /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(2));
+  }
+  return false;
+}
+
+folly::dynamic Fboss2IntegrationTest::waitForRunningConfig(
+    const std::function<bool(const folly::dynamic&)>& condition,
+    std::chrono::seconds timeout,
+    std::chrono::seconds interval) const {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  folly::dynamic last = folly::dynamic::object();
+  bool everFetched = false;
+  do {
+    try {
+      last = getRunningConfig();
+      everFetched = true;
+      if (condition(last)) {
+        return last;
+      }
+      XLOG(DBG1) << "Running-config condition not yet met, retrying in "
+                 << interval.count() << "s...";
+    } catch (const std::exception& e) {
+      XLOG(DBG1) << "Failed to fetch running config (" << e.what()
+                 << "), retrying in " << interval.count() << "s...";
+    }
+    /* sleep override */ std::this_thread::sleep_for(interval);
+  } while (std::chrono::steady_clock::now() < deadline);
+  XLOG(WARN) << "Timed out waiting for running-config condition after "
+             << timeout.count() << "s"
+             << (everFetched ? "" : " (config never successfully fetched)")
+             << "; returning last observed config";
+  return last;
+}
+
+folly::dynamic Fboss2IntegrationTest::getNdpConfig(
+    const folly::dynamic& runningConfig,
+    int intfID) {
+  if (!runningConfig.isObject() || !runningConfig.count("sw")) {
+    return folly::dynamic::object();
+  }
+  const auto& sw = runningConfig["sw"];
+  if (!sw.count("interfaces")) {
+    return folly::dynamic::object();
+  }
+  for (const auto& iface : sw["interfaces"]) {
+    if (iface.count("intfID") && iface["intfID"].asInt() == intfID) {
+      return iface.count("ndp") ? iface["ndp"] : folly::dynamic::object();
+    }
+  }
+  return folly::dynamic::object();
+}
+
+int Fboss2IntegrationTest::pickUnusedVlanId() const {
+  auto config = getRunningConfig();
+  if (!config.isObject() || !config.count("sw")) {
+    return 0;
+  }
+  const auto& sw = config["sw"];
+
+  std::set<int> usedVlans;
+  std::set<int> usedIntfIds;
+  auto collect =
+      [&sw](const char* array, const char* field, std::set<int>& into) {
+        if (!sw.count(array)) {
+          return;
+        }
+        for (const auto& item : sw[array]) {
+          if (item.count(field)) {
+            into.insert(item[field].asInt());
+          }
+        }
+      };
+  if (sw.count("defaultVlan")) {
+    usedVlans.insert(sw["defaultVlan"].asInt());
+  }
+  collect("vlans", "id", usedVlans);
+  collect("vlanPorts", "vlanID", usedVlans);
+  collect("interfaces", "vlanID", usedVlans);
+  collect("ports", "ingressVlan", usedVlans);
+  collect("interfaces", "intfID", usedIntfIds);
+
+  for (int candidate = kTestVlanMin; candidate <= kTestVlanMax; ++candidate) {
+    if (!usedVlans.count(candidate) && !usedIntfIds.count(candidate)) {
+      return candidate;
+    }
+  }
+  return 0;
+}
+
+void Fboss2IntegrationTest::deleteVlanIfPresent(int vlanId) const {
+  auto config = getRunningConfig();
+  if (!config.isObject() || !config.count("sw") ||
+      !config["sw"].count("vlans")) {
+    return;
+  }
+  const auto& vlans = config["sw"]["vlans"];
+  const bool present = std::any_of(
+      vlans.begin(), vlans.end(), [vlanId](const folly::dynamic& vlan) {
+        return vlan.count("id") && vlan["id"].asInt() == vlanId;
+      });
+  if (!present) {
+    return;
+  }
+
+  auto result = runCli({"delete", "vlan", std::to_string(vlanId)});
+  if (result.exitCode != 0) {
+    XLOG(WARN) << "delete vlan " << vlanId
+               << " failed, discarding session: " << result.stderr;
+    discardSession();
+    return;
+  }
+  commitConfig();
+  XLOG(INFO) << "Removed VLAN " << vlanId << " and its backing interface";
+}
+
+int Fboss2IntegrationTest::ensureUnderlayIntfId(
+    std::optional<int> vlanId) const {
+  const int vid = vlanId.value_or(pickUnusedVlanId());
+  if (vid == 0) {
+    throw std::runtime_error(
+        fmt::format(
+            "No VLAN ID free in [{}, {}] for the tunnel underlay",
+            kTestVlanMin,
+            kTestVlanMax));
+  }
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  auto [created, vlan] = VlanManager::createVlan(swConfig, VlanID(vid));
+  // Pointer into swConfig.vlans() — do not hold across further mutations.
+  (void)vlan;
+
+  // VlanManager either created a new cfg::Interface for this VLAN or left
+  // an existing one in place. Either way, look it up by vlanID.
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.vlanID() == vid) {
+      if (created) {
+        XLOG(INFO) << "Created VLAN " << vid << " with interface "
+                   << *intf.intfID() << " for tunnel underlay";
+        session.saveConfig();
+      }
+      return *intf.intfID();
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "VlanManager did not produce a backing interface for VLAN {}", vid));
+}
+
+std::string Fboss2IntegrationTest::findIpv6OnIntf(int intfId) const {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  for (const auto& intf : *swConfig.interfaces()) {
+    if (*intf.intfID() != intfId) {
+      continue;
+    }
+    for (const auto& addr : *intf.ipAddresses()) {
+      auto slashPos = addr.find('/');
+      std::string ip =
+          (slashPos != std::string::npos) ? addr.substr(0, slashPos) : addr;
+      if (folly::IPAddressV6::validate(ip)) {
+        return ip;
+      }
+    }
+    break;
+  }
+  // Test devices (e.g. NH-4010-F lab units) may have a virtual interface with
+  // no configured addresses. Fall back to a documentation IPv6 (RFC 3849) so
+  // tests still exercise the CLI path; the agent does not validate that dstIp
+  // exists on the underlay interface.
+  return "2001:db8::1";
 }
 
 } // namespace facebook::fboss

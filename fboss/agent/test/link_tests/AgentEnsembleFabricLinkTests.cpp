@@ -38,6 +38,9 @@ class AgentFabricLinkTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentFabricLinkTest, linkActiveAndLoopStatus) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::FABRIC_LINK});
+  addTestedPorts(getCabledFabricPorts());
   auto connectedPairs = getConnectedPairs();
   auto checkActiveStatus = [this, &connectedPairs]() {
     WITH_RETRIES({

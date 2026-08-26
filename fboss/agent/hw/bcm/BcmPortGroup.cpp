@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -136,7 +137,7 @@ BcmPortGroup::BcmPortGroup(
              << ", laneMode:" << laneMode_
              << (vcoFrequencies_.empty()
                      ? "."
-                     : folly::sformat(
+                     : fmt::format(
                            ", VCO Frequencies {}.",
                            VCOFrequencySetToString(vcoFrequencies_)));
 }
@@ -318,7 +319,7 @@ void BcmPortGroup::reconfigure(
              << " lanes"
              << (newVCOFrequencies.empty()
                      ? "."
-                     : folly::sformat(
+                     : fmt::format(
                            ", from {} to {}.",
                            VCOFrequencySetToString(vcoFrequencies_),
                            VCOFrequencySetToString(newVCOFrequencies)));
@@ -402,9 +403,9 @@ void BcmPortGroup::setActiveLanes(
   } else {
     // If the platform port doesn't support port resource apis, fall back to
     // use legacy way to change lane mode just for control port.
-    /* The sdk has complex rules for which port configurations are valid
+    /* The SDK has complex rules for which port configurations are valid
      * and how to transition between modes. Here are the supported
-     * modes, copied from trident2.c:
+     * modes from the legacy XGS implementation:
      *
      *  Each TSC can be configured into following 5 mode:
      *   Lane number    0    1    2    3
@@ -415,8 +416,8 @@ void BcmPortGroup::setActiveLanes(
      *   tri_012 port  10G  10G  20G   x
      *      quad port  10G  10G  10G  10G (single lane mode)
      *
-     * The sdk also does not support going directly from a quad port to
-     * a dual port, or vice versa. See trident2.c for more details.
+     * The SDK also does not support going directly from a quad port to
+     * a dual port, or vice versa.
      *
      * Note that we are not explicitly supporting tri_012 or tri_023
      * modes in fboss.

@@ -7,6 +7,7 @@
  * where ports have already been moved off the current default VLAN.
  */
 
+#include <folly/ScopeGuard.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
@@ -30,10 +31,22 @@ class ConfigVlanDefaultTest : public Fboss2IntegrationTest {};
 TEST_F(ConfigVlanDefaultTest, SetDefaultVlanTo300) {
   waitForAgentReady();
 
+  // The command auto-creates the target VLAN, which also creates a backing
+  // interface and consumes a Linux route table — so the ID has to come from
+  // pickUnusedVlanId() rather than a constant (T284228086).
+  const int targetVlanId = pickUnusedVlanId();
+  if (targetVlanId == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  SCOPE_EXIT {
+    deleteVlanIfPresent(targetVlanId);
+  };
+
   auto initialConfig = getRunningConfig();
   int64_t currentDefault =
       initialConfig["sw"].getDefault("defaultVlan", 1).asInt();
-  const std::string targetVlan = (currentDefault == 300) ? "301" : "300";
+  const std::string targetVlan = std::to_string(targetVlanId);
   XLOG(INFO) << "[Test] currentDefault=" << currentDefault
              << " targetVlan=" << targetVlan;
 
@@ -174,34 +187,40 @@ TEST_F(ConfigVlanDefaultTest, RefuseWhenPortOnDefaultVlanWithNoInterface) {
   }
 
   // Move one eth port onto the default VLAN to create the precondition.
-  auto testPort = findFirstEthInterface();
+  auto ifName = getRandomInterfacePortName();
   int64_t originalPortVlan = -1;
   for (const auto& port : initialConfig["sw"]["ports"]) {
-    if (port.getDefault("name", "").asString() == testPort.name) {
+    if (port.getDefault("name", "").asString() == ifName) {
       originalPortVlan = port.getDefault("ingressVlan", -1).asInt();
       break;
     }
   }
-  ASSERT_NE(originalPortVlan, -1) << "Could not find port " << testPort.name;
+  ASSERT_NE(originalPortVlan, -1) << "Could not find port " << ifName;
 
   if (originalPortVlan != currentDefault) {
     auto moveResult = runCli(
         {"config",
          "interface",
-         testPort.name,
+         ifName,
          "switchport",
          "access",
          "vlan",
          std::to_string(currentDefault)});
     ASSERT_EQ(moveResult.exitCode, 0)
-        << "Failed to move " << testPort.name
+        << "Failed to move " << ifName
         << " to default VLAN: " << moveResult.stderr;
-    XLOG(INFO) << "[Setup] Moved " << testPort.name << " to VLAN "
-               << currentDefault;
+    XLOG(INFO) << "[Setup] Moved " << ifName << " to VLAN " << currentDefault;
   }
 
-  // Now the guard should refuse: port on default VLAN, no interface.
-  const std::string nextVlan = (currentDefault == 300) ? "301" : "300";
+  // Now the guard should refuse: port on default VLAN, no interface. The
+  // command is expected to fail before creating anything, but use a valid ID
+  // anyway so a regression in the guard cannot abort the agent.
+  const int nextVlanId = pickUnusedVlanId();
+  if (nextVlanId == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  const std::string nextVlan = std::to_string(nextVlanId);
   auto result = runCli({"config", "vlan", "default", nextVlan});
   EXPECT_NE(result.exitCode, 0);
   EXPECT_THAT(
@@ -213,7 +232,7 @@ TEST_F(ConfigVlanDefaultTest, RefuseWhenPortOnDefaultVlanWithNoInterface) {
     runCli(
         {"config",
          "interface",
-         testPort.name,
+         ifName,
          "switchport",
          "access",
          "vlan",
@@ -252,15 +271,15 @@ TEST_F(ConfigVlanDefaultTest, ChangeDefaultVlanWithPortInNonDefaultVlan) {
   XLOG(INFO) << "currentDefault=" << currentDefault << " sideVlan=" << sideVlan;
 
   // Pick a test port and record its original VLAN.
-  auto testPort = findFirstEthInterface();
+  auto ifName = getRandomInterfacePortName();
   int64_t originalPortVlan = -1;
   for (const auto& port : initialConfig["sw"]["ports"]) {
-    if (port.getDefault("name", "").asString() == testPort.name) {
+    if (port.getDefault("name", "").asString() == ifName) {
       originalPortVlan = port.getDefault("ingressVlan", -1).asInt();
       break;
     }
   }
-  ASSERT_NE(originalPortVlan, -1) << "Could not find port " << testPort.name;
+  ASSERT_NE(originalPortVlan, -1) << "Could not find port " << ifName;
 
   // Move the port onto the default VLAN first, then off to the side VLAN.
   // This ensures at least one port has ingressVlan != defaultVlan.
@@ -268,29 +287,37 @@ TEST_F(ConfigVlanDefaultTest, ChangeDefaultVlanWithPortInNonDefaultVlan) {
     auto r = runCli(
         {"config",
          "interface",
-         testPort.name,
+         ifName,
          "switchport",
          "access",
          "vlan",
          std::to_string(currentDefault)});
     ASSERT_EQ(r.exitCode, 0)
-        << "Failed to move " << testPort.name << " to default VLAN";
+        << "Failed to move " << ifName << " to default VLAN";
   }
   auto moveOff = runCli(
       {"config",
        "interface",
-       testPort.name,
+       ifName,
        "switchport",
        "access",
        "vlan",
        std::to_string(sideVlan)});
   ASSERT_EQ(moveOff.exitCode, 0)
-      << "Failed to move " << testPort.name << " to side VLAN " << sideVlan;
-  XLOG(INFO) << "[Step 1] Moved " << testPort.name << " to VLAN " << sideVlan;
+      << "Failed to move " << ifName << " to side VLAN " << sideVlan;
+  XLOG(INFO) << "[Step 1] Moved " << ifName << " to VLAN " << sideVlan;
 
   // Set a new default VLAN — the command must succeed even when no ports
-  // remain on the old default VLAN.
-  const int64_t newDefault = 4093;
+  // remain on the old default VLAN. The target is auto-created, so it must be
+  // an ID the agent can back with a route table (T284228086).
+  const int newDefault = pickUnusedVlanId();
+  if (newDefault == 0) {
+    GTEST_SKIP() << "No VLAN ID free in [" << kTestVlanMin << ", "
+                 << kTestVlanMax << "] on this switch";
+  }
+  SCOPE_EXIT {
+    deleteVlanIfPresent(newDefault);
+  };
   auto result =
       runCli({"config", "vlan", "default", std::to_string(newDefault)});
   ASSERT_EQ(result.exitCode, 0)
@@ -303,12 +330,12 @@ TEST_F(ConfigVlanDefaultTest, ChangeDefaultVlanWithPortInNonDefaultVlan) {
   EXPECT_EQ(getSwConfigField<int>("defaultVlan"), newDefault);
 
   // Restore: move the port back and reset defaultVlan.
-  XLOG(INFO) << "[Restore] Moving " << testPort.name << " back to VLAN "
+  XLOG(INFO) << "[Restore] Moving " << ifName << " back to VLAN "
              << originalPortVlan;
   runCli(
       {"config",
        "interface",
-       testPort.name,
+       ifName,
        "switchport",
        "access",
        "vlan",

@@ -144,11 +144,23 @@ size_t DHCPv6Packet::computePacketLength() const {
  */
 std::vector<DHCPv6Option> DHCPv6Packet::extractOptions(
     std::unordered_set<uint16_t> optionSelector) {
-  int i = 0;
+  size_t i = 0;
   std::vector<DHCPv6Option> parsedOptions;
-  while (i < options.size() - 4) {
+  // Each option is at least a 4-byte header (option-code + option-len).
+  // Use addition rather than subtraction to avoid size_t underflow when
+  // options.size() < 4.
+  while (i + 4 <= options.size()) {
     DHCPv6Option opt;
-    opt.parse(options, i);
+    // i is bounded by options.size() (a parsed packet, well under INT_MAX), so
+    // the cast to parse()'s int index is safe.
+    opt.parse(options, static_cast<int>(i));
+    // Validate that the declared option length does not run past the end of
+    // the options buffer before storing the pointer+length. A malformed
+    // option would otherwise leave us with an out-of-bounds (data, len) pair.
+    if (i + 4 + opt.len > options.size()) {
+      throw FbossError(
+          "DHCPv6 packet parse error: option length exceeds remaining buffer");
+    }
     if (optionSelector.empty() || optionSelector.contains(opt.op)) {
       parsedOptions.push_back(opt);
     }

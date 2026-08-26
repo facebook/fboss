@@ -44,6 +44,7 @@ class AsyncLoggerBase {
   void appendLog(const char* logRecord, size_t logSize);
 
   static void setBootType(bool canWarmBoot);
+  static bool getBootType();
 
   // Expose these variables for testing purpose
   uint32_t getFlushCount() {
@@ -53,7 +54,7 @@ class AsyncLoggerBase {
  protected:
   void workerThread();
   void openLogFile(const std::string& file_path);
-  void writeNewBootHeader();
+  virtual void writeNewBootHeader();
 
   std::atomic_uint32_t flushCount_{0};
   std::atomic_bool forceFlush_{false};

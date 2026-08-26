@@ -102,6 +102,12 @@ fbiob::AuxData RuntimeConfigBuilder::createSpiAuxData(
   return auxData;
 }
 
+fbiob::AuxData RuntimeConfigBuilder::createMdioAuxData(
+    const FpgaIpBlockConfig& mdioBus) {
+  auto auxData = createBaseAuxData(mdioBus, fbiob::AuxDeviceType::MDIO_BUS);
+  return auxData;
+}
+
 facebook::fboss::platform::bsp_tests::I2CAdapter*
 RuntimeConfigBuilder::findAdapter(
     std::map<std::string, facebook::fboss::platform::bsp_tests::I2CAdapter>&
@@ -233,7 +239,7 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
           i2cAdapterConfigs.end());
 
       for (const auto& adapter : allI2cAdapters) {
-        const auto& auxDev = adapter.fpgaIpBlockConfig();
+        auto auxDev = adapter.fpgaIpBlockConfig();
 
         fbiob::AuxData auxData;
         auxData.name() = *auxDev->pmUnitScopedName();
@@ -284,6 +290,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       }
       for (const auto& spiMaster : *dev.spiMasterConfigs()) {
         pciDevice.auxDevices()->push_back(createSpiAuxData(spiMaster));
+      }
+      for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(dev)) {
+        pciDevice.auxDevices()->push_back(createMdioAuxData(mdioBusConfig));
       }
       devices.push_back(pciDevice);
     }
@@ -368,6 +377,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       i2cDevice.deviceName() = *pmDev.kernelDeviceName();
       i2cDevice.address() = *pmDev.address();
       i2cDevice.isGpioChip() = *pmDev.isGpioChip();
+      if (pmDev.fanCpldConfig().has_value()) {
+        i2cDevice.fanCpldConfig() = *pmDev.fanCpldConfig();
+      }
 
       auto adapter = findAdapter(i2cAdapters, adapterPmUnit, adapterName);
       adapter->i2cDevices()->push_back(i2cDevice);

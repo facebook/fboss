@@ -27,6 +27,7 @@ sai_status_t create_router_interface_fn(
   std::optional<sai_object_id_t> vrId;
   std::optional<folly::MacAddress> mac;
   std::optional<sai_uint32_t> mtu;
+  std::optional<bool> adminMplsState;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ROUTER_INTERFACE_ATTR_SRC_MAC_ADDRESS:
@@ -48,6 +49,11 @@ sai_status_t create_router_interface_fn(
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         mtu = attr_list[i].value.u32;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        adminMplsState = attr_list[i].value.booldata;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -78,6 +84,10 @@ sai_status_t create_router_interface_fn(
     auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
     ri.mtu = mtu.value();
   }
+  if (adminMplsState) {
+    auto& ri = fs->routeInterfaceManager.get(*router_interface_id);
+    ri.adminMplsState = adminMplsState.value();
+  }
   return SAI_STATUS_SUCCESS;
 }
 
@@ -99,6 +109,11 @@ sai_status_t set_router_interface_attribute_fn(
     case SAI_ROUTER_INTERFACE_ATTR_MTU:
       ri.mtu = attr->value.u32;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+      ri.adminMplsState = attr->value.booldata;
+      break;
+#endif
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -137,10 +152,50 @@ sai_status_t get_router_interface_attribute_fn(
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         attr[i].value.u32 = ri.mtu;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      case SAI_ROUTER_INTERFACE_ATTR_ADMIN_MPLS_STATE:
+        attr[i].value.booldata = ri.adminMplsState;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
+  return SAI_STATUS_SUCCESS;
+}
+
+/*
+ * No dataplane in fake sai, so stats stay 0. Must still be populated:
+ * SaiRouterInterfaceManager::updateStats() calls getStats() every tick, and an
+ * unset pointer in the static api table is nullptr -> SIGSEGV at 0x0.
+ */
+sai_status_t get_router_interface_stats_fn(
+    sai_object_id_t /*router_interface*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+// Stats are always 0, so mode (READ, READ_AND_CLEAR) doesn't matter.
+sai_status_t get_router_interface_stats_ext_fn(
+    sai_object_id_t router_interface,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_router_interface_stats_fn(
+      router_interface, num_of_counters, counter_ids, counters);
+}
+
+// noop: stats are always 0, nothing to clear.
+sai_status_t clear_router_interface_stats_fn(
+    sai_object_id_t /*router_interface*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
   return SAI_STATUS_SUCCESS;
 }
 
@@ -156,6 +211,14 @@ void populate_router_interface_api(
       &set_router_interface_attribute_fn;
   _router_interface_api.get_router_interface_attribute =
       &get_router_interface_attribute_fn;
+
+  _router_interface_api.get_router_interface_stats =
+      &get_router_interface_stats_fn;
+  _router_interface_api.get_router_interface_stats_ext =
+      &get_router_interface_stats_ext_fn;
+  _router_interface_api.clear_router_interface_stats =
+      &clear_router_interface_stats_fn;
+
   *router_interface_api = &_router_interface_api;
 }
 

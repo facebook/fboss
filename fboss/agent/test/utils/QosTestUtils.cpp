@@ -4,7 +4,11 @@
 
 #include <folly/IPAddressV4.h>
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -36,6 +40,41 @@ void setDisableTTLDecrementOnNeighnor(
     nbrTable->updateNode(entry);
   }
 }
+
+template <typename AddressT>
+void setDisableTTLDecrementOnFib(
+    ForwardingInformationBase<AddressT>* fib,
+    const std::shared_ptr<SwitchState>& state,
+    const folly::IPAddress& addr,
+    bool disable) {
+  CHECK(!fib->isPublished());
+  for (auto& entry : *fib) {
+    auto route = entry.second;
+    const auto& fwd = route->getForwardInfo();
+    RouteNextHopEntry::NextHopSet nhops = getNextHops(state, fwd);
+    bool changed = false;
+    for (auto& nhop : nhops) {
+      CHECK(nhop.isResolved());
+      if (nhop.addr() == addr) {
+        changed = true;
+        folly::poly_cast<ResolvedNextHop>(nhop).setDisableTTLDecrement(disable);
+      }
+    }
+    if (changed) {
+      route = route->clone();
+      route->setResolved(RouteNextHopEntry(
+          nhops,
+          fwd.getAdminDistance(),
+          fwd.getCounterID(),
+          fwd.getClassID(),
+          fwd.getOverrideEcmpSwitchingMode(),
+          fwd.getOverrideNextHops(),
+          fwd.getNormalizedResolvedNextHopSetID(),
+          fwd.getResolvedNextHopSetID()));
+      entry.second = route;
+    }
+  }
+}
 } // namespace
 
 std::shared_ptr<SwitchState> disableTTLDecrement(
@@ -61,8 +100,8 @@ std::shared_ptr<SwitchState> disableTTLDecrement(
     }
     auto v4Fib = fibContainer->getFibV4()->modify(routerId, &newState);
     auto v6Fib = fibContainer->getFibV6()->modify(routerId, &newState);
-    v4Fib->disableTTLDecrement(nhop);
-    v6Fib->disableTTLDecrement(nhop);
+    setDisableTTLDecrementOnFib(v4Fib, newState, nhop, true);
+    setDisableTTLDecrementOnFib(v6Fib, newState, nhop, true);
   }
 
   if (nhop.isV4()) {

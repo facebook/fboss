@@ -37,6 +37,9 @@ class AgentArsBase : public AgentHwTest {
   void SetUp() override;
   void TearDown() override;
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return kMaxEcmpWidthForTest;
+  }
   std::string getAclName(
       AclType aclType,
       bool enableArsAlternateMembers = false) const;
@@ -149,6 +152,11 @@ class AgentArsBase : public AgentHwTest {
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> helper_;
   std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
   std::vector<RoutePrefixV6> prefixes;
+
+ private:
+  // Max ECMP group width generatePrefixes() builds, and the per-switch
+  // interface-port count this test needs to form them.
+  static constexpr size_t kMaxEcmpWidthForTest = 12;
 };
 
 } // namespace facebook::fboss

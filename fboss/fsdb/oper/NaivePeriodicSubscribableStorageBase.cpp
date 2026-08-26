@@ -326,8 +326,9 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   auto served = metadata.getAllPublishersMetadata();
   if (served.has_value()) {
     for (auto& [root, md] : served.value()) {
-      auto it = registeredPublisherRoots_.rlock()->find(root);
-      if (it == registeredPublisherRoots_.rlock()->end()) {
+      auto lockedRegisteredPublisherRoots = registeredPublisherRoots_.rlock();
+      auto it = lockedRegisteredPublisherRoots->find(root);
+      if (it == lockedRegisteredPublisherRoots->end()) {
         continue;
       }
 
@@ -618,6 +619,41 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
   return SubscriptionStreamReader<
       SubscriptionServeQueueElement<SubscriberMessage>>{
       std::move(gen), std::move(sharedStreamInfo)};
+}
+
+std::optional<FsdbErrorCode>
+NaivePeriodicSubscribableStorageBase::add_patch_subscription_path_impl(
+    SubscriptionIdentifier&& id,
+    std::map<SubscriptionKey, RawOperPath> newPaths,
+    std::optional<StreamRevision> streamRevision) {
+  if (newPaths.empty()) {
+    // Nothing to add; reject rather than silently recording a no-op.
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
+  for (auto& [key, path] : newPaths) {
+    auto convertedPath = convertPath(std::move(*path.path()));
+    path.path() = std::move(convertedPath);
+  }
+  auto root = getPublisherRoot(newPaths);
+  return subMgr().addPatchSubscriptionPaths(
+      id, std::move(newPaths), root, streamRevision);
+}
+
+std::optional<FsdbErrorCode>
+NaivePeriodicSubscribableStorageBase::add_extended_patch_subscription_path_impl(
+    SubscriptionIdentifier&& id,
+    std::map<SubscriptionKey, ExtendedOperPath> newPaths,
+    std::optional<StreamRevision> streamRevision) {
+  if (newPaths.empty()) {
+    return FsdbErrorCode::INVALID_REQUEST;
+  }
+  for (auto& [key, path] : newPaths) {
+    auto convertedPath = convertPath(std::move(*path.path()));
+    path.path() = std::move(convertedPath);
+  }
+  auto root = getPublisherRoot(newPaths);
+  return subMgr().addPatchSubscriptionPaths(
+      id, std::move(newPaths), root, streamRevision);
 }
 
 } // namespace facebook::fboss::fsdb

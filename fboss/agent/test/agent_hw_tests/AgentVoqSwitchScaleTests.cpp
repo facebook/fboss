@@ -65,12 +65,23 @@ TEST_F(AgentVoqSwitchScaleTest, remoteNeighborWithEcmpGroup) {
           getSw()->updateStats();
           return getLatestSysPortStats(portIds);
         };
+    // Resolve the switch under test once. getSendPktFunc(ensemble) routes every
+    // packet through AgentEnsemble::sendPacketAsync, which recomputes
+    // masterLogicalPortIds() (a full per-port scope rebuild) per packet; at
+    // this test's scale (kEcmpWidth * 25000 packets) that recompute dominates
+    // runtime. Resolve the switchId once and send switched directly via
+    // getSendPktFunc(sw, switchId).
+    const auto switchId =
+        getSw()
+            ->getScopeResolver()
+            ->scope(getAgentEnsemble()->masterLogicalPortIds()[0])
+            .switchId();
     utility::pumpTrafficAndVerifyLoadBalanced(
         [&]() {
           utility::pumpTraffic(
               true, /* isV6 */
               utility::getAllocatePktFn(getAgentEnsemble()),
-              utility::getSendPktFunc(getAgentEnsemble()),
+              utility::getSendPktFunc(getSw(), switchId),
               utility::kLocalCpuMac(), /* dstMac */
               std::nullopt, /* vlan */
               std::nullopt, /* frontPanelPortToLoopTraffic */

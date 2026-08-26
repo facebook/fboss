@@ -56,6 +56,7 @@ class PortStoreTest : public SaiStoreTest {
 #endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // PFC Priority to Priority Group map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt, // Inter Frame Gap
 #endif
@@ -89,7 +90,14 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // LinkScanMode
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+        std::nullopt, // LlrModeLocal
+        std::nullopt, // LlrModeRemote
+        std::nullopt, // LlrProfile
+#endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
     };
   }
 
@@ -97,6 +105,25 @@ class PortStoreTest : public SaiStoreTest {
     SaiPortTraits::CreateAttributes c = makeAttrs(lane, 100000);
     return saiApiTable->portApi().create<SaiPortTraits>(c, 0);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  SaiPortLlrProfileTraits::CreateAttributes makeLlrProfileAttrs() {
+    return SaiPortLlrProfileTraits::CreateAttributes{
+        SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{32},
+        SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{4096},
+        SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{5000},
+        SaiPortLlrProfileTraits::Attributes::ReplayCountMax{sai_uint8_t(7)},
+        SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{1000},
+        SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{200000},
+        SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+            SAI_LLR_FRAME_ACTION_BEST_EFFORT},
+        SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+            SAI_LLR_FRAME_ACTION_BLOCK},
+        SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{true},
+        SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+            sai_uint16_t(2048)}};
+  }
+#endif
 };
 
 TEST_F(PortStoreTest, loadPort) {
@@ -226,6 +253,22 @@ TEST_F(PortStoreTest, portSetMtu) {
   auto apiMtu = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::Mtu{});
   EXPECT_EQ(apiMtu, kMtu);
+}
+
+TEST_F(PortStoreTest, portSetIngressAcl) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  constexpr sai_object_id_t kIngressAclId{42};
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(newAttrs) =
+      kIngressAclId;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, IngressAcl, portObj.attributes()), kIngressAclId);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portId, SaiPortTraits::Attributes::IngressAcl{}),
+      kIngressAclId);
 }
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 TEST_F(PortStoreTest, portFabricIsolate) {
@@ -420,6 +463,25 @@ TEST_F(PortStoreTest, portSetResetQueueCreditBalance) {
   EXPECT_EQ(apiResetQueueCreditBalance, false);
 }
 
+TEST_F(PortStoreTest, portSetLinkScanMode) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Check default value
+  auto apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 0);
+
+  // Set link scan mode to hardware (SAI_PORT_LINKSCAN_MODE_HW == 2)
+  SaiPortTraits::Attributes::LinkScanMode linkScanMode(2);
+  saiApiTable->portApi().setAttribute(portId, linkScanMode);
+
+  // Verify the attribute was set correctly
+  apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 2);
+}
+
 TEST_F(PortStoreTest, portSetPfcMonitorDirection) {
   auto portId = createPort(0);
   SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
@@ -438,3 +500,38 @@ TEST_F(PortStoreTest, portSetPfcMonitorDirection) {
       portId, SaiPortTraits::Attributes::PfcMonitorDirection{});
   EXPECT_EQ(apiPfcMonitorDirection, 1);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// A port bound to an LLR profile is reclaimed on warm-boot reload with its
+// LlrProfile binding intact, and the referenced profile object is reclaimed
+// too.
+TEST_F(PortStoreTest, loadPortBoundToLlrProfile) {
+  auto profileId = saiApiTable->portApi().create<SaiPortLlrProfileTraits>(
+      makeLlrProfileAttrs(), 0);
+  auto portId = createPort(0);
+  saiApiTable->portApi().setAttribute(
+      portId,
+      SaiPortTraits::Attributes::LlrProfile{
+          static_cast<sai_object_id_t>(profileId)});
+
+  SaiStore s(0);
+  s.reload();
+
+  // Port reclaimed and still bound to the profile.
+  std::vector<uint32_t> lanes{0};
+  auto gotPort =
+      s.get<SaiPortTraits>().get(SaiPortTraits::AdapterHostKey{lanes});
+  ASSERT_NE(gotPort, nullptr);
+  EXPECT_EQ(gotPort->adapterKey(), portId);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          gotPort->adapterKey(), SaiPortTraits::Attributes::LlrProfile{}),
+      static_cast<sai_object_id_t>(profileId));
+
+  // The referenced profile object is reclaimed too.
+  SaiPortLlrProfileTraits::AdapterHostKey profileKey = makeLlrProfileAttrs();
+  auto gotProfile = s.get<SaiPortLlrProfileTraits>().get(profileKey);
+  ASSERT_NE(gotProfile, nullptr);
+  EXPECT_EQ(gotProfile->adapterKey(), profileId);
+}
+#endif

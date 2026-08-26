@@ -212,6 +212,16 @@ const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getAcls() const {
   return safe_cref<switch_state_tags::aclMaps>();
 }
 
+void SwitchState::resetClassBasedPolicies(
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies) {
+  ref<switch_state_tags::classBasedPolicyMaps>() = policies;
+}
+
+const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+SwitchState::getClassBasedPolicies() const {
+  return safe_cref<switch_state_tags::classBasedPolicyMaps>();
+}
+
 void SwitchState::resetAclTableGroups(
     std::shared_ptr<MultiSwitchAclTableGroupMap> aclTableGroups) {
   ref<switch_state_tags::aclTableGroupMaps>() = aclTableGroups;
@@ -277,6 +287,16 @@ SwitchState::getPortFlowletCfgs() const {
   return safe_cref<switch_state_tags::portFlowletCfgMaps>();
 }
 
+void SwitchState::resetLlrConfigs(
+    std::shared_ptr<MultiSwitchLlrConfigMap> cfgs) {
+  ref<switch_state_tags::llrCfgMaps>() = cfgs;
+}
+
+const std::shared_ptr<MultiSwitchLlrConfigMap> SwitchState::getLlrConfigs()
+    const {
+  return safe_cref<switch_state_tags::llrCfgMaps>();
+}
+
 const std::shared_ptr<MultiSwitchLoadBalancerMap>&
 SwitchState::getLoadBalancers() const {
   return safe_cref<switch_state_tags::loadBalancerMaps>();
@@ -316,11 +336,6 @@ const std::shared_ptr<MultiSwitchFibInfoMap>& SwitchState::getFibsInfoMap()
   return safe_cref<switch_state_tags::fibsInfoMap>();
 }
 
-const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
-SwitchState::getFibs() const {
-  return safe_cref<switch_state_tags::fibsMap>();
-}
-
 const std::shared_ptr<MultiControlPlane>& SwitchState::getControlPlane() const {
   return safe_cref<switch_state_tags::controlPlaneMap>();
 }
@@ -333,11 +348,6 @@ SwitchState::getLabelForwardingInformationBase() const {
 void SwitchState::resetLabelForwardingInformationBase(
     std::shared_ptr<MultiLabelForwardingInformationBase> labelFib) {
   ref<switch_state_tags::labelFibMap>() = labelFib;
-}
-
-void SwitchState::resetForwardingInformationBases(
-    std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs) {
-  ref<switch_state_tags::fibsMap>() = fibs;
 }
 
 void SwitchState::resetFibsInfoMap(
@@ -620,6 +630,10 @@ SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
 }
 
+std::optional<bool> SwitchState::getL3EcmpIngressPortPrune() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getL3EcmpIngressPortPrune();
+}
+
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,
@@ -811,51 +825,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
 
-  /*
-   * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
-   *
-   * Stage 1 : Rollback safety - Clear fibsInfoMap when deserializing
-   * to handle rollback from Stage 2 where both FIBs are
-   * populated during warm boot exit.
-   *
-   * Stage 2 (Current): Migrate clients to new FIB while populating
-   * both structures during warm boot exit. Forward migration (Stage
-   * 2→3) clears fibsMap on init; rollback (Stage 2→1) clears fibsInfoMap during
-   * init of stage 1.
-   *
-   * Stage 3: New FIB primary - All clients use fibsInfoMap, but both FIBs still
-   * populated during warm boot exit to support direct Stage 1→3
-   * transitions.
-   *
-   * Stage 4: Complete migration - Remove fibsMap entirely from codebase.
-   */
-
-  // Migrate old fibsMap to new fibsInfoMap
-  // We need to populate fibsInfoMap with map<SwitchIdList, FibInfoFields>
-  auto oldFibsMap = state->getFibs();
-  if (oldFibsMap && !oldFibsMap->empty()) {
-    auto fibsInfoMap = state->getFibsInfoMap();
-    // Only convert if new fibsInfoMap doesn't exist or is empty
-    if (!fibsInfoMap || fibsInfoMap->empty()) {
-      auto newFibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-      for (const auto& [switchIdListStr, fibMap] : std::as_const(*oldFibsMap)) {
-        auto fibInfo = std::make_shared<FibInfo>();
-
-        // Copy the old fibMap to the new FibInfo
-        fibInfo->resetFibsMap(fibMap);
-
-        newFibsInfoMap->updateFibInfo(
-            fibInfo, HwSwitchMatcher(switchIdListStr));
-      }
-
-      // Update the state with the new fibsInfoMap
-      state->resetFibsInfoMap(newFibsInfoMap);
-    }
-    // Clear the old fibsMap
-    state->resetForwardingInformationBases(
-        std::make_shared<MultiSwitchForwardingInformationBaseMap>());
-  }
-
   // Migrate old ports field to new portsInfo field for warmboot compatibility
   for (auto& vlanMapEntry : *state->ref<switch_state_tags::vlanMaps>()) {
     for (auto& [vlanId, vlan] : *vlanMapEntry.second) {
@@ -878,7 +847,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       }
     }
   }
-
   // TODO: remove this block once the NextHopIDManager migration is complete
   // and enable_nexthop_id_manager is permanently on. Until then we maintain
   // two safety nets per-FibInfo, keyed off the persisted id maps:
@@ -1086,7 +1054,6 @@ state::SwitchState SwitchState::toThrift() const {
     }
     aclTableGroupMaps->clear();
   }
-
   // Migrate new portsInfo field to old ports field for warmboot compatibility
   for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
     for (auto& [vlanId, vlanThrift] : vlanMapThrift) {
@@ -1180,6 +1147,8 @@ template MultiSwitchTransceiverMap* SwitchState::modify<
     switch_state_tags::transceiverMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchPortFlowletCfgMap* SwitchState::modify<
     switch_state_tags::portFlowletCfgMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchLlrConfigMap* SwitchState::modify<
+    switch_state_tags::llrCfgMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchDsfNodeMap* SwitchState::modify<
     switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
 

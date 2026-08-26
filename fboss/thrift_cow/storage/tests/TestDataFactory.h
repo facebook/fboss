@@ -11,6 +11,7 @@
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_route_types_types.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace {
@@ -106,6 +107,12 @@ struct BgpRibMapScale {
   int communitiesPerPath;
   int asPathSegments;
   int extCommunitiesPerPath;
+  // When isFPF is true the generator emits bgpData.canonicalRib()
+  // (best-path-only) instead of ribMap, sized from numPods x numPrefixesPerPod.
+  // Defaulted so existing aggregate initializers are unaffected.
+  bool isFPF{false};
+  int numPods{0};
+  int numPrefixesPerPod{0};
 };
 
 class IDataGenerator {
@@ -237,6 +244,13 @@ class BgpRibMapDataGenerator : public IDataGenerator {
   // best-paths per entry. ~10% V4 / 90% V6 split.
   static BgpRibMapScale makeGtswScale(int prefixScale, int paths);
 
+  // Builds an FPF (GPU fabric) canonicalRib-shaped scale matching a captured
+  // GTSW canonicalRib: rib_entries = numPods * numPrefixesPerPod (all V6 /64),
+  // 1 community list of 13, numPods 2-ASN as_path lists, 1 ext-community list,
+  // no cluster lists.
+  static BgpRibMapScale
+  makeGtswScale(bool isFPF, int numPods, int numPrefixesPerPod);
+
  protected:
   fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
   fsdb::BgpData buildBgpData(int version);
@@ -259,6 +273,18 @@ class BgpRibMapDataGenerator : public IDataGenerator {
       int asPathVersion);
   std::string createPrefixKey(
       const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix);
+
+  // Helpers for the FPF canonicalRib path (scale.isFPF == true).
+  neteng::fboss::bgp::thrift::TCanonicalRibState buildCanonicalRib(
+      const BgpRibMapScale& scale,
+      int version);
+  neteng::fboss::bgp::thrift::TBgpAttrDict buildAttrDict(
+      const BgpRibMapScale& scale);
+  neteng::fboss::bgp::thrift::TBgpDedupedPath
+  buildDedupedBestPath(int index, int podIdx, const BgpRibMapScale& scale);
+  // Distinct V6 /64 prefix mirroring the DNE injector's expand_prefix_range
+  // (base 5000:dd::/64). Distinct for every non-negative index.
+  facebook::neteng::fboss::bgp_attr::TIpPrefix createFpfPrefix(int index);
 
   RoleSelector selector_;
   std::optional<BgpRibMapScale> overrideScale_;

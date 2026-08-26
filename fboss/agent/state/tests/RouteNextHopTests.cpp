@@ -291,6 +291,50 @@ TEST(RouteNextHopTest, ResolvedVsUnresolvedInequality) {
   EXPECT_NE(resolvedNh, unresolvedNh);
 }
 
+TEST(RouteNextHopTest, NextHopRole) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  ResolvedNextHop primary(addr, InterfaceID(1), 10);
+  ResolvedNextHop backup(
+      addr,
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      NextHopRole::BACKUP);
+
+  EXPECT_EQ(primary.role(), NextHopRole::PRIMARY);
+  EXPECT_EQ(backup.role(), NextHopRole::BACKUP);
+  EXPECT_NE(primary, backup);
+
+  NextHop backupNextHop = backup;
+  auto thrift = backupNextHop.toThrift();
+  EXPECT_EQ(*thrift.role(), NextHopRole::BACKUP);
+  EXPECT_EQ(util::fromThrift(thrift, true), backupNextHop);
+
+  UnresolvedNextHop unresolvedBackup(
+      addr,
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      {},
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      NextHopRole::BACKUP);
+  NextHop unresolvedBackupNextHop = unresolvedBackup;
+  EXPECT_EQ(
+      util::fromThrift(unresolvedBackupNextHop.toThrift()),
+      unresolvedBackupNextHop);
+}
+
 // Hash function tests for NetworkTopologyInformation
 TEST(RouteNextHopTest, NetworkTopologyInformationHashFunction) {
   std::hash<NetworkTopologyInformation> hasher;
@@ -302,6 +346,7 @@ TEST(RouteNextHopTest, NetworkTopologyInformationHashFunction) {
   topo1.remote_rack_capacity() = 3;
   topo1.spine_capacity() = 4;
   topo1.local_rack_capacity() = 5;
+  topo1.spine_id() = 6;
 
   NetworkTopologyInformation topo2;
   topo2.rack_id() = 1;
@@ -309,6 +354,7 @@ TEST(RouteNextHopTest, NetworkTopologyInformationHashFunction) {
   topo2.remote_rack_capacity() = 3;
   topo2.spine_capacity() = 4;
   topo2.local_rack_capacity() = 5;
+  topo2.spine_id() = 6;
 
   EXPECT_EQ(hasher(topo1), hasher(topo2));
 
@@ -319,8 +365,13 @@ TEST(RouteNextHopTest, NetworkTopologyInformationHashFunction) {
   topo3.remote_rack_capacity() = 3;
   topo3.spine_capacity() = 4;
   topo3.local_rack_capacity() = 5;
+  topo3.spine_id() = 6;
 
   EXPECT_NE(hasher(topo1), hasher(topo3));
+
+  NetworkTopologyInformation topo4 = topo1;
+  topo4.spine_id() = 7;
+  EXPECT_NE(hasher(topo1), hasher(topo4));
 }
 
 TEST(RouteNextHopTest, NetworkTopologyInformationHashWithOptionalFields) {

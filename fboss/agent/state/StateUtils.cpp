@@ -14,11 +14,50 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace {
 const std::string kTunIntfPrefix = "fboss";
 } // anonymous namespace
 
 namespace facebook::fboss::utility {
+
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName) {
+  if (FLAGS_enable_acl_table_group) {
+    auto aclMap = state->getAclsForTable(
+        cfg::AclStage::INGRESS,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+    return aclMap ? aclMap->getNodeIf(aclName) : nullptr;
+  }
+  return state->getAcl(aclName);
+}
+
+std::optional<std::string> getAclTableNameForEntry(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclEntryId) {
+  if (!FLAGS_enable_acl_table_group) {
+    return cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
+  }
+
+  auto aclTableGroups = state->getAclTableGroups();
+  if (!aclTableGroups) {
+    return std::nullopt;
+  }
+
+  for (const auto& groupMap : std::as_const(*aclTableGroups)) {
+    for (const auto& [stage, group] : std::as_const(*groupMap.second)) {
+      for (const auto& [tableName, table] :
+           std::as_const(*group->getAclTableMap())) {
+        if (table->getAclMap()->getNodeIf(aclEntryId)) {
+          return tableName;
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
 
 bool isTunIntfName(std::string const& ifName) {
   return ifName.find(kTunIntfPrefix) == 0;
@@ -56,12 +95,16 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
 
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    const SwitchID& switchId) {
+    const SwitchID& switchId,
+    std::optional<cfg::Scope> scope) {
   HwSwitchMatcher matcher(std::unordered_set<SwitchID>{switchId});
   auto intfMap = state->getInterfaces()->getMapNodeIf(matcher);
   if (intfMap) {
     for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
       if (intf->isVirtual()) {
+        continue;
+      }
+      if (scope.has_value() && intf->getScope() != scope.value()) {
         continue;
       }
       return InterfaceID(intfID);

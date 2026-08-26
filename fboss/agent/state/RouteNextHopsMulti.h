@@ -71,7 +71,8 @@ class RouteNextHopsMulti
   using Base = thrift_cow::ThriftStructNode<state::RouteNextHopsMulti>;
   using Base::Base;
 
-  std::vector<ClientAndNextHops> toThriftLegacy() const;
+  std::vector<ClientAndNextHops> toThriftLegacy(
+      std::optional<ClientID> preferredClient = std::nullopt) const;
 
   std::string strLegacy() const;
   void update(ClientID clientid, const RouteNextHopEntry& nhe);

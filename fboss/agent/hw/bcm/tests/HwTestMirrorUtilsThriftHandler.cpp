@@ -243,33 +243,47 @@ bool HwTestThriftHandler::verifyResolvedMirror(
     return false;
   }
 
-  if (bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE) !=
-      mirror->truncate().value()) {
-    XLOG(ERR) << "mirror_dest.truncate: " << mirror_dest.truncate
-              << "Expected value: " << mirror->truncate().value();
-    return false;
+  if (auto truncateOpt = mirror->truncate(); truncateOpt.has_value()) {
+    if (bool(mirror_dest.truncate & BCM_MIRROR_PAYLOAD_TRUNCATE) !=
+        truncateOpt.value()) {
+      XLOG(ERR) << "mirror_dest.truncate: " << mirror_dest.truncate
+                << " Expected value: " << truncateOpt.value();
+      return false;
+    }
   }
 
   if (!mirror->tunnel().has_value()) {
     XLOG(DBG2) << "Mirror Tunnel is not present";
     return true;
   }
-  int16_t udpDstPort = mirror->tunnel().value().udpDstPort().value();
-  if (udpDstPort != mirror_dest.udp_dst_port) {
-    XLOG(ERR) << "Actual Value of udpDstPort: " << udpDstPort
-              << " Expected: " << mirror_dest.udp_dst_port;
-    return false;
-  }
-  int16_t udpSrcPort = mirror->tunnel().value().udpSrcPort().value();
-  if (udpSrcPort != mirror_dest.udp_src_port) {
-    XLOG(ERR) << "Actual Value of udpSrcPort: " << udpSrcPort
-              << " Expected: " << mirror_dest.udp_src_port;
-    return false;
-  }
+  const auto& tunnel = mirror->tunnel().value();
 
-  if (!(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE)) {
-    XLOG(ERR) << "mirror_dest flags not set to BCM_MIRROR_DEST_TUNNEL_IP_GRE";
-    return false;
+  // Sflow tunnels carry UDP src/dst ports (both set together by
+  // cfg::SflowTunnel); ERSPAN tunnels use GRE and leave both optionals unset.
+  // Require both to be present before treating this as the sflow encap so we
+  // never dereference an unset optional below.
+  if (tunnel.udpSrcPort().has_value() && tunnel.udpDstPort().has_value()) {
+    if (!(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_SFLOW)) {
+      XLOG(ERR) << "mirror_dest flags not set to BCM_MIRROR_DEST_TUNNEL_SFLOW";
+      return false;
+    }
+    int16_t udpDstPort = tunnel.udpDstPort().value();
+    if (udpDstPort != mirror_dest.udp_dst_port) {
+      XLOG(ERR) << "Actual Value of udpDstPort: " << udpDstPort
+                << " Expected: " << mirror_dest.udp_dst_port;
+      return false;
+    }
+    int16_t udpSrcPort = tunnel.udpSrcPort().value();
+    if (udpSrcPort != mirror_dest.udp_src_port) {
+      XLOG(ERR) << "Actual Value of udpSrcPort: " << udpSrcPort
+                << " Expected: " << mirror_dest.udp_src_port;
+      return false;
+    }
+  } else {
+    if (!(mirror_dest.flags & BCM_MIRROR_DEST_TUNNEL_IP_GRE)) {
+      XLOG(ERR) << "mirror_dest flags not set to BCM_MIRROR_DEST_TUNNEL_IP_GRE";
+      return false;
+    }
   }
 
   return true;

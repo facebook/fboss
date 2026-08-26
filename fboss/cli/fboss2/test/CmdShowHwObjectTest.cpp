@@ -78,4 +78,9 @@ TEST_F(CmdShowHwObjectTestFixture, printOutput) {
   EXPECT_EQ(output, expectedOutput);
 }
 
+TEST_F(CmdShowHwObjectTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowHwObjectTraits::description().empty());
+  EXPECT_FALSE(CmdShowHwObject::sampleModel().empty());
+}
+
 } // namespace facebook::fboss

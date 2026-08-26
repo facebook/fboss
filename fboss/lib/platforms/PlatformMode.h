@@ -118,12 +118,20 @@ inline std::string toString(PlatformType mode) {
       return "YANGRA2";
     case PlatformType::PLATFORM_SAINTPAUL:
       return "SAINTPAUL";
+    case PlatformType::PLATFORM_M4062NHP:
+      return "M4062NHP";
     case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
       return "MERU400BIU";
     case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:
       return "MERU400BFU";
     case PlatformType::PLATFORM_MERU400BIA_DEPRECATED:
       return "MERU400BIA";
+    case PlatformType::PLATFORM_WEDGE800BNHP:
+      return "WEDGE800BNHP";
+    case PlatformType::PLATFORM_M5120CSC:
+      return "M5120CSC";
+    case PlatformType::PLATFORM_WEDGE800CNHP:
+      return "WEDGE800CNHP";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

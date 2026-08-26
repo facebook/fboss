@@ -11,17 +11,10 @@
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 #include <experimental/saiexperimentaltameventaginggroup.h>
 #endif
 #include <experimental/saitamextensions.h>
-#else
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-#include <saiexperimentaltameventaginggroup.h>
-#endif
-#include <saitamextensions.h>
-#endif
 }
 #endif
 

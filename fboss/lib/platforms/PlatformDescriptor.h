@@ -16,6 +16,7 @@
 
 #include <folly/CppAttributes.h>
 
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 DECLARE_string(platform_descriptor_config_path);
@@ -35,6 +36,9 @@ class PlatformDescriptorRegistry {
       std::string_view productName,
       std::string_view mode) const;
   std::optional<std::string> loadPlatformMapping(PlatformType type) const;
+  cfg::PlatformMapping loadPlatformMappingFromRaw(
+      PlatformType type,
+      const cfg::PlatformConfig& platformConfig) const;
 
   static PlatformDescriptor loadPlatformDescriptorFromFile(
       const std::string& path);
@@ -50,10 +54,14 @@ class PlatformDescriptorRegistry {
   struct PlatformDescriptorEntry {
     PlatformDescriptor descriptor;
     std::string platformMappingPath;
+    std::string rawPlatformMappingPath;
   };
 
   explicit PlatformDescriptorRegistry(
       std::vector<PlatformDescriptorEntry> descriptorEntries);
+
+  const PlatformDescriptorEntry* FOLLY_NULLABLE
+  getDescriptorEntry(PlatformType type) const;
 
   static std::vector<PlatformDescriptorEntry>
   loadPlatformDescriptorEntriesFromDirectory(

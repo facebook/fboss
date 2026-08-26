@@ -12,7 +12,6 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/commands/clear/CmdClearUtils.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 namespace facebook::fboss {
 

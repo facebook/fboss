@@ -10,6 +10,7 @@
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -43,12 +44,23 @@ std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
     nextState = mySidUpdater_(nextState);
   }
   nextState = nhopStateUpdater_(nextState);
+  StateDelta delta(state, nextState);
+  /*
+   * We validate nhops here and not in fibUpdater_ as
+   * - With nhop ID assignment, the fibInfoMaps don't have the updated nhopIds
+   *   during FIB construction. So we can't really lookup nhop contents.
+   * - Invalid nhops may get associated with mysids as well.
+   */
+  if (auto invalidNextHop = nhopStateUpdater_.getInvalidLinkLocalNextHop()) {
+    throw FbossHwUpdateError(
+        nextState, state, "Invalid link-local next hop: ", *invalidNextHop);
+  }
   if (!FLAGS_verify_fib_nexthop_id_consistency) {
     DCHECK(nhopStateUpdater_.verifyNextHopIdConsistency(nextState));
   } else {
     CHECK(nhopStateUpdater_.verifyNextHopIdConsistency(nextState));
   }
-  lastDelta_ = StateDelta(state, nextState);
+  lastDelta_ = std::move(delta);
   return nextState;
 }
 

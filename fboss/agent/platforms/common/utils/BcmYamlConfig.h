@@ -23,6 +23,10 @@ class BcmYamlConfig {
       const std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>>&
           pinMapping);
 
+  // Set a property under the bcm_device.<n>.global section (i.e. a legacy SOC
+  // property). Creates the bcm_device/0/global structure if it does not exist.
+  void setGlobalProperty(const std::string& name, const std::string& value);
+
   std::string getConfig();
 
   std::optional<std::string> getMmuState() const;

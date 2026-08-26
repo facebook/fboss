@@ -54,19 +54,14 @@ class SaiApi {
   // one for objects whose AdapterKey is a SAI object id, which needs to
   // return the adapter key, and another for those objects whose AdapterKey
   // is an entry struct, which must take an AdapterKey but don't return one.
-  // The distinction is drawn with traits from Traits.h and SFINAE
+  // The distinction is drawn with concepts from Traits.h.
 
-  // sai_object_id_t case
-  template <typename SaiObjectTraits>
-  std::enable_if_t<
-      AdapterKeyIsObjectId<SaiObjectTraits>::value,
-      typename SaiObjectTraits::AdapterKey>
-  create(
+  // ObjectIdSaiObject case: SAI returns a new object ID.
+  template <ObjectIdSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
+  typename SaiObjectTraits::AdapterKey create(
       const typename SaiObjectTraits::CreateAttributes& createAttributes,
       sai_object_id_t switch_id) const {
-    static_assert(
-        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
-        "invalid traits for the api");
     typename SaiObjectTraits::AdapterKey key;
     std::vector<sai_attribute_t> saiAttributeTs = saiAttrs(createAttributes);
     if (UNLIKELY(failHwWrites() || skipHwWrites())) {
@@ -101,16 +96,13 @@ class SaiApi {
     return key;
   }
 
-  // entry struct case
-  template <typename SaiObjectTraits>
-  std::enable_if_t<AdapterKeyIsEntryStruct<SaiObjectTraits>::value, void>
-  create(
+  // EntryStructSaiObject case: caller provides the full SAI entry key.
+  template <EntryStructSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
+  void create(
       const typename SaiObjectTraits::AdapterKey& entry,
       const typename SaiObjectTraits::CreateAttributes& createAttributes)
       const {
-    static_assert(
-        std::is_same_v<typename SaiObjectTraits::SaiApiT, ApiT>,
-        "invalid traits for the api");
     if (UNLIKELY(skipHwWrites())) {
       return;
     }
@@ -181,18 +173,10 @@ class SaiApi {
    */
 
   // Default "real attr". This is the base case of the recursion
-  template <
-      typename AdapterKeyT,
-      typename AttrT,
-      typename = std::enable_if_t<
-          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   typename std::remove_reference_t<AttrT>::ValueType getAttribute(
       const AdapterKeyT& key,
       AttrT&& attr) const {
-    static_assert(
-        IsSaiAttribute<typename std::remove_reference<AttrT>::type>::value,
-        "getAttribute must be called on a SaiAttribute or supported "
-        "collection of SaiAttributes");
     auto g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
@@ -234,15 +218,10 @@ class SaiApi {
   }
 
   // std::tuple of attributes
-  template <
-      typename AdapterKeyT,
-      typename TupleT,
-      typename =
-          std::enable_if_t<IsTuple<std::remove_reference_t<TupleT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeTuple TupleT>
   const std::remove_reference_t<TupleT> getAttribute(
       const AdapterKeyT& key,
       TupleT&& attrTuple) const {
-    // TODO: assert on All<IsSaiAttribute>
     auto recurse = [&key, this](auto&& attr) {
       return getAttribute(key, std::forward<decltype(attr)>(attr));
     };
@@ -250,11 +229,7 @@ class SaiApi {
   }
 
   // std::optional of attribute
-  template <
-      typename AdapterKeyT,
-      typename AttrT,
-      typename = std::enable_if_t<
-          IsSaiAttribute<std::remove_reference_t<AttrT>>::value>>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   auto getAttribute(const AdapterKeyT& key, std::optional<AttrT>& attrOptional)
       const {
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
@@ -320,7 +295,7 @@ class SaiApi {
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   std::vector<typename std::remove_reference_t<AttrT>::ValueType>
   bulkGetAttributes(
       std::vector<AdapterKeyT>& adapterKeys,
@@ -405,7 +380,7 @@ class SaiApi {
   }
 #endif
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void setAttributeUnlocked(const AdapterKeyT& key, const AttrT& attr) const {
     if (UNLIKELY(skipHwWrites())) {
       return;
@@ -446,13 +421,13 @@ class SaiApi {
         fmt::format("Failed to set attribute {} to {}", key, attr));
     XLOGF(DBG5, "set SAI attribute of {} to {}", key, attr);
   }
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void setAttribute(const AdapterKeyT& key, const AttrT& attr) const {
     auto g{SaiApiLock::getInstance()->lock()};
     setAttributeUnlocked(key, attr);
   }
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void bulkSetAttributesUnlocked(
       std::vector<AdapterKeyT>& adapterKeys,
       std::vector<AttrT>& attributes) const {
@@ -507,7 +482,7 @@ class SaiApi {
     }
   }
 
-  template <typename AdapterKeyT, typename AttrT>
+  template <typename AdapterKeyT, SaiAttributeType AttrT>
   void bulkSetAttributes(
       std::vector<AdapterKeyT>& adapterKeys,
       std::vector<AttrT>& attributes) const {
@@ -515,11 +490,9 @@ class SaiApi {
     return bulkSetAttributesUnlocked(adapterKeys, attributes);
   }
 
-  template <typename SaiObjectTraits>
-  std::vector<std::enable_if_t<
-      AdapterKeyIsObjectId<SaiObjectTraits>::value,
-      typename SaiObjectTraits::AdapterKey>>
-  bulkCreate(
+  template <ObjectIdSaiObject SaiObjectTraits>
+    requires SaiObjectForApi<SaiObjectTraits, ApiT>
+  std::vector<typename SaiObjectTraits::AdapterKey> bulkCreate(
       const std::vector<typename SaiObjectTraits::CreateAttributes>&
           createAttributes,
       sai_object_id_t switch_id) const {
@@ -618,25 +591,19 @@ class SaiApi {
     }
   }
 
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
       const std::vector<sai_stat_id_t>& counterIds,
       sai_stats_mode_t mode) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "getStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     return getStatsImpl<SaiObjectTraits>(
         key, counterIds.data(), counterIds.size(), mode);
   }
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   std::vector<uint64_t> getStats(
       const typename SaiObjectTraits::AdapterKey& key,
       sai_stats_mode_t mode) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "getStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     XLOGF(DBG6, "got SAI stats for {}", key);
     return mode == SAI_STATS_MODE_READ
@@ -652,21 +619,15 @@ class SaiApi {
               mode);
   }
 
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   void clearStats(
       const typename SaiObjectTraits::AdapterKey& key,
       const std::vector<sai_stat_id_t>& counterIds) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "clearStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(key, counterIds.data(), counterIds.size());
   }
-  template <typename SaiObjectTraits>
+  template <SaiObjectWithStats SaiObjectTraits>
   void clearStats(const typename SaiObjectTraits::AdapterKey& key) const {
-    static_assert(
-        SaiObjectHasStats<SaiObjectTraits>::value,
-        "clearStats only supported for Sai objects with stats");
     auto g{SaiApiLock::getInstance()->lock()};
     clearStatsImpl<SaiObjectTraits>(
         key,

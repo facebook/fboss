@@ -415,6 +415,72 @@ TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
   }
   EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
 }
+
+TYPED_TEST(AgentWrapperTest, StartAndCrashWithTimeoutCap) {
+  if (this->skipTest()) {
+    GTEST_SKIP();
+    return;
+  }
+  // Save original config before modifying
+  std::filesystem::copy_options copyOpt =
+      std::filesystem::copy_options::overwrite_existing;
+  std::filesystem::copy(
+      "/etc/coop/agent/current",
+      "/etc/coop/agent/current.timeout_cap_backup",
+      copyOpt);
+  SCOPE_EXIT {
+    removeFile(this->util_.sleepSwSwitchOnSigTermFile());
+    removeFile(this->util_.getColdBootOnceFile());
+    std::filesystem::copy(
+        "/etc/coop/agent/current.timeout_cap_backup",
+        "/etc/coop/agent/current",
+        std::filesystem::copy_options::overwrite_existing);
+    removeFile("/etc/coop/agent/current.timeout_cap_backup");
+    runCommand({"/usr/bin/systemctl", "start", "analyze_fboss_cores.timer"});
+  };
+  runCommand({"/usr/bin/systemctl", "stop", "analyze_fboss_cores.timer"});
+
+  // Set graceful exit timeout to 180s which exceeds the cap (150s).
+  // dispatchSignal() should clamp postSignalWaitTime to 150s.
+  auto newConfigThrift =
+      AgentConfig::fromFile("/etc/coop/agent/current")->thrift;
+  newConfigThrift.defaultCommandLineArgs()["agent_graceful_exit_timeout_ms"] =
+      "180000";
+  auto newConfig = std::make_unique<AgentConfig>(newConfigThrift);
+  newConfig->dumpConfig("/etc/coop/agent/current");
+
+  touchFile(this->util_.getColdBootOnceFile());
+  this->start();
+  this->waitForStart();
+
+  // Agent sleeps 300s on SIGTERM so it won't exit gracefully
+  touchFile(this->util_.sleepSwSwitchOnSigTermFile());
+  std::vector<char> sleepTime = {'3', '0', '0'};
+  folly::writeFile(sleepTime, this->util_.sleepSwSwitchOnSigTermFile().c_str());
+
+  auto agent = this->isMultiSwitch() ? "fboss_sw_agent" : "wedge_agent";
+  auto pid = this->getAgentPid(agent);
+  auto stopStart = std::chrono::steady_clock::now();
+  this->stop();
+  this->waitForStop(true /* expect sigabrt */);
+  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::steady_clock::now() - stopStart);
+
+  // Wrapper should wait ~150s (capped from 180s), then SIGABRT.
+  // Exit code 134 = SIGABRT (cap worked, systemd didn't SIGKILL).
+  // Exit code 137 = SIGKILL (cap failed, systemd killed at 180s).
+  XLOG(INFO) << "Agent stopped after " << elapsed.count() << "s";
+  EXPECT_GE(elapsed.count(), 140);
+  EXPECT_LE(elapsed.count(), 170);
+
+  WITH_RETRIES_N_TIMED(
+      FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
+        auto coreDir = this->getCoreDirectory(agent, pid);
+        ASSERT_EVENTUALLY_TRUE(coreDir.has_value());
+        EXPECT_EVENTUALLY_TRUE(checkFileExists(this->getCoreFile(*coreDir)));
+      });
+}
+
 } // namespace facebook::fboss
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");

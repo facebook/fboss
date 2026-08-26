@@ -51,7 +51,7 @@ Each firmware file follows the naming convention:
 * `F_` indicates the firmware name, which must match the names listed in `fw_util.json`.
 * `<fw_target_name>` is the name of target name found in fw_util (e.g., `smb_cpld`).
 * `_V_` indicates the version.
-* `<Version>` is the version number (e.g., `1.2`).
+* `<Version>` is the version number (e.g., `1.2`). This must match the output of fw_util commands that reads the version
 * `<extension>` is the file type (e.g., `.bin`, `.abit`, `.astp`, `.rom`).
 
 ## File Contents

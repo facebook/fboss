@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-strict
 
 from __future__ import annotations
 
@@ -106,7 +105,6 @@ def simple_copytree(src_dir: str, dest_dir: str, symlinks: bool = False) -> str:
 def _remove_readonly_and_try_again(
     func: Callable[..., object],
     path: str,
-    # pyre-fixme[24]: Generic type `type` expects 1 type parameter, use
     #  `typing.Type[<base type>]` to avoid runtime subscripting errors.
     exc_info: tuple[type, BaseException, object],
 ) -> None:

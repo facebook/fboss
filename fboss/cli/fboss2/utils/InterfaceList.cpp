@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include <folly/Conv.h>
 #include <folly/String.h>
 #include <stdexcept>
 #include <string>
@@ -20,7 +21,7 @@
 
 namespace facebook::fboss::utils {
 
-InterfaceList::InterfaceList(std::vector<std::string> names)
+InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
     : names_(std::move(names)) {
   // Get the PortMap from the session
   auto& portMap = ConfigSession::getInstance().getPortMap();
@@ -44,14 +45,22 @@ InterfaceList::InterfaceList(std::vector<std::string> names)
         }
       }
     } else {
-      // If not found as a port name, try as an interface name
+      // If not found as a port, try as an interface name, then as an
+      // interface ID.
       cfg::Interface* interface = portMap.getInterfaceByName(name);
+      if (!interface) {
+        // A purely-numeric name may be an interface ID.
+        auto parsedInterfaceId = folly::tryTo<int32_t>(name);
+        if (parsedInterfaceId.hasValue() && *parsedInterfaceId >= 0) {
+          interface = portMap.getInterface(InterfaceID(*parsedInterfaceId));
+        }
+      }
       if (interface) {
         intf.setInterface(interface);
       }
     }
 
-    if (!intf.isValid()) {
+    if (!intf.isValid() && !allowMissing) {
       notFound.push_back(name);
     } else {
       data_.push_back(intf);

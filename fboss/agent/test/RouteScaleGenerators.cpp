@@ -259,6 +259,29 @@ AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(
           routerId) {}
 
 /*
+ * 125K /64 prefixes to exercise the Tomahawk6 route table limit
+ * (HwAsic::getMaxRoutes() == 125000).
+ */
+ETSWRouteScaleGenerator::ETSWRouteScaleGenerator(
+    const std::shared_ptr<SwitchState>& startingState,
+    bool needL2EntryForNeighbor,
+    unsigned int chunkSize,
+    unsigned int ecmpWidth,
+    RouterID routerId)
+    : RouteDistributionGenerator(
+          startingState,
+          // v6 distribution
+          {
+              {64, 125000},
+          },
+          // v4 distribution
+          {},
+          chunkSize,
+          ecmpWidth,
+          needL2EntryForNeighbor,
+          routerId) {}
+
+/*
  * routes for system scale test, with total of 75K routes
  */
 ScaleTestRouteScaleGenerator::ScaleTestRouteScaleGenerator(

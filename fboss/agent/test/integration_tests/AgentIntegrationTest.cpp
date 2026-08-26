@@ -11,7 +11,6 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"

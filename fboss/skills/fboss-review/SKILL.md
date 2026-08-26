@@ -32,7 +32,7 @@ All findings are shown to the user only. Never post to Phabricator automatically
 - Files in `platform/`, config, sensor/fan -> Platform Reviewer (#8)
 - Files in `sai/`, `hw/sai/`, SDK -> SAI/SDK Reviewer (#9)
 - Test files or coverage-affecting changes -> Testing Reviewer (#10)
-- Changes spanning SwSwitch + HwSwitch, new SwitchState fields, new counters, BUCK target changes, new client infrastructure, or 3+ directory scope -> Architect Reviewer (#11)
+- Cross-cutting changes (SwSwitch + HwSwitch, state, counters, build targets, symbol exports, client infrastructure, or 3+ directories) -> Architect Reviewer (#11)
 
 ### Step 3: Dispatch Reviewers in Parallel
 

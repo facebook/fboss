@@ -57,6 +57,14 @@ target_link_libraries(xgs_psamp_mod
   Folly::folly
 )
 
+add_library(tajo_punt_header
+  fboss/agent/packet/tajo/TajoPuntHeader.cpp
+)
+
+target_link_libraries(tajo_punt_header
+  Folly::folly
+)
+
 add_library(pktutil
   fboss/agent/packet/PktUtil.cpp
 )
@@ -98,3 +106,16 @@ target_link_libraries(xgs_psamp_mod_test
 )
 
 gtest_discover_tests(xgs_psamp_mod_test)
+
+add_executable(tajo_punt_header_test
+  fboss/util/oss/TestMain.cpp
+  fboss/agent/packet/tajo/test/TajoPuntHeaderTest.cpp
+)
+
+target_link_libraries(tajo_punt_header_test
+  tajo_punt_header
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(tajo_punt_header_test)

@@ -30,6 +30,11 @@ class XgsMirrorOnDropImpl : public MirrorOnDropImpl {
   uint16_t getDefaultRouteDropReason() const override;
   uint16_t getAclDropReason() const override;
   uint16_t getMmuDropReason() const override;
+  uint16_t getSrv6MidpointIsLastSidDropReason() const override;
+  uint16_t getSrv6DecapNonLastSegmentDropReason() const override;
+  uint16_t getSrv6BindingSidNonLastSidDropReason() const override;
+  uint16_t getSrv6MidpointUnresolvedDropReason() const override;
+  uint16_t getSrv6EncapMtuExceededDropReason() const override;
 
   void configureErspanMirror(
       cfg::SwitchConfig& config,

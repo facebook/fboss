@@ -66,12 +66,14 @@ TEST_F(AclTableManagerRedirectTest, addAclEntryWithTunnelEncapRedirect) {
   aclEntry->setAclAction(matchAction);
 
   AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   ASSERT_TRUE(aclEntryHandle);
   ASSERT_TRUE(aclEntryHandle->tunnelEncapNextHop);
 
@@ -105,7 +107,9 @@ TEST_F(AclTableManagerRedirectTest, removeAclEntryWithTunnelEncapRedirect) {
   aclEntry->setAclAction(matchAction);
 
   saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+      aclEntry,
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+      nullptr /*state*/);
 
   auto& nhStore = saiStore->get<SaiTunnelEncapNextHopTraits>();
   EXPECT_EQ(nhStore.size(), 1);
@@ -116,7 +120,7 @@ TEST_F(AclTableManagerRedirectTest, removeAclEntryWithTunnelEncapRedirect) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
   EXPECT_EQ(nhStore.size(), 0);
 }
@@ -141,6 +145,8 @@ TEST_F(AclTableManagerRedirectTest, aclEntryRedirectMissingTunnel) {
 
   EXPECT_THROW(
       saiManagerTable->aclTableManager().addAclEntry(
-          aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+          aclEntry,
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          nullptr /*state*/),
       FbossError);
 }

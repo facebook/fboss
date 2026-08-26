@@ -6,11 +6,7 @@ extern "C" {
 #include <brcm_sai_extensions.h>
 #include <sai.h>
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 
 namespace facebook::fboss {
@@ -637,6 +633,42 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return std::nullopt;
 }
 
+// Time window in milliseconds within which the SDK writes at most one
+// register/state dump for a NORMAL priority event - masked interrupt, soft
+// reset, RX FIFO stuck, and the interrupt status log taken at switch create.
+// HIGH priority events - hard reset, fabric auto isolate and an on demand tech
+// support request - bypass the limiter and always write. Two values are
+// special: 0 disables rate limiting, which is also the SDK default, and
+// 0xFFFFFFFF suppresses NORMAL priority dumps entirely. The SDK fails open and
+// allows the write if it cannot read the configured window.
+//
+// The id only exists on the DNX releases carrying the CS00012465650 backport,
+// which is why they are listed individually below. Returning nullopt elsewhere
+// is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW;
+#endif
+  return std::nullopt;
+}
+
+// Number of register/state dump writes the SDK rate limiter has skipped. The
+// SDK clears the counter to zero on every read, so a read yields the count
+// accumulated since the previous read and never a running total - callers have
+// to sum the deltas themselves. READ_ONLY, so it is not a create attribute.
+//
+// The id only exists on the DNX releases carrying the CS00012465650 backport,
+// which is why they are listed individually below. Returning nullopt elsewhere
+// is what keeps SaiExtensionAttribute from CHECK failing on an unresolvable id.
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
+#endif
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7)
@@ -755,13 +787,26 @@ SaiSwitchTraits::Attributes::AttributePfcMonitorEnable::operator()() {
 
 std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_14_2)
   return SAI_SWITCH_ATTR_CABLE_PROPAGATION_DELAY_MEASUREMENT;
 #endif
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_14_2)
+  return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
+#endif
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/RouteUpdateLoggingPrefixTracker.h"
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
@@ -20,7 +21,7 @@ RouteUpdateLoggingInstance::RouteUpdateLoggingInstance(
     : prefix(prefix), identifier(identifier), exact(exact) {}
 
 std::string RouteUpdateLoggingInstance::str() const {
-  return folly::sformat(
+  return fmt::format(
       "{} {} {}", prefix.str(), identifier, exact ? "exact" : "longest-match");
 }
 

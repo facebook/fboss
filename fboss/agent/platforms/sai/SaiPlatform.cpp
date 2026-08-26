@@ -12,6 +12,7 @@
 
 #include <folly/String.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -19,39 +20,11 @@
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
-#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmIcecube800PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmLeh800bclsPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmSaintpaulPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge100PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmWedge800BACTPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmYampPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiYangra2PlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiPlatformInitImpl.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 #include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -108,6 +81,7 @@ sai_service_method_table_t kSaiServiceMethodTable = {
 };
 
 using namespace facebook::fboss;
+
 SaiSwitchTraits::Attributes::HwInfo getHwInfo(SaiPlatform* platform) {
   std::vector<int8_t> connectionHandle;
   // Use connection handle from switchInfo if available
@@ -348,7 +322,6 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 }
 
 void SaiPlatform::initPorts() {
-  auto platformMode = getType();
   auto switchId =
       SwitchID(getAsic()->getSwitchId() ? *getAsic()->getSwitchId() : 0);
   XLOG(DBG4) << "Platform ports are initialized with switch ID: " << switchId;
@@ -361,83 +334,11 @@ void SaiPlatform::initPorts() {
                  << " due to scope mismatch";
       continue;
     }
-    if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
-        platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
-        platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
-      saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
-      saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_WEDGE400 ||
-        platformMode == PlatformType::PLATFORM_WEDGE400_GRANDTETON) {
-      saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_DARWIN ||
-        platformMode == PlatformType::PLATFORM_DARWIN48V) {
-      saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
-      saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MINIPACK3BTA) {
-      saiPort = std::make_unique<SaiBcmMinipack3BTAPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MORGAN800CC) {
-      saiPort = std::make_unique<SaiMorgan800ccPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_YAMP) {
-      saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_FUJI) {
-      saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_ELBERT) {
-      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
-        saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
-      } else if (
-          getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
-        saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
-      }
-    } else if (
-        platformMode == PlatformType::PLATFORM_MERU800BIA ||
-        platformMode == PlatformType::PLATFORM_MERU800BIAB ||
-        platformMode == PlatformType::PLATFORM_MERU800BIAC) {
-      saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_MERU800BFA ||
-        platformMode == PlatformType::PLATFORM_MERU800BFA_P1) {
-      saiPort = std::make_unique<SaiMeru800bfaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MONTBLANC) {
-      saiPort = std::make_unique<SaiBcmMontblancPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_JANGA800BIC) {
-      saiPort = std::make_unique<SaiJanga800bicPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_TAHAN800BC) {
-      saiPort = std::make_unique<SaiTahan800bcPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_YANGRA) {
-      saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
-      saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
-    } else if (
-        platformMode == PlatformType::PLATFORM_ICECUBE800BC ||
-        platformMode == PlatformType::PLATFORM_ICECUBE800BANW) {
-      saiPort = std::make_unique<SaiBcmIcecube800PlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_ICETEA800BC) {
-      saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
-      saiPort = std::make_unique<SaiBcmLadakh800bclsPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_LEH800BCLS) {
-      saiPort = std::make_unique<SaiBcmLeh800bclsPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800BACT) {
-      saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
-      saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
-      saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_SAINTPAUL) {
-      saiPort = std::make_unique<SaiBcmSaintpaulPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
-      saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
-      saiPort =
-          std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_YANGRA2) {
-      saiPort = std::make_unique<SaiYangra2PlatformPort>(portId, this);
-    } else {
-      saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
+    saiPort = createSaiPlatformPort(portId, this);
+    if (!saiPort) {
+      throw FbossError(
+          "Unsupported SAI platform port type: ",
+          apache::thrift::util::enumNameSafe(getType()));
     }
     portMapping_.insert(std::make_pair(portId, std::move(saiPort)));
   }
@@ -625,6 +526,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           *agentCfg->thrift.sw()->switchSettings()->measureCableLengths();
     }
   }
+  std::optional<SaiSwitchTraits::Attributes::PortCl72RetryEnable>
+      portCl72RetryEnable{std::nullopt};
+#if defined(BRCM_SAI_SDK_XGS_GTE_14_2)
+  if (FLAGS_enable_port_cl72_retry) {
+    portCl72RetryEnable = true;
+  }
+#endif
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
 #if defined(BRCM_SAI_SDK_XGS)
   auto platformMode = getType();
@@ -943,12 +851,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxSystemPortId = 1024 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
   }
-  // J4 SIM configuration
+  // J4 configuration
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
-    maxSystemPorts = 8192;
-    maxVoqs = 8192 * 8;
-    maxSystemPortId = 8192 - 1;
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
+    maxSystemPorts = 1280;
+    maxVoqs = 1280 * 8;
+    maxSystemPortId = 1279;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 161}};
   }
 #endif
 
@@ -990,6 +898,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         SaiSwitchTraits::Attributes::PfcTcDldTimerGranularityInterval{
             mapToValueList};
   }
+#endif
+
+  std::optional<SaiSwitchTraits::Attributes::SdkDumpRateLimitWindow>
+      sdkDumpRateLimitWindow{std::nullopt};
+#if defined(SAI_VERSION_12_2_0_0_DNX_ODP)
+  sdkDumpRateLimitWindow = FLAGS_sdk_dump_rate_limit_window_ms;
 #endif
 
   return {
@@ -1079,6 +993,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       maxSwitchId, // Max switch Id
       sflowNofSamples, // Sflow aggr number of samples
       std::nullopt, // SDK Register dump log path
+      sdkDumpRateLimitWindow, // SDK dump rate limit window
       std::nullopt, // Firmware Object list
       std::nullopt, // tc rate limit list
       pfcWatchdogTimerGranularityMap, // PFC watchdog timer granularity
@@ -1090,14 +1005,33 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
+      portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
+#if defined(SAI_BRCM_PAI_IMPL)
+      std::nullopt, // SyncLock
+      std::nullopt, // SyncUnlock
+#endif
   };
 }
 
 std::vector<sai_system_port_config_t> SaiPlatform::getInternalSystemPortConfig()
     const {
-  throw FbossError(
-      "System port config must be provided by derived class platform");
+  CHECK(getAsic()) << " Asic must be set before getting sys port info";
+  auto internalSystemPortConfigs = getAsic()->getInternalSystemPortConfig(
+      getPlatformMapping()->getCpuPortsCoreAndPortIdx());
+
+  std::vector<sai_system_port_config_t> saiSystemPortConfigs;
+  saiSystemPortConfigs.reserve(internalSystemPortConfigs.size());
+  for (const auto& config : internalSystemPortConfigs) {
+    saiSystemPortConfigs.push_back(
+        {config.portId,
+         config.switchId,
+         config.coreIndex,
+         config.corePortIndex,
+         config.speedMbps,
+         config.numVoqs});
+  }
+  return saiSystemPortConfigs;
 }
 
 uint32_t SaiPlatform::getDefaultMacAgingTime() const {

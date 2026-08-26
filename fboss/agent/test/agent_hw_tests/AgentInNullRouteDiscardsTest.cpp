@@ -64,7 +64,7 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
           portIds,
           losslessPgIds,
           lossyPgIds,
-          tcToPgOverride);
+          utility::PfcQosMapParams{.tcToPg = tcToPgOverride});
       applyNewConfig(cfg);
     }
   };

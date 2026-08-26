@@ -15,7 +15,6 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/MySid.h"
@@ -75,7 +74,7 @@ class ResourceAccountantTest : public ::testing::Test {
         allocResult.nextHopIdSetIter->second.id;
     entry.setResolvedNextHopSetID(resolvedId);
 
-    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
     auto normAllocResult =
         nextHopIDManager_->getOrAllocRouteNextHopSetID(normalizedNhops);
     std::optional<NextHopSetID> normalizedId =

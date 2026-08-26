@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cstdint>
+
 #include <folly/Range.h>
 #include <folly/json/dynamic.h>
 
@@ -16,6 +18,7 @@
 #include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 DECLARE_string(fruid_filepath);
+DECLARE_string(mode);
 
 namespace facebook::fboss {
 
@@ -31,6 +34,7 @@ class PlatformProductInfo {
   }
   void initialize();
   std::string getFabricLocation();
+  std::string getOem() const;
   std::string getProductName();
   int getProductVersion() const;
 
@@ -51,6 +55,8 @@ class PlatformProductInfo {
   std::string getField(
       const folly::dynamic& info,
       const std::vector<std::string>& keys);
+
+  int16_t getInt16Field(const folly::dynamic& info, folly::StringPiece key);
 
   ProductInfo productInfo_;
   folly::StringPiece path_;

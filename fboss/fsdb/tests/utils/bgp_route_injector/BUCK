@@ -7,7 +7,7 @@ cpp_library(
     name = "route_injector_lib",
     srcs = ["RouteInjector.cpp"],
     headers = ["RouteInjector.h"],
-    exported_deps = [
+    deps = [
         "//fboss/agent:address_utils",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-types",
@@ -17,6 +17,7 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
+    exported_deps = [],
 )
 
 cpp_binary(

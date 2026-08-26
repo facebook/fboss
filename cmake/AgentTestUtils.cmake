@@ -3,6 +3,14 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(erspan_parser
+  fboss/agent/test/utils/oss/ErspanParser.cpp
+)
+
+target_link_libraries(erspan_parser
+  Folly::folly
+)
+
 add_library(acl_test_utils
   fboss/agent/test/utils/AclTestUtils.cpp
 )
@@ -45,6 +53,7 @@ target_link_libraries(pkt_test_utils
   config_factory
   fboss_types
   network_address_cpp2
+  tajo_punt_header
 )
 
 add_library(fabric_test_utils
@@ -145,6 +154,7 @@ add_library(config_utils
 )
 
 target_link_libraries(config_utils
+  agent_config_utils
   agent_features
   asic_test_utils
   voq_test_utils
@@ -264,6 +274,7 @@ add_library(srv6_test_utils
 target_link_libraries(srv6_test_utils
   agent_ensemble
   config_utils
+  ecmp_helper
   fboss_types
   load_balancer_test_utils
   packet_snooper

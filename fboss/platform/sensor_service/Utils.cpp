@@ -23,26 +23,25 @@ struct {
   bool operator()(
       const platform_manager::PmUnitVersion& l1,
       const platform_manager::PmUnitVersion& l2) {
-    if (*l1.productProductionState() != *l2.productProductionState()) {
-      return *l1.productProductionState() > *l2.productProductionState();
+    if (*l1.productionState() != *l2.productionState()) {
+      return *l1.productionState() > *l2.productionState();
     }
-    if (*l1.productVersion() != *l2.productVersion()) {
-      return *l1.productVersion() > *l2.productVersion();
+    if (*l1.productionSubState() != *l2.productionSubState()) {
+      return *l1.productionSubState() > *l2.productionSubState();
     }
-    return *l1.productSubVersion() > *l2.productSubVersion();
+    return *l1.respinVariantIndicator() > *l2.respinVariantIndicator();
   }
   bool operator()(
       const VersionedPmSensor& vSensor1,
       const VersionedPmSensor& vSensor2) {
-    if (*vSensor1.productProductionState() !=
-        *vSensor2.productProductionState()) {
-      return *vSensor1.productProductionState() >
-          *vSensor2.productProductionState();
+    if (*vSensor1.productionState() != *vSensor2.productionState()) {
+      return *vSensor1.productionState() > *vSensor2.productionState();
     }
-    if (*vSensor1.productVersion() != *vSensor2.productVersion()) {
-      return *vSensor1.productVersion() > *vSensor2.productVersion();
+    if (*vSensor1.productionSubState() != *vSensor2.productionSubState()) {
+      return *vSensor1.productionSubState() > *vSensor2.productionSubState();
     }
-    return *vSensor1.productSubVersion() > *vSensor2.productSubVersion();
+    return *vSensor1.respinVariantIndicator() >
+        *vSensor2.respinVariantIndicator();
   }
 } VersionedSensorComparator;
 } // namespace
@@ -85,21 +84,46 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     return std::nullopt;
   }
 
-  // Keep matching product-name-specific entries if any, else fall back to
-  // entries with no productName.
+  // Select the entries for this hardware, in priority order:
+  //   1. entries whose productName matches the hardware's EEPROM product;
+  //   2. else the "DEFAULT" block, if this unit defines one;
+  //   3. else the plain numerically-versioned entries (no productName).
+  // The chosen set is then narrowed by version below.
+  constexpr auto kDefaultProductName = "DEFAULT";
   auto hwProd = (pmUnitInfo && pmUnitInfo->eepromProductName())
       ? pmUnitInfo->eepromProductName().to_optional()
       : std::nullopt;
-  auto match = [&](const auto& vs) {
+  auto nameMatchesHardware = [&](const auto& vs) {
     return hwProd && vs.productName().to_optional() == hwProd;
   };
-  bool hasMatch =
-      std::any_of(versionedSensors.begin(), versionedSensors.end(), match);
-  std::erase_if(versionedSensors, [&](const auto& vs) {
-    return hasMatch ? !match(vs) : vs.productName().has_value();
-  });
+  auto isDefaultBlock = [&](const auto& vs) {
+    return vs.productName().has_value() &&
+        *vs.productName() == kDefaultProductName;
+  };
+  auto hasNoProductName = [](const auto& vs) {
+    return !vs.productName().has_value();
+  };
+  bool haveExactMatch = std::any_of(
+      versionedSensors.begin(), versionedSensors.end(), nameMatchesHardware);
+  bool haveDefaultBlock = std::any_of(
+      versionedSensors.begin(), versionedSensors.end(), isDefaultBlock);
+  std::vector<VersionedPmSensor> kept;
+  for (auto& vs : versionedSensors) {
+    bool keep = false;
+    if (haveExactMatch) {
+      keep = nameMatchesHardware(vs); // 1. product-specific match
+    } else if (haveDefaultBlock) {
+      keep = isDefaultBlock(vs); // 2. explicit DEFAULT block
+    } else {
+      keep = hasNoProductName(vs); // 3. plain numerically-versioned entries
+    }
+    if (keep) {
+      kept.push_back(std::move(vs));
+    }
+  }
+  versionedSensors = std::move(kept);
 
-  if (hasMatch) {
+  if (haveExactMatch) {
     XLOG(DBG1) << fmt::format(
         "Using product-name-specific VersionedPmSensor for '{}' at {}",
         *hwProd,
@@ -136,16 +160,16 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     // Find a VersionedSensor that satisfies fetched PmUnitInfo version.
     // i.e. PmUnitInfo version >= VersionedSensor sensor
     platform_manager::PmUnitVersion sensorVersion;
-    sensorVersion.productProductionState() =
-        *versionedSensor.productProductionState();
-    sensorVersion.productVersion() = *versionedSensor.productVersion();
-    sensorVersion.productSubVersion() = *versionedSensor.productSubVersion();
+    sensorVersion.productionState() = *versionedSensor.productionState();
+    sensorVersion.productionSubState() = *versionedSensor.productionSubState();
+    sensorVersion.respinVariantIndicator() =
+        *versionedSensor.respinVariantIndicator();
     if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
       XLOG(DBG1) << fmt::format(
           "Resolved to VersionedPmSensor of version {}.{}.{} (productName: {})",
-          *versionedSensor.productProductionState(),
-          *versionedSensor.productVersion(),
-          *versionedSensor.productSubVersion(),
+          *versionedSensor.productionState(),
+          *versionedSensor.productionSubState(),
+          *versionedSensor.respinVariantIndicator(),
           versionedSensor.productName().value_or("UNSET"));
       return versionedSensor;
     }
@@ -158,13 +182,8 @@ SensorConfig Utils::getConfig() {
   SensorConfig sensorConfig =
       apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
           ConfigLib().getSensorServiceConfig(platformName));
-  if (*sensorConfig.platformName() != platformName.value_or("")) {
-    throw std::runtime_error(
-        fmt::format(
-            "platformName in config '{}' does not match inferred name '{}'",
-            *sensorConfig.platformName(),
-            platformName.value_or("")));
-  }
+  ConfigLib::verifyPlatformNameMatches(
+      *sensorConfig.platformName(), platformName.value_or(""));
   if (!ConfigValidator().isValid(sensorConfig)) {
     throw std::runtime_error("Invalid sensor config");
   }

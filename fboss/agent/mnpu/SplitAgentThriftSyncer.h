@@ -17,7 +17,7 @@
 #include <string>
 
 #include "fboss/agent/HwSwitchCallback.h"
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 
 namespace facebook::fboss {
 

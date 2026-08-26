@@ -3,17 +3,19 @@
 /**
  * End-to-end test for:
  *   fboss2-dev config qos buffer-pool <name> shared-bytes/headroom-bytes
- *   fboss2-dev config qos queuing-policy <name> queue-id <id> <attr> <value>...
- *   fboss2-dev config interface <name> queuing-policy <policy>
+ *   fboss2-dev config qos queue-config <name> queue-id <id> <attr> <value>...
+ *   fboss2-dev config interface <name> queue-config <name>
+ *   fboss2-dev delete qos queue-config <name>
  *
- * Builds a buffer pool + queuing policy with five queues exercising:
+ * Builds a buffer pool + named queue config with five queues exercising:
  *   - WRR + SP scheduling
  *   - weight, shared-bytes, reserved-bytes
  *   - scaling-factor (MMUScalingFactor enum)
  *   - stream-type (MULTICAST vs default UNICAST)
  *   - buffer-pool-name back-reference
  *   - AQM with ECN behavior and linear detection profile
- * then assigns the policy to an interface and verifies the running config.
+ * then assigns the queue config to an interface and verifies the running
+ * config.
  */
 
 #include <folly/json/dynamic.h>
@@ -30,7 +32,10 @@ namespace {
 // buffer pool name with ConfigPfcTest because FBOSS only permits one
 // bufferPool in the running config.
 constexpr auto kBufferPoolName = "cli_e2e_test_buffer_pool";
-constexpr auto kQueuingPolicyName = "cli_e2e_test_queue_policy";
+constexpr auto kQueueConfigName = "cli_e2e_test_queue_config";
+// Separate name so the delete case cannot disturb BuildAndAssignPolicy's
+// config (tests may be sharded across workers and are not ordered).
+constexpr auto kDeleteQueueConfigName = "cli_e2e_test_qc_delete";
 
 // Enum values from switch_config.thrift
 constexpr int kSchedWrr = 0;
@@ -44,12 +49,12 @@ constexpr int kBehaviorEcn = 1;
 class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
  protected:
   std::string bufferPoolName_ = kBufferPoolName;
-  std::string policyName_ = kQueuingPolicyName;
+  std::string queueConfigName_ = kQueueConfigName;
 
   void SetUp() override {
     Fboss2IntegrationTest::SetUp();
     XLOG(INFO) << "Using buffer-pool: " << bufferPoolName_;
-    XLOG(INFO) << "Using queuing-policy: " << policyName_;
+    XLOG(INFO) << "Using queue-config: " << queueConfigName_;
   }
 
   void configureBufferPool(int sharedBytes, int headroomBytes) {
@@ -78,8 +83,8 @@ class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
     std::vector<std::string> cmd = {
         "config",
         "qos",
-        "queuing-policy",
-        policyName_,
+        "queue-config",
+        queueConfigName_,
         "queue-id",
         std::to_string(queueId)};
     cmd.insert(cmd.end(), attrs.begin(), attrs.end());
@@ -100,8 +105,8 @@ class ConfigPortQueueConfigTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
-  Interface intf = findFirstEthInterface();
-  XLOG(INFO) << "Using test interface " << intf.name;
+  std::string ifName = getRandomInterfacePortName();
+  XLOG(INFO) << "Using test interface " << ifName;
 
   XLOG(INFO) << "[Step 1] Configuring buffer pool...";
   configureBufferPool(/*sharedBytes=*/78773528, /*headroomBytes=*/4405376);
@@ -147,9 +152,9 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
        "probability",
        "100"});
 
-  XLOG(INFO) << "[Step 3] Assigning queuing-policy to " << intf.name;
+  XLOG(INFO) << "[Step 3] Assigning queue-config to " << ifName;
   ASSERT_EQ(
-      runCli({"config", "interface", intf.name, "queuing-policy", policyName_})
+      runCli({"config", "interface", ifName, "queue-config", queueConfigName_})
           .exitCode,
       0);
 
@@ -169,12 +174,12 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
   EXPECT_EQ(pools[bufferPoolName_]["sharedBytes"].asInt(), 78773528);
   EXPECT_EQ(pools[bufferPoolName_]["headroomBytes"].asInt(), 4405376);
 
-  // Queuing policy
+  // Named queue config
   ASSERT_TRUE(sw.count("portQueueConfigs"));
-  const auto& policies = sw["portQueueConfigs"];
-  ASSERT_TRUE(policies.count(policyName_))
-      << "policy " << policyName_ << " missing";
-  const auto& queues = policies[policyName_];
+  const auto& queueConfigs = sw["portQueueConfigs"];
+  ASSERT_TRUE(queueConfigs.count(queueConfigName_))
+      << "queue config " << queueConfigName_ << " missing";
+  const auto& queues = queueConfigs[queueConfigName_];
 
   // Queue 2: SP + shared + weight
   {
@@ -228,14 +233,69 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
   // Interface assignment
   bool sawPort = false;
   for (const auto& port : sw["ports"]) {
-    if (port.count("name") && port["name"].asString() == intf.name) {
+    if (port.count("name") && port["name"].asString() == ifName) {
       sawPort = true;
       EXPECT_EQ(
-          port.getDefault("portQueueConfigName", "").asString(), policyName_);
+          port.getDefault("portQueueConfigName", "").asString(),
+          queueConfigName_);
       break;
     }
   }
-  EXPECT_TRUE(sawPort) << "interface " << intf.name << " not in running config";
+  EXPECT_TRUE(sawPort) << "interface " << ifName << " not in running config";
 
   XLOG(INFO) << "TEST PASSED";
 }
+
+// Removing a whole named config has to survive the round trip: the agent must
+// accept a config with the entry gone, not just the CLI drop it locally.
+TEST_F(ConfigPortQueueConfigTest, DeleteWholeQueueConfig) {
+  const std::string name = kDeleteQueueConfigName;
+
+  XLOG(INFO) << "[Step 1] Creating " << name;
+  ASSERT_EQ(
+      runCli({"config",
+              "qos",
+              "queue-config",
+              name,
+              "queue-id",
+              "1",
+              "scheduling",
+              "WRR",
+              "weight",
+              "3"})
+          .exitCode,
+      0);
+  commitConfig();
+  waitForAgentReady();
+
+  // Hold the config in a named local: getRunningConfig() returns by value, and
+  // binding a reference to a subobject of the temporary would dangle.
+  auto afterCreate = getRunningConfig();
+  const auto& swAfterCreate = afterCreate["sw"];
+  // Check the key before indexing -- folly::dynamic::operator[] on a missing
+  // key inserts a null, and count() on a null throws rather than failing the
+  // assertion readably.
+  ASSERT_TRUE(swAfterCreate.count("portQueueConfigs"))
+      << "no portQueueConfigs in running config after creating " << name;
+  ASSERT_TRUE(swAfterCreate["portQueueConfigs"].count(name))
+      << name << " missing after create";
+
+  XLOG(INFO) << "[Step 2] Deleting " << name;
+  discardSession();
+  auto del = runCli({"delete", "qos", "queue-config", name});
+  ASSERT_EQ(del.exitCode, 0) << "CLI failed: " << del.stderr;
+  commitConfig();
+  waitForAgentReady();
+
+  auto afterDelete = getRunningConfig();
+  const auto& swAfterDelete = afterDelete["sw"];
+  EXPECT_FALSE(
+      swAfterDelete.count("portQueueConfigs") &&
+      swAfterDelete["portQueueConfigs"].count(name))
+      << name << " still present after delete";
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// The bound-config delete guard is intentionally NOT tested here: it rejects
+// at the staged session and never reaches the agent, so it needs no hardware.
+// See CmdDeleteQosQueueConfigTest.refusesToDeleteBoundNamedConfig.

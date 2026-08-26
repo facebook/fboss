@@ -32,19 +32,28 @@ class FsdbCgoPubSubWrapper {
   FsdbCgoPubSubWrapper& operator=(FsdbCgoPubSubWrapper&&) = delete;
 
   void subscribeToOperState_portMaps(
-      std::optional<int> serverPort = std::nullopt);
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
 
   void subscribeStatsPath(
       const std::vector<std::string>& path,
-      std::optional<int> serverPort = std::nullopt);
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
 
   void subscribeStatePath(
       const std::vector<std::string>& path,
-      std::optional<int> serverPort = std::nullopt);
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
+
+  // Synchronous one-shot GET of agent/switchState/portMaps; returns every port
+  // as (portName, portId, portOperState). No subscription required.
+  std::vector<std::tuple<std::string, int32_t, bool>> getPortSnapshot(
+      std::optional<int> serverPort = std::nullopt,
+      const std::optional<std::string>& host = std::nullopt);
 
   // Blocks for >=1 update, then non-blocking-drains up to maxCount.
   // Throws if no subscription. Empty on shutdown.
-  std::vector<std::tuple<std::string, bool>> waitForStateUpdates(
+  std::vector<std::tuple<std::string, int32_t, bool>> waitForStateUpdates(
       int maxCount = std::numeric_limits<int>::max());
 
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
@@ -74,15 +83,24 @@ class FsdbCgoPubSubWrapper {
     return statePathSubscribed_.load();
   }
 
+  // Latest portMaps connection state (a FsdbConnectionState value).
+  int32_t getConnectionState() const {
+    return portMapsConnState_.load(std::memory_order_acquire);
+  }
+
+  // Above max port count so a full initial snapshot buffers without dropping.
+  static constexpr size_t kStateQueueCapacity = 1024;
+
   // Public so extern-C wrappers can hold borrowed pointers across calls.
-  std::vector<std::tuple<std::string, bool>> lastStateUpdates_;
+  std::vector<std::tuple<std::string, int32_t, bool>> lastStateUpdates_;
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
       lastStatsUpdates_;
   std::vector<std::tuple<std::string, folly::fbstring, int32_t>>
       lastStatePathUpdates_;
+  std::vector<std::tuple<std::string, int32_t, bool>> lastSnapshot_;
 
  private:
-  void enqueueState(const std::string& key, bool portOperState);
+  void enqueueState(const std::string& key, int32_t portId, bool portOperState);
   void enqueueStats(
       const std::string& key,
       folly::fbstring&& contents,
@@ -101,9 +119,12 @@ class FsdbCgoPubSubWrapper {
   // Bounded queue for buffering keyed STATE updates between FSDB callback
   // thread and CGO consumer thread
   folly::DSPSCQueue<
-      std::tuple<std::string /*key*/, bool /*portOperState*/>,
+      std::tuple<
+          std::string /*key*/,
+          int32_t /*portId*/,
+          bool /*portOperState*/>,
       true /*may block*/>
-      stateQueue_{100};
+      stateQueue_{kStateQueueCapacity};
 
   // fbstring avoids a toStdString() copy on the producer side.
   folly::DSPSCQueue<
@@ -126,6 +147,7 @@ class FsdbCgoPubSubWrapper {
   std::atomic<bool> statsSubscribed_{false};
   std::atomic<bool> statePathSubscribed_{false};
   std::atomic<bool> shuttingDown_{false};
+  std::atomic<int32_t> portMapsConnState_{FSDB_CONNECTION_DISCONNECTED};
 
   std::map<std::string, bool> portName2OperState_{};
 };

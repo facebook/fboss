@@ -34,6 +34,12 @@ class MockConfigLib : public ConfigLib {
       (const std::optional<std::string>&),
       (const));
 
+  MOCK_METHOD(
+      std::string,
+      getRebootCauseFinderConfig,
+      (const std::optional<std::string>&),
+      (const));
+
  private:
 };
 

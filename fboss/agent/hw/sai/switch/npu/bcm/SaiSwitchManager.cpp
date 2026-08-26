@@ -5,11 +5,7 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 
 namespace facebook::fboss {
@@ -181,5 +177,13 @@ void fillHwSwitchPipelineStats(
     }
   }
 }
+
+void fillHwSwitchDropBitmapStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropBitmapStats& /*dropBitmapStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
 
 } // namespace facebook::fboss

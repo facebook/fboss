@@ -97,6 +97,38 @@ HwPortStats getInitedStats() {
       0, // outDiscardsSll_
       0, // outDiscardsHll_
       0, // inSrv6MySidDiscards_
+      0, // cableDelayNsec
+      0, // llrTxOk
+      0, // llrTxReplay
+      0, // llrRxOk
+      0, // llrRxMissingSeq
+      0, // llrRxDuplicateSeq
+      0, // llrRxAckNackSeqError
+      0, // llrRxReplay
+      0, // linkDownDebounceRetriggerCount_
+      0, // linkUpDebounceRetriggerCount_
+      0, // llrTxInitCtlOs
+      0, // llrTxInitEchoCtlOs
+      0, // llrTxAckCtlOs
+      0, // llrTxNackCtlOs
+      0, // llrRxInitCtlOs
+      0, // llrRxInitEchoCtlOs
+      0, // llrRxAckCtlOs
+      0, // llrRxNackCtlOs
+      0, // llrRxExpectedSeqGood
+      0, // llrRxExpectedSeqPoisoned
+      0, // llrRxExpectedSeqBad
+      0, // linkFault_
+      0, // fecCorrectedSymbols
+      LlrTxStatus::OFF, // llrTxStatus
+      LlrRxStatus::OFF, // llrRxStatus
+      0, // llrTxEligiblePkts
+      0, // llrTxIneligiblePkts
+      0, // llrRxEligiblePkts
+      0, // llrRxIneligiblePkts
+      0, // llrTxNackReplayEvent
+      0, // llrTxTimerReplayEvent
+      0, // llrTxError
   };
 }
 

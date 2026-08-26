@@ -31,7 +31,8 @@ TEST_F(CmdShowAgentSslTestFixture, queryClientAndPrintOutput) {
 
   auto model = cmd.queryClient(localhost());
   EXPECT_EQ(
-      "DISABLED (allow plaintext clients only)", model.get_AgentSslStatus());
+      "DISABLED (allow plaintext clients only)",
+      model.AgentSslStatus().value());
 
   cmd.printOutput(model, ss);
   EXPECT_EQ(
@@ -41,7 +42,7 @@ TEST_F(CmdShowAgentSslTestFixture, queryClientAndPrintOutput) {
   model = cmd.queryClient(localhost());
   EXPECT_EQ(
       "PERMITTED (allow plaintext & encrypted clients)",
-      model.get_AgentSslStatus());
+      model.AgentSslStatus().value());
 
   ss.str("");
   cmd.printOutput(model, ss);
@@ -51,13 +52,19 @@ TEST_F(CmdShowAgentSslTestFixture, queryClientAndPrintOutput) {
 
   model = cmd.queryClient(localhost());
   EXPECT_EQ(
-      "REQUIRED (allow encrypted clients only)", model.get_AgentSslStatus());
+      "REQUIRED (allow encrypted clients only)",
+      model.AgentSslStatus().value());
 
   ss.str("");
   cmd.printOutput(model, ss);
   EXPECT_EQ(
       "Secure Thrift server SSL config: REQUIRED (allow encrypted clients only)\n",
       ss.str());
+}
+
+TEST_F(CmdShowAgentSslTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowAgentSslTraits::description().empty());
+  EXPECT_FALSE(CmdShowAgentSsl::sampleModel().AgentSslStatus()->empty());
 }
 
 } // namespace facebook::fboss

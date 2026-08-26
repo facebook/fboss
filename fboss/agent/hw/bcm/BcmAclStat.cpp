@@ -126,29 +126,6 @@ bool BcmAclStat::isStateSame(
 
   std::sort(counterTypes.begin(), counterTypes.end());
   std::sort(expectedCounterTypes.begin(), expectedCounterTypes.end());
-
-  /*
-   * The asic used by Wedge40 can't program a subset a counter types, it has to
-   * program them all at once. The SDK hides this limitation by storing the
-   * counter types in an internal data structure, so if you program a single
-   * counter and ask the SDK what counters are being used, it returns a single
-   * counter (even if 2 counters were actually programmed).
-   * The problem is that when the switch do a warmboot, the SDK's internal state
-   * has been cleared and the SDK returns the real values from the HW: 2
-   * counters.
-   *
-   * To overcome this problem on Trident 2, we have to check if the set of
-   * expected counters is a subset of the hw counters instead of just checking
-   * for equality.
-   */
-  if (hw->getPlatform()->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return std::includes(
-        counterTypes.begin(),
-        counterTypes.end(),
-        expectedCounterTypes.begin(),
-        expectedCounterTypes.end());
-  }
   return counterTypes == expectedCounterTypes;
 }
 

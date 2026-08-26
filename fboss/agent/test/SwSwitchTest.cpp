@@ -15,11 +15,8 @@
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ValidateStateUpdate.h"
-#include "fboss/agent/hw/switch_asics/ChenabAsic.h"
-#include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -92,8 +89,67 @@ TEST_F(SwSwitchTest, GetPortStats) {
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 2);
   EXPECT_EQ(portStats->getPortName(), "port0");
 }
+
+TEST_F(SwSwitchTest, PhyInfoLinkFlapCountFromLinkScanCallbacks) {
+  const PortID portId{1};
+  phy::PhyInfo phyInfo;
+  phyInfo.state() = phy::PhyState();
+  phyInfo.state()->name() = "port1";
+  phyInfo.stats() = phy::PhyStats();
+  ON_CALL(*getMockHw(sw), updateAllPhyInfoImpl())
+      .WillByDefault(Return(std::map<PortID, phy::PhyInfo>{{portId, phyInfo}}));
+
+  sw->linkStateChanged(portId, true, cfg::PortType::INTERFACE_PORT);
+  waitForStateUpdates(sw);
+
+  CounterCache counters(sw);
+  counters.update();
+  const auto linkStateFlapCount = counters.value("port1.link_state.flap.sum");
+
+  sw->updateStats();
+  std::vector<PortID> portIds{portId};
+  auto phyInfos = sw->getIPhyInfo(portIds);
+  ASSERT_EQ(phyInfos.size(), 1);
+  EXPECT_EQ(
+      phyInfos.at(portId).stats()->linkFlapCount().value(), linkStateFlapCount);
+
+  auto agentStats = sw->fillFsdbStats();
+  EXPECT_EQ(
+      agentStats.phyStats()->at("port1").linkFlapCount().value(),
+      linkStateFlapCount);
+}
+
 ACTION(ThrowException) {
   throw std::exception();
+}
+
+TEST_F(SwSwitchTest, VerifyEcmpWidthChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  auto withEcmpWidth = [](const std::shared_ptr<SwitchState>& base,
+                          std::optional<int32_t> width) {
+    auto state = base->clone();
+    auto settings = utility::getFirstNodeIf(state->getSwitchSettings());
+    settings->modify(&state)->setEcmpWidth(width);
+    state->publish();
+    return state;
+  };
+
+  auto baseState = withEcmpWidth(sw->getState(), 64);
+
+  // Unchanged width is valid.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 64))));
+
+  // First-time set (old side unset, as on coldboot) is valid.
+  auto unsetState = withEcmpWidth(sw->getState(), std::nullopt);
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(unsetState, withEcmpWidth(unsetState, 128))));
+
+  // Changing the width on a running agent is rejected regardless of boot type.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 128))));
 }
 
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
@@ -299,54 +355,6 @@ TEST_F(SwSwitchTest, VerifyEcnValidationWhenFeatureNotSupported) {
   auto port99 = createPortWithEcnProbability(PortID(13), "port13", 99);
   EXPECT_FALSE(hasValidPortQueues(
       port99, false /* isEcnProbabilisticMarkingSupported */));
-}
-
-TEST_F(SwSwitchTest, VerifyPortSpeedChangeValidation) {
-  auto switchSettings =
-      utility::getFirstNodeIf(sw->getState()->getSwitchSettings());
-  auto switchIdToSwitchInfo = switchSettings->getSwitchIdToSwitchInfo();
-  SwitchIdScopeResolver resolver(switchIdToSwitchInfo);
-  auto switchId = SwitchID(switchIdToSwitchInfo.begin()->first);
-
-  auto stateV0 = std::make_shared<SwitchState>();
-  auto portMap0 = stateV0->getPorts()->modify(&stateV0);
-  state::PortFields portFields0;
-  portFields0.portId() = PortID(0);
-  portFields0.portName() = "port0";
-  auto port0 = std::make_shared<Port>(std::move(portFields0));
-  port0->setSpeed(cfg::PortSpeed::HUNDREDG);
-  portMap0->addNode(port0, scope());
-  stateV0->publish();
-
-  auto stateV1 = stateV0->clone();
-  auto portMap1 = stateV1->getPorts()->modify(&stateV1);
-  auto port0Changed = port0->clone();
-  port0Changed->setSpeed(cfg::PortSpeed::FOURHUNDREDG);
-  portMap1->updateNode(port0Changed, scope());
-  stateV1->publish();
-
-  // MockAsic supports SAI_PORT_SPEED_CHANGE, so speed change should be valid
-  auto mockSwitchInfo = cfg::SwitchInfo();
-  mockSwitchInfo.switchType() = cfg::SwitchType::NPU;
-  mockSwitchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
-  mockSwitchInfo.switchMac() = "02:00:00:00:00:01";
-  MockAsic mockAsic(switchId, mockSwitchInfo);
-  EXPECT_TRUE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV1), &resolver, switchId, &mockAsic));
-
-  // ChenabAsic does NOT support SAI_PORT_SPEED_CHANGE, so speed change
-  // should be invalid
-  auto chenabSwitchInfo = cfg::SwitchInfo();
-  chenabSwitchInfo.switchType() = cfg::SwitchType::NPU;
-  chenabSwitchInfo.asicType() = cfg::AsicType::ASIC_TYPE_CHENAB;
-  chenabSwitchInfo.switchMac() = "02:00:00:00:00:01";
-  ChenabAsic chenabAsic(switchId, chenabSwitchInfo);
-  EXPECT_FALSE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV1), &resolver, switchId, &chenabAsic));
-
-  // Same speed (no change) should be valid even on ChenabAsic
-  EXPECT_TRUE(isStateUpdateValidMultiSwitch(
-      StateDelta(stateV0, stateV0), &resolver, switchId, &chenabAsic));
 }
 
 TEST_F(SwSwitchTest, gracefulExit) {

@@ -12,8 +12,14 @@
 #include <fb303/ServiceData.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentConfig.h"
 #ifndef IS_OSS
 #include "common/fb303/cpp/DefaultControl.h"
+#include "common/fb303/cpp/DefaultMonitor.h"
+#include "common/fb303/cpp/DefaultStatus.h"
+#endif
+#ifdef IS_OSS
+#include "common/fb303/cpp/FacebookBase2.h"
 #endif
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
@@ -225,6 +231,16 @@ int hwAgentMain(
     handlers.push_back(std::move(testUtilsHandler));
   }
 
+#ifdef IS_OSS
+  // In OSS the thrift server has no monitoring extra-interface
+  // (createDefaultExtraInterfaces returns null), so the HwAgent would not
+  // answer fb303 getCounters/getRegexCounters. Add a FacebookBase2 handler to
+  // the multiplex to serve them from fbData. Pushed last so the platform
+  // handler wins any method-name overlap (e.g. getStatus/aliveSince).
+  handlers.push_back(
+      std::make_shared<facebook::fb303::FacebookBase2>("hwagent"));
+#endif
+
   folly::EventBase eventBase;
   auto server = setupThriftServer(
       eventBase,
@@ -232,8 +248,17 @@ int hwAgentMain(
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
 #ifndef IS_OSS
+  auto monitor = std::make_shared<facebook::fb303::DefaultMonitor>();
+  auto status = std::make_shared<facebook::fb303::DefaultStatus>();
+  markThriftMethodsInternalAndBypassLimits(*server, {monitor, status});
+  server->setMonitoringInterface(std::move(monitor));
   server->setControlInterface(
       std::make_shared<facebook::fb303::DefaultControl>());
+  // The NetOS native-service watchdog gates systemd readiness on an fb303
+  // getStatus() call against the HwAgent thrift port. Without a status
+  // interface that method is unresolvable, so the service never reaches
+  // READY and is killed by the watchdog before SwAgent can start.
+  server->setStatusInterface(std::move(status));
 #endif
 
   SplitHwAgentSignalHandler signalHandler(

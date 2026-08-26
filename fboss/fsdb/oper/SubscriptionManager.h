@@ -38,6 +38,20 @@ class SubscriptionManagerBase {
 
   void registerSubscription(std::unique_ptr<Subscription> subscription);
 
+  // Append newPaths to an existing patch subscription (by id); publisherRoot
+  // must match the subscription's root. Returns an error code on failure.
+  std::optional<FsdbErrorCode> addPatchSubscriptionPaths(
+      const SubscriptionIdentifier& id,
+      std::map<SubscriptionKey, RawOperPath> newPaths,
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision = std::nullopt);
+
+  std::optional<FsdbErrorCode> addPatchSubscriptionPaths(
+      const SubscriptionIdentifier& id,
+      ExtSubPathMap newPaths,
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision = std::nullopt);
+
   size_t numSubscriptions() const {
     return store_.rlock()->subscriptions().size();
   }
@@ -78,6 +92,14 @@ class SubscriptionManagerBase {
   }
 
  private:
+  // Shared impl behind the raw/extended addPatchSubscriptionPaths overloads:
+  // guards on useIdPaths_ and forwards to the store.
+  std::optional<FsdbErrorCode> addPatchSubscriptionPathsImpl(
+      const SubscriptionIdentifier& id,
+      ExtSubPathMap newPaths,
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision);
+
   void registerSubscription(
       std::string name,
       std::unique_ptr<Subscription> subscription);

@@ -39,7 +39,7 @@ class QsfpClient {
   QsfpClient& operator=(QsfpClient&&) = default;
 
   static folly::Future<std::unique_ptr<apache::thrift::Client<QsfpService>>>
-  createClient(folly::EventBase* eb);
+  createClient(folly::EventBase* eb, bool forcePlaintext = false);
 
   static apache::thrift::RpcOptions getRpcOptions();
 };

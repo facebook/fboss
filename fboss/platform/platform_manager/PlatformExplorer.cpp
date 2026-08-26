@@ -17,6 +17,7 @@
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/CpldManager.h"
+#include "fboss/platform/platform_manager/FanCpldManager.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
@@ -258,7 +259,7 @@ void PlatformExplorer::exploreSlot(
 
   // If PresenceDetection is specified, proceed further only if the presence
   // condition is satisfied
-  if (const auto presenceDetection = slotConfig.presenceDetection()) {
+  if (auto presenceDetection = slotConfig.presenceDetection()) {
     PresenceInfo presenceInfo;
     presenceInfo.presenceDetection() = *presenceDetection;
     presenceInfo.isPresent() = false;
@@ -323,8 +324,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   CHECK(slotTypeConfig.idpromConfig() || slotTypeConfig.pmUnitName());
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   std::optional<int> productionStateInEeprom{std::nullopt};
-  std::optional<int> productVersionInEeprom{std::nullopt};
-  std::optional<int> productSubVersionInEeprom{std::nullopt};
+  std::optional<int> productionSubStateInEeprom{std::nullopt};
+  std::optional<int> respinVariantIndicatorInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig();
     auto eepromI2cBusNum =
@@ -341,7 +342,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     if ((platformConfig_.platformName().value() == "MERU800BFA" ||
          platformConfig_.platformName().value() == "MERU800BIA" ||
          platformConfig_.platformName().value() == "ICECUBE800BANW" ||
-         platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
+         platformConfig_.platformName().value() == "BLACKWOLF800BANW" ||
+         platformConfig_.platformName().value() == "SAINTPAUL") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
       // ICECUBE800BANW has SMB at root level, others have SCM
@@ -395,39 +397,43 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         dataStore_.updatePmUnitEepromProductName(slotPath, *pmUnitNameInEeprom);
       }
       productionStateInEeprom = std::stoi(eepromContents.getProductionState());
-      productVersionInEeprom =
+      productionSubStateInEeprom =
           std::stoi(eepromContents.getProductionSubState());
-      productSubVersionInEeprom = std::stoi(eepromContents.getVariantVersion());
+      respinVariantIndicatorInEeprom =
+          std::stoi(eepromContents.getVariantVersion());
       XLOG(INFO) << fmt::format(
-          "Found ProductionState `{}` ProductVersion `{}` ProductSubVersion `{}` in IDPROM {} at {}",
+          "Found ProductionState `{}` ProductionSubState `{}` RespinVariantIndicator `{}` in IDPROM {} at {}",
           productionStateInEeprom ? std::to_string(*productionStateInEeprom)
                                   : "<ABSENT>",
-          productVersionInEeprom ? std::to_string(*productVersionInEeprom)
-                                 : "<ABSENT>",
-          productSubVersionInEeprom ? std::to_string(*productSubVersionInEeprom)
-                                    : "<ABSENT>",
+          productionSubStateInEeprom
+              ? std::to_string(*productionSubStateInEeprom)
+              : "<ABSENT>",
+          respinVariantIndicatorInEeprom
+              ? std::to_string(*respinVariantIndicatorInEeprom)
+              : "<ABSENT>",
           eepromPath,
           slotPath);
 
       if (productionStateInEeprom.has_value() &&
-          productVersionInEeprom.has_value() &&
-          productSubVersionInEeprom.has_value()) {
+          productionSubStateInEeprom.has_value() &&
+          respinVariantIndicatorInEeprom.has_value()) {
         PmUnitVersion version;
-        version.productProductionState() = *productionStateInEeprom;
-        version.productVersion() = *productVersionInEeprom;
-        version.productSubVersion() = *productSubVersionInEeprom;
+        version.productionState() = *productionStateInEeprom;
+        version.productionSubState() = *productionSubStateInEeprom;
+        version.respinVariantIndicator() = *respinVariantIndicatorInEeprom;
         dataStore_.updatePmUnitVersion(slotPath, version);
       } else {
         XLOG(WARNING) << fmt::format(
-            "At SlotPath {}, unexpected partial versions: ProductProductionState `{}` "
-            "ProductVersion `{}` ProductSubVersion `{}`. Skipping updating PmUnit {}",
+            "At SlotPath {}, unexpected partial versions: ProductionState `{}` "
+            "ProductionSubState `{}` RespinVariantIndicator `{}`. Skipping updating PmUnit {}",
             slotPath,
             productionStateInEeprom ? std::to_string(*productionStateInEeprom)
                                     : "<ABSENT>",
-            productVersionInEeprom ? std::to_string(*productVersionInEeprom)
-                                   : "<ABSENT>",
-            productSubVersionInEeprom
-                ? std::to_string(*productSubVersionInEeprom)
+            productionSubStateInEeprom
+                ? std::to_string(*productionSubStateInEeprom)
+                : "<ABSENT>",
+            respinVariantIndicatorInEeprom
+                ? std::to_string(*respinVariantIndicatorInEeprom)
                 : "<ABSENT>",
             *pmUnitNameInEeprom);
       }
@@ -493,6 +499,10 @@ void PlatformExplorer::exploreI2cDevices(
       }
       createI2cDevice(
           devicePath, *i2cDeviceConfig.kernelDeviceName(), busNum, devAddr);
+      if (i2cDeviceConfig.fanCpldConfig()) {
+        setupFanCpld(
+            devicePath, busNum, devAddr, *i2cDeviceConfig.fanCpldConfig());
+      }
       if (i2cDeviceConfig.numOutgoingChannels()) {
         auto channelToBusNums =
             i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
@@ -552,6 +562,19 @@ void PlatformExplorer::exploreI2cDevices(
               slotPath,
               *i2cDeviceConfig.pmUnitScopedName(),
               errMsg);
+        }
+      }
+      if (i2cDeviceConfig.postCreateSysfsValues()) {
+        for (const auto& sv : *i2cDeviceConfig.postCreateSysfsValues()) {
+          auto path =
+              i2cExplorer_.getDeviceI2cPath(busNum, devAddr) + "/" + *sv.attr();
+          if (!platformFsUtils_->writeStringToSysfs(*sv.value(), path)) {
+            explorationSummary_.addError(
+                ExplorationErrorType::I2C_CONFIG_FAILED,
+                slotPath,
+                *i2cDeviceConfig.pmUnitScopedName(),
+                fmt::format("failed writing {} to {}", *sv.value(), path));
+          }
         }
       }
       if (i2cDeviceConfig.cpldSysfsAttrs() &&
@@ -732,7 +755,12 @@ void PlatformExplorer::explorePciDevices(
         *pciDeviceConfig.miscCtrlConfigs(),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL,
         [&](const auto& miscCtrlConfig) {
-          pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
+          auto miscCtrlSysfsPath = pciExplorer_.createFpgaIpBlock(
+              pciDevice, miscCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(
+              Utils().createDevicePath(
+                  slotPath, *miscCtrlConfig.pmUnitScopedName()),
+              miscCtrlSysfsPath);
         });
     createPciSubDevices(
         slotPath,
@@ -753,6 +781,17 @@ void PlatformExplorer::explorePciDevices(
               Utils().createDevicePath(
                   slotPath, *mdioBusConfig.pmUnitScopedName()),
               mdioBusSysfsPath);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils::createRtmCtrlConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_RTM_CTRL,
+        [&](const auto& rtmCtrlConfig) {
+          auto devicePath = Utils().createDevicePath(
+              slotPath, *rtmCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+          auto rtmCtrlSysfsPath =
+              pciExplorer_.createRtmCtrl(pciDevice, rtmCtrlConfig, instId++);
+          dataStore_.updateSysfsPath(devicePath, rtmCtrlSysfsPath);
         });
   }
 }
@@ -822,6 +861,11 @@ void PlatformExplorer::createDeviceSymLink(
             devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
       }
       if (mdioBusName.starts_with("mdio_bus_ctrl")) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
+    } else if (linkParentPath.string() == "/run/devmap/rtms") {
+      auto rtmName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (rtmName.starts_with("rtm_ctrl")) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
     } else {
@@ -984,7 +1028,7 @@ void PlatformExplorer::publishHardwareVersions() {
   // names (e.g. multiple PSUs) collapse into one counter per unique version.
   for (const auto& [slotPath, pmUnitInfo] :
        dataStore_.getSlotPathToPmUnitInfo()) {
-    const auto& version = pmUnitInfo.version();
+    auto version = pmUnitInfo.version();
     if (!version) {
       fb303::fbData->setCounter(
           fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), "unspecified"), 1);
@@ -992,9 +1036,9 @@ void PlatformExplorer::publishHardwareVersions() {
     }
     auto versionStr = fmt::format(
         "{}.{}.{}",
-        *version->productProductionState(),
-        *version->productVersion(),
-        *version->productSubVersion());
+        *version->productionState(),
+        *version->productionSubState(),
+        *version->respinVariantIndicator());
     fb303::fbData->setCounter(
         fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), versionStr), 1);
   }
@@ -1055,6 +1099,20 @@ void PlatformExplorer::setupCpldSysfsAttrs(
     XLOG(ERR) << ex.what();
     explorationSummary_.addError(
         ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE, devicePath, ex.what());
+  }
+}
+
+void PlatformExplorer::setupFanCpld(
+    const std::string& devicePath,
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const FanCpldConfig& fanCpldConfig) {
+  try {
+    configureFanCpld(busNum, addr, fanCpldConfig);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    explorationSummary_.addError(
+        ExplorationErrorType::FAN_CPLD_CONFIGURE, devicePath, ex.what());
   }
 }
 
@@ -1162,7 +1220,8 @@ void PlatformExplorer::genHumanReadableEeproms() {
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
   if ((platformConfig_.platformName().value() == "MERU800BFA" ||
        platformConfig_.platformName().value() == "MERU800BIA" ||
-       platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
+       platformConfig_.platformName().value() == "BLACKWOLF800BANW" ||
+       platformConfig_.platformName().value() == "SAINTPAUL") &&
       std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
   }

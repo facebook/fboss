@@ -31,7 +31,8 @@ std::unique_ptr<TxPacket> makeEthTxPacket(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload);
+    std::optional<std::vector<uint8_t>> payload,
+    uint8_t pcp = 0);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     const AllocatePktFn& allocatePkt,
@@ -109,6 +110,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerTrafficClass = 0,
     uint8_t outerHopLimit = 255,
     std::optional<uint8_t> innerHopLimit = std::nullopt,
+    uint32_t outerFlowLabel = 0,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
@@ -127,6 +129,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerDscp = 0,
     uint8_t outerHopLimit = 255,
     std::optional<uint8_t> innerHopLimit = std::nullopt,
+    uint32_t outerFlowLabel = 0,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
@@ -142,7 +145,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    uint32_t flowLabel = 0);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const AllocatePktFn& allocatePkt,
@@ -244,10 +248,10 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+    std::optional<std::vector<uint8_t>> payload = std::nullopt,
+    uint8_t pcp = 0) {
   return makeEthTxPacket(
-
-      makeAllocator(switchT), vlan, srcMac, dstMac, etherType, payload);
+      makeAllocator(switchT), vlan, srcMac, dstMac, etherType, payload, pcp);
 }
 
 template <typename SwitchT>
@@ -334,6 +338,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerTrafficClass = 0,
     uint8_t outerHopLimit = 255,
     std::optional<uint8_t> innerHopLimit = std::nullopt,
+    uint32_t outerFlowLabel = 0,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
@@ -351,6 +356,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       innerTrafficClass,
       outerHopLimit,
       innerHopLimit,
+      outerFlowLabel,
       payload);
 }
 
@@ -370,6 +376,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint8_t innerDscp = 0,
     uint8_t outerHopLimit = 255,
     std::optional<uint8_t> innerHopLimit = std::nullopt,
+    uint32_t outerFlowLabel = 0,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
@@ -387,6 +394,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       innerDscp,
       outerHopLimit,
       innerHopLimit,
+      outerFlowLabel,
       payload);
 }
 

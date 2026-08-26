@@ -56,6 +56,21 @@ class MockWedgeManager : public WedgeManager {
                 numPortsPerModule)),
         numModules_(numModules) {}
 
+  // Build a manager backed by an explicit (e.g. real generated) platform
+  // mapping -- used by tests that exercise a specific platform such as a CPO
+  // integrated-optics mapping.
+  MockWedgeManager(
+      std::shared_ptr<const PlatformMapping> platformMapping,
+      int numModules,
+      std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads = nullptr)
+      : WedgeManager(
+            std::make_unique<MockTransceiverPlatformApi>(),
+            platformMapping,
+            PlatformType::PLATFORM_WEDGE,
+            qsfpServiceThreads ? qsfpServiceThreads
+                               : createQsfpServiceThreads(platformMapping)),
+        numModules_(numModules) {}
+
   PlatformType getPlatformType() const override {
     return PlatformType::PLATFORM_WEDGE;
   }

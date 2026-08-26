@@ -993,6 +993,7 @@ def main() -> Optional[int]:
             if args.send_email:
                 logger.info("Sending email...")
                 html = UserAndEmailHandler().HTTP_format_known_bad_list(
+                    # pyrefly: ignore [bad-argument-type]
                     UserAndEmailHandler().parse_known_bad(tests),
                     known_bad_jobs,
                     test_config.name,
@@ -1019,6 +1020,7 @@ def main() -> Optional[int]:
             if args.create_task:
                 logger.info("Creating task for oncall...")
                 task = asyncio.run(
+                    # pyrefly: ignore [bad-argument-type]
                     UserAndEmailHandler().create_task(args.user, test_config, tests)
                 )
                 logger.info(f"Task created successfully: T{task.task_number}")

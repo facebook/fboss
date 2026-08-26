@@ -34,9 +34,9 @@ class ConfigDifferTest : public ::testing::Test {
       int subVersion,
       const std::vector<sensor_config::PmSensor>& sensors) {
     sensor_config::VersionedPmSensor versionedPmSensor;
-    versionedPmSensor.productProductionState() = productionState;
-    versionedPmSensor.productVersion() = version;
-    versionedPmSensor.productSubVersion() = subVersion;
+    versionedPmSensor.productionState() = productionState;
+    versionedPmSensor.productionSubState() = version;
+    versionedPmSensor.respinVariantIndicator() = subVersion;
     versionedPmSensor.sensors() = sensors;
     return versionedPmSensor;
   }

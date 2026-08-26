@@ -1,0 +1,112 @@
+{
+  "systemLedConfig": {
+    "presentLedSysfsPath": "/sys/class/leds/sys_led:blue:status/brightness",
+    "absentLedSysfsPath": "/sys/class/leds/sys_led:amber:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedSysfsPath": "/sys/class/leds/fan_led:blue:status/brightness",
+      "absentLedSysfsPath": "/sys/class/leds/fan_led:amber:status/brightness"
+    },
+    "PWR": {
+      "presentLedSysfsPath": "/sys/class/leds/psu_led:blue:status/brightness",
+      "absentLedSysfsPath": "/sys/class/leds/psu_led:amber:status/brightness"
+    },
+    "SMB": {
+      "presentLedSysfsPath": "/sys/class/leds/smb_led:blue:status/brightness",
+      "absentLedSysfsPath": "/sys/class/leds/smb_led:amber:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN5",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "FAN6",
+      "fruType": "FAN",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "PWR",
+      "fruType": "PWR",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/hs_48v_pg",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "SMB_L",
+      "fruType": "SMB",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/smbl_present",
+          "desiredValue": 1
+        }
+      }
+    },
+    {
+      "fruName": "SMB_R",
+      "fruType": "SMB",
+      "presenceDetection": {
+        "sysfsFileHandle": {
+          "presenceFilePath": "/run/devmap/cplds/MCB_CPLD/smbr_present",
+          "desiredValue": 1
+        }
+      }
+    }
+  ]
+}

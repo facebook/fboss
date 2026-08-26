@@ -28,6 +28,11 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     return config;
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // VoQ + fabric tests need every fabric and interface port.
+    return std::nullopt;
+  }
+
  protected:
   void assertPortAndDrainState(cfg::SwitchDrainState expectDrainState) const {
     bool expectDrained =
@@ -61,7 +66,7 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
       sendPacket(ecmpHelper.ip(testPort), frontPanelPort);
       WITH_RETRIES({
         auto afterOutPkts =
-            getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
         XLOG(DBG2) << " Before out pkts: " << beforeOutPkts
                    << " After out pkts: " << afterOutPkts;
         EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + 1);
@@ -115,6 +120,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       auto state = getProgrammedState();
       for (auto& portMap : std::as_const(*state->getPorts())) {
         for (auto& [_, port] : std::as_const(*portMap.second)) {
+          if (scopeResolver().scope(port).switchId() !=
+              getCurrentSwitchIdForTesting()) {
+            continue;
+          }
           auto loadBearingInErrors = fb303::fbData->getCounterIfExists(
               port->getName() + ".load_bearing_in_errors.sum.60");
           auto loadBearingFecErrors = fb303::fbData->getCounterIfExists(
@@ -215,8 +224,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    auto switchId = getCurrentSwitchIdForTesting();
     utility::checkPortFabricReachability(
-        getAgentEnsemble(), SwitchID(0), fabricPortId);
+        getAgentEnsemble(), switchId, fabricPortId);
     auto drainPort = [&](bool drain) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
@@ -234,7 +244,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
           getAgentEnsemble(), fabricPortIds, expectActive);
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
       // Flap port, active and reachability status should be unaffected
       // after flap
       bringDownPort(fabricPortId);
@@ -242,7 +252,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       utility::checkFabricPortsActiveState(
           getAgentEnsemble(), fabricPortIds, expectActive);
       utility::checkPortFabricReachability(
-          getAgentEnsemble(), SwitchID(0), fabricPortId);
+          getAgentEnsemble(), switchId, fabricPortId);
     };
     drainPort(true);
     drainPort(false);
@@ -338,7 +348,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
     WITH_RETRIES({
       auto afterPkts =
           getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0])
-              .get_outUnicastPkts_();
+              .outUnicastPkts_()
+              .value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + kNumPacketsToSend);
@@ -362,10 +373,11 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
   auto setup = []() {};
   auto verify = [this]() {
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    auto switchIndex = getCurrentSwitchIndexForTesting();
+    auto counterName =
+        folly::to<std::string>("switch.", switchIndex, ".fabric_overdrain_pct");
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
     auto enableFabPorts = [this](bool enable) {
       auto cfg = initialConfig(*getAgentEnsemble());
       for (auto& port : *cfg.ports()) {
@@ -378,16 +390,12 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
     };
     // Disable all fabric port
     enableFabPorts(false);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          100, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(100, fb303::fbData->getCounter(counterName)); });
     // Enable all fabric port
     enableFabPorts(true);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(0, fb303::fbData->getCounter(counterName)); });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -444,21 +452,22 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
+      auto nifBytes =
+          getLatestPortStats(testPort.phyPortID()).outBytes_().value();
       auto switchId =
           getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
-        fabricBytes += idAndStats.second.get_outBytes_();
+        fabricBytes += idAndStats.second.outBytes_().value();
         if (idAndStats.first != fabricPortId) {
-          EXPECT_EVENTUALLY_GT(idAndStats.second.get_outBytes_(), 0);
-          EXPECT_EVENTUALLY_GT(idAndStats.second.get_inBytes_(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.outBytes_().value(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.inBytes_().value(), 0);
         }
       }
       XLOG(DBG2) << "NIF bytes: " << nifBytes
@@ -495,18 +504,19 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
+      auto nifBytes =
+          getLatestPortStats(testPort.phyPortID()).outBytes_().value();
       auto switchId =
           getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
-        fabricBytes += idAndStats.second.get_outBytes_();
+        fabricBytes += idAndStats.second.outBytes_().value();
       }
       XLOG(DBG2) << "NIF bytes: " << nifBytes
                  << " Fabric bytes: " << fabricBytes;
@@ -526,6 +536,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
     setForceTrafficOverFabric(true);
     std::string out;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // Start with a blank command first and then set the FDA drop threshold
+      // This is because, sometimes first diag command doesn't work in some SDK
+      // versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchId);
       getAgentEnsemble()->runDiagCommand(
           "setreg FDA_OFM_CLASS_DROP_TH_CORE 0x001001001001001001001001\n",
           out,
@@ -658,7 +672,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyRxFifoStuckDetectedCallback) {
         getAgentEnsemble()->runDiagCommand(
             "fabric link rx_fifo_monitor action=TRIGGER\n", out, switchId);
         auto multiSwitchStats = getSw()->getHwSwitchStatsExpensive();
-        auto asicError = *multiSwitchStats[switchId].hwAsicErrors();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+        auto asicError = *multiSwitchStats[switchIndex].hwAsicErrors();
         auto rxFifoStuckDetected = asicError.rxFifoStuckDetected().value_or(0);
         XLOG(DBG2) << "Switch ID: " << switchId
                    << ", rxFifoStuckDetected: " << rxFifoStuckDetected;

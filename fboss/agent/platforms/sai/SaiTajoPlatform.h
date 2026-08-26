@@ -23,9 +23,7 @@ class SaiTajoPlatform : public SaiPlatform {
   std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
       const override;
 
-  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override {
-    return {};
-  }
+  std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
     return {FlexPortMode::ONEX400G};
   }

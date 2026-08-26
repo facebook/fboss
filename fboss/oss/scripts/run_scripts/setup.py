@@ -8,10 +8,34 @@ import shutil
 import subprocess
 import sys
 
-from run_test import setup_fboss_env
+
+def setup_fboss_env() -> None:
+    print("Setting fboss environment variables")
+
+    fboss = os.getcwd()
+    os.environ["FBOSS"] = fboss
+    os.environ["FBOSS_BIN"] = f"{fboss}/bin"
+    os.environ["FBOSS_LIB"] = f"{fboss}/lib"
+    os.environ["FBOSS_LIB64"] = f"{fboss}/lib64"
+    os.environ["FBOSS_KMODS"] = f"{fboss}/lib/modules"
+    os.environ["FBOSS_DATA"] = f"{fboss}/share"
+
+    if os.environ.get("PATH") is not None:
+        os.environ["PATH"] = f"{os.environ['FBOSS_BIN']}:{os.environ['PATH']}"
+    else:
+        os.environ["PATH"] = os.environ["FBOSS_BIN"]
+
+    if os.environ.get("LD_LIBRARY_PATH") is not None:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}:{os.environ['LD_LIBRARY_PATH']}"
+        )
+    else:
+        os.environ["LD_LIBRARY_PATH"] = (
+            f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
+        )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--reload", help="Clear setup config, and reload", action="store_true"
@@ -43,14 +67,18 @@ class SetupFboss:
     LSMOD_USER_BDE = "linux_user_bde"
     LSMOD_KERNEL_BDE = "linux_kernel_bde"
 
-    SRC_USER_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], USER_BDE_KO)
-    SRC_KERNEL_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], KERNEL_BDE_KO)
-
-    BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
     TH = "th"
     TH3 = "th3"
 
-    def __init__(self):
+    def __init__(self) -> None:
+        self.SRC_USER_BDE_KO_FULL_PATH = os.path.join(
+            os.environ["FBOSS_KMODS"], self.USER_BDE_KO
+        )
+        self.SRC_KERNEL_BDE_KO_FULL_PATH = os.path.join(
+            os.environ["FBOSS_KMODS"], self.KERNEL_BDE_KO
+        )
+        self.BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
+
         output = subprocess.check_output(["lspci"]).decode("utf-8").split("\n")
 
         if [x for x in output if "Broadcom" in x and "BCM56960" in x]:
@@ -62,7 +90,7 @@ class SetupFboss:
             )
             PLATFORM = "WEDGE100S+RSW"
             self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
+                self.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
         elif [x for x in output if "Broadcom" in x and "b980" in x]:
@@ -74,10 +102,10 @@ class SetupFboss:
             )
             PLATFORM = "MINIPACK+FSW"
             self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
+                self.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
-    def _cleanup_old_setup(self):
+    def _cleanup_old_setup(self) -> None:
         if os.path.exists(SetupFboss.FRUID_FULL_PATH):
             os.remove(SetupFboss.FRUID_FULL_PATH)
 
@@ -96,7 +124,7 @@ class SetupFboss:
         if os.path.exists(SetupFboss.KERNEL_BDE_KO_FULL_PATH):
             os.remove(SetupFboss.KERNEL_BDE_KO_FULL_PATH)
 
-    def _copy_configs(self):
+    def _copy_configs(self) -> None:
         if not os.path.exists(SetupFboss.FRUID_FULL_PATH):
             if not os.path.exists(SetupFboss.FRUID_DIR_PATH):
                 os.makedirs(SetupFboss.FRUID_DIR_PATH)
@@ -112,14 +140,14 @@ class SetupFboss:
         if not os.path.exists(SetupFboss.BDE_CONF_FULL_PATH):
             shutil.copy(self.src_bde_full_path, SetupFboss.BDE_CONF_FULL_PATH)
 
-    def _link_kmods(self):
+    def _link_kmods(self) -> None:
         new_kmod = False
         if not os.path.exists(SetupFboss.USER_BDE_KO_FULL_PATH):
             subprocess.run(
                 [
                     "ln",
                     "-s",
-                    SetupFboss.SRC_USER_BDE_KO_FULL_PATH,
+                    self.SRC_USER_BDE_KO_FULL_PATH,
                     "-t",
                     SetupFboss.KMOD_FULL_PATH,
                 ]
@@ -131,7 +159,7 @@ class SetupFboss:
                 [
                     "ln",
                     "-s",
-                    SetupFboss.SRC_KERNEL_BDE_KO_FULL_PATH,
+                    self.SRC_KERNEL_BDE_KO_FULL_PATH,
                     "-t",
                     SetupFboss.KMOD_FULL_PATH,
                 ]
@@ -141,7 +169,7 @@ class SetupFboss:
         if new_kmod:
             subprocess.run(["depmod", "-a"])
 
-    def _load_kmods(self):
+    def _load_kmods(self) -> None:
         output = subprocess.check_output(["lsmod"]).decode("utf-8").split("\n")
 
         if not [x for x in output if SetupFboss.LSMOD_USER_BDE in x]:
@@ -149,7 +177,7 @@ class SetupFboss:
         if not [x for x in output if SetupFboss.LSMOD_KERNEL_BDE in x]:
             subprocess.run(["modprobe", SetupFboss.KERNEL_BDE])
 
-    def run(self, args):
+    def run(self, args: argparse.Namespace) -> None:
         if args.reload:
             self._cleanup_old_setup()
 

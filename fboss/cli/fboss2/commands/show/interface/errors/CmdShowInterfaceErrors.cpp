@@ -96,6 +96,40 @@ void CmdShowInterfaceErrors::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowInterfaceErrorsTraits::description() {
+  return "Displays per-interface error and discard counters: input errors, input discards, output errors, and output discards. Use it to spot ports dropping or corrupting traffic.";
+}
+
+CmdShowInterfaceErrors::RetType CmdShowInterfaceErrors::sampleModel() {
+  RetType model;
+
+  cli::ErrorCounters counter1;
+  counter1.interfaceName() = "eth1/1/1";
+  counter1.inputErrors() = 0;
+  counter1.inputDiscards() = 7;
+  counter1.outputErrors() = 0;
+  counter1.outputDiscards() = 2836;
+  model.error_counters()->push_back(counter1);
+
+  cli::ErrorCounters counter2;
+  counter2.interfaceName() = "eth1/2/1";
+  counter2.inputErrors() = 0;
+  counter2.inputDiscards() = 164;
+  counter2.outputErrors() = 0;
+  counter2.outputDiscards() = 84;
+  model.error_counters()->push_back(counter2);
+
+  cli::ErrorCounters counter3;
+  counter3.interfaceName() = "eth1/11/1";
+  counter3.inputErrors() = 0;
+  counter3.inputDiscards() = 0;
+  counter3.outputErrors() = 0;
+  counter3.outputDiscards() = 5079;
+  model.error_counters()->push_back(counter3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::run();

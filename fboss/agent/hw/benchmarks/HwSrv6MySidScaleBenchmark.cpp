@@ -1,28 +1,16 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <fmt/core.h>
 #include <folly/Benchmark.h>
-#include <folly/IPAddress.h>
-#include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/SwSwitchMySidUpdater.h"
-#include "fboss/agent/if/gen-cpp2/common_types.h"
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include <folly/logging/xlog.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 
 namespace facebook::fboss {
 
 namespace {
-
-// Generate a unique MySID address from an index.
-// The locator block is the first 32 bits (3001:0db8).
-// The function ID is the next 16 bits (third group), varied per entry.
-folly::IPAddressV6 makeMySidAddr(int index) {
-  return folly::IPAddressV6(fmt::format("3001:db8:{:x}::", index + 1));
-}
-
-constexpr int kMySidPrefixLen = 48;
 
 AgentEnsembleSwitchConfigFn makeMySidConfigFn() {
   return [](const AgentEnsemble& ensemble) {
@@ -34,10 +22,15 @@ AgentEnsembleSwitchConfigFn makeMySidConfigFn() {
   };
 }
 
-// Benchmark: programs numEntries ADJACENCY_MICRO_SID MySID entries
-// one at a time and measures the total time to program them to the ASIC.
+// Benchmark: programs numEntries ADJACENCY_MICRO_SID MySID entries in a single
+// batched rib->update and measures the total time to program them to the ASIC.
 void srv6MidpointMySidScaleBenchmark(int numEntries) {
   folly::BenchmarkSuspender suspender;
+  // For scale benchmarking, do not cap MySID usage at the default 75%.
+  // This aligns with other scale benchmarks that set resource percentages to
+  // 100.
+  FLAGS_enable_mysid_resource_protection = true;
+  FLAGS_mysid_resource_percentage = 100;
 
   auto ensemble = createAgentEnsemble(
       makeMySidConfigFn(), false /*disableLinkStateToggler*/);
@@ -55,56 +48,35 @@ void srv6MidpointMySidScaleBenchmark(int numEntries) {
   });
 
   auto sw = ensemble->getSw();
-  auto rib = sw->getRib();
-  auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark targetEntries="
+             << numEntries;
 
-  // Timed: program MySID entries one at a time
+  // Build all MySID entries up front (untimed). sidOffset 1 ->
+  // 3001:db8:<i+1>::.
+  auto toAdd = utility::makeAdjacencyMySidEntries(
+      ecmpHelper, numNhops, numEntries, 1 /*sidOffset*/);
+  auto programmedEntries = static_cast<int>(toAdd.size());
+
+  // Timed: program all MySID entries in a single batched rib->update.
   suspender.dismiss();
-  for (int i = 0; i < numEntries; ++i) {
-    MySidEntry entry;
-    entry.type() = MySidType::ADJACENCY_MICRO_SID;
-    facebook::network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() = facebook::network::toBinaryAddress(
-        folly::IPAddressV6(makeMySidAddr(i)));
-    prefix.prefixLength() = kMySidPrefixLen;
-    entry.mySid() = prefix;
-    NextHopThrift nhop;
-    nhop.address() =
-        facebook::network::toBinaryAddress(ecmpHelper.nhop(i % numNhops).ip);
-    entry.nextHops()->push_back(nhop);
-    rib->update(
-        sw->getScopeResolver(),
-        {entry},
-        {} /* toDelete */,
-        "addMySidEntry",
-        ribMySidFunc,
-        sw);
-  }
+  utility::programMySidEntries(sw, std::move(toAdd));
   suspender.rehire();
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark programmedEntries="
+             << programmedEntries;
 
-  // Cleanup: delete all MySID entries (untimed)
-  for (int i = 0; i < numEntries; ++i) {
-    IpPrefix prefix;
-    prefix.ip() = facebook::network::toBinaryAddress(
-        folly::IPAddressV6(makeMySidAddr(i)));
-    prefix.prefixLength() = kMySidPrefixLen;
-    rib->update(
-        sw->getScopeResolver(),
-        std::vector<MySidEntry>{} /* toAdd */,
-        {prefix},
-        "deleteMySidEntry",
-        ribMySidFunc,
-        sw);
-  }
+  // Cleanup: delete all MySID entries (untimed).
+  utility::deleteScaleMySidEntries(sw, programmedEntries, 1 /*sidOffset*/);
+  XLOG(INFO) << "HwSrv6MidpointMySidScaleBenchmark cleanupEntries="
+             << programmedEntries;
 }
 
 } // namespace
 
-// ASIC supports up to 2K MySID entries.
+// Current validated capacity is 2042 MySID entries in SAI tests.
 // Midpoint (ADJACENCY_MICRO_SID): each entry has a next hop for uSID shift
 // and forwarding to the adjacency.
 BENCHMARK(HwSrv6MidpointMySidScaleBenchmark) {
-  srv6MidpointMySidScaleBenchmark(2048);
+  srv6MidpointMySidScaleBenchmark(2042);
 }
 
 } // namespace facebook::fboss

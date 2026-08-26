@@ -3,14 +3,6 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-file(READ fboss/agent/hw/test/golden/asic/jericho3-11.csv JERICHO3-11)
-file(READ fboss/agent/hw/test/golden/asic/jericho3-default.csv JERICHO3-DEFAULT)
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/agent/hw/test/oss/golden_data.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/fboss/agent/hw/test/golden_data.h
-  @ONLY
-)
-
 add_library(config_factory
   fboss/agent/hw/test/ConfigFactory.cpp
   fboss/agent/hw/test/HwPortUtils.cpp
@@ -213,30 +205,17 @@ add_fbthrift_cpp_library(
 
 set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestFabricUtils.cpp
-  fboss/agent/hw/test/HwFlexPortTests.cpp
-  fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
   fboss/agent/hw/test/HwLabelSwitchRouteTest.cpp
   fboss/agent/hw/test/HwLinkStateDependentTest.cpp
-  fboss/agent/hw/test/HwMirrorTests.cpp
   fboss/agent/hw/test/HwTest.cpp
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
-  fboss/agent/hw/test/HwVlanTests.cpp
-  fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
-  fboss/agent/hw/test/HwAclStatTests.cpp
-  fboss/agent/hw/test/HwPortProfileTests.cpp
-  fboss/agent/hw/test/HwPortStressTests.cpp
   fboss/agent/hw/test/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/HwEmptyTest.cpp
-  fboss/agent/hw/test/dataplane_tests/HwInPauseDiscardsTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwL3Tests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwSflowTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
 )
 
 add_library(hw_switch_test

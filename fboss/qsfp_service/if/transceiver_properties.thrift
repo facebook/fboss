@@ -48,6 +48,11 @@ struct FirstApplicationAdvertisement {
   // Host interface code byte (e.g., 0x25 = GAUI8_800G)
   // Note the type ActiveCuHostInterfaceCode is misnamed, it is actually the HostInterfaceCode byte
   3: transceiver.ActiveCuHostInterfaceCode hostInterfaceCode;
+  // Max CMIS bank count (Lower Page 00h byte 70) required to match this code.
+  // Optional: absent == single-bank (1). Disambiguates two codes whose
+  // application advertisement is otherwise identical but differ in bank count
+  // (e.g. DR4_8x800G at 4 banks vs DR4_2x800G at 1 bank).
+  4: optional i16 maxNumBanks;
 }
 
 // Diagnostics capabilities that differ from defaults (all supported).

@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -27,21 +28,121 @@
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
+#include <iterator>
+#include <vector>
 
 namespace facebook::fboss {
 
-bool isEcmpModeDynamic(std::optional<cfg::SwitchingMode> switchingMode) {
+namespace {
+std::pair<RouteNextHopEntry::NextHopSet, RouteNextHopEntry::NextHopSet>
+checkAndGetPriAndBackupNhops(const RouteNextHopEntry::NextHopSet& swNextHops) {
+  std::vector<NextHop> primaryNhops;
+  std::vector<NextHop> backupNhops;
+  primaryNhops.reserve(swNextHops.size());
+  backupNhops.reserve(swNextHops.size());
+  for (const auto& swNextHop : swNextHops) {
+    switch (swNextHop.role()) {
+      case NextHopRole::PRIMARY:
+        primaryNhops.push_back(swNextHop);
+        break;
+      case NextHopRole::BACKUP:
+        backupNhops.push_back(swNextHop);
+        break;
+    }
+  }
+  if (backupNhops.size() && primaryNhops.size() > 1) {
+    throw FbossError(
+        "Got : ",
+        primaryNhops.size(),
+        " primary nhops and ",
+        backupNhops.size(),
+        " backup nhops. While only 1:N protection model is supported");
+  }
+  return std::make_pair(
+      RouteNextHopEntry::NextHopSet(
+          boost::container::ordered_unique_range,
+          std::make_move_iterator(primaryNhops.begin()),
+          std::make_move_iterator(primaryNhops.end())),
+      RouteNextHopEntry::NextHopSet(
+          boost::container::ordered_unique_range,
+          std::make_move_iterator(backupNhops.begin()),
+          std::make_move_iterator(backupNhops.end())));
+}
+bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
   return (
       switchingMode.has_value() &&
       (switchingMode.value() == cfg::SwitchingMode::PER_PACKET_QUALITY ||
        switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
 }
 
+bool isProtectionNextHopGroupType(
+    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+#else
+  return false;
+#endif
+}
+
+bool isHwProtectionNextHopGroupType(
+    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+#else
+  return false;
+#endif
+}
+
+sai_next_hop_group_type_t getHwProtectionNextHopGroupType() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION;
+#else
+  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+#endif
+}
+
+std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
+    sai_next_hop_group_type_t nextHopGroupType,
+    std::optional<cfg::SwitchingMode> overrideEcmpSwitchingMode,
+    std::optional<cfg::SwitchingMode> primaryArsMode) {
+  if (isProtectionNextHopGroupType(nextHopGroupType)) {
+    return std::nullopt;
+  }
+  if (isHwProtectionNextHopGroupType(nextHopGroupType)) {
+    return cfg::SwitchingMode::PER_PACKET_RANDOM;
+  }
+  return overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
+                                               : primaryArsMode;
+}
+} // namespace
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId>
+SaiNextHopGroupManager::getArsObjectId(
+    std::optional<cfg::SwitchingMode> switchingMode,
+    size_t nextHopGroupSize) const {
+  if (!isEcmpModeARS(switchingMode)) {
+    return std::nullopt;
+  }
+
+  auto arsHandle = managerTable_->arsManager().getArsHandle();
+  if (minWidthForArsVirtualGroup_.has_value() &&
+      nextHopGroupSize >= minWidthForArsVirtualGroup_.value()) {
+    arsHandle = managerTable_->arsManager().getVirtualArsGroupHandle();
+  }
+  if (!arsHandle->ars) {
+    return std::nullopt;
+  }
+  return SaiNextHopGroupTraits::Attributes::ArsObjectId{
+      arsHandle->ars->adapterKey()};
+}
+#endif
 
 std::shared_ptr<SaiNextHopGroupHandle>
 SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
@@ -50,7 +151,16 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   if (!ins.second) {
     return nextHopGroupHandle;
   }
-  const auto& swNextHops = key.first;
+  const auto& swNextHops = key.nextHops;
+  auto [primaryNhops, backupNhops] = checkAndGetPriAndBackupNhops(swNextHops);
+  const auto nextHopGroupType = key.groupType;
+  auto childNextHopGroup = isProtectionNextHopGroupType(nextHopGroupType)
+      ? incRefOrAddNextHopGroup(SaiNextHopGroupKey(
+            backupNhops, key.switchingMode, getHwProtectionNextHopGroupType()))
+      : nullptr;
+  const auto& memberNhops = isHwProtectionNextHopGroupType(nextHopGroupType)
+      ? backupNhops
+      : primaryNhops;
   SaiNextHopGroupTraits::AdapterHostKey nextHopGroupAdapterHostKey;
   // Populate the set of rifId, IP pairs for the NextHopGroup's
   // AdapterHostKey, and a set of next hop ids to create members for
@@ -59,14 +169,14 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   // creating the next hop group requires going through all the next hops
   // to figure out the AdapterHostKey)
   std::vector<ResolvedNextHop> resolvedNextHops;
-  resolvedNextHops.reserve(swNextHops.size());
+  resolvedNextHops.reserve(memberNhops.size());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::unordered_map<
       const ResolvedNextHop*,
       std::shared_ptr<SaiSrv6SidListHandle>>
       srv6SidListMap;
 #endif
-  for (const auto& swNextHop : swNextHops) {
+  for (const auto& swNextHop : memberNhops) {
     // Compute the sai id of the next hop's router interface
     const InterfaceID interfaceId = swNextHop.intf();
     auto routerInterfaceHandle =
@@ -127,35 +237,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::HashAlgorithm> hashAlgorithm{
       std::nullopt};
+  std::optional<SaiNextHopGroupTraits::Attributes::HierarchicalNextHop>
+      hierarchicalNextHop{std::nullopt};
 #endif
 
   if (FLAGS_flowletSwitchingEnable &&
       platform_->getAsic()->isSupported(HwAsic::Feature::ARS)) {
-    auto overrideEcmpSwitchingMode = key.second;
+    nextHopGroupHandle->desiredEcmpSwitchingMode_ = getDesiredEcmpSwitchingMode(
+        nextHopGroupType, key.switchingMode, primaryArsMode_);
 
-    // if overrideEcmpSwitchingMode is empty, then use primary mode
-    // if overrideEcmpSwitchingMode has value, then a backup mode is requested
-    // by ERM
-    nextHopGroupHandle->desiredArsMode_ = overrideEcmpSwitchingMode.has_value()
-        ? overrideEcmpSwitchingMode
-        : primaryArsMode_;
-
-    if (isEcmpModeDynamic(nextHopGroupHandle->desiredArsMode_)) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-      auto arsHandlePtr = managerTable_->arsManager().getArsHandle();
-
-      if (minWidthForArsVirtualGroup_.has_value() &&
-          swNextHops.size() >= minWidthForArsVirtualGroup_.value()) {
-        arsHandlePtr = managerTable_->arsManager().getVirtualArsGroupHandle();
-      }
-      if (arsHandlePtr->ars) {
-        auto arsSaiId = arsHandlePtr->ars->adapterKey();
-        arsObjectId = SaiNextHopGroupTraits::Attributes::ArsObjectId{arsSaiId};
-      }
+    arsObjectId = getArsObjectId(
+        nextHopGroupHandle->desiredEcmpSwitchingMode_, swNextHops.size());
 #endif
-    } else {
-      if (nextHopGroupHandle->desiredArsMode_.has_value() &&
-          (nextHopGroupHandle->desiredArsMode_.value() ==
+    if (!isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
+      if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value() &&
+          (nextHopGroupHandle->desiredEcmpSwitchingMode_.value() ==
            cfg::SwitchingMode::PER_PACKET_RANDOM)) {
         // setting hash algo to RANDOM is specific to TH* asics
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -164,34 +261,51 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
           hashAlgorithm = SaiNextHopGroupTraits::Attributes::HashAlgorithm{
               SAI_HASH_ALGORITHM_RANDOM};
         }
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL)) {
+          hierarchicalNextHop =
+              SaiNextHopGroupTraits::Attributes::HierarchicalNextHop{false};
+        }
 #endif
       }
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    nextHopGroupAdapterHostKey.mode =
-        managerTable_->arsManager().cfgSwitchingModeToSai(
-            nextHopGroupHandle->desiredArsMode_.value());
+    if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value()) {
+      nextHopGroupAdapterHostKey.mode =
+          managerTable_->arsManager().cfgSwitchingModeToSai(
+              nextHopGroupHandle->desiredEcmpSwitchingMode_.value());
+    }
 #endif
+  }
+
+  nextHopGroupAdapterHostKey.groupType = nextHopGroupType;
+  if (childNextHopGroup) {
+    CHECK(childNextHopGroup->nextHopGroup);
+    nextHopGroupAdapterHostKey.childNextHopGroups.insert(
+        childNextHopGroup->nextHopGroup->adapterHostKey());
   }
 
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP
+      nextHopGroupType
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       ,
       arsObjectId
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      hashAlgorithm
+      hashAlgorithm,
+      hierarchicalNextHop
 #endif
   };
   nextHopGroupHandle->nextHopGroup =
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
       nextHopGroupHandle->nextHopGroup->adapterKey();
-  nextHopGroupHandle->fixedWidthMode = isFixedWidthNextHopGroup(swNextHops);
+  nextHopGroupHandle->fixedWidthMode =
+      nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_ECMP &&
+      isFixedWidthNextHopGroup(swNextHops);
   nextHopGroupHandle->saiStore_ = saiStore_;
   nextHopGroupHandle->maxVariableWidthEcmpSize =
       platform_->getAsic()->getMaxVariableWidthEcmpSize();
@@ -199,9 +313,17 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
   XLOG(DBG2) << "Created NexthopGroup OID: " << nextHopGroupId;
 
+  if (childNextHopGroup) {
+    nextHopGroupHandle->childGroupMember_ =
+        std::make_shared<SaiNextHopGroupChildGroupMember>(
+            this, std::move(childNextHopGroup), nextHopGroupId);
+  }
+
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_->getAsic()->isSupported(
+  bool canBulkCreateMembers = !isProtectionNextHopGroupType(nextHopGroupType);
+  if (FLAGS_enable_bulk_create_ecmp_members && canBulkCreateMembers &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     // TODO(zecheng): Use bulk create for warmboot handle reclaiming as well.
     // There is a sequencing issue where the delayed bulk create will cause
@@ -230,14 +352,20 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);
 #endif
     auto memberKey = std::make_pair(nextHopGroupId, resolvedNextHop);
-    auto weight = (resolvedNextHop.weight() == ECMP_WEIGHT)
-        ? 1
-        : resolvedNextHop.weight();
+    NextHopGroupMember::NextHopWeight weight;
+    if (nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
+      weight = SaiNextHopGroupMemberTraits::Attributes::Weight{
+          static_cast<sai_uint32_t>(
+              resolvedNextHop.weight() == ECMP_WEIGHT
+                  ? 1
+                  : resolvedNextHop.weight())};
+    }
     auto result = nextHopGroupMembers_.refOrEmplace(
         memberKey,
         this,
         nextHopGroupHandle.get(),
         nextHopGroupId,
+        nextHopGroupType,
         managedNextHop,
         weight,
         nextHopGroupHandle->fixedWidthMode);
@@ -246,7 +374,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_->getAsic()->isSupported(
+  if (FLAGS_enable_bulk_create_ecmp_members &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     nextHopGroupHandle->bulkCreate = false;
 
@@ -283,6 +412,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
 
   return nextHopGroupHandle;
+}
+
+const SaiNextHopGroupHandle* SaiNextHopGroupManager::getNextHopGroup(
+    const SaiNextHopGroupKey& key) const {
+  return handles_.get(key);
 }
 
 bool SaiNextHopGroupManager::isFixedWidthNextHopGroup(
@@ -340,7 +474,7 @@ void SaiNextHopGroupManager::updateArsModeAll(
     }
 
     // do not convert backup modes to dynamic
-    if (!isEcmpModeDynamic(handlePtr->desiredArsMode_)) {
+    if (!isEcmpModeARS(handlePtr->desiredEcmpSwitchingMode_)) {
       continue;
     }
 
@@ -413,8 +547,9 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
     }
   }
 
-  if (nextHopGroupHandle && nextHopGroupHandle->desiredArsMode_.has_value()) {
-    return nextHopGroupHandle->desiredArsMode_.value();
+  if (nextHopGroupHandle &&
+      nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value()) {
+    return nextHopGroupHandle->desiredEcmpSwitchingMode_.value();
   }
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
@@ -448,7 +583,8 @@ std::vector<EcmpDetails> SaiNextHopGroupManager::getAllEcmpDetails() const {
     }
     EcmpDetails ecmp;
     ecmp.ecmpId() = static_cast<int32_t>(handle->nextHopGroup->adapterKey());
-    const bool flowletEnabled = isEcmpModeDynamic(handle->desiredArsMode_);
+    const bool flowletEnabled =
+        isEcmpModeARS(handle->desiredEcmpSwitchingMode_);
     ecmp.flowletEnabled() = flowletEnabled;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     if (flowletEnabled) {
@@ -465,6 +601,7 @@ NextHopGroupMember::NextHopGroupMember(
     SaiNextHopGroupManager* manager,
     SaiNextHopGroupHandle* nhgroup,
     SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+    sai_next_hop_group_type_t nextHopGroupType,
     ManagedSaiNextHop managedSaiNextHop,
     NextHopWeight nextHopWeight,
     bool fixedWidthMode) {
@@ -474,12 +611,14 @@ NextHopGroupMember::NextHopGroupMember(
             decltype(managedNextHop)>::element_type::ObjectTraits;
         auto key = managedNextHop->adapterHostKey();
         std::ignore = key;
-        using ManagedMemberType = ManagedSaiNextHopGroupMember<ObjectTraits>;
+        using ManagedMemberType =
+            ManagedSaiNextHopGroupNextHopMember<ObjectTraits>;
         auto managedMember = std::make_shared<ManagedMemberType>(
             manager,
             nhgroup,
             managedNextHop,
             nexthopGroupId,
+            nextHopGroupType,
             nextHopWeight,
             fixedWidthMode);
         SaiObjectEventPublisher::getInstance()->get<ObjectTraits>().subscribe(
@@ -489,30 +628,80 @@ NextHopGroupMember::NextHopGroupMember(
       managedSaiNextHop);
 }
 
+SaiNextHopGroupChildGroupMember::SaiNextHopGroupChildGroupMember(
+    SaiNextHopGroupManager* manager,
+    std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup,
+    const SaiNextHopGroupTraits::AdapterKey& parentNextHopGroupId)
+    : childNextHopGroup_(std::move(childNextHopGroup)),
+      parentNextHopGroupId_(parentNextHopGroupId) {
+  CHECK(childNextHopGroup_);
+  CHECK(childNextHopGroup_->nextHopGroup);
+  auto childNextHopGroupId = childNextHopGroup_->adapterKey();
+  adapterHostKey_.emplace(parentNextHopGroupId_, childNextHopGroupId);
+  createAttributes_.emplace(
+      parentNextHopGroupId_,
+      childNextHopGroupId,
+      std::nullopt
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+          SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_STANDBY},
+      std::nullopt
+#endif
+  );
+  nextHopGroupMember_ =
+      manager->createSaiObject(*adapterHostKey_, *createAttributes_);
+}
+
+std::pair<
+    std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+    std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+SaiNextHopGroupChildGroupMember::getAdapterHostKeyAndCreateAttributes() {
+  return std::make_pair(adapterHostKey_, createAttributes_);
+}
+
 template <typename NextHopTraits>
 std::pair<
     std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
     std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
-ManagedSaiNextHopGroupMember<
+ManagedSaiNextHopGroupNextHopMember<
     NextHopTraits>::getAdapterHostKeyAndCreateAttributes() {
   return std::make_pair(adapterHostKey_, createAttributes_);
 }
 
 template <typename NextHopTraits>
-void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
-    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
-        added) {
+void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
+    typename ManagedSaiNextHopGroupNextHopMember<
+        NextHopTraits>::PublisherObjects added) {
   CHECK(this->allPublishedObjectsAlive()) << "next hops are not ready";
 
   auto nexthopId = std::get<NextHopWeakPtr>(added).lock()->adapterKey();
 
   SaiNextHopGroupMemberTraits::AdapterHostKey adapterHostKey{
       nexthopGroupId_, nexthopId};
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  std::optional<SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole>
+      configuredRole;
+  if (isProtectionNextHopGroupType(nextHopGroupType_)) {
+    configuredRole = SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
+        SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY};
+  }
+#endif
   // In fixed width case, the member is added with weight 0
   // and proper weight is set through bulk set api. check comments
   // associated with SaiNextHopGroupHandle::bulkProgramMembers for details
   SaiNextHopGroupMemberTraits::CreateAttributes createAttributes{
-      nexthopGroupId_, nexthopId, fixedWidthMode_ ? 0 : weight_};
+      nexthopGroupId_,
+      nexthopId,
+      fixedWidthMode_
+          ? NextHopWeight{SaiNextHopGroupMemberTraits::Attributes::Weight{0}}
+          : weight_
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      configuredRole,
+      std::nullopt /* monitoredObject */
+#endif
+  };
 
   bool bulkUpdate{true};
   if (fixedWidthMode_) {
@@ -530,7 +719,8 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
   }
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-  if (nhgroup_ && nhgroup_->bulkCreate) {
+  if (FLAGS_enable_bulk_create_ecmp_members && nhgroup_ &&
+      nhgroup_->bulkCreate) {
     adapterHostKey_ = adapterHostKey;
     createAttributes_ = createAttributes;
   } else {
@@ -544,23 +734,28 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
 
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program correct weight
-    nhgroup_->memberAdded({adapterHostKey, weight_}, bulkUpdate);
+    nhgroup_->memberAdded({adapterHostKey, weight_.value()}, bulkUpdate);
   }
-  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString()
-             << " weight " << weight_.value();
+  XLOG(DBG2) << "ManagedSaiNextHopGroupNextHopMember::createObject: "
+             << toString() << " weight "
+             << (weight_.has_value() ? std::to_string(weight_->value())
+                                     : "none");
 }
 
 template <typename NextHopTraits>
-void ManagedSaiNextHopGroupMember<NextHopTraits>::removeObject(
+void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::removeObject(
     size_t /* index */,
-    typename ManagedSaiNextHopGroupMember<NextHopTraits>::PublisherObjects
+    typename ManagedSaiNextHopGroupNextHopMember<
+        NextHopTraits>::PublisherObjects
     /* removed */) {
-  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::removeObject: " << toString();
+  XLOG(DBG2) << "ManagedSaiNextHopGroupNextHopMember::removeObject: "
+             << toString();
   if (fixedWidthMode_) {
     // notify nhgroup to bulk program with 0 weight. In fixed width mode
     // member cannot be removed directly. check comments associated with
     // SaiNextHopGroupHandle::bulkProgramMembers for details
-    nhgroup_->memberRemoved({this->getObject()->adapterHostKey(), weight_});
+    nhgroup_->memberRemoved(
+        {this->getObject()->adapterHostKey(), weight_.value()});
   }
   this->createAttributes_ = std::nullopt;
   this->adapterHostKey_ = std::nullopt;
@@ -673,7 +868,7 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0) || \
     defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(CHENAB_SAI_SDK)
-  if (platform_ &&
+  if (FLAGS_enable_bulk_create_ecmp_members && platform_ &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::BULK_CREATE_ECMP_MEMBER)) {
     std::vector<SaiNextHopGroupMemberTraits::AdapterKey> adapterKeys;
@@ -704,7 +899,8 @@ SaiNextHopGroupHandle::~SaiNextHopGroupHandle() {
 }
 
 template <typename NextHopTraits>
-std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
+std::string ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::toString()
+    const {
   auto nextHopGroupMemberIdStr = this->getObject()
       ? std::to_string(this->getObject()->adapterKey())
       : "none";
@@ -714,6 +910,19 @@ std::string ManagedSaiNextHopGroupMember<NextHopTraits>::toString() const {
       "NextHopGroupId: ",
       nexthopGroupId_,
       "NextHopGroupMemberId:",
+      nextHopGroupMemberIdStr);
+}
+
+std::string SaiNextHopGroupChildGroupMember::toString() const {
+  auto nextHopGroupMemberIdStr = nextHopGroupMember_
+      ? std::to_string(nextHopGroupMember_->adapterKey())
+      : "none";
+  return folly::to<std::string>(
+      nextHopGroupMember_ ? "active " : "inactive ",
+      "next hop group child group member: ",
+      "ParentNextHopGroupId: ",
+      parentNextHopGroupId_,
+      ", NextHopGroupMemberId: ",
       nextHopGroupMemberIdStr);
 }
 

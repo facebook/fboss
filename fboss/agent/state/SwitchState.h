@@ -25,6 +25,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -34,6 +35,8 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/LlrConfig.h"
+#include "fboss/agent/state/LlrConfigMap.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/MirrorOnDropReportMap.h"
@@ -74,13 +77,11 @@ class BufferPoolCfgMap;
 class FlowletSwitchingConfig;
 class PortFlowletCfg;
 class PortFlowletCfgMap;
+class LlrConfig;
+class LlrConfigMap;
 
 USE_THRIFT_COW(SwitchState);
 /* multi npu maps */
-RESOLVE_STRUCT_MEMBER(
-    SwitchState,
-    switch_state_tags::fibsMap,
-    MultiSwitchForwardingInformationBaseMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::fibsInfoMap,
@@ -187,8 +188,16 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::classBasedPolicyMaps,
+    MultiSwitchClassBasedPolicyMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::portFlowletCfgMaps,
     MultiSwitchPortFlowletCfgMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::llrCfgMaps,
+    MultiSwitchLlrConfigMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -289,6 +298,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
 
+  const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& getClassBasedPolicies()
+      const;
+
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
 
   std::chrono::seconds getArpTimeout() const;
@@ -315,6 +327,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchPortFlowletCfgMap> getPortFlowletCfgs()
       const;
+
+  const std::shared_ptr<MultiSwitchLlrConfigMap> getLlrConfigs() const;
 
   std::chrono::seconds getNdpTimeout() const;
 
@@ -343,8 +357,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
   getMirrorOnDropReports() const;
   const std::shared_ptr<MultiSwitchFibInfoMap>& getFibsInfoMap() const;
-  const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& getFibs()
-      const;
   const std::shared_ptr<MultiLabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const;
 
@@ -363,6 +375,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<UdfConfig> getUdfConfig() const;
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const;
+  std::optional<bool> getL3EcmpIngressPortPrune() const;
 
   /*
    * Remote objects
@@ -399,6 +412,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
+  void resetClassBasedPolicies(
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
   void resetSflowCollectors(
@@ -410,14 +425,13 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchLoadBalancerMap> loadBalancers);
   void resetLabelForwardingInformationBase(
       std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
-  void resetForwardingInformationBases(
-      std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
   void resetFibsInfoMap(std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap);
   void resetSwitchSettings(std::shared_ptr<MultiSwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);
   void resetTransceivers(
       std::shared_ptr<MultiSwitchTransceiverMap> transceivers);
   void resetPortFlowletCfgs(std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs);
+  void resetLlrConfigs(std::shared_ptr<MultiSwitchLlrConfigMap> cfgs);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteSystemPorts(

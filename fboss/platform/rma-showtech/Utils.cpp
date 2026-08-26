@@ -307,10 +307,11 @@ void Utils::printNvmeDetails() {
 void Utils::printPowerGoodDetails() {
   std::cout << "##### Power Good Information #####" << std::endl;
 
-  if (config_.scPowerGood() && config_.scPowerGood()->sysfsAttribute()) {
+  if (config_.scPowerGood() && config_.scPowerGood()->sysfsAttributes()) {
     std::cout << "Reading scPowerGood from sysfs" << std::endl;
-    auto pgSysfs = *config_.scPowerGood()->sysfsAttribute();
-    printSysfsAttribute(*pgSysfs.name(), *pgSysfs.path());
+    for (const auto& pgSysfs : *config_.scPowerGood()->sysfsAttributes()) {
+      printSysfsAttribute(*pgSysfs.name(), *pgSysfs.path());
+    }
   } else if (config_.scPowerGood() && config_.scPowerGood()->gpioAttribute()) {
     std::cout << "Reading scPowerGood from gpio" << std::endl;
     auto pgGpio = *config_.scPowerGood()->gpioAttribute();
@@ -354,7 +355,7 @@ void Utils::printLogs() {
   std::cout << "##### fboss_hw_agent@0 Log #####" << std::endl;
   printServiceLogs("fboss_hw_agent@0");
 
-  std::cout << "##### demsg Log #####" << std::endl;
+  std::cout << "##### dmesg Log #####" << std::endl;
   std::cout << execCommandWithLimit("dmesg").second << std::endl;
 
   std::cout << "##### Boot Console Log #####" << std::endl;
@@ -464,7 +465,8 @@ void Utils::printGpio(const Gpio& gpio) {
     std::cout << fmt::format(
         "line {:>3}:   {:<15} -> ", *line.lineIndex(), *line.name());
     try {
-      std::cout << GpiodLine(chip, *line.lineIndex(), *line.name()).getValue()
+      std::cout << GpiodLine(chip, *line.lineIndex(), *line.name())
+                       .getValuePreservingDirection()
                 << std::endl;
     } catch (const std::exception& e) {
       std::cout << fmt::format("Error: failed to read gpio line: {}", e.what())

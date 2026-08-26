@@ -30,7 +30,6 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
-#include <folly/functional/Partial.h>
 #include <gtest/gtest.h>
 #include <optional>
 

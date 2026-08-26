@@ -201,6 +201,18 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     ipv6HopLimit1Mine_.addValue(1);
   }
 
+  void mplsTtlExceeded() {
+    mplsTtlExceeded_.addValue(1);
+  }
+
+  void srv6DecapMySidToMe() {
+    srv6DecapMySidToMe_.addValue(1);
+  }
+
+  void srv6NonLastSegmentDecapDrop() {
+    srv6NonLastSegmentDecapDrop_.addValue(1);
+  }
+
   void udpTooSmall() {
     udpTooSmall_.addValue(1);
   }
@@ -361,6 +373,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
 
   void linkStateChange() {
     linkStateChange_.addValue(1);
+  }
+
+  void linkFault(int64_t increment) {
+    linkFault_.addValue(increment);
   }
 
   void linkActiveStateChange() {
@@ -686,6 +702,12 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   int64_t getWarmbootRemoteIntfRoutesInconsistency() const {
     return getCumulativeValue(warmbootRemoteIntfRoutesInconsistency_);
   }
+  void warmbootRemoteIntfRoutesReconcileError(int64_t count) {
+    warmbootRemoteIntfRoutesReconcileError_.addValue(count);
+  }
+  int64_t getWarmbootRemoteIntfRoutesReconcileError() const {
+    return getCumulativeValue(warmbootRemoteIntfRoutesReconcileError_);
+  }
 
   void switchReachabilityInconsistencyDetected(int16_t switchIndex) {
     CHECK_LT(switchIndex, switchReachabilityInconsistencyDetected_.size());
@@ -939,6 +961,15 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   // hop limit 1
   TLTimeseries ipv6HopLimit1Mine_;
 
+  // MPLS packets trapped to FBOSS because the top-label TTL expired
+  // during forwarding. The received packet carries ingress TTL 1.
+  TLTimeseries mplsTtlExceeded_;
+
+  // SRv6 decap: outer header stripped and inner packet re-injected
+  TLTimeseries srv6DecapMySidToMe_;
+  // SRv6 packet with non-last uSID matching decap MySID
+  TLTimeseries srv6NonLastSegmentDecapDrop_;
+
   // UDP packets dropped due to smaller packet size
   TLTimeseries udpTooSmall_;
 
@@ -1090,6 +1121,12 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   TLTimeseries linkStateChange_;
 
   /**
+   * Link flaps plus debounce retriggers suppressed by the port debounce
+   * hold timers
+   */
+  TLTimeseries linkFault_;
+
+  /**
    * Link state active/inactive change count
    */
   TLTimeseries linkActiveStateChange_;
@@ -1178,6 +1215,7 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   TLTimeseries dsfGrExpired_;
   TLTimeseries dsfUpdateFailed_;
   TLTimeseries warmbootRemoteIntfRoutesInconsistency_;
+  TLTimeseries warmbootRemoteIntfRoutesReconcileError_;
   TLTimeseries hiPriPktsReceived_;
   TLTimeseries midPriPktsReceived_;
   TLTimeseries loPriPktsReceived_;

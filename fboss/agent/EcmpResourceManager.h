@@ -77,9 +77,7 @@ class EcmpResourceManager {
       std::unordered_map<NextHopGroupId, std::vector<Prefix>>;
 
   std::vector<StateDelta> modifyState(const std::vector<StateDelta>& deltas);
-  std::vector<StateDelta> consolidate(
-      const StateDelta& delta,
-      bool rollingBack = false);
+  std::vector<StateDelta> consolidate(const StateDelta& delta);
   std::vector<StateDelta> reconstructFromSwitchState(
       const std::shared_ptr<SwitchState>& curState);
   const auto& getNhopsToId() const {
@@ -150,8 +148,7 @@ class EcmpResourceManager {
         uint32_t _primaryEcmpGroupsCnt,
         uint32_t _virtualEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
-        const StateDelta& _in,
-        bool rollingBack = false);
+        const StateDelta& _in);
     /*
      * addOrUpdateRoute has 1 interesting knobs
      * addNewDelta - This route update should be placed on a new
@@ -233,9 +230,6 @@ class EcmpResourceManager {
     std::vector<StateDelta> moveDeltas() {
       return std::move(out_);
     }
-    bool rollingBack() const {
-      return rollingBack_;
-    }
     /*
      * Number of ECMP groups of primary ECMP type. Once these
      * reach the maxEcmpGroups limit, we either compress groups
@@ -255,7 +249,6 @@ class EcmpResourceManager {
 
    private:
     std::vector<StateDelta> out_;
-    bool rollingBack_{false};
     StateDelta inputDelta_;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
@@ -274,8 +267,7 @@ class EcmpResourceManager {
       const InputOutputState& inOutState) const;
   bool checkNoUnitializedGroups() const;
   std::optional<InputOutputState> handleFlowletSwitchConfigDelta(
-      const StateDelta& delta,
-      bool rollingBack);
+      const StateDelta& delta);
   void handleSwitchSettingsDelta(const StateDelta& delta);
   std::vector<StateDelta> consolidateImpl(
       const StateDelta& delta,
@@ -323,11 +315,6 @@ class EcmpResourceManager {
       GroupIds2ConsolidationInfoItr mitr,
       const NextHopGroupIds& toIgnore);
   /*
-   * Reclaim any single member merge groups that may be left over
-   * during rollbacks
-   */
-  void reclaimSingleMemberMergeGroups(InputOutputState* inOutState);
-  /*
    * Unmerge and reclaim a set of merge groups
    */
   void reclaimMergeGroups(
@@ -358,6 +345,19 @@ class EcmpResourceManager {
    * merged next hops
    */
   void mergeGroupAndMigratePrefixes(InputOutputState* inOutState);
+
+  // Groups left behind ("trimmed") when the new merge absorbs one member of an
+  // existing merge. At most one of these is set per call.
+  struct GroupsTrimmedFromMerge {
+    NextHopGroupIds mergeGroup; // 2+ survivors kept merged
+    std::optional<NextHopGroupId> standaloneGroup; // lone survivor
+  };
+  // Re-point the survivors of erased pre-existing merges onto fresh entries
+  // (before those merges are erased) so their mergedGroupInfoItr can't dangle.
+  GroupsTrimmedFromMerge restoreGroupsTrimmedFromMerge(
+      const std::set<NextHopGroupIds>& preExistingMemberMergeSets,
+      const NextHopGroupIds& mergeSet,
+      InputOutputState* inOutState);
 
   void reclaimEcmpGroups(InputOutputState* inOutState);
   template <typename AddrT>

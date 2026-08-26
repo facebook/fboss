@@ -230,6 +230,12 @@ ThriftMapDelta<MultiControlPlane> StateDelta::getControlPlaneDelta() const {
       old_->getControlPlane().get(), new_->getControlPlane().get());
 }
 
+MultiSwitchMapDelta<MultiSwitchClassBasedPolicyMap>
+StateDelta::getClassBasedPoliciesDelta() const {
+  return MultiSwitchMapDelta<MultiSwitchClassBasedPolicyMap>(
+      old_->getClassBasedPolicies().get(), new_->getClassBasedPolicies().get());
+}
+
 MultiSwitchMapDelta<MultiSwitchMirrorMap> StateDelta::getMirrorsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchMirrorMap>(
       old_->getMirrors().get(), new_->getMirrors().get());
@@ -246,11 +252,6 @@ MultiSwitchMapDelta<MultiSwitchTransceiverMap>
 StateDelta::getTransceiversDelta() const {
   return MultiSwitchMapDelta<MultiSwitchTransceiverMap>(
       old_->getTransceivers().get(), new_->getTransceivers().get());
-}
-
-MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
-  return MultiSwitchForwardingInformationBaseMapDelta(
-      old_->getFibs().get(), new_->getFibs().get());
 }
 
 MultiSwitchFibInfoMapDelta StateDelta::getFibsInfoDelta() const {
@@ -365,6 +366,7 @@ template struct MultiSwitchMapDelta<MultiSwitchAclTableGroupMap>;
 template struct MultiSwitchMapDelta<MultiSwitchDsfNodeMap>;
 template struct MultiSwitchMapDelta<MultiSwitchSystemPortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchAclMap>;
+template struct MultiSwitchMapDelta<MultiSwitchClassBasedPolicyMap>;
 
 bool StateDelta::hasRouteOrNeighborChanges() const {
   // Check for FIB map changes within FibsInfo delta

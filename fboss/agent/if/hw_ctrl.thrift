@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.hw_ctrl
-namespace php fboss
 namespace py neteng.fboss.hw_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
@@ -184,6 +183,23 @@ service FbossHwCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Enable or disable the SDK dumping register/state logs to disk
+   * (SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME). Disabling clears the attribute so
+   * the SDK stops dumping. Throws if the device/ASIC does not support this.
+   */
+  void setSdkRegDumpEnabled(1: bool enabled) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Trigger cable length measurement on the given ports by setting
+   * SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE.
+   */
+  void triggerCableLengthMeasurement(1: list<i32> ports) throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Get the current programmed switch state from HwAgent.

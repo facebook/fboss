@@ -25,11 +25,7 @@ extern "C" {
 #include <sai.h>
 #include <saiextensions.h>
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalfirmware.h>
-#else
-#include <saiexperimentalfirmware.h>
-#endif
 }
 
 namespace facebook::fboss {

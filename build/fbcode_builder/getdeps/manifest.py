@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-strict
 
 from __future__ import annotations
 
@@ -951,7 +950,6 @@ class ManifestParser:
             src_dir,
             build_dir,
             inst_dir,
-            # pyre-fixme[6]: For 9th argument expected `bool` but got `Optional[str]`.
             build_doc,
             workspace_dir,
             manifests_to_build,

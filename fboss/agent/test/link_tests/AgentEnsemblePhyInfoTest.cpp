@@ -1,6 +1,8 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <folly/Conv.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <chrono>
 #include <optional>
 
@@ -243,7 +245,10 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 } // namespace
 
 TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::IPHY_DIAGS});
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -293,7 +298,10 @@ TEST_F(AgentEnsembleLinkTest, iPhyInfoTest) {
 }
 
 TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::XPHY_DIAGS});
   auto cabledPorts = getXphyCabledPorts();
+  addTestedPorts(cabledPorts);
   ASSERT_FALSE(cabledPorts.empty());
 
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
@@ -346,13 +354,13 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
           ASSERT_EVENTUALLY_TRUE(phyInfo.has_value())
               << getPortName(port) << " has no xphy info.";
           ASSERT_EVENTUALLY_GE(
-              phyInfo->state()->get_timeCollected() -
-                  phyInfoBefore[port].state()->get_timeCollected(),
+              phyInfo->state()->timeCollected().value() -
+                  phyInfoBefore[port].state()->timeCollected().value(),
               kSecondsBetweenSnapshots)
               << getPortName(port) << " has no updated xphy state.";
           ASSERT_EVENTUALLY_GE(
-              phyInfo->stats()->get_timeCollected() -
-                  phyInfoBefore[port].stats()->get_timeCollected(),
+              phyInfo->stats()->timeCollected().value() -
+                  phyInfoBefore[port].stats()->timeCollected().value(),
               kSecondsBetweenSnapshots)
               << getPortName(port) << " has no updated xphy stats.";
           phyInfoAfter.emplace(port, *phyInfo);
@@ -380,7 +388,11 @@ TEST_F(AgentEnsembleLinkTest, xPhyInfoTest) {
  * counters increment on the corresponding snaked port
  */
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           IPHY_FEC_INJECT});
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
@@ -450,19 +462,22 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecCounters) {
                                    .rsFec()
                                    .value_or({});
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_correctedBits(),
-              fecStatsBefore.get_correctedBits());
+              fecStatsAfter.correctedBits().value(),
+              fecStatsBefore.correctedBits().value());
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_correctedCodewords(),
-              fecStatsBefore.get_correctedCodewords());
+              fecStatsAfter.correctedCodewords().value(),
+              fecStatsBefore.correctedCodewords().value());
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_uncorrectedCodewords(),
-              fecStatsBefore.get_uncorrectedCodewords());
+              fecStatsAfter.uncorrectedCodewords().value(),
+              fecStatsBefore.uncorrectedCodewords().value());
         }
       });
 }
 
 TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::
+           IPHY_FEC_COUNTERS});
   /*
    * Collects 5 (500 for stress test) phyInfos and verifies
    * 1. No uncorrected codewords
@@ -479,6 +494,7 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   std::map<PortID, const phy::PhyInfo> previousPhyInfo;
   std::map<PortID, const phy::PhyInfo> currentPhyInfo;
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   auto getPhyInfo = [this, &cabledPorts](
                         time_t timeReference,
                         std::map<PortID, const phy::PhyInfo>& phyInfo) {
@@ -501,13 +517,21 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
   std::time_t timeReference = std::time(nullptr);
   getPhyInfo(timeReference, previousPhyInfo);
 
+  // Track the worst (highest) pre-FEC BER and the max FEC tail seen per port
+  // across all iterations (and warmboot phases). These are surfaced as per-port
+  // metadata so the link health observed during the test is recorded in Scuba.
+  std::map<PortID, double> worstPreFecBer;
+  std::map<PortID, int16_t> maxFecTail;
+
   auto verify = [this,
                  iterations,
                  preFecBerThreshold,
                  &previousPhyInfo,
                  &currentPhyInfo,
                  getPhyInfo,
-                 &cabledPorts]() {
+                 &cabledPorts,
+                 &worstPreFecBer,
+                 &maxFecTail]() {
     for (int i = 1; i <= iterations && !::testing::Test::HasFailure(); i++) {
       XLOG(INFO) << "Starting iteration " << i;
       getPhyInfo(std::time(nullptr), currentPhyInfo);
@@ -550,22 +574,29 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
 
         // Expect no uncorrected codewords
         EXPECT_EQ(
-            rsFecNow->get_uncorrectedCodewords(),
-            rsFecBefore->get_uncorrectedCodewords());
+            rsFecNow->uncorrectedCodewords().value(),
+            rsFecBefore->uncorrectedCodewords().value());
         // Expect pre-FEC BER to be lower than e-5 (or 1e-6 for stress test)
         // TODO: Make the threshold stricter once
         // 1) we start using a SAI version that supports FEC corrected bits.
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
         // approximate pre-FEC BER using FEC corrected codewords.
         // 2) we cleanup existing bad links in the lab
-        EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
+        EXPECT_LT(rsFecNow->preFECBer().value(), preFecBerThreshold);
+        // Track the worst pre-FEC BER and max FEC tail seen for this port.
+        worstPreFecBer[port] =
+            std::max(worstPreFecBer[port], rsFecNow->preFECBer().value());
+        if (rsFecNow->fecTail().has_value()) {
+          maxFecTail[port] =
+              std::max(maxFecTail[port], rsFecNow->fecTail().value());
+        }
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
         bool hasCorrectedCodewords =
             folly::copy(rsFecNow->correctedCodewords().value()) !=
             folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
-          EXPECT_NE(rsFecNow->get_preFECBer(), 0);
+          EXPECT_NE(rsFecNow->preFECBer().value(), 0);
         }
         // If the codewordStats is supported, it should either have 8 keys or
         // 16. For Rs528, there are 7 codeword bins. For Rs544, there are 15.
@@ -616,12 +647,27 @@ TEST_F(AgentEnsembleLinkTest, verifyIphyFecBerCounters) {
       }
       previousPhyInfo = currentPhyInfo;
     }
+    // Record the worst pre-FEC BER and max FEC tail per port as metadata. This
+    // is done inside verify() (not after verifyAcrossWarmBoots) so it is set
+    // before the metadata dump runs, which happens before the process exits on
+    // the setup_for_warmboot phase.
+    for (const auto& [port, ber] : worstPreFecBer) {
+      addTestMetadata(
+          port, "iphy_worst_pre_fec_ber", folly::to<std::string>(ber));
+    }
+    for (const auto& [port, fecTail] : maxFecTail) {
+      addTestMetadata(
+          port, "iphy_max_fec_tail", folly::to<std::string>(fecTail));
+    }
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentEnsembleLinkTest, clearIphyInterfaceCounters) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::IPHY_DIAGS});
   auto cabledPorts = getCabledPorts();
+  addTestedPorts(cabledPorts);
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
   auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());

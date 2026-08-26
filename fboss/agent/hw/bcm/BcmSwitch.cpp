@@ -20,6 +20,7 @@
 #include <utility>
 
 #include <boost/filesystem/operations.hpp>
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Memory.h>
@@ -2392,7 +2393,7 @@ void BcmSwitch::changeDefaultVlan(VlanID oldId, VlanID newId) {
           InterfaceID(oldId),
           RouterID(0), /* currently VRF is always zero anyway */
           std::optional<VlanID>(oldId),
-          folly::StringPiece(folly::sformat("Interface-{}", uint16_t(oldId))),
+          folly::StringPiece(fmt::format("Interface-{}", uint16_t(oldId))),
           getPlatform()->getLocalMac(),
           9000, /* mtu */
           false, /* is virtual */
@@ -2403,7 +2404,7 @@ void BcmSwitch::changeDefaultVlan(VlanID oldId, VlanID newId) {
         InterfaceID(newId),
         RouterID(0), /* currently VRF is always zero anyway */
         std::optional<VlanID>(newId),
-        folly::StringPiece(folly::sformat("Interface-{}", uint16_t(newId))),
+        folly::StringPiece(fmt::format("Interface-{}", uint16_t(newId))),
         getPlatform()->getLocalMac(),
         9000, /* mtu */
         false, /* is virtual */
@@ -3625,8 +3626,7 @@ void BcmSwitch::l2LearningCallback(
 }
 
 /*
- * TD2 and TH
- * ----------
+ * TH learning behavior:
  *
  * Typical Learning workflow:
  *  - ASIC encounters unknown source MAC+vlan.
@@ -3672,8 +3672,8 @@ void BcmSwitch::l2LearningCallback(
  *  In response, the wedge_agent will program the already VALIDATED entry
  *  again. This has no effect and does not generate additional callback.
  *
- *  The Mac Move wofkflow for TH3 is same as that for TD2 and TH3 i.e. DELETE
- *  on old port and ADD on new port both for VALIDATED MACs.
+ *  For TH3, a move generates DELETE on the old port and ADD on the new port,
+ *  both for VALIDATED MACs.
  */
 void BcmSwitch::l2LearningUpdateReceived(
     bcm_l2_addr_t* l2Addr,
@@ -3726,7 +3726,7 @@ void BcmSwitch::stopLinkscanThread() {
 void BcmSwitch::createAclGroup(
     const std::optional<std::set<bcm_udf_id_t>>& udfIds) {
   // Install the master ACL group here, whose content may change overtime
-  bcm_field_qset_t qset = getAclQset(getPlatform()->getAsic()->getAsicType());
+  bcm_field_qset_t qset = getAclQset();
   bool enableQsetCompression = false;
   if (udfIds) {
     updateUdfQset(unit_, qset, udfIds.value());
@@ -3819,7 +3819,7 @@ void BcmSwitch::setupFPGroups() {
 bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
   std::map<std::pair<int32_t, int32_t>, bcm_field_qset_t> grp2Qset = {
       {{platform_->getAsic()->getDefaultACLGroupID(), FLAGS_acl_g_pri},
-       getAclQset(getPlatform()->getAsic()->getAsicType())},
+       getAclQset()},
   };
   for (const auto& grpAndQset : grp2Qset) {
     auto gid = static_cast<bcm_field_group_t>(grpAndQset.first.first);
@@ -4004,7 +4004,7 @@ std::unique_ptr<PacketTraceInfo> BcmSwitch::getPacketTrace(
   bcm_switch_pkt_trace_info_t bcmPacketTraceInfo;
   auto rv = bcm_switch_pkt_trace_info_get(
       unit_, options, port, packetLength, packetData, &bcmPacketTraceInfo);
-  bcmCheckError(rv, "Failed to get packet trace info (no support on Trident2)");
+  bcmCheckError(rv, "Failed to get packet trace info");
 
   // Parse bcmPacketTraceInfo
   std::unique_ptr<PacketTraceInfo> packetTraceInfo =
@@ -4023,7 +4023,7 @@ static int _addL2Entry(int /*unit*/, bcm_l2_addr_t* l2addr, void* user_data) {
       static_cast<std::pair<BcmSwitch*, std::vector<L2EntryThrift>*>*>(
           user_data);
   auto [hw, l2Table] = *cookie;
-  *entry.mac() = folly::sformat(
+  *entry.mac() = fmt::format(
       "{0:02x}:{1:02x}:{2:02x}:{3:02x}:{4:02x}:{5:02x}",
       l2addr->mac[0],
       l2addr->mac[1],
@@ -4190,9 +4190,8 @@ void BcmSwitch::disableHotSwap() const {
     switch (getPlatform()->getAsic()->getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_FAKE:
       case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
-      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-        // For TD2 and TH, we patch the SDK to disable hot swap,
+        // For TH, we patch the SDK to disable hot swap.
         break;
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
@@ -4203,6 +4202,8 @@ void BcmSwitch::disableHotSwap() const {
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
       case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_P200:
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -4309,17 +4310,6 @@ void BcmSwitch::initialStateApplied() {
   hostTable_->warmBootHostEntriesSynced();
   // Done with warm boot, clear warm boot cache
   warmBootCache_->clear();
-  if (getPlatform()->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    for (auto ip : {folly::IPAddress("0.0.0.0"), folly::IPAddress("::")}) {
-      bcm_l3_route_t rt;
-      bcm_l3_route_t_init(&rt);
-      rt.l3a_flags |= ip.isV6() ? BCM_L3_IP6 : 0;
-      bcm_l3_route_get(getUnit(), &rt);
-      rt.l3a_flags |= BCM_L3_REPLACE;
-      bcm_l3_route_add(getUnit(), &rt);
-    }
-  }
 }
 
 void BcmSwitch::syncLinkStates() {

@@ -5,6 +5,11 @@
 #include "fboss/fsdb/client/FsdbSubscriber.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/Synchronized.h>
+
+#include <cstdint>
+#include <optional>
+
 namespace facebook::fboss::fsdb {
 
 template <typename MessageType, typename SubUnit, typename PathElement>
@@ -24,6 +29,25 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   FsdbPatchSubscriberImpl(FsdbPatchSubscriberImpl&&) = delete;
   FsdbPatchSubscriberImpl& operator=(FsdbPatchSubscriberImpl&&) = delete;
 
+  // Append paths to this live patch subscription. Paths are recorded so a
+  // reconnect re-subscribes the full (original + added) set (guaranteed
+  // eventual delivery); if connected, a best-effort async RPC also extends the
+  // live server-side subscription for immediate initial sync. Always returns
+  // std::nullopt today (raw and extended paths both accepted; server-side
+  // rejection surfaces only as a logged warning); the FsdbErrorCode return is
+  // retained for a future synchronous client-side rejection.
+  std::optional<FsdbErrorCode> addPaths(const PathElement& newPaths);
+
+  // Whether the server on the current connection advertised live add-path
+  // support by populating OperSubInitResponse.subscriptionUid. When true,
+  // addPaths() extends the live server-side subscription in place (immediate
+  // initial sync); when false -- an older server, or before this connection's
+  // initial sync has completed -- appended paths are only delivered on the next
+  // (re)connect via the createRequest() merge. Thread-safe.
+  bool serverSupportsLiveAddPath() const {
+    return serverUid_.rlock()->has_value();
+  }
+
  private:
 #if FOLLY_HAS_COROUTINES
   using StreamT = typename BaseT::StreamT;
@@ -33,6 +57,13 @@ class FsdbPatchSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
 #endif
 
   SubRequest createRequest() const;
+
+  // Server-assigned uid for the current subscription, captured from
+  // OperSubInitResponse and refreshed on every (re)connect.
+  folly::Synchronized<std::optional<uint64_t>> serverUid_;
+  // Paths appended post-subscribe, merged into the re-subscribe request so they
+  // survive reconnects.
+  folly::Synchronized<PathElement> addedPaths_;
 };
 
 using FsdbPatchSubscriber = FsdbPatchSubscriberImpl<

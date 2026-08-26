@@ -14,8 +14,9 @@ This document describes the steps involved in onboarding a new NPU to the FBOSS 
 2. **Add New ASIC to FBOSS Agent**
     1. [Optional depending on whether ASIC is already supported]
     2. Current FBOSS supports TH, TH2, TH3, TH4, TH5, TH6 ASIC.
+    3. ASIC behavior lives in the ASIC traits (`HwAsic` subclasses under [fboss/agent/hw/switch_asics/](https://github.com/facebook/fboss/tree/main/fboss/agent/hw/switch_asics)). Values that used to be defined per platform — such as `numLanesPerCore()`, `numCellsAvailable()`, the SAI physical lane IDs, and internal system-port config — now live on the ASIC trait. When onboarding a new ASIC, add or extend these methods on the ASIC class so platforms using it need no ASIC-specific C++.
 
 3. **Add New Platform Support to FBOSS Agent**
     1. The platform mapping controls how many ports are enabled, port speed, and logical port and physical port mapping. This mapping is highly dependent on hardware design. Please refer to [Platform Mapping Documentation](https://facebook.github.io/fboss/docs/developing/platform_mapping/) for more details. The platform mapping generates two files: a JSON file, which should be copied to FBOSS agent code, and a YAML file used in Broadcom SDK initialization.
     2. FBOSS agent also needs to know the platform name and the platform type to select the right platform mapping and other platform-specific files.
-    3. Please refer to the "Common Code Changes" and "Agent Code Changes" in [FBOSS New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/).
+    3. FBOSS supports a **config-driven platform model**: for a standard platform, generate a platform mapping plus a platform descriptor and run with `--platform_descriptor_config_path`, so the agent instantiates generic platform/port classes (`GenericSaiBcmPlatform` / `GenericSaiTajoPlatform`) with no per-platform C++. Platforms with custom behavior can still add dedicated classes. Please refer to the "Config-Driven Platform Support" and "Manual Path" sections in [FBOSS New Platform Support](https://facebook.github.io/fboss/docs/developing/new_platform_support/).

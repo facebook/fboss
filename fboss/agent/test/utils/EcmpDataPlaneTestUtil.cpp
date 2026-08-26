@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include <fmt/format.h>
+
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 #include "fboss/agent/RouteUpdateWrapper.h"
@@ -9,6 +11,7 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -145,21 +148,47 @@ void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
     const std::vector<NextHopWeight>& weights,
     int deviation,
     bool loadBalanceExpected) {
+  auto helper = this->ecmpSetupHelper();
+  const auto portDescs = helper->ecmpPortDescs(ecmpWidth);
+  std::vector<PortID> ports;
+  for (const auto& portDesc : portDescs) {
+    if (portDesc.isPhysicalPort()) {
+      ports.push_back(portDesc.phyPortID());
+    }
+  }
+
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=, this]() { this->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
       [=, this]() {
-        auto helper = this->ecmpSetupHelper();
-        auto portDescs = helper->getPortDescs(ecmpWidth);
-        auto ports = std::make_unique<std::vector<int32_t>>();
-        for (const auto& portDesc : portDescs) {
-          if (portDesc.isPhysicalPort()) {
-            ports->push_back(portDesc.phyPortID());
-          }
+        auto portIds = std::make_unique<std::vector<int32_t>>();
+        for (const auto& port : ports) {
+          portIds->push_back(port);
         }
-        ensemble_->clearPortStats(ports);
+        ensemble_->clearPortStats(portIds);
+        WITH_RETRIES({
+          auto clearedStats = ensemble_->getLatestPortStats(ports);
+          for (const auto& clearedStat : clearedStats) {
+            EXPECT_EVENTUALLY_EQ(0, *clearedStat.second.outBytes_());
+          }
+        });
       },
+      [=, this]() -> std::optional<uint64_t> {
+        const auto portStats = ensemble_->getLatestPortStats(ports);
+        uint64_t totalOutPackets{0};
+        for (const auto& port : ports) {
+          // Stats collection is async and may not have caught up for every
+          // port yet. Report "not ready" so the caller retries.
+          auto portStat = portStats.find(port);
+          if (portStat == portStats.end()) {
+            return std::nullopt;
+          }
+          totalOutPackets += *portStat->second.outUnicastPkts_();
+        }
+        return totalOutPackets;
+      },
+      this->getNumPacketsToPump(),
       [=, this]() {
-        return this->isLoadBalanced(ecmpWidth, weights, deviation);
+        return this->isLoadBalanced(portDescs, weights, deviation);
       },
       loadBalanceExpected);
 }
@@ -388,6 +417,26 @@ template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 template class HwIpRoCEEcmpDestPortDataPlaneTestUtil<folly::IPAddressV6>;
 
+HwIpV6FlowLabelEcmpDataPlaneTestUtil::HwIpV6FlowLabelEcmpDataPlaneTestUtil(
+    TestEnsembleIf* ensemble,
+    RouterID vrf)
+    : BaseT(ensemble, vrf) {}
+
+void HwIpV6FlowLabelEcmpDataPlaneTestUtil::pumpTrafficThroughPort(
+    std::optional<PortID> port) {
+  auto* ensemble = BaseT::getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
+
+  utility::pumpTrafficWithFlowLabel(
+      utility::getAllocatePktFn(ensemble),
+      utility::getSendPktFunc(ensemble),
+      intfMac,
+      vlanId,
+      port);
+}
+
 HwSrv6EcmpDataPlaneTestUtil::HwSrv6EcmpDataPlaneTestUtil(
     TestEnsembleIf* ensemble,
     RouterID vrf)
@@ -409,7 +458,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
   for (int i = 0; i < ecmpWidth; ++i) {
     auto nhop = helper->nhop(i);
     std::vector<folly::IPAddressV6> sidList{
-        folly::IPAddressV6(folly::sformat("3001:db8:{}::", i + 1))};
+        folly::IPAddressV6(fmt::format("3001:db8:{}::", i + 1))};
     nhops.insert(ResolvedNextHop(
         nhop.ip,
         nhop.intf,
@@ -420,7 +469,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
         std::nullopt,
         sidList,
         TunnelType::SRV6_ENCAP,
-        folly::sformat("srv6Tunnel{}", i)));
+        std::string("srv6Tunnel0")));
   }
   auto routeUpdater = ensemble->getRouteUpdaterWrapper();
   routeUpdater->addRoute(
@@ -430,6 +479,26 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
       ClientID::BGPD,
       RouteNextHopEntry(nhops, AdminDistance::EBGP));
   routeUpdater->program();
+}
+
+HwSrv6FlowLabelEcmpDataPlaneTestUtil::HwSrv6FlowLabelEcmpDataPlaneTestUtil(
+    TestEnsembleIf* ensemble,
+    RouterID vrf)
+    : BaseT(ensemble, vrf) {}
+
+void HwSrv6FlowLabelEcmpDataPlaneTestUtil::pumpTrafficThroughPort(
+    std::optional<PortID> port) {
+  auto* ensemble = getEnsemble();
+  auto programmedState = ensemble->getProgrammedState();
+  auto vlanId = getVlanIDForTx(ensemble, port);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
+
+  utility::pumpTrafficWithFlowLabel(
+      utility::getAllocatePktFn(ensemble),
+      utility::getSendPktFunc(ensemble),
+      intfMac,
+      vlanId,
+      port);
 }
 
 } // namespace facebook::fboss::utility

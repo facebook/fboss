@@ -10,14 +10,11 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::SFLOWv4:
-    case HwAsic::Feature::MPLS:
-    case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
@@ -43,7 +40,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
-    case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
@@ -63,7 +59,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
-    case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
@@ -71,56 +66,57 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::ARS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
-    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
-    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
-    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
-    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::PORT_WRED_COUNTER:
-    case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
-    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
-    case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
-    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
-    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
+    // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1); supported via SAI
+    // PORT_LLR_PROFILE on Tomahawk Ultra.
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return true;
+    case HwAsic::Feature::MPLS:
+    case HwAsic::Feature::MPLS_ECMP:
+    case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
@@ -167,6 +163,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -224,19 +221,34 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
-    case HwAsic::Feature::FEC:
-    case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::ROUTE_COUNTERS:
+    case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::ARS:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
+    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
+    // TU1 SDK 15.x: ACL metadata qualifier and user-defined trap not supported
+    case HwAsic::Feature::ACL_METADATA_QUALIFER:
+    case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
+    case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
+    case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return false;
   }
   return false;

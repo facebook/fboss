@@ -12,13 +12,9 @@ thrift_library(
         "cpp2",
         "go",
         "py3-deprecated",
-        "py-deprecated-asyncio",
-        "py-deprecated",
         "python",
     ],
     py3_namespace = "neteng.fboss.thrift_cow",
-    py_asyncio_base_module = "neteng.fboss.thrift_cow.asyncio",
-    py_base_module = "neteng.fboss.thrift_cow",
     thrift_cpp2_options = "json",
     thrift_srcs = {
         "results.thrift": [],
@@ -58,6 +54,7 @@ cpp_library(
         "TraverseHelper.h",
         "VisitorUtils.h",
     ],
+    deps = ["//thrift/lib/cpp2/protocol:protocol"],
     exported_deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
@@ -76,7 +73,6 @@ cpp_library(
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2:type_class",
         "//thrift/lib/cpp2/op:get",
-        "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/type:field",
     ],
     exported_external_deps = [

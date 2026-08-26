@@ -47,6 +47,8 @@ struct OtherStruct {
   3: set<i32> s;
   4: UnionSimple u;
   5: optional i32 o;
+  @fboss_common.AllowSkipThriftCow
+  6: optional TestStructSimple optionalStruct;
 }
 
 @fboss_common.AllowSkipThriftCow
@@ -57,6 +59,12 @@ struct TestHybridStruct {
   6: set<i32> integralSet = [];
   4: map<i32, TestStructSimple> structMap = {};
   5: list<TestStructSimple> structList = [];
+}
+
+struct RecursiveStruct {
+  1: string name;
+  2: TestStructSimple simpleMember;
+  3: list<RecursiveStruct> children = [];
 }
 
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
@@ -88,4 +96,6 @@ struct TestStruct {
   22: optional TestHybridStruct optionalAnnotatedStruct;
   @fboss_common.AllowSkipThriftCow
   23: map<string, OtherStruct> fieldAnnotatedMap;
+  24: list<RecursiveStruct> recursiveMember;
+  25: map<string, RecursiveStruct> mapOfRecursiveStruct = {};
 }

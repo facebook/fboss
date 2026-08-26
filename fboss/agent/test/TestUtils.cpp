@@ -361,10 +361,11 @@ cfg::SwitchConfig testConfigBImpl() {
   std::vector<cfg::Interface> recycleIntfs;
   for (auto switchIndex = 0; switchIndex < 2; ++switchIndex) {
     auto switchId = switchIndex + 1;
-    cfg::DsfNode myNode = makeDsfNodeCfg(switchId);
-    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
     auto minPort = (switchIndex == 0) ? 0 : 16;
     auto maxPort = (switchIndex == 0) ? 12 : 28;
+    cfg::DsfNode myNode = makeDsfNodeCfg(switchId);
+    myNode.inbandPortId() = minPort + 1;
+    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
     CHECK(!myNode.systemPortRanges()->systemPortRanges()->empty());
     auto sysPortRange = *myNode.systemPortRanges()->systemPortRanges()->begin();
     cfg.switchSettings()->switchIdToSwitchInfo()->emplace(
@@ -1331,20 +1332,20 @@ ResolvedNextHop makeResolvedNextHop(
 
 RouteNextHopEntry makeExpectedRouteNextHopEntry(
     const SwSwitch* sw,
-    RouteNextHopSet nhops,
+    const RouteNextHopSet& nhops,
     AdminDistance distance) {
-  RouteNextHopEntry entry(std::move(nhops), distance);
+  RouteNextHopEntry entry(nhops, distance);
 
   CHECK(sw);
   CHECK(sw->getRib());
   auto idManager = sw->getRib()->getNextHopIDManagerCopy();
   if (idManager) {
     // Lookup resolvedNextHopSetID for the nhops
-    auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());
+    auto resolvedId = idManager->lookupRouteNextHopSetID(nhops);
     CHECK(resolvedId);
     entry.setResolvedNextHopSetID(resolvedId);
     // Lookup normalizedResolvedNextHopSetID for the normalized nhops
-    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedNhops = RouteNextHopEntry::normalizeNextHops(nhops);
     auto normalizedResolvedId =
         idManager->lookupRouteNextHopSetID(normalizedNhops);
     CHECK(normalizedResolvedId);
@@ -1720,9 +1721,10 @@ folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
 }
 
 InterfaceID firstInterfaceIDWithPortsForTesting(
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<cfg::Scope> scope) {
   return utility::firstInterfaceIDWithPorts(
-      state, SwitchID(FLAGS_switch_id_for_testing));
+      state, SwitchID(FLAGS_switch_id_for_testing), scope);
 }
 
 std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(

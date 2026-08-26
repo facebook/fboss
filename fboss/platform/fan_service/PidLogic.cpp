@@ -37,8 +37,16 @@ int16_t PidLogic::calculatePwm(float measurement) {
   // When measurement is lower than setPoint for a prolonged period of time,
   // integral_ will grow to a very large value. This will cause delay in
   // increasing pwm when measurement is higher than setPoint. To avoid this,
-  // we reset integral_ when measurement is lower than setPoint.
-  if (measurement <= maxVal) {
+  // we reset integral_ when measurement is lower than setPoint via
+  // back-calculation anti-windup (integral_ = pwmDelta / ki).
+  //
+  // Guard against ki == 0 (e.g. platforms running P/PD-only control such as
+  // morgan800cc): dividing by zero would set integral_ to +/-inf, and on the
+  // next iteration ki * integral_ evaluates to 0 * inf = NaN, which then
+  // propagates into pwmDelta and newPwm, freezing the fan response to
+  // measurement changes. When ki == 0 the integral term is unused, so the
+  // anti-windup reset is unnecessary.
+  if (*pidSetting_.ki() != 0 && measurement <= maxVal) {
     integral_ = pwmDelta / *pidSetting_.ki();
   }
 

@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -21,8 +20,10 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
+#include "fboss/lib/config/AgentConfigUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <fmt/format.h>
 #include <folly/Format.h>
 #include "folly/testing/TestUtil.h"
 
@@ -32,28 +33,6 @@ DECLARE_string(mode);
 namespace facebook::fboss::utility {
 
 namespace {
-void removePort(
-    facebook::fboss::cfg::SwitchConfig& config,
-    facebook::fboss::PortID port,
-    bool supportsAddRemovePort) {
-  auto cfgPort = facebook::fboss::utility::findCfgPortIf(config, port);
-  if (cfgPort == config.ports()->end()) {
-    return;
-  }
-  if (supportsAddRemovePort) {
-    config.ports()->erase(cfgPort);
-    auto removed = std::remove_if(
-        config.vlanPorts()->begin(),
-        config.vlanPorts()->end(),
-        [port](auto vlanPort) {
-          return facebook::fboss::PortID(*vlanPort.logicalPort()) == port;
-        });
-    config.vlanPorts()->erase(removed, config.vlanPorts()->end());
-  } else {
-    cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
-  }
-}
-
 int getRdswSysPortBlockSize(
     std::optional<PlatformType> platformType = std::nullopt) {
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
@@ -65,6 +44,7 @@ int getRdswSysPortBlockSize(
         return 22;
       case PlatformType::PLATFORM_BLACKWOLF800BANW:
       case PlatformType::PLATFORM_J4SIM:
+      case PlatformType::PLATFORM_SAINTPAUL:
         return 1024;
       default:
         break;
@@ -111,7 +91,8 @@ int getSysPortIdsAllocated(
 }
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
-  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
@@ -206,12 +187,10 @@ std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   int firstOctet = 200 + switchIdVal / 256;
   int secondOctet = switchIdVal % 256;
 
-  auto v6 = FLAGS_nodeZ
-      ? folly::sformat("{}:{}::2/128", firstOctet, secondOctet)
-      : folly::sformat("{}:{}::1/128", firstOctet, secondOctet);
-  auto v4 = FLAGS_nodeZ
-      ? folly::sformat("{}.{}.0.2/32", firstOctet, secondOctet)
-      : folly::sformat("{}.{}.0.1/32", firstOctet, secondOctet);
+  auto v6 = FLAGS_nodeZ ? fmt::format("{}:{}::2/128", firstOctet, secondOctet)
+                        : fmt::format("{}:{}::1/128", firstOctet, secondOctet);
+  auto v4 = FLAGS_nodeZ ? fmt::format("{}.{}.0.2/32", firstOctet, secondOctet)
+                        : fmt::format("{}.{}.0.1/32", firstOctet, secondOctet);
   return {v6, v4};
 }
 
@@ -387,24 +366,12 @@ cfg::Port createDefaultPortConfig(
     const HwAsic* asic,
     PortID id,
     cfg::PortProfileID defaultProfileID) {
-  cfg::Port defaultConfig;
-  const auto& entry = platformMapping->getPlatformPort(id);
-  defaultConfig.name() = *entry.mapping()->name();
-  defaultConfig.speed() = getSpeed(defaultProfileID);
-  defaultConfig.profileID() = defaultProfileID;
-
-  defaultConfig.logicalID() = id;
-  defaultConfig.ingressVlan() = kDefaultVlanId4094;
-  defaultConfig.state() = cfg::PortState::DISABLED;
-  defaultConfig.portType() = *entry.mapping()->portType();
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ ||
-      asic->getSwitchType() == cfg::SwitchType::FABRIC) {
-    defaultConfig.ingressVlan() = 0;
-  } else {
-    defaultConfig.ingressVlan() = kDefaultVlanId4094;
-  }
-  defaultConfig.scope() = *entry.mapping()->scope();
-  return defaultConfig;
+  const int32_t ingressVlan = (asic->getSwitchType() == cfg::SwitchType::VOQ ||
+                               asic->getSwitchType() == cfg::SwitchType::FABRIC)
+      ? 0
+      : kDefaultVlanId4094;
+  return createDefaultPortConfig(
+      platformMapping, id, defaultProfileID, ingressVlan);
 }
 
 void securePortsInConfig(
@@ -542,8 +509,7 @@ cfg::DsfNode dsfNodeConfig(
   };
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = otherSwitchId;
-  dsfNode.name() =
-      folly::sformat("{}{}", switchNamePrefix, *dsfNode.switchId());
+  dsfNode.name() = fmt::format("{}{}", switchNamePrefix, *dsfNode.switchId());
   auto resolvedPlatformType = getPlatformType(firstAsic, platformType);
   switch (firstAsic.getSwitchType()) {
     case cfg::SwitchType::VOQ: {
@@ -803,14 +769,20 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         SwitchIdScopeResolver(*config.switchSettings()->switchIdToSwitchInfo());
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
-    const std::set<cfg::PortType> kCreateIntfsFor = {
+    std::set<cfg::PortType> createIntfsFor = {
         cfg::PortType::INTERFACE_PORT,
         cfg::PortType::RECYCLE_PORT,
         cfg::PortType::MANAGEMENT_PORT,
         cfg::PortType::EVENTOR_PORT,
         cfg::PortType::HYPER_PORT};
+    if (FLAGS_hide_eventor_ports) {
+      createIntfsFor.erase(cfg::PortType::EVENTOR_PORT);
+    }
+    if (FLAGS_hide_management_ports) {
+      createIntfsFor.erase(cfg::PortType::MANAGEMENT_PORT);
+    }
     for (const auto& port : *config.ports()) {
-      if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
+      if (createIntfsFor.find(*port.portType()) == createIntfsFor.end()) {
         continue;
       }
       auto mySwitchId = scopeResolver.scope(port).switchId();
@@ -896,6 +868,7 @@ cfg::SwitchConfig genPortVlanCfg(
       connectionHandle = "68:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        asicType == cfg::AsicType::ASIC_TYPE_P200 ||
         asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
         asicType == cfg::AsicType::ASIC_TYPE_G202X) {
       connectionHandle = "/dev/uio0";
@@ -975,7 +948,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_management_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT) ||
+        (FLAGS_hide_eventor_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::EVENTOR_PORT)) {
       continue;
     }
     config.ports()->push_back(
@@ -1036,13 +1013,15 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlans()->push_back(vlan);
     }
 
+    // TODO(daiweix): Determine whether and how P200 should configure a
+    // default VLAN interface.
     auto defaultVlanId =
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     cfg::Vlan defaultVlan;
     defaultVlan.id() = defaultVlanId;
-    defaultVlan.name() = folly::sformat("vlan{}", defaultVlanId);
+    defaultVlan.name() = fmt::format("vlan{}", defaultVlanId);
     defaultVlan.intfID() = 10;
     defaultVlan.routable() = true;
     config.vlans()->push_back(defaultVlan);
@@ -1112,7 +1091,25 @@ void populateSwitchInfo(
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
       auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
-      dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      dsfNode.name() = fmt::format("hwTestSwitch{}", deviceSwitchId);
+      if ((platformType == PlatformType::PLATFORM_SAINTPAUL ||
+           platformType == PlatformType::PLATFORM_JANGA800BIC) &&
+          hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+        dsfNode.systemPortRanges() = *switchInfo.systemPortRanges();
+        if (switchInfo.localSystemPortOffset().has_value()) {
+          dsfNode.localSystemPortOffset() = *switchInfo.localSystemPortOffset();
+        }
+        if (switchInfo.globalSystemPortOffset().has_value()) {
+          dsfNode.globalSystemPortOffset() =
+              *switchInfo.globalSystemPortOffset();
+        }
+        if (switchInfo.inbandPortId().has_value()) {
+          dsfNode.inbandPortId() = *switchInfo.inbandPortId();
+        }
+        if (switchInfo.switchMac().has_value()) {
+          dsfNode.nodeMac() = *switchInfo.switchMac();
+        }
+      }
       newDsfNodes.insert({switchId, std::move(dsfNode)});
     }
   }
@@ -1325,8 +1322,8 @@ cfg::SwitchConfig twoL3IntfConfig(
     intf.ipAddresses()->resize(2);
     auto ipOctet = i + 1;
     intf.ipAddresses()[0] =
-        folly::sformat("{}.{}.{}.{}/24", ipOctet, ipOctet, ipOctet, ipOctet);
-    intf.ipAddresses()[1] = folly::sformat("{}::{}/64", ipOctet, ipOctet);
+        fmt::format("{}.{}.{}.{}/24", ipOctet, ipOctet, ipOctet, ipOctet);
+    intf.ipAddresses()[1] = fmt::format("{}::{}/64", ipOctet, ipOctet);
     intf.mac() = getLocalCpuMacStr();
     intf.mtu() = 9000;
     intf.routerID() = 0;
@@ -1350,7 +1347,6 @@ cfg::SwitchConfig twoL3IntfConfig(
 
 bool isRswPlatform(PlatformType type) {
   switch (type) {
-    case PlatformType::PLATFORM_WEDGE:
     case PlatformType::PLATFORM_WEDGE100:
     case PlatformType::PLATFORM_WEDGE400:
     case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
@@ -1565,9 +1561,16 @@ void removeSubsumedPorts(
     const cfg::PlatformPortConfig& profile,
     bool supportsAddRemovePort) {
   if (auto subsumedPorts = profile.subsumedPorts()) {
-    for (auto& subsumedPortID : subsumedPorts.value()) {
-      removePort(config, PortID(subsumedPortID), supportsAddRemovePort);
+    std::set<PortID> ids;
+    for (auto subsumedPortID : *subsumedPorts) {
+      ids.insert(PortID(subsumedPortID));
     }
+    removePortsFromConfig(
+        config,
+        ids,
+        supportsAddRemovePort ? PortRemovalMode::Erase
+                              : PortRemovalMode::Disable,
+        /*pruneEmptyVlansAndInterfaces=*/false);
   }
 }
 
@@ -1816,7 +1819,7 @@ void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
   folly::test::TemporaryFile file;
   XLOG(INFO) << " Cint file " << file.path().c_str();
   folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
-  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  auto cmd = fmt::format("cint {}\n", file.path().c_str());
   std::string out;
   ensemble->runDiagCommand(cmd, out, std::nullopt);
 }
@@ -1824,14 +1827,14 @@ void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
 std::string
 genInterfaceAddress(int ipDecimal, bool isV4, int host, int subnetMask) {
   /* 224.x.x.x onwards are multicast */
-  auto ipDecimal1 = folly::sformat("{}", ipDecimal % 224);
-  auto ipDecimal2 = folly::sformat("{}", ipDecimal / 224);
+  auto ipDecimal1 = fmt::format("{}", ipDecimal % 224);
+  auto ipDecimal2 = fmt::format("{}", ipDecimal / 224);
 
   auto addr = isV4
       ? folly::IPAddress(
-            folly::sformat("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
+            fmt::format("{}.{}.0.{}", ipDecimal1, ipDecimal2, host))
       : folly::IPAddress(
-            folly::sformat("{}:{}::{}", ipDecimal1, ipDecimal2, host));
-  return folly::sformat("{}/{}", addr.str(), subnetMask);
+            fmt::format("{}:{}::{}", ipDecimal1, ipDecimal2, host));
+  return fmt::format("{}/{}", addr.str(), subnetMask);
 }
 } // namespace facebook::fboss::utility

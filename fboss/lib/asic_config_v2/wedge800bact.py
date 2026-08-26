@@ -6,19 +6,22 @@ import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
 import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk5 import Tomahawk5AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
-from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
+from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
 
 class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
     def __init__(
         self,
         asic_config_params: asic_config_thrift.AsicConfigParameters,
+        platform_mapping_input_dir: str,
         mgmt_port_speed: Optional[int] = None,
     ) -> None:
         super(Wedge800bActAsicConfig, self).__init__(asic_config_params)
 
-        self.parser = PlatformMappingParser(read_all_vendor_data(), "wedge800bact")
+        self.parser = PlatformMappingParser(
+            read_all_vendor_data(platform_mapping_input_dir), "wedge800bact"
+        )
         self.num_ports_per_core = 1
         if mgmt_port_speed == 10000:
             self.MGMT_PORT_SPEED: int = mgmt_port_speed
@@ -32,7 +35,6 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: cross-boundary type mismatch until platform_mapping_v2 migrates
         return self.parser.get_static_mapping().get_static_mapping()
 
     def generate_port_config(self, mgmt_port: bool = False) -> None:
@@ -85,6 +87,10 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
     def generate_sai_stats_disable_mask(self) -> None:
         self.values["global"]["sai_stats_disable_mask"] = "0x800"
 
+    def generate_sai_eapol_trap_use_bcast_mac(self) -> None:
+        # Trap broadcast EAPOL packets to the CPU
+        self.values["global"]["sai_eapol_trap_use_bcast_mac"] = "1"
+
     def generate_asic_config(self) -> None:
         self.generate_global_settings()
         self.generate_logical_port_to_physical_port_mapping(mgmt_port=True)
@@ -96,6 +102,7 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
         self.generate_asic_vendor_config()
         self.generate_dlb_specific_config()
         self.generate_sai_stats_disable_mask()
+        self.generate_sai_eapol_trap_use_bcast_mac()
 
     def get_logical_port_to_physical_port_mapping(self) -> List[List[int]]:
         NUM_LOGICAL_PORTS_PER_DATAPATH = 10
@@ -131,8 +138,11 @@ class Wedge800bActAsicConfig(Tomahawk5AsicConfig):
 
 def gen_wedge800bact_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
+    platform_mapping_input_dir: str,
     mgmt_port_speed: Optional[int] = None,
 ) -> Wedge800bActAsicConfig:
-    cfg = Wedge800bActAsicConfig(asic_config_params, mgmt_port_speed)
+    cfg = Wedge800bActAsicConfig(
+        asic_config_params, platform_mapping_input_dir, mgmt_port_speed
+    )
     cfg.generate_asic_config()
     return cfg

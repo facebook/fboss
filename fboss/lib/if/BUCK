@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
@@ -60,6 +61,52 @@ thrift_library(
     deps = [
         "//thrift/annotation:thrift",
     ],
+)
+
+thrift_library(
+    name = "link_qsfp_test_port_info",
+    go_thrift_namespaces = {
+        "link_qsfp_test_port_info.thrift": "neteng.fboss.link_qsfp_test_port_info",
+    },
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "go",
+        "rust",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"link_qsfp_test_port_info.thrift": []},
+    deps = [
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "link_qsfp_test_port_info_utils",
+    srcs = [
+        "LinkQsfpTestPortInfoUtils.cpp",
+        "facebook/LinkQsfpTestMachineInfo.cpp",
+    ],
+    headers = [
+        "LinkQsfpTestMachineInfo.h",
+        "LinkQsfpTestPortInfoUtils.h",
+    ],
+    deps = [
+        ":link_qsfp_test_port_info-cpp2-types",
+        "//common/fbwhoami:fb_who_am_i",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//neteng/netwhoami/lib/cpp:recover",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_deps = [],
 )
 
 thrift_library(

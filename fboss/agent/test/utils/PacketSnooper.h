@@ -34,6 +34,9 @@ PacketComparatorFn makePacketComparator(const PacketMatchFields& criteria = {});
 enum class packetSnooperReceivePacketType {
   PACKET_TYPE_ALL,
   PACKET_TYPE_PTP,
+  // Keep only Tajo Mirror-on-Drop export packets; drop unrelated CPU-punted
+  // traffic that shares the punt path on Tajo.
+  PACKET_TYPE_TAJO_MOD,
 };
 
 class PacketSnooper : public PacketObserverIf {

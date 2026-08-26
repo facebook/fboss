@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/module/tests/MockTransceiverImpl.h"
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
+#include <fmt/format.h>
 #include <gmock/gmock.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -841,7 +842,7 @@ TEST_F(WedgeManagerTest, validateTransceiverConfigByIdTest) {
                           std::string dspFwVer,
                           std::vector<std::string> portProfileIds,
                           std::string nonValidatedAttribute) {
-    return folly::sformat(
+    return fmt::format(
         "{{\n  \"Non-Validated Attribute\": \"{}\",\n  \"Transceiver Application Firmware Version\": \"{}\""
         ",\n  \"Transceiver DSP Firmware Version\": \"{}\",\n  \"Transceiver ID\": {},\n  \"Transceiver Media Interface Code\": \"{}\",\n  "
         "\"Transceiver Part Number\": \"{}\",\n  \"Transceiver Port Profile Ids\": \"{}\",\n  \"Transceiver Serial Number\": \"{}\",\n  "

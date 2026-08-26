@@ -54,31 +54,31 @@ cli::ShowInterfaceCountersFecUncorrectableModel createModel(
       std::string counterName;
 
       counterName = interface + ".fec_uncorrectable_errors.sum";
-      if (iPhyIngressUcSum.find(counterName) != iPhyIngressUcSum.end()) {
+      if (iPhyIngressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::ASIC]
             .totalCount() = iPhyIngressUcSum.at(counterName);
       }
 
       counterName = interface + ".fec_uncorrectable_errors.sum.600";
-      if (iPhyIngressUcSum.find(counterName) != iPhyIngressUcSum.end()) {
+      if (iPhyIngressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::ASIC]
             .tenMinuteCount() = iPhyIngressUcSum.at(counterName);
       }
 
       counterName = interface + ".xphy.line.fec_uncorrectable.sum";
-      if (xPhyIngressUcSum.find(counterName) != xPhyIngressUcSum.end()) {
+      if (xPhyIngressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::GB_LINE]
             .totalCount() = xPhyIngressUcSum.at(counterName);
       }
 
       counterName = interface + ".xphy.line.fec_uncorrectable.sum.600";
-      if (xPhyIngressUcSum.find(counterName) != xPhyIngressUcSum.end()) {
+      if (xPhyIngressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::GB_LINE]
             .tenMinuteCount() = xPhyIngressUcSum.at(counterName);
       }
 
       counterName = "qsfp.interface." + interface + ".media.uncorrectable.sum";
-      if (tcvrIngressUcSum.find(counterName) != tcvrIngressUcSum.end()) {
+      if (tcvrIngressUcSum.contains(counterName)) {
         model
             .uncorrectableFrames()[interface]
                                   [phy::PortComponent::TRANSCEIVER_LINE]
@@ -87,7 +87,7 @@ cli::ShowInterfaceCountersFecUncorrectableModel createModel(
 
       counterName =
           "qsfp.interface." + interface + ".media.uncorrectable.sum.600";
-      if (tcvrIngressUcSum.find(counterName) != tcvrIngressUcSum.end()) {
+      if (tcvrIngressUcSum.contains(counterName)) {
         model
             .uncorrectableFrames()[interface]
                                   [phy::PortComponent::TRANSCEIVER_LINE]
@@ -95,19 +95,19 @@ cli::ShowInterfaceCountersFecUncorrectableModel createModel(
       }
 
       counterName = interface + ".xphy.system.fec_uncorrectable.sum";
-      if (xPhyEgressUcSum.find(counterName) != xPhyEgressUcSum.end()) {
+      if (xPhyEgressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::GB_SYSTEM]
             .totalCount() = xPhyEgressUcSum.at(counterName);
       }
 
       counterName = interface + ".xphy.system.fec_uncorrectable.sum.600";
-      if (xPhyEgressUcSum.find(counterName) != xPhyEgressUcSum.end()) {
+      if (xPhyEgressUcSum.contains(counterName)) {
         model.uncorrectableFrames()[interface][phy::PortComponent::GB_SYSTEM]
             .tenMinuteCount() = xPhyEgressUcSum.at(counterName);
       }
 
       counterName = "qsfp.interface." + interface + ".host.uncorrectable.sum";
-      if (tcvrEgressUcSum.find(counterName) != tcvrEgressUcSum.end()) {
+      if (tcvrEgressUcSum.contains(counterName)) {
         model
             .uncorrectableFrames()[interface]
                                   [phy::PortComponent::TRANSCEIVER_SYSTEM]
@@ -116,7 +116,7 @@ cli::ShowInterfaceCountersFecUncorrectableModel createModel(
 
       counterName =
           "qsfp.interface." + interface + ".host.uncorrectable.sum.600";
-      if (tcvrEgressUcSum.find(counterName) != tcvrEgressUcSum.end()) {
+      if (tcvrEgressUcSum.contains(counterName)) {
         model
             .uncorrectableFrames()[interface]
                                   [phy::PortComponent::TRANSCEIVER_SYSTEM]
@@ -137,8 +137,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
     const utils::LinkDirection& direction) {
   // Get all the counters from Fbagent/Fb303. We will use regex to filter out
   // our desired counters
-  auto agentClient =
-      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
   auto qsfpClient =
       utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
 
@@ -148,14 +146,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
   std::map<std::string, int64_t> fb303CountersXPhyEgressUcSum;
   std::map<std::string, int64_t> fb303CountersTcvrEgressUcSum;
 
-#ifdef IS_OSS
-  // TODO - figure out why getRegexCounters fails for OSS
-  agentClient->sync_getCounters(fb303CountersIPhyIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersXPhyIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersTcvrIngressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersXPhyEgressUcSum);
-  qsfpClient->sync_getCounters(fb303CountersTcvrEgressUcSum);
-#else
   fb303CountersIPhyIngressUcSum = utils::getAgentFb303RegexCounters(
       hostInfo, "^(eth|fab).*fec_uncorrectable_errors.sum.*");
   qsfpClient->sync_getRegexCounters(
@@ -166,7 +156,6 @@ CmdShowInterfaceCountersFecUncorrectable::queryClient(
       fb303CountersXPhyEgressUcSum, ".*xphy.system.fec_uncorrectable.sum.*");
   qsfpClient->sync_getRegexCounters(
       fb303CountersTcvrEgressUcSum, "^qsfp.*host.uncorrectable.sum.*");
-#endif
 
   std::unordered_set<std::string> distinctInterfaceNames;
   for (const auto& counter : fb303CountersIPhyIngressUcSum) {
@@ -218,21 +207,20 @@ void CmdShowInterfaceCountersFecUncorrectable::printOutput(
       std::optional<int64_t> iphyUc, iphyUc10m, xphyUc, xphyUc10m, tcvrUc,
           tcvrUc10m;
 
-      if (ucCounters.find(phy::PortComponent::ASIC) != ucCounters.end()) {
+      if (ucCounters.contains(phy::PortComponent::ASIC)) {
         iphyUc = ucCounters.at(phy::PortComponent::ASIC).totalCount().value();
         iphyUc10m =
             ucCounters.at(phy::PortComponent::ASIC).tenMinuteCount().value();
       }
 
-      if (ucCounters.find(phy::PortComponent::GB_LINE) != ucCounters.end()) {
+      if (ucCounters.contains(phy::PortComponent::GB_LINE)) {
         xphyUc =
             ucCounters.at(phy::PortComponent::GB_LINE).totalCount().value();
         xphyUc10m =
             ucCounters.at(phy::PortComponent::GB_LINE).tenMinuteCount().value();
       }
 
-      if (ucCounters.find(phy::PortComponent::TRANSCEIVER_LINE) !=
-          ucCounters.end()) {
+      if (ucCounters.contains(phy::PortComponent::TRANSCEIVER_LINE)) {
         tcvrUc = ucCounters.at(phy::PortComponent::TRANSCEIVER_LINE)
                      .totalCount()
                      .value();
@@ -265,7 +253,7 @@ void CmdShowInterfaceCountersFecUncorrectable::printOutput(
     } else {
       std::optional<int64_t> xphyUc, xphyUc10m, tcvrUc, tcvrUc10m;
 
-      if (ucCounters.find(phy::PortComponent::GB_SYSTEM) != ucCounters.end()) {
+      if (ucCounters.contains(phy::PortComponent::GB_SYSTEM)) {
         xphyUc =
             ucCounters.at(phy::PortComponent::GB_SYSTEM).totalCount().value();
         xphyUc10m = ucCounters.at(phy::PortComponent::GB_SYSTEM)
@@ -273,8 +261,7 @@ void CmdShowInterfaceCountersFecUncorrectable::printOutput(
                         .value();
       }
 
-      if (ucCounters.find(phy::PortComponent::TRANSCEIVER_SYSTEM) !=
-          ucCounters.end()) {
+      if (ucCounters.contains(phy::PortComponent::TRANSCEIVER_SYSTEM)) {
         tcvrUc = ucCounters.at(phy::PortComponent::TRANSCEIVER_SYSTEM)
                      .totalCount()
                      .value();
@@ -301,6 +288,43 @@ void CmdShowInterfaceCountersFecUncorrectable::printOutput(
     }
   }
   out << table << std::endl;
+}
+
+// CLI reference wiki hooks
+std::string_view CmdShowInterfaceCountersFecUncorrectableTraits::description() {
+  return "Displays per-interface uncorrectable FEC codeword counts (total and over the last 10 minutes), by side. system shows XPHY-system and transceiver-system counts; line shows ASIC, XPHY-line, and transceiver-line counts. Use it to spot links taking uncorrectable FEC errors.";
+}
+
+CmdShowInterfaceCountersFecUncorrectable::RetType
+CmdShowInterfaceCountersFecUncorrectable::sampleModel() {
+  cli::ShowInterfaceCountersFecUncorrectableModel model;
+  model.direction() = phy::Direction::RECEIVE;
+
+  // eth2/1/1: ASIC and GB_LINE present, TRANSCEIVER_LINE absent
+  cli::uncorrectableCount asic1;
+  asic1.totalCount() = 0;
+  asic1.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/1/1"][phy::PortComponent::ASIC] = asic1;
+
+  cli::uncorrectableCount gbLine1;
+  gbLine1.totalCount() = 0;
+  gbLine1.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/1/1"][phy::PortComponent::GB_LINE] =
+      gbLine1;
+
+  // eth2/14/1: ASIC has 3 total, 0 in 10min; GB_LINE is 0/0
+  cli::uncorrectableCount asic14;
+  asic14.totalCount() = 3;
+  asic14.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/14/1"][phy::PortComponent::ASIC] = asic14;
+
+  cli::uncorrectableCount gbLine14;
+  gbLine14.totalCount() = 0;
+  gbLine14.tenMinuteCount() = 0;
+  model.uncorrectableFrames()["eth2/14/1"][phy::PortComponent::GB_LINE] =
+      gbLine14;
+
+  return model;
 }
 
 // Template instantiations

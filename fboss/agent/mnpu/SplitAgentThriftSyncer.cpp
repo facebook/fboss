@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/mnpu/FdbEventSyncer.h"
 #include "fboss/agent/mnpu/HwSwitchStatsSinkClient.h"
 #include "fboss/agent/mnpu/LinkChangeEventSyncer.h"

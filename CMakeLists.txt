@@ -52,11 +52,34 @@ if ($ENV{SKIP_ALL_INSTALL})
   set (SKIP_ALL_INSTALL ON)
 endif()
 
-if (SKIP_ALL_INSTALL)
+set(FBOSS_BUILD_PROFILE "full" CACHE STRING "Build profile: full | fsdb_client")
+# Env wins over -D: the OSS CI rules pass the profile as a container env var
+# while getdeps passes a cache define, and a rule must be able to override.
+if (NOT "$ENV{FBOSS_BUILD_PROFILE}" STREQUAL "")
+  set(FBOSS_BUILD_PROFILE "$ENV{FBOSS_BUILD_PROFILE}")
+endif()
+if (NOT FBOSS_BUILD_PROFILE MATCHES "^(full|fsdb_client)$")
+  message(FATAL_ERROR "Unknown FBOSS_BUILD_PROFILE '${FBOSS_BUILD_PROFILE}'")
+endif()
+set_property(CACHE FBOSS_BUILD_PROFILE PROPERTY STRINGS full fsdb_client)
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  message(STATUS "FBOSS build profile: ${FBOSS_BUILD_PROFILE}")
+endif()
+
+# One macro with a runtime switch, never two: CMake's _name shadowing is a
+# single level, so a second macro(install) makes _install resolve to the first.
+if (SKIP_ALL_INSTALL OR NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  set(FBOSS_INSTALL_ENABLED FALSE)
   install(FILES README.md DESTINATION .)
   macro (install)
-    message(STATUS "Skipping installing ${ARGV} fboss artifact")
-    _install(${ARGV} EXCLUDE_FROM_ALL)
+    if (FBOSS_INSTALL_ENABLED)
+      _install(${ARGV})
+    elseif (SKIP_ALL_INSTALL)
+      message(STATUS "Skipping installing ${ARGV} fboss artifact")
+      _install(${ARGV} EXCLUDE_FROM_ALL)
+    else()
+      message(STATUS "Profile ${FBOSS_BUILD_PROFILE}: skip install ${ARGV}")
+    endif()
   endmacro ()
 endif()
 
@@ -85,10 +108,15 @@ option(SAI_BRCM_PAI_IMPL "Build SAI api with BRCOM_PAI-SAI extensions" OFF)
 if ($ENV{SAI_BRCM_PAI_IMPL})
   message(STATUS "ENV SAI_BRCM_PAI_IMPL is set")
   set(SAI_BRCM_PAI_IMPL ON)
+  add_definitions(-DSAI_BRCM_PAI_IMPL)
   # NOTE: Unlike agent that we use sai_impl, we directly use pre-built SDK from
   # local directory
   # Header files for libpai.a, the whole inc directory from SDK
   set(SAI_BRCM_PAI_IMPL_INC_DIR "/var/FBOSS/pai_impl/include")
+  # PAI vendor headers that sit at the root of the SDK's inc/, notably
+  # brcm_pai_extensions.h. These are siblings of the sai/ and pai_macsec/
+  # subdirs, not members of them, so the root needs its own entry.
+  include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}")
   # macsec headers
   include_directories("${SAI_BRCM_PAI_IMPL_INC_DIR}/pai_macsec")
   # epdm headers
@@ -116,8 +144,8 @@ if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
 else()
-  message(STATUS "ENV SAI_VERSION is not set, using default:1.16.3")
-  set (SAI_VERSION "1.16.3")
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.18.1")
+  set (SAI_VERSION "1.18.1")
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -130,12 +158,8 @@ if (BUILD_SAI_FAKE_LINK_TEST)
   message(STATUS "Configured to build SAI Fake Link Test binaries")
 endif()
 
-if (SAI_BRCM_IMPL)
-  # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
-  # Refactor/fix the code and then remove this flag.
-  add_definitions (-DIS_OSS_BRCM_SAI=true)
-
-  # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+if (SAI_BRCM_IMPL OR SAI_TAJO_IMPL)
+    # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL or SAI_TAJO_IMPL
   if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
     message(FATAL_ERROR
       "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
@@ -291,9 +315,15 @@ include_directories(${SAI_INCLUDE_DIR})
 message(STATUS "Found SAI Include dir: ${SAI_INCLUDE_DIR}")
 
 if (SAI_BRCM_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES brcm_sai_extensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
-  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
+elseif(SAI_TAJO_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/sai_attr_ext.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
+  message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(CHENAB_SAI_SDK)
   # Chenab-TODO: set experimental directories appropriately
   set(SAI_EXPERIMENTAL_INCLUDE_DIR "/var/FBOSS/sai_impl_output/include")
@@ -355,6 +385,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   fb303_python
   common/fb303/if/fb303.thrift
+  SERVICES
+    FacebookService
   OPTIONS
     json
 )
@@ -500,6 +532,14 @@ add_fbthrift_cpp_library(
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
+)
+add_fbthrift_cpp_library(
+  state_delta_log_cpp2
+  fboss/agent/state_delta_log.thrift
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_oper_cpp2
 )
 add_fbthrift_cpp_library(
   prbs_cpp2
@@ -667,6 +707,8 @@ add_fbthrift_cpp_library(
 add_fbthrift_python_library(
   phy_python
   fboss/lib/phy/phy.thrift
+  SERVICES
+    FbossCommonPhyCtrl
   NAMESPACE "neteng.fboss.phy"
   OPTIONS
     json
@@ -877,8 +919,56 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  link_qsfp_test_port_info_cpp2
+  fboss/lib/if/link_qsfp_test_port_info.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    transceiver_cpp2
+)
+
+add_library(link_qsfp_test_port_info_utils
+  fboss/lib/if/LinkQsfpTestPortInfoUtils.cpp
+  fboss/lib/if/oss/LinkQsfpTestMachineInfo.cpp
+)
+
+target_link_libraries(link_qsfp_test_port_info_utils
+  link_qsfp_test_port_info_cpp2
+  transceiver_cpp2
+)
+add_fbthrift_cpp_library(
   i2c_controller_stats_cpp2
   fboss/lib/i2c/i2c_controller_stats.thrift
+)
+
+
+add_fbthrift_cpp_library(
+  bgp_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/summary/bgp_summary.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_table_summary_cpp2
+  fboss/cli/fboss2/commands/show/bgp/table/bgp_table_summary.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
+)
+
+add_fbthrift_cpp_library(
+  bgp_update_group_cpp2
+  fboss/cli/fboss2/commands/show/bgp/updategroup/bgp_update_group.thrift
+  OPTIONS
+    json
+  DEPENDS
+    bgp_thrift_cpp2
 )
 
 add_fbthrift_cpp_library(
@@ -1022,6 +1112,180 @@ add_fbthrift_python_library(
     json
 )
 
+add_fbthrift_python_library(
+  mka_structs_python
+  fboss/mka_service/if/mka_structs.thrift
+  NAMESPACE "neteng.fboss.mka"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  hardware_stats_python
+  fboss/agent/hw/hardware_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  asic_temp_python
+  fboss/agent/if/asic_temp.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+)
+add_fbthrift_python_library(
+  agent_stats_python
+  fboss/agent/agent_stats.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    switch_config_python
+    phy_python
+    asic_temp_python
+)
+add_fbthrift_python_library(
+  product_info_python
+  fboss/agent/if/product_info.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  cfgr_fboss_common_python
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  NAMESPACE "neteng.fboss.configerator"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  ctrl_python
+  fboss/agent/if/ctrl.thrift
+  SERVICES
+    FbossCtrl
+    NeighborListenerClient
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fboss_python
+    fb303_python
+    network_address_python
+    agent_stats_python
+    mpls_python
+    cfgr_fboss_common_python
+    common_python
+    product_info_python
+    transceiver_python
+    switch_config_python
+    platform_config_python
+    phy_python
+    prbs_python
+    hardware_stats_python
+)
+add_fbthrift_python_library(
+  highfreq_python
+  fboss/agent/if/highfreq.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  switch_state_python
+  fboss/agent/switch_state.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_python
+    phy_python
+    cfgr_fboss_common_python
+    common_python
+    transceiver_python
+    network_address_python
+    ctrl_python
+    mka_structs_python
+)
+add_fbthrift_python_library(
+  hw_ctrl_python
+  fboss/agent/if/hw_ctrl.thrift
+  SERVICES
+    FbossHwCtrl
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_python
+    common_python
+    ctrl_python
+    fboss_python
+    highfreq_python
+    switch_state_python
+    phy_python
+    prbs_python
+)
+add_fbthrift_python_library(
+  qsfp_python
+  fboss/qsfp_service/if/qsfp.thrift
+  SERVICES
+    QsfpService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    ctrl_python
+    common_python
+    fboss_python
+    transceiver_python
+    switch_config_python
+    mka_structs_python
+    hardware_stats_python
+    phy_python
+    prbs_python
+)
+add_fbthrift_python_library(
+  fsdb_common_python
+  fboss/fsdb/if/fsdb_common.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  patch_python
+  fboss/thrift_cow/patch.thrift
+  NAMESPACE "neteng.fboss.thrift_cow"
+  OPTIONS
+    json
+)
+add_fbthrift_python_library(
+  fsdb_oper_python
+  fboss/fsdb/if/fsdb_oper.thrift
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fsdb_common_python
+    patch_python
+)
+add_fbthrift_python_library(
+  fsdb_python
+  fboss/fsdb/if/fsdb.thrift
+  SERVICES
+    FsdbService
+  NAMESPACE "neteng.fboss"
+  OPTIONS
+    json
+  DEPENDS
+    fb303_python
+    fsdb_common_python
+    fsdb_oper_python
+)
+
 add_fbthrift_cpp_library(
   hal_test_config_cpp2
   fboss/qsfp_service/test/hal_test/hal_test_config.thrift
@@ -1081,6 +1345,111 @@ set_property(
 find_package(Threads REQUIRED)
 enable_testing()
 
+# Shipit maps fbcode/neteng/fboss/bgp/public_tld/configerator/structs/neteng/
+# to configerator/structs/neteng/ in the OSS repo, but thrift includes and
+# CMake source paths reference the original internal path under public_tld.
+# Create a symlink to bridge the two so both paths resolve to the same files.
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng")
+  file(MAKE_DIRECTORY
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs")
+  file(CREATE_LINK
+    "${CMAKE_SOURCE_DIR}/configerator/structs/neteng"
+    "${CMAKE_SOURCE_DIR}/neteng/fboss/bgp/public_tld/configerator/structs/neteng"
+    SYMBOLIC)
+endif()
+
+# Deferred to end-of-directory: targets are still created after this file's last
+# line (FbossImageDistroCliTests.cmake, and the SAI groups under
+# BUILD_SAI_FAKE), and anything created later would escape the sweep.
+function(fboss_prune_to_exported_targets)
+  # Only the exported targets need to be in `all`; ninja pulls their transitive
+  # dependencies in anyway, because EXCLUDE_FROM_ALL does not stop a target
+  # being built when something still in `all` depends on it. That covers every
+  # dependency edge but not `add_custom_target(... ALL ...)`, whose only tie to
+  # `all` is the keyword this sweep overrides.
+  get_property(_all DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+               PROPERTY BUILDSYSTEM_TARGETS)
+  set(_dropped 0)
+  set(_found 0)
+  foreach(_t IN LISTS _all)
+    get_target_property(_type ${_t} TYPE)
+    if(_t IN_LIST FBOSS_EXPORTED_TARGETS)
+      math(EXPR _found "${_found} + 1")
+    elseif(NOT _type STREQUAL "INTERFACE_LIBRARY")
+      set_target_properties(${_t} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+      math(EXPR _dropped "${_dropped} + 1")
+    endif()
+  endforeach()
+  message(STATUS "FBOSS profile ${FBOSS_BUILD_PROFILE}: kept ${_found} "
+    "exported targets, excluded ${_dropped}")
+endfunction()
+
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  # The pruned path needs cmake_language(DEFER) (3.19); the file's declared
+  # 3.8 minimum only covers the full build.
+  if (CMAKE_VERSION VERSION_LESS 3.19)
+    message(FATAL_ERROR
+      "FBOSS_BUILD_PROFILE ${FBOSS_BUILD_PROFILE} needs CMake >= 3.19, "
+      "found ${CMAKE_VERSION}; build the default 'full' profile instead")
+  endif()
+  cmake_language(DEFER CALL fboss_prune_to_exported_targets)
+endif()
+
+set(FBOSS_EXPORTED_TARGETS
+  nodebase address_utils radix_tree exponential_back_off
+  switch_config_cpp2 ctrl_cpp2 common_cpp2 fboss_cpp2
+  fboss_common_cpp2 fboss_error fboss_types
+  network_address_cpp2 mpls_cpp2
+  agent_stats_cpp2 hardware_stats_cpp2 mka_structs_cpp2
+  platform_config_cpp2 phy_cpp2 transceiver_cpp2
+  product_info_cpp2 optic_cpp2 prbs_cpp2 link_cpp2
+  cfgr_fboss_common_cpp2 asic_temp_cpp2
+  bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
+  io_stats_cpp2
+  # Utility libraries for downstream consumers (BGP++)
+  alert_logger log_thrift_call
+  # FSDB client libraries for downstream consumers (BGP++ FsdbSyncer,
+  # NeighborWatcher). Dependents before dependencies for one-pass linkers.
+  fsdb_syncer fsdb_pub_sub fsdb_sub_mgr fsdb_stream_client
+  fsdb_flags fsdb_utils
+  fsdb_model_cpp2 thriftpath_lib
+  fsdb_common_cpp2 fsdb_oper_cpp2 fsdb_cpp2
+  cow_storage_mgr oper_path_helpers
+  common_thrift_utils thrift_service_client
+  # COW subscription instantiations (FsdbCowStateSubManager)
+  fsdb_cow_state_sub_mgr fsdb_cow_storage fsdb_cow_root
+  # FSDB model transitive thrift deps (agent state/config/info types)
+  switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
+  switch_reachability_cpp2
+  qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
+  # Leaf thrift deps of the FsdbOperStateRoot COW model, transitively
+  # required by downstream consumers that link it (BGP++ NeighborWatcher
+  # FsdbCowStateSubManager). Headers ship via the include dir, but the
+  # static archives must be installed for one-pass linkers to resolve.
+  qsfp_config_cpp2 port_state_cpp2 pim_state_cpp2 sensor_service_cpp2
+  # thrift_cow C++ libraries (CowStorage / visitors / patch appliers) that
+  # back the COW storage instantiations above.
+  patch_cpp2 cow_visitor_results_cpp2
+  storage cow_storage
+  thrift_cow_serializer thrift_cow_nodes
+  thrift_cow_visitors_common thrift_cow_visitors
+  # FsdbOperStateRoot extern-template instantiation libs. fsdb_cow_storage
+  # references these for the PathVisitor (visitNode), PatchApplier, and
+  # ThriftStructNode instantiations over the oper-state tree; without them a
+  # one-pass link leaves thousands of undefined visitNode/PatchApplier refs.
+  fsdb_cow_root_path_visitor
+  fsdb_path_visitor_oper_state_instantiations
+  fsdb_patch_applier_oper_state_instantiations
+  fsdb_thrift_struct_oper_instantiations
+  # Additional leaf thrift deps reached through the qsfp_state / sensor /
+  # service-client portions of the model: transceiver_validation
+  # (FirmwarePair/TransceiverAttributes/VendorConfig), sensor_config
+  # (Thresholds), and qsfp (QsfpService client vtable via thrift_service_client).
+  transceiver_validation_cpp2
+  sensor_config_cpp2
+  qsfp_cpp2
+)
+
 # Build all cmake files under cmake/*cmake
 file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
@@ -1088,9 +1457,14 @@ foreach(cmakeFile ${cmakeFiles})
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
+if (NOT SKIP_ALL_INSTALL AND NOT FBOSS_BUILD_PROFILE STREQUAL "full")
+  set(FBOSS_INSTALL_ENABLED TRUE)
+endif()
+
 # Install headers and libraries for downstream consumers (e.g., BGP++).
-# Both blocks live here (after the SKIP_ALL_INSTALL macro override) so they
-# behave consistently: when SKIP_ALL_INSTALL is set, both are excluded.
+# Both blocks live here, after the install() override and after
+# FBOSS_INSTALL_ENABLED is flipped, so SKIP_ALL_INSTALL and a pruned profile
+# both apply to them consistently.
 #
 # Header sources are installed per-subdirectory rather than via
 # install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/ ...) because
@@ -1107,18 +1481,11 @@ endforeach()
 install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
   DESTINATION include/fboss
   FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
+  DESTINATION include/configerator
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
 
-install(TARGETS
-  nodebase address_utils radix_tree exponential_back_off
-  switch_config_cpp2 ctrl_cpp2 common_cpp2 fboss_cpp2
-  fboss_common_cpp2 fboss_error fboss_types
-  network_address_cpp2 mpls_cpp2
-  agent_stats_cpp2 hardware_stats_cpp2 mka_structs_cpp2
-  platform_config_cpp2 phy_cpp2 transceiver_cpp2
-  product_info_cpp2 optic_cpp2 prbs_cpp2 link_cpp2
-  cfgr_fboss_common_cpp2 asic_temp_cpp2
-  bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
-  io_stats_cpp2
+install(TARGETS ${FBOSS_EXPORTED_TARGETS}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
@@ -1141,6 +1508,8 @@ add_dependencies(fboss_platform_services
   fw_util
   weutil
   data_corral_service
+  reboot_cause_finder
+  watchdog_util
   # Utilities
   sensor_service_client
   fixmyfboss
@@ -1281,8 +1650,8 @@ add_dependencies(fboss_fake_agent_targets
   fboss_agent_thrift_libs
   fboss_sw_agent
   sai_replayer-fake
-  wedge_agent-fake
-  fboss_hw_agent-fake
+  wedge_agent-sai_impl
+  fboss_hw_agent-sai_impl
 )
 
 add_custom_target(fboss_fake_agent_test_targets)

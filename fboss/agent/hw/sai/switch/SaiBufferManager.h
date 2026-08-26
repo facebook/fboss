@@ -120,6 +120,7 @@ class SaiBufferManager {
   void setupBufferPool(const state::PortPgFields& portPgConfig);
 
  private:
+  static uint32_t getNumCellsAvailable(const SaiPlatform* platform);
   void loadCpuPortEgressBufferPool();
   void updateIngressBufferPoolStats();
   void updateEgressBufferPoolStats();

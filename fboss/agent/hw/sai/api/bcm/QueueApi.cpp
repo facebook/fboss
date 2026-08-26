@@ -5,11 +5,7 @@
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
 extern "C" {
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiqueueextensions.h>
-#else
-#include <saiqueueextensions.h>
-#endif
 }
 
 #endif

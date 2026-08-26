@@ -368,6 +368,7 @@ enum BgpPolicyActionType {
   AS_PATH_TO_AS_SET = 13,
   EXT_COMMUNITY_LIST = 14,
   WEIGHT = 15,
+  ADD_BACKUP_ADDR = 16,
 }
 
 // SetNextHop is the action to set nexthop value.
@@ -375,6 +376,13 @@ enum BgpPolicyActionType {
 struct SetNextHop {
   1: bool set_self = 0;
   2: optional routing_policy.NextHop next_hop;
+}
+
+// AddBackupAddr associates a forwarding-only backup IP address with a route.
+// The address is a single IP, for example 2001:db8::1, not a prefix.
+// Unlike SetNextHop, this action does not replace the route's BGP next hop.
+struct AddBackupAddr {
+  1: string address;
 }
 
 // It defines how to apply the communities.
@@ -590,6 +598,8 @@ struct BgpPolicyAction {
   16: optional ExtCommunityAction ext_communities_action;
 
   17: optional WeightAction weight_action;
+
+  18: optional AddBackupAddr add_backup_addr;
 
   // Optional ordering attribute
   90: optional i64 sequence_number;

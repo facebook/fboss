@@ -56,6 +56,7 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
     return true;
   }
   if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_P200 ||
       asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
       asicType == cfg::AsicType::ASIC_TYPE_G202X) {
     return true;

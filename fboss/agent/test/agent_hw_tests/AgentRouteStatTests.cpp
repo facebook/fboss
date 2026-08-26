@@ -2,10 +2,14 @@
 
 #include <folly/IPAddressV6.h>
 
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -23,6 +27,10 @@ const std::optional<facebook::fboss::RouteCounterID> kCounterID2(
     "route.counter.1");
 const std::optional<facebook::fboss::RouteCounterID> kCounterID3(
     "route.counter.2");
+// 200-byte label, well beyond the 32-byte SAI_COUNTER_ATTR_LABEL, exercising
+// the extended label attribute.
+const std::optional<facebook::fboss::RouteCounterID> kLongCounterID(
+    std::string(200, 'a'));
 constexpr int kUdpSrcPort = 4049;
 constexpr int kUdpDstPort = 4050;
 } // namespace
@@ -323,6 +331,88 @@ TEST_F(AgentRouteStatTest, CounterModify) {
     // Restore the route to original state, so verify
     // can be run multiple times
     addRoute(kAddr1, 120, PortDescriptor(origRoutePort), kCounterID1);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Extended route-counter label (>32 bytes) via
+// SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED.
+class AgentRouteStatExtendedLabelTest : public AgentRouteStatTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::ROUTE_COUNTERS, ProductionFeature::SRV6_ENCAP};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_srv6 = true;
+    FLAGS_enable_nexthop_id_manager = true;
+    // The group name is used as the route counter ID for named-NHG routes.
+    FLAGS_enable_route_counters_for_named_nhg = true;
+  }
+};
+
+TEST_F(AgentRouteStatExtendedLabelTest, RouteCounterExtendedLabel) {
+  auto setup = [this]() {
+    setupEcmpHelper();
+    addRoute(
+        kAddr1,
+        120,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kLongCounterID);
+  };
+  auto verify = [this]() {
+    auto srcPort = masterLogicalInterfacePortIds()[1];
+    sendAndVerifyCounterIncrement({{kAddr1, *kLongCounterID}}, srcPort);
+    auto hwSwitchStats = getHwSwitchStats();
+    auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+    EXPECT_TRUE(routeCounters.count(*kLongCounterID));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// A route using a named next hop group derives its route-counter label from the
+// group name. Exercises the >32-byte counter label end-to-end through the named
+// NHG path (ThriftHandler + NextHopIDManager), gated on FLAGS_srv6.
+TEST_F(AgentRouteStatExtendedLabelTest, NamedNhgExtendedCounterLabel) {
+  const std::string kNhgName(200, 'n');
+  auto port = PortDescriptor(masterLogicalInterfacePortIds()[0]);
+  auto setup = [&]() {
+    setupEcmpHelper();
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper_->resolveNextHops(in, {port});
+    });
+    auto ecmpNhop = ecmpHelper_->nhop(port);
+    ThriftHandler handler(getSw());
+
+    // Register the named next hop group.
+    RouteNextHopSet nhops;
+    nhops.emplace(
+        UnresolvedNextHop(folly::IPAddress(ecmpNhop.ip), ECMP_WEIGHT));
+    NextHopGroup group;
+    group.name() = kNhgName;
+    group.nexthops() = util::fromRouteNextHopSet(nhops);
+    auto groups = std::make_unique<std::vector<NextHopGroup>>();
+    groups->push_back(std::move(group));
+    handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+    UnicastRoute route;
+    route.dest()->ip() =
+        facebook::network::toBinaryAddress(folly::IPAddress(kAddr1));
+    route.dest()->prefixLength() = 120;
+    route.namedRouteDestination()->nextHopGroup() = kNhgName;
+    auto routes = std::make_unique<std::vector<UnicastRoute>>();
+    routes->push_back(std::move(route));
+    handler.addUnicastRoutes(
+        static_cast<int16_t>(ClientID::BGPD), std::move(routes));
+  };
+  auto verify = [&]() {
+    WITH_RETRIES({
+      auto hwSwitchStats = getHwSwitchStats();
+      auto& routeCounters = *hwSwitchStats.counterStats()->routeCounters();
+      EXPECT_EVENTUALLY_TRUE(routeCounters.count(kNhgName));
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }

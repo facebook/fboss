@@ -9,6 +9,10 @@
 
 namespace facebook::fboss::show::route::utils {
 
+bool isFpfEncoding(
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding);
+
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode);
 
 std::string getMplsActionInfoStr(const cli::MplsActionInfo& mplsActionInfo);
@@ -21,12 +25,17 @@ void getNextHopInfoThrift(
     const NextHopThrift& nextHop,
     cli::NextHopInfo& nextHopInfo);
 
-std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo);
+std::string getNextHopInfoStr(
+    const cli::NextHopInfo& nextHopInfo,
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding = std::nullopt);
 std::string getNextHopInfoStr(
     const cli::NextHopInfo& nextHopInfo,
     const std::map<std::string, std::string>& vlanAggregatePortMap,
     const std::map<
         std::string,
-        std::map<std::string, std::vector<std::string>>>& vlanPortMap);
+        std::map<std::string, std::vector<std::string>>>& vlanPortMap,
+    const std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>&
+        encoding = std::nullopt);
 
 } // namespace facebook::fboss::show::route::utils

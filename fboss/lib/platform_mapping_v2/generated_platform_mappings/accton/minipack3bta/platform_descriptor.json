@@ -1,0 +1,14 @@
+{
+  "platformType": 46,
+  "productNamePrefixes": [
+    "Minipack3BTA",
+    "MINIPACK3BTA"
+  ],
+  "modeNames": [
+    "minipack3bta"
+  ],
+  "asicType": 22,
+  "variantAttributes": {
+    "minipack3bta_16rifs": false
+  }
+}

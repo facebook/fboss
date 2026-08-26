@@ -45,12 +45,6 @@ void BaseEcmpResourceMgrMergeGroupsTest::setupFlags() const {
   FLAGS_ecmp_resource_percentage = 100;
 }
 
-void BaseEcmpResourceMgrMergeGroupsTest::TearDown() {
-  auto newEcmpResourceMgr = makeResourceMgr();
-  assertRollbacks(*newEcmpResourceMgr, setupState, sw_->getState());
-  BaseEcmpResourceManagerTest::TearDown();
-}
-
 void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
   BaseEcmpResourceManagerTest::SetUp();
   XLOG(DBG2) << "BaseEcmpResourceMgrMergeGroupsTest SetUp";
@@ -109,9 +103,7 @@ void BaseEcmpResourceMgrMergeGroupsTest::SetUp() {
           largerGroupPenalty);
     }
   }
-  setupState = state_->clone();
-  setupState->publish();
-  assertEndState(setupState, {});
+  assertEndState(state_, {});
   XLOG(DBG2) << "EcmpResourceMgrBackupGrpTest SetUp done";
 }
 

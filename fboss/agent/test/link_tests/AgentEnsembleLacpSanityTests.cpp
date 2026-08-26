@@ -46,6 +46,12 @@ class AgentEnsembleLacpTest : public AgentEnsembleLinkTest {
     if (ports1.empty()) {
       throw FbossError("not enough ports connected for aggregate ports");
     }
+    for (auto port : ports1) {
+      addTestedPort(PortID(port));
+    }
+    for (auto port : ports2) {
+      addTestedPort(PortID(port));
+    }
     XLOG(DBG2) << "Add " << folly::join(',', ports1) << " to agg port"
                << getAggPorts()[0];
     addAggPort(getAggPorts()[0], ports1, &config, cfg::LacpPortRate::SLOW);
@@ -108,6 +114,8 @@ class AgentEnsembleLacpTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleLacpTest, lacpFlap) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LACP});
   auto setup = [this]() { programCabledAggPorts(); };
   auto verify = [this]() {
     const auto aggPort = getAggPorts()[0];

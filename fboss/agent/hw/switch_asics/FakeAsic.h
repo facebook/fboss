@@ -51,6 +51,8 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       case HwAsic::Feature::NO_RX_REASON_TRAP:
       case HwAsic::Feature::SDK_REGISTER_DUMP:
+      case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+      case HwAsic::Feature::TEMPERATURE_MONITORING:
         return false;
 
       default:
@@ -234,7 +236,9 @@ class FakeAsic : public HwAsic {
     };
   }
   uint32_t getNumMemoryBuffers() const override {
-    return 0;
+    // Divisor in SaiBufferManager::getIngressPoolDivisor(), called every stats
+    // update; 0 made the hw agent SIGFPE and crash loop.
+    return 1;
   }
   int getMidPriCpuQueueId() const override {
     return 2;

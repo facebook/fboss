@@ -71,6 +71,8 @@ void AgentHwTest::SetUp() {
   // overrideTestEnsembleInitInfo
   TestEnsembleInitInfo initInfo;
   initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
+  initInfo.maxRequiredInterfacePorts = maxRequiredInterfacePorts();
+  initInfo.maxRequiredFabricPorts = maxRequiredFabricPorts();
   overrideTestEnsembleInitInfo(initInfo);
 
   agentEnsemble_ = createAgentEnsemble(
@@ -272,6 +274,9 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   auto anyL3Asics =
       haveL3Asics(ensemble.getSw()->getHwAsicTable()->getHwAsics());
+  // Build the initial config from the capped port view, so the config is
+  // trimmed to maxRequired*Ports. Tests that need every port opt out via
+  // maxRequiredInterfacePorts()/maxRequiredFabricPorts() returning nullopt.
   auto config = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
@@ -306,9 +311,11 @@ std::map<PortID, HwPortStats> AgentHwTest::extractPortStats(
   std::map<PortID, HwPortStats> portStats;
   for (auto portId : ports) {
     auto portSwitchId = scopeResolver().scope(portId).switchId();
+    auto portSwitchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(portSwitchId);
     auto port = getProgrammedState()->getPort(portId);
     const auto& switchStats =
-        switch2Stats.find(static_cast<uint16_t>(portSwitchId))->second;
+        switch2Stats.find(static_cast<uint16_t>(portSwitchIndex))->second;
     portStats[portId] =
         switchStats.hwPortStats()->find(port->getName())->second;
   }
@@ -412,16 +419,19 @@ std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   std::map<std::string, HwSysPortStats> systemPortStats;
   std::map<SystemPortID, HwSysPortStats> portIdStatsMap;
+  const auto statsNamePrefix =
+      "switch." + std::to_string(getCurrentSwitchIndexForTesting()) + ".";
   checkWithRetry(
-      [&systemPortStats, &portIdStatsMap, &ports, this]() {
+      [&systemPortStats, &portIdStatsMap, &ports, statsNamePrefix, this]() {
         portIdStatsMap.clear();
+
         getSw()->getAllHwSysPortStats(systemPortStats);
         for (auto [portStatName, stats] : systemPortStats) {
+          if (portStatName.rfind(statsNamePrefix, 0) != 0) {
+            continue;
+          }
+          auto portName = portStatName.substr(statsNamePrefix.size());
           SystemPortID portId;
-          // Sysport stats names are suffixed with _switchIndex. Remove that
-          // to get at sys port name
-          auto portName =
-              portStatName.substr(0, portStatName.find_last_of('_'));
           try {
             if (portName.find("cpu") != std::string::npos) {
               portId = 0;
@@ -463,12 +473,18 @@ HwSysPortStats AgentHwTest::getLatestSysPortStats(const SystemPortID& port) {
 std::optional<HwSysPortStats> AgentHwTest::getLatestCpuSysPortStats() {
   std::map<std::string, HwSysPortStats> systemPortStats;
   std::optional<HwSysPortStats> portStats;
+  const auto statsNamePrefix =
+      "switch." + std::to_string(getCurrentSwitchIndexForTesting()) + ".";
   checkWithRetry(
-      [&systemPortStats, &portStats, this]() {
+      [&systemPortStats, &portStats, statsNamePrefix, this]() {
         bool found = false;
         getSw()->getAllHwSysPortStats(systemPortStats);
         for (auto [portStatName, stats] : systemPortStats) {
-          if (portStatName.find("cpu") != std::string::npos) {
+          if (portStatName.rfind(statsNamePrefix, 0) != 0) {
+            continue;
+          }
+          auto portName = portStatName.substr(statsNamePrefix.size());
+          if (portName.find("cpu") != std::string::npos) {
             XLOG(DBG2) << "found cpu port stats for " << portStatName;
             portStats = stats;
             found = true;

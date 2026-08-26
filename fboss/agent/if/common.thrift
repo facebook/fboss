@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.common
-namespace php fboss
 namespace py neteng.fboss.common
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.common
@@ -9,7 +8,10 @@ include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 
@@ -33,9 +35,16 @@ struct NetworkTopologyInformation {
   3: optional i32 remote_rack_capacity;
   4: optional i32 spine_capacity;
   5: optional i32 local_rack_capacity;
-  // NOTE: when BGP populates these fields, there will be two cases:
+  6: optional i32 spine_id;
+  // BGP populates one of these field combinations:
   // (a) 1, 2, 3, 4
   // (b) 1, 2, 5
+  // (c) 1, 3, 6
+}
+
+enum NextHopRole {
+  PRIMARY = 0,
+  BACKUP = 1,
 }
 
 struct NextHopThrift {
@@ -63,6 +72,33 @@ struct NextHopThrift {
   15: optional i32 adjustedWeight;
   16: optional NetworkTopologyInformation topologyInfo;
   17: optional i64 cost;
+  18: NextHopRole role = NextHopRole.PRIMARY;
+
+  // Headend/Binding SID FRR: per Nexthop protection
+  //   Empty: if no FRR for this Nexthop
+  //   Non-empty: Backup ECMP Nexthops providing FRR for this Nexthop
+  19: optional list<NextHopThrift> backupNexthops;
+  //
+  // Using NexthopRole and backupNexthops
+  // ====================================
+  //
+  // RBB/BBF Adjacency SID FRR:
+  //    o addAdjacencyFRR(FrrProtectedObject protectedObject,
+  //          list<common.NexthopThrift> backupNexthops)
+  //    o every NexthopThrift in backupNexthops passed to addAdjacencyFRR
+  //       - role = NextHopRole.BACKUP,
+  //       - list<backupNexthops> member is empty.
+  //
+  // BBF Headend/bindingSID FRR:
+  //    o addOrUpdateNamedNextHopGroups
+  //       - Passes NextHopGroup
+  //       - NextHopGroup contains list<NexthopThrift> nexthops
+  //    o every nexthop in that list is PRIMARY
+  //       - role = NextHopRole.PRIMARY,
+  //       - list<backupNexthops> member is non-empty
+  //    o every nexthop in this list<backupNexthops>
+  //       - role = NextHopRole.BACKUP,
+  //       - list<backupNexthops> member is empty.
 }
 
 /*
@@ -78,9 +114,6 @@ struct NextHopGroup {
   2: list<NextHopThrift> nexthops;
   3: optional bool isProgrammed;
 }
-
-// Deprecated: use NextHopGroup instead
-typedef NextHopGroup NamedNextHopGroup
 
 /*
  * Forwarding Class
@@ -209,6 +242,7 @@ enum TunnelType {
   IP_IN_IP_DECAP = 0,
   SRV6_ENCAP = 1,
   IP_IN_IP_ENCAP = 2,
+  SRV6_DECAP = 3,
 }
 
 enum MySidType {

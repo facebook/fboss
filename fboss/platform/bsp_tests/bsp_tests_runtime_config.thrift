@@ -69,4 +69,5 @@ struct I2CDevice {
   3: string deviceName;
   4: string address;
   5: bool isGpioChip;
+  6: optional platform_manager_config.FanCpldConfig fanCpldConfig;
 }

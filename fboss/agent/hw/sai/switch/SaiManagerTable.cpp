@@ -231,6 +231,17 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
       portManager_->resetTamObject(portId);
     }
   }
+#elif defined(TAJO_SDK_GTE_26_2)
+  // Unbind the MoD TAM (bound to switch + egress ports) before resetting the
+  // TAM manager so TAM/TAM_EVENT/TAM_EVENT_THRESHOLD delete cleanly.
+  // MT-665: resetTamObject() fails on Tajo; use setTamObject({}) instead.
+  auto modPortIds = tamManager_->getAllMirrorOnDropPortIds();
+  if (!modPortIds.empty()) {
+    switchManager_->setTamObject({});
+    for (auto portId : modPortIds) {
+      portManager_->setTamObject(portId, {});
+    }
+  }
 #endif
   tamManager_.reset();
 

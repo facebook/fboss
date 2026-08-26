@@ -10,11 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #if defined(BRCM_SAI_SDK_DNX)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
-#else
-#include <saiportextensions.h>
-#endif
 #endif
 #include "fboss/agent/FbossError.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"

@@ -5,11 +5,7 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 extern "C" {
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiswitchextensions.h>
-#else
-#include <saiswitchextensions.h>
-#endif
 }
 
 namespace facebook::fboss {

@@ -136,16 +136,16 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
 
   // Populate PmUnit versions
   PmUnitVersion version1;
-  version1.productProductionState() = 2;
-  version1.productVersion() = 13;
-  version1.productSubVersion() = 1;
+  version1.productionState() = 2;
+  version1.productionSubState() = 13;
+  version1.respinVariantIndicator() = 1;
   dataStore.updatePmUnitName("/MCB_SLOT@0", "MCB");
   dataStore.updatePmUnitVersion("/MCB_SLOT@0", version1);
 
   PmUnitVersion version2;
-  version2.productProductionState() = 4;
-  version2.productVersion() = 3;
-  version2.productSubVersion() = 2;
+  version2.productionState() = 4;
+  version2.productionSubState() = 3;
+  version2.respinVariantIndicator() = 2;
   dataStore.updatePmUnitName("/SCM_SLOT@0", "SCM");
   dataStore.updatePmUnitVersion("/SCM_SLOT@0", version2);
 

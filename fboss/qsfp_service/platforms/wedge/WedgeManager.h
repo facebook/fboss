@@ -5,7 +5,6 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -121,10 +120,11 @@ class WedgeManager : public TransceiverManager {
 
   /*
    * Returns true if this platform requires PHY/retimer config to operate.
-   * Currently only Ladakh platform requires it.
+   * Currently only Ladakh and Leh platforms (Agera3 retimer) require it.
    */
   bool requiresPhyConfig() const {
-    return platformType_ == PlatformType::PLATFORM_LADAKH800BCLS;
+    return platformType_ == PlatformType::PLATFORM_LADAKH800BCLS ||
+        platformType_ == PlatformType::PLATFORM_LEH800BCLS;
   }
 
   /*

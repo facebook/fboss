@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_optics_phy")
 
@@ -7,6 +8,7 @@ cpp_unittest(
     srcs = [
         "TransceiverPropertiesManagerTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",

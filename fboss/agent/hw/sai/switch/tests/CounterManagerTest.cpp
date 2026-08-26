@@ -97,7 +97,7 @@ TEST_F(CounterManagerTest, getStatsForCounter) {
 }
 
 TEST_F(CounterManagerTest, counterLabelTooLong) {
-  std::string longLabel(33, 'x'); // exceeds max 32
+  std::string longLabel(33, 'x'); // exceeds the 31-byte base label
   EXPECT_THROW(
       saiManagerTable->counterManager().incRefOrAddRouteCounter(longLabel),
       FbossError);

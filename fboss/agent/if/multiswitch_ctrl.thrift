@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.multiswitch
 namespace go neteng.fboss.multiswitch
-namespace php fboss.multiswitch
 namespace py neteng.fboss.multiswitch_ctrl
 namespace py3 neteng.fboss.multiswitch
 namespace py.asyncio neteng.fboss.asyncio.multiswitch_ctrl
@@ -126,6 +125,7 @@ struct HwSwitchStats {
   21: map<string, hardware_stats.HwRouterInterfaceStats> hwRouterInterfaceStats;
   22: hardware_stats.HwSwitchHardResetStats hardResetStats;
   23: hardware_stats.HwSwitchCounterStats counterStats;
+  24: hardware_stats.HwSwitchDropBitmapStats switchDropBitmapStats;
 }
 
 service MultiSwitchCtrl {

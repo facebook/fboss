@@ -17,7 +17,6 @@
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
-#include "fboss/cli/fboss2/utils/PortMap.h" // NOLINT(misc-include-cleaner)
 
 using namespace ::testing;
 

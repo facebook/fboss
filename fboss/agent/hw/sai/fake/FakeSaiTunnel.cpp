@@ -28,6 +28,7 @@ sai_status_t create_tunnel_fn(
   std::optional<sai_int32_t> encapTtlMode;
   std::optional<sai_int32_t> encapDscpMode;
   std::optional<sai_int32_t> encapEcnMode;
+  std::optional<sai_object_id_t> decapQosDscpToTcMap;
   for (int i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
       case SAI_TUNNEL_ATTR_TYPE:
@@ -69,6 +70,9 @@ sai_status_t create_tunnel_fn(
       case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
         encapEcnMode = attr_list[i].value.s32;
         break;
+      case SAI_TUNNEL_ATTR_DECAP_QOS_DSCP_TO_TC_MAP:
+        decapQosDscpToTcMap = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -89,6 +93,7 @@ sai_status_t create_tunnel_fn(
   tunnel.encapTtlMode = encapTtlMode;
   tunnel.encapDscpMode = encapDscpMode;
   tunnel.encapEcnMode = encapEcnMode;
+  tunnel.decapQosDscpToTcMap = decapQosDscpToTcMap;
   return SAI_STATUS_SUCCESS;
 }
 
@@ -131,7 +136,7 @@ sai_status_t get_tunnel_attribute_fn(
         if (tunnel.encapSrcIp.has_value()) {
           attr[i].value.ipaddr = tunnel.encapSrcIp.value();
         } else {
-          attr[i].value.ipaddr = toSaiIpAddress(folly::IPAddress("0.0.0.0"));
+          attr[i].value.ipaddr = toSaiIpAddress(folly::IPAddressV6("::"));
         }
         break;
       case SAI_TUNNEL_ATTR_ENCAP_TTL_MODE:
@@ -145,6 +150,11 @@ sai_status_t get_tunnel_attribute_fn(
       case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
         attr[i].value.s32 =
             tunnel.encapEcnMode.has_value() ? tunnel.encapEcnMode.value() : 0;
+        break;
+      case SAI_TUNNEL_ATTR_DECAP_QOS_DSCP_TO_TC_MAP:
+        attr[i].value.oid = tunnel.decapQosDscpToTcMap.has_value()
+            ? tunnel.decapQosDscpToTcMap.value()
+            : SAI_NULL_OBJECT_ID;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -189,6 +199,9 @@ sai_status_t set_tunnel_attribute_fn(
       break;
     case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
       tunnel.encapEcnMode = attr->value.s32;
+      break;
+    case SAI_TUNNEL_ATTR_DECAP_QOS_DSCP_TO_TC_MAP:
+      tunnel.decapQosDscpToTcMap = attr->value.oid;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;

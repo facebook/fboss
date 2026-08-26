@@ -185,9 +185,6 @@ void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName) {
   /*
    * Check the assumptions made in BcmAclStat::isStateSame()
    * See BcmAclStat.cpp for more info.
-   *
-   * Check that wedge40's asic is indeed programming *all* the types of
-   * counters when asked to program only a subset.
    */
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
 

@@ -28,6 +28,7 @@ class SaiBcmPlatform : public SaiPlatform {
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology transmitterTech,
       cfg::PortSpeed speed) const override;
+  // TODO: Move this method to software SDK info instead of platform info.
   bool isSerdesApiSupported() const override {
     return true;
   }
@@ -35,8 +36,6 @@ class SaiBcmPlatform : public SaiPlatform {
     return true;
   }
   const char* getHwConfigValue(const std::string& key) const;
-  virtual uint32_t numLanesPerCore() const = 0;
-  virtual uint32_t numCellsAvailable() const = 0;
   virtual bool supportsDynamicBcmConfig() const {
     return false;
   }
@@ -53,6 +52,13 @@ class SaiBcmPlatform : public SaiPlatform {
   void initWedgeLED(int led, folly::ByteRange range);
 
  private:
+  // SOC (name, value) properties that --bcm_sdk_log_file injects so the SDK
+  // runs the given diag/SOC command file at init. Empty when the flag is unset.
+  // Validates the path (throws on a missing file) and logs the injected file
+  // once. Single source of truth shared by all getHwConfig() config paths.
+  std::vector<std::pair<std::string, std::string>>
+  getBcmSdkLogFileSocProperties() const;
+
   std::unordered_map<std::string, std::string> hwConfig_;
 };
 

@@ -76,9 +76,19 @@ boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
 
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
+
 boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
     TestEnsembleIf* ensemble,
     utility::EcmpSetupTargetedPorts6& ecmpHelper);
+
+boost::container::flat_set<PortDescriptor> unresolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper,
+    const boost::container::flat_set<PortDescriptor>& sysPortDescs);
 
 void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<SystemPortMap>>& switchId2SystemPorts,
@@ -124,11 +134,16 @@ SystemPortID getAvailableRemoteSysPortId(
 
 InterfaceID getRemoteIntfId(SystemPortID sysPortId);
 
+// When refreshStats is true, the helper first triggers a switch-wide
+// updateStats() so callers reading immediately after programming a remote
+// sysport see populated queue maps. This is expensive, so it defaults to
+// false; only opt in when the cached stats may not yet be populated.
 std::optional<HwSysPortStats> getRemoteSysPortStatsForSwitchUnderTest(
-    const SwSwitch* sw,
+    SwSwitch* sw,
     const std::shared_ptr<SwitchState>& state,
     uint16_t switchIndex,
-    SystemPortID sysPortId);
+    SystemPortID sysPortId,
+    bool refreshStats = false);
 
 void addRemoteSysPortAndInterface(
     SwSwitch* sw,

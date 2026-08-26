@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/Benchmark.h>
+#include <glog/logging.h>
 
 #include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
@@ -52,6 +53,8 @@ BENCHMARK(FsdbSystemScaleStats) {
   suspender.dismiss();
   {
     fsdbTestServer_ = std::make_unique<FsdbTestServer>(port);
+    // Original timed measurement (server creation + state publisher connect);
+    // kept as-is so the timing metric stays comparable to historical values.
     while (true) {
       auto md = fsdbTestServer_->getPublisherRootMetadata(
           *kPublishRoot.begin(), false);
@@ -63,10 +66,27 @@ BENCHMARK(FsdbSystemScaleStats) {
     }
   }
   suspender.rehire();
-  {
-    fsdbTestServer_.reset();
-    removeFile(filePath, true);
+
+  // Wait (untimed) until the agent has actually published its scaled state and
+  // stats -- not merely connected (has_value() above is true on connect) --
+  // otherwise max_rss races teardown and can measure an idle server. Untimed so
+  // the agent-dependent publish time does not skew the timing metric; max_rss
+  // is process-wide peak RSS so it is still captured. CHECK-fail if nothing is
+  // published.
+  auto publishConfirmed = [&](bool isStats) {
+    auto md = fsdbTestServer_->getPublisherRootMetadata(
+        *kPublishRoot.begin(), isStats);
+    return md.has_value() && md->operMetadata.lastConfirmedAt().value_or(0) > 0;
+  };
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+  while (!(publishConfirmed(false) && publishConfirmed(true))) {
+    CHECK(std::chrono::steady_clock::now() < deadline)
+        << "agent did not publish scaled state and stats in time";
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
+
+  fsdbTestServer_.reset();
+  removeFile(filePath, true);
   helper.TearDown(false /*stopFsdbTestServer*/);
 }
 } // namespace facebook::fboss::fsdb::test

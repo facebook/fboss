@@ -143,6 +143,31 @@ TEST_F(ConfigDifferTest, CompareVersionedConfigs_SingleVersion) {
   EXPECT_TRUE(diffs.empty());
 }
 
+TEST_F(ConfigDifferTest, CompareVersionedConfigs_PmUnitVersionsOnly) {
+  // Regression: a versioned config that uses pmUnitVersions and omits the
+  // now-optional productSubVersion must not throw.
+  PlatformConfig config;
+  config.platformName() = "TEST_PLATFORM";
+
+  VersionedPmUnitConfig versionedConfig;
+  PmUnitVersion pmUv;
+  pmUv.productionState() = 1;
+  pmUv.productionSubState() = 2;
+  pmUv.respinVariantIndicator() = 3;
+  versionedConfig.pmUnitVersions() = {pmUv};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pluggedInSlotType() = "TEST_SLOT";
+  versionedConfig.pmUnitConfig() = pmUnitConfig;
+
+  std::map<std::string, std::vector<VersionedPmUnitConfig>> versionedConfigs;
+  versionedConfigs["TEST_UNIT"] = {versionedConfig};
+  config.versionedPmUnitConfigs() = versionedConfigs;
+
+  EXPECT_NO_THROW(differ_.compareVersionedConfigs(config, "TEST_UNIT"));
+  auto diffs = differ_.getDiffs();
+  EXPECT_TRUE(diffs.empty());
+}
+
 TEST_F(ConfigDifferTest, CompareVersionedConfigs_WithDefaultConfig) {
   PlatformConfig config;
   config.platformName() = "TEST_PLATFORM";

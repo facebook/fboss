@@ -50,6 +50,13 @@ enum OperProtocol {
   COMPACT = 3,
 }
 
+// Client-specified alias identifying a subscription path (used as a map key).
+typedef i32 SubscriptionKey
+
+// Revision token round-tripped via addPatchSubscriptionPaths so a subscriber can
+// correlate the patches it receives with the add-paths request that took effect.
+typedef i64 StreamRevision
+
 struct OperMetadata {
   // lastConfirmedAt measured in seconds since epoch
   1: optional i64 lastConfirmedAt;
@@ -57,6 +64,10 @@ struct OperMetadata {
   2: optional i64 lastPublishedAt;
   // timestamp in msec since epoch when this update was served to subscriber
   3: optional i64 lastServedAt;
+  // Echoed back from the most recent addPatchSubscriptionPaths request (its
+  // lastStreamRevision), set after a live add so a subscriber knows it took
+  // effect.
+  4: optional StreamRevision streamRevision;
 }
 
 struct OperState {
@@ -106,7 +117,12 @@ struct OperSubRequest {
   5: optional i64 heartbeatInterval;
 }
 
-struct OperSubInitResponse {}
+struct OperSubInitResponse {
+  // Server-assigned unique id for this subscription, echoed back in
+  // AddPatchSubscriptionPathsRequest to target it. Optional for backward
+  // compatibility with older servers that do not populate it.
+  1: optional i64 subscriptionUid;
+}
 
 // types to support extended subscription api
 struct OperSubRequestExtended {
@@ -137,8 +153,6 @@ struct PubRequest {
   2: fsdb_common.ClientId clientId;
 }
 
-typedef i32 SubscriptionKey
-
 struct SubRequest {
   1: map<SubscriptionKey, RawOperPath> paths;
   3: fsdb_common.ClientId clientId;
@@ -147,6 +161,23 @@ struct SubRequest {
   5: optional i64 heartbeatInterval;
   6: map<SubscriptionKey, ExtendedOperPath> extPaths;
 }
+
+// Request to append paths to an already-created patch subscription, located by
+// subscriptionUid alone (a non-zero uid is globally unique). clientId carries
+// the requester's identity but is not used to locate the subscription.
+struct AddPatchSubscriptionPathsRequest {
+  1: fsdb_common.ClientId clientId;
+  2: i64 subscriptionUid;
+  3: map<SubscriptionKey, RawOperPath> paths;
+  // Extended (wildcard/regex) paths. Mutually exclusive with field 3 (paths):
+  // set exactly one of paths or extPaths per request.
+  4: map<SubscriptionKey, ExtendedOperPath> extPaths;
+  // Last stream revision the client has observed. The server stashes it and
+  // echoes it back as OperMetadata.streamRevision on subsequent patches.
+  5: StreamRevision lastStreamRevision;
+}
+
+struct AddPatchSubscriptionPathsResponse {}
 
 struct Patch {
   1: list<string> basePath;

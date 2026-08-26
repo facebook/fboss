@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -209,6 +210,72 @@ TEST_F(QosMapManagerTest, addPortQos) {
   switchState->getPorts()->addNode(port, scopeResolver().scope(port));
   EXPECT_TRUE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), switchState)));
+}
+
+// By default the PFC priority -> priority group map is not programmed into
+// SAI even when configured, since the map type is unsupported on some
+// platforms. Programming is opt-in via a feature flag.
+TEST_F(QosMapManagerTest, pfcPriorityToPgQosMapNotProgrammedByDefault) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  qp->setPfcPriorityToPgIdMap({{0, 5}, {7, 3}});
+
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  EXPECT_TRUE(saiQosMapHandle);
+  EXPECT_FALSE(saiQosMapHandle->pfcPriorityToPgMap);
+}
+
+// With the feature flag on, the PFC priority -> priority group map is
+// programmed into SAI with the configured entries.
+TEST_F(QosMapManagerTest, pfcPriorityToPgQosMapProgrammedWhenEnabled) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_enable_pfc_priority_to_pg_map = true;
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  const std::map<int16_t, int16_t> pfcPriorityToPg{{0, 5}, {7, 3}};
+  qp->setPfcPriorityToPgIdMap(pfcPriorityToPg);
+
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
+  EXPECT_TRUE(saiQosMapHandle);
+  EXPECT_TRUE(saiQosMapHandle->pfcPriorityToPgMap);
+
+  auto& qosMapApi = SaiApiTable::getInstance()->qosMapApi();
+  EXPECT_EQ(
+      qosMapApi.getAttribute(
+          saiQosMapHandle->pfcPriorityToPgMap->adapterKey(),
+          SaiQosMapTraits::Attributes::Type{}),
+      SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_PRIORITY_GROUP);
+  auto mapToValueList = qosMapApi.getAttribute(
+      saiQosMapHandle->pfcPriorityToPgMap->adapterKey(),
+      SaiQosMapTraits::Attributes::MapToValueList{});
+  std::map<int16_t, int16_t> gotPfcPriorityToPg;
+  for (const auto& entry : mapToValueList) {
+    gotPfcPriorityToPg.emplace(entry.key.prio, entry.value.pg);
+  }
+  EXPECT_EQ(gotPfcPriorityToPg, pfcPriorityToPg);
+}
+
+TEST_F(QosMapManagerTest, getPfcPriorityToQueueId) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  const std::map<int16_t, int16_t> pfcPriorityToQueue{{3, 7}, {4, 2}};
+  qp->setPfcPriorityToQueueIdMap(pfcPriorityToQueue);
+
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  EXPECT_EQ(
+      saiManagerTable->qosMapManager().getPfcPriorityToQueueId(),
+      pfcPriorityToQueue);
+}
+
+TEST_F(QosMapManagerTest, getPfcPriorityToQueueIdEmptyWhenAbsent) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  // No pfcPriorityToQueueId on the policy => empty.
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+  EXPECT_TRUE(
+      saiManagerTable->qosMapManager().getPfcPriorityToQueueId().empty());
 }
 
 TEST_F(QosMapManagerTest, changAddsPortQos) {

@@ -217,17 +217,25 @@ chmod 777 "${TARGET_DIR}"
 
 rm -f "${DESCRIPTION_DIR}/root.tar.gz" # Remove any existing tar file
 
+# Start from an empty overlay. The overlay is populated below by copying
+# root_files/ over it, and a copy can only add files: anything deleted from
+# root_files/ would otherwise survive here from an earlier build and still ship
+# in the image.
+rm -rf "${DESCRIPTION_DIR}/root"
+
 # Hardlink component artifacts to root/repos for processing in config.sh. When
 # no explicit --deps is provided, use /deps (which resolves into the
 # /image_builder filesystem) so that cp -la does not cross mount boundaries.
-rm -rf "${DESCRIPTION_DIR}/root/repos"
 mkdir -p "${DESCRIPTION_DIR}/root/repos"
 
 EFFECTIVE_DEPS_DIR="${DEPS_DIR:-/deps}"
 
 if [ -d "${EFFECTIVE_DEPS_DIR}" ] && [ -n "$(ls -A "${EFFECTIVE_DEPS_DIR}" 2>/dev/null)" ]; then
   dprint "Hardlinking component artifacts from ${EFFECTIVE_DEPS_DIR} to ${DESCRIPTION_DIR}/root/repos..."
-  cp -al "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/"
+  cp -al "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/" 2>/dev/null || {
+    dprint "Hardlinks not supported, falling back to copy..."
+    cp -a "${EFFECTIVE_DEPS_DIR}"/* "${DESCRIPTION_DIR}/root/repos/"
+  }
 fi
 
 dprint "Copying /etc/resolv.conf to ${DESCRIPTION_DIR}/root/etc/resolv.conf..."
@@ -327,6 +335,13 @@ if [ ${PXE_RC} -ne 0 ]; then
 fi
 if [ ${ONIE_RC} -ne 0 ]; then
   dprint "ERROR: ONIE installer build failed"
+fi
+
+# The partx wrapper is installed by CI only, and its container is discarded
+# once this script returns, so surface its trace while we still can.
+if [ -f /tmp/partx_wrapper.log ]; then
+  dprint "partx wrapper trace:"
+  cat /tmp/partx_wrapper.log
 fi
 
 rm -rf ${TARGET_DIR}/btrfs ${TARGET_DIR}/onie

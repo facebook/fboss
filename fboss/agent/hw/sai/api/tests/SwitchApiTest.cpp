@@ -715,6 +715,30 @@ TEST_F(SwitchApiTest, testCablePropagationDelayMeasurement) {
       false);
 }
 
+TEST_F(SwitchApiTest, testPortCl72RetryEnable) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PortCl72RetryEnable{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::PortCl72RetryEnable portCl72RetryEnable{true};
+  switchApi->setAttribute(switchId, portCl72RetryEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PortCl72RetryEnable{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::PortCl72RetryEnable portCl72RetryDisable{false};
+  switchApi->setAttribute(switchId, portCl72RetryDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PortCl72RetryEnable{}),
+      false);
+}
+
 TEST_F(SwitchApiTest, testSwitchingMode) {
   // Test default value (STORE_AND_FORWARD)
   EXPECT_EQ(

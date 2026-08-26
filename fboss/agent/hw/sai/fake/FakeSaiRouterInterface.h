@@ -47,6 +47,7 @@ class FakeRouterInterface {
   sai_object_id_t portOrVlanId{0};
   sai_object_id_t id;
   sai_uint32_t mtu{1514};
+  bool adminMplsState{false};
 
  private:
   folly::MacAddress srcMac_;

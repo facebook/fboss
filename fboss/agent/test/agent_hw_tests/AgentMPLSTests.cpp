@@ -12,7 +12,6 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"

@@ -19,12 +19,14 @@ RibRouteWeightNormalizer::RibRouteWeightNormalizer(
     int numPlanePathsPerRack,
     int rackId,
     int numSpineFailuresToSkip,
-    int spinePruneStepCount)
+    int spinePruneStepCount,
+    bool enableFpfCapacityPruning)
     : numRacks_(numRacks),
       numPlanePathsPerRack_(numPlanePathsPerRack),
       rackId_(rackId),
       numSpineFailuresToSkip_(numSpineFailuresToSkip),
       spinePruneStepCount_(spinePruneStepCount),
+      enableFpfCapacityPruning_(enableFpfCapacityPruning),
       pruneLookupTable_(
           numRacks * numPlanePathsPerRack + 1,
           std::vector<std::vector<int>>(
@@ -98,11 +100,13 @@ int RibRouteWeightNormalizer::getNumPathsToPrune(
     int numFailures,
     RackId dstRack,
     RackId srcRack) {
-  // Rack ids are offset 1 based
-  if (!dstRack || dstRack > numRacks_) {
+  // Rack ids are offset 1 based. RackId is a signed int; reject non-positive
+  // values explicitly so an attacker-supplied negative rack_id cannot index
+  // pruneLookupTable_ out of bounds below.
+  if (dstRack <= 0 || dstRack > numRacks_) {
     throw FbossError("invalid dst rack id ", dstRack);
   }
-  if (!srcRack || srcRack > numRacks_) {
+  if (srcRack <= 0 || srcRack > numRacks_) {
     throw FbossError("invalid src rack id ", srcRack);
   }
   if (numFailures < 0 || numFailures > numRacks_ * numPlanePathsPerRack_) {
@@ -127,7 +131,8 @@ RouteNextHopSet RibRouteWeightNormalizer::getNormalizedNexthops(
         nhop.srv6SegmentList(),
         nhop.tunnelType(),
         nhop.tunnelId(),
-        nhop.cost());
+        nhop.cost(),
+        nhop.role());
   }
   normalizeWeightsForNexthops(resolvedNexthops);
   for (auto& nhop : resolvedNexthops) {
@@ -136,7 +141,24 @@ RouteNextHopSet RibRouteWeightNormalizer::getNormalizedNexthops(
   return normalizedNexthops;
 }
 
+int RibRouteWeightNormalizer::quantizeToStep(int rawPrunes) const {
+  if (rawPrunes <= 0) {
+    return 0;
+  }
+  int stepGroup = (rawPrunes - 1) / spinePruneStepCount_;
+  return stepGroup * spinePruneStepCount_ + 1;
+}
+
 void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
+    std::vector<ResolvedNextHop>& nhs) {
+  if (enableFpfCapacityPruning_) {
+    normalizeWeightsForNexthopsForFpf(nhs);
+  } else {
+    normalizeWeightsForNexthopsForNsf(nhs);
+  }
+}
+
+void RibRouteWeightNormalizer::normalizeWeightsForNexthopsForNsf(
     std::vector<ResolvedNextHop>& nhs) {
   RackId dstRack;
   std::unordered_map<PlaneId, int> localPlaneCapacity;
@@ -173,11 +195,8 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
           0,
           numRacks_ * numPlanePathsPerRack_ - *topologyInfo.spine_capacity() -
               numSpineFailuresToSkip_);
-      // if numSpineFailures > 0, apply step count logic
-      if (numSpineFailures > 0) {
-        int stepGroup = (numSpineFailures - 1) / spinePruneStepCount_;
-        numSpineFailures = stepGroup * spinePruneStepCount_ + 1;
-      }
+      // spines can absorb some capacity loss, prune only in step increments
+      numSpineFailures = quantizeToStep(numSpineFailures);
     }
     if (numRackFailures || numSpineFailures) {
       hasFailure = true;
@@ -236,6 +255,59 @@ void RibRouteWeightNormalizer::normalizeWeightsForNexthops(
         }
       }
     }
+    if (numPrunesNeeded) {
+      throw FbossError("Invalid number of prunes needed ", numPrunesNeeded);
+    }
+  }
+}
+
+void RibRouteWeightNormalizer::normalizeWeightsForNexthopsForFpf(
+    std::vector<ResolvedNextHop>& nhs) {
+  // In FPF, pruning is scoped per STSW (spine_id). The number of nexthops
+  // toward an STSW is the local GTSW->STSW path count; remote_rack_capacity
+  // carries the STSW->remote GTSW path count. Prune local paths that exceed the
+  // remote capacity so the STSW is not oversubscribed.
+  std::unordered_map<int, int> stswIdToLocalPathCount;
+  std::unordered_map<int, int> stswIdToRemoteCapacity;
+  for (const auto& nh : nhs) {
+    // ignore prefixes that do not carry FPF spine topology information
+    const auto& topologyInfo = nh.topologyInfo();
+    if (!topologyInfo.has_value() || !topologyInfo->spine_id().has_value()) {
+      return;
+    }
+    auto stswId = *topologyInfo->spine_id();
+    stswIdToLocalPathCount[stswId]++;
+    // remote capacity is identical across all nexthops of an STSW
+    if (topologyInfo->remote_rack_capacity().has_value()) {
+      stswIdToRemoteCapacity[stswId] = *topologyInfo->remote_rack_capacity();
+    }
+  }
+
+  for (const auto& [stswId, localPathCount] : stswIdToLocalPathCount) {
+    auto remoteInfo = stswIdToRemoteCapacity.find(stswId);
+    if (remoteInfo == stswIdToRemoteCapacity.end()) {
+      continue;
+    }
+    // spines can absorb some capacity loss, prune only in step increments
+    auto numPrunesNeeded = quantizeToStep(
+        localPathCount - remoteInfo->second - numSpineFailuresToSkip_);
+    XLOG(DBG4) << "Pruning " << numPrunesNeeded << " paths for spine "
+               << stswId;
+    for (auto& nh : nhs) {
+      if (!numPrunesNeeded) {
+        break;
+      }
+      if (nh.topologyInfo().has_value() &&
+          nh.topologyInfo()->spine_id().has_value() &&
+          *nh.topologyInfo()->spine_id() == stswId) {
+        // set adjusted weight to 0 to indicate that path is pruned
+        nh.setAdjustedWeight(0);
+        numPrunesNeeded--;
+      }
+    }
+    // by construction numPrunesNeeded <= localPathCount, so the loop above
+    // should always satisfy it; surface any mismatch (e.g. from an upstream
+    // bug) rather than swallow it, mirroring the NSF path.
     if (numPrunesNeeded) {
       throw FbossError("Invalid number of prunes needed ", numPrunesNeeded);
     }

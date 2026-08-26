@@ -1,0 +1,8 @@
+{
+  "global": {
+    "pcie_host_intf_timeout_purge_enable": "0",
+    "qos_map_multi_get_mode": "1",
+    "macro_flow_hash_shuffle_random_seed": "34345645",
+    "bcm_linkscan_interval": "25000"
+  }
+}

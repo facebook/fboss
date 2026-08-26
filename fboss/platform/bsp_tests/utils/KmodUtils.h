@@ -13,6 +13,8 @@ using platform_manager::BspKmodsFile;
 
 class KmodUtils {
  public:
+  static void bindDesiredDrivers(
+      const platform_manager::PlatformConfig& platformConfig);
   static void loadKmods(const BspKmodsFile& kmods);
   static void unloadKmods(const BspKmodsFile& kmods);
   static void fbspRemove(

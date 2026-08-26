@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","icecube800bc","PASSED"
+"FwUtilHwTest.listFirmwareNames","icecube800bc","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","icecube800bc","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","icecube800bc","PASSED"

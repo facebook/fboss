@@ -14,22 +14,42 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include <algorithm>
+
 namespace facebook::fboss {
+
+namespace {
+constexpr size_t kMaxCounterLabelSize = 31;
+} // namespace
 
 std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
     std::string counterID) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  bool useExtendedLabel = false;
+#if defined(TAJO_SDK_GTE_26_2) && !defined(TAJO_SDK_VERSION_26_2_5210) && \
+    !defined(TAJO_SDK_VERSION_26_5_5211)
+  useExtendedLabel = true;
+#endif
+  if (!useExtendedLabel && counterID.size() > kMaxCounterLabelSize) {
+    throw FbossError(
+        "CounterID label size ",
+        counterID.size(),
+        " exceeds max(",
+        kMaxCounterLabelSize,
+        ")");
+  }
   auto [entry, emplaced] = routeCounters_.refOrEmplace(counterID, counterID);
   if (emplaced) {
     SaiCharArray32 labelValue{};
-    if (counterID.size() > 32) {
-      throw FbossError(
-          "CounterID label size ", counterID.size(), " exceeds max(32)");
+    std::optional<SaiCounterTraits::Attributes::LabelExtended> labelExtended;
+    if (useExtendedLabel) {
+      labelExtended = SaiCounterTraits::Attributes::LabelExtended{
+          std::vector<int8_t>(counterID.begin(), counterID.end())};
+    } else {
+      std::copy(counterID.begin(), counterID.end(), labelValue.begin());
     }
-    std::copy(counterID.begin(), counterID.end(), labelValue.begin());
-
     SaiCounterTraits::CreateAttributes attrs{
-        labelValue, SAI_COUNTER_TYPE_REGULAR};
+        labelValue, SAI_COUNTER_TYPE_REGULAR, std::move(labelExtended)};
     auto& counterStore = saiStore_->get<SaiCounterTraits>();
     entry->counter = counterStore.setObject(attrs, attrs);
   }

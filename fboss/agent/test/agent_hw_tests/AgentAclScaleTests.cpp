@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/AclScaleTestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -110,10 +111,7 @@ class AgentAclScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
-    auto asic = checkSameAndGetAsicForTesting(asics);
-    auto maxAclEntries = asic->getMaxAclEntries();
-    CHECK(maxAclEntries.has_value());
-    return maxAclEntries.value();
+    return utility::getMaxAclEntries(asics);
   }
 
   uint32_t getMaxDoubleWideAclTables() {

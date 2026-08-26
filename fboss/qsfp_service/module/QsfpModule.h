@@ -305,6 +305,10 @@ class QsfpModule : public Transceiver {
     return portNameToMediaLanes_;
   }
 
+  const std::unordered_map<std::string, uint8_t>& getPortNameToBankId() const {
+    return portNameToBankId_;
+  }
+
   virtual bool setTransceiverTx(
       const std::string& portName,
       phy::Side side,
@@ -538,6 +542,14 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool isCBandTunable() const {
+    return false;
+  }
+
+  virtual bool isLBandTunable() const {
+    return false;
+  }
+
   virtual bool isRxConsActImplSupported() const {
     return false;
   }
@@ -633,6 +645,18 @@ class QsfpModule : public Transceiver {
   void cacheSignalFlags(const SignalFlags& signalflag);
   void cacheStatusFlags(const ModuleStatus& status);
 
+  /*
+   * Emit a LINK_ALERT only when the latched
+   * txLos/rxLos/txLol/rxLol/txFault flag set changes from the last DOM read
+   * (so a link that stays down doesn't re-log every refresh). A new fault is
+   * logged at ERR with the port names and every latched flag; recovery back to
+   * all-clear is logged at INFO so downtime stays visible without being an
+   * error.
+   */
+  void logLatchedLinkFaultsLocked(
+      const SignalFlags& signalFlags,
+      const std::vector<MediaLaneSignals>& mediaLaneSignals);
+
   virtual void latchAndReadVdmDataLocked() override {}
 
   /*
@@ -703,6 +727,11 @@ class QsfpModule : public Transceiver {
   std::map<int, MediaLaneSignals> mediaSignalsCache_;
   ModuleStatus moduleStatusCache_;
 
+  // Last latched link-fault flags emitted via LINK_ALERT, used to only log on
+  // changes rather than every refresh while a link stays down.
+  SignalFlags lastLoggedSignalFlags_;
+  int lastLoggedTxFault_{0};
+
   std::atomic_bool captureVdmStats_{false};
 
   folly::Synchronized<phy::PrbsStats> systemPrbsStats_;
@@ -714,12 +743,21 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  // Poll until the module reaches a state where it is ready to accept
+  // operations. Module types without such a state (e.g. SFF) are always ready.
+  virtual bool moduleReadyStatePoll() {
+    return true;
+  }
+
   void triggerModuleReset();
 
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
 
-  uint8_t datapathResetPendingMask_{0};
+  // Per-bank pending datapath-reset mask: bank -> intra-bank (0..7) lane mask.
+  // Tracked per-bank so multi-bank (CPO) ports on different banks don't share
+  // the same 0..7 bit range.
+  std::map<uint8_t, uint8_t> datapathResetPendingMask_;
 
  private:
   // no copy or assignment
@@ -831,6 +869,7 @@ class QsfpModule : public Transceiver {
 
   std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
   std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
+  std::unordered_map<std::string, uint8_t> portNameToBankId_;
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};

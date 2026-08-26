@@ -29,7 +29,6 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/packet/ICMPHdr.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/MirrorOnDropReport.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"

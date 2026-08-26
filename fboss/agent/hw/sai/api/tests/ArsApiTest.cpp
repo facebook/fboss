@@ -25,29 +25,24 @@ class ArsApiTest : public ::testing::Test {
     arsApi = std::make_unique<ArsApi>();
   }
 
-  ArsSaiId createArs() const {
-    SaiArsTraits::Attributes::Mode arsModeAttribute{
-        SAI_ARS_MODE_FLOWLET_QUALITY};
-    SaiArsTraits::Attributes::IdleTime arsIdleTimeAttribute{kIdleTime()};
-    SaiArsTraits::Attributes::MaxFlows arsMaxFlowsAttribute{kMaxFlows()};
-    SaiArsTraits::Attributes::PrimaryPathQualityThreshold
-        primaryPathQualityThresholdAttribute{kPrimaryPathQualityThreshold()};
-    SaiArsTraits::Attributes::AlternatePathCost alternatePathCostAttribute{
-        kAlternatePathCost()};
-    SaiArsTraits::Attributes::AlternatePathBias alternatePathBiasAttribute{
-        kAlternatePathBias()};
+  SaiArsTraits::CreateAttributes getArsAttributes(
+      sai_int32_t mode = SAI_ARS_MODE_FLOWLET_QUALITY,
+      std::optional<sai_uint32_t> idleTime = std::nullopt,
+      std::optional<sai_uint32_t> maxFlows = std::nullopt) const {
+    return SaiArsTraits::CreateAttributes{
+        SaiArsTraits::Attributes::Mode{mode},
+        SaiArsTraits::Attributes::IdleTime{idleTime.value_or(kIdleTime())},
+        SaiArsTraits::Attributes::MaxFlows{maxFlows.value_or(kMaxFlows())},
+        SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
+            kPrimaryPathQualityThreshold()},
+        SaiArsTraits::Attributes::AlternatePathCost{kAlternatePathCost()},
+        SaiArsTraits::Attributes::AlternatePathBias{kAlternatePathBias()},
+        std::nullopt, // NextHopGroupType
+        std::nullopt}; // SourcePortPrune
+  }
 
-    return arsApi->create<SaiArsTraits>(
-        {
-            arsModeAttribute,
-            arsIdleTimeAttribute,
-            arsMaxFlowsAttribute,
-            primaryPathQualityThresholdAttribute,
-            alternatePathCostAttribute,
-            alternatePathBiasAttribute,
-            std::nullopt, // NextHopGroupType
-        },
-        0);
+  ArsSaiId createArs() const {
+    return arsApi->create<SaiArsTraits>(getArsAttributes(), 0);
   }
 
   void checkArs(ArsSaiId arsId) const {
@@ -81,6 +76,41 @@ class ArsApiTest : public ::testing::Test {
 TEST_F(ArsApiTest, createArs) {
   auto arsId = createArs();
   checkArs(arsId);
+}
+
+// Mode, IdleTime and MaxFlows are part of SaiArsTraits::AdapterHostKey, so
+// CreateAttributes differing only in those attributes project to different
+// keys. This is what keeps the standby DLB group ARS object distinct from the
+// primary in the SaiStore.
+TEST_F(ArsApiTest, adapterHostKeyIncludesMode) {
+  auto flowletKey =
+      getAdapterHostKey(getArsAttributes(SAI_ARS_MODE_FLOWLET_QUALITY));
+  auto fixedKey = getAdapterHostKey(getArsAttributes(SAI_ARS_MODE_FIXED));
+
+  EXPECT_NE(flowletKey, fixedKey);
+  EXPECT_EQ(
+      std::get<SaiArsTraits::Attributes::Mode>(fixedKey).value(),
+      SAI_ARS_MODE_FIXED);
+}
+
+TEST_F(ArsApiTest, adapterHostKeyIncludesIdleTimeAndMaxFlows) {
+  auto baseKey = getAdapterHostKey(getArsAttributes());
+  auto idleTimeKey = getAdapterHostKey(
+      getArsAttributes(SAI_ARS_MODE_FLOWLET_QUALITY, kIdleTime() * 2));
+  auto maxFlowsKey = getAdapterHostKey(getArsAttributes(
+      SAI_ARS_MODE_FLOWLET_QUALITY, std::nullopt, kMaxFlows() * 2));
+
+  EXPECT_NE(baseKey, idleTimeKey);
+  EXPECT_NE(baseKey, maxFlowsKey);
+  EXPECT_NE(idleTimeKey, maxFlowsKey);
+  EXPECT_EQ(
+      std::get<std::optional<SaiArsTraits::Attributes::IdleTime>>(idleTimeKey)
+          ->value(),
+      kIdleTime() * 2);
+  EXPECT_EQ(
+      std::get<std::optional<SaiArsTraits::Attributes::MaxFlows>>(maxFlowsKey)
+          ->value(),
+      kMaxFlows() * 2);
 }
 
 TEST_F(ArsApiTest, removeArs) {

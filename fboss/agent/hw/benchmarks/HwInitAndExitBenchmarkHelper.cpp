@@ -39,10 +39,6 @@ std::optional<uint16_t> getUplinksCount(
     cfg::PortSpeed downlinkSpeed) {
   using ConfigType = std::tuple<PlatformType, cfg::PortSpeed, cfg::PortSpeed>;
   static const std::map<ConfigType, uint16_t> numUplinksMap = {
-      {{PlatformType::PLATFORM_WEDGE,
-        cfg::PortSpeed::FORTYG,
-        cfg::PortSpeed::XG},
-       4},
       {{PlatformType::PLATFORM_WEDGE100,
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::XG},
@@ -116,7 +112,6 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
     const AgentEnsemble* ensemble) {
   /*
    * |  Platform   |  Role  |
-   * |  TRIDENT2   |   RSW  |
    * |  TOMAHAWK   |   FSW  |
    * |  TOMAHAWK3  |    UU  |
    * |  EBRO       |   RSW  |
@@ -133,22 +128,19 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   auto asicType =
       swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin())->getAsicType();
 
-  if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(
-               swSwitch->getState(), swSwitch->needL2EntryForNeighbor())
-        .getThriftRoutes();
-  } else if (
-      asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_P200 ||
       asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
       asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
       asicType == cfg::AsicType::ASIC_TYPE_RAMON ||
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK6 ||
       asicType == cfg::AsicType::ASIC_TYPE_G202X) {
     return utility::HgridUuRouteScaleGenerator(
                swSwitch->getState(), swSwitch->needL2EntryForNeighbor())

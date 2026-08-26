@@ -76,7 +76,7 @@ struct PmUnitInfoResponse {
 }
 
 struct PmUnitsResponse {
-  1: map<string/* slotPath */ , platform_manager_config.PmUnitInfo> pmUnits;
+  1: map<string /* slotPath */, platform_manager_config.PmUnitInfo> pmUnits;
 }
 
 struct PmUnitInfoRequest {

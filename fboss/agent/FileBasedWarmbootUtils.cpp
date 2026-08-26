@@ -2,6 +2,8 @@
 
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 
+#include <fcntl.h>
+#include <unistd.h>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -63,6 +65,18 @@ bool checkWarmbootStateFileExists(
       getWarmBootThriftSwitchStateFile(warmBootDir, thriftSwitchStateFile));
 }
 
+folly::File openSymlinkSafeFallbackLog(const std::string& path) {
+  // The agent runs as root, so opening a world-writable /tmp path is a
+  // symlink-following hazard: a local attacker could pre-create the path as a
+  // symlink (or hardlink) to an arbitrary file and have us truncate/overwrite
+  // it. Defend by unlinking any pre-existing entry first (unlink never follows
+  // the link, so a planted symlink/hardlink is removed rather than its target),
+  // then atomically create a fresh file with O_EXCL | O_NOFOLLOW so anything
+  // re-planted in the race window is refused.
+  ::unlink(path.c_str());
+  return folly::File(path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW);
+}
+
 void logBootHistory(
     const AgentDirectoryUtil* directoryUtil,
     const std::string& bootType,
@@ -74,11 +88,22 @@ void logBootHistory(
         directoryUtil->getAgentBootHistoryLogFile(),
         O_RDWR | O_CREAT | O_APPEND);
   } catch (const std::system_error&) {
-    //   /var/facebook/logs/fboss/ might not exist for testing switch
-    XLOG(WARNING)
-        << "Agent boot history log failed to create under /var/facebook/logs/fboss/, using /tmp/";
-    logFile =
-        folly::File("/tmp/wedge_agent_starts.log", O_RDWR | O_CREAT | O_TRUNC);
+    // The primary directory might not exist, which is the normal case anywhere
+    // that is not a switch.
+    const auto fallbackPath =
+        directoryUtil->getAgentBootHistoryFallbackLogFile();
+    XLOG(WARNING) << "Agent boot history log failed to create under "
+                  << directoryUtil->getAgentBootHistoryLogFile() << ", using "
+                  << fallbackPath;
+    // This is best-effort boot history logging, so on failure we log and skip
+    // rather than aborting agent startup.
+    try {
+      logFile = openSymlinkSafeFallbackLog(fallbackPath);
+    } catch (const std::system_error& ex) {
+      XLOG(WARNING) << "Failed to safely open fallback boot history log "
+                    << fallbackPath << ", skipping: " << ex.what();
+      return;
+    }
   }
 
   auto now = std::chrono::system_clock::now();

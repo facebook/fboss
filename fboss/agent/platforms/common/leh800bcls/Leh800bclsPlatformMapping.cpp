@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/platforms/common/leh800bcls/Leh800bclsProdPlatformMapping.h"
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsTestPlatformMapping.h"
 
 namespace facebook::fboss {
@@ -20,8 +21,8 @@ static const std::string getPlatformMappingStr() {
     XLOG(INFO) << "Using Test Fixture Platform Mapping";
     return kJsonTestPlatformMappingStr;
   }
-  XLOG(ERR) << "Using Prod Platform Mapping; TODO";
-  return "";
+  XLOG(INFO) << "Using Prod Platform Mapping";
+  return kJsonProdPlatformMappingStr;
 }
 } // namespace
 

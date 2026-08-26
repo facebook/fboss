@@ -10,10 +10,6 @@
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
-#include "fboss/agent/state/SwitchState.h"
-
-#include "fboss/agent/HwSwitchMatcher.h"
-
 namespace facebook::fboss {
 
 ForwardingInformationBaseMap::ForwardingInformationBaseMap() = default;
@@ -58,47 +54,6 @@ void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
   } else {
     addNode(fibContainer);
   }
-}
-
-MultiSwitchForwardingInformationBaseMap*
-MultiSwitchForwardingInformationBaseMap::modify(
-    std::shared_ptr<SwitchState>* state) {
-  if (!isPublished()) {
-    CHECK(!(*state)->isPublished());
-    return this;
-  }
-
-  SwitchState::modify(state);
-  auto newFibMap = clone();
-  auto* rtn = newFibMap.get();
-  (*state)->resetForwardingInformationBases(std::move(newFibMap));
-
-  return rtn;
-}
-
-void MultiSwitchForwardingInformationBaseMap::
-    updateForwardingInformationBaseContainer(
-        const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,
-        const HwSwitchMatcher& matcher) {
-  auto node = getNodeIf(fibContainer->getID());
-  if (node) {
-    updateNode(fibContainer, matcher);
-  } else {
-    addNode(fibContainer, matcher);
-  }
-}
-
-std::pair<uint64_t, uint64_t>
-MultiSwitchForwardingInformationBaseMap::getRouteCount() const {
-  uint64_t v4Count = 0;
-  uint64_t v6Count = 0;
-
-  for (const auto& [_, fibs] : std::as_const(*this)) {
-    auto [v4, v6] = fibs->getRouteCount();
-    v4Count += v4;
-    v6Count += v6;
-  }
-  return std::make_pair(v4Count, v6Count);
 }
 
 template struct ThriftMapNode<

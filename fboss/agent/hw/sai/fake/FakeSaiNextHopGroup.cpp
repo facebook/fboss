@@ -26,6 +26,7 @@ sai_status_t create_next_hop_group_fn(
   std::optional<int32_t> type;
   sai_object_id_t ars_id = SAI_NULL_OBJECT_ID;
   sai_int32_t hash_algorithm = SAI_HASH_ALGORITHM_NONE;
+  bool hierarchical_nexthop = true;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
@@ -37,6 +38,9 @@ sai_status_t create_next_hop_group_fn(
       case SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM:
         hash_algorithm = attr_list[i].value.s32;
         break;
+      case SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP:
+        hierarchical_nexthop = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }
@@ -44,11 +48,16 @@ sai_status_t create_next_hop_group_fn(
   if (!type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  if (type.value() != SAI_NEXT_HOP_GROUP_TYPE_ECMP) {
-    return SAI_STATUS_INVALID_PARAMETER;
+  switch (type.value()) {
+    case SAI_NEXT_HOP_GROUP_TYPE_ECMP:
+    case SAI_NEXT_HOP_GROUP_TYPE_PROTECTION:
+    case SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION:
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_group_id =
-      fs->nextHopGroupManager.create(type.value(), ars_id, hash_algorithm);
+  *next_hop_group_id = fs->nextHopGroupManager.create(
+      type.value(), ars_id, hash_algorithm, hierarchical_nexthop);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -67,13 +76,16 @@ sai_status_t get_next_hop_group_attribute_fn(
   for (int i = 0; i < attr_count; ++i) {
     switch (attr[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
-        attr[i].value.s32 = nextHopGroup.id;
+        attr[i].value.s32 = nextHopGroup.type;
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID:
         attr[i].value.oid = nextHopGroup.ars_id;
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM:
         attr[i].value.s32 = nextHopGroup.hash_algorithm;
+        break;
+      case SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP:
+        attr[i].value.booldata = nextHopGroup.hierarchical_nexthop;
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =
@@ -119,6 +131,15 @@ sai_status_t create_next_hop_group_member_fn(
   std::optional<sai_object_id_t> nextHopGroupId;
   std::optional<sai_object_id_t> nextHopId;
   std::optional<sai_uint32_t> weight = std::nullopt;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  sai_int32_t configuredRole =
+      SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY;
+#else
+  // PRIMARY. The symbolic constant is unavailable before SAI 1.16, and the
+  // CONFIGURED_ROLE attribute is only read/stored under the 1.16 guard below.
+  sai_int32_t configuredRole = 0;
+#endif
+  sai_object_id_t monitoredObject = SAI_NULL_OBJECT_ID;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_NEXT_HOP_GROUP_ID:
@@ -128,8 +149,18 @@ sai_status_t create_next_hop_group_member_fn(
         nextHopId = attr_list[i].value.oid;
         break;
       case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
-        weight = attr_list[i].value.u64;
+        // WEIGHT is a u32 attribute (see the get path and the member's u32
+        // weight field); read it as u32 to match.
+        weight = attr_list[i].value.u32;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_CONFIGURED_ROLE:
+        configuredRole = attr_list[i].value.s32;
+        break;
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_MONITORED_OBJECT:
+        monitoredObject = attr_list[i].value.oid;
+        break;
+#endif
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }
@@ -141,7 +172,9 @@ sai_status_t create_next_hop_group_member_fn(
       nextHopGroupId.value(),
       nextHopGroupId.value(),
       nextHopId.value(),
-      weight);
+      weight,
+      configuredRole,
+      monitoredObject);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -172,6 +205,14 @@ sai_status_t get_next_hop_group_member_attribute_fn(
           attr[i].value.u32 = *weight;
         }
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_CONFIGURED_ROLE:
+        attr[i].value.s32 = nextHopGroupMember.configuredRole;
+        break;
+      case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_MONITORED_OBJECT:
+        attr[i].value.oid = nextHopGroupMember.monitoredObject;
+        break;
+#endif
       default:
         return SAI_STATUS_NOT_SUPPORTED;
     }
@@ -189,6 +230,14 @@ sai_status_t set_next_hop_group_member_attribute_fn(
     case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT:
       nextHopGroupMember.weight = attr->value.u32;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_CONFIGURED_ROLE:
+      nextHopGroupMember.configuredRole = attr->value.s32;
+      break;
+    case SAI_NEXT_HOP_GROUP_MEMBER_ATTR_MONITORED_OBJECT:
+      nextHopGroupMember.monitoredObject = attr->value.oid;
+      break;
+#endif
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }

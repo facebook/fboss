@@ -25,6 +25,11 @@ class GpiodLine {
   GpiodLine(struct gpiod_chip* chip, uint32_t offset, const std::string& name);
   ~GpiodLine();
   int getValue();
+  // Reads the line in its current direction
+  // (GPIOD_LINE_REQUEST_DIRECTION_AS_IS) instead of forcing it to input like
+  // getValue(). Use this for read-only callers that must not perturb a line
+  // another consumer is driving.
+  int getValuePreservingDirection();
   void setValue(int defaultVal, int targetVal);
 
   // Forbidden copy constructor and assignment operator

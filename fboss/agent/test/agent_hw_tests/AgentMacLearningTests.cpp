@@ -517,6 +517,51 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+  // Leaves l2AgeTimerSeconds at its default, so aging reaches the SDK only as a
+  // create_switch attribute - the path S660529 / MT-959 showed SDKs dropping.
+  // Every other aging test moves the timer at runtime and so cannot catch it.
+  // Warm boot matters too: FBOSS writes nothing there, so hardware is armed
+  // purely by what the SDK restores.
+  void testDefaultAgingHelper() {
+    auto setup = [this]() {
+      setupHelper(cfg::L2LearningMode::SOFTWARE, physPortDescr());
+    };
+
+    auto verify = [this]() {
+      const bool isWarmBoot = getSw()->getBootType() == BootType::WARM_BOOT;
+      XLOG(INFO) << "[MacAging] boot=" << (isWarmBoot ? "warm" : "cold")
+                 << " age timer=" << ageTimerSeconds() << "s";
+      // A moved timer means FBOSS emitted a real set and skipped the path under
+      // test.
+      EXPECT_EQ(ageTimerSeconds(), kDefaultL2AgeTimerSeconds);
+
+      // Both ports share the VLAN in loopback, so a broadcast probe floods
+      // between them and relearns its own source MAC faster than any ager.
+      getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+
+      for (auto i = 0; i < kNumAgingMacs; i++) {
+        sendPkt(agingMacAt(i));
+      }
+      WITH_RETRIES(
+          { EXPECT_EVENTUALLY_GE(agingMacsPresent(), kMinAgingMacsLearnt); });
+      XLOG(INFO) << "[MacAging] learnt " << agingMacsPresent() << "/"
+                 << kNumAgingMacs << ", waiting for drain";
+
+      // Nothing refreshes these MACs now, so only the timer can remove them.
+      WITH_RETRIES_N_TIMED(
+          ageOutRetries(), std::chrono::seconds(kAgeOutPollSeconds), {
+            auto remaining = agingMacsPresent();
+            EXPECT_EVENTUALLY_EQ(remaining, 0)
+                << remaining << " of " << kNumAgingMacs
+                << " still present after " << ageOutTimeoutSeconds()
+                << "s, age timer is " << ageTimerSeconds() << "s";
+          });
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void associateClassID() {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto macEntry = std::make_shared<MacEntry>(kSourceMac(), physPortDescr());
@@ -537,6 +582,49 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
 
   cfg::AclLookupClass kClassID() {
     return cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
+  }
+
+ private:
+  static constexpr int kAgeOutPollSeconds = 10;
+
+  uint32_t ageTimerSeconds() {
+    return utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+        ->getL2AgeTimerSeconds();
+  }
+
+  // An idle MAC survives close to two intervals, so 2x sits on the worst case;
+  // netcastle's 900s per test timeout rules out 3x.
+  uint32_t ageOutTimeoutSeconds() {
+    return ageTimerSeconds() * 5 / 2;
+  }
+
+  uint32_t ageOutRetries() {
+    return ageOutTimeoutSeconds() / kAgeOutPollSeconds;
+  }
+
+  static constexpr uint32_t kDefaultL2AgeTimerSeconds = 300;
+  static constexpr uint64_t kAgingMacBase = 0x020000010000ull;
+  static constexpr int kNumAgingMacs = 100;
+  // Hardware settles a few short of the requested count.
+  static constexpr int kMinAgingMacsLearnt = kNumAgingMacs / 2;
+
+  static folly::MacAddress agingMacAt(int i) {
+    return folly::MacAddress::fromHBO(kAgingMacBase + i);
+  }
+
+  // One L2 table read per call, so never call this per MAC.
+  int agingMacsPresent() {
+    auto learnt = getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+    auto vlan = getProgrammedState()->getVlans()->getNodeIf(kVlanID());
+    int present = 0;
+    for (auto i = 0; i < kNumAgingMacs; i++) {
+      auto mac = agingMacAt(i);
+      if (learnt.count(mac) ||
+          (vlan && vlan->getMacTable()->getMacIf(mac) != nullptr)) {
+        present++;
+      }
+    }
+    return present;
   }
 };
 
@@ -886,6 +974,10 @@ TEST_F(AgentMacSwLearningModeTest, VerifySwAgingForTrunk) {
   testSwAgingHelper(aggPortDescr());
 }
 
+TEST_F(AgentMacSwLearningModeTest, VerifyDefaultSwAgingForPort) {
+  testDefaultAgingHelper();
+}
+
 TEST_F(AgentMacSwLearningModeTest, VerifyNbrMacInL2Table) {
   auto setup = [this] {
     getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
@@ -1037,8 +1129,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
       sendPkt();
 
       /*
-       * Verify if we get ADD (learn) callback for PENDING entry for TD2, TH
-       * and VALIDATED entry for TH3.
+       * Verify if we get an ADD callback for a PENDING entry for TH and a
+       * VALIDATED entry for TH3.
        */
       verifyL2TableCallback(
           l2LearningObserver_.waitForLearningUpdates().front(),
@@ -1062,7 +1154,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
 
       // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
       // port2
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
         // TODO: Remove this once EbroAsic properly generates a
         // MAC move event.
         verifyL2TableCallback(

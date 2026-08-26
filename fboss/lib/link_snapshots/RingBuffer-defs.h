@@ -9,17 +9,19 @@
  */
 #pragma once
 
+#include <utility>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/link_snapshots/RingBuffer.h"
 
 namespace facebook::fboss {
 
 template <typename T>
-void RingBuffer<T>::write(T val) {
+T& RingBuffer<T>::write(T val) {
   if (buf.size() == maxLength_) {
     buf.pop_front();
   }
-  buf.push_back(val);
+  buf.push_back(std::move(val));
+  return buf.back();
 }
 
 template <typename T>

@@ -5,7 +5,11 @@
 extern "C" {
 #include <sai.h>
 
+#if defined(TAJO_SDK_GTE_26_5)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 #if defined(TAJO_SDK_GTE_24_8_3001)
@@ -61,6 +65,16 @@ SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
 }
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
   return std::nullopt;
 }
 
@@ -416,6 +430,32 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
+// 26.2.4210 dropped SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_RETRIGGER_COUNT and
+// replaced them with counters served by get_port_stats. 25.5.4210 still
+// serve the attributes, so these lists stay empty there and the attribute
+// path below is used instead.
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+#if defined(TAJO_SDK_VERSION_26_2_4210)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_EXT_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+#if defined(TAJO_SDK_VERSION_26_2_4210)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_EXT_LINK_UP_DEBOUNCE_RETRIGGER_COUNT};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
   return std::nullopt;
@@ -457,6 +497,35 @@ SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
+// 26.2.4210 deprecated this attribute
+#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+  return SAI_PORT_ATTR_LINK_UP_DEBOUNCE_RETRIGGER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeLinkDownDebounceRetriggerCount::operator()() {
+#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+  return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

@@ -257,9 +257,10 @@ void registerApplicationModeTests() {
         nullptr,
         __FILE__,
         __LINE__,
-        [from = std::move(from),
-         to = std::move(to)]() mutable -> T2HalTestSpeedChange* {
-          return new T2HalTestSpeedChange(std::move(from), std::move(to));
+        [fromDesc = std::move(from),
+         toDesc = std::move(to)]() mutable -> T2HalTestSpeedChange* {
+          return new T2HalTestSpeedChange(
+              std::move(fromDesc), std::move(toDesc));
         });
   }
 }

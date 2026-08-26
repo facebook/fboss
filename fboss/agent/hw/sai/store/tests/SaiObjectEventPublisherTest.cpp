@@ -153,7 +153,16 @@ class SaiObjectEventPublisherTest : public SaiStoreTest {
   SaiNextHopGroupMemberTraits::CreateAttributes makeNhGroupMemberAttrs(
       sai_object_id_t groupId,
       sai_object_id_t nextHopId) const {
-    return {groupId, nextHopId, std::nullopt};
+    return {
+        groupId,
+        nextHopId,
+        std::nullopt
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+        ,
+        std::nullopt,
+        std::nullopt
+#endif
+    };
   }
 
   detail::SaiObjectEventPublisher<SaiNeighborTraits>& neighborPublisher() {
@@ -482,7 +491,7 @@ TEST_F(SaiObjectEventPublisherTest, aggregateSetAndGetObject) {
   // Create a NextHopGroup so we can create a member under it
   SaiNextHopGroupTraits::AdapterHostKey nhGroupKey;
   SaiNextHopGroupTraits::CreateAttributes nhGroupAttrs{
-      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt};
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt, std::nullopt};
   auto& nhGroupStore = saiStore->get<SaiNextHopGroupTraits>();
   auto nhGroupObj = nhGroupStore.setObject(nhGroupKey, nhGroupAttrs);
   auto nhGroupId = nhGroupObj->adapterKey();

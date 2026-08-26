@@ -1,5 +1,7 @@
 "Test Case","Platform","Status"
 "SensorServiceHwTest.SensorFetchODSCheck","tahan800bc","PASSED"
+"SensorServiceHwTest.PowerAndInputVoltageAboveZero","tahan800bc","SKIPPED"
+"SensorServiceHwTest.MinPsuCountMatchesPowerType","tahan800bc","PASSED"
 "SensorServiceHwTest.GetSomeSensorsViaThrift","tahan800bc","PASSED"
 "SensorServiceHwTest.GetSomeSensors","tahan800bc","PASSED"
 "SensorServiceHwTest.GetBogusSensor","tahan800bc","PASSED"

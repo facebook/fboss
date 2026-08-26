@@ -25,6 +25,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/AgentConfigUtils.h"
 
 #include <folly/MacAddress.h>
 #include <vector>
@@ -40,23 +41,6 @@ class TestEnsembleIf;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
-
-/*
- * Use vlan 2000, as the base vlan for ports in configs generated here.
- * Anything except 0, 1 would actually work fine. 0 because
- * its reserved, and 1 because BRCM uses that as default VLAN.
- * So for example if we use VLAN 1, BRCM will also add cpu port to
- * that vlan along with our configured ports. This causes unnecessary
- * confusion for our tests.
- */
-auto constexpr kBaseVlanId = 2000;
-/*
- * Default VLAN
- */
-auto constexpr kDefaultVlanId4094 = 4094;
-auto constexpr kDefaultVlanId1 = 1;
-auto constexpr kDownlinkBaseVlanId = 2000;
-auto constexpr kUplinkBaseVlanId = 4000;
 
 const std::map<cfg::PortType, cfg::PortLoopbackMode>& kDefaultLoopbackMap();
 

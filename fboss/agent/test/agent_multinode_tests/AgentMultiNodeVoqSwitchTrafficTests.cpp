@@ -132,7 +132,7 @@ bool AgentMultiNodeVoqSwitchTrafficTest::setupTrafficLoop(
   }
 
   auto myHostname = topologyInfo->getMyHostname();
-  CHECK(rdswToNeighbor.find(myHostname) != rdswToNeighbor.end());
+  CHECK(rdswToNeighbor.contains(myHostname));
   // Create Traffic loop
   injectTraffic(rdswToNeighbor[myHostname]);
 
@@ -281,8 +281,8 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
                            const std::vector<utility::Neighbor>& neighbors) {
     auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
     CHECK(neighbors.size() == 2);
-    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
-    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.contains(neighbors[0].portID));
+    CHECK(portIdToPortInfo.contains(neighbors[1].portID));
 
     auto firstRemotePort = portIdToPortInfo[neighbors[0].portID].name().value();
     auto secondRemotePort =
@@ -295,8 +295,8 @@ bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
                              const std::vector<utility::Neighbor>& neighbors) {
     auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
     CHECK(neighbors.size() == 2);
-    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
-    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.contains(neighbors[0].portID));
+    CHECK(portIdToPortInfo.contains(neighbors[1].portID));
 
     return std::make_pair(neighbors[0].portID, neighbors[1].portID);
   };

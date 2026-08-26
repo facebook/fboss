@@ -12,6 +12,8 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 
 #include <memory>
+#include <optional>
+#include <string>
 
 namespace facebook::fboss {
 
@@ -34,8 +36,13 @@ class SwitchStateNextHopIdUpdater {
   bool verifyNextHopIdConsistency(
       const std::shared_ptr<SwitchState>& state) const;
 
+  std::optional<std::string> getInvalidLinkLocalNextHop() const {
+    return invalidLinkLocalNextHop_;
+  }
+
  private:
   const NextHopIDManager* nextHopIDManager_;
+  std::optional<std::string> invalidLinkLocalNextHop_;
 };
 
 } // namespace facebook::fboss

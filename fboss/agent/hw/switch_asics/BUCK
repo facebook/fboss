@@ -3,6 +3,10 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    # @autodeps-skip autodeps2 resolves the SAI version include to the config-pinned
+    # impl:brcm-10.2.0.0_odp-version, which drags brcm-sai into every SDK config
+    # (leaba/nvda/credo/fake) and breaks their builds. Keep the config-agnostic
+    # impl:version_util.
     name = "switch_asics",
     srcs = [
         "Agera3PhyAsic.cpp",
@@ -16,6 +20,7 @@ cpp_library(
         "Jericho2Asic.cpp",
         "Jericho3Asic.cpp",
         "Jericho4Asic.cpp",
+        "P200Asic.cpp",
         "Qumran4DAsic.cpp",
         "Ramon3Asic.cpp",
         "RamonAsic.cpp",
@@ -25,7 +30,6 @@ cpp_library(
         "Tomahawk6Asic.cpp",
         "TomahawkAsic.cpp",
         "TomahawkUltra1Asic.cpp",
-        "Trident2Asic.cpp",
         "YubaAsic.cpp",
     ],
     headers = [
@@ -44,6 +48,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/sai/impl:version_util",
+        "//fboss/lib/if:fboss_common-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//folly:network_address",
         "//thrift/lib/cpp/util:enum_utils",

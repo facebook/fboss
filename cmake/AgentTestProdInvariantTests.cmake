@@ -3,6 +3,28 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_executable(multi_switch_invariant_agent_test
+  fboss/agent/test/prod_invariant_tests/SaiProdInvariantTests.cpp
+)
+
+add_sai_sdk_dependencies(multi_switch_invariant_agent_test)
+
+target_link_libraries(multi_switch_invariant_agent_test
+  -Wl,--whole-archive
+  invariant_agent_tests
+  multi_switch_agent_ensemble
+  agent_hw_test_thrift_handler
+  setup_thrift_prod
+  sai_acl_utils
+  sai_copp_utils
+  sai_platform
+  -Wl,--no-whole-archive
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+install(TARGETS multi_switch_invariant_agent_test)
+
 function(BUILD_SAI_INVARIANT_AGENT_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")

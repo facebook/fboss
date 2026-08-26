@@ -6,7 +6,7 @@
 3. It publish sensor date with user defined sensor publish interval
 
 ## Design Concept
-* Configuration driven, The format of the confguration conforms with thrift definition in folder `if/`. Platform sepecific sensor service configuration JSON files are located in `fboss/platform/configs/`:
+* Configuration driven, The format of the confguration conforms with thrift definition in folder `if/`. Platform sepecific sensor service configuration JSON files are located under `fboss/configs/platforms/<vendor>/<platform>/platform_stack/`:
 
 ```
 configs

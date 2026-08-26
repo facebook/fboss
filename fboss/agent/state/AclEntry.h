@@ -20,6 +20,7 @@
 #include <folly/MacAddress.h>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 
 namespace facebook::fboss {
@@ -161,6 +162,22 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
 
   void setDstIp(const folly::CIDRNetwork& ip) {
     set<switch_state_tags::dstIp>(folly::IPAddress::networkToString(ip));
+  }
+
+  std::optional<uint32_t> getDstIpV6Word3() const {
+    return getIpV6Word<switch_state_tags::dstIpV6Word3>();
+  }
+
+  void setDstIpV6Word3(int64_t word) {
+    setIpV6Word<switch_state_tags::dstIpV6Word3>(word);
+  }
+
+  std::optional<uint32_t> getDstIpV6Word2() const {
+    return getIpV6Word<switch_state_tags::dstIpV6Word2>();
+  }
+
+  void setDstIpV6Word2(int64_t word) {
+    setIpV6Word<switch_state_tags::dstIpV6Word2>(word);
   }
 
   std::optional<uint8_t> getProto() const {
@@ -329,6 +346,28 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::l4DstPortRange>(range);
   }
 
+  std::optional<uint8_t> getTrafficClass() const {
+    if (auto trafficClass = cref<switch_state_tags::trafficClass>()) {
+      return trafficClass->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTrafficClass(uint8_t trafficClass) {
+    set<switch_state_tags::trafficClass>(trafficClass);
+  }
+
+  std::optional<int64_t> getNextHopGroupId() const {
+    if (auto id = cref<switch_state_tags::nextHopGroupId>()) {
+      return id->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNextHopGroupId(int64_t id) {
+    set<switch_state_tags::nextHopGroupId>(id);
+  }
+
   std::optional<cfg::AclLookupClass> getLookupClassL2() const {
     if (auto lookupClassL2 = cref<switch_state_tags::lookupClassL2>()) {
       return lookupClassL2->cref();
@@ -455,7 +494,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getLookupClassL2() || getLookupClassNeighbor() ||
         getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
         getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
-        getRoceMask() || getUdfTable();
+        getRoceMask() || getUdfTable() || getTrafficClass() ||
+        getNextHopGroupId() || getDstIpV6Word3() || getDstIpV6Word2();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
@@ -465,6 +505,30 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
       const HwSwitchMatcher& matcher);
 
  private:
+  // IPv6 word qualifiers are 32-bit values, but thrift stores them as signed
+  // i64 because it has no unsigned 32-bit integer type.
+  static constexpr int64_t kMaxIpV6Word = 0xFFFFFFFF;
+
+  static uint32_t validateIpV6Word(int64_t word) {
+    if (word < 0 || word > kMaxIpV6Word) {
+      throw FbossError("IPv6 ACL word must be a 32-bit value");
+    }
+    return static_cast<uint32_t>(word);
+  }
+
+  template <typename Tag>
+  std::optional<uint32_t> getIpV6Word() const {
+    if (auto word = cref<Tag>()) {
+      return validateIpV6Word(word->cref());
+    }
+    return std::nullopt;
+  }
+
+  template <typename Tag>
+  void setIpV6Word(int64_t word) {
+    set<Tag>(static_cast<int64_t>(validateIpV6Word(word)));
+  }
+
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
   friend class CloneAllocator;

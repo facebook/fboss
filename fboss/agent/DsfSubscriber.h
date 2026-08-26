@@ -6,6 +6,7 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 
+#include <fmt/format.h>
 #include <folly/Synchronized.h>
 #include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/executors/thread_factory/NamedThreadFactory.h>
@@ -54,7 +55,7 @@ class DsfSubscriber : public StateObserver {
   }
 
   std::string getClientId() const {
-    return folly::sformat("{}:agent", localNodeName_);
+    return fmt::format("{}:agent", localNodeName_);
   }
 
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;

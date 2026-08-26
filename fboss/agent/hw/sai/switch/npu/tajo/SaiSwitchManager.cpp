@@ -6,7 +6,11 @@
 
 #if !defined(TAJO_SDK_VERSION_1_42_8)
 extern "C" {
+#if defined(TAJO_SDK_GTE_26_5)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 #endif
 
@@ -53,5 +57,13 @@ void fillHwSwitchSaiExtensionDropStats(
     HwSwitchDropStats& /* dropStats */) {
   CHECK_EQ(counterId2Value.size(), 0);
 }
+
+void fillHwSwitchDropBitmapStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropBitmapStats& /*dropBitmapStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
+void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
 
 } // namespace facebook::fboss

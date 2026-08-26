@@ -87,6 +87,8 @@ std::
       std::nullopt, // actionTypeList
       std::nullopt, // srcIpv6
       std::nullopt, // dstIpv6
+      std::nullopt, // dstIpv6Word3
+      std::nullopt, // dstIpv6Word2
       std::nullopt, // srcIpV4
       std::nullopt, // dstIpV4
       std::nullopt, // fieldL4SrcPort
@@ -101,6 +103,7 @@ std::
       std::nullopt, // fieldIcmpV6Type
       std::nullopt, // fieldIcmpV6Code
       std::nullopt, // dscp
+      std::nullopt, // fieldTc
       true, // fieldDstMac
       std::nullopt, // ipType
       std::nullopt, // ttl

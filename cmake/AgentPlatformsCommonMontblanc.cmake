@@ -10,3 +10,16 @@ add_library(montblanc_platform_mapping
 target_link_libraries(montblanc_platform_mapping
   platform_mapping
 )
+
+add_executable(montblanc_platform_mapping_test
+  fboss/agent/platforms/common/montblanc/tests/MontblancPlatformMappingTest.cpp
+)
+
+target_link_libraries(montblanc_platform_mapping_test
+  montblanc_platform_mapping
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(montblanc_platform_mapping_test)

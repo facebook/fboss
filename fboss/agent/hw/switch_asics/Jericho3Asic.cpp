@@ -2,14 +2,39 @@
 
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
 #include "fboss/agent/AgentFeatures.h"
 
 namespace {
 static constexpr int kDefaultMidPriCpuQueueId = 3;
 static constexpr int kDefaultHiPriCpuQueueId = 7;
+constexpr auto kCpuPortSpeed = 10000;
+constexpr auto kSingleStageCpuPortNumVoqs = 8;
+constexpr auto kDualStageCpuPortNumVoqs = 3;
 } // namespace
 
 namespace facebook::fboss {
+
+std::vector<HwAsic::InternalSystemPortConfig>
+Jericho3Asic::getInternalSystemPortConfig(
+    const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
+  CHECK(
+      cpuPortsCoreAndPortIdx.size() == 1 || cpuPortsCoreAndPortIdx.size() == 4)
+      << "Create one CPU port for the ASIC or one CPU port for each core";
+  CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
+
+  const uint32_t switchId = static_cast<uint32_t>(*getSwitchId());
+  const uint32_t numVoqs = isDualStage3Q2QMode() ? kDualStageCpuPortNumVoqs
+                                                 : kSingleStageCpuPortNumVoqs;
+  std::vector<InternalSystemPortConfig> sysPortConfig;
+  sysPortConfig.reserve(cpuPortsCoreAndPortIdx.size());
+  for (auto [cpuPortID, coreAndPortIdx] : cpuPortsCoreAndPortIdx) {
+    auto [core, port] = coreAndPortIdx;
+    sysPortConfig.push_back(
+        {cpuPortID, switchId, core, port, kCpuPortSpeed, numVoqs});
+  }
+  return sysPortConfig;
+}
 
 bool Jericho3Asic::isSupported(Feature feature) const {
   switch (feature) {
@@ -203,6 +228,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::ROUTE_COUNTERS:
     // J3-AI natively supports hashing. So hash configuration is not supported.
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -247,13 +273,21 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
+    case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
+    case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
+    case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return false;
   }
   return false;
@@ -453,8 +487,15 @@ int Jericho3Asic::getHiPriCpuQueueId() const {
 
 std::optional<uint32_t> Jericho3Asic::getMaxEcmpGroups() const {
   // CS00012342521
-  // For 2-stage DSF with 2K wide ecmp we only support 16 ecmp groups
-  // No other use case exists.
-  return (isDualStage3Q2QMode() && FLAGS_ecmp_width >= 2048) ? 16 : 64;
+  // J3 supports up to 4K ECMP groups, but each group consumes
+  // FLAGS_ecmp_width entries from the fixed-size member table. Deriving the
+  // member-limited maximum also covers Hyperport EDSW, which uses 2K-wide ECMP
+  // without running in 3q2q mode.
+  constexpr uint32_t kMaxEcmpGroups = 4096;
+  auto maxMembers = getMaxEcmpMembers();
+  if (!maxMembers.has_value() || FLAGS_ecmp_width == 0) {
+    return kMaxEcmpGroups;
+  }
+  return std::min(kMaxEcmpGroups, *maxMembers / FLAGS_ecmp_width);
 }
 } // namespace facebook::fboss

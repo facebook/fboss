@@ -136,6 +136,7 @@ class SaiSwitch : public HwSwitch {
   FabricReachabilityStats getFabricReachabilityStats() const override;
   CpuPortStats getCpuPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
+  HwSwitchDropBitmapStats getSwitchDropBitmapStats() const override;
   HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
   HwSwitchPipelineStats getSwitchPipelineStats() const override;
   HwSwitchTemperatureStats getSwitchTemperatureStats() const override;
@@ -161,6 +162,8 @@ class SaiSwitch : public HwSwitch {
   bool isPortUp(PortID port) const override;
 
   void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  void triggerCableLengthMeasurement(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
@@ -262,6 +265,8 @@ class SaiSwitch : public HwSwitch {
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
+
+  void setSdkRegDumpEnabled(bool enabled) override;
 
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
@@ -407,6 +412,10 @@ class SaiSwitch : public HwSwitch {
   void switchRunStateChangedImplLocked(
       const std::lock_guard<std::mutex>& lock,
       SwitchRunState newState);
+
+  void setSdkRegDumpEnabledLocked(
+      const std::lock_guard<std::mutex>& lock,
+      bool enabled);
 
   void exitFatalLocked(const std::lock_guard<std::mutex>& lock) const;
 

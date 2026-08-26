@@ -29,18 +29,12 @@ cpp_library(
     name = "hal_test_utils",
     srcs = ["HalTestUtils.cpp"],
     headers = ["HalTestUtils.h"],
-    exported_deps = [
-        ":bsp_transceiver_impl",
-        ":hal_test_config-cpp2-types",
+    deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
         "//fboss/lib/firmware_storage:firmware_storage",
-        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/platform/helpers:platform_name_lib",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
-        "//fboss/qsfp_service/if:transceiver_properties-cpp2-types",
-        "//fboss/qsfp_service/module:firmware_upgrader",
-        "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//folly:conv",
         "//folly:file_util",
@@ -48,31 +42,44 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+    exported_deps = [
+        ":bsp_transceiver_impl",
+        ":hal_test_config-cpp2-types",
+        "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/qsfp_service/if:config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver_properties-cpp2-types",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:qsfp-module",
+    ],
 )
 
 cpp_library(
     name = "hal_test_parallel",
     srcs = ["HalTestParallel.cpp"],
     headers = ["HalTestParallel.h"],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//folly/logging:logging",
     ],
+    exported_deps = [],
 )
 
 cpp_library(
     name = "hal_test_base",
     srcs = ["HalTest.cpp"],
     headers = ["HalTest.h"],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":hal_test_config-cpp2-types",
         ":hal_test_parallel",
         ":hal_test_utils",
-        "//fboss/agent:fboss-error",
         "//fboss/qsfp_service/module:qsfp-module",
-        "//folly/logging:logging",
     ],
 )
 
@@ -88,12 +95,16 @@ cpp_binary(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
+        ":bsp_transceiver_impl",
         ":hal_test_base",
         ":hal_test_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
+        "//folly:random",
+        "//folly:scope_guard",
         "//folly/init:init",
+        "//folly/io:iobuf",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],

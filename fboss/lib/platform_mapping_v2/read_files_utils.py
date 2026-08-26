@@ -1,15 +1,21 @@
 # pyre-unsafe
 import copy
 import json
+import os
+import sys
 from enum import IntEnum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
+from fboss.lib.platform_mapping_v2.integrated_transceiver_mapping import (
+    IntegratedTransceiverMapping,
+)
 from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMapping
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
 from neteng.fboss.asic_config_v2.thrift_types import AsicVendorConfigParams
+from neteng.fboss.fboss_common.thrift_types import PlatformType
 from neteng.fboss.phy.phy.thrift_types import (
     FecMode,
     InterfaceType,
@@ -25,6 +31,7 @@ from neteng.fboss.platform_mapping_config.thrift_types import (
     ConnectionEnd,
     ConnectionPair,
     CoreType,
+    IntegratedTransceiverConnection,
     Lane,
     Port,
     SiSettingFactor,
@@ -34,12 +41,46 @@ from neteng.fboss.platform_mapping_config.thrift_types import (
     TransceiverOverrideSetting,
 )
 from neteng.fboss.switch_config.thrift_types import (
+    AsicType,
     PortProfileID,
     PortSpeed,
     PortType,
     Scope,
 )
 from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
+
+
+def read_vendor_data(input_file_path: str) -> Dict[str, str]:
+    vendor_data = {}
+    if not os.path.exists(input_file_path):
+        raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
+
+    for filename in sorted(os.listdir(input_file_path)):
+        filepath = os.path.join(input_file_path, filename)
+        if (
+            filepath.endswith(".csv") or filepath.endswith(".json")
+        ) and not os.path.isdir(filepath):
+            with open(filepath, "r") as file:
+                content = file.read()
+            vendor_data[filename] = content
+
+    return vendor_data
+
+
+def read_all_vendor_data(input_dir: str) -> Dict[str, Dict[str, str]]:
+    all_vendor_data = {}
+    data_path = input_dir
+    print(
+        f"Reading all vendor data in {data_path}...",
+        file=sys.stderr,
+    )
+    for filename in sorted(os.listdir(data_path)):
+        filepath = os.path.join(data_path, filename)
+        if not os.path.isdir(filepath):
+            continue
+        all_vendor_data[filename] = read_vendor_data(filepath)
+
+    return all_vendor_data
 
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
@@ -51,10 +92,31 @@ def get_content(directory: Dict[str, str], filename: str) -> str:
 
 
 def column_int_enum_generator(string_list: str):
-    # pyre-ignore
     return IntEnum(
         "Column", {item: idx for idx, item in enumerate(string_list.split())}
     )
+
+
+def split_csv_list(value: str) -> List[str]:
+    return [item for item in value.split("-") if item]
+
+
+def parse_bool_map(value: str) -> Dict[str, bool]:
+    bool_map = {}
+    for item in value.split(";"):
+        if not item:
+            continue
+        parts = [part.strip() for part in item.split("=", 1)]
+        if len(parts) != 2:
+            raise ValueError(
+                f"Invalid bool map entry, expected key=value format: {item}"
+            )
+        key, raw_value = parts
+        normalized_value = raw_value.lower()
+        if normalized_value not in ("true", "false"):
+            raise ValueError(f"Invalid bool map value {item}")
+        bool_map[key] = normalized_value == "true"
+    return bool_map
 
 
 def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping:
@@ -235,6 +297,43 @@ def read_port_profile_mapping(
     return PortProfileMapping(ports=ports)
 
 
+def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str, Any]:
+    PLATFORM_DESCRIPTOR_SUFFIX = "_platform_descriptor.csv"
+    VARIANT_ATTRIBUTES_COLUMN = 5
+    Column = column_int_enum_generator(
+        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE VARIANT_ATTRIBUTES"
+    )
+    for index, line in enumerate(
+        get_content(directory, prefix + PLATFORM_DESCRIPTOR_SUFFIX).splitlines()
+    ):
+        if index < 1:
+            continue
+        row = line.split(",")
+        # pyrefly: ignore [missing-attribute]
+        system_vendor = row[Column.SYSTEM_VENDOR]
+        # pyrefly: ignore [missing-attribute]
+        platform_type = PlatformType[row[Column.PLATFORM_TYPE]]
+        # pyrefly: ignore [missing-attribute]
+        product_name_prefixes = split_csv_list(row[Column.PRODUCT_NAME_PREFIXES])
+        # pyrefly: ignore [missing-attribute]
+        mode_names = split_csv_list(row[Column.MODE_NAMES])
+        # pyrefly: ignore [missing-attribute]
+        asic_type = AsicType[row[Column.ASIC_TYPE]]
+        descriptor = {
+            "systemVendor": system_vendor,
+            "platformType": int(platform_type),
+            "productNamePrefixes": product_name_prefixes,
+            "modeNames": mode_names,
+            "asicType": int(asic_type),
+        }
+        if VARIANT_ATTRIBUTES_COLUMN < len(row) and row[VARIANT_ATTRIBUTES_COLUMN]:
+            descriptor["variantAttributes"] = parse_bool_map(
+                row[VARIANT_ATTRIBUTES_COLUMN]
+            )
+        return descriptor
+    raise ValueError(f"No platform descriptor row found for {prefix}")
+
+
 def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSettings:
     PROFILE_SETTINGS_SUFFIX = "_profile_settings.csv"
     Column = column_int_enum_generator(
@@ -309,7 +408,7 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
     return ProfileSettings(speed_settings=profiles)
 
 
-def read_si_settings(
+def read_si_settings(  # noqa: C901
     directory: Dict[str, str], prefix: str, version: Optional[str] = None
 ) -> SiSettings:
     si_suffix = f"_{version}" if version is not None else ""
@@ -794,3 +893,62 @@ def read_asic_vendor_config(directory: Dict[str, str], prefix: str) -> AsicVendo
     )
 
     return AsicVendorConfig(asic_vendor_config_params=asic_vendor_config_params)
+
+
+def read_integrated_transceiver_mapping(
+    directory: Dict[str, str], prefix: str
+) -> IntegratedTransceiverMapping:
+    SUFFIX = "_integrated_transceiver_mapping.csv"
+    Column = column_int_enum_generator(
+        "TCVR_CHIP_ID TCVR_CORE_ID TCVR_LANE "
+        + "OE_CHIP_ID OE_CORE_ID OE_LANE "
+        + "LASER_SOURCE_CHIP_ID LASER_SOURCE_CORE_ID LASER_SOURCE_LANE",
+    )
+    connections = []
+    for index, line in enumerate(get_content(directory, prefix + SUFFIX).splitlines()):
+        if index < 1:
+            continue
+        row = line.split(",")
+        tcvr_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.TCVR_CHIP_ID]),
+            chip_type=ChipType.TRANSCEIVER,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.TCVR_CORE_ID]),
+            core_type=CoreType.BANKED_CMIS_INTEGRATED,
+        )
+        # pyrefly: ignore [missing-attribute]
+        tcvr_lane = Lane(logical_id=int(row[Column.TCVR_LANE]))
+        oe_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.OE_CHIP_ID]),
+            chip_type=ChipType.OPTICAL_ENGINE,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.OE_CORE_ID]),
+            core_type=CoreType.INTEGRATED_OE,
+        )
+        # pyrefly: ignore [missing-attribute]
+        oe_lane = Lane(logical_id=int(row[Column.OE_LANE]))
+        laser_source_chip = Chip(
+            slot_id=1,
+            # pyrefly: ignore [missing-attribute]
+            chip_id=int(row[Column.LASER_SOURCE_CHIP_ID]),
+            chip_type=ChipType.LASER_SOURCE,
+            # pyrefly: ignore [missing-attribute]
+            core_id=int(row[Column.LASER_SOURCE_CORE_ID]),
+            core_type=CoreType.ELSFP,
+        )
+        # pyrefly: ignore [missing-attribute]
+        laser_source_lane = Lane(logical_id=int(row[Column.LASER_SOURCE_LANE]))
+        connections.append(
+            IntegratedTransceiverConnection(
+                transceiver=ConnectionEnd(chip=tcvr_chip, lane=tcvr_lane),
+                opticalEngine=ConnectionEnd(chip=oe_chip, lane=oe_lane),
+                laserSource=ConnectionEnd(
+                    chip=laser_source_chip, lane=laser_source_lane
+                ),
+            )
+        )
+    return IntegratedTransceiverMapping(connections=connections)

@@ -13,6 +13,7 @@
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -147,8 +148,7 @@ TEST(SystemPort, sysPortNameApplyConfig) {
       *config.dsfNodes()->find(SwitchID(kVoqSwitchIdBegin))->second.name();
   for (auto portMap : std::as_const(*stateV1->getPorts())) {
     for (auto port : std::as_const(*portMap.second)) {
-      auto sysPortName =
-          folly::sformat("{}:{}", nodeName, port.second->getName());
+      auto sysPortName = fmt::format("{}:{}", nodeName, port.second->getName());
       XLOG(DBG2) << " Looking for sys port : " << sysPortName;
       EXPECT_NE(
           nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));

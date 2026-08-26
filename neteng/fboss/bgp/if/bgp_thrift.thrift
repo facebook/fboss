@@ -21,6 +21,7 @@ include "configerator/structs/neteng/bgp_policy/thrift/rib_policy.thrift"
 include "configerator/structs/neteng/bgp_policy/thrift/bgp_policy.thrift"
 include "configerator/structs/neteng/fboss/bgp/bgp_config.thrift"
 include "configerator/structs/neteng/fboss/bgp/if/bgp_attr.thrift"
+include "neteng/fboss/bgp/if/bgp_route_types.thrift"
 include "neteng/fboss/bgp/if/policy_thrift.thrift"
 include "thrift/annotation/hack.thrift"
 include "thrift/annotation/cpp.thrift"
@@ -29,7 +30,6 @@ include "thrift/annotation/thrift.thrift"
 @thrift.AllowLegacyMissingUris
 package;
 
-namespace php fboss
 namespace py neteng.fboss.bgp_thrift
 namespace py.asyncio neteng.fboss.asyncio.bgp_thrift
 namespace py3 neteng.fboss
@@ -106,178 +106,9 @@ enum BgpInitializationEvent {
   INITIALIZED = 9,
 }
 
-/**
- * Internal representation of Extended Community (RFC 4360), i.e., this is not
- * what we send or receive on the wire for BGP protocol, but only what we send
- * and receive between applications.
- * We represent our data as union.  For now, the only member of the union is
- * the Two-Byte Asn Extended Community.  We will add more definitions as
- * needed.
- */
-
-enum TBgpTwoByteAsnExtCommType {
-  LINK_BANDWIDTH_TYPE = 0x40,
-}
-
-enum TBgpTwoByteAsnExtCommSubType {
-  LINK_BANDWIDTH_SUB_TYPE = 0x4,
-  LINK_BANDWIDTH_SUB_TYPE_TRANSITIVE = 0x0,
-}
-
-struct TBgpTwoByteAsnExtComm {
-  1: i16 type;
-  2: i16 sub_type;
-  3: i32 asn;
-  4: i64 value;
-}
-
-struct TBgpRawExtComm {
-  1: i64 value_low;
-  2: i64 value_high;
-}
-
-union TBgpExtCommUnion {
-  1: TBgpTwoByteAsnExtComm two_byte_asn;
-  // Pending fix for D union implementation
-  // 2: TBgpRawExtComm raw_values;
-}
-
 struct TGoldenPrefixesPolicyStatus {
   1: rib_policy.TRouteFilterPolicy policy;
   2: bool isPolicyActive;
-}
-
-/**
- * This could theoretically be collapsed into a union, but leaving this as a
- * struct in case we want to add more fields here in the future.
-*/
-
-struct TBgpExtCommunity {
-  1: TBgpExtCommUnion u;
-}
-
-struct TBgpAggregator {
-  1: i32 asn;
-  2: string ip;
-}
-
-/**
- * Single BGP path for a Rib entry, points to the peer who advertised it
- * This includes all fields in BgpAttributesC.
- */
-struct TBgpPath {
-  1: bgp_attr.TIpPrefix next_hop;
-  2: bgp_attr.TAsPath as_path;
-  3: optional list<bgp_attr.TBgpCommunity> communities;
-  4: optional i64 originator_id;
-  5: optional list<i64> cluster_list;
-  6: optional i32 local_pref;
-  7: optional i64 router_id;
-  8: optional i32 origin;
-  9: optional bgp_attr.TIpPrefix peer_id;
-  /* BGP Path selection/rejection reason */
-  10: optional string bestpath_filter_descr;
-  11: optional list<TBgpExtCommunity> extCommunities;
-  12: i64 last_modified_time; // time is in microseconds
-  13: optional i64 path_id; // received path ID
-  /*
-   * Name of the policy (including policy and term name) which causes a
-   * route (along with BGP attributes) to get accepted, rejected or modified
-   * when applied to it.
-   * Routes received from a peer may get rejected by a policy or accepted
-   * to be programmed into RIB if a policy matches. Policy information
-   * will be shown in the output of cli command:
-   * fboss bgp postfilter-received <peer>.
-   * Similarly, routes advertised to a peer may get accepted by a policy or
-   * modified by it before it gets advertised to a peer. Policy information
-   * will be shown in the output of cli command:
-   * fboss bgp postfilter-advertised n<peer>.
-   */
-  14: optional string policy_name;
-  // deprecated (do not use multi_exit_disc field use med field instead)
-  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
-  15: optional i32 multi_exit_disc;
-  16: optional bool atomic_aggregate;
-  17: optional TBgpAggregator aggregator;
-  18: optional string peer_description;
-  19: optional i64 next_hop_weight;
-  // Used to indicate best path. This field is introduced so
-  // fboss cli uses best path computed in bgp++ RIB instead of
-  // using best_next_hop to deduce best path.
-  20: optional bool is_best_path;
-  21: optional i64 med;
-  22: optional i32 weight;
-  23: bool in_update = false;
-  24: bool in_withdraw = true;
-  // Used to encapsulate topology information for the control plane
-  // to make routing decisions, e.g., NSF GAR
-  @cpp.Type{template = "std::unordered_map"}
-  25: optional map<string, i64> topologyInfo;
-  26: optional i64 igp_cost;
-  // path_id above would be received path ID. A speaker can also allocate
-  // its own path ID to send to peers, which would go in this field
-  27: optional i64 path_id_to_send;
-}
-
-/**
- * RIB entry along with host information that we are querying against
- */
-struct TRibEntryWithHost {
-  1: list<TRibEntry> tRibEntries;
-  2: string host;
-  3: string ip;
-  4: string oobName;
-}
-
-/**
- * RIB entry binds a prefix to multiple ECMP Bgp paths
- * Afi is inferred from prefix.afi
- */
-struct TRibEntry {
-  1: bgp_attr.TIpPrefix prefix;
-  /** maps a group to the list of paths */
-  2: map<string, list<TBgpPath>> paths;
-  3: string best_group;
-  4: bgp_attr.TIpPrefix best_next_hop;
-  /*
-   * If the path selection of the route is overridden by CPS,
-   * the corresponding active criteria is set here
-   * see getActivePathSelectionCriteria
-   */
-  5: optional rib_policy.TPathSelector active_cps_criteria;
-  /*
-   * Indicates path selection is pending for this entry.
-   * When true, IGP cost may have changed but best-path hasn't been
-   * recalculated yet. This helps identify transient states where
-   * the displayed best-path may not reflect current IGP costs.
-   */
-  6: optional bool path_selection_pending;
-  /*
-   * RIB version when this entry was last modified. This is a monotonically
-   * increasing counter that increments whenever a material routing change
-   * occurs (best path or multipath changes). Used for tracking routing
-   * table version per prefix.
-   */
-  7: optional i64 rib_version;
-  /*
-   * If the route's weights are overridden by CTE (route attribute policy),
-   * the corresponding active UCMP action is set here
-   */
-  8: optional rib_policy.TRouteAttributeUcmpAction active_cte_ucmp_action;
-  /*
-   * Convenience copy of the selected best-path entry from `paths`.
-   * Lets FSDB subscribers fetch only the best path (e.g. via
-   * `ribMap/<prefix>/best_path`) without subscribing to the full `paths`
-   * map, which is significantly larger.
-   *
-   * Unset when no path is currently "best" -- e.g. when CPS native criteria
-   * (bgp_native_path_selection_min_nexthop / min_agg_lbw) is violated and
-   * the entry is multipath-only with no bestpath, or when `bestpath` has
-   * not yet been computed for this prefix.
-   *
-   * The `is_best_path` flag on this copy is always set to true.
-   */
-  9: optional TBgpPath best_path;
 }
 
 /**
@@ -290,7 +121,7 @@ struct TBgpNetwork {
   4: i32 local_pref;
   5: string next_hop4;
   6: string next_hop6;
-  7: optional list<TBgpExtCommunity> extCommunities;
+  7: optional list<bgp_route_types.TBgpExtCommunity> extCommunities;
 }
 
 /**
@@ -379,6 +210,44 @@ struct TBgpSessionDetail {
    */
   36: optional bool ttl_security_enabled;
   37: optional i32 ttl_security_hops;
+  /*
+   * Data-plane per-message-type PDUs actually written to / read from the peer's
+   * socket. Source of truth: SessionManager (I/O) thread.
+   */
+  38: i64 socket_tx_open_msgs;
+  39: i64 socket_tx_update_msgs;
+  40: i64 socket_tx_keepalive_msgs;
+  41: i64 socket_tx_notification_msgs;
+  42: i64 socket_tx_route_refresh_msgs;
+  43: i64 socket_tx_eor_msgs;
+  44: i64 socket_rx_open_msgs;
+  45: i64 socket_rx_update_msgs;
+  46: i64 socket_rx_keepalive_msgs;
+  47: i64 socket_rx_notification_msgs;
+  48: i64 socket_rx_route_refresh_msgs;
+  49: i64 socket_rx_eor_msgs;
+  /*
+   * Control-plane per-message-type PDUs generated / consumed by PeerManager
+   * (AdjRib). The AdjRib layer only produces/consumes UPDATE and EoR PDUs.
+   * These converge with the socket-layer counters above for cross-module
+   * (control vs socket) validation, e.g. the health validator:
+   *   adjrib_sent_update_msgs <-> socket_tx_update_msgs
+   *   adjrib_sent_eor_msgs    <-> socket_tx_eor_msgs
+   *   adjrib_recv_update_msgs <-> socket_rx_update_msgs
+   *   adjrib_recv_eor_msgs    <-> socket_rx_eor_msgs
+   * adjrib_sent/recv_update_msgs mirror the legacy top-level
+   * TBgpSession.sent/recv_update_msgs, which are kept for existing consumers.
+   */
+  50: i64 adjrib_sent_update_msgs;
+  51: i64 adjrib_sent_eor_msgs;
+  52: i64 adjrib_recv_update_msgs;
+  53: i64 adjrib_recv_eor_msgs;
+  /**
+   * True when this peer receives IPv4-unicast routes as RFC 4271 classic NLRI +
+   * NEXT_HOP (attr 3) instead of MP_REACH_NLRI -- i.e. it advertised no MP-EXT
+   * capability. Derived from the AdjRib update-group key.
+   */
+  54: bool legacy_v4_nlri_encoding;
 }
 
 /**
@@ -407,6 +276,11 @@ struct TBgpSession {
   16: i64 reset_time;
   17: i64 num_resets;
   18: string last_reset_reason;
+  // DEPRECATED: prefer the per-message-type control-plane counters
+  // TBgpSessionDetail.adjrib_sent_update_msgs / adjrib_recv_update_msgs, which
+  // are grouped with the socket_* counters for cross-module validation. These
+  // top-level fields are retained for existing consumers (show bgp summary,
+  // NOWA/NetRCA) and should not be used in new code.
   19: i64 sent_update_msgs;
   20: i64 recv_update_msgs;
   /*
@@ -424,6 +298,15 @@ struct TBgpSession {
   // Peer's state in the update-group state machine (e.g., JOINED_RUNNING)
   25: optional string peer_state_update_group;
   26: i64 postpolicy_rcvd_prefix_count;
+  /*
+   * Per-peer count of received routes dropped because the peer reached its
+   * configured pre-filter max prefix limit (RouteLimit.max_routes), reset when
+   * the session goes down. A non-zero value means the peer is actively shedding
+   * received (PR) routes. Surfaced as the PRD column in `show bgp summary` and
+   * reused by the health validator, so operators can spot drops without digging
+   * through logs.
+   */
+  27: optional i64 prepolicy_rcvd_dropped_prefix_count;
 }
 
 struct TPeerEgressStats {
@@ -521,6 +404,23 @@ struct TUpdateGroupKey {
 
   /* Whether peer has per-peer egress policy override. */
   17: bool peer_override;
+
+  /*
+   * Whether IPv4-unicast announcements to this group use RFC 4271 classic NLRI
+   * + NEXT_HOP (for peers that advertised no MP-EXT capability) instead of
+   * MP_REACH_NLRI.
+   */
+  18: bool legacy_v4_nlri_encoding;
+
+  /*
+   * Local AS advertised to this group. Per-peer overridable via the peer /
+   * peer-group local_as cascade (RFC-7705), and it is the ASN prepended to
+   * AS_PATH on egress, so peers with different local AS must not share a group.
+  */
+  19: i64 local_as;
+
+  /* Confederation identifier used by the egress AS_PATH transform. */
+  20: optional i64 as_confed_id;
 }
 
 /**
@@ -542,11 +442,19 @@ struct TUpdateGroupStats {
   /* Number of times lazy clone was invoked for detached peers. */
   5: i64 lazy_clone_events;
 
-  /* Cumulative count of IPv4 announcement prefixes sent (monotonic counter). */
-  6: i64 total_sent_announcements_ipv4;
+  /**
+   * Cumulative count of IPv4 UPDATE announcement PDUs sent by this group
+   * (monotonic counter, one bump per BgpUpdate2, NOT per prefix). Mirrors the
+   * per-peer TBgpSessionDetail.sent_update_announcements_ipv4.
+   */
+  6: i64 total_sent_announcement_msgs_ipv4;
 
-  /* Cumulative count of IPv6 announcement prefixes sent (monotonic counter). */
-  7: i64 total_sent_announcements_ipv6;
+  /**
+   * Cumulative count of IPv6 UPDATE announcement PDUs sent by this group
+   * (monotonic counter, one bump per BgpUpdate2, NOT per prefix). Mirrors the
+   * per-peer TBgpSessionDetail.sent_update_announcements_ipv6.
+   */
+  7: i64 total_sent_announcement_msgs_ipv6;
 
   /* Number of IPv4 update messages sent by this group. */
   8: i64 group_update_messages_ipv4;
@@ -554,8 +462,11 @@ struct TUpdateGroupStats {
   /* Number of IPv6 update messages sent by this group. */
   9: i64 group_update_messages_ipv6;
 
-  /* Number of withdrawals sent by this group. */
-  10: i64 group_withdrawals;
+  /**
+   * Cumulative count of withdrawal UPDATE PDUs sent by this group (monotonic
+   * counter, one bump per BgpUpdate2, NOT per prefix).
+   */
+  10: i64 total_sent_withdrawal_msgs;
 
   /* Total queue wait time (ms) across all sync peers in the group. */
   11: i64 group_total_queue_wait_ms;
@@ -624,6 +535,24 @@ struct TUpdateGroupPeerInfo {
 
   /* Epoch time (ms) when EoR was sent to this peer; unset if not sent. */
   15: optional i64 eor_sent_time_ms;
+}
+
+/**
+ * Lightweight update-group state used by the all-groups summary view.
+ * Every field is available directly from cached group state; producing this
+ * structure must not walk group members or RIB-OUT trees.
+ */
+struct TUpdateGroupSummary {
+  1: i64 group_id;
+  2: string egress_policy_name;
+  3: string group_state;
+  4: i64 member_count;
+  5: i64 in_sync_peer_count;
+  6: i64 detached_peer_count;
+  7: i64 post_out_prefix_count;
+  8: i64 post_out_prefix_count_ipv4;
+  9: i64 post_out_prefix_count_ipv6;
+  10: i64 last_seen_rib_version;
 }
 
 /**
@@ -701,11 +630,10 @@ struct TUpdateGroupInfo {
 }
 
 /**
- * Request parameters for getUpdateGroupInfo().
- * All fields are optional — omitting them returns all groups.
+ * Request parameters for the single-group detail endpoint.
  */
 struct TGetUpdateGroupInfoRequest {
-  /* Filter by a specific update group ID. Unset returns all groups. */
+  /* Required by the handler. An unset ID returns no detail record. */
   1: optional i64 group_id;
 }
 
@@ -718,6 +646,12 @@ struct TGetUpdateGroupInfoResponse {
   1: list<TUpdateGroupInfo> update_groups;
 
   /* Whether the update-group feature is enabled. */
+  2: bool enable_update_group;
+}
+
+/** Response for the lightweight all-groups summary endpoint. */
+struct TGetUpdateGroupSummariesResponse {
+  1: list<TUpdateGroupSummary> update_groups;
   2: bool enable_update_group;
 }
 
@@ -763,12 +697,45 @@ struct TBgpLocalConfig {
 }
 
 /**
- * Nexthop information for a prefix
+ * Nexthop information for a prefix.
+ *
+ * Fields 1-3 back the compact list view (`show bgpcpp nexthopinfo`). Fields
+ * 4-8 carry the extra detail surfaced by the per-nexthop "zoom" view
+ * (`show bgpcpp nexthopinfo <ipAddr>`).
  */
 struct TNexthopInfo {
   1: bgp_attr.TIpPrefix next_hop;
   2: bool is_reachable;
   3: optional i32 igp_cost;
+  // Whether the nexthop is directly connected; unset = unknown.
+  4: optional bool is_connected;
+  // Whether the nexthop is eligible for best-path selection (may differ from
+  // is_reachable: a reachable nexthop without an IGP cost can still be
+  // selectable under FBOSS semantics).
+  5: bool is_resolved_for_selection;
+  // Number of routes/prefixes currently depending on this nexthop.
+  6: i64 route_count;
+  // Seconds since reachability last changed; unset ("-") = never resolved,
+  // i.e. no resolution has ever been received from the underlying system.
+  7: optional i64 last_reachability_change_age_s;
+  // Seconds since the IGP cost last changed; unset ("-") = never resolved.
+  8: optional i64 last_igp_cost_change_age_s;
+}
+
+/**
+ * CLI result wrapper for `show bgpcpp nexthopinfo`, so the renderer stays a pure
+ * function of its input rather than depending on out-of-band view-mode state on
+ * the command object.
+ *
+ * detailed = false: compact list of every nexthop-cache entry (no argument).
+ * detailed = true : per-nexthop "zoom" view for the specifically queried IP(s).
+ * queried_nexthops is index-parallel to entries in detailed mode, so a cache
+ * miss can be reported against the exact address the operator asked for.
+ */
+struct TNexthopInfoQueryResult {
+  1: bool detailed;
+  2: list<TNexthopInfo> entries;
+  3: list<string> queried_nexthops;
 }
 
 /**
@@ -792,7 +759,7 @@ struct TOriginatedRoute {
   //    For backward compatibility with existing CLIs communities will
   //    be filled-in, but support will be removed in future.
   2: optional list<bgp_attr.TBgpCommunity> communities;
-  3: TBgpPath path;
+  3: bgp_route_types.TBgpPath path;
   4: i32 minimum_supporting_routes = 0;
   5: bool install_to_fib = false;
   6: i32 supporting_route_count = 0;
@@ -804,7 +771,7 @@ struct NetworkPathWithHost {
   @thrift.AllowUnsafeNonSealedKeyType
   1: map<
     bgp_attrTIpPrefix_cpptemplate_stdmap_895,
-    list<bgp_thrift.TBgpPath>
+    list<bgp_route_types.TBgpPath>
   > networkPath;
   2: string host;
   3: string ip;
@@ -818,7 +785,7 @@ struct TBgpAttributes {
   1: list<bgp_attr.TBgpCommunity> communities;
   2: optional bgp_attr.TAsPath as_path;
   3: optional i32 local_pref;
-  4: optional list<TBgpExtCommunity> extCommunities;
+  4: optional list<bgp_route_types.TBgpExtCommunity> extCommunities;
   5: optional i32 origin;
   6: optional bgp_attr.TIpPrefix nexthop;
   7: optional bool install_to_fib;
@@ -845,6 +812,12 @@ enum TPolicyStageFilter {
 /**
 * Get Attribute memory statistics
 */
+enum TAttributeStatsPayloadKind {
+  UNKNOWN = 0,
+  LEGACY_ATTRIBUTE_STATS = 1,
+  DEDUPLICATOR_STATS = 2,
+}
+
 struct TAttributeStats {
   1: i64 total_num_of_attributes;
   2: i64 total_unique_attributes;
@@ -854,6 +827,106 @@ struct TAttributeStats {
   6: double avg_as_path_len;
   7: double avg_cluster_list_len;
   8: double avg_topology_info_len;
+
+  /**
+   * Live size of each DeDuplicator<T>, i.e. how many DISTINCT values of that
+   * type the daemon is currently storing. Read straight from
+   * `DeDuplicator::size()`, so these are O(1) and, unlike fields 1-8, cost
+   * nothing to produce -- they do not require walking the RIB.
+   *
+   * Six SEPARATE collections. They nest by containment, but each one counts
+   * distinct values at ITS OWN level:
+   *
+   *   L1  dedup_bgp_path        BgpPathC       = attrs pointer + nexthop
+   *                                              + topologyInfo
+   *   L2    dedup_bgp_attributes  BgpAttributesC = the attribute bundle L1
+   *                                              points at; no nexthop
+   *   L3      dedup_as_path / dedup_communities / dedup_cluster_list /
+   *           dedup_ext_communities, held BY the bundle as deduplicated
+   *           POINTERS, so each is counted once here however many bundles
+   *           reference it.
+   *
+   * A LEVEL IS NOT THE SUM OF THE LEVEL BELOW IT, in either direction. L2
+   * counts distinct COMBINATIONS: A as_paths x C community sets can reach A*C
+   * bundles, far above the L3 sum, while pairing them 1:1 gives max(A, C),
+   * below it. `BgpAttributesC` also carries med / isMedSet / localPref /
+   * atomicAggregate / aggregator / originatorId / weight, none of which have a
+   * deduplicator -- bundles differing only in MED add L2 entries and no L3
+   * entries at all.
+   *
+   * Nor does L1 bound L2: many paths differing only in nexthop share one
+   * bundle, while bundles interned by transient or egress objects that never
+   * become a stored BgpPath have no L1 entry. Either can exceed the other.
+   *
+   * Each field is named after the deduplicator it reports, so the name says
+   * which level it belongs to. NOTE for anyone correlating with fb303: the L2
+   * bundle count is published there as
+   * `bgpcpp.deduplicated_attributes.total`. That counter name is kept for
+   * continuity, but "total" is a misnomer -- it is the bundle count, never a
+   * sum -- so it is deliberately NOT reproduced in this API.
+   *
+   * CAVEAT on dedup_bgp_path: `AdjRibEntry::setPreIn` and `setPostAttr` route
+   * through DeDuplicatedBgpPath; `setPreOut` stores its path verbatim. In the
+   * announce path that is not a gap -- preOut is handed the RIB best-entry
+   * path, which reached the RIB as an already-interned postAttr -- but an
+   * egress path that minted its own BgpPath would go uncounted here. See
+   * AdjRibEntryTest for the pinned behaviour.
+   */
+  // L1
+  9: optional i64 dedup_bgp_path;
+  // L2
+  10: optional i64 dedup_bgp_attributes;
+  // L3
+  11: optional i64 dedup_as_path;
+  12: optional i64 dedup_communities;
+  13: optional i64 dedup_cluster_list;
+  14: optional i64 dedup_ext_communities;
+
+  /**
+   * Identifies which mutually exclusive payload is populated. The CLI sets
+   * this after selecting an RPC path, so a legacy server does not need to
+   * understand this field for the fallback path to be identified.
+   */
+  15: TAttributeStatsPayloadKind payload_kind = TAttributeStatsPayloadKind.UNKNOWN;
+}
+
+/**
+ * Request wrapper for getDeduplicatorStats().
+ *
+ * The initial API always returns every deduplicator. Future filters or
+ * snapshot options can be added here without changing the method signature.
+ */
+struct TGetDeduplicatorStatsRequest {}
+
+/**
+ * Statistics for one deduplicated collection.
+ *
+ * For example, entry_count = 42 means that the collection currently holds 42
+ * distinct values; it is a count, not a byte size or reference count.
+ */
+struct TDeduplicatorCollectionStats {
+  1: i64 entry_count;
+}
+
+/**
+ * O(1) snapshot of the six BGP attribute deduplicators.
+ *
+ * Each collection is sampled independently, so the response is not an atomic
+ * point-in-time snapshot across all six collections. A successful response
+ * always contains every collection, including collections with zero entries.
+ */
+struct TGetDeduplicatorStatsResponse {
+  /* L1: BgpPathC = attribute bundle + nexthop + topologyInfo. */
+  1: TDeduplicatorCollectionStats bgp_path;
+
+  /* L2: BgpAttributesC bundle. This is not a total of the other fields. */
+  2: TDeduplicatorCollectionStats bgp_attributes;
+
+  /* L3: sub-attributes held by BgpAttributesC. */
+  3: TDeduplicatorCollectionStats as_path;
+  4: TDeduplicatorCollectionStats communities;
+  5: TDeduplicatorCollectionStats cluster_list;
+  6: TDeduplicatorCollectionStats ext_communities;
 }
 
 /**
@@ -874,6 +947,55 @@ struct TEntryStats {
   4: i64 total_originated_routes;
   5: i64 total_shadow_rib_entries;
   6: i64 total_netlink_wrapper_interfaces;
+}
+
+/**
+ * Compact, server-computed summary of the BGP++ RIB for one address family,
+ * analogous to Arista's "show ipv6 route summary". Returned by getRibSummary so
+ * operators can see RIB scale without dumping the entire table.
+ */
+struct TRibSummary {
+  // The address family this summary covers.
+  1: bgp_attr.TBgpAfi afi;
+  // Total number of prefixes in the RIB for this address family.
+  2: i64 total_prefixes;
+  // Histogram of prefix counts keyed by prefix (mask) length. Example: an entry
+  // {64: 3751} means 3751 /64 prefixes. Only non-zero lengths are present.
+  3: map<i16, i64> prefix_length_counts;
+  // Best-path source breakdown: number of prefixes whose selected best path is
+  // external (eBGP), internal (iBGP), confederation-external, or locally
+  // originated. Analogous to Arista's "bgp External:/Internal:" split.
+  4: i64 ebgp_prefixes;
+  5: i64 ibgp_prefixes;
+  6: i64 confed_ebgp_prefixes;
+  7: i64 local_prefixes;
+  // Number of unresolvable next-hops tracked in the RIB. This is a RIB-wide
+  // (not per-address-family) count, so it is identical across the IPv4 and IPv6
+  // responses; the CLI renders it once.
+  8: i64 unresolvable_nexthops_count;
+  // Number of prefixes (routes) in this address family that have no best path
+  // because every candidate path's next-hop is unresolvable. Per-AFI, unlike
+  // unresolvable_nexthops_count above: one unresolvable next-hop can back many
+  // prefixes, and a prefix can have several next-hops. A null/drop route (0
+  // next-hops) counts as a local best path, not as unresolved.
+  9: i64 routes_with_unresolved_nexthops;
+  // Total number of paths (route advertisements) held in the RIB for this
+  // address family, summed across peers and including every add-path ID: one
+  // peer advertising N add-path routes for a prefix contributes N. Same
+  // semantic as TEntryStats.total_rib_paths, split per address family.
+  10: i64 total_paths;
+  // Subset of total_paths that best-path selection excluded as candidates --
+  // today, paths whose next-hop is unresolvable. The remainder
+  // (total_paths - inactive_paths) are the paths that entered selection, of
+  // which the winners form each prefix's best/ECMP set. Mirrors the
+  // bgpcpp.rib.inactive_path.count ODS gauge.
+  //
+  // Optional so a newer client can tell "server did not report this" apart from
+  // a genuine zero: an older bgpd predating this field would otherwise
+  // deserialize as 0 and the CLI would confidently render a fully-active RIB.
+  // Consumers must omit the active/inactive split when this is unset rather
+  // than substituting a default.
+  11: optional i64 inactive_paths;
 }
 
 /**
@@ -952,44 +1074,6 @@ struct TRibPolicyStore {
 struct TBgpDrainState {
   1: optional bgp_policy.DrainState drain_state;
   2: optional list<string> drained_interfaces;
-}
-
-/**
- * A single prefix in partial-drain state due to MNH violation.
- * When relax MNH is enabled and a prefix violates the min-nexthop
- * threshold, the prefix is advertised with drain community 65446:10
- */
-struct TPartiallyDrainedPrefix {
-  /** CIDR prefix currently in partial-drain state */
-  1: bgp_attr.TIpPrefix prefix;
-  /** Number of valid paths (nexthops) currently available for this prefix */
-  2: i32 path_count;
-  /** Configured MNH threshold */
-  3: i32 mnh_threshold;
-}
-
-/**
- * Device-level partial-drain status
- */
-struct TPartialDrainStatus {
-  /** True if one or more prefixes are in partial-drain state */
-  1: bool is_partially_drained;
-  /** Number of prefixes currently violating MNH with relax=true */
-  2: i32 num_affected_prefixes;
-  /** Monotonic counter incremented each time the device enters or exits
-   *  partial-drain state (is_partially_drained flips) in the current
-   *  incarnation of BGP */
-  3: i64 partial_drain_transition_count;
-}
-
-/**
- * Composite partial-drain state
- */
-struct TPartialDrainState {
-  /** Device-level summary — subscribe to this subpath for lightweight gating */
-  1: TPartialDrainStatus partial_drain_state;
-  /** Per-prefix detail — subscribe to full path when prefix-level visibility needed */
-  2: list<TPartiallyDrainedPrefix> drained_prefixes;
 }
 
 /**
@@ -1106,6 +1190,7 @@ enum HealthCheckId {
   PEER_CHANGELIST_SIZE = 508,
   PEER_CONSUMER_LAG = 509,
   PEER_STUCK_BATONS = 510,
+  PEER_PREFIX_LIMIT_DROPS = 511,
 
   /* RIB */
   RIB_ORIGINATED_ROUTES = 601,
@@ -1213,6 +1298,7 @@ struct THealthReport {
   8: i32 warnCount;
 }
 
+// @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
    * [Logging]
@@ -1313,6 +1399,20 @@ service TBgpService extends fb303.FacebookService {
    */
   i64 getRibVersion();
 
+  /**
+   * Get the total number of prefixes currently installed in the loc-RIB
+   * (i.e. the number of entries in RibBase::ribEntries_). This is a
+   * device-wide count across all address families.
+   */
+  i64 getNumPrefixes();
+
+  /**
+   * Get the BGP++ process uptime in seconds (time since the daemon started).
+   * Sourced from the Watchdog process start time, mirroring the
+   * bgpd.process.uptime.seconds ODS counter.
+   */
+  i64 getProcessUptimeSeconds();
+
   /*
    * Get locally originated routes
    */
@@ -1351,6 +1451,11 @@ service TBgpService extends fb303.FacebookService {
   );
 
   /**
+   * Get lightweight summary information for all active update groups.
+   */
+  TGetUpdateGroupSummariesResponse getUpdateGroupSummaries();
+
+  /**
    * Get local config information
    */
   TBgpLocalConfig getBgpLocalConfig();
@@ -1359,17 +1464,19 @@ service TBgpService extends fb303.FacebookService {
    * Routes we receive from peer, before policy application
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPrefilterReceivedNetworks(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPrefilterReceivedNetworks(1: string peer);
 
   /**
    * Routes we receive from peer, before policy application with add path
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, list<TBgpPath>> getPrefilterReceivedNetworks2(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    list<bgp_route_types.TBgpPath>
+  > getPrefilterReceivedNetworks2(1: string peer);
 
   /**
    * Routes we receive from one bgp session of a peer, before policy application
@@ -1377,7 +1484,10 @@ service TBgpService extends fb303.FacebookService {
    *        sessionBgpId: BGP ID of the session in IPv4 format
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPrefilterReceivedNetworksFromSession(
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPrefilterReceivedNetworksFromSession(
     1: string peer,
     2: string sessionBgpId,
   );
@@ -1390,7 +1500,7 @@ service TBgpService extends fb303.FacebookService {
   @hack.SkipCodegen{reason = "Invalid return type"}
   map<
     bgp_attr.TIpPrefix,
-    list<TBgpPath>
+    list<bgp_route_types.TBgpPath>
   > getPrefilterReceivedNetworksFromSession2(
     1: string peer,
     2: string sessionBgpId,
@@ -1400,17 +1510,19 @@ service TBgpService extends fb303.FacebookService {
    * Routes we receive from peer, after policy application
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPostfilterReceivedNetworks(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPostfilterReceivedNetworks(1: string peer);
 
   /**
    * Routes we receive from peer, after policy application with add path
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, list<TBgpPath>> getPostfilterReceivedNetworks2(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    list<bgp_route_types.TBgpPath>
+  > getPostfilterReceivedNetworks2(1: string peer);
 
   /**
    * Routes we receive from one bgp session of a peer, after policy application
@@ -1418,7 +1530,10 @@ service TBgpService extends fb303.FacebookService {
    *        sessionBgpId: BGP ID of the session in IPv4 format
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPostfilterReceivedNetworksFromSession(
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPostfilterReceivedNetworksFromSession(
     1: string peer,
     2: string sessionBgpId,
   );
@@ -1431,7 +1546,7 @@ service TBgpService extends fb303.FacebookService {
   @hack.SkipCodegen{reason = "Invalid return type"}
   map<
     bgp_attr.TIpPrefix,
-    list<TBgpPath>
+    list<bgp_route_types.TBgpPath>
   > getPostfilterReceivedNetworksFromSession2(
     1: string peer,
     2: string sessionBgpId,
@@ -1441,33 +1556,37 @@ service TBgpService extends fb303.FacebookService {
    * Get stuff we send to peer after policy
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPostfilterAdvertisedNetworks(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPostfilterAdvertisedNetworks(1: string peer);
 
   /**
    * Get stuff we send to peer after policy with add path
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, list<TBgpPath>> getPostfilterAdvertisedNetworks2(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    list<bgp_route_types.TBgpPath>
+  > getPostfilterAdvertisedNetworks2(1: string peer);
 
   /**
    * Get stuff we send to peer prior to policy
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getPrefilterAdvertisedNetworks(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getPrefilterAdvertisedNetworks(1: string peer);
 
   /**
    * Get stuff we send to peer prior to policy with add path
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, list<TBgpPath>> getPrefilterAdvertisedNetworks2(
-    1: string peer,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    list<bgp_route_types.TBgpPath>
+  > getPrefilterAdvertisedNetworks2(1: string peer);
 
   /**
    * Routes we receive from peer, after dry run of new policy config.
@@ -1478,10 +1597,10 @@ service TBgpService extends fb303.FacebookService {
    * i.e. Determine the effect of policy without effecting the running state.
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getDryRunPostfilterReceivedNetworks(
-    1: string peer,
-    2: string file_name,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
 
   /**
    * Routes we sent to a peer, after dry run of new policy config.
@@ -1491,10 +1610,10 @@ service TBgpService extends fb303.FacebookService {
    * postOut output if the policy is applied.
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, TBgpPath> getDryRunPostfilterAdvertisedNetworks(
-    1: string peer,
-    2: string file_name,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    bgp_route_types.TBgpPath
+  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
 
   /**
    * Get post-policy network information for stream subscribers
@@ -1503,10 +1622,10 @@ service TBgpService extends fb303.FacebookService {
    * @param policy-type - must be either "pre-policy" or "post-policy"
    */
   @hack.SkipCodegen{reason = "Invalid return type"}
-  map<bgp_attr.TIpPrefix, list<TBgpPath>> getSubscriberNetworkInfo(
-    1: i32 peerID,
-    2: string policy_type,
-  );
+  map<
+    bgp_attr.TIpPrefix,
+    list<bgp_route_types.TBgpPath>
+  > getSubscriberNetworkInfo(1: i32 peerID, 2: string policy_type);
 
   /**
    * Announce network, afi inferred from prefix. This does not create FIB entry.
@@ -1576,7 +1695,65 @@ service TBgpService extends fb303.FacebookService {
    *
    * @param afi - The afi to dump RIB for
    */
-  list<TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
+  list<bgp_route_types.TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Get a compact summary of the BGP RIB (total prefixes + per-prefix-length
+   * histogram) for one address family, without dumping the full table.
+   *
+   * @param afi - The afi to summarize the RIB for
+   */
+  TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Dump the current BGP RIB in canonical (deduplicated) form -- the same
+   * content as getRibEntries(), encoded as a single TCanonicalRibState (shared
+   * attr / path / peer pools + per-prefix entries) for a far smaller payload.
+   *
+   * @param afi - The afi to dump RIB for
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
+
+  /**
+   * Get a single prefix from the RIB in canonical (deduplicated) form.
+   *
+   * @param prefix - The string representation of the prefix to get
+   */
+  bgp_route_types.TCanonicalRibState getRibPrefixCanonical(1: string prefix);
+
+  /**
+   * Fetch routes in the RIB matching communities in canonical form.
+   * Only paths matching at least one community are returned (match-any logic).
+   *
+   * @param afi - ipv4 or ipv6
+   * @param community_ids - List of community strings (ASN:NN or integer or well-known)
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesForCommunitiesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+    2: list<string> community_ids,
+  );
+
+  /**
+   * Fetch routes in the RIB matching a single community in canonical form.
+   *
+   * @param afi - ipv4 or ipv6
+   * @param community_id - Community string (ASN:NN or integer or well-known)
+   */
+  bgp_route_types.TCanonicalRibState getRibEntriesForCommunityCanonical(
+    1: bgp_attr.TBgpAfi afi,
+    2: string community_id,
+  );
+
+  /**
+   * Get RIB entries for subprefixes in canonical (deduplicated) form.
+   *
+   * @param prefix - The string representation of the parent prefix
+   */
+  bgp_route_types.TCanonicalRibState getRibSubprefixesCanonical(
+    1: string prefix,
+  );
 
   /**
    * Dump the current Shadow RIB (prefixes learned from the RIB)
@@ -1598,16 +1775,34 @@ service TBgpService extends fb303.FacebookService {
    *
    * @param afi - The afi to dump Shadow RIB for
    */
-  list<TRibEntry> getShadowRibEntries(1: bgp_attr.TBgpAfi afi);
+  list<bgp_route_types.TRibEntry> getShadowRibEntries(1: bgp_attr.TBgpAfi afi);
 
-  list<TRibEntry> getChangeListEntries(1: bgp_attr.TBgpAfi afi);
+  /**
+   * Dump the current Shadow RIB in canonical (deduplicated) form.
+   *
+   * @param afi - The afi to dump Shadow RIB for
+   */
+  bgp_route_types.TCanonicalRibState getShadowRibEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
+
+  list<bgp_route_types.TRibEntry> getChangeListEntries(1: bgp_attr.TBgpAfi afi);
+
+  /**
+   * Dump the current ChangeList in canonical (deduplicated) form.
+   *
+   * @param afi - The afi to dump ChangeList for
+   */
+  bgp_route_types.TCanonicalRibState getChangeListEntriesCanonical(
+    1: bgp_attr.TBgpAfi afi,
+  );
 
   /**
    * Dump the current BGP RIB (prefixes learned from others)
    *
    * @param string - The string representation of the prefix to get
    */
-  list<TRibEntry> getRibPrefix(1: string prefix);
+  list<bgp_route_types.TRibEntry> getRibPrefix(1: string prefix);
 
   /**
    * Fetch the routes in bgp-local-rib matching the passed in commuinity.
@@ -1616,14 +1811,14 @@ service TBgpService extends fb303.FacebookService {
    * passed community are filtered out (even though those might be part of
    * bestpath or ecmp/ucmp paths).
    *
-   * @param afi - ipv4 or ipv6 or both
+   * @param afi - ipv4 or ipv6
    *
    * @param string - The string represents ASN:NN (both 16bits) value or
    *                 an integer (32bits) representing community.
    *                 Param can also represnet a well-known community from:
    *                 internet | no-advertise | no-export | no-export-subconfed
    */
-  list<TRibEntry> getRibEntriesForCommunity(
+  list<bgp_route_types.TRibEntry> getRibEntriesForCommunity(
     1: bgp_attr.TBgpAfi afi,
     2: string community_id,
   );
@@ -1634,7 +1829,7 @@ service TBgpService extends fb303.FacebookService {
    * the local-rib are returned, i.e. route's paths which does not match
    * passed community are filtered out (even though those might be part of
    * bestpath or ecmp/ucmp paths).
-   * @param afi - ipv4 or ipv6 or both
+   * @param afi - ipv4 or ipv6
    *
    * @param list<string> - The string represents ASN:NN (both 16bits) value or
    *                       an integer (32bits) representing community.
@@ -1645,7 +1840,7 @@ service TBgpService extends fb303.FacebookService {
    * e.g. rib entry in returned list should match at least 1 item in community_ids.
    * when community_ids is emtpy, no rib entry should be returned.
    */
-  list<TRibEntry> getRibEntriesForCommunities(
+  list<bgp_route_types.TRibEntry> getRibEntriesForCommunities(
     1: bgp_attr.TBgpAfi afi,
     2: list<string> community_ids,
   );
@@ -1656,7 +1851,7 @@ service TBgpService extends fb303.FacebookService {
    *
    * @param prefix - The string representation of the prefix
    */
-  list<TRibEntry> getRibSubprefixes(1: string prefix);
+  list<bgp_route_types.TRibEntry> getRibSubprefixes(1: string prefix);
 
   /**
    * Get RibPolicy.
@@ -1716,8 +1911,17 @@ service TBgpService extends fb303.FacebookService {
 
   /**
    * Clear PathSelectionPolicy.
+   * Note: When CPS FILE_MODE is active, this operation is silently skipped.
    */
   void clearPathSelectionPolicy();
+
+  /**
+   * [Path Selection Policy - File Mode]
+   * Refresh CPS policy from the local artifact file.
+   * Reads CpsPolicyArtifact, syncs dryrun mode, and applies policy if
+   * dryrun=false (FILE_MODE).
+   */
+  TResult setCpsPolicyFromFile();
 
   /**
    * Get the active path selection criteria for the given prefixes.
@@ -1818,8 +2022,17 @@ service TBgpService extends fb303.FacebookService {
 
   /**
    * Clear RouteFilterPolicy.
+   * Note: When CRF FILE_MODE is active, this operation is silently skipped.
    */
   void clearRouteFilterPolicy();
+
+  /**
+   * [Route Filter Policy - File Mode]
+   * Refresh CRF policy from the local artifact file.
+   * Reads CrfPolicyArtifact, syncs dryrun mode, and applies policy if
+   * dryrun=false (FILE_MODE).
+   */
+  TResult setCrfPolicyFromFile();
 
   /**
    * [Watchdog]
@@ -1834,12 +2047,21 @@ service TBgpService extends fb303.FacebookService {
   monitored_queue_size_map getMonitoredQueueSizes(1: list<string> paths);
 
   /**
-   * Get attribute memory statistics
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB. Use getDeduplicatorStats instead.
    */
   TAttributeStats getAttributeStats();
 
   /**
-   * Get attribute memory statistics filtered by ingress/egress and pre/post policy
+   * Get an O(1) snapshot of the BGP attribute deduplicators.
+   */
+  TGetDeduplicatorStatsResponse getDeduplicatorStats(
+    1: TGetDeduplicatorStatsRequest request,
+  );
+
+  /**
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB.
    */
   TAttributeStats getAttributeStatsFiltered(1: TAttributeStatsFilter filter);
 
@@ -1978,6 +2200,15 @@ service TBgpService extends fb303.FacebookService {
   TNexthopInfo getNexthopInfoForNexthop(1: string prefix);
 
   /**
+   * Get nexthop information for the given nexthops. If the list is empty,
+   * returns nexthop info for ALL entries currently in the nexthop cache.
+   *
+   * @param nexthops: nexthop IP addresses to query; empty = all cache entries
+   * @returns: list of TNexthopInfo, one per matching nexthop-cache entry
+   */
+  list<TNexthopInfo> getNexthopInfos(1: list<string> nexthops);
+
+  /**
    * [Profiler]
    *
    * Start/Stop BGP Profiler
@@ -2012,6 +2243,17 @@ service TBgpService extends fb303.FacebookService {
   void clearProfilerStats();
 
   /**
+   * [Debug] Reset per-peer cumulative BGP message counters in BOTH directions:
+   * socket tx/rx counts (SessionManager), AdjRib sent/recv message counts,
+   * update-group sent counts, and their fb303 keys. Live prefix gauges are not
+   * affected.
+   *
+   * `peers` selects which peers to clear, by IP address; an empty list clears
+   * every peer.
+   */
+  void clearCounters(1: list<string> peers);
+
+  /**
    * [Telemetry]
    *
    * Get the remaining hold timer value for BGP peers.
@@ -2040,21 +2282,21 @@ service TBgpService extends fb303.FacebookService {
    *
    * Get device-level partial-drain status
    */
-  TPartialDrainStatus getPartialDrainStatus();
+  bgp_route_types.TPartialDrainStatus getPartialDrainStatus();
 
   /**
    * [Partial Drain]
    *
    * Get full partial-drain state including affected prefix list.
    */
-  TPartialDrainState getPartialDrainState();
+  bgp_route_types.TPartialDrainState getPartialDrainState();
 
   /**
    * [Partial Drain]
    *
    * Get list of prefixes currently in partial-drain state.
    */
-  list<TPartiallyDrainedPrefix> getPartiallyDrainedPrefixes();
+  list<bgp_route_types.TPartiallyDrainedPrefix> getPartiallyDrainedPrefixes();
 }
 
 // The following were automatically generated and may benefit from renaming.

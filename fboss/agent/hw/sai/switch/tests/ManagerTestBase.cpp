@@ -33,6 +33,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
+#include <fmt/format.h>
 #include <folly/Singleton.h>
 
 #ifndef IS_OSS
@@ -242,7 +243,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     bool isXphyPort) const {
   state::PortFields portFields;
   portFields.portId() = testPort.id;
-  portFields.portName() = folly::sformat("port{}", testPort.id);
+  portFields.portName() = fmt::format("port{}", testPort.id);
   auto swPort = std::make_shared<Port>(std::move(portFields));
   if (testPort.enabled) {
     swPort->setAdminState(cfg::PortState::ENABLED);
@@ -293,6 +294,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(
           cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL);
       break;
+    case cfg::PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG:
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL);
+      break;
     case cfg::PortSpeed::FOURHUNDREDG:
       swPort->setProfileId(
           cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL);
@@ -340,7 +345,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
 
 std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
     const TestInterface& testInterface) const {
-  std::string name = folly::sformat("vlan{}", testInterface.id);
+  std::string name = fmt::format("vlan{}", testInterface.id);
   auto swVlan = std::make_shared<Vlan>(VlanID(testInterface.id), name);
   Vlan::MemberPorts mps;
   for (const auto& remoteHost : testInterface.remoteHosts) {
@@ -369,7 +374,7 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
     subports.emplace_back(
         portId, 0, cfg::LacpPortRate::SLOW, cfg::LacpPortActivity::PASSIVE, 0);
   }
-  std::string name = folly::sformat("lag{}", testInterface.id);
+  std::string name = fmt::format("lag{}", testInterface.id);
 
   return AggregatePort::fromSubportRange(
       AggregatePortID(testInterface.id),
@@ -410,7 +415,7 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
       getIntfID(testInterface, type),
       RouterID(0),
       std::optional<VlanID>(vlan),
-      folly::StringPiece(folly::sformat("intf{}", testInterface.id)),
+      folly::StringPiece(fmt::format("intf{}", testInterface.id)),
       testInterface.routerMac,
       1500, // mtu
       false, // isVirtual
@@ -451,9 +456,9 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
       RouterID(0),
       std::optional<VlanID>(std::nullopt),
       folly::StringPiece(
-          folly::sformat("intf{}", static_cast<int>(sysPort.getID()))),
-      folly::MacAddress{folly::sformat(
-          "42:42:42:42:42:{}", static_cast<int>(sysPort.getID()))},
+          fmt::format("intf{}", static_cast<int>(sysPort.getID()))),
+      folly::MacAddress{
+          fmt::format("42:42:42:42:42:{}", static_cast<int>(sysPort.getID()))},
       1500, // mtu
       false, // isVirtual
       false, // isStateSyncDisabled

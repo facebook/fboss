@@ -6,7 +6,6 @@ namespace py3 neteng.fboss.phy
 namespace py.asyncio neteng.fboss.asyncio.phy
 namespace cpp2 facebook.fboss.phy
 namespace go neteng.fboss.phy
-namespace php fboss_phy
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
@@ -15,7 +14,12 @@ include "fboss/agent/if/fboss.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "fboss/lib/if/io_stats.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_phy_"}
+@hack.LegacyAlwaysIncludeNamePrefixInProcessor
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_phy_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 
@@ -277,6 +281,8 @@ enum DataPlanePhyChipType {
   XPHY = 2,
   TRANSCEIVER = 3,
   BACKPLANE = 4,
+  OPTICAL_ENGINE = 5,
+  LASER_SOURCE = 6,
 }
 
 struct DataPlanePhyChip {
@@ -288,6 +294,8 @@ struct DataPlanePhyChip {
   // type=DataPlanePhyChipType::XPHY, which means the xphy(gearbox) id
   // type=DataPlanePhyChipType::TRANSCEIVER, which means the transceiver id
   3: i32 physicalID;
+  // Bank/core ID for multi-core transceivers (CPO BANKED_CMIS_INTEGRATED)
+  4: optional i32 coreId;
 }
 
 struct PinID {
@@ -333,6 +341,8 @@ struct PortPinConfig {
   3: optional list<PinConfig> xphySys;
   4: optional list<PinConfig> xphyLine;
   5: optional string serdesCustomCollection;
+  6: optional list<PinConfig> opticalEngine;
+  7: optional list<PinConfig> laserSource;
 }
 
 struct PortPrbsState {
@@ -464,6 +474,16 @@ struct PcsStats {
   1: optional RsFecInfo rsFec;
 }
 
+// Counter that correctedBits (and therefore preFECBer) was derived from.
+// Accuracy degrades down the list: corrected bits are exact, corrected symbols
+// are within ~2x, and corrected codewords can be off by orders of magnitude.
+enum PreFECBerSource {
+  UNKNOWN = 0,
+  CORRECTED_BITS = 1,
+  CORRECTED_SYMBOLS = 2,
+  CORRECTED_CODEWORDS = 3,
+}
+
 struct RsFecInfo {
   1: i64 correctedCodewords;
   2: i64 uncorrectedCodewords;
@@ -478,6 +498,10 @@ struct RsFecInfo {
   6: optional i16 fecTail;
   // maxSupportedFecTail = 7 for RS-528, 15 for RS-544
   7: optional i16 maxSupportedFecTail;
+  // Number of FEC symbols corrected by hardware, when available.
+  8: optional i64 correctedSymbols;
+  // Unset by PHYs that do not route BER through updateCorrectedBitsAndPreFECBer.
+  9: optional PreFECBerSource preFECBerSource;
 }
 
 struct PmdInfo {
@@ -545,6 +569,8 @@ struct SerdesParameters {
   17: optional i32 rxEqP2;
   18: optional i32 rxPfLfq;
   19: optional i32 rxPfHfq;
+  20: optional RxReach rxReach;
+  21: optional i32 rxPrecoding;
 }
 
 struct LaneState {
@@ -592,6 +618,7 @@ struct PhyState {
 struct PhyStats {
   1: optional PhySideStats system;
   2: PhySideStats line;
+  // On FBOSS, this gets incremented when we see state changes in the linkscan callback
   3: optional i64 linkFlapCount;
   9: io_stats.IOStats ioStats;
   10: i32 timeCollected;
@@ -620,7 +647,8 @@ struct TxRxEnableResponse {
  * external PHYs (xphy) and Optics. Any APIs that are specific to
  * iphy or xphy or optics should go to their respective interfaces
  * (FbossCtrl service for iphy and QsfpService for xphy and optics)
-*/
+ */
+// @lint-ignore THRIFTCHECKS facebook-service-deprecated Migrate separately.
 service FbossCommonPhyCtrl extends fb303.FacebookService {
   void publishLinkSnapshots(1: list<string> portNames) throws (
     1: fboss.FbossBaseError error,

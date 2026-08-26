@@ -66,7 +66,13 @@ class SaiQueueManager {
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue,
       const Port* swPort = nullptr,
-      const std::optional<cfg::PortType> portType = std::nullopt);
+      const std::optional<cfg::PortType> portType = std::nullopt,
+      const std::optional<std::vector<uint8_t>>& enabledPfcQueues =
+          std::nullopt);
+  // Queues serving the port's enabled PFC priorities; empty if no PFC. Callers
+  // looping over a port's queues can compute this once and pass it to
+  // changeQueue to avoid recomputing per queue.
+  std::vector<uint8_t> getPfcEnabledQueues(const Port* swPort) const;
   void changeQueueBufferProfile(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue,
@@ -81,7 +87,9 @@ class SaiQueueManager {
       cfg::PortType portType);
   void changeQueueDeadlockEnable(
       SaiQueueHandle* queueHandle,
-      const Port* swPort);
+      const Port* swPort,
+      const std::optional<std::vector<uint8_t>>& enabledPfcQueues =
+          std::nullopt);
   void queuePfcDeadlockDetectionRecoveryEnable(
       SaiQueueHandle* queueHandle,
       const bool portPfcWdEnabled);

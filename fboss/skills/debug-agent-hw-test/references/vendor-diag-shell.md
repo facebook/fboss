@@ -4,9 +4,55 @@
 
 When you need to inspect hardware state directly — counters, route/neighbor entries, port status — to verify what the ASIC actually programmed vs what FBOSS intended.
 
+## Keeping the Agent Alive for Inspection
+
+The diagnostic shell attaches to a **running** agent. A normal AgentHwTest tears the agent
+down as soon as the test body finishes, so the ASIC is no longer programmed by the time you
+want to inspect it. Hold the agent (and its ASIC programming) open with `--run_forever`:
+
+```bash
+sai_agent_hw_test --config <cfg> --gtest_filter=<TestSuite.TestName> --run_forever
+```
+
+- `--run_forever` — after the test body completes (PASS **or** FAIL is reported first),
+  `AgentHwTest::TearDown()` enters an infinite sleep loop **before** tearing down the
+  ensemble, so the agent stays up with the ASIC in its end-of-test state indefinitely.
+- `--run_forever_on_failure` — same, but only holds when the test actually failed.
+
+Both are compiled-in gflags, so an existing binary already supports them — no rebuild needed.
+Inspect the still-programmed ASIC, then stop the held process when done.
+
 ## Accessing the Diagnostic Shell
 
-<!-- TODO: User to provide how to access the vendor diag shell on different platforms -->
+Use the vendor's one-shot diag-command tool to send a single command to the running agent's
+diagnostic shell and capture its output, e.g. confirm the attached ASIC:
+
+```
+<vendor-diag-tool> --command 'version'
+```
+
+The exact tool, port, auth/reason, and write-mode flags are environment-specific.
+
+> **Customization point**: If your environment provides a specific diag-shell tool (e.g. a
+> vendor CLI reached over a lab SSH/MCP path), create `facebook/vendor-diag-shell.md` in this
+> skill directory with the concrete tool, flags, and access method. The skill's Reference
+> Routing will prefer it over this file.
+
+## Running Vendor Techsupport Scripts
+
+Vendor SDKs ship **techsupport** bundles — pre-canned collections of diag commands grouped by
+feature — which are the fastest way to capture the ASIC state a vendor needs to root-cause an
+issue. On Broadcom these are `.soc` scripts (e.g. `basic`, `cosq`, `qos`, `port`, `field`),
+run from the diag shell with:
+
+```
+<vendor-diag-tool> --command 'rcload <path-to>/<feature>.soc'
+<vendor-diag-tool> --command 'fp show'    # field/IFP (ACL) group dump
+```
+
+Capture each feature's output to its own file and bundle them for handoff. These dumps are
+strong evidence for a `FAIL_VENDOR` escalation — attach them to the package built per
+[vendor-escalation.md](vendor-escalation.md).
 
 ## Counter Commands
 

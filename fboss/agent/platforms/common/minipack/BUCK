@@ -12,10 +12,12 @@ cpp_library(
     headers = [
         "MinipackPlatformMapping.h",
     ],
+    deps = [
+        "//fboss/lib/fpga:minipack_container",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/lib/fpga:minipack_container",
         "//fboss/lib/platforms:platform_mode",
-        "//folly/logging:logging",
     ],
 )

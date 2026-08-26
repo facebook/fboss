@@ -29,6 +29,7 @@ auto constexpr kClientID(ClientID::BGPD);
 RouteNextHopSet
 makeNextHops(int n, int numNhopsPerIntf = 1, int startOffset = 0);
 RouteNextHopSet makeV4NextHops(int n);
+RouteNextHopSet withBackupNextHops(const RouteNextHopSet& nhops);
 RouteV6::Prefix makePrefix(int offset);
 RouteV4::Prefix makeV4Prefix(int offset);
 
@@ -39,6 +40,12 @@ std::shared_ptr<RouteV6> makeRoute(
 std::shared_ptr<RouteV4> makeV4Route(
     const RouteV4::Prefix& pfx,
     const RouteNextHopSet& nextHops);
+
+// Returns a clone of `state` with a complete, self-consistent set of NextHop
+// IDs + FibInfo stamped (via a throwaway local manager), so ID-aware reads
+// resolve under FLAGS_resolve_nexthops_from_id. Used by updateRoutes() and by
+// tests that build states outside the fixture's normal update path.
+std::shared_ptr<SwitchState> withNextHopIds(std::shared_ptr<SwitchState> state);
 
 template <typename AddrT>
 inline ForwardingInformationBase<AddrT>* fibImpl(

@@ -14,6 +14,7 @@
 #include <folly/io/IOBuf.h>
 
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 
 namespace facebook::fboss {
 
@@ -85,6 +86,15 @@ class MirrorOnDropImpl {
   virtual uint16_t getDefaultRouteDropReason() const = 0;
   virtual uint16_t getAclDropReason() const = 0;
   virtual uint16_t getMmuDropReason() const = 0;
+  // TODO: replace placeholder values with actual ASIC drop-reason codes
+  // once available from the vendor SDK.
+  virtual uint16_t getSrv6MidpointIsLastSidDropReason() const = 0;
+  virtual uint16_t getSrv6DecapNonLastSegmentDropReason() const = 0;
+  virtual uint16_t getSrv6BindingSidNonLastSidDropReason() const = 0;
+  virtual uint16_t getSrv6MidpointUnresolvedDropReason() const = 0;
+  // Egress drop when SRv6/tunnel header imposition pushes the packet past the
+  // egress L3 MTU (L3_TX_MTU_FAILURE on Tajo).
+  virtual uint16_t getSrv6EncapMtuExceededDropReason() const = 0;
 
   // Configure an ERSPAN (GRE tunnel) mirror used by the sampling test to
   // generate a high drop-rate packet loop.
@@ -97,6 +107,14 @@ class MirrorOnDropImpl {
 
   // Production feature gating tests on hardware that supports this impl.
   virtual ProductionFeature getProductionFeature() const = 0;
+
+  // Snooper RX filter for this platform's MoD export. Tajo shares the CPU
+  // punt path with unrelated control traffic, so it filters to MoD packets by
+  // their punt-header signature; other platforms accept all packets.
+  virtual utility::packetSnooperReceivePacketType snooperReceivePacketType()
+      const {
+    return utility::packetSnooperReceivePacketType::PACKET_TYPE_ALL;
+  }
 };
 
 // Factory: returns the right impl for the given AsicType. This is the only
@@ -139,6 +157,11 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
   MirrorOnDropDropReasonCodes getDefaultRouteDropReasons();
   MirrorOnDropDropReasonCodes getAclDropReasons();
   MirrorOnDropDropReasonCodes getMmuDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6MidpointIsLastSidDropReason();
+  MirrorOnDropDropReasonCodes getSrv6DecapNonLastSegmentDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6BindingSidNonLastSidDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6MidpointUnresolvedDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6EncapMtuExceededDropReasons();
 
   // Configure buffers to trigger MMU drops via setupPfcBuffers.
   void configureMmuDropBuffers(
@@ -176,7 +199,8 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
       const folly::IOBuf* captured,
       const PortID& injectionPortId,
       const MirrorOnDropDropReasonCodes& expectedReasons,
-      std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt);
+      std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt,
+      std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt);
 
   // Wait until outUnicastPkts on every port stabilizes across 3 iterations.
   void waitForStatsToStabilize(const std::vector<PortID>& ports);

@@ -7,6 +7,7 @@
 namespace facebook {
 namespace fboss {
 namespace utility {
+
 void HwTestThriftHandler::printDiagCmd(std::unique_ptr<::std::string> cmd) {
   auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
   bcmSwitch->printDiagCmd(*cmd);

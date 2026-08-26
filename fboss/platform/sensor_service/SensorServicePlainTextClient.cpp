@@ -34,7 +34,7 @@ std::string getSensorStatus(const sensor_service::SensorData& sensor) {
   }
 
   double value = *sensor.value();
-  const auto& thresholds = sensor.thresholds();
+  auto thresholds = sensor.thresholds();
 
   if (thresholds->upperCriticalVal() &&
       value > *thresholds->upperCriticalVal()) {

@@ -25,12 +25,15 @@ void RouteUpdateWrapper::addRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientId,
-    const RouteNextHopEntry& nhop) {
+    const RouteNextHopEntry& nhop,
+    std::optional<RouteNextHopSet> nhops) {
   UnicastRoute tempRoute;
   tempRoute.dest()->ip() = network::toBinaryAddress(network);
   tempRoute.dest()->prefixLength() = mask;
   if (nhop.getAction() == RouteForwardAction::NEXTHOPS) {
-    tempRoute.nextHops() = util::fromRouteNextHopSet(nhop.getNextHopSet());
+    tempRoute.nextHops() = nhops.has_value()
+        ? util::fromRouteNextHopSet(*nhops)
+        : util::fromRouteNextHopSet(nhop.getNextHopSet());
     tempRoute.action() = RouteForwardAction::NEXTHOPS;
   } else {
     tempRoute.action() = nhop.getAction() == RouteForwardAction::DROP

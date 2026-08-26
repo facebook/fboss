@@ -1,0 +1,11 @@
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
+
+oncall("fboss_platform")
+
+export_file(
+    name = "platform_spec_v1",
+    src = "platform-spec.v1.json",
+    visibility = [
+        "//fboss/platform/firmware_onboarding/...",
+    ],
+)

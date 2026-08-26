@@ -151,6 +151,11 @@ class PlatformExplorer {
       uint16_t busNum,
       const I2cAddr& addr,
       const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
+  void setupFanCpld(
+      const std::string& devicePath,
+      uint16_t busNum,
+      const I2cAddr& addr,
+      const FanCpldConfig& fanCpldConfig);
   void createI2cDevice(
       const std::string& devicePath,
       const std::string& deviceName,

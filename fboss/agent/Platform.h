@@ -26,8 +26,6 @@
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-DECLARE_int32(switchIndex);
-
 namespace facebook::fboss {
 
 struct AgentConfig;

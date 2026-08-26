@@ -14,6 +14,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
+#include <cstring>
 #include "fboss/agent/FbossError.h"
 
 using folly::ByteRange;
@@ -214,6 +215,30 @@ void PktUtil::padToLength(folly::IOBuf* buf, uint32_t size, uint8_t pad) {
   app.ensure(toPad);
   memset(app.writableData(), pad, toPad);
   app.append(toPad);
+}
+
+void PktUtil::decapsulatePacket(
+    folly::IOBuf* buf,
+    size_t l2HeaderSize,
+    size_t encapHeaderSize,
+    uint16_t innerEtherType) {
+  buf->coalesce();
+
+  auto totalLen = buf->length();
+  CHECK_GE(l2HeaderSize, sizeof(uint16_t));
+  CHECK_GE(totalLen, l2HeaderSize + encapHeaderSize);
+
+  auto* data = buf->writableData();
+  auto innerPayloadLen = totalLen - l2HeaderSize - encapHeaderSize;
+  std::memmove(
+      data + l2HeaderSize,
+      data + l2HeaderSize + encapHeaderSize,
+      innerPayloadLen);
+  buf->trimEnd(encapHeaderSize);
+
+  folly::io::RWPrivateCursor rwCursor(buf);
+  rwCursor += l2HeaderSize - sizeof(uint16_t);
+  rwCursor.writeBE<uint16_t>(innerEtherType);
 }
 
 } // namespace facebook::fboss

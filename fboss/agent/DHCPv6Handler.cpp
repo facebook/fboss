@@ -12,6 +12,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
+#include <functional>
 #include <string>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -368,11 +369,31 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   std::unordered_set<uint16_t> selector = {
       static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID),
       static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_RELAY_MSG)};
-  auto dhcpOptions = dhcpPacket.extractOptions(selector);
+  std::vector<DHCPv6Option> dhcpOptions;
+  try {
+    dhcpOptions = dhcpPacket.extractOptions(selector);
+  } catch (const FbossError& ex) {
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+    XLOG(DBG2) << "Bad dhcp relay reply message: " << ex.what();
+    return;
+  }
   for (int i = 0; i < dhcpOptions.size(); i++) {
     if (dhcpOptions[i].op ==
         static_cast<uint16_t>(DHCPv6OptionType::DHCPv6_OPTION_INTERFACE_ID)) {
-      DCHECK(dhcpOptions[i].len == MacAddress::SIZE);
+      // The INTERFACE_ID option supplies the outbound destination MAC. We read
+      // a fixed MacAddress::SIZE (6) bytes from the option data, so the option
+      // must actually carry that many bytes. A shorter attacker-supplied option
+      // would otherwise over-read past the end of the parsed options buffer
+      // (the DCHECK previously here is a no-op in opt builds). Drop the packet
+      // on a length mismatch, mirroring the runtime validation on the
+      // RELAY_MSG path below.
+      if (dhcpOptions[i].len != MacAddress::SIZE) {
+        sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+        XLOG(DBG2)
+            << "Bad dhcp relay reply message: INTERFACE_ID option length "
+            << dhcpOptions[i].len << " != " << MacAddress::SIZE;
+        return;
+      }
       destMac = MacAddress::fromBinary(
           folly::ByteRange(dhcpOptions[i].data, MacAddress::SIZE));
     } else if (
@@ -385,6 +406,33 @@ void DHCPv6Handler::processDHCPv6RelayReply(
   if (destMac == MacAddress::ZERO || relayLen == 0) {
     sw->portStats(pkt->getSrcPort())->dhcpV6DropPkt();
     XLOG(DBG2) << "Bad dhcp relay reply message: malformed options";
+    return;
+  }
+  // Defensively verify that relayData/relayLen point at a region fully
+  // contained within the parsed options buffer before issuing the outbound
+  // copy. extractOptions() already rejects out-of-bounds options, but this
+  // guards against relayData being detached from the source buffer. Use
+  // std::less/std::greater so the comparison is well-defined even if relayData
+  // points into a different allocation than optionsBuf (raw relational pointer
+  // comparison across allocations is UB).
+  const auto& optionsBuf = dhcpPacket.options;
+  const uint8_t* bufBegin = optionsBuf.data();
+  const uint8_t* bufEnd = bufBegin + optionsBuf.size();
+  // relayLen != 0 (checked above) implies the RELAY_MSG branch set relayData,
+  // but guard explicitly so the pointer arithmetic below never runs on nullptr.
+  if (relayData == nullptr ||
+      std::less<const uint8_t*>{}(relayData, bufBegin) ||
+      std::greater<const uint8_t*>{}(relayData + relayLen, bufEnd)) {
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+    XLOG(DBG2) << "Bad dhcp relay reply message: relay option length "
+               << relayLen << " exceeds source buffer";
+    return;
+  }
+  // Mirror the length guard used in processDHCPv6Packet: the relayed message
+  // becomes the body of the outbound DHCPv6 packet, so it must fit.
+  if (relayLen > DHCPv6Packet::MAX_DHCPV6_MSG_LENGTH) {
+    sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
+    XLOG(DBG2) << "DHCPv6 relay reply message exceeds max length, drop it.";
     return;
   }
   /**

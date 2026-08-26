@@ -38,17 +38,25 @@ void AgentCounters::getAgentCounters(
   std::vector<std::map<std::string, int64_t>> FBHwCountersVec;
   for (int i = 0; i < numSwitches; i++) {
     std::map<std::string, int64_t> FBHwCounters;
-#ifndef IS_OSS
     try {
       auto hwClient =
           utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostinfo, i);
+#ifndef IS_OSS
       apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
           hwClient->getChannelShared()};
       monitoringClient.sync_getCounters(FBHwCounters);
+#else
+      // FbossHwCtrl does not extend FacebookService, but the OSS HwAgent
+      // multiplex serves fb303 methods via a FacebookBase2 handler, so reuse
+      // the channel with an FbossCtrl client (which carries getCounters) to
+      // fetch HwAgent counters.
+      apache::thrift::Client<facebook::fboss::FbossCtrl> fb303Client{
+          hwClient->getChannelShared()};
+      fb303Client.sync_getCounters(FBHwCounters);
+#endif
     } catch (const std::exception& ex) {
       XLOG(ERR) << ex.what();
     }
-#endif
     FBHwCountersVec.push_back(FBHwCounters);
   }
   FBSwHwCounters.FBSwCounters = FBSwCounters;
@@ -267,6 +275,38 @@ std::string CmdShowHwAgentStatus::getRunStateStr(
       return "ROLLBACK";
   }
   throw std::invalid_argument("Invalid Run State");
+}
+
+std::string_view CmdShowHwAgentStatusTraits::description() {
+  return "Displays each HwAgent's synchronization state with the SwSwitch: switch index and ID, overall state, and per-channel in-sync status with events sent/received (Link, Stats, Fdb, RxPkt, TxPkt, SwitchReachability). Use it to check HwAgent sync health in multi-switch mode.";
+}
+
+RetType CmdShowHwAgentStatus::sampleModel() {
+  RetType model;
+  cli::HwAgentStatusEntry entry;
+  entry.switchIndex() = 0;
+  entry.switchId() = 0;
+  entry.runState() = "CONFIGURED";
+  entry.linkSyncActive() = 1;
+  entry.linkEventsSent() = 140;
+  entry.linkEventsReceived() = 140;
+  entry.statsSyncActive() = 1;
+  entry.HwSwitchStatsEventsSent() = 48480;
+  entry.HwSwitchStatsEventsReceived() = 48480;
+  entry.fdbSyncActive() = 1;
+  entry.fdbEventsSent() = 0;
+  entry.fdbEventsReceived() = 0;
+  entry.rxPktSyncActive() = 1;
+  entry.rxPktEventsSent() = 24922839;
+  entry.rxPktEventsReceived() = 24922839;
+  entry.txPktSyncActive() = 1;
+  entry.txPktEventsSent() = 25316355;
+  entry.txPktEventsReceived() = 25316355;
+  entry.switchReachabilityChangeSyncActive() = 1;
+  entry.switchReachabilityChangeEventsSent() = 0;
+  entry.switchReachabilityChangeEventsReceived() = 0;
+  model.hwAgentStatusEntries()->push_back(entry);
+  return model;
 }
 
 // Explicit template instantiation

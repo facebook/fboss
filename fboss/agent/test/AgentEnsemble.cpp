@@ -24,6 +24,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+#include <fmt/format.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/testing/TestUtil.h>
@@ -65,6 +66,7 @@ void AgentEnsemble::setupEnsemble(
     uint32_t hwFeaturesDesired,
     const TestEnsembleInitInfo& initInfo) {
   FLAGS_verify_apply_oper_delta = true;
+  FLAGS_enable_bulk_create_ecmp_members = true;
 
   if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     auto inputAgentConfig =
@@ -75,6 +77,20 @@ void AgentEnsemble::setupEnsemble(
     // created.
     if (initInfo.overrideDsfNodes.has_value()) {
       inputAgentConfig.sw()->dsfNodes() = *initInfo.overrideDsfNodes;
+    }
+
+    if (initInfo.overridePortIdRange.has_value() ||
+        initInfo.overrideLocalSystemPortOffset.has_value()) {
+      for (auto& [_, switchInfo] :
+           *inputAgentConfig.sw()->switchSettings()->switchIdToSwitchInfo()) {
+        if (initInfo.overridePortIdRange.has_value()) {
+          switchInfo.portIdRange() = *initInfo.overridePortIdRange;
+        }
+        if (initInfo.overrideLocalSystemPortOffset.has_value()) {
+          switchInfo.localSystemPortOffset() =
+              *initInfo.overrideLocalSystemPortOffset;
+        }
+      }
     }
 
     if (platformConfigFn) {
@@ -121,7 +137,6 @@ void AgentEnsemble::setupEnsemble(
         FLAGS_hide_interface_ports) {
       continue;
     }
-    masterLogicalPortIds_.push_back(port.first);
     auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
     switchId2PortIds_[switchId].push_back(port.first);
   }
@@ -129,6 +144,14 @@ void AgentEnsemble::setupEnsemble(
   // For multi-die ASICs (e.g. Q4D), interleave ports across dies so that
   // tests using 2+ ports automatically exercise both dies.
   interleavePortsAcrossDies(platformPorts);
+
+  // The per-type caps are applied dynamically in the masterLogicalPortIds()
+  // views (see getMaxRequiredPorts / masterLogicalPortIdsImpl);
+  // switchId2PortIds_ stays the full master-port store. Those capped views are
+  // what tests and the initial config consume, so the config is trimmed to
+  // maxRequired*Ports.
+  maxRequiredInterfacePorts_ = initInfo.maxRequiredInterfacePorts;
+  maxRequiredFabricPorts_ = initInfo.maxRequiredFabricPorts;
 
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
     HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
@@ -161,19 +184,26 @@ void AgentEnsemble::setupEnsemble(
   startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    if (switchIndex >= FLAGS_num_npus_for_testing) {
+      XLOG(DBG2) << "Skipping hw switch connection wait for switchId: "
+                 << static_cast<int64_t>(switchId)
+                 << " switchIndex: " << switchIndex
+                 << " numNpusForTesting: " << FLAGS_num_npus_for_testing;
+      continue;
+    }
     ensureHwSwitchConnected(switchId);
   }
 }
 
 void AgentEnsemble::interleavePortsAcrossDies(
     const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
-  bool needsReorder = false;
   for (auto& [switchId, portIds] : switchId2PortIds_) {
     auto* asic = getHwAsicTable()->getHwAsicIf(switchId);
     if (!asic || asic->getNumDies() <= 1) {
       continue;
     }
-    needsReorder = true;
     auto numDies = asic->getNumDies();
     // Separate non-interface ports (keep original order) from interface ports
     // (interleave across dies). Non-interface ports (recycle, management) may
@@ -217,14 +247,6 @@ void AgentEnsemble::interleavePortsAcrossDies(
       }
     }
     portIds = std::move(reordered);
-  }
-  if (needsReorder) {
-    // Rebuild masterLogicalPortIds_ from the reordered per-switch lists
-    masterLogicalPortIds_.clear();
-    for (const auto& [switchId, portIds] : switchId2PortIds_) {
-      masterLogicalPortIds_.insert(
-          masterLogicalPortIds_.end(), portIds.begin(), portIds.end());
-    }
   }
 }
 
@@ -327,8 +349,33 @@ void AgentEnsemble::applyNewConfig(
   }
 }
 
-std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
+std::vector<PortID> AgentEnsemble::getAllMasterLogicalPortIds() const {
+  std::vector<PortID> all;
+  for (const auto& [switchId, portIds] : switchId2PortIds_) {
+    all.insert(all.end(), portIds.begin(), portIds.end());
+  }
+  return all;
+}
+
+std::optional<size_t> AgentEnsemble::getMaxRequiredPorts(
+    cfg::PortType portType) const {
+  // Enumerate every PortType explicitly (no default) so that adding a new
+  // port type forces a deliberate decision here about whether it should be
+  // capped.
+  switch (portType) {
+    case cfg::PortType::INTERFACE_PORT:
+      return maxRequiredInterfacePorts_;
+    case cfg::PortType::FABRIC_PORT:
+      return maxRequiredFabricPorts_;
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
+    case cfg::PortType::EVENTOR_PORT:
+    case cfg::PortType::HYPER_PORT:
+    case cfg::PortType::HYPER_PORT_MEMBER:
+      return std::nullopt;
+  }
+  return std::nullopt;
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
@@ -544,7 +591,7 @@ void AgentEnsemble::runCint(
     const SwitchID& switchId) {
   folly::test::TemporaryFile file;
   folly::writeFull(file.fd(), cintData.c_str(), cintData.size());
-  auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+  auto cmd = fmt::format("cint {}\n", file.path().c_str());
   runDiagCommand(cmd, output, switchId);
 }
 
@@ -661,13 +708,36 @@ void AgentEnsemble::waitForSpecificRateOnPort(
 void AgentEnsemble::sendPacketAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortDescriptor> portDescriptor,
-    std::optional<uint8_t> queueId) {
+    std::optional<uint8_t> queueId,
+    std::optional<SwitchID> switchId) {
   if (!portDescriptor.has_value()) {
-    getSw()->sendPacketSwitchedAsync(std::move(pkt));
+    // For a switched send, target the requested NPU; default to the switch
+    // owning the first master logical port (switch 0 on multi-NPU platforms).
+    // Resolve the default lazily so masterLogicalPortIds()[0] is only accessed
+    // when the caller did not supply a switchId.
+    SwitchID resolvedSwitchId = switchId.has_value()
+        ? *switchId
+        : getSw()
+              ->getScopeResolver()
+              ->scope(masterLogicalPortIds()[0])
+              .switchId();
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {resolvedSwitchId});
     return;
   }
   getSw()->sendPacketOutOfPortAsync(
       std::move(pkt), portDescriptor->phyPortID(), queueId);
+}
+
+void AgentEnsemble::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
+  if (switchId.has_value()) {
+    getSw()->sendPacketSwitchedAsync(std::move(pkt), {*switchId});
+  } else {
+    // Preserve the prior untargeted behavior: route to the switch owning the
+    // first master logical port (switch 0 on multi-NPU platforms).
+    sendPacketAsync(std::move(pkt), std::nullopt, std::nullopt);
+  }
 }
 
 std::unique_ptr<TxPacket> AgentEnsemble::allocatePacket(uint32_t size) {
@@ -682,12 +752,6 @@ void AgentEnsemble::bringUpPorts(const std::vector<PortID>& ports) {
 void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
   CHECK(linkToggler_);
   linkToggler_->bringDownPorts(ports);
-}
-
-std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
-    SwitchID switchId) const {
-  auto it = switchId2PortIds_.find(switchId);
-  return it != switchId2PortIds_.end() ? it->second : std::vector<PortID>{};
 }
 
 void AgentEnsemble::clearPortStats() {
@@ -707,7 +771,9 @@ void AgentEnsemble::clearPortStats(
       std::make_unique<std::vector<int32_t>>(std::move(*ports)));
 }
 
-bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
+bool AgentEnsemble::ensureSendPacketSwitched(
+    std::unique_ptr<TxPacket> pkt,
+    const std::optional<SwitchID>& switchId) {
   // lambda that returns HwPortStats for the given port(s)
   auto getPortStats =
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
@@ -723,16 +789,23 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
     return getLatestSysPortStats(portIds);
   };
 
+  // On multi-NPU platforms, scope the verified ports to the switch under test
+  // so stats are checked on the same NPU the packet is routed to.
+  auto portIds = switchId.has_value()
+      ? masterLogicalInterfaceOrHyperPortIds(*switchId)
+      : masterLogicalPortIds(
+            std::set<cfg::PortType>{
+                cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds(
-          std::set<cfg::PortType>{
-              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
+      portIds,
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
-      kMsWaitForStatsRetry);
+      kMsWaitForStatsRetry,
+      switchId);
 }
 
 bool AgentEnsemble::ensureSendPacketOutOfPort(
@@ -870,15 +943,14 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303CountersByRegex(
     const PortID& portId,
     const std::string& regex) {
   std::map<std::string, int64_t> counters;
-#ifndef IS_OSS
   auto switchID = scopeResolver().scope(portId).switchId();
+#ifndef IS_OSS
   auto client = getSw()->getHwSwitchThriftClientTable()->getClient(switchID);
   apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
 }
@@ -904,8 +976,7 @@ int64_t AgentEnsemble::getFb303Counter(
       client->getChannelShared()};
   counter = monitoringClient.sync_getCounter(key);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counter = facebook::fb303::fbData->getCounter(key);
+  counter = queryHwAgentFb303Counter(switchID, key);
 #endif
   return counter;
 }
@@ -955,10 +1026,37 @@ std::map<std::string, int64_t> AgentEnsemble::getFb303RegexCounters(
       client->getChannelShared()};
   monitoringClient.sync_getRegexCounters(counters, regex);
 #else
-  // TODO: This needs to be updated to support multi-switch.
-  counters = facebook::fb303::fbData->getRegexCounters(regex);
+  counters = queryHwAgentFb303RegexCounters(switchID, regex);
 #endif
   return counters;
+}
+
+std::map<std::string, int64_t> AgentEnsemble::queryHwAgentFb303RegexCounters(
+    const SwitchID& switchID,
+    const std::string& regex) {
+  std::map<std::string, int64_t> counters;
+  if (!getSw()->isRunModeMultiSwitch()) {
+    counters = facebook::fb303::fbData->getRegexCounters(regex);
+  } else {
+    auto hwTestClient = getHwAgentTestClient(switchID);
+    hwTestClient->sync_getFb303RegexCounters(counters, regex);
+  }
+  return counters;
+}
+
+int64_t AgentEnsemble::queryHwAgentFb303Counter(
+    const SwitchID& switchID,
+    const std::string& key) {
+  int64_t counter{0};
+  if (!getSw()->isRunModeMultiSwitch()) {
+    // getCounterIfExists (not getCounter) so a missing key yields 0 instead of
+    // throwing, matching the multi-switch handler.
+    counter = facebook::fb303::fbData->getCounterIfExists(key).value_or(0);
+  } else {
+    auto hwTestClient = getHwAgentTestClient(switchID);
+    counter = hwTestClient->sync_getFb303Counter(key);
+  }
+  return counter;
 }
 
 std::string AgentEnsemble::getHwDebugDump() {

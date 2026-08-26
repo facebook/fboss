@@ -22,7 +22,7 @@ cpp_library(
         "fbsource//third-party/glog:glog",
         "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
+        "//fboss/agent:strong-types",
         "//folly/functional:apply_tuple",
         "//folly/json:dynamic",
     ],
@@ -33,6 +33,9 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip LacpTypes.h is compiled by both :lacp_types (acyclic) and :core;
+    # autodeps2 resolves the AggregatePort.h include to :core, which cycles
+    # (:core -> state:state_utils -> state:state -> :core). Keep the acyclic :lacp_types.
     name = "state",
     srcs = [
         "AclEntry.cpp",
@@ -49,6 +52,8 @@ cpp_library(
         "ArpTable.cpp",
         "BufferPoolConfig.cpp",
         "BufferPoolConfigMap.cpp",
+        "ClassBasedPolicyMap.cpp",
+        "ClassBasedPolicyNode.cpp",
         "ControlPlane.cpp",
         "DsfNode.cpp",
         "DsfNodeMap.cpp",
@@ -65,6 +70,8 @@ cpp_library(
         "IpTunnel.cpp",
         "IpTunnelMap.cpp",
         "LabelForwardingInformationBase.cpp",
+        "LlrConfig.cpp",
+        "LlrConfigMap.cpp",
         "LoadBalancer.cpp",
         "LoadBalancerMap.cpp",
         "MacEntry.cpp",
@@ -134,18 +141,21 @@ cpp_library(
         "Thrifty.h",
     ],
     propagated_pp_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:fsdb_helper",
+        "//fboss/fsdb/common:utils",
+    ],
     exported_deps = [
         "fbsource//third-party/glog:glog",
         ":label_forwarding_action",
         ":nodebase",
         "//common/network/if:if-cpp2-types",
         "//fboss/agent:address_utils",
-        "//fboss/agent:agent_features",
         "//fboss/agent:constants",
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:fsdb_helper",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:lacp_types",
         "//fboss/agent:packet",
@@ -155,7 +165,6 @@ cpp_library(
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/if:mpls-cpp2-types",
-        "//fboss/fsdb/common:utils",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/mka_service/if:mka_structs-cpp2-types",
@@ -173,9 +182,10 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+    external_deps = ["gflags"],
     exported_external_deps = [
-        "gflags",
         ("boost", None, "boost_container"),
+        "gflags",
     ],
 )
 
@@ -187,10 +197,11 @@ cpp_library(
     headers = [
         "StateUtils.h",
     ],
+    deps = ["//fboss/agent:hwswitch_matcher"],
     exported_deps = [
         ":state",
         "//fboss/agent:fboss-types",
-        "//fboss/agent:hwswitch_matcher",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//folly:network_address",
     ],
@@ -204,12 +215,12 @@ cpp_library(
     headers = [
         "LabelForwardingAction.h",
     ],
+    deps = ["//thrift/lib/cpp/util:enum_utils"],
     exported_deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//folly/hash:hash",
         "//folly/json:dynamic",
-        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
 

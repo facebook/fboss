@@ -44,6 +44,7 @@ cpp_library(
     exported_deps = [
         "//fboss/agent:fboss-types",
     ],
+    external_deps = ["boost"],
     exported_external_deps = [
         "boost",
         "sai",

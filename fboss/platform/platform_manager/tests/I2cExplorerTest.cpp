@@ -113,3 +113,18 @@ TEST(I2cExplorerTest, I2cAddr) {
   EXPECT_NO_THROW(I2cAddr("0x0f"));
   EXPECT_NO_THROW(I2cAddr("0xaf"));
 }
+
+TEST(I2cExplorerTest, IntelCpuBusConfigValidation) {
+  I2cExplorer explorer;
+
+  // Multiple virtual CPU buses are not supported on Intel.
+  EXPECT_THROW(
+      explorer.resolveIntelCpuBusNums({"CPU_BUS@0", "CPU_BUS@1"}),
+      std::runtime_error);
+
+  // Single unsupported CPU_BUS index is rejected.
+  EXPECT_THROW(
+      explorer.resolveIntelCpuBusNums({"CPU_BUS@1"}), std::runtime_error);
+  EXPECT_THROW(
+      explorer.resolveIntelCpuBusNums({"CPU_BUS@2"}), std::runtime_error);
+}

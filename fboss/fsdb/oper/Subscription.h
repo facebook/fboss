@@ -366,6 +366,36 @@ class ExtendedSubscription : public BaseSubscription {
     return paths_.at(key);
   }
 
+  // Appends newPaths (skipping keys already present) and returns the inserted
+  // keys. Caller must hold the SubscriptionStore wlock: paths_ is otherwise
+  // read lock-free via paths()/pathAt() while serving.
+  std::vector<SubscriptionKey> addPaths(ExtSubPathMap&& newPaths) {
+    std::vector<SubscriptionKey> added;
+    added.reserve(newPaths.size());
+    for (auto& [key, path] : newPaths) {
+      if (paths_.emplace(key, std::move(path)).second) {
+        added.push_back(key);
+      }
+    }
+    return added;
+  }
+
+  // Stream-revision token from the most recent add-paths request. One-shot:
+  // stamped onto OperMetadata.streamRevision of the first chunk served after
+  // the add (the "took effect" boundary), then cleared via
+  // takeStreamRevision().
+  void setStreamRevision(StreamRevision rev) {
+    streamRevision_ = rev;
+  }
+  const std::optional<StreamRevision>& streamRevision() const {
+    return streamRevision_;
+  }
+  // Return the pending stream revision (if any) and clear it, so it is applied
+  // to exactly one served chunk.
+  std::optional<StreamRevision> takeStreamRevision() {
+    return std::exchange(streamRevision_, std::nullopt);
+  }
+
   virtual std::unique_ptr<Subscription> resolve(
       const SubscriptionKey& key,
       const std::vector<std::string>& path) = 0;
@@ -387,8 +417,9 @@ class ExtendedSubscription : public BaseSubscription {
         paths_(std::move(paths)) {}
 
  private:
-  const ExtSubPathMap paths_;
+  ExtSubPathMap paths_;
   bool shouldPrune_{false};
+  std::optional<StreamRevision> streamRevision_;
 };
 
 class BasePathSubscription : public Subscription {

@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "counter_refresh_interval": "1",
     "enable_nexthop_id_manager": "true",
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
@@ -222,8 +223,8 @@
             "serdes_fabric_clk_freq_out.BCM8892X": "bypass",
             "soc_family.BCM8892X": "BCM8892X",
             "stable_location.BCM8892X": "4",
-            "stable_size.BCM8892X": "9600000",
-            "sw_state_max_size.BCM8892X": "9500000",
+            "stable_size.BCM8892X": "12100000",
+            "sw_state_max_size.BCM8892X": "12000000",
             "system_contains_multiple_pipe_device.BCM8892X": "0",
             "tdma_intr_enable.BCM8892X": "0",
             "tdma_timeout_usec.BCM8892X": "5000000",

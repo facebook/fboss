@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/state/PortQueue.h"
@@ -30,6 +31,7 @@ namespace facebook::fboss {
 class SwitchState;
 
 using PortFlowletCfgPtr = std::shared_ptr<PortFlowletCfg>;
+using LlrConfigPtr = std::shared_ptr<LlrConfig>;
 
 struct PortFields {
   struct VlanInfo {
@@ -84,6 +86,7 @@ struct PortFields {
 USE_THRIFT_COW(Port);
 
 RESOLVE_STRUCT_MEMBER(Port, switch_state_tags::flowletConfig, PortFlowletCfg);
+RESOLVE_STRUCT_MEMBER(Port, switch_state_tags::llrConfig, LlrConfig);
 /*
  * Port stores state about one of the physical ports on the switch.
  */
@@ -627,6 +630,32 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     ref<switch_state_tags::flowletConfig>() = flowletConfigPtr;
   }
 
+  std::optional<std::string> getLlrConfigName() const {
+    if (auto name = cref<switch_state_tags::llrConfigName>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setLlrConfigName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::llrConfigName>().reset();
+      return;
+    }
+    set<switch_state_tags::llrConfigName>(name.value());
+  }
+
+  std::optional<LlrConfigPtr> getLlrConfig() const {
+    if (auto llrConfigPtr = safe_cref<switch_state_tags::llrConfig>()) {
+      return llrConfigPtr;
+    }
+    return std::nullopt;
+  }
+
+  void setLlrConfig(LlrConfigPtr llrConfigPtr) {
+    ref<switch_state_tags::llrConfig>() = llrConfigPtr;
+  }
+
   void setLedPortExternalState(std::optional<PortLedExternalState> state) {
     if (state.has_value()) {
       set<switch_state_tags::portLedExternalState>(*state);
@@ -879,6 +908,53 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::linkTraining>().reset();
     } else {
       set<switch_state_tags::linkTraining>(linkTraining.value());
+    }
+  }
+
+  std::optional<bool> getTxPrecoding() const {
+    if (auto txPrecoding = cref<switch_state_tags::txPrecoding>()) {
+      return txPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setTxPrecoding(std::optional<bool> txPrecoding) {
+    if (!txPrecoding.has_value()) {
+      ref<switch_state_tags::txPrecoding>().reset();
+    } else {
+      set<switch_state_tags::txPrecoding>(txPrecoding.value());
+    }
+  }
+
+  std::optional<bool> getRxPrecoding() const {
+    if (auto rxPrecoding = cref<switch_state_tags::rxPrecoding>()) {
+      return rxPrecoding->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRxPrecoding(std::optional<bool> rxPrecoding) {
+    if (!rxPrecoding.has_value()) {
+      ref<switch_state_tags::rxPrecoding>().reset();
+    } else {
+      set<switch_state_tags::rxPrecoding>(rxPrecoding.value());
+    }
+  }
+
+  /** @brief Get who notices link status changes: the SDK or the ASIC */
+  std::optional<cfg::LinkScanMode> getLinkScanMode() const {
+    if (auto linkScanMode = cref<switch_state_tags::linkScanMode>()) {
+      return linkScanMode->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set who notices link status changes: the SDK or the ASIC */
+  void setLinkScanMode(std::optional<cfg::LinkScanMode> linkScanMode) {
+    if (!linkScanMode.has_value()) {
+      ref<switch_state_tags::linkScanMode>().reset();
+    } else {
+      set<switch_state_tags::linkScanMode>(linkScanMode.value());
     }
   }
 

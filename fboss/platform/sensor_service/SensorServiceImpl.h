@@ -63,6 +63,11 @@ class SensorServiceImpl {
   auto static constexpr kDerivedFailure = "derived.{}.failure";
   auto static constexpr kDerivedValue = "derived.{}.value";
   auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
+  // Stable prefix for the per-cycle logged-sensor lines, so a single
+  // sensor's time series can be grepped out of the service log (e.g.
+  // `grep '\[LoggedSensor\] SMB_XP3P3_L_OSFP_PG'`). See
+  // SensorConfig.loggedSensorNames / SEV S649086.
+  auto static constexpr kLoggedSensorPrefix = "[LoggedSensor]";
 
   explicit SensorServiceImpl(
       const SensorConfig& sensorConfig,
@@ -128,6 +133,13 @@ class SensorServiceImpl {
 
   void publishPerSensorStats(const SensorData& sensorData);
 
+  // Writes the polled value of every sensor named in
+  // sensorConfig_.loggedSensorNames() to the service log file. A no-op when
+  // the list is empty. Read failures and sensors absent from this cycle (e.g.
+  // an unpopulated PSU/PEM slot) are logged at WARN so a missing reading is
+  // never silently swallowed. See SEV S649086.
+  void logSensorValues(const std::map<std::string, SensorData>& polledData);
+
   void publishDerivedStats(
       const std::string& entity,
       std::optional<float> value);
@@ -136,9 +148,9 @@ class SensorServiceImpl {
 
   void publishVersionedSensorStats(
       const std::string& pmUnitName,
-      int16_t productProductionState,
-      int16_t productVersion,
-      int16_t productSubVersion);
+      int16_t productionState,
+      int16_t productionSubState,
+      int16_t respinVariantIndicator);
 
   // Pre-fetches PmUnitInfo for every PmUnitSensors entry that declares
   // versionedSensors OR is a field-replaceable PSU/PEM slot, so the

@@ -1,5 +1,7 @@
 "Test Case","Platform","Status"
 "SensorServiceHwTest.SensorFetchODSCheck","darwin","PASSED"
+"SensorServiceHwTest.PowerAndInputVoltageAboveZero","darwin","PASSED"
+"SensorServiceHwTest.MinPsuCountMatchesPowerType","darwin","PASSED"
 "SensorServiceHwTest.GetSomeSensorsViaThrift","darwin","PASSED"
 "SensorServiceHwTest.GetSomeSensors","darwin","PASSED"
 "SensorServiceHwTest.GetBogusSensor","darwin","PASSED"

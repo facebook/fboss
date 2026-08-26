@@ -5,9 +5,13 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
+
+#include <fmt/core.h>
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -31,21 +35,25 @@ cfg::Srv6Tunnel makeSrv6TunnelConfig(
   return tunnel;
 }
 
+cfg::Srv6Tunnel makeSrv6DecapTunnelConfig(const std::string& name) {
+  cfg::Srv6Tunnel tunnel;
+  tunnel.srv6TunnelId() = name;
+  tunnel.tunnelType() = TunnelType::SRV6_DECAP;
+  tunnel.ttlMode() = cfg::TunnelMode::UNIFORM;
+  tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
+  // PIPE maps to SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER (see
+  // getSaiDecapEcnMode) — the RBB decap ECN behavior.
+  tunnel.ecnMode() = cfg::TunnelMode::PIPE;
+  return tunnel;
+}
+
 cfg::SwitchConfig srv6EcmpInitialConfig(const AgentEnsemble& ensemble) {
   auto cfg = utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
       true /*interfaceHasSubnet*/);
-  std::vector<cfg::Srv6Tunnel> tunnelList;
-  auto numTunnels =
-      std::min(static_cast<int>(cfg.interfaces()->size()), kSrv6MaxEcmpWidth);
-  tunnelList.reserve(numTunnels);
-  for (int i = 0; i < numTunnels; ++i) {
-    tunnelList.push_back(makeSrv6TunnelConfig(
-        folly::sformat("srv6Tunnel{}", i),
-        InterfaceID(cfg.interfaces()[i].intfID().value())));
-  }
-  cfg.srv6Tunnels() = tunnelList;
+  cfg.srv6Tunnels() = {makeSrv6TunnelConfig(
+      "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value()))};
   cfg.loadBalancers() = {
       getEcmpFullWithFlowLabelHashConfig(ensemble.getL3Asics())};
   return cfg;
@@ -175,6 +183,74 @@ void addDecapMySidEntry(
       "addDecapMySidEntry",
       ribMySidToSwitchStateFunc,
       sw);
+}
+
+namespace {
+// SID address for a scale MySID entry: 3001:db8:<index + sidOffset>::.
+folly::IPAddressV6 makeScaleMySidAddr(int index, int sidOffset) {
+  return folly::IPAddressV6(fmt::format("3001:db8:{:x}::", index + sidOffset));
+}
+constexpr uint8_t kScaleMySidPrefixLen = 48;
+} // namespace
+
+std::vector<MySidWithNextHops> makeAdjacencyMySidEntries(
+    const EcmpSetupAnyNPorts6& ecmpHelper,
+    int numNhops,
+    int numEntries,
+    int sidOffset) {
+  std::vector<MySidWithNextHops> entries;
+  entries.reserve(numEntries);
+  for (int i = 0; i < numEntries; ++i) {
+    auto ecmpNhop = ecmpHelper.nhop(i % numNhops);
+    state::MySidFields fields;
+    fields.type() = MySidType::ADJACENCY_MICRO_SID;
+    fields.adjacencyInterfaceId() = static_cast<int32_t>(ecmpNhop.intf);
+    // EcmpSetupAnyNPorts6 always yields IPv6 next hops.
+    fields.isV6() = true;
+    fields.clientId() = ClientID::STATIC_ROUTE;
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(makeScaleMySidAddr(i, sidOffset));
+    prefix.prefixLength() = kScaleMySidPrefixLen;
+    fields.mySid() = prefix;
+    auto mySid = std::make_shared<MySid>(fields);
+    RouteNextHopSet nhops{ResolvedNextHop(
+        folly::IPAddress(ecmpNhop.ip), ecmpNhop.intf, ECMP_WEIGHT)};
+    entries.push_back(
+        {std::move(mySid), std::move(nhops), std::nullopt /* nhgName */});
+  }
+  return entries;
+}
+
+void programMySidEntries(SwSwitch* sw, std::vector<MySidWithNextHops> entries) {
+  auto rib = sw->getRib();
+  auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw->getScopeResolver(),
+      std::move(entries),
+      {} /* toUnresolveIfMatch */,
+      {} /* toDelete */,
+      "addMySidEntries",
+      ribMySidFunc,
+      sw);
+}
+
+void deleteScaleMySidEntries(SwSwitch* sw, int numEntries, int sidOffset) {
+  auto rib = sw->getRib();
+  auto ribMySidFunc = createRibMySidToSwitchStateFunction(std::nullopt);
+  for (int i = 0; i < numEntries; ++i) {
+    IpPrefix prefix;
+    prefix.ip() =
+        facebook::network::toBinaryAddress(makeScaleMySidAddr(i, sidOffset));
+    prefix.prefixLength() = kScaleMySidPrefixLen;
+    rib->update(
+        sw->getScopeResolver(),
+        std::vector<MySidEntry>{} /* toAdd */,
+        {prefix},
+        "deleteMySidEntry",
+        ribMySidFunc,
+        sw);
+  }
 }
 
 void addBindingSidEntry(

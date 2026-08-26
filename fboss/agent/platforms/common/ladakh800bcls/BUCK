@@ -8,13 +8,14 @@ cpp_library(
         "Ladakh800bclsPlatformMapping.cpp",
     ],
     headers = [
+        "Ladakh800bclsOsfpTrayPlatformMapping.h",
         "Ladakh800bclsPlatformMapping.h",
         "Ladakh800bclsProdPlatformMapping.h",
         "Ladakh800bclsTestPlatformMapping.h",
     ],
+    deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//folly/logging:logging",
     ],
 )

@@ -6,7 +6,6 @@ namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
-namespace php fboss_switch_config
 
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
@@ -14,7 +13,11 @@ include "fboss/lib/if/fboss_common.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_switch_config_"}
+@hack.LegacyOmitPrefixInNameString
+@hack.ConstantsClass{name = "fboss_switch_config_CONSTANTS"}
 @thrift.AllowLegacyMissingUris
 package;
 
@@ -118,6 +121,7 @@ enum PortSpeed {
   HUNDREDG = 100000, // 100G
   HUNDREDANDSIXPOINTTWOFIVEG = 106250, //106.25G
   TWOHUNDREDG = 200000, // 200G
+  TWOHUNDREDANDTWELVEPOINTFIVEG = 212500, // 212.5G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
   ONEPOINTSIXT = 1600000, // 1.6T
@@ -193,6 +197,8 @@ enum PortProfileID {
   PROFILE_200G_2_PAM4_RS544X2N_OPTICAL = 61,
   PROFILE_25G_1_NRZ_RS528_OPTICAL = 62,
   PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL = 63,
+  PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL = 64,
+  PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER = 65,
 }
 
 enum Scope {
@@ -663,6 +669,16 @@ struct AclEntry {
   35: optional list<AclUdfEntry> udfTable;
 
   36: optional Range l4DstPortRange;
+
+  // Thrift has no unsigned 32-bit integer type. Use i64 as the carrier type so
+  // the full IPv6 word range [0, 0xffffffff] is representable. ACL config
+  // application validates the range before programming.
+  //
+  // dstIpV6Word3 matches destination IPv6 bits 127:96, and dstIpV6Word2
+  // matches bits 95:64. For AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222,
+  // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
+  37: optional i64 dstIpV6Word3;
+  38: optional i64 dstIpV6Word2;
 }
 
 enum AclTableActionType {
@@ -708,6 +724,10 @@ enum AclTableQualifier {
   BTH_OPCODE = 25,
   IPV6_NEXT_HEADER = 26,
   L4_DST_PORT_RANGE = 27,
+  TC = 28,
+  NEXT_HOP_GROUP_ID = 29,
+  DST_IPV6_WORD3 = 30,
+  DST_IPV6_WORD2 = 31,
 }
 
 struct AclTable {
@@ -801,9 +821,13 @@ struct RedirectNextHop {
 
 // Redirect packet to a different nexthop
 struct RedirectToNextHopAction {
-  // deprecated
-  1: list<string> nexthops;
+  // deprecated - use redirectNextHops
+  1: list<string> nexthops_DEPRECATED;
   2: list<RedirectNextHop> redirectNextHops;
+  // Named NHG redirect target for PBR. The RIB resolves this name to a
+  // NextHopSetID (stored in switch state) at synthesis time; the id is not
+  // known at config time.
+  3: optional string redirectNextHopGroup;
 }
 
 enum FlowletAction {
@@ -1122,6 +1146,8 @@ typedef string BufferPoolConfigName
 
 typedef string PortFlowletConfigName
 
+typedef string LlrConfigName
+
 typedef string FirmwareName
 
 const i32 DEFAULT_PORT_MTU = 9412;
@@ -1133,6 +1159,8 @@ const string DEFAULT_INGRESS_ACL_TABLE = "AclTable1";
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE_GROUP = "post-lookup-ingress-ACL-Table-Group";
 
 const string DEFAULT_POST_LOOKUP_INGRESS_ACL_TABLE = "PostLookupAclTable1";
+
+const string DEFAULT_PBR_ACL_TABLE = "PbrAclTable";
 
 enum PortType {
   INTERFACE_PORT = 0,
@@ -1153,6 +1181,18 @@ struct PortNeighbor {
 enum PortDrainState {
   UNDRAINED = 0,
   DRAINED = 1,
+}
+
+/*
+ * Who notices that a port's link status changed: the SDK's software
+ * linkscan thread, or the ASIC itself.
+ *
+ * Unset leaves whatever the SDK came up with alone - FBOSS never
+ * programs the mode. Either value is written down to the SDK.
+ */
+enum LinkScanMode {
+  SOFTWARE = 1,
+  HARDWARE = 2,
 }
 
 /**
@@ -1377,6 +1417,23 @@ struct Port {
    * Unset = leave SDK default untouched.
    */
   41: optional i32 portUpHoldoffTimeMs;
+  // UEC Link Layer Retry: name of the LlrConfig profile to apply to this port.
+  // Presence enables LLR on the port (UE Spec 1.0.2 section 5.1).
+  42: optional LlrConfigName llrConfigName;
+
+  // Controls whether TX precoding settings from the platform mapping are
+  // applied to the port.
+  43: optional bool txPrecoding;
+  // Controls whether RX precoding settings from the platform mapping are
+  // applied to the port.
+  44: optional bool rxPrecoding;
+
+  /*
+   * Whether link status changes on this port are noticed by the SDK's
+   * software linkscan thread or by the ASIC.
+   * Unset = leave whatever the SDK came up with untouched.
+   */
+  45: optional LinkScanMode linkScanMode;
 }
 
 enum LacpPortRate {
@@ -1609,6 +1666,7 @@ enum AsicType {
   ASIC_TYPE_QUMRAN4D = 23,
   ASIC_TYPE_JERICHO4 = 24,
   ASIC_TYPE_CHENAB2 = 25,
+  ASIC_TYPE_P200 = 26,
 }
 /**
  * The configuration for an interface
@@ -1676,7 +1734,6 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
-  20: optional string desiredPeerAddressIPv4;
 }
 
 struct StaticRouteWithNextHops {
@@ -2068,6 +2125,12 @@ struct SwitchSettings {
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
   36: optional PacketForwardingMode packetForwardingMode;
+  // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
+  // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
+  37: optional i32 ecmpWidth;
+  // Prevents an L3 ECMP group from load balancing a packet back out the port
+  // it was received on. Only applies to ECMP groups
+  38: optional bool l3EcmpIngressPortPrune;
 }
 
 // Global buffer pool
@@ -2338,6 +2401,52 @@ struct PortFlowletConfig {
   3: i16 queueWeight;
 }
 
+// Behavior for LLR-desired frames while the LLR TX state machine is in the
+// INIT or FLUSH state (UE Spec 1.0.2 section 5.1.5).
+//
+// The spec permits all three in both states. Tomahawk Ultra accepts only INIT
+// in {BLOCK, BEST_EFFORT} and FLUSH in {BLOCK}, rejecting anything else at SAI
+// profile create. Broadcom confirmed in CS00012472686 that this is a hardware
+// design limit rather than an SDK gap, and that TU2 behaves the same.
+enum LlrFrameAction {
+  DISCARD = 0,
+  BLOCK = 1,
+  BEST_EFFORT = 2,
+}
+
+// UEC Link Layer Retry (LLR) profile: the configuration registers defined in
+// UE Spec 1.0.2 section 5.1.4 (Table 5-9). Referenced per-port by name via
+// Port.llrConfigName.
+struct LlrConfig {
+  // Fields backed by a u32 SAI attribute use i64: thrift has no unsigned type,
+  // and i32 cannot represent the full 0..2^32-1 range. ApplyThriftConfig
+  // validates each field against its SAI attribute width (see validateLlrConfig).
+  // Max unacknowledged frames held in the replay buffer (outstanding_seq_max).
+  1: i64 outstandingFramesMax;
+  // Max unacknowledged bytes; SHOULD be the link bandwidth-delay product so
+  // pause/PFC keep working (outstanding_data_max).
+  2: i64 outstandingBytesMax;
+  // Timer (ns) after which a replay is initiated (replay_timer_max).
+  3: i64 replayTimerMax;
+  // Max replays before entering FLUSH; 255 = unlimited (replay_ct_max).
+  // Meta sim study recommends >= 2.
+  4: i16 replayCountMax = 2;
+  // PCS-lost duration (ns) before FLUSH (pcs_lost_status_timer_max).
+  5: i64 pcsLostTimeout;
+  // Max time (ns) a frame may reside in the replay buffer (data_age_timer_max).
+  6: i64 dataAgeTimeout;
+  // Action for LLR-desired frames in INIT state (llr_init_behavior).
+  7: LlrFrameAction initFrameAction = LlrFrameAction.BEST_EFFORT;
+  // Action for LLR-desired frames in FLUSH state (llr_flush_behavior). BLOCK is
+  // the only value Tomahawk Ultra accepts, hence the default; see
+  // LlrFrameAction.
+  8: LlrFrameAction flushFrameAction = LlrFrameAction.BLOCK;
+  // Re-initialize LLR on FLUSH (re_init_on_discard).
+  9: bool reInitOnFlush = false;
+  // Target bytes between successive ACK/NACK CtlOS (ctlos_target_spacing).
+  10: i32 ctlosTargetSpacing = 2048;
+}
+
 enum SwitchingMode {
   // flowlet regular quality based reassignments
   FLOWLET_QUALITY = 0,
@@ -2391,6 +2500,13 @@ struct FlowletSwitchingConfig {
   18: optional i32 maxArsVirtualGroupWidth;
   // maximum number of ARS virtual groups
   19: optional i32 maxArsVirtualGroups;
+  // standby DLB group switching mode
+  20: optional SwitchingMode standbySwitchingMode;
+  // wait for lack of activity interval on the flow before load balancing,
+  // for standby DLB groups
+  21: optional i16 standbyInactivityIntervalUsecs;
+  // flow set table size for standby DLB groups
+  22: optional i16 standbyFlowletTableSize;
 }
 
 /*
@@ -2540,4 +2656,7 @@ struct SwitchConfig {
   58: optional list<StaticMacEntry> staticMacAddrs;
   59: optional list<Srv6Tunnel> srv6Tunnels;
   60: optional MySidConfig mySidConfig;
+  // Named UEC Link Layer Retry (LLR) profiles, referenced per-port by
+  // Port.llrConfigName (UE Spec 1.0.2 section 5.1).
+  61: optional map<LlrConfigName, LlrConfig> llrConfigs;
 }

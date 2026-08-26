@@ -29,6 +29,11 @@ static const std::string getPlatformMappingStr(bool multiNpuPlatformMapping) {
       XLOG(INFO) << "Using Test Single NPU Platform Mapping";
       return kJsonSingleNpuTestPlatformMappingStr;
     }
+    if (FLAGS_fabric_ports_uniform_local_offset) {
+      XLOG(INFO)
+          << "Using Prod Single NPU Fabric Uniform Local Offset Platform Mapping";
+      return kJsonSingleNpuProdFabricUniformLocalOffsetPlatformMappingStr;
+    }
     XLOG(INFO) << "Using Prod Single NPU Platform Mapping";
     return kJsonSingleNpuProdPlatformMappingStr;
   }

@@ -115,17 +115,17 @@ TEST_F(CmdShowLldpTestFixture, createModel) {
 
   EXPECT_EQ(entries.size(), 5);
 
-  EXPECT_EQ(entries[0].get_localPort(), "eth1/1/1");
-  EXPECT_EQ(entries[0].get_systemName(), "fsw001.p001.f01.atn1");
-  EXPECT_EQ(entries[0].get_remotePort(), "Ethernet3/2/1");
+  EXPECT_EQ(entries[0].localPort().value(), "eth1/1/1");
+  EXPECT_EQ(entries[0].systemName().value(), "fsw001.p001.f01.atn1");
+  EXPECT_EQ(entries[0].remotePort().value(), "Ethernet3/2/1");
 
-  EXPECT_EQ(entries[1].get_localPort(), "eth2/1/1");
-  EXPECT_EQ(entries[1].get_systemName(), "fsw002.p001.f01.atn1");
-  EXPECT_EQ(entries[1].get_remotePort(), "Ethernet3/2/1");
+  EXPECT_EQ(entries[1].localPort().value(), "eth2/1/1");
+  EXPECT_EQ(entries[1].systemName().value(), "fsw002.p001.f01.atn1");
+  EXPECT_EQ(entries[1].remotePort().value(), "Ethernet3/2/1");
 
-  EXPECT_EQ(entries[2].get_localPort(), "eth3/1/1");
-  EXPECT_EQ(entries[2].get_systemName(), "fsw003.p001.f01.atn1");
-  EXPECT_EQ(entries[2].get_remotePort(), "Ethernet3/2/1");
+  EXPECT_EQ(entries[2].localPort().value(), "eth3/1/1");
+  EXPECT_EQ(entries[2].systemName().value(), "fsw003.p001.f01.atn1");
+  EXPECT_EQ(entries[2].remotePort().value(), "Ethernet3/2/1");
 }
 
 TEST_F(CmdShowLldpTestFixture, printOutput) {
@@ -145,6 +145,13 @@ TEST_F(CmdShowLldpTestFixture, printOutput) {
       " eth3/2/1   up      fsw004.p001    fsw004.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw004.p001 (F=spine:L=d-051) \n"
       " eth3/10/1  up      fsw005.p001    fsw005.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw005.p001 (F=spine:L=d-051) \n\n";
   EXPECT_EQ(output, expectOutput);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowLldpTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowLldpTraits::description().empty());
+  EXPECT_FALSE(CmdShowLldp::sampleModel().lldpEntries()->empty());
 }
 
 } // namespace facebook::fboss

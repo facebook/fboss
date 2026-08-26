@@ -70,30 +70,21 @@ class NeighborUpdater : public StateObserver {
   void processVlanUpdates(const StateDelta& stateDelta);
 
   // Zero-cost forwarders. See comment in NeighborUpdater-defs.h.
-#define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
-#define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
-#define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)
-#define ARG_NAME_ONLY(TYPE, NAME) NAME
-#define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...)           \
-  VISIBILITY:                                                                 \
-  template <ARG_LIST(ARG_TEMPLATE_PARAMETER, ##__VA_ARGS__)>                  \
-  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME(                        \
-      ARG_LIST(ARG_RVALUE_REF_TYPE, ##__VA_ARGS__)) {                         \
-    return folly::via(sw_->getNeighborCacheEvb(), [=, impl = this->impl_]() { \
-      return std::visit(                                                      \
-          [&](auto&& arg) {                                                   \
-            return arg.NAME(ARG_LIST(ARG_NAME_ONLY, ##__VA_ARGS__));          \
-          },                                                                  \
-          *impl);                                                             \
-    });                                                                       \
-  }
-
-#define NEIGHBOR_UPDATER_METHOD_NO_ARGS(VISIBILITY, NAME, RETURN_TYPE)     \
-  VISIBILITY:                                                              \
-  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME() {                  \
-    return folly::via(sw_->getNeighborCacheEvb(), [impl = this->impl_]() { \
-      return std::visit([&](auto&& arg) { return arg.NAME(); }, *impl);    \
-    });                                                                    \
+#define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, PARAMS)  \
+  VISIBILITY:                                                           \
+  template <typename... Args>                                           \
+  folly::Future<folly::lift_unit_t<RETURN_TYPE>> NAME(Args&&... args) { \
+    return folly::via(                                                  \
+        sw_->getNeighborCacheEvb(),                                     \
+        [impl = this->impl_,                                            \
+         ... capturedArgs =                                             \
+             std::forward<Args>(args)]() mutable -> RETURN_TYPE {       \
+          return std::visit(                                            \
+              [&](auto& updater) -> RETURN_TYPE {                       \
+                return updater.NAME(std::move(capturedArgs)...);        \
+              },                                                        \
+              *impl);                                                   \
+        });                                                             \
   }
 #include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD

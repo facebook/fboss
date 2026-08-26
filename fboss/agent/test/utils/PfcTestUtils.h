@@ -35,13 +35,30 @@ struct PfcBufferParams {
       int globalHeadroom = kGlobalHeadroomBytes);
 };
 
-void setupPfcBuffers(
-    const TestEnsembleIf* ensemble,
-    cfg::SwitchConfig& cfg,
-    const std::vector<PortID>& ports,
-    const std::vector<int>& losslessPgIds,
-    const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride = {});
+// Selects how ingress traffic is classified into traffic classes. Pcp
+// classifies by 802.1p priority and, because the two are mutually exclusive at
+// the QoS-map level, also suppresses the DSCP -> TC map (which would otherwise
+// bind switch-wide on platforms with global QoS maps and take precedence).
+enum class PfcIngressClassification {
+  Dscp,
+  Pcp,
+};
+
+// Overrides for the QoS maps programmed by the PFC setup helpers. Each map is
+// merged on top of the corresponding default identity mapping; specify only the
+// entries that differ.
+struct PfcQosMapParams {
+  // Traffic class -> priority group.
+  std::map<int, int> tcToPg;
+  // PFC priority -> priority group.
+  std::map<int, int> pfcPriToPg;
+  // PFC priority -> queue.
+  std::map<int, int> pfcPriToQueue;
+  // How ingress traffic is classified into traffic classes.
+  PfcIngressClassification classification = PfcIngressClassification::Dscp;
+  // PCP (802.1p) -> traffic class (only used when classification is Pcp).
+  std::map<int, int> pcpToTc;
+};
 
 void setupPfcBuffers(
     const TestEnsembleIf* ensemble,
@@ -49,8 +66,16 @@ void setupPfcBuffers(
     const std::vector<PortID>& ports,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const std::map<int, int>& tcToPgOverride,
-    PfcBufferParams buffer);
+    const PfcQosMapParams& qosMapParams = {});
+
+void setupPfcBuffers(
+    const TestEnsembleIf* ensemble,
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports,
+    const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
+    PfcBufferParams buffer,
+    const PfcQosMapParams& qosMapParams = {});
 
 void addPuntPfcPacketAcl(cfg::SwitchConfig& cfg, uint16_t queueId);
 

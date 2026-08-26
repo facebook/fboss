@@ -95,10 +95,11 @@ TEST_F(HwmonTest, HwmonSensors) {
 
         // Check that all expected features are present
         for (const auto& feature : *hwmonTestData.expectedFeatures()) {
-          ASSERT_TRUE(
+          EXPECT_TRUE(
               std::find(featureNames.begin(), featureNames.end(), feature) !=
               featureNames.end())
-              << "Hwmon device " << busNum << "-"
+              << "Hwmon device (" << *i2cDevice.pmName() << ", "
+              << *i2cDevice.deviceName() << ") " << busNum << "-"
               << i2cDevice.address()->substr(2)
               << " Expected to find sensor value: " << feature
               << ". Got: " << fmt::format("{}", fmt::join(featureNames, ", "));

@@ -5,7 +5,11 @@
 extern "C" {
 #include <sai.h>
 
+#if defined(TAJO_SDK_GTE_26_5)
+#include <saiextensions.h>
+#else
 #include <experimental/sai_attr_ext.h>
+#endif
 }
 
 namespace facebook::fboss {
@@ -341,6 +345,16 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
   return std::nullopt;
 }
@@ -418,4 +432,15 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeCablePropagationDelayMeasurement::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+  return std::nullopt;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 } // namespace facebook::fboss

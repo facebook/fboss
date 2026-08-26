@@ -47,6 +47,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "port_llr_profile_store_test",
+    srcs = [
+        "PortLlrProfileStoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "buffer_store_test",
     srcs = [
         "BufferStoreTest.cpp",

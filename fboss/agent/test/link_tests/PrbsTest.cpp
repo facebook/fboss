@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <chrono>
 #include "fboss/agent/AgentFeatures.h"
@@ -392,7 +393,7 @@ class PrbsTest : public LinkTest {
           break;
         }
         auto prbsStats = stats[testPort.portName];
-        if (prbsStats.get_timeCollected() <= timeReference) {
+        if (prbsStats.timeCollected().value() <= timeReference) {
           updated = false;
           break;
         }
@@ -435,7 +436,7 @@ class PrbsTest : public LinkTest {
       time_t testStartTime) {
     ASSERT_FALSE(stats.laneStats().value().empty());
     for (const auto& laneStat : stats.laneStats().value()) {
-      XLOG(DBG2) << folly::sformat(
+      XLOG(DBG2) << fmt::format(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
           interfaceName,
           apache::thrift::util::enumNameSafe(component),
@@ -445,20 +446,22 @@ class PrbsTest : public LinkTest {
           folly::copy(laneStat.ber().value()),
           folly::copy(laneStat.maxBer().value()),
           folly::copy(laneStat.timeSinceLastLocked().value()));
-      EXPECT_TRUE(laneStat.get_locked());
+      EXPECT_TRUE(folly::copy(laneStat.locked().value()));
       auto currentTime = std::time(nullptr);
       EXPECT_LE(
-          laneStat.get_timeSinceLastLocked(), currentTime - testStartTime);
+          laneStat.timeSinceLastLocked().value(), currentTime - testStartTime);
       if (!initial) {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
         EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
         auto berThreshold = FLAGS_link_stress_test ? 5e-7 : 1;
         EXPECT_TRUE(
-            laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
+            laneStat.ber().value() >= 0 &&
+            laneStat.ber().value() < berThreshold);
         EXPECT_TRUE(
-            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < berThreshold);
-        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+            laneStat.maxBer().value() >= 0 &&
+            laneStat.maxBer().value() < berThreshold);
+        EXPECT_TRUE(laneStat.ber().value() <= laneStat.maxBer().value());
       }
     }
   }

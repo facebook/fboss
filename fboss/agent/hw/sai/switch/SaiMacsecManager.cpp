@@ -815,17 +815,22 @@ void SaiMacsecManager::setupMacsec(
     }
   };
 
-  if (sak.keyHex()->size() < 32) {
-    XLOG(ERR) << "Macsec key can't be lesser than 32 bytes";
+  // keyHex is a hex string: a 32-byte AES-256 key is 64 hex chars. The prior
+  // check compared the hex char count against the byte count, so a 32-char
+  // (16-byte) key was accepted and only the low half of the 256-bit key was
+  // populated. Require the exact hex length before decoding.
+  if (sak.keyHex()->size() != 64) {
+    XLOG(ERR) << "Macsec key must be exactly 64 hex chars (32 bytes)";
     return;
   }
   std::array<uint8_t, 32> key{0};
   hexStringToBytes(sak.keyHex().value(), key.data(), 32);
 
   // Input macsec keyid (auth key) is provided in string which needs to be
-  // converted to 16 byte array for passing to sai
-  if (sak.keyIdHex()->size() < 16) {
-    XLOG(ERR) << "Macsec key Id can't be lesser than 16 bytes";
+  // converted to 16 byte array for passing to sai. A 16-byte key id is 32 hex
+  // chars.
+  if (sak.keyIdHex()->size() != 32) {
+    XLOG(ERR) << "Macsec key Id must be exactly 32 hex chars (16 bytes)";
     return;
   }
 
@@ -859,7 +864,7 @@ void SaiMacsecManager::setupMacsec(
 
   // Step6: Create ACL entry (if does not exist)
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-      aclTable, kMacsecAclPriority);
+      aclTable, kMacsecAclPriority, aclName);
   if (!aclEntryHandle) {
     if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
       // For the ingress direction create one ACL rule to match MACSEC packets
@@ -874,8 +879,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           ethTypeMacsec);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     } else {
@@ -888,8 +893,8 @@ void SaiMacsecManager::setupMacsec(
           std::nullopt /* dstMac */,
           std::nullopt /* etherType */);
 
-      auto aclEntryId =
-          managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+      auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+          aclEntry, aclName, nullptr /*state*/);
       XLOG(DBG2) << "For SCI: " << sciKeyString << ", created macsec "
                  << direction << " ACL entry " << aclEntryId;
     }
@@ -1048,7 +1053,8 @@ void SaiMacsecManager::setupAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "For linePort: " << linePort << ", created "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")
@@ -1075,8 +1081,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeMka{cfg::EtherType::EAPOL};
   auto aclEntry = createMacsecControlAclEntry(
       kMacsecMkaAclPriority, aclName, std::nullopt /* dstMac */, ethTypeMka);
-  auto aclEntryId =
-      managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1086,7 +1092,8 @@ void SaiMacsecManager::setupAclControlPacketRules(
   cfg::EtherType ethTypeLldp{cfg::EtherType::LLDP};
   aclEntry = createMacsecControlAclEntry(
       kMacsecLldpAclPriority, aclName, std::nullopt /* dstMac */, ethTypeLldp);
-  aclEntryId = managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+  aclEntryId = managerTable_->aclTableManager().addAclEntry(
+      aclEntry, aclName, nullptr /*state*/);
   XLOG(DBG2) << "For linePort: " << linePort << ", direction "
              << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                            : "Egress")
@@ -1112,7 +1119,7 @@ void SaiMacsecManager::setupDropUnencryptedRule(
   // Create the default lower priority ACL rule for inital data packets as
   // per dropUnencrypted value
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-      aclTable, kMacsecDefaultAclPriority);
+      aclTable, kMacsecDefaultAclPriority, aclName);
 
   // If aclEntryHandle exists for default data packet then it could be that the
   // dropUnencrypted value has changed
@@ -1142,8 +1149,8 @@ void SaiMacsecManager::setupDropUnencryptedRule(
 
     auto aclEntry = createMacsecRxDefaultAclEntry(
         kMacsecDefaultAclPriority, aclName, action);
-    auto aclEntryId =
-        managerTable_->aclTableManager().addAclEntry(aclEntry, aclName);
+    auto aclEntryId = managerTable_->aclTableManager().addAclEntry(
+        aclEntry, aclName, nullptr /*state*/);
     XLOG(DBG2) << "For linePort " << linePort << " direction "
                << (direction == SAI_MACSEC_DIRECTION_INGRESS ? "Ingress"
                                                              : "Egress")
@@ -1286,7 +1293,8 @@ void SaiMacsecManager::removeAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
             ? cfg::AclStage::INGRESS_MACSEC
-            : cfg::AclStage::EGRESS_MACSEC);
+            : cfg::AclStage::EGRESS_MACSEC,
+        nullptr /*state*/);
     XLOG(DBG2) << "Removed ACL table " << aclTableName;
   }
 }
@@ -1309,7 +1317,7 @@ void SaiMacsecManager::removeAclControlPacketRules(
     // Delete the control packet rules:
     // ACL table LLDP rule
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecLldpAclPriority);
+        aclTable, kMacsecLldpAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecLldpAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1318,7 +1326,7 @@ void SaiMacsecManager::removeAclControlPacketRules(
 
     // MKA rule
     aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecMkaAclPriority);
+        aclTable, kMacsecMkaAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecMkaAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1343,7 +1351,7 @@ void SaiMacsecManager::removeDropUnencryptedRule(
   if (aclTable) {
     // Remove the entry for default packet rule
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecDefaultAclPriority);
+        aclTable, kMacsecDefaultAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecDefaultAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1485,7 +1493,7 @@ void SaiMacsecManager::removeScAcls(
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (aclTable) {
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecAclPriority);
+        aclTable, kMacsecAclPriority, aclName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecAclPriority, aclName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
@@ -1681,9 +1689,11 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         managerTable_->aclTableManager().getAclTableHandle(aclTblName);
     if (aclTable) {
       // Lambda to get the ACL counter value
-      auto getAclCounter = [this, &aclTable](int prio) -> uint64_t {
+      auto getAclCounter =
+          [this, &aclTable, &aclTblName](int prio) -> uint64_t {
         auto aclEntryHandle =
-            managerTable_->aclTableManager().getAclEntryHandle(aclTable, prio);
+            managerTable_->aclTableManager().getAclEntryHandle(
+                aclTable, prio, aclTblName);
         if (aclEntryHandle) {
           auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
           auto aclCounterIdGot =

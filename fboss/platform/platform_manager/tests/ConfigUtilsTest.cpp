@@ -7,6 +7,7 @@
 #include <folly/testing/TestUtil.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/config_lib/MockConfigLib.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/helpers/MockPlatformFsUtils.h"
@@ -141,13 +142,29 @@ TEST_F(ConfigUtilsTest, GetConfigVerifiesPlatformName) {
   EXPECT_THROW(configUtils2.getConfig(), std::runtime_error);
 }
 
-// NOTE: This test verifies temporary backward-compatibility behavior.
-// When no stored config hash exists (first run after this change), we return
-// false to avoid triggering kmod reloads. This aligns with existing service
-// behavior. Once all units have the config hash file, this behavior will change
-// to trigger kmod reloading when the config hash file is missing.
+TEST_F(ConfigUtilsTest, GetConfigResolvesConfigAlias) {
+  // WEDGE800CNHP is distinct hardware that reuses WEDGE800CACT's config. With
+  // the real ConfigLib, a WEDGE800CNHP machine must load WEDGE800CACT's config
+  // (config alias) and pass the platform-name check.
+  ON_CALL(*mockPlatformNameLib_, getPlatformNameFromBios(_))
+      .WillByDefault(Return("WEDGE800CNHP"));
+  ConfigUtils configUtils(
+      std::make_shared<ConfigLib>(),
+      mockPlatformNameLib_,
+      mockPlatformFsUtils_);
+
+  PlatformConfig config;
+  ASSERT_NO_THROW(config = configUtils.getConfig());
+  EXPECT_EQ(*config.platformName(), "WEDGE800CACT");
+}
+
+// When no stored config hash exists (e.g. the config hash file is missing or
+// cannot be read), we cannot determine whether the config has changed. In that
+// case we conservatively treat the config as changed and return true, so that
+// kmods get reloaded rather than risking device creation failures from running
+// new config against stale kmods.
 // See ConfigUtils.cpp hasConfigChanged() for implementation details.
-TEST_F(ConfigUtilsTest, HasConfigChangedReturnsFalseWhenNoStoredHash) {
+TEST_F(ConfigUtilsTest, HasConfigChangedReturnsTrueWhenNoStoredHash) {
   setupMocksForGetConfig();
   ON_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillByDefault(Return(std::nullopt));
@@ -155,7 +172,7 @@ TEST_F(ConfigUtilsTest, HasConfigChangedReturnsFalseWhenNoStoredHash) {
   ConfigUtils configUtils(
       mockConfigLib_, mockPlatformNameLib_, mockPlatformFsUtils_);
 
-  EXPECT_FALSE(configUtils.hasConfigChanged());
+  EXPECT_TRUE(configUtils.hasConfigChanged());
 }
 
 TEST_F(ConfigUtilsTest, HasConfigChangedReturnsFalseWhenHashMatches) {

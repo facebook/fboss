@@ -5,10 +5,10 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwitchInfoUtils.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/FibInfo.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/MirrorOnDropReport.h"
@@ -163,6 +163,33 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::Port& port) const {
   return scope(PortID(*port.logicalID()));
 }
 
+// ACLs are scoped to all L3 switches unless they match on a qualifier tied to a
+// specific NPU. Today that is srcPort; add other NPU-specific ACL qualifiers
+// here as they need per-switch scoping.
+// Port 0 is the CPU port which is shared across all NPUs — ACLs referencing it
+// apply to all L3 switches.
+HwSwitchMatcher SwitchIdScopeResolver::scope(const cfg::AclEntry& acl) const {
+  if (auto srcPort = acl.srcPort()) {
+    if (*srcPort != 0) {
+      return scope(PortID(*srcPort));
+    }
+  }
+  return l3SwitchMatcher();
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<AclEntry>& acl) const {
+  if (!acl) {
+    return l3SwitchMatcher();
+  }
+  if (auto srcPort = acl->getSrcPort()) {
+    if (*srcPort != 0) {
+      return scope(PortID(*srcPort));
+    }
+  }
+  return l3SwitchMatcher();
+}
+
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::AggregatePort& aggPort) const {
   checkL3();
@@ -209,10 +236,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
   // TODO - restrict vlan scope to L3 switches
-  // Currently we create psuedo vlans on fabric switches
+  // Currently we create pseudo vlans on fabric switches
   if (vlan->getPortsInfo().empty()) {
     // VLANs corresponding to loopback intfs have no ports
-    // associated with them. Also Psuedo vlans created
+    // associated with them. Also Pseudo vlans created
     // on fabric switches don't have ports associated with them.
 
     // Return the first switchId.
@@ -433,6 +460,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const cfg::Srv6Tunnel& tunnel,
     const cfg::SwitchConfig& cfg) const {
+  if (*tunnel.tunnelType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = InterfaceID(*tunnel.underlayIntfID());
   for (const auto& intf : *cfg.interfaces()) {
     if (InterfaceID(*intf.intfID()) == intfId) {
@@ -446,6 +477,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Srv6Tunnel>& tunnel,
     const std::shared_ptr<SwitchState>& state) const {
+  if (tunnel->getType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = tunnel->getUnderlayIntfId();
   auto intf = state->getInterfaces()->getNode(intfId);
   return scope(intf, state);
@@ -454,6 +489,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Srv6Tunnel>& tunnel,
     const cfg::SwitchConfig& cfg) const {
+  if (tunnel->getType() == TunnelType::SRV6_DECAP) {
+    // A decap tunnel has no underlay interface; scope it to all L3 switches.
+    return l3SwitchMatcher();
+  }
   auto intfId = tunnel->getUnderlayIntfId();
   for (const auto& intf : *cfg.interfaces()) {
     if (InterfaceID(*intf.intfID()) == intfId) {

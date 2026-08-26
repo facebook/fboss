@@ -2,6 +2,10 @@
 
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 
+#if defined(SAI_BRCM_PAI_IMPL)
+#include <brcm_pai_extensions.h>
+#endif
+
 namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
@@ -317,6 +321,16 @@ SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeFirmwareObjectList::operator()() {
   return std::nullopt;
 }
@@ -395,9 +409,30 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
+  return std::nullopt;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::customDropBitmapStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+#if defined(SAI_BRCM_PAI_IMPL)
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSyncLockWrapper::operator()() {
+  return BRCM_PAI_SWITCH_ATTR_SYNC_LOCK;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSyncUnlockWrapper::operator()() {
+  return BRCM_PAI_SWITCH_ATTR_SYNC_UNLOCK;
+}
+#endif
 } // namespace facebook::fboss

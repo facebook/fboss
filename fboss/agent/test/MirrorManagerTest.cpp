@@ -124,6 +124,7 @@ class MirrorManagerTest : public ::testing::Test {
   }
 
   void verifyStateUpdate(Func func) {
+    waitForStateUpdates(sw_);
     runInUpdateEventBaseAndWait(std::move(func));
   }
 

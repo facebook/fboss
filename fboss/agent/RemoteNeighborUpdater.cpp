@@ -37,9 +37,15 @@ void RemoteNeighborUpdater::stateUpdated(const StateDelta& delta) {
         if (newNode->getType() != cfg::InterfaceType::SYSTEM_PORT) {
           return;
         }
+        if (newNode->getScope() != cfg::Scope::GLOBAL) {
+          return;
+        }
         changedIntfs.emplace_back(newNode->getID());
       },
       [&changedIntfs](auto newNode) {
+        if (newNode->getScope() != cfg::Scope::GLOBAL) {
+          return;
+        }
         changedIntfs.emplace_back(newNode->getID());
       },
       [](auto /*oldNode*/) {

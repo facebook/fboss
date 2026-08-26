@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -21,12 +22,14 @@ cpp_library(
     headers = [
         "PlatformCheck.h",
     ],
-    exported_deps = [
-        ":check_types-cpp2-types",
+    deps = [
         "//fboss/platform/config_lib:config_lib",
-        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":check_types-cpp2-types",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
     ],
 )
 
@@ -46,18 +49,20 @@ cpp_library(
         "checks/PowerResetCheck.h",
         "checks/i801SmbusTimeoutCheck.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
-        ":platform_check",
         "//common/config:configerator",
         "//configerator/structs/fboss/fboss_platform:kernel_versions-cpp2-types",
+        "//fboss/platform/weutil:config_utils_lib",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":platform_check",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
-        "//fboss/platform/weutil:config_utils_lib",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly:network_address",
-        "//folly/logging:logging",
     ],
 )
 
@@ -66,6 +71,7 @@ cpp_unittest(
     srcs = [
         "tests/MacAddressCheckTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
@@ -77,6 +83,7 @@ cpp_unittest(
     srcs = [
         "tests/PciDeviceCheckTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
@@ -89,6 +96,7 @@ cpp_unittest(
     srcs = [
         "tests/PowerResetCheckTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
@@ -102,6 +110,7 @@ cpp_unittest(
     srcs = [
         "tests/KernelVersionCheckTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
@@ -113,6 +122,7 @@ cpp_unittest(
     srcs = [
         "tests/i801SmbusTimeoutCheckTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",

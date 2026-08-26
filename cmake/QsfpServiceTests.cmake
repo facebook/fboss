@@ -77,3 +77,26 @@ target_link_libraries(transceiver_state_machine_test
 )
 
 gtest_discover_tests(transceiver_state_machine_test)
+
+add_executable(cpo_transceiver_manager_test
+  fboss/util/oss/TestMain.cpp
+  fboss/qsfp_service/test/CpoTransceiverManagerTest.cpp
+)
+
+target_link_libraries(cpo_transceiver_manager_test
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+  transceiver_manager_test_helper
+  platform_mapping
+  transceiver_manager
+  qsfp_module
+  fake_transceiver_impl
+  Folly::folly
+)
+
+# CpoTransceiverManagerTest reads the checked-in example CPO platform mapping
+# JSON via a repo-relative path (folly::readFile), so run the discovered tests
+# from the source root where fboss/lib/.../*.json resolves.
+gtest_discover_tests(cpo_transceiver_manager_test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)

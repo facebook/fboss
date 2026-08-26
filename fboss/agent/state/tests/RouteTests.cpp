@@ -47,6 +47,8 @@ using ::testing::Return;
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
+
 // Utility function for creating a nexthops list of size n,
 // starting with the prefix.  For prefix "1.1.1.", first
 // IP in the list will be 1.1.1.10
@@ -597,7 +599,7 @@ TEST(Route, serializeRouteWithSrv6NextHops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
   nhops.emplace(
       ResolvedNextHop(folly::IPAddress("11.11.11.11"), InterfaceID(2), 20));
 
@@ -625,7 +627,7 @@ TEST(Route, routeForwardInfoPreservesSrv6Fields) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   RouteNextHopEntry nhopEntry(nhops, DISTANCE);
   Route<IPAddressV4> rt(
@@ -639,7 +641,7 @@ TEST(Route, routeForwardInfoPreservesSrv6Fields) {
   const auto& nh = *fwdNhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST(Route, RouteNextHopsMultiWithSrv6) {
@@ -656,7 +658,7 @@ TEST(Route, RouteNextHopsMultiWithSrv6) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   RouteNextHopsMulti nhm;
   nhm.update(CLIENT_A, RouteNextHopEntry(nhops, DISTANCE));
@@ -669,7 +671,7 @@ TEST(Route, RouteNextHopsMultiWithSrv6) {
   const auto& nh = *bestNhops.begin();
   EXPECT_EQ(nh.srv6SegmentList(), segList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
@@ -688,7 +690,7 @@ TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
       std::nullopt,
       segList,
       TunnelType::SRV6_ENCAP,
-      std::string("tunnel_1")));
+      kSrv6Tunnel0));
 
   auto unicastRoute =
       util::toUnicastRoute(nw, RouteNextHopEntry(nhops, DISTANCE));
@@ -698,5 +700,5 @@ TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
   const auto& thriftNh = unicastRoute.nextHops()->at(0);
   EXPECT_EQ(thriftNh.srv6SegmentList()->size(), 2);
   EXPECT_EQ(thriftNh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(thriftNh.tunnelId(), "tunnel_1");
+  EXPECT_EQ(thriftNh.tunnelId(), kSrv6Tunnel0);
 }

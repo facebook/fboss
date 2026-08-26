@@ -8,6 +8,8 @@
  *
  */
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
+#include <gflags/gflags.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -202,6 +204,45 @@ TEST(SwitchSettingsTest, applyPacketForwardingMode) {
   auto switchSettingsV3 = utility::getFirstNodeIf(stateV3->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV3);
   EXPECT_FALSE(switchSettingsV3->getPacketForwardingMode().has_value());
+}
+
+TEST(SwitchSettingsTest, applyL3EcmpIngressPortPrune) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Unset when the config does not carry the field
+  cfg::SwitchConfig config;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->getL3EcmpIngressPortPrune().has_value());
+
+  config.switchSettings()->l3EcmpIngressPortPrune() = true;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_FALSE(switchSettingsV2->isPublished());
+  ASSERT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().value());
+
+  // A configured false is carried through as false, not as unset
+  config.switchSettings()->l3EcmpIngressPortPrune() = false;
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  auto switchSettingsV3 = utility::getFirstNodeIf(stateV3->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV3);
+  ASSERT_TRUE(switchSettingsV3->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_FALSE(switchSettingsV3->getL3EcmpIngressPortPrune().value());
+
+  // Dropping the field from config resets the state back to unset
+  config.switchSettings()->l3EcmpIngressPortPrune().reset();
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  EXPECT_NE(nullptr, stateV4);
+  auto switchSettingsV4 = utility::getFirstNodeIf(stateV4->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV4);
+  EXPECT_FALSE(switchSettingsV4->getL3EcmpIngressPortPrune().has_value());
 }
 
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
@@ -879,4 +920,83 @@ TEST(SwitchSettingsTest, applyDefaultVoqConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   verifyAqmsEcnState(stateV2, 300000, 300000);
+}
+
+TEST(SwitchSettingsTest, ecmpWidthGetterSetterRoundTrip) {
+  auto settings = make_shared<SwitchSettings>();
+  EXPECT_FALSE(settings->getEcmpWidth().has_value());
+
+  settings->setEcmpWidth(128);
+  ASSERT_TRUE(settings->getEcmpWidth().has_value());
+  EXPECT_EQ(128, *settings->getEcmpWidth());
+
+  settings->setEcmpWidth(std::nullopt);
+  EXPECT_FALSE(settings->getEcmpWidth().has_value());
+}
+
+TEST(SwitchSettingsTest, applyEcmpWidthFromGflag) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  FLAGS_ecmp_width = 128;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  ASSERT_TRUE(switchSettingsV1->getEcmpWidth().has_value());
+  EXPECT_EQ(128, *switchSettingsV1->getEcmpWidth());
+
+  FLAGS_ecmp_width = 64;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_EQ(64, *switchSettingsV2->getEcmpWidth());
+}
+
+TEST(SwitchSettingsTest, applyEcmpWidthFromConfig) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  // Config value must win over the gflag.
+  FLAGS_ecmp_width = 64;
+  config.switchSettings()->ecmpWidth() = 512;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  ASSERT_TRUE(switchSettingsV1->getEcmpWidth().has_value());
+  EXPECT_EQ(512, *switchSettingsV1->getEcmpWidth());
+}
+
+TEST(SwitchSettingsTest, rejectNonPositiveEcmpWidth) {
+  gflags::FlagSaver flagSaver;
+
+  auto platform = createMockPlatform();
+  FLAGS_ecmp_width = 64;
+  for (const auto invalidEcmpWidth : {-1, 0}) {
+    auto state = make_shared<SwitchState>();
+    cfg::SwitchConfig config;
+    config.switchSettings()->ecmpWidth() = invalidEcmpWidth;
+    EXPECT_THROW(
+        publishAndApplyConfig(state, &config, platform.get()), FbossError);
+  }
+}
+
+TEST(SwitchSettingsTest, ecmpWidthSerializesToThrift) {
+  auto settings = make_shared<SwitchSettings>();
+  settings->setEcmpWidth(256);
+
+  auto thrift = settings->toThrift();
+  ASSERT_TRUE(thrift.ecmpWidth().has_value());
+  EXPECT_EQ(256, *thrift.ecmpWidth());
+
+  auto unset = make_shared<SwitchSettings>();
+  EXPECT_FALSE(unset->toThrift().ecmpWidth().has_value());
 }

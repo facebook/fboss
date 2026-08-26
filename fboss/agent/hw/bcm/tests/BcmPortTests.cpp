@@ -17,6 +17,8 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <bcm/port.h>
 }
@@ -135,15 +137,6 @@ TEST_F(BcmPortTest, PortLoopbackModeMAC40G) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
-    return;
-  }
-
-  if (true) {
-    // Changing loopback mode to MAC on a 40G port on trident2 changes
-    // the speed to 10G unexpectedly. Ignore this test for now...
-    //
-    // Broadcom case: CS8832244
-    //
     return;
   }
 
@@ -466,7 +459,7 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
               &currVal);
           bcmCheckError(
               rv,
-              folly::sformat(
+              fmt::format(
                   "Failed to get {} for port {} : {}",
                   std::get<0>(l3Option),
                   static_cast<int>(port.second->getID()),

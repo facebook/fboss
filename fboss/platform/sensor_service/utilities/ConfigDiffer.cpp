@@ -108,9 +108,9 @@ void ConfigDiffer::compareVersionedSensors(
     auto versionInfo = fmt::format(
         "default{}v{}.{}.{}",
         kArrow,
-        *versionedSensor.productProductionState(),
-        *versionedSensor.productVersion(),
-        *versionedSensor.productSubVersion());
+        *versionedSensor.productionState(),
+        *versionedSensor.productionSubState(),
+        *versionedSensor.respinVariantIndicator());
 
     comparePmSensors(
         *defaultConfig->sensors(),

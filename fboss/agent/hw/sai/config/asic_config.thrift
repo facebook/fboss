@@ -1,5 +1,8 @@
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_asic_config_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 
@@ -8,7 +11,6 @@ namespace py3 neteng.fboss.asic_config
 namespace py.asyncio neteng.fboss.asyncio.asic_config
 namespace cpp2 facebook.fboss.asic
 namespace go neteng.fboss.asic_config
-namespace php fboss_asic_config
 
 struct AsicRxSettings {
   1: string stage;

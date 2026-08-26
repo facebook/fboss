@@ -490,6 +490,23 @@ class SwitchSettings
     }
   }
 
+  std::optional<bool> getL3EcmpIngressPortPrune() const {
+    if (auto l3EcmpIngressPortPrune =
+            cref<switch_state_tags::l3EcmpIngressPortPrune>()) {
+      return l3EcmpIngressPortPrune->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setL3EcmpIngressPortPrune(std::optional<bool> l3EcmpIngressPortPrune) {
+    if (!l3EcmpIngressPortPrune) {
+      ref<switch_state_tags::l3EcmpIngressPortPrune>().reset();
+    } else {
+      set<switch_state_tags::l3EcmpIngressPortPrune>(
+          l3EcmpIngressPortPrune.value());
+    }
+  }
+
   std::optional<bool> getCreditWatchdog() const {
     if (auto creditWatchdog = cref<switch_state_tags::creditWatchdog>()) {
       return creditWatchdog->toThrift();
@@ -744,6 +761,21 @@ class SwitchSettings
     } else {
       set<switch_state_tags::ecmpCompressionThresholdPct>(
           *ecmpCompressionThresholdPct);
+    }
+  }
+
+  std::optional<int32_t> getEcmpWidth() const {
+    if (auto ecmpWidth = cref<switch_state_tags::ecmpWidth>()) {
+      return ecmpWidth->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setEcmpWidth(std::optional<int32_t> ecmpWidth) {
+    if (!ecmpWidth) {
+      ref<switch_state_tags::ecmpWidth>().reset();
+    } else {
+      set<switch_state_tags::ecmpWidth>(*ecmpWidth);
     }
   }
   std::optional<std::map<int32_t, int32_t>> getTcToRateLimitKbps() const {

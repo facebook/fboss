@@ -18,18 +18,14 @@
 
 namespace facebook::fboss {
 void HwSwitchConnectionStatusTable::connected(SwitchID switchId) {
-  bool isFirstConnection{false};
   {
     std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
-    if (connectedSwitches_.empty()) {
-      isFirstConnection = true;
-    }
     connectedSwitches_.insert(switchId);
   }
-  if (isFirstConnection) {
-    // notify the waiting thread
-    hwSwitchConnectedCV_.notify_one();
-  }
+  // Waiters block on different thresholds and more than one can be blocked at
+  // a time, so every connection is potentially the one that releases a waiter
+  // and every waiter has to re-check.
+  hwSwitchConnectedCV_.notify_all();
   auto switchIndex =
       sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
   sw_->stats()->hwAgentConnectionStatus(switchIndex, true /*connected*/);
@@ -83,24 +79,25 @@ bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   return true;
 }
 
-bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {
+bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected(
+    size_t numSwitches) {
   std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
-  if (!connectedSwitches_.empty()) {
+  auto enough = [this, numSwitches] {
+    return connectedSwitches_.size() >= numSwitches;
+  };
+  if (enough()) {
     return true;
   }
+  auto done = [&enough, this] { return enough() || connectionWaitCancelled_; };
   if (FLAGS_hw_agent_connection_timeout_ms != 0) {
     hwSwitchConnectedCV_.wait_for(
         lk,
         std::chrono::milliseconds(FLAGS_hw_agent_connection_timeout_ms),
-        [this] {
-          return !connectedSwitches_.empty() || connectionWaitCancelled_;
-        });
-    return !connectedSwitches_.empty() && !connectionWaitCancelled_;
+        done);
+    return enough() && !connectionWaitCancelled_;
   } else {
     // Wait forever for HwSwitch to connect
-    hwSwitchConnectedCV_.wait(lk, [this] {
-      return !connectedSwitches_.empty() || connectionWaitCancelled_;
-    });
+    hwSwitchConnectedCV_.wait(lk, done);
     return !connectionWaitCancelled_;
   }
 }
@@ -110,7 +107,9 @@ void HwSwitchConnectionStatusTable::cancelWait() {
     std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
     connectionWaitCancelled_ = true;
   }
-  hwSwitchConnectedCV_.notify_one();
+  // Cancellation releases every waiter, and waiters blocked on different
+  // connection counts can be waiting at once.
+  hwSwitchConnectedCV_.notify_all();
 }
 
 int HwSwitchConnectionStatusTable::getConnectionStatus(SwitchID switchId) {

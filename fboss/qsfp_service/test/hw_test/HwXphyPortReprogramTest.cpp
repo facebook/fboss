@@ -33,10 +33,13 @@ class HwXphyPortReprogramTest : public HwExternalPhyPortTest {
  * iterations, verifying correct teardown and reprogramming each cycle.
  */
 TEST_F(HwXphyPortReprogramTest, ProgramRemoveReprogramCycle) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::XPHY_PROGRAMMING});
   auto verify = [this]() {
     auto xphyPorts = findAvailableXphyPorts();
     ASSERT_FALSE(xphyPorts.empty())
         << "No available XPHY ports found for testing";
+    addTestedPorts(xphyPorts);
 
     auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
     auto* saiPhyManager = dynamic_cast<SaiPhyManager*>(phyManager);

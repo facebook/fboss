@@ -12,6 +12,10 @@
 
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
+extern "C" {
+#include "fboss/agent/hw/sai/api/fake/saifakeextensions.h"
+}
+
 using facebook::fboss::FakeCounter;
 using facebook::fboss::FakeSai;
 
@@ -30,6 +34,9 @@ sai_status_t set_counter_attribute_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     case SAI_COUNTER_ATTR_LABEL:
       counter.setLabel(attr);
+      break;
+    case SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED:
+      counter.setLabelExtended(attr);
       break;
 #endif
     default:
@@ -53,6 +60,13 @@ sai_status_t get_counter_attribute_fn(
       case SAI_COUNTER_ATTR_LABEL:
         counter.getLabel(&attr[i]);
         break;
+      case SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED: {
+        auto status = counter.getLabelExtended(&attr[i]);
+        if (status != SAI_STATUS_SUCCESS) {
+          return status;
+        }
+        break;
+      }
 #endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;

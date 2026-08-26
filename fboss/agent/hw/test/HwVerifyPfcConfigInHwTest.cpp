@@ -73,7 +73,7 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
       bool txEnable = true) {
     auto buffer = utility::PfcBufferParams::getPfcBufferParams(getAsicType());
     utility::setupPfcBuffers(
-        getHwSwitchEnsemble(), cfg, ports, kLosslessPgs(), {}, {}, buffer);
+        getHwSwitchEnsemble(), cfg, ports, kLosslessPgs(), {}, buffer);
 
     for (const auto& portID : ports) {
       auto portCfg = utility::findCfgPort(cfg, portID);

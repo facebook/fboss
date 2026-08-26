@@ -8,8 +8,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/Thrifty.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace {
 std::string getActualAclTableName(
@@ -129,8 +129,8 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
                                       ->aclTableManager();
     auto aclTableHandle =
         aclTableManager.getAclTableHandle(getActualAclTableName(*tableName));
-    auto aclEntryHandle =
-        aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+    auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+        aclTableHandle, swAcl->getPriority(), swAcl->getID());
     auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
     // Get counter corresponding to the ACL entry
@@ -342,8 +342,8 @@ bool HwTestThriftHandler::isAclEntrySame(
   auto tableName = aclTableName ? getActualAclTableName(*aclTableName)
                                 : getActualAclTableName(std::nullopt);
   auto aclTableHandle = aclTableManager.getAclTableHandle(tableName);
-  auto aclEntryHandle =
-      aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+  auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+      aclTableHandle, swAcl->getPriority(), swAcl->getID());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
   auto aclFieldPriorityExpected =

@@ -128,6 +128,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
         innerTrafficClass,
         255,
         std::nullopt,
+        0,
         payload);
   }
 };

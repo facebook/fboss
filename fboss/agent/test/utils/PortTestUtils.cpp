@@ -63,6 +63,10 @@ cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL:
       return cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG;
 
+    case cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER:
+      return cfg::PortSpeed::TWOHUNDREDANDTWELVEPOINTFIVEG;
+
     case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER:
@@ -146,6 +150,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_COPPER:
     case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_COPPER:
       return TransmitterTechnology::COPPER;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
@@ -171,6 +176,7 @@ TransmitterTechnology getMediaType(cfg::PortProfileID profile) {
     case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_212POINT5G_1_PAM4_RS544X2N_OPTICAL:
       return TransmitterTechnology::OPTICAL;
 
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC:

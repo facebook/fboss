@@ -221,7 +221,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   void sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
-      std::optional<uint8_t> queueId = std::nullopt) override;
+      std::optional<uint8_t> queueId = std::nullopt,
+      std::optional<SwitchID> switchId = std::nullopt) override;
 
   /*
    * Depending on the implementation of the underlying forwarding plane, it is

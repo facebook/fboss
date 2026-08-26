@@ -141,7 +141,18 @@ void FbossEepromInterface::parseEepromBlobTLV(
     }
 
     // Find Length and Variable (L and V)
+    // Check that we have space for the TLV header (Type + Length bytes)
+    if (static_cast<size_t>(cursor) + kEepromTypeLengthSize > buffer.size()) {
+      throw std::runtime_error(
+          "Truncated TLV header at position " + std::to_string(cursor));
+    }
     int itemLength = buffer[cursor + 1];
+    // Check that the TLV value region stays within buffer bounds
+    if (static_cast<size_t>(cursor) + kEepromTypeLengthSize + itemLength >
+        buffer.size()) {
+      throw std::runtime_error(
+          "TLV value exceeds buffer at position " + std::to_string(cursor));
+    }
     unsigned char* itemDataPtr =
         (unsigned char*)&buffer[cursor + kEepromTypeLengthSize];
     // Parse the value according to the itemType

@@ -20,6 +20,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 
@@ -45,6 +46,10 @@ DEFINE_bool(
     enable_capacity_pruning,
     false,
     "Enable path pruning based on capacity");
+DEFINE_bool(
+    enable_fpf_capacity_pruning,
+    false,
+    "Enable FPF (GTSW/STSW) per-STSW path pruning based on capacity");
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -97,7 +102,8 @@ RibRouteUpdater::RibRouteUpdater(
           FLAGS_nsf_num_parallel_rack_links,
           FLAGS_nsf_rack_id,
           FLAGS_nsf_num_spine_failures_to_skip,
-          FLAGS_nsf_spine_prune_step_count) {}
+          FLAGS_nsf_spine_prune_step_count,
+          FLAGS_enable_fpf_capacity_pruning) {}
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
@@ -117,7 +123,8 @@ RibRouteUpdater::RibRouteUpdater(
           FLAGS_nsf_num_parallel_rack_links,
           FLAGS_nsf_rack_id,
           FLAGS_nsf_num_spine_failures_to_skip,
-          FLAGS_nsf_spine_prune_step_count) {}
+          FLAGS_nsf_spine_prune_step_count,
+          FLAGS_enable_fpf_capacity_pruning) {}
 
 void RibRouteUpdater::update(
     const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
@@ -139,7 +146,7 @@ void RibRouteUpdater::update(
         (addItr == toAdd.end() ? std::vector<RouteEntry>() : addItr->second),
         (delItr == toDel.end() ? std::vector<folly::CIDRNetwork>()
                                : delItr->second),
-        resetClientsRoutesFor.find(client) != resetClientsRoutesFor.end());
+        resetClientsRoutesFor.contains(client));
   }
   updateDone();
 }
@@ -195,6 +202,53 @@ void RibRouteUpdater::releaseFwdSideNexthopSetIDs(
   }
 }
 
+std::optional<RouteNextHopEntry> RibRouteUpdater::stampClientNextHopSetID(
+    ClientID clientID,
+    const std::shared_ptr<const RouteNextHopEntry>& existingRouteForClient,
+    const RouteNextHopEntry& entry,
+    const std::string& routeDescription) {
+  if (!nextHopIDManager_) {
+    return std::nullopt;
+  }
+  std::optional<NextHopSetID> oldClientNextHopSetID = existingRouteForClient
+      ? existingRouteForClient->getClientNextHopSetID()
+      : std::nullopt;
+  // Resolve the existing entry's nexthops via the manager so the empty-check
+  // and same-nhops compare below stay correct once
+  // FLAGS_resolve_nexthops_from_id is on (inline storage would be empty).
+  const RouteNextHopSet existingNhops = existingRouteForClient
+      ? getClientNextHopsFromRib(nextHopIDManager_, *existingRouteForClient)
+      : RouteNextHopSet{};
+  // Existing per-client entry with non-empty nexthops must already carry
+  // an ID (allocated here or backfilled at warmboot).
+  if (existingRouteForClient && !existingNhops.empty()) {
+    CHECK(oldClientNextHopSetID.has_value())
+        << "Existing per-client entry for " << routeDescription << " client "
+        << static_cast<int>(clientID)
+        << " has non-empty nexthops but no clientNextHopSetID";
+  }
+  RouteNextHopEntry entryWithId(entry.toThrift());
+  std::optional<NextHopSetID> newClientNextHopSetID;
+  if (existingRouteForClient && oldClientNextHopSetID.has_value() &&
+      existingNhops == entry.getNextHopSet()) {
+    // Same nexthops as before: reuse existing ID, no manager call.
+    newClientNextHopSetID = oldClientNextHopSetID;
+  } else if (!entry.getNextHopSet().empty()) {
+    // Nexthop changes: alloc new (refcount++), then release old (refcount--).
+    auto allocResult =
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(entry.getNextHopSet());
+    newClientNextHopSetID = allocResult.nextHopIdSetIter->second.id;
+    if (oldClientNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldClientNextHopSetID);
+    }
+  } else if (oldClientNextHopSetID.has_value()) {
+    // New entry has empty nexthops (DROP / TO_CPU); release old ID.
+    nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldClientNextHopSetID);
+  }
+  entryWithId.setClientNextHopSetID(newClientNextHopSetID);
+  return entryWithId;
+}
+
 template <typename AddressT>
 void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
@@ -203,18 +257,28 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     const RouteNextHopEntry& entry) {
   auto it = routes->exactMatch(prefix.network(), prefix.mask());
 
+  std::shared_ptr<const RouteNextHopEntry> existingRouteForClient;
+  if (it != routes->end()) {
+    existingRouteForClient = it->value()->getEntryForClient(clientID);
+  }
+  auto stamped = stampClientNextHopSetID(
+      clientID, existingRouteForClient, entry, prefix.str());
+  const RouteNextHopEntry& finalEntry = stamped ? *stamped : entry;
+
   if (it != routes->end()) {
     auto route = it->value();
-    auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+    // Compare against the (possibly enriched) finalEntry so the no-op
+    // short-circuit still works after the ID has been stamped (operator==
+    // includes the ID).
+    if (!existingRouteForClient || *existingRouteForClient != finalEntry) {
       route = writableRoute<AddressT>(it);
-      route->update(clientID, entry);
+      route->update(clientID, finalEntry);
     }
     return;
   }
 
   routes->insert(
-      prefix, std::make_shared<Route<AddressT>>(prefix, clientID, entry));
+      prefix, std::make_shared<Route<AddressT>>(prefix, clientID, finalEntry));
 }
 
 void RibRouteUpdater::addOrReplaceRoute(
@@ -237,18 +301,28 @@ void RibRouteUpdater::addOrReplaceRoute(
     const RouteNextHopEntry& entry) {
   XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
   auto iter = mplsRoutes_->find(label);
+  std::shared_ptr<const RouteNextHopEntry> existingRouteForClient;
+  if (iter != mplsRoutes_->end()) {
+    existingRouteForClient = iter->second->getEntryForClient(clientID);
+  }
+  auto stamped = stampClientNextHopSetID(
+      clientID,
+      existingRouteForClient,
+      entry,
+      folly::to<std::string>("label=", static_cast<int>(label)));
+  const RouteNextHopEntry& finalEntry = stamped ? *stamped : entry;
+
   if (iter == mplsRoutes_->end()) {
     mplsRoutes_->emplace(
         std::make_pair(
             label,
             std::make_shared<Route<LabelID>>(
-                Route<LabelID>::makeThrift(label, clientID, entry))));
+                Route<LabelID>::makeThrift(label, clientID, finalEntry))));
   } else {
     auto& route = iter->second;
-    auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
+    if (!existingRouteForClient || *existingRouteForClient != finalEntry) {
       route = writableRoute<LabelID>(route);
-      route->update(clientID, entry);
+      route->update(clientID, finalEntry);
     }
   }
 }
@@ -507,7 +581,8 @@ struct NextHopCombinedWeightsKey {
         srv6SegmentList(nhop.srv6SegmentList()),
         tunnelType(nhop.tunnelType()),
         tunnelId(nhop.tunnelId()),
-        cost(nhop.cost()) {
+        cost(nhop.cost()),
+        role(nhop.role()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
@@ -522,7 +597,8 @@ struct NextHopCombinedWeightsKey {
                srv6SegmentList,
                tunnelType,
                tunnelId,
-               cost) <
+               cost,
+               role) <
         std::tie(
                other.ip,
                other.intfId,
@@ -532,7 +608,8 @@ struct NextHopCombinedWeightsKey {
                other.srv6SegmentList,
                other.tunnelType,
                other.tunnelId,
-               other.cost);
+               other.cost,
+               other.role);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
@@ -543,6 +620,7 @@ struct NextHopCombinedWeightsKey {
   std::optional<TunnelType> tunnelType;
   std::optional<std::string> tunnelId;
   std::optional<int64_t> cost;
+  NextHopRole role;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -602,7 +680,8 @@ RouteNextHopSet mergeForwardInfosEcmp(
           fnh.srv6SegmentList(),
           fnh.tunnelType(),
           fnh.tunnelId(),
-          fnh.cost()));
+          fnh.cost(),
+          fnh.role()));
     }
   }
   return fwd;
@@ -686,7 +765,8 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
         cw.first.srv6SegmentList,
         cw.first.tunnelType,
         cw.first.tunnelId,
-        cw.first.cost));
+        cw.first.cost,
+        cw.first.role));
   }
   return fwd;
 }
@@ -753,6 +833,26 @@ RouteNextHopSet mergeForwardInfos(
   }
   return fwd;
 }
+
+struct Srv6Encap {
+  std::vector<folly::IPAddressV6> segmentList;
+  std::optional<TunnelType> tunnelType;
+  std::optional<std::string> tunnelId;
+};
+
+// Prefer the parent next-hop's SRv6 encap; if the parent has none, inherit the
+// child's.
+template <typename NextHopT>
+Srv6Encap resolveSrv6Encap(
+    const std::vector<folly::IPAddressV6>& parentSegmentList,
+    const std::optional<TunnelType>& parentTunnelType,
+    const std::optional<std::string>& parentTunnelId,
+    const NextHopT& child) {
+  if (!parentSegmentList.empty()) {
+    return {parentSegmentList, parentTunnelType, parentTunnelId};
+  }
+  return {child.srv6SegmentList(), child.tunnelType(), child.tunnelId()};
+}
 } // anonymous namespace
 
 template <typename AddressT>
@@ -768,6 +868,8 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     const std::optional<TunnelType>& tunnelType,
     const std::optional<std::string>& tunnelId,
     const std::optional<int64_t>& cost,
+    NextHopRole role,
+    std::optional<RouteCounterID>* inheritedCounterID,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -779,7 +881,7 @@ void RibRouteUpdater::getFwdInfoFromNhop(
   auto route = it->value();
   CHECK(route);
 
-  if (resolving_.find(route.get()) != resolving_.end()) {
+  if (resolving_.contains(route.get())) {
     XLOG(DBG2) << "Cycle detected resolving nexthop " << nh
                << " — route is already being resolved";
     ++cyclesDetected_;
@@ -793,15 +895,21 @@ void RibRouteUpdater::getFwdInfoFromNhop(
 
   if (route->isResolved()) {
     const auto& fwdInfo = route->getForwardInfo();
+    if (const auto childCounterID = fwdInfo.getCounterID();
+        childCounterID && !*inheritedCounterID) {
+      *inheritedCounterID = childCounterID;
+    }
     if (fwdInfo.isDrop()) {
       *hasDrop = true;
     } else if (fwdInfo.isToCPU()) {
       *hasToCpu = true;
     } else {
-      const auto& nhops = fwdInfo.getNextHopSet();
+      const auto nhops = getResolvedNextHopsFromRib(nextHopIDManager_, fwdInfo);
       // if the route used to resolve the nexthop is directly connected
       if (route->isConnected()) {
         const auto& rtNh = *nhops.begin();
+        const auto srv6Encap =
+            resolveSrv6Encap(srv6SegmentList, tunnelType, tunnelId, rtNh);
         // NOTE: we need to use a UCMP compatible weight so that this can
         // be a leaf in the recursive resolution defined in the comment
         // describing mergeForwardInfos above.
@@ -815,10 +923,11 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                                             : rtNh.disableTTLDecrement(),
             topologyInfo,
             std::nullopt, /* adjustedWeight */
-            srv6SegmentList,
-            tunnelType,
-            tunnelId,
-            cost));
+            srv6Encap.segmentList,
+            srv6Encap.tunnelType,
+            srv6Encap.tunnelId,
+            cost,
+            role));
       } else {
         std::for_each(
             nhops.begin(),
@@ -830,7 +939,10 @@ void RibRouteUpdater::getFwdInfoFromNhop(
              &srv6SegmentList,
              &tunnelType,
              &tunnelId,
-             &cost](const auto& nhop) {
+             &cost,
+             role](const auto& nhop) {
+              const auto srv6Encap =
+                  resolveSrv6Encap(srv6SegmentList, tunnelType, tunnelId, nhop);
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -841,16 +953,46 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                                                   : nhop.disableTTLDecrement(),
                   topologyInfo,
                   std::nullopt, /* adjustedWeight */
-                  srv6SegmentList,
-                  tunnelType,
-                  tunnelId,
-                  cost));
+                  srv6Encap.segmentList,
+                  srv6Encap.tunnelType,
+                  srv6Encap.tunnelId,
+                  cost,
+                  role));
             });
       }
     }
   }
 }
-
+/*
+ * Policy for inheriting next hop properties during resolution.
+ * --------------------------------------------------------------
+ *
+ * For all the cases below consider the following resolution
+ * DST via NHA
+ * NHA via NHB
+ * There are 3 types of properties to consider here
+ * 1. Encapsulation properties
+ * Examples of these are SidLists and Labels. Here
+ * we prefer the values from root next hops, but if not set
+ * we inherit them from the child next hops. E.g.
+ * DST via NHA via NHB (SidListX) results in DST via NHB (SidListX)
+ * DST via NHA (SidListY) via NHB (SidListX) results in DST via NHB (SidListY)
+ * The latter is actually ambiguous - but we have to resolve it one way,
+ * so we resolve in favor of the root.
+ * The reasoning here is that where ever the SidList is set, it actually
+ * dictates how the route to that next hop must manifest itself. Hence
+ * we inherit the encapsulation behaviors.
+ * TODO: Fix this for Labeled routes
+ * 2. Route Counters - We inherit the same way as 1. This is more
+ * a use case based decision. For recursive resolution is to also count
+ * traffic against recursively resolving route. We can make this customizable
+ * in the future.
+ * 3. Role (PRIMARY, BACKUP) - This is viewed as a policy decision and
+ * the root role carries all the way through. Taking our example
+ * from above
+ * DST via NHA (PRIMARY) via NHB (BACKUP) becomes DST -> NHB (PRIMARY)
+ * DST via NHA (BACKUP) via NHB (PRIMARY) becomes DST -> NHB (BACKUP)
+ */
 template <typename AddressT>
 std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     typename NetworkToRouteMap<AddressT>::Iterator ritr) {
@@ -871,7 +1013,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto& bestEntryVal = *bestPair.second;
   const auto bestEntry = &bestEntryVal;
   const auto action = bestEntry->getAction();
-  const auto counterID = bestEntry->getCounterID();
+  auto counterID = bestEntry->getCounterID();
   const auto classID = bestEntry->getClassID();
   bool labelPopandLookup = false;
   if (action == RouteForwardAction::DROP) {
@@ -879,11 +1021,16 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   } else if (action == RouteForwardAction::TO_CPU) {
     hasToCpu = true;
   } else {
-    auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
+    // Resolve once via the manager so the cache lookup and per-nh iteration
+    // below stay correct once FLAGS_resolve_nexthops_from_id is on.
+    const RouteNextHopSet bestEntryNhops =
+        getClientNextHopsFromRib(nextHopIDManager_, *bestEntry);
+    std::optional<RouteCounterID> inheritedCounterID;
+    auto fwItr = unresolvedToResolvedNhops_.find(bestEntryNhops);
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
       // loop through all nexthops to find out the forward info
-      for (const auto& nh : bestEntry->getNextHopSet()) {
+      for (const auto& nh : bestEntryNhops) {
         const auto& addr = nh.addr();
         // There are two reasons why InterfaceID is specified in the next hop.
         // 1) The nexthop was generated for interface route.
@@ -895,7 +1042,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
           CHECK(
               clientId == kInterfaceRouteClientId ||
               clientId == kRemoteInterfaceRouteClientId ||
-              (addr.isV6() && addr.isLinkLocal()));
+              (addr.isV6() && addr.isLinkLocal()))
+              << "Next hop:" << nh << " cannot be associated with a RIF";
           nhToFwds[nh].emplace(nh);
           continue;
         }
@@ -905,7 +1053,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         if (nh.labelForwardingAction().has_value() &&
             nh.labelForwardingAction().value().type() ==
                 MplsActionCode::POP_AND_LOOKUP) {
-          if (bestEntry->getNextHopSet().size() > 1) {
+          if (bestEntryNhops.size() > 1) {
             throw FbossError(
                 "MPLS pop and lookup forwarding action has more than one nexthop");
           }
@@ -927,6 +1075,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              nh.role(),
+              &inheritedCounterID,
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -942,6 +1092,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               nh.tunnelType(),
               nh.tunnelId(),
               nh.cost(),
+              nh.role(),
+              &inheritedCounterID,
               nhToFwds[nh]);
         }
       }
@@ -952,7 +1104,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       // that label pop and lookup will not have a valid nhop ip
       // or interface and any merge operation has to be skipped.
       RouteNextHopSet nhSet = labelPopandLookup
-          ? bestEntry->getNextHopSet()
+          ? bestEntryNhops
           : mergeForwardInfos(nhToFwds, route);
 
       // normalize weight information for capacity matching if needed
@@ -960,13 +1112,16 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         nhSet = weightNormalizer_.getNormalizedNexthops(nhSet);
       }
 
-      fwItr = unresolvedToResolvedNhops_
-                  .insert({bestEntry->getNextHopSet(), std::move(nhSet)})
-                  .first;
+      fwItr =
+          unresolvedToResolvedNhops_
+              .insert(
+                  {bestEntryNhops,
+                   ResolvedForwardInfo{std::move(nhSet), inheritedCounterID}})
+              .first;
     } else {
       // This is done so that we dont miss updating label pop and lookup on
       // cache hits.
-      const auto& nhSet = bestEntry->getNextHopSet();
+      const auto& nhSet = bestEntryNhops;
       if (nhSet.size() == 1) {
         const auto& nh = *nhSet.begin();
         if (nh.labelForwardingAction().has_value() &&
@@ -976,7 +1131,13 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         }
       }
     }
-    fwd = &(fwItr->second);
+    fwd = &fwItr->second.nextHops;
+    // A route can carry only one counter. Preserve an explicitly configured
+    // parent counter; otherwise inherit the first recursively resolved child
+    // counter and ignore counters on subsequent children.
+    if (!counterID) {
+      counterID = fwItr->second.counterID;
+    }
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
@@ -1024,7 +1185,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         // allocation but deallocate any existing old ID
         if (!labelPopandLookup) {
           newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
-              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+              RouteNextHopEntry::normalizeNextHops(nhop->getNextHopSet()),
+              oldNormalizedNextHopSetID);
         } else if (oldNormalizedNextHopSetID.has_value()) {
           // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
           nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
@@ -1037,16 +1199,26 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       updatedRoute->setResolved(*nhop);
       if ((clientId == kInterfaceRouteClientId ||
            clientId == kRemoteInterfaceRouteClientId) &&
-          !nhop->getNextHopSet().empty()) {
+          !getResolvedNextHopsFromRib(nextHopIDManager_, *nhop).empty()) {
         updatedRoute->setConnected();
       }
     } else {
-      if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
-      }
-      if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
-        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
-            *oldNormalizedNextHopSetID);
+      if (nextHopIDManager_) {
+        if (oldNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+        }
+        if (oldNormalizedNextHopSetID.has_value()) {
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
+        }
+        // Assert clientNextHopSetID not present in fwd entry so the invariant
+        // can't be silently broken.
+        CHECK(!updatedRoute->getForwardInfo()
+                   .getClientNextHopSetID()
+                   .has_value());
+
+        // Clear the fwd so the unresolvable route retains no freed set IDs.
+        updatedRoute->clearForward();
       }
       updatedRoute->setUnresolvable();
     }
@@ -1056,24 +1228,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << updatedRoute->str();
   };
   if (fwd && !fwd->empty()) {
-    if (nextHopIDManager_ &&
-        !route->getForwardInfo().getResolvedNextHopSetID().has_value()) {
-      CHECK(!route->getForwardInfo()
-                 .getNormalizedResolvedNextHopSetID()
-                 .has_value())
-          << "If resolvedNextHopSetID is empty, "
-          << "normalizedResolvedNextHopSetID must also be empty; route="
-          << route->str();
-      // Re-resolve to assign IDs for the first time. UpdateRoute will
-      // allocate IDs since NextHopSetId is nullopt.
-      XLOG(DBG3) << "[NextHop ID Manager] assigning IDs for"
-                 << " first time route=" << route->str();
-      updateRoute(
-          ritr,
-          std::make_optional<RouteNextHopEntry>(
-              *fwd, bestEntry->getAdminDistance(), counterID, classID));
-    } else if (
-        route->getForwardInfo().getNextHopSet() != *fwd ||
+    if (getResolvedNextHopsFromRib(
+            nextHopIDManager_, route->getForwardInfo()) != *fwd ||
         route->getForwardInfo().getCounterID() != counterID ||
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(
@@ -1130,7 +1286,7 @@ void RibRouteUpdater::resolve(NetworkToRouteMap<AddressT>* routes) {
 template <typename AddressT>
 bool RibRouteUpdater::needResolve(
     const std::shared_ptr<Route<AddressT>>& route) const {
-  return needsResolution_.find(route.get()) != needsResolution_.end();
+  return needsResolution_.contains(route.get());
 }
 
 void RibRouteUpdater::updateDone() {

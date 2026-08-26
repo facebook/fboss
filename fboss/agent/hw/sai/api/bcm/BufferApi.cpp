@@ -4,11 +4,7 @@
 
 extern "C" {
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saibufferextensions.h>
-#else
-#include <saibufferextensions.h>
-#endif
 }
 
 namespace facebook::fboss {

@@ -1,6 +1,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent")
 
@@ -8,6 +9,7 @@ python_unittest(
     name = "test_bgp_json_to_cli",
     srcs = ["test_bgp_json_to_cli.py"],
     labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/cli/fboss2/tools:bgp_json_to_cli_lib",
     ],

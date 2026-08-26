@@ -255,6 +255,17 @@ PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state);
 
+// Same as above, but for a system port that may not live in the regular
+// SystemPort map (e.g. a fabric link monitoring system port, which is kept in a
+// separate map). The caller supplies the switchId under which the system port
+// was allocated -- for fabric link monitoring ports that is the local ASIC
+// switchId, NOT the SystemPort node's switchId (which holds the fabric-link
+// id).
+PortID getPortID(
+    const SystemPortID& sysPortId,
+    SwitchID switchId,
+    const std::shared_ptr<SwitchState>& state);
+
 SystemPortID getSystemPortID(
     const PortID& portId,
     cfg::Scope portScope,
@@ -266,17 +277,20 @@ SystemPortID getSystemPortID(
     const std::shared_ptr<SwitchState>& state,
     SwitchID switchId);
 
+// Legacy offset-based system port ID allocation for fabric link monitoring,
+// used when fabric port logical IDs are NOT relocated into the local port-ID
+// range (FLAGS_fabric_ports_uniform_local_offset off).
 SystemPortID getFabricLinkMonitoringSystemPortID(
     const PortID& portId,
     const std::shared_ptr<SwitchSettings>& switchSettings);
 
-SystemPortID getInbandSystemPortID(
-    const std::shared_ptr<SwitchState>& state,
-    SwitchID switchId);
-
 PortID getPortIdFromFabricLinkMonSystemPortID(
     const SystemPortID& systemPortId,
     const int32_t fabricLinkMonitoringSystemPortOffset);
+
+SystemPortID getInbandSystemPortID(
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId);
 
 SystemPortID getInbandSystemPortID(
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,

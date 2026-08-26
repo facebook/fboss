@@ -42,10 +42,29 @@ constexpr uint8_t kMediaInterfaceTechnologyReg = 212;
 constexpr uint8_t kPage0 = 0x00;
 constexpr uint8_t kCBandTunableLaser = 0x10;
 constexpr uint8_t kLBandTunableLaser = 0x11;
+constexpr uint8_t kCdbAdvertisementReg = 163;
+constexpr uint8_t kCdbAdvertisementPage = 0x01;
+
+// CDB advertisement byte 163, bits 7-6 indicate CdbInstancesSupported
+constexpr uint8_t kCdbInstancesSupportedMask = 0xc0;
+constexpr uint8_t kCdbInstancesSupportedShift = 6;
+constexpr uint8_t kCdbOneCdbInstance = 0x01;
 
 constexpr int moduleDatapathInitDurationUsec = 5000000;
 
 constexpr int moduleReadyAfterFirmwareRunUsec = 100 * 1000; // 100ms
+
+// Tunable (coherent) modules need a settling period after Firmware Download
+// Complete before their CDB status can be polled
+constexpr uint32_t kDelayAfterFwDownloadCompleteSec = 30;
+
+// Module ready state polling constants
+constexpr int kModuleReadyPollTimeoutUsec = 120 * 1000 * 1000; // 120 seconds
+constexpr int kModuleReadyPollIntervalUsec = 500 * 1000; // 0.5 seconds
+constexpr uint8_t kModuleStateReg = 3; // Page 0, byte 3
+constexpr uint8_t kModuleStateMask = 0x0E; // Bits 1-3
+constexpr uint8_t kModuleStateBitshift = 1;
+constexpr uint8_t kModuleStateReady = 0x03; // ModuleReady state value
 
 // CMIS FW Upgrade
 constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
@@ -62,8 +81,19 @@ constexpr int kFwUpgrade = static_cast<int>(CmisField::FW_UPGRADE);
 CmisFirmwareUpgrader::CmisFirmwareUpgrader(
     TransceiverImpl* bus,
     unsigned int modId,
-    FbossFirmware* fbossFirmware)
-    : bus_(bus), moduleId_(modId), fbossFirmware_(fbossFirmware) {
+    FbossFirmware* fbossFirmware,
+    uint8_t cmisMajorRevision,
+    uint64_t cdbWriteDelayUsec)
+    : bus_(bus),
+      moduleId_(modId),
+      fbossFirmware_(fbossFirmware),
+      cmisMajorRevision_(cmisMajorRevision),
+      cdbWriteDelayUsec_(cdbWriteDelayUsec) {
+  XLOG(INFO) << fmt::format(
+      "Transceiver:{:d} CmisFirmwareUpgrader: Module complies with CMIS {:d}.x",
+      moduleId_,
+      cmisMajorRevision_);
+
   // Check the FbossFirmware object first
   if (fbossFirmware_ == nullptr) {
     XLOG(ERR) << "FbossFirmware object is null, returning...";
@@ -171,6 +201,74 @@ bool CmisFirmwareUpgrader::isTunableModule() const {
 }
 
 /*
+ * writeMsaPasswordIfNeeded
+ *
+ * Writes the given value to the module password entry register - either the
+ * MSA password, to let the privileged operation of firmware download, or an
+ * all-zero value to revert it. Modules complying with CMIS 5.0 and later allow
+ * the firmware download without the password, so for them both the write and
+ * the revert that undoes it are skipped.
+ */
+void CmisFirmwareUpgrader::writeMsaPasswordIfNeeded(
+    const std::array<uint8_t, 4>& password) {
+  if (cmisMajorRevision_ >= kMsaPasswordRequiredBelowCmisMajorRev) {
+    XLOG(INFO) << fmt::format(
+        "Transceiver:{:d} writeMsaPasswordIfNeeded: Skipping module password write for CMIS {:d}.x module",
+        moduleId_,
+        cmisMajorRevision_);
+    return;
+  }
+
+  bus_->writeTransceiver(
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
+      password.data(),
+      POST_I2C_WRITE_NO_DELAY_US,
+      kFwUpgrade);
+}
+
+bool CmisFirmwareUpgrader::isCdbCmdCompleteFlagSupported() const {
+  try {
+    uint8_t cdbAdvPage = kCdbAdvertisementPage;
+    bus_->writeTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP, kPageSelectReg, 1, kLowerPage},
+        &cdbAdvPage,
+        POST_I2C_WRITE_NO_DELAY_US,
+        kFwUpgrade);
+    uint8_t cdbAdv = 0;
+    bus_->readTransceiver(
+        {TransceiverAccessParameter::ADDR_QSFP,
+         kCdbAdvertisementReg,
+         1,
+         kCdbAdvertisementPage},
+        &cdbAdv,
+        kFwUpgrade);
+    uint8_t cdbInstances =
+        (cdbAdv & kCdbInstancesSupportedMask) >> kCdbInstancesSupportedShift;
+    if (cdbInstances == kCdbOneCdbInstance) {
+      XLOG(INFO) << fmt::format(
+          "isCdbCmdCompleteFlagSupported: Mod{:d}: CdbCmdCompleteFlag supported",
+          moduleId_);
+      return true;
+    }
+    XLOG(INFO) << fmt::format(
+        "isCdbCmdCompleteFlagSupported: Mod{:d}: CdbCmdCompleteFlag not supported, cdbAdv={:#x}, cdbInstances={:#x}",
+        moduleId_,
+        cdbAdv,
+        cdbInstances);
+    return false;
+  } catch (const std::exception& e) {
+    XLOG(INFO) << fmt::format(
+        "isCdbCmdCompleteFlagSupported: Mod{:d}: Failed to read CDB advertisement: {}",
+        moduleId_,
+        e.what());
+    return false;
+  }
+}
+
+/*
  * cmisModuleFirmwareDownload
  *
  * This function runs the firmware download operation for a module. This takes
@@ -184,33 +282,29 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   bool status;
   int imageOffset, imageChunkLen;
   bool eplSupported = false;
+  bool isTunable = isTunableModule();
 
   XLOG(INFO) << fmt::format(
-      "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}",
+      "cmisModuleFirmwareDownload: Mod{:d}: Starting to download the image with length {:d}, cdbWriteDelay {:d} us",
       moduleId_,
-      imageLen);
+      imageLen,
+      cdbWriteDelayUsec_);
 
   // Start the IO profiling
   bus_->i2cTimeProfilingStart();
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  writeMsaPasswordIfNeeded(msaPassword_);
 
-  CdbCommandBlock commandBlockBuf;
+  CdbCommandBlock commandBlockBuf(cdbWriteDelayUsec_);
   CdbCommandBlock* commandBlock = &commandBlockBuf;
 
+  bool cdbCmdCompleteFlagSupported = isCdbCmdCompleteFlagSupported();
   // Basic validation first. Check if the firmware download is allowed by
   // issuing the Query command to CDB
   commandBlock->createCdbCmdModuleQuery();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, std::nullopt, cdbCmdCompleteFlagSupported);
   if (status) {
     // Query result will be in LPL memory at byte offset 2
     if (commandBlock->getCdbRlplLength() >= 3) {
@@ -237,7 +331,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Done by sending Firmware upgrade feature command to CDB
   commandBlock->createCdbCmdGetFwFeatureInfo();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, std::nullopt, cdbCmdCompleteFlagSupported);
 
   // If the CDB command is successful then the Start Command Payload Size is
   // returned by CDB in LPL memory at offset 2
@@ -279,6 +374,18 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
         startCommandPayloadSize);
   }
 
+  // startCommandPayloadSize (from the module CDB reply or the known-optics
+  // fallback) is later copied into the fixed-size cdbImageHeader buffer. Reject
+  // an oversized value here to prevent a stack buffer overflow.
+  if (startCommandPayloadSize > CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen) {
+    XLOG(ERR) << fmt::format(
+        "cmisModuleFirmwareDownload: Mod{:d}: startCommandPayloadSize {:d} exceeds maximum {:d}, aborting",
+        moduleId_,
+        startCommandPayloadSize,
+        CdbCommandBlock::kCdbFwDnldStartMaxHeaderLen);
+    return false;
+  }
+
   XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 0: Got Start Command Payload Size as {:d}",
       moduleId_,
@@ -306,7 +413,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       startCommandPayloadSize, imageLen, imageOffset, imageBuf);
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
   if (!status) {
     // DOWNLOAD_START command failed
     XLOG(INFO) << fmt::format(
@@ -345,7 +453,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     }
 
     // Run the CDB command
-    status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+    status = commandBlock->cmisRunCdbCommand(
+        bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
     if (!status) {
       // DOWNLOAD_IMAGE command failed
       XLOG(INFO) << fmt::format(
@@ -368,8 +477,16 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Step 3: Issue CDB command: Firmware download complete
   commandBlock->createCdbCmdFwDownloadComplete();
 
+  const uint32_t delayAfterFwDownloadCompleteSec =
+      isTunable ? kDelayAfterFwDownloadCompleteSec : 0;
+
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_,
+      fwUpgradeCdbTimeoutUsec,
+      cdbCmdCompleteFlagSupported,
+      delayAfterFwDownloadCompleteSec);
+
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
     XLOG(INFO) << fmt::format(
@@ -395,7 +512,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Run the CDB command
   // No need to check status because RUN command issues soft reset to CDB
   // so we can't check status here
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
 
   XLOG(INFO) << fmt::format(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 4: Issued Firmware download Run command successfully",
@@ -403,15 +521,14 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   usleep(2 * moduleDatapathInitDurationUsec);
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  // Poll for module ready state after firmware run.
+  // Limiting this to cmis version >= 5.0 for now to reduce the scope of
+  // testing. No real reason to not poll for module ready on older modules.
+  if (cmisMajorRevision_ >= kMinCmisMajorRevForModuleReadyPoll) {
+    pollForModuleReady();
+  }
+
+  writeMsaPasswordIfNeeded(msaPassword_);
 
   /* After the firmware starts running, module may disable I2C for a short time
    * while it updates the different pages of its eeprom. Adding a delay here
@@ -423,7 +540,8 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwCommit();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, fwUpgradeCdbTimeoutUsec);
+  status = commandBlock->cmisRunCdbCommand(
+      bus_, fwUpgradeCdbTimeoutUsec, cdbCmdCompleteFlagSupported);
 
   if (!status) {
     XLOG(INFO) << fmt::format(
@@ -443,15 +561,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   usleep(10 * moduleDatapathInitDurationUsec);
 
-  // Set the password to let the privileged operation of firmware download
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      msaPassword_.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  writeMsaPasswordIfNeeded(msaPassword_);
 
   // Print IO profiling info
   auto ioTiming = bus_->getI2cTimeProfileMsec();
@@ -488,20 +598,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   // Always revert the MSA password at the end. Certain commands like releasing
   // low power don't work when certain modules (like xdr4) are still in the CDB
   // mode which is the mode that's activated when the msa password is written
-  // during firmware upgrade
-  std::array<uint8_t, 4> resetPassword;
-  resetPassword[0] = 0;
-  resetPassword[1] = 0;
-  resetPassword[2] = 0;
-  resetPassword[3] = 0;
-  bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP,
-       kModulePasswordEntryReg,
-       4,
-       kLowerPage},
-      resetPassword.data(),
-      POST_I2C_WRITE_NO_DELAY_US,
-      kFwUpgrade);
+  // during firmware upgrade. This is a no-op on the modules we never wrote the
+  // password to.
+  const std::array<uint8_t, 4> resetPassword{0, 0, 0, 0};
+  writeMsaPasswordIfNeeded(resetPassword);
   if (!result) {
     // If the download failed then print the message and return. No need
     // to do any recovery here
@@ -549,6 +649,68 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   }
 
   return true;
+}
+
+/*
+ * pollForModuleReady
+ *
+ * Polls the module state register until the module reaches the ready state
+ * or the timeout expires. The module may take time to initialize after a
+ * firmware run command. I2C exceptions during the reset period are handled
+ * gracefully.
+ */
+bool CmisFirmwareUpgrader::pollForModuleReady() {
+  XLOG(INFO) << fmt::format(
+      "pollForModuleReady: Mod{:d}: Polling for module ready state (timeout: {:d} sec, interval: {:d} ms)",
+      moduleId_,
+      kModuleReadyPollTimeoutUsec / 1000000,
+      kModuleReadyPollIntervalUsec / 1000);
+
+  auto pollStartTime = std::chrono::steady_clock::now();
+  auto pollFinishTime =
+      pollStartTime + std::chrono::microseconds(kModuleReadyPollTimeoutUsec);
+
+  while (std::chrono::steady_clock::now() < pollFinishTime) {
+    /* sleep override */
+    usleep(kModuleReadyPollIntervalUsec);
+
+    try {
+      uint8_t moduleState = 0;
+      bus_->readTransceiver(
+          {TransceiverAccessParameter::ADDR_QSFP,
+           kModuleStateReg,
+           1,
+           kFwUpgrade},
+          &moduleState,
+          kFwUpgrade);
+
+      uint8_t stateValue =
+          (moduleState & kModuleStateMask) >> kModuleStateBitshift;
+
+      if (stateValue == kModuleStateReady) {
+        auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - pollStartTime)
+                             .count();
+        XLOG(INFO) << fmt::format(
+            "pollForModuleReady: Mod{:d}: Module is in READY state after {:d} ms",
+            moduleId_,
+            elapsedMs);
+        return true;
+      }
+    } catch (const std::exception& e) {
+      // I2C access may fail while module is resetting, continue polling
+      XLOG(WARN) << fmt::format(
+          "pollForModuleReady: Mod{:d}: Exception while reading module state: {}. Continuing to poll...",
+          moduleId_,
+          e.what());
+    }
+  }
+
+  XLOG(ERR) << fmt::format(
+      "pollForModuleReady: Mod{:d}: Module did not reach READY state within {:d} seconds",
+      moduleId_,
+      kModuleReadyPollTimeoutUsec / 1000000);
+  return false;
 }
 
 } // namespace facebook::fboss

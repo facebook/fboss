@@ -32,7 +32,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kInIpv4HdrErrors(),
       kInIpv6HdrErrors(),
       kInDstNullDiscards(),
-      kInSrv6MySidDiscards(),
       kInDiscardsRaw(),
       kOutBytes(),
       kOutUnicastPkts(),
@@ -47,7 +46,6 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kFecCorrectable(),
       kFecUncorrectable(),
       kLeakyBucketFlapCnt(),
-      kInLabelMissDiscards(),
       kInCongestionDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
@@ -58,8 +56,22 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
-      kOutDiscardsSll(),
-      kOutDiscardsHll(),
+      kLlrTxOk(),
+      kLlrRxOk(),
+      kLlrTxReplay(),
+      kLlrRxReplay(),
+      kLlrRxMissingSeq(),
+      kLlrRxDuplicateSeq(),
+      kLlrRxAckNackSeqError(),
+      kLlrRxExpectedSeqPoisoned(),
+      kLlrRxExpectedSeqBad(),
+      kLlrTxIneligiblePkts(),
+      kLlrRxIneligiblePkts(),
+      kLlrTxEligiblePkts(),
+      kLlrRxEligiblePkts(),
+      kLlrTxNackReplayEvent(),
+      kLlrTxTimerReplayEvent(),
+      kLlrTxError(),
   };
   return kPortKeys;
 }
@@ -68,7 +80,10 @@ const std::vector<folly::StringPiece>&
 HwPortFb303Stats::kPortFb303CounterStatKeys() const {
   static std::vector<folly::StringPiece> kPortKeys{
       kCableLengthMeters(),
+      kCableDelayNsec(),
       kDataCellsFilterOn(),
+      kLlrTxStatus(),
+      kLlrRxStatus(),
   };
   return kPortKeys;
 }
@@ -184,11 +199,26 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors_());
   updateStat(
       timeRetrieved_, kInDstNullDiscards(), *curPortStats.inDstNullDiscards_());
-  if (curPortStats.inSrv6MySidDiscards_().has_value()) {
+  if (isSrv6MysidDiscardCounterSupported() &&
+      curPortStats.inSrv6MySidDiscards_().has_value()) {
     updateStat(
         timeRetrieved_,
         kInSrv6MySidDiscards(),
         *curPortStats.inSrv6MySidDiscards_());
+  }
+  if (isLinkDebounceRetriggerCounterSupported()) {
+    if (curPortStats.linkDownDebounceRetriggerCount_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kLinkDownDebounceRetriggerCount(),
+          *curPortStats.linkDownDebounceRetriggerCount_());
+    }
+    if (curPortStats.linkUpDebounceRetriggerCount_().has_value()) {
+      updateStat(
+          timeRetrieved_,
+          kLinkUpDebounceRetriggerCount(),
+          *curPortStats.linkUpDebounceRetriggerCount_());
+    }
   }
   // Egress Stats
   updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes_());
@@ -222,10 +252,12 @@ void HwPortFb303Stats::updateStats(
         kLeakyBucketFlapCnt(),
         *curPortStats.leakyBucketFlapCount_());
   }
-  updateStat(
-      timeRetrieved_,
-      kInLabelMissDiscards(),
-      *curPortStats.inLabelMissDiscards_());
+  if (isMplsLabelLookupFailCounterSupported()) {
+    updateStat(
+        timeRetrieved_,
+        kInLabelMissDiscards(),
+        *curPortStats.inLabelMissDiscards_());
+  }
   updateStat(
       timeRetrieved_,
       kInCongestionDiscards(),
@@ -262,10 +294,28 @@ void HwPortFb303Stats::updateStats(
         statName(kCableLengthMeters(), portName()),
         *curPortStats.cableLengthMeters());
   }
+  if (curPortStats.cableDelayNsec().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kCableDelayNsec(), portName()),
+        *curPortStats.cableDelayNsec());
+  }
   if (curPortStats.dataCellsFilterOn().has_value()) {
     fb303::fbData->setCounter(
         statName(kDataCellsFilterOn(), portName()),
         *curPortStats.dataCellsFilterOn() ? 1 : 0);
+  }
+  // LLR state machine status. A gauge, not a timeseries: the value is the
+  // current state, not a count. Set only while the port has LLR bound and the
+  // hardware read succeeded.
+  if (curPortStats.llrTxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrTxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrTxStatus_()));
+  }
+  if (curPortStats.llrRxStatus_().has_value()) {
+    fb303::fbData->setCounter(
+        statName(kLlrRxStatus(), portName()),
+        static_cast<int64_t>(*curPortStats.llrRxStatus_()));
   }
   if (curPortStats.linkLayerFlowControlWatermark_().has_value()) {
     updateStat(
@@ -291,13 +341,96 @@ void HwPortFb303Stats::updateStats(
         kFabricControlTxPackets(),
         *curPortStats.fabricControlTxPackets_());
   }
-  if (curPortStats.outDiscardsSll_().has_value()) {
-    updateStat(
-        timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+  if (isSllHllDiscardCounterSupported()) {
+    if (curPortStats.outDiscardsSll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+    }
+    if (curPortStats.outDiscardsHll_().has_value()) {
+      updateStat(
+          timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+    }
   }
-  if (curPortStats.outDiscardsHll_().has_value()) {
+
+  // UEC LLR counters -- populated only on LLR-capable ASICs (Tomahawk Ultra).
+  if (curPortStats.llrTxOk_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxOk(), *curPortStats.llrTxOk_());
+  }
+  if (curPortStats.llrRxOk_().has_value()) {
+    updateStat(timeRetrieved_, kLlrRxOk(), *curPortStats.llrRxOk_());
+  }
+  if (curPortStats.llrTxReplay_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxReplay(), *curPortStats.llrTxReplay_());
+  }
+  if (curPortStats.llrRxReplay_().has_value()) {
+    updateStat(timeRetrieved_, kLlrRxReplay(), *curPortStats.llrRxReplay_());
+  }
+  if (curPortStats.llrRxMissingSeq_().has_value()) {
     updateStat(
-        timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
+        timeRetrieved_, kLlrRxMissingSeq(), *curPortStats.llrRxMissingSeq_());
+  }
+  if (curPortStats.llrRxDuplicateSeq_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxDuplicateSeq(),
+        *curPortStats.llrRxDuplicateSeq_());
+  }
+  if (curPortStats.llrRxAckNackSeqError_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxAckNackSeqError(),
+        *curPortStats.llrRxAckNackSeqError_());
+  }
+  if (curPortStats.llrRxExpectedSeqPoisoned_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxExpectedSeqPoisoned(),
+        *curPortStats.llrRxExpectedSeqPoisoned_());
+  }
+  if (curPortStats.llrRxExpectedSeqBad_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxExpectedSeqBad(),
+        *curPortStats.llrRxExpectedSeqBad_());
+  }
+  if (curPortStats.llrTxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxIneligiblePkts(),
+        *curPortStats.llrTxIneligiblePkts_());
+  }
+  if (curPortStats.llrTxEligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxEligiblePkts(),
+        *curPortStats.llrTxEligiblePkts_());
+  }
+  if (curPortStats.llrRxEligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxEligiblePkts(),
+        *curPortStats.llrRxEligiblePkts_());
+  }
+  if (curPortStats.llrRxIneligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxIneligiblePkts(),
+        *curPortStats.llrRxIneligiblePkts_());
+  }
+  if (curPortStats.llrTxNackReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxNackReplayEvent(),
+        *curPortStats.llrTxNackReplayEvent_());
+  }
+  if (curPortStats.llrTxTimerReplayEvent_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxTimerReplayEvent(),
+        *curPortStats.llrTxTimerReplayEvent_());
+  }
+  if (curPortStats.llrTxError_().has_value()) {
+    updateStat(timeRetrieved_, kLlrTxError(), *curPortStats.llrTxError_());
   }
 
   // Update queue stats
@@ -502,10 +635,9 @@ void HwPortFb303Stats::updateStats(
     }
   }
 
-  // Update PG stats if applicable.
-  // Note: There is a 1:1 mapping between priority and PG id.
+  // Update PG stats, keyed by PG id (see pgIdsForStats()).
   if (curPortStats.pgInCongestionDiscards_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscards_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscards_()->end()) {
         updatePgStat(
@@ -514,7 +646,7 @@ void HwPortFb303Stats::updateStats(
     }
   }
   if (curPortStats.pgInCongestionDiscardSeen_()->size()) {
-    for (const auto& pgId : getEnabledPfcPriorities()) {
+    for (auto pgId : pgIdsForStats()) {
       auto pgStatsIter = curPortStats.pgInCongestionDiscardSeen_()->find(pgId);
       if (pgStatsIter != curPortStats.pgInCongestionDiscardSeen_()->end()) {
         setPgCounter(

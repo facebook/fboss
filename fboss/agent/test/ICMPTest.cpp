@@ -8,6 +8,7 @@
  *
  */
 
+#include <fmt/format.h>
 #include <gflags/gflags.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/IPv6Handler.h"
@@ -104,8 +105,8 @@ unique_ptr<HwTestHandle> setupTestHandle(
 }
 
 std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize, bool toMe) {
-  auto hopLimitStr = folly::sformat("{0:02x}", hopLimit);
-  auto payloadLenStr = folly::sformat("{0:04x}", payloadSize + 8);
+  auto hopLimitStr = fmt::format("{0:02x}", hopLimit);
+  auto payloadLenStr = fmt::format("{0:04x}", payloadSize + 8);
   auto payload = std::string(payloadSize * 2, 'f');
   std::string dstAddrStr;
   std::string csumStr;

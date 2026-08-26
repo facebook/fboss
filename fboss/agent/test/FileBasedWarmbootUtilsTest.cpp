@@ -2,6 +2,9 @@
 
 #include "fboss/agent/FileBasedWarmbootUtils.h"
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
@@ -40,7 +43,13 @@ class FileBasedWarmbootUtilsTest : public ::testing::Test {
         tempDir_ + "/packages", // packageDirectory
         tempDir_ + "/systemd", // systemdDirectory
         tempDir_ + "/config", // configDirectory
-        tempDir_ + "/drain"); // drainConfigDirectory
+        tempDir_ + "/drain", // drainConfigDirectory
+        // Deliberately never created. The primary tier appends while the
+        // fallback truncates, and what these tests pin is the fallback's
+        // behaviour, so the primary open has to keep failing the way it does
+        // on any host that is not a switch.
+        tempDir_ + "/varlogs", // bootHistoryLogDir
+        tempDir_); // bootHistoryFallbackDir
 
     // Create HwAsicTable
     asicTable_ = std::make_unique<HwAsicTable>(
@@ -181,11 +190,8 @@ TEST_F(
 TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryCreatesLogFile) {
   logBootHistory(directoryUtil_.get(), "cold", "1.0.0", "2.0.0");
 
-  // Check that log file exists (either in proper location or /tmp fallback)
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  bool logExists = checkFileExists(logPath) ||
-      checkFileExists("/tmp/wedge_agent_starts.log");
-  EXPECT_TRUE(logExists);
+  EXPECT_TRUE(
+      checkFileExists(directoryUtil_->getAgentBootHistoryFallbackLogFile()));
 }
 
 TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryContainsCorrectInformation) {
@@ -193,12 +199,10 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryContainsCorrectInformation) {
 
   // Read the log file
   std::string logContent;
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  if (checkFileExists(logPath)) {
-    folly::readFile(logPath.c_str(), logContent);
-  } else {
-    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
-  }
+  ASSERT_TRUE(
+      folly::readFile(
+          directoryUtil_->getAgentBootHistoryFallbackLogFile().c_str(),
+          logContent));
 
   // Verify log contains boot type and versions
   EXPECT_NE(logContent.find("warm"), std::string::npos);
@@ -215,18 +219,61 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryOverridesExistingLog) {
 
   // Read the log file
   std::string logContent;
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  if (checkFileExists(logPath)) {
-    folly::readFile(logPath.c_str(), logContent);
-  } else {
-    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
-  }
+  ASSERT_TRUE(
+      folly::readFile(
+          directoryUtil_->getAgentBootHistoryFallbackLogFile().c_str(),
+          logContent));
 
-  // Verify both entries are present
+  // The fallback tier truncates rather than appends, so the second boot
+  // replaces the first. That is what "overrides" in the test name means, and
+  // it is the opposite of the appending primary tier.
   EXPECT_EQ(logContent.find("cold"), std::string::npos);
   EXPECT_NE(logContent.find("warm"), std::string::npos);
   EXPECT_EQ(logContent.find("1.0.0"), std::string::npos);
   EXPECT_NE(logContent.find("1.0.1"), std::string::npos);
+}
+
+// ============================================================================
+// FALLBACK LOG SYMLINK-SAFETY TESTS
+// ============================================================================
+
+TEST_F(FileBasedWarmbootUtilsTest, FallbackLogRefusesSymlinkTarget) {
+  // Plant a symlink at the fallback path pointing at a sensitive "victim" file,
+  // mimicking a local attacker who pre-creates /tmp/wedge_agent_starts.log as a
+  // symlink to e.g. /etc/cron.d/runme before the root agent restarts.
+  auto victimPath = tempDir_ + "/victim";
+  folly::writeFileAtomic(victimPath, "DO NOT TRUNCATE");
+  auto logPath = tempDir_ + "/fallback_boot.log";
+  ASSERT_EQ(::symlink(victimPath.c_str(), logPath.c_str()), 0);
+
+  // The symlink-safe open must not follow the link: it unlinks the planted
+  // symlink and creates a fresh regular file at logPath.
+  auto logFile = openSymlinkSafeFallbackLog(logPath);
+  const std::string entry = "boot entry\n";
+  folly::writeFull(logFile.fd(), entry.c_str(), entry.size());
+
+  // The victim file must be intact (not truncated/overwritten via the symlink).
+  std::string victimContent;
+  ASSERT_TRUE(folly::readFile(victimPath.c_str(), victimContent));
+  EXPECT_EQ(victimContent, "DO NOT TRUNCATE");
+
+  // logPath must now be a regular file (the planted symlink was removed), and
+  // our write must have landed there rather than in the victim.
+  struct stat st{};
+  ASSERT_EQ(::lstat(logPath.c_str(), &st), 0);
+  EXPECT_TRUE(S_ISREG(st.st_mode));
+  std::string logContent;
+  ASSERT_TRUE(folly::readFile(logPath.c_str(), logContent));
+  EXPECT_EQ(logContent, entry);
+}
+
+TEST_F(FileBasedWarmbootUtilsTest, FallbackLogCreatesFreshRegularFile) {
+  // With nothing pre-existing at the path, the helper creates a regular file.
+  auto logPath = tempDir_ + "/fresh_boot.log";
+  auto logFile = openSymlinkSafeFallbackLog(logPath);
+  struct stat st{};
+  ASSERT_EQ(::lstat(logPath.c_str(), &st), 0);
+  EXPECT_TRUE(S_ISREG(st.st_mode));
 }
 
 // ============================================================================
@@ -249,12 +296,10 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryFormatMatchesBuildInfoParser) {
 
   // Read the log file
   std::string logContent;
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  if (checkFileExists(logPath)) {
-    folly::readFile(logPath.c_str(), logContent);
-  } else {
-    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
-  }
+  ASSERT_TRUE(
+      folly::readFile(
+          directoryUtil_->getAgentBootHistoryFallbackLogFile().c_str(),
+          logContent));
 
   // Verify format using regex - this is the format fboss-build-info expects
   // Pattern: [ YYYY Month DD HH:MM:SS ]: Start of a BOOT_TYPE, SDK version: X,
@@ -272,12 +317,10 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryWarmBootFormat) {
   logBootHistory(directoryUtil_.get(), "WARM_BOOT", "1.2.3-4", "xyz789");
 
   std::string logContent;
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  if (checkFileExists(logPath)) {
-    folly::readFile(logPath.c_str(), logContent);
-  } else {
-    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
-  }
+  ASSERT_TRUE(
+      folly::readFile(
+          directoryUtil_->getAgentBootHistoryFallbackLogFile().c_str(),
+          logContent));
 
   // Verify WARM_BOOT format
   EXPECT_NE(logContent.find("Start of a WARM_BOOT"), std::string::npos)
@@ -294,12 +337,10 @@ TEST_F(FileBasedWarmbootUtilsTest, LogBootHistoryTimestampFormat) {
   logBootHistory(directoryUtil_.get(), "COLD_BOOT", "1.0.0", "test");
 
   std::string logContent;
-  auto logPath = directoryUtil_->getAgentBootHistoryLogFile();
-  if (checkFileExists(logPath)) {
-    folly::readFile(logPath.c_str(), logContent);
-  } else {
-    folly::readFile("/tmp/wedge_agent_starts.log", logContent);
-  }
+  ASSERT_TRUE(
+      folly::readFile(
+          directoryUtil_->getAgentBootHistoryFallbackLogFile().c_str(),
+          logContent));
 
   // Verify timestamp format matches: [ YYYY Month DD HH:MM:SS ]
   // The month should be full name (January, February, etc.)

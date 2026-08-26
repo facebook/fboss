@@ -85,7 +85,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
   });
 }
 
-std::vector<PortID> SaiSwitchEnsemble::masterLogicalPortIds() const {
+std::vector<PortID> SaiSwitchEnsemble::getAllMasterLogicalPortIds() const {
   return getPlatform()->masterLogicalPortIds();
 }
 

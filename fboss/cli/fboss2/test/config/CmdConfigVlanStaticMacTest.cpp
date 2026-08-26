@@ -8,21 +8,17 @@
  *
  */
 
-#include <boost/filesystem/operations.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <filesystem>
-#include <fstream>
+#include <algorithm>
+#include <stdexcept>
+#include <string>
 
 #include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "fboss/cli/fboss2/test/TestableConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
-
-namespace fs = std::filesystem;
 
 using namespace ::testing;
 
@@ -237,15 +233,27 @@ TEST_F(CmdConfigVlanStaticMacTestFixture, addStaticMacSuccess) {
   EXPECT_EQ(*staticMacAddrs.at(0).macAddress(), "00:11:22:33:44:55");
 }
 
-TEST_F(CmdConfigVlanStaticMacTestFixture, addStaticMacVlanNotFound) {
+TEST_F(CmdConfigVlanStaticMacTestFixture, addStaticMacVlanNotFoundAutoCreates) {
   setupTestableConfigSession(
       cmdPrefix_, "999 static-mac add 00:11:22:33:44:55 eth1/1/1");
   auto cmd = CmdConfigVlanStaticMacAdd();
-  VlanId vlanId({"999"}); // VLAN doesn't exist
+  VlanId vlanId({"999"}); // VLAN doesn't exist yet - should be auto-created
   MacAndPortArg macAndPort({"00:11:22:33:44:55", "eth1/1/1"});
 
-  EXPECT_THROW(
-      cmd.queryClient(localhost(), vlanId, macAndPort), std::invalid_argument);
+  // Should succeed by auto-creating VLAN 999
+  auto result = cmd.queryClient(localhost(), vlanId, macAndPort);
+  EXPECT_THAT(result, HasSubstr("Successfully added static MAC entry"));
+  EXPECT_THAT(result, HasSubstr("00:11:22:33:44:55"));
+  EXPECT_THAT(result, HasSubstr("VLAN 999"));
+
+  // Verify VLAN was created
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  auto& swConfig = *config.sw();
+  auto vlanIt = std::find_if(
+      swConfig.vlans()->cbegin(),
+      swConfig.vlans()->cend(),
+      [](const auto& vlan) { return *vlan.id() == 999; });
+  EXPECT_NE(vlanIt, swConfig.vlans()->cend());
 }
 
 TEST_F(CmdConfigVlanStaticMacTestFixture, addStaticMacPortNotFound) {
@@ -325,8 +333,18 @@ TEST_F(CmdConfigVlanStaticMacTestFixture, deleteStaticMacVlanNotFound) {
   VlanId vlanId({"999"}); // VLAN doesn't exist
   MacAddressArg macArg({"00:11:22:33:44:55"});
 
-  EXPECT_THROW(
-      cmd.queryClient(localhost(), vlanId, macArg), std::invalid_argument);
+  // Should succeed idempotently (no VLAN created for a delete)
+  auto result = cmd.queryClient(localhost(), vlanId, macArg);
+  EXPECT_THAT(result, HasSubstr("does not exist"));
+
+  // Verify VLAN was NOT created
+  auto& config = ConfigSession::getInstance().getAgentConfig();
+  auto& swConfig = *config.sw();
+  auto vlanIt = std::find_if(
+      swConfig.vlans()->cbegin(),
+      swConfig.vlans()->cend(),
+      [](const auto& vlan) { return *vlan.id() == 999; });
+  EXPECT_EQ(vlanIt, swConfig.vlans()->cend());
 }
 
 TEST_F(CmdConfigVlanStaticMacTestFixture, deleteStaticMacEntryNotFound) {

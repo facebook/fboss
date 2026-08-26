@@ -12,7 +12,6 @@
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
-#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/test/utils/NextHopIdTestUtils.h"

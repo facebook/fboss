@@ -17,7 +17,11 @@ const std::string kMorgan800cc = "morgan800cc";
 const std::string kJanga800bic = "janga800bic";
 const std::string kTahan800bc = "tahan800bc";
 const std::string kBlackwolf800banw = "blackwolf800banw";
+const std::string kIcecube = "icecube";
+const std::string kM4062nhp = "m4062nhp";
 const std::string kSample = "sample";
+const std::string kWedge800cact = "wedge800cact";
+const std::string kWedge800cnhp = "wedge800cnhp";
 const std::string kNonExistentPlatform = "nonExistentPlatform";
 } // namespace
 
@@ -48,14 +52,16 @@ TEST(ConfigLibTest, Basic) {
       std::runtime_error);
 
   // PlatformManager Configs
-  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kSample));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMeru800bia));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMeru800bfa));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMontblanc));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kM4062nhp));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kTahan800bc));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kBlackwolf800banw));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kIcecube));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getPlatformManagerConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -79,11 +85,67 @@ TEST(ConfigLibTest, Basic) {
   // BspTests Configs
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kMeru800bfa));
   EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kBlackwolf800banw));
+  EXPECT_NO_THROW(ConfigLib().getBspTestConfig(kM4062nhp));
   EXPECT_THROW(
       ConfigLib().getBspTestConfig(kNonExistentPlatform), std::out_of_range);
 
   // Showtech Configs
+  EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getShowtechConfig(kNonExistentPlatform), std::out_of_range);
+
+  // RebootCauseFinder Configs
+  EXPECT_NO_THROW(ConfigLib().getRebootCauseFinderConfig(kMeru800bfa));
+  EXPECT_NO_THROW(ConfigLib().getRebootCauseFinderConfig(kMeru800bia));
+  EXPECT_THROW(
+      ConfigLib().getRebootCauseFinderConfig(kNonExistentPlatform),
+      std::runtime_error);
+}
+
+TEST(ConfigLibTest, Wedge800cnhpReusesWedge800cactConfig) {
+  // WEDGE800CNHP is distinct hardware that reuses WEDGE800CACT's config.
+  EXPECT_EQ(
+      ConfigLib().getPlatformManagerConfig(kWedge800cnhp),
+      ConfigLib().getPlatformManagerConfig(kWedge800cact));
+  EXPECT_EQ(
+      ConfigLib().getSensorServiceConfig(kWedge800cnhp),
+      ConfigLib().getSensorServiceConfig(kWedge800cact));
+}
+
+TEST(ConfigLibTest, Wedge800bnhpReusesWedge800bactConfig) {
+  EXPECT_EQ(
+      ConfigLib().getPlatformManagerConfig("wedge800bnhp"),
+      ConfigLib().getPlatformManagerConfig("wedge800bact"));
+  EXPECT_EQ(
+      ConfigLib().getSensorServiceConfig("wedge800bnhp"),
+      ConfigLib().getSensorServiceConfig("wedge800bact"));
+}
+
+TEST(ConfigLibTest, CanonicalConfigPlatformNameResolvesAlias) {
+  // An aliased platform resolves to the platform whose config it reuses.
+  EXPECT_EQ(
+      ConfigLib::canonicalConfigPlatformName("WEDGE800CNHP"), "WEDGE800CACT");
+  EXPECT_EQ(
+      ConfigLib::canonicalConfigPlatformName("wedge800cnhp"), "WEDGE800CACT");
+  // A non-aliased platform is returned unchanged, normalized to uppercase.
+  EXPECT_EQ(
+      ConfigLib::canonicalConfigPlatformName("WEDGE800CACT"), "WEDGE800CACT");
+  EXPECT_EQ(ConfigLib::canonicalConfigPlatformName("montblanc"), "MONTBLANC");
+}
+
+TEST(ConfigLibTest, VerifyPlatformNameMatches) {
+  // Exact match passes.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("MONTBLANC", "MONTBLANC"));
+  // The config name's case is normalized before comparing.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("montblanc", "MONTBLANC"));
+  // An aliased inferred name matches the target platform's config.
+  EXPECT_NO_THROW(
+      ConfigLib::verifyPlatformNameMatches("WEDGE800CACT", "WEDGE800CNHP"));
+  // A genuine mismatch throws.
+  EXPECT_THROW(
+      ConfigLib::verifyPlatformNameMatches("MONTBLANC", "DARWIN"),
+      std::runtime_error);
 }

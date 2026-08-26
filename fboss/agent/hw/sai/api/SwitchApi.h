@@ -28,11 +28,7 @@
 extern "C" {
 #include <sai.h>
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiexperimentalvendorswitch.h>
-#else
-#include <saiexperimentalvendorswitch.h>
-#endif
 #endif
 }
 
@@ -485,8 +481,10 @@ struct SaiSwitchTraits {
     struct AttributeSwitchIsolateWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
-    using SwitchIsolate =
-        SaiExtensionAttribute<bool, AttributeSwitchIsolateWrapper>;
+    using SwitchIsolate = SaiExtensionAttribute<
+        bool,
+        AttributeSwitchIsolateWrapper,
+        SaiBoolDefaultFalse>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     using CreditWd = SaiAttribute<
         EnumType,
@@ -749,6 +747,18 @@ struct SaiSwitchTraits {
         std::vector<sai_int8_t>,
         AttributeSdkRegDumpLogPath,
         SaiS8ListDefault>;
+    struct AttributeSdkDumpRateLimitWindow {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkDumpRateLimitWindow = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeSdkDumpRateLimitWindow,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeSdkDumpSuppressedCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkDumpSuppressedCount =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSdkDumpSuppressedCount>;
     struct AttributeFirmwareObjectList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -868,12 +878,38 @@ struct SaiSwitchTraits {
         bool,
         AttributeCablePropagationDelayMeasurement,
         SaiBoolDefaultFalse>;
+    struct AttributePortCl72RetryEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PortCl72RetryEnable = SaiExtensionAttribute<
+        bool,
+        AttributePortCl72RetryEnable,
+        SaiBoolDefaultFalse>;
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+
+#if defined(SAI_BRCM_PAI_IMPL)
+    struct AttributeSyncLockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncLock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncLockWrapper,
+        SaiPointerDefault>;
+
+    struct AttributeSyncUnlockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncUnlock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncUnlockWrapper,
+        SaiPointerDefault>;
+#endif
   };
+
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
   using CreateAttributes = std::tuple<
@@ -965,6 +1001,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MaxSwitchId>,
       std::optional<Attributes::SflowAggrNofSamples>,
       std::optional<Attributes::SdkRegDumpLogPath>,
+      std::optional<Attributes::SdkDumpRateLimitWindow>,
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
       std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
@@ -976,7 +1013,15 @@ struct SaiSwitchTraits {
 #endif
       std::optional<Attributes::PfcMonitorEnable>,
       std::optional<Attributes::CablePropagationDelayMeasurement>,
-      std::optional<Attributes::SwitchingMode>>;
+      std::optional<Attributes::PortCl72RetryEnable>,
+      std::optional<Attributes::SwitchingMode>
+
+#if defined(SAI_BRCM_PAI_IMPL)
+      ,
+      std::optional<Attributes::SyncLock>,
+      std::optional<Attributes::SyncUnlock>
+#endif
+      >;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
   // both DramPacketError and EgressRcvPacketError. As we now have a
@@ -1009,6 +1054,7 @@ struct SaiSwitchTraits {
   static const std::vector<sai_stat_id_t>&
   fabricInterCellJitterWatermarkStats();
   static const std::vector<sai_stat_id_t>& deviceWatermarkBytes();
+  static const std::vector<sai_stat_id_t>& customDropBitmapStats();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -1152,6 +1198,8 @@ SAI_ATTRIBUTE_NAME(Switch, ArsAvailableFlows)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
+SAI_ATTRIBUTE_NAME(Switch, SdkDumpRateLimitWindow)
+SAI_ATTRIBUTE_NAME(Switch, SdkDumpSuppressedCount)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
 SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
 SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
@@ -1169,6 +1217,7 @@ SAI_ATTRIBUTE_NAME(Switch, TriggerSimulatedEccUnCorrectableError)
 SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
+SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
@@ -1176,6 +1225,10 @@ SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL)
+SAI_ATTRIBUTE_NAME(Switch, SyncLock)
+SAI_ATTRIBUTE_NAME(Switch, SyncUnlock)
+#endif
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
 

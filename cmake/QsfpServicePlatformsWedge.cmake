@@ -7,7 +7,6 @@ set(QSFP_PLATFORMS_WEDGE_SRC
   fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
   fboss/qsfp_service/platforms/wedge/QsfpRestClient.cpp
   fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
-  fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge400Manager.cpp
   fboss/qsfp_service/platforms/wedge/Wedge400CManager.cpp
   fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
@@ -37,7 +36,6 @@ target_link_libraries(qsfp_platforms_wedge
   qsfp_bsp_core
   galaxy_platform_mapping
   wedge100_platform_mapping
-  wedge40_platform_mapping
   wedge400c_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
@@ -49,11 +47,12 @@ target_link_libraries(qsfp_platforms_wedge
   tahan800bc_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
+  m4062nhp_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
-  wedge800bact_platform_mapping
   wedge800cact_platform_mapping
   ladakh800bcls_platform_mapping
+  leh800bcls_platform_mapping
   platform_base
   qsfp_config
   wedge400_i2c

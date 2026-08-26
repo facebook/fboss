@@ -1390,6 +1390,43 @@ TEST(Acl, L4DstPortRangeQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, PbrFieldsSerialize) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  entry->setTrafficClass(3);
+  entry->setNextHopGroupId(42);
+
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
+  validateNodeSerialization(*entry);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_EQ(entryBack->getTrafficClass(), 3);
+  EXPECT_EQ(entryBack->getNextHopGroupId(), 42);
+}
+
+TEST(Acl, PbrFieldsHasMatcher) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  EXPECT_FALSE(entry->hasMatcher());
+  entry->setTrafficClass(3);
+  EXPECT_TRUE(entry->hasMatcher());
+
+  auto entry2 = std::make_unique<AclEntry>(0, std::string("pbr1"));
+  EXPECT_FALSE(entry2->hasMatcher());
+  entry2->setNextHopGroupId(42);
+  EXPECT_TRUE(entry2->hasMatcher());
+}
+
+TEST(Acl, PbrFieldsQualifier) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
+  entry->setTrafficClass(3);
+  entry->setNextHopGroupId(42);
+  auto qualifiers = entry->getRequiredAclTableQualifiers();
+  EXPECT_TRUE(qualifiers.find(cfg::AclTableQualifier::TC) != qualifiers.end());
+  EXPECT_TRUE(
+      qualifiers.find(cfg::AclTableQualifier::NEXT_HOP_GROUP_ID) !=
+      qualifiers.end());
+}
+
 TEST(Acl, L4DstPortRangeValidation) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -1464,5 +1501,101 @@ TEST(Acl, L4DstPortRangeValidation) {
     EXPECT_TRUE(acl->getL4DstPortRange());
     EXPECT_EQ(*acl->getL4DstPortRange()->minimum(), 1000);
     EXPECT_EQ(*acl->getL4DstPortRange()->maximum(), 2000);
+  }
+}
+
+TEST(Acl, DstIpV6WordValidation) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  auto makeConfig = []() {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(config.ports()[0], 1);
+    config.acls()->resize(1);
+    config.acls()[0].name() = "acl0";
+    config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    return config;
+  };
+
+  auto applyConfig = [&](cfg::SwitchConfig* config) {
+    return publishAndApplyConfig(stateV0, config, platform.get());
+  };
+
+  // dstIp alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_EQ(acl->getDstIp().first.str(), "1234:5678:9abc:def0::1");
+    EXPECT_EQ(acl->getDstIp().second, 128);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word2 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word3 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIpV6Word2 and dstIpV6Word3 together are valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word2.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word3.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with both DST IPv6 word qualifiers.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
   }
 }

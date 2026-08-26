@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <chrono>
 #include "fboss/agent/AgentFeatures.h"
@@ -74,6 +75,14 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
     return false;
   }
 
+  // ZR/coherent modules can only run PRBS line-side to line-side
+  // (TRANSCEIVER_LINE to TRANSCEIVER_LINE). They cannot generate or pass
+  // through PRBS on the ASIC or transceiver system side, so they must be
+  // excluded from every other PRBS mode.
+  bool isZrModule(PortID port) {
+    return checkValidMedia(port, MediaInterfaceCode::ZR_800G);
+  }
+
   bool checkPrbsSupported(
       std::string& interfaceName,
       phy::PortComponent component,
@@ -115,11 +124,14 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                    << " test on "
                    << apache::thrift::util::enumNameSafe(testPort.component)
                    << " on " << testPort.portName;
+        addTestedPort(getPortID(testPort.portName));
       }
     }
   }
 
   void runTest() {
+    addVerifiedProductionFeatures(
+        {link_test_production_features::LinkTestProductionFeature::PRBS});
     prbs::InterfacePrbsState enabledState;
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled() = true;
@@ -269,10 +281,18 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       auto agentClient = utils::createWedgeAgentClient();
       for (const auto& [polynomial, portNames] : asicPortsByPolynomial) {
         state.polynomial() = polynomial;
+        // setInterfacesPrbs is serialized per-port, and can time out on systems
+        // with large numbers of ports
+        constexpr uint32_t kDefaultRecvTimeoutSeconds = 45;
+        apache::thrift::RpcOptions rpcOpts;
+        rpcOpts.setTimeout(
+            std::chrono::seconds(
+                std::max<size_t>(
+                    kDefaultRecvTimeoutSeconds, portNames.size() * 3)));
         WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
           try {
             agentClient->sync_setInterfacesPrbs(
-                portNames, phy::PortComponent::ASIC, state);
+                rpcOpts, portNames, phy::PortComponent::ASIC, state);
             EXPECT_EVENTUALLY_TRUE(true);
           } catch (const std::exception& ex) {
             XLOG(ERR) << "Setting PRBS on ASIC ports failed with " << ex.what();
@@ -427,7 +447,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
           break;
         }
         auto prbsStats = stats[testPort.portName];
-        if (prbsStats.get_timeCollected() <= timeReference) {
+        if (prbsStats.timeCollected().value() <= timeReference) {
           updated = false;
           break;
         }
@@ -470,7 +490,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       time_t testStartTime) {
     ASSERT_FALSE(stats.laneStats().value().empty());
     for (const auto& laneStat : stats.laneStats().value()) {
-      XLOG(DBG2) << folly::sformat(
+      XLOG(DBG2) << fmt::format(
           "Interface {:s}, component {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
           interfaceName,
           apache::thrift::util::enumNameSafe(component),
@@ -480,20 +500,22 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
           folly::copy(laneStat.ber().value()),
           folly::copy(laneStat.maxBer().value()),
           folly::copy(laneStat.timeSinceLastLocked().value()));
-      EXPECT_TRUE(laneStat.get_locked());
+      EXPECT_TRUE(folly::copy(laneStat.locked().value()));
       auto currentTime = std::time(nullptr);
       EXPECT_LE(
-          laneStat.get_timeSinceLastLocked(), currentTime - testStartTime);
+          laneStat.timeSinceLastLocked().value(), currentTime - testStartTime);
       if (!initial) {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
         EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
         auto berThreshold = FLAGS_link_stress_test ? 1e-6 : 1;
         EXPECT_TRUE(
-            laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
+            laneStat.ber().value() >= 0 &&
+            laneStat.ber().value() < berThreshold);
         EXPECT_TRUE(
-            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < berThreshold);
-        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+            laneStat.maxBer().value() >= 0 &&
+            laneStat.maxBer().value() < berThreshold);
+        EXPECT_TRUE(laneStat.ber().value() <= laneStat.maxBer().value());
       }
     }
   }
@@ -784,6 +806,12 @@ class PhyToTransceiverSystemPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       for (const auto& port : {port1, port2}) {
         auto portName = this->getPortName(port);
+        if (isZrModule(port)) {
+          XLOG(INFO) << "Skipping ZR port " << portName
+                     << " for ASIC/TCVR-system PRBS test; ZR only supports "
+                     << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+          continue;
+        }
         auto portValidMedia = checkValidMedia(port, Media);
         auto portSupportPrbsA =
             checkPrbsSupported(portName, ComponentA, PolynomialA);
@@ -825,6 +853,13 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
     for (const auto& [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
+
+      if (isZrModule(port1) || isZrModule(port2)) {
+        XLOG(INFO) << "Skipping ZR port pair " << portName1 << ", " << portName2
+                   << " for ASIC to ASIC PRBS test; ZR only supports "
+                   << "TRANSCEIVER_LINE to TRANSCEIVER_LINE PRBS";
+        continue;
+      }
 
       auto port1SupportPrbs =
           checkPrbsSupported(portName1, phy::PortComponent::ASIC, Polynomial);
@@ -902,7 +937,7 @@ class AsicToAsicPrbsTest : public AgentEnsemblePrbsTest {
     runTest();                                                          \
   }
 
-PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_200G, PRBS31Q);
 

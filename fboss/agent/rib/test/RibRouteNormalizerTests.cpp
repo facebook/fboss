@@ -22,13 +22,15 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
       int numPlanePathsPerRack,
       int rackId = 1,
       int numSpineFailuresToSkip = 0,
-      int spinePruneStepCount = 1)
+      int spinePruneStepCount = 1,
+      bool enableFpfCapacityPruning = false)
       : RibRouteWeightNormalizer(
             numRacks,
             numPlanePathsPerRack,
             rackId,
             numSpineFailuresToSkip,
-            spinePruneStepCount) {}
+            spinePruneStepCount,
+            enableFpfCapacityPruning) {}
 
   // Public wrapper to access protected method for testing
   void testNormalizeWeightsForNexthops(std::vector<ResolvedNextHop>& nhs) {
@@ -86,6 +88,58 @@ class RibRouteWeightNormalizerTest : public RibRouteWeightNormalizer {
       XLOG(DBG4) << "Checking for planeId: " << planeId
                  << " expected prunes: " << planeIdToExpectedPrunes[planeId];
       EXPECT_EQ(numPrunedPaths(nhs, planeId), planeIdToExpectedPrunes[planeId]);
+    }
+  }
+
+  // FPF pruning is scoped per STSW (spine_id). Each STSW's prune count is
+  // derived from the local GTSW->STSW path count (number of nexthops toward the
+  // STSW) vs the STSW->remote GTSW capacity carried in remote_rack_capacity,
+  // independent of every other STSW.
+  static void runFpfNextHopPruningTest(
+      const std::map<int, int>& spineIdToRemoteCapacity,
+      const std::map<int, int>& spineIdToLocalPathCount,
+      const std::map<int, int>& spineIdToExpectedPrunes,
+      int numSpineFailuresToSkip = 0,
+      int spinePruneStepCount = 1) {
+    int numStsws = 8;
+    RibRouteWeightNormalizerTest normalizer(
+        6 /*numRacks*/,
+        6 /*numPlanePathsPerRack*/,
+        1 /*rackId*/,
+        numSpineFailuresToSkip,
+        spinePruneStepCount,
+        true /*enableFpfCapacityPruning*/);
+    std::vector<ResolvedNextHop> nhs;
+    int nhid = 0;
+    for (int spineId = 0; spineId < numStsws; spineId++) {
+      for (int localPath = 0; localPath < spineIdToLocalPathCount.at(spineId);
+           localPath++) {
+        NetworkTopologyInformation topologyInfo;
+        topologyInfo.spine_id() = spineId;
+        // remote_rack_capacity carries the STSW->remote GTSW capacity in FPF
+        topologyInfo.remote_rack_capacity() =
+            spineIdToRemoteCapacity.at(spineId);
+        nhs.emplace_back(makeResolvedNextHop(
+            InterfaceID(nhid), "fe80::1", 1 /*weight*/, topologyInfo));
+        nhid++;
+      }
+    }
+    normalizer.testNormalizeWeightsForNexthops(nhs);
+    auto numPrunedPaths = [](const auto& nhs, const auto spineId) {
+      int count = 0;
+      for (const auto& nh : nhs) {
+        if (*nh.topologyInfo()->spine_id() == spineId &&
+            nh.adjustedWeight().has_value() && nh.adjustedWeight() == 0) {
+          count++;
+        }
+      }
+      return count;
+    };
+    for (int spineId = 0; spineId < numStsws; spineId++) {
+      XLOG(DBG4) << "Checking for spineId: " << spineId
+                 << " expected prunes: " << spineIdToExpectedPrunes.at(spineId);
+      EXPECT_EQ(
+          numPrunedPaths(nhs, spineId), spineIdToExpectedPrunes.at(spineId));
     }
   }
 };
@@ -330,6 +384,14 @@ TEST(RibRouteWeightNormalizerTest, verifyParameterValidation) {
       normalizer.getNumPathsToPrune(1000, 1, 1),
       FbossError); // too large failures
 
+  // Test negative rack_id (security fix: negative values must be rejected)
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, -1, 1), FbossError); // negative dstRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, 1, -1), FbossError); // negative srcRack
+  EXPECT_THROW(
+      normalizer.getNumPathsToPrune(0, -5, -5), FbossError); // both negative
+
   // Valid parameter tests - these should not throw
 
   // Constructor valid parameters
@@ -351,4 +413,76 @@ TEST(RibRouteWeightNormalizerTest, verifyParameterValidation) {
   // Test edge cases that should work
   EXPECT_NO_THROW(
       normalizer.getNumPathsToPrune(36, 1, 1)); // max valid failures (6*6)
+}
+
+TEST(
+    RibRouteWeightNormalizerTest,
+    verifyFpfNoPruningWhenRemoteCapacitySufficient) {
+  // remote capacity (remote_rack_capacity) >= local path count => no
+  // oversubscription
+  std::map<int, int> spineIdToRemoteCapacity = {
+      {0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToLocalPathCount = {
+      {0, 8}, {1, 6}, {2, 8}, {3, 4}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToExpectedPrunes = {
+      {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
+  RibRouteWeightNormalizerTest::runFpfNextHopPruningTest(
+      spineIdToRemoteCapacity,
+      spineIdToLocalPathCount,
+      spineIdToExpectedPrunes);
+}
+
+TEST(RibRouteWeightNormalizerTest, verifyFpfPruningForRemoteSpineFailures) {
+  // local GTSW fully healthy (8 nexthops per STSW), remote STSW->GTSW capacity
+  // reduced. prune = local path count - remote_rack_capacity
+  std::map<int, int> spineIdToRemoteCapacity = {
+      {0, 8}, {1, 7}, {2, 6}, {3, 5}, {4, 4}, {5, 2}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToLocalPathCount = {
+      {0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToExpectedPrunes = {
+      {0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 6}, {6, 0}, {7, 0}};
+  RibRouteWeightNormalizerTest::runFpfNextHopPruningTest(
+      spineIdToRemoteCapacity,
+      spineIdToLocalPathCount,
+      spineIdToExpectedPrunes);
+}
+
+TEST(RibRouteWeightNormalizerTest, verifyFpfPruningDiscountsLocalFailures) {
+  // fewer local nexthops shrink the excess since prune = local count - remote
+  std::map<int, int> spineIdToRemoteCapacity = {
+      {0, 6}, {1, 6}, {2, 5}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToLocalPathCount = {
+      {0, 8}, {1, 6}, {2, 7}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  std::map<int, int> spineIdToExpectedPrunes = {
+      {0, 2}, {1, 0}, {2, 2}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}};
+  RibRouteWeightNormalizerTest::runFpfNextHopPruningTest(
+      spineIdToRemoteCapacity,
+      spineIdToLocalPathCount,
+      spineIdToExpectedPrunes);
+}
+
+TEST(RibRouteWeightNormalizerTest, verifyFpfSkipAndStepCount) {
+  // numSpineFailuresToSkip = 2, spinePruneStepCount = 3
+  // effective = max((local path count - remote_rack_capacity) - 2, 0); then
+  // quantized
+  std::map<int, int> spineIdToRemoteCapacity = {
+      {0, 8}, {1, 7}, {2, 6}, {3, 5}, {4, 4}, {5, 3}, {6, 0}, {7, 1}};
+  std::map<int, int> spineIdToLocalPathCount = {
+      {0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}};
+  // spine0: excess 0 -> 0
+  // spine1: excess 1 -> 1-2<0 -> 0
+  // spine2: excess 2 -> 0 -> 0
+  // spine3: excess 3 -> 1 -> step group 0 -> 1
+  // spine4: excess 4 -> 2 -> step group 0 -> 1
+  // spine5: excess 5 -> 3 -> step group 0 -> 1
+  // spine6: excess 8 -> 6 -> step group 1 -> 4
+  // spine7: excess 7 -> 5 -> step group 1 -> 4
+  std::map<int, int> spineIdToExpectedPrunes = {
+      {0, 0}, {1, 0}, {2, 0}, {3, 1}, {4, 1}, {5, 1}, {6, 4}, {7, 4}};
+  RibRouteWeightNormalizerTest::runFpfNextHopPruningTest(
+      spineIdToRemoteCapacity,
+      spineIdToLocalPathCount,
+      spineIdToExpectedPrunes,
+      2 /*numSpineFailuresToSkip*/,
+      3 /*spinePruneStepCount*/);
 }

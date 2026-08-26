@@ -11,6 +11,7 @@
 
 #include <set>
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -30,16 +31,16 @@ void HwTransceiverUtils::verifyTempAndVccFlags(
     auto& tcvrStats = *transceiverInfo.tcvrStats();
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high temp alarm flag", tcvrID);
+        << fmt::format("{:d} has high temp alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->temp()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high temp warn flag", tcvrID);
+        << fmt::format("{:d} has high temp warn flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).alarm()->high())
-        << folly::sformat("{:d} has high vcc alarm flag", tcvrID);
+        << fmt::format("{:d} has high vcc alarm flag", tcvrID);
     EXPECT_FALSE(
         *tcvrStats.sensor()->vcc()->flags().value_or({}).warn()->high())
-        << folly::sformat("{:d} has high vcc warn flag", tcvrID);
+        << fmt::format("{:d} has high vcc warn flag", tcvrID);
   }
 }
 
@@ -48,7 +49,7 @@ void HwTransceiverUtils::verifyTcvrErrorStates(
   for (auto& [_, transceiverInfo] : portToTransceiverInfoMap) {
     auto& tcvrState = *transceiverInfo.tcvrState();
     auto tcvrID = *tcvrState.port();
-    EXPECT_TRUE(tcvrState.errorStates()->empty()) << folly::sformat(
+    EXPECT_TRUE(tcvrState.errorStates()->empty()) << fmt::format(
         "{:d} has error states {:s}",
         tcvrID,
         folly::join(",", *tcvrState.errorStates()));
@@ -236,7 +237,8 @@ void HwTransceiverUtils::verifyTransceiverSettings(
 
   verifyMediaInterfaceCompliance(tcvrState, profile, portName);
 
-  if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+  if (TransceiverManager::opticalOrActiveCable(tcvrState) &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
     // We use these profiles on Meru400biu and Meru400bfu with 200G optics in
     // a hacky configuration which invalidates the verification of datapath in
@@ -262,9 +264,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
-  // Identify Tunable Module.
-  bool isTunableOptics =
-      tcvrState.moduleTechnology().value() == ModuleTechnology::TUNABLE;
+  // Identify Tunable Module (C-Band or L-Band ZR).
+  auto modTech = tcvrState.moduleTechnology().value();
+  bool isTunableOptics = modTech == ModuleTechnology::TUNABLE_C_BAND ||
+      modTech == ModuleTechnology::TUNABLE_L_BAND;
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
@@ -503,12 +506,14 @@ void HwTransceiverUtils::verify200gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_200G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_200G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
         *mediaId.code() == MediaInterfaceCode::DR2_200G ||
-        *mediaId.code() == MediaInterfaceCode::DR1_200G);
+        *mediaId.code() == MediaInterfaceCode::DR1_200G ||
+        *mediaId.code() == MediaInterfaceCode::FR1_200G);
   }
 }
 
@@ -522,12 +527,14 @@ void HwTransceiverUtils::verify400gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_10_400G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR4_400G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_400G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR2_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
         *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
         *mediaId.code() == MediaInterfaceCode::DR4_400G ||
-        *mediaId.code() == MediaInterfaceCode::DR2_400G);
+        *mediaId.code() == MediaInterfaceCode::DR2_400G ||
+        *mediaId.code() == MediaInterfaceCode::FR2_400G);
   }
 }
 

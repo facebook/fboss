@@ -38,7 +38,7 @@ class ConfigInterfaceDescriptionTest : public Fboss2IntegrationTest {
 TEST_F(ConfigInterfaceDescriptionTest, SetAndVerifyDescription) {
   // Step 1: Find an interface to test with
   XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  Interface interface = getInterfaceInfo(getRandomInterfacePortName());
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")

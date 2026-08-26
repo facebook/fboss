@@ -24,6 +24,9 @@ std::string fabricOverdrainCounter(int16_t switchIndex) {
   return folly::to<std::string>(
       "switch.", switchIndex, ".fabric_overdrain_pct");
 }
+std::string linkFaultCounter(const std::string& portName) {
+  return folly::to<std::string>(portName, ".link_fault.sum");
+}
 const std::string kPrimaryEcmpGroupsExhausted = "primary_ecmp_groups_exhausted";
 const std::string kPrimaryEcmpGroupsCount = "primary_ecmp_groups_count";
 const std::string kBackupEcmpGroupsCount = "backup_ecmp_groups_count";
@@ -79,6 +82,17 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       ipv6HopLimit1Mine_(
           map,
           kCounterPrefix + "ipv6.hop_limit1_mine",
+          SUM,
+          RATE),
+      mplsTtlExceeded_(map, kCounterPrefix + "mpls.ttl_exceeded", SUM, RATE),
+      srv6DecapMySidToMe_(
+          map,
+          kCounterPrefix + "srv6.decap_mysid_to_me",
+          SUM,
+          RATE),
+      srv6NonLastSegmentDecapDrop_(
+          map,
+          kCounterPrefix + "srv6.non_last_segment_decap_drop",
           SUM,
           RATE),
       udpTooSmall_(map, kCounterPrefix + "udp.too_small", SUM, RATE),
@@ -292,6 +306,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           10000,
           AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
+      linkFault_(map, kCounterPrefix + "link_fault", SUM),
       linkActiveStateChange_(
           map,
           kCounterPrefix + "link_active_state.flap",
@@ -394,6 +409,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
       warmbootRemoteIntfRoutesInconsistency_(
           map,
           kCounterPrefix + "warmboot_remote_intf_routes_inconsistency",
+          SUM,
+          RATE),
+      warmbootRemoteIntfRoutesReconcileError_(
+          map,
+          kCounterPrefix + "warmboot_remote_intf_routes_reconcile_error",
           SUM,
           RATE),
       hiPriPktsReceived_(
@@ -563,6 +583,24 @@ InterfaceStats* FOLLY_NULLABLE SwitchStats::intf(InterfaceID intfID) {
 
 void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   agentStats.linkFlaps() = getCumulativeValue(linkStateChange_);
+  agentStats.linkFaults() = getCumulativeValue(linkFault_);
+  // Per port link_fault has no TLTimeseries to read: it is accumulated by name
+  // from two threads, flaps from the state update thread and debounce
+  // retriggers from the stats thread, and PortStats is thread local, so the
+  // total only exists in the thread aggregated fb303 counter. Fetched in one
+  // batch since each lookup locks the global counter map.
+  std::vector<std::string> linkFaultKeys;
+  linkFaultKeys.reserve(agentStats.hwPortStats()->size());
+  for (const auto& [portName, portStats] : *agentStats.hwPortStats()) {
+    linkFaultKeys.emplace_back(linkFaultCounter(portName));
+  }
+  auto linkFaults = fb303::fbData->getSelectedCounters(linkFaultKeys);
+  for (auto& [portName, portStats] : *agentStats.hwPortStats()) {
+    if (auto itr = linkFaults.find(linkFaultCounter(portName));
+        itr != linkFaults.end()) {
+      portStats.linkFault_() = itr->second;
+    }
+  }
   agentStats.trappedPktsDropped() = getCumulativeValue(trapPktDrops_);
   agentStats.threadHeartBeatMiss() =
       getCumulativeValue(threadHeartbeatMissCount_);

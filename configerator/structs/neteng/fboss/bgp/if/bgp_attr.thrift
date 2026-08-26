@@ -32,7 +32,7 @@ enum TAsPathSegType {
 
 struct TAsPathSeg {
   1: TAsPathSegType seg_type;
-  // deprecated: use asns_4_byte instead T113736668
+  // deprecated: use asns_4_byte instead [redacted]
   @thrift.Deprecated
   2: list<i32> asns;
   // RFC 6793, i64 = unsigned i32
@@ -59,7 +59,7 @@ enum AddPath {
  *
  * The knobs classify into two, ORIGINATE and TRANSFORM.
  *   ORIGINATE - For origination the link-bandwidth community for the route is
- *               derived from configuration, either the peer to whom we're
+ *               derived from configuration, either the peer to whom we’re
  *               advertising or the peers associated with ECMP paths.
  *   TRANSFORM - These knobs transforms the associated/received link-bandwidth
  *               community of the ECMP paths. For the transforms to be
@@ -95,7 +95,7 @@ enum AdvertiseLinkBandwidth {
 /**
  * Control knob for link bandwidth community association on a received route
  * from peer. Knobs here provides a way to originate the link-bandwidth even
- * if peer doesn't announce or reject the announced link-bandwidth community
+ * if peer doesn’t announce or reject the announced link-bandwidth community
  * from the peer.
  */
 enum ReceiveLinkBandwidth {

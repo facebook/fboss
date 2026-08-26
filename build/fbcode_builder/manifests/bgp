@@ -1,6 +1,6 @@
 [manifest]
 name = bgp
-fbsource_path = facebook/neteng/fboss/bgp
+fbsource_path = fbcode/neteng/fboss/bgp
 shipit_project = bgp
 shipit_fbcode_builder = true
 
@@ -17,12 +17,43 @@ builder = nop
 [dependencies]
 boost
 fb303
-fboss
+# The explicit prohibition is deliberate: a bare `!default` would let a future
+# consumer of both fboss and bgp silently re-enable the services trees.
+fboss = !default, !services
 fbthrift
+fizz
+fmt
 folly
+magic_enum
+wangle
 re2
+zstd
+gcc12
 
 [shipit.pathmap]
-fbcode/neteng/fboss/bgp = neteng/fboss/bgp
 fbcode/neteng/fboss/bgp/public_tld = .
+fbcode/neteng/fboss/bgp = neteng/fboss/bgp
 fbcode/fboss/common = common
+# common.thrift defines the @AllowSkipThriftCow annotation whose C++ type is
+# derived from its package, so rib_policy.thrift must resolve the exact FBOSS
+# schema. A committed copy under public_tld would duplicate the configerator
+# Thrift URI, so sync the real file in the same way manifests/fboss does.
+fbcode/configerator/structs/neteng/fboss/thrift = configerator/structs/neteng/fboss/thrift
+
+[shipit.strip]
+^fbcode/neteng/fboss/bgp/.*facebook.*
+^fbcode/neteng/fboss/bgp/.*\.bzl
+^fbcode/neteng/fboss/bgp/\.llms/.*
+^fbcode/neteng/fboss/bgp/tools/.*
+^fbcode/neteng/fboss/bgp/cpp/rib/RibBB\..*
+^fbcode/neteng/fboss/bgp/cpp/nexthopTracker/NetlinkWrapper\..*
+^fbcode/neteng/fboss/bgp/cpp/common/platform/bb/.*
+^fbcode/neteng/fboss/bgp/cpp/tests/NetlinkWrapperTest\.cpp
+^fbcode/neteng/fboss/bgp/cpp/tests/PlatformConstantBbTest\.cpp
+^fbcode/neteng/fboss/bgp/cpp/tests/FibEbbTest\.cpp
+# Only common.thrift is needed from configerator/structs/neteng/fboss/thrift;
+# strip the unrelated schemas the pathmap above would otherwise ship.
+^fbcode/configerator/structs/neteng/fboss/thrift/BUCK
+^fbcode/configerator/structs/neteng/fboss/thrift/package_versions\.thrift
+^fbcode/configerator/structs/neteng/fboss/thrift/platform_npi_stage\.thrift
+^fbcode/configerator/structs/neteng/fboss/thrift/sdk\.thrift

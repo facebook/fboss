@@ -48,6 +48,8 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             kActionTypeList(),
             true, // srcIpv6
             true, // dstIpv6
+            std::nullopt, // dstIpv6Word3
+            std::nullopt, // dstIpv6Word2
             true, // srcIpv4
             true, // dstIpv4
             true, // l4SrcPort
@@ -62,6 +64,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // icmpv6Type
             true, // icmpv6Code
             true, // dscp
+            true, // tc
             true, // dstMac
             true, // ipType
             true, // ttl

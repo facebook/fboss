@@ -439,6 +439,10 @@ class SwSwitch : public HwSwitchCallback {
    */
   void initialConfigApplied(
       const std::chrono::steady_clock::time_point& startTime);
+
+  std::shared_ptr<SwitchState> reconcileRemoteInterfaceRoutesOnWarmboot(
+      const std::shared_ptr<SwitchState>& state);
+
   /*
    * Get the SwitchStats for the current thread.
    *
@@ -1009,6 +1013,7 @@ class SwSwitch : public HwSwitchCallback {
       uint16_t switchIndex) const;
   std::map<uint16_t, multiswitch::HwSwitchStats> getHwSwitchStatsExpensive()
       const;
+  std::map<std::string, HwSwitchCounter> getRouteCounters() const;
 
   FabricReachabilityStats getFabricReachabilityStats();
   void setPortsDownForSwitch(SwitchID switchId);

@@ -70,6 +70,16 @@ struct fbiob_xcvr_data {
 };
 
 /*
+ * RTM specific settings.
+ *   - Exclusively consumed by "rtm_ctrl" driver, similar to xcvr,
+ *     exports sysfs for Retimer reset.
+ *   - "port_num" is 1-based.
+ */
+struct fbiob_rtm_data {
+	__u32 port_num;
+};
+
+/*
  * Fan/PWM controller data.
  */
 struct fbiob_fan_data {
@@ -108,6 +118,7 @@ struct fbiob_aux_data {
 		struct fbiob_led_data led_data;
 		struct fbiob_spi_data spi_data;
 		struct fbiob_xcvr_data xcvr_data;
+		struct fbiob_rtm_data rtm_data;
 	};
 };
 

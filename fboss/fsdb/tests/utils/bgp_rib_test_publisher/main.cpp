@@ -28,23 +28,23 @@ class SignalHandler : public folly::AsyncSignalHandler {
   SignalHandler(
       folly::EventBase* evb,
       BgpRibTestPublisher& publisher,
-      const std::map<std::string, bgp_thrift::TRibEntry>& routes)
+      std::vector<BgpRibTestPublisher::CanonicalRoute> routes)
       : folly::AsyncSignalHandler(evb),
         evb_(evb),
         publisher_(publisher),
-        routesToPublish_(routes) {}
+        routesToPublish_(std::move(routes)) {}
 
   void signalReceived(int signum) noexcept override {
     if (signum == SIGUSR1) {
       XLOG(INFO) << "Received SIGUSR1: withdrawing routes and exiting";
-      publisher_.withdrawAllRoutes();
+      publisher_.setCanonicalRoutes({});
       evb_->terminateLoopSoon();
     } else if (signum == SIGUSR2) {
       XLOG(INFO) << "Received SIGUSR2: withdrawing routes, keeping running";
-      publisher_.withdrawAllRoutes();
+      publisher_.setCanonicalRoutes({});
     } else if (signum == SIGHUP) {
       XLOG(INFO) << "Received SIGHUP: republishing routes";
-      publisher_.publishRibMap(routesToPublish_);
+      publisher_.setCanonicalRoutes(routesToPublish_);
       XLOG(INFO) << "Republished " << routesToPublish_.size() << " routes";
     } else if (signum == SIGINT || signum == SIGTERM) {
       XLOG(INFO) << "Received SIGINT/SIGTERM: graceful shutdown";
@@ -55,7 +55,7 @@ class SignalHandler : public folly::AsyncSignalHandler {
  private:
   folly::EventBase* evb_;
   BgpRibTestPublisher& publisher_;
-  const std::map<std::string, bgp_thrift::TRibEntry>& routesToPublish_;
+  std::vector<BgpRibTestPublisher::CanonicalRoute> routesToPublish_;
 };
 
 int main(int argc, char** argv) {
@@ -77,14 +77,18 @@ int main(int argc, char** argv) {
   BgpRibTestPublisher publisher("bgp-rib-test-publisher");
   publisher.start();
 
-  std::map<std::string, bgp_thrift::TRibEntry> routesToPublish;
+  // Each route carries its own next hop from --next_hops (validated 1:1 with
+  // --routes above). HRT and other canonical consumers read communities, not
+  // the next hop, but we honor the supplied per-route next hops regardless.
+  std::vector<BgpRibTestPublisher::CanonicalRoute> routesToPublish;
+  routesToPublish.reserve(prefixes.size());
   for (size_t i = 0; i < prefixes.size(); ++i) {
-    auto entry =
-        BgpRibTestPublisher::createTestRibEntry(prefixes[i], nextHops[i]);
-    routesToPublish[prefixes[i]] = entry;
+    routesToPublish.push_back(
+        BgpRibTestPublisher::CanonicalRoute{
+            prefixes[i], /*communities=*/{}, nextHops[i]});
     XLOG(INFO) << "Route: " << prefixes[i] << " via " << nextHops[i];
   }
-  publisher.publishRibMap(routesToPublish);
+  publisher.setCanonicalRoutes(routesToPublish);
   XLOG(INFO) << "Published " << routesToPublish.size() << " routes";
 
   folly::EventBase evb;

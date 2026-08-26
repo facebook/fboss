@@ -61,6 +61,7 @@ void FsdbSubManager<_Storage, _IsCow>::parseChunkAndInvokeCallback(
   changedPaths.reserve(chunk.patchGroups()->size());
   std::optional<int64_t> lastServedAt;
   std::optional<int64_t> lastPublishedAt;
+  std::optional<StreamRevision> streamRevision;
 
   for (auto& [key, patchGroup] : *chunk.patchGroups()) {
     for (auto& patch : patchGroup) {
@@ -88,6 +89,11 @@ void FsdbSubManager<_Storage, _IsCow>::parseChunkAndInvokeCallback(
           lastPublishedAt = patchLastPublishedAt;
         }
       }
+      // Surface the server-echoed stream revision (set after a live add-paths
+      // call). All patches in a post-add chunk carry the same value; last wins.
+      if (metadata.streamRevision().has_value()) {
+        streamRevision = *metadata.streamRevision();
+      }
       changedKeys.push_back(key);
       changedPaths.emplace_back(*patch.basePath());
       root_.patch(std::move(patch));
@@ -99,7 +105,8 @@ void FsdbSubManager<_Storage, _IsCow>::parseChunkAndInvokeCallback(
       std::move(changedKeys),
       std::move(changedPaths),
       lastServedAt,
-      lastPublishedAt};
+      lastPublishedAt,
+      streamRevision};
   dataCb_.value()(std::move(update));
 }
 

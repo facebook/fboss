@@ -31,6 +31,7 @@ thrift_library(
     thrift_srcs = {"BgpStructs.thrift": None},
     deps = [
         "//common/network/if:if",
+        "//thrift/annotation:hack",
     ],
 )
 
@@ -42,19 +43,18 @@ thrift_library(
     languages = [
         "cpp2",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "go",
         "python",
         "py-deprecated",
     ],
     py3_namespace = "nettools.bgplib",
-    py_asyncio_base_module = "nettools.bgplib_asyncio",
     py_base_module = "nettools.bgplib",
     thrift_cpp2_options = "json",
     thrift_srcs = {"BmpStructs.thrift": None},
     deps = [
         ":bgp-structs",
         "//common/network/if:if",
+        "//thrift/annotation:hack",
     ],
 )
 
@@ -81,6 +81,40 @@ thrift_library(
         "policy_thrift.thrift": [],
     },
     deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "bgp_route_types",
+    go_thrift_namespaces = {
+        "bgp_route_types.thrift": "neteng.fboss.bgp_route_types",
+    },
+    languages = [
+        "py-deprecated",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "cpp2",
+        "go",
+        "rust",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {
+        "bgp_route_types.thrift": [],
+    },
+    deps = [
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy",
+        "//configerator/structs/neteng/fboss/bgp/if:bgp_attr",
+        "//configerator/structs/neteng/fboss/thrift:common",
+        "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],
 )
@@ -120,6 +154,7 @@ thrift_library(
         "bgp_thrift.thrift": ["TBgpService"],
     },
     deps = [
+        ":bgp_route_types",
         ":policy_thrift",
         "//common/fb303/if:fb303",
         "//configerator/structs/neteng/bgp_policy/thrift:bgp_policy",

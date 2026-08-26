@@ -6,11 +6,7 @@
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
 extern "C" {
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saimirrorextensions.h>
-#else
-#include <saimirrorextensions.h>
-#endif
 }
 #endif
 

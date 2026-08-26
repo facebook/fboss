@@ -21,11 +21,21 @@ uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics) {
   CHECK(maxEcmpGroups.has_value());
   return maxEcmpGroups.value();
 }
+// TH3/TH4 reserve part of the ECMP member table for SDK defrag (CS00012426319),
+// so scale tests target a percentage of the reported max to stay programmable.
+constexpr uint32_t kEcmpMemberScaleTestPct = 85;
+
 uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   auto maxEcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxEcmpMembers.has_value());
-  return maxEcmpMembers.value();
+  switch (asic->getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      return maxEcmpMembers.value() * kEcmpMemberScaleTestPct / 100;
+    default:
+      return maxEcmpMembers.value();
+  }
 }
 
 uint32_t getMaxVariableWidthEcmpSize(const std::vector<const HwAsic*>& asics) {
@@ -36,13 +46,13 @@ uint32_t getMaxVariableWidthEcmpSize(const std::vector<const HwAsic*>& asics) {
 
 uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
   auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
-  auto maxUcmpMembers = asic->getMaxEcmpMembers();
-  CHECK(maxUcmpMembers.has_value());
+  // UCMP members cost 4 member-table entries each on TH4/TH5.
+  auto maxUcmpMembers = getMaxEcmpMembers(asics);
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
-    return maxUcmpMembers.value() / 4;
+    return maxUcmpMembers / 4;
   }
-  return maxUcmpMembers.value();
+  return maxUcmpMembers;
 }
 
 // Generate all possible combinations of k selections of the input

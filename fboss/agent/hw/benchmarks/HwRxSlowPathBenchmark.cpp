@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/TxPacket.h"

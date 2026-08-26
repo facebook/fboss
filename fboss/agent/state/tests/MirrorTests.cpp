@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/Mirror.h"
@@ -11,6 +12,8 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+
+#include <unordered_set>
 
 namespace facebook::fboss {
 
@@ -86,6 +89,33 @@ const char* MirrorTest::egressPortName = "port5";
 const PortID MirrorTest::egressPort = PortID(5);
 const uint8_t MirrorTest::dscp = 46;
 const TunnelUdpPorts MirrorTest::udpPorts = {6545, 6343};
+
+TEST_F(MirrorTest, ApplyConfigScopesPortReferencedMirrors) {
+  state_ = std::make_shared<SwitchState>();
+  config_.switchSettings()->switchIdToSwitchInfo() = {
+      {0,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 0, 1, 0)},
+      {1,
+       createSwitchInfo(
+           cfg::SwitchType::NPU, cfg::AsicType::ASIC_TYPE_MOCK, 2, 99, 1)}};
+  config_.mirrors()->push_back(
+      utility::getGREMirror("mirror0", MirrorTest::tunnelDestination));
+  configurePortMirror("mirror0", PortID(1));
+
+  publishWithStateUpdate();
+
+  auto matcher0 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  auto matcher1 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)});
+  auto switch0Mirrors = state_->getMirrors()->getMapNodeIf(matcher0);
+  auto switch1Mirrors = state_->getMirrors()->getMapNodeIf(matcher1);
+
+  ASSERT_NE(nullptr, switch0Mirrors);
+  EXPECT_NE(nullptr, switch0Mirrors->getNodeIf("mirror0"));
+  EXPECT_TRUE(
+      switch1Mirrors == nullptr ||
+      switch1Mirrors->getNodeIf("mirror0") == nullptr);
+}
 
 TEST_F(MirrorTest, MirrorWithPort) {
   config_.mirrors()->push_back(

@@ -12,7 +12,7 @@ cpp_library(
     headers = [
         "UpdaterUtils.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         ":rackmon_client",
         ":updater_exceptions",
@@ -20,6 +20,7 @@ cpp_library(
         "//folly/io/async:async_socket",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
+    exported_deps = [],
 )
 
 # Exception hierarchy library
@@ -42,13 +43,15 @@ cpp_library(
     headers = [
         "RackmonClient.h",
     ],
-    exported_deps = [
+    deps = [
         ":updater_exceptions",
         "//fboss/platform/rackmon/if:rackmonsvc-cpp2-clients",
-        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-types",
         "//folly/io/async:async_base",
         "//folly/io/async:async_socket",
         "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+    exported_deps = [
+        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-types",
     ],
 )
 
@@ -61,9 +64,8 @@ cpp_library(
     headers = [
         "HexFileParser.h",
     ],
-    exported_deps = [
-        ":updater_exceptions",
-    ],
+    deps = [":updater_exceptions"],
+    exported_deps = [],
 )
 
 # Base firmware updater class
@@ -89,12 +91,14 @@ cpp_library(
     headers = [
         "MEIFirmwareUpdater.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        ":hex_file_parser",
-        ":rack_firmware_updater",
         ":updater_exceptions",
         ":updater_utils",
+    ],
+    exported_deps = [
+        ":hex_file_parser",
+        ":rack_firmware_updater",
     ],
 )
 
@@ -107,11 +111,13 @@ cpp_library(
     headers = [
         "MailboxFirmwareUpdater.h",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        ":rack_firmware_updater",
         ":updater_exceptions",
         ":updater_utils",
+    ],
+    exported_deps = [
+        ":rack_firmware_updater",
     ],
 )
 

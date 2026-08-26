@@ -12,16 +12,18 @@ cpp_library(
     headers = [
         "FsdbTestServer.h",
     ],
-    exported_deps = [
+    deps = [
         "//common/services/cpp:light",
         "//common/strings:uuid",
         "//fboss/fsdb/oper:path_helpers",
-        "//fboss/fsdb/server:handler",
         "//fboss/lib:common_utils",
         "//fboss/lib:thrift_service_utils",
-        "//folly/io/async:scoped_event_base_thread",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/util:util",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/server:handler",
+        "//folly/io/async:scoped_event_base_thread",
     ],
 )
 

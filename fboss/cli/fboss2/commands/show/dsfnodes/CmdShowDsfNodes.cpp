@@ -12,6 +12,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fmt/format.h>
 #include <re2/re2.h>
 #include <map>
 #include <string>
@@ -71,7 +72,7 @@ RetType CmdShowDsfNodes::createModel(
     if (node.systemPortRanges()->systemPortRanges()->size()) {
       for (const auto& range : *node.systemPortRanges()->systemPortRanges()) {
         ranges.push_back(
-            folly::sformat("({}, {})", *range.minimum(), *range.maximum()));
+            fmt::format("({}, {})", *range.minimum(), *range.maximum()));
       }
       entry.systemPortRanges() = folly::join(", ", ranges);
     } else {
@@ -79,6 +80,44 @@ RetType CmdShowDsfNodes::createModel(
     }
     model.dsfNodes()->push_back(entry);
   }
+  return model;
+}
+
+std::string_view CmdShowDsfNodesTraits::description() {
+  return "Displays the DSF nodes known to the switch: each node's name, switch ID, type (interface node or fabric node), and system port ID ranges (interface nodes only). DSF-only — applies to DSF switches and returns data only in a DSF topology.";
+}
+
+RetType CmdShowDsfNodes::sampleModel() {
+  RetType model;
+
+  cli::DsfNodeEntry entry1;
+  entry1.name() = "rdsw001";
+  entry1.switchId() = 0;
+  entry1.type() = "Intf Node";
+  entry1.systemPortRanges() = "(185, 212), (16569, 16596)";
+  model.dsfNodes()->push_back(entry1);
+
+  cli::DsfNodeEntry entry2;
+  entry2.name() = "rdsw002";
+  entry2.switchId() = 4;
+  entry2.type() = "Intf Node";
+  entry2.systemPortRanges() = "(213, 240), (16597, 16624)";
+  model.dsfNodes()->push_back(entry2);
+
+  cli::DsfNodeEntry entry3;
+  entry3.name() = "fdsw001";
+  entry3.switchId() = 2560;
+  entry3.type() = "Fabric Node";
+  entry3.systemPortRanges() = "--";
+  model.dsfNodes()->push_back(entry3);
+
+  cli::DsfNodeEntry entry4;
+  entry4.name() = "fdsw002";
+  entry4.switchId() = 2564;
+  entry4.type() = "Fabric Node";
+  entry4.systemPortRanges() = "--";
+  model.dsfNodes()->push_back(entry4);
+
   return model;
 }
 

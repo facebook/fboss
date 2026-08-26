@@ -28,7 +28,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run Docker-based build for fboss2 CLI
         run: >
           sudo
@@ -82,7 +82,7 @@ jobs:
     needs: fboss2-CLI-Build
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download artifact with test binaries
         uses: actions/download-artifact@v8
         with:

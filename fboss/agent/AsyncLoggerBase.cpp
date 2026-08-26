@@ -8,6 +8,8 @@
  *
  */
 
+#include <fcntl.h>
+#include <unistd.h>
 #include <iomanip>
 
 #include "fboss/agent/AsyncLoggerBase.h"
@@ -101,6 +103,11 @@ void AsyncLoggerBase::setBootType(bool canWarmBoot) {
   bootTypeLatch_.lock();
   isWarmBoot = canWarmBoot;
   bootTypeLatch_.unlock();
+}
+
+bool AsyncLoggerBase::getBootType() {
+  std::lock_guard<std::mutex> guard(bootTypeLatch_);
+  return isWarmBoot;
 }
 
 void AsyncLoggerBase::startFlushThread() {
@@ -219,7 +226,31 @@ void AsyncLoggerBase::openLogFile(const std::string& filePath) {
                << directory << ". Logging " << srcTypeStr << " log at /tmp/"
                << file_name;
 
-    logFile_ = folly::File("/tmp/" + file_name, O_RDWR | O_CREAT | O_TRUNC);
+    // The agent runs as root and /tmp is world-writable, so opening a
+    // predictable /tmp path with O_TRUNC is a symlink-following hazard: a local
+    // attacker could pre-place the path as a symlink and redirect the truncate
+    // to an arbitrary file. Unlink any pre-existing entry first (unlink never
+    // follows a symlink/hardlink) then atomically create a fresh file with
+    // O_EXCL | O_NOFOLLOW.
+    const std::string fallbackPath = "/tmp/" + file_name;
+    ::unlink(fallbackPath.c_str());
+    try {
+      logFile_ =
+          folly::File(fallbackPath, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW);
+    } catch (const std::system_error& ex) {
+      // Best-effort logging: if the symlink-safe create fails (e.g. the entry
+      // could not be unlinked on a sticky /tmp, or a link was re-planted in the
+      // race window so O_EXCL|O_NOFOLLOW refuses it), degrade to /dev/null
+      // rather than throwing out of the constructor and crashing the agent.
+      XLOG(ERR) << "[Async Logger] Failed to safely open fallback log "
+                << fallbackPath << ": " << ex.what() << "; discarding "
+                << srcTypeStr << " logs";
+      // Use folly::openNoInt (EINTR-safe, returns -1 on failure, never throws)
+      // + the non-throwing folly::File(fd, ownsFd) ctor, so a failed /dev/null
+      // open still cannot throw out of this constructor.
+      int devNullFd = folly::openNoInt("/dev/null", O_WRONLY | O_CLOEXEC);
+      logFile_ = folly::File(devNullFd, /*ownsFd=*/devNullFd >= 0);
+    }
     return;
   }
 

@@ -32,5 +32,6 @@ python_binary(
 
 fbpkg.builder(
     name = "fboss.link_explorer",
+    architectures = ["x86_64"],
     path_actions = {"main": ":main"},
 )

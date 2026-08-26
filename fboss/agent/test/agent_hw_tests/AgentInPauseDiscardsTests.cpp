@@ -69,6 +69,7 @@ class AgentInPauseDiscardsCounterTest : public AgentHwTest {
           getAgentEnsemble()->getL3Asics().front()->getAsicVendor();
       auto expectedPktCount = !enableRxPause &&
               (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+               asicType == cfg::AsicType::ASIC_TYPE_P200 ||
                asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
                asicType == cfg::AsicType::ASIC_TYPE_G202X ||
                asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)

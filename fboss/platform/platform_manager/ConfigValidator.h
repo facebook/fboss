@@ -39,6 +39,7 @@ class ConfigValidator {
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
   bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
+  bool isValidFanCpldConfig(const FanCpldConfig& fanCpldConfig);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);
@@ -70,6 +71,9 @@ class ConfigValidator {
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
   bool isValidLedCtrlBlockXcvrCoverage(const PlatformConfig& config);
   bool isValidXcvrCtrlBlockXcvrCoverage(const PlatformConfig& config);
+  bool isValidVersionedPciDeviceCoverage(
+      const PmUnitConfig& defaultPmUnitConfig,
+      const VersionedPmUnitConfig& versionedPmUnitConfig);
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);
@@ -83,6 +87,7 @@ class ConfigValidator {
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
       const std::string& slotType,
       const PmUnitConfig& pmUnitConfig);
+  bool isValidRtmCtrlBlockConfig(const RtmCtrlBlockConfig& rtmCtrlBlockConfig);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(
@@ -97,6 +102,7 @@ class ConfigValidator {
       const std::string& slotPath,
       const std::string& pmUnitName);
   int16_t numXcvrs_ = 0;
+  int16_t numRtms_ = 0;
 
  private:
   void buildDeviceNameCache(const PlatformConfig& platformConfig);

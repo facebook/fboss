@@ -11,11 +11,12 @@
 
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
-#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -34,7 +35,6 @@
 #include "fboss/qsfp_service/platforms/wedge/Wedge100Manager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge400CManager.h"
 #include "fboss/qsfp_service/platforms/wedge/Wedge400Manager.h"
-#include "fboss/qsfp_service/platforms/wedge/Wedge40Manager.h"
 
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -115,16 +115,16 @@ std::unique_ptr<WedgeManager> createWedgeManager(
           MontblancBspPlatformMapping,
           PlatformType::PLATFORM_MONTBLANC>(
           platformMapping, qsfpServiceThreads);
-    case PlatformType::PLATFORM_ICECUBE800BANW:
-      return createBspWedgeManager<
-          Icecube800banwBspPlatformMapping,
-          PlatformType::PLATFORM_ICECUBE800BANW>(
-          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ICECUBE800BC:
+    case PlatformType::PLATFORM_ICECUBE800BANW:
       return createBspWedgeManager<
           Icecube800bcBspPlatformMapping,
           PlatformType::PLATFORM_ICECUBE800BC>(
           platformMapping, qsfpServiceThreads);
+    case PlatformType::PLATFORM_M4062NHP:
+      return createBspWedgeManager<
+          M4062nhpBspPlatformMapping,
+          PlatformType::PLATFORM_M4062NHP>(platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ICETEA800BC:
       return createBspWedgeManager<
           Icetea800bcBspPlatformMapping,
@@ -171,6 +171,7 @@ std::unique_ptr<WedgeManager> createWedgeManager(
           PlatformType::PLATFORM_TAHANSB800BC>(
           platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_WEDGE800BACT:
+    case PlatformType::PLATFORM_WEDGE800BNHP:
       return createBspWedgeManager<
           Wedge800BACTBspPlatformMapping,
           PlatformType::PLATFORM_WEDGE800BACT>(
@@ -185,9 +186,13 @@ std::unique_ptr<WedgeManager> createWedgeManager(
           Ladakh800bclsBspPlatformMapping,
           PlatformType::PLATFORM_LADAKH800BCLS>(
           platformMapping, qsfpServiceThreads);
-    default:
-      return std::make_unique<Wedge40Manager>(
+    case PlatformType::PLATFORM_LEH800BCLS:
+      return createBspWedgeManager<
+          Leh800bclsBspPlatformMapping,
+          PlatformType::PLATFORM_LEH800BCLS>(
           platformMapping, qsfpServiceThreads);
+    default:
+      throw FbossError("Unsupported platform type");
   }
 }
 

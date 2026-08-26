@@ -11,12 +11,17 @@
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsOsfpTrayPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsProdPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsTestPlatformMapping.h"
 
 namespace facebook::fboss {
 namespace {
 static const std::string getPlatformMappingStr() {
+  if (FLAGS_osfp_tray) {
+    XLOG(INFO) << "Using OSFP Tray Platform Mapping";
+    return kJsonOsfpTrayPlatformMappingStr;
+  }
   if (FLAGS_test_fixture) {
     XLOG(INFO) << "Using Test Fixture Platform Mapping";
     return kJsonTestPlatformMappingStr;

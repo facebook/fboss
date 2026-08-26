@@ -5,11 +5,7 @@
 extern "C" {
 #include <sai.h>
 
-#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saihostifextensions.h>
-#else
-#include <saihostifextensions.h>
-#endif
 }
 
 namespace facebook::fboss {

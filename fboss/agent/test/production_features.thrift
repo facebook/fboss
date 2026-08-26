@@ -9,7 +9,6 @@ namespace py3 neteng.fboss.test
 namespace py.asyncio neteng.fboss.test.asyncio.production_features
 namespace cpp2 facebook.fboss.test.production_features
 namespace go neteng.fboss.test.production_features
-namespace php fboss_test_production_features
 
 enum ProductionFeature {
   VOQ = 0,
@@ -126,6 +125,14 @@ enum ProductionFeature {
   MIRROR_ON_DROP_STATELESS = 111,
   PORT_DEBOUNCE = 112,
   SRV6_BINDING_SID = 113,
+  MPLS_BINDING_SID = 114,
+  CUSTOM_DROP_BITMAP_SUPPORT = 115,
+  PFC_NON_IDENTITY_PRIORITY_MAP = 116,
+  CABLE_LENGTH_MEASUREMENT = 117,
+  LINK_LAYER_RETRANSMISSION = 118,
+  ADJACENCY_FRR = 119,
+  ETSW_ROUTE_SCALE = 120,
+  DST_IPV6_WORD_ACL_QUALIFIERS = 121,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

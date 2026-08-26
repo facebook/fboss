@@ -8,6 +8,7 @@
 """Image Builder - handles building FBOSS images from manifests."""
 
 import logging
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -58,12 +59,13 @@ class ImageBuilder:
         "image_build_hooks": [],
     }
 
-    def __init__(self, manifest, kiwi_ng_debug=False):
+    def __init__(self, manifest, kiwi_ng_debug=False, output_dir=None):
         self.manifest = manifest
         self.workspace_root = manifest.manifest_dir
         self.store = ArtifactStore()
         self.component_artifacts = {}
         self.kiwi_ng_debug = kiwi_ng_debug
+        self.output_dir = Path(output_dir) if output_dir else None
         # Setup the image builder directory
         self.image_builder_dir = get_abs_path("fboss-image/image_builder")
         self.centos_template_dir = self.image_builder_dir / "templates" / "centos-09.0"
@@ -171,8 +173,11 @@ class ImageBuilder:
         if not dist_formats or format_name not in dist_formats:
             return
 
+        actual_output_dir = (
+            self.output_dir if self.output_dir else self.image_builder_dir / "output"
+        )
         output = find_artifact_in_dir(
-            output_dir=self.image_builder_dir / "output",
+            output_dir=actual_output_dir,
             pattern=f"FBOSS-Distro-Image.x86_64-1.0.install.{file_extension}",
             component_name="Base image",
         )
@@ -209,7 +214,12 @@ class ImageBuilder:
 
             for artifact_path in artifacts_to_copy:
                 dest_path = component_dir / artifact_path.name
-                shutil.copy2(artifact_path, dest_path)
+                # Hardlink (same fs, read-only in container) to avoid duplicating
+                # multi-GB artifacts; copy if the link fails (e.g. cross-device).
+                try:
+                    os.link(artifact_path, dest_path)
+                except OSError:
+                    shutil.copy2(artifact_path, dest_path)
                 logger.info(f"Staged {component_name}: {artifact_path.name}")
 
         return Path("/image_builder/deps_staging")
@@ -232,6 +242,10 @@ class ImageBuilder:
             self.image_builder_dir: Path("/image_builder"),
             Path("/dev"): Path("/dev"),
         }
+
+        if self.output_dir:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            volumes[self.output_dir] = Path("/image_builder/output")
 
         self._stage_component_artifacts()
 

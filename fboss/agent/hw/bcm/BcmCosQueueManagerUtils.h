@@ -18,7 +18,6 @@ extern "C" {
 
 namespace facebook::fboss::utility {
 enum class BcmChip {
-  TRIDENT2,
   TOMAHAWK,
   TOMAHAWK3,
   TOMAHAWK4,

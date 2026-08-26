@@ -39,10 +39,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
@@ -50,7 +47,8 @@ class AgentDot1qMappingTest : public AgentHwTest {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
 
     bool usePriorityTagging = isPriorityTaggingMode(asic);

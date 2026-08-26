@@ -18,12 +18,11 @@
 #include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoDelta.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
-#include "fboss/agent/state/ForwardingInformationBaseDelta.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/InterfaceMapDelta.h"
 #include "fboss/agent/state/IpTunnelMap.h"
@@ -99,12 +98,14 @@ class StateDelta {
   ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta() const;
   ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
+  MultiSwitchMapDelta<MultiSwitchClassBasedPolicyMap>
+  getClassBasedPoliciesDelta() const;
+
   MultiSwitchMapDelta<MultiSwitchMirrorMap> getMirrorsDelta() const;
   MultiSwitchMapDelta<MultiSwitchMirrorOnDropReportMap>
   getMirrorOnDropReportsDelta() const;
 
   MultiSwitchMapDelta<MultiSwitchTransceiverMap> getTransceiversDelta() const;
-  MultiSwitchForwardingInformationBaseMapDelta getFibsDelta() const;
   MultiSwitchFibInfoMapDelta getFibsInfoDelta() const;
   MultiSwitchMapDelta<MultiLabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;

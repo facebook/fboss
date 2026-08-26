@@ -14,4 +14,7 @@ cpp_binary(
         "//fboss/platform/platform_checks:platform_checks",
         "//fboss/platform/platform_manager:config_utils",
     ],
+    external_deps = [
+        "gflags",
+    ],
 )

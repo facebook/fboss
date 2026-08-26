@@ -2,7 +2,10 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "fboss_prbs_"}
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 
@@ -11,7 +14,6 @@ namespace py3 neteng.fboss.prbs
 namespace py.asyncio neteng.fboss.asyncio.prbs
 namespace cpp2 facebook.fboss.prbs
 namespace go neteng.fboss.prbs
-namespace php fboss_prbs
 
 enum PrbsPolynomial {
   PRBS7 = 7,

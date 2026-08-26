@@ -3,15 +3,68 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    read_all_vendor_data,
+    read_platform_descriptor,
+)
+from neteng.fboss.platform_config.platform_config.thrift_types import (
+    PortIdToPortAssignmentConfig,
+)
 from thrift.python.serializer import Protocol, serialize
 
-_FBOSS_DIR: str = os.getcwd() + "/fboss"
-INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
-
 JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
+PlatformDescriptorData = Tuple[str, Dict[str, Any]]
+VendorDataMap = Dict[str, Dict[str, str]]
+
+
+@dataclass(frozen=True)
+class PlatformMappingPaths:
+    fboss_root: str
+    input_dir: str
+    output_dir: str
+
+    @classmethod
+    def from_root(
+        cls,
+        fboss_root: str,
+        input_dir: Optional[str] = None,
+        output_dir: Optional[str] = None,
+    ) -> "PlatformMappingPaths":
+        root = os.path.abspath(os.path.expanduser(fboss_root))
+
+        def resolve(path: str) -> str:
+            return os.path.abspath(os.path.expanduser(path))
+
+        return cls(
+            fboss_root=root,
+            input_dir=resolve(
+                input_dir
+                or os.path.join(root, "lib", "platform_mapping_v2", "platforms")
+            ),
+            output_dir=resolve(
+                output_dir
+                or os.path.join(
+                    root, "lib", "platform_mapping_v2", "generated_platform_mappings"
+                )
+            ),
+        )
+
+
+_RAW_PLATFORM_MAPPING_FAMILIES: Dict[str, Tuple[str, ...]] = {
+    "icecube800bc": ("icecube800bc",),
+    "montblanc": (
+        "montblanc",
+        "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
+    ),
+    "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
+    "wedge800bact": ("wedge800bact",),
+    "wedge800cact": ("wedge800cact",),
+}
 
 
 def _is_thrift_map(d: object) -> bool:
@@ -74,18 +127,33 @@ def _dump(
 def get_command_line_args() -> Tuple[str, str, str, bool]:
     parser = argparse.ArgumentParser(description="OSS platform mapping generation.")
     parser.add_argument(
+        "--fboss-root",
+        type=str,
+        required=True,
+        help=(
+            "Path to the fboss/ source directory itself, for example "
+            "/path/to/fbcode/fboss."
+        ),
+    )
+    parser.add_argument(
         "--input-dir",
         type=str,
-        default=INPUT_DIR,  # temporary location until platform name is read in
+        default=None,
         required=False,
-        help="Path to input directory holding CSVs (default: fboss/lib/platform_mapping_v2/platforms/PLATFORM_NAME)",
+        help=(
+            "Path to the directory containing platform input directories. "
+            "When omitted, uses FBOSS_ROOT/lib/platform_mapping_v2/platforms."
+        ),
     )
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=f"{_FBOSS_DIR}/lib/platform_mapping_v2/generated_platform_mappings/",
+        default=None,
         required=False,
-        help="Path to output directory for JSON (default: fboss/lib/platform_mapping_v2/generated_platform_mappings/)",
+        help=(
+            "Path to the output directory for JSON. When omitted, uses "
+            "FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings."
+        ),
     )
     parser.add_argument(
         "--platform-name",
@@ -100,29 +168,15 @@ def get_command_line_args() -> Tuple[str, str, str, bool]:
     )
 
     args = parser.parse_args()
+    paths = PlatformMappingPaths.from_root(
+        args.fboss_root, args.input_dir, args.output_dir
+    )
     return (
-        args.input_dir + args.platform_name,
-        args.output_dir,
+        paths.input_dir,
+        paths.output_dir,
         args.platform_name,
         args.multi_npu,
     )
-
-
-def read_vendor_data(input_file_path: str) -> Dict[str, str]:
-    vendor_data = {}
-    if not os.path.exists(input_file_path):
-        raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
-
-    for filename in os.listdir(input_file_path):
-        filepath = os.path.join(input_file_path, filename)
-        if (
-            filepath.endswith(".csv") or filepath.endswith(".json")
-        ) and not os.path.isdir(filepath):
-            with open(filepath, "r") as file:
-                content = file.read()
-            vendor_data[filename] = content
-
-    return vendor_data
 
 
 def generate_platform_mappings(
@@ -130,23 +184,41 @@ def generate_platform_mappings(
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
-    vendor_data_map = read_all_vendor_data()
+    vendor_data_map = read_all_vendor_data(input_dir)
+    generate_platform_mappings_from_vendor_data(
+        vendor_data_map, output_dir, platform_name, is_multi_npu
+    )
 
+
+def generate_platform_mappings_from_vendor_data(
+    vendor_data_map: VendorDataMap,
+    output_dir: str,
+    platform_name: str,
+    is_multi_npu: bool,
+) -> None:
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
         exit(1)
 
     print("Generating platform mapping...", file=sys.stderr)
-    platform_mapping = PlatformMappingV2(
-        vendor_data_map, platform_name, is_multi_npu
-    ).get_platform_mapping()
+    generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
+    platform_mapping = generator.get_platform_mapping()
 
     output_dir = os.path.expanduser(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
-    platform_file_name = f"{platform_name}_platform_mapping" + (
-        "_is_multi_npu" if is_multi_npu else ""
+    platform_descriptor_data = get_platform_descriptor_data(
+        vendor_data_map, platform_name
     )
-    output_file = f"{output_dir}/{platform_file_name}.json"
+    if platform_descriptor_data is not None:
+        system_vendor, _ = platform_descriptor_data
+        output_dir = f"{output_dir}/{system_vendor}/{platform_name}"
+        output_file = f"{output_dir}/platform_mapping.json"
+    else:
+        platform_file_name = f"{platform_name}_platform_mapping" + (
+            "_is_multi_npu" if is_multi_npu else ""
+        )
+        output_file = f"{output_dir}/{platform_file_name}.json"
+
+    os.makedirs(output_dir, exist_ok=True)
     platform_mapping_serialized = serialize(platform_mapping, protocol=Protocol.JSON)
     platform_mapping_json = _format_json(json.loads(platform_mapping_serialized))
 
@@ -159,25 +231,122 @@ def generate_platform_mappings(
     with open(os.path.expanduser(output_file), "w") as f:
         f.write(platform_mapping_json)
 
+    write_raw_platform_mapping_artifacts(
+        vendor_data_map,
+        output_dir,
+        platform_name,
+        is_multi_npu,
+        generator,
+    )
+
+    generate_platform_descriptor(
+        vendor_data_map, output_dir, platform_name, platform_descriptor_data
+    )
+
+
+def _get_raw_platform_mapping_family(platform_name: str) -> Optional[Tuple[str, ...]]:
+    for base_platform, family in _RAW_PLATFORM_MAPPING_FAMILIES.items():
+        if platform_name == base_platform or platform_name in family:
+            return family
+    return None
+
+
+def _serialize_thrift(value: Any) -> str:
+    serialized = serialize(value, protocol=Protocol.JSON)
+    formatted = _format_json(json.loads(serialized))
+    return formatted if formatted.endswith("\n") else formatted + "\n"
+
+
+def _serialize_port_assignments(generator: PlatformMappingV2) -> str:
+    assignments = {
+        str(port_id): json.loads(serialize(assignment, protocol=Protocol.JSON))
+        for port_id, assignment in generator.get_port_id_to_port_assignment().items()
+    }
+    formatted = _format_json({"portIdToPortAssignment": assignments})
+    return formatted if formatted.endswith("\n") else formatted + "\n"
+
+
+def write_raw_platform_mapping_artifacts(
+    vendor_data_map: Dict[str, Dict[str, str]],
+    output_dir: str,
+    platform_name: str,
+    is_multi_npu: bool,
+    generator: Optional[PlatformMappingV2] = None,
+) -> Optional[PortIdToPortAssignmentConfig]:
+    family = _get_raw_platform_mapping_family(platform_name)
+    if family is None:
+        return None
+
+    family_mappings = [
+        PlatformMappingV2(
+            vendor_data_map, family_platform, is_multi_npu
+        ).get_platform_mapping()
+        for family_platform in family
+    ]
+    raw_mapping = PlatformMappingV2.generate_raw_platform_mapping(family_mappings)
+    if generator is None:
+        generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
+
+    port_id_to_port_assignment = PortIdToPortAssignmentConfig(
+        portIdToPortAssignment=generator.get_port_id_to_port_assignment()
+    )
+
+    raw_mapping_file = os.path.join(output_dir, "raw_platform_mapping.json")
+    assignment_file = os.path.join(output_dir, "port_id_to_port_assignment.json")
+    print(f"Writing to file {raw_mapping_file}...", file=sys.stderr)
+    with open(raw_mapping_file, "w") as f:
+        f.write(_serialize_thrift(raw_mapping))
+    print(f"Writing to file {assignment_file}...", file=sys.stderr)
+    with open(assignment_file, "w") as f:
+        f.write(_serialize_port_assignments(generator))
+    return port_id_to_port_assignment
+
+
+def get_platform_descriptor_data(
+    vendor_data_map: Dict[str, Dict[str, str]], platform_name: str
+) -> Optional[PlatformDescriptorData]:
+    try:
+        platform_descriptor = read_platform_descriptor(
+            vendor_data_map[platform_name], platform_name
+        )
+    except FileNotFoundError:
+        return None
+
+    system_vendor = platform_descriptor.pop("systemVendor")
+    if not isinstance(system_vendor, str):
+        raise TypeError(f"Invalid system vendor for {platform_name}")
+
+    return (system_vendor, platform_descriptor)
+
+
+def generate_platform_descriptor(
+    vendor_data_map: Dict[str, Dict[str, str]],
+    output_dir: str,
+    platform_name: str,
+    platform_descriptor_data: Optional[PlatformDescriptorData] = None,
+) -> None:
+    if platform_descriptor_data is None:
+        platform_descriptor_data = get_platform_descriptor_data(
+            vendor_data_map, platform_name
+        )
+    if platform_descriptor_data is None:
+        return
+
+    _, platform_descriptor = platform_descriptor_data
+    descriptor_json = _format_json(platform_descriptor)
+    if not descriptor_json.endswith("\n"):
+        descriptor_json += "\n"
+
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = f"{output_dir}/platform_descriptor.json"
+
+    print(f"Writing to file {output_file}...", file=sys.stderr)
+    with open(output_file, "w") as f:
+        f.write(descriptor_json)
+
 
 def generate_mappings_without_args() -> None:
     generate_platform_mappings(*get_command_line_args())
-
-
-def read_all_vendor_data() -> Dict[str, Dict[str, str]]:
-    all_vendor_data = {}
-    data_path = INPUT_DIR
-    print(
-        f"Reading all vendor data in {data_path}...",
-        file=sys.stderr,
-    )
-    for filename in os.listdir(data_path):
-        filepath = os.path.join(data_path, filename)
-        if not os.path.isdir(filepath):
-            continue
-        all_vendor_data[filename] = read_vendor_data(filepath)
-
-    return all_vendor_data
 
 
 if __name__ == "__main__":

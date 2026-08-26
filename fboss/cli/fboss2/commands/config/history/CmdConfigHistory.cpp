@@ -15,7 +15,6 @@
 #include <cstdint>
 #include <ctime>
 #include <iostream>
-#include <ostream>
 #include <sstream>
 #include <string>
 #include "fboss/cli/fboss2/session/ConfigSession.h"

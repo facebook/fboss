@@ -19,7 +19,7 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run Docker-based build for FBOSS
         run: >
           sudo
@@ -72,7 +72,7 @@ jobs:
     needs: Qsfp-Service-Build
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download artifact with test binaries
         uses: actions/download-artifact@v8
         with:

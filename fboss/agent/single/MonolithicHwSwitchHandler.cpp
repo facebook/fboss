@@ -193,6 +193,10 @@ std::string MonolithicHwSwitchHandler::getDebugDump() const {
   return hw_->getDebugDump();
 }
 
+void MonolithicHwSwitchHandler::setSdkRegDumpEnabled(bool enabled) {
+  hw_->setSdkRegDumpEnabled(enabled);
+}
+
 void MonolithicHwSwitchHandler::fetchL2Table(
     std::vector<L2EntryThrift>* l2Table,
     bool sdk) const {
@@ -269,6 +273,7 @@ void MonolithicHwSwitchHandler::getHwStats(
   hwStats.hwTrunkStats() = hw_->getTrunkStats();
   hwStats.sysPortStats() = getSysPortStats();
   hwStats.switchDropStats() = getSwitchDropStats();
+  hwStats.switchDropBitmapStats() = hw_->getSwitchDropBitmapStats();
   hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
   hwStats.switchPipelineStats() = getSwitchPipelineStats();

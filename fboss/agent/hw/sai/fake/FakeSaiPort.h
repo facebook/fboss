@@ -42,6 +42,13 @@ struct FakePort {
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
   bool fabricIsolate{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  bool llrModeLocal{false};
+  bool llrModeRemote{false};
+  sai_object_id_t llrProfile{SAI_NULL_OBJECT_ID};
+  sai_int32_t llrTxStatus{SAI_PORT_LLR_TX_STATUS_OFF};
+  sai_int32_t llrRxStatus{SAI_PORT_LLR_RX_STATUS_OFF};
+#endif
   sai_port_flow_control_mode_t globalFlowControlMode{
       SAI_PORT_FLOW_CONTROL_MODE_DISABLE};
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
@@ -70,33 +77,35 @@ struct FakePort {
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   sai_prbs_rx_state_t prbsRxState{SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS, 1};
 #endif
+  sai_object_id_t ingressAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
   sai_port_ptp_mode_t ptpMode{SAI_PORT_PTP_MODE_NONE};
-  sai_port_eye_values_list_t portEyeValues;
+  sai_port_eye_values_list_t portEyeValues{};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
-  sai_port_lane_latch_status_list_t portRxSignalDetect;
-  sai_port_lane_latch_status_list_t portRxLockStatus;
-  sai_port_lane_latch_status_list_t portFecAlignmentLockStatus;
-  sai_latch_status_t portPcsLinkStatus;
-  sai_latch_status_t portCrcErrDetect;
+  sai_port_lane_latch_status_list_t portRxSignalDetect{};
+  sai_port_lane_latch_status_list_t portRxLockStatus{};
+  sai_port_lane_latch_status_list_t portFecAlignmentLockStatus{};
+  sai_latch_status_t portPcsLinkStatus{};
+  sai_latch_status_t portCrcErrDetect{};
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-  sai_port_frequency_offset_ppm_list_t portRxPPM;
-  sai_port_snr_list_t portRxSNR;
+  sai_port_frequency_offset_ppm_list_t portRxPPM{};
+  sai_port_snr_list_t portRxSNR{};
 #endif
   sai_port_priority_flow_control_mode_t priorityFlowControlMode{
       SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED};
   sai_uint8_t priorityFlowControl{0xff};
   sai_uint8_t priorityFlowControlRx{0xff};
   sai_uint8_t priorityFlowControlTx{0xff};
-  sai_port_err_status_list_t portError;
+  sai_port_err_status_list_t portError{};
   std::vector<sai_port_err_status_t> portErrStatusList;
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosPfcPriorityToPriorityGroupMap{SAI_NULL_OBJECT_ID};
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   sai_uint32_t interFrameGap{96};
 #endif
@@ -118,6 +127,7 @@ struct FakePort {
   sai_int32_t cablePropagationDelayMediaType{0};
   sai_uint16_t pfcPauseDurationOverride{0};
   bool cablePropagationDelayMeasure{false};
+  sai_int32_t linkScanMode{0};
   std::function<void()> onGetAttribute; // test-only hook
 };
 
@@ -188,10 +198,51 @@ struct FakePortConnector {
   sai_object_id_t systemPort;
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+struct FakePortLlrProfile {
+  explicit FakePortLlrProfile(
+      sai_uint32_t _outstandingFramesMax,
+      sai_uint32_t _outstandingBytesMax,
+      sai_uint32_t _replayTimerMax,
+      sai_uint8_t _replayCountMax,
+      sai_uint32_t _pcsLostTimeout,
+      sai_uint32_t _dataAgeTimeout,
+      sai_int32_t _initLlrFrameAction,
+      sai_int32_t _flushLlrFrameAction,
+      bool _reInitOnFlush,
+      sai_uint16_t _ctlosTargetSpacing)
+      : outstandingFramesMax(_outstandingFramesMax),
+        outstandingBytesMax(_outstandingBytesMax),
+        replayTimerMax(_replayTimerMax),
+        replayCountMax(_replayCountMax),
+        pcsLostTimeout(_pcsLostTimeout),
+        dataAgeTimeout(_dataAgeTimeout),
+        initLlrFrameAction(_initLlrFrameAction),
+        flushLlrFrameAction(_flushLlrFrameAction),
+        reInitOnFlush(_reInitOnFlush),
+        ctlosTargetSpacing(_ctlosTargetSpacing) {}
+  sai_object_id_t id;
+  sai_uint32_t outstandingFramesMax;
+  sai_uint32_t outstandingBytesMax;
+  sai_uint32_t replayTimerMax;
+  sai_uint8_t replayCountMax;
+  sai_uint32_t pcsLostTimeout;
+  sai_uint32_t dataAgeTimeout;
+  sai_int32_t initLlrFrameAction;
+  sai_int32_t flushLlrFrameAction;
+  bool reInitOnFlush;
+  sai_uint16_t ctlosTargetSpacing;
+};
+#endif
+
 using FakePortManager = FakeManager<sai_object_id_t, FakePort>;
 using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
 using FakePortConnectorManager =
     FakeManager<sai_object_id_t, FakePortConnector>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+using FakePortLlrProfileManager =
+    FakeManager<sai_object_id_t, FakePortLlrProfile>;
+#endif
 
 void populate_port_api(sai_port_api_t** port_api);
 

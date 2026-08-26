@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/DHCPv4Handler.h"
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 #include <folly/Memory.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
@@ -159,9 +160,9 @@ void sendDHCPPacket(
   constexpr auto udpHdrSize = 8;
   auto payloadSize = 248 + PktUtil::parseHexData(appendOptions).length();
   std::string ipHdrLengthStr =
-      folly::sformat("{0:04x}", ipHdrSize + udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", ipHdrSize + udpHdrSize + payloadSize);
   std::string udpHdrLengthStr =
-      folly::sformat("{0:04x}", +udpHdrSize + payloadSize);
+      fmt::format("{0:04x}", +udpHdrSize + payloadSize);
 
   auto buf = make_unique<folly::IOBuf>(PktUtil::parseHexData(
       // Ethernet header
@@ -674,5 +675,132 @@ TEST_F(DHCPv4HandlerTest, DHCPBadRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.bad_pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.drop_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
+
+TEST_F(DHCPv4HandlerTest, DHCPMalformedOptionOOB) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  VlanID vlanID(1);
+  const char* senderIP = "00 00 00 00";
+  auto senderMac = kClientMac.toString();
+  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
+  const string targetMac = "ff ff ff ff ff ff";
+  const string targetIP = "ff ff ff ff";
+  const string bootpOp = "01";
+  const string vlan = "00 01";
+  const string srcPort = "00 43";
+  const string dstPort = "00 44";
+  // DHCP Message type (option = 53, len = 1, message type = DHCP discover)
+  const string dhcpMsgTypeOpt = "35  01  01";
+  // Craft a malformed option whose declared length runs past the options
+  // buffer: option code 0x03 (Router), length 0xFF, as the final option. The
+  // code must be one that is NOT special-cased in addAgentOptions() so it falls
+  // through to processOption() (the OOB-read site); a handled code like
+  // DHCP_AGENT_OPTIONS (0x52) would short-circuit with return-false before
+  // processOption, so the test would pass even without the isOptionInBounds()
+  // guard. With code 0x03 the guard is what drops the packet, and removing it
+  // would fire the OOB read under ASan.
+  const string malformedOption = "03  ff";
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Sending a DHCP request with a malformed option should not trigger state
+  // update
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
+  // Should NOT relay the packet (drops it due to bounds check failure)
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt,
+      malformedOption);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.bad_pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+
+  // Now send a well-formed packet and assert it relays successfully
+  CounterCache counters2(sw);
+  EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt);
+
+  counters2.update();
+  counters2.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
+  counters2.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+}
+
+TEST_F(DHCPv4HandlerTest, DHCPMalformedOptionOOBReply) {
+  // Same malformed-option OOB check as DHCPMalformedOptionOOB, but on the
+  // BOOTREPLY path so the reply walker `stripAgentOptions` (not
+  // `addAgentOptions`) is exercised. Mirrors the DHCPReply setup.
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  // Client mac
+  auto senderMac = MockPlatform::getMockLocalMac().toString();
+  std::replace(senderMac.begin(), senderMac.end(), ':', ' ');
+  auto targetMac = kClientMac.toString();
+  std::replace(targetMac.begin(), targetMac.end(), ':', ' ');
+  // DHCP server IP
+  const char* senderIP = "14 14 14 14";
+  // Cpu IP
+  const string targetIP = "0a 00 00 01";
+  const string bootpOp = "02";
+  const string vlan = "00 01";
+  const string srcPort = "00 44";
+  const string dstPort = "00 43";
+  // DHCP Message type (option = 53, len = 1, message type = DHCP offer)
+  const string dhcpMsgTypeOpt = "35  01  02";
+  // Client IP addr, used as destination IP for DHCP replies
+  const string yiaddr = "0a 00 00 0a";
+  // Option code 0x03 (Router), length 0xFF as the final option: declared
+  // length runs past the options buffer. It is not special-cased in
+  // stripAgentOptions(), so it falls through to processOption() (the OOB-read
+  // site); the isOptionInBounds() guard is what drops the packet.
+  const string malformedOption = "03  ff";
+
+  CounterCache counters(sw);
+
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
+  // Malformed reply must be dropped, not relayed.
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+
+  sendDHCPPacket(
+      handle.get(),
+      senderMac,
+      targetMac,
+      vlan,
+      senderIP,
+      targetIP,
+      srcPort,
+      dstPort,
+      bootpOp,
+      dhcpMsgTypeOpt,
+      malformedOption,
+      yiaddr);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.pkt.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "dhcpV4.bad_pkt.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }

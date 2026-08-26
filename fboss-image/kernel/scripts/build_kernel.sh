@@ -36,10 +36,27 @@ BUILD_DIR="$CONTAINER_DIST_DIR/build-$KERNEL_VERSION"
 mkdir -p "$BUILD_DIR/SOURCES"
 cd "$BUILD_DIR"
 
-# Download kernel source (spectool is part of rpmdevtools)
-if [ ! -f "$BUILD_DIR/SOURCES/linux-$KERNEL_VERSION.tar.xz" ]; then
+# Download kernel source (spectool is part of rpmdevtools).
+# spectool can exit 0 even when the CDN download 404s, so verify the tarball
+# actually landed and fall back to the kernel.org git snapshot (converted to
+# .tar.xz to match Source0 in kernel.spec) when the primary source is missing.
+KERNEL_TARBALL="SOURCES/linux-$KERNEL_VERSION.tar.xz"
+if [ ! -f "$BUILD_DIR/$KERNEL_TARBALL" ]; then
   spectool -g -C SOURCES "$CONTAINER_SPECS_DIR/kernel.spec" \
     --define "kernel_version $KERNEL_VERSION"
+
+  if [ ! -f "$KERNEL_TARBALL" ]; then
+    echo "Primary kernel source download failed; falling back to git.kernel.org snapshot..."
+    snapshot_url="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/snapshot/linux-$KERNEL_VERSION.tar.gz"
+    if ! curl -fL --retry 3 -o "SOURCES/linux-$KERNEL_VERSION.tar.gz" "$snapshot_url"; then
+      rm -f "SOURCES/linux-$KERNEL_VERSION.tar.gz"
+      echo "Fallback snapshot download failed for kernel $KERNEL_VERSION" >&2
+      exit 1
+    fi
+    # Convert .tar.gz -> .tar.xz so rpmbuild/kernel.spec Source0 matches.
+    gunzip -f "SOURCES/linux-$KERNEL_VERSION.tar.gz"
+    xz -z "SOURCES/linux-$KERNEL_VERSION.tar"
+  fi
 fi
 
 # Ensure FBOSS config sources are present for rpmbuild

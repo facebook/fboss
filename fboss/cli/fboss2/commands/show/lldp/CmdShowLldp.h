@@ -12,6 +12,7 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -27,6 +28,10 @@ struct CmdShowLldpTraits : public ReadCommandTraits {
   using RetType = cli::ShowLldpModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
@@ -38,6 +43,10 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
       const std::vector<std::string>& queriedIfs);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 
   const facebook::fboss::PortInfoThrift getPortInfo(
       int32_t portId,

@@ -7,6 +7,8 @@
 #include <string>
 #include <utility>
 
+#include <folly/File.h>
+
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss {
@@ -61,6 +63,15 @@ bool checkAsicSupportsWarmboot(HwAsicTable* asicTable);
 bool checkWarmbootStateFileExists(
     const std::string& warmBootDir,
     const std::string& thriftSwitchStateFile);
+
+/**
+ * Opens the best-effort boot-history fallback log at `path` in a symlink-safe
+ * manner. Any pre-existing entry is unlinked first (unlink never follows a
+ * symlink/hardlink, so a planted link is removed rather than its target), then
+ * the file is atomically created with O_EXCL | O_NOFOLLOW so a link re-planted
+ * in the race window is refused. Throws std::system_error on failure.
+ */
+folly::File openSymlinkSafeFallbackLog(const std::string& path);
 
 /**
  * Logs boot information (type, SDK version, agent version) to boot history

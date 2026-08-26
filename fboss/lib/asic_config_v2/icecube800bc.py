@@ -3,16 +3,20 @@ import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
 import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk6 import Tomahawk6AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
-from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
+from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
 
 
 class Icecube800bcAsicConfig(Tomahawk6AsicConfig):
     def __init__(
-        self, asic_config_params: asic_config_thrift.AsicConfigParameters
+        self,
+        asic_config_params: asic_config_thrift.AsicConfigParameters,
+        platform_mapping_input_dir: str,
     ) -> None:
         super(Icecube800bcAsicConfig, self).__init__(asic_config_params)
-        self.parser = PlatformMappingParser(read_all_vendor_data(), "icecube800bc")
+        self.parser = PlatformMappingParser(
+            read_all_vendor_data(platform_mapping_input_dir), "icecube800bc"
+        )
         self.num_ports_per_core = 2
 
     def get_asic_vendor_config(self) -> AsicVendorConfig:
@@ -22,7 +26,6 @@ class Icecube800bcAsicConfig(Tomahawk6AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: Expected `thrift_types.StaticMapping` but got
         #  `ttypes.StaticMapping`. Will be fixed when platform_mapping_v2
         #  migrates to thrift-python.
         return self.parser.get_static_mapping().get_static_mapping()
@@ -87,7 +90,8 @@ class Icecube800bcAsicConfig(Tomahawk6AsicConfig):
 
 def gen_icecube800bc_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
+    platform_mapping_input_dir: str,
 ) -> Icecube800bcAsicConfig:
-    cfg = Icecube800bcAsicConfig(asic_config_params)
+    cfg = Icecube800bcAsicConfig(asic_config_params, platform_mapping_input_dir)
     cfg.generate_asic_config()
     return cfg

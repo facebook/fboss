@@ -22,6 +22,8 @@ sai_tunnel_type_t getSaiTunnelType(TunnelType type) {
     case TunnelType::IP_IN_IP_ENCAP:
       return SAI_TUNNEL_TYPE_IPINIP;
     case TunnelType::SRV6_ENCAP:
+    case TunnelType::SRV6_DECAP:
+      // SRv6 tunnels are handled by SaiSrv6TunnelManager, not here.
       break;
   }
   throw FbossError("Failed to convert tunnel type to SAI type: ", type);
@@ -42,17 +44,6 @@ sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(
   throw FbossError("Failed to convert tunnel term type to SAI type: ", type);
 }
 
-sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::TunnelMode mode) {
-  switch (mode) {
-    case cfg::TunnelMode::UNIFORM:
-      return SAI_TUNNEL_DECAP_ECN_MODE_STANDARD;
-    case cfg::TunnelMode::PIPE:
-      return SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER;
-    case cfg::TunnelMode::USER:
-      return SAI_TUNNEL_DECAP_ECN_MODE_USER_DEFINED;
-  }
-  throw FbossError("Failed to convert ECN mode to SAI type: ", mode);
-}
 } // namespace
 
 SaiTunnelManager::SaiTunnelManager(

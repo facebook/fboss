@@ -6,6 +6,7 @@
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
+#include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -57,6 +58,7 @@ struct SaiMySidEntryHandle {
       std::shared_ptr<ManagedMySidNextHop<SaiIpNextHopTraits>>,
       std::shared_ptr<ManagedMySidNextHop<SaiSrv6SidlistNextHopTraits>>>;
   NextHopHandle nexthopHandle;
+  std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
   std::shared_ptr<SaiMySid> mySidEntry;
 };
 #endif

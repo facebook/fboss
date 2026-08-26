@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.utility
 namespace go neteng.fboss.agent_hw_test_ctrl
-namespace php fboss
 namespace py neteng.fboss.agent_hw_test_ctrl
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_hw_test_ctrl
@@ -10,6 +9,7 @@ include "fboss/agent/switch_state.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "fboss/lib/phy/phy.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -39,6 +39,18 @@ struct RouteInfo {
 
 struct PortInfo {
   1: i32 loopbackMode;
+}
+
+// HW-side view of a port's UEC LLR binding (UE Spec 1.0.2 section 5.1).
+// profileId is sourced from the SaiPortManager's port handle (the create-time
+// adapter key), not from a port getAttribute -- the port-side LLR getters can
+// return NOT_SUPPORTED and silently default on current SDK drops. The frame
+// actions are read back from the profile object itself.
+struct PortLlrInfo {
+  1: bool hasProfile;
+  2: i64 profileId;
+  3: switch_config.LlrFrameAction initFrameAction;
+  4: switch_config.LlrFrameAction flushFrameAction;
 }
 
 struct AggPortInfo {
@@ -137,6 +149,7 @@ service AgentHwTestCtrl {
 
   // port utils
   list<PortInfo> getPortInfo(1: list<i32> portIds);
+  PortLlrInfo getPortLlrInfo(1: i32 port);
   bool verifyPortLedStatus(1: i32 port, 2: bool status);
   bool verifyPGSettings(1: i32 port, 2: bool pfcEnabled);
 
@@ -217,4 +230,30 @@ service AgentHwTestCtrl {
 
   // acl table group utils
   bool isAclTableGroupEnabled(1: i32 aclStage);
+
+  // port profile utils — returns list of mismatch descriptions (empty = pass)
+  list<string> verifyPortProfile(
+    1: i32 portId,
+    2: switch_config.PortProfileID profileId,
+    3: phy.ProfileSideConfig profileConfig,
+    4: list<phy.PinConfig> pinConfigs,
+  );
+
+  phy.FecMode getPortFECMode(1: i32 portId);
+
+  bool rxSignalDetectSupportedInSdk();
+  bool rxLockStatusSupportedInSdk();
+  bool pcsRxLinkStatusSupportedInSdk();
+  bool fecAlignmentLockSupportedInSdk();
+
+  // Log capture utils. Logs emitted HW-side (e.g. drop-reason WARNINGs) are
+  // produced in the HwAgent process in multi-switch mode; these let a test
+  // capture and read them over RPC, working in both mono and multi-switch.
+  // installLogCapture() must be called before the log is emitted.
+  void installLogCapture();
+  list<string> getMatchingLogMessages(1: string substring);
+
+  // fb303 cross-process utils for multi-switch testing
+  map<string, i64> getFb303RegexCounters(1: string regex);
+  i64 getFb303Counter(1: string key);
 }

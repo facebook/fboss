@@ -1,5 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -22,6 +23,7 @@ cpp_unittest(
         "PcapQueueTest.cpp",
         "PcapWriterTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":pcap_util",
         "//fboss/agent:apply_thrift_config",
@@ -29,7 +31,7 @@ cpp_unittest(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/capture:capture",
         "//fboss/agent/hw/mock:pkt",
-        "//fboss/agent/packet:pktutil",
+        "//fboss/agent/packet:packet",
         "//fboss/agent/state:state",
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:utils",

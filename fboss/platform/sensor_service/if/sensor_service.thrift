@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss.platform.sensor_service
 namespace go neteng.fboss.platform.sensor_service
-namespace php NetengFbossPlatformSensorService
 namespace py neteng.fboss.platform.sensor_service
 namespace py3 neteng.fboss.platform.sensor_service
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
@@ -10,6 +9,9 @@ include "fboss/platform/sensor_service/if/sensor_config.thrift"
 include "thrift/annotation/hack.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@hack.NamePrefix{prefix = "NetengFbossPlatformSensorService_"}
+@hack.LegacyAlwaysIncludeNamePrefixInProcessor
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 

@@ -28,8 +28,6 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
-#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
-#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/PortQueue.h"
 
@@ -65,6 +63,13 @@ namespace {
 // from AR / ACLs in Chenab.
 constexpr uint32_t kChenabPgBufferForPipelineLatencyInBytes = 39 * 1024;
 #endif
+#if defined(TAJO_SDK_GTE_26_5)
+// P200 supports a single egress pool and forbids changing the pool's
+// reserved bytes once a buffer profile is bound to it. Reserve
+// this much on the default egress pool at creation time suggested by vendor for
+// now.
+constexpr uint64_t kP200EgressPoolReservedBytes = 20 * 1024 * 1024;
+#endif
 
 uint64_t getSwitchEgressPoolAvailableSize(const SaiPlatform* platform) {
   auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
@@ -90,6 +95,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
@@ -97,6 +103,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
     case cfg::AsicType::ASIC_TYPE_G202X:
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
@@ -114,7 +121,6 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       CHECK_EQ(maxEgressPoolSize, availableBuffer);
       break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
@@ -155,6 +161,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
@@ -163,46 +170,27 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
-      auto constexpr kNumXpes = 4;
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto perXpeCells = saiBcmPlatform->numCellsAvailable();
-      return perXpeCells * kNumXpes *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
-          static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
-    }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const Tomahawk6Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
-      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
-      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
-      return kCellsAvailable *
+      return getNumCellsAvailable(platform) *
           static_cast<const TomahawkUltra1Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
@@ -219,6 +207,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return SaiApiTable::getInstance()->switchApi().getAttribute(
           switchId, SaiSwitchTraits::Attributes::EgressPoolAvailableSize{});
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -260,6 +249,11 @@ void SaiBufferManager::setupEgressBufferPool(
 #endif
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
+#if defined(TAJO_SDK_GTE_26_5)
+    if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      reservedBytes = kP200EgressPoolReservedBytes;
+    }
+#endif
   }
   if (FLAGS_egress_buffer_pool_size > 0) {
     uint64_t newSize = FLAGS_egress_buffer_pool_size *

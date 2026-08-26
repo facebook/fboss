@@ -36,6 +36,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 struct SaiIngressPriorityGroupHandleAndProfile;
+class HwAsic;
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
@@ -45,6 +46,9 @@ class SaiStore;
 using SaiPort = SaiObjectWithCounters<SaiPortTraits>;
 using SaiPortSerdes = SaiObject<SaiPortSerdesTraits>;
 using SaiPortConnector = SaiObject<SaiPortConnectorTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+using SaiPortLlrProfile = SaiObject<SaiPortLlrProfileTraits>;
+#endif
 using PrbsStatsTable = std::vector<PrbsStatsEntry>;
 
 /*
@@ -101,6 +105,9 @@ struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPort> sysPort;
   std::shared_ptr<SaiPortSerdes> serdes;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  std::shared_ptr<SaiPortLlrProfile> llrProfile;
+#endif
   std::shared_ptr<SaiPortSerdes> sysSerdes;
   std::shared_ptr<SaiPortConnector> connector;
   std::shared_ptr<SaiBridgePort> bridgePort;
@@ -169,10 +176,12 @@ class SaiPortManager {
       const std::vector<phy::PinConfig>& pinConfigs,
       const std::shared_ptr<SaiPortSerdes>& serdes,
       bool zeroPreemphasis = false,
-      const std::optional<std::string>& customCollection = std::nullopt);
+      const std::optional<std::string>& customCollection = std::nullopt,
+      bool skipSerdesProgramming = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
+  void triggerCableLengthMeasurement(const std::vector<PortID>& ports);
   const SaiQueueHandle* getQueueHandle(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
@@ -236,6 +245,12 @@ class SaiPortManager {
       PortID portID,
       bool updateWatermarks = false,
       bool updateCableLengths = false);
+
+  // Link up/down debounce retrigger counts are leaba READ_ONLY port attributes
+  // (25.5.4210 / 26.2+). Compile-time SDK gate; the per-port read in
+  // updateStats is additionally guarded on the port having a debounce hold
+  // timer configured.
+  static bool isLinkDebounceRetriggerCounterSupported(const HwAsic* asic);
 
   void updateConnectivityStats(PortID portID);
 
@@ -314,6 +329,7 @@ class SaiPortManager {
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
+  bool fecCorrectedSymbolsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
@@ -321,11 +337,16 @@ class SaiPortManager {
       const PortSaiId& saiPortId,
       PortID portID,
       bool linkTrainingEnabled) const;
+  bool linkTrainingSupportedOnPort(const std::shared_ptr<Port>& swPort) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  // Throws on SDKs that cannot program the attribute, rather than dropping a
+  // mode the config asked for.
+  static SaiPortTraits::Attributes::LinkScanMode linkScanModeAttribute(
+      cfg::LinkScanMode mode);
   /**
    * Increment the PFC deadlock detection counter for a given port.
    *
@@ -387,6 +408,7 @@ class SaiPortManager {
   void fillInSupportedStats(PortID port);
   void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
+  bool fecCorrectedCounterSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
@@ -396,6 +418,8 @@ class SaiPortManager {
       std::shared_ptr<SaiPort> saiPort,
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
+  void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
+  void reissueLlrModeRemote(SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

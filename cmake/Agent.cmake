@@ -10,7 +10,7 @@ add_library(setup_thrift
 
 target_link_libraries(setup_thrift
   load_agent_config
-  thrift_method_rate_limit
+  thrift_method_rate_limit_setup
   thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
@@ -128,6 +128,20 @@ target_link_libraries(voq_utils
   state
 )
 
+add_library(remote_intf_route_auditor
+  fboss/agent/RemoteIntfRouteAuditor.cpp
+)
+
+target_link_libraries(remote_intf_route_auditor
+  Folly::folly
+  fib_helpers
+  fib_updater
+  standalone_rib
+  state
+  stats
+  voq_utils
+)
+
 target_link_libraries(address_utils
   network_address_cpp2
   Folly::folly
@@ -164,11 +178,13 @@ target_link_libraries(utils
   j4sim_platform_mapping
   saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
+  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
+  leh800bcls_platform_mapping
 )
 
 add_library(stats
@@ -321,6 +337,7 @@ add_library(core
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
   fboss/agent/NextHopResolver.cpp
+  fboss/agent/PfcUtils.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/RemoteNeighborUpdater.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
@@ -395,6 +412,7 @@ set(core_libs
   route_update_wrapper
   fib_updater
   network_to_route_map
+  remote_intf_route_auditor
   standalone_rib
   state
   state_utils
@@ -435,6 +453,7 @@ set(core_libs
   thrift_service_utils
   shel_manager
   state_delta_logger
+  switch_state_delta_logger
   dsfnode_utils
   hw_switch_thrift_client_table
   file_based_warmboot_utils
@@ -574,6 +593,22 @@ target_link_libraries(state_delta_logger
   async_logger_base
   state
   fsdb_oper_cpp2
+  Folly::folly
+)
+
+add_library(switch_state_delta_logger
+  fboss/agent/SwitchStateDeltaLogger.cpp
+)
+
+target_link_libraries(switch_state_delta_logger
+  agent_features
+  async_logger_base
+  state
+  state_delta_log_cpp2
+  fsdb_oper_cpp2
+  thrift_cow_serializer
+  fb303::fb303
+  FBThrift::thriftprotocol
   Folly::folly
 )
 
@@ -781,6 +816,7 @@ target_link_libraries(fboss_sw_agent
   handler
   -Wl,--whole-archive
   setup_thrift_prod
+  thrift_service_client
   -Wl,--no-whole-archive
 )
 

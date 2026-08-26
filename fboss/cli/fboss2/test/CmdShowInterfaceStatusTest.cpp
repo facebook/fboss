@@ -98,26 +98,26 @@ TEST_F(CmdShowInterfaceStatusTestFixture, createModel) {
 
   EXPECT_EQ(statusModel.size(), 3);
 
-  EXPECT_EQ(statusModel[0].get_name(), "eth1/1/1");
+  EXPECT_EQ(statusModel[0].name().value(), "eth1/1/1");
   ASSERT_TRUE(statusModel[0].vlan().has_value());
-  EXPECT_EQ(*statusModel[0].get_vlan(), 2001);
-  EXPECT_EQ(statusModel[0].get_speed(), "100G");
-  EXPECT_EQ(statusModel[0].get_vendor(), "INTEL CORP");
-  EXPECT_EQ(statusModel[0].get_mpn(), "SPTSBP2CLCKS");
+  EXPECT_EQ(*apache::thrift::get_pointer(statusModel[0].vlan()), 2001);
+  EXPECT_EQ(statusModel[0].speed().value(), "100G");
+  EXPECT_EQ(statusModel[0].vendor().value(), "INTEL CORP");
+  EXPECT_EQ(statusModel[0].mpn().value(), "SPTSBP2CLCKS");
 
-  EXPECT_EQ(statusModel[1].get_name(), "eth2/1/1");
+  EXPECT_EQ(statusModel[1].name().value(), "eth2/1/1");
   ASSERT_TRUE(statusModel[1].vlan().has_value());
-  EXPECT_EQ(*statusModel[1].get_vlan(), 2002);
-  EXPECT_EQ(statusModel[1].get_speed(), "200G");
-  EXPECT_EQ(statusModel[1].get_vendor(), "INNOLIGHT");
-  EXPECT_EQ(statusModel[1].get_mpn(), "TR-FC13H-HFB");
+  EXPECT_EQ(*apache::thrift::get_pointer(statusModel[1].vlan()), 2002);
+  EXPECT_EQ(statusModel[1].speed().value(), "200G");
+  EXPECT_EQ(statusModel[1].vendor().value(), "INNOLIGHT");
+  EXPECT_EQ(statusModel[1].mpn().value(), "TR-FC13H-HFB");
 
-  EXPECT_EQ(statusModel[2].get_name(), "eth3/1/1");
+  EXPECT_EQ(statusModel[2].name().value(), "eth3/1/1");
   ASSERT_TRUE(statusModel[2].vlan().has_value());
-  EXPECT_EQ(*statusModel[2].get_vlan(), 2003);
-  EXPECT_EQ(statusModel[2].get_speed(), "400G");
-  EXPECT_EQ(statusModel[2].get_vendor(), "Not Present");
-  EXPECT_EQ(statusModel[2].get_mpn(), "Not Present");
+  EXPECT_EQ(*apache::thrift::get_pointer(statusModel[2].vlan()), 2003);
+  EXPECT_EQ(statusModel[2].speed().value(), "400G");
+  EXPECT_EQ(statusModel[2].vendor().value(), "Not Present");
+  EXPECT_EQ(statusModel[2].mpn().value(), "Not Present");
 }
 
 TEST_F(CmdShowInterfaceStatusTestFixture, printOutput) {
@@ -137,5 +137,12 @@ TEST_F(CmdShowInterfaceStatusTestFixture, printOutput) {
       " eth3/1/1   u-044: unused                                              down    2003  400G   Not Present  Not Present  \n\n";
 
   EXPECT_EQ(output, expectedOutput);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceStatusTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceStatusTraits::description().empty());
+  EXPECT_FALSE(CmdShowInterfaceStatus::sampleModel().interfaces()->empty());
 }
 } // namespace facebook::fboss

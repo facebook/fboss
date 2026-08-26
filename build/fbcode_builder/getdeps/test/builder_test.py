@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-unsafe
 
 import os
 import unittest
@@ -114,3 +113,34 @@ class CMakeBuilderCompilerCacheTest(unittest.TestCase):
 
         launcher_args = self._launcher_args(define_args)
         self.assertEqual(len(launcher_args), 0)
+
+    def test_z7_debug_info_on_windows(self) -> None:
+        # On Windows, force MSVC embedded debug info (/Z7) so sccache can wrap
+        # cl.exe without the shared-PDB C1041 race.
+        builder = make_cmake_builder()
+        # pyrefly: ignore [missing-attribute]
+        builder.build_opts.is_windows.return_value = True
+        env = Env()
+
+        with patch.object(builder_module, "path_search", return_value=None):
+            define_args = builder._compute_cmake_define_args(env)
+
+        self.assertIn("-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded", define_args)
+        self.assertIn("-DCMAKE_POLICY_DEFAULT_CMP0141=NEW", define_args)
+
+    def test_openssl_root_dir_on_darwin(self) -> None:
+        # On macOS, point OPENSSL_ROOT_DIR at the getdeps OpenSSL so CMake's
+        # FindOpenSSL does not fall back to a wrong-arch Homebrew keg.
+        builder = make_cmake_builder()
+        # pyrefly: ignore [missing-attribute]
+        builder.build_opts.is_darwin.return_value = True
+        openssl = MagicMock()
+        openssl.name = "openssl"
+        builder.dep_manifests = [openssl]
+        builder.install_dirs = ["/getdeps/installed/openssl-abc"]
+        env = Env()
+
+        with patch.object(builder_module, "path_search", return_value=None):
+            define_args = builder._compute_cmake_define_args(env)
+
+        self.assertIn("-DOPENSSL_ROOT_DIR=/getdeps/installed/openssl-abc", define_args)

@@ -27,10 +27,16 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
         ensemble.masterLogicalInterfacePortIds()[0],
-        ensemble.masterLogicalInterfacePortIds()[1]);
+        ensemble.masterLogicalInterfacePortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     utility::addQueuePerHostQueueConfig(&cfg);
     utility::addQueuePerHostAcls(&cfg, ensemble.isSai());
@@ -95,8 +101,10 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
       std::map<int, int64_t> afterQueueOutPkts;
       for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
         afterQueueOutPkts[queueId] =
-            this->getLatestPortStats(this->masterLogicalPortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(
+                this->getLatestPortStats(this->masterLogicalPortIds()[0])
+                    .queueOutPackets_()
+                    .value())
                 .at(queueId);
       }
 
@@ -113,6 +121,8 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
            */
           if (checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_P200 ||
               checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
                       ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
               checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())

@@ -48,10 +48,10 @@ class ConfigVlanSwitchportAccessTest : public Fboss2IntegrationTest {
 
 TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   XLOG(INFO) << "[Step 1] Finding an interface...";
-  Interface intf = findFirstEthInterface();
-  auto originalOpt = getIngressVlan(intf.name);
+  std::string ifName = getRandomInterfacePortName();
+  auto originalOpt = getIngressVlan(ifName);
   ASSERT_TRUE(originalOpt.has_value())
-      << "Port " << intf.name << " has no ingressVlan in running config";
+      << "Port " << ifName << " has no ingressVlan in running config";
   int originalVlan = *originalOpt;
 
   // Pick a testVlan that is both a real VLAN (sw.vlans[].id) and has an
@@ -87,14 +87,14 @@ TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   ASSERT_FALSE(candidateVlans.empty())
       << "Need at least 2 VLANs with L3 interfaces to test transition";
   int testVlan = *candidateVlans.begin();
-  XLOG(INFO) << "  Using " << intf.name << " (ingressVlan: " << originalVlan
+  XLOG(INFO) << "  Using " << ifName << " (ingressVlan: " << originalVlan
              << " -> " << testVlan << ")";
 
   XLOG(INFO) << "[Step 2] Setting access VLAN to " << testVlan << "...";
   auto result = runCli(
       {"config",
        "interface",
-       intf.name,
+       ifName,
        "switchport",
        "access",
        "vlan",
@@ -104,7 +104,7 @@ TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   waitForAgentReady();
 
   XLOG(INFO) << "[Step 3] Verifying ingressVlan in running config...";
-  auto readBack = getIngressVlan(intf.name);
+  auto readBack = getIngressVlan(ifName);
   ASSERT_TRUE(readBack.has_value());
   EXPECT_EQ(*readBack, testVlan);
 
@@ -112,7 +112,7 @@ TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   result = runCli(
       {"config",
        "interface",
-       intf.name,
+       ifName,
        "switchport",
        "access",
        "vlan",
@@ -121,7 +121,7 @@ TEST_F(ConfigVlanSwitchportAccessTest, SetAndVerifyAccessVlan) {
   commitConfig();
   waitForAgentReady();
 
-  auto restored = getIngressVlan(intf.name);
+  auto restored = getIngressVlan(ifName);
   ASSERT_TRUE(restored.has_value());
   EXPECT_EQ(*restored, originalVlan);
   XLOG(INFO) << "TEST PASSED";

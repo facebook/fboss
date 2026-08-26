@@ -30,6 +30,10 @@ int BspPlatformMapping::getPimIDFromTcvrID(int tcvrID) const {
   return tcvrToPimMapping_.at(tcvrID);
 }
 
+bool BspPlatformMapping::hasTcvrMapping(int tcvrID) const {
+  return tcvrMapping_.find(tcvrID) != tcvrMapping_.end();
+}
+
 const BspTransceiverMapping& BspPlatformMapping::getTcvrMapping(
     int tcvrID) const {
   CHECK(tcvrMapping_.find(tcvrID) != tcvrMapping_.end());

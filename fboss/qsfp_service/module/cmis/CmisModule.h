@@ -10,8 +10,13 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <array>
 #include <chrono>
+#include <functional>
+#include <map>
 #include <optional>
+#include <string_view>
+#include <vector>
 
 namespace facebook {
 namespace fboss {
@@ -103,6 +108,13 @@ enum VdmConfigType {
   Q_MARGIN = 152,
 };
 
+enum class DiagnosticFeatureEncoding : uint8_t {
+  NONE = 0x0,
+  BER = 0x1,
+  SNR = 0x6,
+  LATCHED_BER = 0x11,
+};
+
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
@@ -128,6 +140,12 @@ class CmisModule : public QsfpModule {
   static constexpr int kMediaInterfaceCodeOffset = 1;
   static constexpr int32_t kDefaultFrequencyMhz = 193100000;
   static constexpr uint8_t kInvalidApplication = 0;
+  // CMIS requires 10ms to repopulate page 14h after DIAG_SEL writes
+  static constexpr int kUsecDiagSelectLatchWait = 10000;
+  // Some modules are non-compliant and take 100ms
+  static constexpr std::array<std::string_view, 2> kSlowDiagSelectPartNumbers =
+      {"QDD-400G-XDR4", "FB-P800G-2XDR4-1"};
+  static constexpr int kUsecDiagSelectLatchWaitSlow = 100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -218,8 +236,9 @@ class CmisModule : public QsfpModule {
   // Check if the module is in READY state
   bool isModuleInReadyState();
 
-  // Poll until the module reaches READY state (up to 5s)
-  bool moduleReadyStatePoll();
+  // Poll until the module reaches READY state (up to 60s for tunable optics,
+  // else 5s)
+  bool moduleReadyStatePoll() override;
 
   // Read the datapath init max delay time from the module spec (in usec)
   std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
@@ -235,19 +254,28 @@ class CmisModule : public QsfpModule {
   uint8_t page01_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page02_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page04_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page10_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page11_[MAX_QSFP_PAGE_SIZE]{};
+  // Per-bank page buffer: one 128-byte array per CMIS bank (index = bank).
+  using BankedPage = std::vector<std::array<uint8_t, MAX_QSFP_PAGE_SIZE>>;
+  // Pages 10h/11h/13h/14h carry per-lane data and are read for every bank on
+  // multi-bank (CPO) modules; stored per-bank with bank 0 at index 0. Sized to
+  // getMaxNumBanks() at refresh; default 1 bank (zeroed) for
+  // single-bank/flatMem modules.
+  BankedPage page10_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page11_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   uint8_t page12_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page13_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page14_[MAX_QSFP_PAGE_SIZE]{};
+  BankedPage page13_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page14_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  // VDM config pages 20h-23h are bank-invariant (they describe the data
+  // layout), so they stay flat. VDM data pages 24h-27h hold per-lane values and
+  // are read per-bank on multi-bank (CPO) modules (bank 0 at index 0).
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page23_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
-  uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  BankedPage page24_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page25_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page26_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
+  BankedPage page27_{std::array<uint8_t, MAX_QSFP_PAGE_SIZE>{}};
   // C-CMIS Performance Monitoring pages (coherent optics)
   uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page35_[MAX_QSFP_PAGE_SIZE]{};
@@ -261,6 +289,71 @@ class CmisModule : public QsfpModule {
 
   // Cached firmware build number from CDB Get Firmware Info command
   std::optional<uint16_t> cachedFwBuildNumber_;
+
+  // Cached CDB I2C write delay for firmware upgrade, computed from media type
+  std::optional<uint64_t> cachedCdbWriteDelayUsec_;
+
+  // Cached maximum number of CMIS banks supported by the module, read from
+  // Lower Page 00h byte 70. See cacheMaxNumBanks()/getMaxNumBanks().
+  std::optional<uint8_t> maxNumBanks_;
+
+  // Cached <major, minor> CMIS revision the module complies with, read from
+  // Lower Page 00h byte 1. See cacheCmisRevision()/getCmisRevision().
+  std::pair<uint8_t, uint8_t> cmisRevision_{0, 0};
+
+  /* Maximum number of CMIS banks supported by the module. Returns 1 until
+   * cacheMaxNumBanks() has populated the cache. */
+  uint8_t getMaxNumBanks() const {
+    return maxNumBanks_.value_or(1);
+  }
+
+  /* A global host/media lane (0..numLanes-1) lives in bank
+   * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
+   * is (lane % kMaxOsfpNumLanes). A port's lanes are confined to one bank, so
+   * per-port programming selects laneToBank(startHostLane) and uses intra-bank
+   * lane offsets. On single-bank modules these collapse to the identity. */
+  static uint8_t laneToBank(int globalLane) {
+    return globalLane / kMaxOsfpNumLanes;
+  }
+  static uint8_t laneInBank(int globalLane) {
+    return globalLane % kMaxOsfpNumLanes;
+  }
+  // Convenience for the common case of needing both at once:
+  //   auto [bank, intraLane] = bankAndLane(globalLane);
+  static std::pair<uint8_t, uint8_t> bankAndLane(int globalLane) {
+    return {laneToBank(globalLane), laneInBank(globalLane)};
+  }
+  // Inverse of laneToBank/laneInBank: the global lane index for an intra-bank
+  // lane offset within a bank.
+  static int globalLane(uint8_t bank, int laneOffset) {
+    return bank * kMaxOsfpNumLanes + laneOffset;
+  }
+
+  /* Global-lane accessors for banked per-lane fields. A "global" lane spans all
+   * banks (e.g. 0..31 for a 4-bank module); it maps to bank = lane /
+   * kMaxOsfpNumLanes and intra-bank lane = lane % kMaxOsfpNumLanes. For
+   * single-bank modules these collapse to the existing bank-0 behavior.
+   *
+   * getLaneValuePtr: pointer to the bytesPerLane bytes for globalLane in a
+   * field whose per-lane values are laid out contiguously (e.g.
+   * CHANNEL_RX_PWR). getLaneFlagSet: whether the per-lane bit for globalLane is
+   * set in a 1-byte flag field (e.g. RX_LOS_FLAG). getLaneNibble: the 4-bit
+   * nibble for globalLane in a nibble-packed field (e.g. RX_OUT_PRE_CURSOR). */
+  const uint8_t*
+  getLaneValuePtr(CmisField field, int globalLane, int bytesPerLane) const;
+  bool getLaneFlagSet(CmisField field, int globalLane) const;
+  uint8_t getLaneNibble(CmisField field, int globalLane) const;
+
+  // Convenience wrappers over getVdmLaneValues/getVdmLaneValue for the two
+  // common per-lane VDM decodings, keeping the decode lambdas in one place:
+  // U16 (integer byte + fractional byte / 256) and F16 (CMIS half-precision
+  // used for BER / PM values). Values are keyed by global lane across all
+  // banks.
+  std::map<int, double> getVdmLaneValuesU16(VdmConfigType vdmConf);
+  std::map<int, double> getVdmLaneValuesF16(VdmConfigType vdmConf);
+  std::optional<double> getVdmLaneValueF16(
+      VdmConfigType vdmConf,
+      int globalLane);
 
   /*
    * Structure to hold datapath init/deinit state per port using timers
@@ -309,6 +402,17 @@ class CmisModule : public QsfpModule {
    */
   const uint8_t* getQsfpValuePtr(int dataAddress, int offset, int length)
       const override;
+
+  /* Like getQsfpValuePtr but returns the cached bytes for a specific bank of a
+   * banked page (pages 10h/11h/13h). bank 0 is index 0 of the same per-bank
+   * buffer (equivalent to getQsfpValuePtr). Throws if the page isn't cached
+   * per-bank or that bank wasn't read. */
+  const uint8_t* getBankedQsfpValuePtr(
+      int dataAddress,
+      int offset,
+      int length,
+      uint8_t bank) const;
+
   /*
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
@@ -410,7 +514,7 @@ class CmisModule : public QsfpModule {
    * Helper function to read the current application select code for a given
    * lane.
    */
-  uint8_t getCurrentAppSelCode(uint8_t startHostLane);
+  uint8_t getCurrentAppSelCode(uint8_t startHostLane) const;
   /*
    * returns individual sensor values after scaling
    */
@@ -571,6 +675,12 @@ class CmisModule : public QsfpModule {
   std::array<std::string, 3> getFwRevisions();
   FirmwareStatus getFwStatus();
 
+  /* CMIS revision the module complies with, as <major, minor>. Returns {0, 0}
+   * until cacheCmisRevision() has populated the cache. */
+  std::pair<uint8_t, uint8_t> getCmisRevision() const {
+    return cmisRevision_;
+  }
+
   /*
    * Fetches the firmware build number from CDB Get Firmware Info command.
    * Returns the build number if successful, or std::nullopt on failure.
@@ -648,6 +758,8 @@ class CmisModule : public QsfpModule {
    * returns whether optics frequency is tunable or not
    */
   bool isTunableOptics() const override;
+  bool isCBandTunable() const override;
+  bool isLBandTunable() const override;
 
   /*
    * Disable TX and RX squelch on all lanes for tunable optics modules.
@@ -672,9 +784,7 @@ class CmisModule : public QsfpModule {
 
   bool isRxConsActHoldOffTmrImplSupported() const override;
 
-  void configureRxConsActHoldOffTimer(
-      int32_t timerMs,
-      bool isExplicitlyConfigured);
+  void configureRxConsActHoldOffTimer(int32_t timerMs);
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -721,6 +831,10 @@ class CmisModule : public QsfpModule {
       phy::Side side,
       bool setLoopback) override;
 
+  /* How long this module needs to repopulate page 14h after DIAG_SEL changes,
+   * keyed off the part number. */
+  int getDiagSelLatchWaitUsec() const;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -731,18 +845,72 @@ class CmisModule : public QsfpModule {
   // VDM data location of each VDM config types
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
 
-  /* Helper function to read/write a CmisField. The function will extract the
-   * page number, offset and length information from the CmisField and then
-   * make the corresponding qsfpImpl->readTransceiver and
-   * qsfpImpl->writeTransceiver calls. The user should avoid making direct
-   * calls to qsfpImpl->read/writeTransceiver and instead do register IO using
-   * readCmisField/writeCmisField helper functions. The helper function will
-   * also change the page when it's supported by the transceiver and when not
-   * specifically asked to skip page change (for batch operations). */
-  void
-  readCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
-  void
-  writeCmisField(CmisField field, uint8_t* data, bool skipPageChange = false);
+  /* Helper functions to read/write a CmisField. They extract the page number,
+   * offset and length information from the CmisField and then make the
+   * corresponding qsfpImpl->readTransceiver/writeTransceiver calls. Callers
+   * should avoid direct qsfpImpl->read/writeTransceiver calls and instead do
+   * register IO via these helpers.
+   *
+   * Before the access, the helper selects the page and bank via
+   * selectPageAndBank: it writes the bank-select register (byte 126) before
+   * the page-select register (byte 127), since a banked page's contents depend
+   * on the active bank. This is skipped for flatMem modules (no paging) and
+   * when skipBankAndPageChange is set (batch operations where bank/page is
+   * already selected).
+   *
+   * bank: optional bank to select, only valid for banked pages (see
+   * isBankedPage) -- supplying one for a non-banked page throws. The
+   * bank-select register is only written for multi-bank modules
+   * (getMaxNumBanks() > 1); on a single-bank module bank 0 is the only bank, so
+   * the register is left untouched. Defaults to std::nullopt, which also leaves
+   * it untouched. */
+  void selectPageAndBank(int dataPage, std::optional<uint8_t> bank);
+  void readCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+  void writeCmisField(
+      CmisField field,
+      uint8_t* data,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+
+  /* Read the maximum number of CMIS banks supported by the module from Lower
+   * Page 00h byte 70 and cache it in maxNumBanks_. The register holds the bank
+   * count directly (e.g. 4 for a 32-lane module); legacy/non-CPO modules that
+   * report 0 fall back to a single bank. Expects the lower page to be cached
+   * (i.e. call after the lower page read in updateQsfpData). */
+  void cacheMaxNumBanks();
+
+  /* Read the CMIS revision the module complies with from Lower Page 00h byte 1
+   * and cache it in cmisRevision_. The upper nibble is the major number and the
+   * lower nibble the minor number (e.g. 0x50 -> 5.0). Expects the lower page to
+   * be cached (i.e. call after the lower page read in updateQsfpData). */
+  void cacheCmisRevision();
+
+  /* Read a banked page for every bank into its per-bank buffer (dest), sized to
+   * getMaxNumBanks(). On a single-bank module this is exactly
+   * readCmisField(field, dest[0]) (no bank-select write). On a multi-bank (CPO)
+   * module it reads each bank with an explicit bank select (the bank-select
+   * register is sticky) into dest[bank], with bank 0 at index 0. */
+  void readBankedPage(CmisField field, BankedPage& dest);
+
+  /* Read page 14h (SNR diagnostics) into dest for every bank. Page 14h is a
+   * multiplexed diagnostic page selected by DIAG_SEL, which itself lives on the
+   * banked page, so DIAG_SEL=SNR is written under each bank's selection before
+   * reading. Reads bank 0 last so the module is left selected on bank 0. */
+  void readSnrDiagPageLocked(BankedPage& dest);
+
+  /*
+  1. Check if existing diagSel matches the desired one
+  2. If not, write the value and wait for page 14h to repopulate
+   Note that latchWaitUsec overrides getDiagSelLatchWaitUsec().
+  */
+  void setDiagSel(
+      DiagnosticFeatureEncoding diagSel,
+      std::optional<uint8_t> bank = std::nullopt,
+      std::optional<int> latchWaitUsec = std::nullopt);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
@@ -802,8 +970,12 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  // Returns the CDB I2C write delay for firmware upgrade based on media type.
+  // Legacy optics need the 5ms inter-write delay; new media types default to 0.
+  uint64_t getFwUpgradeCdbWriteDelayUsec() const;
+
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
-  uint64_t maxRetriesWith500msDelay(bool /*init*/);
+  uint64_t maxDatapathStatePolls(bool /*init*/);
 
   /*
    * Program the datapath for the specified port. When isInit is true, releases
@@ -815,29 +987,34 @@ class CmisModule : public QsfpModule {
    * - Returns true if operation succeeds, false on timeout or failure
    *
    * @param portName The name of the port being programmed
-   * @param hostLaneMask Bitmask of host lanes to program
+   * @param hostLaneMask Intra-bank bitmask of host lanes to program
    * @param isInit If true, initialize (activate); if false, deinitialize
    * (deactivate)
+   * @param bank Bank that the port's lanes live in (0 for single-bank modules)
    * @return true if datapath operation completed successfully, false otherwise
    */
   bool dataPathProgram(
       const std::string& portName,
       uint8_t hostLaneMask,
-      bool isInit);
+      bool isInit,
+      uint8_t bank = 0);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of
-   * the desired states
+   * the desired states. laneMask carries intra-bank lane bits for the given
+   * bank.
    */
   bool isDatapathUpdated(
       uint8_t laneMask,
-      const std::vector<CmisLaneState>& states);
+      const std::vector<CmisLaneState>& states,
+      uint8_t bank = 0);
 
   void resetDataPathWithFunc(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
-      uint8_t hostLaneMask = 0xFF);
+      uint8_t hostLaneMask = 0xFF,
+      uint8_t bank = 0);
 
   /*
    * Helper function to reset data path for tunable optics (ZR modules)
@@ -846,7 +1023,8 @@ class CmisModule : public QsfpModule {
   void resetDataPathForTunableOptics(
       const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc,
-      uint8_t hostLaneMask);
+      uint8_t hostLaneMask,
+      uint8_t bank = 0);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
@@ -889,7 +1067,22 @@ class CmisModule : public QsfpModule {
 
   double f16ToDouble(uint8_t byte0, uint8_t byte1);
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
-      VdmConfigType vdmConf);
+      VdmConfigType vdmConf,
+      uint8_t bank = 0);
+
+  /* Per-lane VDM accessors that span all banks. The VDM config (and thus the
+   * data location) is bank-invariant; each bank's data page holds that bank's
+   * lanes. getVdmLaneValues returns a map keyed by global lane (bank *
+   * kMaxOsfpNumLanes + intra-bank lane); getVdmLaneValue returns a single
+   * global lane's decoded value. `decode` turns the lane's 2 bytes into a
+   * double. */
+  std::map<int, double> getVdmLaneValues(
+      VdmConfigType vdmConf,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
+  std::optional<double> getVdmLaneValue(
+      VdmConfigType vdmConf,
+      int globalLane,
+      const std::function<double(const std::array<uint8_t, 2>&)>& decode);
 
   // VDM value reading helper methods - read 2 bytes from VDM data
   std::optional<double> readU16VdmValue(VdmConfigType vdmConf, double lsb);
@@ -935,7 +1128,10 @@ class CmisModule : public QsfpModule {
   link::LinkPerfMonitorParamEachSideVal
   readLinkPmMetricS16(int startByte, double lsb, VdmConfigType vdmConf);
 
-  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+  void applyHostControlledInputEquilizerTx(
+      uint8_t lane,
+      uint8_t value,
+      uint8_t bank = 0);
 
   uint8_t setExplicitControl(
       const TransceiverPortState& state,
@@ -949,8 +1145,7 @@ class CmisModule : public QsfpModule {
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
       const TransceiverPortState& state,
-      uint8_t numHostLanes,
-      uint8_t hostLaneMask);
+      uint8_t numHostLanes);
 
   // Sets the sampling percentage for
   // FEC errors if supported by transceiver.

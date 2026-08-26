@@ -126,6 +126,11 @@ int main(int argc, char* argv[]) {
     return EX_OK;
   }
 
+  if (FLAGS_ssl_policy != "encrypted" && FLAGS_ssl_policy != "plaintext") {
+    fprintf(stderr, "--ssl-policy must be either encrypted or plaintext\n");
+    return EX_USAGE;
+  }
+
   if (FLAGS_set_100g && FLAGS_set_40g) {
     fprintf(stderr, "Cannot set both 40g and 100g\n");
     return EX_USAGE;
@@ -414,7 +419,7 @@ int main(int argc, char* argv[]) {
           }
         } else {
           auto logicalPorts = folly::join(", ", portNameList);
-          printPortDetail(dataUnion, portNum, logicalPorts);
+          printPortDetail(dataUnion, portNum, logicalPorts, &i2cInfo);
         }
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.

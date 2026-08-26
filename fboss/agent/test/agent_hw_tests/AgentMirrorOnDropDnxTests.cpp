@@ -1269,7 +1269,6 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
         {injectionPortId},
         {kPriority},
         {} /*lossyPgIds*/,
-        {} /*tcToPgOverride*/,
         utility::PfcBufferParams{
             .globalShared = 5000,
             .globalHeadroom = 0,

@@ -21,8 +21,10 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <optional>
+#include <set>
 
 using namespace facebook::fboss;
 using facebook::network::toBinaryAddress;
@@ -81,6 +83,7 @@ const std::optional<cfg::AclLookupClass> kClassID2(
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;
 const RouterID kRid0 = RouterID(0);
+const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 
 //
 // Helper functions
@@ -113,6 +116,31 @@ RouteNextHopSet newNextHops(int n, std::string prefix) {
     h.emplace(UnresolvedNextHop(IPAddress(ipStr), UCMP_DEFAULT_WEIGHT));
   }
   return h;
+}
+
+std::set<std::string> routePrefixesFromState(
+    const std::shared_ptr<SwitchState>& state,
+    RouterID rid) {
+  std::set<std::string> routes;
+  forAllRoutes(state, [&routes, rid](const RouterID& routeRid, auto& route) {
+    if (routeRid != rid) {
+      return;
+    }
+    routes.insert(route->prefix().str());
+  });
+  return routes;
+}
+
+std::set<std::string> routePrefixesFromRouteDetails(
+    const std::vector<RouteDetails>& routeDetails) {
+  std::set<std::string> routes;
+  for (const auto& route : routeDetails) {
+    auto ip = facebook::network::toIPAddress(*route.dest()->ip());
+    routes.insert(
+        folly::IPAddress::networkToString(
+            {ip, static_cast<uint8_t>(*route.dest()->prefixLength())}));
+  }
+  return routes;
 }
 
 } // namespace
@@ -540,6 +568,67 @@ TEST_F(RouteTest, resolve) {
     EXPECT_RESOLVED(r33);
     EXPECT_FALSE(r33->isConnected());
   }
+}
+
+TEST_F(RouteTest, resolveV4AndV6BgpOverIpv6LinkLocalNextHops) {
+  const auto rid = RouterID(0);
+  const auto bgpV6Route = IPAddressV6("2000::1");
+  const auto bgpV4Route = IPAddressV4("200.10.0.0");
+  const std::array<IPAddressV6, 2> bgpNextHopAddrs{
+      IPAddressV6("fdad:db00::1"),
+      IPAddressV6("fdad:dbff::1"),
+  };
+  const auto linkLocalNextHopAddr = IPAddressV6("fe80:face:b00c::1");
+
+  RouteNextHopSet bgpNextHops;
+  for (const auto& bgpNextHopAddr : bgpNextHopAddrs) {
+    bgpNextHops.emplace(UnresolvedNextHop(bgpNextHopAddr, ECMP_WEIGHT));
+  }
+
+  RouteNextHopSet expectedLinkLocalNextHops;
+  for (const auto& intf : kInterfaces) {
+    expectedLinkLocalNextHops.emplace(
+        ResolvedNextHop(linkLocalNextHopAddr, intf, ECMP_WEIGHT));
+  }
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      bgpV6Route,
+      64,
+      ClientID::BGPD,
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+  updater.addRoute(
+      rid,
+      bgpV4Route,
+      24,
+      ClientID::BGPD,
+      RouteNextHopEntry(bgpNextHops, DISTANCE));
+  for (const auto& bgpNextHopAddr : bgpNextHopAddrs) {
+    updater.addRoute(
+        rid,
+        bgpNextHopAddr,
+        128,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            expectedLinkLocalNextHops, AdminDistance::DIRECTLY_CONNECTED));
+  }
+  updater.program();
+
+  const auto routeState = this->sw_->getState();
+  const auto& routeV6 =
+      findLongestMatchRoute(this->sw_->getRib(), rid, bgpV6Route, routeState);
+  EXPECT_RESOLVED(routeV6);
+  EXPECT_EQ(
+      expectedLinkLocalNextHops,
+      getNextHops(routeState, routeV6->getForwardInfo()));
+
+  const auto& routeV4 =
+      findLongestMatchRoute(this->sw_->getRib(), rid, bgpV4Route, routeState);
+  EXPECT_RESOLVED(routeV4);
+  EXPECT_EQ(
+      expectedLinkLocalNextHops,
+      getNextHops(routeState, routeV4->getForwardInfo()));
 }
 
 TEST_F(RouteTest, resolveDropToCPUMix) {
@@ -1655,9 +1744,16 @@ TEST_F(RouteTest, withLabelForwardingAction) {
       folly::IPAddressV4("1.1.2.2"),
       this->sw_->getState());
 
-  EXPECT_EQ(route->has(kClientA, RouteNextHopEntry(nexthops, DISTANCE)), true);
+  // Add clientNextHopSetID to expectedEntry.
+  RouteNextHopEntry expectedEntry(nexthops, DISTANCE);
+  auto storedEntry = route->getEntryForClient(kClientA);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(kClientA, expectedEntry), true);
   auto entry = route->getBestEntry();
-  for (const auto& nh : entry.second->getNextHopSet()) {
+  for (const auto& nh :
+       getClientNextHops(this->sw_->getState(), *entry.second)) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), true);
     EXPECT_EQ(
         nh.labelForwardingAction()->type(),
@@ -1699,10 +1795,13 @@ TEST_F(RouteTest, unresolvedWithRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  // Add clientNextHopSetID to expectedEntry.
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   // Will resolve to DROP null routes
   EXPECT_TRUE(route->isDrop());
@@ -1763,10 +1862,12 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -1847,10 +1948,12 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState2);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -1879,6 +1982,50 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
           nhop.labelForwardingAction()->pushStack().value(), kLabelStacks[3]);
     }
   }
+}
+
+TEST_F(RouteTest, invalidLinkLocalNextHopIntfDoesNotUpdateState) {
+  auto rid = RouterID(0);
+  auto stateBeforeUpdate = this->sw_->getState();
+  const auto routePrefixesBeforeUpdate =
+      routePrefixesFromState(stateBeforeUpdate, rid);
+  EXPECT_EQ(
+      routePrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
+
+  RouteNextHopSet linkLocalNextHops;
+  for (auto i = 0; i < 4; i++) {
+    linkLocalNextHops.emplace(ResolvedNextHop(
+        kIgpAddrs[i], i == 2 ? InterfaceID(999) : kInterfaces[i], ECMP_WEIGHT));
+  }
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      IPAddress("10.10.10.0"),
+      24,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"1.1.1.10"}), DISTANCE));
+  updater.addRoute(
+      rid,
+      IPAddress("2001::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(makeNextHops({"1::10"}), DISTANCE));
+  updater.addRoute(
+      rid,
+      IPAddress("3001::0"),
+      48,
+      kClientA,
+      RouteNextHopEntry(linkLocalNextHops, DISTANCE));
+
+  EXPECT_THROW(updater.program(), FbossError);
+  EXPECT_EQ(stateBeforeUpdate, this->sw_->getState());
+  EXPECT_EQ(
+      routePrefixesBeforeUpdate,
+      routePrefixesFromRouteDetails(
+          this->sw_->getRib()->getRouteTableDetails(rid)));
 }
 
 TEST_F(RouteTest, updateTunnelLabels) {
@@ -1953,10 +2100,12 @@ TEST_F(RouteTest, updateTunnelLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState3);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD, RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)),
-      true);
+  RouteNextHopEntry expectedEntry(bgpNextHops, AdminDistance::EBGP);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -2045,12 +2194,13 @@ TEST_F(RouteTest, updateRouteLabels) {
   const auto& route = findLongestMatchRoute(
       this->sw_->getRib(), rid, kDestAddress, routeState4);
 
-  EXPECT_EQ(
-      route->has(
-          ClientID::BGPD,
-          RouteNextHopEntry(
-              static_cast<NextHop>(updatedBgpNextHop), EBGP_DISTANCE)),
-      true);
+  RouteNextHopEntry expectedEntry(
+      static_cast<NextHop>(updatedBgpNextHop), EBGP_DISTANCE);
+  auto storedEntry = route->getEntryForClient(ClientID::BGPD);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  expectedEntry.setClientNextHopSetID(storedClientNextHopSetID);
+  EXPECT_EQ(route->has(ClientID::BGPD, expectedEntry), true);
 
   EXPECT_TRUE(route->isResolved());
 
@@ -2083,9 +2233,15 @@ TEST_F(RouteTest, withNoLabelForwardingAction) {
       folly::IPAddressV4("1.1.2.2"),
       this->sw_->getState());
 
+  // Add clientNextHopSetID to routeNextHopEntry.
+  auto storedEntry = route->getEntryForClient(kClientA);
+  ASSERT_NE(storedEntry, nullptr);
+  auto storedClientNextHopSetID = storedEntry->getClientNextHopSetID();
+  routeNextHopEntry.setClientNextHopSetID(storedClientNextHopSetID);
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
-  for (const auto& nh : entry.second->getNextHopSet()) {
+  for (const auto& nh :
+       getClientNextHops(this->sw_->getState(), *entry.second)) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), false);
   }
   EXPECT_EQ(*entry.second, routeNextHopEntry);
@@ -2199,9 +2355,9 @@ class StaticRoutesTest : public RouteTest {
                                         int prefixStartIdx) {
       staticRouteNoNhops.resize(2);
       staticRouteNoNhops[0].prefix() =
-          folly::sformat("240{}::/64", prefixStartIdx);
+          fmt::format("240{}::/64", prefixStartIdx);
       staticRouteNoNhops[1].prefix() =
-          folly::sformat("30.30.{}.0/24", prefixStartIdx);
+          fmt::format("30.30.{}.0/24", prefixStartIdx);
     };
     // Add v4/v6 static routes to CPU/NULL
     insertStaticNoNhopRoutes(*config.staticRoutesToCPU(), 1);
@@ -2239,7 +2395,7 @@ class UcmpTest : public RouteTest {
     ASSERT_NE(nullptr, state);
     for (const auto& nnhs : networkAndNextHops) {
       folly::IPAddress net = nnhs.first;
-      auto pfx = folly::sformat("{}/{}", net.str(), mask);
+      auto pfx = fmt::format("{}/{}", net.str(), mask);
       auto r = this->findRoute4(state, rid_, pfx);
       EXPECT_RESOLVED(r);
       EXPECT_FALSE(r->isConnected());
@@ -2744,6 +2900,51 @@ TEST_F(RouteTest, invalidRouteWeights) {
   EXPECT_THROW(u1.program(), FbossError);
 }
 
+TEST_F(RouteTest, routePruneFpf) {
+  // enable_capacity_pruning is the master switch; enable_fpf_capacity_pruning
+  // selects the FPF (per-STSW) behavior. The latter is captured when the
+  // normalizer is constructed during program(), so set it up front.
+  FLAGS_enable_capacity_pruning = true;
+  FLAGS_enable_fpf_capacity_pruning = true;
+  auto u1 = this->sw_->getRouteUpdater();
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.spine_id() = 0;
+  // 4 local nexthops toward the STSW exceed the STSW->remote GTSW capacity
+  // (remote_rack_capacity = 3) => 1 path is oversubscribed and should be pruned
+  topologyInfo.remote_rack_capacity() = 3;
+
+  RouteNextHopSet nexthops1;
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(2), "2.2.2.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(3), "3.3.3.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(4), "4.4.4.1", 1, topologyInfo));
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.0"),
+      24,
+      ClientID(0),
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  u1.program();
+
+  auto pruneState = this->sw_->getState();
+  auto rt10 = this->findRoute4(pruneState, kRid0, prefix10);
+  int numPrunedPaths = 0;
+  for (auto& nhop : getNextHops(pruneState, rt10->getForwardInfo())) {
+    if (nhop.adjustedWeight().has_value() && *nhop.adjustedWeight() == 0) {
+      numPrunedPaths++;
+    }
+  }
+  EXPECT_EQ(numPrunedPaths, 1);
+  FLAGS_enable_fpf_capacity_pruning = false;
+}
+
 TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
   auto rid = RouterID(0);
   const std::vector<folly::IPAddressV6> sidList{
@@ -2761,7 +2962,7 @@ TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
 
   auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
@@ -2775,13 +2976,14 @@ TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:1::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 1);
   const auto& nh = *fwdNhops.begin();
   EXPECT_EQ(nh.addr(), folly::IPAddress("1::10"));
   EXPECT_EQ(nh.srv6SegmentList(), sidList);
   EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-  EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+  EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
 }
 
 TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
@@ -2801,7 +3003,7 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -2811,7 +3013,7 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
 
   auto updater = this->sw_->getRouteUpdater();
   updater.addRoute(
@@ -2825,19 +3027,20 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:2::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 2);
 
   for (const auto& nh : fwdNhops) {
     if (nh.addr() == folly::IPAddress("1::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       EXPECT_EQ(nh.addr(), folly::IPAddress("2::10"));
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     }
   }
 }
@@ -2860,7 +3063,7 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       std::nullopt,
       sidList1,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -2870,7 +3073,7 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       std::nullopt,
       sidList2,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   // 2 plain (non-SRv6) next hops
   nhops.emplace(UnresolvedNextHop(folly::IPAddress("3::10"), ECMP_WEIGHT));
   nhops.emplace(UnresolvedNextHop(folly::IPAddress("4::10"), ECMP_WEIGHT));
@@ -2881,11 +3084,11 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
     if (nh.addr() == folly::IPAddress("1::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else if (nh.addr() == folly::IPAddress("2::10")) {
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       EXPECT_TRUE(nh.srv6SegmentList().empty());
       EXPECT_EQ(nh.tunnelType(), std::nullopt);
@@ -2905,7 +3108,8 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
   auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:3::/64");
   ASSERT_NE(nullptr, rt);
 
-  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  auto fwdNhops =
+      getClientNextHops(this->sw_->getState(), *rt->getBestEntry().second);
   ASSERT_EQ(fwdNhops.size(), 4);
 
   for (const auto& nh : fwdNhops) {
@@ -2913,12 +3117,12 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
       // SRv6 next hop 1: fields must match input
       EXPECT_EQ(nh.srv6SegmentList(), sidList1);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else if (nh.addr() == folly::IPAddress("2::10")) {
       // SRv6 next hop 2: fields must match input
       EXPECT_EQ(nh.srv6SegmentList(), sidList2);
       EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
-      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+      EXPECT_EQ(nh.tunnelId(), kSrv6Tunnel0);
     } else {
       // Plain next hops (3::10 or 4::10): no SRv6 fields
       EXPECT_TRUE(
@@ -2963,7 +3167,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2800:1::"),
@@ -2978,7 +3182,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
   ASSERT_NE(nullptr, rt);
   EXPECT_TRUE(rt->isResolved());
 
-  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  auto fwdNhops = getNextHops(this->sw_->getState(), rt->getForwardInfo());
   ASSERT_EQ(2, fwdNhops.size());
 
   // Build expected resolved next hops with SRv6 fields
@@ -2993,7 +3197,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("2::10"),
       InterfaceID(2),
@@ -3004,7 +3208,7 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       std::nullopt,
       sidList,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }
@@ -3043,7 +3247,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelA")));
+      kSrv6Tunnel0));
   igpNhopsA.emplace(UnresolvedNextHop(
       folly::IPAddress("2::10"),
       ECMP_WEIGHT,
@@ -3053,7 +3257,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelA")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2801::"),
@@ -3073,7 +3277,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelB")));
+      kSrv6Tunnel0));
   igpNhopsB.emplace(UnresolvedNextHop(
       folly::IPAddress("4::10"),
       ECMP_WEIGHT,
@@ -3083,7 +3287,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       igpSidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("igpTunnelB")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2802::"),
@@ -3103,7 +3307,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   srv6Nhops.emplace(UnresolvedNextHop(
       folly::IPAddress("2802::1"),
       ECMP_WEIGHT,
@@ -3113,7 +3317,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   updater.addRoute(
       rid,
       IPAddress("2800:5::"),
@@ -3128,7 +3332,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
   ASSERT_NE(nullptr, rt);
   EXPECT_TRUE(rt->isResolved());
 
-  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  auto fwdNhops = getNextHops(this->sw_->getState(), rt->getForwardInfo());
   ASSERT_EQ(4, fwdNhops.size());
 
   RouteNextHopSet expectedNhops;
@@ -3142,7 +3346,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("2::10"),
       InterfaceID(2),
@@ -3153,7 +3357,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListA,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel0")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("3::10"),
       InterfaceID(3),
@@ -3164,7 +3368,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
   expectedNhops.emplace(ResolvedNextHop(
       IPAddress("4::10"),
       InterfaceID(4),
@@ -3175,7 +3379,7 @@ TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
       std::nullopt,
       sidListB,
       TunnelType::SRV6_ENCAP,
-      std::string("srv6Tunnel1")));
+      kSrv6Tunnel0));
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }

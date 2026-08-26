@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 //
+#include <fmt/format.h>
+
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchFullScaleDsfTests.h"
@@ -39,7 +41,7 @@ class AgentVoqSwitchEcmpCompressionTest
 
   RoutePrefixV6 makePrefix(int index) const {
     return RoutePrefixV6{
-        folly::IPAddressV6(folly::sformat("2401:db00:23{}::", index + 1)), 48};
+        folly::IPAddressV6(fmt::format("2401:db00:23{}::", index + 1)), 48};
   }
   boost::container::flat_set<PortDescriptor> getNextHops(int index) const {
     auto kNhopOffset = 4;

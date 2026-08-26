@@ -110,9 +110,10 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
     }
   } catch (const FsdbException& ef) {
     STREAM_XLOG(ERR) << "FsdbException: "
-                     << apache::thrift::util::enumNameSafe(ef.get_errorCode())
-                     << ": " << ef.get_message();
-    setStateDisconnectedWithReason(ef.get_errorCode());
+                     << apache::thrift::util::enumNameSafe(
+                            folly::copy(ef.errorCode().value()))
+                     << ": " << ef.message().value();
+    setStateDisconnectedWithReason(ef.errorCode().value());
   } catch (const apache::thrift::transport::TTransportException& et) {
     FsdbErrorCode disconnectReason = FsdbErrorCode::CLIENT_TRANSPORT_EXCEPTION;
     if (et.getType() ==

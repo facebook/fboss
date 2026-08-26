@@ -54,7 +54,8 @@ class Srv6ApiTest : public ::testing::Test {
         SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
         SAI_NULL_OBJECT_ID,
         0,
-        SAI_PACKET_ACTION_FORWARD};
+        SAI_PACKET_ACTION_FORWARD,
+        std::nullopt /* tunnelId */};
     srv6Api->create<SaiMySidEntryTraits>(entry, attrs);
   }
 
@@ -116,8 +117,9 @@ TEST_F(Srv6ApiTest, createMySidEntryWithAllAttributes) {
   SaiMySidEntryTraits::Attributes::Vrf vrf{10};
   SaiMySidEntryTraits::Attributes::PacketAction packetAction{
       SAI_PACKET_ACTION_TRAP};
+  SaiMySidEntryTraits::Attributes::TunnelId tunnelId{55};
   SaiMySidEntryTraits::CreateAttributes attrs{
-      behavior, flavor, nextHop, vrf, packetAction};
+      behavior, flavor, nextHop, vrf, packetAction, tunnelId};
   srv6Api->create<SaiMySidEntryTraits>(entry, attrs);
 
   EXPECT_EQ(
@@ -138,6 +140,9 @@ TEST_F(Srv6ApiTest, createMySidEntryWithAllAttributes) {
       srv6Api->getAttribute(
           entry, SaiMySidEntryTraits::Attributes::PacketAction{}),
       SAI_PACKET_ACTION_TRAP);
+  EXPECT_EQ(
+      srv6Api->getAttribute(entry, SaiMySidEntryTraits::Attributes::TunnelId{}),
+      55);
 }
 
 TEST_F(Srv6ApiTest, removeMySidEntry) {

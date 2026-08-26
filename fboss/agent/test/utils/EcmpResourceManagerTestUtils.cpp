@@ -10,11 +10,10 @@
 
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -28,6 +27,12 @@ const std::shared_ptr<ForwardingInformationBaseV6> cfib(
 const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
   return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4();
+}
+
+bool hasBackupNextHop(const RouteNextHopSet& nhops) {
+  return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+    return nhop.role() == NextHopRole::BACKUP;
+  });
 }
 
 std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
@@ -61,6 +66,9 @@ std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
       }
       auto nhops = getNormalizedNextHops(in, route->getForwardInfo());
       if (nhops.size() <= 1) {
+        continue;
+      }
+      if (hasBackupNextHop(nhops)) {
         continue;
       }
       if (!filter(route->getForwardInfo())) {
@@ -244,6 +252,15 @@ void assertFibAndGroupsMatch(
         continue;
       }
       const auto& fwdInfo = route->getForwardInfo();
+      auto nonOverrideNormalizedHops =
+          getNonOverrideNormalizedNextHops(state, fwdInfo);
+      if (hasBackupNextHop(nonOverrideNormalizedHops)) {
+        EXPECT_EQ(
+            resourceMgr.getGroupInfo(
+                RouterID(0), route->prefix().toCidrNetwork()),
+            nullptr);
+        continue;
+      }
       auto pfxGrpInfo = resourceMgr.getGroupInfo(
           RouterID(0), route->prefix().toCidrNetwork());
       if (fwdInfo.hasOverrideNextHops()) {
@@ -266,8 +283,6 @@ void assertFibAndGroupsMatch(
           pfxGrpInfo->isBackupEcmpGroupType());
       // Non override nhops must map to a entry in nhops2Id. Confirming
       // that nhops map to a existing group in resourceMgr
-      auto nonOverrideNormalizedHops =
-          getNonOverrideNormalizedNextHops(state, route->getForwardInfo());
       auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
       ASSERT_NE(nitr, nhops2Id.end());
       auto umGroupRefItr =
@@ -374,6 +389,9 @@ void assertDeltasForOverflow(
     if (nhops.size() <= 1) {
       return;
     }
+    if (hasBackupNextHop(nhops)) {
+      return;
+    }
     if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
@@ -397,6 +415,9 @@ void assertDeltasForOverflow(
     }
     auto nhops = getNormalizedNextHops(state, newRoute->getForwardInfo());
     if (nhops.size() <= 1) {
+      return;
+    }
+    if (hasBackupNextHop(nhops)) {
       return;
     }
     if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
@@ -471,44 +492,6 @@ void assertDeltasForOverflow(
   EXPECT_LE(
       primaryEcmpTypeGroups2RefCnt.size(),
       resourceManager.getMaxPrimaryEcmpGroups());
-}
-
-void assertRollbacks(
-    EcmpResourceManager& newEcmpResourceMgr,
-    const std::shared_ptr<SwitchState>& startState,
-    const std::shared_ptr<SwitchState>& endState) {
-  auto applyDelta = [&newEcmpResourceMgr](
-                        const StateDelta& delta, bool failUpdate = false) {
-    auto deltas = newEcmpResourceMgr.consolidate(delta, true /*rollingBack*/);
-    facebook::fboss::assertDeltasForOverflow(newEcmpResourceMgr, deltas);
-    assertResourceMgrCorrectness(newEcmpResourceMgr, deltas.back().newState());
-    if (failUpdate) {
-      newEcmpResourceMgr.updateFailed(delta.oldState());
-      assertResourceMgrCorrectness(newEcmpResourceMgr, delta.oldState());
-    } else {
-      newEcmpResourceMgr.updateDone();
-    }
-    return deltas;
-  };
-  auto emptyState = std::make_shared<SwitchState>();
-  addSwitchInfo(emptyState);
-  emptyState = setupMinAlpmRouteState(emptyState);
-
-  // Get to the startState - essentially the state post ::SetUp
-  XLOG(DBG2) << " Updating to start";
-  applyDelta(StateDelta(emptyState, startState));
-  // Get to the current test state, assert no overflow and mgr correctness
-  // Now mark the latest update as failed and assert that resourceMgr reverts
-  // to setup state
-  XLOG(DBG2) << " Updating to end state, failing update";
-  applyDelta(StateDelta(startState, endState), true /*failUpdate*/);
-  // Now once again goto current state, and then revert back to
-  // startState. This time assert that deltas for this revert did not cause a
-  // overflow
-  XLOG(DBG2) << " Updating to end state";
-  auto deltas = applyDelta(StateDelta(startState, endState));
-  XLOG(DBG2) << " Rolling back to start state";
-  applyDelta(StateDelta(deltas.back().newState(), startState));
 }
 
 void assertAllRouteIdsResolvable(

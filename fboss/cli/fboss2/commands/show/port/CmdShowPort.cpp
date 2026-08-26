@@ -12,6 +12,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <thrift/lib/cpp/transport/TTransportException.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -415,6 +416,17 @@ RetType CmdShowPort::createModel(
       portDetails.activeState() = activeState;
       portDetails.activeStateMismatch() = activeStateMismatch;
       portDetails.cableLengthMeters() = cableLenMeters;
+      // Left unset unless the port has an LLR profile bound on an LLR-capable
+      // ASIC, so the detail view omits the rows entirely rather than showing
+      // them empty on the platforms that do not run LLR.
+      if (auto llrTxStatus = portInfo.llrTxStatus()) {
+        portDetails.llrTxStatus() =
+            apache::thrift::util::enumNameSafe(*llrTxStatus);
+      }
+      if (auto llrRxStatus = portInfo.llrRxStatus()) {
+        portDetails.llrRxStatus() =
+            apache::thrift::util::enumNameSafe(*llrRxStatus);
+      }
       portDetails.speed() =
           utils::getSpeedGbps(folly::copy(portInfo.speedMbps().value()));
       portDetails.profileId() = portInfo.profileID().value();
@@ -595,6 +607,18 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
                 "PFC:            \t\t {}",
                 *apache::thrift::get_pointer(portInfo.pfc())));
       }
+      if (apache::thrift::get_pointer(portInfo.llrTxStatus())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "LLR TX status:  \t\t {}",
+                *apache::thrift::get_pointer(portInfo.llrTxStatus())));
+      }
+      if (apache::thrift::get_pointer(portInfo.llrRxStatus())) {
+        detailedOutput.emplace_back(
+            fmt::format(
+                "LLR RX status:  \t\t {}",
+                *apache::thrift::get_pointer(portInfo.llrRxStatus())));
+      }
       detailedOutput.emplace_back(
           fmt::format(
               "Unicast queues: \t\t {}",
@@ -764,6 +788,77 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
     }
     out << table << std::endl;
   }
+}
+
+std::string_view CmdShowPortTraits::description() {
+  return "Displays low-level port state: admin/link/active state, transceiver presence and ID, speed and port profile, hardware logical port ID, drain state, error flags, and cable length. Use it for detailed port and hardware debugging.";
+}
+
+CmdShowPort::RetType CmdShowPort::sampleModel() {
+  RetType model;
+
+  cli::PortEntry port1;
+  port1.id() = 1;
+  port1.name() = "eth1/1/1";
+  port1.adminState() = "Enabled";
+  port1.linkState() = "Up";
+  port1.activeState() = "--";
+  port1.tcvrPresent() = "Present";
+  port1.tcvrID() = 0;
+  port1.speed() = "400G";
+  port1.profileId() = "PROFILE_400G_4_PAM4_RS544X2N_OPTICAL";
+  port1.hwLogicalPortId() = 28;
+  port1.isDrained() = "No";
+  port1.peerSwitchDrained() = "--";
+  port1.peerPortDrainedOrDown() = "--";
+  port1.activeErrors() = "--";
+  port1.coreId() = "--";
+  port1.virtualDeviceId() = "--";
+  port1.cableLengthMeters() = "--";
+  port1.activeStateMismatch() = false;
+
+  cli::PortEntry port2;
+  port2.id() = 3;
+  port2.name() = "eth1/2/1";
+  port2.adminState() = "Enabled";
+  port2.linkState() = "Up";
+  port2.activeState() = "--";
+  port2.tcvrPresent() = "Present";
+  port2.tcvrID() = 1;
+  port2.speed() = "400G";
+  port2.profileId() = "PROFILE_400G_4_PAM4_RS544X2N_OPTICAL";
+  port2.hwLogicalPortId() = 30;
+  port2.isDrained() = "No";
+  port2.peerSwitchDrained() = "--";
+  port2.peerPortDrainedOrDown() = "--";
+  port2.activeErrors() = "--";
+  port2.coreId() = "--";
+  port2.virtualDeviceId() = "--";
+  port2.cableLengthMeters() = "--";
+  port2.activeStateMismatch() = false;
+
+  cli::PortEntry port3;
+  port3.id() = 5;
+  port3.name() = "eth1/3/1";
+  port3.adminState() = "Enabled";
+  port3.linkState() = "Up";
+  port3.activeState() = "--";
+  port3.tcvrPresent() = "Present";
+  port3.tcvrID() = 2;
+  port3.speed() = "200G";
+  port3.profileId() = "PROFILE_200G_4_PAM4_RS544X2N_OPTICAL";
+  port3.hwLogicalPortId() = 32;
+  port3.isDrained() = "No";
+  port3.peerSwitchDrained() = "--";
+  port3.peerPortDrainedOrDown() = "--";
+  port3.activeErrors() = "--";
+  port3.coreId() = "--";
+  port3.virtualDeviceId() = "--";
+  port3.cableLengthMeters() = "--";
+  port3.activeStateMismatch() = false;
+
+  model.portEntries() = {port1, port2, port3};
+  return model;
 }
 
 // Explicit template instantiation

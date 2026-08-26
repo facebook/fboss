@@ -17,5 +17,7 @@ cpp_library(
         "//folly:string",
         "//folly:unit",
         "//thrift/lib/cpp2/op:get",
+        "//thrift/lib/cpp2/type:tag",
+        "//thrift/lib/cpp2/type/detail:type_class_from_type_tag",
     ],
 )

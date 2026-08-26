@@ -279,3 +279,67 @@ TEST(PktUtilTest, InsertVlanTag) {
   EXPECT_EQ(taggedEthHdr.getVlanTags().size(), 1);
   EXPECT_EQ(taggedEthHdr.getVlanTags()[0].vid(), 1);
 }
+
+TEST(PktUtilTest, decapsulatePacketStripsEncapHeader) {
+  // [L2 (14 bytes) | encap (4 bytes) | inner payload (8 bytes)]
+  auto ioBuf = PktUtil::parseHexData(
+      // dst mac + src mac + ethertype (0xAAAA placeholder)
+      "01 02 03 04 05 06 07 08 09 0a 0b 0c aa aa"
+      // encap header (4 bytes to strip)
+      "ee ee ee ee"
+      // inner payload (8 bytes)
+      "11 22 33 44 55 66 77 88");
+
+  PktUtil::decapsulatePacket(
+      &ioBuf,
+      14, // l2HeaderSize
+      4, // encapHeaderSize
+      0x0800); // innerEtherType (IPv4)
+
+  auto expected = PktUtil::parseHexData(
+      // same L2 header but ethertype rewritten to 0x0800
+      "01 02 03 04 05 06 07 08 09 0a 0b 0c 08 00"
+      // inner payload preserved
+      "11 22 33 44 55 66 77 88");
+
+  EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expected));
+}
+
+TEST(PktUtilTest, decapsulatePacketWithVlanTag) {
+  // [L2 with VLAN (18 bytes) | encap (6 bytes) | inner payload (4 bytes)]
+  auto ioBuf = PktUtil::parseHexData(
+      // dst mac + src mac + vlan type + vlan tag + ethertype (0xBBBB)
+      "01 02 03 04 05 06 07 08 09 0a 0b 0c 81 00 00 01 bb bb"
+      // encap header (6 bytes to strip)
+      "ee ee ee ee ee ee"
+      // inner payload (4 bytes)
+      "aa bb cc dd");
+
+  PktUtil::decapsulatePacket(
+      &ioBuf,
+      18, // l2HeaderSize (with VLAN)
+      6, // encapHeaderSize
+      0x86DD); // innerEtherType (IPv6)
+
+  auto expected = PktUtil::parseHexData(
+      // L2 with VLAN, ethertype rewritten to 0x86DD
+      "01 02 03 04 05 06 07 08 09 0a 0b 0c 81 00 00 01 86 dd"
+      // inner payload preserved
+      "aa bb cc dd");
+
+  EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expected));
+}
+
+TEST(PktUtilTest, decapsulatePacketZeroPayload) {
+  // [L2 (14 bytes) | encap (4 bytes) | no inner payload]
+  auto ioBuf = PktUtil::parseHexData(
+      "01 02 03 04 05 06 07 08 09 0a 0b 0c aa aa"
+      "ee ee ee ee");
+
+  PktUtil::decapsulatePacket(&ioBuf, 14, 4, 0x0800);
+
+  auto expected =
+      PktUtil::parseHexData("01 02 03 04 05 06 07 08 09 0a 0b 0c 08 00");
+
+  EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expected));
+}

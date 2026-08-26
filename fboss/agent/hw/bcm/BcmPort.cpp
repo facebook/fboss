@@ -1310,6 +1310,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           rsFec, /* current RsFecInfo to update */
           lastRsFec, /* previous RsFecInfo */
           correctedBitsFromHw, /* counter if available from hardware */
+          std::nullopt, /* corrected symbols counter not available */
           now.count() -
               *lastPhyInfo_.state()->timeCollected(), /* timeDeltaInSeconds */
           fecMode, /* operational FecMode */
@@ -1509,7 +1510,6 @@ void BcmPort::updateStats() {
       now, kOutPause(), snmpDot3OutPauseFrames, &(*curPortStats.outPause_()));
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::ECN)) {
-    // ECN stats not supported by TD2
     updateStat(
         now,
         kOutEcnCounter(),

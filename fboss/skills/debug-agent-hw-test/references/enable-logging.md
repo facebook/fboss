@@ -47,18 +47,34 @@ Add to the test command:
 
 **When to use**: when you need to see what values the agent is reading back from the SDK, not just what it's writing.
 
-### (D) Packet TX Logging — `--enable-packet_log`
+### (D) Packet TX Logging — `--enable_packet_log`
 
-Enables logging of SAI packet transmit calls.
+Enables logging of SAI packet transmit calls (`send_hostif_packet`) in the SAI replayer log.
 
-Add to the test command:
+Add to the test command (or, in multi mode, to the `fboss_hw_agent` processes):
 ```bash
---enable-packet_log
+--enable_packet_log
 ```
 
-**Inspect**: test binary output for packet TX entries.
+**Inspect**: the SAI replayer log for packet-send entries.
 
-**When to use sparingly**: to rule out whether packets are being sent at all. Tests that send large numbers of packets can overwhelm the logs with this option enabled.
+**When to use sparingly**: to rule out whether packets are being sent at all, or to include packet-send calls in a vendor-escalation replayer log. Tests that send large numbers of packets can overwhelm the logs with this option enabled.
+
+### (E) SAI Call Elapsed-Time Logging — `--enable_elapsed_time_log`
+
+Appends the real SDK wall-clock duration to each logged SAI call in the replayer log
+(`... rv: 0 elapsed time 873 μs`). Requires `--enable_replayer`.
+
+```bash
+--enable_replayer --enable_elapsed_time_log
+```
+
+**When to use**: to profile per-call SDK latency — e.g. find which SAI primitive dominates a
+slow warmboot or a scale operation.
+
+> **Full reference**: for the complete SAI Replayer capability list (all flags), plus how to
+> capture, post-process, build, and run the `sai_replayer-<impl>-<ver>` binary, see
+> [sai-replayer.md](sai-replayer.md).
 
 ## Example: Combining Options
 
@@ -68,7 +84,7 @@ Re-run a failing cold boot test with SDK and FBOSS verbose logging:
 /root/<user>/<versioned-binary-name> \
   --config <config-path> \
   --gtest_filter=<TestSuite>.<TestName> \
-  --enable-replayer --sai_log /root/<user>/sai_replayer-cb.log \
+  --enable_replayer --sai_log /root/<user>/sai_replayer-cb.log \
   --enable_sai_log DEBUG \
   --logging='fboss=DBG5' \
   --setup-for-warmboot
@@ -89,3 +105,5 @@ Re-run a failing cold boot test with SDK and FBOSS verbose logging:
 - Re-run the failing test with chosen logging options
 - Analyze the enhanced logs with [analyze-logs.md](analyze-logs.md)
 - If hypothesis formed: see [hypothesis-driven-debug.md](hypothesis-driven-debug.md)
+- If the root cause is the vendor SDK/silicon: assemble a reproducible vendor-escalation
+  package (replayer log + hw_config + case report) with [vendor-escalation.md](vendor-escalation.md)

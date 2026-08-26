@@ -10,7 +10,6 @@
 
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatform.h"
 #include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 
 namespace facebook::fboss {
 
@@ -18,17 +17,16 @@ SaiMinipack3NPlatform::SaiMinipack3NPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr)
-    : SaiYangraPlatform(
+    : GenericSaiYangraPlatform(
           std::move(productInfo),
-          localMac,
           platformMappingStr.empty()
               ? std::make_unique<Minipack3NPlatformMapping>()
-              : std::make_unique<Minipack3NPlatformMapping>(
-                    platformMappingStr)) {}
+              : std::make_unique<Minipack3NPlatformMapping>(platformMappingStr),
+          localMac) {}
 
 const std::unordered_map<std::string, std::string>
 SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
-  auto kv_map = SaiYangraPlatform::getSaiProfileVendorExtensionValues();
+  auto kv_map = GenericSaiYangraPlatform::getSaiProfileVendorExtensionValues();
   auto itr = kv_map.find("SAI_KEY_AUTO_POPULATE_PORT_DB");
   if (itr != kv_map.end()) {
     // Disable auto-population of the port database. When enabled, the SDK

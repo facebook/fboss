@@ -67,9 +67,33 @@ sai_status_t remove_buffer_pool_fn(sai_object_id_t pool_id) {
 }
 
 sai_status_t set_buffer_pool_attribute_fn(
-    sai_object_id_t /*buffer_pool_id*/,
-    const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_SUPPORTED;
+    sai_object_id_t buffer_pool_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& pool = fs->bufferPoolManager.get(buffer_pool_id);
+  // Mirrors create_buffer_pool_fn / get_buffer_pool_attribute_fn: settable for
+  // everything FakeBufferPool models. SaiBufferManager reprograms an existing
+  // pool via setObject() -> setAttributes(), so a stub here turns a pool resize
+  // (e.g. XOFF_SIZE once a headroom is configured) into a SaiApiError that
+  // terminates the agent from the oper-delta thread. TYPE is create-only.
+  switch (attr->id) {
+    case SAI_BUFFER_POOL_ATTR_SIZE:
+      pool.size = attr->value.u64;
+      break;
+    case SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE:
+      pool.threshMode =
+          static_cast<sai_buffer_pool_threshold_mode_t>(attr->value.s32);
+      break;
+    case SAI_BUFFER_POOL_ATTR_XOFF_SIZE:
+      pool.xoffSize = attr->value.u64;
+      break;
+    case SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE:
+      pool.reservedBytes = attr->value.u64;
+      break;
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_buffer_pool_attribute_fn(
@@ -382,6 +406,42 @@ sai_status_t get_ingress_priority_group_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+/*
+ * In fake sai there isn't a dataplane, so all ingress priority group stats
+ * stay at 0. Mirrors the buffer pool stats handling above.
+ */
+sai_status_t get_ingress_priority_group_stats_fn(
+    sai_object_id_t /*ingress_priority_group_id*/,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < number_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_ingress_priority_group_stats_ext_fn(
+    sai_object_id_t ingress_priority_group_id,
+    uint32_t number_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_ingress_priority_group_stats_fn(
+      ingress_priority_group_id, number_of_counters, counter_ids, counters);
+}
+
+/*
+ * noop clear stats API. Since fake doesn't have a dataplane stats are always
+ * set to 0, so no need to clear them.
+ */
+sai_status_t clear_ingress_priority_group_stats_fn(
+    sai_object_id_t /*ingress_priority_group_id*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_buffer_api_t _buffer_api;
@@ -404,6 +464,12 @@ void populate_buffer_api(sai_buffer_api_t** buffer_api) {
       &get_ingress_priority_group_attribute_fn;
   _buffer_api.set_ingress_priority_group_attribute =
       &set_ingress_priority_group_attribute_fn;
+  _buffer_api.get_ingress_priority_group_stats =
+      &get_ingress_priority_group_stats_fn;
+  _buffer_api.get_ingress_priority_group_stats_ext =
+      &get_ingress_priority_group_stats_ext_fn;
+  _buffer_api.clear_ingress_priority_group_stats =
+      &clear_ingress_priority_group_stats_fn;
   *buffer_api = &_buffer_api;
 }
 

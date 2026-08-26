@@ -26,6 +26,8 @@ constexpr auto kCpuI2cBusNumsWaitSecs = 1;
 const std::map<std::string, int> kAmdAcpiPathToBusIndex = {
     {R"(\_SB_.I2CA)", 1},
     {R"(\_SB_.I2CB)", 0},
+    {R"(\_SB_.I2CC)", 2},
+    {R"(\_SB_.I2CD)", 3},
 };
 
 std::string getI2cAdapterName(const fs::path& busPath) {
@@ -177,8 +179,13 @@ std::map<std::string, uint16_t> I2cExplorer::resolveAmdCpuBusNums(
 std::map<std::string, uint16_t> I2cExplorer::resolveIntelCpuBusNums(
     const std::vector<std::string>& i2cAdaptersFromCpu) {
   // One SMBus I801 adapter per unit — only CPU_BUS@0 is valid.
-  CHECK_EQ(i2cAdaptersFromCpu.size(), 1)
-      << "resolveIntelCpuBusNums only supports a single CPU_BUS@0 entry";
+  if (i2cAdaptersFromCpu.size() != 1 || i2cAdaptersFromCpu[0] != "CPU_BUS@0") {
+    throw std::runtime_error(
+        fmt::format(
+            "Invalid i2cAdaptersFromCpu configuration for Intel CPU. "
+            "Expected a single 'CPU_BUS@0' entry, got: {}",
+            folly::join(", ", i2cAdaptersFromCpu)));
+  }
 
   const auto& name = i2cAdaptersFromCpu[0];
 

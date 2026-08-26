@@ -2,7 +2,7 @@
 
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
-#include <gmock/gmock.h>
+#include <gmock/gmock.h> // NOLINT(misc-include-cleaner)
 #include <gtest/gtest.h>
 
 #include <folly/json/dynamic.h>

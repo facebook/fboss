@@ -33,6 +33,7 @@ class NextHopGroupApi;
 namespace detail {
 using NextHopMemberKey =
     std::pair<SaiNextHopTraits::AdapterHostKey, sai_uint32_t>; // weight
+
 /* For NSF, due to the limited availability of ARS supported ECMP groups, the
  * ecmp resource manager does a reclaim of ARS groups when they become
  * available during a state/config update. Since the SAI SDK does not support
@@ -54,11 +55,44 @@ struct NextHopGroupAdapterHostKey {
 #else
   sai_uint32_t mode = 0;
 #endif
+  // SAI group type (e.g. SAI_NEXT_HOP_GROUP_TYPE_ECMP vs _HW_PROTECTION). Part
+  // of the identity so a protection group is never confused with an ECMP (or
+  // hierarchical ECMP) group that has the same members. Defaults to ECMP so
+  // plain ECMP groups need not set it.
+  sai_int32_t groupType = SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+  // Hierarchical ECMP / protection: value-based identities of the child next
+  // hop groups that are members of this group (for a protection group this is
+  // the backup/standby group). Each child is represented by its OWN adapter
+  // host key (recursively), NOT its OID, so the parent's identity is
+  // warmboot-stable. Empty for a flat/leaf group. A std::set keeps it sorted
+  // and duplicate-free, so equality and hashing are canonical regardless of
+  // child insertion order. No per-child weight: weights live on next hops, not
+  // next hop groups.
+  std::set<NextHopGroupAdapterHostKey> childNextHopGroups = {};
+  // Hierarchy level of this group; 0 = leaf/flat. Part of the identity so a
+  // nested group cannot alias a flat group with the same members. Not populated
+  // yet -- reserved for upcoming hierarchical ECMP support.
+  sai_uint32_t level = 0;
   bool operator==(const NextHopGroupAdapterHostKey& other) const {
-    return nhopMemberSet == other.nhopMemberSet && mode == other.mode;
+    return nhopMemberSet == other.nhopMemberSet && mode == other.mode &&
+        groupType == other.groupType &&
+        childNextHopGroups == other.childNextHopGroups && level == other.level;
+  }
+  bool operator!=(const NextHopGroupAdapterHostKey& other) const {
+    return !(*this == other);
+  }
+  bool operator<(const NextHopGroupAdapterHostKey& other) const {
+    return std::tie(nhopMemberSet, mode, groupType, childNextHopGroups, level) <
+        std::tie(
+               other.nhopMemberSet,
+               other.mode,
+               other.groupType,
+               other.childNextHopGroups,
+               other.level);
   }
   friend struct fmt::formatter<NextHopGroupAdapterHostKey>;
 };
+
 } // namespace detail
 
 struct SaiNextHopGroupTraits {
@@ -86,6 +120,11 @@ struct SaiNextHopGroupTraits {
         SAI_NEXT_HOP_GROUP_ATTR_HASH_ALGORITHM,
         sai_int32_t,
         StdNullOptDefault<sai_int32_t>>;
+    using HierarchicalNextHop = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP,
+        bool,
+        StdNullOptDefault<bool>>;
 #endif
     struct AttributeArsNextHopGroupMetaData {
       std::optional<sai_attr_id_t> operator()();
@@ -106,7 +145,8 @@ struct SaiNextHopGroupTraits {
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
-      std::optional<Attributes::HashAlgorithm>
+      std::optional<Attributes::HashAlgorithm>,
+      std::optional<Attributes::HierarchicalNextHop>
 #endif
       >;
 };
@@ -118,6 +158,7 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, ArsObjectId)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
+SAI_ATTRIBUTE_NAME(NextHopGroup, HierarchicalNextHop)
 #endif
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
 
@@ -138,7 +179,23 @@ struct SaiNextHopGroupMemberTraits {
     using Weight = SaiAttribute<
         EnumType,
         SAI_NEXT_HOP_GROUP_MEMBER_ATTR_WEIGHT,
-        sai_uint32_t>;
+        sai_uint32_t,
+        SaiInt1Default>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    // Protection-group member attributes (only valid when the owning group is
+    // SAI_NEXT_HOP_GROUP_TYPE_PROTECTION). ConfiguredRole selects PRIMARY vs
+    // STANDBY; MonitoredObject is the PORT/LAG whose state drives switchover.
+    using ConfiguredRole = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_MEMBER_ATTR_CONFIGURED_ROLE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using MonitoredObject = SaiAttribute<
+        EnumType,
+        SAI_NEXT_HOP_GROUP_MEMBER_ATTR_MONITORED_OBJECT,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+#endif
   };
 
   using AdapterKey = NextHopGroupMemberSaiId;
@@ -147,12 +204,22 @@ struct SaiNextHopGroupMemberTraits {
   using CreateAttributes = std::tuple<
       Attributes::NextHopGroupId,
       Attributes::NextHopId,
-      std::optional<Attributes::Weight>>;
+      std::optional<Attributes::Weight>
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+      ,
+      std::optional<Attributes::ConfiguredRole>,
+      std::optional<Attributes::MonitoredObject>
+#endif
+      >;
 };
 
 SAI_ATTRIBUTE_NAME(NextHopGroupMember, NextHopGroupId)
 SAI_ATTRIBUTE_NAME(NextHopGroupMember, NextHopId)
 SAI_ATTRIBUTE_NAME(NextHopGroupMember, Weight)
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+SAI_ATTRIBUTE_NAME(NextHopGroupMember, ConfiguredRole)
+SAI_ATTRIBUTE_NAME(NextHopGroupMember, MonitoredObject)
+#endif
 
 class NextHopGroupApi : public SaiApi<NextHopGroupApi> {
  public:
@@ -279,7 +346,31 @@ struct formatter<facebook::fboss::detail::NextHopGroupAdapterHostKey> {
   auto format(
       const facebook::fboss::detail::NextHopGroupAdapterHostKey& ahk,
       FormatContext& ctx) const {
-    return format_to(ctx.out(), "{}, {}", ahk.nhopMemberSet, ahk.mode);
+    // Self-recursive lambda so child groups (and grandchildren) are rendered
+    // without calling fmt::format on this key type -- which would trip fmt's
+    // formattable_const check while this very formatter is being instantiated.
+    auto render =
+        [](const facebook::fboss::detail::NextHopGroupAdapterHostKey& key,
+           auto&& self) -> std::string {
+      std::string childGroups = "[";
+      bool first = true;
+      for (const auto& child : key.childNextHopGroups) {
+        if (!first) {
+          childGroups += ", ";
+        }
+        first = false;
+        childGroups += fmt::format("{{{}}}", self(child, self));
+      }
+      childGroups += "]";
+      return fmt::format(
+          "{}, mode={}, groupType={}, level={}, childGroups={}",
+          key.nhopMemberSet,
+          key.mode,
+          key.groupType,
+          key.level,
+          childGroups);
+    };
+    return format_to(ctx.out(), "{}", render(ahk, render));
   }
 };
 } // namespace fmt

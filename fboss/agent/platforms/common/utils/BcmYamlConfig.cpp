@@ -121,6 +121,47 @@ void BcmYamlConfig::modifyCoreMaps(
   }
 }
 
+void BcmYamlConfig::setGlobalProperty(
+    const std::string& name,
+    const std::string& value) {
+  // A default-constructed YAML::Node is null but still "truthy", so test
+  // IsMap() rather than the node itself to tell "global section present" from
+  // "absent".
+  if (globalNode_.IsMap()) {
+    // Skip a no-op write so getConfig() does not force a needless YAML re-emit.
+    if (auto existing = getConfigValue<std::string>(globalNode_, name);
+        existing && *existing == value) {
+      return;
+    }
+    dirty_ = true;
+    globalNode_[name] = value;
+    return;
+  }
+  // No bcm_device.0.global section exists yet. Capture a live reference to
+  // bcm_device.0 (reusing an existing bcm_device document if there is one, so
+  // we don't emit a second document with a duplicate bcm_device key) and vivify
+  // the global section under it. This mirrors modifyCoreMaps(): mutating a live
+  // sub-node reference is what reliably attaches to nodes_ and emits.
+  YAML::Node dev0Node;
+  bool found = false;
+  for (auto yamlNode : nodes_) {
+    if (auto bcmDeviceNode = yamlNode[kHSDKBcmDeviceKey]) {
+      dev0Node = bcmDeviceNode[kHSDKDevice0Key];
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    // Append a new document that already has bcm_device.0 as maps, so only the
+    // (new) global section is vivified below.
+    nodes_.push_back(YAML::Load("bcm_device:\n  0: {}\n"));
+    dev0Node = nodes_.back()[kHSDKBcmDeviceKey][kHSDKDevice0Key];
+  }
+  dirty_ = true;
+  globalNode_ = dev0Node[kHSDKBcmDeviceGlobalKey];
+  globalNode_[name] = value;
+}
+
 std::optional<std::string> BcmYamlConfig::getMmuState() const {
   return getConfigValue<std::string>(thresholdNode_, kHSDKThresholsModeKey);
 }

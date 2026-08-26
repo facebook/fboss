@@ -10,6 +10,7 @@ add_library(standalone_rib
   fboss/agent/rib/RibRouteWeightNormalizer.cpp
   fboss/agent/rib/RouteUpdater.cpp
   fboss/agent/rib/RoutingInformationBase.cpp
+  fboss/agent/rib/VrfRouteTable.cpp
 )
 
 target_link_libraries(standalone_rib

@@ -95,11 +95,22 @@ class AgentCoppTest : public AgentHwTest {
     if (isTrunk) {
       return getTrunkInitialConfig(ensemble);
     }
-
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto asic = checkSameAndGetAsic(
+        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+        ensemble.getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(switchId),
+        ensemble.supportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        true /*interfaceHasSubnet*/,
+        true /*setInterfaceMac*/,
+        utility::kBaseVlanId,
+        false /*enableFabricPorts*/,
+        ensemble.getSw()->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
+        ensemble.getSw()->getHwAsicTable()->getHwAsics(),
+        ensemble.getSw()->getPlatformType());
 
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setDefaultCpuTrafficPolicyConfig(
@@ -109,18 +120,22 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   cfg::SwitchConfig getTrunkInitialConfig(const AgentEnsemble& ensemble) const {
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto asic = checkSameAndGetAsic(
+        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
+    auto interfacePorts = ensemble.masterLogicalInterfacePortIds(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalInterfacePortIds()[0],
-        ensemble.masterLogicalInterfacePortIds()[1]);
+        ensemble.getPlatformMapping(),
+        asic,
+        interfacePorts[0],
+        interfacePorts[1],
+        ensemble.supportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addAggPort(
-        1,
-        {ensemble.masterLogicalInterfacePortIds()[0],
-         ensemble.masterLogicalInterfacePortIds()[1]},
-        &cfg);
+    utility::addAggPort(1, {interfacePorts[0], interfacePorts[1]}, &cfg);
     return cfg;
   }
 
@@ -134,10 +149,11 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   std::vector<PortID> portIdsForTest() {
+    auto switchId = this->getCurrentSwitchIdForTesting();
     if (FLAGS_hyper_port) {
-      return masterLogicalHyperPortIds();
+      return masterLogicalHyperPortIds(switchId);
     }
-    return masterLogicalInterfacePortIds();
+    return masterLogicalInterfacePortIds(switchId);
   }
 
   folly::IPAddress getInSubnetNonSwitchIP() const {
@@ -637,7 +653,9 @@ class AgentCoppTest : public AgentHwTest {
           LldpManager::TTL_TLV_VALUE,
           LldpManager::SYSTEM_CAPABILITY_ROUTER);
       getSw()->sendPacketOutOfPortAsync(
-          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+          std::move(txPacket),
+          PortID(
+              masterLogicalPortIds(this->getCurrentSwitchIdForTesting())[0]));
     }
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
@@ -679,7 +697,9 @@ class AgentCoppTest : public AgentHwTest {
           LldpManager::TTL_TLV_VALUE,
           LldpManager::SYSTEM_CAPABILITY_ROUTER);
       getSw()->sendPacketOutOfPortAsync(
-          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+          std::move(txPacket),
+          PortID(
+              masterLogicalPortIds(this->getCurrentSwitchIdForTesting())[0]));
     }
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
@@ -1484,12 +1504,22 @@ class AgentCoppQosTest : public AgentHwTest {
   }
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsicForTesting(hwAsics);
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto asic = checkSameAndGetAsic(
+        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+        ensemble.getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(switchId),
+        ensemble.supportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        true /*interfaceHasSubnet*/,
+        true /*setInterfaceMac*/,
+        utility::kBaseVlanId,
+        false /*enableFabricPorts*/,
+        ensemble.getSw()->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
+        ensemble.getSw()->getHwAsicTable()->getHwAsics(),
+        ensemble.getSw()->getPlatformType());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     addCustomCpuQueueConfig(cfg, ensemble.getL3Asics());
@@ -1510,10 +1540,11 @@ class AgentCoppQosTest : public AgentHwTest {
   }
 
   std::vector<PortID> portIdsForTest() {
+    auto switchId = this->getCurrentSwitchIdForTesting();
     if (FLAGS_hyper_port) {
-      return masterLogicalHyperPortIds();
+      return masterLogicalHyperPortIds(switchId);
     }
-    return masterLogicalInterfacePortIds();
+    return masterLogicalInterfacePortIds(switchId);
   }
 
   void setupEcmpDataplaneLoop() {

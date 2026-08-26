@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/RxUtils.h"
 
+#include <fmt/format.h>
 #include <folly/Format.h>
 #include <tuple>
 
@@ -173,7 +174,7 @@ FbBcmRxPacket::FbBcmRxPacket(
 }
 
 std::string FbBcmRxPacket::describeDetails() const {
-  return folly::sformat(
+  return fmt::format(
       "cos={} priority={} reasons={}",
       cosQueue_ ? std::to_string(*cosQueue_) : "none",
       _priority,

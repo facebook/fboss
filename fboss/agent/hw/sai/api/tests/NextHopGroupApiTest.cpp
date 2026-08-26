@@ -33,10 +33,18 @@ class NextHopGroupApiTest : public ::testing::Test {
     return SAI_HASH_ALGORITHM_RANDOM;
   }
 
+  bool kHierarchicalNextHop() const {
+    return false;
+  }
+
   NextHopGroupSaiId createNextHopGroup(
       const sai_next_hop_group_type_t nextHopGroupType) const {
     return nextHopGroupApi->create<SaiNextHopGroupTraits>(
-        {nextHopGroupType, kArsObjectId(), kHashAlgorithm()}, 0);
+        {nextHopGroupType,
+         kArsObjectId(),
+         kHashAlgorithm(),
+         kHierarchicalNextHop()},
+        0);
   }
 
   NextHopGroupMemberSaiId createNextHopGroupMember(
@@ -44,7 +52,16 @@ class NextHopGroupApiTest : public ::testing::Test {
       const sai_object_id_t nextHopId,
       const sai_uint32_t nextHopWeight) const {
     return nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(
-        {nextHopGroupId, nextHopId, nextHopWeight}, 0);
+        {nextHopGroupId,
+         nextHopId,
+         nextHopWeight
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+         ,
+         std::nullopt,
+         std::nullopt
+#endif
+        },
+        0);
   }
 
   void checkNextHopGroup(const sai_object_id_t& nextHopGroupId) const {
@@ -95,11 +112,14 @@ TEST_F(NextHopGroupApiTest, getNextHopGroupAttributes) {
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
   auto nextHopHashAlgorithmGot = nextHopGroupApi->getAttribute(
       nextHopGroupId, SaiNextHopGroupTraits::Attributes::HashAlgorithm());
+  auto nextHopHierarchicalNextHopGot = nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::HierarchicalNextHop());
 
   EXPECT_EQ(nextHopMemberListGot.size(), 1);
   EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_GROUP_TYPE_ECMP);
   EXPECT_EQ(nextHopArsObjectIdGot, kArsObjectId());
   EXPECT_EQ(nextHopHashAlgorithmGot, kHashAlgorithm());
+  EXPECT_EQ(nextHopHierarchicalNextHopGot, kHierarchicalNextHop());
 }
 
 // SAI spec does not support setting any attribute for next hop group post
@@ -238,6 +258,8 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("ArsObjectId: 60", fmt::format("{}", a));
   SaiNextHopGroupTraits::Attributes::HashAlgorithm h{SAI_HASH_ALGORITHM_RANDOM};
   EXPECT_EQ("HashAlgorithm: 2", fmt::format("{}", h));
+  SaiNextHopGroupTraits::Attributes::HierarchicalNextHop hnh{false};
+  EXPECT_EQ("HierarchicalNextHop: false", fmt::format("{}", hnh));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

@@ -73,6 +73,7 @@ DECLARE_bool(module_io_stats);
 DECLARE_bool(capabilities);
 DECLARE_bool(dump_tcvr_i2c_log);
 DECLARE_bool(port_info_summary);
+DECLARE_string(ssl_policy);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 
@@ -114,6 +115,8 @@ std::map<int32_t, TransceiverManagementInterface> getModuleType(
 TransceiverManagementInterface getModuleTypeDirect(
     TransceiverI2CApi* bus,
     unsigned int port);
+
+uint8_t getCmisMajorRevisionDirect(TransceiverI2CApi* bus, unsigned int port);
 
 std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
     const std::vector<unsigned int>& ports,
@@ -233,7 +236,8 @@ void printCmisDetailService(
 void printPortDetail(
     const DOMDataUnion& domDataUnion,
     unsigned int port,
-    const std::string& portNames);
+    const std::string& portNames,
+    DirectI2cInfo* i2cInfo = nullptr);
 std::optional<PortInfoSummary> getPortInfoSummary(
     const DOMDataUnion& domDataUnion,
     unsigned int port,

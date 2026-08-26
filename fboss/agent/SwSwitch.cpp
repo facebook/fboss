@@ -35,11 +35,13 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/RemoteIntfRouteAuditor.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/ShelManager.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/TxPacketUtils.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
@@ -346,6 +348,12 @@ void accumulateFb303GlobalStats(
     hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
     accumulated.sram_low_buffer_limit_hit_count() = hitCount;
   }
+  if (toAdd.sdk_dump_suppressed_count().has_value()) {
+    uint64_t suppressedCount =
+        accumulated.sdk_dump_suppressed_count().value_or(0);
+    suppressedCount += toAdd.sdk_dump_suppressed_count().value();
+    accumulated.sdk_dump_suppressed_count() = suppressedCount;
+  }
 }
 
 void accumulateGlobalCpuStats(
@@ -504,9 +512,9 @@ SwSwitch::SwSwitch(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       stateUpdateValidator_(new StateUpdateValidator(
-          config->getRunMode(),
+          AgentConfig::getRunMode(),
           getMonolithicHwSwitchHandlerIf(
-              config->getRunMode(),
+              AgentConfig::getRunMode(),
               multiHwSwitchHandler_.get()),
           hwAsicTable_.get(),
           scopeResolver_.get())),
@@ -522,8 +530,8 @@ SwSwitch::SwSwitch(
   utilCreateDir(agentDirUtil_->getPersistentStateDir());
   try {
     platformProductInfo_->initialize();
-    platformMapping_ =
-        utility::initPlatformMapping(platformProductInfo_->getType());
+    platformMapping_ = utility::initPlatformMapping(
+        platformProductInfo_->getType(), getPlatformConfigFromConfig(config));
   } catch (const std::exception& ex) {
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
@@ -815,13 +823,34 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
     state::WarmbootState* warmbootState) const {
   auto updateThriftRoute = [this](
-                               auto& route, auto& fib, std::string routeName) {
+                               auto& route,
+                               auto& fib,
+                               const std::string& routeName,
+                               const auto& idToNextHopIdSet) {
     if (isRunModeMonolithic() && route.isResolved()) {
       const auto& fwd = route.fwd();
       // Do not update switchingMode if already present
       if (fwd.getAction() != RouteForwardAction::NEXTHOPS ||
-          fwd.getNextHopSet().size() < 2 ||
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
+        return;
+      }
+      // Under FLAGS_resolve_nexthops_from_id, source the nexthop count from the
+      // warmboot state's idToNextHopIdSet map via resolvedSetId so the check
+      // stays correct once inline storage is removed.
+      size_t nhopCount = fwd.getNextHopSet().size();
+      if (FLAGS_resolve_nexthops_from_id) {
+        auto setId = fwd.getResolvedNextHopSetID();
+        CHECK(setId.has_value())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " has no resolvedNextHopSetID during graceful exit";
+        auto setIt = idToNextHopIdSet.find(static_cast<int64_t>(*setId));
+        CHECK(setIt != idToNextHopIdSet.end())
+            << "resolve_nexthops_from_id: route " << routeName
+            << " resolvedNextHopSetID " << *setId
+            << " missing from idToNextHopIdSet during graceful exit";
+        nhopCount = setIt->second.size();
+      }
+      if (nhopCount < 2) {
         return;
       }
       auto switchingMode =
@@ -836,7 +865,11 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
           fwd.getAdminDistance(),
           fwd.getCounterID(),
           fwd.getClassID(),
-          std::optional<cfg::SwitchingMode>(switchingMode));
+          std::optional<cfg::SwitchingMode>(switchingMode),
+          fwd.getOverrideNextHops(),
+          fwd.getNormalizedResolvedNextHopSetID(),
+          fwd.getResolvedNextHopSetID(),
+          fwd.getClientNextHopSetID());
       fib.value().at(routeName).fwd() = newFwd.toThrift();
     }
   };
@@ -846,18 +879,19 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
   auto it = fibsInfoMap->find(matcher);
   if (it != fibsInfoMap->end()) {
     auto& fibInfoFields = it->second;
+    const auto& idToNextHopIdSet = *fibInfoFields.idToNextHopIdSet();
     auto fibs = fibInfoFields.fibsMap();
     if (fibs.has_value()) {
       for (auto& [_, fib] : *fibs) {
         auto fibV4 = fib.fibV4();
         for (auto& [name, thriftRoute] : *fibV4) {
           auto route = RouteFields<folly::IPAddressV4>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV4, name);
+          updateThriftRoute(route, fibV4, name, idToNextHopIdSet);
         }
         auto fibV6 = fib.fibV6();
         for (auto& [name, thriftRoute] : *fibV6) {
           auto route = RouteFields<folly::IPAddressV6>::fromThrift(thriftRoute);
-          updateThriftRoute(route, fibV6, name);
+          updateThriftRoute(route, fibV6, name, idToNextHopIdSet);
         }
       }
     }
@@ -986,9 +1020,15 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.sysPortStats()});
       agentStats.switchDropStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropStats()});
-      for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
+      agentStats.switchDropBitmapStatsMap()->insert(
+          {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
+      agentStats.aclStatsMap()->insert({switchIdx, *hwSwitchStats.aclStats()});
+      for (auto& [portID, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
-        agentStats.phyStats()->insert({portName, phyInfo.stats().value()});
+        auto phyStats = phyInfo.stats().value();
+        phyStats.linkFlapCount() =
+            portStats(PortID(portID))->getLinkStateFlapCount();
+        agentStats.phyStats()->insert({portName, std::move(phyStats)});
       }
       agentStats.flowletStatsMap()->insert(
           {switchIdx, *hwSwitchStats.flowletStats()});
@@ -1143,10 +1183,17 @@ void SwSwitch::updateStats() {
         portStat->inErrors(*hwPortStats.inErrors_(), portDrained, portActive);
         portStat->fecUncorrectableErrors(
             *hwPortStats.fecUncorrectableErrors(), portDrained, portActive);
+        portStat->linkDebounceRetriggers(
+            hwPortStats.linkDownDebounceRetriggerCount_().to_optional(),
+            hwPortStats.linkUpDebounceRetriggerCount_().to_optional());
       }
     }
   }
 
+  for (auto& [portID, phyInfoEntry] : phyInfo) {
+    phyInfoEntry.stats()->linkFlapCount() =
+        portStats(portID)->getLinkStateFlapCount();
+  }
   phySnapshotManager_->updatePhyInfos(phyInfo);
   updatePhyFb303Stats(phyInfo);
   updateFabricLinkMonitoringStats();
@@ -1258,8 +1305,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
 }
 
 bool SwSwitch::isRunModeMultiSwitch() const {
-  return FLAGS_multi_switch ||
-      (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  return AgentConfig::getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
 
 void SwSwitch::getAllHwSysPortStats(
@@ -1268,7 +1314,9 @@ void SwSwitch::getAllHwSysPortStats(
   for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
     for (const auto& [portName, hwSysPortStatsEntry] :
          *hwSwitchStats.sysPortStats()) {
-      hwSysPortStats.emplace(portName, hwSysPortStatsEntry);
+      hwSysPortStats.emplace(
+          folly::to<std::string>("switch.", switchIdx, ".", portName),
+          hwSysPortStatsEntry);
     }
   }
 }
@@ -1502,6 +1550,8 @@ void SwSwitch::init(
   // that the two states are in sync. tolerating this discrepancy for now
   setStateInternal(initialState);
 
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
+
   XLOG(DBG0) << "hardware initialized in " << hwInitRet.bootTime
              << " seconds; applying initial config";
 
@@ -1594,6 +1644,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   // until config is applied, after that the two states are in sync.
   // tolerating this discrepancy for now.
   setStateInternal(initialState);
+  initialState = reconcileRemoteInterfaceRoutesOnWarmboot(initialState);
   if (bootType_ == BootType::WARM_BOOT) {
     // Notify the state observers of the initial state
     updateEventBase_.runInFbossEventBaseThread(
@@ -2028,6 +2079,36 @@ void SwSwitch::setStateInternal(std::shared_ptr<SwitchState> newAppliedState) {
   CHECK(newAppliedState->isPublished());
   std::unique_lock guard(stateLock_);
   appliedStateDontUseDirectly_.swap(newAppliedState);
+}
+
+std::shared_ptr<SwitchState> SwSwitch::reconcileRemoteInterfaceRoutesOnWarmboot(
+    const std::shared_ptr<SwitchState>& state) {
+  if (!FLAGS_enable_remote_intf_route_reconcile ||
+      bootType_ != BootType::WARM_BOOT ||
+      !getSwitchInfoTable().haveVoqSwitches()) {
+    return state;
+  }
+  if (!updateEventBase_.isRunning()) {
+    XLOG(ERR) << "Skipping warmboot remote interface route reconcile: "
+              << "updateEventBase_ not running";
+    return state;
+  }
+
+  // Capture the state this reconcile produces so the return value is
+  // unambiguously tied to this update, rather than reading getState() which
+  // could reflect a concurrent update. Default to the input state so we never
+  // return null if the update callback does not run (e.g. SwSwitch exiting).
+  std::shared_ptr<SwitchState> reconciled = state;
+  updateStateBlocking(
+      "warmboot remote interface route reconcile",
+      [this, &reconciled](const std::shared_ptr<SwitchState>& in)
+          -> std::shared_ptr<SwitchState> {
+        reconciled = reconcileRemoteInterfaceRoutes(
+            in, *rib_, *scopeResolver_, *stats());
+        return reconciled == in ? std::shared_ptr<SwitchState>{} : reconciled;
+      });
+
+  return reconciled;
 }
 
 std::pair<std::shared_ptr<SwitchState>, std::shared_ptr<SwitchState>>
@@ -4148,6 +4229,15 @@ multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsExpensive(
 std::map<uint16_t, multiswitch::HwSwitchStats>
 SwSwitch::getHwSwitchStatsExpensive() const {
   return *hwSwitchStats_.rlock();
+}
+
+std::map<std::string, HwSwitchCounter> SwSwitch::getRouteCounters() const {
+  HwSwitchCounterStats counterStats;
+  auto lockedStats = hwSwitchStats_.rlock();
+  for (const auto& [_, hwSwitchStats] : *lockedStats) {
+    accumulateCounterStats(counterStats, *hwSwitchStats.counterStats());
+  }
+  return std::move(*counterStats.routeCounters());
 }
 
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {

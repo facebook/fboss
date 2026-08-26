@@ -7,4 +7,5 @@ thrift_library(
     languages = ["cpp2"],
     thrift_cpp2_options = "json",
     thrift_srcs = {"LldpConfig.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )

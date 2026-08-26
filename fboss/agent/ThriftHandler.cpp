@@ -69,11 +69,11 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <fb303/ServiceData.h>
+#include <fmt/format.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 #include <folly/Range.h>
 #include <folly/container/F14Map.h>
-#include <folly/functional/Partial.h>
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
@@ -82,6 +82,7 @@
 #include <thread>
 
 #include <limits>
+#include <unordered_map>
 
 using apache::thrift::ClientReceiveState;
 using apache::thrift::server::TConnectionContext;
@@ -198,6 +199,12 @@ void fillPortStats(
   portInfo.output()->errors()->discards() = *hwPortStats.outDiscards_();
   if (auto cableLen = hwPortStats.cableLengthMeters()) {
     portInfo.cableLengthMeters() = *cableLen;
+  }
+  if (auto llrTxStatus = hwPortStats.llrTxStatus_()) {
+    portInfo.llrTxStatus() = *llrTxStatus;
+  }
+  if (auto llrRxStatus = hwPortStats.llrRxStatus_()) {
+    portInfo.llrRxStatus() = *llrRxStatus;
   }
 
   for (int16_t i = 0; i < numPortQs; i++) {
@@ -743,6 +750,33 @@ void validateAndDefaultSrv6NextHops(
   }
 }
 
+void validateLinkLocalNextHopInterfaces(
+    const std::vector<NextHopThrift>& nextHops,
+    const std::shared_ptr<SwitchState>& state) {
+  for (const auto& nhop : nextHops) {
+    const auto& address = toIPAddress(*nhop.address());
+    auto ifName = apache::thrift::get_pointer(nhop.address()->ifName());
+    if (!ifName) {
+      continue;
+    }
+    if (!(address.isV6() && address.isLinkLocal())) {
+      throw FbossError(
+          "Interface ",
+          *ifName,
+          " associated with a non link-local next hop ",
+          address.str());
+    }
+    auto intfID = utility::getIDFromTunIntfName(*ifName);
+    if (!state->getInterfaces()->getNodeIf(intfID)) {
+      throw FbossError(
+          "Interface ",
+          intfID,
+          " does not exist for link-local next hop ",
+          address.str());
+    }
+  }
+}
+
 std::optional<std::string> getDefaultSrv6TunnelId(
     const facebook::fboss::cfg::SwitchConfig& config) {
   if (config.srv6Tunnels().has_value()) {
@@ -947,6 +981,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
   auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
+  auto state = sw_->getState();
   for (auto& route : *routes) {
     if (route.overrideEcmpSwitchingMode().has_value() ||
         route.overrideNextHops().has_value()) {
@@ -954,6 +989,7 @@ void ThriftHandler::updateUnicastRoutesImpl(
           "Override nhops or switching mode cannot be set by clients");
     }
     validateAndDefaultSrv6NextHops(*route.nextHops(), defaultSrv6TunnelId);
+    validateLinkLocalNextHopInterfaces(*route.nextHops(), state);
     if (FLAGS_enable_route_counters_for_named_nhg &&
         route.namedRouteDestination()->getType() ==
             NamedRouteDestination::Type::nextHopGroup) {
@@ -1593,7 +1629,7 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   };
 
   sw_->updateState(
-      folly::sformat("Update state by patchCurrentStateJSONForPaths: "),
+      fmt::format("Update state by patchCurrentStateJSONForPaths: "),
       std::move(updateDsfStateFn));
 }
 
@@ -1701,6 +1737,22 @@ void ThriftHandler::setInterfacesPrbs(
     auto stateCopy = std::make_unique<prbs::InterfacePrbsState>(*state);
     setInterfacePrbs(std::move(portNamePtr), component, std::move(stateCopy));
   }
+}
+
+void ThriftHandler::addAdjacencyFrr(
+    std::unique_ptr<FrrProtectedObject>,
+    std::unique_ptr<std::vector<NextHopThrift>>) {
+  ensureConfigured(__func__);
+
+  // TODO add support
+  throw FbossError("addAdjacencyFrr Not supported");
+}
+
+void ThriftHandler::deleteAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
+  ensureConfigured(__func__);
+
+  // TODO add support
+  throw FbossError("deleteAdjacencyFrr Not supported");
 }
 
 void ThriftHandler::clearPortPrbsStats(
@@ -2082,12 +2134,14 @@ void ThriftHandler::getRouteTableByClient(
   ensureConfigured(__func__);
   auto state = sw_->getState();
   forAllRoutes(
-      state, [&routes, client](const RouterID& /*rid*/, const auto& route) {
+      state,
+      [&routes, &state, client](const RouterID& /*rid*/, const auto& route) {
         auto entry = route->getEntryForClient(ClientID(client));
         if (!entry) {
           return;
         }
-        auto nextHops = util::fromRouteNextHopSet(entry->getNextHopSet());
+        auto nextHops =
+            util::fromRouteNextHopSet(getClientNextHops(state, *entry));
         std::vector<network::thrift::BinaryAddress> nextHopAddrs;
         for (const auto& nh : nextHops) {
           nextHopAddrs.emplace_back(*nh.address());
@@ -2551,7 +2605,6 @@ int32_t ThriftHandler::flushNeighborEntry(
                  << ", checking for interfaces that need neighbor solicitation";
 
       if (parsedIP.isV6()) {
-        // Use common function to send neighbor solicitation for specific IP
         sw_->sendNeighborSolicitationForConfiguredInterfaces(
             "NDP entry clear", parsedIP.asV6());
       }
@@ -3077,6 +3130,32 @@ void ThriftHandler::getHwDebugDump(std::string& out) {
   }
 }
 
+void ThriftHandler::setSdkRegDumpEnabled(bool enabled) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  if (sw_->isRunModeMonolithic()) {
+    sw_->getMonolithicHwSwitchHandler()->setSdkRegDumpEnabled(enabled);
+    return;
+  }
+  // Multi-switch: apply to every switch best-effort so that one unsupported or
+  // unreachable switch does not prevent updating the others. Collect failures
+  // and surface them together.
+  std::string failures;
+  for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+    try {
+      sw_->getHwSwitchThriftClientTable()->setSdkRegDumpEnabled(
+          switchId, enabled);
+    } catch (const std::exception& ex) {
+      failures += folly::to<std::string>(
+          failures.empty() ? "" : "; ", switchId, ": ", ex.what());
+    }
+  }
+  if (!failures.empty()) {
+    throw FbossError(
+        "Failed to set SDK register dump on switch(es): ", failures);
+  }
+}
+
 void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {
   ret = sw_->getPlatformMapping()->toThrift();
 }
@@ -3244,10 +3323,22 @@ void ThriftHandler::getTeFlowTableDetails(
   throw FbossError("getTeFlowTableDetails is deprecated");
 }
 
+void ThriftHandler::addNamedNextHopGroups(
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+}
+
 void ThriftHandler::addOrUpdateNamedNextHopGroups(
     std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  ensureConfigured(__func__);
+  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+}
+
+void ThriftHandler::addNamedNextHopGroupsImpl(
+    folly::StringPiece function,
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+  ensureConfigured(function);
 
   auto* rib = sw_->getRib();
   if (!rib) {
@@ -3255,25 +3346,30 @@ void ThriftHandler::addOrUpdateNamedNextHopGroups(
   }
 
   /*
-   * Named NHG are associated with counters in HW. SAI impls
-   * reject counters with label length > 31 characters. So
-   * restrict it here.
+   * Named NHG are associated with counters in HW. The base SAI counter label
+   * holds 31 characters; with FLAGS_srv6 the extended label attribute allows up
+   * to 255. Restrict the group name to the corresponding limit here.
    */
   static constexpr size_t kMaxGroupNameLen = 31;
+  static constexpr size_t kMaxExtendedGroupNameLen = 255;
+  auto maxGroupNameLen =
+      FLAGS_srv6 ? kMaxExtendedGroupNameLen : kMaxGroupNameLen;
   auto defaultSrv6TunnelId = getDefaultSrv6TunnelId(sw_->getConfig());
+  auto state = sw_->getState();
   std::vector<std::pair<std::string, RouteNextHopSet>> groups;
   for (auto& group : *nextHopGroups) {
     if (!group.name().has_value() || group.name()->empty()) {
       throw FbossError("Named next-hop group must have a name");
     }
-    if (group.name()->size() > kMaxGroupNameLen) {
+    if (group.name()->size() > maxGroupNameLen) {
       throw FbossError(
           "Named next-hop group name exceeds max length of ",
-          kMaxGroupNameLen,
+          maxGroupNameLen,
           " characters: ",
           *group.name());
     }
     validateAndDefaultSrv6NextHops(*group.nexthops(), defaultSrv6TunnelId);
+    validateLinkLocalNextHopInterfaces(*group.nexthops(), state);
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
@@ -3313,7 +3409,7 @@ namespace {
 struct NhgFibContext {
   std::shared_ptr<FibInfo> fibInfo;
   std::map<std::string, NextHopSetId> nameToSetId;
-  std::unordered_set<NextHopSetId> namedSetIds;
+  std::unordered_map<NextHopSetId, std::string> nhgSetIdToName;
 };
 
 std::optional<NhgFibContext> getNhgFibContext(
@@ -3327,7 +3423,7 @@ std::optional<NhgFibContext> getNhgFibContext(
   ctx.fibInfo = fibInfoIt->second;
   ctx.nameToSetId = ctx.fibInfo->getNameToNextHopSetId();
   for (const auto& [name, setId] : ctx.nameToSetId) {
-    ctx.namedSetIds.insert(setId);
+    ctx.nhgSetIdToName.emplace(setId, name);
   }
   return ctx;
 }
@@ -3338,7 +3434,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto ctx = getNhgFibContext(sw_->getState());
+  auto state = sw_->getState();
+  auto ctx = getNhgFibContext(state);
   if (!ctx) {
     return;
   }
@@ -3347,12 +3444,27 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
   if (!idToNextHopIdSetMap) {
     return;
   }
+  auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+
   auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
-  for (const auto& [setId, _nhIds] : idSetMapThrift) {
-    if (ctx->namedSetIds.count(setId)) {
+  for (const auto& [setId, nhIds] : idSetMapThrift) {
+    auto nameIter = ctx->nhgSetIdToName.find(setId);
+    auto isNamed = nameIter != ctx->nhgSetIdToName.end();
+    if (!isNamed && nhIds.size() < 2) {
       continue;
     }
+
     NextHopGroup thriftGroup;
+    if (isNamed) {
+      thriftGroup.name() = nameIter->second;
+      auto refCountIter = refCounts.find(NextHopSetID(setId));
+      thriftGroup.isProgrammed() =
+          refCountIter != refCounts.end() && refCountIter->second > 0;
+    } else {
+      thriftGroup.isProgrammed() = true;
+    }
+
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
       std::vector<NextHopThrift> nexthopsThrift;
@@ -3375,7 +3487,8 @@ void ThriftHandler::getNamedNextHopGroups(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
-  auto ctx = getNhgFibContext(sw_->getState());
+  auto state = sw_->getState();
+  auto ctx = getNhgFibContext(state);
   if (!ctx) {
     return;
   }
@@ -3385,6 +3498,9 @@ void ThriftHandler::getNamedNextHopGroups(
     nameFilter.insert(names->begin(), names->end());
   }
 
+  auto refCounts = ctx->fibInfo->getNextHopSetIdRefCountsFromRoutes();
+  FibInfo::getNextHopSetIdRefCountsFromMySid(state, refCounts);
+
   std::unordered_set<std::string> foundNames;
   for (const auto& [name, nextHopSetId] : ctx->nameToSetId) {
     if (!nameFilter.empty() && !nameFilter.count(name)) {
@@ -3393,6 +3509,8 @@ void ThriftHandler::getNamedNextHopGroups(
     foundNames.insert(name);
     NextHopGroup thriftGroup;
     thriftGroup.name() = name;
+    thriftGroup.isProgrammed() =
+        refCounts.count(NextHopSetID(nextHopSetId)) > 0;
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
       std::vector<NextHopThrift> nexthopsThrift;
@@ -3598,6 +3716,13 @@ void ThriftHandler::getHwPortStats(
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   sw_->getAllHwPortStats(hwPortStats);
+}
+
+void ThriftHandler::getRouteCounters(
+    std::map<std::string, HwSwitchCounter>& routeCounters) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  routeCounters = sw_->getRouteCounters();
 }
 
 void ThriftHandler::getHwRouterInterfaceStats(

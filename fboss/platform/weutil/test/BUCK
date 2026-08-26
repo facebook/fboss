@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -7,6 +8,7 @@ cpp_unittest(
     srcs = [
         "Crc16ccittTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:crc16_ccitt_aug",
     ],
@@ -15,6 +17,7 @@ cpp_unittest(
 cpp_unittest(
     name = "content_validator_test",
     srcs = ["ContentValidatorTest.cpp"],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:eeprom_content_validator",
     ],
@@ -25,6 +28,7 @@ cpp_unittest(
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:config_validator",
         "//folly/logging:logging",
@@ -37,6 +41,7 @@ cpp_unittest(
     srcs = [
         "FbossEepromInterfaceTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
@@ -50,6 +55,7 @@ cpp_unittest(
     srcs = [
         "ConfigUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:config_utils_lib",
         "//folly:file_util",
@@ -62,6 +68,7 @@ cpp_unittest(
     srcs = [
         "ParserUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/platform/weutil:crc16_ccitt_aug",
         "//fboss/platform/weutil:fboss_eeprom_lib",

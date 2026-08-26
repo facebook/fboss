@@ -16,9 +16,15 @@
 #include "fboss/agent/HwSwitch.h"
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
+#include <folly/Synchronized.h>
+#include <folly/logging/LogHandler.h>
 
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace facebook::fboss {
 class HwSwitch;
@@ -108,6 +114,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
   void getPortInfo(
       ::std::vector<::facebook::fboss::utility::PortInfo>& portInfos,
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
+
+  void getPortLlrInfo(
+      ::facebook::fboss::utility::PortLlrInfo& portLlrInfo,
+      int32_t port) override;
 
   bool verifyPortLedStatus(int portId, bool status) override;
   bool verifyPGSettings(int portId, bool pfcEnabled) override;
@@ -230,8 +240,41 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool isMirrorSflowTunnelEnabled(int64_t destination) override;
 
+  void verifyPortProfile(
+      std::vector<std::string>& result,
+      int32_t portId,
+      cfg::PortProfileID profileId,
+      std::unique_ptr<phy::ProfileSideConfig> profileConfig,
+      std::unique_ptr<std::vector<phy::PinConfig>> pinConfigs) override;
+
+  phy::FecMode getPortFECMode(int32_t portId) override;
+
+  bool rxSignalDetectSupportedInSdk() override;
+  bool rxLockStatusSupportedInSdk() override;
+  bool pcsRxLinkStatusSupportedInSdk() override;
+  bool fecAlignmentLockSupportedInSdk() override;
+
+  // Platform-agnostic; defined once in HwTestLogCaptureThriftHandler.cpp. New
+  // platforms get these by depending on
+  // //fboss/agent/hw/test:hw_test_thrift_handler.
+  void installLogCapture() override;
+  void getMatchingLogMessages(
+      std::vector<std::string>& out,
+      std::unique_ptr<std::string> substring) override;
+
+  void getFb303RegexCounters(
+      std::map<std::string, int64_t>& counters,
+      std::unique_ptr<std::string> regex) override;
+
+  int64_t getFb303Counter(std::unique_ptr<std::string> key) override;
+
  private:
   HwSwitch* hwSwitch_;
+  // Captures log messages in this process for tests to read over RPC.
+  // Typed as the base LogHandler to keep the test-only handler type out of
+  // this widely-included header; concrete type is in the .cpp. Synchronized
+  // because the install/read RPCs run on multiple Thrift threads.
+  folly::Synchronized<std::shared_ptr<folly::LogHandler>> logCaptureHandler_;
 };
 
 std::shared_ptr<HwTestThriftHandler> createHwTestThriftHandler(HwSwitch* hw);

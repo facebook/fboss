@@ -24,6 +24,7 @@ fbcode/fboss/agent/hw/sai/store/tests/BufferStoreTest.cpp
 fbcode/fboss/agent/hw/sai/api/bcm/BufferApi.cpp
 fbcode/fboss/agent/hw/sai/api/oss/BufferApi.cpp
 fbcode/fboss/agent/hw/sai/api/tajo/BufferApi.cpp
+fbcode/fboss/agent/hw/sai/api/chenab/BufferApi.cpp
 fbcode/fboss/agent/hw/sai/api/fake/FakeSaiExtensions.cpp
 fbcode/fboss/agent/hw/sai/api/fake/saifakeextensions.h
 

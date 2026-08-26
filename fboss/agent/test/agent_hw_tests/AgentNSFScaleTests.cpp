@@ -33,6 +33,11 @@ class AgentNSFScaleTest : public AgentHwTest {
         ProductionFeature::ERSPANv6_SAMPLING};
   }
 
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // NSF scale exercises the full interface-port fanout.
+    return std::nullopt;
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(

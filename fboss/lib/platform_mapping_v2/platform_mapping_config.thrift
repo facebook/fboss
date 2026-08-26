@@ -3,7 +3,6 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.platform_mapping_config
 namespace cpp2 facebook.fboss.platform_mapping_config
 namespace go neteng.fboss.platform_mapping_config
-namespace php fboss_platform_mapping_config
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
@@ -19,6 +18,8 @@ enum ChipType {
   TRANSCEIVER = 1,
   BACKPLANE = 2,
   XPHY = 3,
+  OPTICAL_ENGINE = 4,
+  LASER_SOURCE = 5,
 }
 
 // One of these is what is expected in the A/Z_CORE_TYPE fields in the CSVs
@@ -43,6 +44,7 @@ enum CoreType {
   OSFP = 100,
   QSFP28 = 101,
   QSFPDD = 102,
+  BANKED_CMIS_INTEGRATED = 103,
 
   // Backplane Connectors
   EXAMAX = 200,
@@ -50,6 +52,12 @@ enum CoreType {
   // XPHY cores
   AGERA3_SYSTEM = 300,
   AGERA3_LINE = 301,
+
+  // Optical Engine
+  INTEGRATED_OE = 400,
+
+  // External Laser SFP
+  ELSFP = 500,
 }
 
 // Stores the A/Z_CORE_LANE, A/Z_TX_PHYSICAL_LANE, A/Z_RX_PHYSICAL_LANE, A/Z_TX_POLARITY_SWAP, A/Z_RX_POLARITY_SWAP fields from the static mapping CSV
@@ -156,6 +164,12 @@ struct SiFactorAndSetting {
 struct TxRxLaneInfo {
   1: list<i32> tx_lane_info;
   2: list<i32> rx_lane_info;
+}
+
+struct IntegratedTransceiverConnection {
+  1: ConnectionEnd transceiver;
+  2: ConnectionEnd opticalEngine;
+  3: ConnectionEnd laserSource;
 }
 
 struct StaticMapping {

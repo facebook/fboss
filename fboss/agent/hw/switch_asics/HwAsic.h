@@ -1,10 +1,18 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #pragma once
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <folly/MacAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
 
@@ -114,6 +122,10 @@ class HwAsic {
     //    SAI_SWITCH_ATTR_ACL_STAGE_INGRESS
     ACL_ENTRY_ETHER_TYPE,
 
+    // Set to true if the SAI implementation supports ACL matchers for
+    // destination IPv6 word3 and word2.
+    ACL_DST_IPV6_WORD_QUALIFIERS,
+
     // Set to true if the SAI implementation supports ACL Byte counters
     // For SAI, this maps to whether SAI_ACL_COUNTER_ATTR_BYTES can be queried.
     // TODO:
@@ -203,9 +215,8 @@ class HwAsic {
     // In either case, FBOSS need not implement replication.
     // Only used by SaiSwitch.
     // TODO:
-    //  - Candidate for removal: YES, enabled everywhere except Fake, Trident2.
-    //    Remove Trident2 support (no longer needed), fix Fake support, then
-    //    remove.
+    //  - Candidate for removal: YES, enabled everywhere except Fake. Fix Fake
+    //    support, then remove.
     //  - Rename to carry ECMP_ prefix.
     SAI_WEIGHTED_NEXTHOPGROUP_MEMBER,
 
@@ -260,6 +271,7 @@ class HwAsic {
     SAI_ECMP_HASH_ALGORITHM,
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
+    ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL,
 
     // MPLS Features::
     // ================
@@ -440,7 +452,10 @@ class HwAsic {
     L3_MTU_ERROR_TRAP,
     SAI_USER_DEFINED_TRAP,
     CREDIT_WATCHDOG,
+    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
     SAI_FEC_CORRECTED_BITS,
+    // SAI_PORT_STAT_IF_IN_FEC_SYMBOL_ERRORS,
+    SAI_FEC_SYMBOL_ERRORS,
     SAI_FEC_CODEWORDS_STATS,
     LINK_INACTIVE_BASED_ISOLATE,
     SWITCH_ISOLATE,
@@ -511,6 +526,7 @@ class HwAsic {
     FABRIC_LINK_MONITORING,
     ARS_ALTERNATE_MEMBERS,
     ARS_FUTURE_PORT_LOAD,
+    ARS_CURRENT_PORT_LOAD,
     RESERVED_BYTES_FOR_BUFFER_POOL,
     // Indicates the buffer pool size excludes the headroom
     // pool size given the buffer pool size determination is
@@ -539,6 +555,25 @@ class HwAsic {
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
     DEVICE_WATERMARK_SUPPORT,
+    // Per-stage HW drop cause bitmaps via custom SAI switch stats
+    // (SAI_SWITCH_STAT_CUSTOM_HW_DROP_CAUSE_*). Each bitmap is an i64
+    // where set bits indicate specific drop reasons within that pipeline
+    // stage. Currently supported on Chenab with SDK >= 2511.36.
+    SWITCH_CUSTOM_DROP_BITMAP_SUPPORT,
+    // Policy based routing via a dedicated ACL table matching on next hop
+    // group and traffic class, redirecting to a per-TC next hop group.
+    PBR_ACL,
+    // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1): hop-by-hop link-layer
+    // retransmission of LLR-eligible frames between link partners. Currently
+    // supported only on Tomahawk Ultra.
+    LINK_LAYER_RETRANSMISSION,
+    // Per-port link up/down debounce (hold-off timers) and the associated
+    // debounce retrigger counters.
+    PORT_DEBOUNCE,
+    // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
+    // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
+    // only; the counters are collected via fillInSupportedVendorExtStats().
+    SLL_HLL_DISCARD_COUNTERS,
   };
 
   enum class AsicMode {
@@ -626,6 +661,18 @@ class HwAsic {
   virtual int getNumLanesPerPhysicalPort() const {
     return 1;
   }
+
+  virtual uint32_t getNumLanesPerCore() const {
+    return 1;
+  }
+
+  virtual uint32_t getSaiPhysicalLaneId(
+      PlatformType platformType,
+      cfg::PortType portType,
+      uint32_t chipId,
+      uint32_t logicalLane) const;
+
+  virtual uint32_t getNumCellsAvailable(PlatformType platformType) const;
 
   /*
    * Default Content Aware Processor group ID for ACLs
@@ -800,12 +847,26 @@ class HwAsic {
     uint32_t inbandPortId;
   };
 
+  using CpuPortCoreAndPortIndex =
+      std::map<uint32_t, std::pair<uint32_t, uint32_t>>;
+
+  struct InternalSystemPortConfig {
+    uint32_t portId;
+    uint32_t switchId;
+    uint32_t coreIndex;
+    uint32_t corePortIndex;
+    uint32_t speedMbps;
+    uint32_t numVoqs;
+  };
+
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
 
   virtual RecyclePortInfo getRecyclePortInfo(
       InterfaceNodeRole /* intfRole */) const;
+  virtual std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(
+      const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const;
   cfg::PortLoopbackMode getDesiredLoopbackMode(
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
@@ -853,6 +914,13 @@ class HwAsic {
   // Applicable only when IP_IN_IP_DECAP feature is enabled.
   virtual cfg::TunnelMode getTunnelDscpMode() const {
     return cfg::TunnelMode::PIPE;
+  }
+
+  // Applicable only when PORT_DEBOUNCE feature is enabled. True means each
+  // read reports the count since the previous read, false means the retrigger
+  // counters report a running total.
+  virtual bool isPortDebounceRetriggerCountClearOnRead() const {
+    return true;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

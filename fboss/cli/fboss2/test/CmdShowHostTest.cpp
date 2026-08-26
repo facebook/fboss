@@ -6,7 +6,6 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
@@ -193,6 +192,13 @@ TEST_F(CmdShowHostTestFixture, printOutput) {
       " eth5/5/1  106  22        test-host-1.example.com  Disabled     Up          549G   RS544_2N  56     72         12      9          \n\n";
 
   EXPECT_EQ(output, expectOutput);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowHostTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowHostTraits::description().empty());
+  EXPECT_FALSE(CmdShowHost::sampleModel().hostEntries()->empty());
 }
 
 } // namespace facebook::fboss

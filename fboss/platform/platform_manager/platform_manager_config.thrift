@@ -185,6 +185,33 @@ struct CpldSysfsAttr {
   7: string description;
 }
 
+// Configuration for a generic fan CPLD device (fbfancpld driver).
+// Sent to the driver via ioctl after device creation.
+//
+// `numFans`: Number of fan trays.
+//
+// `pwmMax`: Maximum PWM register value (e.g. 40 or 64).
+//
+// `speedMultiplier`: Tach register to RPM multiplier (e.g. 150 or 300).
+//
+// `hasRearTach`: Whether fans have both front and rear tach sensors.
+//
+// `hasLeds`: Whether fan trays have LED indicators.
+struct FanCpldConfig {
+  1: i32 numFans;
+  2: i32 pwmMax;
+  3: i32 speedMultiplier;
+  4: bool hasRearTach;
+  5: bool hasLeds;
+}
+
+// A value to write to a sysfs attribute (relative to the i2c device dir)
+// after the device's kernel driver has bound.
+struct I2cDeviceSysfsValue {
+  1: string attr; // e.g. "idle_state"
+  2: string value; // e.g. "-2"
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -217,6 +244,13 @@ struct CpldSysfsAttr {
 // `isEeprom`: Whether this I2C Device is an EEPROM device
 //
 // `eepromOffset`: offset for eeprom content.  Applies only to EEPROM device
+//
+// `cpldSysfsAttrs`: list of CPLD sysfs attributes to create for this device
+//
+// `fanCpldConfig`: configuration for a generic fan CPLD device, sent to the
+// fbfancpld driver via ioctl after device creation
+//
+// `postCreateSysfsValues`: A value to write to a sysfs attributes
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -259,6 +293,8 @@ struct I2cDeviceConfig {
   13: bool isEeprom;
   14: optional i16 eepromOffset;
   15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
+  16: optional list<I2cDeviceSysfsValue> postCreateSysfsValues;
+  17: optional FanCpldConfig fanCpldConfig;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
@@ -320,9 +356,12 @@ struct FpgaIpBlockConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `numberOfAdapters`: Number of I2C Adapters created by this block.
+//
+// `busFreqHz`: I2C bus clock frequency in Hz. Applies to all buses in this block.
 struct I2cAdapterConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 numberOfAdapters;
+  3: optional i32 busFreqHz;
 }
 
 // Defines generic I2C Adapter block in FPGAs.
@@ -366,6 +405,8 @@ struct I2cAdapterConfig {
 //  adapterIndex=2, startAdapterIndex=1:
 //    iobufOffsetCalc: "0x2000 + 1*0x100"
 //    iobufOffsetCalc: "0x2100"
+//
+// `busFreqHz`: I2C bus clock frequency in Hz. Applies to all buses in this block.
 struct I2cAdapterBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -374,6 +415,7 @@ struct I2cAdapterBlockConfig {
   5: i32 numAdapters;
   6: i32 numBusesPerAdapter = 1;
   7: string iobufOffsetCalc;
+  8: optional i32 busFreqHz;
 }
 
 // Defines a Spi Device in FPGAs.
@@ -592,7 +634,62 @@ struct MdioBusBlockConfig {
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numBuses;
-  5: string iobufOffsetCalc;
+}
+
+// Defines the Retimer Controller block in FPGAs.
+//
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
+//
+// `portNumber`: Port number which is associated with this config.
+struct RtmCtrlConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 portNumber;
+}
+
+// Defines generic Retimer Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: RTM_CTRL, the expanded form would be
+//  {prefix}_RTM_CTRL_PORT_{port} (e.g. RTM_L_RTM_CTRL_PORT_1).
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, port, a starting port number
+//  or index. Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "BASE + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    csrOffsetCalc: "BASE + (1 - 1)*0x4"
+//    csrOffsetCalc: "BASE"
+//  portNum=2, startPort=1::
+//    csrOffsetCalc: "BASE + (2 - 1)*0x4"
+//    csrOffsetCalc: "BASE + 0x4"
+//
+// `numPorts`: Number of ports for this block config
+//
+// `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the RTM controller in
+//  the FPGA. This expression includes a base start address, port, a starting port
+//  number or index. Final offset result is in hex format.
+//  Example
+//  iobufOffsetCalc: "BASE + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    iobufOffsetCalc: "BASE + (1 - 1)*0x4"
+//    iobufOffsetCalc: "BASE"
+//  portNum=2, startPort=1::
+//    iobufOffsetCalc: "BASE + (2 - 1)*0x4"
+//    iobufOffsetCalc: "BASE + 0x4"
+struct RtmCtrlBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numPorts;
+  5: i32 startPort;
+  6: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
@@ -654,6 +751,7 @@ struct PciDeviceConfig {
   19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
   20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
   21: list<I2cAdapterBlockConfig> i2cAdapterBlockConfigs;
+  22: list<RtmCtrlBlockConfig> rtmCtrlBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
@@ -715,12 +813,16 @@ struct PmUnitConfig {
 //
 // `PmUnitConfig`: PmUnit configuration. Refer to PmUnitConfig definition above.
 //
-// `productSubVersion`: The platformVersion of the switch which this PmUnit
-// belongs to. This refers to field Type 10 in Meta EEPROM V5
-// TODO: Replace it with PmUnitVersion struct below.
+// `productSubVersion`: This refers to field Type 10 in Meta EEPROM V5.
+//
+// `pmUnitVersions`: List of PmUnit versions this config applies to. A system
+// matching any version in this list will use this config.
+// `productSubVersion` is ignored when `pmUnitVersions` is present. At least
+// one of `productSubVersion` or `pmUnitVersions` must be set.
 struct VersionedPmUnitConfig {
   1: PmUnitConfig pmUnitConfig;
-  3: i16 productSubVersion;
+  3: optional i16 productSubVersion;
+  4: optional list<PmUnitVersion> pmUnitVersions;
 }
 
 // `PmUnitInfo`: Details of a PmUnit.
@@ -743,15 +845,15 @@ struct PmUnitInfo {
 
 // `PmUnitVersion`: Version of a PmUnit.
 //
-// `productProductionState`: Minimum productProductionState (EEPROM V5 Type 8).
+// `productionState`: Production State (EEPROM V6 Type 8).
 //
-// `productVersion`: Minimum productVersion (EEPROM V5 Type 9).
+// `productionSubState`: Production Sub-State (EEPROM V6 Type 9).
 //
-// `productSubVersion`: Minimum productSubVersion (EEPROM V5 Type 10).
+// `respinVariantIndicator`: Re-Spin/Variant Indicator (EEPROM V6 Type 10).
 struct PmUnitVersion {
-  1: i16 productProductionState;
-  2: i16 productVersion;
-  3: i16 productSubVersion;
+  1: i16 productionState;
+  2: i16 productionSubState;
+  3: i16 respinVariantIndicator;
 }
 
 // Defines thrift structure used for the Bsp Kmods file under /usr/local/{vendor}_bsp/...
@@ -793,7 +895,8 @@ struct PlatformConfig {
   //          name.  Only CPU_BUS@0 is supported today.
   //        - AMD: identifies DesignWare I2C buses via ACPI
   //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
-  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA,
+  //          CPU_BUS@2 to \_SB_.I2CC, CPU_BUS@3 to \_SB_.I2CD.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.
@@ -819,10 +922,13 @@ struct PlatformConfig {
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
 
-  // Specify the list of kmods which are required to be loaded before PM
+  // Specify the list of in-tree kmods which are required to be loaded before PM
   // exploration.
   // Most kmods are loaded automatically during device creation. This field is
   // only for kmods which need to be loaded before any devices are created in
   // order to work properly.
-  25: list<string> requiredKmodsToLoad;
+  25: list<string> nonBspKmodsToLoad;
+
+  // Number of retimers in the platform.
+  26: i16 numRtms;
 }

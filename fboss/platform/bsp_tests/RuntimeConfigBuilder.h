@@ -49,6 +49,7 @@ class RuntimeConfigBuilder {
   fbiob::AuxData createFanAuxData(const FanPwmCtrlConfig& fanCtrl);
   fbiob::AuxData createSpiAuxData(const SpiMasterConfig& spiMaster);
   fbiob::AuxData createIdpromAuxData(const IdpromConfig& idpromConfig);
+  fbiob::AuxData createMdioAuxData(const FpgaIpBlockConfig& mdioBus);
   facebook::fboss::platform::bsp_tests::I2CAdapter* findAdapter(
       std::map<std::string, facebook::fboss::platform::bsp_tests::I2CAdapter>&
           adapters,

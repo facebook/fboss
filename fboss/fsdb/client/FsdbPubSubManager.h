@@ -195,6 +195,36 @@ class FsdbPubSubManager {
       const std::vector<ExtendedOperPath>& subscribePath,
       const std::string& fsdbHost = "::1");
 
+  /*
+   * Repoint every live subscription currently targeting `fromHost` to
+   * `toConnectionOptions` (a different host) WITHOUT tearing the subscriptions
+   * down, returning the number of subscriptions moved. Each affected subscriber
+   * keeps its service loop and is moved to the new endpoint via
+   * setConnectionOptions() + a transient reconnect(), then re-keyed in the
+   * subscriber map under the new host.
+   *
+   * This is the non-blocking alternative to remove+add when only the endpoint
+   * changes (e.g. an inband<->mgmt failover): unlike remove (which destroys the
+   * stream client and blocks on a serviceLoop join), it never invokes the
+   * blocking cancel() path, so it is safe to call from the subscriber EventBase
+   * thread, where remove+add would self-deadlock.
+   *
+   * `fromHost` must match the address a subscription was created with
+   * (ConnectionOptions::getDstAddr().getAddressStr()); subscriptions targeting
+   * other hosts are left untouched. `noGR` is forwarded to reconnect(). Returns
+   * 0 (no-op) when `fromHost` already equals the new host or nothing targets
+   * it. Throws std::runtime_error if a destination key is already taken (a
+   * subscription for the same path already exists on the new host). The state
+   * and stats subscription maps are repointed independently: the move is atomic
+   * within each map (a collision throws before that map is mutated), but a
+   * collision in one map does not roll back moves already committed in the
+   * other.
+   */
+  size_t repointSubscriptions(
+      const std::string& fromHost,
+      const utils::ConnectionOptions& toConnectionOptions,
+      bool noGR = false);
+
   void clearStateSubscriptions();
   void clearStatSubscriptions();
 

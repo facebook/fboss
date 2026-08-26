@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss/agent/hw/sai/tracer/run:run.bzl", "all_replayer_binaries")
 
 oncall("fboss_agent_push")
@@ -21,6 +22,7 @@ python_library(
 python_unittest(
     name = "test_postProcess",
     srcs = ["test_postProcess.py"],
+    network_access = network_access_utils.none(),
     deps = [
         ":postProcess",
     ],

@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_platform")
 
@@ -18,11 +19,13 @@ cpp_library(
     srcs = [
         "ConfigDiffer.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
-        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/sensor_service/if:sensor_config-cpp2-types",
     ],
 )
 
@@ -49,6 +52,7 @@ cpp_unittest(
     srcs = [
         "ConfigDifferTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":config_differ",
@@ -60,6 +64,7 @@ cpp_unittest(
     srcs = [
         "PowerConfigUtilsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         ":power_config_utils",
     ],

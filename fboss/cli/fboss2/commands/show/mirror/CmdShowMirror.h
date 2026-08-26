@@ -18,6 +18,8 @@
 
 #include "folly/json/json.h"
 
+#include <string_view>
+
 namespace facebook::fboss {
 
 using utils::Table;
@@ -27,6 +29,10 @@ struct CmdShowMirrorTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
   using ObjectArgType = utils::MirrorList;
   using RetType = cli::ShowMirrorModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
@@ -39,6 +45,10 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
       const ObjectArgType& queriedMirrors);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 
   std::string getEgressPortName(
       const std::string& egressPort,

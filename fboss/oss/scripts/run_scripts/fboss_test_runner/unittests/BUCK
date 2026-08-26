@@ -1,0 +1,23 @@
+load("@fbcode_macros//build_defs:python_pytest.bzl", "python_pytest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_oss")
+
+# Unit tests for the FBOSS OSS test runner. Discovered and run automatically
+# on-diff by fbcode's target determinator (any change under run_scripts/ pulls
+# these in via the fboss_test_runner library dep). python_pytest (not
+# python_unittest) is required because most of these tests are pytest-style
+# (module-level def test_*, non-TestCase classes, @pytest.fixture, conftest.py),
+# which the unittest runner silently skips. The tests import the runner as the
+# top-level `fboss_test_runner` package; conftest.py adds run_scripts/ to
+# sys.path so those imports resolve here exactly as they do on-device.
+python_pytest(
+    name = "fboss_test_runner_tests",
+    srcs = glob(["*.py"]),
+    # Pure unit tests: all subprocess/IO is mocked, no network needed.
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/pypi/pytest:pytest",
+        "//fboss/oss/scripts/run_scripts:fboss_test_runner",
+    ],
+)

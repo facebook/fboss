@@ -16,11 +16,13 @@
 #include <boost/assign.hpp>
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
@@ -54,13 +56,16 @@ DEFINE_int32(
     refresh_all_pages_cycles,
     100,
     "Number of cycles to kick off a full refresh of all pages");
+DEFINE_int32(
+    firmware_upgrade_attempts,
+    3,
+    "Number of attempts to upgrade transceiver firmware before giving up. "
+    "Set to 1 to disable retries (e.g. for interrupt tests).");
 
 using folly::IOBuf;
 using std::lock_guard;
 using std::memcpy;
 using std::mutex;
-
-static constexpr int kAllowedFwUpgradeAttempts = 3;
 
 namespace facebook {
 namespace fboss {
@@ -219,6 +224,14 @@ bool QsfpModule::upgradeFirmwareLocked(
       TransceiverSettings settings = getTransceiverSettingsInfo();
       setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
+      // Step 2b: Wait for the module to be ready after exiting low power before
+      // starting the firmware download; CDB operations are unreliable
+      // otherwise.
+      if (!moduleReadyStatePoll()) {
+        QSFP_LOG(ERR, this)
+            << "Module not in ready state before firmware upgrade. Continuing anyway";
+      }
+
       // Step 3: Mark the module dirty so that we can refresh the entire cache
       // later
       dirty_ = true;
@@ -245,9 +258,10 @@ bool QsfpModule::upgradeFirmwareLocked(
 
   int upgradeAttempts = 1;
   bool finalFwUpgradeResult = false;
-  while (upgradeAttempts <= kAllowedFwUpgradeAttempts) {
+  while (upgradeAttempts <= FLAGS_firmware_upgrade_attempts) {
     finalFwUpgradeResult = fwUpgradeFn();
-    if (!finalFwUpgradeResult && upgradeAttempts < kAllowedFwUpgradeAttempts) {
+    if (!finalFwUpgradeResult &&
+        upgradeAttempts < FLAGS_firmware_upgrade_attempts) {
       // fwUpgradeFn will wait 5 seconds internally when re-trying.
       upgradeAttempts++;
     } else {
@@ -349,21 +363,15 @@ unsigned int QsfpModule::numHostLanes() const {
     case MediaInterfaceCode::SR_10G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
-    case MediaInterfaceCode::DR1_200G:
-    case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::CR1_100G:
       return 1;
-    case MediaInterfaceCode::DR2_400G:
-      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
-    case MediaInterfaceCode::DR4_800G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
-    case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
@@ -384,20 +392,14 @@ unsigned int QsfpModule::numMediaLanes() const {
     case MediaInterfaceCode::FR1_100G:
     case MediaInterfaceCode::BASE_T_10G:
     case MediaInterfaceCode::CR_10G:
-    case MediaInterfaceCode::DR1_200G:
-    case MediaInterfaceCode::DR1_100G:
     case MediaInterfaceCode::CR1_100G:
       return 1;
-    case MediaInterfaceCode::DR2_400G:
-      return 2;
     case MediaInterfaceCode::CWDM4_100G:
     case MediaInterfaceCode::CR4_100G:
     case MediaInterfaceCode::CR4_200G:
     case MediaInterfaceCode::CR4_400G:
-    case MediaInterfaceCode::DR4_800G:
       return 4;
     case MediaInterfaceCode::CR8_400G:
-    case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::CR8_800G:
       return 8;
     case MediaInterfaceCode::UNKNOWN:
@@ -489,6 +491,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
     tcvrState.signalFlag() = getSignalFlagInfo();
     cacheSignalFlags(*tcvrState.signalFlag());
+    logLatchedLinkFaultsLocked(
+        *tcvrState.signalFlag(), *tcvrState.mediaLaneSignals());
 
     if (auto extSpecCompliance = getExtendedSpecificationComplianceCode()) {
       tcvrState.extendedSpecificationComplianceCode() = *extSpecCompliance;
@@ -589,8 +593,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       tcvrState.moduleTechnology() = ModuleTechnology::LPO;
     } else if (isAecModule()) {
       tcvrState.moduleTechnology() = ModuleTechnology::AEC;
-    } else if (isTunableOptics()) {
-      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE;
+    } else if (isCBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_C_BAND;
+    } else if (isLBandTunable()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE_L_BAND;
     } else {
       tcvrState.moduleTechnology() = ModuleTechnology::GREY;
     }
@@ -640,6 +646,59 @@ void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
   signalFlagCache_.rxLos() = *signalflag.rxLos() | *signalFlagCache_.rxLos();
   signalFlagCache_.txLol() = *signalflag.txLol() | *signalFlagCache_.txLol();
   signalFlagCache_.rxLol() = *signalflag.rxLol() | *signalFlagCache_.rxLol();
+}
+
+void QsfpModule::logLatchedLinkFaultsLocked(
+    const SignalFlags& signalFlags,
+    const std::vector<MediaLaneSignals>& mediaLaneSignals) {
+  const int txLos = *signalFlags.txLos();
+  const int rxLos = *signalFlags.rxLos();
+  const int txLol = *signalFlags.txLol();
+  const int rxLol = *signalFlags.rxLol();
+
+  // txFault is only reported per media lane; collapse it into a per-lane
+  // bitmask so it reads uniformly with the aggregated flags above.
+  int txFault = 0;
+  for (const auto& laneSignal : mediaLaneSignals) {
+    if (laneSignal.txFault().value_or(false)) {
+      txFault |= (1 << *laneSignal.lane());
+    }
+  }
+
+  // Edge-trigger: a link that stays down keeps these flags latched every
+  // refresh, so only act when the flag set changes from what we last observed.
+  if (signalFlags == lastLoggedSignalFlags_ && txFault == lastLoggedTxFault_) {
+    return;
+  }
+  lastLoggedSignalFlags_ = signalFlags;
+  lastLoggedTxFault_ = txFault;
+
+  const auto portNames = folly::join(", ", getInterfaces());
+
+  // Reaching here means the flag set changed. All-clear is therefore a recovery
+  // from a previously latched fault; log it at INFO so downtime is visible in
+  // the event log without being treated as an error.
+  if (!txLos && !rxLos && !txLol && !rxLol && !txFault) {
+    QSFP_LOG(INFO, this) << LinkAlert()
+                         << fmt::format(
+                                "latched link fault flags "
+                                "(txLos/rxLos/txLol/rxLol/txFault) cleared on "
+                                "ports [{}]",
+                                portNames);
+    return;
+  }
+
+  QSFP_LOG(ERR, this) << LinkAlert()
+                      << fmt::format(
+                             "reported latched link fault flags on ports [{}]: "
+                             "txLos=0x{:x} rxLos=0x{:x} txLol=0x{:x} "
+                             "rxLol=0x{:x} txFault=0x{:x}",
+                             portNames,
+                             txLos,
+                             rxLos,
+                             txLol,
+                             rxLol,
+                             txFault);
 }
 
 void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {
@@ -1388,7 +1447,8 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
   if (moduleId ==
           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
       moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP)) {
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::OSFP) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::CPO)) {
     return TransceiverManagementInterface::CMIS;
   } else if (
       moduleId ==
@@ -1494,9 +1554,12 @@ void QsfpModule::programTransceiver(
       mediaLaneToPortName_.clear();
       portNameToHostLanes_.clear();
       portNameToMediaLanes_.clear();
-      for (auto portIt : programTcvrState.ports) {
-        auto startHostLane = portIt.second.startHostLane;
-        updateLaneToPortNameMapping(portIt.first, startHostLane);
+      portNameToBankId_.clear();
+      for (const auto& [portName, portState] : programTcvrState.ports) {
+        updateLaneToPortNameMapping(portName, portState.startHostLane);
+        if (portState.bankId.has_value()) {
+          portNameToBankId_[portName] = *portState.bankId;
+        }
       }
       updateCachedTransceiverInfoLocked({});
 
@@ -1505,8 +1568,8 @@ void QsfpModule::programTransceiver(
     }
 
     // We are done programming the transceivers. Clear the pending datapath mask
-    // and start fresh for the next programTransceiver call
-    datapathResetPendingMask_ = 0;
+    // (all banks) and start fresh for the next programTransceiver call
+    datapathResetPendingMask_.clear();
   };
 
   auto i2cEvb = qsfpImpl_->getI2cEventBase();

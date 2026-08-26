@@ -1,0 +1,13 @@
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup")
+
+oncall("fboss_platform")
+
+buck_filegroup(
+    name = "platform_service_configs",
+    srcs = glob(["platforms/*/*/platform_stack/*.json"]),
+)
+
+buck_filegroup(
+    name = "platform_manager_configs",
+    srcs = glob(["platforms/*/*/platform_stack/platform_manager.json"]),
+)

@@ -40,7 +40,6 @@ class AgentEnsemble : public TestEnsembleIf {
   AgentEnsemble() : AgentEnsemble("agent.conf") {}
   explicit AgentEnsemble(const std::string& configFileName);
   virtual ~AgentEnsemble() override;
-  using TestEnsembleIf::masterLogicalPortIds;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using TestEnsembleIf::getLatestInterfaceStats;
   using TestEnsembleIf::getLatestPortStats;
@@ -106,9 +105,10 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::string& name = "test-update",
       bool transaction = false) override;
 
-  std::vector<PortID> masterLogicalPortIds() const override;
+  std::vector<PortID> getAllMasterLogicalPortIds() const override;
 
-  std::vector<PortID> masterLogicalPortIds(SwitchID switchID) const;
+  std::optional<size_t> getMaxRequiredPorts(
+      cfg::PortType portType) const override;
 
   void switchRunStateChanged(SwitchRunState runState) override;
 
@@ -264,7 +264,12 @@ class AgentEnsemble : public TestEnsembleIf {
   void sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortDescriptor> portDescriptor,
-      std::optional<uint8_t> queueId) override;
+      std::optional<uint8_t> queueId,
+      std::optional<SwitchID> switchId = std::nullopt) override;
+
+  void sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId) override;
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
 
@@ -288,7 +293,9 @@ class AgentEnsemble : public TestEnsembleIf {
   cfg::SwitchConfig getCurrentConfig() const override {
     return getSw()->getConfig();
   }
-  bool ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt);
+  bool ensureSendPacketSwitched(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId = std::nullopt);
   bool ensureSendPacketOutOfPort(
       std::unique_ptr<TxPacket> pkt,
       PortID portID,
@@ -405,6 +412,13 @@ class AgentEnsemble : public TestEnsembleIf {
   void overrideConfigFlag(const std::string& fileName);
   void dumpConfigForHwAgent(AgentConfig* agentConf);
 
+  std::map<std::string, int64_t> queryHwAgentFb303RegexCounters(
+      const SwitchID& switchId,
+      const std::string& regex);
+  int64_t queryHwAgentFb303Counter(
+      const SwitchID& switchId,
+      const std::string& key);
+
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
   bool waitForRateOnPort(
@@ -422,9 +436,12 @@ class AgentEnsemble : public TestEnsembleIf {
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
-  std::vector<PortID> masterLogicalPortIds_; /* all ports */
   std::map<SwitchID, std::vector<PortID>>
-      switchId2PortIds_; /* per switch ports */
+      switchId2PortIds_; /* per switch ports; the sole master-port store */
+  // Per-switch caps applied dynamically by the typed masterLogical*PortIds()
+  // accessors (see getMaxRequiredPorts). nullopt means no cap.
+  std::optional<size_t> maxRequiredInterfacePorts_;
+  std::optional<size_t> maxRequiredFabricPorts_;
   std::string configFile_{};
   std::unique_ptr<LinkStateToggler> linkToggler_;
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};

@@ -35,6 +35,8 @@
 "cold_boot.HwTest.i2cLogCapacityRead","wedge400c","credo-0.7.2","PASSED"
 "warm_boot.HwTest.cmisPageChange","wedge400c","credo-0.7.2","PASSED"
 "cold_boot.HwTest.cmisPageChange","wedge400c","credo-0.7.2","PASSED"
+"warm_boot.HwTest.checkCmisModuleFirmwareUpgradeCdbTimeout","wedge400c","credo-0.7.2","PASSED"
+"cold_boot.HwTest.checkCmisModuleFirmwareUpgradeCdbTimeout","wedge400c","credo-0.7.2","PASSED"
 "warm_boot.HwTest.CheckTcvrNameAndInterfaces","wedge400c","credo-0.7.2","PASSED"
 "cold_boot.HwTest.CheckTcvrNameAndInterfaces","wedge400c","credo-0.7.2","PASSED"
 "warm_boot.HwStateMachineTestWithoutIphyProgramming.CheckOpticsDetection","wedge400c","credo-0.7.2","PASSED"

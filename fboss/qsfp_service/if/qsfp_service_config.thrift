@@ -113,8 +113,10 @@ struct OpticalChannelConfig {
   // Application Select code published by the META ZR spec
   3: i32 appSelCode;
   // Rx Consequent Action Hold-off Timer in ms (must be a multiple of 10).
-  // Max 655350ms. Delays squelch/LF while inserting PCS Idles. 0 = disabled.
-  4: i32 rxConsActHoldOffTimerMs = 10;
+  // Max 655350ms. Delays squelch/LF while inserting PCS Idles. Defaults to 0
+  // (disabled). Only programmed on modules that implement the register; a
+  // module that doesn't advertise support is left untouched (no error).
+  4: i32 rxConsActHoldOffTimerMs = 0;
 }
 
 struct QsfpServiceConfig {
@@ -149,4 +151,8 @@ struct QsfpServiceConfig {
   // NOTE: This field is MANDATORY for Ladakh platform - QSFP service will
   // fail to start if this field is missing
   9: optional string phyConfig;
+
+  // Map of thrift API name to Rate limit in thrift API queries per second.
+  // Methods not present in the map are not rate limited.
+  10: map<string, double> thriftApiToRateLimitInQps = {};
 }

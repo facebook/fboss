@@ -10,7 +10,15 @@
 
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
 namespace facebook::fboss {
+
+uint32_t SaiBufferManager::getNumCellsAvailable(const SaiPlatform* platform) {
+  auto asic = platform->getAsic();
+  return asic->getNumCellsAvailable(platform->getType());
+}
 
 void SaiBufferManager::loadCpuPortEgressBufferPool() {}
 } // namespace facebook::fboss

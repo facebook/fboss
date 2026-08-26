@@ -12,6 +12,10 @@ class AgentEmptyTestBase : public AgentHwTest {
       const override {
     return {ProductionFeature::HW_SWITCH};
   }
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    // Loopback verification needs every platform port.
+    return std::nullopt;
+  }
   void AgentEmptyTest() {
     auto verify = [this]() {
       auto switchId = getCurrentSwitchIdForTesting();

@@ -304,9 +304,9 @@ TEST(PathVisitorTests, LazyInstantiate) {
   using Visitor =
       RootThriftPathVisitorWithOptions<TestStruct, CreateNodeIfMissing>;
   for (auto& [path, val] : leaves) {
-    auto setVal = [val = val]<class Tag>(auto&& node, Tag) {
+    auto setVal = [value = val]<class Tag>(auto&& node, Tag) {
       facebook::thrift::from_dynamic<Tag>(
-          node, val, facebook::thrift::dynamic_format::JSON_1);
+          node, value, facebook::thrift::dynamic_format::JSON_1);
     };
     auto result =
         Visitor::visit(testStruct, path.begin(), path.end(), std::move(setVal));

@@ -34,12 +34,16 @@ class TransceiverPropertiesManager {
 
   // Derive MediaInterfaceCode from EEPROM SMF data.
   // Matches against firstApplicationAdvertisement (mediaInterfaceCode,
-  // hostStartLanes count, hostInterfaceCode) and smfLength.
+  // hostStartLanes count, hostInterfaceCode, maxNumBanks) and smfLength.
+  // maxNumBanks defaults to 1 so single-bank callers/entries match unchanged;
+  // it disambiguates two codes whose advertisement is otherwise identical but
+  // differ in bank count (e.g. DR4_8x800G at 4 banks vs DR4_2x800G at 1 bank).
   static MediaInterfaceCode deriveSmfCode(
       uint8_t smfByte,
       const std::vector<int>& hostStartLanes,
       uint8_t hostInterfaceCode,
-      int smfLength);
+      int smfLength,
+      int maxNumBanks = 1);
 
   // Get the full SmfTransceiverProperties for a code.
   // Throws FbossError if not initialized or code is unknown.
@@ -105,6 +109,7 @@ class TransceiverPropertiesManager {
     size_t hostStartLanesCount{};
     uint8_t hostInterfaceCode{};
     std::optional<int32_t> smfLength;
+    int32_t maxNumBanks{1};
   };
 
   static TransceiverPropertiesManager& instance();

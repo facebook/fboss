@@ -26,4 +26,5 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"asic_config_v2.thrift": []},
+    deps = ["//thrift/annotation:thrift"],
 )

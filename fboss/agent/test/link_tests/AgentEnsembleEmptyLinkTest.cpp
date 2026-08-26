@@ -17,6 +17,9 @@ class AgentEnsembleEmptyLinkTest : public AgentEnsembleLinkTest {
 };
 
 TEST_F(AgentEnsembleEmptyLinkTest, CheckInit) {
+  addVerifiedProductionFeatures(
+      {link_test_production_features::LinkTestProductionFeature::LINK_BRINGUP});
+  addTestedPorts(getCabledPorts());
   verifyAcrossWarmBoots(
       []() {},
       [this]() {

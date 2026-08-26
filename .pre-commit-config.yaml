@@ -23,6 +23,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        # asic_config generated outputs are multi-document YAML with complex
+        # mapping keys that PyYAML cannot load; they are generated artifacts.
+        exclude: ^fboss/configs/platforms/[^/]+/[^/]+/asic_config/generated/
       - id: check-json
       - id: check-merge-conflict
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -35,6 +38,19 @@ repos:
       # Ruff formatter for all Python files in fboss/
       - id: ruff-format
         files: ^fboss/
+  # TODO: Uncomment once existing violations are fixed (run
+  # `fboss/oss/scripts/buck_cmake_dep_checker.py --check-files --check-sorted --from-commit HEAD~1`
+  # to see what would be flagged on a given commit).
+  # - repo: local
+  #   hooks:
+  #     - id: buck-cmake-checker
+  #       name: Check BUCK/cmake file-list consistency and sort order
+  #       language: system
+  #       entry: fboss/oss/scripts/buck_cmake_dep_checker.py --check-files --check-sorted --from-commit
+  #       args: [HEAD~1]
+  #       pass_filenames: false
+  #       always_run: true
+
   - repo: local
     hooks:
       - id: do-not-change-fboss-manifests

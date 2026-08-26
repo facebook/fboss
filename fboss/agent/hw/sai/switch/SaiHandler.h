@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 
@@ -116,6 +116,10 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl>,
       std::vector<FirmwareInfo>& firmwareInfoList) override;
 
   void getHwDebugDump(std::string& out) override;
+
+  void setSdkRegDumpEnabled(bool enabled) override;
+  void triggerCableLengthMeasurement(
+      std::unique_ptr<std::vector<int32_t>> ports) override;
 
   void getPortPrbsState(prbs::InterfacePrbsState& prbsState, int32_t portId)
       override;

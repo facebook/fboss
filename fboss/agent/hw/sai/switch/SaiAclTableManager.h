@@ -34,6 +34,8 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 struct SaiHostifUserDefinedTrapHandle;
+struct SaiNextHopGroupHandle;
+class SwitchState;
 
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
@@ -82,7 +84,10 @@ struct SaiAclEntryHandle {
   std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiObject<SaiTunnelEncapNextHopTraits>> tunnelEncapNextHop;
+  std::shared_ptr<SaiNextHopGroupHandle> matchNhgHandle;
+  std::shared_ptr<SaiNextHopGroupHandle> redirectNhgHandle;
   std::shared_ptr<SaiAclEntry> aclEntry;
+  std::string aclEntryName;
   std::vector<std::pair<cfg::CounterType, std::string>> aclCounterTypeAndName;
   std::optional<std::string> ingressMirror;
   std::optional<std::string> egressMirror;
@@ -96,8 +101,23 @@ struct SaiAclEntryHandle {
 
 struct SaiAclTableHandle {
   std::shared_ptr<SaiAclTable> aclTable;
-  // SAI ACL priority to corresponding handle
-  folly::F14FastMap<int, std::unique_ptr<SaiAclEntryHandle>> aclTableMembers;
+  // (ACL priority, ACL entry name) to corresponding handle. The name is part
+  // of the key because PBR programs every rule at one priority and tells them
+  // apart by the SAI ACL entry label, which carries this name.
+  folly::F14FastMap<
+      std::pair<int, std::string>,
+      std::unique_ptr<SaiAclEntryHandle>>
+      aclTableMembers;
+
+  // Name of an entry already programmed at this priority, else nullptr.
+  const std::string* FOLLY_NULLABLE entryNameAtPriority(int priority) const {
+    for (const auto& [key, _] : aclTableMembers) {
+      if (key.first == priority) {
+        return &key.second;
+      }
+    }
+    return nullptr;
+  }
 };
 
 class SaiAclTableManager {
@@ -113,6 +133,9 @@ class SaiAclTableManager {
    * Thus, match all mask is  0b111111 i.e. 0x3F.
    */
   static auto constexpr kDscpMask = 0x3F;
+
+  // Traffic class is a u8; PBR matches on the full value.
+  static auto constexpr kTcMask = 0xFF;
 
   static auto constexpr kMaxUdfGroups = 5;
 
@@ -143,14 +166,17 @@ class SaiAclTableManager {
 
   AclTableSaiId addAclTable(
       const std::shared_ptr<AclTable>& addedAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   void removeAclTable(
       const std::shared_ptr<AclTable>& removedAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   void changedAclTable(
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,
-      cfg::AclStage aclStage);
+      cfg::AclStage aclStage,
+      const std::shared_ptr<SwitchState>& state);
   std::shared_ptr<AclTable> reconstructAclTable(
       int priority,
       const std::string& name) const;
@@ -164,7 +190,8 @@ class SaiAclTableManager {
   void removeAclEntriesFromTable(const std::shared_ptr<AclTable>& aclTable);
   void addAclEntriesToTable(
       const std::shared_ptr<AclTable>& aclTable,
-      std::shared_ptr<AclMap>& aclMap);
+      std::shared_ptr<AclMap>& aclMap,
+      const std::shared_ptr<SwitchState>& state);
 
   const SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName) const;
@@ -186,18 +213,22 @@ class SaiAclTableManager {
 #endif
   AclEntrySaiId addAclEntry(
       const std::shared_ptr<AclEntry>& addedAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state);
   void removeAclEntry(
       const std::shared_ptr<AclEntry>& removedAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state = nullptr);
   void changedAclEntry(
       const std::shared_ptr<AclEntry>& oldAclEntry,
       const std::shared_ptr<AclEntry>& newAclEntry,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      const std::shared_ptr<SwitchState>& state);
 
   const SaiAclEntryHandle* FOLLY_NULLABLE getAclEntryHandle(
       const SaiAclTableHandle* aclTableHandle,
-      int priority) const;
+      int priority,
+      const std::string& aclEntryName) const;
 
   std::pair<
       std::shared_ptr<SaiAclCounter>,
@@ -266,7 +297,7 @@ class SaiAclTableManager {
     if (!table) {
       throw FbossError("ACL table ", aclTableName, " not found.");
     }
-    return (getAclEntryHandle(table, priority) != nullptr);
+    return table->entryNameAtPriority(priority) != nullptr;
   }
 
   void removeUnclaimedAclCounter();
@@ -314,6 +345,11 @@ class SaiAclTableManager {
 
   std::shared_ptr<SaiAclRange>
   getOrCreateAclRange(sai_int32_t rangeType, uint32_t min, uint32_t max);
+
+  std::shared_ptr<SaiNextHopGroupHandle> resolvePbrNextHopGroup(
+      const std::shared_ptr<SwitchState>& state,
+      int64_t nextHopGroupId,
+      const std::string& aclEntryId);
 
   void recreateAclTable(
       std::shared_ptr<SaiAclTable>& exisitingTable,

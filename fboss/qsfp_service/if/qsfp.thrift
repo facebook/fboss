@@ -358,4 +358,14 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   map<string, list<i32>> getPortTransceiverIDs() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get transceiver information for specific ports by name.
+   * Returns a map keyed by port name to TransceiverInfo.
+   * This avoids the need for multiple RPCs (getPortInfo + getTransceiverInfo)
+   * when querying transceiver details for specific ports.
+   */
+  map<string, transceiver.TransceiverInfo> getTransceiverInfoByPortName(
+    1: list<string> portNames,
+  ) throws (1: fboss.FbossBaseError error);
 }

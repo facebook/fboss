@@ -103,6 +103,15 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
+  // Returns the original PortPinConfig from PlatformMapping, preserving
+  // the JSON pin order. Used by the SAI XPHY path to send pinConfigs to
+  // SwitchState in NPU-pin order (vs the std::map-sorted order produced by
+  // ExternalPhyConfig::getPinConfigs()).
+  phy::PortPinConfig getDesiredPortPinConfig(
+      PortID portId,
+      cfg::PortProfileID portProfileId,
+      std::optional<TransceiverInfo> transceiverInfo);
+
   phy::PhyPortConfig getHwPhyPortConfig(PortID portId, bool readFromHw = false);
 
   virtual void programOnePort(
@@ -222,6 +231,12 @@ class PhyManager {
   std::vector<PortID> getXphyPorts() const;
   std::set<GlobalXphyID> getXphysSupportingFeature(
       phy::ExternalPhy::Feature feature) const;
+
+  // Number of XPHYs that were actually created. A PhyManager is constructed
+  // for every platform of an XPHY capable family, but XPHYs are only created
+  // for the PIMs that have them, so this is legitimately 0 on configurations
+  // like Elbert 8x16Q where no PIM carries an XPHY.
+  size_t getNumXphys() const;
 
   // This is to provide the to-be cached warmboot state, which should include
   // the current portToCacheInfo_ map, so that during warmboot, we can use that
@@ -352,7 +367,10 @@ class PhyManager {
     }
     auto* xphy = getExternalPhyLocked(lockedCache);
     return xphy->getConfigOnePort(
-        lockedCache->systemLanes, lockedCache->lineLanes, readFromHw);
+        lockedCache->systemLanes,
+        lockedCache->lineLanes,
+        lockedCache->profile.value_or(cfg::PortProfileID::PROFILE_DEFAULT),
+        readFromHw);
   }
 
   // Number of slot in the platform

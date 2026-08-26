@@ -24,12 +24,20 @@ class FakeNextHopGroupMember {
   FakeNextHopGroupMember(
       sai_object_id_t nextHopGroupId,
       sai_object_id_t nextHopId,
-      std::optional<sai_uint32_t> weight)
-      : nextHopGroupId(nextHopGroupId), nextHopId(nextHopId), weight(weight) {}
+      std::optional<sai_uint32_t> weight,
+      sai_int32_t configuredRole = 0 /* PRIMARY */,
+      sai_object_id_t monitoredObject = SAI_NULL_OBJECT_ID)
+      : nextHopGroupId(nextHopGroupId),
+        nextHopId(nextHopId),
+        weight(weight),
+        configuredRole(configuredRole),
+        monitoredObject(monitoredObject) {}
   sai_object_id_t nextHopGroupId;
   sai_object_id_t nextHopId;
   sai_object_id_t id;
   std::optional<sai_uint32_t> weight;
+  sai_int32_t configuredRole;
+  sai_object_id_t monitoredObject;
 };
 
 class FakeNextHopGroup {
@@ -38,11 +46,16 @@ class FakeNextHopGroup {
   FakeNextHopGroup(
       int32_t type,
       sai_object_id_t ars_id,
-      sai_int32_t hash_algorithm)
-      : type(type), ars_id(ars_id), hash_algorithm(hash_algorithm) {}
+      sai_int32_t hash_algorithm,
+      bool hierarchical_nexthop)
+      : type(type),
+        ars_id(ars_id),
+        hash_algorithm(hash_algorithm),
+        hierarchical_nexthop(hierarchical_nexthop) {}
   int32_t type;
   sai_object_id_t ars_id;
   sai_int32_t hash_algorithm;
+  bool hierarchical_nexthop;
   sai_object_id_t id;
   FakeManager<sai_object_id_t, FakeNextHopGroupMember>& fm() {
     return fm_;

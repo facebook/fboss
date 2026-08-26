@@ -191,7 +191,20 @@ std::shared_ptr<SaiVlanMember> SaiVlanManager::createSaiObject(
     const typename SaiVlanMemberTraits::AdapterHostKey& key,
     const typename SaiVlanMemberTraits::CreateAttributes& attributes) {
   auto& store = saiStore_->get<SaiVlanMemberTraits>();
-  return store.setObject(key, attributes);
+  auto newAttributes = attributes;
+  // VlanTaggingMode is a create-only attribute on some SAI implementations: a
+  // SET returns NOT_IMPLEMENTED. On warm boot the member is recovered into the
+  // store, so reuse the recovered tagging mode here. This keeps the reconciled
+  // attribute equal to the stored value and avoids an (unsupported) hardware
+  // write for an object that is otherwise unchanged.
+  if (auto existing = store.get(key)) {
+    std::get<std::optional<SaiVlanMemberTraits::Attributes::VlanTaggingMode>>(
+        newAttributes) =
+        std::get<
+            std::optional<SaiVlanMemberTraits::Attributes::VlanTaggingMode>>(
+            existing->attributes());
+  }
+  return store.setObject(key, newAttributes);
 }
 
 void ManagedVlanMember::createObject(PublisherObjects objects) {

@@ -10,7 +10,7 @@
 #pragma once
 #include <memory>
 
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncerClient.h"
 
 #include <folly/io/async/EventBase.h>

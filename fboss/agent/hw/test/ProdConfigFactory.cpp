@@ -97,7 +97,6 @@ void addMplsConfig(cfg::SwitchConfig& config) {
 uint16_t uplinksCountFromSwitch(PlatformType mode) {
   using PM = PlatformType;
   switch (mode) {
-    case PM::PLATFORM_WEDGE:
     case PM::PLATFORM_WEDGE100:
     case PM::PLATFORM_WEDGE400C:
     case PM::PLATFORM_WEDGE800CACT:
@@ -117,6 +116,8 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_ICECUBE800BC:
     case PM::PLATFORM_ICETEA800BC:
     case PM::PLATFORM_MONTBLANC:
+    case PM::PLATFORM_M4062NHP:
+    case PM::PLATFORM_M5120CSC:
       return 4;
     case PM::PLATFORM_MINIPACK3N:
     case PM::PLATFORM_YANGRA:
@@ -134,20 +135,8 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
   return uplinksCountFromSwitch(hwSwitch->getPlatform()->getType());
 }
 
-cfg::PortSpeed getPortSpeed(
-    cfg::AsicType hwAsicType,
-    PlatformType platformType) {
-  cfg::PortSpeed portSpeed = cfg::PortSpeed::DEFAULT;
-
-  switch (hwAsicType) {
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      portSpeed = cfg::PortSpeed::FORTYG;
-      break;
-    default:
-      portSpeed = cfg::PortSpeed::HUNDREDG;
-      break;
-  }
-
+cfg::PortSpeed getPortSpeed(PlatformType platformType) {
+  cfg::PortSpeed portSpeed = cfg::PortSpeed::HUNDREDG;
   // override speed for certain platforms based on the
   // mode of the asic
   switch (platformType) {
@@ -168,20 +157,11 @@ cfg::PortSpeed getPortSpeed(
       /* do nothing */
       break;
   }
-  if (portSpeed == cfg::PortSpeed::DEFAULT) {
-    throw FbossError(
-        "port speed not set for asic: ",
-        hwAsicType,
-        " platform mode: ",
-        platformType);
-  }
   return portSpeed;
 }
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
-  return getPortSpeed(
-      hwSwitch->getPlatform()->getAsic()->getAsicType(),
-      hwSwitch->getPlatform()->getType());
+  return getPortSpeed(hwSwitch->getPlatform()->getType());
 }
 /*
  * Adds queue-per-host mapping to config, based on HwQueuePerHostRouteTests.cpp.
@@ -251,8 +231,8 @@ cfg::SwitchConfig createProdRswConfig(
   auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now
-  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
-  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto uplinkSpeed = getPortSpeed(platformType);
+  auto downlinkSpeed = getPortSpeed(platformType);
 
   // Create initial config to which we can add the rest of the features.
   auto config = createUplinkDownlinkConfig(
@@ -312,8 +292,8 @@ cfg::SwitchConfig createProdFswConfig(
   auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now
-  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
-  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto uplinkSpeed = getPortSpeed(platformType);
+  auto downlinkSpeed = getPortSpeed(platformType);
 
   auto config = createUplinkDownlinkConfig(
       platformMapping,
@@ -364,8 +344,8 @@ cfg::SwitchConfig createProdRswMhnicConfig(
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai) {
   auto numUplinks = uplinksCountFromSwitch(platformType);
-  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
-  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto uplinkSpeed = getPortSpeed(platformType);
+  auto downlinkSpeed = getPortSpeed(platformType);
 
   auto config = createUplinkDownlinkConfig(
       platformMapping,

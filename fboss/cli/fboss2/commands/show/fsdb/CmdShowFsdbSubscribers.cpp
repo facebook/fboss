@@ -135,6 +135,49 @@ void printSubscriberDetail(
 
 } // namespace
 
+std::string_view CmdShowFsdbSubscriberTraits::description() {
+  return "Displays the clients currently subscribed to FSDB: each subscriber's ID, subscription type (PATH/PATCH/DELTA), the raw path, whether it's a stats (vs state) subscription, when it subscribed, and its queue watermark. Use it to see who is consuming FSDB data.";
+}
+
+CmdShowFsdbSubscribers::RetType CmdShowFsdbSubscribers::sampleModel() {
+  fsdb::SubscriberIdToOperSubscriberInfos result;
+
+  fsdb::OperSubscriberInfo sub1;
+  sub1.subscriberId() = "bgpd";
+  sub1.type() = fsdb::PubSubType::PATCH;
+  fsdb::RawOperPath path1;
+  path1.path() = {"agent", "switchState", "interfaceMaps"};
+  sub1.paths() = {{0, path1}};
+  sub1.isStats() = false;
+  sub1.subscribedSince() = 1700000000;
+  sub1.subscriptionQueueWatermark() = 0;
+  result["bgpd"] = {sub1};
+
+  fsdb::OperSubscriberInfo sub2;
+  sub2.subscriberId() = "fan_service";
+  sub2.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path2;
+  path2.raw() = {"qsfp_service", "state", "tcvrStates"};
+  sub2.path() = path2;
+  sub2.isStats() = false;
+  sub2.subscribedSince() = 1700000000;
+  sub2.subscriptionQueueWatermark() = 1;
+  result["fan_service"] = {sub2};
+
+  fsdb::OperSubscriberInfo sub3;
+  sub3.subscriberId() = "netstate";
+  sub3.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path3;
+  path3.raw() = {"agent", "hwPortStats"};
+  sub3.path() = path3;
+  sub3.isStats() = true;
+  sub3.subscribedSince() = 1700000000;
+  sub3.subscriptionQueueWatermark() = 0;
+  result["netstate"] = {sub3};
+
+  return result;
+}
+
 CmdShowFsdbSubscribers::RetType CmdShowFsdbSubscribers::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& fsdbClientid) {
@@ -183,8 +226,8 @@ void CmdShowFsdbSubscribers::printOutput(
           folly::to<std::string>(folly::copy(subscriber.isStats().value()));
       std::string queueWatermark = "--";
       if (subscriber.subscriptionQueueWatermark().has_value()) {
-        queueWatermark = folly::sformat(
-            "{}", subscriber.subscriptionQueueWatermark().value());
+        queueWatermark =
+            fmt::format("{}", subscriber.subscriptionQueueWatermark().value());
       }
 
       std::string subscribedSince = "--";

@@ -246,6 +246,9 @@ std::vector<uint16_t> PciExplorer::createI2cAdapter(
     uint32_t instanceId) {
   auto auxData = getAuxData(*i2cAdapterConfig.fpgaIpBlockConfig(), instanceId);
   auxData.i2c_data.num_channels = *i2cAdapterConfig.numberOfAdapters();
+  if (i2cAdapterConfig.busFreqHz().has_value()) {
+    auxData.i2c_data.bus_freq_hz = *i2cAdapterConfig.busFreqHz();
+  }
   create(pciDevice, *i2cAdapterConfig.fpgaIpBlockConfig(), auxData);
   return getI2cAdapterBusNums(pciDevice, i2cAdapterConfig, instanceId);
 }
@@ -312,7 +315,7 @@ std::string PciExplorer::createInfoRom(
     uint32_t instanceId) {
   auto auxData = getAuxData(infoRomConfig, instanceId);
   create(pciDevice, infoRomConfig, auxData);
-  return getInfoRomSysfsPath(infoRomConfig, instanceId);
+  return getFpgaIpBlockSysfsPath(infoRomConfig, instanceId);
 }
 
 std::string PciExplorer::createWatchdog(
@@ -344,12 +347,24 @@ std::string PciExplorer::createMdioBus(
   return getMdioBusCharDevPath(pciDevice, mdioBusConfig, instanceId);
 }
 
-void PciExplorer::createFpgaIpBlock(
+std::string PciExplorer::createRtmCtrl(
+    const PciDevice& pciDevice,
+    const RtmCtrlConfig& rtmCtrlConfig,
+    uint32_t instanceId) {
+  auto auxData = getAuxData(*rtmCtrlConfig.fpgaIpBlockConfig(), instanceId);
+  auxData.rtm_data.port_num = *rtmCtrlConfig.portNumber();
+  create(pciDevice, *rtmCtrlConfig.fpgaIpBlockConfig(), auxData);
+  return getRtmCtrlSysfsPath(
+      pciDevice, *rtmCtrlConfig.fpgaIpBlockConfig(), instanceId);
+}
+
+std::string PciExplorer::createFpgaIpBlock(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
   create(pciDevice, fpgaIpBlockConfig, auxData);
+  return getFpgaIpBlockSysfsPath(fpgaIpBlockConfig, instanceId);
 }
 
 void PciExplorer::create(
@@ -700,20 +715,20 @@ std::string PciExplorer::getGpioChipCharDevPath(
       *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
-std::string PciExplorer::getInfoRomSysfsPath(
-    const FpgaIpBlockConfig& infoRomConfig,
+std::string PciExplorer::getFpgaIpBlockSysfsPath(
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   const auto auxDevSysfsPath = "/sys/bus/auxiliary/devices";
   if (!fs::exists(auxDevSysfsPath)) {
     throw PciSubDeviceRuntimeError(
         fmt::format(
-            "Unable to find InfoRom sysfs path for {}. Reason: '{}' path doesn't exist.",
-            *infoRomConfig.pmUnitScopedName(),
+            "Unable to find aux-device sysfs path for {}. Reason: '{}' path doesn't exist.",
+            *fpgaIpBlockConfig.pmUnitScopedName(),
             auxDevSysfsPath),
-        *infoRomConfig.pmUnitScopedName());
+        *fpgaIpBlockConfig.pmUnitScopedName());
   }
   std::string expectedEnding =
-      fmt::format(".{}.{}", *infoRomConfig.deviceName(), instanceId);
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(auxDevSysfsPath)) {
     if (dirEntry.path().filename().string().ends_with(expectedEnding)) {
       return dirEntry.path().string();
@@ -721,10 +736,10 @@ std::string PciExplorer::getInfoRomSysfsPath(
   }
   throw PciSubDeviceRuntimeError(
       fmt::format(
-          "Couldn't find InfoRom {} sysfs path under {}",
-          *infoRomConfig.pmUnitScopedName(),
+          "Couldn't find aux-device sysfs path for {} under {}",
+          *fpgaIpBlockConfig.pmUnitScopedName(),
           auxDevSysfsPath),
-      *infoRomConfig.pmUnitScopedName());
+      *fpgaIpBlockConfig.pmUnitScopedName());
 }
 
 std::string PciExplorer::getWatchDogCharDevPath(
@@ -793,7 +808,7 @@ std::string PciExplorer::getXcvrCtrlSysfsPath(
 }
 
 std::string PciExplorer::getMdioBusSysfsPath(
-    const PciDevice& pciDevice,
+    const PciDevice& /* pciDevice */,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   const auto mdioBusSysfsPath = "/sys/class/mdio_bus";
@@ -825,6 +840,25 @@ std::string PciExplorer::getMdioBusCharDevPath(
   throw PciSubDeviceRuntimeError(
       fmt::format(
           "Couldn't find MdioBusCharDevPath {} under {}",
+          *fpgaIpBlockConfig.deviceName(),
+          pciDevice.sysfsPath()),
+      *fpgaIpBlockConfig.pmUnitScopedName());
+}
+
+std::string PciExplorer::getRtmCtrlSysfsPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  auto expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (dirEntry.path().string().ends_with(expectedEnding)) {
+      return dirEntry.path().string();
+    }
+  }
+  throw PciSubDeviceRuntimeError(
+      fmt::format(
+          "Couldn't find RtmCtrl {} under {}",
           *fpgaIpBlockConfig.deviceName(),
           pciDevice.sysfsPath()),
       *fpgaIpBlockConfig.pmUnitScopedName());

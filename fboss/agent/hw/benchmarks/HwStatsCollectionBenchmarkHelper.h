@@ -132,13 +132,16 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
       std::min(static_cast<int>(ports.size()), numPortsToCollectStats));
 
   int maxRouteCounters = numRouteCounters;
-  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches() &&
-      checkSameAndGetAsicForTesting(
-          ensemble->getSw()->getHwAsicTable()->getL3Asics())
-              ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
-    // MT-762: counter Id 254 is preserved internally in SDK
-    // >= 24.8.3001 for EBRO
-    maxRouteCounters = 254;
+  if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
+    auto l3AsicType = checkSameAndGetAsicForTesting(
+                          ensemble->getSw()->getHwAsicTable()->getL3Asics())
+                          ->getAsicType();
+    if (l3AsicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+        l3AsicType == cfg::AsicType::ASIC_TYPE_P200) {
+      // MT-762: counter Id 254 is preserved internally in SDK
+      // >= 24.8.3001 for EBRO
+      maxRouteCounters = 254;
+    }
   }
 
   // Todo: route_counter is only enabled for ASIC_TYPE_YUBA RB role in

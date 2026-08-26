@@ -81,7 +81,10 @@ void processRemoteInterfaceRoutes(
       // deletes). Always add to toAdd so addOrReplaceRouteImpl re-points
       // the route to the correct interface.
       auto& toDel = remoteIntfRoutesToDel[remoteIntf->getRouterID()];
-      auto iter = std::find(toDel.begin(), toDel.end(), prefix);
+      auto iter = std::find_if(
+          toDel.begin(), toDel.end(), [&prefix](const auto& entry) {
+            return entry.first == prefix;
+          });
       if (iter != toDel.end()) {
         toDel.erase(iter);
         XLOG(DBG3) << "processRemoteInterfaceRoutes: add route " << prefixStr
@@ -106,11 +109,13 @@ void processRemoteInterfaceRoutes(
                    << " (" << remoteIntf->getName() << ")";
         toAdd.erase(iter);
       } else if (iter == toAdd.end()) {
-        // No pending add: schedule a delete
+        // No pending add: schedule a delete with interface ID so the RIB
+        // can verify ownership before actually removing the route.
         XLOG(DBG3) << "processRemoteInterfaceRoutes: delete route " << prefixStr
                    << " for intf " << remoteIntf->getID() << " ("
                    << remoteIntf->getName() << ")";
-        remoteIntfRoutesToDel[remoteIntf->getRouterID()].push_back(prefix);
+        remoteIntfRoutesToDel[remoteIntf->getRouterID()].emplace_back(
+            prefix, remoteIntf->getID());
       } else {
         // Pending add for different interface — the add will replace
         // the route via addOrReplaceRouteImpl, so no delete needed

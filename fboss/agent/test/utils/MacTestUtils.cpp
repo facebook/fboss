@@ -1,10 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/test/utils/MacTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss::utility {
 
@@ -14,8 +17,13 @@ void setMacAgeTimerSeconds(
   ensemble->applyNewState(
       [&](const std::shared_ptr<SwitchState>& in) {
         auto newState = in->clone();
+        HwSwitchMatcher matcher(
+            std::unordered_set<SwitchID>{
+                SwitchID(FLAGS_switch_id_for_testing)});
         auto switchSettings =
-            utility::getFirstNodeIf(newState->getSwitchSettings());
+            newState->getSwitchSettings()->getSwitchSettings(matcher);
+        CHECK(switchSettings) << "No SwitchSettings for switch under test "
+                              << FLAGS_switch_id_for_testing;
         auto newSwitchSettings = switchSettings->modify(&newState);
         newSwitchSettings->setL2AgeTimerSeconds(seconds);
         return newState;

@@ -113,7 +113,8 @@ void TransceiverPropertiesManager::initFromJson(const std::string& configJson) {
         .hostInterfaceCode = static_cast<uint8_t>(*adv.hostInterfaceCode()),
         .smfLength = props.smfLength().has_value()
             ? std::optional<int32_t>(*props.smfLength())
-            : std::nullopt};
+            : std::nullopt,
+        .maxNumBanks = adv.maxNumBanks().value_or(1)};
     self.smfDerivationMap_[smfByte].push_back(candidate);
   }
 
@@ -289,7 +290,8 @@ MediaInterfaceCode TransceiverPropertiesManager::deriveSmfCode(
     uint8_t smfByte,
     const std::vector<int>& hostStartLanes,
     uint8_t hostInterfaceCode,
-    int smfLength) {
+    int smfLength,
+    int maxNumBanks) {
   auto& self = instance();
   if (!self.initialized_) {
     throw FbossError("TransceiverPropertiesManager not initialized");
@@ -305,6 +307,9 @@ MediaInterfaceCode TransceiverPropertiesManager::deriveSmfCode(
       continue;
     }
     if (candidate.hostInterfaceCode != hostInterfaceCode) {
+      continue;
+    }
+    if (candidate.maxNumBanks != maxNumBanks) {
       continue;
     }
     if (!candidate.smfLength.has_value() || smfLength == *candidate.smfLength) {

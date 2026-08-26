@@ -75,6 +75,14 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
     const std::shared_ptr<SwitchState>& state,
     const RouteNextHopEntry& entry);
 
+// Resolve per-client nexthops from a per-client RouteNextHopEntry.
+// When FLAGS_resolve_nexthops_from_id is on, resolves via clientNextHopSetID
+// against the state's FibInfo idToNextHop map. When off, falls back to
+// entry.getNextHopSet().
+RouteNextHopSet getClientNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
 /*
  * Build a new SwitchState that has newState's non-FIB data but
  * oldState's FIB routes (and ID maps when FLAGS_enable_nexthop_id_manager

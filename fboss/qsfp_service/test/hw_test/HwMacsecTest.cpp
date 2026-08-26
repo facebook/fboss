@@ -269,7 +269,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // Verify ACLs are set up correctly
     auto aclTableHandle = aclManager.getAclTableHandle(aclName);
     EXPECT_NE(aclTableHandle, nullptr);
-    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 1);
+    auto aclEntryHandle =
+        aclManager.getAclEntryHandle(aclTableHandle, 1, aclName);
     EXPECT_NE(aclEntryHandle, nullptr);
 
     // TODO(ccpowers):
@@ -314,7 +315,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     }
 
     // Check the default data packet ACL rule action with dropUnencrypted value
-    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 4);
+    auto aclEntryHandle =
+        aclManager.getAclEntryHandle(aclTableHandle, 4, aclName);
     EXPECT_NE(aclEntryHandle, nullptr);
 
     auto aclAttrs = aclEntryHandle->aclEntry->attributes();
@@ -339,10 +341,14 @@ class HwMacsecTest : public HwExternalPhyPortTest {
 };
 
 TEST_F(HwMacsecTest, installRemoveKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -386,10 +392,14 @@ TEST_F(HwMacsecTest, installRemoveKeys) {
 }
 
 TEST_F(HwMacsecTest, rotateRxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -449,10 +459,14 @@ TEST_F(HwMacsecTest, rotateRxKeys) {
 // Verify that the RX SAK APIs are idempotent because MKA service may need
 // to retry in some cases.
 TEST_F(HwMacsecTest, idempotentRx) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -505,10 +519,14 @@ TEST_F(HwMacsecTest, idempotentRx) {
  *    removed, SAK2 is untouched
  */
 TEST_F(HwMacsecTest, updateRxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -585,10 +603,14 @@ TEST_F(HwMacsecTest, updateRxKeys) {
  * 2. Install Tx SAK3 (SC=X, AN=2, Key=W), Verify SAK3 is programmed
  */
 TEST_F(HwMacsecTest, updateTxKeys) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -638,10 +660,14 @@ TEST_F(HwMacsecTest, updateTxKeys) {
 }
 
 TEST_F(HwMacsecTest, cleanupMacsec) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -706,10 +732,14 @@ TEST_F(HwMacsecTest, cleanupMacsec) {
 }
 
 TEST_F(HwMacsecTest, verifyMacsecAclStates) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -788,13 +818,15 @@ TEST_F(HwMacsecTest, verifyMacsecAclStates) {
 }
 
 void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
+  auto xphyPorts = findAvailableXphyPorts();
+  addTestedPorts(xphyPorts);
   auto* phyMgr = getHwQsfpEnsemble()->getPhyManager();
   const auto& platPorts =
       getHwQsfpEnsemble()->getPlatformMapping()->getPlatformPorts();
   auto macGen = facebook::fboss::utility::MacAddressGenerator();
   auto sakKeyGen = facebook::fboss::utility::SakKeyHexGenerator();
   auto sakKeyIdGen = facebook::fboss::utility::SakKeyIdHexGenerator();
-  for (const auto& [port, profile] : findAvailableXphyPorts()) {
+  for (const auto& [port, profile] : xphyPorts) {
     auto platPort = platPorts.find(port);
     CHECK(platPort != platPorts.end())
         << " Could not find platform port with ID " << port;
@@ -853,9 +885,13 @@ void HwMacsecTest::rotateKeysMultiple(bool circleThroughAN) {
 }
 
 TEST_F(HwMacsecTest, rotateKeysSameAN) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   rotateKeysMultiple(false);
 }
 TEST_F(HwMacsecTest, rotateKeysDifferentAN) {
+  addVerifiedProductionFeatures(
+      {qsfp_production_features::QsfpProductionFeature::MACSEC});
   rotateKeysMultiple(true);
 }
 } // namespace facebook::fboss

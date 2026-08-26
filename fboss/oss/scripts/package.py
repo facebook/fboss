@@ -28,6 +28,7 @@ LIB_NAME_OVERRIDES = {
 # Global definitions describing what we package for each target.
 
 COMMON_LIBS = [
+    "gflags",
     "glog",
     "folly",
     "fmt-python",
@@ -41,6 +42,7 @@ FORWARDING_BINARIES = [
     "fboss2",
     "fboss2-dev",
     "fboss_hw_agent-sai_impl",
+    "fboss_pai_diag_shell_client",
     "fboss_sw_agent",
     "fsdb",
     "qsfp_service",
@@ -86,6 +88,8 @@ FORWARDING_TEST_BINARIES = [
 FORWARDING_TEST_EXTRA = {
     OSS_DIR
     / "fboss2_integration_known_bad_tests": "share/fboss2_integration_known_bad_tests",
+    OSS_DIR
+    / "fboss2_integration_unsupported_tests": "share/fboss2_integration_unsupported_tests",
     OSS_DIR / "hw_known_bad_tests": "share/hw_known_bad_tests",
     OSS_DIR / "hw_test_configs": "share/hw_test_configs",
     OSS_DIR / "link_known_bad_tests": "share/link_known_bad_tests",
@@ -112,7 +116,7 @@ PLATFORM_BINARIES = [
     "rackmon",
     "sensor_service",
     "sensor_service_client",
-    "showtech",
+    "rma-showtech",
     "weutil",
 ]
 
