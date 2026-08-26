@@ -114,6 +114,19 @@ TEST_F(CmdConfigQosQueueConfigTestFixture, negativeQueueIdFails) {
 }
 
 // Modify weight on an existing queue in defaultPortQueues
+// The SAI scheduler stores WRR weight as a uint8; the bound lives in the
+// shared applyPortQueueConfig so the qos path rejects it too, not just copp.
+TEST_F(CmdConfigQosQueueConfigTestFixture, setWeightAboveUint8Throws) {
+  setupTestableConfigSession(cmdPrefix_, "1 weight 300");
+
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
+}
+
 TEST_F(CmdConfigQosQueueConfigTestFixture, setWeightExistingQueue) {
   setupTestableConfigSession(cmdPrefix_, "1 weight 20");
 
@@ -679,6 +692,133 @@ TEST_F(CmdConfigQosQueueConfigTestFixture, defaultNameNeverCreatesNamedEntry) {
 
   EXPECT_EQ(namedQueuesInSession(utils::kDefaultQueueConfigName), nullptr)
       << "'default' must route to defaultPortQueues, not portQueueConfigs";
+}
+
+// rate-limit <kbps|pps> [<min>] <max> sets the matching branch of the
+// PortQueueRate union -- e.g. pinning a queue-per-host queue to 12.5 Gbps.
+TEST_F(CmdConfigQosQueueConfigTestFixture, setRateLimitKbps) {
+  const auto* q = runAndFind("0 rate-limit kbps 12500000 12500000", 0);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->portQueueRate().has_value());
+  ASSERT_TRUE(q->portQueueRate()->kbitsPerSec().has_value());
+  EXPECT_EQ(*q->portQueueRate()->kbitsPerSec()->minimum(), 12500000);
+  EXPECT_EQ(*q->portQueueRate()->kbitsPerSec()->maximum(), 12500000);
+  // The union holds one unit at a time.
+  EXPECT_FALSE(q->portQueueRate()->pktsPerSec().has_value());
+}
+
+TEST_F(CmdConfigQosQueueConfigTestFixture, setRateLimitPps) {
+  const auto* q = runAndFind("1 rate-limit pps 1000 50000", 1);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->portQueueRate()->pktsPerSec().has_value());
+  EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->minimum(), 1000);
+  EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->maximum(), 50000);
+}
+
+// <min> is optional: the two-token form is what `config copp queue` has always
+// accepted, and it means a zero floor rather than an error.
+TEST_F(CmdConfigQosQueueConfigTestFixture, setRateLimitMaxOnly) {
+  const auto* q = runAndFind("1 rate-limit pps 50000", 1);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->portQueueRate()->pktsPerSec().has_value());
+  EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->minimum(), 0);
+  EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->maximum(), 50000);
+}
+
+// An attribute name is never a bare integer, so the optional <min> lookahead
+// must not swallow the next attribute's keyword.
+TEST_F(CmdConfigQosQueueConfigTestFixture, rateLimitMaxOnlyFollowedByAttr) {
+  const auto* q = runAndFind("1 rate-limit pps 50000 weight 7", 1);
+  ASSERT_NE(q, nullptr);
+  EXPECT_EQ(*q->portQueueRate()->pktsPerSec()->maximum(), 50000);
+  EXPECT_EQ(*q->weight(), 7);
+}
+
+// bandwidth-burst is intentionally not offered: PortQueue carries the two
+// burst fields, but SaiSchedulerTraits::AdapterHostKey has no burst-rate
+// member, so they would never be programmed. Reject them like any unknown
+// attribute rather than accepting a setting that does nothing.
+TEST_F(CmdConfigQosQueueConfigTestFixture, bandwidthBurstIsNotAnAttribute) {
+  // The two-value form a user would reach for parses as `bandwidth-burst 1`
+  // followed by a stray `1`, and the walk rejects that for want of a value --
+  // there is no multi-token arity registered for it any more.
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"0", "bandwidth-burst", "1", "1"}),
+      std::invalid_argument);
+
+  // With a single value it parses as an ordinary pair and is rejected one
+  // layer later, by applyPortQueueConfig's unknown-attribute branch.
+  setupTestableConfigSession(cmdPrefix_, "0 bandwidth-burst 1");
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
+}
+
+// Nothing downstream re-checks the range, so an inverted one is refused here.
+TEST_F(CmdConfigQosQueueConfigTestFixture, invertedRangeFails) {
+  setupTestableConfigSession(cmdPrefix_, "0 rate-limit kbps 200 100");
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
+}
+
+TEST_F(CmdConfigQosQueueConfigTestFixture, multiTokenAttrArityFails) {
+  // rate-limit needs a unit and at least a max.
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"0", "rate-limit"}), std::invalid_argument);
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"0", "rate-limit", "kbps"}),
+      std::invalid_argument);
+}
+
+// A bad unit is rejected at apply time, naming the valid units.
+TEST_F(CmdConfigQosQueueConfigTestFixture, badRateLimitUnitFails) {
+  setupTestableConfigSession(cmdPrefix_, "0 rate-limit mbps 100");
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  utils::QueueIdAndAttributes config(getCmdArgsList());
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), kDefaultName(), config),
+      std::invalid_argument);
+}
+
+// The duplicate guard lives in the shared walk, so the qos family gets it too
+// -- it never had one of its own.
+TEST_F(CmdConfigQosQueueConfigTestFixture, duplicateAttrFails) {
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes({"0", "weight", "4", "weight", "5"}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      utils::QueueIdAndAttributes(
+          {"0", "rate-limit", "kbps", "100", "rate-limit", "pps", "50"}),
+      std::invalid_argument);
+}
+
+// name and max-dynamic-shared-bytes were the last two PortQueue fields no
+// command family could set; name used to be copp-only and reached the queue
+// through a parser hook rather than the shared applier.
+TEST_F(CmdConfigQosQueueConfigTestFixture, setNameAndMaxDynamicSharedBytes) {
+  const auto* q =
+      runAndFind("0 name queue_per_host max-dynamic-shared-bytes 20971520", 0);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->name().has_value());
+  EXPECT_EQ(*q->name(), "queue_per_host");
+  ASSERT_TRUE(q->maxDynamicSharedBytes().has_value());
+  EXPECT_EQ(*q->maxDynamicSharedBytes(), 20971520);
+}
+
+TEST_F(CmdConfigQosQueueConfigTestFixture, emptyNameFails) {
+  setupTestableConfigSession(cmdPrefix_, "0 name \"\"");
+  auto cmd = CmdConfigQosQueueConfigQueueId();
+  EXPECT_THROW(
+      cmd.queryClient(
+          localhost(),
+          kDefaultName(),
+          utils::QueueIdAndAttributes({"0", "name", ""})),
+      std::invalid_argument);
 }
 
 TEST_F(CmdConfigQosQueueConfigTestFixture, queueConfigNameValidation) {

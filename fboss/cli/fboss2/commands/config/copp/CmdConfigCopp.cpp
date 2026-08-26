@@ -15,7 +15,6 @@
 
 #include <fmt/format.h>
 #include <folly/Conv.h>
-#include <folly/String.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <cstdint>
@@ -35,12 +34,6 @@ namespace facebook::fboss {
 
 namespace {
 
-// Sub-command tokens accepted after `config copp queue <id>`.
-constexpr std::string_view kSubCmdName = "name";
-constexpr std::string_view kSubCmdRateLimit = "rate-limit";
-constexpr std::string_view kRateUnitKbps = "kbps";
-constexpr std::string_view kRateUnitPps = "pps";
-
 using copp_queue::parseQueueId;
 
 // Literal tokens accepted in
@@ -48,125 +41,20 @@ using copp_queue::parseQueueId;
 constexpr std::string_view kSubCmdQueue = "queue";
 constexpr std::string_view kSubCmdOrder = "order";
 
-int32_t parseRateMax(const std::string& s, std::string_view unit) {
-  int32_t parsed = 0;
-  try {
-    parsed = folly::to<int32_t>(s);
-  } catch (const folly::ConversionError&) {
-    throw std::invalid_argument(
-        fmt::format(
-            "rate-limit {} value must be an integer, got '{}'", unit, s));
-  }
-  if (parsed < 0) {
-    throw std::invalid_argument(
-        fmt::format(
-            "rate-limit {} value must be non-negative, got {}", unit, parsed));
-  }
-  return parsed;
-}
-
-// Find the cpuQueues[] entry with matching id, or append a fresh one.
-// A new entry uses thrift defaults (streamType=UNICAST, unset weight); this
-// is only reached when the user targets a queue id that does not exist yet
-// in the session config, which is rare in practice — platforms ship with a
-// populated cpuQueues list.
-cfg::PortQueue& findOrCreateCpuQueue(cfg::SwitchConfig& swConfig, int16_t id) {
-  auto& queues = *swConfig.cpuQueues();
-  auto it = copp_queue::findQueue(queues, id);
-  if (it != queues.end()) {
-    return *it;
-  }
-  cfg::PortQueue q;
-  q.id() = id;
-  queues.push_back(q);
-  return queues.back();
-}
-
-void applyRateLimit(
-    cfg::PortQueue& q,
-    CoppQueueArgs::RateUnit unit,
-    int32_t max) {
-  cfg::Range range;
-  range.minimum() = 0;
-  range.maximum() = max;
-  cfg::PortQueueRate rate;
-  if (unit == CoppQueueArgs::RateUnit::KBPS) {
-    rate.kbitsPerSec() = range;
-  } else {
-    rate.pktsPerSec() = range;
-  }
-  q.portQueueRate() = rate;
-}
-
-// The SAI scheduler profile carries the WRR weight as a uint8
-// (SaiSchedulerManager::makeSchedulerAttributes), so anything outside
-// [1, 255] cannot be programmed. utils::applyPortQueueConfig only checks
-// non-negativity, so enforce the CPU-queue cap here.
-constexpr int32_t kMinWrrWeight = 1;
-constexpr int32_t kMaxWrrWeight = 255;
-
 } // namespace
 
 CoppQueueArgs::CoppQueueArgs(std::vector<std::string> v) {
   if (v.empty()) {
     throw std::invalid_argument(
-        "Expected <id> [<attr> <value> ...] where <attr> is one of: "
-        "name <string>, rate-limit <kbps|pps> <max>, " +
+        "Expected <id> [<attr> <value> ...] where <attr> is one of: " +
         utils::validQueueAttrs());
   }
   queueId_ = parseQueueId(v[0], "queue");
 
-  // Same walk as utils::QueueIdAndAttributes: <attr> <value> pairs, with two
-  // copp-specific extras (name, rate-limit — the latter consumes unit + max)
-  // and active-queue-management consuming every remaining token. Attribute
-  // names destined for utils::applyPortQueueConfig are validated there.
-  for (size_t i = 1; i < v.size();) {
-    const auto& attr = v[i];
-    if (attr == "active-queue-management" || attr == "aqm") {
-      aqmAttributes_.assign(v.begin() + i + 1, v.end());
-      break;
-    }
-    if (attr == kSubCmdName) {
-      if (i + 1 >= v.size() || v[i + 1].empty()) {
-        throw std::invalid_argument("name <string> must be non-empty");
-      }
-      name_ = v[i + 1];
-      i += 2;
-      continue;
-    }
-    if (attr == kSubCmdRateLimit) {
-      if (i + 2 >= v.size()) {
-        throw std::invalid_argument(
-            fmt::format(
-                "'rate-limit' requires '{}|{}' <max>",
-                kRateUnitKbps,
-                kRateUnitPps));
-      }
-      const auto& unit = v[i + 1];
-      RateUnit rateUnit{};
-      if (unit == kRateUnitKbps) {
-        rateUnit = RateUnit::KBPS;
-      } else if (unit == kRateUnitPps) {
-        rateUnit = RateUnit::PPS;
-      } else {
-        throw std::invalid_argument(
-            fmt::format(
-                "rate-limit unit must be '{}' or '{}', got '{}'",
-                kRateUnitKbps,
-                kRateUnitPps,
-                unit));
-      }
-      rateLimit_ = {rateUnit, parseRateMax(v[i + 2], unit)};
-      i += 3;
-      continue;
-    }
-    if (i + 1 >= v.size()) {
-      throw std::invalid_argument(
-          fmt::format("Attribute '{}' requires a value.", attr));
-    }
-    attributes_.emplace_back(attr, v[i + 1]);
-    i += 2;
-  }
+  // Every token after <id> is a shared queue attribute -- copp has no
+  // vocabulary of its own here any more -- so the grammar cannot drift from
+  // `config qos queue-config`'s.
+  utils::walkQueueAttributes(v, 1, attributes_, aqmAttributes_);
 
   data_ = std::move(v);
 }
@@ -219,36 +107,41 @@ namespace {
 std::string applyCpuQueueConfig(
     cfg::SwitchConfig& swConfig,
     const CoppQueueArgs& args) {
-  auto& q = findOrCreateCpuQueue(swConfig, args.getQueueId());
-  if (!args.hasEdits()) {
-    return fmt::format("Ensured queue {} exists", args.getQueueId());
+  auto& queues = *swConfig.cpuQueues();
+  auto it = copp_queue::findQueue(queues, args.getQueueId());
+  const bool existed = it != queues.end();
+
+  // Edit a local copy; splice back only after every attribute validates, so a
+  // rejected edit cannot leave a half-built queue in the session config (same
+  // pattern as the qos queue-config commands).
+  cfg::PortQueue work;
+  if (existed) {
+    work = *it;
+  } else {
+    work.id() = args.getQueueId();
+    // The agent only programs cpuQueues entries whose streamType matches the
+    // CPU port's stream types (ApplyThriftConfig's updatePortQueues filters
+    // on it); the thrift default is UNICAST while CPU queues ship MULTICAST,
+    // so a defaulted entry would commit fine and silently never be installed.
+    // Follow the box's existing queues; MULTICAST when there are none.
+    work.streamType() = queues.empty() ? cfg::StreamType::MULTICAST
+                                       : *queues.front().streamType();
   }
-  // Apply onto a copy so a rejected attribute leaves the queue untouched
-  // (same transactional pattern as the qos queue-config commands).
-  auto work = q;
-  if (args.getName().has_value()) {
-    work.name() = *args.getName();
-  }
-  if (args.getRateLimit().has_value()) {
-    applyRateLimit(
-        work, args.getRateLimit()->first, args.getRateLimit()->second);
-  }
+
   if (!args.getAttributes().empty() || !args.getAqmAttributes().empty()) {
     utils::applyPortQueueConfig(
         work, args.getAttributes(), args.getAqmAttributes());
-    for (const auto& [attr, value] : args.getAttributes()) {
-      if (attr == "weight" &&
-          (*work.weight() < kMinWrrWeight || *work.weight() > kMaxWrrWeight)) {
-        throw std::invalid_argument(
-            fmt::format(
-                "weight must be in [{}, {}], got {}",
-                kMinWrrWeight,
-                kMaxWrrWeight,
-                *work.weight()));
-      }
-    }
   }
-  q = std::move(work);
+
+  // `it` stays valid: nothing above touches `queues`.
+  if (existed) {
+    *it = work;
+  } else {
+    queues.push_back(std::move(work));
+  }
+  if (!args.hasEdits()) {
+    return fmt::format("Ensured queue {} exists", args.getQueueId());
+  }
   // Echo the applied tokens back (everything after <id>).
   const auto tokens = args.data();
   return fmt::format(

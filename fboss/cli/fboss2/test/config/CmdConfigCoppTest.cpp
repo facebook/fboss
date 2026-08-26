@@ -8,11 +8,13 @@
  *
  */
 
+#include <folly/String.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
@@ -103,25 +105,41 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_idOnly) {
   EXPECT_FALSE(b.hasEdits());
 }
 
+// name is a shared attribute like any other now; copp keeps no vocabulary of
+// its own, so it arrives in the attribute stream rather than a dedicated field.
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_name) {
   CoppQueueArgs a({"2", "name", "cpuQueue-mid"});
   EXPECT_EQ(a.getQueueId(), 2);
-  ASSERT_TRUE(a.getName().has_value());
-  EXPECT_EQ(*a.getName(), "cpuQueue-mid");
-  EXPECT_TRUE(a.getAttributes().empty());
+  ASSERT_EQ(a.getAttributes().size(), 1);
+  EXPECT_EQ(a.getAttributes()[0].first, "name");
+  EXPECT_THAT(a.getAttributes()[0].second, ElementsAre("cpuQueue-mid"));
 }
 
+// rate-limit is no longer copp-specific: it rides the shared attribute
+// stream, so it arrives as value tokens rather than a parsed pair. The
+// two-token <unit> <max> form is the one copp shipped and must keep working.
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimit) {
   CoppQueueArgs a({"0", "rate-limit", "kbps", "1500"});
   EXPECT_EQ(a.getQueueId(), 0);
-  ASSERT_TRUE(a.getRateLimit().has_value());
-  EXPECT_EQ(a.getRateLimit()->first, CoppQueueArgs::RateUnit::KBPS);
-  EXPECT_EQ(a.getRateLimit()->second, 1500);
+  ASSERT_EQ(a.getAttributes().size(), 1);
+  EXPECT_EQ(a.getAttributes()[0].first, "rate-limit");
+  EXPECT_THAT(a.getAttributes()[0].second, ElementsAre("kbps", "1500"));
 
   CoppQueueArgs b({"1", "rate-limit", "pps", "750"});
-  ASSERT_TRUE(b.getRateLimit().has_value());
-  EXPECT_EQ(b.getRateLimit()->first, CoppQueueArgs::RateUnit::PPS);
-  EXPECT_EQ(b.getRateLimit()->second, 750);
+  ASSERT_EQ(b.getAttributes().size(), 1);
+  EXPECT_THAT(b.getAttributes()[0].second, ElementsAre("pps", "750"));
+
+  // Three-token form: <unit> <min> <max>.
+  CoppQueueArgs c({"1", "rate-limit", "kbps", "500", "1500"});
+  ASSERT_EQ(c.getAttributes().size(), 1);
+  EXPECT_THAT(c.getAttributes()[0].second, ElementsAre("kbps", "500", "1500"));
+
+  // A following attribute name is not a bare integer, so the two-token form
+  // is still recognized when another attribute trails it.
+  CoppQueueArgs d({"1", "rate-limit", "pps", "750", "weight", "4"});
+  ASSERT_EQ(d.getAttributes().size(), 2);
+  EXPECT_THAT(d.getAttributes()[0].second, ElementsAre("pps", "750"));
+  EXPECT_EQ(d.getAttributes()[1].first, "weight");
 }
 
 // Generic attributes flow through as <attr, value> pairs for
@@ -130,19 +148,18 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_genericAttributes) {
   CoppQueueArgs a({"2", "scheduling", "wrr", "weight", "4"});
   EXPECT_EQ(a.getQueueId(), 2);
   ASSERT_EQ(a.getAttributes().size(), 2);
-  EXPECT_EQ(
-      a.getAttributes()[0],
-      std::make_pair(std::string("scheduling"), std::string("wrr")));
-  EXPECT_EQ(
-      a.getAttributes()[1],
-      std::make_pair(std::string("weight"), std::string("4")));
+  EXPECT_EQ(a.getAttributes()[0].first, "scheduling");
+  EXPECT_THAT(a.getAttributes()[0].second, ElementsAre("wrr"));
+  EXPECT_EQ(a.getAttributes()[1].first, "weight");
+  EXPECT_THAT(a.getAttributes()[1].second, ElementsAre("4"));
 
-  // name/rate-limit combine with generic attributes in one invocation.
+  // Attributes combine in one invocation, name included.
   CoppQueueArgs b(
       {"2", "name", "q2", "rate-limit", "pps", "100", "weight", "8"});
-  EXPECT_TRUE(b.getName().has_value());
-  EXPECT_TRUE(b.getRateLimit().has_value());
-  ASSERT_EQ(b.getAttributes().size(), 1);
+  ASSERT_EQ(b.getAttributes().size(), 3);
+  EXPECT_EQ(b.getAttributes()[0].first, "name");
+  EXPECT_EQ(b.getAttributes()[1].first, "rate-limit");
+  EXPECT_EQ(b.getAttributes()[2].first, "weight");
 
   CoppQueueArgs c(
       {"2", "aqm", "congestion-behavior", "ECN", "detection", "linear"});
@@ -165,13 +182,28 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badValues) {
   EXPECT_THROW(CoppQueueArgs({"abc"}), std::invalid_argument);
   EXPECT_THROW(CoppQueueArgs({"-1"}), std::invalid_argument);
   EXPECT_THROW(CoppQueueArgs({"999"}), std::invalid_argument);
-  EXPECT_THROW(CoppQueueArgs({"0", "name", ""}), std::invalid_argument);
-  EXPECT_THROW(
-      CoppQueueArgs({"0", "rate-limit", "kbps", "abc"}), std::invalid_argument);
-  EXPECT_THROW(
-      CoppQueueArgs({"0", "rate-limit", "pps", "-5"}), std::invalid_argument);
-  EXPECT_THROW(
-      CoppQueueArgs({"0", "rate-limit", "mbps", "100"}), std::invalid_argument);
+}
+
+// rate-limit is a shared attribute now, so its values are checked where every
+// other attribute's are -- in utils::applyPortQueueConfig, one layer later
+// than copp's old bespoke parser did it. Same rejection, same exception type;
+// only the layer moved.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_badRateLimitValues) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "0 rate-limit kbps 1");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
+  // Non-numeric, negative, unknown unit, inverted range, empty name.
+  for (const std::vector<std::string>& args :
+       {std::vector<std::string>{"0", "rate-limit", "kbps", "abc"},
+        std::vector<std::string>{"0", "rate-limit", "pps", "-5"},
+        std::vector<std::string>{"0", "rate-limit", "mbps", "100"},
+        std::vector<std::string>{"0", "rate-limit", "kbps", "200", "100"},
+        std::vector<std::string>{"0", "name", ""}}) {
+    EXPECT_THROW(
+        cmd.queryClient(hostInfo, CoppQueueArgs(args)), std::invalid_argument)
+        << folly::join(" ", args);
+  }
 }
 
 // =============================================================
@@ -338,6 +370,38 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setSchedulingAndWeight) {
   EXPECT_EQ(q->name(), "cpuQueue-mid");
 }
 
+// A CPU queue reaches the shared helper like any other, so the shaping
+// attributes land on cpuQueues without copp knowing anything about them.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitMinMax) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "2 rate-limit kbps 1000 5000");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+  CoppQueueArgs args({"2", "rate-limit", "kbps", "1000", "5000"});
+
+  cmd.queryClient(hostInfo, args);
+
+  const auto* q = findQueue(2);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->portQueueRate()->kbitsPerSec().has_value());
+  EXPECT_EQ(*q->portQueueRate()->kbitsPerSec()->minimum(), 1000);
+  EXPECT_EQ(*q->portQueueRate()->kbitsPerSec()->maximum(), 5000);
+}
+
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_setMaxDynamicSharedBytes) {
+  setupTestableConfigSession(
+      cpuQueueCmdPrefix_, "2 max-dynamic-shared-bytes 20971520");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
+  cmd.queryClient(
+      hostInfo, CoppQueueArgs({"2", "max-dynamic-shared-bytes", "20971520"}));
+
+  const auto* q = findQueue(2);
+  ASSERT_NE(q, nullptr);
+  ASSERT_TRUE(q->maxDynamicSharedBytes().has_value());
+  EXPECT_EQ(*q->maxDynamicSharedBytes(), 20971520);
+}
+
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setReservedBytes) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "2 reserved-bytes 3000");
   CmdConfigCoppQueue cmd;
@@ -352,8 +416,9 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setReservedBytes) {
   EXPECT_EQ(*q->reservedBytes(), 3000);
 }
 
-// Weight outside the SAI uint8 range must be refused at apply time; the
-// shared qos helper only checks non-negativity.
+// Weight above the SAI uint8 range is refused inside the shared helper, so
+// every caller gets the bound. Weight 0 is legal: SAI coerces it to 1 and
+// shipped configs may carry it, so a set/restore round-trip must accept it.
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_weightOutOfRange) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "2 weight 256");
   CmdConfigCoppQueue cmd;
@@ -362,8 +427,65 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_weightOutOfRange) {
   EXPECT_THROW(
       cmd.queryClient(hostInfo, CoppQueueArgs({"2", "weight", "256"})),
       std::invalid_argument);
+
+  cmd.queryClient(hostInfo, CoppQueueArgs({"2", "weight", "0"}));
+  const auto* q = findQueue(2);
+  ASSERT_NE(q, nullptr);
+  EXPECT_EQ(*q->weight(), 0);
+}
+
+// A queue created by the CLI must be programmable: the agent filters
+// cpuQueues by streamType, so a new entry follows the box's existing queues
+// instead of the thrift default (UNICAST), which would silently never be
+// installed.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_createSeedsStreamType) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "11 weight 3");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
+  cmd.queryClient(hostInfo, CoppQueueArgs({"11", "weight", "3"}));
+
+  const auto* q = findQueue(11);
+  ASSERT_NE(q, nullptr);
+  const auto* sibling = findQueue(2);
+  ASSERT_NE(sibling, nullptr);
+  EXPECT_EQ(*q->streamType(), *sibling->streamType());
+}
+
+// A rejected attribute must not leave a half-built queue behind: the create
+// and the edit are one transaction.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_rejectedCreateLeavesNoPhantom) {
+  setupTestableConfigSession(cpuQueueCmdPrefix_, "12 weight 999");
+  CmdConfigCoppQueue cmd;
+  HostInfo hostInfo("testhost");
+
   EXPECT_THROW(
-      cmd.queryClient(hostInfo, CoppQueueArgs({"2", "weight", "0"})),
+      cmd.queryClient(hostInfo, CoppQueueArgs({"12", "weight", "999"})),
+      std::invalid_argument);
+  EXPECT_EQ(findQueue(12), nullptr);
+}
+
+// A trailing bare aqm keyword must be an error, not a silent success that
+// saves the session having applied nothing.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_bareAqmThrows) {
+  EXPECT_THROW(CoppQueueArgs({"2", "aqm"}), std::invalid_argument);
+  EXPECT_THROW(
+      CoppQueueArgs({"2", "name", "q2", "active-queue-management"}),
+      std::invalid_argument);
+}
+
+// Repeated attributes would be last-wins while the echo message claims both
+// applied, so the shared utils::walkQueueAttributes guard refuses them --
+// `name` included, now that it is an ordinary attribute.
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_duplicateNameOrRateLimitThrows) {
+  EXPECT_THROW(
+      CoppQueueArgs({"2", "name", "a", "name", "b"}), std::invalid_argument);
+  EXPECT_THROW(
+      CoppQueueArgs(
+          {"2", "rate-limit", "kbps", "100", "rate-limit", "pps", "50"}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      CoppQueueArgs({"2", "weight", "4", "weight", "5"}),
       std::invalid_argument);
 }
 

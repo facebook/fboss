@@ -21,11 +21,19 @@
 #include <map>
 #include <optional>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 namespace facebook::fboss::utils {
 
 namespace {
+
+// The one attribute that takes more than a single value token.
+constexpr std::string_view kAttrRateLimit = "rate-limit";
+constexpr std::string_view kRateUnitKbps = "kbps";
+constexpr std::string_view kRateUnitPps = "pps";
 
 // Uppercase and turn dashes into underscores so users can type
 // "strict-priority" for the thrift enum STRICT_PRIORITY.
@@ -77,6 +85,82 @@ int32_t parseNonNegativeInt(const std::string& attr, const std::string& value) {
         fmt::format("{} must be non-negative, got: {}", attr, value));
   }
   return parsed.value();
+}
+
+// How many value tokens the attribute at v[i] consumes. rate-limit's <min> is
+// optional -- `rate-limit <unit> <max>` is the form `config copp queue`
+// shipped and still accepts -- so the choice between two and three is made by
+// lookahead. No attribute name is a bare integer, which is what makes
+// "the token after <max> parses as an integer" an unambiguous test for the
+// three-token form.
+size_t attrValueCount(const std::vector<std::string>& v, size_t i) {
+  const auto& attr = v[i];
+  if (attr == kAttrRateLimit) {
+    return (i + 3 < v.size() && folly::tryTo<int32_t>(v[i + 3]).hasValue()) ? 3
+                                                                            : 2;
+  }
+  return 1;
+}
+
+// Message for an attribute whose value tokens ran out, naming the shape
+// rate-limit expects rather than the generic "requires a value".
+std::string attrArityError(const std::string& attr) {
+  if (attr == kAttrRateLimit) {
+    return fmt::format(
+        "'{}' requires <{}|{}> [<min>] <max>",
+        kAttrRateLimit,
+        kRateUnitKbps,
+        kRateUnitPps);
+  }
+  return fmt::format("Attribute '{}' requires a value.", attr);
+}
+
+// Parses a <min> <max> pair, rejecting an inverted range: nothing downstream
+// re-checks it, so the agent would hand it to the ASIC as given.
+cfg::Range parseRange(
+    const std::string& attr,
+    const std::string& minToken,
+    const std::string& maxToken) {
+  cfg::Range range;
+  range.minimum() = parseNonNegativeInt(attr, minToken);
+  range.maximum() = parseNonNegativeInt(attr, maxToken);
+  if (*range.minimum() > *range.maximum()) {
+    throw std::invalid_argument(
+        fmt::format(
+            "{} minimum ({}) must not exceed maximum ({})",
+            attr,
+            *range.minimum(),
+            *range.maximum()));
+  }
+  return range;
+}
+
+// rate-limit <kbps|pps> [<min>] <max> -> PortQueue.portQueueRate. The thrift
+// field is a union, so setting one unit clears a rate previously configured in
+// the other rather than leaving two conflicting rates behind. An omitted <min>
+// means 0.
+void applyRateLimit(
+    cfg::PortQueue& queue,
+    const std::vector<std::string>& values) {
+  const auto& unit = values[0];
+  if (unit != kRateUnitKbps && unit != kRateUnitPps) {
+    throw std::invalid_argument(
+        fmt::format(
+            "rate-limit unit must be '{}' or '{}', got '{}'",
+            kRateUnitKbps,
+            kRateUnitPps,
+            unit));
+  }
+  const auto attrLabel = fmt::format("{} {}", kAttrRateLimit, unit);
+  auto range = values.size() == 3 ? parseRange(attrLabel, values[1], values[2])
+                                  : parseRange(attrLabel, "0", values[1]);
+  cfg::PortQueueRate rate;
+  if (unit == kRateUnitKbps) {
+    rate.kbitsPerSec() = range;
+  } else {
+    rate.pktsPerSec() = range;
+  }
+  queue.portQueueRate() = rate;
 }
 
 using LinearSetter = void (*)(cfg::LinearQueueCongestionDetection&, int32_t);
@@ -233,9 +317,48 @@ cfg::ActiveQueueManagement& selectOrCreateAqm(
 
 const std::string& validQueueAttrs() {
   static const std::string kAttrs =
-      "reserved-bytes, shared-bytes, weight, scaling-factor, scheduling, "
-      "stream-type, buffer-pool-name, active-queue-management";
+      "name, reserved-bytes, shared-bytes, max-dynamic-shared-bytes, "
+      "weight, scaling-factor, scheduling, stream-type, buffer-pool-name, "
+      "rate-limit, active-queue-management";
   return kAttrs;
+}
+
+void walkQueueAttributes(
+    const std::vector<std::string>& v,
+    size_t begin,
+    std::vector<std::pair<std::string, std::vector<std::string>>>& attributes,
+    std::vector<std::string>& aqmAttributes) {
+  for (size_t i = begin; i < v.size();) {
+    const auto& attr = v[i];
+    if (attr == "active-queue-management" || attr == "aqm") {
+      // Everything after the keyword is the AQM sub-arg stream; an empty tail
+      // would otherwise parse as "no edit" and silently succeed.
+      if (i + 1 >= v.size()) {
+        throw std::invalid_argument(
+            "active-queue-management requires sub-attributes");
+      }
+      aqmAttributes.assign(v.begin() + i + 1, v.end());
+      break;
+    }
+    const size_t count = attrValueCount(v, i);
+    if (i + count >= v.size()) {
+      throw std::invalid_argument(attrArityError(attr));
+    }
+    // A repeated attribute is last-wins, and the commands echo every token
+    // back as if all of them applied. Refuse it rather than lie.
+    const bool seen = std::any_of(
+        attributes.begin(), attributes.end(), [&attr](const auto& kv) {
+          return kv.first == attr;
+        });
+    if (seen) {
+      throw std::invalid_argument(
+          fmt::format("'{}' given more than once", attr));
+    }
+    attributes.emplace_back(
+        attr,
+        std::vector<std::string>(v.begin() + i + 1, v.begin() + i + 1 + count));
+    i += 1 + count;
+  }
 }
 
 QueueIdAndAttributes::QueueIdAndAttributes(std::vector<std::string> v) {
@@ -258,52 +381,49 @@ QueueIdAndAttributes::QueueIdAndAttributes(std::vector<std::string> v) {
   }
   data_.push_back(v[0]);
 
-  // Parse the remaining arguments. Most attributes are simple key-value pairs,
-  // but "active-queue-management" has nested sub-attributes that consume all
-  // remaining arguments.
-  for (size_t i = 1; i < v.size();) {
-    const auto& attr = v[i];
-    data_.push_back(attr);
-
-    if (attr == "active-queue-management" || attr == "aqm") {
-      // Everything after "active-queue-management" is part of the AQM config
-      std::vector<std::string> aqmArgs;
-      for (size_t j = i + 1; j < v.size(); ++j) {
-        aqmArgs.push_back(v[j]);
-        data_.push_back(v[j]);
-      }
-      aqmAttributes_ = std::move(aqmArgs);
-      break; // AQM consumes all remaining arguments
-    }
-
-    // Regular key-value pair
-    if (i + 1 >= v.size()) {
-      throw std::invalid_argument(
-          fmt::format("Attribute '{}' requires a value.", attr));
-    }
-    const auto& value = v[i + 1];
-    attributes_.emplace_back(attr, value);
-    data_.push_back(value);
-    i += 2;
-  }
+  walkQueueAttributes(v, 1, attributes_, aqmAttributes_);
+  // data_ already holds v[0]; the walk validated the rest, echo them in order.
+  data_.insert(data_.end(), v.begin() + 1, v.end());
 }
 
 void applyPortQueueConfig(
     cfg::PortQueue& queue,
-    const std::vector<std::pair<std::string, std::string>>& attributes,
+    const std::vector<std::pair<std::string, std::vector<std::string>>>&
+        attributes,
     const std::vector<std::string>& aqmArgs) {
   if (attributes.empty() && aqmArgs.empty()) {
     throw std::invalid_argument(
         "At least one attribute is required: " + validQueueAttrs());
   }
 
-  for (const auto& [attr, value] : attributes) {
-    if (attr == "reserved-bytes") {
+  for (const auto& [attr, values] : attributes) {
+    // Scalar attributes take exactly one value token -- the parser enforces
+    // the per-attribute count -- while the multi-token ones read `values`
+    // whole.
+    const auto& value = values.front();
+    if (attr == "name") {
+      if (value.empty()) {
+        throw std::invalid_argument("name <string> must be non-empty");
+      }
+      queue.name() = value;
+    } else if (attr == "reserved-bytes") {
       queue.reservedBytes() = parseNonNegativeInt(attr, value);
     } else if (attr == "shared-bytes") {
       queue.sharedBytes() = parseNonNegativeInt(attr, value);
+    } else if (attr == "max-dynamic-shared-bytes") {
+      // The dynamic counterpart of shared-bytes, used when scaling-factor
+      // (alpha) drives the threshold rather than a static byte count.
+      queue.maxDynamicSharedBytes() = parseNonNegativeInt(attr, value);
     } else if (attr == "weight") {
-      queue.weight() = parseNonNegativeInt(attr, value);
+      auto weight = parseNonNegativeInt(attr, value);
+      // The SAI scheduler profile stores the WRR weight as a uint8
+      // (SaiSchedulerManager::makeSchedulerAttributes) and coerces 0 to 1, so
+      // anything above 255 would silently truncate at apply time.
+      if (weight > 255) {
+        throw std::invalid_argument(
+            fmt::format("weight must be in [0, 255], got {}", weight));
+      }
+      queue.weight() = weight;
     } else if (attr == "scaling-factor") {
       queue.scalingFactor() =
           parseThriftEnum<cfg::MMUScalingFactor>(attr, value);
@@ -319,6 +439,8 @@ void applyPortQueueConfig(
       queue.streamType() = parseThriftEnum<cfg::StreamType>(attr, value);
     } else if (attr == "buffer-pool-name") {
       queue.bufferPoolName() = value;
+    } else if (attr == kAttrRateLimit) {
+      applyRateLimit(queue, values);
     } else {
       throw std::invalid_argument(
           "Unknown attribute: '" + attr +

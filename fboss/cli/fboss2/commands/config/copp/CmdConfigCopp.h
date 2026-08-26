@@ -22,26 +22,27 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/cli/fboss2/utils/PortQueueConfigUtils.h"
 
 namespace facebook::fboss {
 
 // Argument for `config copp queue <id> [<attr> <value> ...]`.
 //
 // Accepted forms (validated by CoppQueueArgs):
-//   <id>                        -> ensure queue <id> exists
-//   <id> name <string>          -> set name
-//   <id> rate-limit kbps <max>  -> set max bandwidth in kbps
-//   <id> rate-limit pps <max>   -> set max packet rate in pps
-//   <id> <attr> <value> [...]   -> any cfg::PortQueue attribute accepted by
-//                                  utils::applyPortQueueConfig (see
-//                                  utils::validQueueAttrs()): reserved-bytes,
-//                                  shared-bytes, weight, scaling-factor,
-//                                  scheduling, stream-type, buffer-pool-name,
-//                                  active-queue-management ...
+//   <id>                         -> ensure queue <id> exists
+//   <id> <attr> <value...> [...] -> any cfg::PortQueue attribute accepted by
+//                                   utils::applyPortQueueConfig (see
+//                                   utils::validQueueAttrs()): name,
+//                                   reserved-bytes, shared-bytes,
+//                                   max-dynamic-shared-bytes, weight,
+//                                   scaling-factor, scheduling, stream-type,
+//                                   buffer-pool-name, rate-limit,
+//                                   active-queue-management
 //
 // Attributes may be combined in a single invocation. active-queue-management
-// consumes all remaining tokens (same grammar as
-// `config qos queue-config <name>`).
+// consumes all remaining tokens, and rate-limit takes several value tokens.
+// This is the same grammar as `config qos queue-config <name>`, parsed and
+// applied by the same code -- copp keeps no queue vocabulary of its own.
 //
 // The accepted integer range for <id> is 0..255 (CPU queue IDs are a small,
 // platform-bounded set; the exact cap depends on the ASIC via
@@ -49,8 +50,6 @@ namespace facebook::fboss {
 // applyCpuQueueConfig() so error messages can name the specific attribute.
 class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
  public:
-  enum class RateUnit { KBPS, PPS };
-
   /* implicit */ CoppQueueArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
@@ -58,17 +57,9 @@ class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
     return queueId_;
   }
 
-  const std::optional<std::string>& getName() const {
-    return name_;
-  }
-
-  const std::optional<std::pair<RateUnit, int32_t>>& getRateLimit() const {
-    return rateLimit_;
-  }
-
-  // <attr, value> pairs destined for utils::applyPortQueueConfig.
-  const std::vector<std::pair<std::string, std::string>>& getAttributes()
-      const {
+  // <attr, value tokens> destined for utils::applyPortQueueConfig.
+  const std::vector<std::pair<std::string, std::vector<std::string>>>&
+  getAttributes() const {
     return attributes_;
   }
 
@@ -78,15 +69,12 @@ class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
   }
 
   bool hasEdits() const {
-    return name_.has_value() || rateLimit_.has_value() ||
-        !attributes_.empty() || !aqmAttributes_.empty();
+    return !attributes_.empty() || !aqmAttributes_.empty();
   }
 
  private:
   int16_t queueId_ = 0;
-  std::optional<std::string> name_;
-  std::optional<std::pair<RateUnit, int32_t>> rateLimit_;
-  std::vector<std::pair<std::string, std::string>> attributes_;
+  std::vector<std::pair<std::string, std::vector<std::string>>> attributes_;
   std::vector<std::string> aqmAttributes_;
 };
 
@@ -153,13 +141,21 @@ struct CmdConfigCoppQueueTraits : public WriteCommandTraits {
   using ObjectArgType = CoppQueueArgs;
   using RetType = std::string;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    // required() + expected() keeps CLI11 routing positionals to this option
+    // instead of reclassifying them as sibling `config <x>` subcommands (see
+    // the CmdConfigCoppReasonTraits comment). Only the first `min` tokens are
+    // shielded, so a *value* that spells a sibling name past token 1 (e.g.
+    // `queue 1 name arp`) can still be hijacked -- an accepted limitation of
+    // this variable-length grammar; pick queue names that are not fboss2
+    // command words.
     cmd.add_option(
-        "copp_queue_config",
-        args,
-        "<id> [<attr> <value> ...] where <attr> is one of: "
-        "name <string>, rate-limit <kbps|pps> <max>, reserved-bytes, "
-        "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
-        "buffer-pool-name, active-queue-management ...");
+           "copp_queue_config",
+           args,
+           "<id> [<attr> <value> ...] where <attr> is one of: "
+           "name <string>, rate-limit <kbps|pps> <max>, " +
+               utils::validQueueAttrs())
+        ->required()
+        ->expected(1, 64);
   }
 };
 

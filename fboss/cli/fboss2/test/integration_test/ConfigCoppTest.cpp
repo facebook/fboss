@@ -160,6 +160,12 @@ TEST_F(ConfigCoppTest, CpuQueueSetName) {
   }
 }
 
+// Proves copp's rate-limit still reaches cpuQueues now that the parsing moved
+// into utils::applyPortQueueConfig. Only the two-token <unit> <max> form is
+// exercised here: the CLI has no unset, so a test writing a minimum could not
+// restore it. The three-token form's hardware round-trip is covered by
+// ConfigPortQueueConfigTest.QueueConfigCreateShapeAndDelete, which builds a
+// throwaway named queue-config and deletes it afterwards.
 TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
   // Low-priority queues (id 0 and 1) are typically pps-rate-limited in
   // production configs — find one that has an existing pps cap to minimize
@@ -257,54 +263,18 @@ TEST_F(ConfigCoppTest, ReasonToQueueUpdate) {
   EXPECT_EQ(findReasonQueueId(kArpReason), originalQueueId);
 }
 
-// scheduling <sp|wrr>: flip the discipline of an existing queue and restore.
-// The running config serializes cfg::QueueScheduling as an integer
-// (WEIGHTED_ROUND_ROBIN = 0, STRICT_PRIORITY = 1).
-TEST_F(ConfigCoppTest, CpuQueueSetScheduling) {
-  int id = getFirstExistingQueueId();
-  auto before = findQueue(id);
-  ASSERT_FALSE(before.isNull());
-  ASSERT_TRUE(before.count("scheduling"));
-  const int originalScheduling = before["scheduling"].asInt();
-  const bool originalIsWrr = originalScheduling == 0;
-  const std::string newToken = originalIsWrr ? "sp" : "wrr";
-  const int expectedNew = originalIsWrr ? 1 : 0;
-
-  XLOG(INFO) << "queue " << id << " scheduling " << newToken << " (was "
-             << originalScheduling << ")";
-  auto result = runCli(
-      {"config", "copp", "queue", std::to_string(id), "scheduling", newToken});
-  ASSERT_EQ(result.exitCode, 0)
-      << "stdout=" << result.stdout << " stderr=" << result.stderr;
-  commitConfig();
-
-  auto after = findQueue(id);
-  ASSERT_FALSE(after.isNull());
-  EXPECT_EQ(after["scheduling"].asInt(), expectedNew);
-
-  const std::string restoreToken = originalIsWrr ? "wrr" : "sp";
-  XLOG(INFO) << "Restoring scheduling to " << restoreToken;
-  result = runCli(
-      {"config",
-       "copp",
-       "queue",
-       std::to_string(id),
-       "scheduling",
-       restoreToken});
-  ASSERT_EQ(result.exitCode, 0) << result.stderr;
-  commitConfig();
-  EXPECT_EQ(findQueue(id)["scheduling"].asInt(), originalScheduling);
-}
-
-// weight <n>: weight only matters for WRR queues, and shipped configs may
-// run every CPU queue as strict-priority with no weight at all. Make the
-// queue WRR first, set a weight, verify, then restore the original
-// scheduling (and weight, when the queue had one). A weight left behind on
-// a strict-priority queue is ignored by the agent (see the PortQueue.weight
-// comment in switch_config.thrift), and the CLI has no way to unset it.
-// Both edits ride in one invocation — the command applies attribute pairs
-// left to right.
-TEST_F(ConfigCoppTest, CpuQueueSetWeight) {
+// scheduling <sp|wrr> and weight <n> ride the same code path
+// (utils::applyPortQueueConfig), so one queue walks through both disciplines
+// here rather than paying a separate read-modify-restore cycle per attribute.
+//
+// Shipped configs may run every CPU queue as strict-priority with no weight
+// field at all, so the test cannot assume a starting discipline: it forces WRR
+// and sets a weight, then forces SP, then restores whatever was there. A
+// weight left behind on a strict-priority queue is ignored by the agent (see
+// the PortQueue.weight comment in switch_config.thrift), and the CLI has no
+// way to unset it. The running config serializes cfg::QueueScheduling as an
+// integer (WEIGHTED_ROUND_ROBIN = 0, STRICT_PRIORITY = 1).
+TEST_F(ConfigCoppTest, CpuQueueSetSchedulingAndWeight) {
   int id = getFirstExistingQueueId();
   auto before = findQueue(id);
   ASSERT_FALSE(before.isNull());
@@ -320,6 +290,8 @@ TEST_F(ConfigCoppTest, CpuQueueSetWeight) {
              << (originalWeight.has_value() ? std::to_string(*originalWeight)
                                             : "unset")
              << ")";
+  // Both edits ride in one invocation -- the command applies attribute pairs
+  // left to right.
   auto result = runCli(
       {"config",
        "copp",
@@ -338,6 +310,16 @@ TEST_F(ConfigCoppTest, CpuQueueSetWeight) {
   EXPECT_EQ(after["scheduling"].asInt(), 0); // WEIGHTED_ROUND_ROBIN
   ASSERT_TRUE(after.count("weight"));
   EXPECT_EQ(after["weight"].asInt(), newWeight);
+
+  XLOG(INFO) << "queue " << id << " scheduling sp";
+  result = runCli(
+      {"config", "copp", "queue", std::to_string(id), "scheduling", "sp"});
+  ASSERT_EQ(result.exitCode, 0) << result.stderr;
+  commitConfig();
+
+  after = findQueue(id);
+  ASSERT_FALSE(after.isNull());
+  EXPECT_EQ(after["scheduling"].asInt(), 1); // STRICT_PRIORITY
 
   XLOG(INFO) << "Restoring scheduling " << originalScheduling << " and weight";
   if (originalWeight.has_value()) {
