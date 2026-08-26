@@ -662,34 +662,10 @@
           "pmUnitScopedName": "SCM_LTC2980_0X64"
         },
         {
-          "busName": "MCB_MUX_B@0",
-          "address": "0x14",
-          "kernelDeviceName": "ltc2497",
-          "pmUnitScopedName": "SCM_LTC2497_0X14"
-        },
-        {
           "busName": "MCB_MUX_B@1",
           "address": "0x4c",
           "kernelDeviceName": "bp4c_tmp451",
           "pmUnitScopedName": "SCM_TMP451_0X4C"
-        },
-        {
-          "busName": "MCB_MUX_B@2",
-          "address": "0x62",
-          "kernelDeviceName": "tps53688",
-          "pmUnitScopedName": "SCM_TPS53688_0X62"
-        },
-        {
-          "busName": "MCB_MUX_B@2",
-          "address": "0x63",
-          "kernelDeviceName": "tps53688",
-          "pmUnitScopedName": "SCM_TPS53688_0X63"
-        },
-        {
-          "busName": "MCB_MUX_B@2",
-          "address": "0x66",
-          "kernelDeviceName": "tps53688",
-          "pmUnitScopedName": "SCM_TPS53688_0X66"
         }
       ],
       "outgoingSlotConfigs": {
@@ -701,10 +677,6 @@
         }
       },
       "embeddedSensorConfigs": [
-        {
-          "pmUnitScopedName": "CPU_CORE_TEMP",
-          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
-        },
         {
           "pmUnitScopedName": "NVME",
           "sysfsPath": "/sys/class/nvme/nvme0"
@@ -977,12 +949,6 @@
           "address": "0x72",
           "kernelDeviceName": "raa228238ac",
           "pmUnitScopedName": "SMB_RAA228238_0X72"
-        },
-        {
-          "busName": "SMB_DOM1_I2C_NPU_1",
-          "address": "0x2a",
-          "kernelDeviceName": "cisco_npu_temp",
-          "pmUnitScopedName": "SMB_NPU_TEMP_0X2A"
         }
       ]
     }
@@ -1028,16 +994,11 @@
     "/run/devmap/sensors/FCB0_LTC2497_0X4C": "/FCB_SLOT@0/[FCB0_LTC2497_0X4C]",
     "/run/devmap/sensors/FCB1_LTC2497_0X4C": "/FCB_SLOT@0/[FCB1_LTC2497_0X4C]",
     "/run/devmap/sensors/MCB_FAN_PWM": "/[MCB_FAN_PWM]",
-    "/run/devmap/sensors/SCM_LTC2497_0X14": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2497_0X14]",
     "/run/devmap/sensors/SCM_TMP451_0X4C": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TMP451_0X4C]",
     "/run/devmap/sensors/SCM_ADT75_0X49": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_ADT75_0X49]",
     "/run/devmap/sensors/SCM_LTC2980_0X62": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2980_0X62]",
     "/run/devmap/sensors/SCM_LTC2980_0X63": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2980_0X63]",
     "/run/devmap/sensors/SCM_LTC2980_0X64": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2980_0X64]",
-    "/run/devmap/sensors/SCM_TPS53688_0X62": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TPS53688_0X62]",
-    "/run/devmap/sensors/SCM_TPS53688_0X63": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TPS53688_0X63]",
-    "/run/devmap/sensors/SCM_TPS53688_0X66": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_TPS53688_0X66]",
-    "/run/devmap/sensors/CPU_CORE_TEMP": "/JUMPER_SLOT@0/SCM_SLOT@0/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/NVME": "/JUMPER_SLOT@0/SCM_SLOT@0/[NVME]",
     "/run/devmap/sensors/PDB0_PSU_0X58": "/PSU_SLOT@0/[PDB_PSU_0X58]",
     "/run/devmap/sensors/PDB1_PSU_0X58": "/PSU_SLOT@1/[PDB_PSU_0X58]",
@@ -1058,7 +1019,6 @@
     "/run/devmap/sensors/SMB_LTC2979_0X5F": "/SMB_SLOT@0/[SMB_LTC2979_0X5F]",
     "/run/devmap/sensors/SMB_RAA228238_0X60": "/SMB_SLOT@0/[SMB_RAA228238_0X60]",
     "/run/devmap/sensors/SMB_RAA228238_0X72": "/SMB_SLOT@0/[SMB_RAA228238_0X72]",
-    "/run/devmap/sensors/SMB_NPU_TEMP_0X2A": "/SMB_SLOT@0/[SMB_NPU_TEMP_0X2A]",
     "/run/devmap/gpiochips/SCM_FPGA_GPIO1": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA_GPIO_1]",
     "/run/devmap/gpiochips/MCB_FPGA_GPIO1": "/[MCB_IOB_GPIO]",
     "/run/devmap/gpiochips/MCB_FPGA_GPIO2": "/[MCB_MCB_GPIO]",
@@ -1198,7 +1158,7 @@
   },
   "chassisEepromDevicePath": "/FCB_SLOT@0/[CHASSIS_EEPROM]",
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "1.0.16-1",
+  "bspKmodsRpmVersion": "3.0.6-1",
   "numXcvrs": 65,
   "nonBspKmodsToLoad": [
     "spidev",
