@@ -10,6 +10,7 @@
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
@@ -29,7 +30,6 @@
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/leh800bcls/Leh800bclsPlatformMapping.h"
-#include "fboss/agent/platforms/common/m4062nhp/M4062nhpPlatformMapping.h"
 #include "fboss/agent/platforms/common/m5120csc/M5120CSCPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
@@ -210,13 +210,16 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Icecube800banwPlatformMapping>()
           : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_M4062NHP:
     case PlatformType::PLATFORM_WEDGE800BACT:
     case PlatformType::PLATFORM_WEDGE800BNHP:
-      // Wedge800BACT/Wedge800BNHP no longer ship a compiled-in platform
-      // mapping. The mapping must be provided externally via
-      // --platform_descriptor_config_path or --platform_mapping_override_path.
+      // These platforms ship no compiled-in platform mapping. The mapping
+      // must be provided externally via --platform_descriptor_config_path or
+      // --platform_mapping_override_path.
       throw FbossError(
-          "Wedge800BACT/Wedge800BNHP requires an external platform mapping; ",
+          "Platform ",
+          apache::thrift::util::enumNameSafe(type),
+          " requires an external platform mapping; ",
           "set --platform_descriptor_config_path or ",
           "--platform_mapping_override_path");
     case PlatformType::PLATFORM_ICETEA800BC:
@@ -261,10 +264,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Yangra2PlatformMapping>()
           : std::make_unique<Yangra2PlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_M4062NHP:
-      return platformMappingStr.empty()
-          ? std::make_unique<M4062nhpPlatformMapping>()
-          : std::make_unique<M4062nhpPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);
