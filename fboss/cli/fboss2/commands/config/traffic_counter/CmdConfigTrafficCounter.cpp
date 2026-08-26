@@ -14,6 +14,7 @@
 
 #include <fmt/format.h>
 #include <folly/String.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>
 #include <iostream>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -21,18 +22,20 @@
 namespace facebook::fboss {
 
 namespace {
-// Accepted spellings of cfg::CounterType, matched case insensitively.
-constexpr std::string_view kTypePackets = "packets";
-constexpr std::string_view kTypeBytes = "bytes";
-constexpr std::string_view kTypeList = "PACKETS,BYTES";
+// Every cfg::CounterType spelling the CLI accepts, matched case insensitively.
+std::string validTypeList() {
+  std::vector<std::string> names;
+  for (auto type : apache::thrift::TEnumTraits<cfg::CounterType>::values) {
+    names.push_back(apache::thrift::util::enumNameSafe(type));
+  }
+  return folly::join(",", names);
+}
 
 std::string typesToString(const std::vector<cfg::CounterType>& types) {
   std::vector<std::string> names;
   names.reserve(types.size());
   for (auto type : types) {
-    names.push_back(
-        type == cfg::CounterType::BYTES ? std::string("BYTES")
-                                        : std::string("PACKETS"));
+    names.push_back(apache::thrift::util::enumNameSafe(type));
   }
   return folly::join(",", names);
 }
@@ -43,7 +46,7 @@ TrafficCounterArg::TrafficCounterArg(std::vector<std::string> v) {
     throw std::invalid_argument(
         fmt::format(
             "Expected <name> <types>, where types is a comma separated list of {}",
-            kTypeList));
+            validTypeList()));
   }
 
   name_ = v[0];
@@ -54,30 +57,24 @@ TrafficCounterArg::TrafficCounterArg(std::vector<std::string> v) {
 
   std::vector<std::string> tokens;
   folly::split(',', v[1], tokens);
-  bool hasPackets = false;
-  bool hasBytes = false;
-  for (auto token : tokens) {
-    folly::toLowerAscii(token);
-    if (token == kTypePackets) {
-      hasPackets = true;
-    } else if (token == kTypeBytes) {
-      hasBytes = true;
-    } else {
+  for (auto& token : tokens) {
+    folly::toUpperAscii(token);
+    cfg::CounterType type{};
+    if (!apache::thrift::TEnumTraits<cfg::CounterType>::findValue(
+            token, &type)) {
       throw std::invalid_argument(
           fmt::format(
               "Invalid counter type '{}'. Expected a comma separated list of {}",
               token,
-              kTypeList));
+              validTypeList()));
+    }
+    if (std::find(types_.begin(), types_.end(), type) == types_.end()) {
+      types_.push_back(type);
     }
   }
-  // Store in a fixed order so the config, and the already-configured
-  // comparison below, do not depend on the order the types were typed in.
-  if (hasPackets) {
-    types_.push_back(cfg::CounterType::PACKETS);
-  }
-  if (hasBytes) {
-    types_.push_back(cfg::CounterType::BYTES);
-  }
+  // Store in enum order so the config, and the already-configured comparison
+  // below, do not depend on the order the types were typed in.
+  std::sort(types_.begin(), types_.end());
   data_.push_back(v[1]);
 }
 
@@ -98,7 +95,10 @@ CmdConfigTrafficCounterTraits::RetType CmdConfigTrafficCounter::queryClient(
       });
 
   if (it != counters.end()) {
-    if (*it->types() == newTypes) {
+    // The CLI stores types in enum order, but a hand-written config need not.
+    auto existingTypes = *it->types();
+    std::sort(existingTypes.begin(), existingTypes.end());
+    if (existingTypes == newTypes) {
       return fmt::format(
           "Traffic counter '{}' is already configured with type '{}'",
           name,

@@ -30,7 +30,8 @@ class CmdConfigTrafficCounterTestFixture : public CmdConfigTestBase {
             R"({
   "sw": {
     "trafficCounters": [
-      {"name": "existing_counter", "types": [0]}
+      {"name": "existing_counter", "types": [0]},
+      {"name": "unordered_counter", "types": [1, 0]}
     ]
   }
 })") {}
@@ -130,9 +131,9 @@ TEST_F(CmdConfigTrafficCounterTestFixture, createNewCounterSingleType) {
 
   auto& counters =
       *ConfigSession::getInstance().getAgentConfig().sw()->trafficCounters();
-  ASSERT_EQ(counters.size(), 2);
-  EXPECT_EQ(*counters[1].name(), "new_counter");
-  EXPECT_EQ(*counters[1].types(), std::vector{cfg::CounterType::PACKETS});
+  ASSERT_EQ(counters.size(), 3);
+  EXPECT_EQ(*counters[2].name(), "new_counter");
+  EXPECT_EQ(*counters[2].types(), std::vector{cfg::CounterType::PACKETS});
 }
 
 TEST_F(CmdConfigTrafficCounterTestFixture, createNewCounterBothTypes) {
@@ -146,10 +147,10 @@ TEST_F(CmdConfigTrafficCounterTestFixture, createNewCounterBothTypes) {
 
   auto& counters =
       *ConfigSession::getInstance().getAgentConfig().sw()->trafficCounters();
-  ASSERT_EQ(counters.size(), 2);
-  EXPECT_EQ(*counters[1].name(), "stat_both");
+  ASSERT_EQ(counters.size(), 3);
+  EXPECT_EQ(*counters[2].name(), "stat_both");
   EXPECT_EQ(
-      *counters[1].types(),
+      *counters[2].types(),
       (std::vector{cfg::CounterType::PACKETS, cfg::CounterType::BYTES}));
 }
 
@@ -165,7 +166,7 @@ TEST_F(CmdConfigTrafficCounterTestFixture, updateExistingCounter) {
 
   auto& counters =
       *ConfigSession::getInstance().getAgentConfig().sw()->trafficCounters();
-  ASSERT_EQ(counters.size(), 1);
+  ASSERT_EQ(counters.size(), 2);
   EXPECT_EQ(*counters[0].name(), "existing_counter");
   EXPECT_EQ(*counters[0].types(), std::vector{cfg::CounterType::BYTES});
 }
@@ -182,7 +183,26 @@ TEST_F(CmdConfigTrafficCounterTestFixture, alreadyConfigured) {
 
   auto& counters =
       *ConfigSession::getInstance().getAgentConfig().sw()->trafficCounters();
-  ASSERT_EQ(counters.size(), 1);
+  ASSERT_EQ(counters.size(), 2);
+}
+
+TEST_F(CmdConfigTrafficCounterTestFixture, alreadyConfiguredUnorderedTypes) {
+  // Seed stores unordered_counter as [BYTES, PACKETS]; asking for the same
+  // set in any spelling order is a no-op, not an update.
+  setupTestableConfigSession(cmdPrefix_, "unordered_counter PACKETS,BYTES");
+  CmdConfigTrafficCounter cmd;
+  HostInfo hostInfo("testhost");
+  TrafficCounterArg arg({"unordered_counter", "PACKETS,BYTES"});
+
+  auto result = cmd.queryClient(hostInfo, arg);
+  EXPECT_THAT(result, HasSubstr("already"));
+
+  auto& counters =
+      *ConfigSession::getInstance().getAgentConfig().sw()->trafficCounters();
+  ASSERT_EQ(counters.size(), 2);
+  EXPECT_EQ(
+      *counters[1].types(),
+      (std::vector{cfg::CounterType::BYTES, cfg::CounterType::PACKETS}));
 }
 
 } // namespace facebook::fboss

@@ -43,6 +43,7 @@ struct CmdConfigTrafficCounterTraits : public WriteCommandTraits {
            "name_and_types",
            args,
            "Counter name followed by a comma separated list of counter types (PACKETS,BYTES)")
+        ->required()
         ->expected(2);
   }
   using ObjectArgType = TrafficCounterArg;

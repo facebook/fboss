@@ -33,8 +33,14 @@ class TrafficCounterNameArg : public utils::BaseObjectArgType<std::string> {
 
 struct CmdDeleteTrafficCounterTraits : public WriteCommandTraits {
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    // required() + expected(1) keeps CLI11 from reclassifying the counter
+    // name as a subcommand when it happens to match one elsewhere in the tree.
     cmd.add_option(
-        "counter_name", args, "<name> - name of the traffic counter to delete");
+           "counter_name",
+           args,
+           "<name> - name of the traffic counter to delete")
+        ->required()
+        ->expected(1);
   }
   using ObjectArgType = TrafficCounterNameArg;
   using RetType = std::string;

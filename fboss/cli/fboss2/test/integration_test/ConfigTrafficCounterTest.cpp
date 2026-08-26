@@ -20,14 +20,15 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
 using namespace facebook::fboss;
 
 namespace {
-// CounterType enum values from switch_config.thrift
-constexpr int kPackets = 0;
-constexpr int kBytes = 1;
+// The running config serializes cfg::CounterType as its integer value.
+constexpr int kPackets = static_cast<int>(cfg::CounterType::PACKETS);
+constexpr int kBytes = static_cast<int>(cfg::CounterType::BYTES);
 // A name unlikely to collide with any production counter.
 const std::string kTestCounter = "fboss2-it-traffic-counter";
 } // namespace
@@ -63,13 +64,10 @@ class ConfigTrafficCounterTest : public Fboss2IntegrationTest {
     return sw.count("trafficCounters") ? sw["trafficCounters"].size() : 0;
   }
 
-  // An earlier run that died between create and delete would leave the test
-  // counter behind, and every later run would then exercise the update path
-  // instead of the create path. Reset the config rather than refuse to run.
+  // Removes the test counter from the running config if it is present.
   // Nothing else may reference kTestCounter - a traffic policy pointing at a
   // counter this deletes would make the next commit invalid.
-  void SetUp() override {
-    Fboss2IntegrationTest::SetUp();
+  void removeTestCounterIfPresent() {
     if (!getCounterTypes(kTestCounter).has_value()) {
       return;
     }
@@ -79,6 +77,20 @@ class ConfigTrafficCounterTest : public Fboss2IntegrationTest {
     commitConfig();
     ASSERT_FALSE(getCounterTypes(kTestCounter).has_value())
         << "cleanup delete left '" << kTestCounter << "' in the running config";
+  }
+
+  // An earlier run that died between create and delete would leave the test
+  // counter behind, and every later run would then exercise the update path
+  // instead of the create path. Reset the config rather than refuse to run.
+  void SetUp() override {
+    Fboss2IntegrationTest::SetUp();
+    removeTestCounterIfPresent();
+  }
+
+  // Restore the DUT even when the body failed between create and delete.
+  void TearDown() override {
+    removeTestCounterIfPresent();
+    Fboss2IntegrationTest::TearDown();
   }
 };
 
