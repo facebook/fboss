@@ -89,7 +89,7 @@ void validateVdm(
                    << ", portMediaInterface: "
                    << apache::thrift::util::enumNameSafe(portMediaInterface)
                    << ", snrMinThreshold: " << snrMinThreshold;
-        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+        EXPECT_LE(preFecBer.max().value(), thresholds.preFecBer.maxThreshold)
             << fmt::format(
                    "PreFecBer Max for {} is {}",
                    portName,
@@ -434,9 +434,10 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     auto vdmStat =
         transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
-    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
+    ASSERT_EVENTUALLY_GT(vdmStat->intervalStartTime().value(), startTime);
     ASSERT_EVENTUALLY_GT(
-        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
+        vdmStat->statsCollectionTme().value(),
+        vdmStat->intervalStartTime().value());
   });
 
   // Track the worst (highest) datapath pre-FEC BER and max FEC tail seen per

@@ -75,19 +75,19 @@ TEST_F(CmdShowBgpStatsPolicyTestFixture, queryClient) {
   ASSERT_EQ(statements.size(), 1);
 
   const auto& st_stats = statements[0];
-  EXPECT_EQ(st_stats.get_name(), kStatementName);
-  EXPECT_EQ(st_stats.get_prefix_hit_count(), kStatementPrefixHitCount);
-  EXPECT_EQ(st_stats.get_avg_time(), kStatementAvgTime);
-  EXPECT_EQ(st_stats.get_max_time(), kStatementMaxTime);
-  EXPECT_EQ(st_stats.get_num_of_runs(), kStatementNumRuns);
+  EXPECT_EQ(st_stats.name().value(), kStatementName);
+  EXPECT_EQ(st_stats.prefix_hit_count().value(), kStatementPrefixHitCount);
+  EXPECT_EQ(st_stats.avg_time().value(), kStatementAvgTime);
+  EXPECT_EQ(st_stats.max_time().value(), kStatementMaxTime);
+  EXPECT_EQ(st_stats.num_of_runs().value(), kStatementNumRuns);
 
   const auto& term_stats = st_stats.term_stats().value();
   ASSERT_EQ(term_stats.size(), 1);
 
   const auto& tr_stats = term_stats[0];
-  EXPECT_EQ(tr_stats.get_name(), kTermName);
-  EXPECT_EQ(tr_stats.get_description(), kTermDescription);
-  EXPECT_EQ(tr_stats.get_prefix_hit_count(), kTermPrefixHitCount);
+  EXPECT_EQ(tr_stats.name().value(), kTermName);
+  EXPECT_EQ(tr_stats.description().value(), kTermDescription);
+  EXPECT_EQ(tr_stats.prefix_hit_count().value(), kTermPrefixHitCount);
 }
 
 TEST_F(CmdShowBgpStatsPolicyTestFixture, printOutput) {

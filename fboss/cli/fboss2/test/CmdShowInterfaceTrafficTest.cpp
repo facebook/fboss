@@ -149,16 +149,16 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, createModel) {
   EXPECT_EQ(errorCounters.size(), 1);
   EXPECT_EQ(trafficCounters.size(), 3);
 
-  EXPECT_EQ(trafficCounters[0].get_peerIf(), "fsw001.p001");
-  EXPECT_EQ(trafficCounters[1].get_peerIf(), "fsw002.p001");
-  EXPECT_EQ(trafficCounters[2].get_peerIf(), "fsw003.p001");
+  EXPECT_EQ(trafficCounters[0].peerIf().value(), "fsw001.p001");
+  EXPECT_EQ(trafficCounters[1].peerIf().value(), "fsw002.p001");
+  EXPECT_EQ(trafficCounters[2].peerIf().value(), "fsw003.p001");
 
-  EXPECT_NEAR(trafficCounters[0].get_inPct(), 9.87654, 0.0001);
-  EXPECT_NEAR(trafficCounters[0].get_outPct(), 79.0123, 0.0001);
-  EXPECT_NEAR(trafficCounters[1].get_inPct(), 4.93827, 0.0001);
-  EXPECT_NEAR(trafficCounters[1].get_outPct(), 39.5062, 0.0001);
-  EXPECT_NEAR(trafficCounters[2].get_inPct(), 2.46914, 0.0001);
-  EXPECT_NEAR(trafficCounters[2].get_outPct(), 19.7531, 0.0001);
+  EXPECT_NEAR(trafficCounters[0].inPct().value(), 9.87654, 0.0001);
+  EXPECT_NEAR(trafficCounters[0].outPct().value(), 79.0123, 0.0001);
+  EXPECT_NEAR(trafficCounters[1].inPct().value(), 4.93827, 0.0001);
+  EXPECT_NEAR(trafficCounters[1].outPct().value(), 39.5062, 0.0001);
+  EXPECT_NEAR(trafficCounters[2].inPct().value(), 2.46914, 0.0001);
+  EXPECT_NEAR(trafficCounters[2].outPct().value(), 19.7531, 0.0001);
 }
 
 TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {

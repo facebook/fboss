@@ -146,9 +146,11 @@ class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
       sendPacket(frontPanel, kDscp);
 
       WITH_RETRIES({
-        auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
-                                     .get_queueOutPackets_()
-                                     .at(kQueueId);
+        auto afterQueueOutPkts =
+            folly::copy(getLatestPortStats(this->portIdToTest())
+                            .queueOutPackets_()
+                            .value())
+                .at(kQueueId);
 
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched")
@@ -279,9 +281,11 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         sendPacket(frontPanel, kDscp(), 255 /* ttl, > 127 to match ACL */);
 
         WITH_RETRIES({
-          auto afterQueueOutPkts = getLatestPortStats(this->portIdToTest())
-                                       .get_queueOutPackets_()
-                                       .at(kQueueId());
+          auto afterQueueOutPkts =
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
+                  .at(kQueueId());
           auto afterAclInOutPkts =
               utility::getAclInOutPackets(getSw(), kCounterName());
 
@@ -355,12 +359,15 @@ class AgentAclConflictAndDscpQueueMappingTest
         sendPacket(frontPanel, kDscp());
 
         WITH_RETRIES({
-          auto afterQueueOutPktsAcl = getLatestPortStats(this->portIdToTest())
-                                          .get_queueOutPackets_()
-                                          .at(kQueueIdAcl());
+          auto afterQueueOutPktsAcl =
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
+                  .at(kQueueIdAcl());
           auto afterQueueOutPktsQosMap =
-              getLatestPortStats(this->portIdToTest())
-                  .get_queueOutPackets_()
+              folly::copy(getLatestPortStats(this->portIdToTest())
+                              .queueOutPackets_()
+                              .value())
                   .at(kQueueIdQosMap());
 
           auto afterAclInOutPkts =

@@ -53,7 +53,7 @@ class LedTests : public ::testing::Test {
   void VerifyLedOff() {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::OFF, led_->getLedState().get_ledColor());
+    EXPECT_EQ(led::LedColor::OFF, led_->getLedState().ledColor().value());
     VerifyYellowBlink("");
     VerifyBlueBlink("");
   }
@@ -63,7 +63,7 @@ class LedTests : public ::testing::Test {
   void VerifyBlueOn(const std::string& blink) {
     EXPECT_EQ('1', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::BLUE, led_->getLedState().get_ledColor());
+    EXPECT_EQ(led::LedColor::BLUE, led_->getLedState().ledColor().value());
     VerifyYellowBlink("");
     VerifyBlueBlink(blink);
   }
@@ -73,7 +73,7 @@ class LedTests : public ::testing::Test {
   void VerifyYellowOn(const std::string& blink) {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('1', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::YELLOW, led_->getLedState().get_ledColor());
+    EXPECT_EQ(led::LedColor::YELLOW, led_->getLedState().ledColor().value());
     VerifyYellowBlink(blink);
     VerifyBlueBlink("");
   }

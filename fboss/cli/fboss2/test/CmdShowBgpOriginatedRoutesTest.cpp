@@ -76,16 +76,16 @@ TEST_F(CmdShowBgpOriginatedRoutesTestFixture, queryClient) {
   ASSERT_EQ(routes.size(), 1);
 
   const auto& prefix = routes[0].prefix().value();
-  EXPECT_EQ(prefix.get_afi(), kIpVersion);
-  EXPECT_EQ(prefix.get_prefix_bin(), kBinaryAddress.addr()->toStdString());
-  EXPECT_EQ(prefix.get_num_bits(), kAddressMask);
+  EXPECT_EQ(prefix.afi().value(), kIpVersion);
+  EXPECT_EQ(prefix.prefix_bin().value(), kBinaryAddress.addr()->toStdString());
+  EXPECT_EQ(prefix.num_bits().value(), kAddressMask);
 
   const auto& communites =
       apache::thrift::get_pointer(routes[0].communities())[0];
   ASSERT_EQ(communites.size(), 1);
-  EXPECT_EQ(communites[0].get_community(), kCommunityNumber);
-  EXPECT_EQ(routes[0].get_supporting_route_count(), kSupportingRoutes);
-  EXPECT_EQ(routes[0].get_minimum_supporting_routes(), kSupportingRoutes);
+  EXPECT_EQ(communites[0].community().value(), kCommunityNumber);
+  EXPECT_EQ(routes[0].supporting_route_count().value(), kSupportingRoutes);
+  EXPECT_EQ(routes[0].minimum_supporting_routes().value(), kSupportingRoutes);
 }
 
 TEST_F(CmdShowBgpOriginatedRoutesTestFixture, printOutput) {

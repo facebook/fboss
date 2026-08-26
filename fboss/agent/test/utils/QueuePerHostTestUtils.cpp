@@ -92,7 +92,7 @@ void verifyQueuePerHostMappingImpl(
     beforeQueueOutPkts.clear();
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
-      auto queueStats = hwPortStatsMap[portIds[0]].get_queueOutPackets_();
+      auto queueStats = hwPortStatsMap[portIds[0]].queueOutPackets_().value();
       EXPECT_EVENTUALLY_NE(queueStats.find(queueId), queueStats.end());
       if (queueStats.find(queueId) != queueStats.end()) {
         beforeQueueOutPkts[queueId] = queueStats.find(queueId)->second;
@@ -138,11 +138,12 @@ void verifyQueuePerHostMappingImpl(
     std::map<int, int64_t> afterQueueOutPkts;
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       auto hwPortStatsMap = getHwPortStatsFn({portIds[0]});
-      auto queueStats = hwPortStatsMap[portIds[0]].get_queueOutPackets_();
+      auto queueStats = hwPortStatsMap[portIds[0]].queueOutPackets_().value();
       EXPECT_EVENTUALLY_NE(queueStats.find(queueId), queueStats.end());
       if (queueStats.find(queueId) != queueStats.end()) {
         afterQueueOutPkts[queueId] = hwPortStatsMap[portIds[0]]
-                                         .get_queueOutPackets_()
+                                         .queueOutPackets_()
+                                         .value()
                                          .find(queueId)
                                          ->second;
       }

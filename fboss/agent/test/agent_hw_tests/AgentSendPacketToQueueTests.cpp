@@ -117,7 +117,8 @@ void AgentSendPacketToQueueTest::checkSendPacket(
 
     WITH_RETRIES({
       auto afterOutPkts =
-          getLatestPortStats(port).get_queueOutPackets_().at(queueID);
+          folly::copy(getLatestPortStats(port).queueOutPackets_().value())
+              .at(queueID);
 
       /*
        * Once the packet egresses out of the asic, the packet will be looped

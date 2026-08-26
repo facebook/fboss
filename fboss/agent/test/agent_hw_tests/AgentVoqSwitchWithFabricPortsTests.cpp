@@ -66,7 +66,7 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
       sendPacket(ecmpHelper.ip(testPort), frontPanelPort);
       WITH_RETRIES({
         auto afterOutPkts =
-            getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
         XLOG(DBG2) << " Before out pkts: " << beforeOutPkts
                    << " After out pkts: " << afterOutPkts;
         EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + 1);
@@ -348,7 +348,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
     WITH_RETRIES({
       auto afterPkts =
           getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0])
-              .get_outUnicastPkts_();
+              .outUnicastPkts_()
+              .value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + kNumPacketsToSend);
@@ -451,21 +452,22 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
+      auto nifBytes =
+          getLatestPortStats(testPort.phyPortID()).outBytes_().value();
       auto switchId =
           getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
-        fabricBytes += idAndStats.second.get_outBytes_();
+        fabricBytes += idAndStats.second.outBytes_().value();
         if (idAndStats.first != fabricPortId) {
-          EXPECT_EVENTUALLY_GT(idAndStats.second.get_outBytes_(), 0);
-          EXPECT_EVENTUALLY_GT(idAndStats.second.get_inBytes_(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.outBytes_().value(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.inBytes_().value(), 0);
         }
       }
       XLOG(DBG2) << "NIF bytes: " << nifBytes
@@ -502,18 +504,19 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(testPort.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(testPort.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
-      auto nifBytes = getLatestPortStats(testPort.phyPortID()).get_outBytes_();
+      auto nifBytes =
+          getLatestPortStats(testPort.phyPortID()).outBytes_().value();
       auto switchId =
           getSw()->getScopeResolver()->scope(testPort.phyPortID()).switchId();
       auto fabricPortStats =
           getLatestPortStats(masterLogicalFabricPortIds(switchId));
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
-        fabricBytes += idAndStats.second.get_outBytes_();
+        fabricBytes += idAndStats.second.outBytes_().value();
       }
       XLOG(DBG2) << "NIF bytes: " << nifBytes
                  << " Fabric bytes: " << fabricBytes;

@@ -93,25 +93,25 @@ TEST_F(CmdShowNdpTestFixture, createModel) {
 
   EXPECT_EQ(entries.size(), 2);
 
-  EXPECT_EQ(entries[0].get_ip(), "fe80::526b:4bff:fe28:8fb0");
-  EXPECT_EQ(entries[0].get_mac(), "50:6b:4b:28:8f:b0");
-  EXPECT_EQ(entries[0].get_port(), "eth1/1/1");
-  EXPECT_EQ(entries[0].get_vlanName(), "downlinks");
-  EXPECT_EQ(entries[0].get_vlanID(), 2000);
-  EXPECT_EQ(entries[0].get_state(), "REACHABLE");
-  EXPECT_EQ(entries[0].get_ttl(), 45013);
-  EXPECT_EQ(entries[0].get_classID(), 0);
-  EXPECT_EQ(entries[0].get_resolvedSince(), "1969-12-31 16:00:00");
+  EXPECT_EQ(entries[0].ip().value(), "fe80::526b:4bff:fe28:8fb0");
+  EXPECT_EQ(entries[0].mac().value(), "50:6b:4b:28:8f:b0");
+  EXPECT_EQ(entries[0].port().value(), "eth1/1/1");
+  EXPECT_EQ(entries[0].vlanName().value(), "downlinks");
+  EXPECT_EQ(entries[0].vlanID().value(), 2000);
+  EXPECT_EQ(entries[0].state().value(), "REACHABLE");
+  EXPECT_EQ(entries[0].ttl().value(), 45013);
+  EXPECT_EQ(entries[0].classID().value(), 0);
+  EXPECT_EQ(entries[0].resolvedSince().value(), "1969-12-31 16:00:00");
 
-  EXPECT_EQ(entries[1].get_ip(), "fe80::464c:a8ff:fee4:1c3f");
-  EXPECT_EQ(entries[1].get_mac(), "44:4c:a8:e4:1c:3f");
-  EXPECT_EQ(entries[1].get_port(), "eth2/1/1");
-  EXPECT_EQ(entries[1].get_vlanName(), "uplink_1");
-  EXPECT_EQ(entries[1].get_vlanID(), 4001);
-  EXPECT_EQ(entries[1].get_state(), "REACHABLE");
-  EXPECT_EQ(entries[1].get_ttl(), 21045);
-  EXPECT_EQ(entries[1].get_classID(), 0);
-  EXPECT_EQ(entries[1].get_resolvedSince(), "--");
+  EXPECT_EQ(entries[1].ip().value(), "fe80::464c:a8ff:fee4:1c3f");
+  EXPECT_EQ(entries[1].mac().value(), "44:4c:a8:e4:1c:3f");
+  EXPECT_EQ(entries[1].port().value(), "eth2/1/1");
+  EXPECT_EQ(entries[1].vlanName().value(), "uplink_1");
+  EXPECT_EQ(entries[1].vlanID().value(), 4001);
+  EXPECT_EQ(entries[1].state().value(), "REACHABLE");
+  EXPECT_EQ(entries[1].ttl().value(), 21045);
+  EXPECT_EQ(entries[1].classID().value(), 0);
+  EXPECT_EQ(entries[1].resolvedSince().value(), "--");
 }
 
 TEST_F(CmdShowNdpTestFixture, printOutput) {

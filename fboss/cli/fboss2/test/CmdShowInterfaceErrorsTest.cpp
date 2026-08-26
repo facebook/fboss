@@ -119,23 +119,23 @@ TEST_F(CmdShowInterfaceErrorsTestFixture, createModel) {
 
   EXPECT_EQ(errorCounters.size(), 3);
 
-  EXPECT_EQ(errorCounters[0].get_interfaceName(), "eth1/1/1");
-  EXPECT_EQ(errorCounters[0].get_inputErrors(), 0);
-  EXPECT_EQ(errorCounters[0].get_inputDiscards(), 0);
-  EXPECT_EQ(errorCounters[0].get_outputErrors(), 0);
-  EXPECT_EQ(errorCounters[0].get_outputDiscards(), 0);
+  EXPECT_EQ(errorCounters[0].interfaceName().value(), "eth1/1/1");
+  EXPECT_EQ(errorCounters[0].inputErrors().value(), 0);
+  EXPECT_EQ(errorCounters[0].inputDiscards().value(), 0);
+  EXPECT_EQ(errorCounters[0].outputErrors().value(), 0);
+  EXPECT_EQ(errorCounters[0].outputDiscards().value(), 0);
 
-  EXPECT_EQ(errorCounters[1].get_interfaceName(), "eth2/1/1");
-  EXPECT_EQ(errorCounters[1].get_inputErrors(), 100);
-  EXPECT_EQ(errorCounters[1].get_inputDiscards(), 0);
-  EXPECT_EQ(errorCounters[1].get_outputErrors(), 100);
-  EXPECT_EQ(errorCounters[1].get_outputDiscards(), 0);
+  EXPECT_EQ(errorCounters[1].interfaceName().value(), "eth2/1/1");
+  EXPECT_EQ(errorCounters[1].inputErrors().value(), 100);
+  EXPECT_EQ(errorCounters[1].inputDiscards().value(), 0);
+  EXPECT_EQ(errorCounters[1].outputErrors().value(), 100);
+  EXPECT_EQ(errorCounters[1].outputDiscards().value(), 0);
 
-  EXPECT_EQ(errorCounters[2].get_interfaceName(), "eth3/1/1");
-  EXPECT_EQ(errorCounters[2].get_inputErrors(), 0);
-  EXPECT_EQ(errorCounters[2].get_inputDiscards(), 100);
-  EXPECT_EQ(errorCounters[2].get_outputErrors(), 0);
-  EXPECT_EQ(errorCounters[2].get_outputDiscards(), 100);
+  EXPECT_EQ(errorCounters[2].interfaceName().value(), "eth3/1/1");
+  EXPECT_EQ(errorCounters[2].inputErrors().value(), 0);
+  EXPECT_EQ(errorCounters[2].inputDiscards().value(), 100);
+  EXPECT_EQ(errorCounters[2].outputErrors().value(), 0);
+  EXPECT_EQ(errorCounters[2].outputDiscards().value(), 100);
 }
 
 TEST_F(CmdShowInterfaceErrorsTestFixture, printOutput) {

@@ -605,7 +605,7 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
       sendPacket(ecmpHelper.ip(kPortDesc), portToSendFrom);
       WITH_RETRIES({
         auto afterPkts =
-            getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value();
         XLOG(DBG2) << "Before pkts: " << beforePkts
                    << " After pkts: " << afterPkts;
         EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 1);
@@ -644,7 +644,7 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 20000);
