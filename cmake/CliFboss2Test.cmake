@@ -94,6 +94,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowRouteTest.cpp
   fboss/cli/fboss2/test/CmdShowSystemPortTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
+  fboss/cli/fboss2/test/CmdShowTransceiverEepromTest.cpp
   fboss/cli/fboss2/test/CmdShowTransceiverLoopbackTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp

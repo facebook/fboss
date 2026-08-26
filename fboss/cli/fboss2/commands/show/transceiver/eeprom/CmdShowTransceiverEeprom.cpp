@@ -143,6 +143,26 @@ void CmdShowTransceiverEeprom::printOutput(
   out << output;
 }
 
+std::string_view CmdShowTransceiverEepromTraits::description() {
+  return "Reads and hex-dumps a contiguous byte range from a transceiver's EEPROM. Takes the port, a page (hex like 0x10 or decimal; -1 for the lower page), a byte offset within the page (0-255), and a length (1-128). Use it to inspect specific optic registers during low-level debugging.";
+}
+
+CmdShowTransceiverEeprom::RetType CmdShowTransceiverEeprom::sampleModel() {
+  return R"(Port: eth1/1/1
+Transceiver ID: 0
+Page: lower  Offset: 0  Length: 128
+
+  0x0000: 11 07 02 00 00 00 00 00  00 00 00 00 00 00 00 00
+  0x0010: 00 00 00 00 00 00 2A B6  00 00 82 55 00 00 00 00
+  0x0020: 00 00 21 7C 26 37 1D AF  1D 67 5C 21 5C 21 5C 21
+  0x0030: 5C 21 1D 73 1C 02 21 80  23 C2 00 00 00 00 00 00
+  0x0040: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+  0x0050: 00 00 00 00 00 00 00 AA  AA 00 00 00 00 01 00 00
+  0x0060: 00 00 FF 00 00 00 00 00  00 00 00 00 00 0A 00 00
+  0x0070: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 03
+)";
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowTransceiverEeprom, CmdShowTransceiverEepromTraits>::run();

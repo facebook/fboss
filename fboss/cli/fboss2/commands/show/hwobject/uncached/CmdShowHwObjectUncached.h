@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 
 namespace facebook::fboss {
@@ -17,6 +18,8 @@ namespace facebook::fboss {
 struct CmdShowHwObjectUncachedTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowHwObject;
   using RetType = std::string;
+
+  static std::string_view description();
 };
 
 class CmdShowHwObjectUncached
@@ -31,6 +34,8 @@ class CmdShowHwObjectUncached
       const ObjectArgType& queriedHwObjectTypes);
 
   void printOutput(const RetType& hwObjectInfo, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

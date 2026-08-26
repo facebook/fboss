@@ -77,4 +77,10 @@ TEST_F(CmdShowNamedNextHopGroupsTestFixture, queryClientReturnsBothSharedSet) {
       UnorderedElementsAreArray(expectedNamedEntries()));
 }
 
+TEST_F(CmdShowNamedNextHopGroupsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowNamedNextHopGroupsTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowNamedNextHopGroups::sampleModel().nextHopGroups()->empty());
+}
+
 } // namespace facebook::fboss

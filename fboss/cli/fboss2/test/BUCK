@@ -202,6 +202,7 @@ cpp_unittest(
         "CmdShowSystemPortTest.cpp",
         "CmdShowTeFlowTest.cpp",
         "CmdShowTechSupportTest.cpp",
+        "CmdShowTransceiverEepromTest.cpp",
         "CmdShowTransceiverLoopbackTest.cpp",
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
