@@ -14,7 +14,10 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(FbossExportedLibraries LANGUAGES CXX)
+project(FbossExportedLibraries VERSION 1.0.0 LANGUAGES CXX)
+
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 find_package(Boost REQUIRED COMPONENTS container)
 find_package(Glog REQUIRED)
@@ -39,7 +42,11 @@ add_library(nodebase
   ${FBOSS_SOURCE_ROOT}/fboss/agent/state/NodeBase-defs.h
 )
 target_compile_features(nodebase PUBLIC cxx_std_20)
-target_include_directories(nodebase PUBLIC ${FBOSS_SOURCE_ROOT})
+target_include_directories(nodebase
+  PUBLIC
+    $<BUILD_INTERFACE:${FBOSS_SOURCE_ROOT}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(nodebase
   PUBLIC
     Boost::container
@@ -52,7 +59,11 @@ add_library(FBOSS::NodeBase ALIAS nodebase)
 
 add_library(fboss_radix_tree INTERFACE)
 target_compile_features(fboss_radix_tree INTERFACE cxx_std_20)
-target_include_directories(fboss_radix_tree INTERFACE ${FBOSS_SOURCE_ROOT})
+target_include_directories(fboss_radix_tree
+  INTERFACE
+    $<BUILD_INTERFACE:${FBOSS_SOURCE_ROOT}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(fboss_radix_tree
   INTERFACE
     Folly::folly
@@ -66,7 +77,11 @@ add_library(fboss_exponential_backoff
   ${FBOSS_SOURCE_ROOT}/fboss/lib/ExponentialBackoff.h
 )
 target_compile_features(fboss_exponential_backoff PUBLIC cxx_std_20)
-target_include_directories(fboss_exponential_backoff PUBLIC ${FBOSS_SOURCE_ROOT})
+target_include_directories(fboss_exponential_backoff
+  PUBLIC
+    $<BUILD_INTERFACE:${FBOSS_SOURCE_ROOT}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(fboss_exponential_backoff PRIVATE glog::glog)
 set_target_properties(
   fboss_exponential_backoff
@@ -81,7 +96,11 @@ add_library(fboss_log_thrift_call
   ${FBOSS_SOURCE_ROOT}/fboss/lib/oss/LogThriftCall.cpp
 )
 target_compile_features(fboss_log_thrift_call PUBLIC cxx_std_20)
-target_include_directories(fboss_log_thrift_call PUBLIC ${FBOSS_SOURCE_ROOT})
+target_include_directories(fboss_log_thrift_call
+  PUBLIC
+    $<BUILD_INTERFACE:${FBOSS_SOURCE_ROOT}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(fboss_log_thrift_call
   PUBLIC
     FBThrift::thriftcpp2
@@ -98,7 +117,11 @@ add_library(fboss_alert_logger
   ${FBOSS_SOURCE_ROOT}/fboss/lib/AlertLogger.h
 )
 target_compile_features(fboss_alert_logger PUBLIC cxx_std_20)
-target_include_directories(fboss_alert_logger PUBLIC ${FBOSS_SOURCE_ROOT})
+target_include_directories(fboss_alert_logger
+  PUBLIC
+    $<BUILD_INTERFACE:${FBOSS_SOURCE_ROOT}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(fboss_alert_logger
   PUBLIC
     Folly::folly
@@ -124,3 +147,66 @@ set_target_properties(
   PROPERTIES EXPORT_NAME ExportedLibraries
 )
 add_library(FBOSS::ExportedLibraries ALIAS fboss_exported_libraries)
+
+install(
+  TARGETS
+    fboss_alert_logger
+    fboss_exported_libraries
+    fboss_exponential_backoff
+    fboss_log_thrift_call
+    nodebase
+    fboss_radix_tree
+  EXPORT FbossExportedLibrariesTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+  FILES ${FBOSS_SOURCE_ROOT}/fboss/agent/StrongTypes.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fboss/agent
+)
+install(
+  FILES
+    ${FBOSS_SOURCE_ROOT}/fboss/agent/state/NodeBase-defs.h
+    ${FBOSS_SOURCE_ROOT}/fboss/agent/state/NodeBase.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fboss/agent/state
+)
+install(
+  FILES
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/AlertLogger.h
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/ExponentialBackoff.h
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/LogThriftCall.h
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/RadixTree-inl.h
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/RadixTree.h
+    ${FBOSS_SOURCE_ROOT}/fboss/lib/ThriftCallDurationLogger.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fboss/lib
+)
+
+set(FBOSS_EXPORTED_LIBRARIES_CMAKE_DIR
+  ${CMAKE_INSTALL_LIBDIR}/cmake/FbossExportedLibraries
+)
+configure_package_config_file(
+  ${CMAKE_CURRENT_LIST_DIR}/FbossExportedLibrariesConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/FbossExportedLibrariesConfig.cmake
+  INSTALL_DESTINATION ${FBOSS_EXPORTED_LIBRARIES_CMAKE_DIR}
+)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/FbossExportedLibrariesConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+  EXPORT FbossExportedLibrariesTargets
+  FILE FbossExportedLibrariesTargets.cmake
+  NAMESPACE FBOSS::
+  DESTINATION ${FBOSS_EXPORTED_LIBRARIES_CMAKE_DIR}
+)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/FbossExportedLibrariesConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FbossExportedLibrariesConfigVersion.cmake
+  DESTINATION ${FBOSS_EXPORTED_LIBRARIES_CMAKE_DIR}
+)
