@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -19,6 +20,53 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 namespace facebook::fboss::utils {
+
+// Reserved name: `queue-config default` edits SwitchConfig::defaultPortQueues,
+// any other name edits a portQueueConfigs entry. Reserving it keeps the two
+// disjoint.
+inline constexpr auto kDefaultQueueConfigName = "default";
+
+/**
+ * Name of a queue config: either a portQueueConfigs key or the reserved
+ * `default`.
+ */
+class QueueConfigName : public BaseObjectArgType<std::string> {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ QueueConfigName(std::vector<std::string> v);
+
+  const std::string& getName() const {
+    return data_[0];
+  }
+
+  bool isDefault() const {
+    return data_[0] == kDefaultQueueConfigName;
+  }
+};
+
+// Resolves `name` to the PortQueue list it designates, creating an empty
+// portQueueConfigs entry if a named config does not exist yet.
+std::vector<cfg::PortQueue>& queueConfigListForWrite(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
+
+// Resolves `name` to the PortQueue list it designates, or nullptr if a named
+// config does not exist. Callers that must not create an entry on a typo --
+// delete, in particular -- use this rather than queueConfigListForWrite.
+// `default` always resolves, since defaultPortQueues always exists.
+std::vector<cfg::PortQueue>* findQueueConfigList(
+    cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
+
+// Names of the ports whose Port::portQueueConfigName references `name`, so a
+// caller can refuse to remove a queue config that is still bound and would
+// leave those ports pointing at nothing.
+//
+// Always empty for the reserved `default`: no port names it explicitly, and
+// every port without a binding falls back to it, so it can never be dangling.
+std::vector<std::string> portsUsingQueueConfig(
+    const cfg::SwitchConfig& switchConfig,
+    const QueueConfigName& name);
 
 /**
  * A queue id plus the attributes to apply to it.
@@ -65,13 +113,20 @@ const std::string& validQueueAttrs();
 // `attributes`, with `active-queue-management` (or `aqm`) consuming every
 // remaining token into `aqmAttributes` -- and throwing when that tail is
 // empty, so a trailing bare keyword cannot silently no-op. The one grammar
-// both `config qos queue-config` and `config copp queue` parse, kept in one
-// place so they cannot drift.
+// both `config qos queue-config` and `config copp queue` parse.
 void walkQueueAttributes(
     const std::vector<std::string>& v,
     size_t begin,
     std::vector<std::pair<std::string, std::vector<std::string>>>& attributes,
     std::vector<std::string>& aqmAttributes);
+
+// The stream-type value named in the attribute list, or nullopt
+// when the edit does not name one. Callers whose queue identity includes the
+// stream type -- cpu queues are (streamType, queueId) pairs -- need it before
+// deciding create-vs-update.
+std::optional<cfg::StreamType> findStreamTypeAttr(
+    const std::vector<std::pair<std::string, std::vector<std::string>>>&
+        attributes);
 
 // Applies queue configuration attributes onto `queue`. Shared by every command
 // that configures cfg::PortQueue attributes -- the `config qos queue-config
@@ -87,8 +142,8 @@ void walkQueueAttributes(
 // bandwidthBurstMinKbits/bandwidthBurstMaxKbits are deliberately absent: the
 // SAI scheduler profile is created from a five-attribute tuple that has no
 // burst-rate member (SaiSchedulerTraits::AdapterHostKey), so those two fields
-// reach the running config and stop there. Exposing them would let an operator
-// set a burst that never programs anything.
+// reach the running config and stop there. Therefore the CLI does not expose
+// them, and the parser does not accept them.
 //
 // Merges onto the given queue: fields not named are left untouched, and an AQM
 // edit targets the entry matching its congestion-behavior (appending a new one

@@ -18,11 +18,10 @@
 #include <iostream>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/cli/fboss2/commands/config/qos/QueueConfigUtils.h"
+#include "fboss/cli/fboss2/commands/config/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/PortQueueConfigUtils.h"
 
 namespace facebook::fboss {
 

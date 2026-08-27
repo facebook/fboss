@@ -997,8 +997,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
-  fboss/cli/fboss2/commands/config/qos/QueueConfigUtils.cpp
-  fboss/cli/fboss2/commands/config/qos/QueueConfigUtils.h
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
   fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.cpp
@@ -1144,8 +1144,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/session/SystemdInterface.cpp
   fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/utils/InterfaceList.h
-  fboss/cli/fboss2/utils/PortQueueConfigUtils.cpp
-  fboss/cli/fboss2/utils/PortQueueConfigUtils.h
   fboss/cli/fboss2/CmdListConfig.cpp
 )
 
