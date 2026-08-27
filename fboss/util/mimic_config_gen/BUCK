@@ -8,9 +8,13 @@ python_library(
         "defs.py",
         "discovery.py",
         "forge.py",
+        "policydb.py",
     ],
     deps = [
+        "//configerator/distribution/api/py:configerator_client",
         "//configerator/structs/neteng/netwhoami:netwhoami-python-types",
+        "//configerator/structs/neteng/policydb:resources-python-types",
+        "//neteng/netwhoami/lib/py:matcher",
         "//thrift/lib/python:types",
     ],
 )
