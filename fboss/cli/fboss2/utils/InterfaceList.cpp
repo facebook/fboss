@@ -37,8 +37,14 @@ std::optional<VlanID> parseVlanName(const std::string& name) {
     return std::nullopt;
   }
   auto id = folly::tryTo<int32_t>(name.substr(kVlanNamePrefix.size()));
-  if (!id.hasValue() || *id <= 0) {
+  if (!id.hasValue()) {
     return std::nullopt;
+  }
+  // VlanID is uint16_t; an unbounded int32 would wrap (vlan65537 -> VLAN 1)
+  // and mutate the wrong SVI. Reject anything outside the 802.1Q range.
+  if (*id < 1 || *id > 4094) {
+    throw std::invalid_argument(
+        fmt::format("VLAN ID {} is out of range (valid 1-4094)", *id));
   }
   return VlanID(*id);
 }

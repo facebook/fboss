@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -59,7 +60,9 @@ class CmdConfigInterfaceVlanIpTestFixture : public CmdConfigTestBase {
     auto it = std::find_if(intfs.begin(), intfs.end(), [](const auto& i) {
       return *i.intfID() == 2001;
     });
-    EXPECT_NE(it, intfs.end());
+    if (it == intfs.end()) {
+      throw std::runtime_error("test config is missing SVI 2001");
+    }
     return *it;
   }
 
@@ -163,6 +166,19 @@ TEST_F(CmdConfigInterfaceVlanIpTestFixture, unknownVlanRejected) {
   EXPECT_TRUE(std::none_of(vlans.begin(), vlans.end(), [](const auto& v) {
     return *v.id() == 999;
   }));
+  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+}
+
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, outOfRangeVlanIdRejected) {
+  setupTestableConfigSession();
+  for (const auto& name : {"vlan0", "vlan4095", "vlan65537"}) {
+    try {
+      InterfacesConfig config({name, "ip-address", "10.0.0.1/24"});
+      FAIL() << "expected std::invalid_argument for " << name;
+    } catch (const std::invalid_argument& e) {
+      EXPECT_THAT(std::string(e.what()), HasSubstr("out of range")) << name;
+    }
+  }
   EXPECT_EQ(swConfig().interfaces()->size(), 2);
 }
 
