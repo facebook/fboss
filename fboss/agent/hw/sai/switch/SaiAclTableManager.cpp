@@ -1699,6 +1699,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclFieldRouteDestination,
 #endif
       labelExtended,
+      std::nullopt, // fieldPortUserMeta
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

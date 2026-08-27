@@ -183,6 +183,10 @@ class FakeAclEntry {
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
 
+  bool fieldPortUserMetaEnable{false};
+  sai_uint32_t fieldPortUserMetaData{};
+  sai_uint32_t fieldPortUserMetaMask{};
+
   bool fieldEtherTypeEnable{false};
   sai_uint16_t fieldEtherTypeData;
   sai_uint16_t fieldEtherTypeMask;

@@ -131,6 +131,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldRouteDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclEntry, FieldPortUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldEthertype),
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
     SAI_ATTR_MAP(AclEntry, FieldAclRangeType),

@@ -73,6 +73,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldRouteDstUserMeta;
     case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
       return fieldNeighborDstUserMeta;
+    case SAI_ACL_ENTRY_ATTR_FIELD_PORT_USER_META:
+      return fieldPortUserMeta;
     case SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE:
       return fieldEthertype;
     case SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID:
@@ -817,6 +819,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldNeighborDstUserMetaMask = attr->value.aclfield.mask.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_PORT_USER_META:
+      aclEntry.fieldPortUserMetaEnable = attr->value.aclfield.enable;
+      aclEntry.fieldPortUserMetaData = attr->value.aclfield.data.u32;
+      aclEntry.fieldPortUserMetaMask = attr->value.aclfield.mask.u32;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE:
       aclEntry.fieldEtherTypeEnable = attr->value.aclfield.enable;
       aclEntry.fieldEtherTypeData = attr->value.aclfield.data.u16;
@@ -1182,6 +1190,11 @@ sai_status_t get_acl_entry_attribute_fn(
             aclEntry.fieldNeighborDstUserMetaData;
         attr_list[i].value.aclfield.mask.u32 =
             aclEntry.fieldNeighborDstUserMetaMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_PORT_USER_META:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldPortUserMetaEnable;
+        attr_list[i].value.aclfield.data.u32 = aclEntry.fieldPortUserMetaData;
+        attr_list[i].value.aclfield.mask.u32 = aclEntry.fieldPortUserMetaMask;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE:
         attr_list[i].value.aclfield.enable = aclEntry.fieldEtherTypeEnable;

@@ -263,6 +263,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(12, 0xFFFFFFFF);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kPortUserMeta() const {
+    return std::make_pair(13, 0xFFFFFFFF);
+  }
+
   std::pair<sai_uint16_t, sai_uint16_t> kEtherType() const {
     return std::make_pair(0x0800, 0xFFFF);
   }
@@ -651,7 +655,8 @@ class AclApiTest : public ::testing::Test {
          aclActionSetEcmpHashAlgorithm,
          aclActionL3SwitchCancel,
          aclFieldRouteDestination,
-         aclLabelExtended},
+         aclLabelExtended,
+         std::nullopt /* fieldPortUserMeta */},
         kSwitchID());
   }
 
@@ -1393,6 +1398,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   SaiAclEntryTraits::Attributes::FieldNeighborDstUserMeta
       aclFieldNeighborDstUserMetaAttribute2{
           AclEntryFieldU32(kNeighborDstUserMeta2())};
+  SaiAclEntryTraits::Attributes::FieldPortUserMeta
+      aclFieldPortUserMetaAttribute{AclEntryFieldU32(kPortUserMeta())};
   SaiAclEntryTraits::Attributes::FieldEthertype aclFieldEtherType{
       AclEntryFieldU16(kEtherType())};
   SaiAclEntryTraits::Attributes::FieldOuterVlanId aclFieldOuterVlanId{
@@ -1468,6 +1475,13 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldFdbDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldRouteDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
+  aclApi->setAttribute(aclEntryId, aclFieldPortUserMetaAttribute);
+  EXPECT_EQ(
+      aclApi
+          ->getAttribute(
+              aclEntryId, SaiAclEntryTraits::Attributes::FieldPortUserMeta())
+          .getDataAndMask(),
+      kPortUserMeta());
   aclApi->setAttribute(aclEntryId, aclFieldEtherType);
   aclApi->setAttribute(aclEntryId, aclFieldOuterVlanId);
   aclApi->setAttribute(aclEntryId, aclFieldBthOpcode);
