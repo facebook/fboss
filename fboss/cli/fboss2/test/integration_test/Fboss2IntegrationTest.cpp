@@ -790,30 +790,45 @@ int Fboss2IntegrationTest::pickUnusedVlanId() const {
   return 0;
 }
 
-void Fboss2IntegrationTest::deleteVlanIfPresent(int vlanId) const {
-  auto config = getRunningConfig();
-  if (!config.isObject() || !config.count("sw") ||
-      !config["sw"].count("vlans")) {
-    return;
-  }
-  const auto& vlans = config["sw"]["vlans"];
-  const bool present = std::any_of(
-      vlans.begin(), vlans.end(), [vlanId](const folly::dynamic& vlan) {
-        return vlan.count("id") && vlan["id"].asInt() == vlanId;
-      });
-  if (!present) {
-    return;
-  }
+void Fboss2IntegrationTest::deleteVlanIfPresent(int vlanId) const noexcept {
+  try {
+    auto config = getRunningConfig();
+    if (!config.isObject() || !config.count("sw") ||
+        !config["sw"].count("vlans")) {
+      return;
+    }
+    const auto& vlans = config["sw"]["vlans"];
+    const bool present = std::any_of(
+        vlans.begin(), vlans.end(), [vlanId](const folly::dynamic& vlan) {
+          return vlan.count("id") && vlan["id"].asInt() == vlanId;
+        });
+    if (!present) {
+      return;
+    }
 
-  auto result = runCli({"delete", "vlan", std::to_string(vlanId)});
-  if (result.exitCode != 0) {
-    XLOG(WARN) << "delete vlan " << vlanId
-               << " failed, discarding session: " << result.stderr;
+    auto result = runCli({"delete", "vlan", std::to_string(vlanId)});
+    if (result.exitCode != 0) {
+      XLOG(WARN) << "delete vlan " << vlanId
+                 << " failed, discarding session: " << result.stderr;
+      discardSession();
+      return;
+    }
+    auto commit = runCli({"config", "session", "commit"});
+    if (commit.exitCode != 0) {
+      XLOG(WARN) << "commit after delete vlan " << vlanId
+                 << " failed, discarding session: " << commit.stderr;
+      discardSession();
+      return;
+    }
+    XLOG(INFO) << "Removed VLAN " << vlanId << " and its backing interface";
+  } catch (const std::exception& e) {
+    XLOG(WARN) << "cleanup: delete vlan " << vlanId << " threw: " << e.what();
     discardSession();
-    return;
+  } catch (...) {
+    XLOG(WARN) << "cleanup: delete vlan " << vlanId
+               << " threw an unknown exception";
+    discardSession();
   }
-  commitConfig();
-  XLOG(INFO) << "Removed VLAN " << vlanId << " and its backing interface";
 }
 
 int Fboss2IntegrationTest::ensureUnderlayIntfId(
