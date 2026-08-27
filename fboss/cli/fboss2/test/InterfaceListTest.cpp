@@ -134,4 +134,17 @@ TEST_F(InterfaceListTest, ThrowsForUnknownId) {
   EXPECT_THROW(InterfaceList({"4242"}), std::invalid_argument);
 }
 
+// An out-of-range "vlan<id>" name throws on hard resolution but degrades to an
+// unresolved name under allowMissing, like every other unresolvable rung.
+TEST_F(InterfaceListTest, OutOfRangeVlanName) {
+  EXPECT_THROW(InterfaceList({"vlan0"}), std::invalid_argument);
+  EXPECT_THROW(InterfaceList({"vlan65537"}), std::invalid_argument);
+
+  InterfaceList list({"vlan0"}, /*allowMissing=*/true);
+  ASSERT_EQ(list.size(), 1);
+  EXPECT_EQ(list[0].getPort(), nullptr);
+  EXPECT_EQ(list[0].getInterface(), nullptr);
+  EXPECT_EQ(list[0].name(), "vlan0");
+}
+
 } // namespace facebook::fboss::utils
