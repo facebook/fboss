@@ -87,7 +87,11 @@ void PortMap::buildInterfaceMaps(const cfg::SwitchConfig& switchConfig) {
     if (*interface.vlanID() != 0) {
       VlanID vlanId(*interface.vlanID());
       interfaceIdToVlanId_[intfId] = vlanId;
-      vlanIdToInterfaceId_[vlanId] = intfId;
+      // Keep the first interface in config order and remember the collision;
+      // overwriting would make "vlan<id>" resolve to an arbitrary SVI.
+      if (!vlanIdToInterfaceId_.emplace(vlanId, intfId).second) {
+        ambiguousVlans_.insert(vlanId);
+      }
     }
   }
 
@@ -259,6 +263,10 @@ PortMap::getInterface(InterfaceID interfaceId) const {
     return it->second;
   }
   return nullptr;
+}
+
+bool PortMap::isVlanAmbiguous(VlanID vlanId) const {
+  return ambiguousVlans_.find(vlanId) != ambiguousVlans_.end();
 }
 
 cfg::Interface* FOLLY_NULLABLE

@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <folly/Conv.h>
 #include <folly/String.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -23,6 +24,9 @@ namespace facebook::fboss {
 //   2001 - SVI-backed VLAN: interface fboss2001 (vlanID 2001) with one v4 and
 //          one v6 address
 //   2002 - VLAN with no interface: SVI address commands must refuse
+//   2003 - SVI whose interface has NO name: the motivating case, reachable
+//          only through the vlanID
+//   2004 - VLAN with two interfaces: "vlan2004" is ambiguous and must refuse
 //   eth1/1/1 - port-backed L3 interface: existing behavior must not change
 class CmdConfigInterfaceVlanIpTestFixture : public CmdConfigTestBase {
  public:
@@ -33,11 +37,16 @@ class CmdConfigInterfaceVlanIpTestFixture : public CmdConfigTestBase {
   "sw": {
     "vlans": [
       {"id": 2001, "name": "Vlan2001"},
-      {"id": 2002, "name": "Vlan2002"}
+      {"id": 2002, "name": "Vlan2002"},
+      {"id": 2003, "name": "Vlan2003"},
+      {"id": 2004, "name": "Vlan2004"}
     ],
     "interfaces": [
       {"intfID": 2001, "vlanID": 2001, "name": "fboss2001", "routerID": 0,
        "ipAddresses": ["10.0.1.1/24", "2001:db8:1::1/64"]},
+      {"intfID": 2003, "vlanID": 2003, "routerID": 0, "ipAddresses": []},
+      {"intfID": 2004, "vlanID": 2004, "routerID": 0, "ipAddresses": []},
+      {"intfID": 2005, "vlanID": 2004, "routerID": 0, "ipAddresses": []},
       {"intfID": 1, "vlanID": 1, "portID": 1, "name": "eth1/1/1",
        "routerID": 0, "ipAddresses": []}
     ],
@@ -51,19 +60,28 @@ class CmdConfigInterfaceVlanIpTestFixture : public CmdConfigTestBase {
 })") {}
 
  protected:
+  // Interfaces in the seed config above; the "nothing was created" assertions
+  // compare against it.
+  static constexpr size_t kSeedInterfaces = 5;
+
   cfg::SwitchConfig& swConfig() {
     return *ConfigSession::getInstance().getAgentConfig().sw();
   }
 
-  cfg::Interface& sviInterface() {
+  cfg::Interface& interfaceById(int32_t intfID) {
     auto& intfs = *swConfig().interfaces();
-    auto it = std::find_if(intfs.begin(), intfs.end(), [](const auto& i) {
-      return *i.intfID() == 2001;
+    auto it = std::find_if(intfs.begin(), intfs.end(), [intfID](const auto& i) {
+      return *i.intfID() == intfID;
     });
     if (it == intfs.end()) {
-      throw std::runtime_error("test config is missing SVI 2001");
+      throw std::runtime_error(
+          folly::to<std::string>("test config is missing interface ", intfID));
     }
     return *it;
+  }
+
+  cfg::Interface& sviInterface() {
+    return interfaceById(2001);
   }
 
   std::string configIp(const std::vector<std::string>& args) {
@@ -166,7 +184,7 @@ TEST_F(CmdConfigInterfaceVlanIpTestFixture, unknownVlanRejected) {
   EXPECT_TRUE(std::none_of(vlans.begin(), vlans.end(), [](const auto& v) {
     return *v.id() == 999;
   }));
-  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+  EXPECT_EQ(swConfig().interfaces()->size(), kSeedInterfaces);
 }
 
 TEST_F(CmdConfigInterfaceVlanIpTestFixture, outOfRangeVlanIdRejected) {
@@ -179,7 +197,7 @@ TEST_F(CmdConfigInterfaceVlanIpTestFixture, outOfRangeVlanIdRejected) {
       EXPECT_THAT(std::string(e.what()), HasSubstr("out of range")) << name;
     }
   }
-  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+  EXPECT_EQ(swConfig().interfaces()->size(), kSeedInterfaces);
 }
 
 TEST_F(CmdConfigInterfaceVlanIpTestFixture, vlanWithoutSviRejected) {
@@ -191,7 +209,44 @@ TEST_F(CmdConfigInterfaceVlanIpTestFixture, vlanWithoutSviRejected) {
     EXPECT_THAT(std::string(e.what()), HasSubstr("no L3 interface"));
   }
   // The interface was not auto-created.
-  EXPECT_EQ(swConfig().interfaces()->size(), 2);
+  EXPECT_EQ(swConfig().interfaces()->size(), kSeedInterfaces);
+}
+
+// The motivating case: an SVI with no interface name at all is still
+// addressable as "vlan<id>", because resolution goes through vlanID.
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, unnamedSviResolvedByVlanName) {
+  auto result = configIp({"vlan2003", "ip-address", "10.0.4.1/24"});
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(*interfaceById(2003).ipAddresses(), Contains("10.0.4.1/24"));
+}
+
+// Two interfaces share vlanID 2004, so "vlan2004" names neither of them.
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, ambiguousVlanRejected) {
+  setupTestableConfigSession();
+  try {
+    InterfacesConfig config({"vlan2004", "ip-address", "10.0.5.1/24"});
+    FAIL() << "expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("more than one L3 interface"));
+  }
+  EXPECT_THAT(*interfaceById(2004).ipAddresses(), IsEmpty());
+  EXPECT_THAT(*interfaceById(2005).ipAddresses(), IsEmpty());
+}
+
+// Port attributes have nothing to write on a port-less SVI, so the command
+// must refuse rather than print success for a no-op.
+TEST_F(CmdConfigInterfaceVlanIpTestFixture, portOnlyAttrOnSviRejected) {
+  for (const auto& attr : std::vector<std::vector<std::string>>{
+           {"vlan2001", "description", "uplink"},
+           {"vlan2001", "shutdown"},
+           {"vlan2001", "queue-config", "default"}}) {
+    try {
+      configIp(attr);
+      FAIL() << "expected std::invalid_argument for " << attr[1];
+    } catch (const std::invalid_argument& e) {
+      EXPECT_THAT(std::string(e.what()), HasSubstr("no port")) << attr[1];
+    }
+  }
 }
 
 // ============================================================================
