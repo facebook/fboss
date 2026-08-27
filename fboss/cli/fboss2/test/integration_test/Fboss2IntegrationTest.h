@@ -238,6 +238,12 @@ class Fboss2IntegrationTest : public ::testing::Test {
   void commitConfig() const;
 
   /**
+   * True when a CLI command's stderr shows the thrift connection was dropped
+   * by an agent restart (the command itself was likely accepted).
+   */
+  static bool isAgentRestartSignature(const std::string& stderr);
+
+  /**
    * Get the MTU of a kernel interface using 'ip -json link'.
    * @param vlanId The VLAN ID (interface name will be fboss<vlanId>)
    * @return MTU value
@@ -383,6 +389,24 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * This ensures each test starts with a fresh session based on current HEAD.
    */
   void discardSession() const;
+
+  /**
+   * Record the /etc/coop git HEAD as the config baseline for this test.
+   * Call in SetUp() and pass the result to rollbackConfig() in TearDown()
+   * so the DUT is left as found even when a test fails mid-way. Discards
+   * any pending session first so the baseline is the committed config.
+   */
+  std::string recordConfigBaseline() const;
+
+  /**
+   * Roll the config back to a recordConfigBaseline() revision via
+   * `config rollback <sha>` and wait for the agent. ConfigSession::rollback()
+   * re-applies each commit being undone at the action level it recorded
+   * (hitless / warmboot / coldboot), so the restore needs the same restart
+   * the test's own commits did -- no guessing here. A no-op when HEAD is
+   * still at the baseline.
+   */
+  void rollbackConfig(const std::string& baselineSha) const;
 
   /**
    * Wait until the FBOSS agent is responsive (ready to serve thrift requests).

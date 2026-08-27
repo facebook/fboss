@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -102,6 +103,51 @@ void Fboss2IntegrationTest::discardSession() const {
   // Reset the in-memory singleton so the next CLI command starts a fresh
   // session from the current system config, not stale in-process state.
   ConfigSession::resetInstance();
+}
+
+std::string Fboss2IntegrationTest::recordConfigBaseline() const {
+  discardSession();
+  // Constructing the session initializes the /etc/coop repo if the CLI never
+  // has, so HEAD exists even on a pristine box.
+  auto sha = ConfigSession::getInstance().getGit().getHead();
+  if (sha.empty()) {
+    throw std::runtime_error("No config commit to use as a baseline");
+  }
+  XLOG(INFO) << "Config baseline: " << Git::shortSha1(sha);
+  return sha;
+}
+
+void Fboss2IntegrationTest::rollbackConfig(
+    const std::string& baselineSha) const {
+  if (baselineSha.empty()) {
+    return;
+  }
+  discardSession();
+  if (ConfigSession::getInstance().getGit().getHead() == baselineSha) {
+    XLOG(INFO) << "Config still at baseline " << Git::shortSha1(baselineSha)
+               << "; nothing to roll back";
+    return;
+  }
+
+  XLOG(INFO) << "Rolling config back to " << Git::shortSha1(baselineSha);
+  auto result = runCli({"config", "rollback", baselineSha});
+  if (result.exitCode != 0) {
+    // Like commitConfig(): an agent restart applying the rollback can drop
+    // the thrift connection mid-call after the rollback commit was made.
+    if (!isAgentRestartSignature(result.stderr)) {
+      throw std::runtime_error(
+          fmt::format("Failed to roll back config: {}", result.stderr));
+    }
+    XLOG(INFO) << "Rollback dropped connection (likely agent restart); "
+                  "waiting for agent";
+  }
+  waitForAgentReady();
+  auto head = ConfigSession::getInstance().getGit().getHead();
+  if (head == baselineSha) {
+    throw std::runtime_error("Rollback did not create a new commit");
+  }
+  XLOG(INFO) << "Config rolled back to baseline as new commit "
+             << Git::shortSha1(head);
 }
 
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
@@ -444,21 +490,28 @@ void Fboss2IntegrationTest::commitConfig() const {
   // confirm the actual outcome via getRunningConfig() / waitForRunningConfig().
   // Treat the disconnect signatures as expected: log, wait for the agent to
   // come back, and return without failing the test here.
+  if (isAgentRestartSignature(result.stderr)) {
+    XLOG(INFO)
+        << "Commit dropped connection (likely agent restart). "
+           "Waiting for agent to come back; caller must verify via running config.";
+    waitForAgentReady();
+    return;
+  }
+  ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
+}
+
+bool Fboss2IntegrationTest::isAgentRestartSignature(const std::string& stderr) {
   static constexpr std::array<std::string_view, 3> kRestartSignatures = {
       "Channel got EOF",
       "Connection refused",
       "Socket not open",
   };
   for (auto sig : kRestartSignatures) {
-    if (result.stderr.find(sig) != std::string::npos) {
-      XLOG(INFO)
-          << "Commit dropped connection (likely agent restart): " << sig
-          << ". Waiting for agent to come back; caller must verify via running config.";
-      waitForAgentReady();
-      return;
+    if (stderr.find(sig) != std::string::npos) {
+      return true;
     }
   }
-  ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
+  return false;
 }
 
 void Fboss2IntegrationTest::waitForAgentReady(
