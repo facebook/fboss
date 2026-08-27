@@ -429,8 +429,8 @@ void applyPortQueueConfig(
     } else if (attr == "weight") {
       auto weight = parseNonNegativeInt(attr, value);
       // The SAI scheduler profile stores the WRR weight as a uint8
-      // (SaiSchedulerManager::makeSchedulerAttributes) and coerces 0 to 1, so
-      // anything above 255 would silently truncate at apply time.
+      // (SAI_SCHEDULER_ATTR_SCHEDULING_WEIGHT), so anything above 255 would
+      // silently truncate at apply time.
       if (weight > 255) {
         throw std::invalid_argument(
             fmt::format("weight must be in [0, 255], got {}", weight));

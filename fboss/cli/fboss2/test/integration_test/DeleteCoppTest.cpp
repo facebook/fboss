@@ -25,6 +25,7 @@
 #include <optional>
 #include <string>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
@@ -54,6 +55,27 @@ class DeleteCoppTest : public Fboss2IntegrationTest {
       }
     }
     return {nullptr};
+  }
+
+  // The stream type to create a scratch queue with: `config copp queue`
+  // requires one, and the value is per-platform (XGS ships MULTICAST,
+  // Jericho/Chenab UNICAST). Follow the box's existing cpu queues, falling
+  // back to MULTICAST on a config that carries none.
+  std::string scratchStreamType() const {
+    auto config = getRunningConfig();
+    const auto& sw = config["sw"];
+    if (sw.count("cpuQueues") && sw["cpuQueues"].isArray() &&
+        !sw["cpuQueues"].empty()) {
+      const auto& queue = sw["cpuQueues"][0];
+      if (queue.count("streamType")) {
+        const auto& streamType = queue["streamType"];
+        return streamType.isInt()
+            ? apache::thrift::util::enumNameSafe(
+                  static_cast<cfg::StreamType>(streamType.asInt()))
+            : streamType.asString();
+      }
+    }
+    return "MULTICAST";
   }
 
   // Return the smallest queue id in [0, 9] that has no cpuQueues entry, or
@@ -119,7 +141,8 @@ TEST_F(DeleteCoppTest, DeleteWholeCpuQueue) {
   const auto id = std::to_string(*unusedId);
 
   XLOG(INFO) << "Creating scratch queue " << id;
-  auto result = runCli({"config", "copp", "queue", id});
+  auto result = runCli(
+      {"config", "copp", "queue", id, "stream-type", scratchStreamType()});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   commitConfig();
@@ -151,7 +174,8 @@ TEST_F(DeleteCoppTest, DeleteReasonMapping) {
 
   XLOG(INFO) << "Mapping reason " << reason->name << " -> scratch queue "
              << queueId;
-  auto result = runCli({"config", "copp", "queue", queueId});
+  auto result = runCli(
+      {"config", "copp", "queue", queueId, "stream-type", scratchStreamType()});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   result = runCli({"config", "copp", "reason", reason->name, "queue", queueId});

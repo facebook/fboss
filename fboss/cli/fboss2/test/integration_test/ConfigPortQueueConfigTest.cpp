@@ -17,8 +17,8 @@
  * then assigns the queue config to an interface and verifies the running
  * config.
  *
- * A second config covers the create/shape/delete lifecycle: rate-limit in
- * both its forms, then removal of the whole named entry.
+ * A second config covers the create/shape/delete lifecycle: a shaped queue,
+ * then removal of the whole named entry.
  */
 
 #include <folly/json/dynamic.h>
@@ -252,12 +252,10 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
 // Removing a whole named config has to survive the round trip: the agent must
 // accept a config with the entry gone, not just the CLI drop it locally.
 //
-// The queues carry rate-limit on the way through, in both its forms: the
-// three-token <unit> <min> <max> and the two-token one, whose omitted <min>
-// must land as a zero floor rather than being rejected. Shaping rides along
-// here rather than in a test of its own because it needs exactly this
-// lifecycle -- a throwaway named config, committed and then removed -- and
-// each commit costs an agent restart.
+// The queue carries a rate-limit on the way through, so the round trip also
+// covers the agent accepting a shaped queue. Which grammar forms the CLI
+// parses is a unit-test question (CmdConfigQosQueueConfigTest), so only one
+// form runs here.
 TEST_F(ConfigPortQueueConfigTest, QueueConfigCreateShapeAndDelete) {
   const std::string name = kDeleteQueueConfigName;
 
@@ -277,19 +275,6 @@ TEST_F(ConfigPortQueueConfigTest, QueueConfigCreateShapeAndDelete) {
               "kbps",
               "12500000",
               "12500000"})
-          .exitCode,
-      0);
-  // Two-token form: max only, zero floor.
-  ASSERT_EQ(
-      runCli({"config",
-              "qos",
-              "queue-config",
-              name,
-              "queue-id",
-              "0",
-              "rate-limit",
-              "pps",
-              "50000"})
           .exitCode,
       0);
   commitConfig();
@@ -315,13 +300,6 @@ TEST_F(ConfigPortQueueConfigTest, QueueConfigCreateShapeAndDelete) {
   const auto& kbps = (*q1)["portQueueRate"]["kbitsPerSec"];
   EXPECT_EQ(kbps["minimum"].asInt(), 12500000);
   EXPECT_EQ(kbps["maximum"].asInt(), 12500000);
-
-  const auto* q0 = findQueue(queues, 0);
-  ASSERT_NE(q0, nullptr) << "queue 0 missing from " << name;
-  ASSERT_TRUE(q0->count("portQueueRate"));
-  const auto& pps = (*q0)["portQueueRate"]["pktsPerSec"];
-  EXPECT_EQ(pps["minimum"].asInt(), 0) << "omitted <min> must default to 0";
-  EXPECT_EQ(pps["maximum"].asInt(), 50000);
 
   XLOG(INFO) << "[Step 3] Deleting " << name;
   discardSession();

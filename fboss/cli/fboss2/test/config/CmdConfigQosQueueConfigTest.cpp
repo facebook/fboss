@@ -739,8 +739,7 @@ TEST_F(CmdConfigQosQueueConfigTestFixture, rateLimitMaxOnlyFollowedByAttr) {
 // attribute rather than accepting a setting that does nothing.
 TEST_F(CmdConfigQosQueueConfigTestFixture, bandwidthBurstIsNotAnAttribute) {
   // The two-value form a user would reach for parses as `bandwidth-burst 1`
-  // followed by a stray `1`, and the walk rejects that for want of a value --
-  // there is no multi-token arity registered for it any more.
+  // followed by a stray `1`, which the walk rejects for want of a value.
   EXPECT_THROW(
       utils::QueueIdAndAttributes({"0", "bandwidth-burst", "1", "1"}),
       std::invalid_argument);
@@ -796,9 +795,6 @@ TEST_F(CmdConfigQosQueueConfigTestFixture, duplicateAttrFails) {
       std::invalid_argument);
 }
 
-// name and max-dynamic-shared-bytes were the last two PortQueue fields no
-// command family could set; name used to be copp-only and reached the queue
-// through a parser hook rather than the shared applier.
 TEST_F(CmdConfigQosQueueConfigTestFixture, setNameAndMaxDynamicSharedBytes) {
   const auto* q =
       runAndFind("0 name queue_per_host max-dynamic-shared-bytes 20971520", 0);

@@ -29,7 +29,8 @@ namespace facebook::fboss {
 // Argument for `config copp queue <id> [<attr> <value> ...]`.
 //
 // Accepted forms (validated by CoppQueueArgs):
-//   <id>                         -> ensure queue <id> exists
+//   <id>                         -> ensure queue <id> exists; creating a new
+//                                   one requires the stream-type attribute
 //   <id> <attr> <value...> [...] -> any cfg::PortQueue attribute accepted by
 //                                   utils::applyPortQueueConfig (see
 //                                   utils::validQueueAttrs()): name,

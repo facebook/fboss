@@ -120,10 +120,9 @@ void walkQueueAttributes(
     std::vector<std::pair<std::string, std::vector<std::string>>>& attributes,
     std::vector<std::string>& aqmAttributes);
 
-// The stream-type value named in the attribute list, or nullopt
-// when the edit does not name one. Callers whose queue identity includes the
-// stream type -- cpu queues are (streamType, queueId) pairs -- need it before
-// deciding create-vs-update.
+// The stream-type value named in the attribute list, or nullopt when the edit
+// does not name one. Lets a caller that requires stream-type on queue
+// creation check for it before applying the edit.
 std::optional<cfg::StreamType> findStreamTypeAttr(
     const std::vector<std::pair<std::string, std::vector<std::string>>>&
         attributes);

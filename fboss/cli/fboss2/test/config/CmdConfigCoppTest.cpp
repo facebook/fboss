@@ -105,8 +105,6 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_idOnly) {
   EXPECT_FALSE(b.hasEdits());
 }
 
-// name is a shared attribute like any other now; copp keeps no vocabulary of
-// its own, so it arrives in the attribute stream rather than a dedicated field.
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_name) {
   CoppQueueArgs a({"2", "name", "cpuQueue-mid"});
   EXPECT_EQ(a.getQueueId(), 2);
@@ -115,9 +113,8 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_name) {
   EXPECT_THAT(a.getAttributes()[0].second, ElementsAre("cpuQueue-mid"));
 }
 
-// rate-limit is no longer copp-specific: it rides the shared attribute
-// stream, so it arrives as value tokens rather than a parsed pair. The
-// two-token <unit> <max> form is the one copp shipped and must keep working.
+// rate-limit arrives as value tokens for the shared applier. The two-token
+// <unit> <max> form must keep working alongside the three-token one.
 TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_rateLimit) {
   CoppQueueArgs a({"0", "rate-limit", "kbps", "1500"});
   EXPECT_EQ(a.getQueueId(), 0);
@@ -184,10 +181,8 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueueArgs_badValues) {
   EXPECT_THROW(CoppQueueArgs({"999"}), std::invalid_argument);
 }
 
-// rate-limit is a shared attribute now, so its values are checked where every
-// other attribute's are -- in utils::applyPortQueueConfig, one layer later
-// than copp's old bespoke parser did it. Same rejection, same exception type;
-// only the layer moved.
+// rate-limit values are checked in utils::applyPortQueueConfig, so a bad one
+// is rejected when the edit is applied rather than when the args are parsed.
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_badRateLimitValues) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "0 rate-limit kbps 1");
   CmdConfigCoppQueue cmd;
@@ -272,18 +267,26 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_ensureExists) {
   EXPECT_EQ(q->name(), "cpuQueue-high");
 }
 
-TEST_F(CmdConfigCoppTestFixture, cpuQueue_createIfMissing) {
+TEST_F(CmdConfigCoppTestFixture, cpuQueue_createRequiresStreamType) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "5");
   CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
   ASSERT_EQ(findQueue(5), nullptr);
 
-  CoppQueueArgs args({"5"});
-  cmd.queryClient(hostInfo, args);
+  // A cpu queue is identified by (streamType, queueId); creating one without
+  // naming the stream type must be refused, not defaulted.
+  EXPECT_THROW(
+      cmd.queryClient(hostInfo, CoppQueueArgs({"5"})), std::invalid_argument);
+  EXPECT_EQ(findQueue(5), nullptr);
 
+  cmd.queryClient(
+      hostInfo,
+      CoppQueueArgs({"5", "stream-type", "multicast", "weight", "3"}));
   const auto* q = findQueue(5);
   ASSERT_NE(q, nullptr);
   EXPECT_EQ(*q->id(), 5);
+  EXPECT_EQ(*q->streamType(), cfg::StreamType::MULTICAST);
+  EXPECT_EQ(*q->weight(), 3);
 }
 
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setName) {
@@ -370,8 +373,6 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_setSchedulingAndWeight) {
   EXPECT_EQ(q->name(), "cpuQueue-mid");
 }
 
-// A CPU queue reaches the shared helper like any other, so the shaping
-// attributes land on cpuQueues without copp knowing anything about them.
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_setRateLimitMinMax) {
   setupTestableConfigSession(cpuQueueCmdPrefix_, "2 rate-limit kbps 1000 5000");
   CmdConfigCoppQueue cmd;
@@ -435,32 +436,18 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_weightOutOfRange) {
 }
 
 // A queue created by the CLI must be programmable: the agent filters
-// cpuQueues by streamType, so a new entry follows the box's existing queues
-// instead of the thrift default (UNICAST), which would silently never be
-// installed.
-TEST_F(CmdConfigCoppTestFixture, cpuQueue_createSeedsStreamType) {
-  setupTestableConfigSession(cpuQueueCmdPrefix_, "11 weight 3");
-  CmdConfigCoppQueue cmd;
-  HostInfo hostInfo("testhost");
-
-  cmd.queryClient(hostInfo, CoppQueueArgs({"11", "weight", "3"}));
-
-  const auto* q = findQueue(11);
-  ASSERT_NE(q, nullptr);
-  const auto* sibling = findQueue(2);
-  ASSERT_NE(sibling, nullptr);
-  EXPECT_EQ(*q->streamType(), *sibling->streamType());
-}
-
 // A rejected attribute must not leave a half-built queue behind: the create
 // and the edit are one transaction.
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_rejectedCreateLeavesNoPhantom) {
-  setupTestableConfigSession(cpuQueueCmdPrefix_, "12 weight 999");
+  setupTestableConfigSession(
+      cpuQueueCmdPrefix_, "12 stream-type multicast weight 999");
   CmdConfigCoppQueue cmd;
   HostInfo hostInfo("testhost");
 
   EXPECT_THROW(
-      cmd.queryClient(hostInfo, CoppQueueArgs({"12", "weight", "999"})),
+      cmd.queryClient(
+          hostInfo,
+          CoppQueueArgs({"12", "stream-type", "multicast", "weight", "999"})),
       std::invalid_argument);
   EXPECT_EQ(findQueue(12), nullptr);
 }
@@ -475,8 +462,7 @@ TEST_F(CmdConfigCoppTestFixture, cpuQueue_bareAqmThrows) {
 }
 
 // Repeated attributes would be last-wins while the echo message claims both
-// applied, so the shared utils::walkQueueAttributes guard refuses them --
-// `name` included, now that it is an ordinary attribute.
+// applied, so utils::walkQueueAttributes refuses them.
 TEST_F(CmdConfigCoppTestFixture, cpuQueue_duplicateNameOrRateLimitThrows) {
   EXPECT_THROW(
       CoppQueueArgs({"2", "name", "a", "name", "b"}), std::invalid_argument);

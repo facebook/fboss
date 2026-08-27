@@ -35,6 +35,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
@@ -77,6 +79,13 @@ class ConfigCoppTest : public Fboss2IntegrationTest {
       throw std::runtime_error("Running config has no cpuQueues entries");
     }
     return queues[0]["id"].asInt();
+  }
+
+  // The running config serializes thrift enums as integers, while the CLI
+  // takes their names -- so read one back as the enum and let enumNameSafe
+  // produce the token to feed the command.
+  static cfg::QueueScheduling schedulingOf(const folly::dynamic& queue) {
+    return static_cast<cfg::QueueScheduling>(queue["scheduling"].asInt());
   }
 
   // Look up the rxReason mapping for a numeric reason id in the running
@@ -160,12 +169,8 @@ TEST_F(ConfigCoppTest, CpuQueueSetName) {
   }
 }
 
-// Proves copp's rate-limit still reaches cpuQueues now that the parsing moved
-// into utils::applyPortQueueConfig. Only the two-token <unit> <max> form is
-// exercised here: the CLI has no unset, so a test writing a minimum could not
-// restore it. The three-token form's hardware round-trip is covered by
-// ConfigPortQueueConfigTest.QueueConfigCreateShapeAndDelete, which builds a
-// throwaway named queue-config and deletes it afterwards.
+// Only the two-token <unit> <max> form is exercised here: the CLI has no
+// unset, so a test writing a minimum could not restore it.
 TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
   // Low-priority queues (id 0 and 1) are typically pps-rate-limited in
   // production configs — find one that has an existing pps cap to minimize
@@ -226,7 +231,7 @@ TEST_F(ConfigCoppTest, CpuQueueSetRateLimitPps) {
 // every production CoPP policy maps ARP, and we can read its current queue
 // id to compute a distinct new value and then restore.
 TEST_F(ConfigCoppTest, ReasonToQueueUpdate) {
-  constexpr int kArpReason = 1; // cfg::PacketRxReason::ARP
+  const int kArpReason = static_cast<int>(cfg::PacketRxReason::ARP);
 
   auto originalQueueId = findReasonQueueId(kArpReason);
   ASSERT_TRUE(originalQueueId.has_value())
@@ -263,30 +268,31 @@ TEST_F(ConfigCoppTest, ReasonToQueueUpdate) {
   EXPECT_EQ(findReasonQueueId(kArpReason), originalQueueId);
 }
 
-// scheduling <sp|wrr> and weight <n> ride the same code path
-// (utils::applyPortQueueConfig), so one queue walks through both disciplines
-// here rather than paying a separate read-modify-restore cycle per attribute.
-//
 // Shipped configs may run every CPU queue as strict-priority with no weight
 // field at all, so the test cannot assume a starting discipline: it forces WRR
 // and sets a weight, then forces SP, then restores whatever was there. A
 // weight left behind on a strict-priority queue is ignored by the agent (see
 // the PortQueue.weight comment in switch_config.thrift), and the CLI has no
-// way to unset it. The running config serializes cfg::QueueScheduling as an
-// integer (WEIGHTED_ROUND_ROBIN = 0, STRICT_PRIORITY = 1).
+// way to unset it.
 TEST_F(ConfigCoppTest, CpuQueueSetSchedulingAndWeight) {
+  constexpr auto kWrr = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+  constexpr auto kSp = cfg::QueueScheduling::STRICT_PRIORITY;
+
   int id = getFirstExistingQueueId();
   auto before = findQueue(id);
   ASSERT_FALSE(before.isNull());
   ASSERT_TRUE(before.count("scheduling"));
-  const int originalScheduling = before["scheduling"].asInt();
+  const auto originalScheduling = schedulingOf(before);
   const std::optional<int> originalWeight = before.count("weight")
       ? std::make_optional<int>(before["weight"].asInt())
       : std::nullopt;
 
   const int newWeight = originalWeight.value_or(0) == 7 ? 8 : 7;
-  XLOG(INFO) << "queue " << id << " scheduling wrr weight " << newWeight
-             << " (was scheduling " << originalScheduling << ", weight "
+  XLOG(INFO) << "queue " << id << " scheduling "
+             << apache::thrift::util::enumNameSafe(kWrr) << " weight "
+             << newWeight << " (was scheduling "
+             << apache::thrift::util::enumNameSafe(originalScheduling)
+             << ", weight "
              << (originalWeight.has_value() ? std::to_string(*originalWeight)
                                             : "unset")
              << ")";
@@ -298,7 +304,7 @@ TEST_F(ConfigCoppTest, CpuQueueSetSchedulingAndWeight) {
        "queue",
        std::to_string(id),
        "scheduling",
-       "wrr",
+       apache::thrift::util::enumNameSafe(kWrr),
        "weight",
        std::to_string(newWeight)});
   ASSERT_EQ(result.exitCode, 0)
@@ -307,21 +313,29 @@ TEST_F(ConfigCoppTest, CpuQueueSetSchedulingAndWeight) {
 
   auto after = findQueue(id);
   ASSERT_FALSE(after.isNull());
-  EXPECT_EQ(after["scheduling"].asInt(), 0); // WEIGHTED_ROUND_ROBIN
+  EXPECT_EQ(schedulingOf(after), kWrr);
   ASSERT_TRUE(after.count("weight"));
   EXPECT_EQ(after["weight"].asInt(), newWeight);
 
-  XLOG(INFO) << "queue " << id << " scheduling sp";
+  XLOG(INFO) << "queue " << id << " scheduling "
+             << apache::thrift::util::enumNameSafe(kSp);
   result = runCli(
-      {"config", "copp", "queue", std::to_string(id), "scheduling", "sp"});
+      {"config",
+       "copp",
+       "queue",
+       std::to_string(id),
+       "scheduling",
+       apache::thrift::util::enumNameSafe(kSp)});
   ASSERT_EQ(result.exitCode, 0) << result.stderr;
   commitConfig();
 
   after = findQueue(id);
   ASSERT_FALSE(after.isNull());
-  EXPECT_EQ(after["scheduling"].asInt(), 1); // STRICT_PRIORITY
+  EXPECT_EQ(schedulingOf(after), kSp);
 
-  XLOG(INFO) << "Restoring scheduling " << originalScheduling << " and weight";
+  XLOG(INFO) << "Restoring scheduling "
+             << apache::thrift::util::enumNameSafe(originalScheduling)
+             << " and weight";
   if (originalWeight.has_value()) {
     result = runCli(
         {"config",
@@ -332,24 +346,23 @@ TEST_F(ConfigCoppTest, CpuQueueSetSchedulingAndWeight) {
          std::to_string(*originalWeight)});
     ASSERT_EQ(result.exitCode, 0) << result.stderr;
   }
-  const std::string restoreToken = originalScheduling == 0 ? "wrr" : "sp";
   result = runCli(
       {"config",
        "copp",
        "queue",
        std::to_string(id),
        "scheduling",
-       restoreToken});
+       apache::thrift::util::enumNameSafe(originalScheduling)});
   ASSERT_EQ(result.exitCode, 0) << result.stderr;
   commitConfig();
-  EXPECT_EQ(findQueue(id)["scheduling"].asInt(), originalScheduling);
+  EXPECT_EQ(schedulingOf(findQueue(id)), originalScheduling);
 }
 
 // reason ... order <n>: move an existing reason to the front of
 // rxReasonToQueueOrderedList and restore its original position. The list is
 // position-sensitive, so the test asserts on the index, not just membership.
 TEST_F(ConfigCoppTest, ReasonOrderMove) {
-  constexpr int kArpReason = 1; // cfg::PacketRxReason::ARP
+  const int kArpReason = static_cast<int>(cfg::PacketRxReason::ARP);
 
   auto findReasonIndex = [this](int rxReason) -> std::optional<size_t> {
     auto config = getRunningConfig();

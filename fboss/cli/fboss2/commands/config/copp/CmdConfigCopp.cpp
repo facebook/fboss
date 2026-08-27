@@ -51,9 +51,8 @@ CoppQueueArgs::CoppQueueArgs(std::vector<std::string> v) {
   }
   queueId_ = parseQueueId(v[0], "queue");
 
-  // Every token after <id> is a shared queue attribute -- copp has no
-  // vocabulary of its own here any more -- so the grammar cannot drift from
-  // `config qos queue-config`'s.
+  // Every token after <id> is a shared queue attribute, so the grammar cannot
+  // drift from `config qos queue-config`'s.
   utils::walkQueueAttributes(v, 1, attributes_, aqmAttributes_);
 
   data_ = std::move(v);
@@ -118,14 +117,14 @@ std::string applyCpuQueueConfig(
   if (existed) {
     work = *it;
   } else {
+    if (!utils::findStreamTypeAttr(args.getAttributes()).has_value()) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Creating queue {} requires stream-type: the agent only installs "
+              "cpuQueues entries whose stream type the ASIC's CPU port exposes",
+              args.getQueueId()));
+    }
     work.id() = args.getQueueId();
-    // The agent only programs cpuQueues entries whose streamType matches the
-    // CPU port's stream types (ApplyThriftConfig's updatePortQueues filters
-    // on it); the thrift default is UNICAST while CPU queues ship MULTICAST,
-    // so a defaulted entry would commit fine and silently never be installed.
-    // Follow the box's existing queues; MULTICAST when there are none.
-    work.streamType() = queues.empty() ? cfg::StreamType::MULTICAST
-                                       : *queues.front().streamType();
   }
 
   if (!args.getAttributes().empty() || !args.getAqmAttributes().empty()) {
