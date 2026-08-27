@@ -59,7 +59,8 @@ TAttributeStats queryBgpStatsAttrsWithFallback(Client& client) {
       });
 }
 
-struct CmdShowBgpStatsAttrsTraits : public ReadCommandTraits {
+struct CmdShowBgpStatsAttrsTraits : public ReadCommandTraits,
+                                    public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

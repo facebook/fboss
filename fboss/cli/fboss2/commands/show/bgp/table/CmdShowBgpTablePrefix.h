@@ -22,7 +22,8 @@
 namespace facebook::fboss {
 using namespace neteng::fboss::bgp::thrift;
 
-struct CmdShowBgpTablePrefixTraits : public ReadCommandTraits {
+struct CmdShowBgpTablePrefixTraits : public ReadCommandTraits,
+                                     public CliDocsExempt {
   using ParentCmd = CmdShowBgpTable;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;

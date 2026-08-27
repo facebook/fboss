@@ -19,7 +19,8 @@ using neteng::fboss::bgp::thrift::TRibEntry;
 using neteng::fboss::bgp::thrift::TRibEntryWithHost;
 using neteng::fboss::bgp_attr::TBgpAfi;
 
-struct CmdShowBgpChangelistTraits : public ReadCommandTraits {
+struct CmdShowBgpChangelistTraits : public ReadCommandTraits,
+                                    public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

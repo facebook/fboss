@@ -31,7 +31,8 @@ using facebook::fboss::utils::Table;
 using neteng::fboss::bgp::thrift::TRibSummary;
 using neteng::fboss::bgp_attr::TBgpAfi;
 
-struct CmdShowBgpTableSummaryTraits : public ReadCommandTraits {
+struct CmdShowBgpTableSummaryTraits : public ReadCommandTraits,
+                                      public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

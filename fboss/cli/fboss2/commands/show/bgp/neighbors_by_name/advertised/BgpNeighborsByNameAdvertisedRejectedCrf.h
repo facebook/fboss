@@ -15,8 +15,8 @@
 
 namespace facebook::fboss {
 
-struct BgpNeighborsByNameAdvertisedRejectedCrfTraits
-    : public ReadCommandTraits {
+struct BgpNeighborsByNameAdvertisedRejectedCrfTraits : public ReadCommandTraits,
+                                                       public CliDocsExempt {
   using ParentCmd = BgpNeighborsByNameAdvertisedRejected;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

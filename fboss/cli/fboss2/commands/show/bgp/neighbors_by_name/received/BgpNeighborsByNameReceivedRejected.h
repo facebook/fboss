@@ -32,7 +32,8 @@ using neteng::fboss::bgp_attr::TIpPrefix;
 
 // RetType key: "prefix | policy_name" -> list of "peer_addr (description)".
 // Using primitive containers so that CmdHandler's JSON serialization works.
-struct BgpNeighborsByNameReceivedRejectedTraits : public ReadCommandTraits {
+struct BgpNeighborsByNameReceivedRejectedTraits : public ReadCommandTraits,
+                                                  public CliDocsExempt {
   using ParentCmd = CmdShowBgpNeighborsByName;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
