@@ -772,6 +772,7 @@ enum HwObjectType {
   FIRMWARE = 26,
   SRV6 = 27,
   NEXT_HOP_GROUP_MEMBER = 28,
+  SAMPLE_PACKET = 29,
 }
 
 exception FbossFibUpdateError {
