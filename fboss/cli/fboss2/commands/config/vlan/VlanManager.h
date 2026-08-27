@@ -71,6 +71,11 @@ class VlanManager {
   //
   // Does NOT call saveConfig() — callers save after this returns.
   static void deleteVlan(cfg::SwitchConfig& swConfig, const VlanID& vlanId);
+
+  // Erases VLAN `vlanId` and everything scoped to it (its interfaces, VlanPort
+  // membership rows, static MAC entries) with NO referrer checks. Callers must
+  // validate deletability first; deleteVlan is the checked entry point.
+  static void eraseVlan(cfg::SwitchConfig& swConfig, int32_t vlanId);
 };
 
 } // namespace facebook::fboss

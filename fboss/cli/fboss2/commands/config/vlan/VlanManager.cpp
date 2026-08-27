@@ -74,12 +74,6 @@ std::pair<bool, cfg::Vlan*> VlanManager::createVlan(
   cfg::Vlan newVlan;
   newVlan.id() = static_cast<int32_t>(vlanId);
   newVlan.name() = fmt::format("Vlan{}", static_cast<uint16_t>(vlanId));
-  // Every VLAN this creates gets a backing cfg::Interface below, so it is an
-  // SVI, not an L2-only VLAN. The agent ignores the flag (it never reaches
-  // switch state), but agent.conf is what operators read to work out why an
-  // SVI is not passing traffic, and 'routable: false' has sent them chasing
-  // it more than once. 'config vlan default' keeps false for the
-  // interface-less placeholder it creates.
   newVlan.routable() = true;
 
   // Insert the new VLAN keeping the list sorted by ID (tolerating a pinned
@@ -183,50 +177,35 @@ void VlanManager::deleteVlan(
         folly::join(", ", ingressPorts));
   }
 
-  // Safe to remove. Drop the VLAN entry, the interface(s) bound to it
-  // (including routed SVIs with IP addresses — an interface's vlanID must
-  // reference an existing VLAN, so it cannot outlive it), the switchport
-  // membership rows naming it, and any static MAC entries scoped to it.
-  //
-  // Membership rows are cascaded rather than refused: a VlanPort row carries no
-  // configuration the user would have to re-supply, and dropping it leaves the
-  // port valid in its remaining VLANs. Equivalent to running
-  // `config interface <port> switchport trunk allowed vlan remove <id>` on
-  // every member port. Access ports are not silently retagged — a port with
-  // ingressVlan == id is refused above, before this point.
-  auto& vlanPorts = *swConfig.vlanPorts();
-  vlanPorts.erase(
-      std::remove_if(
-          vlanPorts.begin(),
-          vlanPorts.end(),
-          [id](const cfg::VlanPort& vp) { return *vp.vlanID() == id; }),
-      vlanPorts.end());
+  // Safe to remove. Membership rows are cascaded rather than refused: a
+  // VlanPort row carries no configuration the user would have to re-supply,
+  // and dropping it leaves the port valid in its remaining VLANs. Equivalent
+  // to running `config interface <port> switchport trunk allowed vlan remove
+  // <id>` on every member port. Access ports are not silently retagged — a
+  // port with ingressVlan == id is refused above, before this point.
+  eraseVlan(swConfig, id);
+}
 
+void VlanManager::eraseVlan(cfg::SwitchConfig& swConfig, int32_t vlanId) {
+  // Drop the VLAN entry, the interface(s) bound to it (including routed SVIs
+  // with IP addresses — an interface's vlanID must reference an existing
+  // VLAN, so it cannot outlive it), the switchport membership rows naming it,
+  // and any static MAC entries scoped to it.
+  std::erase_if(*swConfig.vlanPorts(), [vlanId](const cfg::VlanPort& vp) {
+    return *vp.vlanID() == vlanId;
+  });
   if (swConfig.staticMacAddrs().has_value()) {
-    auto& macs = *swConfig.staticMacAddrs();
-    macs.erase(
-        std::remove_if(
-            macs.begin(),
-            macs.end(),
-            [id](const cfg::StaticMacEntry& e) { return *e.vlanID() == id; }),
-        macs.end());
+    std::erase_if(
+        *swConfig.staticMacAddrs(), [vlanId](const cfg::StaticMacEntry& e) {
+          return *e.vlanID() == vlanId;
+        });
   }
-
-  auto& vlans = *swConfig.vlans();
-  vlans.erase(
-      std::remove_if(
-          vlans.begin(),
-          vlans.end(),
-          [id](const cfg::Vlan& vlan) { return *vlan.id() == id; }),
-      vlans.end());
-
-  auto& interfaces = *swConfig.interfaces();
-  interfaces.erase(
-      std::remove_if(
-          interfaces.begin(),
-          interfaces.end(),
-          [id](const cfg::Interface& intf) { return *intf.vlanID() == id; }),
-      interfaces.end());
+  std::erase_if(*swConfig.vlans(), [vlanId](const cfg::Vlan& vlan) {
+    return *vlan.id() == vlanId;
+  });
+  std::erase_if(*swConfig.interfaces(), [vlanId](const cfg::Interface& intf) {
+    return *intf.vlanID() == vlanId;
+  });
 }
 
 } // namespace facebook::fboss
