@@ -1053,6 +1053,11 @@ class CmisModule : public QsfpModule {
   bool driveVdmCaptureLocked() override;
   void requestVdmFreezeLocked();
   bool finishVdmFreezeReadLocked();
+  // True only when the module is in the READY state (initialized, out of low
+  // power, DSP powered on) so it can process a VDM freeze. Freezing while the
+  // module is still initializing / in low power hangs the latch on some modules
+  // and corrupts VDM intervals, so we gate the freeze request on this.
+  bool isReadyForVdmFreezeLocked();
   // Reset the async capture state and clear any in-flight freeze (e.g. on a
   // reprogram/reset while a capture was in progress).
   void resetVdmCaptureStateLocked();

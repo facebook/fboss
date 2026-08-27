@@ -1491,7 +1491,7 @@ bool CmisModule::isModuleInReadyState() {
       moduleStateFromStatusByte(moduleStatus) == CmisModuleState::READY;
 
   if (isReady) {
-    QSFP_LOG(INFO, this) << "isModuleInReadyState: Module is in READY state";
+    QSFP_LOG(DBG2, this) << "isModuleInReadyState: Module is in READY state";
   } else {
     QSFP_LOG(INFO, this)
         << "isModuleInReadyState: Module is not ready yet - need more time to be ready";
@@ -4714,15 +4714,28 @@ bool CmisModule::driveVdmCaptureLocked() {
     return false;
   }
   if (vdmCaptureState_ == VdmCaptureState::IDLE) {
-    // Arm on the StatsPublisher trigger: request the freeze this cycle and read
-    // the frozen snapshot on the next refresh.
-    if (captureVdmStats_.exchange(false)) {
+    // Arm on the StatsPublisher trigger, but only issue the freeze once the
+    // module is ready (powered up, out of low power) -- freezing while the
+    // module is still initializing / in low power (DSP off) hangs the latch and
+    // corrupts VDM intervals. If not ready yet, leave captureVdmStats_ armed
+    // and retry on a later refresh. The readiness check does I2C, so gate it
+    // behind the cheap armed-flag load.
+    if (captureVdmStats_.load() && isReadyForVdmFreezeLocked() &&
+        captureVdmStats_.exchange(false)) {
       requestVdmFreezeLocked();
     }
     return false;
   }
   // FREEZE_REQUESTED: the freeze was requested last refresh; finish it now.
   return finishVdmFreezeReadLocked();
+}
+
+// The module can only process a VDM freeze once it has finished initializing
+// and is out of low power (DSP powered on). Gate on the module being in the
+// READY state rather than on per-lane datapath activation, since some lanes may
+// be intentionally left uninitialized.
+bool CmisModule::isReadyForVdmFreezeLocked() {
+  return isModuleInReadyState();
 }
 
 // Async step 1: write FreezeRequest and move to FREEZE_REQUESTED. Returns
