@@ -276,6 +276,7 @@ std::
       udfGroupIds[3], // UserDefinedFieldGroupMin3
       udfGroupIds[4], // UserDefinedFieldGroupMin4
 #endif
+      std::nullopt, // port meta
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

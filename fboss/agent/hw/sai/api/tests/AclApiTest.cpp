@@ -464,6 +464,7 @@ class AclApiTest : public ::testing::Test {
             kUserDefinedFieldGroup2(), // udf group 2
             kUserDefinedFieldGroup3(), // udf group 3
             kUserDefinedFieldGroup4(), // udf group 4
+            true, // port meta
         },
         kSwitchID());
   }
@@ -1104,6 +1105,8 @@ TEST_F(AclApiTest, getAclTableAttribute) {
       aclTableId, SaiAclTableTraits::Attributes::FieldRouteDstUserMeta());
   auto aclTableFieldNeighborDstUserMetaGot = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta());
+  auto aclTableFieldPortUserMetaGot = aclApi->getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::FieldPortUserMeta());
   auto aclTableUserDefinedFieldGroup0 = aclApi->getAttribute(
       aclTableId, SaiAclTableTraits::Attributes::UserDefinedFieldGroupMin0());
   auto aclTableUserDefinedFieldGroup1 = aclApi->getAttribute(
@@ -1147,6 +1150,7 @@ TEST_F(AclApiTest, getAclTableAttribute) {
   EXPECT_EQ(aclTableFieldFdbDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldRouteDstUserMetaGot, true);
   EXPECT_EQ(aclTableFieldNeighborDstUserMetaGot, true);
+  EXPECT_EQ(aclTableFieldPortUserMetaGot, true);
   EXPECT_EQ(aclTableUserDefinedFieldGroup0, kUserDefinedFieldGroup0());
   EXPECT_EQ(aclTableUserDefinedFieldGroup1, kUserDefinedFieldGroup1());
   EXPECT_EQ(aclTableUserDefinedFieldGroup2, kUserDefinedFieldGroup2());
@@ -1283,6 +1287,7 @@ TEST_F(AclApiTest, setAclTableAttribute) {
       false};
   SaiAclTableTraits::Attributes::FieldNeighborDstUserMeta
       fieldNeieghborDstUserMeta{false};
+  SaiAclTableTraits::Attributes::FieldPortUserMeta fieldPortUserMeta{false};
 
   EXPECT_THROW(aclApi->setAttribute(aclTableId, stage), SaiApiError);
   EXPECT_THROW(
@@ -1315,6 +1320,8 @@ TEST_F(AclApiTest, setAclTableAttribute) {
       aclApi->setAttribute(aclTableId, fieldRouteDstUserMeta), SaiApiError);
   EXPECT_THROW(
       aclApi->setAttribute(aclTableId, fieldNeieghborDstUserMeta), SaiApiError);
+  EXPECT_THROW(
+      aclApi->setAttribute(aclTableId, fieldPortUserMeta), SaiApiError);
 }
 
 TEST_F(AclApiTest, setAclEntryAttribute) {

@@ -125,6 +125,7 @@ std::
       std::nullopt, // UserDefinedFieldGroupMin3
       std::nullopt, // UserDefinedFieldGroupMin4
 #endif
+      std::nullopt, // port meta
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

@@ -167,6 +167,7 @@ sai_status_t create_acl_table_fn(
   bool fieldFdbDstUserMeta = 0;
   bool fieldRouteDstUserMeta = 0;
   bool fieldNeighborDstUserMeta = 0;
+  bool fieldPortUserMeta = 0;
   bool fieldEthertype = 0;
   bool fieldOuterVlanId = 0;
   std::vector<sai_int32_t> fieldAclRangeType;
@@ -270,6 +271,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META:
         fieldNeighborDstUserMeta = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_PORT_USER_META:
+        fieldPortUserMeta = attr_list[i].value.booldata;
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
         fieldEthertype = attr_list[i].value.booldata;
         break;
@@ -340,6 +344,7 @@ sai_status_t create_acl_table_fn(
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
+      fieldPortUserMeta,
       fieldEthertype,
       fieldOuterVlanId,
       fieldAclRangeType,
@@ -531,6 +536,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldNeighborDstUserMeta;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_PORT_USER_META: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldPortUserMeta;
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);

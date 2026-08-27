@@ -211,6 +211,11 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         bool>;
+    using FieldPortUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_PORT_USER_META,
+        bool,
+        StdNullOptDefault<bool>>;
     using FieldEthertype =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
@@ -315,7 +320,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::UserDefinedFieldGroupMin3>,
       std::optional<Attributes::UserDefinedFieldGroupMin4>
 #endif
-      >;
+      ,
+      std::optional<Attributes::FieldPortUserMeta>>;
 
   using AdapterHostKey = std::string;
 };
@@ -349,6 +355,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, FieldPortUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);

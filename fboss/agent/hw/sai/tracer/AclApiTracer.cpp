@@ -49,6 +49,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclTable, FieldRouteDstUserMeta),
     SAI_ATTR_MAP(AclTable, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclTable, FieldPortUserMeta),
     SAI_ATTR_MAP(AclTable, AvailableEntry),
     SAI_ATTR_MAP(AclTable, AvailableCounter),
     SAI_ATTR_MAP(AclTable, FieldEthertype),
