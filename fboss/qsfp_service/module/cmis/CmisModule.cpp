@@ -54,7 +54,6 @@ constexpr uint8_t kPageSelectByteOffset = 127;
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
-constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWaitPrbs = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
@@ -2719,6 +2718,11 @@ void CmisModule::updateQsfpData(bool allPages) {
       bool isReady = moduleStateFromStatusByte(getSettingsValue(
                          CmisField::MODULE_STATE)) == CmisModuleState::READY;
       if (isReady) {
+        // A full refresh implies a (re)discovered/reprogrammed module; abort
+        // any in-flight async VDM capture and clear a lingering freeze.
+        if (allPages) {
+          resetVdmCaptureStateLocked();
+        }
         readSnrDiagPageLocked(page14_);
         updateVdmCacheLocked();
       }
@@ -4666,48 +4670,104 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
   return true;
 }
 
-/*
- * latchAndReadVdmDataLocked
- *
- * This function holds the latch and reads the VDM data from the module. This
- * function call will be triggered by StatsPublisher thread setting the atomic
- * variable to capture the VDM stats (typically every 5 minutes)
- */
-void CmisModule::latchAndReadVdmDataLocked() {
-  if (!isVdmSupported()) {
-    return;
-  }
-  QSFP_LOG(DBG3, this) << "latchAndReadVdmDataLocked";
-
-  // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
+// Set (freeze=true) or clear (freeze=false) the VDM FreezeRequest bit
+// (Page 2Fh byte 144 bit 7) via read-modify-write.
+void CmisModule::writeVdmFreezeRequestLocked(bool freeze) {
   uint8_t latchRequest;
   readCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
-
-  latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Hold the latch to read the VDM data
+  if (freeze) {
+    latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
+  } else {
+    latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
+  }
   writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
+}
 
-  // Wait tNack time
-  /* sleep override */
-  usleep(kUsecVdmLatchHold);
-
-  // Read data for publishing to ODS, for every bank on multi-bank modules.
+// Read the (frozen) VDM data pages 24h-27h, for every bank on multi-bank
+// modules, into the page caches.
+void CmisModule::readVdmFrozenPagesLocked() {
   std::array<BankedPage*, 4> dataPageBuffers = {
       &page24_, &page25_, &page26_, &page27_};
-
   for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
     readBankedPage(kVdmDataPages[group - 1], *dataPageBuffers[group - 1]);
   }
+}
 
-  // Write Byte 2F.144, bit 7 to 0 (clear latch)
-  latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Release the latch to resume VDM data collection. This automatically
-  // starts a new VDM interval in HW
-  writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
-  // Wait tNack time
-  /* sleep override */
-  usleep(kUsecVdmLatchHold);
+// Single non-blocking read of FreezeDone (Page 2Fh byte 145 bit 7).
+bool CmisModule::isVdmFreezeDoneLocked() {
+  uint8_t doneFlag = 0;
+  readCmisField(CmisField::VDM_LATCH_DONE, &doneFlag);
+  return (doneFlag & FieldMasks::VDM_LATCH_DONE_MASK) != 0;
+}
+
+/*
+ * driveVdmCaptureLocked
+ *
+ * Non-blocking per-refresh driver for the VDM ForOds capture (see the handshake
+ * description in CmisModule.h). Returns true on the refresh where a frozen
+ * snapshot was read, so updateCachedTransceiverInfoLocked() refreshes the
+ * ForOds stats that cycle.
+ */
+bool CmisModule::driveVdmCaptureLocked() {
+  if (!isVdmSupported()) {
+    captureVdmStats_ = false;
+    return false;
+  }
+  if (vdmCaptureState_ == VdmCaptureState::IDLE) {
+    // Arm on the StatsPublisher trigger: request the freeze this cycle and read
+    // the frozen snapshot on the next refresh.
+    if (captureVdmStats_.exchange(false)) {
+      requestVdmFreezeLocked();
+    }
+    return false;
+  }
+  // FREEZE_REQUESTED: the freeze was requested last refresh; finish it now.
+  return finishVdmFreezeReadLocked();
+}
+
+// Async step 1: write FreezeRequest and move to FREEZE_REQUESTED. Returns
+// immediately -- the module completes the freeze (<2s) well within one refresh.
+void CmisModule::requestVdmFreezeLocked() {
+  QSFP_LOG(DBG3, this) << "requestVdmFreezeLocked";
+  writeVdmFreezeRequestLocked(true);
+  // Per CMIS 8.19.6, the module resets its internal accumulators and starts the
+  // new statistics interval at the freeze instant (not at unfreeze), so stamp
+  // the interval start here. getVdmPerfMonitorStats() reports this as
+  // intervalStartTime for the running interval.
   vdmIntervalStartTime_ = std::time(nullptr);
+  vdmCaptureState_ = VdmCaptureState::FREEZE_REQUESTED;
+}
+
+// Async step 2 (one refresh after the request): a single non-blocking
+// FreezeDone read, then read the frozen pages and unfreeze. If FreezeDone is
+// still unset (slow/non-implementing module) we read anyway rather than wait.
+// Returns true.
+bool CmisModule::finishVdmFreezeReadLocked() {
+  if (!isVdmFreezeDoneLocked()) {
+    QSFP_LOG(WARN, this)
+        << "VDM FreezeDone not set one refresh after request; reading anyway";
+  }
+  readVdmFrozenPagesLocked();
+
+  // Release the freeze to resume VDM data collection. We don't poll
+  // UnfreezeDone: some modules never toggle it, and the next capture cycle
+  // gives ample time to resume. (vdmIntervalStartTime_ was stamped at the
+  // freeze request, per the CMIS interval-start semantics.)
+  writeVdmFreezeRequestLocked(false);
+  vdmCaptureState_ = VdmCaptureState::IDLE;
+  return true;
+}
+
+// Abort any in-flight async capture and clear a freeze we requested (e.g. on a
+// reprogram/reset). No-op (no I2C) when already IDLE.
+void CmisModule::resetVdmCaptureStateLocked() {
+  if (vdmCaptureState_ == VdmCaptureState::IDLE) {
+    return;
+  }
+  if (isVdmSupported()) {
+    writeVdmFreezeRequestLocked(false);
+  }
+  vdmCaptureState_ = VdmCaptureState::IDLE;
 }
 
 /*

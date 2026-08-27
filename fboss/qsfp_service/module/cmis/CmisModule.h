@@ -733,11 +733,6 @@ class CmisModule : public QsfpModule {
    */
   void triggerVdmStatsCapture() override;
 
-  /*
-   * Latch and read VDM data
-   */
-  void latchAndReadVdmDataLocked() override;
-
   bool supportRemediate() override;
 
   void resetDataPath(const std::string& portName) override;
@@ -1045,6 +1040,27 @@ class CmisModule : public QsfpModule {
 
   void updateVdmCacheLocked();
 
+  /*
+   * Non-blocking VDM ForOds capture handshake, driven once per refresh from
+   * updateCachedTransceiverInfoLocked(). Spreads the freeze across two refresh
+   * cycles so the slow FreezeDone wait never blocks the refresh thread:
+   *   - cycle N: on the StatsPublisher trigger, write FreezeRequest (no wait).
+   *   - cycle N+1: one non-blocking FreezeDone read, then read the frozen pages
+   *     and unfreeze (reading anyway if FreezeDone is still unset).
+   * Returns true on the cycle a frozen snapshot was read (caller refreshes the
+   * ForOds stats that cycle).
+   */
+  bool driveVdmCaptureLocked() override;
+  void requestVdmFreezeLocked();
+  bool finishVdmFreezeReadLocked();
+  // Reset the async capture state and clear any in-flight freeze (e.g. on a
+  // reprogram/reset while a capture was in progress).
+  void resetVdmCaptureStateLocked();
+  // Low-level VDM freeze helpers shared by the blocking and async paths.
+  void writeVdmFreezeRequestLocked(bool freeze);
+  void readVdmFrozenPagesLocked();
+  bool isVdmFreezeDoneLocked();
+
   void updateCmisStateChanged(
       ModuleStatus& moduleStatus,
       std::optional<ModuleStatus> curModuleStatus = std::nullopt) override;
@@ -1162,6 +1178,12 @@ class CmisModule : public QsfpModule {
       override;
 
   std::time_t vdmIntervalStartTime_{0};
+
+  // Async VDM ForOds capture state (see driveVdmCaptureLocked). IDLE until the
+  // StatsPublisher trigger arms a capture; FREEZE_REQUESTED for the one refresh
+  // between writing FreezeRequest and reading the frozen snapshot.
+  enum class VdmCaptureState { IDLE, FREEZE_REQUESTED };
+  VdmCaptureState vdmCaptureState_{VdmCaptureState::IDLE};
 };
 
 } // namespace fboss

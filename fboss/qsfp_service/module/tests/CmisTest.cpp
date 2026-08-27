@@ -112,6 +112,9 @@ constexpr int kPage14 = static_cast<int>(CmisPages::PAGE14);
 constexpr int kDiagSelUpperPageOffset = 0;
 constexpr uint8_t kDiagSelSnr =
     static_cast<uint8_t>(DiagnosticFeatureEncoding::SNR);
+// VDM FreezeRequest is Page 2Fh byte 144 (upper-page offset 16).
+constexpr int kPage2f = static_cast<int>(CmisPages::PAGE2F);
+constexpr int kVdmLatchRequestUpperPageOffset = 144 - 128;
 } // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
@@ -2535,6 +2538,10 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
   std::vector<int32_t> xcvrIds = {xcvrID};
   transceiverManager_->triggerVdmStatsCapture(xcvrIds);
 
+  // VDM ForOds capture is asynchronous: the first refresh after the trigger
+  // writes FreezeRequest, and the next refresh reads the frozen snapshot and
+  // populates the *ForOds fields. Drive both cycles before checking stats.
+  transceiverManager_->refreshStateMachines();
   transceiverManager_->refreshStateMachines();
   const auto& newInfo = xcvr->getTransceiverInfo();
   EXPECT_TRUE(newInfo.tcvrStats()->vdmPerfMonitorStats().has_value());
@@ -2652,6 +2659,77 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
           .value()
           .size(),
       2);
+}
+
+// The VDM ForOds capture is asynchronous and non-blocking: the StatsPublisher
+// trigger makes the next refresh write FreezeRequest (2Fh:144 bit7) WITHOUT
+// waiting for FreezeDone, and the following refresh reads the frozen snapshot
+// and clears FreezeRequest. This keeps the slow freeze wait off the refresh
+// thread. Verify the two-cycle split (one FreezeRequest write per cycle, not
+// set+clear in a single cycle) and that *ForOds only advances on the second
+// refresh.
+TEST_F(CmisTest, cmisVdmForOdsCaptureIsAsync) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  auto* qsfpImpl = lastQsfpImpl();
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  // Program the module so the VDM cache is valid and perf-monitor stats parse.
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/5";
+  portState.startHostLane = 4;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Baseline: with no capture triggered, a refresh writes no FreezeRequest and
+  // leaves *ForOds unset.
+  const int baseFreezeWrites = qsfpImpl->getUpperPageWriteCount(
+      kPage2f, kVdmLatchRequestUpperPageOffset);
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites);
+  EXPECT_FALSE(xcvr->getTransceiverInfo()
+                   .tcvrStats()
+                   ->vdmPerfMonitorStatsForOds()
+                   .has_value());
+
+  // Cycle N: trigger + refresh writes FreezeRequest exactly once (the request)
+  // and does NOT read the frozen snapshot, so *ForOds stays unset. The old
+  // blocking code wrote set+clear (two writes) in this single refresh.
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites + 1);
+  EXPECT_FALSE(xcvr->getTransceiverInfo()
+                   .tcvrStats()
+                   ->vdmPerfMonitorStatsForOds()
+                   .has_value());
+
+  // Cycle N+1: the next refresh reads the frozen snapshot, clears FreezeRequest
+  // (the second write), and now *ForOds is populated.
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites + 2);
+  EXPECT_TRUE(xcvr->getTransceiverInfo()
+                  .tcvrStats()
+                  ->vdmPerfMonitorStatsForOds()
+                  .has_value());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {

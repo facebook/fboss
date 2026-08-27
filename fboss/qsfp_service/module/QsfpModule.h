@@ -657,7 +657,12 @@ class QsfpModule : public Transceiver {
       const SignalFlags& signalFlags,
       const std::vector<MediaLaneSignals>& mediaLaneSignals);
 
-  virtual void latchAndReadVdmDataLocked() override {}
+  // Non-blocking per-refresh driver for the VDM ForOds freeze/read handshake.
+  // Returns true on the refresh where a frozen snapshot was read. No-op for
+  // module types without VDM (e.g. SFF). Implemented by CmisModule.
+  virtual bool driveVdmCaptureLocked() {
+    return false;
+  }
 
   /*
    * We found that some CMIS module did not enable Rx output squelch by

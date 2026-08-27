@@ -295,7 +295,6 @@ class Transceiver {
   }
 
  protected:
-  virtual void latchAndReadVdmDataLocked() = 0;
   virtual bool shouldRemediateLocked(time_t pauseRemidiation) = 0;
 
   TransceiverManager* getTransceiverManager() const {

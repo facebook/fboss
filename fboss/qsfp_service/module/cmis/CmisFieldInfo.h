@@ -49,6 +49,7 @@ enum FieldMasks : uint8_t {
   LOWER_FOUR_BITS_MASK = 0x0f,
   VDM_SUPPORT_MASK = 0x40,
   VDM_LATCH_REQUEST_MASK = 0x80,
+  // Page 2Fh byte 145 bit 7 = FreezeDone
   VDM_LATCH_DONE_MASK = 0x80,
   DIAGS_SUPPORT_MASK = 0x20,
   CDB_SUPPORT_MASK = 0xc0,
