@@ -2261,6 +2261,11 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<std::optional<
               SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
               attributes));
+    case cfg::AclTableQualifier::LOOKUP_CLASS_PORT:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldPortUserMeta>>(
+              attributes));
     case cfg::AclTableQualifier::ETHER_TYPE:
       return hasField(
           std::get<

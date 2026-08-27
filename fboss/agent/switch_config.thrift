@@ -542,6 +542,12 @@ enum AclLookupClass {
   ARS_ALTERNATE_MEMBERS_CLASS = 32,
 }
 
+enum AclLookupClassPort {
+  CLASS_PORT_UNCONSTRAINED = 0,
+  CLASS_PORT_RESTRICTED = 1,
+  CLASS_PORT_BLOCKED = 2,
+}
+
 enum PacketLookupResultType {
   PACKET_LOOKUP_RESULT_MPLS_NO_MATCH = 1,
 }
@@ -679,6 +685,9 @@ struct AclEntry {
   // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
   37: optional i64 dstIpV6Word3;
   38: optional i64 dstIpV6Word2;
+
+  /* Match lookup class assigned to the packet's ingress port. */
+  39: optional AclLookupClassPort lookupClassPort;
 }
 
 enum AclTableActionType {
@@ -728,6 +737,7 @@ enum AclTableQualifier {
   NEXT_HOP_GROUP_ID = 29,
   DST_IPV6_WORD3 = 30,
   DST_IPV6_WORD2 = 31,
+  LOOKUP_CLASS_PORT = 32,
 }
 
 enum AclTableGroupBindPoint {
@@ -1443,6 +1453,9 @@ struct Port {
 
   // Ingress ACL table bound directly to this port.
   46: optional string ingressAclTableName;
+
+  /* Lookup class assigned to packets ingressing on this port. */
+  47: optional AclLookupClassPort userMetaData;
 }
 
 enum LacpPortRate {
