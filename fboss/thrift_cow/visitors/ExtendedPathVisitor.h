@@ -8,6 +8,7 @@
 
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
+#include <fboss/thrift_cow/visitors/ExtendedPathMatcher.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -121,31 +122,18 @@ void visitNode(Node& node, ExtVisitImplParams<Func>& params, ExtPathIter cursor)
   }
 }
 
-inline bool matchesStrToken(
-    const std::string& tok,
-    const fsdb::OperPathElem& elem) {
-  if (elem.any()) {
-    return true;
-  } else if (auto raw = elem.raw()) {
-    return *raw == tok;
-  } else if (auto regex = elem.regex()) {
-    return re2::RE2::FullMatch(tok, *regex);
-  }
-  return false;
-}
-
 template <typename Enum>
 std::optional<std::string> matchingEnumToken(
     const Enum& e,
     const fsdb::OperPathElem& elem) {
   // TODO: should we allow regex/raw matching by int value?
   auto enumName = apache::thrift::util::enumName(e);
-  if (matchesStrToken(enumName, elem)) {
+  if (thrift_cow::matchesStrToken(enumName, elem)) {
     return enumName;
   }
 
   auto enumValue = folly::to<std::string>(static_cast<int>(e));
-  if (matchesStrToken(enumValue, elem)) {
+  if (thrift_cow::matchesStrToken(enumValue, elem)) {
     return enumValue;
   }
 
@@ -157,7 +145,7 @@ std::optional<std::string> matchingToken(
     const TType& val,
     const fsdb::OperPathElem& elem) {
   if constexpr (std::is_same_v<TC, apache::thrift::type_class::string>) {
-    if (matchesStrToken(val, elem)) {
+    if (thrift_cow::matchesStrToken(val, elem)) {
       return val;
     }
   } else if constexpr (std::is_same_v<
@@ -166,7 +154,7 @@ std::optional<std::string> matchingToken(
     return matchingEnumToken(val, elem);
   } else {
     auto strToken = folly::to<std::string>(val);
-    if (matchesStrToken(strToken, elem)) {
+    if (thrift_cow::matchesStrToken(strToken, elem)) {
       return strToken;
     }
   }
