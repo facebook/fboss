@@ -7,6 +7,10 @@ python_library(
     srcs = [
         "defs.py",
         "discovery.py",
+        "forge.py",
     ],
-    deps = ["//configerator/structs/neteng/netwhoami:netwhoami-python-types"],
+    deps = [
+        "//configerator/structs/neteng/netwhoami:netwhoami-python-types",
+        "//thrift/lib/python:types",
+    ],
 )
