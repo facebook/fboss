@@ -11,6 +11,7 @@ cpp_library(
     name = "rib_header",
     headers = glob(["*.h"]),
     exported_deps = [
+        "fbsource//third-party/boost:boost_container",
         "fbsource//third-party/googletest:gtest_headers",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -27,7 +28,6 @@ cpp_library(
         "//folly/json:dynamic",
     ],
     exported_external_deps = [
-        ("boost", None, "boost_container"),
         "gflags",
     ],
 )
@@ -40,6 +40,7 @@ cpp_library(
         "RibMySidUpdater.cpp",
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
+        "RouteUpdaterUtils.cpp",
         "RoutingInformationBase.cpp",
         "VrfRouteTable.cpp",
     ],
@@ -72,6 +73,16 @@ cpp_library(
     exported_external_deps = [
         "boost",
         ("boost", None, "boost_container"),
+    ],
+)
+
+cpp_unittest(
+    name = "route_updater_utils_tests",
+    srcs = ["test/RouteUpdaterUtilsTests.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":standalone_rib",
+        "//folly:network_address",
     ],
 )
 
