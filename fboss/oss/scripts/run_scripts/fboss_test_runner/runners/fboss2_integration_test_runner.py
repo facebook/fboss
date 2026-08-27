@@ -7,6 +7,12 @@ import time
 from argparse import ArgumentParser
 
 from fboss_test_runner.runners.test_runner import TestRunner
+from fboss_test_runner.services.config_baseline import (
+    AGENT_COLDBOOT_TIMEOUT_SEC,
+    ConfigBaseline,
+    find_fboss2_cli,
+    wait_agent_responsive,
+)
 from fboss_test_runner.services.fboss_agent_utils import (
     cleanup_hw_agent_service,
     cleanup_sw_agent_service,
@@ -42,6 +48,12 @@ class Fboss2IntegrationTestRunner(TestRunner):
     device has production multi-switch services running or needs service setup from scratch.
     Cold boots both agents once to establish a clean state, then reuses the running
     agents between tests and only cold boots again when an agent is no longer up.
+
+    Config containment: before each gtest suite the /etc/coop git HEAD is
+    recorded, and after the suite the config is rolled back to it (see
+    services/config_baseline.py). One suite committing a config the hardware
+    rejects can crash-loop the agents; without the rollback every later suite
+    fails on the leftover config.
     """
 
     _AGENT_CONFIG_PATH = "/etc/coop/agent.conf"
@@ -69,6 +81,12 @@ class Fboss2IntegrationTestRunner(TestRunner):
         # that we health-gate per-test cold boots (or skip them entirely with
         # --skip-coldboot).
         self._initial_coldboot_done: bool = False
+        # /etc/coop git sha recorded at suite start; None when capture failed.
+        self._suite_baseline: str | None = None
+        self._config_baseline: ConfigBaseline | None = None
+        # systemd NRestarts per agent unit at suite start; a higher value at
+        # suite end means systemd auto-restarted a crashed agent.
+        self._suite_start_restarts: dict[str, int] = {}
 
     def add_subcommand_arguments(self, sub_parser: ArgumentParser) -> None:
         """Add CLI test-specific command line arguments"""
@@ -113,7 +131,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
     def _get_warmboot_check_file(self) -> str:
         return ""
 
-    def _get_test_run_args(self, conf_file: str) -> list[str]:
+    def _get_test_run_args(self, conf_file: str) -> list[str]:  # noqa: ARG002
         return []
 
     def _setup_run(self, conf_file: str) -> None:
@@ -136,8 +154,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
                 "Snapshotting agent config."
             )
             subprocess.run(
-                ["cp", self._AGENT_CONFIG_PATH, self._CONFIG_SNAPSHOT_PATH],
-                check=True,
+                ["cp", self._AGENT_CONFIG_PATH, self._CONFIG_SNAPSHOT_PATH], check=True
             )
         else:
             print("No running agents detected — setting up agent services.")
@@ -160,7 +177,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
                 sw_agent_service_name=SW_AGENT_SERVICE_PROD,
             )
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None) -> None:  # noqa: ARG002
         # The first cold boot always runs: it loads the test config and
         # establishes a clean state (in prod multi-switch the running agents
         # still hold the old config until rebooted).
@@ -189,6 +206,88 @@ class Fboss2IntegrationTestRunner(TestRunner):
             sw_agent_service_name=SW_AGENT_SERVICE_PROD,
         )
         self._initial_coldboot_done = True
+
+    def _on_suite_start(self, suite: str) -> None:  # noqa: ARG002
+        self._suite_start_restarts = self._unit_restart_counts()
+        self._suite_baseline = self._get_config_baseline().capture()
+
+    def _on_suite_end(self, suite: str) -> None:
+        if not self._get_config_baseline().restore(self._suite_baseline):
+            print(
+                f"########## Failed to restore the config baseline after {suite}; "
+                "subsequent suites may fail spuriously"
+            )
+        self._suite_baseline = None
+
+    def _get_config_baseline(self) -> ConfigBaseline:
+        if self._config_baseline is None:
+            self._config_baseline = ConfigBaseline(
+                units_healthy=self._agents_healthy_for_suite,
+                agent_responsive=self._agent_responsive,
+                cold_boot_agents=self._cold_boot_agents,
+                fboss2_cli=find_fboss2_cli(),
+            )
+        return self._config_baseline
+
+    def _agent_responsive(self) -> bool:
+        # Generous timeout: this is also the wait after a cold boot.
+        return wait_agent_responsive(
+            find_fboss2_cli(), timeout_sec=AGENT_COLDBOOT_TIMEOUT_SEC
+        )
+
+    def _agents_healthy_for_suite(self) -> bool:
+        """Agents are healthy enough to trust a soft (CLI) rollback.
+
+        `systemctl is-active` alone is a snapshot, and the production units
+        run Restart=always with no start limit: a crash-looping agent never
+        reaches "failed", it reads "activating" for RestartSec and "active"
+        for the few seconds it lives each cycle. So on top of the liveness
+        check, require that systemd did not auto-restart any agent unit
+        since the suite started. NRestarts counts only Restart=-triggered
+        restarts, so the warmboot/coldboot restarts the CLI itself performs
+        on commit do not register (they reset the counter, which is why a
+        lower value is not treated as a crash). A crash during the suite
+        means the device is not in a state worth preserving; the caller cold
+        boots it from the baseline.
+        """
+        if not self._agents_ready():
+            return False
+        crashed = [
+            f"{unit} (NRestarts {self._suite_start_restarts.get(unit)} -> {after})"
+            for unit, after in self._unit_restart_counts().items()
+            if after > self._suite_start_restarts.get(unit, after)
+        ]
+        if crashed:
+            print(
+                "########## Agent unit auto-restarted during this suite: "
+                + ", ".join(crashed)
+            )
+            return False
+        return True
+
+    def _unit_restart_counts(self) -> dict[str, int]:
+        """systemd's NRestarts for each agent unit. Units that cannot be
+        queried are omitted (and so never count as crashed)."""
+        counts: dict[str, int] = {}
+        for unit in self._agent_services():
+            try:
+                result = subprocess.run(
+                    ["systemctl", "show", "-p", "NRestarts", "--value", unit],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                counts[unit] = int(result.stdout.strip())
+            except (OSError, ValueError) as e:
+                print(f"Warning: failed to read NRestarts for {unit}: {e}")
+        return counts
+
+    def _cold_boot_agents(self) -> None:
+        cold_boot_agents(
+            self._switch_indexes,
+            hw_agent_service_name=HW_AGENT_SERVICE_PROD,
+            sw_agent_service_name=SW_AGENT_SERVICE_PROD,
+        )
 
     def _agent_services(self) -> list[str]:
         """systemd unit names for the sw_agent and every hw_agent."""
@@ -251,8 +350,7 @@ class Fboss2IntegrationTestRunner(TestRunner):
         if self._is_prod_multi_switch:
             print("Restoring original agent config and restarting agents.")
             subprocess.run(
-                ["cp", self._CONFIG_SNAPSHOT_PATH, self._AGENT_CONFIG_PATH],
-                check=False,
+                ["cp", self._CONFIG_SNAPSHOT_PATH, self._AGENT_CONFIG_PATH], check=False
             )
             try:
                 cold_boot_agents(

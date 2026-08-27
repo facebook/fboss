@@ -379,8 +379,7 @@ class TestEndRun(unittest.TestCase):
             sw_agent_service_name="fboss_sw_agent",
         )
         mock_run.assert_any_call(
-            ["rm", "-f", "/tmp/agent.conf.fboss2_test_snapshot"],
-            check=False,
+            ["rm", "-f", "/tmp/agent.conf.fboss2_test_snapshot"], check=False
         )
 
     @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
@@ -430,11 +429,12 @@ class TestSetupRunHook(unittest.TestCase):
         runner._setup_run = tracked_setup_run
         runner._setup_coldboot_test = tracked_setup_coldboot
         runner._test_framework = MagicMock()
+        # Stub the baseline out: the suite hooks would otherwise run real git
+        # commands against the live /etc/coop on a machine that has one.
+        runner._config_baseline = MagicMock()
 
         mock_args = _make_mock_args(
-            sai_replayer_logging=None,
-            simulator=None,
-            coldboot_only=True,
+            sai_replayer_logging=None, simulator=None, coldboot_only=True
         )
 
         with (
@@ -448,9 +448,7 @@ class TestSetupRunHook(unittest.TestCase):
             ),
         ):
             runner._run_tests(
-                tests_to_run=["TestA"],
-                conf_file="/etc/coop/agent.conf",
-                args=mock_args,
+                tests_to_run=["TestA"], conf_file="/etc/coop/agent.conf", args=mock_args
             )
 
         self.assertEqual(call_order[0], "_setup_run")
@@ -486,3 +484,134 @@ class TestKnownBadAndUnsupportedTestsFiles(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSuiteHooks(unittest.TestCase):
+    """The base loop fires _on_suite_start/_on_suite_end at gtest suite
+    boundaries and the fboss2 runner maps them onto config baseline
+    capture/restore."""
+
+    @patch("os.path.exists", return_value=True)
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.cold_boot_agents",
+        return_value=None,
+    )
+    @patch(
+        "fboss_test_runner.runners.fboss2_integration_test_runner.is_agent_running",
+        return_value=[True, True],
+    )
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_hooks_fire_once_per_suite_in_order(
+        self, mock_run, mock_is_running, mock_cold_boot, mock_exists
+    ):
+        runner = Fboss2IntegrationTestRunner()
+        runner._test_framework = MagicMock()
+        events = []
+        baseline = MagicMock()
+        baseline.capture.side_effect = lambda: (events.append("capture"), "sha")[1]
+        baseline.restore.side_effect = lambda sha: (
+            events.append(f"restore:{sha}"),
+            True,
+        )[1]
+        runner._config_baseline = baseline
+
+        mock_args = _make_mock_args()
+        with (
+            patch.object(runner, "args", mock_args),
+            patch.object(runner, "_setup_coldboot_test"),
+            patch.object(
+                runner,
+                "_run_test",
+                side_effect=lambda *a, **_k: (
+                    events.append(f"run:{a[2]}"),
+                    RunOutcome(console_output="[       OK ] t", results=[]),
+                )[1],
+            ),
+        ):
+            runner._run_tests(
+                tests_to_run=["SuiteA.one", "SuiteA.two", "SuiteB.one"],
+                conf_file="/etc/coop/agent.conf",
+                args=mock_args,
+            )
+
+        self.assertEqual(
+            events,
+            [
+                "capture",
+                "run:SuiteA.one",
+                "run:SuiteA.two",
+                "restore:sha",
+                "capture",
+                "run:SuiteB.one",
+                "restore:sha",
+            ],
+        )
+
+    def test_restore_failure_is_reported_not_raised(self):
+        runner = Fboss2IntegrationTestRunner()
+        baseline = MagicMock()
+        baseline.restore.return_value = False
+        runner._config_baseline = baseline
+        runner._suite_baseline = "sha"
+        runner._on_suite_end("SuiteA")  # must not raise
+        baseline.restore.assert_called_once_with("sha")
+        self.assertIsNone(runner._suite_baseline)
+
+
+class TestAgentsHealthyForSuite(unittest.TestCase):
+    """The soft-rollback health gate must not trust a snapshot `is-active`:
+    a unit crash-looping under Restart=always reads "active" between crashes.
+    systemd's NRestarts (auto-restarts only) is compared before/after."""
+
+    def _runner(self, start_counts):
+        runner = Fboss2IntegrationTestRunner()
+        runner._switch_indexes = [0]
+        runner._suite_start_restarts = start_counts
+        return runner
+
+    @staticmethod
+    def _show(values):
+        """subprocess.run side effect: NRestarts per unit, in query order."""
+        it = iter(values)
+        return lambda *_a, **_k: MagicMock(stdout=f"{next(it)}\n")
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_auto_restart_marks_unhealthy(self, mock_run):
+        runner = self._runner({"fboss_sw_agent": 0, "fboss_hw_agent@0": 0})
+        mock_run.side_effect = self._show([0, 1])  # hw_agent crashed once
+        with patch.object(runner, "_agents_ready", return_value=True):
+            self.assertFalse(runner._agents_healthy_for_suite())
+        self.assertEqual(
+            mock_run.call_args[0][0],
+            ["systemctl", "show", "-p", "NRestarts", "--value", "fboss_hw_agent@0"],
+        )
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_unchanged_counts_and_active_units_is_healthy(self, mock_run):
+        runner = self._runner({"fboss_sw_agent": 2, "fboss_hw_agent@0": 0})
+        mock_run.side_effect = self._show([2, 0])
+        with patch.object(runner, "_agents_ready", return_value=True):
+            self.assertTrue(runner._agents_healthy_for_suite())
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_counter_reset_by_manual_restart_is_not_a_crash(self, mock_run):
+        # A CLI warmboot/coldboot commit does `systemctl restart`, which
+        # resets NRestarts to 0; that is not a crash.
+        runner = self._runner({"fboss_sw_agent": 3, "fboss_hw_agent@0": 3})
+        mock_run.side_effect = self._show([0, 0])
+        with patch.object(runner, "_agents_ready", return_value=True):
+            self.assertTrue(runner._agents_healthy_for_suite())
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_dead_unit_short_circuits(self, mock_run):
+        runner = self._runner({})
+        with patch.object(runner, "_agents_ready", return_value=False):
+            self.assertFalse(runner._agents_healthy_for_suite())
+        mock_run.assert_not_called()
+
+    @patch("fboss_test_runner.runners.fboss2_integration_test_runner.subprocess.run")
+    def test_unreadable_counter_does_not_block(self, mock_run):
+        runner = self._runner({"fboss_sw_agent": 0, "fboss_hw_agent@0": 0})
+        mock_run.return_value = MagicMock(stdout="")  # int("") -> ValueError
+        with patch.object(runner, "_agents_ready", return_value=True):
+            self.assertTrue(runner._agents_healthy_for_suite())
