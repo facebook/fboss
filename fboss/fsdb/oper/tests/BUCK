@@ -9,6 +9,7 @@ cpp_library(
     name = "test_helpers",
     headers = ["TestHelpers.h"],
     exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
         "//folly/json:dynamic",
@@ -135,6 +136,9 @@ cpp_unittest(
     deps = [
         "//fboss/fsdb/oper:subscription_manager",
         "//folly/io/async:scoped_event_base_thread",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 

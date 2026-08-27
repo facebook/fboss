@@ -745,17 +745,10 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatchMulti) {
 namespace {
 // Test-only storage: drives one serve cycle deterministically and exposes
 // manager-level addPatchSubscriptionPaths (to append paths mid-initial-sync).
-class DoubleResolveStorage
-    : public NaivePeriodicSubscribableCowStorage<TestStruct, false> {
+class DoubleResolveStorage : public SynchronousServeStorage<TestStruct> {
  public:
-  using Base = NaivePeriodicSubscribableCowStorage<TestStruct, false>;
+  using Base = SynchronousServeStorage<TestStruct>;
   using Base::Base;
-
-  // One serve cycle (mirrors the periodic loop), so the test controls timing.
-  void serveOnce() {
-    auto [oldRoot, newRoot, metadataServer] = this->publishCurrentState();
-    this->subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
-  }
 
   std::optional<FsdbErrorCode> addPatchPaths(
       const SubscriptionIdentifier& id,

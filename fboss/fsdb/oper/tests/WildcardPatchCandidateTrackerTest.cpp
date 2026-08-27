@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/oper/WildcardPatchCandidateTracker.h"
+#include "fboss/fsdb/oper/SubscriptionPathStore.h"
 
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss::fsdb {
@@ -24,6 +26,12 @@ OperPathElem regex(std::string r) {
   OperPathElem elem;
   elem.set_regex(std::move(r));
   return elem;
+}
+
+ExtendedOperPath extendedPath(std::vector<OperPathElem> elems) {
+  ExtendedOperPath path;
+  path.path() = std::move(elems);
+  return path;
 }
 
 ExtendedPatchSubscription::CompiledRegexPath compileRegexes(
@@ -77,6 +85,8 @@ class WildcardPatchCandidateTrackerTest : public ::testing::Test {
   }
 
  private:
+  // google::FlagSaver
+  gflags::FlagSaver flagSaver_;
   TrackerTestSubscription testSubscription_;
 };
 
@@ -91,6 +101,83 @@ std::vector<SubscriptionKey> matchedKeys(
 }
 
 } // namespace
+
+TEST_F(WildcardPatchCandidateTrackerTest, seedAppliesAllAdmissionFilters) {
+  // NOLINTNEXTLINE(facebook-gtest-flag-mutation-without-saver)
+  FLAGS_dynamicWildcardPatchResolution = true;
+  folly::ScopedEventBaseThread heartbeatThread("SeedTestHeartbeats");
+
+  auto makePatchSub = [&](const std::string& id,
+                          ExtSubPathMap paths,
+                          std::string publisherRoot,
+                          bool initialSyncComplete) {
+    auto [generator, sub] = ExtendedPatchSubscription::create(
+        SubscriptionIdentifier(id),
+        std::move(paths),
+        OperProtocol::BINARY,
+        std::move(publisherRoot),
+        heartbeatThread.getEventBase(),
+        std::chrono::milliseconds(100),
+        10);
+    if (initialSyncComplete) {
+      sub->recordInitialSyncCompleted();
+    }
+    return std::shared_ptr<ExtendedSubscription>(std::move(sub));
+  };
+
+  ExtSubPathMap eligiblePaths;
+  eligiblePaths[10] = extendedPath({raw("root"), regex("key.*")});
+  eligiblePaths[11] = extendedPath({raw("root"), any()});
+  eligiblePaths[12] = extendedPath({raw("root"), raw("key1")});
+  ExtSubPathMap rawOnlyPaths;
+  rawOnlyPaths[20] = extendedPath({raw("root"), raw("key1")});
+  ExtSubPathMap wildcardPaths;
+  wildcardPaths[30] = extendedPath({raw("root"), regex("key.*")});
+  // Distinct key so a leak through the prune filter would show up in
+  // matchedCandidates() rather than being masked by another sub's key.
+  ExtSubPathMap pruningPaths;
+  pruningPaths[40] = extendedPath({raw("root"), regex("key.*")});
+
+  auto eligible = makePatchSub("eligible", eligiblePaths, "ready", true);
+  auto rawOnly = makePatchSub("raw-only", rawOnlyPaths, "ready", true);
+  auto unready = makePatchSub("unready", wildcardPaths, "not-ready", true);
+  auto pending = makePatchSub("pending", wildcardPaths, "ready", false);
+  auto pruning = makePatchSub("pruning", pruningPaths, "ready", true);
+  // makePatchSub drops the generator, so the pipe is closed and the
+  // subscription is inactive, which is what lets it be marked for pruning.
+  ASSERT_TRUE(
+      std::static_pointer_cast<ExtendedPatchSubscription>(pruning)
+          ->markShouldPruneIfInactive());
+
+  auto [pathGenerator, pathSub] = ExtendedPathSubscription::create(
+      SubscriptionIdentifier("non-patch"),
+      {extendedPath({raw("root"), regex("key.*")})},
+      "ready",
+      OperProtocol::BINARY,
+      heartbeatThread.getEventBase(),
+      std::chrono::milliseconds(100),
+      10);
+  pathSub->recordInitialSyncCompleted();
+
+  WildcardPatchCandidateTracker::ExtendedSubscriptionMap subscriptions{
+      {"eligible", eligible},
+      {"raw-only", rawOnly},
+      {"unready", unready},
+      {"pending", pending},
+      {"pruning", pruning},
+      {"non-patch", pathSub}};
+  FsdbOperTreeMetadataTracker::PublisherRoot2Metadata metadata;
+  metadata["ready"].operMetadata.lastConfirmedAt() = 1;
+  SubscriptionMetadataServer metadataServer(std::move(metadata));
+
+  WildcardPatchCandidateTracker tracker;
+  EXPECT_EQ(tracker.seed(subscriptions, metadataServer), 3);
+  tracker.push("root");
+  tracker.push("key1");
+  auto keys = matchedKeys(tracker);
+  std::sort(keys.begin(), keys.end());
+  EXPECT_EQ(keys, (std::vector<SubscriptionKey>{10, 11, 12}));
+}
 
 TEST_F(WildcardPatchCandidateTrackerTest, emptyTracker) {
   WildcardPatchCandidateTracker tracker;

@@ -328,20 +328,10 @@ TestStruct makeWideMapStruct(int numKeys) {
   return s;
 }
 
-// Drives one serve cycle inline, so a benchmark can time publish + serve
-// without the periodic loop's subscriptionServeInterval sleep landing in the
-// measurement. The wildcard benchmarks below never call start().
-class SynchronousServeCowStorage
-    : public NaivePeriodicSubscribableCowStorage<TestStruct> {
- public:
-  using Base = NaivePeriodicSubscribableCowStorage<TestStruct>;
-  using Base::Base;
-
-  void serveOnce() {
-    auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
-    subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
-  }
-};
+// The wildcard benchmarks below never call start(); they drive serve cycles
+// inline via SynchronousServeStorage::serveOnce() so the periodic loop's
+// subscriptionServeInterval sleep stays out of the measurement.
+using SynchronousServeCowStorage = SynchronousServeStorage<TestStruct>;
 
 // Serve benchmark for a single wildcard PATCH extended subscription over a wide
 // map. Reports numPathStores and resolved-subscription counts so the eager
