@@ -730,6 +730,11 @@ enum AclTableQualifier {
   DST_IPV6_WORD2 = 31,
 }
 
+enum AclTableGroupBindPoint {
+  SWITCH = 0,
+  PORT = 1,
+}
+
 struct AclTable {
   1: string name;
   2: i16 priority;
@@ -751,6 +756,7 @@ struct AclTableGroup {
   1: string name;
   2: list<AclTable> aclTables = [];
   3: AclStage stage = AclStage.INGRESS;
+  4: AclTableGroupBindPoint bindPoint = AclTableGroupBindPoint.SWITCH;
 }
 // enddocs_AclTableGroup_struct
 
@@ -1432,8 +1438,11 @@ struct Port {
    * Whether link status changes on this port are noticed by the SDK's
    * software linkscan thread or by the ASIC.
    * Unset = leave whatever the SDK came up with untouched.
-   */
+  */
   45: optional LinkScanMode linkScanMode;
+
+  // Ingress ACL table group bound directly to this port.
+  46: optional string ingressAclTableGroupName;
 }
 
 enum LacpPortRate {

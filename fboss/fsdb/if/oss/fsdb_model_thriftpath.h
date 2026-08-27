@@ -1805,6 +1805,7 @@ class ChildThriftPath<::facebook::fboss::state::SwitchState, ::facebook::fboss::
     STRUCT_CHILD_GETTERS(mySidMaps, 126);
     STRUCT_CHILD_GETTERS(llrCfgMaps, 127);
     STRUCT_CHILD_GETTERS(classBasedPolicyMaps, 128);
+    STRUCT_CHILD_GETTERS(portAclTableGroupMaps, 129);
     STRUCT_CHILD_GETTERS(remoteSystemPortMaps, 600);
     STRUCT_CHILD_GETTERS(remoteInterfaceMaps, 601);
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortMaps, 602);
@@ -2035,6 +2036,7 @@ class ChildThriftPath<::facebook::fboss::cfg::AclTableGroup, ::facebook::fboss::
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(aclTables, 2);
     STRUCT_CHILD_GETTERS(stage, 3);
+    STRUCT_CHILD_GETTERS(bindPoint, 4);
 };
 
 
@@ -2284,6 +2286,7 @@ class ChildThriftPath<::facebook::fboss::state::AclTableGroupFields, ::facebook:
     STRUCT_CHILD_GETTERS(stage, 1);
     STRUCT_CHILD_GETTERS(name, 2);
     STRUCT_CHILD_GETTERS(aclTableMap, 3);
+    STRUCT_CHILD_GETTERS(bindPoint, 4);
 };
 
 
@@ -4277,6 +4280,7 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(txPrecoding, 71);
     STRUCT_CHILD_GETTERS(rxPrecoding, 72);
     STRUCT_CHILD_GETTERS(linkScanMode, 73);
+    STRUCT_CHILD_GETTERS(ingressAclTableGroupName, 74);
 };
 
 
@@ -5076,6 +5080,7 @@ class ChildThriftPath<::facebook::fboss::cfg::Port, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(txPrecoding, 43);
     STRUCT_CHILD_GETTERS(rxPrecoding, 44);
     STRUCT_CHILD_GETTERS(linkScanMode, 45);
+    STRUCT_CHILD_GETTERS(ingressAclTableGroupName, 46);
 };
 
 
