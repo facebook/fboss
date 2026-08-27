@@ -1,3 +1,4 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_agent")
@@ -18,5 +19,16 @@ python_library(
         "//configerator/structs/neteng/policydb:resources-python-types",
         "//neteng/netwhoami/lib/py:matcher",
         "//thrift/lib/python:types",
+    ],
+)
+
+python_binary(
+    name = "mimic_config_gen",
+    srcs = [
+        "mimic_config_gen.py",
+    ],
+    main_function = "fboss.util.mimic_config_gen.mimic_config_gen.main",
+    deps = [
+        ":mimic_config_gen_lib",
     ],
 )
