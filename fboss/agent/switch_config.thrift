@@ -1441,8 +1441,8 @@ struct Port {
   */
   45: optional LinkScanMode linkScanMode;
 
-  // Ingress ACL table group bound directly to this port.
-  46: optional string ingressAclTableGroupName;
+  // Ingress ACL table bound directly to this port.
+  46: optional string ingressAclTableName;
 }
 
 enum LacpPortRate {

@@ -193,7 +193,7 @@ struct PortFields {
   // Whether the SDK's software linkscan thread or the ASIC notices link
   // status changes on this port. Unset = leave SDK default untouched.
   73: optional switch_config.LinkScanMode linkScanMode;
-  74: optional string ingressAclTableGroupName;
+  74: optional string ingressAclTableName;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -925,7 +925,7 @@ struct SwitchState {
   > classBasedPolicyMaps;
   129: map<
     SwitchIdList,
-    map<string, AclTableGroupFields>
+    map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
