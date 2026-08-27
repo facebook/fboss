@@ -381,8 +381,7 @@ TEST_F(DeleteQueueConfigAttrTestFixture, unboundPortIsNoOp) {
 //   100  VLAN 100 has an enabled member port               -> refused (VLAN)
 //   200  VLAN 200's only member port is disabled but       -> refused (ingress
 //        names it as its ingress VLAN                         VLAN)
-//   300  shares VLAN 300 with 301, which has an enabled    -> deletable alone,
-//   301  member port                                          refused together
+//   300  VLAN 300 has an enabled member port (eth1/3/1)    -> refused (VLAN)
 //   400  named by an ip-in-ip tunnel's underlayIntfID      -> refused (tunnel)
 //   500  named by an SRv6 tunnel AND on a VLAN with an     -> refused (tunnel;
 //        enabled member port                                  proves ordering)
@@ -391,7 +390,11 @@ TEST_F(DeleteQueueConfigAttrTestFixture, unboundPortIsNoOp) {
 //                                                             cascaded
 //   4094 the default VLAN's interface                      -> deleted, VLAN
 //                                                             kept (default)
-//   2001 port router interface for port 1                  -> refused (PORT)
+//   2001 port router interface for port 1                  -> refused alone,
+//                                                             deleted with its
+//                                                             port
+//   7001 system-port interface (VOQ/DSF shape)             -> refused
+//                                                             (SYSTEM_PORT)
 // Shared helpers for the whole-object delete fixtures below. They differ only
 // in their seed config, so the config-session accessor, existence checks, and
 // the command runner live here rather than being repeated per fixture.
@@ -474,12 +477,12 @@ class CmdDeleteWholeL3InterfaceTestFixture : public DeleteInterfaceCmdTestBase {
       {"intfID": 100, "vlanID": 100, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 200, "vlanID": 200, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 300, "vlanID": 300, "routerID": 0, "type": 1, "mtu": 9412},
-      {"intfID": 301, "vlanID": 300, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 400, "vlanID": 400, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 500, "vlanID": 500, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 600, "vlanID": 600, "routerID": 0, "type": 1, "mtu": 9412},
       {"intfID": 4094, "vlanID": 4094, "routerID": 0, "type": 1, "mtu": 9412},
-      {"intfID": 2001, "vlanID": 0, "routerID": 0, "type": 3, "portID": 1}
+      {"intfID": 2001, "vlanID": 0, "routerID": 0, "type": 3, "portID": 1},
+      {"intfID": 7001, "vlanID": 0, "routerID": 0, "type": 2}
     ],
     "ipInIpTunnels": [
       {"ipInIpTunnelId": "tunnel0", "underlayIntfID": 400, "dstIp": "2401::1"}
@@ -580,26 +583,31 @@ TEST_F(CmdDeleteWholeL3InterfaceTestFixture, keepsDefaultVlanWithoutCascade) {
   EXPECT_FALSE(vlan->intfID().has_value());
 }
 
-// A sibling interface on the same VLAN keeps the VLAN covered, so removing
-// just one of them is fine even though the VLAN has an enabled member port.
-TEST_F(CmdDeleteWholeL3InterfaceTestFixture, deletesOneOfTwoInterfacesOnVlan) {
-  setupTestableConfigSession(cmdPrefix_, "300");
-
-  EXPECT_THAT(runDelete({"300"}), HasSubstr("Deleted interface(s)"));
-  EXPECT_FALSE(hasInterface(300));
-  EXPECT_TRUE(hasInterface(301));
-}
-
-// Deleting both interfaces on that VLAN in one command is refused: neither
-// counts as the other's surviving cover, so the VLAN would be left bare.
+// The agent enforces exactly one interface per non-default VLAN, so an
+// interface's VLAN never has a surviving cover: deleting the interface of a
+// VLAN with an enabled member port is always refused.
 TEST_F(
     CmdDeleteWholeL3InterfaceTestFixture,
-    refusesDeletingBothVlanInterfaces) {
-  setupTestableConfigSession(cmdPrefix_, "300 301");
+    refusesOnlyInterfaceOfVlanWithEnabledPort) {
+  setupTestableConfigSession(cmdPrefix_, "300");
 
-  EXPECT_THROW(runDelete({"300", "301"}), FbossError);
+  EXPECT_THROW(runDelete({"300"}), FbossError);
   EXPECT_TRUE(hasInterface(300));
-  EXPECT_TRUE(hasInterface(301));
+  EXPECT_TRUE(hasVlan(300));
+}
+
+// The agent derives a system-port interface for every port on VOQ/DSF
+// switches, so erasing the config row would leave a dangling interface ID.
+TEST_F(CmdDeleteWholeL3InterfaceTestFixture, refusesSystemPortInterface) {
+  setupTestableConfigSession(cmdPrefix_, "7001");
+
+  try {
+    runDelete({"7001"});
+    FAIL() << "expected the delete to be refused";
+  } catch (const FbossError& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("system-port"));
+  }
+  EXPECT_TRUE(hasInterface(7001));
 }
 
 // An ip-in-ip tunnel's underlayIntfID is a required field, so the interface it
@@ -665,20 +673,41 @@ TEST_F(CmdDeleteWholeL3InterfaceTestFixture, unknownInterfaceIdThrows) {
   EXPECT_THROW(InterfaceDeleteConfig({"9999"}), std::invalid_argument);
 }
 
-// A port name still resolves to its port, not to the port router interface
-// bound to it, so the existing whole-port behaviour is unchanged. The port
-// router interface is deliberately left in place by removePortsFromConfig.
-TEST_F(CmdDeleteWholeL3InterfaceTestFixture, portNameStillDeletesThePort) {
+// A port name resolves to its port, and deleting the port pulls along the
+// interfaces that cannot outlive it: its port router interface, and the SVI
+// of the VLAN it was the last member of — through the same checks as naming
+// those interfaces directly.
+TEST_F(CmdDeleteWholeL3InterfaceTestFixture, portDeleteCascadesItsInterfaces) {
   setupTestableConfigSession(cmdPrefix_, "eth1/1/1");
 
-  EXPECT_THAT(runDelete({"eth1/1/1"}), HasSubstr("Deleted interface(s)"));
+  auto result = runDelete({"eth1/1/1"});
 
-  const auto& ports = *swConfig().ports();
-  EXPECT_TRUE(std::none_of(ports.begin(), ports.end(), [](const auto& p) {
-    return *p.logicalID() == 1;
-  }));
-  EXPECT_TRUE(hasInterface(2001))
-      << "removePortsFromConfig leaves port router interfaces in place";
+  EXPECT_THAT(result, HasSubstr("Deleted interface(s)"));
+  EXPECT_FALSE(hasPort(1));
+  EXPECT_FALSE(hasInterface(2001))
+      << "the port router interface goes with its port";
+  EXPECT_FALSE(hasInterface(100))
+      << "VLAN 100 lost its last member port, so its SVI goes too";
+  EXPECT_FALSE(hasVlan(100));
+  EXPECT_THAT(result, HasSubstr("also removed VLAN(s) 100"));
+}
+
+// Deleting a port whose VLAN's SVI is a tunnel underlay is refused the same
+// way naming the SVI directly is: the delete would dangle the tunnel's
+// required underlayIntfID.
+TEST_F(
+    CmdDeleteWholeL3InterfaceTestFixture,
+    refusesPortDeleteThatWouldDangleTunnelUnderlay) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/5/1");
+
+  try {
+    runDelete({"eth1/5/1"});
+    FAIL() << "expected the delete to be refused";
+  } catch (const FbossError& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("srv6tunnel0"));
+  }
+  EXPECT_TRUE(hasPort(5));
+  EXPECT_TRUE(hasInterface(500));
 }
 
 // Naming an SVI and its VLAN's only member port in one command deletes both.
@@ -698,6 +727,8 @@ TEST_F(
   EXPECT_FALSE(hasPort(1)) << "its member port is deleted in the same command";
   EXPECT_FALSE(hasVlan(100))
       << "the port being deleted does not block the VLAN cascade";
+  EXPECT_FALSE(hasInterface(2001))
+      << "the port router interface goes with its port";
 }
 
 // A bare number that is simultaneously a port logical ID and an interface ID

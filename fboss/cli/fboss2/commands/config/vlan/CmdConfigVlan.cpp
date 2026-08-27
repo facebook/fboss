@@ -33,8 +33,10 @@ CmdConfigVlanTraits::RetType CmdConfigVlan::queryClient(
   }
 
   // createVlan inserts into swConfig.vlans() and swConfig.interfaces(), which
-  // invalidates the pointers the cached PortMap holds. Rebuild it so a later
-  // command in the same session can resolve the interface just staged.
+  // invalidates the pointers the cached PortMap holds. In production each CLI
+  // invocation is its own process and rebuilds the map on load; the rebuild
+  // matters for the test harness, which keeps the ConfigSession singleton
+  // across commands.
   session.rebuildPortMap();
   session.saveConfig();
 
