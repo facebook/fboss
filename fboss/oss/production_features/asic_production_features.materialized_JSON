@@ -584,6 +584,7 @@
         104,
         117,
         122,
+        119,
         123
     ],
     "tomahawk6": [
@@ -1354,6 +1355,7 @@
         "SRV6_MIDPOINT",
         "CABLE_LENGTH_MEASUREMENT",
         "ARS_SOURCE_PORT_PRUNE",
+        "ADJACENCY_FRR",
         "DROP_REASON_LIST_SUPPORT"
     ],
     "tomahawk6": [
@@ -1922,6 +1924,32 @@
           "sdk": 1,
           "minSdkVersion": "15.4.0.0_odp",
           "note": "Active drop reason lists are reported by BRCM_SAI ASICs starting SDK 15.4.0.0_odp"
+        }
+      ]
+    },
+    {
+      "feature": 119,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "FRR support added in 13.3 and above"
+        }
+      ]
+    },
+    {
+      "feature": 122,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk5"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "13.3.0.0_odp",
+          "note": "SPLIT_HORIZON_ENABLE is an ext attribute from 13.3 onward"
         }
       ]
     }
