@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent")
+
+python_library(
+    name = "mimic_config_gen_lib",
+    srcs = [
+        "defs.py",
+        "discovery.py",
+    ],
+    deps = ["//configerator/structs/neteng/netwhoami:netwhoami-python-types"],
+)
