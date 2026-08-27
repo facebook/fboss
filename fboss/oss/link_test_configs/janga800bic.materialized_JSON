@@ -9,6 +9,7 @@
     "intf_nbr_tables": "true",
     "janga_test": "true",
     "log_variable_name": "true",
+    "resolve_nexthops_from_id": "true",
     "sai_configure_six_tap": "true",
     "verify_fib_nexthop_id_consistency": "true"
   },
