@@ -60,6 +60,16 @@ void SubscriptionPathStore::incrementallyResolve(
   // This incrementally extends our subscription tree based on an extended
   // path. Logic is to build up tree until next wildcard, or end of the path.
 
+  if (shouldDynamicallyResolve(*subscription)) {
+    // Dynamic wildcard PATCH subscriptions are matched on the fly during the
+    // serve-cycle delta walk. They must never be expanded into resolved
+    // PatchSubscription objects or parked as partials in lookup_. Returning
+    // here keeps them entirely out of the path-store trie. This is the single
+    // choke point for both the initial seed (doInitialSyncExtended) and the
+    // processAddedPath match path.
+    return;
+  }
+
   const auto& path = subscription->pathAt(subKey).path().value();
   auto idx = pathSoFar.size();
 

@@ -1058,4 +1058,14 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   int32_t subscriptionQueueFullMinSize_;
 };
 
+// Assemble a Patch for `basePath` and hand it to the extended subscription's
+// aggregation buffer. Used by PatchSubscription::offer, the dynamic wildcard
+// serve path, and the dynamic wildcard initial sync, so all three produce
+// identically shaped patches.
+void bufferPatch(
+    ExtendedPatchSubscription& subscription,
+    const SubscriptionKey& key,
+    std::vector<std::string> basePath,
+    thrift_cow::PatchNode patchNode);
+
 } // namespace facebook::fboss::fsdb

@@ -534,10 +534,7 @@ std::optional<FsdbErrorCode> PatchSubscription::flush(
 
 std::optional<FsdbErrorCode> PatchSubscription::offer(
     thrift_cow::PatchNode node) {
-  Patch patch;
-  patch.basePath() = path();
-  patch.patch() = std::move(node);
-  subscription_.buffer(key_, std::move(patch));
+  bufferPatch(subscription_, key_, path(), std::move(node));
   return std::nullopt;
 }
 
@@ -689,6 +686,17 @@ void ExtendedPatchSubscription::buffer(
     const SubscriptionKey& key,
     Patch&& newVal) {
   buffered_[key].emplace_back(std::move(newVal));
+}
+
+void bufferPatch(
+    ExtendedPatchSubscription& subscription,
+    const SubscriptionKey& key,
+    std::vector<std::string> basePath,
+    thrift_cow::PatchNode patchNode) {
+  Patch patch;
+  patch.basePath() = std::move(basePath);
+  patch.patch() = std::move(patchNode);
+  subscription.buffer(key, std::move(patch));
 }
 
 std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(
