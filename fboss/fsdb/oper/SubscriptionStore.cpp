@@ -2,6 +2,8 @@
 
 #include "fboss/fsdb/oper/SubscriptionStore.h"
 #include "fboss/fsdb/common/Utils.h"
+#include "fboss/fsdb/oper/SubscriptionPathStore.h"
+#include "fboss/thrift_cow/visitors/ExtendedPathMatcher.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -225,6 +227,19 @@ std::optional<FsdbErrorCode> SubscriptionStore::addPatchSubscriptionPaths(
                  << " already exists for subscriber " << id.subscriberId();
       return FsdbErrorCode::ID_ALREADY_EXISTS;
     }
+  }
+  auto* patchSubscription =
+      static_cast<ExtendedPatchSubscription*>(subscription.get());
+  if (FLAGS_dynamicWildcardPatchResolution &&
+      subscription->getInitialSyncCompletedAt() != 0 &&
+      !patchSubscription->hasWildcardPath() &&
+      std::any_of(newPaths.begin(), newPaths.end(), [](const auto& path) {
+        return thrift_cow::hasWildcard(*path.second.path());
+      })) {
+    XLOG(DBG1) << "addPatchSubscriptionPaths: cannot add the first wildcard "
+                  "path to an initialized eager subscription for subscriber "
+               << id.subscriberId();
+    return FsdbErrorCode::INVALID_REQUEST;
   }
   auto addedKeys = subscription->addPaths(std::move(newPaths));
   // Stash the client-supplied stream revision so it is echoed back in

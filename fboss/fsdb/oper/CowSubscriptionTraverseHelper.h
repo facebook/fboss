@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/fsdb/oper/SubscriptionPathStore.h>
+#include <fboss/fsdb/oper/WildcardPatchCandidateTracker.h>
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 
@@ -50,10 +51,22 @@ struct CowSubscriptionTraverseHelper
       // when in the delta phase, we need to keep recursing if we have
       // any ancestor subscriptions active, as we need to fill out delta
       // or confirm that a path subscription should be served.
+      //
+      // Dynamic wildcard PATCH subscriptions are not present in lookup_, so
+      // we must also keep recursing while any wildcard candidate still
+      // prefix-matches this subtree (or a matched ancestor needs the subtree
+      // walked for patch building).
+      if (wildcardTracker_ && wildcardTracker_->hasActiveCandidates()) {
+        return false;
+      }
       return !lastElem.hasAncestorSubs && !hasDescendantSubs;
     } else if (visitorType == thrift_cow::VisitorType::RECURSE) {
-      // when we are in a recurse visitor, we only need to keep
-      // recursing if we have any children subscriptions
+      // RecurseVisitor builds patches below nodes selected by DeltaVisitor.
+      // Dynamic wildcard subscriptions are absent from lookup_, so their
+      // active candidates must keep this phase alive too.
+      if (wildcardTracker_ && wildcardTracker_->hasActiveCandidates()) {
+        return false;
+      }
       return !hasDescendantSubs;
     } else {
       throw std::runtime_error("Unexpected visitor type");
@@ -70,6 +83,9 @@ struct CowSubscriptionTraverseHelper
     if (patchBuilder_) {
       patchBuilder_->onPathPush(newTok, tc);
     }
+    if (wildcardTracker_) {
+      wildcardTracker_->push(newTok);
+    }
   }
 
   void onPopImpl(std::string&& popped, thrift_cow::ThriftTCType tc) {
@@ -77,6 +93,9 @@ struct CowSubscriptionTraverseHelper
     elementsAlongPath_.pop_back();
     if (patchBuilder_) {
       patchBuilder_->onPathPop(std::move(popped), tc);
+    }
+    if (wildcardTracker_) {
+      wildcardTracker_->pop();
     }
   }
 
@@ -94,9 +113,22 @@ struct CowSubscriptionTraverseHelper
     return patchBuilder_;
   }
 
+  // Attach a wildcard PATCH candidate tracker. Must be seeded and set before
+  // traversal begins (its base level corresponds to the root node, matching
+  // the root element pushed in the constructor). Ownership stays with the
+  // caller; the tracker must outlive this helper.
+  void setWildcardTracker(WildcardPatchCandidateTracker* tracker) {
+    wildcardTracker_ = tracker;
+  }
+
+  WildcardPatchCandidateTracker* wildcardTracker() const {
+    return wildcardTracker_;
+  }
+
  private:
   std::vector<CowSubscriptionTraverseHelperElem> elementsAlongPath_;
   std::optional<thrift_cow::PatchNodeBuilder>& patchBuilder_;
+  WildcardPatchCandidateTracker* wildcardTracker_{nullptr};
 };
 
 } // namespace facebook::fboss::fsdb

@@ -6,6 +6,25 @@
 namespace facebook::fboss::fsdb {
 
 DEFINE_bool(lazyPathStoreCreation, true, "Lazy path store creation");
+DEFINE_bool(
+    dynamicWildcardPatchResolution,
+    false,
+    "Dynamically resolve wildcard PATCH extended subscriptions during serve "
+    "instead of eagerly expanding them into resolved PatchSubscription objects "
+    "and lookup_ path-store nodes");
+
+bool shouldDynamicallyResolve(const ExtendedSubscription& subscription) {
+  if (!FLAGS_dynamicWildcardPatchResolution) {
+    return false;
+  }
+  if (subscription.type() != PubSubType::PATCH) {
+    return false;
+  }
+  // ExtendedPatchSubscription is the only ExtendedSubscription reporting PATCH,
+  // so a static_cast is sufficient and avoids an RTTI walk on the serve path.
+  return static_cast<const ExtendedPatchSubscription&>(subscription)
+      .hasWildcardPath();
+}
 
 SubscriptionPathStore::SubscriptionPathStore(
     SubscriptionPathStoreTreeStats* stats) {

@@ -349,6 +349,9 @@ class Subscription : public BaseSubscription {
 
 using ExtSubPathMap = std::map<SubscriptionKey, ExtendedOperPath>;
 
+class ExtendedSubscription;
+bool shouldDynamicallyResolve(const ExtendedSubscription& subscription);
+
 class ExtendedSubscription : public BaseSubscription {
  public:
   const ExtSubPathMap& paths() const {

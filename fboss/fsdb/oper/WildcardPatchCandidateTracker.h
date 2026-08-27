@@ -84,22 +84,22 @@ class WildcardPatchCandidateTracker {
   // Seed candidates from the store's extended subscriptions. The caller must
   // hold the SubscriptionStore write lock until traversal and tracker lifetime
   // complete because candidates borrow subscription-owned path/cache storage.
-  // Only PATCH-type, metadata-ready subscriptions are seeded. Returns the
-  // number of (key, path) candidates seeded.
+  // Only subscriptions shouldDynamicallyResolve() admits are seeded, i.e.
+  // wildcard-bearing PATCH subscriptions, and only once they are live and past
+  // their own initial sync. Returns the number of (key, path) candidates
+  // seeded.
   size_t seed(
       const ExtendedSubscriptionMap& extendedSubs,
       const SubscriptionMetadataServer& metadataServer) {
     size_t seeded = 0;
     for (const auto& [_name, sub] : extendedSubs) {
-      if (!sub || sub->type() != PubSubType::PATCH || sub->shouldPrune() ||
+      if (!sub || !shouldDynamicallyResolve(*sub) || sub->shouldPrune() ||
           sub->getInitialSyncCompletedAt() == 0 ||
           !metadataServer.ready(sub->publisherTreeRoot())) {
         continue;
       }
+      // shouldDynamicallyResolve() already established PATCH type.
       auto* patchSub = static_cast<ExtendedPatchSubscription*>(sub.get());
-      if (!patchSub->hasWildcardPath()) {
-        continue;
-      }
       for (const auto& [key, extPath] : patchSub->paths()) {
         if (patchSub->isInitialSyncPending(key)) {
           continue;
