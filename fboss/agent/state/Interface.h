@@ -472,20 +472,50 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
         getRemoteInterfaceType().value() == RemoteInterfaceType::STATIC_ENTRY;
   }
 
+  /*
+   * A port router interface is bound to either a physical port or an aggregate
+   * port, never both. Both bindings use cfg::InterfaceType::PORT and are told
+   * apart by which of portId / aggregatePortId is set, so the setters below
+   * keep the invariant by clearing the other field.
+   */
   void setPortID(PortID port) {
     set<switch_state_tags::portId>(port);
+    ref<switch_state_tags::aggregatePortId>().reset();
+  }
+
+  void setAggregatePortID(AggregatePortID aggregatePort) {
+    set<switch_state_tags::aggregatePortId>(aggregatePort);
+    ref<switch_state_tags::portId>().reset();
+  }
+
+  std::optional<PortID> getPortIDf() const {
+    if (auto portId = cref<switch_state_tags::portId>()) {
+      return PortID(portId->cref());
+    }
+    return std::nullopt;
+  }
+
+  std::optional<AggregatePortID> getAggregatePortIDf() const {
+    if (auto aggregatePortId = cref<switch_state_tags::aggregatePortId>()) {
+      return AggregatePortID(aggregatePortId->cref());
+    }
+    return std::nullopt;
   }
 
   PortID getPortID() const {
     CHECK(getType() == cfg::InterfaceType::PORT);
-    return PortID(get<switch_state_tags::portId>()->cref());
+    auto portID = getPortIDf();
+    CHECK(portID.has_value())
+        << "interface " << getID() << " is not bound to a physical port";
+    return *portID;
   }
 
-  std::optional<PortID> getPortIDf() const {
-    if (getType() == cfg::InterfaceType::PORT) {
-      return getPortID();
-    }
-    return std::nullopt;
+  AggregatePortID getAggregatePortID() const {
+    CHECK(getType() == cfg::InterfaceType::PORT);
+    auto aggregatePortID = getAggregatePortIDf();
+    CHECK(aggregatePortID.has_value())
+        << "interface " << getID() << " is not bound to an aggregate port";
+    return *aggregatePortID;
   }
 
   void setDesiredPeerName(const std::string& desiredPeerName) {

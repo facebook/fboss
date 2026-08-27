@@ -895,6 +895,108 @@ TEST(Interface, getPortInterfacePorts) {
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 1);
 }
 
+namespace {
+std::shared_ptr<Interface> makePortTypeInterface() {
+  return std::make_shared<Interface>(
+      InterfaceID(1),
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("1"),
+      MacAddress("00:02:00:00:00:01"),
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::PORT);
+}
+} // namespace
+
+TEST(Interface, portAndAggregatePortIdUnsetByDefault) {
+  auto intf = makePortTypeInterface();
+  EXPECT_EQ(intf->getPortIDf(), std::nullopt);
+  EXPECT_EQ(intf->getAggregatePortIDf(), std::nullopt);
+}
+
+TEST(Interface, setPortID) {
+  auto intf = makePortTypeInterface();
+  intf->setPortID(PortID(7));
+  EXPECT_EQ(intf->getPortIDf(), PortID(7));
+  EXPECT_EQ(intf->getPortID(), PortID(7));
+  // A port binding leaves no aggregate port binding behind.
+  EXPECT_EQ(intf->getAggregatePortIDf(), std::nullopt);
+}
+
+TEST(Interface, setAggregatePortID) {
+  auto intf = makePortTypeInterface();
+  intf->setAggregatePortID(AggregatePortID(11));
+  EXPECT_EQ(intf->getAggregatePortIDf(), AggregatePortID(11));
+  EXPECT_EQ(intf->getAggregatePortID(), AggregatePortID(11));
+  // An aggregate port binding leaves no port binding behind.
+  EXPECT_EQ(intf->getPortIDf(), std::nullopt);
+}
+
+TEST(Interface, portAndAggregatePortIdAreMutuallyExclusive) {
+  auto intf = makePortTypeInterface();
+
+  intf->setPortID(PortID(7));
+  intf->setAggregatePortID(AggregatePortID(11));
+  EXPECT_EQ(intf->getAggregatePortIDf(), AggregatePortID(11));
+  EXPECT_EQ(intf->getPortIDf(), std::nullopt);
+
+  // and back the other way
+  intf->setPortID(PortID(9));
+  EXPECT_EQ(intf->getPortIDf(), PortID(9));
+  EXPECT_EQ(intf->getAggregatePortIDf(), std::nullopt);
+}
+
+TEST(Interface, getPortIDDiesWhenBoundToAggregatePort) {
+  auto intf = makePortTypeInterface();
+  intf->setAggregatePortID(AggregatePortID(11));
+  // getPortID() must fail loudly rather than return a stale or empty port.
+  EXPECT_DEATH({ intf->getPortID(); }, "not bound to a physical port");
+}
+
+TEST(Interface, getAggregatePortIDDiesWhenBoundToPort) {
+  auto intf = makePortTypeInterface();
+  intf->setPortID(PortID(7));
+  EXPECT_DEATH(
+      { intf->getAggregatePortID(); }, "not bound to an aggregate port");
+}
+
+TEST(Interface, portAndAggregatePortIdInThrift) {
+  auto portIntf = makePortTypeInterface();
+  portIntf->setPortID(PortID(7));
+  EXPECT_EQ(portIntf->toThrift().portId(), 7);
+  EXPECT_FALSE(portIntf->toThrift().aggregatePortId().has_value());
+
+  auto aggIntf = makePortTypeInterface();
+  aggIntf->setAggregatePortID(AggregatePortID(11));
+  EXPECT_EQ(aggIntf->toThrift().aggregatePortId(), 11);
+  EXPECT_FALSE(aggIntf->toThrift().portId().has_value());
+}
+
+TEST(Interface, portAndAggregatePortIdSurviveThriftRoundTrip) {
+  auto portIntf = makePortTypeInterface();
+  portIntf->setPortID(PortID(7));
+  auto aggIntf = makePortTypeInterface();
+  aggIntf->setAggregatePortID(AggregatePortID(11));
+
+  // Seed each target with the opposite binding, so the round trip has to
+  // replace the binding rather than merely leave it alone.
+  auto portRoundTripped = makePortTypeInterface();
+  portRoundTripped->setAggregatePortID(AggregatePortID(11));
+  portRoundTripped->fromThrift(portIntf->toThrift());
+  EXPECT_EQ(portRoundTripped->getPortIDf(), PortID(7));
+  EXPECT_EQ(portRoundTripped->getAggregatePortIDf(), std::nullopt);
+  EXPECT_EQ(portRoundTripped->toThrift(), portIntf->toThrift());
+
+  auto aggRoundTripped = makePortTypeInterface();
+  aggRoundTripped->setPortID(PortID(7));
+  aggRoundTripped->fromThrift(aggIntf->toThrift());
+  EXPECT_EQ(aggRoundTripped->getAggregatePortIDf(), AggregatePortID(11));
+  EXPECT_EQ(aggRoundTripped->getPortIDf(), std::nullopt);
+  EXPECT_EQ(aggRoundTripped->toThrift(), aggIntf->toThrift());
+}
+
 TEST(Interface, modify) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
