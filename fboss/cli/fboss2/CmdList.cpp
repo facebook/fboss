@@ -395,6 +395,7 @@ const CommandTree& kCommandTree() {
        "Show Route information",
        commandHandler<CmdShowRoute>,
        argTypeHandler<CmdShowRouteTraits>,
+       localOptionsHandler<CmdShowRouteTraits>,
        {{"counters",
          "Show route counters",
          commandHandler<CmdShowRouteCounters>,

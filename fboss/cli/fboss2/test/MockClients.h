@@ -119,6 +119,10 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
       void,
       getRouteTable,
       (std::vector<facebook::fboss::UnicastRoute>&));
+  MOCK_METHOD(
+      void,
+      getRouteTableByClient,
+      (std::vector<facebook::fboss::UnicastRoute>&, int16_t));
   MOCK_METHOD3(
       getIpRouteDetails,
       void(
