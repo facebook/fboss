@@ -63,8 +63,9 @@ std::vector<std::pair<std::string, std::string>> getAllSpeedChangeTransitions();
 // until it reports ready so subsequent I2C reads / refresh succeed. A module
 // fresh out of a hard reset comes up in low power and not yet ready, so paged
 // reads fail until this runs. No-op (beyond detectPresence) for non-CMIS
-// modules. Best effort: transient I2C errors are logged, not thrown.
-void ensureModuleReady(QsfpModule* module);
+// modules. Transient I2C errors are logged, not thrown. Returns true if the
+// module is ready (or is non-CMIS), false if it did not reach ready state.
+bool ensureModuleReady(QsfpModule* module);
 
 // Upgrade firmware on a module to the specified versions.
 // Returns true if an upgrade was performed.

@@ -52,6 +52,7 @@ add_executable(qsfp_hal_test
   fboss/qsfp_service/test/hal_test/HalTestApplicationModes.cpp
   fboss/qsfp_service/test/hal_test/HalTestModuleAdvertisement.cpp
   fboss/qsfp_service/test/hal_test/HalTestModuleInit.cpp
+  fboss/qsfp_service/test/hal_test/HalTestVdmLatch.cpp
   fboss/qsfp_service/test/hal_test/Main.cpp
 )
 

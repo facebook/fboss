@@ -322,11 +322,11 @@ std::string appVersionMatchingConfig(
 
 } // namespace
 
-void ensureModuleReady(QsfpModule* module) {
+bool ensureModuleReady(QsfpModule* module) {
   module->detectPresence();
   auto* cmis = dynamic_cast<CmisModule*>(module);
   if (cmis == nullptr) {
-    return;
+    return true;
   }
   // releaseModuleLowPowerModeLocked / moduleReadyStatePoll are safe to call
   // without the module mutex here: this runs single threaded before any upgrade
@@ -337,11 +337,14 @@ void ensureModuleReady(QsfpModule* module) {
     if (!cmis->moduleReadyStatePoll()) {
       XLOG(WARNING) << "Module " << module->getID()
                     << " did not reach ready state";
+      return false;
     }
   } catch (const std::exception& e) {
     XLOG(WARNING) << "Module " << module->getID()
                   << " readiness prep failed: " << e.what();
+    return false;
   }
+  return true;
 }
 
 bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
