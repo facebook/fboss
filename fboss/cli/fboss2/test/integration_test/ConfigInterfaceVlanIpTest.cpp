@@ -95,13 +95,21 @@ class ConfigInterfaceVlanIpTest : public Fboss2IntegrationTest {
       return false;
     }
     const auto& sw = config["sw"];
+    // Accumulate: a plain assignment would let a later non-matching interface
+    // reset the answer, and would report "absent" when the SVI itself is gone
+    // -- passing the very check that guards against losing it.
     bool intfHas = false;
+    bool sviFound = false;
     if (sw.count("interfaces")) {
       for (const auto& i : sw["interfaces"]) {
         if (i.count("vlanID") && i["vlanID"].asInt() == vlanId) {
-          intfHas = listHasAddress(i, addr);
+          sviFound = true;
+          intfHas |= listHasAddress(i, addr);
         }
       }
+    }
+    if (!sviFound) {
+      return false;
     }
     return intfHas == onInterface;
   }

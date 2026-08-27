@@ -21,6 +21,7 @@
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss::utils {
@@ -31,7 +32,12 @@ constexpr std::string_view kVlanNamePrefix = "vlan";
 
 // Parses a "vlan<digits>" SVI name (lowercase prefix, e.g. "vlan2001") into
 // its VLAN ID. Returns nullopt for any other shape.
-std::optional<VlanID> parseVlanName(const std::string& name) {
+//
+// An out-of-range ID throws its own message when the caller wants hard
+// resolution, but degrades to nullopt when `quiet`, so an allowMissing caller
+// treats it like every other unresolvable name instead of being the one rung
+// that throws.
+std::optional<VlanID> parseVlanName(const std::string& name, bool quiet) {
   if (name.size() <= kVlanNamePrefix.size() ||
       name.compare(0, kVlanNamePrefix.size(), kVlanNamePrefix) != 0) {
     return std::nullopt;
@@ -42,9 +48,16 @@ std::optional<VlanID> parseVlanName(const std::string& name) {
   }
   // VlanID is uint16_t; an unbounded int32 would wrap (vlan65537 -> VLAN 1)
   // and mutate the wrong SVI. Reject anything outside the 802.1Q range.
-  if (*id < 1 || *id > 4094) {
+  if (*id < kVlanIdMin || *id > kVlanIdMax) {
+    if (quiet) {
+      return std::nullopt;
+    }
     throw std::invalid_argument(
-        fmt::format("VLAN ID {} is out of range (valid 1-4094)", *id));
+        fmt::format(
+            "VLAN ID {} is out of range (valid {}-{})",
+            *id,
+            kVlanIdMin,
+            kVlanIdMax));
   }
   return VlanID(*id);
 }
@@ -52,7 +65,7 @@ std::optional<VlanID> parseVlanName(const std::string& name) {
 // A vlan<id> name that reached this point is unambiguously a VLAN SVI
 // reference, so report the VLAN-level cause instead of the generic
 // port-or-interface-not-found error. Never creates the VLAN or the SVI.
-[[noreturn]] void throwVlanNotResolvable(VlanID vlanId) {
+void throwVlanNotResolvable(VlanID vlanId) {
   const auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
   const auto& vlans = *swConfig.vlans();
   bool vlanExists = std::any_of(
@@ -109,7 +122,17 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
       if (!interface) {
         // "vlan2001" names the SVI of VLAN 2001: the interface whose vlanID
         // matches, regardless of the interface's own (often unset) name.
-        if (auto vlanId = parseVlanName(name)) {
+        if (auto vlanId = parseVlanName(name, /*quiet=*/allowMissing)) {
+          // Two SVIs on one VLAN make "vlan<id>" ambiguous; refuse to pick one
+          // rather than mutating an arbitrary interface.
+          if (portMap.isVlanAmbiguous(*vlanId)) {
+            throw std::invalid_argument(
+                fmt::format(
+                    "VLAN {} has more than one L3 interface; name the "
+                    "interface by its ID instead of \"{}\"",
+                    static_cast<int32_t>(*vlanId),
+                    name));
+          }
           interface = portMap.getInterfaceForVlan(*vlanId);
           if (!interface && !allowMissing) {
             throwVlanNotResolvable(*vlanId);

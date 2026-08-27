@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <folly/CppAttributes.h>
@@ -135,6 +136,15 @@ class PortMap {
    */
   cfg::Interface* FOLLY_NULLABLE getInterfaceForVlan(VlanID vlanId) const;
 
+  /**
+   * Whether more than one interface in the config carries this vlanID, which
+   * makes getInterfaceForVlan()'s answer an arbitrary pick among them.
+   *
+   * @param vlanId The VLAN ID
+   * @return true if two or more interfaces share the VLAN
+   */
+  bool isVlanAmbiguous(VlanID vlanId) const;
+
  private:
   // Map from port name to port logical ID
   std::unordered_map<std::string, PortID> portNameToLogicalId_;
@@ -151,8 +161,12 @@ class PortMap {
   // Map from interface ID to VLAN ID
   std::unordered_map<InterfaceID, VlanID> interfaceIdToVlanId_;
 
-  // Map from VLAN ID to interface ID
+  // Map from VLAN ID to interface ID (first interface in config order)
   std::unordered_map<VlanID, InterfaceID> vlanIdToInterfaceId_;
+
+  // VLANs carrying more than one interface, for which vlanIdToInterfaceId_
+  // holds only one of several equally valid answers
+  std::unordered_set<VlanID> ambiguousVlans_;
 
   // Map from port name to interface ID (the final mapping)
   std::unordered_map<std::string, InterfaceID> portNameToInterfaceId_;

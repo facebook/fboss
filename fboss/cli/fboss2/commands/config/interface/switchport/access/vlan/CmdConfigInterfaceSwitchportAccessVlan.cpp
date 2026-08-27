@@ -10,7 +10,10 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 
+#include <fmt/format.h>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
@@ -33,6 +36,24 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   // Extract the VLAN ID (validation already done in VlanIdValue constructor)
   int32_t vlanId = vlanIdValue.getVlanId();
 
+  // ingressVlan and the vlanPorts membership below are both port attributes,
+  // so a name that resolved to an L3 interface only (an SVI reached by
+  // "vlan<id>" or by interface ID) has nothing to configure. Fail before
+  // creating anything, rather than creating the target VLAN and reporting
+  // success for a command that touched no port.
+  std::vector<std::string> unresolvedIntfs;
+  for (const utils::Intf& intf : interfaces) {
+    if (!intf.getPort()) {
+      unresolvedIntfs.push_back(intf.name());
+    }
+  }
+  if (!unresolvedIntfs.empty()) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Interface(s) {} do not resolve to a port; no changes made",
+            folly::join(", ", unresolvedIntfs)));
+  }
+
   // Create the VLAN (and its barebone interface) on the fly if it doesn't
   // exist yet.
   auto& config = ConfigSession::getInstance().getAgentConfig();
@@ -42,13 +63,12 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   // Collect the logical port IDs we need to update
   std::unordered_set<int32_t> portIds;
 
-  // Update ingressVlan for all resolved ports
+  // Update ingressVlan for all resolved ports (every name resolved to a port,
+  // checked above)
   for (const utils::Intf& intf : interfaces) {
     cfg::Port* port = intf.getPort();
-    if (port) {
-      port->ingressVlan() = vlanId;
-      portIds.insert(*port->logicalID());
-    }
+    port->ingressVlan() = vlanId;
+    portIds.insert(*port->logicalID());
   }
 
   // Also update the vlanPorts entries for these ports
