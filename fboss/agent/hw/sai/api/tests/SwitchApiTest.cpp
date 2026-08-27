@@ -289,6 +289,12 @@ TEST_F(SwitchApiTest, getDstUserMetaDataRange) {
               SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange())
           .min,
       0);
+  EXPECT_EQ(
+      switchApi
+          ->getAttribute(
+              switchId, SaiSwitchTraits::Attributes::PortUserMetaDataRange())
+          .min,
+      0);
 }
 
 TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
@@ -310,6 +316,11 @@ TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
       switchApi->setAttribute(
           switchId,
           SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange(u32Range)),
+      SaiApiError);
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::PortUserMetaDataRange(u32Range)),
       SaiApiError);
 }
 

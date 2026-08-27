@@ -158,6 +158,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_MTU,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -832,7 +837,8 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrProfile>,
 #endif
       std::optional<Attributes::PfcPauseDurationOverride>,
-      std::optional<Attributes::IngressAcl>>;
+      std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -947,6 +953,7 @@ SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
+SAI_ATTRIBUTE_NAME(Port, Metadata)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcAndColorToDot1pMap)

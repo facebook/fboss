@@ -98,6 +98,7 @@ class PortStoreTest : public SaiStoreTest {
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
   }
 
@@ -319,6 +320,26 @@ TEST_F(PortStoreTest, portSetDisableTtl) {
   EXPECT_TRUE(GET_OPT_ATTR(Port, DisableTtlDecrement, portObj.attributes()));
   EXPECT_TRUE(saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::DisableTtlDecrement{}));
+}
+
+TEST_F(PortStoreTest, portSetMetadata) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, Metadata, portObj.attributes()),
+      static_cast<sai_uint32_t>(0));
+
+  constexpr sai_uint32_t kMetadata{42};
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(newAttrs) =
+      kMetadata;
+  portObj.setAttributes(newAttrs);
+
+  EXPECT_EQ(GET_OPT_ATTR(Port, Metadata, portObj.attributes()), kMetadata);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portId, SaiPortTraits::Attributes::Metadata{}),
+      kMetadata);
 }
 /*
  * Confirm that moving out of a SaiObject<SaiPortTraits> works as expected

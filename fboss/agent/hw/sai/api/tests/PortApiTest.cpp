@@ -105,6 +105,7 @@ class PortApiTest : public ::testing::Test {
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -355,6 +356,12 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portMtu);
   auto gotPortMtu = portApi->getAttribute(portId, portMtu);
   EXPECT_EQ(gotPortMtu, mtu);
+
+  // Port metadata
+  constexpr sai_uint32_t kMetadata{42};
+  SaiPortTraits::Attributes::Metadata metadata{kMetadata};
+  portApi->setAttribute(portId, metadata);
+  EXPECT_EQ(portApi->getAttribute(portId, metadata), kMetadata);
 
   // Port DSCP to TC
   sai_object_id_t qosMapDscpToTc{42};

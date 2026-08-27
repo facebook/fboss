@@ -48,6 +48,7 @@ sai_status_t create_port_fn(
   std::vector<sai_object_id_t> ingressSampleMirrorList;
   std::vector<sai_object_id_t> egressSampleMirrorList;
   sai_uint32_t mtu{1514};
+  sai_uint32_t metadata{0};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcToQueueMap{SAI_NULL_OBJECT_ID};
   bool disableTtlDecrement{false};
@@ -145,6 +146,9 @@ sai_status_t create_port_fn(
       } break;
       case SAI_PORT_ATTR_MTU:
         mtu = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_META_DATA:
+        metadata = attr_list[i].value.u32;
         break;
       case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
         qosDscpToTcMap = attr_list[i].value.oid;
@@ -369,6 +373,7 @@ sai_status_t create_port_fn(
     port.ptpMode = ptpMode.value();
   }
   port.mtu = mtu;
+  port.metadata = metadata;
   port.qosDscpToTcMap = qosDscpToTcMap;
   port.qosTcToQueueMap = qosTcToQueueMap;
   port.ingressSamplePacket = ingressSamplePacket;
@@ -553,6 +558,9 @@ sai_status_t set_port_attribute_fn(
     } break;
     case SAI_PORT_ATTR_MTU:
       port.mtu = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_META_DATA:
+      port.metadata = attr->value.u32;
       break;
     case SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP:
       port.qosDscpToTcMap = attr->value.oid;
@@ -991,6 +999,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_MTU:
         attr->value.u32 = port.mtu;
+        break;
+      case SAI_PORT_ATTR_META_DATA:
+        attr->value.u32 = port.metadata;
         break;
       case SAI_PORT_ATTR_OPER_STATUS:
         attr->value.s32 = SAI_PORT_OPER_STATUS_UP;

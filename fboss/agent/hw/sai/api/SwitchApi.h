@@ -216,6 +216,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
         sai_u32_range_t,
         SaiIntRangeDefault<sai_u32_range_t>>;
+    using PortUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_USER_META_DATA_RANGE,
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using AvailableIpv4RouteEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY,
@@ -1094,6 +1099,7 @@ SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
+SAI_ATTRIBUTE_NAME(Switch, PortUserMetaDataRange)
 
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4RouteEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6RouteEntry)

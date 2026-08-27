@@ -52,6 +52,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, FdbDstUserMetaDataRange),
     SAI_ATTR_MAP(Switch, RouteDstUserMetaDataRange),
     SAI_ATTR_MAP(Switch, NeighborDstUserMetaDataRange),
+    SAI_ATTR_MAP(Switch, PortUserMetaDataRange),
     SAI_ATTR_MAP(Switch, AvailableIpv4RouteEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv6RouteEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv4NextHopEntry),

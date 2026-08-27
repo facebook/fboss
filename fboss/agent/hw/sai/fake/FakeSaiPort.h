@@ -58,6 +58,7 @@ struct FakePort {
   std::vector<sai_object_id_t> ingressBufferProfileIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
+  sai_uint32_t metadata{0};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosDot1pToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcAndColorToDot1pMap{SAI_NULL_OBJECT_ID};
