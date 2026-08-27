@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import logging
 import pathlib
+import re
 import typing as t
 
 from fboss.util.mimic_config_gen.defs import MimicError, unwrap_selection
@@ -46,6 +47,9 @@ _UNHANDLED_PORT_ID_CARRIERS: tuple[tuple[str, str], ...] = (
 )
 
 _MANAGEMENT_PORT_TYPE = 4  # cfg::PortType::MANAGEMENT_PORT
+
+# Coop feature names are `name`, or `name/value` for enum-valued features.
+_FEATURE_NAME: re.Pattern[str] = re.compile(r"^[A-Za-z0-9_]+(/[A-Za-z0-9_]+)?$")
 
 
 def enum_value(enum_name: str, member: str) -> int:
@@ -258,6 +262,63 @@ def reconcile_management_ports(
             port["speed"], port["profileID"] = after
             changed.append((port["name"], before, after))
     return changed
+
+
+def parse_feature_overrides(spec: str | None) -> dict[str, str]:
+    """Parse a `name:on,name:off` string into explicit feature states.
+
+    Same syntax as `coop_test --feature-overrides`, including splitting on the
+    LAST colon as coop does, so a spec moves between the two tools unchanged.
+    """
+    states: dict[str, str] = {}
+    for entry in (spec or "").split(","):
+        entry = entry.strip()
+        if not entry:
+            continue
+        name, sep, state = entry.rpartition(":")
+        name, state = name.strip(), state.strip().lower()
+        if not sep or not name or state not in ("on", "off"):
+            raise MimicError(
+                f"invalid feature override {entry!r}: expected 'name:on' or 'name:off'"
+            )
+        if not _FEATURE_NAME.match(name):
+            # coop joins the name straight into a filesystem path with
+            # parents=True, so a path-shaped name would write outside the
+            # coop dir instead of failing.
+            raise MimicError(
+                f"invalid feature name {name!r}: expected `name` or `name/value`"
+            )
+        if name in states:
+            raise MimicError(
+                f"feature {name} given twice in --feature-overrides; "
+                "remove the duplicate rather than relying on ordering"
+            )
+        states[name] = state
+    return states
+
+
+def apply_feature_overrides(
+    pins: dict[str, str], overrides: t.Mapping[str, str]
+) -> list[tuple[str, str | None, str]]:
+    """Layer explicit feature states over the source switch's pinned ones.
+
+    Suppressing a feature answers "what would coop emit without this?", which
+    is how you find the one feature responsible for a bad config and then
+    re-enable the rest incrementally.
+
+    Mutates `pins`; returns [(name, previous, new)] for the ones that changed.
+    `previous` is None when the feature was not pinned for the source switch,
+    which usually means a typo but is legitimate when the feature is outside
+    that device's scope -- coop simply never reads the override in that case.
+    """
+    changes: list[tuple[str, str | None, str]] = []
+    for name, state in sorted(overrides.items()):
+        before = pins.get(name)
+        if before == state:
+            continue
+        pins[name] = state
+        changes.append((name, before, state))
+    return changes
 
 
 def capture_feature_pins(coop_dir: pathlib.Path) -> dict[str, str]:

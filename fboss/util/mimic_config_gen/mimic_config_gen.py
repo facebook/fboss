@@ -79,6 +79,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Output directory",
     )
     p.add_argument(
+        "--feature-overrides",
+        help="Force feature states, e.g. 'dc_sflow_mirror:off,pfc:on'. Applied "
+        "over the states inherited from the source switch. Suppress a feature "
+        "to see what coop emits without it, then re-enable incrementally.",
+    )
+    p.add_argument(
         "--scan-only",
         action="store_true",
         help="Report donors and input gaps, then stop without generating",
@@ -136,6 +142,10 @@ def run(args: argparse.Namespace) -> int:
     baseline_dir = out / "baseline"
     mimic_dir = out / "mimic"
     work = out / "work"
+
+    # Parse before anything expensive: a malformed spec should not cost a full
+    # baseline generation to discover, and --scan-only should reject it too.
+    feature_overrides = forge.parse_feature_overrides(args.feature_overrides)
 
     donors, target_roles, warnings = discovery.resolve(
         args.role, args.source_hw, args.target_hw, args.source_device, args.bridge_role
@@ -250,6 +260,13 @@ def run(args: argparse.Namespace) -> int:
     emit(
         f"  features pinned to source switch: {len(pins)} ({on} on, {len(pins) - on} off)"
     )
+    for name, before, after in forge.apply_feature_overrides(pins, feature_overrides):
+        origin = before if before is not None else "unpinned"
+        emit(f"  feature override {name}: {origin} -> {after}")
+    if feature_overrides:
+        # Say what coop actually receives: an override for an unpinned feature
+        # adds an entry, and a no-op override prints nothing above.
+        emit(f"  {len(feature_overrides)} override(s) applied, {len(pins)} to coop")
     forge.write_json(pins, work / "feature_pins.json")
 
     section("Generating")
