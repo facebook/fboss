@@ -28,6 +28,22 @@ def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any
     return result
 
 
+def resolve_variant_config(
+    platform_config: dict[str, Any], variant: str
+) -> dict[str, Any]:
+    """Return the effective config for ``variant``.
+
+    The platform JSON may declare a top-level ``defaults`` block inherited by
+    every variant. The effective variant config is produced by deep-merging the
+    variant-specific entries on top of ``defaults``. Dict values are merged
+    recursively; scalars and lists are replaced.
+    """
+    return _deep_merge(
+        platform_config.get("defaults", {}),
+        platform_config.get("variants", {}).get(variant, {}),
+    )
+
+
 class BaseAsicConfigGenerator(ABC):
     """Abstract base class for ASIC config generators.
 
@@ -56,13 +72,9 @@ class BaseAsicConfigGenerator(ABC):
         self.asic_vendor: str = vendor
         self.asic_name: str = asic
 
-        # The platform JSON may declare a top-level ``defaults`` block inherited
-        # by every variant. The effective variant config is produced by deep-
-        # merging the variant-specific entries on top of ``defaults``. Dict
-        # values are merged recursively; scalars and lists are replaced.
-        defaults = platform_config.get("defaults", {})
-        variant_override = platform_config.get("variants", {}).get(variant, {})
-        self.variant_config: dict[str, Any] = _deep_merge(defaults, variant_override)
+        self.variant_config: dict[str, Any] = resolve_variant_config(
+            platform_config, variant
+        )
         self.asic_config_params: dict[str, Any] = self.variant_config.get(
             "asic_config_params", {}
         )

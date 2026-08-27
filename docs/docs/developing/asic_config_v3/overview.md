@@ -72,7 +72,7 @@ so a new configuration key must be added to the corresponding schema, with a
 description, in the same change. Run the validator with:
 
 ```shell
-python3 -m fboss.lib.asic_config_v3.validation.validate_asic_configs \
+python3 -m fboss.lib.asic_config_v3.test.validate_asic_configs_schemas \
   --fboss-root "$PWD/fboss"
 ```
 
@@ -286,7 +286,7 @@ added.
 3. Validate and generate:
 
 ```shell
-python3 -m fboss.lib.asic_config_v3.validation.validate_asic_configs \
+python3 -m fboss.lib.asic_config_v3.test.validate_asic_configs_schemas \
   --fboss-root "$PWD/fboss"
 ./fboss/lib/asic_config_v3/run-helper.sh
 ```
@@ -397,7 +397,7 @@ _GENERATOR_REGISTRY = {
 ```
 
 4. **Schema.** Add a schema for the new ASIC file under `schemas/` and
-   register it in `validation/validate_asic_configs.py`. Extend
+   register it in `test/validate_asic_configs_schemas.py`. Extend
    `platform_config.schema.json` if the family introduces new platform-level
    fields.
 5. **Build.** Add the new generator source files, and any new modules they

@@ -1,7 +1,6 @@
 # pyre-strict
 
 import argparse
-import json
 import os
 import sys
 
@@ -9,7 +8,7 @@ from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
 from fboss.lib.asic_config_v3.generators.broadcom_xgs_generator import (
     BroadcomXgsGenerator,
 )
-from fboss.lib.asic_config_v3.paths import AsicConfigPaths
+from fboss.lib.asic_config_v3.paths import AsicConfigPaths, discover_platforms
 
 # Add a new (vendor, asic) entry when bringing up a new ASIC family.
 _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
@@ -29,49 +28,6 @@ def get_generator(
     if not generator_cls:
         raise ValueError(f"No generator registered for vendor={vendor}, asic={asic}")
     return generator_cls(platform_name, variant, platform_config, paths)
-
-
-def discover_platforms(paths: AsicConfigPaths) -> dict[str, tuple[dict, str]]:
-    """Return a mapping of platform name to its config and output directory.
-
-    Discovered by scanning
-    ``platforms/<vendor>/<platform>/asic_config/asic_config.json``.
-    """
-    platforms: dict[str, tuple[dict, str]] = {}
-    platform_vendors: dict[str, str] = {}
-
-    if not os.path.isdir(paths.platforms_dir):
-        raise FileNotFoundError(
-            f"Platform config directory '{paths.platforms_dir}' does not exist"
-        )
-
-    for platform_vendor in sorted(os.listdir(paths.platforms_dir)):
-        vendor_path = os.path.join(paths.platforms_dir, platform_vendor)
-        if not os.path.isdir(vendor_path):
-            continue
-
-        for platform_name in sorted(os.listdir(vendor_path)):
-            platform_path = os.path.join(vendor_path, platform_name, "asic_config")
-            if not os.path.isdir(platform_path):
-                continue
-
-            config_path = os.path.join(platform_path, "asic_config.json")
-            if not os.path.exists(config_path):
-                continue
-
-            if platform_name in platforms:
-                raise ValueError(
-                    f"Duplicate platform '{platform_name}' found under system vendors "
-                    f"'{platform_vendors[platform_name]}' and '{platform_vendor}'"
-                )
-
-            with open(config_path) as f:
-                platform_config = json.load(f)
-                output_dir = os.path.join(platform_path, "generated")
-                platforms[platform_name] = (platform_config, output_dir)
-                platform_vendors[platform_name] = platform_vendor
-
-    return platforms
 
 
 def _generate_platform(
