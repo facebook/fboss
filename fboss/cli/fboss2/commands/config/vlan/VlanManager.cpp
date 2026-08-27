@@ -74,7 +74,13 @@ std::pair<bool, cfg::Vlan*> VlanManager::createVlan(
   cfg::Vlan newVlan;
   newVlan.id() = static_cast<int32_t>(vlanId);
   newVlan.name() = fmt::format("Vlan{}", static_cast<uint16_t>(vlanId));
-  newVlan.routable() = false;
+  // Every VLAN this creates gets a backing cfg::Interface below, so it is an
+  // SVI, not an L2-only VLAN. The agent ignores the flag (it never reaches
+  // switch state), but agent.conf is what operators read to work out why an
+  // SVI is not passing traffic, and 'routable: false' has sent them chasing
+  // it more than once. 'config vlan default' keeps false for the
+  // interface-less placeholder it creates.
+  newVlan.routable() = true;
 
   // Insert the new VLAN keeping the list sorted by ID (tolerating a pinned
   // leading sentinel such as VLAN 4094).

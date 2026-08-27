@@ -18,9 +18,11 @@
  *  - The test must be run as root (or with appropriate permissions)
  */
 
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -267,12 +269,95 @@ TEST_F(DeleteInterfaceTest, DeleteWholePortRemovesCreatedSubport) {
   XLOG(INFO) << "TEST PASSED";
 }
 
-// Whole-interface deletes and their refusal paths are unit-tested in
-// CmdDeleteWholeL3InterfaceTestFixture, not repeated here: the session's port
-// map is not rebuilt for interfaces staged in the same session, and a
-// PORT-type interface cannot be created via the CLI, so integration versions
-// could only run conditionally on the DUT's existing config. Delete-by-ID
-// resolution is still exercised end-to-end by DeleteUnknownInterfaceIdFails.
+// ---------------------------------------------------------------------------
+// Test: delete a portless L3 interface by its interface ID
+//
+// Programs a VLAN (which brings a backing SVI with it), deletes that SVI by
+// bare interface ID, and checks the VLAN goes with it. Covers what no unit
+// test can: that a bare ID resolves against a real generated agent.conf and
+// that the agent accepts the resulting config.
+//
+// The refusal paths are unit-tested in CmdDeleteWholeL3InterfaceTestFixture
+// and not repeated here. A PORT-type router interface cannot be created
+// through the CLI at all, so it could only ever be an IT on a DUT that
+// happened to have one.
+// ---------------------------------------------------------------------------
+
+TEST_F(DeleteInterfaceTest, DeleteL3InterfaceByIdCascadesVlan) {
+  const int vlanId = pickUnusedVlanId();
+  ASSERT_NE(vlanId, 0) << "No VLAN ID free in [" << kTestVlanMin << ", "
+                       << kTestVlanMax << "] on this switch";
+  // Guards an abort between the commit below and the delete, which would
+  // otherwise leave the VLAN and its interface's TUN device on the DUT.
+  SCOPE_EXIT {
+    deleteVlanIfPresent(vlanId);
+  };
+  const std::string id = std::to_string(vlanId);
+
+  XLOG(INFO) << "[Step 1] Program VLAN " << id << " and commit";
+  auto created = runCli({"config", "vlan", id});
+  ASSERT_EQ(created.exitCode, 0) << created.stderr;
+  commitConfig();
+  waitForAgentReady();
+
+  XLOG(INFO) << "[Step 2] Find the interface backing VLAN " << id;
+  auto config = waitForRunningConfig([vlanId](const folly::dynamic& c) {
+    if (!c.isObject() || !c.count("sw") || !c["sw"].count("interfaces")) {
+      return false;
+    }
+    for (const auto& i : c["sw"]["interfaces"]) {
+      if (i.count("vlanID") && i["vlanID"].asInt() == vlanId) {
+        return true;
+      }
+    }
+    return false;
+  });
+  std::optional<int> intfId;
+  for (const auto& i : config["sw"]["interfaces"]) {
+    if (i.count("vlanID") && i["vlanID"].asInt() == vlanId &&
+        i.count("intfID")) {
+      intfId = i["intfID"].asInt();
+      break;
+    }
+  }
+  ASSERT_TRUE(intfId.has_value())
+      << "VLAN " << id << " has no backing interface in the running config";
+  XLOG(INFO) << "  interface ID: " << *intfId;
+
+  XLOG(INFO) << "[Step 3] Delete interface " << *intfId << " and commit";
+  auto result = runCli({"delete", "interface", std::to_string(*intfId)});
+  if (result.exitCode != 0) {
+    discardSession();
+  }
+  ASSERT_EQ(result.exitCode, 0)
+      << "stdout=" << result.stdout << " stderr=" << result.stderr;
+  commitConfig();
+  waitForAgentReady();
+
+  XLOG(INFO) << "[Step 4] Check the interface and VLAN " << id << " are gone";
+  config = waitForRunningConfig([vlanId](const folly::dynamic& c) {
+    if (!c.isObject() || !c.count("sw")) {
+      return false;
+    }
+    const auto& sw = c["sw"];
+    if (sw.count("vlans")) {
+      for (const auto& v : sw["vlans"]) {
+        if (v.count("id") && v["id"].asInt() == vlanId) {
+          return false;
+        }
+      }
+    }
+    if (sw.count("interfaces")) {
+      for (const auto& i : sw["interfaces"]) {
+        if (i.count("vlanID") && i["vlanID"].asInt() == vlanId) {
+          return false;
+        }
+      }
+    }
+    return true;
+  });
+  XLOG(INFO) << "TEST PASSED";
+}
 
 // ---------------------------------------------------------------------------
 // Test: an interface ID that matches nothing is rejected, and leaves no
