@@ -99,6 +99,41 @@ struct WriteCommandTraits : public BaseCommandTraits {
       CliReadWriteMode::CLI_MODE_WRITE;
 };
 
+// Tag a command's Traits with this base to grandfather it out of the CLI
+// reference-wiki documentation requirement. Remove the tag once the command
+// defines both hooks; enforcement then requires them.
+struct CliDocsExempt {};
+
+namespace detail {
+template <typename T, typename = void>
+struct HasTraitsCliDescription : std::false_type {};
+template <typename T>
+struct HasTraitsCliDescription<
+    T,
+    std::void_t<decltype(T::Traits::description())>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasClassCliDescription : std::false_type {};
+template <typename T>
+struct HasClassCliDescription<T, std::void_t<decltype(T::description())>>
+    : std::true_type {};
+
+template <typename T, typename = void>
+struct HasCliSampleModel : std::false_type {};
+template <typename T>
+struct HasCliSampleModel<T, std::void_t<decltype(T::sampleModel())>>
+    : std::true_type {};
+} // namespace detail
+
+// A command is documented for the CLI reference wiki when it exposes both a
+// description() (on its Traits, or on the command class for the shared-Traits
+// case) and a sampleModel().
+template <typename Cmd>
+inline constexpr bool kHasCliDocs =
+    (detail::HasTraitsCliDescription<Cmd>::value ||
+     detail::HasClassCliDescription<Cmd>::value) &&
+    detail::HasCliSampleModel<Cmd>::value;
+
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
   static_assert(
