@@ -25,6 +25,7 @@ const int kTotalAdjRibs = 15;
 const int kTotalOriginatedRoutes = 2;
 const int kTotalShadowRibEntries = 10;
 const int kTotalNetlinkInterfaces = 32;
+const int kTotalNetlinkHoldsActive = 3;
 
 class CmdShowBgpStatsEntriesTestFixture : public CmdHandlerTestBase {
  public:
@@ -44,6 +45,8 @@ class CmdShowBgpStatsEntriesTestFixture : public CmdHandlerTestBase {
     queriedStats.total_originated_routes() = kTotalOriginatedRoutes;
     queriedStats.total_shadow_rib_entries() = kTotalShadowRibEntries;
     queriedStats.total_netlink_wrapper_interfaces() = kTotalNetlinkInterfaces;
+    queriedStats.total_netlink_wrapper_holds_active() =
+        kTotalNetlinkHoldsActive;
 
     return queriedStats;
   }
@@ -62,6 +65,8 @@ TEST_F(CmdShowBgpStatsEntriesTestFixture, queryClient) {
   EXPECT_EQ(kTotalShadowRibEntries, results.total_shadow_rib_entries());
   EXPECT_EQ(
       kTotalNetlinkInterfaces, results.total_netlink_wrapper_interfaces());
+  EXPECT_EQ(
+      kTotalNetlinkHoldsActive, results.total_netlink_wrapper_holds_active());
 }
 
 TEST_F(CmdShowBgpStatsEntriesTestFixture, printOutput) {
@@ -76,7 +81,8 @@ TEST_F(CmdShowBgpStatsEntriesTestFixture, printOutput) {
       " Total number of adjribs: 15\n"
       " Total number of originated routes: 2\n"
       " Total number of shadow rib entries: 10\n"
-      " Total number of tracked netlink wrapper interfaces: 32\n";
+      " Total number of tracked netlink wrapper interfaces: 32\n"
+      " Total number of active netlink wrapper holds: 3\n";
 
   EXPECT_EQ(expectedOutput, output);
 }

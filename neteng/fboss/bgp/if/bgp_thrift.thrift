@@ -947,6 +947,28 @@ struct TEntryStats {
   4: i64 total_originated_routes;
   5: i64 total_shadow_rib_entries;
   6: i64 total_netlink_wrapper_interfaces;
+  /**
+   * The number of interfaces that have a link-up hold right now
+   * (BgpSettingConfig.enable_netlink_dampening). The value is zero when the
+   * feature is off. This is a device total. To find which interface has a
+   * hold, read the [LinkHold] log lines.
+   */
+  7: i64 total_netlink_wrapper_holds_active;
+}
+
+/**
+ * The link-up hold times (link-flap dampening).
+ *
+ * initial_ms is the length of the first hold after a link-down. max_ms is the
+ * longest hold, and it is also the decay window: a link that stays quiet for
+ * this time returns to the initial hold.
+ */
+struct TNetlinkLinkUpHold {
+  1: i32 initial_ms;
+  2: i32 max_ms;
+  // False when BgpSettingConfig.enable_netlink_dampening is off. The times are
+  // then set but no link-up is held.
+  3: bool enabled;
 }
 
 /**
@@ -1947,6 +1969,38 @@ service TBgpService extends fb303.FacebookService {
    *         <false, 'Error Msg'> on route filter policy setting failure
    */
   TResult setRouteFilterPolicy(1: rib_policy.TRouteFilterPolicy policy);
+
+  /**
+   * [Link-up hold]
+   */
+  /**
+   * Set the link-up hold times without a restart.
+   *
+   * bgpd reads bgp_netlink_link_up_hold_initial_ms and
+   * bgp_netlink_link_up_hold_max_ms one time at start-up, and a gflag cannot
+   * change while bgpd runs. Each restart is a graceful restart event, so a
+   * qualification test must change these times another way.
+   *
+   * The netlink fiber reads the new values at the next link-down. A hold that
+   * already started keeps its length. To set max_ms to a small value therefore
+   * collapses the ladder within one hold.
+   *
+   * @param initial_ms - the first hold, in milliseconds. Must be more than 0.
+   * @param max_ms - the longest hold, in milliseconds. Must be at least
+   *                 initial_ms.
+   * @return <true, ''> when bgpd accepted the times
+   *         <false, 'Error Msg'> when a value is out of range, or when this
+   *         build has no NetlinkWrapper
+   */
+  TResult setNetlinkLinkUpHold(1: i32 initial_ms, 2: i32 max_ms);
+
+  /**
+   * [Link-up hold]
+   */
+  /**
+   * Show the link-up hold times that bgpd uses now.
+   */
+  TNetlinkLinkUpHold getNetlinkLinkUpHold();
 
   /**
    * [Route Filter Policy]

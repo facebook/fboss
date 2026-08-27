@@ -43,6 +43,9 @@ void CmdShowBgpStatsEntries::printOutput(
   out << " Total number of tracked netlink wrapper interfaces: "
       << folly::copy(stats.total_netlink_wrapper_interfaces().value())
       << std::endl;
+  out << " Total number of active netlink wrapper holds: "
+      << folly::copy(stats.total_netlink_wrapper_holds_active().value())
+      << std::endl;
 }
 
 } // namespace facebook::fboss
