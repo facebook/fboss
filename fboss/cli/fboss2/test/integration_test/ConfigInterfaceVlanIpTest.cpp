@@ -13,6 +13,7 @@
  *   - Test is run as root (or with sudo) on a DUT
  */
 
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <set>
@@ -109,6 +110,14 @@ class ConfigInterfaceVlanIpTest : public Fboss2IntegrationTest {
 TEST_F(ConfigInterfaceVlanIpTest, AddThenDeleteSviAddresses) {
   const int vlanId = pickUnusedVlanId();
   ASSERT_NE(vlanId, 0) << "no free VLAN ID in [2, 4094]";
+  SCOPE_EXIT {
+    auto cleanup = runCli({"delete", "vlan", std::to_string(vlanId)});
+    if (cleanup.exitCode != 0) {
+      discardSession();
+    } else {
+      runCli({"config", "session", "commit"});
+    }
+  };
   const std::string sviName = "vlan" + std::to_string(vlanId);
   const std::string v4 = "10.254.254.1/24";
   const std::string v6 = "2001:db8:fefe::1/64";
