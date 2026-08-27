@@ -19,6 +19,14 @@
 #include <folly/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/json/dynamic.h>
+#include <set>
+
+// Only held behind std::shared_ptr here, so an incomplete type suffices. Kept
+// out of this header because it is pulled in transitively by NSDB and other
+// downstream consumers that never touch regex matching.
+namespace re2 {
+class RE2;
+} // namespace re2
 
 DECLARE_bool(forceCloseSlowSubscriber);
 
@@ -369,7 +377,7 @@ class ExtendedSubscription : public BaseSubscription {
   // Appends newPaths (skipping keys already present) and returns the inserted
   // keys. Caller must hold the SubscriptionStore wlock: paths_ is otherwise
   // read lock-free via paths()/pathAt() while serving.
-  std::vector<SubscriptionKey> addPaths(ExtSubPathMap&& newPaths) {
+  virtual std::vector<SubscriptionKey> addPaths(ExtSubPathMap&& newPaths) {
     std::vector<SubscriptionKey> added;
     added.reserve(newPaths.size());
     for (auto& [key, path] : newPaths) {
@@ -903,6 +911,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
                                   private boost::noncopyable {
  public:
   using gen_type = SubscriberMessage;
+  using CompiledRegex = std::shared_ptr<const re2::RE2>;
+  using CompiledRegexPath = std::vector<CompiledRegex>;
+  using CompiledRegexPathMap = std::map<SubscriptionKey, CompiledRegexPath>;
 
   virtual ~ExtendedPatchSubscription() override {
     stop();
@@ -956,6 +967,8 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   ExtendedPatchSubscription(
       SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
+      CompiledRegexPathMap compiledRegexes,
+      bool hasWildcardPath,
       folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>>
           pipe,
       OperProtocol protocol,
@@ -971,12 +984,34 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
             std::move(publisherTreeRoot),
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
+        compiledRegexes_(std::move(compiledRegexes)),
+        hasWildcardPath_(hasWildcardPath),
         pipe_(std::move(pipe)),
         subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
         subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
 
   PubSubType type() const override {
     return PubSubType::PATCH;
+  }
+
+  std::vector<SubscriptionKey> addPaths(ExtSubPathMap&& newPaths) override;
+
+  const CompiledRegexPath& compiledRegexesAt(SubscriptionKey key) const {
+    return compiledRegexes_.at(key);
+  }
+
+  bool hasWildcardPath() const {
+    return hasWildcardPath_;
+  }
+
+  bool isInitialSyncPending(SubscriptionKey key) const {
+    return initialSyncPendingKeys_.contains(key);
+  }
+
+  void clearInitialSyncPending(const std::vector<SubscriptionKey>& keys) {
+    for (const auto key : keys) {
+      initialSyncPendingKeys_.erase(key);
+    }
   }
 
   virtual std::unique_ptr<Subscription> resolve(
@@ -1009,6 +1044,11 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   std::optional<SubscriberChunk> moveCurChunk(
       const SubscriptionMetadataServer& metadataServer);
 
+  static CompiledRegexPathMap compileRegexes(const ExtSubPathMap& paths);
+
+  CompiledRegexPathMap compiledRegexes_;
+  std::set<SubscriptionKey> initialSyncPendingKeys_;
+  bool hasWildcardPath_{false};
   std::map<SubscriptionKey, std::vector<Patch>> buffered_;
   folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
   size_t subscriptionQueueMemoryLimit_;
