@@ -18,7 +18,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowMacAddrToBlockTraits : public ReadCommandTraits {
+struct CmdShowMacAddrToBlockTraits : public ReadCommandTraits,
+                                     public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
