@@ -10,14 +10,27 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    // Enable the FEC-monitor read paths for the Agera3 retimer. FEC mode
+    // RS544 is programmed on the LINE side only, via the platform mapping
+    // (xphyLine.fec = RS544_2N); xphySystem stays NONE, and SaiPortManager
+    // selects FEC per-side, so only the line port enters FEC-monitor mode.
+    // Line-side-only is REQUIRED: Agera3 firmware rejects a both-side FEC
+    // monitor and fails port-create ("Both side FEC monitor can not be
+    // enabled", agera3_cfg_seq.c). The retimer is monitor-only (it does not
+    // terminate FEC); getXphyInfo exposes corrected/uncorrectable codewords
+    // (SAI_FEC_COUNTERS), pre-FEC BER (SAI_FEC_CORRECTED_BITS) and FEC
+    // alignment lock (FEC_AM_LOCK_STATUS). Collection is exception-guarded
+    // per-xphy in SaiPhyManager::collectXphyStats.
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
       return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::PORT_EYE_VALUES:
-    case HwAsic::Feature::FEC:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
-    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
