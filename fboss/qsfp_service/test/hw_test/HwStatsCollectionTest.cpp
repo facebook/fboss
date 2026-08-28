@@ -23,10 +23,35 @@ TEST_F(HwTest, publishStats) {
   addVerifiedProductionFeatures(
       {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
-  StatsPublisher publisher(getHwQsfpEnsemble()->getWedgeManager(), phyManager);
+  auto* portManager =
+      getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
+  StatsPublisher publisher(
+      getHwQsfpEnsemble()->getWedgeManager(), phyManager, portManager);
   publisher.init();
   publisher.publishStats(nullptr, 0);
   getHwQsfpEnsemble()->getWedgeManager()->publishI2cTransactionStats();
+
+  auto counterKeys = fb303::fbData->getCounterKeys();
+  auto anyInterfaceCounter = [&counterKeys](const std::string& suffix) {
+    return std::any_of(
+        counterKeys.begin(), counterKeys.end(), [&suffix](const auto& key) {
+          return key.starts_with("qsfp.interface.") && key.ends_with(suffix);
+        });
+  };
+
+  // getTransceiversInfo stamps the state machine state onto every valid
+  // transceiver, so any platform with named ports exports this.
+  EXPECT_TRUE(anyInterfaceCounter(".tcvrStateMachineState"))
+      << "no qsfp.interface.<portName>.tcvrStateMachineState counter published "
+      << "to fb303";
+
+  // Port state machines only exist in Port Manager mode, so the counter must
+  // appear there and must not appear otherwise.
+  EXPECT_EQ(
+      anyInterfaceCounter(".portStateMachineState"), portManager != nullptr)
+      << "qsfp.interface.<portName>.portStateMachineState counters "
+      << (portManager ? "missing in" : "published outside")
+      << " Port Manager mode";
 
   // A PhyManager is constructed for every platform of an XPHY capable family,
   // but the XPHYs themselves only exist on the PIMs that carry them, so having
@@ -38,7 +63,6 @@ TEST_F(HwTest, publishStats) {
   // PhyManager is owned by PortManager in Port Manager mode and by
   // TransceiverManager otherwise, so this also guards against the counters
   // silently disappearing in one of the two modes.
-  auto counterKeys = fb303::fbData->getCounterKeys();
   EXPECT_TRUE(
       std::any_of(
           counterKeys.begin(),

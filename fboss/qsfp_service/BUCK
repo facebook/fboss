@@ -133,6 +133,7 @@ cpp_library(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
+        ":port-manager",
         ":stats-helper",
         ":transceiver-manager",
         "//common/time:time",
