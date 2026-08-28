@@ -929,6 +929,57 @@ struct TGetDeduplicatorStatsResponse {
   6: TDeduplicatorCollectionStats ext_communities;
 }
 
+/** Stable identity for one peer Adj-RIB. */
+struct TAdjRibPeerKey {
+  1: string peer_address;
+  2: i64 remote_bgp_id;
+}
+
+/** Identity of the physical Adj-RIB-OUT group backing a peer. */
+struct TAdjRibGroupKey {
+  1: string egress_policy_name;
+  2: i64 group_id;
+}
+
+/** Effective Adj-RIB-IN view for one peer. */
+struct TAdjRibInPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: string peer_name;
+  3: i64 pre_policy_path_count;
+  4: i64 post_policy_path_count;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  7: i64 stale_prefixes;
+  8: i64 stale_paths;
+}
+
+/** Effective Adj-RIB-OUT view for one peer. */
+struct TAdjRibOutPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: TAdjRibGroupKey group_key;
+  3: string peer_name;
+  4: string peer_state;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  /**
+   * Number of buckets in the packing list responsible for producing this
+   * peer's updates. This is peer-local when update groups are disabled or the
+   * peer is detached, and shared when the peer is in sync with an update
+   * group.
+   */
+  7: i64 packing_list_size;
+  /** Pending advertisement key size due to out-delay. */
+  8: i64 out_delay_pending_keys;
+}
+
+struct TAdjRibInStats {
+  1: list<TAdjRibInPeerStats> peers;
+}
+
+struct TAdjRibOutStats {
+  1: list<TAdjRibOutPeerStats> peers;
+}
+
 /**
 * Filter parameters for attribute statistics
 */
