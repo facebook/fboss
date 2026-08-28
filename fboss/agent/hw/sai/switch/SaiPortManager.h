@@ -319,6 +319,11 @@ class SaiPortManager {
       phy::Side side,
       bool signalDetectChanged,
       bool cdrLockChanged);
+  void updateLinkFaultChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool localFaultChanged,
+      bool remoteFaultChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 

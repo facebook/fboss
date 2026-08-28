@@ -4307,6 +4307,28 @@ void SaiPortManager::updatePmdChangedFb303Counters(
       cdrLockChanged);
 }
 
+void SaiPortManager::updateLinkFaultChangedFb303Counters(
+    PortID portId,
+    phy::Side side,
+    bool localFaultChanged,
+    bool remoteFaultChanged) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // Stats are not maintained for disabled ports
+    return;
+  }
+  if (side != phy::Side::LINE) {
+    // updateRsInfo is only ever called for the line side, so there are no
+    // system.* fault counters registered. Bail rather than attributing a
+    // system sample to the line counter.
+    return;
+  }
+  portStatItr->second->updatePhyChanged(
+      kLineLocalFaultChanged(), localFaultChanged);
+  portStatItr->second->updatePhyChanged(
+      kLineRemoteFaultChanged(), remoteFaultChanged);
+}
+
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
     PortSaiId saiPortId) const {
   if (!platform_->getAsic()->isSupported(

@@ -93,7 +93,9 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
          {kLineRxSignalDetectChanged(),
           kSystemRxSignalDetectChanged(),
           kLineRxCdrLockChanged(),
-          kSystemRxCdrLockChanged()}) {
+          kSystemRxCdrLockChanged(),
+          kLineLocalFaultChanged(),
+          kLineRemoteFaultChanged()}) {
       utility::deleteCounter(statName(statKey, *oldPortName));
     }
   }

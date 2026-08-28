@@ -2739,8 +2739,8 @@ void SaiSwitch::updatePcsInfo(
 void SaiSwitch::updateRsInfo(
     phy::PhySideState& sideState,
     std::shared_ptr<SaiPort> port,
-    [[maybe_unused]] PortID swPort,
-    [[maybe_unused]] phy::PhySideState& lastState) {
+    PortID swPort,
+    phy::PhySideState& lastState) {
   bool rsInfoSupported =
       platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ERR_STATUS);
   auto errStatus =
@@ -2757,6 +2757,19 @@ void SaiSwitch::updateRsInfo(
       default:
         break;
     }
+  }
+
+  // Diff against the previous sample so a fault that asserts and clears
+  // between two reads of PhyInfo is still observable. The first sample for a
+  // port has nothing to compare against and reports no change.
+  bool localFaultChanged = false;
+  bool remoteFaultChanged = false;
+  if (lastState.rs().has_value()) {
+    const auto& lastFaultStatus = *lastState.rs()->faultStatus();
+    localFaultChanged =
+        *lastFaultStatus.localFault() != *faultStatus.localFault();
+    remoteFaultChanged =
+        *lastFaultStatus.remoteFault() != *faultStatus.remoteFault();
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
@@ -2785,6 +2798,8 @@ void SaiSwitch::updateRsInfo(
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideState.rs() = rsInfo;
+    managerTable_->portManager().updateLinkFaultChangedFb303Counters(
+        swPort, *sideState.side(), localFaultChanged, remoteFaultChanged);
   }
 }
 
