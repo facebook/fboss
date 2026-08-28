@@ -204,7 +204,7 @@ void checkDeletable(
   }
   // The VLAN would be left without an interface, so it is cascaded (see
   // deleteInterfaces below) — unless a port still names it as its untagged
-  // ingress VLAN, mirroring the referrer check in VlanManager::deleteVlan.
+  // ingress VLAN, mirroring the referrer check in CmdDeleteVlan.
   if (vlanId != *swConfig.defaultVlan()) {
     auto ingressPorts = ingressVlanPorts(swConfig, vlanId, portsBeingDeleted);
     if (!ingressPorts.empty()) {
@@ -275,11 +275,13 @@ std::set<int32_t> deleteInterfaces(
     }
   }
 
-  // eraseVlan also drops each cascaded VLAN's interface; the erase below
+  // deleteVlan also drops each cascaded VLAN's interface; the erase below
   // covers the rest (loopbacks, the default VLAN's SVI, port router
-  // interfaces going with their port).
+  // interfaces going with their port). Deletability was established by
+  // checkDeletable above, with this command's own rules (a port going away in
+  // the same command does not count as a referrer).
   for (const auto vlanId : vlansToCascade) {
-    VlanManager::eraseVlan(swConfig, vlanId);
+    VlanManager::deleteVlan(swConfig, VlanID(vlanId));
   }
   std::erase_if(interfaces, [&intfIds](const cfg::Interface& intf) {
     return intfIds.count(InterfaceID(*intf.intfID())) > 0;
