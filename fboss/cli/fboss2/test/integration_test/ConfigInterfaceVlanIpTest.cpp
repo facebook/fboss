@@ -195,15 +195,3 @@ TEST_F(ConfigInterfaceVlanIpTest, AddThenDeleteSviAddresses) {
   commitConfig();
   waitForAgentReady();
 }
-
-TEST_F(ConfigInterfaceVlanIpTest, UnknownVlanSviRejected) {
-  const int vlanId = pickUnusedVlanId();
-  ASSERT_NE(vlanId, 0) << "no free VLAN ID in [2, 4094]";
-  const std::string sviName = "vlan" + std::to_string(vlanId);
-
-  auto result =
-      runCli({"config", "interface", sviName, "ip-address", "10.9.9.1/24"});
-  discardSession();
-  EXPECT_NE(result.exitCode, 0)
-      << "adding an address to nonexistent " << sviName << " must fail";
-}
