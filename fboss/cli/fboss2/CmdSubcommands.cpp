@@ -43,7 +43,8 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"reload", "Reload object"},
       {"clear_and_override",
        "Clear and override object to prevent external writers from re-setting"},
-      // Only implemented in fboss2-dev for now.
+      // Config generation is available in fboss2. Mutating config commands
+      // remain limited to fboss2-dev.
       {"config", "Configuration commands"},
   };
 

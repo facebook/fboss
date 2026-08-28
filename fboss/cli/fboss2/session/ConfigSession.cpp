@@ -47,6 +47,7 @@
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
@@ -445,16 +446,7 @@ void ConfigSession::saveConfig(
     throw std::runtime_error("No config loaded to save");
   }
 
-  // We need to do a round-trip through serialize -> parse -> toPrettyJson
-  // because SimpleJSONSerializer handles Thrift maps with integer keys
-  // (like clientIdToAdminDistance) by converting them to strings.
-  // If we use facebook::thrift::to_dynamic() directly, the integer keys
-  // are preserved as integers in the folly::dynamic object, which causes
-  // folly::toPrettyJson() to fail because JSON objects requires string keys.
-  std::string json =
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-          agentConfig_);
-  std::string prettyJson = folly::toPrettyJson(folly::parseJson(json));
+  auto prettyJson = utils::serializeToPrettyJson(agentConfig_);
 
   // Use folly::writeFileAtomic with sync to avoid race conditions when multiple
   // threads/processes write to the same session file. WITH_SYNC ensures data
@@ -590,11 +582,7 @@ void ConfigSession::saveBgpConfig() {
     loadBgpConfig();
   }
 
-  // Serialize the entire typed config (round-tripped through parse so integer
-  // map keys become string keys, mirroring saveConfig() for the agent).
-  auto json =
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(bgpConfig_);
-  std::string prettyJson = folly::toPrettyJson(folly::parseJson(json));
+  auto prettyJson = utils::serializeToPrettyJson(bgpConfig_);
   folly::writeFileAtomic(
       getBgpSessionConfigPath(), prettyJson, 0644, folly::SyncType::WITH_SYNC);
 

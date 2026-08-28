@@ -419,6 +419,7 @@ cpp_library(
         "commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.cpp",
         "commands/clear_and_override/facebook/bgp/ribpolicy/CmdClearAndOverrideBgpRibPolicyCps.cpp",
         "commands/clear_and_override/facebook/bgp/ribpolicy/CmdClearAndOverrideBgpRibPolicyCrf.cpp",
+        "commands/config/gen/agent/CmdConfigGenAgent.cpp",
         "commands/create/config/facebook/CmdCreateConfig.cpp",
         "commands/create/config/facebook/CmdCreateConfigPatcherAgent.cpp",
         "commands/create/config/facebook/CmdCreateConfigPatcherQsfp.cpp",
@@ -657,6 +658,7 @@ cpp_library(
         "commands/clear_and_override/facebook/bgp/ribpolicy/CmdClearAndOverrideBgpRibPolicyCps.h",
         "commands/clear_and_override/facebook/bgp/ribpolicy/CmdClearAndOverrideBgpRibPolicyCrf.h",
         "commands/clear_and_override/facebook/bgp/ribpolicy/Constants.h",
+        "commands/config/gen/agent/CmdConfigGenAgent.h",
         "commands/create/config/facebook/CmdCreateConfig.h",
         "commands/create/config/facebook/CmdCreateConfigPatcherAgent.h",
         "commands/create/config/facebook/CmdCreateConfigPatcherQsfp.h",
@@ -835,7 +837,10 @@ cpp_library(
         "utils/LoopbackUtils.h",
         "utils/clients/BmcClient.h",
     ],
-    deps = ["//folly/container:f14_hash"],
+    deps = [
+        ":fboss2-config-gen-lib",
+        "//folly/container:f14_hash",
+    ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/glog:glog",
@@ -1039,6 +1044,31 @@ cpp_library(
         "CLI11",
         ("boost", None, "boost_algorithm"),
     ],
+)
+
+cpp_library(
+    name = "fboss2-config-file-utils",
+    srcs = ["utils/ConfigFileUtils.cpp"],
+    headers = ["utils/ConfigFileUtils.h"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:file",
+        "//folly:file_util",
+    ],
+    exported_deps = [
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "fboss2-config-gen-lib",
+    srcs = ["commands/config/gen/agent/AgentConfigGenUtils.cpp"],
+    headers = ["commands/config/gen/agent/AgentConfigGenUtils.h"],
+    deps = [
+        ":fboss2-config-file-utils",
+    ],
+    exported_deps = ["//fboss/agent:agent_config-cpp2-types"],
 )
 
 cpp_binary(
@@ -1407,6 +1437,7 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/glog:glog",
+        ":fboss2-config-file-utils",
         ":table-utils",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:fboss-error",

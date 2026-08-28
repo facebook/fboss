@@ -391,6 +391,26 @@ add_fbthrift_cpp_library(
 
 find_package(CLI11 CONFIG REQUIRED)
 
+add_library(fboss2_config_file_utils
+  fboss/cli/fboss2/utils/ConfigFileUtils.h
+  fboss/cli/fboss2/utils/ConfigFileUtils.cpp
+)
+
+target_link_libraries(fboss2_config_file_utils
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
+)
+
+target_link_libraries(fboss2_config_gen_lib
+  agent_config_cpp2
+  fboss2_config_file_utils
+)
+
 add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.cpp
@@ -409,6 +429,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.cpp
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.h
+  fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdStreamHandler.h
@@ -706,6 +728,7 @@ add_library(fboss2_lib
 
 target_link_libraries(fboss2_lib
   CLI11::CLI11
+  fboss2_config_gen_lib
   tabulate::tabulate
   data_corral_service_cpp2
   fb303_cpp2
@@ -1150,6 +1173,7 @@ add_library(fboss2_config_lib
 target_link_libraries(fboss2_config_lib
   cli_metadata
   fboss2_lib
+  fboss2_config_file_utils
   agent_config_utils
   agent_dir_util
   common_file_utils
