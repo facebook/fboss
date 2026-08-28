@@ -718,6 +718,18 @@ void CmisModule::cacheMaxNumBanks() {
   page27_.assign(numBanks, {});
 }
 
+bool CmisModule::hasInvalidBankSelect() const {
+  uint8_t bankSelect = getSettingsValue(CmisField::BANK_SELECT);
+  if (bankSelect < getMaxNumBanks()) {
+    return false;
+  }
+  QSFP_LOG(ERR, this) << fmt::format(
+      "Bank select register holds {} but the module only has {} bank(s)",
+      bankSelect,
+      getMaxNumBanks());
+  return true;
+}
+
 void CmisModule::cacheCmisRevision() {
   uint8_t revision = getSettingsValue(CmisField::REVISION_COMPLIANCE);
   cmisRevision_ = std::make_pair(

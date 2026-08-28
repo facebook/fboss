@@ -134,6 +134,40 @@ TEST_F(CmisTest, getMaxNumBanksDefaultsToOne) {
       1);
 }
 
+// A single-bank module may only ever have bank 0 selected, and a 4-bank CPO is
+// left on bank 0 once a refresh completes.
+TEST_F(CmisTest, validBankSelectIsNotFlagged) {
+  // The CPO fixture is not READY, so its zeroed page 11h separately trips
+  // INVALID_DATA_PATH_LANE_STATE -- assert on bank select alone
+  auto bankSelectFlagged = [](MockCmisModule* xcvr) {
+    return xcvr->getTransceiverInfo().tcvrState()->errorStates()->count(
+        TransceiverErrorState::INVALID_BANK_SELECT);
+  };
+
+  EXPECT_EQ(
+      bankSelectFlagged(
+          overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))),
+      0);
+
+  auto cpo = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(cpo->getMaxNumBanks(), 4);
+  EXPECT_EQ(bankSelectFlagged(cpo), 0);
+}
+
+// A single-bank module holding bank 2 is what the fleet-wide
+// qsfp.numModulesWithInvalidBankSelect counter is looking for.
+TEST_F(CmisTest, outOfRangeBankSelectIsFlagged) {
+  auto xcvr = overrideCmisModule<Cmis200GInvalidBankSelectTransceiver>(
+      TransceiverID(0));
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 1);
+  std::set<TransceiverErrorState> expectedErrorStates = {
+      TransceiverErrorState::INVALID_BANK_SELECT};
+  EXPECT_EQ(
+      xcvr->getTransceiverInfo().tcvrState()->errorStates(),
+      expectedErrorStates);
+}
+
 // A CPO module reports identifier 0x80 and 4 banks (Lower Page 00h byte 70).
 // Its first application advertises a per-bank 2x800G-DR4 (media 0x77, host
 // 0x82), identical to a DR4_2x800G module; the bank count is what

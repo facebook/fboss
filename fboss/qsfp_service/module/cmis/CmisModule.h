@@ -307,6 +307,10 @@ class CmisModule : public QsfpModule {
     return maxNumBanks_.value_or(1);
   }
 
+  /* Whether the bank select register (Lower Page 00h byte 126) cached by the
+   * last refresh names a bank the module doesn't have. */
+  bool hasInvalidBankSelect() const override;
+
   /* A global host/media lane (0..numLanes-1) lives in bank
    * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
    * is (lane % kMaxOsfpNumLanes). A port's lanes are confined to one bank, so

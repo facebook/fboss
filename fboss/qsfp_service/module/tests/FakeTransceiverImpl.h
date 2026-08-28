@@ -136,6 +136,15 @@ class Cmis200GReservedStateBitsTransceiver : public FakeTransceiverImpl {
       TransceiverManager* mgr);
 };
 
+// Cmis200G variant whose bank select register (Lower Page byte 126) comes up
+// holding a bank this single-bank module doesn't have.
+class Cmis200GInvalidBankSelectTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis200GInvalidBankSelectTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 class BadCmis200GTransceiver : public FakeTransceiverImpl {
  public:
   explicit BadCmis200GTransceiver(int module, TransceiverManager* mgr);

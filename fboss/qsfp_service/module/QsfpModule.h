@@ -558,6 +558,10 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool hasInvalidBankSelect() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*

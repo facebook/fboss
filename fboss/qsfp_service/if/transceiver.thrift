@@ -722,6 +722,8 @@ struct ModuleStatus {
 enum TransceiverErrorState {
   INVALID_IDENTIFIER = 0x1,
   INVALID_DATA_PATH_LANE_STATE = 0x2,
+  // Bank select register names a bank the module doesn't have
+  INVALID_BANK_SELECT = 0x4,
 }
 
 // Module Technology. Used to identify

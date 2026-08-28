@@ -8,6 +8,10 @@
 #include <gtest/gtest.h>
 
 namespace {
+// CMIS Lower Page 00h bank-select (byte 126) and page-select (byte 127)
+constexpr uint8_t kBankSelectByteOffset = 126;
+constexpr uint8_t kPageSelectByteOffset = 127;
+
 // Create a copy of the lower page that's passed in, and set the module ID byte
 template <typename ArrayT, size_t MemberCount = std::extent<ArrayT>::value>
 ArrayT customizeModuleIdentifier(ArrayT base, uint8_t newIdentifier) {
@@ -140,10 +144,10 @@ int FakeTransceiverImpl::writeTransceiver(
   auto dataAddress = *(param.i2cAddress);
   auto offset = param.offset;
   auto len = param.len;
-  if (offset == 127) {
+  if (offset == kPageSelectByteOffset) {
     page_ = *fieldValue;
   }
-  if (offset == 126) {
+  if (offset == kBankSelectByteOffset) {
     // Bank-select register.
     selectedBank_ = *fieldValue;
   }
@@ -3232,6 +3236,17 @@ std::map<uint8_t, std::array<uint8_t, 128>> cmis200GFr4LowerWithReservedBits() {
       kModuleStateReadyWithReservedBits;
   return lower;
 }
+
+// A bank this single-bank fixture doesn't have
+constexpr uint8_t kOutOfRangeBankSelect = 2;
+
+std::map<uint8_t, std::array<uint8_t, 128>>
+cmis200GFr4LowerWithInvalidBankSelect() {
+  auto lower = kCmis200GFr4Lower;
+  lower[TransceiverAccessParameter::ADDR_QSFP][kBankSelectByteOffset] =
+      kOutOfRangeBankSelect;
+  return lower;
+}
 } // namespace
 
 Cmis200GReservedStateBitsTransceiver::Cmis200GReservedStateBitsTransceiver(
@@ -3240,6 +3255,15 @@ Cmis200GReservedStateBitsTransceiver::Cmis200GReservedStateBitsTransceiver(
     : FakeTransceiverImpl(
           module,
           cmis200GFr4LowerWithReservedBits(),
+          kCmis200GFr4UpperPages,
+          mgr) {}
+
+Cmis200GInvalidBankSelectTransceiver::Cmis200GInvalidBankSelectTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          cmis200GFr4LowerWithInvalidBankSelect(),
           kCmis200GFr4UpperPages,
           mgr) {}
 
