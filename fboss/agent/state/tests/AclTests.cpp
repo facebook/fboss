@@ -1408,7 +1408,7 @@ TEST(Acl, LookupClassPort) {
   ASSERT_NE(nullptr, acl);
   ASSERT_TRUE(acl->getLookupClassPort().has_value());
   EXPECT_EQ(
-      acl->getLookupClassPort(),
+      acl->getLookupClassPort().value(),
       cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
   EXPECT_TRUE(acl->hasMatcher());
   EXPECT_TRUE(acl->getRequiredAclTableQualifiers().contains(

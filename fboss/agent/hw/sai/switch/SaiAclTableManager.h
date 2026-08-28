@@ -252,6 +252,8 @@ class SaiAclTableManager {
   std::pair<sai_uint32_t, sai_uint32_t>
   cfgLookupClassToSaiNeighborMetaDataAndMask(
       cfg::AclLookupClass lookupClass) const;
+  std::pair<sai_uint32_t, sai_uint32_t> cfgLookupClassToSaiPortMetaDataAndMask(
+      cfg::AclLookupClassPort lookupClass) const;
   std::vector<sai_int32_t> cfgActionTypeListToSaiActionTypeList(
       const std::vector<cfg::AclTableActionType>& actionTypes) const;
 
@@ -329,6 +331,7 @@ class SaiAclTableManager {
   sai_u32_range_t getFdbDstUserMetaDataRange() const;
   sai_u32_range_t getRouteDstUserMetaDataRange() const;
   sai_u32_range_t getNeighborDstUserMetaDataRange() const;
+  sai_u32_range_t getPortUserMetaDataRange() const;
 
   sai_uint32_t getMetaDataMask(sai_uint32_t metaDataMax) const;
 

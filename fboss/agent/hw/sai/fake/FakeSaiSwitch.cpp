@@ -37,8 +37,7 @@ static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMin = 0;
 static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMax =
     std::numeric_limits<uint32_t>::max();
 static constexpr uint32_t kDefaultPortUserMetaDataRangeMin = 0;
-static constexpr uint32_t kDefaultPortUserMetaDataRangeMax =
-    std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t kDefaultPortUserMetaDataRangeMax = 63;
 
 } // namespace
 

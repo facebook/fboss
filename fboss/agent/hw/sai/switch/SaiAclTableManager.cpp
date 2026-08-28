@@ -95,6 +95,13 @@ sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
       managerTable_->switchManager().getSwitchSaiId(), range));
 }
 
+sai_u32_range_t SaiAclTableManager::getPortUserMetaDataRange() const {
+  std::optional<SaiSwitchTraits::Attributes::PortUserMetaDataRange> range =
+      SaiSwitchTraits::Attributes::PortUserMetaDataRange();
+  return *(SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(), range));
+}
+
 sai_uint32_t SaiAclTableManager::getMetaDataMask(
     sai_uint32_t metaDataMax) const {
   /*
@@ -409,6 +416,24 @@ SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
           neighborDstUserMetaDataRangeMin_,
           neighborDstUserMetaDataRangeMax_),
       neighborDstUserMetaDataMask_);
+}
+
+std::pair<sai_uint32_t, sai_uint32_t>
+SaiAclTableManager::cfgLookupClassToSaiPortMetaDataAndMask(
+    cfg::AclLookupClassPort lookupClass) const {
+  const auto range = getPortUserMetaDataRange();
+  const auto metadata = static_cast<sai_uint32_t>(lookupClass);
+  if (metadata < range.min || metadata > range.max) {
+    throw FbossError(
+        "attempted to configure port user metadata outside the range "
+        "supported by this ASIC",
+        metadata,
+        " supported min: ",
+        range.min,
+        " max: ",
+        range.max);
+  }
+  return std::make_pair(metadata, getMetaDataMask(range.max));
 }
 
 std::vector<sai_int32_t>
@@ -1096,6 +1121,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 addedAclEntry->getLookupClassNeighbor().value()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldPortUserMeta>
+      fieldPortUserMeta{std::nullopt};
+  if (auto lookupClassPort = addedAclEntry->getLookupClassPort()) {
+    fieldPortUserMeta =
+        SaiAclEntryTraits::Attributes::FieldPortUserMeta{AclEntryFieldU32(
+            cfgLookupClassToSaiPortMetaDataAndMask(*lookupClassPort))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldEthertype> fieldEtherType{
       std::nullopt};
   if (addedAclEntry->getEtherType()) {
@@ -1563,7 +1596,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldDstMac.has_value() || fieldIpType.has_value() ||
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+       fieldNeighborDstUserMeta.has_value() || fieldPortUserMeta.has_value() ||
+       fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1699,7 +1733,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclFieldRouteDestination,
 #endif
       labelExtended,
-      std::nullopt, // fieldPortUserMeta
+      fieldPortUserMeta,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);

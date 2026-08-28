@@ -200,6 +200,48 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   EXPECT_EQ(tableIdGot2, aclTableId);
 }
 
+TEST_F(AclTableManagerTest, addAclEntryWithLookupClassPort) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTable = std::make_shared<AclTable>(0, kAclTable2);
+  aclTable->setQualifiers({cfg::AclTableQualifier::LOOKUP_CLASS_PORT});
+  saiManagerTable->aclTableManager().addAclTable(
+      aclTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry->setLookupClassPort(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  aclEntry->setActionType(kActionType());
+
+  auto aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, kAclTable2, nullptr /*state*/);
+
+  auto field = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::FieldPortUserMeta{});
+  EXPECT_EQ(
+      field.getDataAndMask().first,
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED));
+  EXPECT_EQ(field.getDataAndMask().second, 0x3F);
+
+  auto secondAclEntry =
+      std::make_shared<AclEntry>(kPriority2(), std::string("AclEntry2"));
+  secondAclEntry->setLookupClassPort(
+      cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  secondAclEntry->setActionType(kActionType());
+
+  auto secondAclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      secondAclEntry, kAclTable2, nullptr /*state*/);
+  auto secondField = saiApiTable->aclApi().getAttribute(
+      secondAclEntryId, SaiAclEntryTraits::Attributes::FieldPortUserMeta{});
+  EXPECT_EQ(
+      secondField.getDataAndMask().first,
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED));
+  EXPECT_EQ(secondField.getDataAndMask().second, 0x3F);
+}
+
 TEST_F(AclTableManagerTest, addTwoAclEntry) {
   auto aclTableId =
       saiManagerTable->aclTableManager()
