@@ -402,8 +402,8 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-          // XGS GTE 13 has cumulative errors reported
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+          // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecCorrectableErrors() = value;
 #else
           hwPortStats.fecCorrectableErrors() =
@@ -415,8 +415,8 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-          // XGS GTE 13 has cumulative errors reported
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+          // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecUncorrectableErrors() = value;
 #else
           hwPortStats.fecUncorrectableErrors() =
@@ -2838,10 +2838,18 @@ void SaiPortManager::updateStats(
     // share the PHY layer group, so clearing first would zero the corrected
     // bits/symbols counters before we read them.
     if (fecStatsSupported(portId)) {
+      // PAI (Agera3 retimer) has no get_port_stats_ext and reports cumulative
+      // FEC frames; read (don't clear) so the call goes through get_port_stats,
+      // and store the value as absolute below.
+#if defined(SAI_BRCM_PAI_IMPL)
+      constexpr auto kFecStatsMode = SAI_STATS_MODE_READ;
+#else
+      constexpr auto kFecStatsMode = SAI_STATS_MODE_READ_AND_CLEAR;
+#endif
       fecCollectionSucceeded &= collectStats(
           {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
            SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-          SAI_STATS_MODE_READ_AND_CLEAR,
+          kFecStatsMode,
           "FEC correctable/uncorrectable frames");
     }
     if (fecCollectionSucceeded) {
