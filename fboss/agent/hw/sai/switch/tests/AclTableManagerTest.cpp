@@ -134,6 +134,34 @@ TEST_F(AclTableManagerTest, addAclEntry) {
   EXPECT_EQ(tableIdGot, aclTableId);
 }
 
+TEST_F(AclTableManagerTest, defaultAclTableOmitsLookupClassPort) {
+  auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  ASSERT_NE(aclTableHandle, nullptr);
+  EXPECT_FALSE(saiApiTable->aclApi().getAttribute(
+      aclTableHandle->aclTable->adapterKey(),
+      SaiAclTableTraits::Attributes::FieldPortUserMeta{}));
+}
+
+TEST_F(AclTableManagerTest, addAclTableWithLookupClassPort) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTable = std::make_shared<AclTable>(0, kAclTable2);
+  aclTable->setQualifiers({cfg::AclTableQualifier::LOOKUP_CLASS_PORT});
+  saiManagerTable->aclTableManager().addAclTable(
+      aclTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+  auto* aclTableHandle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2);
+  ASSERT_NE(aclTableHandle, nullptr);
+  EXPECT_TRUE(saiApiTable->aclApi().getAttribute(
+      aclTableHandle->aclTable->adapterKey(),
+      SaiAclTableTraits::Attributes::FieldPortUserMeta{}));
+}
+
 TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   auto aclTableId =
       saiManagerTable->aclTableManager()

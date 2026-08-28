@@ -214,6 +214,11 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER) ||
       (isQumran4dOrJericho4 &&
        qualifierExistsFn(cfg::AclTableQualifier::IPV6_NEXT_HEADER));
+  std::optional<SaiAclTableTraits::Attributes::FieldPortUserMeta>
+      fieldPortUserMeta;
+  if (qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_PORT)) {
+    fieldPortUserMeta = SaiAclTableTraits::Attributes::FieldPortUserMeta{true};
+  }
 
   std::vector<std::optional<sai_object_id_t>> udfGroupIds(
       SaiAclTableManager::kMaxUdfGroups, std::nullopt);
@@ -276,7 +281,7 @@ std::
       udfGroupIds[3], // UserDefinedFieldGroupMin3
       udfGroupIds[4], // UserDefinedFieldGroupMin4
 #endif
-      std::nullopt, // port meta
+      fieldPortUserMeta,
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};
