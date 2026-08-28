@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
@@ -273,8 +274,13 @@ SaiSwitchManager::SaiSwitchManager(
           switch_->adapterKey(),
           SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});
       XLOG(DBG2) << "Got max ecmp member count " << maxEcmpCount;
+      // Reserving the ASIC maximum wastes ECMP member table entries, since
+      // groups are never programmed wider than FLAGS_ecmp_width.
+      auto ecmpMemberCount =
+          std::min<sai_uint32_t>(FLAGS_ecmp_width, maxEcmpCount);
+      XLOG(DBG2) << "Setting ecmp member count to " << ecmpMemberCount;
       switch_->setOptionalAttribute(
-          SaiSwitchTraits::Attributes::EcmpMemberCount{maxEcmpCount});
+          SaiSwitchTraits::Attributes::EcmpMemberCount{ecmpMemberCount});
     }
 #endif
   }
