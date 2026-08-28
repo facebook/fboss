@@ -2565,8 +2565,8 @@ void SaiSwitch::updatePmdInfo(
     laneStates[laneId] = laneState;
   }
 
-  auto pmdRxSNR =
-      managerTable_->portManager().getRxSNR(port->adapterKey(), numPmdLanes);
+  auto pmdRxSNR = managerTable_->portManager().getRxSNR(
+      port->adapterKey(), numPmdLanes, portID);
   for (const auto& pmd : pmdRxSNR) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;

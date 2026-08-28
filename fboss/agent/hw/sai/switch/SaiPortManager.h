@@ -280,8 +280,9 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
   std::vector<sai_port_snr_values_t> getRxSNR(
-      PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      const PortSaiId& saiPortId,
+      uint8_t numPmdLanes,
+      const PortID& portID) const;
 #endif
   std::vector<phy::SerdesParameters> getSerdesParameters(
       PortSerdesSaiId serdesSaiPortId,

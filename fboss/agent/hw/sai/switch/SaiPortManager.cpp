@@ -2453,7 +2453,8 @@ bool SaiPortManager::rxSerdesParametersSupported() const {
 }
 
 bool SaiPortManager::rxSNRSupported() const {
-#if defined(BRCM_SAI_SDK_GTE_10_0)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || \
+    (defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 18, 1))
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
 #else
   return false;
@@ -4178,18 +4179,20 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 }
 
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
-    PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
-  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
-  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
-    return std::vector<sai_port_snr_values_t>();
-  }
+    const PortSaiId& saiPortId,
+    uint8_t numPmdLanes,
+    const PortID& portID) const {
+  // Take portID as a parameter (like getRxSignalDetect / getRxLockStatus)
+  // instead of resolving it via concurrentIndices_->portSaiId2PortInfo. On
+  // XPHY retimers only the line SAI port is registered in that index (base
+  // addPort registers the SAI id returned by addPortImpl, which is the line
+  // port), so a lookup on the system SAI port would miss and return empty --
+  // suppressing system-side SNR. The caller always has the PortID in hand.
+  //
   // TH5 Management port doesn't support RX SNR
   // If we do end up with management ports supporting rxSNR we may need to
   // support per-core HwAsic::Feature definitions instead of setting them at
   // the asic level.
-  auto portID = portItr->second.portID;
   if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
     return std::vector<sai_port_snr_values_t>();
   }
