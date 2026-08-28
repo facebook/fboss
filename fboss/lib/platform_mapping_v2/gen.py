@@ -198,7 +198,7 @@ def generate_platform_mappings_from_vendor_data(
 ) -> None:
     if not vendor_data_map:
         print("No vendor data found in the input directory.", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     print("Generating platform mapping...", file=sys.stderr)
     generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
