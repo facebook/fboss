@@ -1949,6 +1949,23 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
 void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
     int64_t switchId) {
   flat_map<VlanID, InterfaceID> vlan2InterfaceId;
+  // A port carries at most one port router interface. Binding it twice, either
+  // directly and again through an aggregate port it is a member of, or through
+  // two aggregate ports, is a config bug: a member port of an aggregate port
+  // cannot have a standalone router interface of its own.
+  auto bindPortToInterface = [this](PortID portID, int32_t intfID) {
+    auto [itr, inserted] =
+        port2InterfaceId_.emplace(portID, std::vector<int32_t>{intfID});
+    if (!inserted) {
+      throw FbossError(
+          "Port ",
+          portID,
+          " is bound to more than one router interface: ",
+          itr->second.front(),
+          " and ",
+          intfID);
+    }
+  };
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     switch (*interfaceCfg.type()) {
       case cfg::InterfaceType::VLAN: {
@@ -1956,12 +1973,38 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
             InterfaceID(*interfaceCfg.intfID());
       } break;
       case cfg::InterfaceType::PORT: {
-        if (!interfaceCfg.portID()) {
+        // A port router interface is bound to either a physical port or an
+        // aggregate port. Bind every port it covers, which for an aggregate is
+        // all of its member ports, so that both the member ports and the
+        // aggregate resolve to this interface downstream.
+        auto intfID = *interfaceCfg.intfID();
+        auto aggregatePortID = interfaceCfg.aggregatePortID();
+        if (interfaceCfg.portID().has_value() == aggregatePortID.has_value()) {
           throw FbossError(
-              "Missing port for interface ", *interfaceCfg.intfID());
+              "Port router interface ",
+              intfID,
+              " must set exactly one of portID and aggregatePortID");
         }
-        port2InterfaceId_[PortID(*interfaceCfg.portID())] = {
-            *interfaceCfg.intfID()};
+        if (aggregatePortID) {
+          auto aitr = std::find_if(
+              cfg_->aggregatePorts()->cbegin(),
+              cfg_->aggregatePorts()->cend(),
+              [aggregatePortID](const auto& aggPort) {
+                return *aggPort.key() == *aggregatePortID;
+              });
+          if (aitr == cfg_->aggregatePorts()->cend()) {
+            throw FbossError(
+                "No aggregate port ",
+                *aggregatePortID,
+                " for interface ",
+                intfID);
+          }
+          for (const auto& member : *aitr->memberPorts()) {
+            bindPortToInterface(PortID(*member.memberPortID()), intfID);
+          }
+        } else if (auto portID = interfaceCfg.portID()) {
+          bindPortToInterface(PortID(*portID), intfID);
+        }
       } break;
       case cfg::InterfaceType::SYSTEM_PORT:
         throw FbossError("Unsupport interface type for NPU switch");
@@ -4757,9 +4800,22 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
         if (!new_->getPorts()->getNodeIf(PortID(*port))) {
           throw FbossError("Port router interface config invalid port");
         }
+      } else if (auto aggPort = interfaceCfg.aggregatePortID()) {
+        if (!new_->getAggregatePorts()->getNodeIf(AggregatePortID(*aggPort))) {
+          throw FbossError(
+              "Port router interface config invalid aggregate port");
+        }
       } else {
         throw FbossError("Port router interface config missing port");
       }
+    } else if (
+        interfaceCfg.portID().has_value() ||
+        interfaceCfg.aggregatePortID().has_value()) {
+      // Only a port router interface is bound to a port or an aggregate port.
+      throw FbossError(
+          "Router interface ",
+          *interfaceCfg.intfID(),
+          " is not of type port, but is bound to a port or aggregate port");
     }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
@@ -4866,6 +4922,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       *config->scope());
   if (auto port = config->portID()) {
     intf->setPortID(PortID(*port));
+  } else if (auto aggPort = config->aggregatePortID()) {
+    intf->setAggregatePortID(AggregatePortID(*aggPort));
   }
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   updateDhcpOverrides(intf.get(), config);
@@ -4928,6 +4986,10 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
+  std::optional<AggregatePortID> cfgAggregatePort{};
+  if (auto aggregatePortID = config->aggregatePortID()) {
+    cfgAggregatePort = AggregatePortID(*aggregatePortID);
+  }
   auto desiredPeerChanged = [](const auto& configVal,
                                const auto& origVal) -> bool {
     if (!configVal.has_value() && !origVal.has_value()) {
@@ -4947,8 +5009,10 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
-      (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
-      orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
+      (orig->getPortIDf() == cfgPort) &&
+      (orig->getAggregatePortIDf() == cfgAggregatePort) &&
+      orig->getName() == name && orig->getMac() == mac &&
+      orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
@@ -4970,6 +5034,12 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
           "Router interface ", newIntf->getID(), " is not of of type port");
     }
     newIntf->setPortID(PortID(*portID));
+  } else if (auto aggregatePortID = config->aggregatePortID()) {
+    if (newIntf->getType() != cfg::InterfaceType::PORT) {
+      throw FbossError(
+          "Router interface ", newIntf->getID(), " is not of of type port");
+    }
+    newIntf->setAggregatePortID(AggregatePortID(*aggregatePortID));
   }
   newIntf->setName(name);
   newIntf->setMac(mac);

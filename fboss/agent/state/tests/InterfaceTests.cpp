@@ -997,6 +997,234 @@ TEST(Interface, portAndAggregatePortIdSurviveThriftRoundTrip) {
   EXPECT_EQ(aggRoundTripped->toThrift(), aggIntf->toThrift());
 }
 
+namespace {
+constexpr int32_t kAggIntfID = 6500;
+constexpr int32_t kAggPortKey = 55;
+
+// Start from the port router interface config and replace the interfaces of
+// the first two ports with a single interface bound to an aggregate port made
+// of those same two ports.
+cfg::SwitchConfig testConfigWithAggregatePortInterface() {
+  auto config = testConfigAWithPortInterfaces();
+  auto member0 = *config.ports()[0].logicalID();
+  auto member1 = *config.ports()[1].logicalID();
+
+  cfg::AggregatePort aggPort;
+  aggPort.key() = kAggPortKey;
+  aggPort.name() = "agg";
+  for (auto memberPort : {member0, member1}) {
+    cfg::AggregatePortMember member;
+    member.memberPortID() = memberPort;
+    aggPort.memberPorts()->push_back(member);
+  }
+  config.aggregatePorts()->push_back(aggPort);
+
+  auto& intfs = *config.interfaces();
+  intfs.erase(
+      std::remove_if(
+          intfs.begin(),
+          intfs.end(),
+          [member0, member1](const auto& intf) {
+            return intf.portID() == member0 || intf.portID() == member1;
+          }),
+      intfs.end());
+
+  cfg::Interface aggIntf;
+  aggIntf.intfID() = kAggIntfID;
+  aggIntf.vlanID() = 0;
+  aggIntf.aggregatePortID() = kAggPortKey;
+  aggIntf.routerID() = 0;
+  aggIntf.type() = cfg::InterfaceType::PORT;
+  aggIntf.name() = "fbossAgg";
+  aggIntf.mtu() = 9000;
+  aggIntf.mac() = "00:02:00:00:00:66";
+  aggIntf.ipAddresses()->resize(2);
+  aggIntf.ipAddresses()[0] = "2601:db00:2110:3100::1/64";
+  aggIntf.ipAddresses()[1] = "100.0.100.1/24";
+  intfs.push_back(aggIntf);
+
+  return config;
+}
+} // namespace
+
+TEST(Interface, applyConfigWithAggregatePortInterface) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigWithAggregatePortInterface();
+  auto state = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, state);
+
+  // The interface is bound to the aggregate port, not to a physical port.
+  auto intf = state->getInterfaces()->getNode(InterfaceID(kAggIntfID));
+  EXPECT_EQ(intf->getType(), cfg::InterfaceType::PORT);
+  EXPECT_EQ(intf->getAggregatePortIDf(), AggregatePortID(kAggPortKey));
+  EXPECT_EQ(intf->getPortIDf(), std::nullopt);
+
+  // The aggregate port resolves to that interface ...
+  auto aggPort =
+      state->getAggregatePorts()->getNode(AggregatePortID(kAggPortKey));
+  ASSERT_EQ(aggPort->getInterfaceIDs()->size(), 1);
+  EXPECT_EQ(aggPort->getInterfaceIDs()->at(0)->cref(), kAggIntfID);
+  EXPECT_EQ(
+      state->getInterfaceIDForPort(
+          PortDescriptor(AggregatePortID(kAggPortKey))),
+      InterfaceID(kAggIntfID));
+
+  // ... and so does every one of its member ports.
+  std::set<PortID> memberPorts;
+  for (const auto& subport : aggPort->sortedSubports()) {
+    memberPorts.insert(subport.portID);
+    auto port = state->getPorts()->getNode(subport.portID);
+    EXPECT_EQ(port->getInterfaceID(), InterfaceID(kAggIntfID));
+  }
+  EXPECT_EQ(memberPorts.size(), 2);
+
+  // Ports outside the aggregate keep their own port router interface.
+  for (const auto& [_, portMap] : std::as_const(*state->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      if (memberPorts.count(port->getID())) {
+        continue;
+      }
+      EXPECT_NE(port->getInterfaceID(), InterfaceID(kAggIntfID));
+    }
+  }
+}
+
+TEST(Interface, aggregatePortInterfaceRejectsSharedMemberPort) {
+  auto platform = createMockPlatform();
+  auto config = testConfigWithAggregatePortInterface();
+
+  // A second aggregate port sharing a member with the first, each with its own
+  // router interface, binds that member port twice.
+  auto sharedMember =
+      *config.aggregatePorts()[0].memberPorts()[0].memberPortID();
+  cfg::AggregatePortMember member;
+  member.memberPortID() = sharedMember;
+  cfg::AggregatePort aggPort2;
+  aggPort2.key() = kAggPortKey + 1;
+  aggPort2.name() = "agg2";
+  aggPort2.memberPorts()->push_back(member);
+  config.aggregatePorts()->push_back(aggPort2);
+
+  auto aggIntf2 = config.interfaces()->back();
+  aggIntf2.intfID() = kAggIntfID + 1;
+  aggIntf2.aggregatePortID() = kAggPortKey + 1;
+  aggIntf2.name() = "fbossAgg2";
+  aggIntf2.ipAddresses()[0] = "2601:db00:2110:3101::1/64";
+  aggIntf2.ipAddresses()[1] = "100.0.101.1/24";
+  config.interfaces()->push_back(aggIntf2);
+
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &config, platform.get()),
+      FbossError);
+}
+
+TEST(Interface, aggregatePortInterfaceNoChangeOnReapply) {
+  auto platform = createMockPlatform();
+  auto config = testConfigWithAggregatePortInterface();
+  auto stateV1 = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  stateV1->publish();
+
+  // Reapplying the same config is a no op, i.e. the aggregate port binding
+  // participates in the no change check rather than forcing an update.
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_EQ(nullptr, stateV2);
+}
+
+TEST(Interface, aggregatePortInterfaceUpdatePreservesBinding) {
+  auto platform = createMockPlatform();
+  auto config = testConfigWithAggregatePortInterface();
+  auto stateV1 = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  stateV1->publish();
+
+  // Change something unrelated so the interface takes the update path rather
+  // than being created, and confirm the binding survives it.
+  config.interfaces()->back().mtu() = 1500;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+
+  auto intf = stateV2->getInterfaces()->getNode(InterfaceID(kAggIntfID));
+  EXPECT_EQ(intf->getMtu(), 1500);
+  EXPECT_EQ(intf->getAggregatePortIDf(), AggregatePortID(kAggPortKey));
+  EXPECT_EQ(intf->getPortIDf(), std::nullopt);
+}
+
+TEST(Interface, vlanInterfaceRejectsPortBindings) {
+  auto platform = createMockPlatform();
+
+  auto withAggPort = testConfigA(cfg::SwitchType::NPU);
+  withAggPort.interfaces()[0].aggregatePortID() = kAggPortKey;
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &withAggPort, platform.get()),
+      FbossError);
+
+  auto withPort = testConfigA(cfg::SwitchType::NPU);
+  withPort.interfaces()[0].portID() = 1;
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &withPort, platform.get()),
+      FbossError);
+}
+
+TEST(Interface, aggregatePortInterfaceRejectsMemberPortWithOwnInterface) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigWithAggregatePortInterface();
+
+  // A member port of an aggregate port cannot also carry a standalone router
+  // interface of its own.
+  cfg::Interface memberIntf;
+  memberIntf.intfID() = 6999;
+  memberIntf.vlanID() = 0;
+  memberIntf.portID() =
+      *config.aggregatePorts()[0].memberPorts()[0].memberPortID();
+  memberIntf.routerID() = 0;
+  memberIntf.type() = cfg::InterfaceType::PORT;
+  memberIntf.name() = "fboss6999";
+  memberIntf.mtu() = 9000;
+  memberIntf.mac() = "00:02:00:00:00:77";
+  config.interfaces()->push_back(memberIntf);
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(Interface, aggregatePortInterfaceRejectsUnknownAggregatePort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigWithAggregatePortInterface();
+  config.interfaces()->back().aggregatePortID() = 99;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(Interface, portInterfaceRequiresExactlyOneBinding) {
+  auto platform = createMockPlatform();
+
+  // Both bindings set.
+  auto bothSet = testConfigWithAggregatePortInterface();
+  bothSet.interfaces()->back().portID() =
+      *bothSet.aggregatePorts()[0].memberPorts()[0].memberPortID();
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &bothSet, platform.get()),
+      FbossError);
+
+  // Neither binding set.
+  auto neitherSet = testConfigWithAggregatePortInterface();
+  neitherSet.interfaces()->back().aggregatePortID().reset();
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &neitherSet, platform.get()),
+      FbossError);
+}
+
 TEST(Interface, modify) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
