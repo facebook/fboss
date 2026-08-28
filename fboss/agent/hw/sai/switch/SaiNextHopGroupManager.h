@@ -339,6 +339,8 @@ class SaiNextHopGroupManager {
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
 
+  HwFlowletStats getHwFlowletStats() const;
+
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;

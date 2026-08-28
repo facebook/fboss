@@ -5601,8 +5601,8 @@ TeFlowStats SaiSwitch::getTeFlowStats() const {
 }
 
 HwFlowletStats SaiSwitch::getHwFlowletStats() const {
-  // not implemented in SAI. Return empty stats
-  return HwFlowletStats{};
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getHwFlowletStats();
 }
 
 std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {
