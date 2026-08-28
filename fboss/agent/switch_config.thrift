@@ -2156,9 +2156,6 @@ struct SwitchSettings {
   // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
   // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
   37: optional i32 ecmpWidth;
-  // Prevents an L3 ECMP group from load balancing a packet back out the port
-  // it was received on. Only applies to ECMP groups
-  38: optional bool l3EcmpIngressPortPrune;
 }
 
 // Global buffer pool

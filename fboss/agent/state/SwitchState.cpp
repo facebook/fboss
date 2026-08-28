@@ -630,10 +630,6 @@ SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
 }
 
-std::optional<bool> SwitchState::getL3EcmpIngressPortPrune() const {
-  return getFirstSwitchSettingsOrDefault(*this)->getL3EcmpIngressPortPrune();
-}
-
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,

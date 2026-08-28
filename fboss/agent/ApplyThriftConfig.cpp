@@ -6182,18 +6182,6 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
-  {
-    std::optional<bool> l3EcmpIngressPortPrune;
-    if (cfg_->switchSettings()->l3EcmpIngressPortPrune().has_value()) {
-      l3EcmpIngressPortPrune =
-          *cfg_->switchSettings()->l3EcmpIngressPortPrune();
-    }
-    if (l3EcmpIngressPortPrune !=
-        origSwitchSettings->getL3EcmpIngressPortPrune()) {
-      newSwitchSettings->setL3EcmpIngressPortPrune(l3EcmpIngressPortPrune);
-      switchSettingsChange = true;
-    }
-  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;

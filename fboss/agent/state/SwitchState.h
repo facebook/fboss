@@ -375,7 +375,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<UdfConfig> getUdfConfig() const;
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const;
-  std::optional<bool> getL3EcmpIngressPortPrune() const;
 
   /*
    * Remote objects

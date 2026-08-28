@@ -1139,6 +1139,7 @@ cpp_library(
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest_prod_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
