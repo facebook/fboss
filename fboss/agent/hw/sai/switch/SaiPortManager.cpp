@@ -4288,6 +4288,25 @@ void SaiPortManager::updateLeakyBucketFb303Counter(PortID portId, int value) {
   portStatItr->second->updateLeakyBucketFlapCnt(value);
 }
 
+void SaiPortManager::updatePmdChangedFb303Counters(
+    PortID portId,
+    phy::Side side,
+    bool signalDetectChanged,
+    bool cdrLockChanged) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // Stats are not maintained for disabled ports
+    return;
+  }
+  bool isLine = side == phy::Side::LINE;
+  portStatItr->second->updatePhyChanged(
+      isLine ? kLineRxSignalDetectChanged() : kSystemRxSignalDetectChanged(),
+      signalDetectChanged);
+  portStatItr->second->updatePhyChanged(
+      isLine ? kLineRxCdrLockChanged() : kSystemRxCdrLockChanged(),
+      cdrLockChanged);
+}
+
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
     PortSaiId saiPortId) const {
   if (!platform_->getAsic()->isSupported(

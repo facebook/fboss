@@ -314,6 +314,11 @@ class SaiPortManager {
       PortID swPort) const;
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
+  void updatePmdChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool signalDetectChanged,
+      bool cdrLockChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 

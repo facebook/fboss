@@ -2609,9 +2609,19 @@ void SaiSwitch::updatePmdInfo(
   for (const auto& laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
+  // The hardware latches these per read, so OR-ing across lanes says whether
+  // anything moved on this side since the previous updateAllPhyInfo. This runs
+  // once per collection, so each event is published exactly once.
+  bool signalDetectChanged = false;
+  bool cdrLockChanged = false;
   for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
+    signalDetectChanged |=
+        laneState.second.signalDetectChanged().value_or(false);
+    cdrLockChanged |= laneState.second.cdrLockChanged().value_or(false);
   }
+  managerTable_->portManager().updatePmdChangedFb303Counters(
+      portID, *sideState.side(), signalDetectChanged, cdrLockChanged);
   auto swPort = getProgrammedState()->getPorts()->getNodeIf(portID);
   bool linkTrainingEnabled =
       swPort ? swPort->getLinkTraining().value_or(false) : false;
