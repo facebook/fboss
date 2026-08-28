@@ -194,6 +194,8 @@ struct PortFields {
   // status changes on this port. Unset = leave SDK default untouched.
   73: optional switch_config.LinkScanMode linkScanMode;
   74: optional string ingressAclTableName;
+  // Lookup class assigned to packets arriving on this port.
+  75: optional switch_config.AclLookupClassPort userMetaData;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -289,6 +291,7 @@ struct AclEntryFields {
   // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
   36: optional i64 dstIpV6Word3;
   37: optional i64 dstIpV6Word2;
+  38: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct NamedNextHopGroupAndID {

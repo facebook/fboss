@@ -4281,6 +4281,7 @@ class ChildThriftPath<::facebook::fboss::state::PortFields, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(rxPrecoding, 72);
     STRUCT_CHILD_GETTERS(linkScanMode, 73);
     STRUCT_CHILD_GETTERS(ingressAclTableName, 74);
+    STRUCT_CHILD_GETTERS(userMetaData, 75);
 };
 
 
@@ -4949,6 +4950,7 @@ class ChildThriftPath<::facebook::fboss::state::AclEntryFields, ::facebook::fbos
     STRUCT_CHILD_GETTERS(nextHopGroupId, 35);
     STRUCT_CHILD_GETTERS(dstIpV6Word3, 36);
     STRUCT_CHILD_GETTERS(dstIpV6Word2, 37);
+    STRUCT_CHILD_GETTERS(lookupClassPort, 38);
 };
 
 

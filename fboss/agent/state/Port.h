@@ -958,6 +958,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<cfg::AclLookupClassPort> getUserMetaData() const {
+    if (auto userMetaData = cref<switch_state_tags::userMetaData>()) {
+      return userMetaData->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setUserMetaData(std::optional<cfg::AclLookupClassPort> userMetaData) {
+    if (!userMetaData.has_value()) {
+      ref<switch_state_tags::userMetaData>().reset();
+    } else {
+      set<switch_state_tags::userMetaData>(userMetaData.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

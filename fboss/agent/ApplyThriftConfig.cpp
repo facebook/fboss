@@ -91,6 +91,7 @@
 #include <folly/Range.h>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <utility>
 #include <vector>
 
@@ -3198,6 +3199,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       PortID(*portConf->logicalID()),
       *portConf->portType(),
       portConf->expectedNeighborReachability()->size());
+  auto newUserMetaData = portConf->userMetaData().to_optional();
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -3259,6 +3261,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getPortUpHoldoffTimeMs().value_or(0) &&
       portConf->portUpHoldoffTimeMs().has_value() ==
           orig->getPortUpHoldoffTimeMs().has_value() &&
+      newUserMetaData == orig->getUserMetaData() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3369,6 +3372,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setRxPrecoding(std::nullopt);
   }
   newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
+  newPort->setUserMetaData(newUserMetaData);
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {
@@ -4596,6 +4600,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto l4DstPortRange = config->l4DstPortRange()) {
     newAcl->setL4DstPortRange(*l4DstPortRange);
+  }
+  if (auto lookupClassPort = config->lookupClassPort()) {
+    newAcl->setLookupClassPort(*lookupClassPort);
   }
   if (auto ipFrag = config->ipFrag()) {
     newAcl->setIpFrag(*ipFrag);
