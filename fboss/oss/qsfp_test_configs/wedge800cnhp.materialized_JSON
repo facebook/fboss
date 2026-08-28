@@ -1,7 +1,6 @@
 {
   "defaultCommandLineArgs": {
     "firmware_upgrade_on_coldboot": "true",
-    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "wedge800cnhp",
@@ -51,16 +50,11 @@
       {
         "aPortName": "eth1/3/1",
         "zPortName": "eth1/4/1",
-        "profileID": 50
-      },
-      {
-        "aPortName": "eth1/7/1",
-        "zPortName": "eth1/8/1",
         "profileID": 45
       },
       {
-        "aPortName": "eth1/7/5",
-        "zPortName": "eth1/8/5",
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/4/5",
         "profileID": 45
       },
       {
