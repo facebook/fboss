@@ -108,13 +108,25 @@ void SaiArsManager::addArs(
 
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+        virtualArsQualityThreshold = std::nullopt;
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+    virtualArsQualityThreshold =
+        SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
+    if (auto threshold =
+            flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
+      virtualArsQualityThreshold =
+          SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
+              static_cast<sai_uint32_t>(*threshold)};
+    }
+#endif
     setArsObject(
         virtualArsGroupHandle_.get(),
         makeArsAttributes(
             switchingMode,
             idleTime,
             maxFlows,
-            std::nullopt,
+            virtualArsQualityThreshold,
             std::nullopt,
             std::nullopt,
             SaiArsTraits::Attributes::NextHopGroupType{
