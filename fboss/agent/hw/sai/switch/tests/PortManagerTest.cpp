@@ -229,6 +229,34 @@ TEST_F(PortManagerTest, addPort) {
   checkPort(PortID(0), handle, true);
 }
 
+TEST_F(PortManagerTest, programUserMetaData) {
+  auto swPort = makePort(p0);
+  swPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  auto readMetaData = [&] {
+    return saiApiTable->portApi().getAttribute(
+        handle->port->adapterKey(), SaiPortTraits::Attributes::Metadata{});
+  };
+  EXPECT_EQ(
+      readMetaData(),
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED));
+
+  auto changedPort = swPort->clone();
+  changedPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  saiManagerTable->portManager().changePort(swPort, changedPort);
+  EXPECT_EQ(
+      readMetaData(),
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED));
+
+  auto clearedPort = changedPort->clone();
+  clearedPort->setUserMetaData(std::nullopt);
+  saiManagerTable->portManager().changePort(changedPort, clearedPort);
+  EXPECT_EQ(readMetaData(), 0);
+}
+
 TEST_F(PortManagerTest, addTwoPorts) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);

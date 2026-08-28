@@ -2262,6 +2262,14 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   // mtu
   port->setMaxFrameSize(GET_OPT_ATTR(Port, Mtu, attributes));
 
+  if (auto metadata =
+          std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+              attributes)) {
+    if (auto userMetaData = metadata->value(); userMetaData != 0) {
+      port->setUserMetaData(static_cast<cfg::AclLookupClassPort>(userMetaData));
+    }
+  }
+
   // asic prbs
   phy::PortPrbsState prbsState;
   auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, attributes);

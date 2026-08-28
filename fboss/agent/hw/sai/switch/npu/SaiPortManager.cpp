@@ -385,6 +385,10 @@ void SaiPortManager::changePortImpl(
   }
   SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
+  if (oldPort->getUserMetaData() && !newPort->getUserMetaData()) {
+    std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+        newAttributes) = SaiPortTraits::Attributes::Metadata{0};
+  }
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
     XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
@@ -774,6 +778,24 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   std::optional<SaiPortTraits::Attributes::Mtu> mtu{};
   if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
+  }
+  std::optional<SaiPortTraits::Attributes::Metadata> metadata;
+  if (auto userMetaData = swPort->getUserMetaData()) {
+    const auto metadataValue = static_cast<uint32_t>(*userMetaData);
+    auto range = SaiApiTable::getInstance()->switchApi().getAttribute(
+        managerTable_->switchManager().getSwitchSaiId(),
+        SaiSwitchTraits::Attributes::PortUserMetaDataRange{});
+    if (metadataValue < range.min || metadataValue > range.max) {
+      throw FbossError(
+          "Port user metadata ",
+          metadataValue,
+          " is outside the ASIC-supported range [",
+          range.min,
+          ", ",
+          range.max,
+          "]");
+    }
+    metadata = SaiPortTraits::Attributes::Metadata{metadataValue};
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
       std::nullopt;
@@ -1175,7 +1197,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcPauseDurationOverride
 #endif
       std::nullopt, // Ingress ACL
-      std::nullopt, // Metadata
+      metadata,
   };
 }
 
