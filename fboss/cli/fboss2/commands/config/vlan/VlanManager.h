@@ -57,25 +57,13 @@ class VlanManager {
   //     every member port
   //   - static MAC entries scoped to it (StaticMacEntry.vlanID)
   //
-  // Refuses (throws FbossError) rather than silently orphaning references or
-  // changing a sibling object's meaning when the VLAN is still in use. Each
-  // referrer must be cleared first:
-  //   - it is the global default VLAN (SwitchConfig.defaultVlan)
-  //       -> point the default elsewhere: config vlan default <other-id>
-  //   - a port lists it as its untagged ingress VLAN (Port.ingressVlan); the
-  //     only fallback value is 0, which means routed port, so clearing it here
-  //     would change the port's L2 mode
-  //       -> move the port: config interface <port> switchport access vlan
-  //          <other-id>
-  // Throws FbossError if no VLAN with the given ID exists.
+  // Unconditional: performs NO referrer checks (default VLAN, Port.ingressVlan,
+  // ...) and is a no-op when no such VLAN exists. Each command decides for
+  // itself what makes a VLAN deletable in its context and validates before
+  // calling this — see CmdDeleteVlan and the cascade in CmdDeleteInterface.
   //
   // Does NOT call saveConfig() — callers save after this returns.
   static void deleteVlan(cfg::SwitchConfig& swConfig, const VlanID& vlanId);
-
-  // Erases VLAN `vlanId` and everything scoped to it (its interfaces, VlanPort
-  // membership rows, static MAC entries) with NO referrer checks. Callers must
-  // validate deletability first; deleteVlan is the checked entry point.
-  static void eraseVlan(cfg::SwitchConfig& swConfig, int32_t vlanId);
 };
 
 } // namespace facebook::fboss
