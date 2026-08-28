@@ -103,6 +103,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_DEBOUNCE:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
       return true;
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
