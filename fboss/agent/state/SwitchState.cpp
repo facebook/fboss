@@ -630,6 +630,20 @@ SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
 }
 
+EcmpGroupSettingsMap SwitchState::getEcmpGroupSettings() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getEcmpGroupSettings();
+}
+
+std::optional<bool> SwitchState::getSplitHorizonEnabled(
+    cfg::EcmpGroupType type) const {
+  auto settings = getEcmpGroupSettings();
+  auto it = settings.find(type);
+  if (it == settings.end()) {
+    return std::nullopt;
+  }
+  return *it->second.enableSplitHorizon();
+}
+
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,

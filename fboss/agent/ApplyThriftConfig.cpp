@@ -6182,6 +6182,29 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
+  {
+    EcmpGroupSettingsMap ecmpGroupSettings =
+        *cfg_->switchSettings()->ecmpGroupSettings();
+    // Split horizon on an FRR parent arms the same-src-dst port check while the
+    // backup provides the tertiary path that catches the suppressed traffic.
+    // Enabling one without the other drops the flows the check suppresses, so
+    // refuse the config rather than program it.
+    auto enabled = [&](cfg::EcmpGroupType type) {
+      auto it = ecmpGroupSettings.find(type);
+      return it != ecmpGroupSettings.end() && *it->second.enableSplitHorizon();
+    };
+    if (enabled(cfg::EcmpGroupType::FRR_PRIMARY) !=
+        enabled(cfg::EcmpGroupType::FRR_BACKUP)) {
+      throw FbossError(
+          "ecmpGroupSettings: FRR_PRIMARY and FRR_BACKUP must enable "
+          "split horizon together; enabling it on the primary alone "
+          "suppresses the source port with no tertiary path on the backup");
+    }
+    if (ecmpGroupSettings != origSwitchSettings->getEcmpGroupSettings()) {
+      newSwitchSettings->setEcmpGroupSettings(ecmpGroupSettings);
+      switchSettingsChange = true;
+    }
+  }
 
   if (switchSettingsChange) {
     return newSwitchSettings;

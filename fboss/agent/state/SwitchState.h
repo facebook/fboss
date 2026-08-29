@@ -375,6 +375,18 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<UdfConfig> getUdfConfig() const;
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const;
+  EcmpGroupSettingsMap getEcmpGroupSettings() const;
+
+  /*
+   * Split horizon for one group type, resolved from ecmpGroupSettings.
+   *
+   * std::nullopt when the map has no entry for the type: that group type is
+   * unconfigured and callers should leave the attribute alone rather than
+   * program a value. FRR groups are the exception and are handled at their
+   * call site, because omitting the attribute there makes the vendor SDK
+   * default it to TRUE.
+   */
+  std::optional<bool> getSplitHorizonEnabled(cfg::EcmpGroupType type) const;
 
   /*
    * Remote objects
