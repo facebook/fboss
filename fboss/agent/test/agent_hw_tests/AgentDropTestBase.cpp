@@ -25,6 +25,11 @@ const folly::IPAddressV6& AgentDropTestBase::kRoutedDstIp() {
   return ip;
 }
 
+const folly::IPAddressV6& AgentDropTestBase::kUnroutedDstIp() {
+  static const folly::IPAddressV6 ip("2401:db00:dead:beef::1");
+  return ip;
+}
+
 cfg::SwitchConfig AgentDropTestBase::initialConfig(
     const AgentEnsemble& ensemble) const {
   return utility::onePortPerInterfaceConfig(
@@ -84,6 +89,18 @@ void AgentDropTestBase::sendUdpPacket(
   getSw()->sendPacketOutOfPortAsync(
       std::move(pkt),
       outPort.value_or(PortID(masterLogicalInterfaceOrHyperPortIds()[0])));
+}
+
+void AgentDropTestBase::sendPacketToUnroutedDst() {
+  XLOG(DBG2) << "Drop test: sending packet to unrouted dstIp="
+             << kUnroutedDstIp().str();
+  sendUdpPacket(kUnroutedDstIp(), 64 /*hopLimit*/);
+}
+
+void AgentDropTestBase::sendTtlExpiredPacket() {
+  XLOG(DBG2) << "Drop test: sending hopLimit=1 packet to dstIp="
+             << kRoutedDstIp().str();
+  sendUdpPacket(kRoutedDstIp(), 1 /*hopLimit*/);
 }
 
 void AgentDropTestBase::sendOversizedPacketToRoutedDst() {
@@ -148,6 +165,22 @@ void AgentDropTestBase::sendOutOfRangeEtherTypePacket() {
       static_cast<ETHERTYPE>(kOutOfRangeEtherType));
   getSw()->sendPacketOutOfPortAsync(
       std::move(pkt), PortID(masterLogicalInterfaceOrHyperPortIds()[0]));
+}
+
+void AgentDropTestBase::logPortDropCounters(const char* phase) {
+  for (auto portId : {egressPort().phyPortID(), injectionPort()}) {
+    auto s = getLatestPortStats(portId);
+    XLOG(INFO) << "Drop test [" << phase << "] port " << portId
+               << ": inUnicastPkts=" << *s.inUnicastPkts_()
+               << " outUnicastPkts=" << *s.outUnicastPkts_()
+               << " inDiscardsRaw=" << *s.inDiscardsRaw_()
+               << " inDiscards=" << *s.inDiscards_()
+               << " inDstNullDiscards=" << *s.inDstNullDiscards_()
+               << " outDiscards=" << *s.outDiscards_()
+               << " inAclDiscards=" << s.inAclDiscards_().value_or(0)
+               << " outForwardingDiscards="
+               << s.outForwardingDiscards_().value_or(0);
+  }
 }
 
 void AgentDropTestBase::installLogCapture() {

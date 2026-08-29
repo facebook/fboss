@@ -23,16 +23,26 @@ class AgentDropTestBase : public AgentHwTest {
   cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const override;
 
  protected:
-  // Shrink the egress port MTU and route a prefix out of it, so that a large
+  // Program a route to kRoutedDstIp out of egressPort. Call from setup().
+  void setupRouteToEgressPort();
+  // As above, and additionally shrink the egress port MTU so that a large
   // routed packet is dropped on egress. Call from setup().
   void setupEgressMtuDropScenario();
 
   // Each of these sends one packet that should induce the named drop.
+  void sendPacketToUnroutedDst();
+  void sendTtlExpiredPacket();
   void sendOversizedPacketToRoutedDst();
   template <typename AddrT>
   void sendLoopbackDipPacket();
   void sendMulticastSmacPacket();
   void sendOutOfRangeEtherTypePacket();
+
+  // Dump the discard counters for the ports these scenarios use. When a drop
+  // reason test sees nothing reported, the port counters are the only thing
+  // that separates "the packet was never dropped" from "it was dropped but
+  // not reported", so log them either way.
+  void logPortDropCounters(const char* phase);
 
   // Install a log capture handler in the HwAgent process, where the drop
   // reason logging is emitted. Works in both mono (in process hw agent
@@ -47,10 +57,10 @@ class AgentDropTestBase : public AgentHwTest {
 
  private:
   static const folly::IPAddressV6& kRoutedDstIp();
+  // Deliberately outside any configured interface subnet, so no route matches.
+  static const folly::IPAddressV6& kUnroutedDstIp();
   PortDescriptor egressPort() const;
   PortID injectionPort() const;
-  // Program a route to kRoutedDstIp out of egressPort.
-  void setupRouteToEgressPort();
   void sendUdpPacket(
       const folly::IPAddressV6& dstIp,
       uint8_t hopLimit,
