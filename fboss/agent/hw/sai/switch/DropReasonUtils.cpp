@@ -13,7 +13,6 @@ namespace facebook::fboss {
 namespace {
 constexpr size_t kMaxReasonStringLen = 256;
 constexpr std::string_view kSeparator = ", ";
-constexpr std::string_view kTruncatedSuffix = "<truncated>";
 } // namespace
 
 std::string_view extractDropReasonName(
@@ -39,40 +38,44 @@ std::string_view extractDropReasonName(
 
 namespace {
 template <typename Names>
-std::string joinNames(const Names& names) {
-  std::string result;
-  result.reserve(
-      kMaxReasonStringLen + kSeparator.size() + kTruncatedSuffix.size());
+std::vector<std::string> formatLines(const Names& names) {
+  std::vector<std::string> lines;
+  std::string current;
   for (const auto& name : names) {
     if (name.empty()) {
       continue;
     }
-    auto sepLen = result.empty() ? 0 : kSeparator.size();
-    if (result.size() + sepLen + name.size() > kMaxReasonStringLen) {
-      if (!result.empty()) {
-        result += kSeparator;
-      }
-      result += kTruncatedSuffix;
-      return result;
+    // Only wrap onto a non-empty line, so an oversized name overruns rather
+    // than looping on a line it can never fit.
+    if (!current.empty() &&
+        current.size() + kSeparator.size() + name.size() >
+            kMaxReasonStringLen) {
+      lines.push_back(std::move(current));
+      current.clear();
     }
-    if (!result.empty()) {
-      result += kSeparator;
+    if (!current.empty()) {
+      current += kSeparator;
     }
-    result += name;
+    current += name;
   }
-  return result;
+  if (!current.empty()) {
+    lines.push_back(std::move(current));
+  }
+  return lines;
 }
 } // namespace
 
-std::string joinDropReasonNames(const std::vector<std::string>& names) {
-  return joinNames(names);
+std::vector<std::string> formatDropReasonLines(
+    const std::vector<std::string>& names) {
+  return formatLines(names);
 }
 
-std::string joinDropReasonNames(const std::vector<std::string_view>& names) {
-  return joinNames(names);
+std::vector<std::string> formatDropReasonLines(
+    const std::vector<std::string_view>& names) {
+  return formatLines(names);
 }
 
-std::string decodeDropBitmap(
+std::vector<std::string> decodeDropBitmap(
     int64_t bitmap,
     std::span<const char* const> enumNames,
     std::string_view prefix,
@@ -100,7 +103,7 @@ std::string decodeDropBitmap(
       names.emplace_back(name);
     }
   }
-  return joinDropReasonNames(names);
+  return formatDropReasonLines(names);
 }
 
 } // namespace facebook::fboss

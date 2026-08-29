@@ -46,13 +46,8 @@ constexpr auto kSrcPortKnockout = "SRC_PORT_KNOCKOUT_DROP";
 // essentially any dropped packet. It is deliberately still reported and
 // logged, since it is a genuine drop indicator, but a test checking that
 // nothing unexpected also fired has to discount it.
-//
-// "<truncated>" is not a reason at all: joinDropReasonNames() appends it past
-// its length cap, and it arrives here as just another ", " separated field.
-// Discounted rather than dropped, so it still shows up in the observed set
-// when a run is hitting the cap.
 const std::set<std::string>& genericReasons() {
-  static const std::set<std::string> reasons{"RDROP", "<truncated>"};
+  static const std::set<std::string> reasons{"RDROP"};
   return reasons;
 }
 

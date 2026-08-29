@@ -3,10 +3,10 @@
 #include "fboss/agent/hw/sai/switch/DropReasonUtils.h"
 
 #include <algorithm>
+#include <iostream>
+#include <span>
 
 #include <gtest/gtest.h>
-
-#include <span>
 
 using namespace facebook::fboss;
 
@@ -25,6 +25,40 @@ const char* const kEnums[] = {
     "TEST_DROP_CAUSE_DELTA_X = 3,",
     "TEST_DROP_CAUSE_ECHO_X = 4,",
 };
+
+std::vector<std::string> namesOnLine(const std::string& line) {
+  std::vector<std::string> names;
+  size_t pos = 0;
+  while (true) {
+    auto next = line.find(", ", pos);
+    if (next == std::string::npos) {
+      names.push_back(line.substr(pos));
+      return names;
+    }
+    names.push_back(line.substr(pos, next - pos));
+    pos = next + 2;
+  }
+}
+
+// Print the lines as the HwAgent logs them. To see them:
+//   buck2 run <this target> -- --gtest_filter='*Split*'
+void showLoggedLines(const std::vector<std::string>& lines) {
+  std::cout << lines.size() << " log line(s):" << std::endl;
+  for (const auto& line : lines) {
+    std::cout << "  DROP reasons ingress: " << line << std::endl;
+    std::cout << "  ^ " << line.size() << " chars" << std::endl;
+  }
+}
+
+std::vector<std::string> namesAcrossLines(
+    const std::vector<std::string>& lines) {
+  std::vector<std::string> names;
+  for (const auto& line : lines) {
+    auto onLine = namesOnLine(line);
+    names.insert(names.end(), onLine.begin(), onLine.end());
+  }
+  return names;
+}
 } // namespace
 
 TEST(DropReasonUtilsTest, extractStripsPrefixSuffixAndValue) {
@@ -60,40 +94,118 @@ TEST(DropReasonUtilsTest, extractHandlesNull) {
   EXPECT_TRUE(extractDropReasonName(nullptr, kPrefix, kSuffix).empty());
 }
 
-// The element type is spelled out throughout: joinDropReasonNames is
-// overloaded on std::string and std::string_view, so a braced list of string
-// literals is ambiguous.
 TEST(DropReasonUtilsTest, joinSeparatesWithComma) {
   EXPECT_EQ(
-      joinDropReasonNames(std::vector<std::string>{"ONE", "TWO", "THREE"}),
-      "ONE, TWO, THREE");
+      formatDropReasonLines(std::vector<std::string>{"ONE", "TWO", "THREE"}),
+      std::vector<std::string>{"ONE, TWO, THREE"});
 }
 
 TEST(DropReasonUtilsTest, joinSkipsEmptyNames) {
   EXPECT_EQ(
-      joinDropReasonNames(std::vector<std::string>{"ONE", "", "TWO"}),
-      "ONE, TWO");
+      formatDropReasonLines(std::vector<std::string>{"ONE", "", "TWO"}),
+      std::vector<std::string>{"ONE, TWO"});
 }
 
-TEST(DropReasonUtilsTest, joinOfNothingIsEmpty) {
-  EXPECT_TRUE(joinDropReasonNames(std::vector<std::string>{}).empty());
+TEST(DropReasonUtilsTest, joinOfNothingIsNoLines) {
+  EXPECT_TRUE(formatDropReasonLines(std::vector<std::string>{}).empty());
 }
 
 TEST(DropReasonUtilsTest, joinAcceptsStringViews) {
   EXPECT_EQ(
-      joinDropReasonNames(std::vector<std::string_view>{"ONE", "", "TWO"}),
-      "ONE, TWO");
+      formatDropReasonLines(std::vector<std::string_view>{"ONE", "", "TWO"}),
+      std::vector<std::string>{"ONE, TWO"});
 }
 
-TEST(DropReasonUtilsTest, joinTruncatesPastTheCap) {
-  // Each name is 50 chars, so the 6th would push past the 256 char cap.
-  std::vector<std::string> names(10, std::string(50, 'X'));
-  auto joined = joinDropReasonNames(names);
+TEST(DropReasonUtilsTest, joinSplitsPastTheCap) {
+  // Distinct 50 char names; four fit per line (206), a fifth would need 258.
+  std::vector<std::string> names;
+  names.reserve(10);
+  for (size_t i = 0; i < 10; i++) {
+    names.push_back(
+        std::string(49, static_cast<char>('A' + i)) + std::to_string(i));
+  }
 
-  EXPECT_TRUE(joined.ends_with("<truncated>"));
-  // 5 names + 4 separators = 258 > 256, so only 4 names fit before the
-  // truncation marker.
-  EXPECT_EQ(std::count(joined.begin(), joined.end(), ','), 4);
+  auto lines = formatDropReasonLines(names);
+  showLoggedLines(lines);
+
+  ASSERT_EQ(lines.size(), 3);
+  EXPECT_EQ(namesOnLine(lines[0]).size(), 4);
+  EXPECT_EQ(namesOnLine(lines[1]).size(), 4);
+  EXPECT_EQ(namesOnLine(lines[2]).size(), 2);
+  for (const auto& line : lines) {
+    EXPECT_LE(line.size(), 256);
+  }
+  EXPECT_EQ(namesAcrossLines(lines), names);
+}
+
+TEST(DropReasonUtilsTest, joinSplitsRealisticReasonListWithoutLoss) {
+  // As many reasons as the ingress table holds; none may be lost at a wrap.
+  std::vector<std::string> names;
+  names.reserve(235);
+  for (size_t i = 0; i < 235; i++) {
+    names.push_back("SOME_DROP_REASON_" + std::to_string(i));
+  }
+
+  auto lines = formatDropReasonLines(names);
+  showLoggedLines(lines);
+
+  EXPECT_GT(lines.size(), 1);
+  for (const auto& line : lines) {
+    EXPECT_LE(line.size(), 256);
+    EXPECT_FALSE(line.starts_with(", "));
+    EXPECT_FALSE(line.ends_with(","));
+  }
+  EXPECT_EQ(namesAcrossLines(lines), names);
+}
+
+TEST(DropReasonUtilsTest, joinKeepsNameLongerThanTheCap) {
+  // Nothing to wrap onto, so the line runs over rather than losing the name.
+  const std::string huge(300, 'X');
+  EXPECT_EQ(
+      formatDropReasonLines(std::vector<std::string>{huge}),
+      std::vector<std::string>{huge});
+}
+
+// The split at the cap. Names are one letter repeated to a width chosen so
+// six of them land on exactly 256, putting the boundary itself under test.
+TEST(DropReasonUtilsTest, joinSplitsAtTheCapBoundary) {
+  // 6 * 41 + 5 * 2 = 256 exactly; a seventh would need 299.
+  constexpr size_t kNameLen = 41;
+  std::vector<std::string> names;
+  names.reserve(26);
+  for (char c = 'A'; c <= 'Z'; c++) {
+    names.emplace_back(kNameLen, c);
+  }
+
+  auto lines = formatDropReasonLines(names);
+  showLoggedLines(lines);
+
+  auto expectedLine = [](char first, char last) {
+    std::string out;
+    for (char c = first; c <= last; c++) {
+      if (!out.empty()) {
+        out += ", ";
+      }
+      out += std::string(kNameLen, c);
+    }
+    return out;
+  };
+  EXPECT_EQ(
+      lines,
+      (std::vector<std::string>{
+          expectedLine('A', 'F'),
+          expectedLine('G', 'L'),
+          expectedLine('M', 'R'),
+          expectedLine('S', 'X'),
+          expectedLine('Y', 'Z')}));
+
+  // Inclusive cap: full lines sit on exactly 256, packed as full as it allows.
+  for (size_t i = 0; i + 1 < lines.size(); i++) {
+    EXPECT_EQ(lines[i].size(), 256);
+    EXPECT_GT(
+        lines[i].size() + 2 + namesOnLine(lines[i + 1]).front().size(), 256ul);
+  }
+  EXPECT_EQ(namesAcrossLines(lines), names);
 }
 
 TEST(DropReasonUtilsTest, decodeOfZeroBitmapIsEmpty) {
@@ -101,28 +213,35 @@ TEST(DropReasonUtilsTest, decodeOfZeroBitmapIsEmpty) {
 }
 
 TEST(DropReasonUtilsTest, decodeSingleBit) {
-  EXPECT_EQ(decodeDropBitmap(1 << 0, kEnums, kPrefix, kSuffix), "ALPHA");
+  EXPECT_EQ(
+      decodeDropBitmap(1 << 0, kEnums, kPrefix, kSuffix),
+      std::vector<std::string>{"ALPHA"});
 }
 
 TEST(DropReasonUtilsTest, decodeHighestBitInTable) {
-  EXPECT_EQ(decodeDropBitmap(1 << 4, kEnums, kPrefix, kSuffix), "ECHO");
+  EXPECT_EQ(
+      decodeDropBitmap(1 << 4, kEnums, kPrefix, kSuffix),
+      std::vector<std::string>{"ECHO"});
 }
 
 TEST(DropReasonUtilsTest, decodeReturnsOnlySetBits) {
   // Bits 0 and 2 set.
   EXPECT_EQ(
-      decodeDropBitmap(0b101, kEnums, kPrefix, kSuffix), "ALPHA, CHARLIE");
+      decodeDropBitmap(0b101, kEnums, kPrefix, kSuffix),
+      std::vector<std::string>{"ALPHA, CHARLIE"});
 }
 
 TEST(DropReasonUtilsTest, decodeAllBitsInTable) {
   EXPECT_EQ(
       decodeDropBitmap(0b11111, kEnums, kPrefix, kSuffix),
-      "ALPHA, BRAVO, CHARLIE, DELTA, ECHO");
+      std::vector<std::string>{"ALPHA, BRAVO, CHARLIE, DELTA, ECHO"});
 }
 
 TEST(DropReasonUtilsTest, decodeIgnoresBitsPastTheTable) {
   // Bit 5 has no table entry; bit 1 does.
-  EXPECT_EQ(decodeDropBitmap(0b100010, kEnums, kPrefix, kSuffix), "BRAVO");
+  EXPECT_EQ(
+      decodeDropBitmap(0b100010, kEnums, kPrefix, kSuffix),
+      std::vector<std::string>{"BRAVO"});
 }
 
 TEST(DropReasonUtilsTest, decodeIgnoresAllBitsPastTheTable) {
@@ -139,7 +258,9 @@ TEST(DropReasonUtilsTest, decodeSkipsNullTableEntries) {
       nullptr,
       "TEST_DROP_CAUSE_THIRD_X = 2,",
   };
-  EXPECT_EQ(decodeDropBitmap(0b111, sparse, kPrefix, kSuffix), "FIRST, THIRD");
+  EXPECT_EQ(
+      decodeDropBitmap(0b111, sparse, kPrefix, kSuffix),
+      std::vector<std::string>{"FIRST, THIRD"});
 }
 
 TEST(DropReasonUtilsTest, decodeSkipsNullAtBitZero) {
@@ -147,7 +268,9 @@ TEST(DropReasonUtilsTest, decodeSkipsNullAtBitZero) {
       nullptr,
       "TEST_DROP_CAUSE_SECOND_X = 1,",
   };
-  EXPECT_EQ(decodeDropBitmap(0b11, sparse, kPrefix, kSuffix), "SECOND");
+  EXPECT_EQ(
+      decodeDropBitmap(0b11, sparse, kPrefix, kSuffix),
+      std::vector<std::string>{"SECOND"});
 }
 
 TEST(DropReasonUtilsTest, decodeRejectsBadTable) {
@@ -156,7 +279,7 @@ TEST(DropReasonUtilsTest, decodeRejectsBadTable) {
           .empty());
 }
 
-TEST(DropReasonUtilsTest, decodeTruncatesLongOutput) {
+TEST(DropReasonUtilsTest, decodeSplitsLongOutput) {
   const char* const longEnums[] = {
       "TEST_DROP_CAUSE_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_X = 0,",
       "TEST_DROP_CAUSE_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB_X = 1,",
@@ -169,6 +292,25 @@ TEST(DropReasonUtilsTest, decodeTruncatesLongOutput) {
       "TEST_DROP_CAUSE_IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII_X = 8,",
       "TEST_DROP_CAUSE_JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ_X = 9,",
   };
-  auto result = decodeDropBitmap(0x3FF, longEnums, kPrefix, kSuffix);
-  EXPECT_TRUE(result.ends_with("<truncated>"));
+  auto lines = decodeDropBitmap(0x3FF, longEnums, kPrefix, kSuffix);
+  showLoggedLines(lines);
+
+  // All ten reasons are reported rather than cut off at the cap.
+  EXPECT_GT(lines.size(), 1);
+  for (const auto& line : lines) {
+    EXPECT_LE(line.size(), 256);
+  }
+  EXPECT_EQ(
+      namesAcrossLines(lines),
+      (std::vector<std::string>{
+          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+          "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+          "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+          "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+          "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+          "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"}));
 }
