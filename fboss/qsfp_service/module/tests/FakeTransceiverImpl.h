@@ -268,6 +268,17 @@ class Cmis2x800GDr4Cmis50Transceiver
   explicit Cmis2x800GDr4Cmis50Transceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis2x800GDr4 custom-feature variant running out of thermal headroom: all
+// three Meta custom latched flags (Lower Memory Byte 67) are asserted and both
+// thermal margins (Bytes 68-69) are negative.
+class Cmis2x800GDr4NegativeMarginTransceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4NegativeMarginTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 // Real EEPROM dumps from deployed Arista XDR4 modules -- the parts that serve
 // zeros for up to 100ms after DIAG_SEL changes (T224486560). Both were captured
 // while qsfp_service had them selected on SNR, so page 14h byte 0 reads back

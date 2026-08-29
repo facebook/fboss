@@ -1305,6 +1305,9 @@ class ChildThriftPath<::facebook::fboss::ModuleStatus, ::facebook::fboss::fsdb::
     STRUCT_CHILD_GETTERS(cmisModuleState, 3);
     STRUCT_CHILD_GETTERS(fwStatus, 4);
     STRUCT_CHILD_GETTERS(cmisStateChanged, 5);
+    STRUCT_CHILD_GETTERS(modeMismatchFlag, 6);
+    STRUCT_CHILD_GETTERS(dspTempNegativeMarginFlag, 7);
+    STRUCT_CHILD_GETTERS(laserTempNegativeMarginFlag, 8);
 };
 
 
@@ -13197,6 +13200,8 @@ class ChildThriftPath<::facebook::fboss::TcvrStats, ::facebook::fboss::fsdb::Fsd
     STRUCT_CHILD_GETTERS(lastDatapathResetTime, 15);
     STRUCT_CHILD_GETTERS(interfaces, 16);
     STRUCT_CHILD_GETTERS(tcvrName, 17);
+    STRUCT_CHILD_GETTERS(dspTempMargin, 18);
+    STRUCT_CHILD_GETTERS(laserTempMargin, 19);
 };
 
 

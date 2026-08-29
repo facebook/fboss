@@ -351,4 +351,14 @@ enum CmisField {
   //   Bit 1: DSPTempMarginSupported
   //   Bit 0: ModeMismatchFlagSupported
   SUPPORTED_CUSTOM_FEATURES = 469,
+
+  // Lower Page 00h, Byte 67: Meta custom latched flags
+  //   Bit 2: LaserTempNegativeMarginFlag
+  //   Bit 1: DSPTempNegativeMarginFlag
+  //   Bit 0: ModeMismatchFlag
+  CUSTOM_FLAGS = 470,
+  // Lower Page 00h, Byte 68: DSP temperature margin, S8 in 1/4 degree C
+  DSP_TEMP_MARGIN = 471,
+  // Lower Page 00h, Byte 69: laser temperature margin, S8 in 1/4 degree C
+  LASER_TEMP_MARGIN = 472,
 }

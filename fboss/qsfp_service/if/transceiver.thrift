@@ -717,6 +717,12 @@ struct ModuleStatus {
   3: optional CmisModuleState cmisModuleState;
   4: optional FirmwareStatus fwStatus;
   5: optional bool cmisStateChanged;
+  // Meta custom latched flags, CMIS Lower Memory Byte 67. Only populated when
+  // the module advertises the matching bit in DiagsCapability. These are
+  // read-to-clear, so each value covers the interval since the last refresh.
+  6: optional bool modeMismatchFlag;
+  7: optional bool dspTempNegativeMarginFlag;
+  8: optional bool laserTempNegativeMarginFlag;
 }
 
 enum TransceiverErrorState {
@@ -802,6 +808,13 @@ struct TcvrStats {
   15: map<string, i64> lastDatapathResetTime;
   16: set<string> interfaces;
   17: string tcvrName;
+  // Meta custom component thermal margins in degrees Celsius, decoded from the
+  // S8 quarter-degree values in CMIS Lower Memory Bytes 68-69. The margin is
+  // the headroom between the component's measured temperature and its rated
+  // limit, so a negative value means the component is running over spec. Only
+  // populated when the module advertises the matching DiagsCapability bit.
+  18: optional double dspTempMargin;
+  19: optional double laserTempMargin;
 }
 
 struct TransceiverInfo {

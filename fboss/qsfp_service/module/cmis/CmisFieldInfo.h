@@ -82,6 +82,13 @@ enum FieldMasks : uint8_t {
   MODE_MISMATCH_SUPPORT_MASK = 0x01,
   DSP_TEMP_MARGIN_SUPPORT_MASK = 0x02,
   LASER_TEMP_MARGIN_SUPPORT_MASK = 0x04,
+  // Lower Memory, Byte 67 (Meta custom latched flags)
+  // Bit 0: ModeMismatchFlag
+  // Bit 1: DSPTempNegativeMarginFlag
+  // Bit 2: LaserTempNegativeMarginFlag
+  MODE_MISMATCH_FLAG_MASK = 0x01,
+  DSP_TEMP_NEGATIVE_MARGIN_FLAG_MASK = 0x02,
+  LASER_TEMP_NEGATIVE_MARGIN_FLAG_MASK = 0x04,
 };
 
 enum FieldBitShift : uint8_t {

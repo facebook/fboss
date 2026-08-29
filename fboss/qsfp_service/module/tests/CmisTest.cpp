@@ -1896,6 +1896,58 @@ TEST_F(CmisTest, customFeatureCapabilityNotAdvertised) {
   EXPECT_FALSE(*diagsCap->laserTempMargin());
 }
 
+// A healthy advertised module reports all three latched flags clear and
+// positive thermal margins decoded from the quarter-degree S8 registers.
+TEST_F(CmisTest, customFlagsAndThermalMarginsHealthy) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), false);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), false);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), false);
+
+  // Byte 68 = 0x7f = 127 quarter-degrees, byte 69 = 0x3d = 61 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), 31.75);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), 15.25);
+}
+
+// Asserted latched flags and negative (over-temperature) margins are reported
+// as such, including the sign of the S8 decode.
+TEST_F(CmisTest, customFlagsAndThermalMarginsNegative) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), true);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), true);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), true);
+
+  // Byte 68 = 0xf8 = -8 quarter-degrees, byte 69 = 0xfc = -4 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), -2.0);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), -1.0);
+}
+
+// A module that doesn't advertise the custom features leaves the flags and
+// margins unset rather than reporting whatever the custom bytes happen to hold.
+TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_FALSE(status.modeMismatchFlag().has_value());
+  EXPECT_FALSE(status.dspTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(status.laserTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(info.tcvrStats()->dspTempMargin().has_value());
+  EXPECT_FALSE(info.tcvrStats()->laserTempMargin().has_value());
+}
+
 // Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on
 // modules built to the spec that defines it (CMIS >= 5.1). Below that revision
 // its contents must be ignored.

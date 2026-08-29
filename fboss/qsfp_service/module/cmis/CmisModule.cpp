@@ -146,6 +146,9 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
     {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
+    {CmisField::CUSTOM_FLAGS, {CmisPages::LOWER, 67, 1}},
+    {CmisField::DSP_TEMP_MARGIN, {CmisPages::LOWER, 68, 1}},
+    {CmisField::LASER_TEMP_MARGIN, {CmisPages::LOWER, 69, 1}},
     {CmisField::MAX_BANK_CAPACITY, {CmisPages::LOWER, 70, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
@@ -1003,7 +1006,59 @@ ModuleStatus CmisModule::getModuleStatus() {
       moduleStateFromStatusByte(getSettingsValue(CmisField::MODULE_STATE));
   moduleStatus.fwStatus() = getFwStatus();
   moduleStatus.cmisStateChanged() = getModuleStateChanged();
+  setCustomLatchedFlags(moduleStatus);
   return moduleStatus;
+}
+
+/*
+ * Byte 67 is CMIS Custom space, so only report the flags a module has
+ * explicitly advertised in Page 01h Byte 191; anything else there belongs to
+ * some other vendor's feature. The flags are read-to-clear, and the lower page
+ * is re-read on every refresh, so each value covers the interval since the
+ * previous refresh.
+ */
+void CmisModule::setCustomLatchedFlags(ModuleStatus& moduleStatus) {
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return;
+  }
+
+  const uint8_t data = getSettingsValue(CmisField::CUSTOM_FLAGS);
+  if (*diagsCapability->modeMismatchFlag()) {
+    moduleStatus.modeMismatchFlag() =
+        (data & FieldMasks::MODE_MISMATCH_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->dspTempMargin()) {
+    moduleStatus.dspTempNegativeMarginFlag() =
+        (data & FieldMasks::DSP_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    moduleStatus.laserTempNegativeMarginFlag() =
+        (data & FieldMasks::LASER_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+}
+
+/*
+ * Bytes 68-69 hold S8 margins in quarter-degree Celsius steps. Decode to whole
+ * degrees so consumers don't need to know the register scaling.
+ */
+ThermalMargins CmisModule::getThermalMargins() {
+  ThermalMargins margins;
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return margins;
+  }
+
+  constexpr double kQuarterDegreeC = 0.25;
+  if (*diagsCapability->dspTempMargin()) {
+    margins.dspTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::DSP_TEMP_MARGIN));
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    margins.laserTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::LASER_TEMP_MARGIN));
+  }
+  return margins;
 }
 
 /*
