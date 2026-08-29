@@ -186,9 +186,4 @@ void fillHwSwitchDropBitmapStats(
 
 void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
 
-// TODO: Add code to handle the logging.
-void logDropReasons(
-    const std::vector<sai_int32_t>& /*ingressDropReasons*/,
-    const std::vector<sai_int32_t>& /*egressDropReasons*/) {}
-
 } // namespace facebook::fboss
