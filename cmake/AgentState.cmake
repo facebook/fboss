@@ -20,10 +20,16 @@ add_library(nodebase
 target_link_libraries(nodebase
   Boost::container
   Folly::folly
-  fboss_error
   fmt::fmt
   glog::glog
 )
+
+# NodeMap headers use FbossError, but the NodeBase-only OSS surface does not.
+# Keep the existing dependency for the full and fsdb_client profiles while
+# allowing the exported_libraries profile to build NodeBase independently.
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "exported_libraries")
+  target_link_libraries(nodebase fboss_error)
+endif()
 
 add_library(lacp_types
   fboss/agent/LacpTypes.cpp

@@ -52,16 +52,21 @@ if ($ENV{SKIP_ALL_INSTALL})
   set (SKIP_ALL_INSTALL ON)
 endif()
 
-set(FBOSS_BUILD_PROFILE "full" CACHE STRING "Build profile: full | fsdb_client")
+set(FBOSS_BUILD_PROFILE "full" CACHE STRING
+  "Build profile: full | fsdb_client | exported_libraries")
 # Env wins over -D: the OSS CI rules pass the profile as a container env var
 # while getdeps passes a cache define, and a rule must be able to override.
 if (NOT "$ENV{FBOSS_BUILD_PROFILE}" STREQUAL "")
   set(FBOSS_BUILD_PROFILE "$ENV{FBOSS_BUILD_PROFILE}")
 endif()
-if (NOT FBOSS_BUILD_PROFILE MATCHES "^(full|fsdb_client)$")
+if (NOT FBOSS_BUILD_PROFILE MATCHES
+    "^(full|fsdb_client|exported_libraries)$")
   message(FATAL_ERROR "Unknown FBOSS_BUILD_PROFILE '${FBOSS_BUILD_PROFILE}'")
 endif()
-set_property(CACHE FBOSS_BUILD_PROFILE PROPERTY STRINGS full fsdb_client)
+set_property(
+  CACHE FBOSS_BUILD_PROFILE
+  PROPERTY STRINGS full fsdb_client exported_libraries
+)
 if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
   message(STATUS "FBOSS build profile: ${FBOSS_BUILD_PROFILE}")
 endif()
@@ -1361,7 +1366,7 @@ endif()
 # Deferred to end-of-directory: targets are still created after this file's last
 # line (FbossImageDistroCliTests.cmake, and the SAI groups under
 # BUILD_SAI_FAKE), and anything created later would escape the sweep.
-function(fboss_prune_to_exported_targets)
+function(fboss_prune_to_profile_targets)
   # Only the exported targets need to be in `all`; ninja pulls their transitive
   # dependencies in anyway, because EXCLUDE_FROM_ALL does not stop a target
   # being built when something still in `all` depends on it. That covers every
@@ -1373,7 +1378,7 @@ function(fboss_prune_to_exported_targets)
   set(_found 0)
   foreach(_t IN LISTS _all)
     get_target_property(_type ${_t} TYPE)
-    if(_t IN_LIST FBOSS_EXPORTED_TARGETS)
+    if(_t IN_LIST FBOSS_PROFILE_TARGETS)
       math(EXPR _found "${_found} + 1")
     elseif(NOT _type STREQUAL "INTERFACE_LIBRARY")
       set_target_properties(${_t} PROPERTIES EXCLUDE_FROM_ALL TRUE)
@@ -1392,7 +1397,7 @@ if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
       "FBOSS_BUILD_PROFILE ${FBOSS_BUILD_PROFILE} needs CMake >= 3.19, "
       "found ${CMAKE_VERSION}; build the default 'full' profile instead")
   endif()
-  cmake_language(DEFER CALL fboss_prune_to_exported_targets)
+  cmake_language(DEFER CALL fboss_prune_to_profile_targets)
 endif()
 
 # Minimal set of existing FBOSS libraries consumed by standalone projects.
@@ -1459,6 +1464,12 @@ set(FBOSS_EXPORTED_TARGETS
   qsfp_cpp2
 )
 
+if(FBOSS_BUILD_PROFILE STREQUAL "exported_libraries")
+  set(FBOSS_PROFILE_TARGETS ${FBOSS_MINIMAL_LIBRARY_TARGETS})
+else()
+  set(FBOSS_PROFILE_TARGETS ${FBOSS_EXPORTED_TARGETS})
+endif()
+
 # Build all cmake files under cmake/*cmake
 file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
@@ -1485,21 +1496,44 @@ endif()
 # ${CMAKE_SOURCE_DIR}/fboss is a symlink (github/fboss -> ..) and CMake
 # materialises that symlink at the destination, causing the subsequent
 # install of ${CMAKE_BINARY_DIR}/fboss/ to fail with "File exists".
-foreach(_fboss_header_subdir
-  agent cli common fsdb led_service lib mdio mka_service platform
-  qsfp_service thrift_cow thrift_visitors thriftpath_plugin)
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/${_fboss_header_subdir}
+if(FBOSS_BUILD_PROFILE STREQUAL "exported_libraries")
+  install(
+    FILES ${CMAKE_SOURCE_DIR}/fboss/agent/StrongTypes.h
+    DESTINATION include/fboss/agent
+  )
+  install(
+    FILES
+      ${CMAKE_SOURCE_DIR}/fboss/agent/state/NodeBase.h
+      ${CMAKE_SOURCE_DIR}/fboss/agent/state/NodeBase-defs.h
+    DESTINATION include/fboss/agent/state
+  )
+  install(
+    FILES
+      ${CMAKE_SOURCE_DIR}/fboss/lib/AlertLogger.h
+      ${CMAKE_SOURCE_DIR}/fboss/lib/ExponentialBackoff.h
+      ${CMAKE_SOURCE_DIR}/fboss/lib/LogThriftCall.h
+      ${CMAKE_SOURCE_DIR}/fboss/lib/RadixTree.h
+      ${CMAKE_SOURCE_DIR}/fboss/lib/RadixTree-inl.h
+      ${CMAKE_SOURCE_DIR}/fboss/lib/ThriftCallDurationLogger.h
+    DESTINATION include/fboss/lib
+  )
+else()
+  foreach(_fboss_header_subdir
+    agent cli common fsdb led_service lib mdio mka_service platform
+    qsfp_service thrift_cow thrift_visitors thriftpath_plugin)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/fboss/${_fboss_header_subdir}
+      DESTINATION include/fboss
+      FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+  endforeach()
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
     DESTINATION include/fboss
     FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
-endforeach()
-install(DIRECTORY ${CMAKE_BINARY_DIR}/fboss/
-  DESTINATION include/fboss
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
-install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
-  DESTINATION include/configerator
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/configerator/
+    DESTINATION include/configerator
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
+endif()
 
-install(TARGETS ${FBOSS_EXPORTED_TARGETS}
+install(TARGETS ${FBOSS_PROFILE_TARGETS}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
