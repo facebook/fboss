@@ -259,6 +259,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     // RCI watermark counters fail on Jericho4 with
     // SAI_STATUS_INVALID_PARAMETER.
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:

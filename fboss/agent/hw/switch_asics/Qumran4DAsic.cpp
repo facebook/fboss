@@ -248,6 +248,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
     // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
     // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
