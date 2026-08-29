@@ -32,11 +32,19 @@ class AgentDropTestBase : public AgentHwTest {
   // Each of these sends one packet that should induce the named drop.
   void sendPacketToUnroutedDst();
   void sendTtlExpiredPacket();
+  void sendPacketToRoutedDst();
   void sendOversizedPacketToRoutedDst();
+  // Disable TX on the egress port so a routed packet is discarded there.
+  void setEgressPortTx(bool enable);
   template <typename AddrT>
   void sendLoopbackDipPacket();
   void sendMulticastSmacPacket();
   void sendOutOfRangeEtherTypePacket();
+
+  // The destination sendPacketToRoutedDst() uses. Exposed so that a fixture
+  // can write config, such as an ACL match, that has to line up exactly with
+  // the packet it wants to be the only thing acting on.
+  static const folly::IPAddressV6& kRoutedDstIp();
 
   // Dump the discard counters for the ports these scenarios use. When a drop
   // reason test sees nothing reported, the port counters are the only thing
@@ -56,7 +64,6 @@ class AgentDropTestBase : public AgentHwTest {
       const char* desc);
 
  private:
-  static const folly::IPAddressV6& kRoutedDstIp();
   // Deliberately outside any configured interface subnet, so no route matches.
   static const folly::IPAddressV6& kUnroutedDstIp();
   PortDescriptor egressPort() const;

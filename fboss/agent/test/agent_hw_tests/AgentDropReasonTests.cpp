@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentDropTestBase.h"
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/String.h>
@@ -33,6 +34,11 @@ constexpr auto kL3TtlError = "L3_TTL_ERROR";
 // A multicast source MAC reports SRC_ROUTE_DROP, not the MACSA_MULTICAST the
 // name suggests. Both enumerators exist; this is the one the ASIC raises.
 constexpr auto kSrcRouteDrop = "SRC_ROUTE_DROP";
+// An ACL deny reports RFILDR, the filtered-on-receive reason, not the IFP one
+// that the ingress field processor's name suggests. Both enumerators exist;
+// this is the one the ASIC raises.
+constexpr auto kRxFilterDrop = "RFILDR";
+constexpr auto kSrcPortKnockout = "SRC_PORT_KNOCKOUT_DROP";
 
 // Reasons the ASIC reports alongside a specific one rather than instead of
 // it. RDROP is "Port bitmap zero drop condition", which comes up for
@@ -236,6 +242,83 @@ TEST_F(AgentDropReasonTest, ingressMacSaMulticastDrop) {
     verifyDropReasonLogged("DROP reasons ingress", "MACSA multicast log");
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+// A packet denied by an ingress ACL.
+//
+// The ACL matches only the single routed destination this test sends to, and
+// the packet is routable, so the deny is the only thing that can drop it.
+// Both details matter. Denying ::/0 also denies the switch's own background
+// IPv6 traffic, which reports RFILDR in every collection window whether or
+// not the test sends anything, leaving the assertion below to pass without
+// the injected packet contributing to it; and sending to an unrouted
+// destination adds an L3_DST_DISCARD that competes with the deny for
+// attribution.
+class AgentDropReasonAclTest : public AgentDropReasonTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentDropReasonTest::initialConfig(ensemble);
+    cfg::AclEntry acl;
+    acl.name() = "drop-reason-deny-v6";
+    acl.actionType() = cfg::AclActionType::DENY;
+    acl.dstIp() = kRoutedDstIp().str() + "/128";
+    utility::addAcl(&cfg, acl, cfg::AclStage::INGRESS);
+    return cfg;
+  }
+};
+
+TEST_F(AgentDropReasonAclTest, ingressAclDenyDrop) {
+  auto setup = [&]() { setupRouteToEgressPort(); };
+  auto verify = [&]() {
+    installLogCapture();
+
+    DropReasons reasons;
+    WITH_RETRIES({
+      sendPacketToRoutedDst();
+      accumulate(reasons, getAggregatedDropReasons());
+      logObserved("ACL deny", reasons);
+      EXPECT_EVENTUALLY_TRUE(reasons.ingress.contains(kRxFilterDrop));
+    });
+    logPortDropCounters("ACL deny");
+    XLOG(INFO) << "Drop reason test [ACL deny] final: " << toString(reasons);
+    verifyDropReasonLogged("DROP reasons ingress", "ACL deny log");
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// A routed packet whose egress port has TX disabled. This is reported on the
+// *ingress* list as SRC_PORT_KNOCKOUT_DROP, not as an egress reason -- the
+// pipeline drops it before the egress stage once the destination port is
+// knocked out of the port bitmap.
+TEST_F(AgentDropReasonTest, ingressSrcPortKnockoutDrop) {
+  auto setup = [&]() { setupRouteToEgressPort(); };
+
+  auto verify = [&]() {
+    installLogCapture();
+
+    setEgressPortTx(false);
+
+    DropReasons reasons;
+    WITH_RETRIES({
+      sendPacketToRoutedDst();
+      accumulate(reasons, getAggregatedDropReasons());
+      logObserved("src port knockout", reasons);
+      EXPECT_EVENTUALLY_TRUE(reasons.ingress.contains(kSrcPortKnockout));
+    });
+    logPortDropCounters("src port knockout");
+    XLOG(INFO) << "Drop reason test [src port knockout] final: "
+               << toString(reasons);
+    verifyOnlyExpectedReason(
+        reasons, Direction::Ingress, kSrcPortKnockout, "src port knockout");
+    verifyDropReasonLogged("DROP reasons ingress", "src port knockout log");
+    // Re-enabled only once every check above is done. Bringing TX back up
+    // flushes the held packets and can log fresh drop reasons of its own,
+    // which would otherwise land in the still-open capture window that
+    // verifyDropReasonLogged() reads, and would move the port counters.
+    setEgressPortTx(true);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

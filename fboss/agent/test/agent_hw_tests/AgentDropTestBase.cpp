@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 
 #include <folly/logging/xlog.h>
 
@@ -103,6 +104,12 @@ void AgentDropTestBase::sendTtlExpiredPacket() {
   sendUdpPacket(kRoutedDstIp(), 1 /*hopLimit*/);
 }
 
+void AgentDropTestBase::sendPacketToRoutedDst() {
+  XLOG(DBG2) << "Drop test: sending packet to dstIp=" << kRoutedDstIp().str()
+             << " out of injection port " << injectionPort();
+  sendUdpPacket(kRoutedDstIp(), 64 /*hopLimit*/, injectionPort());
+}
+
 void AgentDropTestBase::sendOversizedPacketToRoutedDst() {
   XLOG(DBG2) << "Drop test: sending oversized (" << kOversizedPayloadBytes
              << "B) packet to dstIp=" << kRoutedDstIp().str()
@@ -165,6 +172,12 @@ void AgentDropTestBase::sendOutOfRangeEtherTypePacket() {
       static_cast<ETHERTYPE>(kOutOfRangeEtherType));
   getSw()->sendPacketOutOfPortAsync(
       std::move(pkt), PortID(masterLogicalInterfaceOrHyperPortIds()[0]));
+}
+
+void AgentDropTestBase::setEgressPortTx(bool enable) {
+  XLOG(DBG2) << "Drop test: setting TX " << (enable ? "on" : "off")
+             << " for egress port " << egressPort().phyPortID();
+  utility::setPortTx(getAgentEnsemble(), egressPort().phyPortID(), enable);
 }
 
 void AgentDropTestBase::logPortDropCounters(const char* phase) {
