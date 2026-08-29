@@ -2060,6 +2060,39 @@ enum PacketForwardingMode {
 /*
  * Switch specific settings: global to the switch
  */
+/**
+ * Which kind of ECMP group a setting applies to.
+ *
+ * These are FBOSS level categories, not SAI group types. ARS,
+ * ECMP_FIXED_ASSIGNMENT and ECMP_SPRAY are all SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+ * they are told apart by whether an ARS object is attached and by the group's
+ * switching mode. Where a group could match more than one category, the group
+ * type wins: an FRR backup is programmed with random spray, but it is
+ * FRR_BACKUP, not ECMP_SPRAY.
+ */
+enum EcmpGroupType {
+  // Plain ECMP with an ARS (DLB) object attached.
+  ARS = 0,
+  // FRR protection parent (SAI_NEXT_HOP_GROUP_TYPE_PROTECTION).
+  FRR_PRIMARY = 1,
+  // FRR protection backup (SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION).
+  FRR_BACKUP = 2,
+  // Plain ECMP, fixed assignment switching mode.
+  ECMP_FIXED_ASSIGNMENT = 3,
+  // Plain ECMP, per packet random spray.
+  ECMP_SPRAY = 4,
+}
+
+struct EcmpGroupSettings {
+  /**
+   * Stops a group from egressing a packet on the port it arrived on. On an FRR
+   * protection parent this arms source port based failover to the backup group;
+   * on the backup it enables tertiary member selection; on an ARS group it
+   * prunes the source port member within the group.
+   */
+  1: bool enableSplitHorizon = false;
+}
+
 struct SwitchSettings {
   1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE;
   2: bool qcmEnable = false;
@@ -2156,6 +2189,27 @@ struct SwitchSettings {
   // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
   // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
   37: optional i32 ecmpWidth;
+  /**
+   * Split horizon, and any future per group knobs, keyed by group type. Lets a
+   * deployment enable it for some group types and not others -- ARS but not
+   * FRR, or the reverse.
+   *
+   * An empty map means nobody is using the feature, and is the default. A
+   * missing key in a non-empty map means the feature is off for that group
+   * type. The agent still programs the attribute explicitly on FRR groups in
+   * that case, because the vendor SDK defaults it to TRUE on an FRR primary
+   * when the attribute is omitted, and inheriting that default blackholes
+   * traffic.
+   *
+   * FRR_PRIMARY and FRR_BACKUP must be set to the same value. Split horizon on
+   * the parent alone suppresses the source port with no tertiary path on the
+   * backup to catch the traffic.
+   *
+   * Split horizon is CREATE_ONLY on a next hop group, so changing an FRR entry
+   * only affects groups created afterwards. The ARS entry is settable and takes
+   * effect on existing groups.
+   */
+  38: map<EcmpGroupType, EcmpGroupSettings> ecmpGroupSettings;
 }
 
 // Global buffer pool
