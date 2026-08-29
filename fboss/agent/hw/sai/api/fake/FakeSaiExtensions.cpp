@@ -1107,6 +1107,16 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
   return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeIngressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeEgressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {

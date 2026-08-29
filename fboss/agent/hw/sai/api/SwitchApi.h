@@ -890,6 +890,18 @@ struct SaiSwitchTraits {
         bool,
         AttributePortCl72RetryEnable,
         SaiBoolDefaultFalse>;
+    struct AttributePacketDropTypeIngressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeIngressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeIngressList>;
+    struct AttributePacketDropTypeEgressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeEgressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeEgressList>;
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
@@ -1227,6 +1239,8 @@ SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeIngressList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeEgressList)
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif
