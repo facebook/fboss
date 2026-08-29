@@ -1395,8 +1395,19 @@ if (NOT FBOSS_BUILD_PROFILE STREQUAL "full")
   cmake_language(DEFER CALL fboss_prune_to_exported_targets)
 endif()
 
+# Minimal set of existing FBOSS libraries consumed by standalone projects.
+# Include this list in the full exported set so the two sets cannot drift.
+set(FBOSS_MINIMAL_LIBRARY_TARGETS
+  nodebase
+  radix_tree
+  exponential_back_off
+  log_thrift_call
+  alert_logger
+)
+
 set(FBOSS_EXPORTED_TARGETS
-  nodebase address_utils radix_tree exponential_back_off
+  ${FBOSS_MINIMAL_LIBRARY_TARGETS}
+  address_utils
   switch_config_cpp2 ctrl_cpp2 common_cpp2 fboss_cpp2
   fboss_common_cpp2 fboss_error fboss_types
   network_address_cpp2 mpls_cpp2
@@ -1406,8 +1417,6 @@ set(FBOSS_EXPORTED_TARGETS
   cfgr_fboss_common_cpp2 asic_temp_cpp2
   bcm_config_cpp2 asic_config_cpp2 asic_config_v2_cpp2
   io_stats_cpp2
-  # Utility libraries for downstream consumers (BGP++)
-  alert_logger log_thrift_call
   # FSDB client libraries for downstream consumers (BGP++ FsdbSyncer,
   # NeighborWatcher). Dependents before dependencies for one-pass linkers.
   fsdb_syncer fsdb_pub_sub fsdb_sub_mgr fsdb_stream_client
@@ -1456,6 +1465,11 @@ foreach(cmakeFile ${cmakeFiles})
   message(status " INCLUDE ${cmakeFile}")
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
+
+add_custom_target(fboss_exported_libraries)
+add_dependencies(fboss_exported_libraries
+  ${FBOSS_MINIMAL_LIBRARY_TARGETS}
+)
 
 if (NOT SKIP_ALL_INSTALL AND NOT FBOSS_BUILD_PROFILE STREQUAL "full")
   set(FBOSS_INSTALL_ENABLED TRUE)

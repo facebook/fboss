@@ -18,9 +18,11 @@ add_library(nodebase
 )
 
 target_link_libraries(nodebase
-  fboss_error
+  Boost::container
   Folly::folly
+  fboss_error
   fmt::fmt
+  glog::glog
 )
 
 add_library(lacp_types
