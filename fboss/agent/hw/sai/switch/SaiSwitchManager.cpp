@@ -960,6 +960,26 @@ SaiSwitchManager::supportedCustomDropBitmapStats() const {
   return stats;
 }
 
+void SaiSwitchManager::updateDropReasonStats() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT)) {
+    return;
+  }
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  auto ingressDropReasons = switchApi.getAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::PacketDropTypeIngressList{
+          std::vector<sai_int32_t>{}});
+  auto egressDropReasons = switchApi.getAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::PacketDropTypeEgressList{
+          std::vector<sai_int32_t>{}});
+
+  logDropReasons(ingressDropReasons, egressDropReasons);
+#endif
+}
+
 const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
     const {
   static std::vector<sai_stat_id_t> stats;
@@ -1474,6 +1494,12 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
           switch_->getStats(customDropBitmapStatIds), switchDropBitmapStats_);
       logDropBitmapReasons(switchDropBitmapStats_);
     }
+    // Broadcom XGS reports the same information as a list of active drop
+    // reasons rather than a per stage bitmap. These are read only SAI
+    // attributes, so unlike the bitmap stats above they cannot go through
+    // updateStats()/SAI_STATS_MODE_READ_AND_CLEAR; the adapter clears them
+    // on attribute read instead. Same ~60s cadence and same rationale.
+    updateDropReasonStats();
   }
   updateSdkDumpSuppressedCounter();
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
