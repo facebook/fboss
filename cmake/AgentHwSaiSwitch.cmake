@@ -5,6 +5,7 @@
 
 set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/ConcurrentIndices.cpp
+  fboss/agent/hw/sai/switch/DropReasonUtils.cpp
   fboss/agent/hw/sai/switch/SaiAclTableGroupManager.cpp
   fboss/agent/hw/sai/switch/SaiAclTableManager.cpp
   fboss/agent/hw/sai/switch/SaiArsManager.cpp
