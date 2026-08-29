@@ -5515,6 +5515,15 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
 
   if (oldFlowletConfig && newFlowletConfig) {
     if (*oldFlowletConfig == *newFlowletConfig) {
+      // SwitchSettings can change while the flowlet config stays put.
+      if (delta.oldState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS) !=
+          delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS)) {
+        XLOG(DBG2) << "ARS split horizon changed, reprogramming ARS";
+        arsManager.changeArs(
+            oldFlowletConfig,
+            newFlowletConfig,
+            delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
+      }
       XLOG(DBG5) << "Flowlet switching config is same";
       // flowlet is enabled here. lets walk through all ecmp objects to ensure
       // things look ok. For most purposes, this will be a no-op
