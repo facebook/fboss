@@ -30,6 +30,9 @@ namespace {
 // SAI_PACKET_DROP_TYPE_{INGRESS,EGRESS}_ prefix is stripped at decode.
 constexpr auto kL3DstDiscard = "L3_DST_DISCARD";
 constexpr auto kL3TtlError = "L3_TTL_ERROR";
+// A multicast source MAC reports SRC_ROUTE_DROP, not the MACSA_MULTICAST the
+// name suggests. Both enumerators exist; this is the one the ASIC raises.
+constexpr auto kSrcRouteDrop = "SRC_ROUTE_DROP";
 
 // Reasons the ASIC reports alongside a specific one rather than instead of
 // it. RDROP is "Port bitmap zero drop condition", which comes up for
@@ -210,6 +213,29 @@ TEST_F(AgentDropReasonTest, ingressTtlErrorDrop) {
     verifyDropReasonLogged("DROP reasons ingress", "L3 TTL error log");
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+// A packet with a multicast source MAC. The ASIC reports SRC_ROUTE_DROP,
+// accompanied only by the generic RDROP.
+TEST_F(AgentDropReasonTest, ingressMacSaMulticastDrop) {
+  auto verify = [&]() {
+    installLogCapture();
+
+    DropReasons reasons;
+    WITH_RETRIES({
+      sendMulticastSmacPacket();
+      accumulate(reasons, getAggregatedDropReasons());
+      logObserved("MACSA multicast", reasons);
+      EXPECT_EVENTUALLY_TRUE(reasons.ingress.contains(kSrcRouteDrop));
+    });
+    logPortDropCounters("MACSA multicast");
+    XLOG(INFO) << "Drop reason test [MACSA multicast] final: "
+               << toString(reasons);
+    verifyOnlyExpectedReason(
+        reasons, Direction::Ingress, kSrcRouteDrop, "MACSA multicast");
+    verifyDropReasonLogged("DROP reasons ingress", "MACSA multicast log");
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 } // namespace facebook::fboss
