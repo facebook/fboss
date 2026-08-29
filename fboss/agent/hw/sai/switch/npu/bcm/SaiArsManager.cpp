@@ -25,7 +25,7 @@ namespace facebook::fboss {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
-    std::optional<bool> l3EcmpIngressPortPrune) {
+    std::optional<bool> splitHorizonEnabled) {
   auto switchingMode = flowletSwitchConfig->getSwitchingMode();
   auto idleTime = flowletSwitchConfig->getInactivityIntervalUsecs();
   auto maxFlows = flowletSwitchConfig->getFlowletTableSize();
@@ -59,7 +59,7 @@ void SaiArsManager::addArs(
           alternatePathCostForArs,
           alternatePathBiasForArs,
           nextHopGroupType,
-          toSourcePortPruneAttribute(l3EcmpIngressPortPrune)));
+          toSourcePortPruneAttribute(splitHorizonEnabled)));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();

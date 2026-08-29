@@ -91,9 +91,9 @@ void SaiArsManager::setArsObject(
 
 std::optional<SaiArsTraits::Attributes::SourcePortPrune>
 SaiArsManager::toSourcePortPruneAttribute(
-    std::optional<bool> l3EcmpIngressPortPrune) {
-  if (l3EcmpIngressPortPrune.has_value()) {
-    return SaiArsTraits::Attributes::SourcePortPrune{*l3EcmpIngressPortPrune};
+    std::optional<bool> splitHorizonEnabled) {
+  if (splitHorizonEnabled.has_value()) {
+    return SaiArsTraits::Attributes::SourcePortPrune{*splitHorizonEnabled};
   }
   return std::nullopt;
 }
@@ -117,8 +117,8 @@ void SaiArsManager::removeArs(
 void SaiArsManager::changeArs(
     const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchConfig,
     const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchConfig,
-    std::optional<bool> l3EcmpIngressPortPrune) {
-  addArs(newFlowletSwitchConfig, l3EcmpIngressPortPrune);
+    std::optional<bool> splitHorizonEnabled) {
+  addArs(newFlowletSwitchConfig, splitHorizonEnabled);
 }
 
 SaiArsHandle* SaiArsManager::getArsHandle() const {

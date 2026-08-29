@@ -42,17 +42,18 @@ class SaiArsManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  // l3EcmpIngressPortPrune is threaded in from the state being applied; the
+  // splitHorizonEnabled is the resolved ecmpGroupSettings entry for
+  // EcmpGroupType::ARS, threaded in from the state being applied; the
   // programmed state would still hold the pre-delta value here.
   void addArs(
       const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig,
-      std::optional<bool> l3EcmpIngressPortPrune = std::nullopt);
+      std::optional<bool> splitHorizonEnabled = std::nullopt);
   void removeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
   void changeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchingConfig,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig,
-      std::optional<bool> l3EcmpIngressPortPrune = std::nullopt);
+      std::optional<bool> splitHorizonEnabled = std::nullopt);
   SaiArsHandle* getArsHandle() const;
   SaiArsHandle* getAlternateMemberArsHandle() const;
   SaiArsHandle* getVirtualArsGroupHandle() const;
@@ -80,7 +81,7 @@ class SaiArsManager {
 
   // An unset setting leaves the create-only attribute alone.
   static std::optional<SaiArsTraits::Attributes::SourcePortPrune>
-  toSourcePortPruneAttribute(std::optional<bool> l3EcmpIngressPortPrune);
+  toSourcePortPruneAttribute(std::optional<bool> splitHorizonEnabled);
 #endif
 
  private:

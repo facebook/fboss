@@ -5486,7 +5486,9 @@ void SaiSwitch::processFlowletSwitchingConfigAdded(
     switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
 
     // create the ARS object and attach to all ECMP groups
-    arsManager.addArs(newFlowletConfig);
+    arsManager.addArs(
+        newFlowletConfig,
+        delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
     auto arsHandlePtr = arsManager.getArsHandle();
     CHECK(arsHandlePtr);
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
@@ -5529,7 +5531,10 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
       nextHopGroupManager.setMinWidthForArsVirtualGroup(
           newFlowletConfig->getMinWidthForArsVirtualGroup());
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
-      arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
+      arsManager.changeArs(
+          oldFlowletConfig,
+          newFlowletConfig,
+          delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
     }
   } else if (newFlowletConfig && !oldFlowletConfig) {
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
