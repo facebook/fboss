@@ -1026,6 +1026,10 @@ struct DiagsCapability {
   18: bool cdbSymbolErrorHistogramSystem = false;
   19: bool cdbRxErrorHistogramLine = false;
   20: bool cdbRxErrorHistogramSystem = false;
+  // Meta custom feature advertisement, CMIS Page 01h Byte 191
+  21: bool modeMismatchFlag = false;
+  22: bool dspTempMargin = false;
+  23: bool laserTempMargin = false;
 }
 
 enum TransceiverStateMachineState {

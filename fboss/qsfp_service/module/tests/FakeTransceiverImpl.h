@@ -249,6 +249,25 @@ class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+// Cmis2x800GDr4 variant advertising all three Meta custom features in Page 01h
+// Byte 191 (CMIS 5.1). Used to exercise the mode-mismatch / thermal-margin
+// feature handling on a non-ZR module built to the Meta FW spec.
+class Cmis2x800GDr4CustomFeatureTransceiver : public Cmis2x800GDr4Transceiver {
+ public:
+  explicit Cmis2x800GDr4CustomFeatureTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
+// Same, but reporting CMIS 5.0. The Meta FW spec that gives Byte 191 its
+// meaning requires CMIS >= 5.1, so below that revision the byte must be
+// ignored.
+class Cmis2x800GDr4Cmis50Transceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4Cmis50Transceiver(int module, TransceiverManager* mgr);
+};
+
 // Real EEPROM dumps from deployed Arista XDR4 modules -- the parts that serve
 // zeros for up to 100ms after DIAG_SEL changes (T224486560). Both were captured
 // while qsfp_service had them selected on SNR, so page 14h byte 0 reads back

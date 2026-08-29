@@ -345,4 +345,10 @@ enum CmisField {
   // Lower Page 00h, Byte 70: Maximum CMIS bank capacity. Holds the module's
   // peak bank count directly (e.g. 4 for a 32-lane module).
   MAX_BANK_CAPACITY = 468,
+
+  // Page 01h, Byte 191: Meta custom feature advertisement
+  //   Bit 2: LaserTempMarginSupported
+  //   Bit 1: DSPTempMarginSupported
+  //   Bit 0: ModeMismatchFlagSupported
+  SUPPORTED_CUSTOM_FEATURES = 469,
 }

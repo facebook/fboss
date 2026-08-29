@@ -722,6 +722,12 @@ class CmisModule : public QsfpModule {
 
   virtual void setDiagsCapability() override;
 
+  /*
+   * Populate the Meta custom feature bits (mode mismatch, DSP/laser thermal
+   * margin) advertised in Page 01h Byte 191.
+   */
+  void setCustomFeatureCapability(DiagsCapability& diags);
+
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() override;

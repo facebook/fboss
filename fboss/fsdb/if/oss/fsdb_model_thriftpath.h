@@ -164,6 +164,9 @@ class ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(cdbSymbolErrorHistogramSystem, 18);
     STRUCT_CHILD_GETTERS(cdbRxErrorHistogramLine, 19);
     STRUCT_CHILD_GETTERS(cdbRxErrorHistogramSystem, 20);
+    STRUCT_CHILD_GETTERS(modeMismatchFlag, 21);
+    STRUCT_CHILD_GETTERS(dspTempMargin, 22);
+    STRUCT_CHILD_GETTERS(laserTempMargin, 23);
 };
 
 

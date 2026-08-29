@@ -75,6 +75,13 @@ enum FieldMasks : uint8_t {
   RX_CONS_ACT_IMPL_MASK = 0x02,
   // Page 45h, Byte 129, Bit 2: rxConsActHoldOffTmrImpl
   RX_CONS_ACT_HOLD_OFF_TMR_IMPL_MASK = 0x04,
+  // Page 01h, Byte 191 (Meta custom feature advertisement)
+  // Bit 0: ModeMismatchFlagSupported
+  // Bit 1: DSPTempMarginSupported
+  // Bit 2: LaserTempMarginSupported
+  MODE_MISMATCH_SUPPORT_MASK = 0x01,
+  DSP_TEMP_MARGIN_SUPPORT_MASK = 0x02,
+  LASER_TEMP_MARGIN_SUPPORT_MASK = 0x04,
 };
 
 enum FieldBitShift : uint8_t {

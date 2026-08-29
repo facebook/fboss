@@ -178,6 +178,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
     {CmisField::CDB_SUPPORT, {CmisPages::PAGE01, 163, 1}},
     {CmisField::MEDIA_LANE_ASSIGNMENT, {CmisPages::PAGE01, 176, 15}},
+    {CmisField::SUPPORTED_CUSTOM_FEATURES, {CmisPages::PAGE01, 191, 1}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
@@ -4592,11 +4593,37 @@ void CmisModule::setDiagsCapability() {
         vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
+      setCustomFeatureCapability(diags);
+
       *diagsCapability = diags;
     }
   }
   // Scan and update the VDM diags locations
   updateVdmDiagsValLocation();
+}
+
+/*
+ * The mode mismatch and thermal margin registers live in CMIS Custom space
+ * (Lower Memory bytes 64-84, Page 01h bytes 191-222), which carries no
+ * standard meaning. Only modules built to the Meta FW spec populate them, and
+ * that spec mandates CMIS >= 5.1 -- so require that revision before trusting
+ * byte 191, otherwise an unrelated vendor's custom data could be read as an
+ * advertisement.
+ */
+void CmisModule::setCustomFeatureCapability(DiagsCapability& diags) {
+  const auto [major, minor] = getCmisRevision();
+  if (major < 5 || (major == 5 && minor < 1)) {
+    return;
+  }
+
+  uint8_t data;
+  readFromCacheOrHw(CmisField::SUPPORTED_CUSTOM_FEATURES, &data);
+  diags.modeMismatchFlag() =
+      (data & FieldMasks::MODE_MISMATCH_SUPPORT_MASK) != 0;
+  diags.dspTempMargin() =
+      (data & FieldMasks::DSP_TEMP_MARGIN_SUPPORT_MASK) != 0;
+  diags.laserTempMargin() =
+      (data & FieldMasks::LASER_TEMP_MARGIN_SUPPORT_MASK) != 0;
 }
 
 /*

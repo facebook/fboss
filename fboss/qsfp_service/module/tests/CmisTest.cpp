@@ -1869,6 +1869,50 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerCapabilityCheck) {
   EXPECT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 }
 
+// A CMIS >= 5.1 module advertising all three Meta custom features in Page 01h
+// Byte 191 surfaces them in DiagsCapability.
+TEST_F(CmisTest, customFeatureCapabilityAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_TRUE(*diagsCap->modeMismatchFlag());
+  EXPECT_TRUE(*diagsCap->dspTempMargin());
+  EXPECT_TRUE(*diagsCap->laserTempMargin());
+}
+
+// A CMIS >= 5.1 module that leaves Page 01h Byte 191 clear advertises nothing.
+TEST_F(CmisTest, customFeatureCapabilityNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
+// Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on
+// modules built to the spec that defines it (CMIS >= 5.1). Below that revision
+// its contents must be ignored.
+TEST_F(CmisTest, customFeatureCapabilityIgnoredBelowCmis51) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4Cmis50Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_EQ(xcvr->getCmisRevision(), std::make_pair(uint8_t(5), uint8_t(0)));
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
 TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
