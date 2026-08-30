@@ -105,6 +105,14 @@ void CmdConfigTestBase::setupTestableConfigSession() {
           (testEtcDir_ / "coop").string()));
 }
 
+void CmdConfigTestBase::setupReadOnlyTestableConfigSession() {
+  TestableConfigSession::setInstance(
+      std::make_unique<TestableConfigSession>(
+          (testHomeDir_ / ".fboss2").string(),
+          (testEtcDir_ / "coop").string(),
+          ConfigSession::SessionInit::ReadOnly));
+}
+
 void CmdConfigTestBase::setupTestableConfigSession(
     const std::string& cmdPrefix,
     const std::string& cmdArgs) {
