@@ -41,12 +41,10 @@
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -56,6 +54,17 @@ namespace fs = std::filesystem;
 namespace facebook::fboss {
 
 namespace { // anonymous namespace
+
+cli::ConfigSessionMetadata parseMetadata(const std::string& content) {
+  const auto json = folly::parseJson(content);
+  cli::ConfigSessionMetadata metadata;
+  facebook::thrift::from_dynamic(
+      metadata,
+      json,
+      facebook::thrift::dynamic_format::PORTABLE,
+      facebook::thrift::format_adherence::LENIENT);
+  return metadata;
+}
 
 /*
  * Atomically update a symlink to point to a new target.
@@ -629,13 +638,7 @@ void ConfigSession::loadMetadata() {
   // Parse JSON with symbolic enum names using fbthrift's folly_dynamic API
   // LENIENT adherence allows parsing both string names and integer values
   try {
-    folly::dynamic json = folly::parseJson(content);
-    cli::ConfigSessionMetadata metadata;
-    facebook::thrift::from_dynamic(
-        metadata,
-        json,
-        facebook::thrift::dynamic_format::PORTABLE,
-        facebook::thrift::format_adherence::LENIENT);
+    const auto metadata = parseMetadata(content);
     requiredActions_ = *metadata.action();
     commands_ = *metadata.commands();
     base_ = *metadata.base();
@@ -1275,6 +1278,37 @@ void ConfigSession::rebase() {
   }
 }
 
+std::map<cli::ServiceType, cli::ConfigActionLevel>
+ConfigSession::rolledBackActionLevels(const std::string& resolvedSha) const {
+  std::map<cli::ServiceType, cli::ConfigActionLevel> levels;
+  for (const auto& commit : git_->log(getSystemMetadataPath())) {
+    if (commit.sha1 == resolvedSha) {
+      return levels;
+    }
+    try {
+      const auto metadata =
+          parseMetadata(git_->fileAtRevision(commit.sha1, kMetadataGitRelPath));
+      for (const auto& [service, level] : *metadata.action()) {
+        auto it = levels.find(service);
+        if (it == levels.end() ||
+            static_cast<int>(level) > static_cast<int>(it->second)) {
+          levels[service] = level;
+        }
+      }
+    } catch (const std::exception& ex) {
+      throw std::runtime_error(
+          fmt::format(
+              "Cannot safely rollback: failed to read metadata at revision "
+              "{}: {}",
+              Git::shortSha1(commit.sha1),
+              ex.what()));
+    }
+  }
+  // resolvedSha never touched the metadata file (or predates it): every
+  // metadata-bearing commit was scanned, which is the conservative answer.
+  return levels;
+}
+
 std::string ConfigSession::rollback(const HostInfo& hostInfo) {
   // Find the previous commit using the metadata file's history. The metadata
   // (cli/cli_metadata.json) is committed by every config commit -- agent OR
@@ -1308,7 +1342,7 @@ std::string ConfigSession::rollback(
   std::string targetConfigData =
       git_->fileAtRevision(resolvedSha, "cli/agent.conf");
   std::string targetMetadataData =
-      git_->fileAtRevision(resolvedSha, "cli/cli_metadata.json");
+      git_->fileAtRevision(resolvedSha, kMetadataGitRelPath);
   std::string metadataPath = fmt::format("{}/cli_metadata.json", cliConfigDir);
 
   // Target BGP config at that revision ("" if the commit predates BGP config).
@@ -1348,6 +1382,50 @@ std::string ConfigSession::rollback(
   const bool agentChanged = targetConfigData != oldConfigData;
   const bool bgpChanged = targetBgpData != oldBgpData;
 
+  // Reload/restart only the services whose config changed. Each starts at its
+  // default rollback action level and is promoted to the highest level
+  // recorded by any commit being undone: undoing a change needs at least the
+  // action applying it did (e.g. a VLAN membership change cannot be applied
+  // with a hitless reload in either direction). Computed before any file is
+  // touched so a git failure here aborts cleanly.
+  auto recordedLevels = rolledBackActionLevels(resolvedSha);
+  std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
+  auto actionFor = [&recordedLevels](
+                       cli::ServiceType service, cli::ConfigActionLevel floor) {
+    auto it = recordedLevels.find(service);
+    if (it != recordedLevels.end() &&
+        static_cast<int>(it->second) > static_cast<int>(floor)) {
+      return it->second;
+    }
+    return floor;
+  };
+  if (agentChanged) {
+    actions[cli::ServiceType::AGENT] =
+        actionFor(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  }
+  if (bgpChanged) {
+    actions[cli::ServiceType::BGP] =
+        actionFor(cli::ServiceType::BGP, cli::ConfigActionLevel::BGP_RESTART);
+  }
+
+  // The rollback commit's metadata must record the actions IT applied, not the
+  // target commit's: a later rollback undoing this one crosses the same
+  // changes and reads this action map to pick its own level.
+  try {
+    auto metadata = parseMetadata(targetMetadataData);
+    metadata.action() = actions;
+    targetMetadataData = folly::toPrettyJson(
+        facebook::thrift::to_dynamic(
+            metadata, facebook::thrift::dynamic_format::PORTABLE));
+  } catch (const std::exception& ex) {
+    throw std::runtime_error(
+        fmt::format(
+            "Cannot safely rollback to {}: failed to parse target metadata: "
+            "{}",
+            Git::shortSha1(resolvedSha),
+            ex.what()));
+  }
+
   // Always restore the metadata (it records the new rollback base). Only
   // rewrite the agent config + symlink when it actually changed, to avoid
   // needless writes and symlink churn on a BGP-only rollback.
@@ -1384,18 +1462,7 @@ std::string ConfigSession::rollback(
   // Apply the rolled-back config - if this fails, restore prior state.
   std::string newCommitSha;
   try {
-    // Reload the agent only if its config changed.
-    if (agentChanged) {
-      auto client = utils::createClient<
-          apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
-      client->sync_reloadConfig();
-    }
-    // Restart bgpd only if its config changed.
-    if (bgpChanged) {
-      ensureFbossServiceUtil(hostInfo);
-      fbossServiceUtil_->restartService(
-          cli::ServiceType::BGP, cli::ConfigActionLevel::BGP_RESTART);
-    }
+    applyServiceActions(actions, hostInfo);
 
     // Create a Git commit for the rollback. Metadata always changes; the agent
     // config + symlink are included only when they were actually rewritten
