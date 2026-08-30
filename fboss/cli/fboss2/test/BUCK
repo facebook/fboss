@@ -234,6 +234,8 @@ cpp_unittest(
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cli-parser-utils",
+        "//fboss/cli/fboss2:cmd-common-utils",
+        "//fboss/cli/fboss2:cmd-global-options",
         "//fboss/cli/fboss2:cmd-list-header",
         "//fboss/cli/fboss2:cmd-local-options",
         "//fboss/cli/fboss2:cmd-subcommands",
