@@ -20,7 +20,7 @@
 
 namespace facebook::fboss {
 
-namespace copp_cpu_queue {
+namespace copp_queue {
 
 int16_t parseQueueId(const std::string& s, std::string_view context) {
   int16_t parsed = 0;
@@ -41,7 +41,7 @@ int16_t parseQueueId(const std::string& s, std::string_view context) {
   return parsed;
 }
 
-std::vector<cfg::PortQueue>::iterator findCpuQueue(
+std::vector<cfg::PortQueue>::iterator findQueue(
     std::vector<cfg::PortQueue>& queues,
     int16_t id) {
   return std::find_if(
@@ -50,7 +50,7 @@ std::vector<cfg::PortQueue>::iterator findCpuQueue(
       });
 }
 
-} // namespace copp_cpu_queue
+} // namespace copp_queue
 
 namespace copp_reason {
 

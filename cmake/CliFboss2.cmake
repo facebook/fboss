@@ -1020,8 +1020,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
-  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.cpp
-  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
   fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.cpp
@@ -1133,8 +1133,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
   fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.cpp
   fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h
-  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.cpp
-  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.cpp
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp

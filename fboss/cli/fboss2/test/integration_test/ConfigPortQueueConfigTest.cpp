@@ -16,6 +16,9 @@
  *   - AQM with ECN behavior and linear detection profile
  * then assigns the queue config to an interface and verifies the running
  * config.
+ *
+ * A second config covers the create/shape/delete lifecycle: a shaped queue,
+ * then removal of the whole named entry.
  */
 
 #include <folly/json/dynamic.h>
@@ -248,7 +251,12 @@ TEST_F(ConfigPortQueueConfigTest, BuildAndAssignPolicy) {
 
 // Removing a whole named config has to survive the round trip: the agent must
 // accept a config with the entry gone, not just the CLI drop it locally.
-TEST_F(ConfigPortQueueConfigTest, DeleteWholeQueueConfig) {
+//
+// The queue carries a rate-limit on the way through, so the round trip also
+// covers the agent accepting a shaped queue. Which grammar forms the CLI
+// parses is a unit-test question (CmdConfigQosQueueConfigTest), so only one
+// form runs here.
+TEST_F(ConfigPortQueueConfigTest, QueueConfigCreateShapeAndDelete) {
   const std::string name = kDeleteQueueConfigName;
 
   XLOG(INFO) << "[Step 1] Creating " << name;
@@ -262,12 +270,17 @@ TEST_F(ConfigPortQueueConfigTest, DeleteWholeQueueConfig) {
               "scheduling",
               "WRR",
               "weight",
-              "3"})
+              "3",
+              "rate-limit",
+              "kbps",
+              "12500000",
+              "12500000"})
           .exitCode,
       0);
   commitConfig();
   waitForAgentReady();
 
+  XLOG(INFO) << "[Step 2] Verifying running config";
   // Hold the config in a named local: getRunningConfig() returns by value, and
   // binding a reference to a subobject of the temporary would dangle.
   auto afterCreate = getRunningConfig();
@@ -280,7 +293,15 @@ TEST_F(ConfigPortQueueConfigTest, DeleteWholeQueueConfig) {
   ASSERT_TRUE(swAfterCreate["portQueueConfigs"].count(name))
       << name << " missing after create";
 
-  XLOG(INFO) << "[Step 2] Deleting " << name;
+  const auto& queues = swAfterCreate["portQueueConfigs"][name];
+  const auto* q1 = findQueue(queues, 1);
+  ASSERT_NE(q1, nullptr) << "queue 1 missing from " << name;
+  ASSERT_TRUE(q1->count("portQueueRate"));
+  const auto& kbps = (*q1)["portQueueRate"]["kbitsPerSec"];
+  EXPECT_EQ(kbps["minimum"].asInt(), 12500000);
+  EXPECT_EQ(kbps["maximum"].asInt(), 12500000);
+
+  XLOG(INFO) << "[Step 3] Deleting " << name;
   discardSession();
   auto del = runCli({"delete", "qos", "queue-config", name});
   ASSERT_EQ(del.exitCode, 0) << "CLI failed: " << del.stderr;
