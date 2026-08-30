@@ -26,6 +26,9 @@
 #include "fboss/lib/CommonUtils.h"
 
 const std::string kSflowMirrorName = "sflow_mirror";
+// Match the addresses pumpRoCETraffic itself defaults to for IPv6.
+constexpr auto kRoceSrcIp = "1001::1";
+constexpr auto kRoceDstIp = "2001::1";
 
 namespace facebook::fboss {
 
@@ -253,7 +256,8 @@ size_t AgentArsBase::sendRoceTraffic(
     const std::optional<std::vector<uint8_t>>& nxtHdr,
     int packetCount,
     int destPort,
-    uint8_t reserved) {
+    uint8_t reserved,
+    const std::optional<folly::IPAddressV6>& srcIp) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
       getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
@@ -264,6 +268,8 @@ size_t AgentArsBase::sendRoceTraffic(
       intfMac,
       vlanId,
       frontPanelEgrPort,
+      srcIp.value_or(folly::IPAddressV6(kRoceSrcIp)),
+      folly::IPAddressV6(kRoceDstIp),
       destPort,
       255,
       std::nullopt,

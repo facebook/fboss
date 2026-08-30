@@ -57,6 +57,10 @@ class AgentArsBase : public AgentHwTest {
   void flowletSwitchingAclHitHelper(AclType aclTypePre, AclType aclTypePost);
   void verifyUdfAddDelete(AclType aclTypePre, AclType aclTypePost);
 
+  // pumpRoCETraffic holds the L4 source port fixed and only varies the RoCE
+  // destination queue pair, so every packet shares a 5-tuple and the ECMP hash
+  // sends them all to one member. Callers that need traffic to actually spread
+  // pass srcIp and vary it per flow.
   size_t sendRoceTraffic(
       const PortID& frontPanelEgrPort,
       int roceOpcode = utility::kUdfRoceOpcodeAck,
@@ -64,7 +68,8 @@ class AgentArsBase : public AgentHwTest {
           std::optional<std::vector<uint8_t>>(),
       int packetCount = 1,
       int destPort = utility::kUdfL4DstPort,
-      uint8_t reserved = utility::kRoceReserved);
+      uint8_t reserved = utility::kRoceReserved,
+      const std::optional<folly::IPAddressV6>& srcIp = std::nullopt);
   auto verifyAclType(bool bumpOnHit, AclType aclType);
   void verifyAcl(AclType aclType);
   std::vector<cfg::AclUdfEntry> addUdfTable(
