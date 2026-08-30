@@ -791,9 +791,7 @@ struct TBgpAttributes {
   7: optional bool install_to_fib;
 }
 
-/**
-* Direction filter for attribute statistics
-*/
+/** Direction filter for BGP statistics. */
 enum TDirectionFilter {
   INGRESS = 0,
   EGRESS = 1,
@@ -978,6 +976,19 @@ struct TAdjRibInStats {
 
 struct TAdjRibOutStats {
   1: list<TAdjRibOutPeerStats> peers;
+}
+
+struct TGetAdjRibStatsRequest {
+  1: TDirectionFilter direction = TDirectionFilter.BOTH;
+}
+
+/**
+ * O(peers) Adj-RIB statistics with no route-scale tree walk.
+ * Peer snapshots have no ordering guarantee.
+ */
+struct TGetAdjRibStatsResponse {
+  1: TAdjRibInStats rib_in;
+  2: TAdjRibOutStats rib_out;
 }
 
 /**
@@ -2163,6 +2174,12 @@ service TBgpService extends fb303.FacebookService {
   TGetDeduplicatorStatsResponse getDeduplicatorStats(
     1: TGetDeduplicatorStatsRequest request,
   );
+
+  /**
+   * Get cached per-peer Adj-RIB-IN and effective Adj-RIB-OUT statistics without
+   * traversing a radix tree.
+   */
+  TGetAdjRibStatsResponse getAdjRibStats(1: TGetAdjRibStatsRequest request);
 
   /**
    * Deprecated wire-compatibility placeholder. Returns an empty response
