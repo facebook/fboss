@@ -472,6 +472,10 @@ struct PortInfoThrift {
   // Lookup class assigned to packets ingressing on this port. Mirrors
   // switch_config.Port.userMetaData. Unset when the port has no class ID.
   37: optional switch_config.AclLookupClassPort userMetaData;
+
+  // Ingress ACL table bound directly to this port. Mirrors
+  // switch_config.Port.ingressAclTableName. Unset when no table is bound.
+  38: optional string ingressAclTableName;
 }
 
 // Port queueing configuration
