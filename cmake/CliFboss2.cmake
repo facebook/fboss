@@ -831,14 +831,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
-  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.cpp
-  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h
-  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.cpp
-  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h
-  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.cpp
-  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.h
-  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.cpp
-  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.h
   fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.cpp
   fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h
   fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.cpp
@@ -847,10 +839,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
   fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
+  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.cpp
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h
   fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.cpp
   fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h
   fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.cpp
   fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h
+  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.cpp
+  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.h
+  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.cpp
+  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.h
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
   fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
@@ -1115,6 +1115,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
+  fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.cpp
+  fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.h
   fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.cpp
   fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h
   fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.cpp

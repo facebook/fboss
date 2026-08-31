@@ -135,6 +135,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h"
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
+#include "fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.h"
 #include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
 #include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
@@ -216,13 +217,13 @@ const CommandTree& kConfigCommandTree() {
            },
            {
                "table",
-               "Configure an ACL table within a group (e.g. set priority)",
+               "Create or configure an ACL table within a table-group",
                commandHandler<CmdConfigAclTable>,
                argRegistrar<CmdConfigAclTableTraits>,
            },
            {
                "table-group",
-               "Configure an ACL table group (e.g. set stage)",
+               "Create or configure an ACL table-group and its stage",
                commandHandler<CmdConfigAclTableGroup>,
                argRegistrar<CmdConfigAclTableGroupTraits>,
            }},
@@ -1224,11 +1225,17 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteAcl>,
           argRegistrar<CmdDeleteAclTraits>,
           {{
-              "rule",
-              "Delete an ACL rule (and any associated MatchAction) from an AclTable",
-              commandHandler<CmdDeleteAclRule>,
-              argRegistrar<CmdDeleteAclRuleTraits>,
-          }},
+               "rule",
+               "Delete an ACL rule (and any associated MatchAction) from an AclTable",
+               commandHandler<CmdDeleteAclRule>,
+               argRegistrar<CmdDeleteAclRuleTraits>,
+           },
+           {
+               "table",
+               "Delete an ACL table, its rules, and their traffic-policy actions",
+               commandHandler<CmdDeleteAclTable>,
+               argRegistrar<CmdDeleteAclTableTraits>,
+           }},
       },
 
       {"delete",

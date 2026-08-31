@@ -126,16 +126,4 @@ AclRuleMutation parseAclRuleSpec(const std::vector<std::string>& tokens);
 std::string aclRuleAttrKeysCsv();
 std::string aclRuleActionKeysCsv();
 
-// Locate the AclTable named `tableName` across every AclTableGroup in
-// `swConfig` (ACL table names are unique within a group, so we walk all
-// groups and the caller need not name the group). Returns the table pointer
-// and its owning group's name. Throws std::runtime_error if there are no
-// aclTableGroups (only field-56 is supported, not the deprecated field-45
-// aclTableGroup) or if no group contains the table. Shared by
-// `config acl rule` and `delete acl rule` so the two resolve tables
-// identically.
-std::pair<cfg::AclTable*, std::string> findAclTable(
-    cfg::SwitchConfig& swConfig,
-    const std::string& tableName);
-
 } // namespace facebook::fboss

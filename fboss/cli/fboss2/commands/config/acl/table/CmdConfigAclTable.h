@@ -20,11 +20,15 @@
 
 namespace facebook::fboss {
 
-// Argument for `config acl table <group-name> <table-name> priority <value>`.
+// Argument for `config acl table <table-name> group <group-name> priority
+// <value>`.
 //
-// <group-name>  is matched by name against sw.aclTableGroups.
-// <table-name>  is matched by name against the group's aclTables list.
-// <value>       is a non-negative int16.
+// <table-name>  the table being configured; created in <group-name> if absent.
+// <group-name>  must already exist -- creating a group is `config acl
+//               table-group`'s job.
+// <value>       is a non-negative int16. The agent stores it but today's
+//               parallel ACL groups ignore it for hardware ordering, and
+//               changing it on an existing table recreates the table.
 class AclTableConfigArgs : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ AclTableConfigArgs( // NOLINT(google-explicit-constructor)
@@ -53,14 +57,14 @@ struct CmdConfigAclTableTraits : public WriteCommandTraits {
   using ObjectArgType = AclTableConfigArgs;
   using RetType = std::string;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    // required() + expected(4) prevents CLI11 from treating the first
-    // positional (the group name) as a subcommand name.
+    // required() + expected(5) prevents CLI11 from treating the first
+    // positional (the table name) as a subcommand name.
     cmd.add_option(
            "acl_table_config",
            args,
-           "<group-name> <table-name> priority <value>")
+           "<table-name> group <group-name> priority <value>")
         ->required()
-        ->expected(4);
+        ->expected(5);
   }
 };
 

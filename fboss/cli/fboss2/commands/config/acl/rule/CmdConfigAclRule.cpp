@@ -12,6 +12,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h"
 #include "fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h"
 
 #include <fmt/format.h>
@@ -81,7 +82,7 @@ CmdConfigAclRuleTraits::RetType CmdConfigAclRule::queryClient(
   auto& swConfig = *config.sw();
 
   auto [matchingTable, matchingGroupName] =
-      findAclTable(swConfig, args.getTableName());
+      acl_utils::resolveAclTable(swConfig, args.getTableName());
 
   auto& entries = *matchingTable->aclEntries();
   auto eit =

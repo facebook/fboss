@@ -15,7 +15,6 @@
 #include "fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h"
 
 #include <fmt/format.h>
-#include <folly/Conv.h>
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -47,35 +46,19 @@ const std::unordered_map<std::string_view, cfg::AclStage> kAclStageByName = {
     {kAclStageIngressPostLookup, cfg::AclStage::INGRESS_POST_LOOKUP},
 };
 
+// Names only, case-insensitive. The thrift enum would take a bare 0-3, but a
+// number in the command line says nothing about which stage it picks.
 cfg::AclStage parseAclStage(const std::string& s) {
-  // Try named string first (case-insensitive via tolower).
   std::string lower = s;
   std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
   auto it = kAclStageByName.find(lower);
   if (it != kAclStageByName.end()) {
     return it->second;
   }
-  // Numeric fallback.
-  try {
-    int n = folly::to<int>(s);
-    switch (n) {
-      case 0:
-        return cfg::AclStage::INGRESS;
-      case 1:
-        return cfg::AclStage::INGRESS_MACSEC;
-      case 2:
-        return cfg::AclStage::EGRESS_MACSEC;
-      case 3:
-        return cfg::AclStage::INGRESS_POST_LOOKUP;
-      default:
-        break;
-    }
-  } catch (const folly::ConversionError&) {
-  }
   throw std::invalid_argument(
       fmt::format(
           "Invalid stage '{}'. Valid values: ingress, ingress-macsec, "
-          "egress-macsec, ingress-post-lookup (or numeric 0-3)",
+          "egress-macsec, ingress-post-lookup",
           s));
 }
 } // namespace
@@ -105,17 +88,21 @@ CmdConfigAclTableGroupTraits::RetType CmdConfigAclTableGroup::queryClient(
   auto& config = session.getAgentConfig();
   auto& swConfig = *config.sw();
 
-  auto& group =
-      acl_utils::findAclTableGroupOrThrow(swConfig, args.getGroupName());
-  group.stage() = args.getStage();
+  acl_utils::requireAclTableGroupMode(config);
 
-  // ACL table group changes are applied at runtime via
-  // processAclTableGroupDelta (SaiAclTableGroupManager); no change-prohibited
-  // guard exists in SaiSwitch.
+  const bool created = acl_utils::findOrCreateAclTableGroup(
+      swConfig, args.getGroupName(), args.getStage());
+
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
+  if (created) {
+    return fmt::format(
+        "Created acl table-group '{}' at stage {}",
+        args.getGroupName(),
+        apache::thrift::util::enumNameSafe(args.getStage()));
+  }
   return fmt::format(
-      "Set acl table-group '{}' stage to {}",
+      "acl table-group '{}' is already at stage {}; nothing to do",
       args.getGroupName(),
       apache::thrift::util::enumNameSafe(args.getStage()));
 }
