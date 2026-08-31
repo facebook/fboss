@@ -713,9 +713,11 @@ void SaiSwitchManager::setIngressAcl() {
           HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
     return;
   }
-  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
-                                 .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
-                                 ->aclTableGroup;
+  auto aclTableGroupHandle =
+      managerTable_->aclTableGroupManager()
+          .getAclTableGroupHandle(
+              SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::SWITCH)
+          ->aclTableGroup;
   setIngressAcl(aclTableGroupHandle->adapterKey());
 }
 
@@ -749,9 +751,11 @@ void SaiSwitchManager::setEgressAcl() {
   CHECK(platform_->getAsic()->isSupported(
       HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
       << "INGRESS_POST_LOOKUP_ACL_TABLE ACL not supported";
-  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
-                                 .getAclTableGroupHandle(SAI_ACL_STAGE_EGRESS)
-                                 ->aclTableGroup;
+  auto aclTableGroupHandle =
+      managerTable_->aclTableGroupManager()
+          .getAclTableGroupHandle(
+              SAI_ACL_STAGE_EGRESS, cfg::AclTableGroupBindPoint::SWITCH)
+          ->aclTableGroup;
   setEgressAcl(aclTableGroupHandle->adapterKey());
   isIngressPostLookupAclSupported_ = true;
 }

@@ -25,7 +25,8 @@ using namespace facebook::fboss;
 
 namespace {
 const std::string kAclTable2 = "AclTable2";
-}
+const std::string kAclTable3 = "AclTable3";
+} // namespace
 
 class AclTableManagerTest : public ManagerTestBase {
  public:
@@ -84,6 +85,47 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
   auto stageGot2 = saiApiTable->aclApi().getAttribute(
       aclTableId2, SaiAclTableTraits::Attributes::Stage());
   EXPECT_EQ(stageGot2, SAI_ACL_STAGE_INGRESS);
+}
+
+TEST_F(AclTableManagerTest, addPortBoundAclTable) {
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto table = std::make_shared<AclTable>(0, kAclTable2);
+  const auto aclTableId = saiManagerTable->aclTableManager().addAclTable(
+      table,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+  auto secondTable = std::make_shared<AclTable>(1, kAclTable3);
+  const auto secondAclTableId = saiManagerTable->aclTableManager().addAclTable(
+      secondTable,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  const auto bindPoints = saiApiTable->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::BindPointTypeList());
+  EXPECT_EQ(bindPoints, std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT});
+  const auto secondBindPoints = saiApiTable->aclApi().getAttribute(
+      secondAclTableId, SaiAclTableTraits::Attributes::BindPointTypeList());
+  EXPECT_EQ(
+      secondBindPoints, std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT});
+
+  auto* aclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(aclTableGroupHandle, nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, kAclTable2),
+      nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, kAclTable3),
+      nullptr);
 }
 
 TEST_F(AclTableManagerTest, addDupAclTable) {

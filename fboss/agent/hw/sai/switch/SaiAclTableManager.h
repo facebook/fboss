@@ -167,16 +167,22 @@ class SaiAclTableManager {
   AclTableSaiId addAclTable(
       const std::shared_ptr<AclTable>& addedAclTable,
       cfg::AclStage aclStage,
-      const std::shared_ptr<SwitchState>& state);
+      const std::shared_ptr<SwitchState>& state,
+      cfg::AclTableGroupBindPoint bindPoint =
+          cfg::AclTableGroupBindPoint::SWITCH);
   void removeAclTable(
       const std::shared_ptr<AclTable>& removedAclTable,
       cfg::AclStage aclStage,
-      const std::shared_ptr<SwitchState>& state);
+      const std::shared_ptr<SwitchState>& state,
+      cfg::AclTableGroupBindPoint bindPoint =
+          cfg::AclTableGroupBindPoint::SWITCH);
   void changedAclTable(
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,
       cfg::AclStage aclStage,
-      const std::shared_ptr<SwitchState>& state);
+      const std::shared_ptr<SwitchState>& state,
+      cfg::AclTableGroupBindPoint bindPoint =
+          cfg::AclTableGroupBindPoint::SWITCH);
   std::shared_ptr<AclTable> reconstructAclTable(
       int priority,
       const std::string& name) const;
@@ -326,7 +332,8 @@ class SaiAclTableManager {
       SaiAclTableTraits::CreateAttributes>
   aclTableCreateAttributes(
       sai_acl_stage_t aclStage,
-      const std::shared_ptr<AclTable>& addedAclTable);
+      const std::shared_ptr<AclTable>& addedAclTable,
+      cfg::AclTableGroupBindPoint bindPoint);
 
   sai_u32_range_t getFdbDstUserMetaDataRange() const;
   sai_u32_range_t getRouteDstUserMetaDataRange() const;
