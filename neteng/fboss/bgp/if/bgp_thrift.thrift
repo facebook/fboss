@@ -1673,33 +1673,6 @@ service TBgpService extends fb303.FacebookService {
   > getPrefilterAdvertisedNetworks2(1: string peer);
 
   /**
-   * Routes we receive from peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preIn routes of the peer and displays the
-   * postIn output if the policy is applied.
-   * i.e. Determine the effect of policy without effecting the running state.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
-
-  /**
-   * Routes we sent to a peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preOut routes of the peer and displays the
-   * postOut output if the policy is applied.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
-
-  /**
    * Get post-policy network information for stream subscribers
    *
    * @param peerID - integer ID of BGP stream subscriber
