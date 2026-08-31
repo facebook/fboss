@@ -282,8 +282,7 @@ TEST_F(PortManagerTest, setIngressAcl) {
   saiManagerTable->portManager().addPort(swPort);
   saiManagerTable->portManager().setIngressAcl(swPort);
 
-  const auto* handle =
-      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
   ASSERT_NE(handle, nullptr);
   EXPECT_FALSE(
       std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
@@ -297,9 +296,21 @@ TEST_F(PortManagerTest, setIngressAcl) {
           handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
       aclTableId);
 
-  auto newSwPort = swPort->clone();
+  auto recreatedSwPort = makePort(p0, cfg::PortSpeed::FIFTYG);
+  recreatedSwPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().changePort(swPort, recreatedSwPort);
+  saiManagerTable->portManager().changeIngressAcl(swPort, recreatedSwPort);
+  handle =
+      saiManagerTable->portManager().getPortHandle(recreatedSwPort->getID());
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      aclTableId);
+
+  auto newSwPort = recreatedSwPort->clone();
   newSwPort->setIngressAclTableName(secondIngressAclTableName);
-  saiManagerTable->portManager().changeIngressAcl(swPort, newSwPort);
+  saiManagerTable->portManager().changeIngressAcl(recreatedSwPort, newSwPort);
   EXPECT_EQ(
       saiApiTable->portApi().getAttribute(
           handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),

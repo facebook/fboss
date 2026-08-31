@@ -1772,11 +1772,10 @@ void SaiPortManager::setIngressAcl(const std::shared_ptr<Port>& swPort) {
 }
 
 void SaiPortManager::changeIngressAcl(
-    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& /*oldPort*/,
     const std::shared_ptr<Port>& newPort) {
-  if (oldPort->getIngressAclTableName() == newPort->getIngressAclTableName()) {
-    return;
-  }
+  // A create-only attribute change may recreate the SAI port, so reapply
+  // the ACL even when its table name is unchanged.
   setIngressAcl(newPort);
 }
 
