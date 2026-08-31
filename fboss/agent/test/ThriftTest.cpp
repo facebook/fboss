@@ -188,6 +188,61 @@ TEST_F(ThriftTest, getPortInfoUserMetaData) {
       cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
 }
 
+TEST_F(ThriftTest, getPortInfoIngressAclTableName) {
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  FLAGS_enable_acl_table_group = true;
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+  const std::string kPortTable = "port-ingress-table";
+
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.ingressAclTableName().has_value());
+
+  auto makeTable = [](const std::string& name, int priority) {
+    cfg::AclTable table;
+    table.name() = name;
+    table.priority() = priority;
+    return table;
+  };
+
+  auto config = testConfigA();
+
+  // A switch-bound group alongside the port-bound one, mirroring how the
+  // access policy tables are published in production.
+  cfg::AclTableGroup switchGroup;
+  switchGroup.name() = "switch-ingress-group";
+  switchGroup.stage() = cfg::AclStage::INGRESS;
+  switchGroup.bindPoint() = cfg::AclTableGroupBindPoint::SWITCH;
+  switchGroup.aclTables() = {makeTable("switch-ingress-table", 1)};
+
+  cfg::AclTableGroup portGroup;
+  portGroup.name() = "port-ingress-group";
+  portGroup.stage() = cfg::AclStage::INGRESS;
+  portGroup.bindPoint() = cfg::AclTableGroupBindPoint::PORT;
+  portGroup.aclTables() = {makeTable(kPortTable, 1)};
+
+  config.aclTableGroups() = {switchGroup, portGroup};
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.ingressAclTableName() = kPortTable;
+    }
+  }
+  sw_->applyConfig("bind ingress acl table to port", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.ingressAclTableName().has_value());
+  EXPECT_EQ(*after.ingressAclTableName(), kPortTable);
+
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(allPortInfo[kTestPortId].ingressAclTableName(), kPortTable);
+}
+
 template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
