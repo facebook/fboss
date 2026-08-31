@@ -160,7 +160,12 @@ vendor-scoped, self-describing directory
 
 - `platform_mapping.json` — the platform mapping described above.
 - `platform_descriptor.json` — the platform identity (`platformType`, `productNamePrefixes`,
-  `modeNames`, `asicType`) consumed by the agent's `PlatformDescriptorRegistry`.
+  `modeNames`, `asicType`) and the derived physical switch ASIC count
+  (`numSwitchAsics`) consumed by the agent's `PlatformDescriptorRegistry`.
+
+`numSwitchAsics` is derived by counting unique `(slot_id, chip_id)` pairs whose
+chip type is `NPU` in the static mapping. Core and lane entries belonging to the
+same physical ASIC do not increase the count.
 
 The `<system_vendor>` segment comes from the `System_Vendor` column of the descriptor CSV.
 

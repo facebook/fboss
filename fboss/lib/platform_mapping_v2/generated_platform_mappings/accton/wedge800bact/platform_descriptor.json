@@ -6,5 +6,6 @@
   "modeNames": [
     "wedge800bact"
   ],
-  "asicType": 13
+  "asicType": 13,
+  "numSwitchAsics": 1
 }

@@ -240,7 +240,11 @@ def generate_platform_mappings_from_vendor_data(
     )
 
     generate_platform_descriptor(
-        vendor_data_map, output_dir, platform_name, platform_descriptor_data
+        vendor_data_map,
+        output_dir,
+        platform_name,
+        generator.get_num_switch_asics(),
+        platform_descriptor_data,
     )
 
 
@@ -323,6 +327,7 @@ def generate_platform_descriptor(
     vendor_data_map: Dict[str, Dict[str, str]],
     output_dir: str,
     platform_name: str,
+    num_switch_asics: int,
     platform_descriptor_data: Optional[PlatformDescriptorData] = None,
 ) -> None:
     if platform_descriptor_data is None:
@@ -331,8 +336,14 @@ def generate_platform_descriptor(
         )
     if platform_descriptor_data is None:
         return
+    if num_switch_asics < 1:
+        raise ValueError(
+            f"Static mapping for {platform_name} does not define a switch ASIC"
+        )
 
     _, platform_descriptor = platform_descriptor_data
+    platform_descriptor = dict(platform_descriptor)
+    platform_descriptor["numSwitchAsics"] = num_switch_asics
     descriptor_json = _format_json(platform_descriptor)
     if not descriptor_json.endswith("\n"):
         descriptor_json += "\n"

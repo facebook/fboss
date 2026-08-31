@@ -15,5 +15,6 @@
   "asicType": 13,
   "variantAttributes": {
     "montblanc_odd_ports_8x100G": true
-  }
+  },
+  "numSwitchAsics": 1
 }
