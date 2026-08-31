@@ -51,6 +51,8 @@ struct dynamic;
 
 namespace facebook::fboss {
 
+class RxPacket;
+
 namespace cfg {
 class SwitchConfig;
 }
@@ -313,6 +315,19 @@ std::vector<PortID> getPortsForInterface(
 
 InterfaceID getInterfaceIDForPort(
     PortID port,
+    const std::shared_ptr<SwitchState>& state);
+
+/*
+ * Resolve the L3 interface a received packet ingressed on. Prefers the
+ * packet's ingress VLAN (resolved by the hardware, VLAN <-> interface is
+ * always 1:1) over the ingress port, since a trunk port may belong to
+ * multiple VLANs and thus multiple interfaces. Falls back to port-based
+ * resolution when the packet carries no VLAN (e.g. VOQ/fabric switches).
+ * Returns std::nullopt when no interface can be determined; such packets
+ * should be dropped rather than crash the agent.
+ */
+std::optional<InterfaceID> getInterfaceIDForPkt(
+    const RxPacket& pkt,
     const std::shared_ptr<SwitchState>& state);
 
 /*
