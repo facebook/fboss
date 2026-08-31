@@ -155,6 +155,39 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
+TEST_F(ThriftTest, getPortInfoUserMetaData) {
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+
+  // A port with no class ID configured must leave the field unset, so that
+  // absence stays distinguishable from an explicit CLASS_PORT_UNCONSTRAINED.
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.userMetaData().has_value());
+
+  auto config = testConfigA();
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.userMetaData() = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+    }
+  }
+  sw_->applyConfig("set port user metadata", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.userMetaData().has_value());
+  EXPECT_EQ(
+      *after.userMetaData(), cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  // getAllPortInfo shares getPortInfoHelper, so it must agree.
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(
+      allPortInfo[kTestPortId].userMetaData(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+}
+
 template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
