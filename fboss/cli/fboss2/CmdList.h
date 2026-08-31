@@ -372,8 +372,16 @@ const CommandTree& kBaseAdditionalCommandTree();
 const CommandTree& kAdditionalCommandTree();
 const std::vector<Command>& kSpecialCommands();
 
+// Defined in CmdHandler.h. For a read ("show") command this static_asserts that
+// the command carries the CLI reference-wiki hooks (or a CliDocsExempt tag); a
+// no-op for write commands. Instantiated only at the command-tree registration
+// sites (CmdList.cpp variants), which include CmdHandler.h via command headers.
+template <typename T>
+void assertReadCommandDocumented();
+
 template <typename T>
 void commandHandler() {
+  assertReadCommandDocumented<T>();
   T().run();
 }
 
