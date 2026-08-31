@@ -18,7 +18,6 @@ target_link_libraries(qsfp_stats
 add_library(qsfp_lib
   fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
-  fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 

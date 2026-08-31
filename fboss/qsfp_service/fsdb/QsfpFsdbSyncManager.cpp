@@ -11,12 +11,34 @@
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/if/FsdbModel.h"
+
+namespace {
+
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
+    stateRoot;
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStatsRoot>
+    statsRoot;
+
+} // anonymous namespace
 
 namespace facebook {
 namespace fboss {
 
 namespace qsfp_state_tags = apache::thrift::ident;
 namespace qsfp_stats_tags = apache::thrift::ident;
+
+std::vector<std::string> QsfpFsdbSyncManager::getStatePath() {
+  return stateRoot.qsfp_service().tokens();
+}
+
+std::vector<std::string> QsfpFsdbSyncManager::getStatsPath() {
+  return statsRoot.qsfp_service().tokens();
+}
+
+std::vector<std::string> QsfpFsdbSyncManager::getConfigPath() {
+  return stateRoot.qsfp_service().config().tokens();
+}
 
 QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
   if (FLAGS_publish_state_to_fsdb) {
