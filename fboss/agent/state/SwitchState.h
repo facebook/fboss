@@ -156,6 +156,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::portAclTableGroupMaps,
+    MultiSwitchAclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::dsfNodesMap,
     MultiSwitchDsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
@@ -302,10 +306,15 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
+  const std::shared_ptr<MultiSwitchAclTableGroupMap>& getPortAclTableGroups()
+      const;
 
   std::chrono::seconds getArpTimeout() const;
 
   std::shared_ptr<const AclMap> getAclsForTable(
+      cfg::AclStage aclStage,
+      const std::string& tableName) const;
+  std::shared_ptr<const AclTable> getAclTable(
       cfg::AclStage aclStage,
       const std::string& tableName) const;
 
@@ -427,6 +436,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
+  void resetPortAclTableGroups(
+      std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors);
   void resetQosPolicies(

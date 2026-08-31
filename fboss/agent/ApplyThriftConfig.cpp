@@ -560,7 +560,12 @@ class ThriftConfigApplier {
       cfg::AclStage aclStage,
       const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
-  std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
+  struct AclTableGroupMaps {
+    std::shared_ptr<AclTableGroupMap> switchBound;
+    std::shared_ptr<AclTableGroupMap> portBound;
+  };
+  AclTableGroupMaps updateAclTableGroups();
+  void validatePortIngressAcls() const;
   flat_map<std::string, const cfg::AclEntry*> getAllAclsByName(
       const cfg::AclTableGroup& cfgAclTableGroup);
   void checkTrafficPolicyAclsExistInConfig(
@@ -912,9 +917,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
-      if (newAclTableGroups) {
+      if (newAclTableGroups.switchBound) {
         new_->resetAclTableGroups(toScopedMultiSwitchAclTableGroupMap(
-            newAclTableGroups, scopeResolver_));
+            newAclTableGroups.switchBound, scopeResolver_));
+        changed = true;
+      }
+      if (newAclTableGroups.portBound) {
+        new_->resetPortAclTableGroups(toScopedMultiSwitchAclTableGroupMap(
+            newAclTableGroups.portBound, scopeResolver_));
         changed = true;
       }
     } else {
@@ -927,6 +937,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       }
     }
   }
+  validatePortIngressAcls();
 
   {
     auto newQosPolicies = updateQosPolicies();
@@ -3296,6 +3307,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->rxPrecoding().has_value() ==
           orig->getRxPrecoding().has_value() &&
       portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
+      portConf->ingressAclTableName().to_optional() ==
+          orig->getIngressAclTableName() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3416,6 +3429,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
   newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
   newPort->setUserMetaData(newUserMetaData);
+  newPort->setIngressAclTableName(
+      portConf->ingressAclTableName().to_optional());
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {
@@ -4045,35 +4060,57 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
   return make_shared<QosPolicy>(*qosPolicy.name(), ingressDscpMap);
 }
 
-std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
+ThriftConfigApplier::AclTableGroupMaps
+ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
+  auto origPortAclTableGroups = orig_->getPortAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
+  AclTableGroupMap::NodeContainer newPortAclTableGroups;
 
   flat_map<std::string, const cfg::AclEntry*> aclByName{};
+  flat_set<std::string> aclTableNames;
+  bool switchBoundChanged = false;
+  bool portBoundChanged = false;
 
   auto updateAclTableGroupsInternal =
-      [this, origAclTableGroups, &newAclTableGroups, &aclByName](
-          const cfg::AclTableGroup& cfgAclTableGroup) {
+      [this,
+       origAclTableGroups,
+       origPortAclTableGroups,
+       &newAclTableGroups,
+       &newPortAclTableGroups,
+       &aclByName,
+       &aclTableNames,
+       &switchBoundChanged,
+       &portBoundChanged](const cfg::AclTableGroup& cfgAclTableGroup) {
+        for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
+          if (!aclTableNames.emplace(*aclTable.name()).second) {
+            throw FbossError("Duplicate ACL table name ", *aclTable.name());
+          }
+        }
         aclByName.merge(getAllAclsByName(cfgAclTableGroup));
+        const auto bindPoint = *cfgAclTableGroup.bindPoint();
+        const auto portBound = bindPoint == cfg::AclTableGroupBindPoint::PORT;
+        const auto& origGroups =
+            portBound ? origPortAclTableGroups : origAclTableGroups;
+        auto& newGroups = portBound ? newPortAclTableGroups : newAclTableGroups;
+        auto& changed = portBound ? portBoundChanged : switchBoundChanged;
         auto origAclTableGroup =
-            origAclTableGroups->getNodeIf(*cfgAclTableGroup.stage());
+            origGroups->getNodeIf(*cfgAclTableGroup.stage());
         auto newAclTableGroup = updateAclTableGroup(
             *cfgAclTableGroup.stage(), cfgAclTableGroup, origAclTableGroup);
-        return updateMap(
-            &newAclTableGroups, origAclTableGroup, newAclTableGroup);
+        changed |= updateMap(&newGroups, origAclTableGroup, newAclTableGroup);
       };
 
-  bool changed = false;
   if (!cfg_->aclTableGroup() &&
       (!cfg_->aclTableGroups() || cfg_->aclTableGroups()->empty())) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {
-    changed = updateAclTableGroupsInternal(*cfgAclTableGroup);
+    updateAclTableGroupsInternal(*cfgAclTableGroup);
   } else {
     for (const auto& entry : *cfg_->aclTableGroups()) {
       // acl entry names must be unique across all acl table groups.
-      changed |= updateAclTableGroupsInternal(entry);
+      updateAclTableGroupsInternal(entry);
     }
   }
 
@@ -4087,11 +4124,63 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
     checkTrafficPolicyAclsExistInConfig(*dataPlaneTrafficPolicy, aclByName);
   }
 
-  if (!changed) {
-    return nullptr;
-  }
+  switchBoundChanged |=
+      newAclTableGroups.size() != origAclTableGroups->numNodes();
+  portBoundChanged |=
+      newPortAclTableGroups.size() != origPortAclTableGroups->numNodes();
+  return {
+      switchBoundChanged
+          ? std::make_shared<AclTableGroupMap>(std::move(newAclTableGroups))
+          : nullptr,
+      portBoundChanged
+          ? std::make_shared<AclTableGroupMap>(std::move(newPortAclTableGroups))
+          : nullptr};
+}
 
-  return std::make_shared<AclTableGroupMap>(std::move(newAclTableGroups));
+void ThriftConfigApplier::validatePortIngressAcls() const {
+  for (const auto& port : *cfg_->ports()) {
+    const auto ingressAclTableName = port.ingressAclTableName().to_optional();
+    if (!ingressAclTableName) {
+      continue;
+    }
+    if (!FLAGS_enable_acl_table_group) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " specifies ingress ACL table ",
+          *ingressAclTableName,
+          " while ACL table groups are disabled");
+    }
+    const auto scopedAclTableGroups =
+        new_->getPortAclTableGroups()->getMapNodeIf(scopeResolver_.scope(port));
+    const auto aclTableGroup = scopedAclTableGroups
+        ? scopedAclTableGroups->getNodeIf(cfg::AclStage::INGRESS)
+        : nullptr;
+    if (!aclTableGroup) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " references ingress ACL table ",
+          *ingressAclTableName,
+          " but no port-bound ingress ACL table group exists");
+    }
+    if (aclTableGroup->getBindPoint() != cfg::AclTableGroupBindPoint::PORT) {
+      throw FbossError(
+          "Ingress ACL table group ",
+          aclTableGroup->getName(),
+          " referenced by port ",
+          *port.logicalID(),
+          " must use PORT bind point");
+    }
+    const auto aclTableMap = aclTableGroup->getAclTableMap();
+    if (!aclTableMap || !aclTableMap->getTableIf(*ingressAclTableName)) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " references missing ingress ACL table ",
+          *ingressAclTableName);
+    }
+  }
 }
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
@@ -4101,6 +4190,15 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
+  const auto newBindPoint = *cfgAclTableGroup.bindPoint();
+
+  if (newBindPoint == cfg::AclTableGroupBindPoint::PORT &&
+      aclStage != cfg::AclStage::INGRESS) {
+    throw FbossError(
+        "Port-bound ACL table group ",
+        *cfgAclTableGroup.name(),
+        " must use the ingress stage");
+  }
 
   // For each table in the config, update the table entries and priority
   for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
@@ -4110,10 +4208,8 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       changed = true;
       newAclTableMap->addTable(newTable);
     } else {
-      newAclTableMap->addTable(orig_->getAclTableGroups()
-                                   ->getNodeIf(aclStage)
-                                   ->getAclTableMap()
-                                   ->getTableIf(*(aclTable.name())));
+      newAclTableMap->addTable(
+          origAclTableGroup->getAclTableMap()->getTableIf(*aclTable.name()));
     }
   }
 
@@ -4121,6 +4217,11 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       (origAclTableGroup->getAclTableMap() &&
        (numExistingTablesProcessed !=
         origAclTableGroup->getAclTableMap()->numTables()))) {
+    changed = true;
+  }
+  if (origAclTableGroup &&
+      (origAclTableGroup->getName() != *cfgAclTableGroup.name() ||
+       origAclTableGroup->getBindPoint() != newBindPoint)) {
     changed = true;
   }
 
@@ -4132,6 +4233,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       std::make_shared<AclTableGroup>(*cfgAclTableGroup.stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
   newAclTableGroup->setName(*cfgAclTableGroup.name());
+  newAclTableGroup->setBindPoint(newBindPoint);
 
   return newAclTableGroup;
 }
@@ -4168,24 +4270,15 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     const cfg::AclTable& configTable,
     int* numExistingTablesProcessed) {
   auto tableName = *configTable.name();
-  std::shared_ptr<AclTable> origTable;
-  if (orig_->getAclTableGroups() &&
-      orig_->getAclTableGroups()->getNodeIf(aclStage) &&
-      orig_->getAclTableGroups()->getNodeIf(aclStage)->getAclTableMap()) {
-    origTable = orig_->getAclTableGroups()
-                    ->getNodeIf(aclStage)
-                    ->getAclTableMap()
-                    ->getTableIf(tableName);
-  }
+  auto origTable = orig_->getAclTable(aclStage, tableName);
 
   auto newTableEntries = updateAclsForTable(
-      aclStage, *(configTable.aclEntries()), std::make_optional(tableName));
+      aclStage, *configTable.aclEntries(), std::make_optional(tableName));
   auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes();
   std::vector<cfg::AclTableQualifier> newQualifiers = *configTable.qualifiers();
   std::vector<std::string> newUdfGroups = *configTable.udfGroups();
-
   if (origTable) {
     ++(*numExistingTablesProcessed);
     if (!newTableEntries && newTablePriority == origTable->getPriority() &&
@@ -4417,10 +4510,12 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
 
   folly::gen::from(addToAcls()) | folly::gen::appendTo(newAcls);
 
+  auto origAclMap = tableName.has_value()
+      ? orig_->getAclsForTable(aclStage, tableName.value())
+      : nullptr;
+
   if (FLAGS_enable_acl_table_group) {
-    if (orig_->getAclsForTable(aclStage, tableName.value()) &&
-        numExistingProcessed !=
-            orig_->getAclsForTable(aclStage, tableName.value())->size()) {
+    if (origAclMap && numExistingProcessed != origAclMap->size()) {
       // Some existing ACLs were removed from the table (multiple acl tables
       // implementation).
       changed = true;
@@ -4436,10 +4531,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
     return nullptr;
   }
 
-  if (tableName.has_value() &&
-      orig_->getAclsForTable(aclStage, tableName.value())) {
-    return orig_->getAclsForTable(aclStage, tableName.value())
-        ->clone(std::move(newAcls));
+  if (origAclMap) {
+    return origAclMap->clone(std::move(newAcls));
   }
 
   return std::make_shared<AclMap>(std::move(newAcls));
@@ -4458,10 +4551,9 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 
   if (FLAGS_enable_acl_table_group) { // multiple acl tables implementation
     CHECK(tableName.has_value());
-
-    if (orig_->getAclsForTable(aclStage, tableName.value())) {
-      origAcl = orig_->getAclsForTable(aclStage, tableName.value())
-                    ->getEntryIf(*acl.name());
+    auto origAclMap = orig_->getAclsForTable(aclStage, tableName.value());
+    if (origAclMap) {
+      origAcl = origAclMap->getEntryIf(*acl.name());
     }
   } else { // single acl table implementation
     CHECK(!tableName.has_value());

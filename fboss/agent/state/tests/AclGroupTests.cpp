@@ -51,6 +51,7 @@ const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
 
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
+const std::string kGroup3 = "group3";
 
 const std::string kAcl1a = "acl1a";
 const std::string kAcl1b = "acl1b";
@@ -118,6 +119,10 @@ void verifyMultiAclSerialization(
     EXPECT_EQ(
         state.cref<switch_state_tags::aclTableGroupMaps>()->toThrift(),
         thriftStateBack->cref<switch_state_tags::aclTableGroupMaps>()
+            ->toThrift());
+    EXPECT_EQ(
+        state.cref<switch_state_tags::portAclTableGroupMaps>()->toThrift(),
+        thriftStateBack->cref<switch_state_tags::portAclTableGroupMaps>()
             ->toThrift());
   }
 }
@@ -724,6 +729,82 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
       *table2);
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup);
+}
+
+TEST(AclGroup, ApplyConfigPortBoundAclTableGroup) {
+  FLAGS_enable_acl_table_group = true;
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+  registerPort(state, PortID(2), "port2", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(2);
+  preparedMockPortConfig(
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  preparedMockPortConfig(
+      config.ports()[1], 2, "port2", cfg::PortState::DISABLED);
+  config.ports()[0].ingressAclTableName() = kTable2;
+  config.ports()[1].ingressAclTableName() = kTable3;
+  config.aclTableGroups() = {};
+
+  auto addAclTableGroup = [&](const std::string& groupName,
+                              const std::string& tableName,
+                              cfg::AclTableGroupBindPoint bindPoint) {
+    cfg::AclTableGroup group;
+    group.name() = groupName;
+    group.stage() = cfg::AclStage::INGRESS;
+    group.bindPoint() = bindPoint;
+    group.aclTables()->resize(1);
+    group.aclTables()[0].name() = tableName;
+    group.aclTables()[0].priority() = 1;
+    config.aclTableGroups()->push_back(std::move(group));
+  };
+  addAclTableGroup(kGroup1, kTable1, cfg::AclTableGroupBindPoint::SWITCH);
+  addAclTableGroup(kGroup2, kTable2, cfg::AclTableGroupBindPoint::PORT);
+  config.aclTableGroups()->back().aclTables()->resize(2);
+  config.aclTableGroups()->back().aclTables()[1].name() = kTable3;
+  config.aclTableGroups()->back().aclTables()[1].priority() = 2;
+
+  auto newState = publishAndApplyConfig(state, &config, platform.get());
+  ASSERT_NE(nullptr, newState);
+  EXPECT_EQ(
+      newState->getPorts()->getNodeIf(PortID(1))->getIngressAclTableName(),
+      kTable2);
+  EXPECT_EQ(
+      newState->getPorts()->getNodeIf(PortID(2))->getIngressAclTableName(),
+      kTable3);
+  EXPECT_EQ(
+      newState->getAclTableGroups()
+          ->getNodeIf(cfg::AclStage::INGRESS)
+          ->getName(),
+      kGroup1);
+  EXPECT_EQ(
+      newState->getPortAclTableGroups()
+          ->getNodeIf(cfg::AclStage::INGRESS)
+          ->getName(),
+      kGroup2);
+  auto portAclTables = newState->getPortAclTableGroups()
+                           ->getNodeIf(cfg::AclStage::INGRESS)
+                           ->getAclTableMap();
+  EXPECT_NE(portAclTables->getTableIf(kTable2), nullptr);
+  EXPECT_NE(portAclTables->getTableIf(kTable3), nullptr);
+  auto thriftStateBack = SwitchState::fromThrift(newState->toThrift());
+  EXPECT_EQ(
+      newState->getAclTableGroups()->toThrift(),
+      thriftStateBack->getAclTableGroups()->toThrift());
+  EXPECT_EQ(
+      newState->getPortAclTableGroups()->toThrift(),
+      thriftStateBack->getPortAclTableGroups()->toThrift());
+  EXPECT_EQ(nullptr, publishAndApplyConfig(newState, &config, platform.get()));
+
+  config.ports()[0].ingressAclTableName() = kTable1;
+  EXPECT_THROW(
+      publishAndApplyConfig(newState, &config, platform.get()), FbossError);
+
+  config.ports()[0].ingressAclTableName() = "missingTable";
+  EXPECT_THROW(
+      publishAndApplyConfig(newState, &config, platform.get()), FbossError);
 }
 
 TEST(AclGroup, ApplyConfigScopesSrcPortAclTableEntries) {

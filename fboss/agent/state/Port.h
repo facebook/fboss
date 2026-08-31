@@ -973,6 +973,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<std::string> getIngressAclTableName() const {
+    if (auto name = cref<switch_state_tags::ingressAclTableName>()) {
+      return name->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setIngressAclTableName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::ingressAclTableName>().reset();
+      return;
+    }
+    set<switch_state_tags::ingressAclTableName>(*name);
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();
