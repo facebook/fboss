@@ -470,6 +470,9 @@ void getPortInfoHelper(
   if (auto userMetaData = port->getUserMetaData()) {
     portInfo.userMetaData() = *userMetaData;
   }
+  if (auto ingressAclTableName = port->getIngressAclTableName()) {
+    portInfo.ingressAclTableName() = *ingressAclTableName;
+  }
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
