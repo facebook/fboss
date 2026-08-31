@@ -579,6 +579,9 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   if (aclEntry.isEnabled()) {
     aclEntryThrift.enabled() = aclEntry.isEnabled().value();
   }
+  if (aclEntry.getLookupClassPort()) {
+    aclEntryThrift.lookupClassPort() = aclEntry.getLookupClassPort().value();
+  }
   return aclEntryThrift;
 }
 
