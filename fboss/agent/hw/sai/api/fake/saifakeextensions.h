@@ -202,6 +202,7 @@ typedef enum _sai_ars_profile_extensions_attr_t {
 typedef enum _sai_ars_extensions_attr_t {
   SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE = SAI_ARS_ATTR_CUSTOM_RANGE_START,
   SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE,
+  SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT,
 } sai_ars_extensions_attr_t;
 
 typedef enum _sai_ars_next_hop_group_type_t {

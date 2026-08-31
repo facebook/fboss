@@ -73,7 +73,9 @@ class SaiArsManager {
       std::optional<SaiArsTraits::Attributes::NextHopGroupType>
           nextHopGroupType = std::nullopt,
       std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune =
-          std::nullopt) const;
+          std::nullopt,
+      const std::optional<SaiArsTraits::Attributes::EcmpMemberCount>&
+          ecmpMemberCount = std::nullopt) const;
 
   void setArsObject(
       SaiArsHandle* handle,

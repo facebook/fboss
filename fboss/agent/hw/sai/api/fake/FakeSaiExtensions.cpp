@@ -1177,6 +1177,11 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
   return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+}
 #endif
 
 } // namespace facebook::fboss
