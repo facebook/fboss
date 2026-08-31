@@ -16,6 +16,8 @@
 #include "fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
+#include "fboss/cli/fboss2/commands/config/data_plane/CmdConfigDataPlane.h"
+#include "fboss/cli/fboss2/commands/config/data_plane/traffic_policy/CmdConfigDataPlaneTrafficPolicy.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h"
@@ -138,6 +140,13 @@
 #include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
 #include "fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h"
 #include "fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h"
+#include "fboss/cli/fboss2/commands/delete/copp/traffic_policy/CmdDeleteCoppTrafficPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/CmdDeleteCoppTrafficPolicyMatch.h"
+#include "fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/action/CmdDeleteCoppTrafficPolicyMatchAction.h"
+#include "fboss/cli/fboss2/commands/delete/data_plane/CmdDeleteDataPlane.h"
+#include "fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/CmdDeleteDataPlaneTrafficPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/CmdDeleteDataPlaneTrafficPolicyMatch.h"
+#include "fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/action/CmdDeleteDataPlaneTrafficPolicyMatchAction.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h"
 #include "fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h"
@@ -227,11 +236,31 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdConfigCoppQueueTraits>,
            },
            {
+               "traffic-policy",
+               "Set a CPU-plane action on a named ACL rule",
+               commandHandler<CmdConfigCoppTrafficPolicy>,
+               argRegistrar<CmdConfigCoppTrafficPolicyTraits>,
+           },
+           {
                "reason",
                "Map a packet-rx reason to a CPU queue",
                commandHandler<CmdConfigCoppReason>,
                argRegistrar<CmdConfigCoppReasonTraits>,
            }},
+      },
+
+      {
+          "config",
+          "data-plane",
+          "Configure dataplane settings",
+          commandHandler<CmdConfigDataPlane>,
+          argRegistrar<CmdConfigDataPlaneTraits>,
+          {{
+              "traffic-policy",
+              "Set a dataplane action on a named ACL rule",
+              commandHandler<CmdConfigDataPlaneTrafficPolicy>,
+              argRegistrar<CmdConfigDataPlaneTrafficPolicyTraits>,
+          }},
       },
 
       {"config",
@@ -1236,11 +1265,58 @@ const CommandTree& kConfigCommandTree() {
                argRegistrar<CmdDeleteCoppQueueTraits>,
            },
            {
+               "traffic-policy",
+               "Delete CPU traffic policy configuration",
+               commandHandler<CmdDeleteCoppTrafficPolicy>,
+               argRegistrar<CmdDeleteCoppTrafficPolicyTraits>,
+               {{
+                   "match",
+                   "Target a named ACL matcher entry in cpuTrafficPolicy.trafficPolicy.matchToAction",
+                   commandHandler<CmdDeleteCoppTrafficPolicyMatch>,
+                   argRegistrar<CmdDeleteCoppTrafficPolicyMatchTraits>,
+                   {{
+                       "action",
+                       "Delete a CPU-plane action (send-to-queue, counter, set-tc, user-defined-trap) from the matcher",
+                       commandHandler<CmdDeleteCoppTrafficPolicyMatchAction>,
+                       argRegistrar<
+                           CmdDeleteCoppTrafficPolicyMatchActionTraits>,
+                   }},
+               }},
+           },
+           {
                "reason",
                "Delete a packet-rx reason to CPU queue mapping",
                commandHandler<CmdDeleteCoppReason>,
                argRegistrar<CmdDeleteCoppReasonTraits>,
            }},
+      },
+
+      {
+          "delete",
+          "data-plane",
+          "Delete dataplane configuration",
+          commandHandler<CmdDeleteDataPlane>,
+          argRegistrar<CmdDeleteDataPlaneTraits>,
+          {{
+              "traffic-policy",
+              "Delete dataplane traffic policy configuration",
+              commandHandler<CmdDeleteDataPlaneTrafficPolicy>,
+              argRegistrar<CmdDeleteDataPlaneTrafficPolicyTraits>,
+              {{
+                  "match",
+                  "Target a named ACL matcher entry in dataPlaneTrafficPolicy.matchToAction",
+                  commandHandler<CmdDeleteDataPlaneTrafficPolicyMatch>,
+                  argRegistrar<CmdDeleteDataPlaneTrafficPolicyMatchTraits>,
+                  {{
+                      "action",
+                      "Delete a dataplane action (send-to-queue, set-dscp, set-tc, mirror-ingress, mirror-egress, counter, trap-to-cpu, copy-to-cpu, redirect, user-defined-trap, flowlet, ecmp-hash, alternate-ars-members) from the matcher",
+                      commandHandler<
+                          CmdDeleteDataPlaneTrafficPolicyMatchAction>,
+                      argRegistrar<
+                          CmdDeleteDataPlaneTrafficPolicyMatchActionTraits>,
+                  }},
+              }},
+          }},
       },
 
       {
