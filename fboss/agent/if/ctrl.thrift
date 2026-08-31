@@ -468,6 +468,10 @@ struct PortInfoThrift {
   // profile bound on an LLR-capable ASIC.
   35: optional hardware_stats.LlrTxStatus llrTxStatus;
   36: optional hardware_stats.LlrRxStatus llrRxStatus;
+
+  // Lookup class assigned to packets ingressing on this port. Mirrors
+  // switch_config.Port.userMetaData. Unset when the port has no class ID.
+  37: optional switch_config.AclLookupClassPort userMetaData;
 }
 
 // Port queueing configuration
