@@ -1683,6 +1683,19 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
             delta.newState()->getPortAclTableGroups().get());
     processAclTableGroups(aclTableGroupsDelta);
     processAclTableGroups(portAclTableGroupsDelta);
+    // TODO: Require a port-bound ACL table to be deprecated and unbound from
+    // all ports before removing it. Until then, referenced tables are assumed
+    // to remain programmed, allowing a port to atomically replace table OIDs.
+    processChangedDelta(
+        delta.getPortsDelta(),
+        managerTable_->portManager(),
+        lockPolicy,
+        &SaiPortManager::changeIngressAcl);
+    processAddedDelta(
+        delta.getPortsDelta(),
+        managerTable_->portManager(),
+        lockPolicy,
+        &SaiPortManager::setIngressAcl);
   } else {
     std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
     std::set<cfg::AclTableQualifier> newRequiredQualifiers{};
