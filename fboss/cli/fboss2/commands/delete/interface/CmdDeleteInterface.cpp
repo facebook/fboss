@@ -323,10 +323,9 @@ InterfaceDeleteConfig::InterfaceDeleteConfig(const std::vector<std::string>& v)
     }
   }
 
-  // Resolve names to InterfaceList (throws if any name is not found).
-  // InterfaceList resolves a bare number as a port logical ID or an interface
-  // ID, so a whole-interface delete can name the interfaces that generated
-  // configs leave unnamed.
+  // InterfaceList resolves a bare number as an interface ID, so a
+  // whole-interface delete can name the interfaces generated configs leave
+  // unnamed. Throws if any name is not found.
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 

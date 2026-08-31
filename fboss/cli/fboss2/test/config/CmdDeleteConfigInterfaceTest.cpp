@@ -731,11 +731,9 @@ TEST_F(
       << "the port router interface goes with its port";
 }
 
-// A bare number that is simultaneously a port logical ID and an interface ID
-// resolves to the port: InterfaceList tries the port logical ID before the
-// interface ID. The resolver's own tests exercise each lookup in isolation but
-// never the collision, so pin it here — it decides what `delete interface <n>`
-// actually touches when both exist.
+// A bare number that is both a port logical ID and an interface ID resolves to
+// the interface: InterfaceList never looks a number up as a port logical ID.
+// The resolver's own tests never cover the collision, so pin it here.
 class CmdDeleteInterfaceIdCollisionTestFixture
     : public DeleteInterfaceCmdTestBase {
  public:
@@ -745,7 +743,7 @@ class CmdDeleteInterfaceIdCollisionTestFixture
             R"({
   "sw": {
     "ports": [
-      {"logicalID": 3, "name": "eth1/3/1", "state": 2, "speed": 100000, "ingressVlan": 300},
+      {"logicalID": 3, "name": "eth1/3/1", "state": 1, "speed": 100000, "ingressVlan": 4094},
       {"logicalID": 300, "name": "eth1/9/1", "state": 2, "speed": 100000, "ingressVlan": 100}
     ],
     "vlanPorts": [
@@ -766,19 +764,19 @@ class CmdDeleteInterfaceIdCollisionTestFixture
 })") {}
 };
 
-// intfID 300 and port logicalID 300 both exist. "300" resolves to the port, so
-// the port is deleted and the same-numbered interface (on a VLAN that still has
-// an enabled member port) is left untouched.
+// intfID 300 and port logicalID 300 (eth1/9/1) both exist. VLAN 300's only
+// member port is disabled and tagged, so nothing but the resolution order
+// decides whether the interface or the same-numbered port is deleted.
 TEST_F(
     CmdDeleteInterfaceIdCollisionTestFixture,
-    numericArgPrefersPortOverInterface) {
+    numericArgPrefersInterfaceOverPortLogicalId) {
   setupTestableConfigSession(cmdPrefix_, "300");
 
   EXPECT_THAT(runDelete({"300"}), HasSubstr("Deleted interface(s)"));
 
-  EXPECT_FALSE(hasPort(300));
-  EXPECT_TRUE(hasInterface(300))
-      << "the number resolved to the port, so interface 300 must survive";
+  EXPECT_FALSE(hasInterface(300));
+  EXPECT_TRUE(hasPort(300))
+      << "the number resolved to the interface, so port 300 must survive";
 }
 
 } // namespace facebook::fboss
