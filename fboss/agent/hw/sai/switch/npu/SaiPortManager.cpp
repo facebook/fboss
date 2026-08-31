@@ -603,6 +603,24 @@ void SaiPortManager::attributesFromSaiStore(
         SaiPortTraits::Attributes::FabricSystemPort{});
   }
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // LLR is programmed by programLlr(), not attributesFromSwPort(), which leaves
+  // all three nullopt. Without carrying them over, setObject() below overwrites
+  // the cached values with nullopt -- harmless in hardware, since
+  // setAttributeInHardware() ignores a nullopt, but it leaves programLlr()
+  // comparing every attribute against nullopt and so re-driving the whole
+  // disable/bind/enable sequence on a port whose LLR never changed.
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeLocal{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeRemote{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::LlrProfile{});
+#endif
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -1245,11 +1263,8 @@ void SaiPortManager::programLlr(
   if (!wantLlr && !portHandle->llrProfile) {
     return;
   }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeLocal{false});
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{false});
 
+  std::shared_ptr<SaiPortLlrProfile> profile;
   if (wantLlr) {
     const auto& cfg = llrConfig.value();
     SaiPortLlrProfileTraits::CreateAttributes attributes{
@@ -1275,15 +1290,43 @@ void SaiPortManager::programLlr(
             static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
     auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
     SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
+    // Resolve the profile first. On warm boot this reclaims the object the
+    // store loaded from hardware rather than creating one, and claims its warm
+    // boot handle so it is not swept as unreferenced. The attributes match, so
+    // no SAI write is issued.
+    profile = store.setObject(key, attributes);
+
+    // If the port is already bound to exactly this profile, LLR is running with
+    // this config and there is nothing to do. That is the warm boot case: the
+    // ASIC kept forwarding, the session with the link partner is live, and the
+    // sequence below would tear it down and rebuild it -- LlrModeLocal{false}
+    // stops acknowledging the partner, and LlrModeRemote is a one-shot that
+    // re-fires LLR_INIT rather than a persistent enable (CS00012475411).
+    const auto& bound =
+        std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
+            portHandle->port->attributes());
+    if (bound.has_value() && bound->value() == profile->adapterKey()) {
+      portHandle->llrProfile = std::move(profile);
+      return;
+    }
+  }
+
+  // Disable both modes before (re)configuring, so the profile is bound while
+  // LLR is not actively transmitting (SDK config-before-enable ordering).
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeLocal{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+
+  if (wantLlr) {
     // Bind the port to the new profile before releasing the old handle: on a
     // live reconfiguration (content change => new key) the assignment below
     // drops the last reference to the old profile and removes it from HW, so
     // the port must already reference the new profile to avoid pointing at a
     // removed OID during the swap.
-    auto newLlrProfile = store.setObject(key, attributes);
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::LlrProfile{newLlrProfile->adapterKey()});
-    portHandle->llrProfile = std::move(newLlrProfile);
+        SaiPortTraits::Attributes::LlrProfile{profile->adapterKey()});
+    portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
     portHandle->port->setOptionalAttribute(
