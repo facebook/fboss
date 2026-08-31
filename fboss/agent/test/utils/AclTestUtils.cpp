@@ -150,6 +150,17 @@ cfg::AclEntry* addAclEntry(
   }
 }
 
+cfg::AclEntry* addIngressPortDropAcl(
+    cfg::SwitchConfig* cfg,
+    PortID ingressPort,
+    const std::string& aclName) {
+  cfg::AclEntry acl;
+  acl.name() = aclName;
+  acl.srcPort() = ingressPort;
+  acl.actionType() = cfg::AclActionType::DENY;
+  return addAclEntry(cfg, acl, kDefaultAclTable());
+}
+
 cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,

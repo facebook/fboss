@@ -40,6 +40,11 @@ cfg::AclEntry* addAclEntry(
     const std::string& tableName,
     cfg::AclStage aclStage = cfg::AclStage::INGRESS);
 
+cfg::AclEntry* addIngressPortDropAcl(
+    cfg::SwitchConfig* cfg,
+    PortID ingressPort,
+    const std::string& aclName);
+
 cfg::AclEntry* addAcl_DEPRECATED(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,

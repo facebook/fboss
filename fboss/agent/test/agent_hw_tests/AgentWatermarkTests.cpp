@@ -10,15 +10,18 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
 #include <fmt/format.h>
+#include <folly/ScopeGuard.h>
 
 DECLARE_bool(disable_neighbor_updates);
 
@@ -515,7 +518,21 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 }
 
 TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
-  auto setup = [this]() { _setup(false); };
+  auto setup = [this]() {
+    // A packet that egresses the congested port, loops back on the MAC and
+    // re-enters the same queue is counted as TXed while still occupying a
+    // buffer. sendPacketsWithQueueBuildup() then compensates for it and the
+    // queue peaks above kNumberOfPacketsToSend. Deny ingress on the egress
+    // port so each packet gets exactly one pass through the queue.
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    const PortID kEgressPort = masterLogicalInterfacePortIds()[0];
+    utility::addIngressPortDropAcl(
+        &config, kEgressPort, "verifyQueueWatermarkAccuracy-egress-rx-disable");
+    applyNewConfig(config);
+    XLOG(DBG0) << "Disabled egress port ingress via ACL on port "
+               << kEgressPort;
+    _setup(false);
+  };
   auto verify = [this]() {
     for (const auto& switchId : switchIdsUnderTest()) {
       const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
@@ -547,19 +564,34 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
         // Send packets out on port1, so that it gets looped back, and
         // forwarded in the pipeline to egress port0 where the watermark
         // will be validated.
+        const PortID loopbackPort{
+            getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[1]};
+        const auto initialStats = getLatestPortStats(loopbackPort);
         sendUdpPkts(
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
             folly::IPAddressV6(kTestDstIpV6),
             numPacketsToSend,
             kTxPacketPayloadLen,
-            getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[1]);
+            loopbackPort);
+        WITH_RETRIES({
+          const auto currentStats = getLatestPortStats(loopbackPort);
+          EXPECT_EVENTUALLY_GE(
+              currentStats.inUnicastPkts_().value(),
+              initialStats.inUnicastPkts_().value() + numPacketsToSend);
+        });
       };
 
+      const auto egressPort = masterLogicalInterfacePortIds()[0];
+      SCOPE_EXIT {
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, true);
+      };
       utility::sendPacketsWithQueueBuildup(
           sendPackets,
           getAgentEnsemble(),
-          masterLogicalInterfacePortIds()[0],
-          kNumberOfPacketsToSend);
+          egressPort,
+          kNumberOfPacketsToSend,
+          false /* enableTxAtEnd */);
 
       uint64_t expectedWatermarkBytes;
       uint64_t roundedWatermarkBytes;
@@ -589,8 +621,7 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
       std::map<int16_t, int64_t> queueWaterMarks;
       int64_t maxWatermarks = 0;
       WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(1000), {
-        queueWaterMarks =
-            getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
+        queueWaterMarks = getQueueWatermarks(egressPort, isVoq);
         if (queueWaterMarks.at(kQueueId) > maxWatermarks) {
           maxWatermarks = queueWaterMarks.at(kQueueId);
         }

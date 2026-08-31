@@ -214,7 +214,8 @@ HwPortStats sendPacketsWithQueueBuildup(
     std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
     TestEnsembleIf* ensemble,
     PortID port,
-    int numPackets) {
+    int numPackets,
+    bool enableTxAtEnd) {
   auto getOutPackets = [&](const HwPortStats& stats) -> int64_t {
     return *stats.outUnicastPkts_() + *stats.outMulticastPkts_() +
         *stats.outBroadcastPkts_();
@@ -295,8 +296,10 @@ HwPortStats sendPacketsWithQueueBuildup(
     sendPktsFn(port, numPackets - queuedPackets);
   }
 
-  // Enable TX to send traffic out
-  utility::setCreditWatchdogAndPortTx(ensemble, port, true);
+  if (enableTxAtEnd) {
+    // Enable TX to send traffic out
+    utility::setCreditWatchdogAndPortTx(ensemble, port, true);
+  }
 
   // Return the stats at the point when port stopped actual TX!
   return kStatsWithTxDisabled;
