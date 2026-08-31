@@ -468,6 +468,7 @@ struct PortInfoThrift {
   // profile bound on an LLR-capable ASIC.
   35: optional hardware_stats.LlrTxStatus llrTxStatus;
   36: optional hardware_stats.LlrRxStatus llrRxStatus;
+  37: optional i32 ingressVlan;
 }
 
 // Port queueing configuration
