@@ -64,6 +64,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry1.pfc() = pfcCfg;
   portEntry1.isDrained() = false;
   portEntry1.userMetaData() = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+  portEntry1.ingressAclTableName() = "AccessPolicyBlockTable";
   portEntry1.coreId() = 1;
   portEntry1.virtualDeviceId() = 1;
 
@@ -236,6 +237,7 @@ cli::ShowPortModel createPortModel() {
   entry1.virtualDeviceId() = "1";
   entry1.cableLengthMeters() = "--";
   entry1.userMetaData() = "Restricted";
+  entry1.ingressAclTable() = "AccessPolicyBlockTable";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -257,6 +259,7 @@ cli::ShowPortModel createPortModel() {
   entry2.virtualDeviceId() = "2";
   entry2.cableLengthMeters() = "--";
   entry2.userMetaData() = "Unconstrained";
+  entry2.ingressAclTable() = "--";
 
   entry3.id() = 3;
   entry3.hwLogicalPortId() = 3;
@@ -278,6 +281,7 @@ cli::ShowPortModel createPortModel() {
   entry3.virtualDeviceId() = "3";
   entry3.cableLengthMeters() = "--";
   entry3.userMetaData() = "--";
+  entry3.ingressAclTable() = "--";
 
   entry4.id() = 8;
   entry4.hwLogicalPortId() = 8;
@@ -303,6 +307,7 @@ cli::ShowPortModel createPortModel() {
   entry4.virtualDeviceId() = "--";
   entry4.cableLengthMeters() = "--";
   entry4.userMetaData() = "--";
+  entry4.ingressAclTable() = "--";
 
   entry5.id() = 7;
   entry5.hwLogicalPortId() = 7;
@@ -324,6 +329,7 @@ cli::ShowPortModel createPortModel() {
   entry5.virtualDeviceId() = "5";
   entry5.cableLengthMeters() = "--";
   entry5.userMetaData() = "--";
+  entry5.ingressAclTable() = "--";
 
   entry6.id() = 9;
   entry6.hwLogicalPortId() = 9;
@@ -349,6 +355,7 @@ cli::ShowPortModel createPortModel() {
   entry6.virtualDeviceId() = "6";
   entry6.cableLengthMeters() = "--";
   entry6.userMetaData() = "--";
+  entry6.ingressAclTable() = "--";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};
