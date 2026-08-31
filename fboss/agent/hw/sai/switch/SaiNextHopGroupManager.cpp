@@ -926,4 +926,53 @@ std::string SaiNextHopGroupChildGroupMember::toString() const {
       nextHopGroupMemberIdStr);
 }
 
+HwFlowletStats SaiNextHopGroupManager::getHwFlowletStats() const {
+  HwFlowletStats stats;
+  uint64_t totalFailPktCount = 0;
+  uint64_t totalNhReassignCount = 0;
+
+  for (const auto& [key, handleWeak] : handles_) {
+    auto handle = handleWeak.lock();
+    if (!handle || !handle->nextHopGroup) {
+      continue;
+    }
+    auto nexthopGroupId = handle->nextHopGroup->adapterKey();
+
+    // 1. Get ARS Fail Pkt Count
+    uint64_t failPktCount = 0;
+    try {
+      failPktCount = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+          nexthopGroupId, SaiNextHopGroupTraits::Attributes::ArsFailPktCount{});
+    } catch (const SaiApiError& e) {
+      XLOG_EVERY_MS(WARNING, 5000)
+          << "Failed to get ArsFailPktCount for NextHopGroup: "
+          << nexthopGroupId << ", error: " << e.what();
+    }
+    totalFailPktCount += failPktCount;
+
+    // 2. Get ARS NH Reassign Count
+    uint64_t nhReassignCount = 0;
+    try {
+      nhReassignCount =
+          SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+              nexthopGroupId,
+              SaiNextHopGroupTraits::Attributes::ArsNhReassignCount{});
+    } catch (const SaiApiError& e) {
+      XLOG_EVERY_MS(WARNING, 5000)
+          << "Failed to get ArsNhReassignCount for NextHopGroup: "
+          << nexthopGroupId << ", error: " << e.what();
+    }
+    totalNhReassignCount += nhReassignCount;
+
+    XLOG_EVERY_MS(INFO, 1000)
+        << "getHwFlowletStats: NextHopGroup OID: " << nexthopGroupId
+        << ", ArsFailPktCount: " << failPktCount
+        << ", ArsNhReassignCount: " << nhReassignCount;
+  }
+
+  stats.l3EcmpDlbFailPackets() = totalFailPktCount;
+  stats.l3EcmpDlbPortReassignmentCount() = totalNhReassignCount;
+  return stats;
+}
+
 } // namespace facebook::fboss

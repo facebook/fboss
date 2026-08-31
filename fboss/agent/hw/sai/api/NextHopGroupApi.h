@@ -133,6 +133,22 @@ struct SaiNextHopGroupTraits {
         sai_uint32_t,
         AttributeArsNextHopGroupMetaData,
         SaiIntDefault<sai_uint32_t>>;
+
+    struct AttributeArsFailPktCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ArsFailPktCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeArsFailPktCount,
+        SaiIntDefault<sai_uint64_t>>;
+
+    struct AttributeArsNhReassignCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ArsNhReassignCount = SaiExtensionAttribute<
+        sai_uint64_t,
+        AttributeArsNhReassignCount,
+        SaiIntDefault<sai_uint64_t>>;
   };
 
   using AdapterKey = NextHopGroupSaiId;
@@ -161,6 +177,8 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, HashAlgorithm)
 SAI_ATTRIBUTE_NAME(NextHopGroup, HierarchicalNextHop)
 #endif
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsFailPktCount)
+SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNhReassignCount)
 
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =

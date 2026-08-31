@@ -18,4 +18,22 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsFailPktCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_FAIL_PKT_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsNhReassignCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_NH_REASSIGN_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss
