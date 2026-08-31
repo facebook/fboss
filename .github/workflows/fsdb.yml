@@ -37,7 +37,7 @@ jobs:
           --env-var
           GITHUB_ACTIONS_BUILD
           --num-jobs
-          18
+          12
           --local
           &&
           sudo
