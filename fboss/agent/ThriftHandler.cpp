@@ -467,6 +467,9 @@ void getPortInfoHelper(
        facebook::fboss::cfg::PortDrainState::DRAINED);
   portInfo.expectedNeighborReachability() =
       port->getExpectedNeighborValues()->toThrift();
+  if (auto userMetaData = port->getUserMetaData()) {
+    portInfo.userMetaData() = *userMetaData;
+  }
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
