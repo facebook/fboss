@@ -91,9 +91,10 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   // Mark HwSwitch run state as exiting
   hwAgent_->getPlatform()->getHwSwitch()->switchRunStateChanged(
       SwitchRunState::EXITING);
-  // rx pkt callback handler might be waiting on event enqueue. Cancel any
-  // pending events to avoid sdk callbak unregistration getting stuck
+  // rx pkt and fdb callback handlers might be waiting on event enqueue. Cancel
+  // any pending events to avoid sdk callbak unregistration getting stuck
   syncer_->cancelPendingRxPktEnqueue();
+  syncer_->cancelPendingFdbEnqueue();
   // unregister sdk callbacks so that we do not get sdk updates while shutting
   // down
   XLOG(DBG2) << "[Exit] unregistering callbacks";
