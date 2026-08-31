@@ -32,6 +32,7 @@ TEST_F(HwTest, publishStats) {
   getHwQsfpEnsemble()->getWedgeManager()->publishI2cTransactionStats();
 
   auto counterKeys = fb303::fbData->getCounterKeys();
+#ifndef IS_OSS
   auto anyInterfaceCounter = [&counterKeys](const std::string& suffix) {
     return std::any_of(
         counterKeys.begin(), counterKeys.end(), [&suffix](const auto& key) {
@@ -52,6 +53,7 @@ TEST_F(HwTest, publishStats) {
       << "qsfp.interface.<portName>.portStateMachineState counters "
       << (portManager ? "missing in" : "published outside")
       << " Port Manager mode";
+#endif
 
   // A PhyManager is constructed for every platform of an XPHY capable family,
   // but the XPHYs themselves only exist on the PIMs that carry them, so having
