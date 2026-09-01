@@ -2,7 +2,6 @@
   "defaultCommandLineArgs": {
     "dsf_edsw_platform_mapping": "true",
     "firmware_upgrade_on_coldboot": "true",
-    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "hyper_port": "true",

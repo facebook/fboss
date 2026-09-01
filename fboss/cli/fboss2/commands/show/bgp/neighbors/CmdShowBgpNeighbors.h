@@ -20,7 +20,8 @@ namespace facebook::fboss {
 
 using facebook::neteng::fboss::bgp::thrift::TBgpSession;
 
-struct CmdShowBgpNeighborsTraits : public ReadCommandTraits {
+struct CmdShowBgpNeighborsTraits : public ReadCommandTraits,
+                                   public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;

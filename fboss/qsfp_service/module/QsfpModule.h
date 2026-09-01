@@ -44,6 +44,13 @@ struct QsfpConfig;
 class TransceiverImpl;
 class TransceiverManager;
 
+// Component thermal margins in degrees Celsius. Each is unset unless the
+// module advertises support for it.
+struct ThermalMargins {
+  std::optional<double> dspTempMargin;
+  std::optional<double> laserTempMargin;
+};
+
 /**
  * This is the QSFP module error which should be throw only if it's module
  * related issue.
@@ -558,6 +565,10 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool hasInvalidBankSelect() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*
@@ -657,7 +668,12 @@ class QsfpModule : public Transceiver {
       const SignalFlags& signalFlags,
       const std::vector<MediaLaneSignals>& mediaLaneSignals);
 
-  virtual void latchAndReadVdmDataLocked() override {}
+  // Non-blocking per-refresh driver for the VDM ForOds freeze/read handshake.
+  // Returns true on the refresh where a frozen snapshot was read. No-op for
+  // module types without VDM (e.g. SFF). Implemented by CmisModule.
+  virtual bool driveVdmCaptureLocked() {
+    return false;
+  }
 
   /*
    * We found that some CMIS module did not enable Rx output squelch by
@@ -670,6 +686,10 @@ class QsfpModule : public Transceiver {
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() {
     return std::nullopt;
+  }
+
+  virtual ThermalMargins getThermalMargins() {
+    return ThermalMargins{};
   }
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() {

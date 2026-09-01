@@ -782,6 +782,7 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
+        ":switch_config-cpp2-types",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/lib:common_utils",
@@ -1139,6 +1140,7 @@ cpp_library(
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest_prod_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",

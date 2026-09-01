@@ -10,5 +10,6 @@
   "asicType": 13,
   "variantAttributes": {
     "test_fixture": false
-  }
+  },
+  "numSwitchAsics": 1
 }

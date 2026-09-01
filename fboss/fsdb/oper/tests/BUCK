@@ -5,6 +5,18 @@ load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_
 
 oncall("fboss_agent_push")
 
+cpp_library(
+    name = "test_helpers",
+    headers = ["TestHelpers.h"],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
 cpp_unittest(
     name = "subscription_tests",
     srcs = ["SubscriptionTests.cpp"],
@@ -23,12 +35,12 @@ cpp_unittest(
         "FsdbNsdbPipelineTests.cpp",
         "SubscribableStorageTests.cpp",
     ],
-    headers = ["TestHelpers.h"],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     network_access = network_access_utils.none(),
     supports_static_listing = False,
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":test_helpers",
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/oper:subscribable_storage",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
@@ -44,8 +56,33 @@ cpp_unittest(
         "//folly/coro:task",
         "//folly/coro:timeout",
         "//folly/json:dynamic",
-        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_unittest(
+    name = "dynamic_wildcard_patch_subscription_tests",
+    srcs = [
+        "DynamicWildcardPatchSubscriptionTest.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    network_access = network_access_utils.none(),
+    supports_static_listing = False,
+    deps = [
+        ":test_helpers",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper:subscription_manager",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/lib:common_utils",
+        "//folly/coro:async_generator",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
+    ],
+    external_deps = [
+        "gflags",
     ],
 )
 
@@ -90,6 +127,21 @@ cpp_unittest(
     ],
 )
 
+cpp_unittest(
+    name = "wildcard_patch_candidate_tracker_tests",
+    srcs = [
+        "WildcardPatchCandidateTrackerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/oper:subscription_manager",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
 cpp_library(
     name = "subscribable_storage_bench_helper",
     srcs = [
@@ -125,9 +177,13 @@ cpp_benchmark(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":subscribable_storage_bench_helper",
+        ":test_helpers",
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper:subscription_manager",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
         "//fboss/thrift_cow/storage/tests:benchmark_helper",
         "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:benchmark",

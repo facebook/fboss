@@ -1390,6 +1390,34 @@ TEST(Acl, L4DstPortRangeQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, LookupClassPort) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls()->resize(1);
+  config.acls()[0].name() = "acl1";
+  config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].lookupClassPort() =
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+
+  auto newState = publishAndApplyConfig(state, &config, platform.get());
+  ASSERT_NE(nullptr, newState);
+  auto acl = newState->getAcl("acl1");
+  ASSERT_NE(nullptr, acl);
+  ASSERT_TRUE(acl->getLookupClassPort().has_value());
+  EXPECT_EQ(
+      acl->getLookupClassPort().value(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  EXPECT_TRUE(acl->hasMatcher());
+  EXPECT_TRUE(acl->getRequiredAclTableQualifiers().contains(
+      cfg::AclTableQualifier::LOOKUP_CLASS_PORT));
+
+  auto serialized = std::make_shared<AclEntry>(acl->toThrift());
+  EXPECT_EQ(serialized->getLookupClassPort(), acl->getLookupClassPort());
+}
+
 TEST(Acl, PbrFieldsSerialize) {
   auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
   entry->setTrafficClass(3);

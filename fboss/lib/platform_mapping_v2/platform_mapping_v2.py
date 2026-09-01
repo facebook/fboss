@@ -94,6 +94,8 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
         "ladakh800bcls_rack",
         "ladakh800bcls_test_fixture",
         "ladakh800bcls_osfp_tray",
+        "ladakh800bcls_rack_postevt",
+        "ladakh800bcls_test_fixture_postevt",
     ],
     "leh800bcls": [
         "leh800bcls_rack",
@@ -445,6 +447,9 @@ class PlatformMappingV2:
 
     def get_chips(self) -> Sequence[DataPlanePhyChip]:
         return self.platform_mapping.chips
+
+    def get_num_switch_asics(self) -> int:
+        return self.pm_parser.get_static_mapping().get_num_switch_asics()
 
     def get_override_factors(self) -> Optional[Sequence[PlatformPortConfigOverride]]:
         return self.platform_mapping.portConfigOverrides

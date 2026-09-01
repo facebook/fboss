@@ -148,6 +148,10 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(11, 0xFFFFFFFF);
   }
 
+  std::pair<sai_uint32_t, sai_uint32_t> kPortUserMeta() const {
+    return std::make_pair(13, 0xFFFFFFFF);
+  }
+
   std::pair<sai_uint16_t, sai_uint16_t> kEtherType() const {
     return std::make_pair(0x0800, 0xFFFF);
   }
@@ -296,6 +300,7 @@ class AclTableStoreTest : public SaiStoreTest {
             kUdfGroupId() + 2, // udf group 2
             kUdfGroupId() + 3, // udf group 3
             kUdfGroupId() + 4, // udf group 4
+            true, // port meta
         },
         0);
   }
@@ -357,6 +362,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionBool(this->kL3SwitchCancel()),
             AclEntryFieldSaiObjectIdT(this->kRouteDestination()),
             this->kLabelExtended(),
+            AclEntryFieldU32(this->kPortUserMeta()),
         },
         0);
   }
@@ -501,6 +507,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       kUdfGroupId() + 2, // udf group 2
       kUdfGroupId() + 3, // udf group 3
       kUdfGroupId() + 4, // udf group 4
+      true, // port meta
   };
 
   SaiAclTableTraits::AdapterHostKey k{
@@ -508,6 +515,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 
   SaiObject<SaiAclTableTraits> obj = createObj<SaiAclTableTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclTable, Stage, obj.attributes()), GetParam());
+  EXPECT_TRUE(GET_OPT_ATTR(AclTable, FieldPortUserMeta, obj.attributes()));
 }
 
 TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
@@ -569,10 +577,15 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kHashAlgorithm(),
       this->kL3SwitchCancel(),
       this->kRouteDestination(),
-      this->kLabelExtended()};
+      this->kLabelExtended(),
+      this->kPortUserMeta()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
   EXPECT_EQ(GET_ATTR(AclEntry, TableId, obj.attributes()), aclTableId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(AclEntry, FieldPortUserMeta, obj.attributes())
+          .getDataAndMask(),
+      this->kPortUserMeta());
 }
 
 TEST_P(AclTableStoreParamTest, AclCounterCreateCtor) {

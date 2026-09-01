@@ -1007,6 +1007,10 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         addQualifier(aclEntry.lookupClassRoute().has_value(), qualifier);
         break;
 
+      case cfg::AclTableQualifier::LOOKUP_CLASS_PORT:
+        addQualifier(aclEntry.lookupClassPort().has_value(), qualifier);
+        break;
+
       case cfg::AclTableQualifier::ETHER_TYPE:
         addQualifier(aclEntry.etherType().has_value(), qualifier);
         break;

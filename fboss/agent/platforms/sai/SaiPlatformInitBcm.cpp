@@ -72,7 +72,8 @@ bool useGenericSaiBcmPlatform(PlatformType type) {
       type == PlatformType::PLATFORM_MINIPACK3BTA ||
       type == PlatformType::PLATFORM_MONTBLANC ||
       type == PlatformType::PLATFORM_TAHAN800BC ||
-      type == PlatformType::PLATFORM_TAHANSB800BC;
+      type == PlatformType::PLATFORM_TAHANSB800BC ||
+      type == PlatformType::PLATFORM_M4061CLSC;
 }
 
 std::unique_ptr<PlatformMapping> createGenericSaiBcmPlatformMapping(

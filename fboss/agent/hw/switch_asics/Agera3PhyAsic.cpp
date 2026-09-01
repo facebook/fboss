@@ -10,14 +10,32 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    // Enable the FEC-monitor read paths for the Agera3 retimer. FEC mode
+    // RS544 is programmed on the LINE side only, via the platform mapping
+    // (xphyLine.fec = RS544_2N); xphySystem stays NONE, and SaiPortManager
+    // selects FEC per-side, so only the line port enters FEC-monitor mode.
+    // Line-side-only is REQUIRED: Agera3 firmware rejects a both-side FEC
+    // monitor and fails port-create ("Both side FEC monitor can not be
+    // enabled", agera3_cfg_seq.c). The retimer is monitor-only (it does not
+    // terminate FEC); getXphyInfo exposes corrected/uncorrectable codewords
+    // (SAI_FEC_COUNTERS), pre-FEC BER (SAI_FEC_CORRECTED_BITS) and FEC
+    // alignment lock (FEC_AM_LOCK_STATUS). Collection is exception-guarded
+    // per-xphy in SaiPhyManager::collectXphyStats.
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
+    // Per-lane RX SNR. PAI 4.1-only (SAI 1.18.1): the read is gated in
+    // SaiPortManager::rxSNRSupported() by
+    // (SAI_BRCM_PAI_IMPL && SAI_API_VERSION >= 1.18.1), so it stays off on
+    // PAI 4.0 which does not implement SAI_PORT_ATTR_RX_SNR.
+    case HwAsic::Feature::RX_SNR:
       return true;
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::PORT_EYE_VALUES:
-    case HwAsic::Feature::FEC:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
-    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
@@ -31,6 +49,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
       return false;

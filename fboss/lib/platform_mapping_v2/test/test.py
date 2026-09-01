@@ -2,9 +2,15 @@
 
 # pyre-strict
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from typing import Dict, List, Optional
 
+from fboss.lib.platform_mapping_v2.gen import (
+    generate_platform_mappings_from_vendor_data,
+)
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 from fboss.lib.platform_mapping_v2.read_files_utils import (
     read_platform_descriptor,
@@ -532,6 +538,33 @@ class TestPlatformMappingGeneration(unittest.TestCase):
             self._get_test_vendor_data("test_data"), "test", multi_npu=True
         )
         self._verify_multi_npu_platform_mapping(platform_mapping, None)
+
+    def test_get_num_switch_asics(self) -> None:
+        platform_mapping = PlatformMappingV2(
+            self._get_test_vendor_data("test_data"), "test", multi_npu=True
+        )
+
+        self.assertEqual(2, platform_mapping.get_num_switch_asics())
+
+    def test_generated_descriptor_includes_num_switch_asics(self) -> None:
+        vendor_data = self._get_test_vendor_data("test_data")
+        vendor_data["test"]["test_platform_descriptor.csv"] = "\n".join(
+            [
+                "System_Vendor,Platform_Type,Product_Name_Prefixes,Mode_Names,Asic_Type",
+                "celestica,PLATFORM_WEDGE800BACT,TEST,test,ASIC_TYPE_TOMAHAWK5",
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as output_dir:
+            generate_platform_mappings_from_vendor_data(
+                vendor_data, output_dir, "test", is_multi_npu=True
+            )
+            with open(
+                Path(output_dir) / "celestica" / "test" / "platform_descriptor.json"
+            ) as descriptor_file:
+                descriptor = json.load(descriptor_file)
+
+        self.assertEqual(2, descriptor["numSwitchAsics"])
 
     def test_get_platform_mapping_single_npu_with_overrides(self) -> None:
         platform_mapping = PlatformMappingV2(

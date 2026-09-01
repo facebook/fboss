@@ -24,7 +24,8 @@ namespace facebook::fboss {
 using neteng::fboss::bgp::thrift::TBgpPath;
 using neteng::fboss::bgp_attr::TIpPrefix;
 
-struct BgpNeighborsReceivedRejectedTraits : public ReadCommandTraits {
+struct BgpNeighborsReceivedRejectedTraits : public ReadCommandTraits,
+                                            public CliDocsExempt {
   using ParentCmd = CmdShowBgpNeighbors;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;

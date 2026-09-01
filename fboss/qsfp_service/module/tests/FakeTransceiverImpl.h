@@ -136,6 +136,15 @@ class Cmis200GReservedStateBitsTransceiver : public FakeTransceiverImpl {
       TransceiverManager* mgr);
 };
 
+// Cmis200G variant whose bank select register (Lower Page byte 126) comes up
+// holding a bank this single-bank module doesn't have.
+class Cmis200GInvalidBankSelectTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis200GInvalidBankSelectTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 class BadCmis200GTransceiver : public FakeTransceiverImpl {
  public:
   explicit BadCmis200GTransceiver(int module, TransceiverManager* mgr);
@@ -238,6 +247,37 @@ class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
 class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+// Cmis2x800GDr4 variant advertising all three Meta custom features in Page 01h
+// Byte 191 (CMIS 5.1). Used to exercise the mode-mismatch / thermal-margin
+// feature handling on a non-ZR module built to the Meta FW spec.
+class Cmis2x800GDr4CustomFeatureTransceiver : public Cmis2x800GDr4Transceiver {
+ public:
+  explicit Cmis2x800GDr4CustomFeatureTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
+// Same, but reporting CMIS 5.0. The Meta FW spec that gives Byte 191 its
+// meaning requires CMIS >= 5.1, so below that revision the byte must be
+// ignored.
+class Cmis2x800GDr4Cmis50Transceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4Cmis50Transceiver(int module, TransceiverManager* mgr);
+};
+
+// Cmis2x800GDr4 custom-feature variant running out of thermal headroom and
+// mismatched against the host: all three Meta custom latched flags (Lower
+// Memory Byte 67) are asserted, both thermal margins (Bytes 68-69) are
+// negative, and Page 14h Bytes 130-131 flag per-lane mode mismatches.
+class Cmis2x800GDr4NegativeMarginTransceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4NegativeMarginTransceiver(
+      int module,
+      TransceiverManager* mgr);
 };
 
 // Real EEPROM dumps from deployed Arista XDR4 modules -- the parts that serve

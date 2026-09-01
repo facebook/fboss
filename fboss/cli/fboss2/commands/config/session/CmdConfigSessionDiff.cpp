@@ -182,7 +182,9 @@ void appendSection(
 CmdConfigSessionDiffTraits::RetType CmdConfigSessionDiff::queryClient(
     const HostInfo& /* hostInfo */,
     const utils::RevisionList& revisions) {
-  auto& session = ConfigSession::getInstance();
+  // Diffing must never stage a session.
+  auto& session =
+      ConfigSession::getInstance(ConfigSession::SessionInit::ReadOnly);
   auto& git = session.getGit();
   auto domains = allDomains(session);
 

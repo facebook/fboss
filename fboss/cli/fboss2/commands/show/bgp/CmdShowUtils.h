@@ -64,7 +64,7 @@ void computeCombinations(
 }
 } // namespace
 
-struct CmdShowVersionTraits : public ReadCommandTraits {
+struct CmdShowVersionTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

@@ -155,6 +155,133 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
+TEST_F(ThriftTest, getPortInfoUserMetaData) {
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+
+  // A port with no class ID configured must leave the field unset, so that
+  // absence stays distinguishable from an explicit CLASS_PORT_UNCONSTRAINED.
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.userMetaData().has_value());
+
+  auto config = testConfigA();
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.userMetaData() = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+    }
+  }
+  sw_->applyConfig("set port user metadata", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.userMetaData().has_value());
+  EXPECT_EQ(
+      *after.userMetaData(), cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  // getAllPortInfo shares getPortInfoHelper, so it must agree.
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(
+      allPortInfo[kTestPortId].userMetaData(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+}
+
+TEST_F(ThriftTest, getPortInfoIngressAclTableName) {
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  FLAGS_enable_acl_table_group = true;
+  ThriftHandler handler(sw_);
+  constexpr int32_t kTestPortId = 1;
+  const std::string kPortTable = "port-ingress-table";
+
+  PortInfoThrift before;
+  handler.getPortInfo(before, kTestPortId);
+  EXPECT_FALSE(before.ingressAclTableName().has_value());
+
+  auto makeTable = [](const std::string& name, int priority) {
+    cfg::AclTable table;
+    table.name() = name;
+    table.priority() = priority;
+    return table;
+  };
+
+  auto config = testConfigA();
+
+  // A switch-bound group alongside the port-bound one, mirroring how the
+  // access policy tables are published in production.
+  cfg::AclTableGroup switchGroup;
+  switchGroup.name() = "switch-ingress-group";
+  switchGroup.stage() = cfg::AclStage::INGRESS;
+  switchGroup.bindPoint() = cfg::AclTableGroupBindPoint::SWITCH;
+  switchGroup.aclTables() = {makeTable("switch-ingress-table", 1)};
+
+  cfg::AclTableGroup portGroup;
+  portGroup.name() = "port-ingress-group";
+  portGroup.stage() = cfg::AclStage::INGRESS;
+  portGroup.bindPoint() = cfg::AclTableGroupBindPoint::PORT;
+  portGroup.aclTables() = {makeTable(kPortTable, 1)};
+
+  config.aclTableGroups() = {switchGroup, portGroup};
+  for (auto& port : *config.ports()) {
+    if (*port.logicalID() == kTestPortId) {
+      port.ingressAclTableName() = kPortTable;
+    }
+  }
+  sw_->applyConfig("bind ingress acl table to port", config);
+
+  PortInfoThrift after;
+  handler.getPortInfo(after, kTestPortId);
+  ASSERT_TRUE(after.ingressAclTableName().has_value());
+  EXPECT_EQ(*after.ingressAclTableName(), kPortTable);
+
+  std::map<int32_t, PortInfoThrift> allPortInfo;
+  handler.getAllPortInfo(allPortInfo);
+  ASSERT_TRUE(allPortInfo.contains(kTestPortId));
+  EXPECT_EQ(allPortInfo[kTestPortId].ingressAclTableName(), kPortTable);
+}
+
+TEST_F(ThriftTest, getAclTableLookupClassPort) {
+  ThriftHandler handler(sw_);
+
+  auto config = testConfigA();
+  config.acls()->resize(2);
+  config.acls()[0].name() = "acl-with-class-id";
+  config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].lookupClassPort() =
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+  config.acls()[1].name() = "acl-without-class-id";
+  config.acls()[1].actionType() = cfg::AclActionType::DENY;
+  config.acls()[1].dscp() = 8;
+  sw_->applyConfig("acls matching ingress port class id", config);
+
+  std::vector<AclEntryThrift> aclTable;
+  handler.getAclTable(aclTable);
+
+  const AclEntryThrift* withClassId = nullptr;
+  const AclEntryThrift* withoutClassId = nullptr;
+  for (const auto& entry : aclTable) {
+    if (*entry.name() == "acl-with-class-id") {
+      withClassId = &entry;
+    } else if (*entry.name() == "acl-without-class-id") {
+      withoutClassId = &entry;
+    }
+  }
+
+  ASSERT_NE(withClassId, nullptr);
+  ASSERT_TRUE(withClassId->lookupClassPort().has_value());
+  EXPECT_EQ(
+      *withClassId->lookupClassPort(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  // An entry that does not qualify on the ingress port class ID must leave the
+  // field unset rather than defaulting to CLASS_PORT_UNCONSTRAINED.
+  ASSERT_NE(withoutClassId, nullptr);
+  EXPECT_FALSE(withoutClassId->lookupClassPort().has_value());
+}
+
 template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:

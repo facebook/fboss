@@ -23,7 +23,8 @@ namespace facebook::fboss {
 using facebook::neteng::fboss::bgp::thrift::TNexthopInfo;
 using facebook::neteng::fboss::bgp::thrift::TNexthopInfoQueryResult;
 
-struct CmdShowBgpNexthopInfoTraits : public ReadCommandTraits {
+struct CmdShowBgpNexthopInfoTraits : public ReadCommandTraits,
+                                     public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;

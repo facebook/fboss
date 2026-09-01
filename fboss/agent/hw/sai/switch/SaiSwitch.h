@@ -738,7 +738,8 @@ class SaiSwitch : public HwSwitch {
 
   /* reconstruction state apis */
   std::shared_ptr<MultiSwitchAclTableGroupMap>
-  reconstructMultiSwitchAclTableGroupMap() const;
+  reconstructMultiSwitchAclTableGroupMap(
+      cfg::AclTableGroupBindPoint bindPoint) const;
   std::shared_ptr<MultiSwitchAclMap> reconstructMultiSwitchAclMap() const;
 
   void startThreads();

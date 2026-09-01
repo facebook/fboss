@@ -473,7 +473,7 @@ def read_si_settings(  # noqa: C901
         # pyrefly: ignore [missing-attribute]
         if row[Column.CABLE_LENGTH]:
             # pyrefly: ignore [missing-attribute]
-            cable_length = float(row[Column.MEDIA_TYPE])
+            cable_length = float(row[Column.CABLE_LENGTH])
 
         # Add optics settings if present in the csv file.
         driver_peaking = None

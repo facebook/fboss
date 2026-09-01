@@ -95,6 +95,13 @@ sai_u32_range_t SaiAclTableManager::getNeighborDstUserMetaDataRange() const {
       managerTable_->switchManager().getSwitchSaiId(), range));
 }
 
+sai_u32_range_t SaiAclTableManager::getPortUserMetaDataRange() const {
+  std::optional<SaiSwitchTraits::Attributes::PortUserMetaDataRange> range =
+      SaiSwitchTraits::Attributes::PortUserMetaDataRange();
+  return *(SaiApiTable::getInstance()->switchApi().getAttribute(
+      managerTable_->switchManager().getSwitchSaiId(), range));
+}
+
 sai_uint32_t SaiAclTableManager::getMetaDataMask(
     sai_uint32_t metaDataMax) const {
   /*
@@ -137,7 +144,8 @@ std::vector<std::string> SaiAclTableManager::getAllHandleNames() const {
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& /*state*/) {
+    const std::shared_ptr<SwitchState>& /*state*/,
+    cfg::AclTableGroupBindPoint bindPoint) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
 
@@ -163,7 +171,7 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   SaiAclTableTraits::CreateAttributes attributes;
 
   std::tie(adapterHostKey, attributes) =
-      aclTableCreateAttributes(saiAclStage, addedAclTable);
+      aclTableCreateAttributes(saiAclStage, addedAclTable, bindPoint);
 
   auto& aclTableStore = saiStore_->get<SaiAclTableTraits>();
   std::shared_ptr<SaiAclTable> saiAclTable{};
@@ -189,9 +197,9 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   auto aclTableSaiId = it->second->aclTable->adapterKey();
 
   // Add ACL Table to group based on the stage
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+  if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().addAclTableGroupMember(
-        saiAclStage, aclTableSaiId, aclTableName);
+        saiAclStage, bindPoint, aclTableSaiId, aclTableName);
   }
 
   return aclTableSaiId;
@@ -200,7 +208,8 @@ AclTableSaiId SaiAclTableManager::addAclTable(
 void SaiAclTableManager::removeAclTable(
     const std::shared_ptr<AclTable>& removedAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& /*state*/) {
+    const std::shared_ptr<SwitchState>& /*state*/,
+    cfg::AclTableGroupBindPoint bindPoint) {
   auto saiAclStage =
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
   auto aclTableName = removedAclTable->getID();
@@ -208,7 +217,7 @@ void SaiAclTableManager::removeAclTable(
   // remove from acl table group
   if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, aclTableName);
+        saiAclStage, bindPoint, aclTableName);
   }
 
   // remove from handles
@@ -261,7 +270,8 @@ void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
     cfg::AclStage aclStage,
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state,
+    cfg::AclTableGroupBindPoint bindPoint) {
   /*
    * If the only change in acl table is in acl entries, then the acl entry delta
    * processing will take care of changing those.
@@ -270,8 +280,8 @@ void SaiAclTableManager::changedAclTable(
   if (needsAclTableRecreate(oldAclTable, newAclTable)) {
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
-    removeAclTable(oldAclTable, aclStage, state);
-    addAclTable(newAclTable, aclStage, state);
+    removeAclTable(oldAclTable, aclStage, state, bindPoint);
+    addAclTable(newAclTable, aclStage, state, bindPoint);
 
     // Add the old acl Entries back to new acl table
     auto oldAclMap = oldAclTable->getAclMap().unwrap();
@@ -409,6 +419,24 @@ SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
           neighborDstUserMetaDataRangeMin_,
           neighborDstUserMetaDataRangeMax_),
       neighborDstUserMetaDataMask_);
+}
+
+std::pair<sai_uint32_t, sai_uint32_t>
+SaiAclTableManager::cfgLookupClassToSaiPortMetaDataAndMask(
+    cfg::AclLookupClassPort lookupClass) const {
+  const auto range = getPortUserMetaDataRange();
+  const auto metadata = static_cast<sai_uint32_t>(lookupClass);
+  if (metadata < range.min || metadata > range.max) {
+    throw FbossError(
+        "attempted to configure port user metadata outside the range "
+        "supported by this ASIC",
+        metadata,
+        " supported min: ",
+        range.min,
+        " max: ",
+        range.max);
+  }
+  return std::make_pair(metadata, getMetaDataMask(range.max));
 }
 
 std::vector<sai_int32_t>
@@ -1096,6 +1124,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 addedAclEntry->getLookupClassNeighbor().value()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldPortUserMeta>
+      fieldPortUserMeta{std::nullopt};
+  if (auto lookupClassPort = addedAclEntry->getLookupClassPort()) {
+    fieldPortUserMeta =
+        SaiAclEntryTraits::Attributes::FieldPortUserMeta{AclEntryFieldU32(
+            cfgLookupClassToSaiPortMetaDataAndMask(*lookupClassPort))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldEthertype> fieldEtherType{
       std::nullopt};
   if (addedAclEntry->getEtherType()) {
@@ -1563,7 +1599,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldDstMac.has_value() || fieldIpType.has_value() ||
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+       fieldNeighborDstUserMeta.has_value() || fieldPortUserMeta.has_value() ||
+       fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1699,6 +1736,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclFieldRouteDestination,
 #endif
       labelExtended,
+      fieldPortUserMeta,
   };
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
@@ -2130,7 +2168,7 @@ void SaiAclTableManager::removeDefaultAclTable(
       SaiAclTableGroupManager::cfgAclStageToSaiAclStage(stage);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
     managerTable_->aclTableGroupManager().removeAclTableGroupMember(
-        saiAclStage, name);
+        saiAclStage, cfg::AclTableGroupBindPoint::SWITCH, name);
   }
   handles_.erase(cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
 }
@@ -2259,6 +2297,11 @@ bool SaiAclTableManager::isQualifierSupported(
       return hasField(
           std::get<std::optional<
               SaiAclTableTraits::Attributes::FieldRouteDstUserMeta>>(
+              attributes));
+    case cfg::AclTableQualifier::LOOKUP_CLASS_PORT:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldPortUserMeta>>(
               attributes));
     case cfg::AclTableQualifier::ETHER_TYPE:
       return hasField(

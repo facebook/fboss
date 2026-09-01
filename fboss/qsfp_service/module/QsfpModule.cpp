@@ -505,6 +505,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
           TransceiverErrorState::INVALID_IDENTIFIER);
       QSFP_LOG(ERR, this) << "Invalid module identifier";
     }
+
+    if (hasInvalidBankSelect()) {
+      tcvrState.errorStates()->insert(
+          TransceiverErrorState::INVALID_BANK_SELECT);
+    }
     auto currentStatus = getModuleStatus();
     // Use the input `moduleStatus` as the reference to update the
     // `cmisStateChanged` for currentStatus, which will be used in the
@@ -519,11 +524,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
     }
 
-    // If the StatsPublisher thread has triggered the VDM data capture then
-    // latch, read data (page 24 and 25), release latch
-    if (captureVdmStats_) {
-      latchAndReadVdmDataLocked();
-    }
+    // Drive the non-blocking VDM ForOds freeze/read handshake. On the
+    // StatsPublisher trigger this writes FreezeRequest (no wait); one refresh
+    // later it reads the frozen snapshot and returns true. Never blocks the
+    // refresh thread.
+    const bool vdmFrozenReadThisCycle = driveVdmCaptureLocked();
 
     auto vdmStats = getVdmDiagsStatsInfo();
     auto vdmPerfMonStats = getVdmPerfMonitorStats();
@@ -532,14 +537,17 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       tcvrStats.vdmDiagsStats() = *vdmStats;
       tcvrStats.vdmPerfMonitorStats() = *vdmPerfMonStats;
 
-      // If the StatsPublisher thread has triggered the VDM data capture then
-      // capure this data into transceiverInfo cache
-      if (captureVdmStats_) {
+      // Only refresh the ForOds snapshot on the cycle we read frozen data;
+      // otherwise carry forward the previous values.
+      if (vdmFrozenReadThisCycle) {
         tcvrStats.vdmDiagsStatsForOds() = *vdmStats;
         tcvrStats.vdmPerfMonitorStatsForOds() =
             getVdmPerfMonitorStatsForOds(*vdmPerfMonStats);
-      } else {
-        // If the VDM is not updated in this cycle then retain older values
+      } else if (info_.rlock()->has_value()) {
+        // If the VDM is not updated in this cycle then retain older values.
+        // Skip while the info cache is not yet populated (e.g. the first
+        // refresh, or right after an info_ reset) -- there is nothing to carry
+        // forward yet and getTransceiverInfo() would otherwise throw.
         auto cachedTcvrInfo = getTransceiverInfo();
         if (cachedTcvrInfo.tcvrStats()->vdmDiagsStatsForOds()) {
           tcvrStats.vdmDiagsStatsForOds() =
@@ -550,11 +558,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
               cachedTcvrInfo.tcvrStats()->vdmPerfMonitorStatsForOds().value();
         }
       }
-      captureVdmStats_ = false;
     }
 
     tcvrState.timeCollected() = lastRefreshTime_;
     tcvrStats.timeCollected() = lastRefreshTime_;
+
+    const auto thermalMargins = getThermalMargins();
+    if (thermalMargins.dspTempMargin) {
+      tcvrStats.dspTempMargin() = *thermalMargins.dspTempMargin;
+    }
+    if (thermalMargins.laserTempMargin) {
+      tcvrStats.laserTempMargin() = *thermalMargins.laserTempMargin;
+    }
 
     tcvrStats.remediationCounter() = numRemediation_;
     tcvrState.eepromCsumValid() = verifyEepromChecksums();

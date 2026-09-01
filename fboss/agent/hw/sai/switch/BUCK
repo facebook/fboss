@@ -1,7 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss/agent/hw/sai/switch:switch.bzl", "all_handler_libs", "all_npu_libs", "all_phy_libs")
 
 oncall("fboss_agent_push")
+
+cpp_library(
+    name = "drop_reason_utils",
+    srcs = ["DropReasonUtils.cpp"],
+    headers = ["DropReasonUtils.h"],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [],
+)
 
 thrift_library(
     name = "if",

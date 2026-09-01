@@ -211,6 +211,11 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         bool>;
+    using FieldPortUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_PORT_USER_META,
+        bool,
+        StdNullOptDefault<bool>>;
     using FieldEthertype =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
@@ -315,7 +320,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::UserDefinedFieldGroupMin3>,
       std::optional<Attributes::UserDefinedFieldGroupMin4>
 #endif
-      >;
+      ,
+      std::optional<Attributes::FieldPortUserMeta>>;
 
   using AdapterHostKey = std::string;
 };
@@ -349,6 +355,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, FieldPortUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
@@ -501,6 +508,11 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         AclEntryFieldU32>;
+    using FieldPortUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_PORT_USER_META,
+        AclEntryFieldU32,
+        StdNullOptDefault<AclEntryFieldU32>>;
     using FieldEthertype = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE,
@@ -717,10 +729,12 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
       std::optional<Attributes::ActionL3SwitchCancel>,
       std::optional<Attributes::FieldRouteDestination>,
-      std::optional<Attributes::LabelExtended>>;
+      std::optional<Attributes::LabelExtended>,
+      std::optional<Attributes::FieldPortUserMeta>>;
 #else
       ,
-      std::optional<Attributes::LabelExtended>>;
+      std::optional<Attributes::LabelExtended>,
+      std::optional<Attributes::FieldPortUserMeta>>;
 #endif
 };
 
@@ -752,6 +766,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldPortUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldAclRangeType);

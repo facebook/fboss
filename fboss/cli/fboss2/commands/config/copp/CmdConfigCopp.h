@@ -10,74 +10,85 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
+#include <optional>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/config/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
 
-// Argument for `config copp cpu-queue <id> [<sub-cmd> <value>]`.
+// Argument for `config copp queue <id> [<attr> <value> ...]`.
 //
-// Accepted forms (validated by CoppCpuQueueArgs):
-//   <id>                        -> ensure queue <id> exists
-//   <id> name <string>          -> set name
-//   <id> rate-limit kbps <max>  -> set max bandwidth in kbps
-//   <id> rate-limit pps <max>   -> set max packet rate in pps
+// Accepted forms (validated by CoppQueueArgs):
+//   <id>                         -> ensure queue <id> exists; creating a new
+//                                   one requires the stream-type attribute
+//   <id> <attr> <value...> [...] -> any cfg::PortQueue attribute accepted by
+//                                   utils::applyPortQueueConfig (see
+//                                   utils::validQueueAttrs()): name,
+//                                   reserved-bytes, shared-bytes,
+//                                   max-dynamic-shared-bytes, weight,
+//                                   scaling-factor, scheduling, stream-type,
+//                                   buffer-pool-name, rate-limit,
+//                                   active-queue-management
+//
+// Attributes may be combined in a single invocation. active-queue-management
+// consumes all remaining tokens, and rate-limit takes several value tokens.
+// This is the same grammar as `config qos queue-config <name>`, parsed and
+// applied by the same code -- copp keeps no queue vocabulary of its own.
 //
 // The accepted integer range for <id> is 0..255 (CPU queue IDs are a small,
 // platform-bounded set; the exact cap depends on the ASIC via
-// SaiHostifManager::getMaxCpuQueues). Value parsing for <max> is deferred to
+// SaiHostifManager::getMaxCpuQueues). Attribute value parsing is deferred to
 // applyCpuQueueConfig() so error messages can name the specific attribute.
-class CoppCpuQueueArgs : public utils::BaseObjectArgType<std::string> {
+class CoppQueueArgs : public utils::BaseObjectArgType<std::string> {
  public:
-  enum class Op {
-    // No sub-command: just ensure the queue exists.
-    NONE,
-    // name <string>
-    NAME,
-    // rate-limit kbps <max>
-    RATE_LIMIT_KBPS,
-    // rate-limit pps <max>
-    RATE_LIMIT_PPS,
-  };
-
-  /* implicit */ CoppCpuQueueArgs( // NOLINT(google-explicit-constructor)
+  /* implicit */ CoppQueueArgs( // NOLINT(google-explicit-constructor)
       std::vector<std::string> v);
 
   int16_t getQueueId() const {
     return queueId_;
   }
 
-  Op getOp() const {
-    return op_;
+  // <attr, value tokens> destined for utils::applyPortQueueConfig.
+  const std::vector<std::pair<std::string, std::vector<std::string>>>&
+  getAttributes() const {
+    return attributes_;
   }
 
-  // Only meaningful when op == NAME.
-  const std::string& getName() const {
-    return name_;
+  // Token stream following active-queue-management, if present.
+  const std::vector<std::string>& getAqmAttributes() const {
+    return aqmAttributes_;
   }
 
-  // Only meaningful when op == RATE_LIMIT_KBPS or RATE_LIMIT_PPS.
-  int32_t getRateMax() const {
-    return rateMax_;
+  bool hasEdits() const {
+    return !attributes_.empty() || !aqmAttributes_.empty();
   }
 
  private:
   int16_t queueId_ = 0;
-  Op op_ = Op::NONE;
-  std::string name_;
-  int32_t rateMax_ = 0;
+  std::vector<std::pair<std::string, std::vector<std::string>>> attributes_;
+  std::vector<std::string> aqmAttributes_;
 };
 
-// Argument for `config copp reason <reason-name> queue <id>`.
+// Argument for `config copp reason <reason-name> queue <id> [order <n>]`.
 //
 // <reason-name> is matched case-insensitively against the cfg::PacketRxReason
 // enum (e.g. arp, ndp, bgp, lacp, lldp, dhcp, dhcpv6, bgpv6, ttl_1, ...).
 // <id> is validated as a non-negative int16.
+//
+// rxReasonToQueueOrderedList is position-sensitive (the agent programs the
+// reasons in list order), so `order <n>` places the entry at 0-based index
+// <n>. Without it, a new reason appends and an existing reason keeps its
+// current position.
 class CoppReasonArgs : public utils::BaseObjectArgType<std::string> {
  public:
   /* implicit */ CoppReasonArgs( // NOLINT(google-explicit-constructor)
@@ -91,15 +102,20 @@ class CoppReasonArgs : public utils::BaseObjectArgType<std::string> {
     return queueId_;
   }
 
+  const std::optional<size_t>& getOrder() const {
+    return order_;
+  }
+
  private:
   cfg::PacketRxReason reason_{};
   int16_t queueId_ = 0;
+  std::optional<size_t> order_;
 };
 
 // The `copp` parent node itself is not usable; it only exists to dispatch to
-// cpu-queue and reason. The parent needs a handler (rather than being a pure
+// queue and reason. The parent needs a handler (rather than being a pure
 // branch node) so that addCommandBranch() increments depth before descending
-// into the leaves — without that, cpu-queue and reason would both register
+// into the leaves — without that, queue and reason would both register
 // their positional args at the same CmdArgsLists slot, and CLI11 parsing
 // collides with siblings of `config` whose names happen to also be valid
 // reason names (e.g. `arp`).
@@ -115,30 +131,40 @@ class CmdConfigCopp : public CmdHandler<CmdConfigCopp, CmdConfigCoppTraits> {
 
   RetType queryClient(const HostInfo& /* hostInfo */) {
     throw std::runtime_error(
-        "Incomplete command, please use 'cpu-queue' or 'reason' subcommand");
+        "Incomplete command, please use 'queue' or 'reason' subcommand");
   }
 
   void printOutput(const RetType& /* model */) {}
 };
 
-struct CmdConfigCoppCpuQueueTraits : public WriteCommandTraits {
+struct CmdConfigCoppQueueTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigCopp;
-  using ObjectArgType = CoppCpuQueueArgs;
+  using ObjectArgType = CoppQueueArgs;
   using RetType = std::string;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    // required() + expected() keeps CLI11 routing positionals to this option
+    // instead of reclassifying them as sibling `config <x>` subcommands (see
+    // the CmdConfigCoppReasonTraits comment). Only the first `min` tokens are
+    // shielded, so a *value* that spells a sibling name past token 1 (e.g.
+    // `queue 1 name arp`) can still be hijacked -- an accepted limitation of
+    // this variable-length grammar; pick queue names that are not fboss2
+    // command words.
     cmd.add_option(
-        "cpu_queue_config",
-        args,
-        "<id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
-        "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
+           "copp_queue_config",
+           args,
+           "<id> [<attr> <value> ...] where <attr> is one of: "
+           "name <string>, rate-limit <kbps|pps> <max>, " +
+               utils::validQueueAttrs())
+        ->required()
+        ->expected(1, 64);
   }
 };
 
-class CmdConfigCoppCpuQueue
-    : public CmdHandler<CmdConfigCoppCpuQueue, CmdConfigCoppCpuQueueTraits> {
+class CmdConfigCoppQueue
+    : public CmdHandler<CmdConfigCoppQueue, CmdConfigCoppQueueTraits> {
  public:
-  using ObjectArgType = CmdConfigCoppCpuQueueTraits::ObjectArgType;
-  using RetType = CmdConfigCoppCpuQueueTraits::RetType;
+  using ObjectArgType = CmdConfigCoppQueueTraits::ObjectArgType;
+  using RetType = CmdConfigCoppQueueTraits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& args);
 
@@ -158,11 +184,12 @@ struct CmdConfigCoppReasonTraits : public WriteCommandTraits {
     cmd.add_option(
            "copp_reason_config",
            args,
-           "<reason-name> queue <id> where <reason-name> is a "
+           "<reason-name> queue <id> [order <n>] where <reason-name> is a "
            "cfg::PacketRxReason (e.g. arp, ndp, bgp, bgpv6, lacp, "
-           "lldp, dhcp, dhcpv6, ttl_1, ...)")
+           "lldp, dhcp, dhcpv6, ttl_1, ...) and <n> is the 0-based position "
+           "in rxReasonToQueueOrderedList")
         ->required()
-        ->expected(3);
+        ->expected(3, 5);
   }
 };
 

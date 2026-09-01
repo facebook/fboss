@@ -153,6 +153,35 @@ inline folly::StringPiece constexpr kLeakyBucketFlapCnt() {
   return "leaky_bucket_flap_cnt";
 }
 
+// Cumulative per-port counts of phy transitions, qualified by side because
+// updatePmdInfo() runs once per side on XPHY and the two must not share a
+// monotonic counter.
+inline folly::StringPiece constexpr kLineRxSignalDetectChanged() {
+  return "line.rx_signal_detect_changed";
+}
+
+inline folly::StringPiece constexpr kSystemRxSignalDetectChanged() {
+  return "system.rx_signal_detect_changed";
+}
+
+inline folly::StringPiece constexpr kLineRxCdrLockChanged() {
+  return "line.rx_cdr_lock_changed";
+}
+
+inline folly::StringPiece constexpr kSystemRxCdrLockChanged() {
+  return "system.rx_cdr_lock_changed";
+}
+
+// Line side only: RS layer fault status is never collected for the system
+// side, so there is no system.* counterpart to these.
+inline folly::StringPiece constexpr kLineLocalFaultChanged() {
+  return "line.local_fault_changed";
+}
+
+inline folly::StringPiece constexpr kLineRemoteFaultChanged() {
+  return "line.remote_fault_changed";
+}
+
 inline folly::StringPiece constexpr kInLabelMissDiscards() {
   return "in_label_miss_discards";
 }

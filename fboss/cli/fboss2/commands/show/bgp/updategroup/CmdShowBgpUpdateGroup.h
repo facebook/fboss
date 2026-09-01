@@ -31,7 +31,8 @@ using facebook::neteng::fboss::bgp::thrift::TUpdateGroupPeerInfo;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupStats;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupSummary;
 
-struct CmdShowBgpUpdateGroupTraits : public ReadCommandTraits {
+struct CmdShowBgpUpdateGroupTraits : public ReadCommandTraits,
+                                     public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
   using ObjectArgType = std::vector<std::string>;

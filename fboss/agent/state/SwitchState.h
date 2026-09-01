@@ -156,6 +156,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::portAclTableGroupMaps,
+    MultiSwitchAclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::dsfNodesMap,
     MultiSwitchDsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
@@ -302,10 +306,15 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
+  const std::shared_ptr<MultiSwitchAclTableGroupMap>& getPortAclTableGroups()
+      const;
 
   std::chrono::seconds getArpTimeout() const;
 
   std::shared_ptr<const AclMap> getAclsForTable(
+      cfg::AclStage aclStage,
+      const std::string& tableName) const;
+  std::shared_ptr<const AclTable> getAclTable(
       cfg::AclStage aclStage,
       const std::string& tableName) const;
 
@@ -375,7 +384,18 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<UdfConfig> getUdfConfig() const;
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const;
-  std::optional<bool> getL3EcmpIngressPortPrune() const;
+  EcmpGroupSettingsMap getEcmpGroupSettings() const;
+
+  /*
+   * Split horizon for one group type, resolved from ecmpGroupSettings.
+   *
+   * std::nullopt when the map has no entry for the type: that group type is
+   * unconfigured and callers should leave the attribute alone rather than
+   * program a value. FRR groups are the exception and are handled at their
+   * call site, because omitting the attribute there makes the vendor SDK
+   * default it to TRUE.
+   */
+  std::optional<bool> getSplitHorizonEnabled(cfg::EcmpGroupType type) const;
 
   /*
    * Remote objects
@@ -416,6 +436,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
+  void resetPortAclTableGroups(
+      std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors);
   void resetQosPolicies(

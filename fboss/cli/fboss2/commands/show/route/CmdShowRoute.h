@@ -24,6 +24,11 @@ struct CmdShowRouteTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowRouteModel;
+  static constexpr bool ALLOW_FILTERING = true;
+  std::vector<utils::LocalOption> LocalOptions = {
+      {"--clientID",
+       "Only show routes from this client (ClientID name, e.g. BGPD, "
+       "STATIC_ROUTE, INTERFACE_ROUTE, or its numeric value)"}};
 
   // Human-authored guide prose for the CLI reference wiki. Superset of the
   // one-line help string registered in the command tree.
@@ -40,6 +45,10 @@ class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
   bool isUcmpActive(const std::vector<NextHopThrift>& nextHops);
   RetType createModel(std::vector<facebook::fboss::UnicastRoute>& routeEntries);
 
+  std::unordered_map<std::string, std::vector<std::string>>
+  getAcceptedFilterValues() {
+    return {{"addressFamily", {"ipv4", "ipv6"}}};
+  }
   // Canned, synthetic model (no real switch data) used to render a
   // deterministic example for the CLI reference wiki. No live switch.
   static RetType sampleModel();

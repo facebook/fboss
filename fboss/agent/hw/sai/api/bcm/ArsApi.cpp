@@ -26,6 +26,15 @@ SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
 #endif
 
 } // namespace facebook::fboss

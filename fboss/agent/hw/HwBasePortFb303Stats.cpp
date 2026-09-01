@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/HwBasePortFb303Stats.h"
 
+#include <fb303/ThreadCachedServiceData.h>
+
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/StatsConstants.h"
@@ -82,6 +84,20 @@ void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
     // For fb303 - init will happen on the next set. So here we
     // just delete the counter
     utility::deleteCounter(statName(statKey, oldPortName.value_or("")));
+  }
+  // Phy transition timeseries are not in either list above: they are neither
+  // registered up front (they only exist on ports that actually report phy
+  // info) nor set every stats round. Only the old name needs clearing.
+  if (oldPortName) {
+    for (auto statKey :
+         {kLineRxSignalDetectChanged(),
+          kSystemRxSignalDetectChanged(),
+          kLineRxCdrLockChanged(),
+          kSystemRxCdrLockChanged(),
+          kLineLocalFaultChanged(),
+          kLineRemoteFaultChanged()}) {
+      utility::deleteCounter(statName(statKey, *oldPortName));
+    }
   }
   for (const auto& queueIdAndName : queueId2Name_) {
     for (auto statKey : kQueueMonotonicCounterStatKeys()) {
@@ -388,6 +404,13 @@ void HwBasePortFb303Stats::updateLeakyBucketFlapCnt(int cnt) {
   auto now = duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
   updateStat(now, kLeakyBucketFlapCnt(), cnt);
+}
+
+void HwBasePortFb303Stats::updatePhyChanged(
+    folly::StringPiece statKey,
+    bool changed) {
+  tcData().addStatValue(
+      statName(statKey, portName_), changed ? 1 : 0, fb303::SUM);
 }
 
 void HwBasePortFb303Stats::updateStat(

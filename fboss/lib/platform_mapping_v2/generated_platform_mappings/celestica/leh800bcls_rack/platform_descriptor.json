@@ -9,5 +9,6 @@
   "asicType": 18,
   "variantAttributes": {
     "test_fixture": false
-  }
+  },
+  "numSwitchAsics": 2
 }

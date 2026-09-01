@@ -17,8 +17,12 @@
 #include <fboss/fsdb/if/FsdbModel.h>
 #include <fboss/fsdb/oper/ExtendedPathBuilder.h>
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
+#include <fboss/fsdb/oper/SubscriptionPathStore.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
+#include "fboss/fsdb/oper/tests/TestHelpers.h"
+#include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/thrift_cow/storage/tests/CowStorageBenchHelper.h"
 
 DEFINE_int32(
@@ -316,6 +320,125 @@ void bm_canonicalrib_pubsub_mem(
           subscribeFunc);
 }
 
+TestStruct makeWideMapStruct(int numKeys) {
+  auto s = initializeTestStruct();
+  for (int i = 0; i < numKeys; ++i) {
+    s.mapOfStringToI32()[fmt::format("key{}", i)] = i;
+  }
+  return s;
+}
+
+// The wildcard benchmarks below never call start(); they drive serve cycles
+// inline via SynchronousServeStorage::serveOnce() so the periodic loop's
+// subscriptionServeInterval sleep stays out of the measurement.
+using SynchronousServeCowStorage = SynchronousServeStorage<TestStruct>;
+
+// Serve benchmark for a single wildcard PATCH extended subscription over a wide
+// map. Reports numPathStores and resolved-subscription counts so the eager
+// (flag OFF) vs dynamic (flag ON) variants can be compared directly: dynamic
+// resolution should keep both counts flat regardless of the number of matching
+// keys.
+void bm_serve_wildcard_patch(
+    folly::UserCounters& counters,
+    unsigned iters,
+    int numKeys,
+    bool dynamicEnabled) {
+  folly::BenchmarkSuspender suspender;
+  gflags::FlagSaver flagSaver;
+  FLAGS_dynamicWildcardPatchResolution = dynamicEnabled;
+
+  auto storage = SynchronousServeCowStorage(
+      makeWideMapStruct(numKeys), detail::makeBenchStorageParams());
+
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("key.*").get();
+  auto reader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId("wildcard_patch_bench")),
+      {{0, path}});
+  // Initial sync cycle covering all matching keys, drained but not measured.
+  storage.serveOnce();
+  auto generator = std::move(reader.generator_);
+  folly::coro::blockingWait(generator.next());
+
+  // Time only the serve cycle. The mutation and the drain stay outside the
+  // measured region; the drain must happen every iteration or the subscription
+  // queue fills and the subscription is pruned mid-benchmark.
+  thriftpath::RootThriftPath<TestStruct> root;
+  std::chrono::nanoseconds serveTime{0};
+  for (unsigned i = 0; i < iters; ++i) {
+    storage.set(root.mapOfStringToI32()["key0"], numKeys + i + 1);
+    const auto start = std::chrono::steady_clock::now();
+    suspender.dismiss();
+    storage.serveOnce();
+    suspender.rehire();
+    serveTime += std::chrono::steady_clock::now() - start;
+    folly::coro::blockingWait(generator.next());
+  }
+
+  counters["serve_ns_per_iter"] = folly::UserMetric(
+      static_cast<double>(serveTime.count()) / static_cast<double>(iters));
+  counters["numPathStores"] =
+      folly::UserMetric(static_cast<double>(storage.numPathStores()));
+  counters["numResolvedSubs"] =
+      folly::UserMetric(static_cast<double>(storage.numSubscriptions()));
+}
+
+// Same shape as bm_serve_wildcard_patch, but with numSubs concurrent wildcard
+// PATCH subscriptions instead of one. WildcardPatchCandidateTracker::seed()
+// scans every registered extended subscription on each serve cycle and push()
+// rescans every in-progress candidate per visited token, so per-cycle cost is
+// expected to grow with subscription count as well as map width. Kept separate
+// from the single-subscription benchmark so those numbers stay comparable.
+void bm_serve_wildcard_patch_many_subs(
+    folly::UserCounters& counters,
+    unsigned iters,
+    int numKeys,
+    int numSubs,
+    bool dynamicEnabled) {
+  folly::BenchmarkSuspender suspender;
+  gflags::FlagSaver flagSaver;
+  FLAGS_dynamicWildcardPatchResolution = dynamicEnabled;
+
+  auto storage = SynchronousServeCowStorage(
+      makeWideMapStruct(numKeys), detail::makeBenchStorageParams());
+
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("key.*").get();
+  std::vector<decltype(storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId("x")), {}))>
+      readers;
+  readers.reserve(numSubs);
+  for (int i = 0; i < numSubs; ++i) {
+    readers.push_back(storage.subscribe_patch_extended(
+        SubscriptionIdentifier(
+            SubscriberId(fmt::format("wildcard_patch_bench_{}", i))),
+        {{0, path}}));
+  }
+  storage.serveOnce();
+  for (auto& reader : readers) {
+    folly::coro::blockingWait(reader.generator_.next());
+  }
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  std::chrono::nanoseconds serveTime{0};
+  for (unsigned i = 0; i < iters; ++i) {
+    storage.set(root.mapOfStringToI32()["key0"], numKeys + i + 1);
+    const auto start = std::chrono::steady_clock::now();
+    suspender.dismiss();
+    storage.serveOnce();
+    suspender.rehire();
+    serveTime += std::chrono::steady_clock::now() - start;
+    for (auto& reader : readers) {
+      folly::coro::blockingWait(reader.generator_.next());
+    }
+  }
+
+  counters["serve_ns_per_iter"] = folly::UserMetric(
+      static_cast<double>(serveTime.count()) / static_cast<double>(iters));
+  counters["numPathStores"] =
+      folly::UserMetric(static_cast<double>(storage.numPathStores()));
+  counters["numResolvedSubs"] =
+      folly::UserMetric(static_cast<double>(storage.numSubscriptions()));
+}
+
 } // namespace
 
 BENCHMARK_COUNTERS_NAME_PARAM(
@@ -465,6 +588,69 @@ BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_delta, 0, 0, 1);
 BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch, 1, 0, 0);
 
 BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch_1_delta, 1, 0, 1);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_1000_eager,
+    1000,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_1000_dynamic,
+    1000,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_5000_eager,
+    5000,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_5000_dynamic,
+    5000,
+    true);
+
+// Scaling with concurrent wildcard subscriptions at a fixed map width, so the
+// per-cycle seed()/push() cost attributable to subscription count is visible
+// separately from map width.
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_1_eager,
+    500,
+    1,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_1_dynamic,
+    500,
+    1,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_50_eager,
+    500,
+    50,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_50_dynamic,
+    500,
+    50,
+    true);
 
 } // namespace facebook::fboss::fsdb::test
 

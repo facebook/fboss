@@ -85,6 +85,11 @@ class HwBasePortFb303Stats {
       std::vector<PfcPriority> enabledPriorities,
       std::optional<cfg::PortPfc> pfc);
   void updateLeakyBucketFlapCnt(int cnt);
+  // Publishes whether a phy status changed during the interval just read, as
+  // a SUM timeseries so ODS sees .sum/.sum.60/... rather than a level a slower
+  // scrape could step over. statKey must be one of the side qualified
+  // k*Changed() keys in StatsConstants.h.
+  void updatePhyChanged(folly::StringPiece statKey, bool changed);
 
   /*
    * Port stat name

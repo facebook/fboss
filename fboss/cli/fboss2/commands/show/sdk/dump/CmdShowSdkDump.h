@@ -15,7 +15,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowQsfpSdkDumpTraits : public ReadCommandTraits {
+struct CmdShowQsfpSdkDumpTraits : public ReadCommandTraits,
+                                  public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
@@ -32,7 +33,8 @@ class CmdShowQsfpSdkDump
   void printOutput(const RetType& rc, std::ostream& out = std::cout);
 };
 
-struct CmdShowAgentSdkDumpTraits : public ReadCommandTraits {
+struct CmdShowAgentSdkDumpTraits : public ReadCommandTraits,
+                                   public CliDocsExempt {
   using ParentCmd = void;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <optional>
+
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 namespace facebook::fboss {
@@ -17,6 +19,7 @@ class Ladakh800bclsPlatformMapping : public PlatformMapping {
  public:
   Ladakh800bclsPlatformMapping();
   explicit Ladakh800bclsPlatformMapping(const std::string& platformMappingStr);
+  explicit Ladakh800bclsPlatformMapping(std::optional<int> productionState);
 
  private:
   // Forbidden copy constructor and assignment operator

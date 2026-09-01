@@ -193,7 +193,9 @@ struct PortFields {
   // Whether the SDK's software linkscan thread or the ASIC notices link
   // status changes on this port. Unset = leave SDK default untouched.
   73: optional switch_config.LinkScanMode linkScanMode;
-  74: optional string ingressAclTableGroupName;
+  74: optional string ingressAclTableName;
+  // Lookup class assigned to packets arriving on this port.
+  75: optional switch_config.AclLookupClassPort userMetaData;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -289,6 +291,7 @@ struct AclEntryFields {
   // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
   36: optional i64 dstIpV6Word3;
   37: optional i64 dstIpV6Word2;
+  38: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct NamedNextHopGroupAndID {
@@ -556,7 +559,10 @@ struct SwitchSettingsFields {
   // ECMP width for this switch, sourced from cfg.SwitchSettings.ecmpWidth
   // (FLAGS_ecmp_width fallback during migration).
   62: optional i32 ecmpWidth;
-  63: optional bool l3EcmpIngressPortPrune;
+  63: map<
+    switch_config.EcmpGroupType,
+    switch_config.EcmpGroupSettings
+  > ecmpGroupSettings;
 }
 
 struct RoutePrefix {
@@ -925,7 +931,7 @@ struct SwitchState {
   > classBasedPolicyMaps;
   129: map<
     SwitchIdList,
-    map<string, AclTableGroupFields>
+    map<switch_config.AclStage, AclTableGroupFields>
   > portAclTableGroupMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;

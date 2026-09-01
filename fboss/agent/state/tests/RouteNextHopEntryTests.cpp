@@ -150,6 +150,57 @@ const std::vector<facebook::network::thrift::BinaryAddress>
 
 } // namespace
 
+TEST(RouteNextHop, SameInterfaceAndAddressRemainContiguous) {
+  const folly::IPAddress lowerAddr("2001:db8::1");
+  const folly::IPAddress targetAddr("2001:db8::2");
+  const folly::IPAddress higherAddr("2001:db8::3");
+  const InterfaceID targetIntf(2);
+
+  const NextHop defaultTarget =
+      ResolvedNextHop(targetAddr, targetIntf, ECMP_WEIGHT);
+  const NextHop targetWithAllOtherAttributes = ResolvedNextHop(
+      targetAddr,
+      targetIntf,
+      99,
+      LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP),
+      true,
+      getTopologyInfo(),
+      7,
+      {folly::IPAddressV6("3001:db8::1")},
+      TunnelType::SRV6_ENCAP,
+      std::string("ordering-test-tunnel"),
+      int64_t(42),
+      NextHopRole::BACKUP);
+
+  const std::vector<NextHop> unorderedNextHops{
+      ResolvedNextHop(targetAddr, InterfaceID(1), ECMP_WEIGHT),
+      ResolvedNextHop(lowerAddr, targetIntf, ECMP_WEIGHT),
+      defaultTarget,
+      targetWithAllOtherAttributes,
+      ResolvedNextHop(higherAddr, targetIntf, ECMP_WEIGHT),
+      ResolvedNextHop(targetAddr, InterfaceID(3), ECMP_WEIGHT),
+  };
+  const RouteNextHopSet orderedNextHops(
+      unorderedNextHops.begin(), unorderedNextHops.end());
+  ASSERT_EQ(orderedNextHops.size(), unorderedNextHops.size());
+
+  bool insideTargetGroup{false};
+  bool targetGroupEnded{false};
+  size_t targetGroupSize{0};
+  for (const auto& nextHop : orderedNextHops) {
+    const bool isTarget =
+        nextHop.intfID() == targetIntf && nextHop.addr() == targetAddr;
+    if (isTarget) {
+      EXPECT_FALSE(targetGroupEnded);
+      insideTargetGroup = true;
+      ++targetGroupSize;
+    } else if (insideTargetGroup) {
+      targetGroupEnded = true;
+    }
+  }
+  EXPECT_EQ(targetGroupSize, 2);
+}
+
 TEST(RouteNextHopEntry, FromNextHopsThrift) {
   // Note that we can't use UnicastRoute's constructor because it expects to be
   // passed both nextHopAddrs and nextHops

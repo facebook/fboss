@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
@@ -402,8 +403,8 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-          // XGS GTE 13 has cumulative errors reported
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+          // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecCorrectableErrors() = value;
 #else
           hwPortStats.fecCorrectableErrors() =
@@ -415,8 +416,8 @@ void fillHwPortStats(
         if (updateFecStats) {
           // SDK provides clear-on-read counter but we store it as a monotonic
           // counter
-#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
-          // XGS GTE 13 has cumulative errors reported
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0) || defined(SAI_BRCM_PAI_IMPL)
+          // XGS GTE 13 and Broadcom PAI report cumulative FEC counters
           hwPortStats.fecUncorrectableErrors() = value;
 #else
           hwPortStats.fecUncorrectableErrors() =
@@ -1733,6 +1734,51 @@ void SaiPortManager::changePort(
   changePortImpl(oldPort, newPort);
 }
 
+void SaiPortManager::setIngressAcl(const std::shared_ptr<Port>& swPort) {
+  const auto ingressAclTableName = swPort->getIngressAclTableName();
+  auto* portHandle = getPortHandle(swPort->getID());
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot set ingress ACL on non-existent port ", swPort->getID());
+  }
+  const auto currentIngressAcl =
+      std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+          portHandle->port->attributes());
+  if (!ingressAclTableName) {
+    if (!currentIngressAcl ||
+        currentIngressAcl->value() == SAI_NULL_OBJECT_ID) {
+      return;
+    }
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+    return;
+  }
+  const auto* aclTableHandle =
+      managerTable_->aclTableManager().getAclTableHandle(*ingressAclTableName);
+  if (!aclTableHandle) {
+    throw FbossError(
+        "Cannot bind missing ingress ACL table ",
+        *ingressAclTableName,
+        " to port ",
+        swPort->getID());
+  }
+  if (currentIngressAcl &&
+      currentIngressAcl->value() == aclTableHandle->aclTable->adapterKey()) {
+    return;
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::IngressAcl{
+          aclTableHandle->aclTable->adapterKey()});
+}
+
+void SaiPortManager::changeIngressAcl(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& newPort) {
+  // A create-only attribute change may recreate the SAI port, so reapply
+  // the ACL even when its table name is unchanged.
+  setIngressAcl(newPort);
+}
+
 void SaiPortManager::resetCableLength(PortID portId) {
   auto portStatItr = portStats_.find(portId);
   if (portStatItr == portStats_.end()) {
@@ -2262,6 +2308,14 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   // mtu
   port->setMaxFrameSize(GET_OPT_ATTR(Port, Mtu, attributes));
 
+  if (auto metadata =
+          std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+              attributes)) {
+    if (auto userMetaData = metadata->value(); userMetaData != 0) {
+      port->setUserMetaData(static_cast<cfg::AclLookupClassPort>(userMetaData));
+    }
+  }
+
   // asic prbs
   phy::PortPrbsState prbsState;
   auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, attributes);
@@ -2453,7 +2507,8 @@ bool SaiPortManager::rxSerdesParametersSupported() const {
 }
 
 bool SaiPortManager::rxSNRSupported() const {
-#if defined(BRCM_SAI_SDK_GTE_10_0)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || \
+    (defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 18, 1))
   return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
 #else
   return false;
@@ -2838,10 +2893,18 @@ void SaiPortManager::updateStats(
     // share the PHY layer group, so clearing first would zero the corrected
     // bits/symbols counters before we read them.
     if (fecStatsSupported(portId)) {
+      // PAI (Agera3 retimer) has no get_port_stats_ext and reports cumulative
+      // FEC frames; read (don't clear) so the call goes through get_port_stats,
+      // and store the value as absolute below.
+#if defined(SAI_BRCM_PAI_IMPL)
+      constexpr auto kFecStatsMode = SAI_STATS_MODE_READ;
+#else
+      constexpr auto kFecStatsMode = SAI_STATS_MODE_READ_AND_CLEAR;
+#endif
       fecCollectionSucceeded &= collectStats(
           {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
            SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-          SAI_STATS_MODE_READ_AND_CLEAR,
+          kFecStatsMode,
           "FEC correctable/uncorrectable frames");
     }
     if (fecCollectionSucceeded) {
@@ -4170,18 +4233,20 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
 }
 
 std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
-    PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
-  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(saiPortId);
-  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-    XLOG(WARNING) << "Unknown PortSaiId: " << saiPortId;
-    return std::vector<sai_port_snr_values_t>();
-  }
+    const PortSaiId& saiPortId,
+    uint8_t numPmdLanes,
+    const PortID& portID) const {
+  // Take portID as a parameter (like getRxSignalDetect / getRxLockStatus)
+  // instead of resolving it via concurrentIndices_->portSaiId2PortInfo. On
+  // XPHY retimers only the line SAI port is registered in that index (base
+  // addPort registers the SAI id returned by addPortImpl, which is the line
+  // port), so a lookup on the system SAI port would miss and return empty --
+  // suppressing system-side SNR. The caller always has the PortID in hand.
+  //
   // TH5 Management port doesn't support RX SNR
   // If we do end up with management ports supporting rxSNR we may need to
   // support per-core HwAsic::Feature definitions instead of setting them at
   // the asic level.
-  auto portID = portItr->second.portID;
   if (getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
     return std::vector<sai_port_snr_values_t>();
   }
@@ -4275,6 +4340,47 @@ void SaiPortManager::updateLeakyBucketFb303Counter(PortID portId, int value) {
     throw FbossError("PortStats_ not available for : ", portId);
   }
   portStatItr->second->updateLeakyBucketFlapCnt(value);
+}
+
+void SaiPortManager::updatePmdChangedFb303Counters(
+    PortID portId,
+    phy::Side side,
+    bool signalDetectChanged,
+    bool cdrLockChanged) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // Stats are not maintained for disabled ports
+    return;
+  }
+  bool isLine = side == phy::Side::LINE;
+  portStatItr->second->updatePhyChanged(
+      isLine ? kLineRxSignalDetectChanged() : kSystemRxSignalDetectChanged(),
+      signalDetectChanged);
+  portStatItr->second->updatePhyChanged(
+      isLine ? kLineRxCdrLockChanged() : kSystemRxCdrLockChanged(),
+      cdrLockChanged);
+}
+
+void SaiPortManager::updateLinkFaultChangedFb303Counters(
+    PortID portId,
+    phy::Side side,
+    bool localFaultChanged,
+    bool remoteFaultChanged) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // Stats are not maintained for disabled ports
+    return;
+  }
+  if (side != phy::Side::LINE) {
+    // updateRsInfo is only ever called for the line side, so there are no
+    // system.* fault counters registered. Bail rather than attributing a
+    // system sample to the line counter.
+    return;
+  }
+  portStatItr->second->updatePhyChanged(
+      kLineLocalFaultChanged(), localFaultChanged);
+  portStatItr->second->updatePhyChanged(
+      kLineRemoteFaultChanged(), remoteFaultChanged);
 }
 
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(

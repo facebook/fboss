@@ -50,7 +50,8 @@ inline const std::unordered_set<PeerMetric> kTimeMetrics = {
     LastSocketBuffered,
 };
 
-struct CmdShowBgpSummaryEgressTraits : public ReadCommandTraits {
+struct CmdShowBgpSummaryEgressTraits : public ReadCommandTraits,
+                                       public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

@@ -12,11 +12,13 @@
 
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ValidateStateUpdate.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -171,7 +173,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV1)));
 
-  // ACL without any qualifier should fail validation
+  // Empty ACL matcher validity is ASIC-dependent.
   auto stateV2 = stateV0->clone();
   auto acls2 = stateV2->getAcls()->modify(&stateV2);
 
@@ -180,7 +182,12 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   stateV2->publish();
 
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+  const auto emptyAclMatcherSupported =
+      sw->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::EMPTY_ACL_MATCHER);
+  EXPECT_EQ(
+      sw->isValidStateUpdate(StateDelta(stateV0, stateV2)),
+      emptyAclMatcherSupported);
 
   // PortQueue with valid WRED probability
   auto stateV3 = stateV0->clone();

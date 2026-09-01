@@ -10,5 +10,6 @@
   "asicType": 22,
   "variantAttributes": {
     "minipack3bta_16rifs": true
-  }
+  },
+  "numSwitchAsics": 1
 }

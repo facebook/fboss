@@ -155,6 +155,10 @@ class SaiPortManager {
   void changePort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void setIngressAcl(const std::shared_ptr<Port>& swPort);
+  void changeIngressAcl(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -280,8 +284,9 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
   std::vector<sai_port_snr_values_t> getRxSNR(
-      PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      const PortSaiId& saiPortId,
+      uint8_t numPmdLanes,
+      const PortID& portID) const;
 #endif
   std::vector<phy::SerdesParameters> getSerdesParameters(
       PortSerdesSaiId serdesSaiPortId,
@@ -313,6 +318,16 @@ class SaiPortManager {
       PortID swPort) const;
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
+  void updatePmdChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool signalDetectChanged,
+      bool cdrLockChanged);
+  void updateLinkFaultChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool localFaultChanged,
+      bool remoteFaultChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 

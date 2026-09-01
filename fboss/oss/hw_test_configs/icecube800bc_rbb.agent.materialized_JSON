@@ -8,6 +8,7 @@
     "enable_nexthop_id_manager": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
+    "resolve_nexthops_from_id": "true",
     "skip_transceiver_programming": "true",
     "srv6": "true",
     "use_full_dlb_scale": "true",

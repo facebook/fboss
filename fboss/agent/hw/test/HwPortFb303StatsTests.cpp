@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/StatsConstants.h"
 
 #include <fb303/ServiceData.h>
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
@@ -442,6 +443,99 @@ TEST(HwPortFb303StatsTest, PgCongestionCountersKeyedByPgIdNotPriority) {
             HwPortFb303Stats::pgStatName(counterName, kPortName, 5)),
         1);
   }
+}
+
+namespace {
+// Each test uses its own port name: fb303 timeseries live in a process wide
+// store, so reusing a name would let one test's sums leak into the next.
+int64_t publishedSum(folly::StringPiece statKey, const std::string& portName) {
+  facebook::tcData().publishStats();
+  return fbData
+      ->getCounterIfExists(
+          HwPortFb303Stats::statName(statKey, portName) + ".sum")
+      .value_or(-1);
+}
+} // namespace
+
+// A changed sample publishes 1 into the SUM timeseries and an unchanged one
+// publishes 0, so ODS sees .sum/.sum.60/... rather than a level that a scrape
+// slower than the collection interval could step over.
+TEST(HwPortFb303StatsTest, PhyChangedPublishesOnePerChangedInterval) {
+  const std::string portName = "eth1/1/2";
+  HwPortFb303Stats portStats(portName);
+
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), false);
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+
+  EXPECT_EQ(publishedSum(kLineRxSignalDetectChanged(), portName), 3);
+}
+
+// An unchanged interval must still publish, so the counter exists on a healthy
+// port and reads 0 instead of being absent from ODS.
+TEST(HwPortFb303StatsTest, PhyUnchangedPublishesZeroRatherThanNothing) {
+  const std::string portName = "eth1/1/3";
+  HwPortFb303Stats portStats(portName);
+
+  portStats.updatePhyChanged(kLineRxCdrLockChanged(), false);
+  portStats.updatePhyChanged(kLineRxCdrLockChanged(), false);
+
+  // value_or(-1) distinguishes "published 0" from "never published"
+  EXPECT_EQ(publishedSum(kLineRxCdrLockChanged(), portName), 0);
+}
+
+// Every key the phy path can publish is independent: updatePmdInfo runs once
+// per side on XPHY, and fault publishing is line only, so a shared key would
+// conflate them.
+TEST(HwPortFb303StatsTest, PhyChangedCountersAreIndependentPerKey) {
+  const std::string portName = "eth1/1/4";
+  HwPortFb303Stats portStats(portName);
+
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+  portStats.updatePhyChanged(kSystemRxSignalDetectChanged(), false);
+  portStats.updatePhyChanged(kLineRxCdrLockChanged(), true);
+  portStats.updatePhyChanged(kSystemRxCdrLockChanged(), true);
+  portStats.updatePhyChanged(kLineLocalFaultChanged(), false);
+  portStats.updatePhyChanged(kLineRemoteFaultChanged(), true);
+
+  EXPECT_EQ(publishedSum(kLineRxSignalDetectChanged(), portName), 1);
+  EXPECT_EQ(publishedSum(kSystemRxSignalDetectChanged(), portName), 0);
+  EXPECT_EQ(publishedSum(kLineRxCdrLockChanged(), portName), 1);
+  EXPECT_EQ(publishedSum(kSystemRxCdrLockChanged(), portName), 1);
+  EXPECT_EQ(publishedSum(kLineLocalFaultChanged(), portName), 0);
+  EXPECT_EQ(publishedSum(kLineRemoteFaultChanged(), portName), 1);
+}
+
+// These are not in kPortMonotonicCounterStatKeys or kPortFb303CounterStatKeys,
+// so reinitStats has to clear the old name explicitly or a renamed port would
+// leave its timeseries behind forever.
+TEST(HwPortFb303StatsTest, PhyChangedCountersClearedOnPortRename) {
+  const std::string portName = "eth1/1/5";
+  const std::string newPortName = "eth1/1/6";
+  HwPortFb303Stats portStats(portName);
+
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+  portStats.updatePhyChanged(kLineRemoteFaultChanged(), true);
+  ASSERT_EQ(publishedSum(kLineRxSignalDetectChanged(), portName), 1);
+
+  portStats.portNameChanged(newPortName);
+  facebook::tcData().publishStats();
+  for (const auto& statKey :
+       {kLineRxSignalDetectChanged(),
+        kSystemRxSignalDetectChanged(),
+        kLineRxCdrLockChanged(),
+        kSystemRxCdrLockChanged(),
+        kLineLocalFaultChanged(),
+        kLineRemoteFaultChanged()}) {
+    SCOPED_TRACE(statKey.str());
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwPortFb303Stats::statName(statKey, portName)));
+  }
+
+  // The new name starts clean and picks up subsequent samples
+  portStats.updatePhyChanged(kLineRxSignalDetectChanged(), true);
+  EXPECT_EQ(publishedSum(kLineRxSignalDetectChanged(), newPortName), 1);
 }
 
 TEST(HwPortFb303StatsTest, StatName) {

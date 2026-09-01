@@ -40,7 +40,8 @@ using neteng::fboss::bgp::thrift::TBgpPeerState;
 using std::chrono::duration_cast;
 using std::chrono::system_clock;
 
-struct CmdShowBgpSummaryTraits : public ReadCommandTraits {
+struct CmdShowBgpSummaryTraits : public ReadCommandTraits,
+                                 public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

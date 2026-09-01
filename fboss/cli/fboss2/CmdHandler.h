@@ -99,6 +99,57 @@ struct WriteCommandTraits : public BaseCommandTraits {
       CliReadWriteMode::CLI_MODE_WRITE;
 };
 
+// Tag a command's Traits with this base to grandfather it out of the CLI
+// reference-wiki documentation requirement. Remove the tag once the command
+// defines both hooks; enforcement then requires them.
+struct CliDocsExempt {};
+
+namespace detail {
+template <typename T, typename = void>
+struct HasTraitsCliDescription : std::false_type {};
+template <typename T>
+struct HasTraitsCliDescription<
+    T,
+    std::void_t<decltype(T::Traits::description())>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasClassCliDescription : std::false_type {};
+template <typename T>
+struct HasClassCliDescription<T, std::void_t<decltype(T::description())>>
+    : std::true_type {};
+
+template <typename T, typename = void>
+struct HasCliSampleModel : std::false_type {};
+template <typename T>
+struct HasCliSampleModel<T, std::void_t<decltype(T::sampleModel())>>
+    : std::true_type {};
+} // namespace detail
+
+// A command is documented for the CLI reference wiki when it exposes both a
+// description() (on its Traits, or on the command class for the shared-Traits
+// case) and a sampleModel().
+template <typename Cmd>
+inline constexpr bool kHasCliDocs =
+    (detail::HasTraitsCliDescription<Cmd>::value ||
+     detail::HasClassCliDescription<Cmd>::value) &&
+    detail::HasCliSampleModel<Cmd>::value;
+
+// Enforced at the commandHandler<T>() bind point (forward-declared in
+// CmdList.h): every read ("show") command must carry the CLI reference-wiki
+// hooks unless explicitly grandfathered with CliDocsExempt. No-op for write
+// commands.
+template <typename T>
+void assertReadCommandDocumented() {
+  if constexpr (
+      T::Traits::CLI_READ_WRITE_MODE == CliReadWriteMode::CLI_MODE_READ) {
+    static_assert(
+        kHasCliDocs<T> || std::is_base_of_v<CliDocsExempt, typename T::Traits>,
+        "fboss2 'show' command is missing CLI reference-wiki hooks: add a "
+        "description() to its Traits and a static sampleModel() to the command "
+        "class, or tag its Traits with CliDocsExempt to defer.");
+  }
+}
+
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
   static_assert(

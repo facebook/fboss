@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
@@ -273,8 +274,13 @@ SaiSwitchManager::SaiSwitchManager(
           switch_->adapterKey(),
           SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});
       XLOG(DBG2) << "Got max ecmp member count " << maxEcmpCount;
+      // Reserving the ASIC maximum wastes ECMP member table entries, since
+      // groups are never programmed wider than FLAGS_ecmp_width.
+      auto ecmpMemberCount =
+          std::min<sai_uint32_t>(FLAGS_ecmp_width, maxEcmpCount);
+      XLOG(DBG2) << "Setting ecmp member count to " << ecmpMemberCount;
       switch_->setOptionalAttribute(
-          SaiSwitchTraits::Attributes::EcmpMemberCount{maxEcmpCount});
+          SaiSwitchTraits::Attributes::EcmpMemberCount{ecmpMemberCount});
     }
 #endif
   }
@@ -707,9 +713,11 @@ void SaiSwitchManager::setIngressAcl() {
           HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
     return;
   }
-  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
-                                 .getAclTableGroupHandle(SAI_ACL_STAGE_INGRESS)
-                                 ->aclTableGroup;
+  auto aclTableGroupHandle =
+      managerTable_->aclTableGroupManager()
+          .getAclTableGroupHandle(
+              SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::SWITCH)
+          ->aclTableGroup;
   setIngressAcl(aclTableGroupHandle->adapterKey());
 }
 
@@ -743,9 +751,11 @@ void SaiSwitchManager::setEgressAcl() {
   CHECK(platform_->getAsic()->isSupported(
       HwAsic::Feature::INGRESS_POST_LOOKUP_ACL_TABLE))
       << "INGRESS_POST_LOOKUP_ACL_TABLE ACL not supported";
-  auto aclTableGroupHandle = managerTable_->aclTableGroupManager()
-                                 .getAclTableGroupHandle(SAI_ACL_STAGE_EGRESS)
-                                 ->aclTableGroup;
+  auto aclTableGroupHandle =
+      managerTable_->aclTableGroupManager()
+          .getAclTableGroupHandle(
+              SAI_ACL_STAGE_EGRESS, cfg::AclTableGroupBindPoint::SWITCH)
+          ->aclTableGroup;
   setEgressAcl(aclTableGroupHandle->adapterKey());
   isIngressPostLookupAclSupported_ = true;
 }
@@ -952,6 +962,26 @@ SaiSwitchManager::supportedCustomDropBitmapStats() const {
         SaiSwitchTraits::customDropBitmapStats().end());
   }
   return stats;
+}
+
+void SaiSwitchManager::updateDropReasonStats() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT)) {
+    return;
+  }
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  auto ingressDropReasons = switchApi.getAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::PacketDropTypeIngressList{
+          std::vector<sai_int32_t>{}});
+  auto egressDropReasons = switchApi.getAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::PacketDropTypeEgressList{
+          std::vector<sai_int32_t>{}});
+
+  logDropReasons(ingressDropReasons, egressDropReasons);
+#endif
 }
 
 const std::vector<sai_attr_id_t>& SaiSwitchManager::supportedTemperatureStats()
@@ -1468,6 +1498,12 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
           switch_->getStats(customDropBitmapStatIds), switchDropBitmapStats_);
       logDropBitmapReasons(switchDropBitmapStats_);
     }
+    // Broadcom XGS reports the same information as a list of active drop
+    // reasons rather than a per stage bitmap. These are read only SAI
+    // attributes, so unlike the bitmap stats above they cannot go through
+    // updateStats()/SAI_STATS_MODE_READ_AND_CLEAR; the adapter clears them
+    // on attribute read instead. Same ~60s cadence and same rationale.
+    updateDropReasonStats();
   }
   updateSdkDumpSuppressedCounter();
   switchTemperatureStats_ = getHwSwitchTemperatureStats();

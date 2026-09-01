@@ -12,7 +12,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowTransceiverEepromDumpTraits : public ReadCommandTraits {
+struct CmdShowTransceiverEepromDumpTraits : public ReadCommandTraits,
+                                            public CliDocsExempt {
   using ParentCmd = CmdShowTransceiverEeprom;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;

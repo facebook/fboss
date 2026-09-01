@@ -20,6 +20,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RouteUpdaterUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
@@ -1106,6 +1107,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       RouteNextHopSet nhSet = labelPopandLookup
           ? bestEntryNhops
           : mergeForwardInfos(nhToFwds, route);
+      nhSet = removeBackupNextHopsWithMatchingPrimary(std::move(nhSet));
 
       // normalize weight information for capacity matching if needed
       if (FLAGS_enable_capacity_pruning) {

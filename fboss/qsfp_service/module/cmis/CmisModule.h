@@ -307,6 +307,10 @@ class CmisModule : public QsfpModule {
     return maxNumBanks_.value_or(1);
   }
 
+  /* Whether the bank select register (Lower Page 00h byte 126) cached by the
+   * last refresh names a bank the module doesn't have. */
+  bool hasInvalidBankSelect() const override;
+
   /* A global host/media lane (0..numLanes-1) lives in bank
    * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
    * is (lane % kMaxOsfpNumLanes). A port's lanes are confined to one bank, so
@@ -718,6 +722,26 @@ class CmisModule : public QsfpModule {
 
   virtual void setDiagsCapability() override;
 
+  /*
+   * Populate the Meta custom feature bits (mode mismatch, DSP/laser thermal
+   * margin) advertised in Page 01h Byte 191.
+   */
+  void setCustomFeatureCapability(DiagsCapability& diags);
+
+  /*
+   * Populate the Meta custom latched flags (mode mismatch, negative DSP/laser
+   * thermal margin) from Lower Memory Byte 67.
+   */
+  void setCustomLatchedFlags(ModuleStatus& moduleStatus);
+
+  /*
+   * Whether the module advertises the Meta mode-mismatch feature, which gates
+   * both the Byte 67 latched flag and the per-lane Page 14h registers.
+   */
+  bool isModeMismatchSupported() const;
+
+  ThermalMargins getThermalMargins() override;
+
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() override;
@@ -732,11 +756,6 @@ class CmisModule : public QsfpModule {
    * Trigger next VDM stats capture
    */
   void triggerVdmStatsCapture() override;
-
-  /*
-   * Latch and read VDM data
-   */
-  void latchAndReadVdmDataLocked() override;
 
   bool supportRemediate() override;
 
@@ -1045,6 +1064,32 @@ class CmisModule : public QsfpModule {
 
   void updateVdmCacheLocked();
 
+  /*
+   * Non-blocking VDM ForOds capture handshake, driven once per refresh from
+   * updateCachedTransceiverInfoLocked(). Spreads the freeze across two refresh
+   * cycles so the slow FreezeDone wait never blocks the refresh thread:
+   *   - cycle N: on the StatsPublisher trigger, write FreezeRequest (no wait).
+   *   - cycle N+1: one non-blocking FreezeDone read, then read the frozen pages
+   *     and unfreeze (reading anyway if FreezeDone is still unset).
+   * Returns true on the cycle a frozen snapshot was read (caller refreshes the
+   * ForOds stats that cycle).
+   */
+  bool driveVdmCaptureLocked() override;
+  void requestVdmFreezeLocked();
+  bool finishVdmFreezeReadLocked();
+  // True only when the module is in the READY state (initialized, out of low
+  // power, DSP powered on) so it can process a VDM freeze. Freezing while the
+  // module is still initializing / in low power hangs the latch on some modules
+  // and corrupts VDM intervals, so we gate the freeze request on this.
+  bool isReadyForVdmFreezeLocked();
+  // Reset the async capture state and clear any in-flight freeze (e.g. on a
+  // reprogram/reset while a capture was in progress).
+  void resetVdmCaptureStateLocked();
+  // Low-level VDM freeze helpers shared by the blocking and async paths.
+  void writeVdmFreezeRequestLocked(bool freeze);
+  void readVdmFrozenPagesLocked();
+  bool isVdmFreezeDoneLocked();
+
   void updateCmisStateChanged(
       ModuleStatus& moduleStatus,
       std::optional<ModuleStatus> curModuleStatus = std::nullopt) override;
@@ -1162,6 +1207,12 @@ class CmisModule : public QsfpModule {
       override;
 
   std::time_t vdmIntervalStartTime_{0};
+
+  // Async VDM ForOds capture state (see driveVdmCaptureLocked). IDLE until the
+  // StatsPublisher trigger arms a capture; FREEZE_REQUESTED for the one refresh
+  // between writing FreezeRequest and reading the frozen snapshot.
+  enum class VdmCaptureState { IDLE, FREEZE_REQUESTED };
+  VdmCaptureState vdmCaptureState_{VdmCaptureState::IDLE};
 };
 
 } // namespace fboss

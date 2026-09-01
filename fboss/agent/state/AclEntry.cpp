@@ -117,6 +117,9 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getLookupClassRoute()) {
     qualifiers.insert(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
   }
+  if (getLookupClassPort()) {
+    qualifiers.insert(cfg::AclTableQualifier::LOOKUP_CLASS_PORT);
+  }
   if (getPacketLookupResult()) {
     // TODO: add qualifier in AclTableQualifier enum
   }

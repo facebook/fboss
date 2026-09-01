@@ -12,5 +12,6 @@
   "variantAttributes": {
     "test_fixture": false,
     "osfp_tray": false
-  }
+  },
+  "numSwitchAsics": 2
 }

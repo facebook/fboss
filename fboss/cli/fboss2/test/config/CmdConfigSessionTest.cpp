@@ -16,6 +16,7 @@
 #include <string>
 
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
+#include "fboss/cli/fboss2/test/config/MockFbossServiceUtil.h"
 #include "fboss/cli/fboss2/test/config/MockSystemdInterface.h"
 
 namespace fs = std::filesystem;
@@ -45,6 +46,32 @@ class ConfigSessionTestFixture : public CmdConfigTestBase {
     ]
   }
 })") {}
+
+  std::unique_ptr<TestableConfigSession> makeStrictSession() {
+    return std::make_unique<TestableConfigSession>(
+        (getTestHomeDir() / ".fboss2").string(),
+        (getTestEtcDir() / "coop").string(),
+        std::make_unique<::testing::StrictMock<MockFbossServiceUtil>>());
+  }
+
+  std::string commitDescription(const std::string& description) {
+    auto mock = std::make_unique<::testing::StrictMock<MockFbossServiceUtil>>();
+    auto* mockPtr = mock.get();
+    EXPECT_CALL(*mockPtr, reloadConfig(cli::ServiceType::AGENT, ::testing::_))
+        .Times(1);
+    TestableConfigSession session(
+        (getTestHomeDir() / ".fboss2").string(),
+        (getTestEtcDir() / "coop").string(),
+        std::move(mock));
+    session.setCommandLine(
+        "config interface eth1/1/1 description " + description);
+    (*session.getAgentConfig().sw()->ports())[0].description() = description;
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    auto result = session.commit(localhost());
+    EXPECT_FALSE(result.commitSha.empty());
+    return result.commitSha;
+  }
 };
 
 TEST_F(ConfigSessionTestFixture, sessionInitialization) {
@@ -1592,6 +1619,147 @@ TEST_F(ConfigSessionTestFixture, noArgRollbackReachesBaseline) {
     EXPECT_NO_THROW(rb = s->rollback(localhost()));
     EXPECT_FALSE(rb.empty());
   }
+}
+
+// Rolling back a commit that required an agent warmboot (e.g. a VLAN
+// membership change) must restart the agent, not apply the rolled-back config
+// with a HITLESS reloadConfig(): undoing a change needs at least the action
+// level that applying it needed.
+TEST_F(ConfigSessionTestFixture, rollbackUsesRecordedActionLevel) {
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+
+  auto makeSession = [&](MockFbossServiceUtil*& mockOut) {
+    auto mock = std::make_unique<::testing::StrictMock<MockFbossServiceUtil>>();
+    mockOut = mock.get();
+    return std::make_unique<TestableConfigSession>(
+        sessionDir.string(),
+        (getTestEtcDir() / "coop").string(),
+        std::move(mock));
+  };
+
+  std::string firstCommitSha;
+  // First commit: a HITLESS change (e.g. a description edit).
+  {
+    MockFbossServiceUtil* mock = nullptr;
+    auto session = makeSession(mock);
+    EXPECT_CALL(*mock, reloadConfig(cli::ServiceType::AGENT, ::testing::_))
+        .Times(1);
+    session->setCommandLine(
+        "config interface eth1/1/1 description First version");
+    (*session->getAgentConfig().sw()->ports())[0].description() =
+        "First version";
+    session->saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+    firstCommitSha = session->commit(localhost()).commitSha;
+    ASSERT_FALSE(firstCommitSha.empty());
+  }
+
+  // Second commit: a change that requires an agent warmboot, like
+  // `config interface eth1/1/1 switchport access vlan 3000` does.
+  {
+    MockFbossServiceUtil* mock = nullptr;
+    auto session = makeSession(mock);
+    EXPECT_CALL(
+        *mock,
+        restartService(
+            cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT))
+        .Times(1);
+    session->setCommandLine(
+        "config interface eth1/1/1 switchport access vlan 3000");
+    (*session->getAgentConfig().sw()->ports())[0].description() =
+        "Second version";
+    session->saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+    ASSERT_FALSE(session->commit(localhost()).commitSha.empty());
+  }
+
+  // Rollback to the first commit: this undoes the warmboot-level change, so it
+  // must warmboot-restart the agent. reloadConfig() must NOT be called (the
+  // StrictMock enforces this).
+  {
+    MockFbossServiceUtil* mock = nullptr;
+    auto session = makeSession(mock);
+    EXPECT_CALL(
+        *mock,
+        restartService(
+            cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT))
+        .Times(1);
+    std::string rollbackSha = session->rollback(localhost(), firstCommitSha);
+    EXPECT_FALSE(rollbackSha.empty());
+  }
+
+  // Rollback forward to the pre-rollback state (undoing the rollback commit)
+  // crosses the same warmboot-level change again, so it too must restart the
+  // agent. This exercises the rollback commit recording the action level it
+  // applied.
+  std::string headBeforeSecondRollback;
+  {
+    MockFbossServiceUtil* mock = nullptr;
+    auto session = makeSession(mock);
+    headBeforeSecondRollback = session->getGit().getHead();
+    EXPECT_CALL(
+        *mock,
+        restartService(
+            cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT))
+        .Times(1);
+    // No-arg rollback: back to the "Second version" commit.
+    std::string rollbackSha = session->rollback(localhost());
+    EXPECT_FALSE(rollbackSha.empty());
+  }
+}
+
+TEST_F(ConfigSessionTestFixture, rollbackRejectsUnreadableMetadataInUndoRange) {
+  const auto firstCommitSha = commitDescription("First version");
+  commitDescription("Second version");
+
+  const auto cliConfigPath = getCliConfigDir() / "agent.conf";
+  const auto metadataPath = getCliConfigDir() / "cli_metadata.json";
+  createTestConfig(metadataPath, "not valid JSON");
+  const auto corruptCommitSha =
+      git().commit({"cli/cli_metadata.json"}, "Corrupt metadata");
+
+  const auto headBeforeRollback = git().getHead();
+  const auto configBeforeRollback = readFile(cliConfigPath);
+  const auto metadataBeforeRollback = readFile(metadataPath);
+  auto session = makeStrictSession();
+
+  try {
+    session->rollback(localhost(), firstCommitSha);
+    FAIL() << "rollback should reject unreadable metadata in the undo range";
+  } catch (const std::runtime_error& ex) {
+    EXPECT_THAT(
+        ex.what(), ::testing::HasSubstr(Git::shortSha1(corruptCommitSha)));
+  }
+  EXPECT_EQ(git().getHead(), headBeforeRollback);
+  EXPECT_EQ(readFile(cliConfigPath), configBeforeRollback);
+  EXPECT_EQ(readFile(metadataPath), metadataBeforeRollback);
+}
+
+TEST_F(ConfigSessionTestFixture, rollbackRejectsUnreadableTargetMetadata) {
+  commitDescription("First version");
+
+  const auto cliConfigPath = getCliConfigDir() / "agent.conf";
+  const auto metadataPath = getCliConfigDir() / "cli_metadata.json";
+  createTestConfig(metadataPath, "not valid JSON");
+  const auto targetCommitSha =
+      git().commit({"cli/cli_metadata.json"}, "Corrupt target metadata");
+  commitDescription("Second version");
+
+  const auto headBeforeRollback = git().getHead();
+  const auto configBeforeRollback = readFile(cliConfigPath);
+  const auto metadataBeforeRollback = readFile(metadataPath);
+  auto session = makeStrictSession();
+
+  try {
+    session->rollback(localhost(), targetCommitSha);
+    FAIL() << "rollback should reject unreadable target metadata";
+  } catch (const std::runtime_error& ex) {
+    EXPECT_THAT(
+        ex.what(), ::testing::HasSubstr(Git::shortSha1(targetCommitSha)));
+  }
+  EXPECT_EQ(git().getHead(), headBeforeRollback);
+  EXPECT_EQ(readFile(cliConfigPath), configBeforeRollback);
+  EXPECT_EQ(readFile(metadataPath), metadataBeforeRollback);
 }
 
 } // namespace facebook::fboss

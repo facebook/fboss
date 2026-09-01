@@ -289,6 +289,10 @@ void SplitAgentThriftSyncer::cancelPendingRxPktEnqueue() {
   rxPktEventSinkClient_->cancelPendingEnqueue();
 }
 
+void SplitAgentThriftSyncer::cancelPendingFdbEnqueue() {
+  fdbEventSinkClient_->cancelPendingEnqueue();
+}
+
 void SplitAgentThriftSyncer::stopOperDeltaSync() {
   operDeltaClient_->stopOperSync();
 }

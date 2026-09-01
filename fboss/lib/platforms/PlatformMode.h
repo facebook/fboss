@@ -132,6 +132,8 @@ inline std::string toString(PlatformType mode) {
       return "M5120CSC";
     case PlatformType::PLATFORM_WEDGE800CNHP:
       return "WEDGE800CNHP";
+    case PlatformType::PLATFORM_M4061CLSC:
+      return "M4061CLSC";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

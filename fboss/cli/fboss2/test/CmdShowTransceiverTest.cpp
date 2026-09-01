@@ -326,7 +326,11 @@ TEST_F(CmdShowTransceiverTestFixture, queryClient) {
       .WillOnce(Invoke(
           [&](auto& entries, auto) { entries = mockTransceiverEntries; }));
   EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
-      .WillOnce(Invoke([&](auto& entries, auto, auto) {
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // Every port maps to a distinct transceiver, so all ids are requested
+        const std::vector<int32_t> expectedIds = {1, 2, 3, 4, 5, 6};
+        EXPECT_EQ(*transceiverIds, expectedIds);
+
         entries = mockTransceiverValidationEntries;
       }));
 
@@ -577,10 +581,13 @@ TEST_F(CmdShowTransceiverTestFixture, queryClientFilteredMultiPortModule) {
       }));
 
   EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
-      .WillOnce(
-          Invoke([&](auto& entries, const auto& /* transceiverIds */, auto) {
-            entries = multiPortValidationEntries;
-          }));
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // All 8 ports share transceiver 10, so it's only requested once
+        const std::vector<int32_t> expectedIds = {10};
+        EXPECT_EQ(*transceiverIds, expectedIds);
+
+        entries = multiPortValidationEntries;
+      }));
 
   auto cmd = CmdShowTransceiver();
   auto model = cmd.queryClient(localhost(), queriedEntries);
@@ -745,8 +752,13 @@ TEST_F(CmdShowTransceiverTestFixture, multiPortOpticWithExtraInterfaces) {
           Invoke([&](auto& entries, auto) { entries = transceiverEntries; }));
 
   EXPECT_CALL(getQsfpService(), getTransceiverConfigValidationInfo(_, _, _))
-      .WillOnce(Invoke(
-          [&](auto& entries, auto, auto) { entries = validationEntries; }));
+      .WillOnce(Invoke([&](auto& entries, const auto& transceiverIds, auto) {
+        // Both active ports share transceiver 20, so it's only requested once
+        const std::vector<int32_t> expectedIds = {20};
+        EXPECT_EQ(*transceiverIds, expectedIds);
+
+        entries = validationEntries;
+      }));
 
   auto cmd = CmdShowTransceiver();
   auto model = cmd.queryClient(localhost(), queriedEntries);

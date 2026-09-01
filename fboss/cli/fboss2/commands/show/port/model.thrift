@@ -32,6 +32,11 @@ struct PortEntry {
   23: string cableLengthMeters;
   24: optional string llrTxStatus;
   25: optional string llrRxStatus;
+  // Class ID assigned to packets ingressing on this port, rendered for display.
+  // "--" when the port has no class ID configured.
+  26: string userMetaData;
+  // Ingress ACL table bound directly to this port, or "--" when none is bound.
+  27: string ingressAclTable;
 }
 
 struct PortHwStatsEntry {

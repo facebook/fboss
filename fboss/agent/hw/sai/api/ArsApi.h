@@ -75,6 +75,15 @@ struct SaiArsTraits {
         bool,
         AttributeSourcePortPrune,
         StdNullOptDefault<bool>>;
+    struct AttributeEcmpMemberCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    // Number of members in the DLB super group backing a virtual ARS group.
+    // CREATE_ONLY, and only meaningful when NextHopGroupType is VIRTUAL.
+    using EcmpMemberCount = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeEcmpMemberCount,
+        SaiIntDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -86,7 +95,8 @@ struct SaiArsTraits {
       std::optional<Attributes::AlternatePathCost>,
       std::optional<Attributes::AlternatePathBias>,
       std::optional<Attributes::NextHopGroupType>,
-      std::optional<Attributes::SourcePortPrune>>;
+      std::optional<Attributes::SourcePortPrune>,
+      std::optional<Attributes::EcmpMemberCount>>;
 #if defined(CHENAB_SAI_SDK)
   using AdapterHostKey = std::tuple<Attributes::Mode>;
 #else
@@ -96,7 +106,14 @@ struct SaiArsTraits {
       std::optional<Attributes::IdleTime>,
       std::optional<Attributes::MaxFlows>,
       std::optional<Attributes::AlternatePathCost>,
-#if defined(BRCM_SAI_SDK_GTE_14_0)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+      std::optional<Attributes::AlternatePathBias>,
+      std::optional<Attributes::NextHopGroupType>,
+      // EcmpMemberCount is CREATE_ONLY, so it has to take part in the key:
+      // a width change must create a new object rather than be set on the
+      // existing one.
+      std::optional<Attributes::EcmpMemberCount>>;
+#elif defined(BRCM_SAI_SDK_GTE_14_0)
       std::optional<Attributes::AlternatePathBias>,
       std::optional<Attributes::NextHopGroupType>>;
 #else
@@ -116,6 +133,7 @@ SAI_ATTRIBUTE_NAME(Ars, AlternatePathCost)
 SAI_ATTRIBUTE_NAME(Ars, AlternatePathBias)
 SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
 SAI_ATTRIBUTE_NAME(Ars, SourcePortPrune)
+SAI_ATTRIBUTE_NAME(Ars, EcmpMemberCount)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {
@@ -124,7 +142,22 @@ inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
       std::get<SaiArsTraits::Attributes::Mode>(createAttributes)};
 #else
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-#if defined(BRCM_SAI_SDK_GTE_14_0)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  return SaiArsTraits::AdapterHostKey{
+      std::get<SaiArsTraits::Attributes::Mode>(createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::IdleTime>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::MaxFlows>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathCost>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::AlternatePathBias>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::NextHopGroupType>>(
+          createAttributes),
+      std::get<std::optional<SaiArsTraits::Attributes::EcmpMemberCount>>(
+          createAttributes)};
+#elif defined(BRCM_SAI_SDK_GTE_14_0)
   return SaiArsTraits::AdapterHostKey{
       std::get<SaiArsTraits::Attributes::Mode>(createAttributes),
       std::get<std::optional<SaiArsTraits::Attributes::IdleTime>>(

@@ -552,6 +552,13 @@ class HwAsic {
     // Cut-through starts forwarding after reading just the header,
     // reducing latency for scale-up switches.
     CUT_THROUGH_FORWARDING,
+    // Set SAI_NEXT_HOP_GROUP_MEMBER_ATTR_MONITORED_OBJECT on the PRIMARY
+    // member of a PROTECTION next hop group, naming the egress port/LAG whose
+    // going down drives the ASIC's autonomous switchover to the standby
+    // member. Broadcom infers that object from the member's own next hop, so
+    // FBOSS leaves the attribute unset there. Leaba does not infer it, so it
+    // has to be programmed explicitly.
+    NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT,
     SRV6_MYSID_DISCARD_COUNTER,
     SRV6_MYSID_RESOURCE_COUNTER,
     DEVICE_WATERMARK_SUPPORT,
@@ -574,6 +581,11 @@ class HwAsic {
     // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
     // only; the counters are collected via fillInSupportedVendorExtStats().
     SLL_HLL_DISCARD_COUNTERS,
+    // Active HW drop reasons via read only SAI switch extension attributes
+    // (SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST / _EGRESS_LIST).
+    // Each attribute returns the drop reasons seen since the last read, which
+    // is cleared on read. Counterpart to SWITCH_CUSTOM_DROP_BITMAP_SUPPORT.
+    SWITCH_DROP_REASON_LIST_SUPPORT,
   };
 
   enum class AsicMode {

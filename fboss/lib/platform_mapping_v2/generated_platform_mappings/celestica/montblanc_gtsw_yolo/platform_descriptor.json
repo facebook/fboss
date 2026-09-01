@@ -15,5 +15,6 @@
   "asicType": 13,
   "variantAttributes": {
     "montblanc_gtsw_yolo": true
-  }
+  },
+  "numSwitchAsics": 1
 }

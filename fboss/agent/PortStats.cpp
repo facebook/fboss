@@ -22,6 +22,7 @@ const std::string kLinkFault = "link_fault";
 const std::string kLinkDownDebounceRetrigger = "link_down_debounce_retrigger";
 const std::string kLinkUpDebounceRetrigger = "link_up_debounce_retrigger";
 const std::string kActive = "active";
+const std::string kAccessPolicyState = "access_policy_state";
 const std::string kLinkActiveStateFlap = "link_active_state.flap";
 const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
 const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
@@ -55,6 +56,7 @@ PortStats::~PortStats() {}
 void PortStats::clearCounters() const {
   clearPortStatusCounter();
   clearPortActiveStatusCounter();
+  clearAccessPolicyStateCounter();
   tcData().clearCounter(getCounterKey(kLoadBearingInErrors));
   tcData().clearCounter(getCounterKey(kLoadBearingFecUncorrErrors));
 }
@@ -318,6 +320,30 @@ void PortStats::setPortActiveStatus(bool isActive) const {
 void PortStats::clearPortActiveStatusCounter() const {
   if (!portName_.empty()) {
     tcData().clearCounter(getCounterKey(kActive));
+  }
+}
+
+void PortStats::setAccessPolicyState(
+    cfg::AclLookupClassPort accessPolicyState) const {
+  if (portName_.empty()) {
+    return;
+  }
+  // Any value outside the known lookup classes is reported as unconstrained.
+  auto state = cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED;
+  switch (accessPolicyState) {
+    case cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED:
+    case cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED:
+    case cfg::AclLookupClassPort::CLASS_PORT_BLOCKED:
+      state = accessPolicyState;
+      break;
+  }
+  tcData().setCounter(
+      getCounterKey(kAccessPolicyState), static_cast<int64_t>(state));
+}
+
+void PortStats::clearAccessPolicyStateCounter() const {
+  if (!portName_.empty()) {
+    tcData().clearCounter(getCounterKey(kAccessPolicyState));
   }
 }
 

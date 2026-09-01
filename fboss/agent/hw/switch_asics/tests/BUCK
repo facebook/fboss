@@ -7,6 +7,7 @@ cpp_unittest(
     name = "switch_asic_tests",
     srcs = [
         "Jericho3AsicTests.cpp",
+        "MonitoredObjectFeatureTests.cpp",
     ],
     network_access = network_access_utils.none(),
     deps = [

@@ -6,5 +6,6 @@
   "modeNames": [
     "icecube800bc"
   ],
-  "asicType": 18
+  "asicType": 18,
+  "numSwitchAsics": 1
 }

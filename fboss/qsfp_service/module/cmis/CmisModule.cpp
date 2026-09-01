@@ -54,7 +54,6 @@ constexpr uint8_t kPageSelectByteOffset = 127;
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
-constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWaitPrbs = 200000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
@@ -147,6 +146,9 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
     {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
+    {CmisField::CUSTOM_FLAGS, {CmisPages::LOWER, 67, 1}},
+    {CmisField::DSP_TEMP_MARGIN, {CmisPages::LOWER, 68, 1}},
+    {CmisField::LASER_TEMP_MARGIN, {CmisPages::LOWER, 69, 1}},
     {CmisField::MAX_BANK_CAPACITY, {CmisPages::LOWER, 70, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
@@ -179,6 +181,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
     {CmisField::CDB_SUPPORT, {CmisPages::PAGE01, 163, 1}},
     {CmisField::MEDIA_LANE_ASSIGNMENT, {CmisPages::PAGE01, 176, 15}},
+    {CmisField::SUPPORTED_CUSTOM_FEATURES, {CmisPages::PAGE01, 191, 1}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
@@ -372,6 +375,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 14h
     {CmisField::PAGE_UPPER14H, {CmisPages::PAGE14, 128, 128}},
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
+    {CmisField::HOST_MODE_MISMATCH, {CmisPages::PAGE14, 130, 1}},
+    {CmisField::MEDIA_MODE_MISMATCH, {CmisPages::PAGE14, 131, 1}},
     {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
     {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
     {CmisField::HOST_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 138, 1}},
@@ -719,6 +724,18 @@ void CmisModule::cacheMaxNumBanks() {
   page27_.assign(numBanks, {});
 }
 
+bool CmisModule::hasInvalidBankSelect() const {
+  uint8_t bankSelect = getSettingsValue(CmisField::BANK_SELECT);
+  if (bankSelect < getMaxNumBanks()) {
+    return false;
+  }
+  QSFP_LOG(ERR, this) << fmt::format(
+      "Bank select register holds {} but the module only has {} bank(s)",
+      bankSelect,
+      getMaxNumBanks());
+  return true;
+}
+
 void CmisModule::cacheCmisRevision() {
   uint8_t revision = getSettingsValue(CmisField::REVISION_COMPLIANCE);
   cmisRevision_ = std::make_pair(
@@ -991,7 +1008,64 @@ ModuleStatus CmisModule::getModuleStatus() {
       moduleStateFromStatusByte(getSettingsValue(CmisField::MODULE_STATE));
   moduleStatus.fwStatus() = getFwStatus();
   moduleStatus.cmisStateChanged() = getModuleStateChanged();
+  setCustomLatchedFlags(moduleStatus);
   return moduleStatus;
+}
+
+/*
+ * Byte 67 is CMIS Custom space, so only report the flags a module has
+ * explicitly advertised in Page 01h Byte 191; anything else there belongs to
+ * some other vendor's feature. The flags are read-to-clear, and the lower page
+ * is re-read on every refresh, so each value covers the interval since the
+ * previous refresh.
+ */
+void CmisModule::setCustomLatchedFlags(ModuleStatus& moduleStatus) {
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return;
+  }
+
+  const uint8_t data = getSettingsValue(CmisField::CUSTOM_FLAGS);
+  if (*diagsCapability->modeMismatchFlag()) {
+    moduleStatus.modeMismatchFlag() =
+        (data & FieldMasks::MODE_MISMATCH_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->dspTempMargin()) {
+    moduleStatus.dspTempNegativeMarginFlag() =
+        (data & FieldMasks::DSP_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    moduleStatus.laserTempNegativeMarginFlag() =
+        (data & FieldMasks::LASER_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+}
+
+/*
+ * Bytes 68-69 hold S8 margins in quarter-degree Celsius steps. Decode to whole
+ * degrees so consumers don't need to know the register scaling.
+ */
+ThermalMargins CmisModule::getThermalMargins() {
+  ThermalMargins margins;
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return margins;
+  }
+
+  constexpr double kQuarterDegreeC = 0.25;
+  if (*diagsCapability->dspTempMargin()) {
+    margins.dspTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::DSP_TEMP_MARGIN));
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    margins.laserTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::LASER_TEMP_MARGIN));
+  }
+  return margins;
+}
+
+bool CmisModule::isModeMismatchSupported() const {
+  const auto diagsCapability = getDiagsCapability();
+  return diagsCapability.has_value() && *diagsCapability->modeMismatchFlag();
 }
 
 /*
@@ -1492,7 +1566,7 @@ bool CmisModule::isModuleInReadyState() {
       moduleStateFromStatusByte(moduleStatus) == CmisModuleState::READY;
 
   if (isReady) {
-    QSFP_LOG(INFO, this) << "isModuleInReadyState: Module is in READY state";
+    QSFP_LOG(DBG2, this) << "isModuleInReadyState: Module is in READY state";
   } else {
     QSFP_LOG(INFO, this)
         << "isModuleInReadyState: Module is not ready yet - need more time to be ready";
@@ -1597,11 +1671,19 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].rxLos() = getLaneFlagSet(CmisField::RX_LOS_FLAG, lane);
     signals[lane].rxLol() = getLaneFlagSet(CmisField::RX_LOL_FLAG, lane);
     signals[lane].txFault() = getLaneFlagSet(CmisField::TX_FAULT_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::MEDIA_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -1617,6 +1699,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() =
@@ -1626,6 +1712,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].txLol() = getLaneFlagSet(CmisField::TX_LOL_FLAG, lane);
     signals[lane].txAdaptEqFault() =
         getLaneFlagSet(CmisField::TX_EQ_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::HOST_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -2719,6 +2809,11 @@ void CmisModule::updateQsfpData(bool allPages) {
       bool isReady = moduleStateFromStatusByte(getSettingsValue(
                          CmisField::MODULE_STATE)) == CmisModuleState::READY;
       if (isReady) {
+        // A full refresh implies a (re)discovered/reprogrammed module; abort
+        // any in-flight async VDM capture and clear a lingering freeze.
+        if (allPages) {
+          resetVdmCaptureStateLocked();
+        }
         readSnrDiagPageLocked(page14_);
         updateVdmCacheLocked();
       }
@@ -4576,11 +4671,37 @@ void CmisModule::setDiagsCapability() {
         vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
+      setCustomFeatureCapability(diags);
+
       *diagsCapability = diags;
     }
   }
   // Scan and update the VDM diags locations
   updateVdmDiagsValLocation();
+}
+
+/*
+ * The mode mismatch and thermal margin registers live in CMIS Custom space
+ * (Lower Memory bytes 64-84, Page 01h bytes 191-222), which carries no
+ * standard meaning. Only modules built to the Meta FW spec populate them, and
+ * that spec mandates CMIS >= 5.1 -- so require that revision before trusting
+ * byte 191, otherwise an unrelated vendor's custom data could be read as an
+ * advertisement.
+ */
+void CmisModule::setCustomFeatureCapability(DiagsCapability& diags) {
+  const auto [major, minor] = getCmisRevision();
+  if (major < 5 || (major == 5 && minor < 1)) {
+    return;
+  }
+
+  uint8_t data;
+  readFromCacheOrHw(CmisField::SUPPORTED_CUSTOM_FEATURES, &data);
+  diags.modeMismatchFlag() =
+      (data & FieldMasks::MODE_MISMATCH_SUPPORT_MASK) != 0;
+  diags.dspTempMargin() =
+      (data & FieldMasks::DSP_TEMP_MARGIN_SUPPORT_MASK) != 0;
+  diags.laserTempMargin() =
+      (data & FieldMasks::LASER_TEMP_MARGIN_SUPPORT_MASK) != 0;
 }
 
 /*
@@ -4666,48 +4787,117 @@ bool CmisModule::verifyEepromChecksum(CmisPages pageId) {
   return true;
 }
 
-/*
- * latchAndReadVdmDataLocked
- *
- * This function holds the latch and reads the VDM data from the module. This
- * function call will be triggered by StatsPublisher thread setting the atomic
- * variable to capture the VDM stats (typically every 5 minutes)
- */
-void CmisModule::latchAndReadVdmDataLocked() {
-  if (!isVdmSupported()) {
-    return;
-  }
-  QSFP_LOG(DBG3, this) << "latchAndReadVdmDataLocked";
-
-  // Write 2F.144 bit 7 to 1 (hold latch, pause counters)
+// Set (freeze=true) or clear (freeze=false) the VDM FreezeRequest bit
+// (Page 2Fh byte 144 bit 7) via read-modify-write.
+void CmisModule::writeVdmFreezeRequestLocked(bool freeze) {
   uint8_t latchRequest;
   readCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
-
-  latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Hold the latch to read the VDM data
+  if (freeze) {
+    latchRequest |= FieldMasks::VDM_LATCH_REQUEST_MASK;
+  } else {
+    latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
+  }
   writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
+}
 
-  // Wait tNack time
-  /* sleep override */
-  usleep(kUsecVdmLatchHold);
-
-  // Read data for publishing to ODS, for every bank on multi-bank modules.
+// Read the (frozen) VDM data pages 24h-27h, for every bank on multi-bank
+// modules, into the page caches.
+void CmisModule::readVdmFrozenPagesLocked() {
   std::array<BankedPage*, 4> dataPageBuffers = {
       &page24_, &page25_, &page26_, &page27_};
-
   for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
     readBankedPage(kVdmDataPages[group - 1], *dataPageBuffers[group - 1]);
   }
+}
 
-  // Write Byte 2F.144, bit 7 to 0 (clear latch)
-  latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
-  // Release the latch to resume VDM data collection. This automatically
-  // starts a new VDM interval in HW
-  writeCmisField(CmisField::VDM_LATCH_REQUEST, &latchRequest);
-  // Wait tNack time
-  /* sleep override */
-  usleep(kUsecVdmLatchHold);
+// Single non-blocking read of FreezeDone (Page 2Fh byte 145 bit 7).
+bool CmisModule::isVdmFreezeDoneLocked() {
+  uint8_t doneFlag = 0;
+  readCmisField(CmisField::VDM_LATCH_DONE, &doneFlag);
+  return (doneFlag & FieldMasks::VDM_LATCH_DONE_MASK) != 0;
+}
+
+/*
+ * driveVdmCaptureLocked
+ *
+ * Non-blocking per-refresh driver for the VDM ForOds capture (see the handshake
+ * description in CmisModule.h). Returns true on the refresh where a frozen
+ * snapshot was read, so updateCachedTransceiverInfoLocked() refreshes the
+ * ForOds stats that cycle.
+ */
+bool CmisModule::driveVdmCaptureLocked() {
+  if (!isVdmSupported()) {
+    captureVdmStats_ = false;
+    return false;
+  }
+  if (vdmCaptureState_ == VdmCaptureState::IDLE) {
+    // Arm on the StatsPublisher trigger, but only issue the freeze once the
+    // module is ready (powered up, out of low power) -- freezing while the
+    // module is still initializing / in low power (DSP off) hangs the latch and
+    // corrupts VDM intervals. If not ready yet, leave captureVdmStats_ armed
+    // and retry on a later refresh. The readiness check does I2C, so gate it
+    // behind the cheap armed-flag load.
+    if (captureVdmStats_.load() && isReadyForVdmFreezeLocked() &&
+        captureVdmStats_.exchange(false)) {
+      requestVdmFreezeLocked();
+    }
+    return false;
+  }
+  // FREEZE_REQUESTED: the freeze was requested last refresh; finish it now.
+  return finishVdmFreezeReadLocked();
+}
+
+// The module can only process a VDM freeze once it has finished initializing
+// and is out of low power (DSP powered on). Gate on the module being in the
+// READY state rather than on per-lane datapath activation, since some lanes may
+// be intentionally left uninitialized.
+bool CmisModule::isReadyForVdmFreezeLocked() {
+  return isModuleInReadyState();
+}
+
+// Async step 1: write FreezeRequest and move to FREEZE_REQUESTED. Returns
+// immediately -- the module completes the freeze (<2s) well within one refresh.
+void CmisModule::requestVdmFreezeLocked() {
+  QSFP_LOG(DBG3, this) << "requestVdmFreezeLocked";
+  writeVdmFreezeRequestLocked(true);
+  // Per CMIS 8.19.6, the module resets its internal accumulators and starts the
+  // new statistics interval at the freeze instant (not at unfreeze), so stamp
+  // the interval start here. getVdmPerfMonitorStats() reports this as
+  // intervalStartTime for the running interval.
   vdmIntervalStartTime_ = std::time(nullptr);
+  vdmCaptureState_ = VdmCaptureState::FREEZE_REQUESTED;
+}
+
+// Async step 2 (one refresh after the request): a single non-blocking
+// FreezeDone read, then read the frozen pages and unfreeze. If FreezeDone is
+// still unset (slow/non-implementing module) we read anyway rather than wait.
+// Returns true.
+bool CmisModule::finishVdmFreezeReadLocked() {
+  if (!isVdmFreezeDoneLocked()) {
+    QSFP_LOG(WARN, this)
+        << "VDM FreezeDone not set one refresh after request; reading anyway";
+  }
+  readVdmFrozenPagesLocked();
+
+  // Release the freeze to resume VDM data collection. We don't poll
+  // UnfreezeDone: some modules never toggle it, and the next capture cycle
+  // gives ample time to resume. (vdmIntervalStartTime_ was stamped at the
+  // freeze request, per the CMIS interval-start semantics.)
+  writeVdmFreezeRequestLocked(false);
+  vdmCaptureState_ = VdmCaptureState::IDLE;
+  return true;
+}
+
+// Abort any in-flight async capture and clear a freeze we requested (e.g. on a
+// reprogram/reset). No-op (no I2C) when already IDLE.
+void CmisModule::resetVdmCaptureStateLocked() {
+  if (vdmCaptureState_ == VdmCaptureState::IDLE) {
+    return;
+  }
+  if (isVdmSupported()) {
+    writeVdmFreezeRequestLocked(false);
+  }
+  vdmCaptureState_ = VdmCaptureState::IDLE;
 }
 
 /*
@@ -5251,16 +5441,19 @@ bool CmisModule::dataPathProgram(
             CmisLaneState>{CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED}
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
-  // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries =
-      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
-  int retryCount = 0;
-  while (!isDatapathUpdated(hostLaneMask, targetStates, bank) &&
-         retryCount < kMaxRetries) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    retryCount++;
-  }
+  // Give the operation a single poll interval to progress, then check once. We
+  // do not block for the whole datapath time here: dataPathProgram is called
+  // repeatedly (the transceiver state machine re-fires programming each
+  // refresh, and HAL tests poll), progStartTimer persists in
+  // portDatapathStates_ so each call resumes without re-triggering the
+  // datapath, and expectedDelayUsec above is the cumulative deadline across
+  // those attempts. A datapath that needs longer than this single poll is
+  // simply confirmed on a later refresh, once the hardware has finished -- the
+  // programming itself still completes in the hardware's own time. Polling only
+  // briefly keeps the module lock from being held for long on a slow (e.g. ZR)
+  // optic.
+  /* sleep override */
+  usleep(kUsecDatapathStatePollTime);
 
   if (isDatapathUpdated(hostLaneMask, targetStates, bank)) {
     // Mark operation as done

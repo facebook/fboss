@@ -346,6 +346,17 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::l4DstPortRange>(range);
   }
 
+  std::optional<cfg::AclLookupClassPort> getLookupClassPort() const {
+    if (auto lookupClassPort = cref<switch_state_tags::lookupClassPort>()) {
+      return lookupClassPort->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setLookupClassPort(const cfg::AclLookupClassPort& lookupClassPort) {
+    set<switch_state_tags::lookupClassPort>(lookupClassPort);
+  }
+
   std::optional<uint8_t> getTrafficClass() const {
     if (auto trafficClass = cref<switch_state_tags::trafficClass>()) {
       return trafficClass->cref();
@@ -495,7 +506,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
         getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
         getRoceMask() || getUdfTable() || getTrafficClass() ||
-        getNextHopGroupId() || getDstIpV6Word3() || getDstIpV6Word2();
+        getNextHopGroupId() || getDstIpV6Word3() || getDstIpV6Word2() ||
+        getLookupClassPort();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

@@ -467,6 +467,12 @@ void getPortInfoHelper(
        facebook::fboss::cfg::PortDrainState::DRAINED);
   portInfo.expectedNeighborReachability() =
       port->getExpectedNeighborValues()->toThrift();
+  if (auto userMetaData = port->getUserMetaData()) {
+    portInfo.userMetaData() = *userMetaData;
+  }
+  if (auto ingressAclTableName = port->getIngressAclTableName()) {
+    portInfo.ingressAclTableName() = *ingressAclTableName;
+  }
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {
@@ -572,6 +578,9 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   }
   if (aclEntry.isEnabled()) {
     aclEntryThrift.enabled() = aclEntry.isEnabled().value();
+  }
+  if (aclEntry.getLookupClassPort()) {
+    aclEntryThrift.lookupClassPort() = aclEntry.getLookupClassPort().value();
   }
   return aclEntryThrift;
 }
