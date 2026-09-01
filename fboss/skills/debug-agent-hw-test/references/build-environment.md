@@ -10,7 +10,7 @@ How to build FBOSS test binaries, locate config files, and find vendor SDK artif
 ## Building Test Binaries
 
 FBOSS uses CMake for open-source builds. See `fboss/oss/scripts/` for
-build scripts and `fboss/oss/README.md` for setup instructions.
+build scripts and `fboss/oss/doc/` for setup instructions.
 
 ### Mono (sai_agent_hw_test)
 
@@ -52,7 +52,7 @@ Adjust the install directory (`--install-dir`) as needed for your environment.
 FBOSS ships example agent configs under:
 
 ```
-fboss/agent/test/agent_hw_test_configs/
+fboss/oss/hw_test_configs/
 ```
 
 Copy and customize for your platform. See
