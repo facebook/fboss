@@ -178,6 +178,9 @@ class ThriftSinkClient : public SplitAgentThriftClient {
         // Bounded queue can block on enqueue if queue is full.
         // Use cancellation so that we can cancel enqueue if we
         // are shutting down.
+        if (getHealthMonitor()) {
+          getHealthMonitor()->trackQueueDepth(eventsQueue_.size());
+        }
         try {
           co_await folly::coro::co_withCancellation(
               cancelSource_.getToken(),
