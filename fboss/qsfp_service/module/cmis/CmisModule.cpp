@@ -375,6 +375,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 14h
     {CmisField::PAGE_UPPER14H, {CmisPages::PAGE14, 128, 128}},
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
+    {CmisField::HOST_MODE_MISMATCH, {CmisPages::PAGE14, 130, 1}},
+    {CmisField::MEDIA_MODE_MISMATCH, {CmisPages::PAGE14, 131, 1}},
     {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
     {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
     {CmisField::HOST_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 138, 1}},
@@ -1061,6 +1063,11 @@ ThermalMargins CmisModule::getThermalMargins() {
   return margins;
 }
 
+bool CmisModule::isModeMismatchSupported() const {
+  const auto diagsCapability = getDiagsCapability();
+  return diagsCapability.has_value() && *diagsCapability->modeMismatchFlag();
+}
+
 /*
  * Threhold values are stored just once;  they aren't per-channel,
  * so in all cases we simple assemble two-byte values and convert
@@ -1664,11 +1671,19 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].rxLos() = getLaneFlagSet(CmisField::RX_LOS_FLAG, lane);
     signals[lane].rxLol() = getLaneFlagSet(CmisField::RX_LOL_FLAG, lane);
     signals[lane].txFault() = getLaneFlagSet(CmisField::TX_FAULT_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::MEDIA_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -1684,6 +1699,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() =
@@ -1693,6 +1712,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].txLol() = getLaneFlagSet(CmisField::TX_LOL_FLAG, lane);
     signals[lane].txAdaptEqFault() =
         getLaneFlagSet(CmisField::TX_EQ_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::HOST_MODE_MISMATCH, lane);
+    }
   }
 
   return true;

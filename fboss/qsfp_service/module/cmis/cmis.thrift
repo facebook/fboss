@@ -361,4 +361,9 @@ enum CmisField {
   DSP_TEMP_MARGIN = 471,
   // Lower Page 00h, Byte 69: laser temperature margin, S8 in 1/4 degree C
   LASER_TEMP_MARGIN = 472,
+
+  // Page 14h, Byte 130: per-host-lane mode mismatch, one bit per lane
+  HOST_MODE_MISMATCH = 473,
+  // Page 14h, Byte 131: per-media-lane mode mismatch, one bit per lane
+  MEDIA_MODE_MISMATCH = 474,
 }

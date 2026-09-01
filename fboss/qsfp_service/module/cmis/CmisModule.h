@@ -734,6 +734,12 @@ class CmisModule : public QsfpModule {
    */
   void setCustomLatchedFlags(ModuleStatus& moduleStatus);
 
+  /*
+   * Whether the module advertises the Meta mode-mismatch feature, which gates
+   * both the Byte 67 latched flag and the per-lane Page 14h registers.
+   */
+  bool isModeMismatchSupported() const;
+
   ThermalMargins getThermalMargins() override;
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;

@@ -1932,6 +1932,50 @@ TEST_F(CmisTest, customFlagsAndThermalMarginsNegative) {
   EXPECT_EQ(info.tcvrStats()->laserTempMargin(), -1.0);
 }
 
+// Page 14h Bytes 130/131 carry one mode-mismatch bit per lane, which maps onto
+// the per-lane host and media signal vectors.
+TEST_F(CmisTest, perLaneModeMismatch) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+
+  // Byte 130 = 0x05: host lanes 0 and 2.
+  std::vector<bool> expectedHost(xcvr->numHostLanes(), false);
+  expectedHost[0] = true;
+  expectedHost[2] = true;
+  std::vector<bool> actualHost;
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    actualHost.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualHost, expectedHost);
+
+  // Byte 131 = 0x01: media lane 0 only.
+  std::vector<bool> expectedMedia(xcvr->numMediaLanes(), false);
+  expectedMedia[0] = true;
+  std::vector<bool> actualMedia;
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    actualMedia.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualMedia, expectedMedia);
+}
+
+// A healthy module reports no lane mismatched.
+TEST_F(CmisTest, perLaneModeMismatchClear) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "host lane " << *signal.lane();
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "media lane " << *signal.lane();
+  }
+}
+
 // A module that doesn't advertise the custom features leaves the flags and
 // margins unset rather than reporting whatever the custom bytes happen to hold.
 TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
@@ -1946,6 +1990,13 @@ TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
   EXPECT_FALSE(status.laserTempNegativeMarginFlag().has_value());
   EXPECT_FALSE(info.tcvrStats()->dspTempMargin().has_value());
   EXPECT_FALSE(info.tcvrStats()->laserTempMargin().has_value());
+
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
 }
 
 // Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on

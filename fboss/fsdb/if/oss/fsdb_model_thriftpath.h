@@ -940,6 +940,7 @@ class ChildThriftPath<::facebook::fboss::HostLaneSignals, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(txLos, 4);
     STRUCT_CHILD_GETTERS(txLol, 5);
     STRUCT_CHILD_GETTERS(txAdaptEqFault, 6);
+    STRUCT_CHILD_GETTERS(modeMismatch, 7);
 };
 
 
@@ -1199,6 +1200,7 @@ class ChildThriftPath<::facebook::fboss::MediaLaneSignals, ::facebook::fboss::fs
     STRUCT_CHILD_GETTERS(rxLol, 5);
     STRUCT_CHILD_GETTERS(txFault, 6);
     STRUCT_CHILD_GETTERS(txAdaptEqFault, 7);
+    STRUCT_CHILD_GETTERS(modeMismatch, 8);
 };
 
 

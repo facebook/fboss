@@ -453,6 +453,10 @@ struct MediaLaneSignals {
   5: optional bool rxLol;
   6: optional bool txFault;
   7: optional bool txAdaptEqFault; // DEPRECATED - Use HostLaneSignals instead
+  // Module operation mode does not match the line signal rate on this lane.
+  // CMIS Page 14h Byte 131. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  8: optional bool modeMismatch;
 }
 
 struct HostLaneSignals {
@@ -462,6 +466,10 @@ struct HostLaneSignals {
   4: optional bool txLos;
   5: optional bool txLol;
   6: optional bool txAdaptEqFault;
+  // Module operation mode does not match the host signal rate on this lane.
+  // CMIS Page 14h Byte 130. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  7: optional bool modeMismatch;
 }
 
 struct RxEqualizerSettings {

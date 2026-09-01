@@ -3803,6 +3803,17 @@ Cmis2x800GDr4NegativeMarginTransceiver::Cmis2x800GDr4NegativeMarginTransceiver(
       TransceiverAccessParameter::ADDR_QSFP, 67, 3);
   std::array<uint8_t, 3> customBytes = {0x07, 0xf8, 0xfc};
   writeTransceiver(customParam, customBytes.data(), 0, 0);
+
+  // Page 14h Byte 130: host lanes 0 and 2 mismatched. Byte 131: the single
+  // media lane mismatched.
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  uint8_t page14 = 0x14;
+  writeTransceiver(pageParam, &page14, 0, 0);
+  TransceiverAccessParameter mismatchParam(
+      TransceiverAccessParameter::ADDR_QSFP, 130, 2);
+  std::array<uint8_t, 2> mismatchBytes = {0x05, 0x01};
+  writeTransceiver(mismatchParam, mismatchBytes.data(), 0, 0);
 }
 
 Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(
