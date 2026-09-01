@@ -1154,6 +1154,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
 }

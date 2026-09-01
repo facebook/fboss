@@ -298,6 +298,8 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       hashAlgorithm,
       hierarchicalNextHop
 #endif
+      ,
+      std::nullopt // splitHorizonEnable
   };
   nextHopGroupHandle->nextHopGroup =
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);

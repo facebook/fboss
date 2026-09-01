@@ -187,6 +187,7 @@ typedef enum _sai_counter_extensions_attr_t {
 typedef enum _sai_next_hop_group_extensions_attr_t {
   SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA =
       SAI_NEXT_HOP_GROUP_ATTR_CUSTOM_RANGE_START,
+  SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE,
 } sai_next_hop_group_extensions_attr_t;
 
 typedef enum _sai_ars_profile_extensions_attr_t {

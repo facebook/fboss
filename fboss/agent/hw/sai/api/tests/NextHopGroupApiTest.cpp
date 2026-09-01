@@ -43,7 +43,8 @@ class NextHopGroupApiTest : public ::testing::Test {
         {nextHopGroupType,
          kArsObjectId(),
          kHashAlgorithm(),
-         kHierarchicalNextHop()},
+         kHierarchicalNextHop(),
+         std::nullopt},
         0);
   }
 
