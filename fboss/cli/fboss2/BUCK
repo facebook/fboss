@@ -1060,12 +1060,24 @@ cpp_library(
 
 cpp_library(
     name = "fboss2-config-gen-lib",
-    srcs = ["commands/config/gen/agent/AgentConfigGenUtils.cpp"],
-    headers = ["commands/config/gen/agent/AgentConfigGenUtils.h"],
+    srcs = [
+        "commands/config/gen/PlatformConfigPathUtils.cpp",
+        "commands/config/gen/agent/AgentConfigGenUtils.cpp",
+    ],
+    headers = [
+        "commands/config/gen/PlatformConfigPathUtils.h",
+        "commands/config/gen/agent/AgentConfigGenUtils.h",
+    ],
     deps = [
         ":fboss2-config-file-utils",
+        "//fboss/agent:fboss-error",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
-    exported_deps = ["//fboss/agent:agent_config-cpp2-types"],
+    exported_deps = [
+        "//fboss/agent:agent_config-cpp2-types",
+    ],
 )
 
 cpp_binary(

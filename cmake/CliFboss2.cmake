@@ -402,13 +402,17 @@ target_link_libraries(fboss2_config_file_utils
 )
 
 add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
 )
 
 target_link_libraries(fboss2_config_gen_lib
   agent_config_cpp2
+  fboss_error
   fboss2_config_file_utils
+  Folly::folly
 )
 
 add_library(fboss2_lib

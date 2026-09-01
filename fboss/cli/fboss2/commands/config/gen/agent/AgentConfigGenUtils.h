@@ -9,13 +9,14 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/agent_config_types.h"
-
+#include <cstdint>
 #include <filesystem>
 #include <map>
 #include <optional>
 #include <string>
 #include <string_view>
+
+#include "fboss/agent/gen-cpp2/agent_config_types.h"
 
 namespace facebook::fboss::configgen {
 
@@ -34,12 +35,34 @@ cfg::AgentConfig assembleAgentConfig(
     cfg::SwitchConfig sw,
     cfg::PlatformConfig platform);
 
-// Generates a new agent.conf without modifying an existing service config.
-// Platform and profile are selection inputs for field-specific generation;
-// they remain accepted even when the current builders do not consume them.
+// Combines the ASIC configuration and deployment-specific port assignments
+// into the platform section of an AgentConfig.
+cfg::PlatformConfig generatePlatformConfig(
+    cfg::ChipConfig chipConfig,
+    std::map<int32_t, cfg::PortAssignment> portAssignments);
+
+// Resolves the generated ASIC configuration selected by platform and profile.
+// An empty profile or "default" selects the default variant. The file extension
+// is derived from config_type in asic_config.json.
+std::filesystem::path findGeneratedAsicConfig(
+    const std::filesystem::path& fbossRoot,
+    std::string_view platform,
+    std::string_view profile);
+
+// Loads the selected generated file into the AsicConfigEntry variant specified
+// by config_type. Port assignments remain empty until their generation is
+// added.
+cfg::PlatformConfig generatePlatformConfigFromAsicConfig(
+    const std::filesystem::path& fbossRoot,
+    std::string_view platform,
+    std::string_view profile);
+
+// Generates a new agent.conf and returns its path. The output is written to a
+// unique temporary directory by default and never overwrites an existing file.
 std::filesystem::path generateAgentConfig(
     std::string_view platform,
     std::string_view profile,
+    const std::filesystem::path& fbossRoot,
     const std::optional<std::filesystem::path>& outputDirectory = std::nullopt);
 
 } // namespace facebook::fboss::configgen
