@@ -1455,6 +1455,29 @@ TEST(Acl, PbrFieldsQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, ActionTypeDenyDataAndControlPlane) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "acl0";
+  config.acls()[0].l4DstPort() = 179;
+  *config.acls()[0].actionType() =
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto acl = stateV1->getAcl("acl0");
+  ASSERT_NE(nullptr, acl);
+  EXPECT_EQ(
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE, acl->getActionType());
+}
+
 TEST(Acl, L4DstPortRangeValidation) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
