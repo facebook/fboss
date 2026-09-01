@@ -94,6 +94,7 @@ cpp_unittest(
         "ThriftServerTest.cpp",
         "ThriftTest.cpp",
         "TunInterfaceTest.cpp",
+        "TunManagerInterfaceStatusTest.cpp",
         "TunManagerRouteProcessorTest.cpp",
         "TunManagerRuleProcessorTest.cpp",
         "TxPacketTest.cpp",
