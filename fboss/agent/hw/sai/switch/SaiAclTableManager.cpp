@@ -1201,13 +1201,27 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
-  const auto& act = addedAclEntry->getActionType();
-  if (act == cfg::AclActionType::DENY) {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_DROP};
-  } else {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_FORWARD};
+  /*
+   * FBOSS ACL action -> SAI packet action:
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD).
+   *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
+   *    or a host interface trap asked for still happens.
+   *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
+   * (DENY, which the SAI spec defines as COPY_CANCEL plus DROP).
+   */
+  switch (addedAclEntry->getActionType()) {
+    case cfg::AclActionType::DENY:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DROP};
+      break;
+    case cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DENY};
+      break;
+    case cfg::AclActionType::PERMIT:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_FORWARD};
+      break;
   }
 
   std::optional<SaiAclEntryTraits::Attributes::ActionRedirect>
