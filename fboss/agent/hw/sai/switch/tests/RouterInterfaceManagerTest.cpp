@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
@@ -609,4 +610,104 @@ TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypePortRouterInterface) {
           swInterface);
   checkAdapterKey(saiId, swInterface->getID());
   checkType(saiId, swInterface->getID(), cfg::InterfaceType::PORT);
+}
+
+/*
+ * A router interface over an aggregate port is a port router interface whose
+ * SAI PortId is a LAG object id rather than a port object id.
+ */
+TEST_F(RouterInterfaceManagerTest, addAggregatePortRouterInterface) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  auto lagSaiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  auto swInterface =
+      makeAggregatePortInterface(intf1, swAggregatePort->getID());
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface);
+
+  checkAdapterKey(saiId, swInterface->getID());
+  checkType(saiId, swInterface->getID(), cfg::InterfaceType::PORT);
+  // The rif points at the LAG, not at any member port.
+  auto portIdGot = saiApiTable->routerInterfaceApi().getAttribute(
+      saiId, SaiPortRouterInterfaceTraits::Attributes::PortId{});
+  EXPECT_EQ(portIdGot, static_cast<sai_object_id_t>(lagSaiId));
+}
+
+TEST_F(RouterInterfaceManagerTest, removeAggregatePortRouterInterface) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  std::ignore = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  auto swInterface =
+      makeAggregatePortInterface(intf1, swAggregatePort->getID());
+  std::ignore =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface);
+  ASSERT_NE(
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          swInterface->getID()),
+      nullptr);
+
+  saiManagerTable->routerInterfaceManager().removeLocalRouterInterface(
+      swInterface);
+  EXPECT_EQ(
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          swInterface->getID()),
+      nullptr);
+}
+
+TEST_F(RouterInterfaceManagerTest, changePortRifToAggregatePortRif) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  auto lagSaiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  // Start bound to a physical port ...
+  auto portInterface = makeInterface(intf1, cfg::InterfaceType::PORT);
+  auto portSaiId =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          portInterface);
+  auto portIdGot = saiApiTable->routerInterfaceApi().getAttribute(
+      portSaiId, SaiPortRouterInterfaceTraits::Attributes::PortId{});
+  EXPECT_NE(portIdGot, static_cast<sai_object_id_t>(lagSaiId));
+
+  // ... then rebind the same interface to the aggregate port.
+  auto aggInterface =
+      makeAggregatePortInterface(intf1, swAggregatePort->getID());
+  saiManagerTable->routerInterfaceManager().changeLocalRouterInterface(
+      portInterface, aggInterface);
+
+  auto handle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          aggInterface->getID());
+  ASSERT_NE(handle, nullptr);
+  portIdGot = saiApiTable->routerInterfaceApi().getAttribute(
+      handle->adapterKey(), SaiPortRouterInterfaceTraits::Attributes::PortId{});
+  EXPECT_EQ(portIdGot, static_cast<sai_object_id_t>(lagSaiId));
+}
+
+TEST_F(RouterInterfaceManagerTest, changeAggregatePortRifToPortRif) {
+  auto swAggregatePort = makeAggregatePort(intf0);
+  auto lagSaiId = saiManagerTable->lagManager().addLag(swAggregatePort);
+
+  // Start bound to the aggregate port ...
+  auto aggInterface =
+      makeAggregatePortInterface(intf1, swAggregatePort->getID());
+  auto aggSaiId =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          aggInterface);
+  auto portIdGot = saiApiTable->routerInterfaceApi().getAttribute(
+      aggSaiId, SaiPortRouterInterfaceTraits::Attributes::PortId{});
+  EXPECT_EQ(portIdGot, static_cast<sai_object_id_t>(lagSaiId));
+
+  // ... then rebind the same interface to a physical port.
+  auto portInterface = makeInterface(intf1, cfg::InterfaceType::PORT);
+  saiManagerTable->routerInterfaceManager().changeLocalRouterInterface(
+      aggInterface, portInterface);
+
+  auto handle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          portInterface->getID());
+  ASSERT_NE(handle, nullptr);
+  portIdGot = saiApiTable->routerInterfaceApi().getAttribute(
+      handle->adapterKey(), SaiPortRouterInterfaceTraits::Attributes::PortId{});
+  EXPECT_NE(portIdGot, static_cast<sai_object_id_t>(lagSaiId));
 }
