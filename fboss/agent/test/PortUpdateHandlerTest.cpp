@@ -118,6 +118,14 @@ class PortUpdateHandlerTest : public ::testing::Test {
     });
   }
 
+  std::shared_ptr<SwitchState> stateWithIngressAclTable(
+      const std::shared_ptr<SwitchState>& in,
+      std::optional<std::string> ingressAclTableName) {
+    return stateWithModifiedPort(in, [ingressAclTableName](auto& port) {
+      port->setIngressAclTableName(ingressAclTableName);
+    });
+  }
+
   void expectAccessPolicyState(
       CounterCache& counters,
       const std::string& portName,
@@ -259,6 +267,44 @@ TEST_F(PortUpdateHandlerTest, AccessPolicyStateUnknownLookupClass) {
       initState, static_cast<cfg::AclLookupClassPort>(42));
   portUpdateHandler->stateUpdated(
       *std::make_shared<StateDelta>(initState, unknownState));
+
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateFromIngressAclTable) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  auto restrictedState =
+      stateWithIngressAclTable(initState, "AccessPolicyRestrictedTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, restrictedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  auto blockedState =
+      stateWithIngressAclTable(initState, "AccessPolicyBlockTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(restrictedState, blockedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateUnrelatedIngressAclTable) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  // An ingress ACL table that is not an access policy table leaves the port
+  // unconstrained
+  auto aclState = stateWithIngressAclTable(initState, "SomeOtherAclTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, aclState));
 
   counters.update();
   expectAccessPolicyState(
