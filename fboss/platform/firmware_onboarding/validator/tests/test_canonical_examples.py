@@ -32,6 +32,7 @@ from fboss.platform.firmware_onboarding.validator.preflight import (
 
 _CANONICAL_PLATFORMS: list[str] = [
     "icecube800bc",
+    "m4062nhp",
 ]
 
 
