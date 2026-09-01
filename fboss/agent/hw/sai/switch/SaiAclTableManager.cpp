@@ -50,6 +50,14 @@ namespace {
 
 // Match all 32 bits in the selected IPv6 word.
 constexpr uint32_t kIpV6WordExactMatchMask = 0xFFFFFFFF;
+constexpr int kLegacyAclTablePriority = 0;
+constexpr int kMigratedAclTablePriority = 23;
+
+int normalizeAclTablePriority(int priority) {
+  // TODO: Remove after all ACL table configs use priority 23.
+  return priority == kLegacyAclTablePriority ? kMigratedAclTablePriority
+                                             : priority;
+}
 
 folly::IPAddressV6 ipV6WordToAddress(uint32_t word, int wordIndex) {
   CHECK(wordIndex == 2 || wordIndex == 3)
@@ -228,7 +236,8 @@ bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable) {
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
-      oldAclTable->getPriority() != newAclTable->getPriority() ||
+      normalizeAclTablePriority(oldAclTable->getPriority()) !=
+          normalizeAclTablePriority(newAclTable->getPriority()) ||
       oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
       oldAclTable->getUdfGroups()->toThrift() !=
           newAclTable->getUdfGroups()->toThrift()) {
