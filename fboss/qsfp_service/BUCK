@@ -105,10 +105,10 @@ cpp_library(
 cpp_library(
     name = "stats-helper",
     srcs = [
-        "facebook/StatsPublisherHelper.cpp",
+        "StatsPublisherHelper.cpp",
     ],
     headers = [
-        "facebook/StatsPublisherHelper.h",
+        "StatsPublisherHelper.h",
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
@@ -124,7 +124,7 @@ cpp_library(
 cpp_library(
     name = "stats",
     srcs = [
-        "facebook/StatsPublisher.cpp",
+        "StatsPublisher.cpp",
     ],
     headers = [
         "StatsPublisher.h",
