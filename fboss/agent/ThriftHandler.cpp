@@ -1124,8 +1124,22 @@ static void populateInterfaceDetail(
   *interfaceDetail.interfaceId() = intf->getID();
   switch (intf->getType()) {
     case cfg::InterfaceType::PORT: {
-      auto port = state->getPorts()->getNode(intf->getPortID());
-      interfaceDetail.portNames()->emplace_back(port->getName());
+      // A port router interface is bound to either a physical port or an
+      // aggregate port, in which case it covers all of the members.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        auto aggPort = state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+        if (aggPort) {
+          for (const auto& subport : aggPort->sortedSubports()) {
+            auto port = state->getPorts()->getNodeIf(subport.portID);
+            if (port) {
+              interfaceDetail.portNames()->emplace_back(port->getName());
+            }
+          }
+        }
+      } else {
+        auto port = state->getPorts()->getNode(intf->getPortID());
+        interfaceDetail.portNames()->emplace_back(port->getName());
+      }
     } break;
     case cfg::InterfaceType::VLAN: {
       *interfaceDetail.vlanId() = intf->getVlanID();
@@ -1152,7 +1166,11 @@ static void populateInterfaceDetail(
     } break;
   }
   if (intf->getType() == cfg::InterfaceType::PORT) {
-    *interfaceDetail.portId() = intf->getPortID();
+    if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+      interfaceDetail.aggregatePortId() = *aggregatePortID;
+    } else {
+      *interfaceDetail.portId() = intf->getPortID();
+    }
   }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();

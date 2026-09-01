@@ -109,6 +109,7 @@ cpp_unittest(
     supports_static_listing = False,
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/boost:boost_range",
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/re2:re2",
@@ -207,7 +208,6 @@ cpp_unittest(
         "//thrift/lib/cpp2/util:util",
     ],
     external_deps = [
-        ("boost", None, "boost_range"),
         "gflags",
     ],
 )
