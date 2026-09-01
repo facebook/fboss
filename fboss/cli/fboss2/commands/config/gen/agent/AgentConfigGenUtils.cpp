@@ -21,6 +21,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/lib/platforms/PlatformMappingUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace fs = std::filesystem;
@@ -28,6 +29,8 @@ namespace {
 
 constexpr std::string_view kAgentConfigFileName = "agent.conf";
 constexpr std::string_view kDefaultProfileName = "default";
+constexpr std::string_view kPortAssignmentFileName =
+    "port_id_to_port_assignment.json";
 
 struct GeneratedAsicConfigFile {
   fs::path path;
@@ -234,13 +237,41 @@ fs::path findGeneratedAsicConfig(
   return resolveGeneratedAsicConfig(fbossRoot, platform, profile).path;
 }
 
-cfg::PlatformConfig generatePlatformConfigFromAsicConfig(
+fs::path findPortIdToPortAssignmentConfig(
+    const fs::path& fbossRoot,
+    std::string_view platform) {
+  const auto platformDirectory =
+      findPlatformConfigDirectory(fbossRoot, platform);
+  const auto colocatedPath = platformDirectory.path / "platform_mapping" /
+      "generated" / kPortAssignmentFileName;
+  if (fs::is_regular_file(colocatedPath)) {
+    return colocatedPath;
+  }
+
+  const auto legacyPath = fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / platformDirectory.systemVendor /
+      std::string(platform) / kPortAssignmentFileName;
+  if (fs::is_regular_file(legacyPath)) {
+    return legacyPath;
+  }
+
+  throw FbossError(
+      "Generated port assignments do not exist for platform '",
+      platform,
+      "'; checked ",
+      colocatedPath.string(),
+      " and ",
+      legacyPath.string());
+}
+
+cfg::PlatformConfig generatePlatformConfigFromArtifacts(
     const fs::path& fbossRoot,
     std::string_view platform,
     std::string_view profile) {
   return generatePlatformConfig(
       loadAsicConfig(resolveGeneratedAsicConfig(fbossRoot, platform, profile)),
-      {});
+      readPortIdToPortAssignment(
+          findPortIdToPortAssignmentConfig(fbossRoot, platform).string()));
 }
 
 fs::path generateAgentConfig(
@@ -251,7 +282,7 @@ fs::path generateAgentConfig(
   auto config = assembleAgentConfig(
       {},
       {},
-      generatePlatformConfigFromAsicConfig(fbossRoot, platform, profile));
+      generatePlatformConfigFromArtifacts(fbossRoot, platform, profile));
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(

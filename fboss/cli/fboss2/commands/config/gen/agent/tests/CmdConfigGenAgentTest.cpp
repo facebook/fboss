@@ -38,12 +38,34 @@ constexpr std::string_view kAsicYaml = "ASIC_CONFIG: test\n";
 constexpr std::string_view kAsicJson = "{\"ASIC_CONFIG\":\"test\"}\n";
 constexpr std::string_view kKeyValueConfig =
     "{\"foo\":\"bar\",\"answer\":\"42\"}\n";
+constexpr std::string_view kPortName = "eth1/1/1";
 
 void writeTestFile(const fs::path& path, std::string_view contents) {
   fs::create_directories(path.parent_path());
   if (!folly::writeFile(contents, path.c_str())) {
     throw std::runtime_error("Unable to write test file " + path.string());
   }
+}
+
+void writePortAssignments(
+    const fs::path& path,
+    int32_t portId,
+    std::string_view portName) {
+  writeTestFile(
+      path,
+      "{\"portIdToPortAssignment\":{\"" + std::to_string(portId) +
+          "\":{\"portName\":\"" + std::string(portName) +
+          "\",\"portType\":0,\"scope\":0}}}\n");
+}
+
+std::map<int32_t, cfg::PortAssignment> makePortAssignments(
+    int32_t portId,
+    std::string_view portName) {
+  cfg::PortAssignment assignment;
+  assignment.portName() = portName;
+  assignment.portType() = cfg::PortType::INTERFACE_PORT;
+  assignment.scope() = cfg::Scope::LOCAL;
+  return {{portId, std::move(assignment)}};
 }
 
 fs::path createTestPlatform(
@@ -69,6 +91,12 @@ fs::path createTestPlatform(
       asicConfigDirectory / "generated" /
           (std::string(platform) + "_hw_test" + std::string(extension)),
       generatedConfig);
+  writePortAssignments(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+          "generated_platform_mappings" / vendor / platform /
+          "port_id_to_port_assignment.json",
+      1,
+      kPortName);
   return asicConfigDirectory.parent_path();
 }
 
@@ -137,7 +165,7 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfigFromProvidedSections) {
   EXPECT_EQ(*platformConfig.portIdToPortAssignment(), assignments);
 }
 
-TEST(AgentConfigGenTest, SelectsDefaultOrProfiledGeneratedAsicConfig) {
+TEST(AgentConfigGenTest, SelectsGeneratedPlatformArtifacts) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
@@ -152,23 +180,46 @@ TEST(AgentConfigGenTest, SelectsDefaultOrProfiledGeneratedAsicConfig) {
   EXPECT_EQ(
       findGeneratedAsicConfig(fbossRoot, kPlatform, "default"),
       platformDirectory / "asic_config" / "generated" / "test_platform.yml");
+  EXPECT_EQ(
+      findPortIdToPortAssignmentConfig(fbossRoot, kPlatform),
+      fbossRoot / "lib" / "platform_mapping_v2" /
+          "generated_platform_mappings" / "test_vendor" / kPlatform /
+          "port_id_to_port_assignment.json");
 }
 
-TEST(AgentConfigGenTest, GeneratesAsicOnlyPlatformConfig) {
+TEST(AgentConfigGenTest, GeneratesPlatformConfigFromArtifacts) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   createTestPlatform(fbossRoot, "test_vendor");
 
   const auto platformConfig =
-      generatePlatformConfigFromAsicConfig(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
 
   ASSERT_EQ(
       platformConfig.chip()->getType(), cfg::ChipConfig::Type::asicConfig);
   EXPECT_EQ(
       platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
       kAsicYaml);
-  EXPECT_TRUE(platformConfig.portIdToPortAssignment()->empty());
+  EXPECT_EQ(
+      *platformConfig.portIdToPortAssignment(),
+      makePortAssignments(1, kPortName));
   EXPECT_FALSE(platformConfig.platformSettings());
+}
+
+TEST(AgentConfigGenTest, PrefersColocatedPortAssignments) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
+  const auto colocatedPath = platformDirectory / "platform_mapping" /
+      "generated" / "port_id_to_port_assignment.json";
+  writePortAssignments(colocatedPath, 2, "eth1/1/2");
+
+  EXPECT_EQ(
+      findPortIdToPortAssignmentConfig(fbossRoot, kPlatform), colocatedPath);
+  EXPECT_EQ(
+      *generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile)
+           .portIdToPortAssignment(),
+      makePortAssignments(2, "eth1/1/2"));
 }
 
 TEST(AgentConfigGenTest, GeneratesJsonAsicConfig) {
@@ -178,7 +229,7 @@ TEST(AgentConfigGenTest, GeneratesJsonAsicConfig) {
       fbossRoot, "test_vendor", kPlatform, "JSON_CONFIG", ".json", kAsicJson);
 
   const auto platformConfig =
-      generatePlatformConfigFromAsicConfig(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
   const auto& common = *platformConfig.chip()->get_asicConfig().common();
 
   ASSERT_EQ(common.getType(), cfg::AsicConfigEntry::Type::jsonConfig);
@@ -197,7 +248,7 @@ TEST(AgentConfigGenTest, GeneratesKeyValueAsicConfig) {
       kKeyValueConfig);
 
   const auto platformConfig =
-      generatePlatformConfigFromAsicConfig(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
   const auto& common = *platformConfig.chip()->get_asicConfig().common();
   const std::map<std::string, std::string> expected{
       {"answer", "42"}, {"foo", "bar"}};
@@ -213,7 +264,7 @@ TEST(AgentConfigGenTest, RejectsUnsupportedAsicConfigType) {
       fbossRoot, "test_vendor", kPlatform, "UNSUPPORTED_CONFIG", ".json", "{}");
 
   EXPECT_THROW(
-      generatePlatformConfigFromAsicConfig(fbossRoot, kPlatform, kProfile),
+      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile),
       FbossError);
 }
 
@@ -237,7 +288,7 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   EXPECT_EQ(*config.sw(), cfg::SwitchConfig());
   EXPECT_EQ(
       *config.platform(),
-      generatePlatformConfigFromAsicConfig(fbossRoot, kPlatform, kProfile));
+      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile));
   EXPECT_TRUE(config.thriftApiToRateLimitInQps()->empty());
 }
 

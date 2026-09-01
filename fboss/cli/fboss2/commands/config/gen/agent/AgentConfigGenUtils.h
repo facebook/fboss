@@ -49,10 +49,16 @@ std::filesystem::path findGeneratedAsicConfig(
     std::string_view platform,
     std::string_view profile);
 
-// Loads the selected generated file into the AsicConfigEntry variant specified
-// by config_type. Port assignments remain empty until their generation is
-// added.
-cfg::PlatformConfig generatePlatformConfigFromAsicConfig(
+// Resolves the generated port-assignment artifact for a platform. The
+// colocated platform config layout is preferred, with the legacy centralized
+// platform-mapping directory supported during migration.
+std::filesystem::path findPortIdToPortAssignmentConfig(
+    const std::filesystem::path& fbossRoot,
+    std::string_view platform);
+
+// Loads the selected ASIC configuration and port assignments into the platform
+// section of an AgentConfig.
+cfg::PlatformConfig generatePlatformConfigFromArtifacts(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
     std::string_view profile);
