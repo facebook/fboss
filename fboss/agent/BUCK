@@ -782,6 +782,7 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
+        ":switch_config-cpp2-types",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/lib:common_utils",

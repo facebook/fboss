@@ -33,6 +33,11 @@ struct BwInfo {
   uint32_t fabricBwMbps{0};
   uint32_t nifBwMbps{0};
 };
+
+cfg::AclLookupClassPort accessPolicyState(const std::shared_ptr<Port>& port) {
+  return port->getUserMetaData().value_or(
+      cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
 } // namespace
 
 PortUpdateHandler::PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
@@ -213,6 +218,7 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
               portStats = switchStats.updatePortName(
                   newPort->getID(), newPort->getName());
               portStats->setPortStatus(newPort->isUp());
+              portStats->setAccessPolicyState(accessPolicyState(newPort));
             }
           }
         }
@@ -225,6 +231,14 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
           }
           sw_->publishPhyInfoSnapshots(oldPort->getID());
         }
+        if (oldPort->getUserMetaData() != newPort->getUserMetaData()) {
+          for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
+            PortStats* portStats = switchStats.port(newPort->getID());
+            if (portStats) {
+              portStats->setAccessPolicyState(accessPolicyState(newPort));
+            }
+          }
+        }
         disableIfLooped(newPort, delta.newState());
         // Clear error
         if (newPort->isEnabled() && !oldPort->isEnabled()) {
@@ -233,6 +247,8 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
       },
       [&](const std::shared_ptr<Port>& newPort) {
         sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
+        sw_->portStats(newPort->getID())
+            ->setAccessPolicyState(accessPolicyState(newPort));
         disableIfLooped(newPort, delta.newState());
         if (newPort->isEnabled()) {
           // For WB case where all ports will show up as newly added
@@ -242,6 +258,7 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
       [&](const std::shared_ptr<Port>& oldPort) {
         sw_->portStats(oldPort->getID())->clearPortStatusCounter();
         sw_->portStats(oldPort->getID())->clearPortActiveStatusCounter();
+        sw_->portStats(oldPort->getID())->clearAccessPolicyStateCounter();
         for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
           switchStats.deletePortStats(oldPort->getID());
         }
