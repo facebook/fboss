@@ -281,6 +281,22 @@ target_link_libraries(srv6_test_utils
   switch_config_cpp2
 )
 
+add_library(csig_test_utils
+  fboss/agent/test/utils/CsigTestUtils.cpp
+)
+
+target_link_libraries(csig_test_utils
+  fboss_types
+  hw_switch
+  packet
+  packet_factory
+  sai_api
+  sai_switch
+  switch_asics
+  switch_config_cpp2
+  Folly::folly
+)
+
 add_library(trap_packet_utils
   fboss/agent/test/utils/TrapPacketUtils.cpp
 )
