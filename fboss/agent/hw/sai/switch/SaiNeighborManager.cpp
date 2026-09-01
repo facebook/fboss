@@ -18,11 +18,16 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
 #include "folly/IPAddress.h"
+
+#include <folly/ScopeGuard.h>
+
+#include <utility>
 
 namespace facebook::fboss {
 
@@ -141,7 +146,18 @@ void SaiNeighborManager::addNeighbor(
       swEntry->getNoHostRoute(),
       saiRouterIntf->type());
 
-  neighbors_.emplace(subscriberKey, std::move(neighbor));
+  // Record the entry BEFORE publishing it. Publishing cascades synchronously
+  // into next hop and then next hop group member creation, and those consumers
+  // look the neighbor back up (a protection member reads its MONITORED_OBJECT
+  // from it), so it has to be findable by then. Rolled back if publish throws.
+  auto [itr, inserted] = neighbors_.emplace(subscriberKey, std::move(neighbor));
+  // Duplicates are rejected above, so the guard below always owns what it
+  // erases.
+  CHECK(inserted);
+  auto guard = folly::makeGuard(
+      [this, &subscriberKey]() { neighbors_.erase(subscriberKey); });
+  itr->second->publish();
+  guard.dismiss();
   XLOG(DBG2) << "Add Neighbor: create neighbor" << swEntry->str();
 }
 
@@ -160,6 +176,20 @@ void SaiNeighborManager::removeNeighbor(
   }
   neighbors_.erase(subscriberKey);
   XLOG(DBG2) << "Remove Neighbor: " << swEntry->str();
+}
+
+void SaiNeighborEntry::publish() {
+  if (auto* vlanRif =
+          std::get_if<std::shared_ptr<ManagedVlanRifNeighbor>>(&neighbor_)) {
+    // Subscribing can fire createObject immediately when the FDB entry already
+    // exists, so this too must happen after the manager records the entry.
+    SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
+        *vlanRif);
+  } else if (
+      auto* portRif =
+          std::get_if<std::shared_ptr<PortRifNeighbor>>(&neighbor_)) {
+    (*portRif)->createNeighbor();
+  }
 }
 
 void SaiNeighborManager::clear() {
@@ -203,6 +233,48 @@ cfg::InterfaceType SaiNeighborManager::getNeighborRifType(
   throw FbossError("Could not find neighbor: ", saiEntry.ip().str());
 }
 
+std::optional<sai_object_id_t> SaiNeighborManager::getNeighborPortSaiId(
+    const SaiNeighborTraits::NeighborEntry& saiEntry) const {
+  auto itr = neighbors_.find(saiEntry);
+  if (itr == neighbors_.end()) {
+    return std::nullopt;
+  }
+  // Report a missing handle as nullopt rather than aborting: this is a lookup,
+  // and whether an absent egress object is tolerable is the caller's call. The
+  // protection-group caller treats it as fatal to the update, because a PRIMARY
+  // member with no MONITORED_OBJECT would never fail over.
+  const auto port = itr->second->getSaiPortDesc();
+  switch (port.type()) {
+    case BasePortDescriptor::PortType::PHYSICAL: {
+      auto portHandle =
+          managerTable_->portManager().getPortHandle(port.phyPortID());
+      if (!portHandle) {
+        return std::nullopt;
+      }
+      return static_cast<sai_object_id_t>(portHandle->port->adapterKey());
+    }
+    case BasePortDescriptor::PortType::AGGREGATE: {
+      auto lagHandle =
+          managerTable_->lagManager().getLagHandle(port.aggPortID());
+      if (!lagHandle) {
+        return std::nullopt;
+      }
+      return static_cast<sai_object_id_t>(lagHandle->lag->adapterKey());
+    }
+    case BasePortDescriptor::PortType::SYSTEM_PORT: {
+      auto sysPortHandle =
+          managerTable_->systemPortManager().getSystemPortHandle(
+              port.sysPortID());
+      if (!sysPortHandle) {
+        return std::nullopt;
+      }
+      return static_cast<sai_object_id_t>(
+          sysPortHandle->systemPort->adapterKey());
+    }
+  }
+  XLOG(FATAL) << "Unknown port type";
+}
+
 std::string SaiNeighborManager::listManagedObjects() const {
   std::string output{};
   for (const auto& entry : neighbors_) {
@@ -232,8 +304,6 @@ SaiNeighborEntry::SaiNeighborEntry(
           encapIndex,
           isLocal,
           noHostRoute);
-      SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
-          subscriber);
       neighbor_ = subscriber;
     } break;
     case cfg::InterfaceType::PORT:
@@ -275,20 +345,24 @@ PortRifNeighbor::PortRifNeighbor(
     std::optional<bool> noHostRoute,
     cfg::InterfaceType intfType)
     : manager_(manager),
-      saiPortAndIntf_(saiPortAndIntf),
+      saiPortAndIntf_(std::move(saiPortAndIntf)),
       handle_(std::make_unique<SaiNeighborHandle>()),
       intfType_(intfType) {
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac);
-  auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf);
+  auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       manager_->getSwitchSaiId(), rifSaiId, ip);
-  auto createAttributes = SaiNeighborTraits::CreateAttributes{
+  createAttributes_ = SaiNeighborTraits::CreateAttributes{
       std::get<folly::MacAddress>(intfIDAndIpAndMac),
       metadata,
       encapIndex,
       isLocal,
       noHostRoute};
-  neighbor_ = manager_->createSaiObject(adapterHostKey, createAttributes);
+  adapterHostKey_ = adapterHostKey;
+}
+
+void PortRifNeighbor::createNeighbor() {
+  neighbor_ = manager_->createSaiObject(adapterHostKey_, createAttributes_);
   handle_->neighbor = neighbor_.get();
 }
 

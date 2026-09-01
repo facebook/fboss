@@ -518,6 +518,31 @@ bool SaiNextHopGroupManager::isFixedWidthNextHopGroup(
   return false;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+std::optional<SaiNextHopGroupMemberTraits::Attributes::MonitoredObject>
+SaiNextHopGroupManager::getMonitoredObjectIf(
+    const SaiNeighborTraits::NeighborEntry& neighborEntry) const {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT)) {
+    // Broadcom infers the monitored object from the member's next hop.
+    return std::nullopt;
+  }
+  auto portSaiId =
+      managerTable_->neighborManager().getNeighborPortSaiId(neighborEntry);
+  if (!portSaiId) {
+    // On an ASIC that cannot infer the monitored object, an unset attribute is
+    // a member the ASIC will never fail over -- silently no FRR. Fail the
+    // member create instead: a rejected update is recoverable, a protection
+    // group that looks programmed but cannot switch over is not.
+    throw FbossError(
+        "No egress port for protection primary ",
+        neighborEntry.ip().str(),
+        "; cannot derive MONITORED_OBJECT");
+  }
+  return SaiNextHopGroupMemberTraits::Attributes::MonitoredObject{*portSaiId};
+}
+#endif
+
 std::shared_ptr<SaiNextHopGroupMember> SaiNextHopGroupManager::createSaiObject(
     const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
     const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes) {
@@ -770,9 +795,17 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole>
       configuredRole;
+  std::optional<SaiNextHopGroupMemberTraits::Attributes::MonitoredObject>
+      monitoredObject;
   if (isProtectionNextHopGroupType(nextHopGroupType_)) {
     configuredRole = SaiNextHopGroupMemberTraits::Attributes::ConfiguredRole{
         SAI_NEXT_HOP_GROUP_MEMBER_CONFIGURED_ROLE_PRIMARY};
+    // A PRIMARY member monitors its own egress port/LAG: that going down is
+    // what drives the ASIC's autonomous switchover to the standby group. Only
+    // ASICs that cannot infer it from the member's next hop need it spelled
+    // out (see NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT).
+    monitoredObject =
+        manager_->getMonitoredObjectIf(managedNextHop_->getNeighborEntry());
   }
 #endif
   // In fixed width case, the member is added with weight 0
@@ -787,7 +820,7 @@ void ManagedSaiNextHopGroupNextHopMember<NextHopTraits>::createObject(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       ,
       configuredRole,
-      std::nullopt /* monitoredObject */
+      monitoredObject
 #endif
   };
 
