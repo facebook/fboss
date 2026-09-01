@@ -2010,6 +2010,16 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
                 " for interface ",
                 intfID);
           }
+          if (aitr->memberPorts()->empty()) {
+            // Such an interface would bind no ports at all, leaving both the
+            // interface and the aggregate port without a usable binding.
+            throw FbossError(
+                "Aggregate port ",
+                *aggregatePortID,
+                " for interface ",
+                intfID,
+                " has no member ports");
+          }
           for (const auto& member : *aitr->memberPorts()) {
             bindPortToInterface(PortID(*member.memberPortID()), intfID);
           }
@@ -3254,6 +3264,25 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->portType(),
       portConf->expectedNeighborReachability()->size());
   auto newUserMetaData = portConf->userMetaData().to_optional();
+
+  // A port's router interfaces are derived from the interface config rather
+  // than from portConf, so they have to be compared separately: a port rif
+  // being replaced by an aggregate port rif over the same port changes this
+  // without changing anything else about the port. Only NPU switches bind
+  // ports to interfaces this way; on VOQ switches a port's interface is its
+  // own system port, which cannot be rebound.
+  const auto switchId =
+      scopeResolver_.scope(PortID(*portConf->logicalID())).switchId();
+  const auto switchType = *cfg_->switchSettings()
+                               ->switchIdToSwitchInfo()
+                               ->at(static_cast<int64_t>(switchId))
+                               .switchType();
+  auto interfaceIDsItr = port2InterfaceId_.find(orig->getID());
+  auto interfaceIDsUnchanged = switchType != cfg::SwitchType::NPU ||
+      (interfaceIDsItr == port2InterfaceId_.end()
+           ? orig->getInterfaceIDs().empty()
+           : interfaceIDsItr->second == orig->getInterfaceIDs());
+
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -3318,7 +3347,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->portUpHoldoffTimeMs().has_value() ==
           orig->getPortUpHoldoffTimeMs().has_value() &&
       newUserMetaData == orig->getUserMetaData() &&
-      newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
+      newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
+      interfaceIDsUnchanged) {
     return nullptr;
   }
 
