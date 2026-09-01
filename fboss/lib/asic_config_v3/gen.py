@@ -5,6 +5,9 @@ import os
 import sys
 
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
+from fboss.lib.asic_config_v3.generators.broadcom_dnx_generator import (
+    BroadcomDnxGenerator,
+)
 from fboss.lib.asic_config_v3.generators.broadcom_xgs_generator import (
     BroadcomXgsGenerator,
 )
@@ -14,6 +17,7 @@ from fboss.lib.asic_config_v3.paths import AsicConfigPaths, discover_platforms
 _GENERATOR_REGISTRY: dict[tuple[str, str], type[BaseAsicConfigGenerator]] = {
     ("broadcom", "tomahawk5"): BroadcomXgsGenerator,
     ("broadcom", "tomahawk6"): BroadcomXgsGenerator,
+    ("broadcom", "jericho3"): BroadcomDnxGenerator,
 }
 
 
