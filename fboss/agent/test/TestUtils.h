@@ -320,6 +320,21 @@ cfg::SwitchConfig testConfigAWithLookupClasses();
 cfg::SwitchConfig testConfigAWithPortInterfaces();
 
 /*
+ * Identifiers of the aggregate port and of the router interface bound to it in
+ * testConfigAWithAggregatePortInterface().
+ */
+constexpr int32_t kAggregatePortInterfaceID = 6500;
+constexpr int32_t kAggregatePortKey = 55;
+
+/*
+ * Same as testConfigAWithPortInterfaces, except that the first two ports are
+ * members of a single aggregate port and share one router interface bound to
+ * that aggregate. Every other port keeps a router interface of its own, so a
+ * single config exercises both flavours of port router interface.
+ */
+cfg::SwitchConfig testConfigAWithAggregatePortInterface();
+
+/*
  * Convenience macro that wraps EXPECT_CALL() on the underlying MockHwSwitch
  */
 #define EXPECT_HW_CALL(sw, method) EXPECT_CALL(*getMockHw(sw), method)
