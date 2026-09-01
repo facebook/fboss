@@ -48,11 +48,14 @@ inline constexpr std::string_view kAclRuleAttrPacketLookupResult =
     "packet-lookup-result";
 inline constexpr std::string_view kAclRuleAttrAction = "action";
 
-// `action <subattr> [<value>]` sub-attributes. permit/deny mutate
-// AclEntry.actionType directly; the rest land on the MatchAction stored in
+// `action <subattr> [<value>]` sub-attributes.
+// permit/deny/deny-data-and-control-plane mutate AclEntry.actionType directly;
+// the rest land on the MatchAction stored in
 // dataPlaneTrafficPolicy.matchToAction keyed by rule name.
 inline constexpr std::string_view kAclRuleActionPermit = "permit";
 inline constexpr std::string_view kAclRuleActionDeny = "deny";
+inline constexpr std::string_view kAclRuleActionDenyDataAndControlPlane =
+    "deny-data-and-control-plane";
 inline constexpr std::string_view kAclRuleActionSendToQueue = "send-to-queue";
 inline constexpr std::string_view kAclRuleActionSetDscp = "set-dscp";
 inline constexpr std::string_view kAclRuleActionSetTc = "set-tc";
@@ -108,8 +111,9 @@ inline constexpr std::size_t kAclRuleActionPrefix = 4;
 inline constexpr std::size_t kAclRuleIdxActionSub = kAclRuleMatchPrefix;
 
 // A parsed acl-rule mutation, captured at parse time and replayed later.
-// Exactly one function is set: match fields and action permit|deny target the
-// AclEntry; every other action targets a MatchAction.
+// Exactly one function is set: match fields and the actions that set
+// AclEntry.actionType target the AclEntry; every other action targets a
+// MatchAction.
 struct AclRuleMutation {
   std::function<void(cfg::AclEntry&)> entryFn;
   std::function<void(cfg::MatchAction&)> actionFn;

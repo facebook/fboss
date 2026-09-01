@@ -478,6 +478,19 @@ TEST_F(CmdConfigAclRuleTestFixture, setActionDeny) {
   EXPECT_EQ(*getRule("rule-1").actionType(), cfg::AclActionType::DENY);
 }
 
+TEST_F(CmdConfigAclRuleTestFixture, setActionDenyDataAndControlPlane) {
+  setupTestableConfigSession(
+      cmdPrefix_, "AclTable1 rule-1 action deny-data-and-control-plane");
+  CmdConfigAclRule cmd;
+  HostInfo host("testhost");
+  AclRuleConfigArgs args(
+      {"AclTable1", "rule-1", "action", "deny-data-and-control-plane"});
+  cmd.queryClient(host, args);
+  EXPECT_EQ(
+      *getRule("rule-1").actionType(),
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE);
+}
+
 TEST_F(CmdConfigAclRuleTestFixture, setActionSendToQueue) {
   setupTestableConfigSession(
       cmdPrefix_, "AclTable1 rule-1 action send-to-queue 7");
