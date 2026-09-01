@@ -4,6 +4,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -44,9 +45,32 @@ std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config);
 // Load HalTestConfig from a JSON file.
 HalTestConfig loadHalTestConfig(const std::string& configPath);
 
-// Build a ProgramTransceiverState from a SpeedCombination's port list.
+// Build a ProgramTransceiverState from a SpeedCombination's port list. For a ZR
+// module the tunable optics config is attached to every port, since
+// CmisModule::customizeTransceiverLocked throws without it.
+// NOTE: this touches the module -- makeTunableOpticsConfig below refreshes it
+// to read the band -- so it is not a pure builder.
 ProgramTransceiverState createProgramTransceiverState(
-    const SpeedCombination& combo);
+    const SpeedCombination& combo,
+    QsfpModule* module);
+
+// True if the module is an 800G ZR (coherent, tunable) optic.
+bool isZrModule(QsfpModule* module);
+
+// Build the tunable optics config a ZR module needs before it can be
+// programmed: qsfp_service refuses to bring a ZR optic to high power without
+// one. Picks the first channel of whichever band the module's laser supports
+// (C-Band or L-Band) -- any in-band channel works for a HAL test. Refreshes the
+// module first, so it is safe to call at any point in a test. Returns nullopt
+// if the module is not ZR or advertises neither tunable band.
+std::optional<cfg::OpticalChannelConfig> makeTunableOpticsConfig(
+    QsfpModule* module);
+
+// Attach the module's tunable optics config to every port in state. No-op for
+// non-ZR modules. Returns true if a config was attached.
+bool applyTunableOpticsConfig(
+    QsfpModule* module,
+    ProgramTransceiverState& state);
 
 // Program a transceiver, retrying until datapath init/deinit completes.
 //

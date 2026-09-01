@@ -28,6 +28,16 @@
 namespace facebook::fboss::hal_test {
 
 namespace {
+// ZR tunable optics defaults, mirroring what the lab link test qsfp_service
+// config generates (configerator
+// neteng/fboss/lab/config/link_test/qsfp_test_config.cinc).
+constexpr int32_t kZrTxPower0P01Dbm = -200; // -2.00 dBm
+constexpr int32_t kZrAppSelCode = 5;
+// C-Band spans 191.375 - 196.025 THz and L-Band 186.125 - 190.775 THz. A HAL
+// test only needs some valid in-band channel, so take the first of each.
+constexpr int32_t kZrCBandFrequencyMhz = 191375000;
+constexpr int32_t kZrLBandFrequencyMhz = 186125000;
+
 // Number of BSP override paths (i2cDevicePath / presentPath / resetPath) the
 // entry sets.
 int numBspPathOverrides(const HalTestTransceiverEntry& entry) {
@@ -196,7 +206,8 @@ HalTestConfig loadHalTestConfig(const std::string& configPath) {
 }
 
 ProgramTransceiverState createProgramTransceiverState(
-    const SpeedCombination& combo) {
+    const SpeedCombination& combo,
+    QsfpModule* module) {
   ProgramTransceiverState state;
   for (const auto& port : *combo.ports()) {
     TransceiverPortState portState;
@@ -207,6 +218,7 @@ ProgramTransceiverState createProgramTransceiverState(
     portState.numHostLanes = static_cast<uint8_t>(*port.hostLanes()->count());
     state.ports.emplace(portState.portName, portState);
   }
+  applyTunableOpticsConfig(module, state);
   return state;
 }
 
@@ -233,6 +245,69 @@ void programTransceiverUntilComplete(
       usleep(kRetryPollUsec);
     }
   }
+}
+
+bool isZrModule(QsfpModule* module) {
+  return module->getModuleMediaInterface() == MediaInterfaceCode::ZR_800G;
+}
+
+std::optional<cfg::OpticalChannelConfig> makeTunableOpticsConfig(
+    QsfpModule* module) {
+  module->detectPresence();
+  module->refresh();
+
+  if (!isZrModule(module)) {
+    return std::nullopt;
+  }
+
+  const auto technology =
+      *module->getTransceiverInfo().tcvrState()->moduleTechnology();
+  int32_t frequencyMhz = 0;
+  switch (technology) {
+    case ModuleTechnology::TUNABLE_C_BAND:
+      frequencyMhz = kZrCBandFrequencyMhz;
+      break;
+    case ModuleTechnology::TUNABLE_L_BAND:
+      frequencyMhz = kZrLBandFrequencyMhz;
+      break;
+    default:
+      XLOG(WARNING) << "Module " << module->getID()
+                    << " is ZR but reports non-tunable technology "
+                    << apache::thrift::util::enumNameSafe(technology)
+                    << "; cannot pick a frequency";
+      return std::nullopt;
+  }
+
+  cfg::CenterFrequencyConfig centerFrequency;
+  centerFrequency.frequencyMhz() = frequencyMhz;
+
+  cfg::FrequencyConfig frequency;
+  frequency.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  frequency.centerFrequencyConfig() = centerFrequency;
+
+  cfg::OpticalChannelConfig config;
+  config.frequencyConfig() = frequency;
+  config.txPower0P01Dbm() = kZrTxPower0P01Dbm;
+  config.appSelCode() = kZrAppSelCode;
+
+  XLOG(INFO) << "Module " << module->getID()
+             << ": built tunable optics config, band="
+             << apache::thrift::util::enumNameSafe(technology)
+             << " frequencyMhz=" << frequencyMhz;
+  return config;
+}
+
+bool applyTunableOpticsConfig(
+    QsfpModule* module,
+    ProgramTransceiverState& state) {
+  auto config = makeTunableOpticsConfig(module);
+  if (!config.has_value()) {
+    return false;
+  }
+  for (auto& [_, portState] : state.ports) {
+    portState.opticalChannelConfig = config;
+  }
+  return true;
 }
 
 std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
