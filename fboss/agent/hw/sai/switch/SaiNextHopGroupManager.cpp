@@ -116,20 +116,28 @@ std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
                                                : primaryArsMode;
 }
 
-// Which ecmpGroupSettings key a group falls under. std::nullopt for a group the
-// map has no category for, which is left alone entirely.
-//
-// Only the two FRR halves are derivable from the next hop group type. The
-// remaining EcmpGroupType values correspond to a switching mode or to holding
-// an ARS object, neither of which is a next hop group type, so there is nothing
-// further to decide here.
+// Which ecmpGroupSettings key a group falls under. Group type wins over
+// switching mode: an FRR backup is programmed with random spray but is
+// FRR_BACKUP, not ECMP_SPRAY. std::nullopt for a group with no category, which
+// is left alone entirely.
 std::optional<cfg::EcmpGroupType> classifyEcmpGroup(
-    sai_next_hop_group_type_t nextHopGroupType) {
+    sai_next_hop_group_type_t nextHopGroupType,
+    bool isArsGroup,
+    std::optional<cfg::SwitchingMode> switchingMode) {
   if (isProtectionNextHopGroupType(nextHopGroupType)) {
     return cfg::EcmpGroupType::FRR_PRIMARY;
   }
   if (isHwProtectionNextHopGroupType(nextHopGroupType)) {
     return cfg::EcmpGroupType::FRR_BACKUP;
+  }
+  if (isArsGroup) {
+    return cfg::EcmpGroupType::ARS;
+  }
+  if (switchingMode == cfg::SwitchingMode::PER_PACKET_RANDOM) {
+    return cfg::EcmpGroupType::ECMP_SPRAY;
+  }
+  if (switchingMode == cfg::SwitchingMode::FIXED_ASSIGNMENT) {
+    return cfg::EcmpGroupType::ECMP_FIXED_ASSIGNMENT;
   }
   return std::nullopt;
 }
@@ -140,12 +148,15 @@ std::optional<cfg::EcmpGroupType> classifyEcmpGroup(
 std::optional<SaiNextHopGroupTraits::Attributes::SplitHorizonEnable>
 splitHorizonEnableFor(
     sai_next_hop_group_type_t nextHopGroupType,
+    bool isArsGroup,
+    std::optional<cfg::SwitchingMode> switchingMode,
     const EcmpGroupSettingsMap& ecmpGroupSettings) {
   // Classification and lookup are plain config reads, so they stay outside the
   // SDK gate. That keeps the unsupported-build error scoped to a group whose
   // own type was actually configured, instead of firing on every next hop group
   // create as soon as the map is non-empty.
-  auto groupType = classifyEcmpGroup(nextHopGroupType);
+  auto groupType =
+      classifyEcmpGroup(nextHopGroupType, isArsGroup, switchingMode);
   if (!groupType) {
     return std::nullopt;
   }
@@ -153,13 +164,19 @@ splitHorizonEnableFor(
   const bool configured = it != ecmpGroupSettings.end();
 #if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
     defined(BRCM_SAI_SDK_XGS)
-  // FRR groups only: both halves are programmed explicitly even when the key is
-  // absent, so the vendor default never applies. Everywhere else an absent key
-  // means leave the attribute alone; here it means program false.
-  // classifyEcmpGroup() returns nothing else at this point in the stack, so
-  // every group reaching this line is one of the two FRR halves.
-  return SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{
-      configured && *it->second.enableSplitHorizon()};
+  const bool enable = configured && *it->second.enableSplitHorizon();
+  // FRR groups are programmed explicitly even when the key is absent, because
+  // omitting the attribute makes the SDK default it to TRUE on an FLF primary.
+  // Every other type -- ARS, spray, fixed assignment -- carries no such
+  // default, so an absent key means leave the attribute alone rather than
+  // program a value. A key that is present and false is a configured off and
+  // is sent as false.
+  const bool alwaysProgrammed = *groupType == cfg::EcmpGroupType::FRR_PRIMARY ||
+      *groupType == cfg::EcmpGroupType::FRR_BACKUP;
+  if (!alwaysProgrammed && !configured) {
+    return std::nullopt;
+  }
+  return SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{enable};
 #else
   if (configured) {
     throw FbossError(
@@ -291,6 +308,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectId{
       std::nullopt};
 #endif
+  bool isArsGroup = false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   std::optional<SaiNextHopGroupTraits::Attributes::HashAlgorithm> hashAlgorithm{
       std::nullopt};
@@ -306,6 +324,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
     arsObjectId = getArsObjectId(
         nextHopGroupHandle->desiredEcmpSwitchingMode_, swNextHops.size());
+    isArsGroup = arsObjectId.has_value();
 #endif
     if (!isEcmpModeARS(nextHopGroupHandle->desiredEcmpSwitchingMode_)) {
       if (nextHopGroupHandle->desiredEcmpSwitchingMode_.has_value() &&
@@ -342,8 +361,11 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         childNextHopGroup->nextHopGroup->adapterHostKey());
   }
 
-  const auto splitHorizonEnable =
-      splitHorizonEnableFor(nextHopGroupType, ecmpGroupSettings_);
+  const auto splitHorizonEnable = splitHorizonEnableFor(
+      nextHopGroupType,
+      isArsGroup,
+      nextHopGroupHandle->desiredEcmpSwitchingMode_,
+      ecmpGroupSettings_);
 
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
