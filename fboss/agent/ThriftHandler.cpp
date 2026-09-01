@@ -539,10 +539,17 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   *aclEntryThrift.srcIpPrefixLength() = aclEntry.getSrcIp().second;
   *aclEntryThrift.dstIp() = toBinaryAddress(aclEntry.getDstIp().first);
   *aclEntryThrift.dstIpPrefixLength() = aclEntry.getDstIp().second;
-  *aclEntryThrift.actionType() =
-      aclEntry.getActionType() == facebook::fboss::cfg::AclActionType::DENY
-      ? "deny"
-      : "permit";
+  switch (aclEntry.getActionType()) {
+    case facebook::fboss::cfg::AclActionType::DENY:
+      *aclEntryThrift.actionType() = "deny";
+      break;
+    case facebook::fboss::cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      *aclEntryThrift.actionType() = "deny_data_and_control_plane";
+      break;
+    case facebook::fboss::cfg::AclActionType::PERMIT:
+      *aclEntryThrift.actionType() = "permit";
+      break;
+  }
   if (aclEntry.getProto()) {
     aclEntryThrift.proto() = aclEntry.getProto().value();
   }
