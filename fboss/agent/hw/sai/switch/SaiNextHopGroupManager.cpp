@@ -26,6 +26,7 @@
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include <algorithm>
 #include <iterator>
@@ -113,6 +114,62 @@ std::optional<cfg::SwitchingMode> getDesiredEcmpSwitchingMode(
   }
   return overrideEcmpSwitchingMode.has_value() ? overrideEcmpSwitchingMode
                                                : primaryArsMode;
+}
+
+// Which ecmpGroupSettings key a group falls under. std::nullopt for a group the
+// map has no category for, which is left alone entirely.
+//
+// Only the two FRR halves are derivable from the next hop group type. The
+// remaining EcmpGroupType values correspond to a switching mode or to holding
+// an ARS object, neither of which is a next hop group type, so there is nothing
+// further to decide here.
+std::optional<cfg::EcmpGroupType> classifyEcmpGroup(
+    sai_next_hop_group_type_t nextHopGroupType) {
+  if (isProtectionNextHopGroupType(nextHopGroupType)) {
+    return cfg::EcmpGroupType::FRR_PRIMARY;
+  }
+  if (isHwProtectionNextHopGroupType(nextHopGroupType)) {
+    return cfg::EcmpGroupType::FRR_BACKUP;
+  }
+  return std::nullopt;
+}
+
+// Split horizon keeps a group from egressing a packet on the port it arrived
+// on. On the protection parent it turns on source port based failover to the
+// backup group, on the backup group it turns on tertiary member selection.
+std::optional<SaiNextHopGroupTraits::Attributes::SplitHorizonEnable>
+splitHorizonEnableFor(
+    sai_next_hop_group_type_t nextHopGroupType,
+    const EcmpGroupSettingsMap& ecmpGroupSettings) {
+  // Classification and lookup are plain config reads, so they stay outside the
+  // SDK gate. That keeps the unsupported-build error scoped to a group whose
+  // own type was actually configured, instead of firing on every next hop group
+  // create as soon as the map is non-empty.
+  auto groupType = classifyEcmpGroup(nextHopGroupType);
+  if (!groupType) {
+    return std::nullopt;
+  }
+  auto it = ecmpGroupSettings.find(*groupType);
+  const bool configured = it != ecmpGroupSettings.end();
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  // FRR groups only: both halves are programmed explicitly even when the key is
+  // absent, so the vendor default never applies. Everywhere else an absent key
+  // means leave the attribute alone; here it means program false.
+  // classifyEcmpGroup() returns nothing else at this point in the stack, so
+  // every group reaching this line is one of the two FRR halves.
+  return SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{
+      configured && *it->second.enableSplitHorizon()};
+#else
+  if (configured) {
+    throw FbossError(
+        "ecmpGroupSettings enables split horizon for ECMP group type ",
+        apache::thrift::util::enumNameSafe(*groupType),
+        ", but SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE requires a "
+        "brcm-sai 13.x XGS build.");
+  }
+  return std::nullopt;
+#endif
 }
 } // namespace
 
@@ -285,6 +342,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
         childNextHopGroup->nextHopGroup->adapterHostKey());
   }
 
+  const auto splitHorizonEnable =
+      splitHorizonEnableFor(nextHopGroupType, ecmpGroupSettings_);
+
   // Create the NextHopGroup and NextHopGroupMembers
   auto& store = saiStore_->get<SaiNextHopGroupTraits>();
   SaiNextHopGroupTraits::CreateAttributes nextHopGroupAttributes{
@@ -299,8 +359,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       hierarchicalNextHop
 #endif
       ,
-      std::nullopt // splitHorizonEnable
-  };
+      splitHorizonEnable};
   nextHopGroupHandle->nextHopGroup =
       store.setObject(nextHopGroupAdapterHostKey, nextHopGroupAttributes);
   NextHopGroupSaiId nextHopGroupId =
@@ -507,6 +566,11 @@ void SaiNextHopGroupManager::setPrimaryArsSwitchingMode(
 void SaiNextHopGroupManager::setMinWidthForArsVirtualGroup(
     std::optional<int32_t> minWidthForArsVirtualGroup) {
   minWidthForArsVirtualGroup_ = minWidthForArsVirtualGroup;
+}
+
+void SaiNextHopGroupManager::setEcmpGroupSettings(
+    const EcmpGroupSettingsMap& ecmpGroupSettings) {
+  ecmpGroupSettings_ = ecmpGroupSettings;
 }
 
 std::string SaiNextHopGroupManager::listManagedObjects() const {

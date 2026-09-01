@@ -270,6 +270,7 @@ class SaiSwitch : public HwSwitch {
 
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
+  bool ecmpGroupSettingsChangeProhibited() const;
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfoImpl() override;
 

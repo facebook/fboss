@@ -334,6 +334,8 @@ class SaiNextHopGroupManager {
   void setMinWidthForArsVirtualGroup(
       std::optional<int32_t> minWidthForArsVirtualGroup);
 
+  void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings);
+
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
@@ -360,6 +362,7 @@ class SaiNextHopGroupManager {
       nextHopGroupMembers_;
   std::optional<cfg::SwitchingMode> primaryArsMode_;
   std::optional<int32_t> minWidthForArsVirtualGroup_;
+  EcmpGroupSettingsMap ecmpGroupSettings_;
 };
 
 } // namespace facebook::fboss

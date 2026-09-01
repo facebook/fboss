@@ -1024,6 +1024,20 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
   return getSwitchRunState() >= l2LearningChangeProhibitedAfter;
 }
 
+bool SaiSwitch::ecmpGroupSettingsChangeProhibited() const {
+  // SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE is CREATE_ONLY, so a later
+  // change cannot reach groups already created from the old value. Honouring
+  // one would mean recreating every next hop group and repointing every route
+  // that references it, which we do not support. Prohibit the change instead,
+  // on the same terms as l2 learning mode:
+  // - cold boot, prohibit after the first config application
+  // - warm boot, prohibit after the warm boot state has been applied in init
+  auto ecmpGroupSettingsChangeProhibitedAfter = bootType_ == BootType::WARM_BOOT
+      ? SwitchRunState::INITIALIZED
+      : SwitchRunState::CONFIGURED;
+  return getSwitchRunState() >= ecmpGroupSettingsChangeProhibitedAfter;
+}
+
 template <typename LockPolicyT, typename AddrT>
 void SaiSwitch::processRemovedRoutesDelta(
     const RouterID& routerID,
@@ -1961,6 +1975,15 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
       // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->getEcmpGroupSettings();
+    const auto newVal = newSwitchSettings->getEcmpGroupSettings();
+    if (oldVal != newVal) {
+      XLOG(DBG3) << "ecmpGroupSettings changed, updating next hop groups";
+      managerTable_->nextHopGroupManager().setEcmpGroupSettings(newVal);
     }
   }
 
@@ -4322,6 +4345,14 @@ bool SaiSwitch::isValidStateUpdateLocked(
             if (l2LearningModeChangeProhibited()) {
               throw FbossError(
                   "Chaging L2 learning mode after initial config "
+                  "application is not permitted");
+            }
+          }
+          if (oldSwitchSettings->getEcmpGroupSettings() !=
+              newSwitchSettings->getEcmpGroupSettings()) {
+            if (ecmpGroupSettingsChangeProhibited()) {
+              throw FbossError(
+                  "Changing ecmpGroupSettings after initial config "
                   "application is not permitted");
             }
           }
