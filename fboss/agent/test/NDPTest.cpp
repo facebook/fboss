@@ -561,6 +561,7 @@ class NdpTest : public ::testing::Test {
   void validateRouterAdv(std::optional<std::string> configuredRouterIp);
   void validateRouterAdvForPortRif(
       std::optional<std::string> configuredRouterIp);
+  void validateRouterAdvForAggregatePortRif();
   SwSwitch* sw_;
 };
 
@@ -1260,6 +1261,55 @@ void NdpTest::validateRouterAdvForPortRif(
   done.get_future().wait();
   counters.update();
   EXPECT_GT(counters.value("fboss6001.router_advertisements.sum"), 0);
+}
+
+void NdpTest::validateRouterAdvForAggregatePortRif() {
+  seconds raInterval(1);
+  auto config = testConfigAWithAggregatePortInterface();
+
+  // The aggregate port interface is the one the helper appends last.
+  auto& aggIntf = config.interfaces()->back();
+  ASSERT_EQ(kAggregatePortInterfaceID, *aggIntf.intfID());
+  aggIntf.ndp() = cfg::NdpConfig();
+  *aggIntf.ndp()->routerAdvertisementSeconds() = raInterval.count();
+
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+
+  CounterCache counters(sw);
+
+  // Wait for the advertiser to fire. An interface bound to an aggregate port
+  // has no physical port of its own, which used to be fatal on this path.
+  std::promise<bool> done;
+  auto* evb = sw->getBackgroundEvb();
+  evb->runInFbossEventBaseThread([&]() {
+    evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010 /*ms*/);
+  });
+  done.get_future().wait();
+  counters.update();
+  EXPECT_GT(counters.value("fbossAgg.router_advertisements.sum"), 0);
+}
+
+TEST_F(NdpTest, RouterAdvertisementAggregatePortRif) {
+  this->validateRouterAdvForAggregatePortRif();
+}
+
+TEST_F(NdpTest, FloodNeighborAdvertisementsAggregatePortRif) {
+  auto config = testConfigAWithAggregatePortInterface();
+  auto handle = createTestHandle(&config);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+
+  // Flooding walks every interface and every address on it, so the egress port
+  // is not worth pinning down here. What matters is that an interface bound to
+  // an aggregate port, which has no physical port of its own, is advertised
+  // over the aggregate rather than aborting the flood.
+  EXPECT_HW_CALL(sw, sendPacketOutOfPortAsync_(_, _, _))
+      .Times(::testing::AnyNumber());
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(::testing::AnyNumber());
+
+  sw->getIPv6Handler()->floodNeighborAdvertisements();
 }
 
 TEST_F(NdpTest, RouterAdvertisement) {
