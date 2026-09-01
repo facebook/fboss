@@ -11,11 +11,14 @@ cpp_library(
         "Ladakh800bclsOsfpTrayPlatformMapping.h",
         "Ladakh800bclsPlatformMapping.h",
         "Ladakh800bclsProdPlatformMapping.h",
+        "Ladakh800bclsProdPostEvtPlatformMapping.h",
         "Ladakh800bclsTestPlatformMapping.h",
+        "Ladakh800bclsTestPostEvtPlatformMapping.h",
     ],
     deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/platforms:product-info",
     ],
 )

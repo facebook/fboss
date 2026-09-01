@@ -71,6 +71,10 @@ int PlatformProductInfo::getProductVersion() const {
   return *productInfo_.productVersion();
 }
 
+int PlatformProductInfo::getProductionState() const {
+  return *productInfo_.productionState();
+}
+
 void PlatformProductInfo::initMode() {
   if (!FLAGS_platform_descriptor_config_path.empty()) {
     auto descriptorPlatformType =
@@ -440,8 +444,18 @@ void PlatformProductInfo::parse(std::string data) {
   if (info.count(kSubVersion)) {
     productInfo_.subVersion() = getInt16Field(info, kSubVersion);
   }
-  if (info.count(kProductionState)) {
-    productInfo_.productionState() = getInt16Field(info, kProductionState);
+  // EEPROM V5 and V6 use different names for this field. A malformed value is
+  // deliberately non-fatal: most initialize() callers, including
+  // SaiPlatformInit, do not catch, and no consumer requires this field.
+  for (auto key : {kProductionState, kProductionStateV6}) {
+    if (info.count(key)) {
+      try {
+        productInfo_.productionState() = getInt16Field(info, key);
+      } catch (const std::exception& ex) {
+        XLOG(WARNING) << "Ignoring unparseable '" << key << "': " << ex.what();
+      }
+      break;
+    }
   }
   if (info.count(kProdVersion)) {
     productInfo_.productVersion() = getInt16Field(info, kProdVersion);
