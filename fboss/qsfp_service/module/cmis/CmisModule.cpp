@@ -5441,16 +5441,19 @@ bool CmisModule::dataPathProgram(
             CmisLaneState>{CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED}
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
-  // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries =
-      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
-  int retryCount = 0;
-  while (!isDatapathUpdated(hostLaneMask, targetStates, bank) &&
-         retryCount < kMaxRetries) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    retryCount++;
-  }
+  // Give the operation a single poll interval to progress, then check once. We
+  // do not block for the whole datapath time here: dataPathProgram is called
+  // repeatedly (the transceiver state machine re-fires programming each
+  // refresh, and HAL tests poll), progStartTimer persists in
+  // portDatapathStates_ so each call resumes without re-triggering the
+  // datapath, and expectedDelayUsec above is the cumulative deadline across
+  // those attempts. A datapath that needs longer than this single poll is
+  // simply confirmed on a later refresh, once the hardware has finished -- the
+  // programming itself still completes in the hardware's own time. Polling only
+  // briefly keeps the module lock from being held for long on a slow (e.g. ZR)
+  // optic.
+  /* sleep override */
+  usleep(kUsecDatapathStatePollTime);
 
   if (isDatapathUpdated(hostLaneMask, targetStates, bank)) {
     // Mark operation as done

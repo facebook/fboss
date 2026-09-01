@@ -182,8 +182,8 @@ TEST_F(T2HalTest, vdmLatchFreeze) {
           module->refresh();
 
           auto programState = hal_test::createProgramTransceiverState(combo);
-          module->programTransceiver(
-              programState, true /* needResetDataPath */);
+          hal_test::programTransceiverUntilComplete(
+              module, programState, true /* needResetDataPath */);
 
           auto freeze = timeVdmFreeze(module);
           XLOG(INFO) << "Transceiver " << tcvrId << " mode " << comboName

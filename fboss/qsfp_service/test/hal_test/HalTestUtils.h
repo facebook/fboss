@@ -48,6 +48,20 @@ HalTestConfig loadHalTestConfig(const std::string& configPath);
 ProgramTransceiverState createProgramTransceiverState(
     const SpeedCombination& combo);
 
+// Program a transceiver, retrying until datapath init/deinit completes.
+//
+// HAL tests have no transceiver state machine to retry an incomplete datapath
+// init/deinit, so this replicates what the state machine does in production:
+// keep calling programTransceiver until it stops throwing "not yet completed".
+// dataPathProgram polls only a short window per call and persists its start
+// timer across calls, so each retry resumes polling rather than re-triggering
+// the datapath. The wait is bounded by the test's own timeout; any other error
+// is a real failure and is rethrown immediately.
+void programTransceiverUntilComplete(
+    QsfpModule* module,
+    ProgramTransceiverState& programTcvrState,
+    bool needResetDataPath);
+
 // Build expected per-lane MediaInterfaceCodes from a SpeedCombination.
 std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
     const std::string& comboDescription,

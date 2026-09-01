@@ -2,6 +2,7 @@
 
 #include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 
+#include <unistd.h>
 #include <algorithm>
 #include <atomic>
 #include <optional>
@@ -207,6 +208,31 @@ ProgramTransceiverState createProgramTransceiverState(
     state.ports.emplace(portState.portName, portState);
   }
   return state;
+}
+
+void programTransceiverUntilComplete(
+    QsfpModule* module,
+    ProgramTransceiverState& programTcvrState,
+    bool needResetDataPath) {
+  // Retry until the datapath completes; the test's own timeout bounds this. Any
+  // error other than "datapath not yet completed" is a real failure -- rethrow
+  // it immediately.
+  constexpr uint64_t kRetryPollUsec = 500'000; // 500ms
+  while (true) {
+    try {
+      module->programTransceiver(programTcvrState, needResetDataPath);
+      return;
+    } catch (const FbossError& ex) {
+      const std::string_view what = ex.what();
+      if (what.find("not yet completed") == std::string_view::npos) {
+        throw;
+      }
+      XLOG(INFO) << "programTransceiver datapath not complete yet, retrying: "
+                 << ex.what();
+      /* sleep override */
+      usleep(kRetryPollUsec);
+    }
+  }
 }
 
 std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
