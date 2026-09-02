@@ -39,6 +39,7 @@ class ResourceAccountant {
       const RouteNextHopEntry& fwd,
       const std::shared_ptr<SwitchState>& state) const;
   bool checkEcmpResource(bool intermediateState) const;
+  size_t getEcmpGroupUsage() const;
   bool checkArsResource(bool intermediateState) const;
   bool wouldExceedSuperGroupLimit(
       const RouteNextHopEntry::NextHopSet& nhSet) const;
@@ -154,6 +155,10 @@ class ResourceAccountant {
   bool checkRouteUpdate_;
   uint32_t l2Entries_{0};
   uint32_t ecmpMemberUsage_{0};
+  // Split horizon gives every dynamic ARS group a secondary plain ECMP group.
+  // It shares the next hop set of its DLB group, so it cannot be a separate
+  // entry in ecmpGroupRefMap_ and is derived from arsEcmpGroupRefMap_ instead.
+  bool arsSplitHorizon_{false};
   uint32_t virtualArsGroupCount_{0};
   uint32_t routeUsage_{0};
   uint32_t mySidUsage_{0};
@@ -190,6 +195,7 @@ class ResourceAccountant {
       ResourceAccountantTest,
       checkAndUpdateGenericEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, arsEcmpResourceSourcePortPrune);
   FRIEND_TEST(ResourceAccountantTest, virtualArsGroups);
   FRIEND_TEST(ResourceAccountantTest, virtualArsSuperGroupMemberLimit);
   FRIEND_TEST(ResourceAccountantTest, virtualArsGroupOverrideExcluded);

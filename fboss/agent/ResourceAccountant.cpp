@@ -163,6 +163,14 @@ size_t ResourceAccountant::getMemberCountForEcmpGroup(
   return totalWeight;
 }
 
+// Each dynamic ARS group is paired with a secondary plain ECMP group when
+// split horizon is on, so the secondary groups need no bookkeeping of their
+// own.
+size_t ResourceAccountant::getEcmpGroupUsage() const {
+  return ecmpGroupRefMap_.size() +
+      (arsSplitHorizon_ ? arsEcmpGroupRefMap_.size() : 0);
+}
+
 bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   // There are two checks needed for ECMP resource:
   // 1) Post each route add/update, check if intermediate state exceeds HW
@@ -184,11 +192,11 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
           (ecmpMemberLimit.value() * resourcePercentage / kHundredPercentage);
     }
 
+    const auto ecmpGroupUsage = getEcmpGroupUsage();
     if (ecmpGroupEnforcedLimit.has_value() &&
-        ecmpGroupRefMap_.size() >
-            static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
+        ecmpGroupUsage > static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
       XLOG(DBG2) << " Ecmp group limit exceeded. Ecmp demand from this update: "
-                 << ecmpGroupRefMap_.size()
+                 << ecmpGroupUsage
                  << " ASIC limit: " << *ecmpGroupEnforcedLimit;
       return false;
     }
@@ -399,6 +407,8 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
       if (hasBackupNextHop(nhSet)) {
         return true;
       }
+      arsSplitHorizon_ = state->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS)
+                             .value_or(false);
       // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
       // will be identical since primary and backup groups are
       // indistinguishable.
@@ -418,6 +428,10 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
         CHECK(it->second >= 0);
         if (!add && it->second == 0) {
           arsEcmpGroupRefMap_.erase(it);
+          if (arsSplitHorizon_) {
+            ecmpMemberUsage_ -=
+                static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+          }
         }
         return true;
       }
@@ -425,7 +439,13 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
       // limit
       CHECK(add);
       arsEcmpGroupRefMap_[nhSet] = 1;
-      return checkArsResource(true /* intermediateState */);
+      if (arsSplitHorizon_) {
+        // The secondary group holds its own copy of the members.
+        ecmpMemberUsage_ +=
+            static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+      }
+      return checkArsResource(true /* intermediateState */) &&
+          checkEcmpResource(true /* intermediateState */);
     }
   }
   return true;
@@ -622,7 +642,7 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
     XLOG(WARNING)
         << "Invalid route update - exceeding route or ECMP resource limits. New state consumes "
         << routeUsage_ << " routes, " << ecmpMemberUsage_
-        << " ECMP members and " << ecmpGroupRefMap_.size() << " ECMP groups.";
+        << " ECMP members and " << getEcmpGroupUsage() << " ECMP groups.";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
       const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();

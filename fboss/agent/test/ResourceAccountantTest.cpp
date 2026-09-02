@@ -59,11 +59,25 @@ class ResourceAccountantTest : public ::testing::Test {
         switchIdToSwitchInfo, std::nullopt, switchIdToDsfNodes);
     scopeResolver_ =
         std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
-    resourceAccountant_ = std::make_unique<ResourceAccountant>(
-        asicTable_.get(), scopeResolver_.get());
+    makeResourceAccountant();
     nextHopIDManager_ = std::make_unique<NextHopIDManager>();
     FLAGS_ecmp_width = getMaxEcmpWidth();
     initState();
+  }
+  void makeResourceAccountant() {
+    resourceAccountant_ = std::make_unique<ResourceAccountant>(
+        asicTable_.get(), scopeResolver_.get());
+  }
+  void setSplitHorizon(cfg::EcmpGroupType groupType, bool enabled) {
+    cfg::EcmpGroupSettings settings;
+    settings.enableSplitHorizon() = enabled;
+    auto switchSettings = std::make_shared<SwitchSettings>();
+    switchSettings->setEcmpGroupSettings({{groupType, settings}});
+    auto multiSwitchSettings = std::make_shared<MultiSwitchSettings>();
+    multiSwitchSettings->addNode(getScope().matcherString(), switchSettings);
+    state_ = state_->clone();
+    state_->resetSwitchSettings(multiSwitchSettings);
+    state_->publish();
   }
   void initState() {
     state_ = std::make_shared<SwitchState>();
@@ -891,6 +905,49 @@ TEST_F(ResourceAccountantTest, protectionEcmpResourceArsExcluded) {
   EXPECT_TRUE(resourceAccountant_->arsEcmpGroupRefMap_.empty());
   EXPECT_EQ(resourceAccountant_->virtualArsGroupCount_, 0);
   EXPECT_TRUE(resourceAccountant_->virtualArsSuperGroupMemberRefMap_.empty());
+}
+
+TEST_F(ResourceAccountantTest, arsEcmpResourceSourcePortPrune) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  const RouteNextHopSet ecmpNextHops{
+      ResolvedNextHop(folly::IPAddress("20.1.1.1"), InterfaceID(1), ecmpWeight),
+      ResolvedNextHop(
+          folly::IPAddress("20.1.1.2"), InterfaceID(2), ecmpWeight)};
+  const auto route = makeV6Route(
+      {folly::IPAddressV6("b00::1"), 128},
+      {ecmpNextHops, AdminDistance::EBGP},
+      ecmpNextHops);
+
+  // Without split horizon: one DLB group and one ECMP group, sharing the two
+  // members between them.
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->arsEcmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 2);
+
+  // Split horizon pairs the DLB group with a secondary plain ECMP group, each
+  // holding its own copy of the members. The DLB group count is unchanged.
+  makeResourceAccountant();
+  setSplitHorizon(cfg::EcmpGroupType::ARS, true);
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, true /* add */, state_));
+  EXPECT_EQ(resourceAccountant_->arsEcmpGroupRefMap_.size(), 1);
+  EXPECT_EQ(resourceAccountant_->ecmpGroupRefMap_.size(), 1);
+  // The DLB group and its secondary plain ECMP group.
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 2);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 4);
+
+  EXPECT_TRUE(
+      resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          route, false /* add */, state_));
+  EXPECT_TRUE(resourceAccountant_->arsEcmpGroupRefMap_.empty());
+  EXPECT_TRUE(resourceAccountant_->ecmpGroupRefMap_.empty());
+  EXPECT_EQ(resourceAccountant_->getEcmpGroupUsage(), 0);
+  EXPECT_EQ(resourceAccountant_->ecmpMemberUsage_, 0);
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
