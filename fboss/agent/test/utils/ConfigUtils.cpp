@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include <cstdlib>
 #include <memory>
 
 #include "fboss/agent/AgentFeatures.h"
@@ -882,7 +883,8 @@ cfg::SwitchConfig genPortVlanCfg(
         asicType == cfg::AsicType::ASIC_TYPE_P200 ||
         asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
         asicType == cfg::AsicType::ASIC_TYPE_G202X) {
-      connectionHandle = "/dev/uio0";
+      const char* uioDevice = std::getenv("SDK_DEVICE_NAME");
+      connectionHandle = uioDevice ? uioDevice : "/dev/uio0";
     }
 
     if (platformType.has_value() &&
@@ -1675,8 +1677,12 @@ void setupMultipleEgressPoolAndQueueConfigs(
     if (std::find(losslessQueueIds.begin(), losslessQueueIds.end(), qid) !=
         losslessQueueIds.end()) {
       queueCfg.bufferPoolName() = kLosslessPoolName;
+      // Use static threshold for lossless queues
+      queueCfg.sharedBytes() = mmuSizeBytes;
     } else {
       queueCfg.bufferPoolName() = kLossyPoolName;
+      // Use static threshold for lossy queues
+      queueCfg.sharedBytes() = static_cast<int>(mmuSizeBytes * 0.3);
     }
     queues.push_back(queueCfg);
   }

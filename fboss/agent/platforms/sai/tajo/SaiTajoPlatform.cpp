@@ -25,7 +25,7 @@ SaiTajoPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> vendorExtensions;
   if (getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
-    vendorExtensions[SAI_KEY_EXT_DEVICE_ISSU_CAPABLE] = "1";
+    vendorExtensions["SAI_KEY_EXT_DEVICE_ISSU_CAPABLE"] = "1";
 #endif
   }
 

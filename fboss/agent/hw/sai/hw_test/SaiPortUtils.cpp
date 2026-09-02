@@ -256,14 +256,15 @@ void verifyTxSettting(
     EXPECT_EQ(pre3, expectedPre3->value());
   }
 
-  auto asicVendor = saiPlatform->getAsic()->getAsicVendor();
   auto asicType = saiPlatform->getAsic()->getAsicType();
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
-    if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
+        asicType != cfg::AsicType::ASIC_TYPE_G202X) {
       post2 = portApi.getAttribute(
           serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
 
@@ -314,7 +315,8 @@ void verifyTxSettting(
       } else {
         EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
       }
-      if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      if (saiPlatform->getAsic()->getAsicVendor() !=
+              HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         if (expectedTxFromPin.firPost2().has_value()) {
           EXPECT_EQ(post2[i], expectedTxFromPin.firPost2());
         } else {

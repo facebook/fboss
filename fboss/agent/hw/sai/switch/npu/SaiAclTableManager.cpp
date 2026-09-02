@@ -57,7 +57,7 @@ SaiAclTableManager::SaiAclTableManager(
           platform->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {}
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
-    const std::shared_ptr<AclTable>& addedAclTable) {
+    const std::shared_ptr<AclTable>& addedAclTable,  const sai_acl_stage_t aclStage) {
   /*
    * The current wedge agent code does the following.
    * 1. The sai code creates a default ACL table group and ACL table using
@@ -86,7 +86,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
   auto aclActionTypes = addedAclTable->getActionTypes();
 
   if (FLAGS_enable_acl_table_group && aclActionTypes.size() != 0) {
-    return cfgActionTypeListToSaiActionTypeList(aclActionTypes);
+    return cfgActionTypeListToSaiActionTypeList(aclActionTypes, aclStage);
   } else {
     bool isTajo = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
@@ -185,7 +185,7 @@ std::
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_SWITCH};
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
 
-  auto actionTypeList = getActionTypeList(addedAclTable);
+  auto actionTypeList = getActionTypeList(addedAclTable, aclStage);
 
   auto qualifierSet = getQualifierSet(aclStage, addedAclTable);
   auto qualifierExistsFn = [=](cfg::AclTableQualifier qualifier) {

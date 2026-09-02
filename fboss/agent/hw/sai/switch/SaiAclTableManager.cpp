@@ -395,11 +395,11 @@ SaiAclTableManager::cfgLookupClassToSaiNeighborMetaDataAndMask(
 
 std::vector<sai_int32_t>
 SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
-    const std::vector<cfg::AclTableActionType>& actionTypes) const {
+    const std::vector<cfg::AclTableActionType>& actionTypes, const sai_acl_stage_t aclStage) const {
   std::vector<sai_int32_t> saiActionTypeList;
 
   for (const auto& actionType : actionTypes) {
-    sai_int32_t saiActionType;
+    std::optional<sai_int32_t> saiActionType = std::nullopt;
     switch (actionType) {
       case cfg::AclTableActionType::PACKET_ACTION:
         saiActionType = SAI_ACL_ACTION_TYPE_PACKET_ACTION;
@@ -417,7 +417,13 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_INGRESS;
         break;
       case cfg::AclTableActionType::MIRROR_EGRESS:
+#ifndef TAJO_SDK_GTE_24_8_3001
         saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_EGRESS;
+#else
+        if (aclStage == SAI_ACL_STAGE_EGRESS) {
+          saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_EGRESS;
+        }
+#endif
         break;
       case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
         saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
@@ -442,7 +448,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
     }
-    saiActionTypeList.push_back(saiActionType);
+    if (saiActionType.has_value()) {
+      saiActionTypeList.push_back(saiActionType.value());
+    }
   }
 
   return saiActionTypeList;
@@ -1811,7 +1819,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::ICMPV4_CODE,
         cfg::AclTableQualifier::ICMPV6_TYPE,
         cfg::AclTableQualifier::ICMPV6_CODE,
-        cfg::AclTableQualifier::DST_MAC,
+        /*cfg::AclTableQualifier::DST_MAC,*/
     };
     for (const auto& qualifier : tajoExtraQualifierList) {
       tajoQualifiers.insert(qualifier);

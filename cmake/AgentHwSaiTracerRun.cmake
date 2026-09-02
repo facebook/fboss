@@ -20,6 +20,16 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
     ${CMAKE_THREAD_LIBS_INIT}
   )
 
+  if(SAI_TAJO_IMPL)
+  target_link_libraries(sai_replayer-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif()
+
   set_target_properties(sai_replayer-${SAI_IMPL_NAME}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \

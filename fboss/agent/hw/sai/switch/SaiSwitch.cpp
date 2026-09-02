@@ -134,6 +134,12 @@ DEFINE_bool(
     false,
     "Fail if untagged packet is transmitted on platform where tagged packet is required");
 
+DEFINE_bool(
+    enable_issu,
+    false,
+    "Enable ISSU (In-Service Software Upgrade) restart instead of warmboot. "
+    "When enabled, sets RestartIssu attribute during graceful exit on P4 warmboot-capable platforms.");
+
 DEFINE_int32(
     serdes_params_poll_interval_s,
     360,
@@ -2834,9 +2840,14 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
 #endif
   if (platform_->getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
 #if defined(TAJO_P4_WB_SDK)
-    SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
-    SaiApiTable::getInstance()->switchApi().setAttribute(
-        saiSwitchId_, restartIssu);
+    if (FLAGS_enable_issu) {
+      XLOG(DBG2) << "[Exit] Setting up for ISSU restart";
+      SaiSwitchTraits::Attributes::RestartIssu restartIssu{true};
+      SaiApiTable::getInstance()->switchApi().setAttribute(
+          saiSwitchId_, restartIssu);
+    } else {
+      XLOG(DBG2) << "[Exit] ISSU restart not requested, using warmboot";
+    }
 #endif
   }
 #if defined(TAJO_SAI_SDK)

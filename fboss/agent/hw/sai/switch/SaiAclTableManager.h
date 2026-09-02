@@ -233,7 +233,7 @@ class SaiAclTableManager {
   cfgLookupClassToSaiNeighborMetaDataAndMask(
       cfg::AclLookupClass lookupClass) const;
   std::vector<sai_int32_t> cfgActionTypeListToSaiActionTypeList(
-      const std::vector<cfg::AclTableActionType>& actionTypes) const;
+      const std::vector<cfg::AclTableActionType>& actionTypes, const sai_acl_stage_t aclStage) const;
 
   void programMirrorOnAllAcls(
       const std::optional<std::string>& mirrorId,
@@ -294,7 +294,7 @@ class SaiAclTableManager {
   createAclTableV4AndV6Helper(bool isV4);
 
   std::vector<sai_int32_t> getActionTypeList(
-      const std::shared_ptr<AclTable>& addedAclTable);
+      const std::shared_ptr<AclTable>& addedAclTable, const sai_acl_stage_t aclStage);
   std::set<cfg::AclTableQualifier> getQualifierSet(
       sai_acl_stage_t aclStage,
       const std::shared_ptr<AclTable>& addedAclTable);

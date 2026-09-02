@@ -86,7 +86,12 @@ struct RouterInterfaceTraitsAttributes<
       typename Attributes::Type,
       typename Attributes::PortId,
       std::optional<typename Attributes::SrcMac>,
-      std::optional<typename Attributes::Mtu>>;
+      std::optional<typename Attributes::Mtu>
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      ,
+      std::optional<typename Attributes::AdminMplsState>
+#endif
+      >;
   using AdapterHostKey = std::
       tuple<typename Attributes::VirtualRouterId, typename Attributes::PortId>;
 };
@@ -199,8 +204,6 @@ SAI_ATTRIBUTE_NAME(VlanRouterInterface, VlanId)
 SAI_ATTRIBUTE_NAME(PortRouterInterface, PortId)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, Mtu)
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-// AdminMplsState resolves to the same SaiAttribute type for all router
-// interface trait types, so it only needs a single AttributeName definition.
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, AdminMplsState)
 #endif
 

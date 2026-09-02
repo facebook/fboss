@@ -64,6 +64,52 @@ option(SAI_TAJO_IMPL "Build SAI api with tajo extensions" OFF)
 if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")
   set (SAI_TAJO_IMPL ON)
+  set (BUILD_SAI_FAKE OFF)
+  message(STATUS "ENV BUILD_SAI_FAKE is turned off")
+
+  if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
+    message(FATAL_ERROR STATUS "ENV SAI_SDK_VERSION is NOT set!")
+  endif()
+
+  message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
+  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION} -DTAJO_SDK -DSAI_IMPL -DSAI_ONLY")
+  message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
+  message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
+  list(APPEND CMAKE_LIBRARY_PATH /usr/lib64 /opt/grpc/lib /opt/sdk_build/klish/.libs)
+
+  # Find libnl-3 and libnl-genl-3 libraries only if SAI_TAJO_IMPL is set
+  find_library(LIBNL3 NAMES nl-3)
+  find_library(LIBNL_GENL3 NAMES nl-genl-3)
+
+  # Print paths for debugging
+  message(STATUS "LIBNL3 found at: ${LIBNL3}")
+  message(STATUS "LIBNL_GENL3 found at: ${LIBNL_GENL3}")
+
+  # Check if both libraries were found; if not, show an error
+  if (NOT LIBNL3 OR NOT LIBNL_GENL3)
+    message(FATAL_ERROR "Required libnl libraries not found!")
+  endif()
+
+  # Locate grpc, absl_synchronization, and protobuf libraries
+  find_library(GRPC NAMES grpc++)
+  find_library(ABSL_SYNCHRONIZATION NAMES absl_synchronization)
+  find_library(PROTOBUF NAMES protobuf)
+
+  # Print paths for verification
+  message(STATUS "GRPC found at: ${GRPC}")
+  message(STATUS "ABSL_SYNCHRONIZATION found at: ${ABSL_SYNCHRONIZATION}")
+  message(STATUS "PROTOBUF found at: ${PROTOBUF}")
+  list(APPEND CMAKE_CXX_STANDARD_LIBRARIES /usr/lib64/libatomic.so.1)
+  message(STATUS "CMAKE_CXX_STANDARD_LIBRARIES: ${CMAKE_CXX_STANDARD_LIBRARIES}")
+
+  # Check if all required libraries are found
+  if (NOT GRPC OR NOT ABSL_SYNCHRONIZATION OR NOT PROTOBUF)
+    message(FATAL_ERROR "One or more grpc/absl/protobuf libraries were not found!")
+  endif()
+
 endif()
 
 option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
@@ -293,7 +339,7 @@ if (SAI_BRCM_IMPL)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")
 elseif(SAI_TAJO_IMPL)
-  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/sai_attr_ext.h)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES experimental/saiextensions.h)
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
   include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental)
   message(STATUS "Found SAI Experimental dir: ${SAI_EXPERIMENTAL_INCLUDE_DIR}/experimental")

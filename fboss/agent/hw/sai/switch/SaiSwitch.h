@@ -35,6 +35,7 @@ DECLARE_int32(update_watermark_stats_interval_s);
 DECLARE_int32(update_voq_stats_interval_s);
 DECLARE_bool(force_recreate_acl_tables);
 DECLARE_bool(skip_stats_update_for_debug);
+DECLARE_bool(enable_issu);
 
 namespace facebook::fboss {
 
