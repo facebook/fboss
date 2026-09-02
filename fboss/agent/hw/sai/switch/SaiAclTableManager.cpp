@@ -583,12 +583,12 @@ SaiAclTableManager::addAclCounter(
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
     aclCounterTypeAndName.emplace_back(counterType, statName);
-    if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
+    if (aclCounterRefMap_.find(statName) == aclCounterRefMap_.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);
-      aclCounterRefMap[statName] = 1;
+      aclCounterRefMap_[statName] = 1;
     } else {
-      aclCounterRefMap[statName]++;
+      aclCounterRefMap_[statName]++;
     }
   }
 
@@ -1830,13 +1830,13 @@ void SaiAclTableManager::removeAclCounter(
   for (const auto& counterType : *trafficCount.types()) {
     auto statName =
         utility::statNameFromCounterType(*trafficCount.name(), counterType);
-    auto entry = aclCounterRefMap.find(statName);
-    if (entry != aclCounterRefMap.end()) {
+    auto entry = aclCounterRefMap_.find(statName);
+    if (entry != aclCounterRefMap_.end()) {
       entry->second--;
       if (entry->second == 0) {
         // Counter no longer used. Remove from fb303 counters
         aclStats_.removeStat(statName);
-        aclCounterRefMap.erase(entry);
+        aclCounterRefMap_.erase(entry);
       }
     } else {
       throw FbossError("Acl counter ", statName, " not found om counter map");

@@ -405,7 +405,7 @@ class SaiAclTableManager {
    * NOTE: https://fburl.com/gdoc/96rz0n7q contains details of the
    * issue
    */
-  folly::F14FastMap<std::string, int> aclCounterRefMap;
+  folly::F14FastMap<std::string, int> aclCounterRefMap_;
 
   const sai_uint32_t aclEntryMinimumPriority_;
   const sai_uint32_t aclEntryMaximumPriority_;
