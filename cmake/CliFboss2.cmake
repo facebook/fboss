@@ -180,6 +180,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_fb303counters_model
+  fboss/cli/fboss2/commands/show/fb303counters/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_hwagent_status_model
   fboss/cli/fboss2/commands/show/hwagent/model.thrift
   OPTIONS
@@ -528,6 +535,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/host/CmdShowHost.cpp
   fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h
   fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.cpp
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.h
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.cpp
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
@@ -800,6 +809,7 @@ target_link_libraries(fboss2_lib
   show_systemport_model
   show_cpuport_model
   show_teflow_model
+  show_fb303counters_model
   show_hwagent_status_model
   show_interface_counters_fec_ber
   show_interface_counters_fec_histogram
@@ -807,6 +817,7 @@ target_link_libraries(fboss2_lib
   show_fabric_topology_model
   show_rif
   show_interface_counters_fec_uncorrectable
+  thrift_service_client
   ${RE2}
 )
 

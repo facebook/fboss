@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
+#include "fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
@@ -157,6 +158,14 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowAggregatePort>,
        validFilterHandler<CmdShowAggregatePort>,
        argTypeHandler<CmdShowAggregatePortTraits>},
+
+      {"show",
+       "fb303-counters",
+       "Show raw fb303 counters from a FBOSS service",
+       commandHandler<CmdShowFb303Counters>,
+       validFilterHandler<CmdShowFb303Counters>,
+       argTypeHandler<CmdShowFb303CountersTraits>,
+       localOptionsHandler<CmdShowFb303CountersTraits>},
 
       {"show",
        "arp",
