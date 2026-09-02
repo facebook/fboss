@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddress.h"
@@ -1649,4 +1650,94 @@ TEST(Acl, DstIpV6WordValidation) {
     config.acls()[0].dstIpV6Word3() = 0x12345678;
     EXPECT_THROW(applyConfig(&config), FbossError);
   }
+}
+
+namespace {
+
+std::shared_ptr<AclEntry> makeAclEntryWithCounter(
+    const std::optional<std::string>& counterName,
+    uint8_t dscp = 0x24) {
+  auto entry = std::make_shared<AclEntry>(1, std::string("acl0"));
+  entry->setDscp(dscp);
+  entry->setActionType(cfg::AclActionType::PERMIT);
+  if (counterName.has_value()) {
+    MatchAction action;
+    cfg::TrafficCounter counter;
+    counter.name() = *counterName;
+    counter.types() = {cfg::CounterType::PACKETS};
+    action.setTrafficCounter(counter);
+    entry->setAclAction(action);
+  }
+  return entry;
+}
+
+} // namespace
+
+TEST(Acl, onlyCounterChangedCounterRenamed) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter2")));
+}
+
+TEST(Acl, onlyCounterChangedCounterAdded) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedCounterRemoved) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedCounterTypesChanged) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter("counter1");
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter1";
+  counter.types() = {cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  action.setTrafficCounter(counter);
+  newEntry->setAclAction(action);
+
+  EXPECT_TRUE(onlyCounterChanged(oldEntry, newEntry));
+}
+
+TEST(Acl, onlyCounterChangedNothingChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedNothingChangedNoCounter) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedQualifierChangedToo) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter2", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedOnlyQualifierChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter1", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedNonCounterActionChangedToo) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter(std::nullopt);
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter2";
+  counter.types() = {cfg::CounterType::PACKETS};
+  action.setTrafficCounter(counter);
+  action.setIngressMirror("mirror0");
+  newEntry->setAclAction(action);
+
+  EXPECT_FALSE(onlyCounterChanged(oldEntry, newEntry));
 }
