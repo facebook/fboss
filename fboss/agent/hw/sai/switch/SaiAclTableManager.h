@@ -192,7 +192,8 @@ class SaiAclTableManager {
       int priority) const;
   bool needsAclTableRecreate(
       const std::shared_ptr<AclTable>& oldAclTable,
-      const std::shared_ptr<AclTable>& newAclTable);
+      const std::shared_ptr<AclTable>& newAclTable,
+      cfg::AclStage aclStage);
   void removeAclEntriesFromTable(const std::shared_ptr<AclTable>& aclTable);
   void addAclEntriesToTable(
       const std::shared_ptr<AclTable>& aclTable,

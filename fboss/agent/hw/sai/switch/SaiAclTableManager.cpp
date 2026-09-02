@@ -238,14 +238,30 @@ void SaiAclTableManager::removeAclTable(
 
 bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& oldAclTable,
-    const std::shared_ptr<AclTable>& newAclTable) {
+    const std::shared_ptr<AclTable>& newAclTable,
+    cfg::AclStage aclStage) {
+  // TODO(zecheng): actionTypes has the same empty-means-ASIC-default semantics
+  // as qualifiers (see getActionTypeList) and should be compared the same way.
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
       normalizeAclTablePriority(oldAclTable->getPriority()) !=
           normalizeAclTablePriority(newAclTable->getPriority()) ||
-      oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
       oldAclTable->getUdfGroups()->toThrift() !=
           newAclTable->getUdfGroups()->toThrift()) {
-    XLOG(DBG2) << "Recreating ACL table";
+    XLOG(DBG2) << "Recreating ACL table: table properties changed";
+    return true;
+  }
+  if (oldAclTable->getQualifiers() == newAclTable->getQualifiers()) {
+    return false;
+  }
+  // An empty list means "whatever the ASIC supports", so lists that differ can
+  // still resolve to the same set. Reaching getQualifierSet only from here also
+  // keeps it off the unchanged path, where it could throw for an egress table
+  // on an ASIC without post lookup ACL support.
+  auto saiAclStage =
+      SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage);
+  if (getQualifierSet(saiAclStage, oldAclTable) !=
+      getQualifierSet(saiAclStage, newAclTable)) {
+    XLOG(DBG2) << "Recreating ACL table: qualifiers changed";
     return true;
   }
   return false;
@@ -290,7 +306,7 @@ void SaiAclTableManager::changedAclTable(
    * processing will take care of changing those.
    * Changes to ACL table properties will need a remove and readd
    * Ensure that the newly added table also adds the old acls*/
-  if (needsAclTableRecreate(oldAclTable, newAclTable)) {
+  if (needsAclTableRecreate(oldAclTable, newAclTable, aclStage)) {
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
     removeAclTable(oldAclTable, aclStage, state, bindPoint);
