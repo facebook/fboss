@@ -164,9 +164,17 @@ TEST_F(AclTableManagerTest, legacyAclTablePriorityMigrationDoesNotRecreate) {
       migratedTable, legacyTable));
 }
 
-TEST_F(AclTableManagerTest, otherAclTablePriorityChangeRecreates) {
+TEST_F(AclTableManagerTest, preMigrationAclTablePriorityChangeDoesNotRecreate) {
   auto oldTable = std::make_shared<AclTable>(1, kAclTable2);
   auto newTable = std::make_shared<AclTable>(23, kAclTable2);
+
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      oldTable, newTable));
+}
+
+TEST_F(AclTableManagerTest, configuredAclTablePriorityChangeRecreates) {
+  auto oldTable = std::make_shared<AclTable>(23, kAclTable2);
+  auto newTable = std::make_shared<AclTable>(24, kAclTable2);
 
   EXPECT_TRUE(saiManagerTable->aclTableManager().needsAclTableRecreate(
       oldTable, newTable));

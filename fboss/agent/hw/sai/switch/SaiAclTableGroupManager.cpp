@@ -134,7 +134,8 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
     sai_acl_stage_t aclStage,
     cfg::AclTableGroupBindPoint bindPoint,
     AclTableSaiId aclTableSaiId,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    sai_uint32_t aclTablePriority) {
   CHECK(platform_->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP));
 
   // If we attempt to add member to a group that does not exist, fail.
@@ -163,16 +164,7 @@ AclTableGroupMemberSaiId SaiAclTableGroupManager::addAclTableGroupMember(
   SaiAclTableGroupMemberTraits::Attributes::TableId aclTableIdAttribute{
       aclTableSaiId};
 
-  /*
-   * TODO(skhare)
-   * Priority is valid for SEQUENTIAL ACL table groups only, while we only use
-   * PARALLEL ACL groups today.
-   * But Priority field is mandatory as per SAI spec, so set it to some value.
-   * In future, if we support SEQUENTIAL ACL groups, read MINIMUM and MAXIMUM
-   * PRIORITY Switch attribute and use as appropriate below.
-   */
-  SaiAclTableGroupMemberTraits::Attributes::Priority priority{
-      SAI_SWITCH_ATTR_ACL_TABLE_MINIMUM_PRIORITY};
+  SaiAclTableGroupMemberTraits::Attributes::Priority priority{aclTablePriority};
 
   SaiAclTableGroupMemberTraits::AdapterHostKey adapterHostKey{
       aclTableGroupIdAttribute, aclTableIdAttribute, priority};

@@ -50,13 +50,13 @@ namespace {
 
 // Match all 32 bits in the selected IPv6 word.
 constexpr uint32_t kIpV6WordExactMatchMask = 0xFFFFFFFF;
-constexpr int kLegacyAclTablePriority = 0;
 constexpr int kMigratedAclTablePriority = 23;
 
 int normalizeAclTablePriority(int priority) {
-  // TODO: Remove after all ACL table configs use priority 23.
-  return priority == kLegacyAclTablePriority ? kMigratedAclTablePriority
-                                             : priority;
+  // TODO: Add dedicated ACL Agent HW tests for configured priority changes,
+  // then remove this after all ACL table configs use priority 23.
+  return priority < kMigratedAclTablePriority ? kMigratedAclTablePriority
+                                              : priority;
 }
 
 folly::IPAddressV6 ipV6WordToAddress(uint32_t word, int wordIndex) {
@@ -207,7 +207,11 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   // Add ACL Table to group based on the stage
   if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().addAclTableGroupMember(
-        saiAclStage, bindPoint, aclTableSaiId, aclTableName);
+        saiAclStage,
+        bindPoint,
+        aclTableSaiId,
+        aclTableName,
+        normalizeAclTablePriority(addedAclTable->getPriority()));
   }
 
   return aclTableSaiId;
