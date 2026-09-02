@@ -147,6 +147,10 @@ class ResourceAccountant {
   const SwitchIdScopeResolver* scopeResolver_;
 
   bool nativeWeightedEcmp_{true};
+  // Yuba (G200) and G202x program protection backup next hops as ordinary
+  // group members. Other asics keep them in hw reserved space, so they are not
+  // charged as members.
+  bool countBackupNextHopMembers_{false};
   bool checkRouteUpdate_;
   uint32_t l2Entries_{0};
   uint32_t ecmpMemberUsage_{0};
@@ -176,6 +180,12 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateGenericEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceAccounting);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceSharing);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceEdgeCases);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceLimits);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceLifecycle);
+  FRIEND_TEST(ResourceAccountantTest, protectionEcmpResourceArsExcluded);
   FRIEND_TEST(
       ResourceAccountantTest,
       checkAndUpdateGenericEcmpResourceForUcmpWeights);
