@@ -1183,7 +1183,13 @@ void IPv6Handler::floodNeighborAdvertisements() {
           portDescriptor =
               PortDescriptor(getPortID(*intf->getSystemPortID(), state));
         } else if (intfType == cfg::InterfaceType::PORT) {
-          portDescriptor = PortDescriptor(intf->getPortID());
+          // A port router interface is bound to either a physical port or an
+          // aggregate port.
+          if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+            portDescriptor = PortDescriptor(*aggregatePortID);
+          } else {
+            portDescriptor = PortDescriptor(intf->getPortID());
+          }
         }
         if (portDescriptor) {
           XLOG(DBG4) << "Sending neighbor advertisements for "

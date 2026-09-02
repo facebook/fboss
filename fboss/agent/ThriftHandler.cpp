@@ -539,10 +539,17 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
   *aclEntryThrift.srcIpPrefixLength() = aclEntry.getSrcIp().second;
   *aclEntryThrift.dstIp() = toBinaryAddress(aclEntry.getDstIp().first);
   *aclEntryThrift.dstIpPrefixLength() = aclEntry.getDstIp().second;
-  *aclEntryThrift.actionType() =
-      aclEntry.getActionType() == facebook::fboss::cfg::AclActionType::DENY
-      ? "deny"
-      : "permit";
+  switch (aclEntry.getActionType()) {
+    case facebook::fboss::cfg::AclActionType::DENY:
+      *aclEntryThrift.actionType() = "deny";
+      break;
+    case facebook::fboss::cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      *aclEntryThrift.actionType() = "deny_data_and_control_plane";
+      break;
+    case facebook::fboss::cfg::AclActionType::PERMIT:
+      *aclEntryThrift.actionType() = "permit";
+      break;
+  }
   if (aclEntry.getProto()) {
     aclEntryThrift.proto() = aclEntry.getProto().value();
   }
@@ -1124,8 +1131,22 @@ static void populateInterfaceDetail(
   *interfaceDetail.interfaceId() = intf->getID();
   switch (intf->getType()) {
     case cfg::InterfaceType::PORT: {
-      auto port = state->getPorts()->getNode(intf->getPortID());
-      interfaceDetail.portNames()->emplace_back(port->getName());
+      // A port router interface is bound to either a physical port or an
+      // aggregate port, in which case it covers all of the members.
+      if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+        auto aggPort = state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+        if (aggPort) {
+          for (const auto& subport : aggPort->sortedSubports()) {
+            auto port = state->getPorts()->getNodeIf(subport.portID);
+            if (port) {
+              interfaceDetail.portNames()->emplace_back(port->getName());
+            }
+          }
+        }
+      } else {
+        auto port = state->getPorts()->getNode(intf->getPortID());
+        interfaceDetail.portNames()->emplace_back(port->getName());
+      }
     } break;
     case cfg::InterfaceType::VLAN: {
       *interfaceDetail.vlanId() = intf->getVlanID();
@@ -1152,7 +1173,11 @@ static void populateInterfaceDetail(
     } break;
   }
   if (intf->getType() == cfg::InterfaceType::PORT) {
-    *interfaceDetail.portId() = intf->getPortID();
+    if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+      interfaceDetail.aggregatePortId() = *aggregatePortID;
+    } else {
+      *interfaceDetail.portId() = intf->getPortID();
+    }
   }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();
@@ -2163,11 +2188,18 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
   forAllRoutes(
-      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+      state,
+      [&routes, &state, &resolveClient](
+          const RouterID& /*rid*/, const auto& route) {
         routes.emplace_back(route->toRouteDetails(
             getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
-            getNormalizedNextHops(state, route->getForwardInfo())));
+            getNormalizedNextHops(state, route->getForwardInfo()),
+            resolveClient));
       });
 }
 
@@ -2228,20 +2260,26 @@ void ThriftHandler::getIpRouteDetails(
   ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
 
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+          getNormalizedNextHops(state, match->getForwardInfo()),
+          resolveClient);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+          getNormalizedNextHops(state, match->getForwardInfo()),
+          resolveClient);
     }
   }
 }
@@ -3111,12 +3149,18 @@ void ThriftHandler::getMplsRouteDetails(
     MplsLabel topLabel) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   const auto entry =
-      sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
+      state->getLabelForwardingInformationBase()->getNode(topLabel);
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
   mplsRouteDetail.topLabel() = entry->getID();
-  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
+  mplsRouteDetail.nextHopMulti() =
+      entry->getEntryForClients().toThriftLegacy(std::nullopt, resolveClient);
   const auto& fwd = entry->getForwardInfo();
-  for (const auto& nh : fwd.getNextHopSet()) {
+  for (const auto& nh : getNextHops(state, fwd)) {
     mplsRouteDetail.nextHops()->push_back(nh.toThrift());
   }
   *mplsRouteDetail.adminDistance() = fwd.getAdminDistance();

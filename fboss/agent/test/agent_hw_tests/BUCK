@@ -690,5 +690,5 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
         ]
         + (["//fboss/agent/platforms/sai:bcm-required-symbols"] if sai_impl.name == "fake" or sai_impl.name == "leaba" else []),
     )
-    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS
+    for sai_impl in SAI_BRCM_IMPLS + SAI_LEABA_IMPLS + SAI_NVIDIA_IMPLS
 ]

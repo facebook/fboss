@@ -5570,6 +5570,7 @@ class ChildThriftPath<::facebook::bgp::thrift::PeerGroup, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(ttl_security_hops, 38);
     STRUCT_CHILD_GETTERS(enhanced_route_refresh, 39);
     STRUCT_CHILD_GETTERS(route_refresh, 40);
+    STRUCT_CHILD_GETTERS(additional_remote_as_4_byte, 41);
 };
 
 
@@ -10861,6 +10862,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpPeer, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(ttl_security_hops, 102);
     STRUCT_CHILD_GETTERS(enhanced_route_refresh, 103);
     STRUCT_CHILD_GETTERS(route_refresh, 104);
+    STRUCT_CHILD_GETTERS(additional_remote_as_4_byte, 105);
 };
 
 

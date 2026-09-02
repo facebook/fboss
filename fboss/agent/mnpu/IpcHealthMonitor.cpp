@@ -78,6 +78,8 @@ void IpcHealthMonitor::trackEventReceived() {
 }
 
 void IpcHealthMonitor::trackQueueDepth(int64_t depth) {
+  queueDepth_.add(depth);
+
   {
     auto metrics = metrics_.wlock();
     metrics->queueDepth = depth;

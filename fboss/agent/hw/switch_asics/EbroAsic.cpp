@@ -115,7 +115,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
       return true;
-    case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -277,6 +276,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
       return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::ACL_BYTE_COUNTER:
       /*
        * Source port ACL qualifier is used in certain HW tests
        * to trap packets to CPU. This feature is supported only

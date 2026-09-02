@@ -57,7 +57,7 @@ RUN if [ "$FBOSS_META_ENV" = "1" ]; then \
 # must use the same Python version consistently.
 RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3.12 /usr/bin/pip
 
 # Necessary for using update-alternatives.

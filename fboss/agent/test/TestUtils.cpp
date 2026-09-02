@@ -706,6 +706,50 @@ cfg::SwitchConfig testConfigAWithPortInterfaces() {
   return config;
 }
 
+cfg::SwitchConfig testConfigAWithAggregatePortInterface() {
+  auto config = testConfigAWithPortInterfaces();
+  auto member0 = *config.ports()[0].logicalID();
+  auto member1 = *config.ports()[1].logicalID();
+
+  cfg::AggregatePort aggPort;
+  aggPort.key() = kAggregatePortKey;
+  aggPort.name() = "agg";
+  for (auto memberPort : {member0, member1}) {
+    cfg::AggregatePortMember member;
+    member.memberPortID() = memberPort;
+    aggPort.memberPorts()->push_back(member);
+  }
+  config.aggregatePorts()->push_back(aggPort);
+
+  auto& intfs = *config.interfaces();
+  intfs.erase(
+      std::remove_if(
+          intfs.begin(),
+          intfs.end(),
+          [member0, member1](const auto& intf) {
+            return intf.portID() == member0 || intf.portID() == member1;
+          }),
+      intfs.end());
+
+  cfg::Interface aggIntf;
+  aggIntf.intfID() = kAggregatePortInterfaceID;
+  aggIntf.vlanID() = 0;
+  aggIntf.aggregatePortID() = kAggregatePortKey;
+  aggIntf.routerID() = 0;
+  aggIntf.type() = cfg::InterfaceType::PORT;
+  aggIntf.name() = "fbossAgg";
+  aggIntf.mtu() = 9000;
+  aggIntf.mac() = "00:02:00:00:00:66";
+  aggIntf.ipAddresses()->resize(2);
+  // Deliberately outside the 2601:db00:2110:30xx / 100.0.x prefixes the port
+  // interfaces above take, so the aggregate is reachable on its own subnet.
+  aggIntf.ipAddresses()[0] = "2601:db00:2110:3100::1/64";
+  aggIntf.ipAddresses()[1] = "100.0.100.1/24";
+  intfs.push_back(aggIntf);
+
+  return config;
+}
+
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
   return setAllPortState(in, true);
 }

@@ -401,6 +401,15 @@ const std::vector<AclRuleRow>& actionRows() {
            r.actionType() = cfg::AclActionType::DENY;
          });
        }},
+      {kAclRuleActionDenyDataAndControlPlane,
+       kNoValue,
+       kNoValue,
+       "",
+       [](std::string_view, Values) {
+         return onEntry([](cfg::AclEntry& r) {
+           r.actionType() = cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
+         });
+       }},
       {kAclRuleActionSendToQueue,
        kOneValue,
        kOneValue,

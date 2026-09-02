@@ -63,7 +63,8 @@ class SaiAclTableGroupManager {
       sai_acl_stage_t aclStage,
       cfg::AclTableGroupBindPoint bindPoint,
       AclTableSaiId aclTableSaiId,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      sai_uint32_t aclTablePriority);
   void removeAclTableGroupMember(
       sai_acl_stage_t aclStage,
       cfg::AclTableGroupBindPoint bindPoint,

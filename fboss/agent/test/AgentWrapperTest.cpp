@@ -303,6 +303,13 @@ bool AgentWrapperTest<T>::skipTest() const {
     // multi-switch is only for SAI
     return true;
   }
+  if (!T::kMultiSwitch &&
+      config_->thrift.sw()->switchSettings()->switchIdToSwitchInfo()->size() >
+          1) {
+    // Multi-NPU platforms (e.g. Ladakh) only run the split mNPU stack, so the
+    // mono wedge_agent type does not apply.
+    return true;
+  }
   return false;
 }
 

@@ -21,6 +21,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
@@ -33,12 +34,14 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_bool(resolve_nexthops_from_id);
 DECLARE_int32(hwswitch_query_timeout);
 
 using namespace facebook::fboss;
@@ -280,6 +283,68 @@ TEST_F(ThriftTest, getAclTableLookupClassPort) {
   // field unset rather than defaulting to CLASS_PORT_UNCONSTRAINED.
   ASSERT_NE(withoutClassId, nullptr);
   EXPECT_FALSE(withoutClassId->lookupClassPort().has_value());
+}
+
+class ThriftTestAggregatePortInterface : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto config = testConfigAWithAggregatePortInterface();
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TEST_F(ThriftTestAggregatePortInterface, getInterfaceDetail) {
+  ThriftHandler handler(this->sw_);
+  auto state = this->sw_->getState();
+
+  InterfaceDetail aggInfo;
+  handler.getInterfaceDetail(aggInfo, kAggregatePortInterfaceID);
+  EXPECT_EQ(kAggregatePortInterfaceID, *aggInfo.interfaceId());
+  EXPECT_EQ(cfg::InterfaceType::PORT, *aggInfo.interfaceType());
+
+  // The interface is reported against the aggregate port. portId names a
+  // physical port, so it stays unset for an aggregate bound interface.
+  ASSERT_TRUE(aggInfo.aggregatePortId().has_value());
+  EXPECT_EQ(kAggregatePortKey, *aggInfo.aggregatePortId());
+  // portId is unqualified, so it cannot be distinguished as unset. It is left
+  // at its default, and no port carries id 0.
+  EXPECT_EQ(0, *aggInfo.portId());
+
+  // Every member port of the aggregate is named.
+  auto aggPort =
+      state->getAggregatePorts()->getNode(AggregatePortID(kAggregatePortKey));
+  std::vector<std::string> memberPortNames;
+  for (const auto& subport : aggPort->sortedSubports()) {
+    memberPortNames.push_back(
+        state->getPorts()->getNode(subport.portID)->getName());
+  }
+  ASSERT_EQ(2, memberPortNames.size());
+  EXPECT_THAT(*aggInfo.portNames(), UnorderedElementsAreArray(memberPortNames));
+
+  // An interface bound to a physical port is unaffected: it reports portId and
+  // no aggregatePortId.
+  std::shared_ptr<Port> nonMember;
+  for (const auto& [_, portMap] : std::as_const(*state->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      if (!aggPort->isMemberPort(port->getID())) {
+        nonMember = port;
+        break;
+      }
+    }
+  }
+  ASSERT_NE(nullptr, nonMember);
+  InterfaceDetail portInfo;
+  handler.getInterfaceDetail(portInfo, nonMember->getInterfaceID());
+  EXPECT_EQ(static_cast<int32_t>(nonMember->getID()), *portInfo.portId());
+  EXPECT_FALSE(portInfo.aggregatePortId().has_value());
+  EXPECT_THAT(
+      *portInfo.portNames(),
+      UnorderedElementsAreArray(
+          std::vector<std::string>{nonMember->getName()}));
 }
 
 template <typename SwitchTypeT>
@@ -2247,6 +2312,52 @@ TEST_F(ThriftTest, getRouteDetails) {
   EXPECT_EQ(10, routeDetails.size());
 }
 
+// Covers the resolver being threaded through the route-details thrift APIs
+// backing `fboss2 show route details`. Two clients, so resolving one through
+// another's entry would be caught.
+TEST_F(ThriftTestWithNhopIdMgr, routeDetailsResolveClientNextHops) {
+  // Pinned: other tests leave the flag false without restoring it.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_resolve_nexthops_from_id = true;
+
+  ThriftHandler handler(sw_);
+  constexpr int32_t kClientA = 10;
+  constexpr int32_t kClientB = 11;
+  const std::string kNhopA = "2401:db00:2110:3001::1";
+  const std::string kNhopB = "2401:db00:2110:3001::2";
+  const std::set<std::string> expectedA{kNhopA};
+  const std::set<std::string> expectedB{kNhopB};
+
+  handler.addUnicastRoute(kClientA, makeUnicastRoute("aaaa::/64", kNhopA));
+  handler.addUnicastRoute(kClientB, makeUnicastRoute("aaaa::/64", kNhopB));
+
+  std::vector<RouteDetails> all;
+  handler.getRouteTableDetails(all);
+  bool found = false;
+  for (const auto& rd : all) {
+    if (*rd.dest()->prefixLength() != 64 ||
+        facebook::network::toIPAddress(*rd.dest()->ip()).str() != "aaaa::") {
+      continue;
+    }
+    EXPECT_EQ(clientNextHops(rd, kClientA), expectedA);
+    EXPECT_EQ(clientNextHops(rd, kClientB), expectedB);
+    found = true;
+  }
+  EXPECT_TRUE(found) << "aaaa::/64 missing from route table details";
+
+  RouteDetails single;
+  handler.getIpRouteDetails(
+      single,
+      std::make_unique<facebook::network::thrift::Address>(
+          facebook::network::toAddress(IPAddress("aaaa::1"))),
+      0);
+  EXPECT_EQ(clientNextHops(single, kClientA), expectedA);
+  EXPECT_EQ(clientNextHops(single, kClientB), expectedB);
+}
+
 TEST_F(ThriftTest, getRouteTableSize) {
   ThriftHandler handler(sw_);
   auto [expectedV4, expectedV6] = getRouteCount(sw_->getState());
@@ -2307,6 +2418,30 @@ TEST_F(ThriftTest, addMplsRoutesRejectsSrv6SegmentList) {
   validRoutes->emplace_back(*validRoute);
   EXPECT_NO_THROW(handler.addMplsRoutes(
       static_cast<int16_t>(ClientID::BGPD), std::move(validRoutes)));
+}
+
+// Label-route IDs reach SwitchState via the same FibInfo id-map sync as
+// v4/v6, so the state-side resolver can resolve them.
+TEST_F(ThriftTestWithNhopIdMgr, mplsRouteDetailsResolveClientNextHops) {
+  // Pinned: other tests leave the flag false without restoring it.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_resolve_nexthops_from_id = true;
+
+  ThriftHandler handler(sw_);
+  constexpr int32_t kClient = static_cast<int32_t>(ClientID::BGPD);
+  const std::string kNhop = "10.0.0.2";
+  const std::set<std::string> expected{kNhop};
+
+  auto routes = std::make_unique<std::vector<MplsRoute>>();
+  routes->emplace_back(*makeMplsRoute(101, kNhop));
+  handler.addMplsRoutes(kClient, std::move(routes));
+
+  MplsRouteDetails details;
+  handler.getMplsRouteDetails(details, 101);
+  EXPECT_EQ(clientNextHops(details, kClient), expected);
 }
 
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {

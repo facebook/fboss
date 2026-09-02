@@ -50,6 +50,14 @@ namespace {
 
 // Match all 32 bits in the selected IPv6 word.
 constexpr uint32_t kIpV6WordExactMatchMask = 0xFFFFFFFF;
+constexpr int kMigratedAclTablePriority = 23;
+
+int normalizeAclTablePriority(int priority) {
+  // TODO: Add dedicated ACL Agent HW tests for configured priority changes,
+  // then remove this after all ACL table configs use priority 23.
+  return priority < kMigratedAclTablePriority ? kMigratedAclTablePriority
+                                              : priority;
+}
 
 folly::IPAddressV6 ipV6WordToAddress(uint32_t word, int wordIndex) {
   CHECK(wordIndex == 2 || wordIndex == 3)
@@ -199,7 +207,11 @@ AclTableSaiId SaiAclTableManager::addAclTable(
   // Add ACL Table to group based on the stage
   if (hasTableGroups_) {
     managerTable_->aclTableGroupManager().addAclTableGroupMember(
-        saiAclStage, bindPoint, aclTableSaiId, aclTableName);
+        saiAclStage,
+        bindPoint,
+        aclTableSaiId,
+        aclTableName,
+        normalizeAclTablePriority(addedAclTable->getPriority()));
   }
 
   return aclTableSaiId;
@@ -228,7 +240,8 @@ bool SaiAclTableManager::needsAclTableRecreate(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable) {
   if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
-      oldAclTable->getPriority() != newAclTable->getPriority() ||
+      normalizeAclTablePriority(oldAclTable->getPriority()) !=
+          normalizeAclTablePriority(newAclTable->getPriority()) ||
       oldAclTable->getQualifiers() != newAclTable->getQualifiers() ||
       oldAclTable->getUdfGroups()->toThrift() !=
           newAclTable->getUdfGroups()->toThrift()) {
@@ -574,12 +587,12 @@ SaiAclTableManager::addAclCounter(
     auto statName =
         folly::to<std::string>(*trafficCount.name(), ".", statSuffix);
     aclCounterTypeAndName.emplace_back(counterType, statName);
-    if (aclCounterRefMap.find(statName) == aclCounterRefMap.end()) {
+    if (aclCounterRefMap_.find(statName) == aclCounterRefMap_.end()) {
       // Create fb303 counter since stat is being added/readded again
       aclStats_.reinitStat(statName, std::nullopt);
-      aclCounterRefMap[statName] = 1;
+      aclCounterRefMap_[statName] = 1;
     } else {
-      aclCounterRefMap[statName]++;
+      aclCounterRefMap_[statName]++;
     }
   }
 
@@ -1192,13 +1205,27 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   // TODO(skhare) Support all other ACL actions
   std::optional<SaiAclEntryTraits::Attributes::ActionPacketAction>
       aclActionPacketAction{std::nullopt};
-  const auto& act = addedAclEntry->getActionType();
-  if (act == cfg::AclActionType::DENY) {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_DROP};
-  } else {
-    aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
-        SAI_PACKET_ACTION_FORWARD};
+  /*
+   * FBOSS ACL action -> SAI packet action:
+   *  - PERMIT: leave the pipeline's forwarding decision alone (FORWARD).
+   *  - DENY: drop the packet (DROP). A copy to CPU that a lower priority ACL
+   *    or a host interface trap asked for still happens.
+   *  - DENY_DATA_AND_CONTROL_PLANE: drop the packet and cancel that copy to CPU
+   * (DENY, which the SAI spec defines as COPY_CANCEL plus DROP).
+   */
+  switch (addedAclEntry->getActionType()) {
+    case cfg::AclActionType::DENY:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DROP};
+      break;
+    case cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_DENY};
+      break;
+    case cfg::AclActionType::PERMIT:
+      aclActionPacketAction = SaiAclEntryTraits::Attributes::ActionPacketAction{
+          SAI_PACKET_ACTION_FORWARD};
+      break;
   }
 
   std::optional<SaiAclEntryTraits::Attributes::ActionRedirect>
@@ -1807,13 +1834,13 @@ void SaiAclTableManager::removeAclCounter(
   for (const auto& counterType : *trafficCount.types()) {
     auto statName =
         utility::statNameFromCounterType(*trafficCount.name(), counterType);
-    auto entry = aclCounterRefMap.find(statName);
-    if (entry != aclCounterRefMap.end()) {
+    auto entry = aclCounterRefMap_.find(statName);
+    if (entry != aclCounterRefMap_.end()) {
       entry->second--;
       if (entry->second == 0) {
         // Counter no longer used. Remove from fb303 counters
         aclStats_.removeStat(statName);
-        aclCounterRefMap.erase(entry);
+        aclCounterRefMap_.erase(entry);
       }
     } else {
       throw FbossError("Acl counter ", statName, " not found om counter map");

@@ -488,8 +488,25 @@ struct MirrorOnDropReport {
  * The action for an access control entry
  */
 enum AclActionType {
+  /** Drop the packet. Maps to SAI_PACKET_ACTION_DROP. */
   DENY = 0,
+
   PERMIT = 1,
+
+  /**
+   * Drop the packet, and additionally cancel any copy to CPU requested for it
+   * by a lower priority ACL or by a host interface trap. Maps to
+   * SAI_PACKET_ACTION_DENY, which the SAI spec defines as a combination of
+   * COPY_CANCEL and DROP.
+   *
+   * Unlike DENY, this also suppresses a punt that the forwarding lookup would
+   * otherwise take, because implementations may realize host interface traps
+   * as lower priority ACLs.
+   *
+   * Not supported on every ASIC. Where the underlying packet action is
+   * unavailable, an entry using it fails to program.
+   */
+  DENY_DATA_AND_CONTROL_PLANE = 2,
 }
 
 /**

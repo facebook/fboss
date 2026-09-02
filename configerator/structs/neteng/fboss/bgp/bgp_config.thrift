@@ -133,6 +133,9 @@ struct PeerGroup {
 
   /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
   40: optional bool route_refresh;
+
+  /* Additional remote ASN accepted during migration, e.g. 4200000000. */
+  41: optional i64 additional_remote_as_4_byte; // unsigned int32, RFC 6793
 }
 
 /**
@@ -287,6 +290,9 @@ struct BgpPeer {
 
   /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
   104: optional bool route_refresh;
+
+  /* Additional remote ASN accepted during migration, e.g. 4200000000. */
+  105: optional i64 additional_remote_as_4_byte; // unsigned int32, RFC 6793
 }
 
 /**

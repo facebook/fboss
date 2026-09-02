@@ -106,8 +106,8 @@ struct RouteFields
 
   RouteDetails toRouteDetails(
       const RouteNextHopSet& nhopSet,
-      const std::optional<RouteNextHopSet>& normalizedNhopSet =
-          std::nullopt) const;
+      const std::optional<RouteNextHopSet>& normalizedNhopSet,
+      const ClientNextHopsResolver& resolveClientNextHops) const;
   bool isHostRoute() const {
     if constexpr (
         std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -336,8 +336,8 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   // THRIFT_COPY
   RouteDetails toRouteDetails(
       const RouteNextHopSet& nhopSet,
-      const std::optional<RouteNextHopSet>& normalizedNhopSet =
-          std::nullopt) const;
+      const std::optional<RouteNextHopSet>& normalizedNhopSet,
+      const ClientNextHopsResolver& resolveClientNextHops) const;
 
   /*
    * clone and clear all forwarding info. Forwarding info will be recomputed

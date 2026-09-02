@@ -972,6 +972,7 @@ cpp_library(
     srcs = ["NextHopIdTestUtils.cpp"],
     headers = ["NextHopIdTestUtils.h"],
     exported_deps = [
+        "//fboss/agent:address_utils",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/state:state",

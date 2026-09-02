@@ -154,6 +154,32 @@ TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
   EXPECT_FALSE(handle);
 }
 
+TEST_F(AclTableManagerTest, legacyAclTablePriorityMigrationDoesNotRecreate) {
+  auto legacyTable = std::make_shared<AclTable>(0, kAclTable2);
+  auto migratedTable = std::make_shared<AclTable>(23, kAclTable2);
+
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      legacyTable, migratedTable));
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      migratedTable, legacyTable));
+}
+
+TEST_F(AclTableManagerTest, preMigrationAclTablePriorityChangeDoesNotRecreate) {
+  auto oldTable = std::make_shared<AclTable>(1, kAclTable2);
+  auto newTable = std::make_shared<AclTable>(23, kAclTable2);
+
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      oldTable, newTable));
+}
+
+TEST_F(AclTableManagerTest, configuredAclTablePriorityChangeRecreates) {
+  auto oldTable = std::make_shared<AclTable>(23, kAclTable2);
+  auto newTable = std::make_shared<AclTable>(24, kAclTable2);
+
+  EXPECT_TRUE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      oldTable, newTable));
+}
+
 TEST_F(AclTableManagerTest, addAclEntry) {
   auto aclTableId =
       saiManagerTable->aclTableManager()

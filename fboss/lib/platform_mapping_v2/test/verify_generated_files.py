@@ -58,6 +58,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "wedge800bact",
             "m4062nhp",
             "m4061clsc",
+            "m5120csc",
             "wedge800bnhp",
             "wedge800cact",
             "blackwolf800banw",

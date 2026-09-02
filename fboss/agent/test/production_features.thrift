@@ -135,6 +135,7 @@ enum ProductionFeature {
   DST_IPV6_WORD_ACL_QUALIFIERS = 121,
   ARS_SOURCE_PORT_PRUNE = 122,
   DROP_REASON_LIST_SUPPORT = 123,
+  ACL_DENY_DATA_AND_CONTROL_PLANE = 126,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

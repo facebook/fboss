@@ -25,6 +25,29 @@ class AclTableGroupManagerTest : public ManagerTestBase {
   // INGRESS Acl table group and a single Acl table are
   // created on init, nothing to special to do in
   // setting up these test cases.
+
+ protected:
+  void verifyAclTableGroupMemberPriority(
+      int configuredPriority,
+      int expectedPriority) {
+    auto table2 = std::make_shared<AclTable>(configuredPriority, kAclTable2);
+    saiManagerTable->aclTableManager().addAclTable(
+        table2, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+    auto aclTableGroupHandle =
+        saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+            SAI_ACL_STAGE_INGRESS);
+    ASSERT_NE(aclTableGroupHandle, nullptr);
+    auto aclTableGroupMemberHandle =
+        saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+            aclTableGroupHandle, kAclTable2);
+    ASSERT_NE(aclTableGroupMemberHandle, nullptr);
+
+    auto priorityGot = saiApiTable->aclApi().getAttribute(
+        aclTableGroupMemberHandle->aclTableGroupMember->adapterKey(),
+        SaiAclTableGroupMemberTraits::Attributes::Priority());
+    EXPECT_EQ(priorityGot, expectedPriority);
+  }
 };
 
 TEST_F(AclTableGroupManagerTest, addAclTableGroup) {
@@ -162,6 +185,27 @@ TEST_F(AclTableGroupManagerTest, addTwoAclTableGroupMember) {
   EXPECT_EQ(tableIdGot2, aclTableId2);
 }
 
+TEST_F(AclTableGroupManagerTest, addAclTableGroupMemberWithConfiguredPriority) {
+  constexpr auto kAclTablePriority = 42;
+  verifyAclTableGroupMemberPriority(kAclTablePriority, kAclTablePriority);
+}
+
+TEST_F(AclTableGroupManagerTest, addAclTableGroupMemberWithLegacyPriority) {
+  constexpr auto kLegacyAclTablePriority = 0;
+  constexpr auto kMigratedAclTablePriority = 23;
+  verifyAclTableGroupMemberPriority(
+      kLegacyAclTablePriority, kMigratedAclTablePriority);
+}
+
+TEST_F(
+    AclTableGroupManagerTest,
+    addAclTableGroupMemberWithPreMigrationPriority) {
+  constexpr auto kPreMigrationAclTablePriority = 2;
+  constexpr auto kMigratedAclTablePriority = 23;
+  verifyAclTableGroupMemberPriority(
+      kPreMigrationAclTablePriority, kMigratedAclTablePriority);
+}
+
 TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
   auto aclTableId =
       saiManagerTable->aclTableManager()
@@ -173,7 +217,8 @@ TEST_F(AclTableGroupManagerTest, addDupAclTableGroupMember) {
           SAI_ACL_STAGE_INGRESS,
           cfg::AclTableGroupBindPoint::SWITCH,
           aclTableId,
-          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()),
+          cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+          0),
       FbossError);
 }
 
