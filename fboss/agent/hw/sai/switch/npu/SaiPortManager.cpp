@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -577,6 +578,8 @@ void SaiPortManager::attributesFromSaiStore(
 #endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::IngressAcl{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   getAndSetAttribute(
       port->attributes(),
@@ -1107,6 +1110,36 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     vlanIdAttr.reset();
   }
 
+  // 1. table name set and programmed  -> that table's object id
+  // 2. table name set, not programmed -> unset. Ports are programmed before ACL
+  //    tables, so setIngressAcl() binds this later, after the ACL delta.
+  // 3. no table name, port bound      -> SAI_NULL_OBJECT_ID. Unset would not
+  //    unbind: setObject() skips the hardware write for an unset optional but
+  //    still drops the value from the store, leaving the port bound.
+  // 4. no table name, port unbound    -> unset, nothing to say.
+  // Only for a port that already exists. A new port has no handle;
+  // setIngressAcl() binds it later, once the ACL tables exist.
+  std::optional<SaiPortTraits::Attributes::IngressAcl> ingressAcl;
+  if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    if (const auto aclTableName = swPort->getIngressAclTableName()) {
+      if (const auto* aclTableHandle =
+              managerTable_->aclTableManager().getAclTableHandle(
+                  *aclTableName)) {
+        ingressAcl = SaiPortTraits::Attributes::IngressAcl{
+            aclTableHandle->aclTable->adapterKey()};
+      }
+    } else if (std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+                   portHandle->port->attributes())) {
+      ingressAcl = SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID};
+    }
+  }
+  XLOGF(
+      DBG2,
+      "Port {} ingress ACL table {} resolved to {}",
+      swPort->getID(),
+      swPort->getIngressAclTableName().value_or("none"),
+      ingressAcl);
+
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
       getPortTypeFromCfg(swPort->getPortType()),
@@ -1214,7 +1247,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
-      std::nullopt, // Ingress ACL
+      ingressAcl,
       metadata,
   };
 }

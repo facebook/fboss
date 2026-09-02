@@ -325,6 +325,52 @@ TEST_F(PortManagerTest, setIngressAcl) {
       SAI_NULL_OBJECT_ID);
 }
 
+// SaiSwitch processes the port delta before the ACL delta, so an unbind always
+// runs changePort() before changeIngressAcl(). The binding has to leave
+// hardware, not just the store.
+TEST_F(PortManagerTest, unbindIngressAclAfterChangePort) {
+  const std::string ingressAclTableName{"PortIngressAclTable"};
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("PortIngressAclGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+  const auto aclTableId = saiManagerTable->aclTableManager().addAclTable(
+      std::make_shared<AclTable>(0, ingressAclTableName),
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto boundPort = makePort(p0);
+  boundPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().addPort(boundPort);
+  saiManagerTable->portManager().setIngressAcl(boundPort);
+  const auto* handle =
+      saiManagerTable->portManager().getPortHandle(boundPort->getID());
+  ASSERT_NE(handle, nullptr);
+  ASSERT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      aclTableId);
+
+  auto unboundPort = boundPort->clone();
+  unboundPort->setIngressAclTableName(std::nullopt);
+
+  // Dropping the table name resolves to an explicit unbind, so changePort()
+  // alone must clear the binding in hardware.
+  saiManagerTable->portManager().changePort(boundPort, unboundPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      SAI_NULL_OBJECT_ID);
+
+  // And the ACL phase that follows it leaves the port unbound.
+  saiManagerTable->portManager().changeIngressAcl(boundPort, unboundPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      SAI_NULL_OBJECT_ID);
+}
+
 TEST_F(PortManagerTest, addTwoPorts) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);

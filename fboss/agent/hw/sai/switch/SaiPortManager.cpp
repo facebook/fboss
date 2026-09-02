@@ -1749,6 +1749,7 @@ void SaiPortManager::setIngressAcl(const std::shared_ptr<Port>& swPort) {
         currentIngressAcl->value() == SAI_NULL_OBJECT_ID) {
       return;
     }
+    XLOGF(DBG2, "Unbinding {} from {}", currentIngressAcl, swPort->getID());
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
     return;
@@ -1766,6 +1767,12 @@ void SaiPortManager::setIngressAcl(const std::shared_ptr<Port>& swPort) {
       currentIngressAcl->value() == aclTableHandle->aclTable->adapterKey()) {
     return;
   }
+  XLOGF(
+      DBG2,
+      "Binding ingress ACL table {} to {}, was {}",
+      *ingressAclTableName,
+      swPort->getID(),
+      currentIngressAcl);
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::IngressAcl{
           aclTableHandle->aclTable->adapterKey()});
