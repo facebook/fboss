@@ -23,17 +23,6 @@ std::array<int, 5> kExpectedPwms = std::array<int, 5>{49, 49, 48, 48, 47};
 std::array<int, 5> kExpectedBoostModePwms =
     std::array<int, 5>{51, 51, 52, 52, 53};
 
-PidSetting makePidSetting(float kp) {
-  PidSetting pidSetting;
-  pidSetting.kp() = kp;
-  pidSetting.ki() = 0;
-  pidSetting.kd() = 0;
-  pidSetting.setPoint() = 70;
-  pidSetting.negHysteresis() = 0;
-  pidSetting.posHysteresis() = 0;
-  return pidSetting;
-}
-
 }; // namespace
 
 namespace facebook::fboss::platform {
@@ -80,38 +69,6 @@ class ControlLogicTests : public testing::Test {
     }
 
     ASSERT_TRUE(kExpectedPwms.size() == fanServiceConfig_.fans()->size());
-  }
-
-  void expectSuccessfulFanAccess() {
-    EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead())
-        .WillOnce(Return(true));
-    for (const auto& fan : *fanServiceConfig_.fans()) {
-      EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
-          .Times(2)
-          .WillRepeatedly(Return(true));
-      EXPECT_CALL(*mockBsp_, turnOnLedSysfs(*fan.goodLedSysfsPath()))
-          .WillOnce(Return(true));
-      EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
-          .WillOnce(Return(kDefaultRpm));
-      EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceSysfsPath()))
-          .WillOnce(Return(1 /* fan exists */));
-    }
-  }
-
-  void configureOpticsPid(std::map<std::string, PidSetting> pidSettings) {
-    auto& optic = fanServiceConfig_.optics()->front();
-    optic.aggregationType() = "OPTIC_AGGREGATION_TYPE_PID";
-    optic.pidSettings() = std::move(pidSettings);
-    optic.tempToPwmMaps()->clear();
-    fanServiceConfig_.zones()->front().sensorNames()->push_back(
-        *optic.opticName());
-
-    mockBsp_ = std::make_shared<MockBsp>(fanServiceConfig_);
-    controlLogic_ = std::make_shared<ControlLogic>(fanServiceConfig_, mockBsp_);
-    sensorData_->updateOpticEntry(
-        *optic.opticName(),
-        {{"OPTIC_TYPE_800_ZR", {{1, 80.0}}}},
-        mockBsp_->getCurrentTime());
   }
 
   FanServiceConfig fanServiceConfig_;
@@ -398,31 +355,6 @@ TEST_F(ControlLogicTests, OpticsFb303CountersAreSet) {
 
   // Verify aggregate optics PWM counter is max(24, 26, 36) = 36.
   EXPECT_EQ(fb303::fbData->getCounter("agg.optics_pwm.value"), 36);
-}
-
-TEST_F(ControlLogicTests, OpticsPidUsesGenericFallback) {
-  configureOpticsPid({{"OPTIC_TYPE_800_GENERIC", makePidSetting(-1)}});
-  expectSuccessfulFanAccess();
-
-  controlLogic_->setTransitionValue();
-  EXPECT_NO_THROW(controlLogic_->updateControl(sensorData_));
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter("OPTIC_TYPE_800_ZR.optics_pwm.value"), 60);
-}
-
-TEST_F(ControlLogicTests, OpticsPidPrefersExplicitSettingOverFallback) {
-  configureOpticsPid({
-      {"OPTIC_TYPE_800_GENERIC", makePidSetting(-1)},
-      {"OPTIC_TYPE_800_ZR", makePidSetting(-2)},
-  });
-  expectSuccessfulFanAccess();
-
-  controlLogic_->setTransitionValue();
-  controlLogic_->updateControl(sensorData_);
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter("OPTIC_TYPE_800_ZR.optics_pwm.value"), 70);
 }
 
 } // namespace facebook::fboss::platform

@@ -69,24 +69,6 @@ std::optional<T> getConfigOpticData(
   return std::nullopt;
 }
 
-std::map<std::string, PidSetting> getEffectiveOpticPidSettings(
-    const std::map<std::string, PidSetting>& configuredPidSettings) {
-  auto effectivePidSettings = configuredPidSettings;
-
-  // Give each fallback optic type its own PID controller state, even when it
-  // shares PID settings with the configured generic type.
-  for (const auto& [opticType, fallbackType] : kOpticTypeFallbacks) {
-    if (effectivePidSettings.find(opticType) != effectivePidSettings.end()) {
-      continue;
-    }
-    const auto fallbackSetting = configuredPidSettings.find(fallbackType);
-    if (fallbackSetting != configuredPidSettings.end()) {
-      effectivePidSettings.emplace(opticType, fallbackSetting->second);
-    }
-  }
-  return effectivePidSettings;
-}
-
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -191,21 +173,18 @@ void ControlLogic::setupPidLogics() {
     }
   }
   for (const auto& optic : *config_.optics()) {
-    const auto& aggregationType = *optic.aggregationType();
-    if (aggregationType != constants::OPTIC_AGGREGATION_TYPE_PID() &&
-        aggregationType !=
-            constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
-      continue;
-    }
-
-    for (const auto& [opticType, pidSetting] :
-         getEffectiveOpticPidSettings(*optic.pidSettings())) {
-      auto cacheKey = *optic.opticName() + opticType;
-      if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+    if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+      for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
         pidLogics_.emplace(
             cacheKey,
             std::make_unique<PidLogic>(pidSetting, getControlFrequency()));
-      } else {
+      }
+    } else if (
+        *optic.aggregationType() ==
+        constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
+      for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
+        auto cacheKey = *optic.opticName() + opticType;
         pidLogics_.emplace(
             cacheKey, std::make_unique<IncrementalPidLogic>(pidSetting));
       }
@@ -797,8 +776,7 @@ void ControlLogic::updatePwmState(const Zone& zone, int16_t fanPwm) {
       if (optic.opticName() != sensorName) {
         continue;
       }
-      for (const auto& [opticType, _] :
-           getEffectiveOpticPidSettings(*optic.pidSettings())) {
+      for (const auto& [opticType, _] : *optic.pidSettings()) {
         auto cacheKey = *optic.opticName() + opticType;
         if (pidLogics_.find(cacheKey) != pidLogics_.end()) {
           pidLogics_.at(cacheKey)->updateLastPwm(fanPwm);
