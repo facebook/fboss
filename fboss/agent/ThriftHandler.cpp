@@ -2188,11 +2188,18 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
   forAllRoutes(
-      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+      state,
+      [&routes, &state, &resolveClient](
+          const RouterID& /*rid*/, const auto& route) {
         routes.emplace_back(route->toRouteDetails(
             getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
-            getNormalizedNextHops(state, route->getForwardInfo())));
+            getNormalizedNextHops(state, route->getForwardInfo()),
+            resolveClient));
       });
 }
 
@@ -2253,20 +2260,26 @@ void ThriftHandler::getIpRouteDetails(
   ensureConfigured(__func__);
   folly::IPAddress ipAddr = toIPAddress(*addr);
   auto state = sw_->getState();
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
 
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+          getNormalizedNextHops(state, match->getForwardInfo()),
+          resolveClient);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          getNormalizedNextHops(state, match->getForwardInfo()));
+          getNormalizedNextHops(state, match->getForwardInfo()),
+          resolveClient);
     }
   }
 }
@@ -3136,12 +3149,18 @@ void ThriftHandler::getMplsRouteDetails(
     MplsLabel topLabel) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   const auto entry =
-      sw_->getState()->getLabelForwardingInformationBase()->getNode(topLabel);
+      state->getLabelForwardingInformationBase()->getNode(topLabel);
+  ClientNextHopsResolver resolveClient =
+      [&state](const RouteNextHopEntry& entry) {
+        return getClientNextHops(state, entry);
+      };
   mplsRouteDetail.topLabel() = entry->getID();
-  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
+  mplsRouteDetail.nextHopMulti() =
+      entry->getEntryForClients().toThriftLegacy(std::nullopt, resolveClient);
   const auto& fwd = entry->getForwardInfo();
-  for (const auto& nh : fwd.getNextHopSet()) {
+  for (const auto& nh : getNextHops(state, fwd)) {
     mplsRouteDetail.nextHops()->push_back(nh.toThrift());
   }
   *mplsRouteDetail.adminDistance() = fwd.getAdminDistance();

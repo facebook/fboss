@@ -245,9 +245,15 @@ TEST_F(RouteTest, routeApi) {
   auto testRouteApi = [&](auto route) {
     EXPECT_TRUE(std::make_shared<RouteV6>(route.toThrift())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
+    // Locally built route with no IDs allocated, so read inline explicitly.
+    ClientNextHopsResolver readInline = [](const RouteNextHopEntry& entry) {
+      return entry.getNextHopSet();
+    };
     EXPECT_EQ(
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()),
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()));
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline),
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline));
     EXPECT_EQ(route.str(), route.str());
     EXPECT_EQ(route.flags(), 0);
     EXPECT_FALSE(route.isResolved());
