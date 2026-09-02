@@ -381,6 +381,15 @@ echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
 
 # 7. Enable systemd services
 echo "Enabling FBOSS systemd services..."
+# Ships in sai-runtime.rpm (npu_sai component). The vendor spec is meant to
+# enable it from %post, but not every SDK drop does -- 14.2.0 carries no
+# scriptlets at all -- so enable it here as well. systemctl enable is
+# idempotent, so this is harmless when the RPM does self-enable.
+# The unit runs Before=sysinit.target, putting the BDE kmods and /dev nodes in
+# place before platform_manager and the agents. Absent for manifests with an
+# empty npu_sai (e.g. kernel_only.json), hence the guard.
+systemctl enable sai-device-nodes.service ||
+  echo "WARNING: sai-device-nodes.service not present; SAI kmods will not be loaded at boot"
 systemctl enable fboss_init.service
 systemctl enable local_rpm_repo.service
 systemctl enable platform_manager.service
