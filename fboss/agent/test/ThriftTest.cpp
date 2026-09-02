@@ -34,12 +34,14 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_bool(resolve_nexthops_from_id);
 DECLARE_int32(hwswitch_query_timeout);
 
 using namespace facebook::fboss;
@@ -2310,6 +2312,52 @@ TEST_F(ThriftTest, getRouteDetails) {
   EXPECT_EQ(10, routeDetails.size());
 }
 
+// Covers the resolver being threaded through the route-details thrift APIs
+// backing `fboss2 show route details`. Two clients, so resolving one through
+// another's entry would be caught.
+TEST_F(ThriftTestWithNhopIdMgr, routeDetailsResolveClientNextHops) {
+  // Pinned: other tests leave the flag false without restoring it.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_resolve_nexthops_from_id = true;
+
+  ThriftHandler handler(sw_);
+  constexpr int32_t kClientA = 10;
+  constexpr int32_t kClientB = 11;
+  const std::string kNhopA = "2401:db00:2110:3001::1";
+  const std::string kNhopB = "2401:db00:2110:3001::2";
+  const std::set<std::string> expectedA{kNhopA};
+  const std::set<std::string> expectedB{kNhopB};
+
+  handler.addUnicastRoute(kClientA, makeUnicastRoute("aaaa::/64", kNhopA));
+  handler.addUnicastRoute(kClientB, makeUnicastRoute("aaaa::/64", kNhopB));
+
+  std::vector<RouteDetails> all;
+  handler.getRouteTableDetails(all);
+  bool found = false;
+  for (const auto& rd : all) {
+    if (*rd.dest()->prefixLength() != 64 ||
+        facebook::network::toIPAddress(*rd.dest()->ip()).str() != "aaaa::") {
+      continue;
+    }
+    EXPECT_EQ(clientNextHops(rd, kClientA), expectedA);
+    EXPECT_EQ(clientNextHops(rd, kClientB), expectedB);
+    found = true;
+  }
+  EXPECT_TRUE(found) << "aaaa::/64 missing from route table details";
+
+  RouteDetails single;
+  handler.getIpRouteDetails(
+      single,
+      std::make_unique<facebook::network::thrift::Address>(
+          facebook::network::toAddress(IPAddress("aaaa::1"))),
+      0);
+  EXPECT_EQ(clientNextHops(single, kClientA), expectedA);
+  EXPECT_EQ(clientNextHops(single, kClientB), expectedB);
+}
+
 TEST_F(ThriftTest, getRouteTableSize) {
   ThriftHandler handler(sw_);
   auto [expectedV4, expectedV6] = getRouteCount(sw_->getState());
@@ -2370,6 +2418,30 @@ TEST_F(ThriftTest, addMplsRoutesRejectsSrv6SegmentList) {
   validRoutes->emplace_back(*validRoute);
   EXPECT_NO_THROW(handler.addMplsRoutes(
       static_cast<int16_t>(ClientID::BGPD), std::move(validRoutes)));
+}
+
+// Label-route IDs reach SwitchState via the same FibInfo id-map sync as
+// v4/v6, so the state-side resolver can resolve them.
+TEST_F(ThriftTestWithNhopIdMgr, mplsRouteDetailsResolveClientNextHops) {
+  // Pinned: other tests leave the flag false without restoring it.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_resolve_nexthops_from_id = true;
+
+  ThriftHandler handler(sw_);
+  constexpr int32_t kClient = static_cast<int32_t>(ClientID::BGPD);
+  const std::string kNhop = "10.0.0.2";
+  const std::set<std::string> expected{kNhop};
+
+  auto routes = std::make_unique<std::vector<MplsRoute>>();
+  routes->emplace_back(*makeMplsRoute(101, kNhop));
+  handler.addMplsRoutes(kClient, std::move(routes));
+
+  MplsRouteDetails details;
+  handler.getMplsRouteDetails(details, 101);
+  EXPECT_EQ(clientNextHops(details, kClient), expected);
 }
 
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
