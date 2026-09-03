@@ -56,7 +56,8 @@ SaiAclTableManager::SaiAclTableManager(
           platform->getAsic()->isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {}
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
-    const std::shared_ptr<AclTable>& /* addedAclTable */) {
+    const std::shared_ptr<AclTable>& /* addedAclTable */,
+    const sai_acl_stage_t /* aclStage */) {
   std::vector<sai_int32_t> actionTypeList{SAI_ACL_ACTION_TYPE_PACKET_ACTION};
   return actionTypeList;
 }
