@@ -9,12 +9,16 @@
  */
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
+#include <algorithm>
 #include <iterator>
+#include <limits>
+#include <map>
 #include <numeric>
 #include "folly/IPAddress.h"
 
@@ -43,12 +47,87 @@ namespace facebook::fboss {
 
 namespace util {
 
-RouteNextHopSet toRouteNextHopSet(
+namespace {
+
+// Share a single next hop contributes when duplicates are collapsed.
+// ECMP_WEIGHT counts as one share, matching the floor
+// RouteNextHopEntry::normalizeNextHops applies.
+int64_t weightShare(const NextHopThrift& nht) {
+  return std::max<int64_t>(*nht.weight(), 1);
+}
+
+// Identity of a next hop ignoring its weight. Zeroing the weight before
+// conversion makes NextHop's operator< compare every other attribute, so this
+// stays in step with the ordering the destination flat_set uses.
+NextHop weightlessKey(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
+  auto weightless = nht;
+  weightless.weight() = ECMP_WEIGHT;
+  return fromThrift(weightless, allowV6NonLinkLocal);
+}
+
+struct CombinedNextHop {
+  NextHopThrift nextHop;
+  int64_t weight{0};
+  size_t occurrences{0};
+};
+
+std::vector<NextHopThrift> combineDuplicateNextHops(
     std::vector<NextHopThrift> const& nhs,
     bool allowV6NonLinkLocal) {
+  std::vector<CombinedNextHop> combined;
+  combined.reserve(nhs.size());
+  std::map<NextHop, size_t> keyToIndex;
+
+  for (auto const& nh : nhs) {
+    auto [it, inserted] = keyToIndex.emplace(
+        weightlessKey(nh, allowV6NonLinkLocal), combined.size());
+    if (inserted) {
+      combined.push_back(CombinedNextHop{nh, weightShare(nh), 1});
+      continue;
+    }
+    auto& seen = combined.at(it->second);
+    seen.weight += weightShare(nh);
+    ++seen.occurrences;
+  }
+
+  constexpr int64_t kMaxWeight = std::numeric_limits<int32_t>::max();
+  std::vector<NextHopThrift> deduped;
+  deduped.reserve(combined.size());
+  for (auto& entry : combined) {
+    // A next hop listed once is left alone, so it keeps ECMP_WEIGHT.
+    if (entry.occurrences > 1) {
+      if (entry.weight > kMaxWeight) {
+        throw FbossError(
+            "Combined weight ",
+            entry.weight,
+            " over ",
+            entry.occurrences,
+            " duplicate next hops to ",
+            network::toIPAddress(*entry.nextHop.address()).str(),
+            " exceeds max weight ",
+            kMaxWeight);
+      }
+      entry.nextHop.weight() = static_cast<int32_t>(entry.weight);
+    }
+    deduped.push_back(std::move(entry.nextHop));
+  }
+  return deduped;
+}
+
+} // namespace
+
+RouteNextHopSet toRouteNextHopSet(
+    std::vector<NextHopThrift> const& nhs,
+    bool allowV6NonLinkLocal,
+    bool combineDuplicateWeights) {
   RouteNextHopSet rnhs{};
   if (nhs.empty()) {
     return rnhs;
+  }
+  if (combineDuplicateWeights) {
+    return toRouteNextHopSet(
+        combineDuplicateNextHops(nhs, allowV6NonLinkLocal),
+        allowV6NonLinkLocal);
   }
   std::vector<NextHop> nexthops;
   rnhs.reserve(nhs.size());

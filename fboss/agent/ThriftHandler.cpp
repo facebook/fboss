@@ -3425,7 +3425,9 @@ void ThriftHandler::addNamedNextHopGroupsImpl(
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
-            *group.nexthops(), true /* allowV6NonLinkLocal */));
+            *group.nexthops(),
+            true /* allowV6NonLinkLocal */,
+            true /* combineDuplicateWeights */));
   }
 
   // RIB handles allocation + route reprogramming on the RIB thread.

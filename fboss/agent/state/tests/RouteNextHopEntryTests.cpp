@@ -10,6 +10,7 @@
 
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -18,6 +19,7 @@
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <vector>
 
@@ -1272,4 +1274,129 @@ TEST(RouteNextHopEntry, ClientNextHopSetIDInEquality) {
   std::optional<NextHopSetID> id8{NextHopSetID(8)};
   b.setClientNextHopSetID(id8);
   EXPECT_NE(a, b);
+}
+
+namespace {
+
+NextHopThrift makeNextHopThrift(const folly::IPAddress& addr, int32_t weight) {
+  NextHopThrift nh;
+  nh.address() = facebook::network::toBinaryAddress(addr);
+  nh.weight() = weight;
+  return nh;
+}
+
+RouteNextHopSet combineDuplicates(const std::vector<NextHopThrift>& nhts) {
+  return util::toRouteNextHopSet(
+      nhts, true /* allowV6NonLinkLocal */, true /* combineDuplicateWeights */);
+}
+
+} // namespace
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsSumsEcmpDuplicates) {
+  const RouteNextHopSet expected{UnresolvedNextHop(nextHopAddr2, 2)};
+
+  EXPECT_EQ(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+           makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT)}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsSumsDifferingWeights) {
+  const RouteNextHopSet expected{UnresolvedNextHop(nextHopAddr2, 8)};
+
+  // Without combining these are two distinct set members, since weight
+  // participates in NextHop's ordering.
+  EXPECT_EQ(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, 5),
+           makeNextHopThrift(nextHopAddr2, 3)}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsLeavesDistinctEcmpGroupAlone) {
+  const RouteNextHopSet expected{
+      UnresolvedNextHop(nextHopAddr2, ECMP_WEIGHT),
+      UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
+
+  EXPECT_EQ(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+           makeNextHopThrift(nextHopAddr3, ECMP_WEIGHT)}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsOnlyRewritesDuplicated) {
+  const RouteNextHopSet expected{
+      UnresolvedNextHop(nextHopAddr2, 2),
+      UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
+
+  EXPECT_EQ(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+           makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+           makeNextHopThrift(nextHopAddr3, ECMP_WEIGHT)}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsDistinguishesTunnelId) {
+  auto withTunnel = makeNextHopThrift(nextHopAddr2, 5);
+  withTunnel.tunnelId() = kSrv6Tunnel0;
+
+  const RouteNextHopSet expected{
+      UnresolvedNextHop(
+          nextHopAddr2,
+          5,
+          std::nullopt /*label*/,
+          std::nullopt /*disableTTLDecrement*/,
+          std::nullopt /*topologyInfo*/,
+          std::nullopt /*adjustedWeight*/,
+          {} /*srv6SegmentList*/,
+          std::nullopt /*tunnelType*/,
+          kSrv6Tunnel0),
+      UnresolvedNextHop(nextHopAddr2, 5)};
+
+  EXPECT_EQ(
+      combineDuplicates({makeNextHopThrift(nextHopAddr2, 5), withTunnel}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsThrowsOnOverflow) {
+  constexpr int32_t kNearMax = std::numeric_limits<int32_t>::max() - 1;
+
+  EXPECT_THROW(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, kNearMax),
+           makeNextHopThrift(nextHopAddr2, kNearMax)}),
+      FbossError);
+}
+
+TEST(RouteNextHopEntry, CombineDuplicateWeightsAllowsMaxWeight) {
+  constexpr int32_t kMax = std::numeric_limits<int32_t>::max();
+  const RouteNextHopSet expected{UnresolvedNextHop(nextHopAddr2, kMax)};
+
+  EXPECT_EQ(
+      combineDuplicates(
+          {makeNextHopThrift(nextHopAddr2, kMax - 1),
+           makeNextHopThrift(nextHopAddr2, 1)}),
+      expected);
+}
+
+TEST(RouteNextHopEntry, DuplicateWeightsNotCombinedByDefault) {
+  const std::vector<NextHopThrift> nhts{
+      makeNextHopThrift(nextHopAddr2, 5), makeNextHopThrift(nextHopAddr2, 3)};
+
+  // Default keeps both, since the weights make them distinct.
+  const RouteNextHopSet distinctWeights{
+      UnresolvedNextHop(nextHopAddr2, 5), UnresolvedNextHop(nextHopAddr2, 3)};
+  EXPECT_EQ(util::toRouteNextHopSet(nhts, true), distinctWeights);
+
+  // Identical entries still collapse to one, dropping the extra weight.
+  const RouteNextHopSet identical{UnresolvedNextHop(nextHopAddr2, 5)};
+  EXPECT_EQ(
+      util::toRouteNextHopSet(
+          {makeNextHopThrift(nextHopAddr2, 5),
+           makeNextHopThrift(nextHopAddr2, 5)},
+          true),
+      identical);
 }

@@ -305,10 +305,17 @@ namespace util {
 
 /**
  * Convert thrift representation of nexthops to RouteNextHops.
+ *
+ * With combineDuplicateWeights, next hops naming the same forwarding
+ * destination are collapsed into one whose weight is the sum of theirs, rather
+ * than the set silently keeping a single arbitrary one. A next hop appearing
+ * once keeps its weight verbatim, so an all-distinct ECMP group stays ECMP.
+ * Throws FbossError if a combined weight overflows the thrift i32 weight.
  */
 RouteNextHopSet toRouteNextHopSet(
     std::vector<NextHopThrift> const& nhts,
-    bool allowV6NonLinkLocal = false);
+    bool allowV6NonLinkLocal = false,
+    bool combineDuplicateWeights = false);
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
