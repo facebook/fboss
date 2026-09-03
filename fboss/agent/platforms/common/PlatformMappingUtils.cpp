@@ -10,7 +10,6 @@
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
-#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
@@ -49,7 +48,6 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
-#include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
@@ -210,18 +208,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Icecube800banwPlatformMapping>()
           : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_M4062NHP:
-    case PlatformType::PLATFORM_WEDGE800BACT:
-    case PlatformType::PLATFORM_WEDGE800BNHP:
-      // These platforms ship no compiled-in platform mapping. The mapping
-      // must be provided externally via --platform_descriptor_config_path or
-      // --platform_mapping_override_path.
-      throw FbossError(
-          "Platform ",
-          apache::thrift::util::enumNameSafe(type),
-          " requires an external platform mapping; ",
-          "set --platform_descriptor_config_path or ",
-          "--platform_mapping_override_path");
     case PlatformType::PLATFORM_ICETEA800BC:
       return platformMappingStr.empty()
           ? std::make_unique<Icetea800bcPlatformMapping>()
@@ -230,11 +216,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Tahansb800bcPlatformMapping>()
           : std::make_unique<Tahansb800bcPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_WEDGE800CACT:
-    case PlatformType::PLATFORM_WEDGE800CNHP:
-      return platformMappingStr.empty()
-          ? std::make_unique<Wedge800CACTPlatformMapping>()
-          : std::make_unique<Wedge800CACTPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_M5120CSC:
       return platformMappingStr.empty()
           ? std::make_unique<M5120CSCPlatformMapping>()
@@ -283,7 +264,15 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_M4061CLSC:
     case PlatformType::PLATFORM_UNKNOWN:
       throw FbossError("Unsupported platform type");
+    default:
+      if (!platformMappingStr.empty()) {
+        return std::make_unique<PlatformMapping>(platformMappingStr);
+      }
+      throw FbossError(
+          "all newer platforms than wedge800 no longer ship a compiled-in "
+          "platform mapping. The mapping must be provided externally via "
+          "--platform_descriptor_config_path or "
+          "--platform_mapping_override_path.");
   }
-  return nullptr;
 }
 } // namespace facebook::fboss::utility
