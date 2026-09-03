@@ -138,7 +138,7 @@ Below are the command line arguments that are relevant to this script.
 | --fboss-root (required) | Path to the `fboss/` source directory. The helper supplies `fboss` when it is run from the repository root. |
 | --platform-name (required)  | Platform name that each CSV file has as prefix (e.g. montblanc in `montblanc_static_mapping.csv`).   |
 | --input-dir | Platform config root containing vendor and platform directories (default: `FBOSS_ROOT/configs/platforms/`). |
-| --output-dir  | Directory to write platform mapping config (default: `FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings/`).   |
+| --output-dir  | Optional common directory for generated platform mappings. When omitted, output is written beside the inputs under `platform_mapping/generated/`. |
 | --multi-npu  | Generates multi-NPU platform mapping config (default: `False`).   |
 
 
@@ -156,13 +156,13 @@ files are inherited from the base platform. Each input directory uses the base
 - `PLATFORM_platform_descriptor.csv` (for config-driven platform detection)
 
 Internal platform mapping inputs are kept under
-`platforms/<vendor>/<platform>/facebook/platform_mapping/`.
+`platforms/<vendor>/<platform>/facebook/platform_mapping/`, with generated
+artifacts under its `generated/` subdirectory.
 
 #### Generated Output
 
-When a `PLATFORM_platform_descriptor.csv` is present, the tool emits two files into a
-vendor-scoped, self-describing directory
-`generated_platform_mappings/<system_vendor>/<platform_name>/`:
+When a `PLATFORM_platform_descriptor.csv` is present, the tool emits two files
+beside the inputs in `platform_mapping/generated/`:
 
 - `platform_mapping.json` — the platform mapping described above.
 - `platform_descriptor.json` — the platform identity (`platformType`, `productNamePrefixes`,
@@ -173,7 +173,14 @@ vendor-scoped, self-describing directory
 chip type is `NPU` in the static mapping. Core and lane entries belonging to the
 same physical ASIC do not increase the count.
 
-The `<system_vendor>` segment comes from the `System_Vendor` column of the descriptor CSV.
+Variant output is similarly written under
+`variants/<variant>/platform_mapping/generated/`. When `--output-dir` is
+provided, all mappings use the aggregate
+`<output-dir>/<vendor>/<platform-or-variant>/platform_mapping.json`
+layout.
+
+Generated mappings for internal platform inputs are colocated under the same
+`platforms/<vendor>/<platform>/facebook/platform_mapping/` path.
 
 
 ### Validating Platform Mapping JSON

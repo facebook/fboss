@@ -36,7 +36,8 @@ Follow [Platform Mapping Config Generation](https://facebook.github.io/fboss/doc
 In addition to the existing CSVs, provide a `PLATFORM_platform_descriptor.csv` describing the
 platform identity (system vendor, `PlatformType`, product-name prefixes, mode names, and ASIC
 type). The generator writes **both** `platform_mapping.json` and `platform_descriptor.json`
-into `fboss/lib/platform_mapping_v2/generated_platform_mappings/<system_vendor>/<platform_name>/`.
+beside the platform inputs in
+`fboss/configs/platforms/<vendor>/<platform>/platform_mapping/generated/`.
 
 ### 3. Deploy the descriptor tree and run with the flag
 

@@ -23,9 +23,6 @@ set(
 file(COPY "fboss/configs/platforms" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/fboss/configs")
 message(STATUS "Copying platform configs to: ${CMAKE_CURRENT_BINARY_DIR}/fboss/configs")
 
-file(COPY "fboss/lib/platform_mapping_v2/generated_platform_mappings" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2")
-message(STATUS "Copying generated files to: ${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2")
-
 add_fb_thrift_python_executable(
     platform_mapping_gen_no_regression_test
     MAIN_MODULE fboss.lib.platform_mapping_v2.test.verify_generated_files:run_tests

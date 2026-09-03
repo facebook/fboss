@@ -23,9 +23,8 @@ PlatformDescriptorData = tuple[str, dict[str, Any]]
 
 @dataclass(frozen=True)
 class PlatformMappingPaths:
-    fboss_root: str
     input_dir: str
-    output_dir: str
+    output_dir: Optional[str]
 
     @classmethod
     def from_root(
@@ -40,14 +39,8 @@ class PlatformMappingPaths:
             return os.path.abspath(os.path.expanduser(path))
 
         return cls(
-            fboss_root=root,
             input_dir=resolve(input_dir or os.path.join(root, "configs", "platforms")),
-            output_dir=resolve(
-                output_dir
-                or os.path.join(
-                    root, "lib", "platform_mapping_v2", "generated_platform_mappings"
-                )
-            ),
+            output_dir=resolve(output_dir) if output_dir else None,
         )
 
 
@@ -114,7 +107,7 @@ def _dump(
     return json.dumps(obj)
 
 
-def get_command_line_args() -> tuple[str, str, str, bool]:
+def get_command_line_args() -> tuple[str, Optional[str], str, bool]:
     parser = argparse.ArgumentParser(description="OSS platform mapping generation.")
     parser.add_argument(
         "--fboss-root",
@@ -141,8 +134,8 @@ def get_command_line_args() -> tuple[str, str, str, bool]:
         default=None,
         required=False,
         help=(
-            "Path to the output directory for JSON. When omitted, uses "
-            "FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings."
+            "Path to a common output directory for JSON. When omitted, writes "
+            "each platform's output to its platform_mapping/generated directory."
         ),
     )
     parser.add_argument(
@@ -165,7 +158,10 @@ def get_command_line_args() -> tuple[str, str, str, bool]:
 
 
 def generate_platform_mappings(
-    input_dir: str, output_dir: str, platform_name: str, is_multi_npu: bool
+    input_dir: str,
+    output_dir: Optional[str],
+    platform_name: str,
+    is_multi_npu: bool,
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
@@ -177,7 +173,7 @@ def generate_platform_mappings(
 
 def generate_platform_mappings_from_vendor_data(
     vendor_data_map: PlatformMappingInputs,
-    output_dir: str,
+    output_dir: Optional[str],
     platform_name: str,
     is_multi_npu: bool,
 ) -> None:
@@ -189,19 +185,16 @@ def generate_platform_mappings_from_vendor_data(
     generator = PlatformMappingV2(vendor_data_map, platform_name, is_multi_npu)
     platform_mapping = generator.get_platform_mapping()
 
-    output_dir = os.path.expanduser(output_dir)
     platform_descriptor_data = get_platform_descriptor_data(
         vendor_data_map, platform_name
     )
-    if platform_descriptor_data is not None:
-        system_vendor, _ = platform_descriptor_data
-        output_dir = f"{output_dir}/{system_vendor}/{platform_name}"
-        output_file = f"{output_dir}/platform_mapping.json"
-    else:
-        platform_file_name = f"{platform_name}_platform_mapping" + (
-            "_is_multi_npu" if is_multi_npu else ""
-        )
-        output_file = f"{output_dir}/{platform_file_name}.json"
+    output_dir = get_platform_mapping_output_dir(
+        vendor_data_map,
+        platform_name,
+        output_dir,
+        platform_descriptor_data,
+    )
+    output_file = os.path.join(output_dir, "platform_mapping.json")
 
     os.makedirs(output_dir, exist_ok=True)
     platform_mapping_serialized = serialize(platform_mapping, protocol=Protocol.JSON)
@@ -227,6 +220,24 @@ def generate_platform_mappings_from_vendor_data(
         generator.get_num_switch_asics(),
         platform_descriptor_data,
     )
+
+
+def get_platform_mapping_output_dir(
+    vendor_data_map: PlatformMappingInputs,
+    platform_name: str,
+    output_root: Optional[str],
+    platform_descriptor_data: Optional[PlatformDescriptorData] = None,
+) -> str:
+    if output_root is None:
+        return os.path.join(vendor_data_map[platform_name].input_dir, "generated")
+
+    output_dir = os.path.expanduser(output_root)
+    vendor = (
+        platform_descriptor_data[0]
+        if platform_descriptor_data is not None
+        else vendor_data_map[platform_name].vendor
+    )
+    return os.path.join(output_dir, vendor, platform_name)
 
 
 def _get_raw_platform_mapping_family(platform_name: str) -> Optional[tuple[str, ...]]:

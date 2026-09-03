@@ -6,7 +6,7 @@ platform" onboarding path (`--platform_descriptor_config_path`), replacing the
 manual per-platform agent C++.
 
 Generator: `buck2 run @//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen`
-Output:    `generated_platform_mappings/nexthop/m4062nhp/{platform_mapping.json,platform_descriptor.json}`
+Output:    `generated/{platform_mapping.json,platform_descriptor.json}`
 
 ## File status
 
@@ -32,14 +32,13 @@ the descriptor lets the agent detect M4062NHP and build `GenericSaiBcmPlatform`.
 - `test/verify_generated_files.py` `_OSS_MULTI_NPU_SUPPORTED_PLATFORMS[False]`
 - `facebook/gen.py` `_MULTI_NPU_SUPPORTED_PLATFORMS[False]`
 
-so the checked-in `generated_platform_mappings/nexthop/m4062nhp/` JSONs stay in
-sync with CI.
+so the checked-in `generated/` JSONs stay in sync with CI.
 
 ## Remaining steps once vendor data lands
 
 1. Fill the HEADER-ONLY CSVs above with Nexthop hardware data.
 2. Re-run the generator:
    `buck2 run @//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen`
-   and commit the regenerated `nexthop/m4062nhp/` JSONs.
+   and commit the regenerated `generated/` JSONs.
 3. Package the descriptor tree into the agent (and optionally qsfp/led) fbpkg so
    it is present at the `--platform_descriptor_config_path` root at runtime.
