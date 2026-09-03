@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -577,6 +578,8 @@ void SaiPortManager::attributesFromSaiStore(
 #endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::IngressAcl{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   getAndSetAttribute(
       port->attributes(),
@@ -602,6 +605,24 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::FabricSystemPort{});
   }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // LLR is programmed by programLlr(), not attributesFromSwPort(), which leaves
+  // all three nullopt. Without carrying them over, setObject() below overwrites
+  // the cached values with nullopt -- harmless in hardware, since
+  // setAttributeInHardware() ignores a nullopt, but it leaves programLlr()
+  // comparing every attribute against nullopt and so re-driving the whole
+  // disable/bind/enable sequence on a port whose LLR never changed.
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeLocal{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeRemote{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::LlrProfile{});
 #endif
 }
 
@@ -1089,6 +1110,36 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     vlanIdAttr.reset();
   }
 
+  // 1. table name set and programmed  -> that table's object id
+  // 2. table name set, not programmed -> unset. Ports are programmed before ACL
+  //    tables, so setIngressAcl() binds this later, after the ACL delta.
+  // 3. no table name, port bound      -> SAI_NULL_OBJECT_ID. Unset would not
+  //    unbind: setObject() skips the hardware write for an unset optional but
+  //    still drops the value from the store, leaving the port bound.
+  // 4. no table name, port unbound    -> unset, nothing to say.
+  // Only for a port that already exists. A new port has no handle;
+  // setIngressAcl() binds it later, once the ACL tables exist.
+  std::optional<SaiPortTraits::Attributes::IngressAcl> ingressAcl;
+  if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    if (const auto aclTableName = swPort->getIngressAclTableName()) {
+      if (const auto* aclTableHandle =
+              managerTable_->aclTableManager().getAclTableHandle(
+                  *aclTableName)) {
+        ingressAcl = SaiPortTraits::Attributes::IngressAcl{
+            aclTableHandle->aclTable->adapterKey()};
+      }
+    } else if (std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+                   portHandle->port->attributes())) {
+      ingressAcl = SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID};
+    }
+  }
+  XLOGF(
+      DBG2,
+      "Port {} ingress ACL table {} resolved to {}",
+      swPort->getID(),
+      swPort->getIngressAclTableName().value_or("none"),
+      ingressAcl);
+
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
       getPortTypeFromCfg(swPort->getPortType()),
@@ -1196,7 +1247,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
-      std::nullopt, // Ingress ACL
+      ingressAcl,
       metadata,
   };
 }
@@ -1245,11 +1296,8 @@ void SaiPortManager::programLlr(
   if (!wantLlr && !portHandle->llrProfile) {
     return;
   }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeLocal{false});
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{false});
 
+  std::shared_ptr<SaiPortLlrProfile> profile;
   if (wantLlr) {
     const auto& cfg = llrConfig.value();
     SaiPortLlrProfileTraits::CreateAttributes attributes{
@@ -1275,15 +1323,43 @@ void SaiPortManager::programLlr(
             static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
     auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
     SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
+    // Resolve the profile first. On warm boot this reclaims the object the
+    // store loaded from hardware rather than creating one, and claims its warm
+    // boot handle so it is not swept as unreferenced. The attributes match, so
+    // no SAI write is issued.
+    profile = store.setObject(key, attributes);
+
+    // If the port is already bound to exactly this profile, LLR is running with
+    // this config and there is nothing to do. That is the warm boot case: the
+    // ASIC kept forwarding, the session with the link partner is live, and the
+    // sequence below would tear it down and rebuild it -- LlrModeLocal{false}
+    // stops acknowledging the partner, and LlrModeRemote is a one-shot that
+    // re-fires LLR_INIT rather than a persistent enable (CS00012475411).
+    const auto& bound =
+        std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
+            portHandle->port->attributes());
+    if (bound.has_value() && bound->value() == profile->adapterKey()) {
+      portHandle->llrProfile = std::move(profile);
+      return;
+    }
+  }
+
+  // Disable both modes before (re)configuring, so the profile is bound while
+  // LLR is not actively transmitting (SDK config-before-enable ordering).
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeLocal{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+
+  if (wantLlr) {
     // Bind the port to the new profile before releasing the old handle: on a
     // live reconfiguration (content change => new key) the assignment below
     // drops the last reference to the old profile and removes it from HW, so
     // the port must already reference the new profile to avoid pointing at a
     // removed OID during the swap.
-    auto newLlrProfile = store.setObject(key, attributes);
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::LlrProfile{newLlrProfile->adapterKey()});
-    portHandle->llrProfile = std::move(newLlrProfile);
+        SaiPortTraits::Attributes::LlrProfile{profile->adapterKey()});
+    portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
     portHandle->port->setOptionalAttribute(

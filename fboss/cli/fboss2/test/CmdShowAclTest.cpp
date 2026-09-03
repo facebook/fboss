@@ -35,6 +35,7 @@ std::vector<facebook::fboss::AclEntryThrift> createAclEntries(
       aclTableName, "_cpuPolicing-high-slow-protocols-mac");
   aclEntry3.priority() = 14;
   aclEntry3.dstMac() = "01:80:c2:00:00:02";
+  aclEntry3.lookupClassPort() = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
   aclEntry3.actionType() = "permit";
 
   return {aclEntry1, aclEntry2, aclEntry3};
@@ -119,6 +120,7 @@ Acl: aclTable1_cpuPolicing-high-BGPDstPort-dstLocalIp4
 Acl: aclTable1_cpuPolicing-high-slow-protocols-mac
    priority: 14
    dst mac: 01:80:c2:00:00:02
+   lookup class port: Restricted
    action: permit
 
 ACL Table Name: aclTable2
@@ -134,6 +136,7 @@ Acl: aclTable2_cpuPolicing-high-BGPDstPort-dstLocalIp4
 Acl: aclTable2_cpuPolicing-high-slow-protocols-mac
    priority: 14
    dst mac: 01:80:c2:00:00:02
+   lookup class port: Restricted
    action: permit
 
 )";

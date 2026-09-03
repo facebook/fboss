@@ -10,6 +10,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:fboss-error",
         "//fboss/cli/fboss2:cli-parser-utils",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-gen-lib",

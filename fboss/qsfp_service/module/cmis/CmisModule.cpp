@@ -146,6 +146,9 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::MODULE_CONTROL, {CmisPages::LOWER, 26, 1}},
     {CmisField::FIRMWARE_REVISION, {CmisPages::LOWER, 39, 2}},
     {CmisField::FEC_SAMPLING_PCT, {CmisPages::LOWER, 65, 1}},
+    {CmisField::CUSTOM_FLAGS, {CmisPages::LOWER, 67, 1}},
+    {CmisField::DSP_TEMP_MARGIN, {CmisPages::LOWER, 68, 1}},
+    {CmisField::LASER_TEMP_MARGIN, {CmisPages::LOWER, 69, 1}},
     {CmisField::MAX_BANK_CAPACITY, {CmisPages::LOWER, 70, 1}},
     {CmisField::MEDIA_TYPE_ENCODINGS, {CmisPages::LOWER, 85, 1}},
     {CmisField::APPLICATION_ADVERTISING1, {CmisPages::LOWER, 86, 4}},
@@ -178,6 +181,7 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::RX_SIG_INT_CONT_AD, {CmisPages::PAGE01, 162, 1}},
     {CmisField::CDB_SUPPORT, {CmisPages::PAGE01, 163, 1}},
     {CmisField::MEDIA_LANE_ASSIGNMENT, {CmisPages::PAGE01, 176, 15}},
+    {CmisField::SUPPORTED_CUSTOM_FEATURES, {CmisPages::PAGE01, 191, 1}},
     {CmisField::DSP_FW_VERSION, {CmisPages::PAGE01, 194, 2}},
     {CmisField::BUILD_REVISION, {CmisPages::PAGE01, 196, 2}},
     {CmisField::APPLICATION_ADVERTISING2, {CmisPages::PAGE01, 223, 4}},
@@ -371,6 +375,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 14h
     {CmisField::PAGE_UPPER14H, {CmisPages::PAGE14, 128, 128}},
     {CmisField::DIAG_SEL, {CmisPages::PAGE14, 128, 1}},
+    {CmisField::HOST_MODE_MISMATCH, {CmisPages::PAGE14, 130, 1}},
+    {CmisField::MEDIA_MODE_MISMATCH, {CmisPages::PAGE14, 131, 1}},
     {CmisField::HOST_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 136, 1}},
     {CmisField::MEDIA_LANE_GENERATOR_LOL_LATCH, {CmisPages::PAGE14, 137, 1}},
     {CmisField::HOST_LANE_CHECKER_LOL_LATCH, {CmisPages::PAGE14, 138, 1}},
@@ -1002,7 +1008,64 @@ ModuleStatus CmisModule::getModuleStatus() {
       moduleStateFromStatusByte(getSettingsValue(CmisField::MODULE_STATE));
   moduleStatus.fwStatus() = getFwStatus();
   moduleStatus.cmisStateChanged() = getModuleStateChanged();
+  setCustomLatchedFlags(moduleStatus);
   return moduleStatus;
+}
+
+/*
+ * Byte 67 is CMIS Custom space, so only report the flags a module has
+ * explicitly advertised in Page 01h Byte 191; anything else there belongs to
+ * some other vendor's feature. The flags are read-to-clear, and the lower page
+ * is re-read on every refresh, so each value covers the interval since the
+ * previous refresh.
+ */
+void CmisModule::setCustomLatchedFlags(ModuleStatus& moduleStatus) {
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return;
+  }
+
+  const uint8_t data = getSettingsValue(CmisField::CUSTOM_FLAGS);
+  if (*diagsCapability->modeMismatchFlag()) {
+    moduleStatus.modeMismatchFlag() =
+        (data & FieldMasks::MODE_MISMATCH_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->dspTempMargin()) {
+    moduleStatus.dspTempNegativeMarginFlag() =
+        (data & FieldMasks::DSP_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    moduleStatus.laserTempNegativeMarginFlag() =
+        (data & FieldMasks::LASER_TEMP_NEGATIVE_MARGIN_FLAG_MASK) != 0;
+  }
+}
+
+/*
+ * Bytes 68-69 hold S8 margins in quarter-degree Celsius steps. Decode to whole
+ * degrees so consumers don't need to know the register scaling.
+ */
+ThermalMargins CmisModule::getThermalMargins() {
+  ThermalMargins margins;
+  const auto diagsCapability = getDiagsCapability();
+  if (!diagsCapability.has_value()) {
+    return margins;
+  }
+
+  constexpr double kQuarterDegreeC = 0.25;
+  if (*diagsCapability->dspTempMargin()) {
+    margins.dspTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::DSP_TEMP_MARGIN));
+  }
+  if (*diagsCapability->laserTempMargin()) {
+    margins.laserTempMargin = kQuarterDegreeC *
+        static_cast<int8_t>(getSettingsValue(CmisField::LASER_TEMP_MARGIN));
+  }
+  return margins;
+}
+
+bool CmisModule::isModeMismatchSupported() const {
+  const auto diagsCapability = getDiagsCapability();
+  return diagsCapability.has_value() && *diagsCapability->modeMismatchFlag();
 }
 
 /*
@@ -1608,11 +1671,19 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].rxLos() = getLaneFlagSet(CmisField::RX_LOS_FLAG, lane);
     signals[lane].rxLol() = getLaneFlagSet(CmisField::RX_LOL_FLAG, lane);
     signals[lane].txFault() = getLaneFlagSet(CmisField::TX_FAULT_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::MEDIA_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -1628,6 +1699,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     return false;
   }
 
+  // Hoisted: getDiagsCapability() copies the whole DiagsCapability under a
+  // lock, so it must not be called per lane.
+  const bool modeMismatchSupported = isModeMismatchSupported();
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() =
@@ -1637,6 +1712,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     signals[lane].txLol() = getLaneFlagSet(CmisField::TX_LOL_FLAG, lane);
     signals[lane].txAdaptEqFault() =
         getLaneFlagSet(CmisField::TX_EQ_FLAG, lane);
+    if (modeMismatchSupported) {
+      signals[lane].modeMismatch() =
+          getLaneFlagSet(CmisField::HOST_MODE_MISMATCH, lane);
+    }
   }
 
   return true;
@@ -4592,11 +4671,37 @@ void CmisModule::setDiagsCapability() {
         vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
+      setCustomFeatureCapability(diags);
+
       *diagsCapability = diags;
     }
   }
   // Scan and update the VDM diags locations
   updateVdmDiagsValLocation();
+}
+
+/*
+ * The mode mismatch and thermal margin registers live in CMIS Custom space
+ * (Lower Memory bytes 64-84, Page 01h bytes 191-222), which carries no
+ * standard meaning. Only modules built to the Meta FW spec populate them, and
+ * that spec mandates CMIS >= 5.1 -- so require that revision before trusting
+ * byte 191, otherwise an unrelated vendor's custom data could be read as an
+ * advertisement.
+ */
+void CmisModule::setCustomFeatureCapability(DiagsCapability& diags) {
+  const auto [major, minor] = getCmisRevision();
+  if (major < 5 || (major == 5 && minor < 1)) {
+    return;
+  }
+
+  uint8_t data;
+  readFromCacheOrHw(CmisField::SUPPORTED_CUSTOM_FEATURES, &data);
+  diags.modeMismatchFlag() =
+      (data & FieldMasks::MODE_MISMATCH_SUPPORT_MASK) != 0;
+  diags.dspTempMargin() =
+      (data & FieldMasks::DSP_TEMP_MARGIN_SUPPORT_MASK) != 0;
+  diags.laserTempMargin() =
+      (data & FieldMasks::LASER_TEMP_MARGIN_SUPPORT_MASK) != 0;
 }
 
 /*
@@ -5336,16 +5441,19 @@ bool CmisModule::dataPathProgram(
             CmisLaneState>{CmisLaneState::ACTIVATED, CmisLaneState::DATAPATH_INITIALIZED}
       : std::vector<CmisLaneState>{CmisLaneState::DEACTIVATED};
 
-  // Wait for operation to complete, retry every 500ms, up to 20 loops
-  const auto kMaxRetries =
-      (kUsecDatapathStateUpdateTime) / (kUsecDatapathStatePollTime);
-  int retryCount = 0;
-  while (!isDatapathUpdated(hostLaneMask, targetStates, bank) &&
-         retryCount < kMaxRetries) {
-    /* sleep override */
-    usleep(kUsecDatapathStatePollTime);
-    retryCount++;
-  }
+  // Give the operation a single poll interval to progress, then check once. We
+  // do not block for the whole datapath time here: dataPathProgram is called
+  // repeatedly (the transceiver state machine re-fires programming each
+  // refresh, and HAL tests poll), progStartTimer persists in
+  // portDatapathStates_ so each call resumes without re-triggering the
+  // datapath, and expectedDelayUsec above is the cumulative deadline across
+  // those attempts. A datapath that needs longer than this single poll is
+  // simply confirmed on a later refresh, once the hardware has finished -- the
+  // programming itself still completes in the hardware's own time. Polling only
+  // briefly keeps the module lock from being held for long on a slow (e.g. ZR)
+  // optic.
+  /* sleep override */
+  usleep(kUsecDatapathStatePollTime);
 
   if (isDatapathUpdated(hostLaneMask, targetStates, bank)) {
     // Mark operation as done

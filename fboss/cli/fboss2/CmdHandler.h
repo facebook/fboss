@@ -134,6 +134,22 @@ inline constexpr bool kHasCliDocs =
      detail::HasClassCliDescription<Cmd>::value) &&
     detail::HasCliSampleModel<Cmd>::value;
 
+// Enforced at the commandHandler<T>() bind point (forward-declared in
+// CmdList.h): every read ("show") command must carry the CLI reference-wiki
+// hooks unless explicitly grandfathered with CliDocsExempt. No-op for write
+// commands.
+template <typename T>
+void assertReadCommandDocumented() {
+  if constexpr (
+      T::Traits::CLI_READ_WRITE_MODE == CliReadWriteMode::CLI_MODE_READ) {
+    static_assert(
+        kHasCliDocs<T> || std::is_base_of_v<CliDocsExempt, typename T::Traits>,
+        "fboss2 'show' command is missing CLI reference-wiki hooks: add a "
+        "description() to its Traits and a static sampleModel() to the command "
+        "class, or tag its Traits with CliDocsExempt to defer.");
+  }
+}
+
 template <typename CmdTypeT, typename CmdTypeTraits>
 class CmdHandler {
   static_assert(

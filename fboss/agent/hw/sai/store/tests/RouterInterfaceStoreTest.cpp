@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/LoggingUtil.h"
@@ -44,6 +45,13 @@ class RouterInterfaceStoreTest : public SaiStoreTest {
     return saiApiTable->routerInterfaceApi()
         .create<SaiPortRouterInterfaceTraits>(
             {0, SAI_ROUTER_INTERFACE_TYPE_PORT, portId, mac, mtu}, 0);
+  }
+
+  LagSaiId createLag(const std::string& label) {
+    std::array<char, 32> labelValue{};
+    std::copy(label.begin(), label.end(), labelValue.data());
+    return saiApiTable->lagApi().create<SaiLagTraits>(
+        SaiLagTraits::CreateAttributes{labelValue, std::nullopt}, 0);
   }
 
   RouterInterfaceSaiId createMplsRouterInterface() {
@@ -334,4 +342,88 @@ TEST_F(RouterInterfaceStoreTest, toStrTest) {
   verifyToStr<SaiPortRouterInterfaceTraits>();
   std::ignore = createMplsRouterInterface();
   verifyToStr<SaiMplsRouterInterfaceTraits>();
+}
+
+/*
+ * SAI has no LAG specific router interface type: a router interface over an
+ * aggregate port is a SAI_ROUTER_INTERFACE_TYPE_PORT whose PortId attribute
+ * holds a LAG object id rather than a port object id. These tests pin that
+ * down, so that reusing SaiPortRouterInterfaceTraits for both stays correct.
+ *
+ * The alternative, a fourth traits type also keyed on
+ * SAI_ROUTER_INTERFACE_TYPE_PORT, would break warm boot: SaiObjectStore::reload
+ * picks objects by their type attribute, so both stores would claim the same
+ * router interfaces and refOrInsert would fatal on the duplicate.
+ */
+TEST_F(RouterInterfaceStoreTest, loadLagRouterInterface) {
+  auto srcMac = folly::MacAddress{"41:41:41:41:41:41"};
+  auto lagSaiId = createLag("lag0");
+  auto lagRouterInterfaceSaiId =
+      createPortRouterInterface(lagSaiId, srcMac, 9000);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiPortRouterInterfaceTraits>();
+
+  SaiPortRouterInterfaceTraits::AdapterHostKey k{0, lagSaiId};
+  auto got = store.get(k);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), lagRouterInterfaceSaiId);
+  EXPECT_EQ(GET_ATTR(PortRouterInterface, PortId, got->attributes()), lagSaiId);
+}
+
+TEST_F(RouterInterfaceStoreTest, portAndLagRouterInterfacesCoexist) {
+  auto srcMac1 = folly::MacAddress{"41:41:41:41:41:41"};
+  auto srcMac2 = folly::MacAddress{"42:42:42:42:42:42"};
+  auto lagSaiId = createLag("lag0");
+  // A port object id and a LAG object id are drawn from disjoint spaces, so
+  // {VirtualRouterId, PortId} stays unique across the two flavours.
+  sai_object_id_t portSaiId = 41;
+  ASSERT_NE(static_cast<sai_object_id_t>(lagSaiId), portSaiId);
+
+  auto portRifSaiId = createPortRouterInterface(portSaiId, srcMac1, 1514);
+  auto lagRifSaiId = createPortRouterInterface(lagSaiId, srcMac2, 9000);
+  EXPECT_NE(portRifSaiId, lagRifSaiId);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiPortRouterInterfaceTraits>();
+
+  // Both are claimed by the same store, as distinct objects.
+  auto gotPort =
+      store.get(SaiPortRouterInterfaceTraits::AdapterHostKey{0, portSaiId});
+  auto gotLag =
+      store.get(SaiPortRouterInterfaceTraits::AdapterHostKey{0, lagSaiId});
+  ASSERT_NE(gotPort, nullptr);
+  ASSERT_NE(gotLag, nullptr);
+  EXPECT_EQ(gotPort->adapterKey(), portRifSaiId);
+  EXPECT_EQ(gotLag->adapterKey(), lagRifSaiId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(PortRouterInterface, Mtu, gotPort->attributes()), 1514);
+  EXPECT_EQ(GET_OPT_ATTR(PortRouterInterface, Mtu, gotLag->attributes()), 9000);
+}
+
+TEST_F(RouterInterfaceStoreTest, lagRouterInterfaceSetMtu) {
+  auto srcMac = folly::MacAddress{"41:41:41:41:41:41"};
+  auto lagSaiId = createLag("lag0");
+  std::ignore = createPortRouterInterface(lagSaiId, srcMac, 1514);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiPortRouterInterfaceTraits>();
+
+  SaiPortRouterInterfaceTraits::AdapterHostKey k{0, lagSaiId};
+  SaiPortRouterInterfaceTraits::CreateAttributes newAttrs{
+      0, SAI_ROUTER_INTERFACE_TYPE_PORT, lagSaiId, srcMac, 9000};
+  auto obj = store.setObject(k, newAttrs);
+  EXPECT_EQ(GET_OPT_ATTR(PortRouterInterface, Mtu, obj->attributes()), 9000);
+  EXPECT_EQ(GET_ATTR(PortRouterInterface, PortId, obj->attributes()), lagSaiId);
+}
+
+TEST_F(RouterInterfaceStoreTest, lagRouterInterfaceSerDeser) {
+  auto lagSaiId = createLag("lag0");
+  auto lagRouterInterfaceSaiId = createPortRouterInterface(
+      lagSaiId, folly::MacAddress{"41:41:41:41:41:41"}, 9000);
+  verifyAdapterKeySerDeser<SaiPortRouterInterfaceTraits>(
+      {lagRouterInterfaceSaiId});
 }

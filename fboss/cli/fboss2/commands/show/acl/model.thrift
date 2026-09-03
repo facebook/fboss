@@ -28,4 +28,7 @@ struct AclEntry {
   19: optional i32 srcIpPrefixLength;
   20: optional string dstIp;
   21: optional i32 dstIpPrefixLength;
+  // Ingress port class ID this entry matches on, rendered for display.
+  // Unset when the entry does not qualify on the ingress port class ID.
+  22: optional string lookupClassPort;
 }

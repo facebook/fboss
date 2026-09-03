@@ -581,6 +581,11 @@ class HwAsic {
     // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
     // only; the counters are collected via fillInSupportedVendorExtStats().
     SLL_HLL_DISCARD_COUNTERS,
+    // Active HW drop reasons via read only SAI switch extension attributes
+    // (SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST / _EGRESS_LIST).
+    // Each attribute returns the drop reasons seen since the last read, which
+    // is cleared on read. Counterpart to SWITCH_CUSTOM_DROP_BITMAP_SUPPORT.
+    SWITCH_DROP_REASON_LIST_SUPPORT,
   };
 
   enum class AsicMode {

@@ -252,6 +252,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:

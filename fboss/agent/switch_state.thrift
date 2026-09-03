@@ -559,7 +559,10 @@ struct SwitchSettingsFields {
   // ECMP width for this switch, sourced from cfg.SwitchSettings.ecmpWidth
   // (FLAGS_ecmp_width fallback during migration).
   62: optional i32 ecmpWidth;
-  63: optional bool l3EcmpIngressPortPrune;
+  63: map<
+    switch_config.EcmpGroupType,
+    switch_config.EcmpGroupSettings
+  > ecmpGroupSettings;
 }
 
 struct RoutePrefix {

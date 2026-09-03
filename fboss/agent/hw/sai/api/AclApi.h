@@ -831,8 +831,11 @@ struct SaiAclCounterTraits {
 
     using CounterPackets =
         SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_PACKETS, sai_uint64_t>;
-    using CounterBytes =
-        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_BYTES, sai_uint64_t>;
+    using CounterBytes = SaiAttribute<
+        EnumType,
+        SAI_ACL_COUNTER_ATTR_BYTES,
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
   };
 
   using AdapterKey = AclCounterSaiId;

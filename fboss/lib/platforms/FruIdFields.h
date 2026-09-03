@@ -18,6 +18,8 @@ constexpr auto kPcbMfg = "PCB Manufacturer";
 constexpr auto kProdName = "Product Name";
 constexpr auto kProdVersion = "Product Version";
 constexpr auto kProductionState = "Product Production State";
+// EEPROM V6 renamed this field.
+constexpr auto kProductionStateV6 = "Production State";
 constexpr auto kProdPartNum = "Product Part Number";
 constexpr auto kSerialNum = "Product Serial Number";
 constexpr auto kSubVersion = "Product Sub-Version";

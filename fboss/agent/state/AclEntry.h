@@ -546,4 +546,15 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
   friend class CloneAllocator;
 };
 
+/*
+ * True when the two entries differ only in their counter action. An entry
+ * whose remaining action fields are all unset is treated the same as one with
+ * no action at all, so attaching a counter to a previously action-less entry
+ * also qualifies. Returns false when the counters are identical -- "nothing
+ * changed" is not "only the counter changed".
+ */
+bool onlyCounterChanged(
+    const std::shared_ptr<AclEntry>& oldAclEntry,
+    const std::shared_ptr<AclEntry>& newAclEntry);
+
 } // namespace facebook::fboss

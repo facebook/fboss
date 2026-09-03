@@ -791,9 +791,7 @@ struct TBgpAttributes {
   7: optional bool install_to_fib;
 }
 
-/**
-* Direction filter for attribute statistics
-*/
+/** Direction filter for BGP statistics. */
 enum TDirectionFilter {
   INGRESS = 0,
   EGRESS = 1,
@@ -978,6 +976,19 @@ struct TAdjRibInStats {
 
 struct TAdjRibOutStats {
   1: list<TAdjRibOutPeerStats> peers;
+}
+
+struct TGetAdjRibStatsRequest {
+  1: TDirectionFilter direction = TDirectionFilter.BOTH;
+}
+
+/**
+ * O(peers) Adj-RIB statistics with no route-scale tree walk.
+ * Peer snapshots have no ordering guarantee.
+ */
+struct TGetAdjRibStatsResponse {
+  1: TAdjRibInStats rib_in;
+  2: TAdjRibOutStats rib_out;
 }
 
 /**
@@ -1662,33 +1673,6 @@ service TBgpService extends fb303.FacebookService {
   > getPrefilterAdvertisedNetworks2(1: string peer);
 
   /**
-   * Routes we receive from peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preIn routes of the peer and displays the
-   * postIn output if the policy is applied.
-   * i.e. Determine the effect of policy without effecting the running state.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
-
-  /**
-   * Routes we sent to a peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preOut routes of the peer and displays the
-   * postOut output if the policy is applied.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
-
-  /**
    * Get post-policy network information for stream subscribers
    *
    * @param peerID - integer ID of BGP stream subscriber
@@ -2163,6 +2147,12 @@ service TBgpService extends fb303.FacebookService {
   TGetDeduplicatorStatsResponse getDeduplicatorStats(
     1: TGetDeduplicatorStatsRequest request,
   );
+
+  /**
+   * Get cached per-peer Adj-RIB-IN and effective Adj-RIB-OUT statistics without
+   * traversing a radix tree.
+   */
+  TGetAdjRibStatsResponse getAdjRibStats(1: TGetAdjRibStatsRequest request);
 
   /**
    * Deprecated wire-compatibility placeholder. Returns an empty response

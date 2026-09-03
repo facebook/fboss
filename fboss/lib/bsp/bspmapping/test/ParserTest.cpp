@@ -74,6 +74,10 @@ TEST(ParserTest, GetNameForTests) {
       "wedge800cact");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800CNHP),
+      "wedge800cnhp");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS),
       "ladakh800bcls");
   EXPECT_EQ(

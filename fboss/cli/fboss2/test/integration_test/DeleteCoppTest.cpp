@@ -5,7 +5,7 @@
  *
  * Covers the delete side of control-plane policing config:
  *
- *   - cpu-queue <id> — deletes the whole sw.cpuQueues[] entry.
+ *   - queue <id> — deletes the whole sw.cpuQueues[] entry.
  *   - reason <reason-name> — deletes the
  *     sw.cpuTrafficPolicy.rxReasonToQueueOrderedList[] entry.
  *
@@ -25,6 +25,7 @@
 #include <optional>
 #include <string>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
 
@@ -42,7 +43,7 @@ class DeleteCoppTest : public Fboss2IntegrationTest {
   // Find the cpuQueues entry with the given id, or return a null dynamic. A
   // config with no cpuQueues at all reads as "not found" rather than an error,
   // so the tests still run on a DUT that has never had a CoPP config.
-  folly::dynamic findCpuQueue(int id) const {
+  folly::dynamic findQueue(int id) const {
     auto config = getRunningConfig();
     const auto& sw = config["sw"];
     if (!sw.count("cpuQueues") || !sw["cpuQueues"].isArray()) {
@@ -56,11 +57,32 @@ class DeleteCoppTest : public Fboss2IntegrationTest {
     return {nullptr};
   }
 
+  // The stream type to create a scratch queue with: `config copp queue`
+  // requires one, and the value is per-platform (XGS ships MULTICAST,
+  // Jericho/Chenab UNICAST). Follow the box's existing cpu queues, falling
+  // back to MULTICAST on a config that carries none.
+  std::string scratchStreamType() const {
+    auto config = getRunningConfig();
+    const auto& sw = config["sw"];
+    if (sw.count("cpuQueues") && sw["cpuQueues"].isArray() &&
+        !sw["cpuQueues"].empty()) {
+      const auto& queue = sw["cpuQueues"][0];
+      if (queue.count("streamType")) {
+        const auto& streamType = queue["streamType"];
+        return streamType.isInt()
+            ? apache::thrift::util::enumNameSafe(
+                  static_cast<cfg::StreamType>(streamType.asInt()))
+            : streamType.asString();
+      }
+    }
+    return "MULTICAST";
+  }
+
   // Return the smallest queue id in [0, 9] that has no cpuQueues entry, or
   // std::nullopt when the range is fully populated.
   std::optional<int> findUnusedQueueId() const {
     for (int id = 0; id <= 9; ++id) {
-      if (findCpuQueue(id).isNull()) {
+      if (findQueue(id).isNull()) {
         return id;
       }
     }
@@ -118,21 +140,22 @@ TEST_F(DeleteCoppTest, DeleteWholeCpuQueue) {
          "platform we ship configures far fewer than 10 CPU queues";
   const auto id = std::to_string(*unusedId);
 
-  XLOG(INFO) << "Creating scratch cpu-queue " << id;
-  auto result = runCli({"config", "copp", "cpu-queue", id});
+  XLOG(INFO) << "Creating scratch queue " << id;
+  auto result = runCli(
+      {"config", "copp", "queue", id, "stream-type", scratchStreamType()});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   commitConfig();
-  ASSERT_FALSE(findCpuQueue(*unusedId).isNull());
+  ASSERT_FALSE(findQueue(*unusedId).isNull());
 
-  XLOG(INFO) << "Deleting cpu-queue " << id;
-  result = runCli({"delete", "copp", "cpu-queue", id});
+  XLOG(INFO) << "Deleting queue " << id;
+  result = runCli({"delete", "copp", "queue", id});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
-  EXPECT_THAT(result.stdout, HasSubstr("Deleted cpu-queue " + id));
+  EXPECT_THAT(result.stdout, HasSubstr("Deleted queue " + id));
   commitConfig();
 
-  EXPECT_TRUE(findCpuQueue(*unusedId).isNull());
+  EXPECT_TRUE(findQueue(*unusedId).isNull());
 }
 
 // Program an rxReason mapping the running config does not carry, delete it,
@@ -149,9 +172,10 @@ TEST_F(DeleteCoppTest, DeleteReasonMapping) {
       << "No unused cpu queue id in [0, 9] to point the mapping at";
   const auto queueId = std::to_string(*unusedId);
 
-  XLOG(INFO) << "Mapping reason " << reason->name << " -> scratch cpu-queue "
+  XLOG(INFO) << "Mapping reason " << reason->name << " -> scratch queue "
              << queueId;
-  auto result = runCli({"config", "copp", "cpu-queue", queueId});
+  auto result = runCli(
+      {"config", "copp", "queue", queueId, "stream-type", scratchStreamType()});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   result = runCli({"config", "copp", "reason", reason->name, "queue", queueId});
@@ -169,10 +193,10 @@ TEST_F(DeleteCoppTest, DeleteReasonMapping) {
 
   EXPECT_FALSE(findReasonQueueId(reason->id).has_value());
 
-  XLOG(INFO) << "Removing scratch cpu-queue " << queueId;
-  result = runCli({"delete", "copp", "cpu-queue", queueId});
+  XLOG(INFO) << "Removing scratch queue " << queueId;
+  result = runCli({"delete", "copp", "queue", queueId});
   ASSERT_EQ(result.exitCode, 0)
       << "stdout=" << result.stdout << " stderr=" << result.stderr;
   commitConfig();
-  EXPECT_TRUE(findCpuQueue(*unusedId).isNull());
+  EXPECT_TRUE(findQueue(*unusedId).isNull());
 }

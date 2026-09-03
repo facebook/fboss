@@ -180,6 +180,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_fb303counters_model
+  fboss/cli/fboss2/commands/show/fb303counters/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_hwagent_status_model
   fboss/cli/fboss2/commands/show/hwagent/model.thrift
   OPTIONS
@@ -402,13 +409,18 @@ target_link_libraries(fboss2_config_file_utils
 )
 
 add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
 )
 
 target_link_libraries(fboss2_config_gen_lib
   agent_config_cpp2
+  fboss_error
   fboss2_config_file_utils
+  Folly::folly
+  split_platform_mapping_utils
 )
 
 add_library(fboss2_lib
@@ -523,6 +535,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/host/CmdShowHost.cpp
   fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h
   fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.cpp
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.h
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.cpp
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
@@ -679,7 +693,6 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
-  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h
   fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h
@@ -796,6 +809,7 @@ target_link_libraries(fboss2_lib
   show_systemport_model
   show_cpuport_model
   show_teflow_model
+  show_fb303counters_model
   show_hwagent_status_model
   show_interface_counters_fec_ber
   show_interface_counters_fec_histogram
@@ -803,6 +817,7 @@ target_link_libraries(fboss2_lib
   show_fabric_topology_model
   show_rif
   show_interface_counters_fec_uncorrectable
+  thrift_service_client
   ${RE2}
 )
 
@@ -1020,8 +1035,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
-  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.cpp
-  fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.h
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
   fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
   fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.cpp
@@ -1133,8 +1148,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
   fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.cpp
   fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h
-  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.cpp
-  fboss/cli/fboss2/commands/delete/copp/cpu_queue/CmdDeleteCoppCpuQueue.h
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.cpp
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
   fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp

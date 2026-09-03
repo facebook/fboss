@@ -25,7 +25,7 @@ namespace facebook::fboss {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
     const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
-    std::optional<bool> l3EcmpIngressPortPrune) {
+    std::optional<bool> splitHorizonEnabled) {
   auto switchingMode = flowletSwitchConfig->getSwitchingMode();
   auto idleTime = flowletSwitchConfig->getInactivityIntervalUsecs();
   auto maxFlows = flowletSwitchConfig->getFlowletTableSize();
@@ -59,7 +59,7 @@ void SaiArsManager::addArs(
           alternatePathCostForArs,
           alternatePathBiasForArs,
           nextHopGroupType,
-          toSourcePortPruneAttribute(l3EcmpIngressPortPrune)));
+          toSourcePortPruneAttribute(splitHorizonEnabled)));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();
@@ -110,6 +110,8 @@ void SaiArsManager::addArs(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
     std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
         virtualArsQualityThreshold = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::EcmpMemberCount> ecmpMemberCount =
+        std::nullopt;
 #if defined(BRCM_SAI_SDK_GTE_15_4)
     virtualArsQualityThreshold =
         SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
@@ -118,6 +120,11 @@ void SaiArsManager::addArs(
       virtualArsQualityThreshold =
           SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
               static_cast<sai_uint32_t>(*threshold)};
+    }
+    if (auto width = flowletSwitchConfig->getMaxArsVirtualGroupWidth();
+        width && *width > 0) {
+      ecmpMemberCount = SaiArsTraits::Attributes::EcmpMemberCount{
+          static_cast<sai_uint32_t>(*width)};
     }
 #endif
     setArsObject(
@@ -131,7 +138,8 @@ void SaiArsManager::addArs(
             std::nullopt,
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
-            std::nullopt));
+            std::nullopt,
+            ecmpMemberCount));
   }
 #endif
 }

@@ -100,6 +100,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
       return true;
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::DEDICATED_CPU_BUFFER_POOL:

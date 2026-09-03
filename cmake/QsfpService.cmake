@@ -5,20 +5,24 @@
 
 add_library(qsfp_stats
   fboss/qsfp_service/StatsPublisher.h
-  fboss/qsfp_service/oss/StatsPublisher.cpp
+  fboss/qsfp_service/StatsPublisher.cpp
+  fboss/qsfp_service/StatsPublisherHelper.h
+  fboss/qsfp_service/StatsPublisherHelper.cpp
 )
 
 target_link_libraries(qsfp_stats
   fboss_types
   transceiver_cpp2
   transceiver_manager
+  phy_management_base
+  port_manager
   Folly::folly
+  fb303::fb303
 )
 
 add_library(qsfp_lib
   fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
-  fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 

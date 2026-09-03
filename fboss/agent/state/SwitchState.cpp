@@ -232,6 +232,16 @@ SwitchState::getAclTableGroups() const {
   return safe_cref<switch_state_tags::aclTableGroupMaps>();
 }
 
+void SwitchState::resetPortAclTableGroups(
+    std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups) {
+  ref<switch_state_tags::portAclTableGroupMaps>() = portAclTableGroups;
+}
+
+const std::shared_ptr<MultiSwitchAclTableGroupMap>&
+SwitchState::getPortAclTableGroups() const {
+  return safe_cref<switch_state_tags::portAclTableGroupMaps>();
+}
+
 void SwitchState::resetAggregatePorts(
     std::shared_ptr<MultiSwitchAggregatePortMap> aggPorts) {
   ref<switch_state_tags::aggregatePortMaps>() = aggPorts;
@@ -440,15 +450,28 @@ std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
   return nullptr;
 }
 
+std::shared_ptr<const AclTable> SwitchState::getAclTable(
+    cfg::AclStage aclStage,
+    const std::string& tableName) const {
+  if (auto aclTableMap = getAclTablesForStage(aclStage)) {
+    if (auto aclTable = aclTableMap->getTableIf(tableName)) {
+      return aclTable;
+    }
+  }
+  if (auto aclTableGroup = getPortAclTableGroups()->getNodeIf(aclStage)) {
+    if (auto aclTableMap = aclTableGroup->getAclTableMap()) {
+      return aclTableMap->getTableIf(tableName);
+    }
+  }
+  return nullptr;
+}
+
 std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
     cfg::AclStage aclStage,
     const std::string& tableName) const {
-  auto aclTableMap = getAclTablesForStage(aclStage);
-
-  if (aclTableMap && aclTableMap->getTableIf(tableName)) {
-    return aclTableMap->getTable(tableName)->getAclMap().unwrap();
+  if (auto aclTable = getAclTable(aclStage, tableName)) {
+    return aclTable->getAclMap().unwrap();
   }
-
   return nullptr;
 }
 
@@ -630,8 +653,18 @@ SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
 }
 
-std::optional<bool> SwitchState::getL3EcmpIngressPortPrune() const {
-  return getFirstSwitchSettingsOrDefault(*this)->getL3EcmpIngressPortPrune();
+EcmpGroupSettingsMap SwitchState::getEcmpGroupSettings() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getEcmpGroupSettings();
+}
+
+std::optional<bool> SwitchState::getSplitHorizonEnabled(
+    cfg::EcmpGroupType type) const {
+  auto settings = getEcmpGroupSettings();
+  auto it = settings.find(type);
+  if (it == settings.end()) {
+    return std::nullopt;
+  }
+  return *it->second.enableSplitHorizon();
 }
 
 void SwitchState::revertNewTeFlowEntry(

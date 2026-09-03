@@ -9,18 +9,19 @@
  */
 #pragma once
 
-#include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/CmdLocalOptions.h"
-
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 
 namespace facebook::fboss {
 
 inline constexpr std::string_view kConfigGenAgentCommand = "config_gen_agent";
 inline const std::string kConfigGenAgentPlatform = "--platform";
 inline const std::string kConfigGenAgentProfile = "--profile";
+inline const std::string kConfigGenAgentFbossRoot = "--fboss-root";
 inline const std::string kConfigGenAgentOutputDirectory = "--output-dir";
 
 struct CmdConfigGenAgentTraits : public WriteCommandTraits {
@@ -29,8 +30,9 @@ struct CmdConfigGenAgentTraits : public WriteCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = std::string;
   std::vector<utils::LocalOption> LocalOptions = {
-      {kConfigGenAgentPlatform, "Target platform", "wedge800bact"},
-      {kConfigGenAgentProfile, "Configuration profile", "hw-test"},
+      {kConfigGenAgentPlatform, "Target platform [required]"},
+      {kConfigGenAgentProfile, "ASIC configuration profile [default: default]"},
+      {kConfigGenAgentFbossRoot, "Path to the fboss source root [required]"},
       {kConfigGenAgentOutputDirectory,
        "Directory in which to create agent.conf"},
   };
@@ -46,7 +48,10 @@ class CmdConfigGenAgent
  public:
   using RetType = CmdConfigGenAgentTraits::RetType;
 
+  // Reads the command options and returns the path of the generated agent.conf.
   RetType queryClient(const HostInfo& hostInfo);
+
+  // Prints the generated configuration path for the caller.
   void printOutput(const RetType& outputPath);
 };
 

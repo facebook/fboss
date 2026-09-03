@@ -1107,6 +1107,16 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
   return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeIngressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeEgressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
@@ -1144,6 +1154,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
 }
@@ -1166,6 +1181,11 @@ SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
 std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
   return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
 }
 #endif
 

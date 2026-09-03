@@ -10,6 +10,7 @@ add_library(radix_tree
 
 target_link_libraries(radix_tree
   Folly::folly
+  glog::glog
 )
 
 add_library(log_thrift_call
@@ -28,6 +29,7 @@ add_library(alert_logger
 
 target_link_libraries(alert_logger
   Folly::folly
+  fmt::fmt
 )
 
 add_library(ref_map
@@ -48,6 +50,7 @@ add_library(exponential_back_off
 
 target_link_libraries(exponential_back_off
   Folly::folly
+  glog::glog
 )
 
 add_library(function_call_time_reporter

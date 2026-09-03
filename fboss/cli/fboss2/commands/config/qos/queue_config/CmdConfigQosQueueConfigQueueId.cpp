@@ -18,7 +18,7 @@
 #include <iostream>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/cli/fboss2/commands/config/qos/PortQueueConfigUtils.h"
+#include "fboss/cli/fboss2/commands/config/QueueConfigUtils.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -34,10 +34,6 @@ CmdConfigQosQueueConfigQueueId::queryClient(
   auto& agentConfig = session.getAgentConfig();
   auto& switchConfig = *agentConfig.sw();
 
-  // `default` targets SwitchConfig::defaultPortQueues, any other name a
-  // SwitchConfig::portQueueConfigs entry. Both hold a list<PortQueue> that the
-  // agent funnels through the same ThriftConfigApplier::updatePortQueues path,
-  // so everything below this line is identical for the two.
   auto& configList = utils::queueConfigListForWrite(switchConfig, name);
   int16_t queueIdVal = config.getQueueId();
 
@@ -62,9 +58,6 @@ CmdConfigQosQueueConfigQueueId::queryClient(
   utils::applyPortQueueConfig(
       work, config.getAttributes(), config.getAqmAttributes());
 
-  // `existing` stays valid across applyPortQueueConfig: it only mutates `work`,
-  // and the push_back that could reallocate configList runs only when there is
-  // no existing entry to point at.
   if (existing != nullptr) {
     *existing = work;
   } else {

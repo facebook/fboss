@@ -722,6 +722,26 @@ class CmisModule : public QsfpModule {
 
   virtual void setDiagsCapability() override;
 
+  /*
+   * Populate the Meta custom feature bits (mode mismatch, DSP/laser thermal
+   * margin) advertised in Page 01h Byte 191.
+   */
+  void setCustomFeatureCapability(DiagsCapability& diags);
+
+  /*
+   * Populate the Meta custom latched flags (mode mismatch, negative DSP/laser
+   * thermal margin) from Lower Memory Byte 67.
+   */
+  void setCustomLatchedFlags(ModuleStatus& moduleStatus);
+
+  /*
+   * Whether the module advertises the Meta mode-mismatch feature, which gates
+   * both the Byte 67 latched flag and the per-lane Page 14h registers.
+   */
+  bool isModeMismatchSupported() const;
+
+  ThermalMargins getThermalMargins() override;
+
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() override;

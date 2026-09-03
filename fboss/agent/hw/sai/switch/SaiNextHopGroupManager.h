@@ -276,10 +276,10 @@ struct SaiNextHopGroupHandle {
   bool fixedWidthMode{false};
   bool bulkCreate{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
-  uint32_t maxVariableWidthEcmpSize;
+  uint32_t maxVariableWidthEcmpSize{0};
   std::optional<cfg::SwitchingMode> desiredEcmpSwitchingMode_;
-  SaiStore* saiStore_;
-  const SaiPlatform* platform_;
+  SaiStore* saiStore_{nullptr};
+  const SaiPlatform* platform_{nullptr};
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -310,6 +310,16 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const SaiNextHopGroupKey& key);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  // MONITORED_OBJECT for a PROTECTION group's PRIMARY member: the SAI id of
+  // the egress port/LAG its neighbor resolves out of. nullopt when the ASIC
+  // infers it itself. Throws when the ASIC needs the attribute but the egress
+  // object cannot be derived -- without it the ASIC would never fail over.
+  std::optional<SaiNextHopGroupMemberTraits::Attributes::MonitoredObject>
+  getMonitoredObjectIf(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry) const;
+#endif
+
   const SaiNextHopGroupHandle* getNextHopGroup(
       const SaiNextHopGroupKey& key) const;
 
@@ -333,6 +343,8 @@ class SaiNextHopGroupManager {
 
   void setMinWidthForArsVirtualGroup(
       std::optional<int32_t> minWidthForArsVirtualGroup);
+
+  void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings);
 
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
@@ -360,6 +372,7 @@ class SaiNextHopGroupManager {
       nextHopGroupMembers_;
   std::optional<cfg::SwitchingMode> primaryArsMode_;
   std::optional<int32_t> minWidthForArsVirtualGroup_;
+  EcmpGroupSettingsMap ecmpGroupSettings_;
 };
 
 } // namespace facebook::fboss

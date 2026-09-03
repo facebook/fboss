@@ -544,10 +544,13 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     return nextHop;
   };
 
-  auto routeIntfMatches = [](const auto& routeTable,
-                             const folly::CIDRNetwork& network,
-                             InterfaceID intfID) -> std::optional<bool> {
-    auto check = [&intfID](const auto& rib, const auto& addr, uint8_t mask) {
+  auto routeIntfMatches =
+      [](const auto& routeTable,
+         const folly::CIDRNetwork& network,
+         InterfaceID intfID,
+         const NextHopIDManager* nextHopIDManager) -> std::optional<bool> {
+    auto check = [&intfID, nextHopIDManager](
+                     const auto& rib, const auto& addr, uint8_t mask) {
       auto it = rib.exactMatch(addr, mask);
       if (it == rib.end()) {
         return std::optional<bool>{};
@@ -557,7 +560,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
       if (!entry) {
         return std::optional<bool>{};
       }
-      const auto& nhops = entry->getNextHopSet();
+      // Per-client entry: resolve via clientNextHopSetID, not inline.
+      const auto nhops = getClientNextHopsFromRib(nextHopIDManager, *entry);
       if (nhops.empty()) {
         return std::optional<bool>{};
       }
@@ -591,8 +595,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
                 // Remote interface route deletion is guarded by the
                 // originating interface to avoid removing a prefix that was
                 // already replaced by another remote interface update.
-                auto intfMatches =
-                    routeIntfMatches(routeTable, network, intfID);
+                auto intfMatches = routeIntfMatches(
+                    routeTable, network, intfID, nextHopIDManager);
                 if (!intfMatches.has_value()) {
                   continue;
                 }
@@ -1490,12 +1494,19 @@ std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
     const auto it =
         synchronizedRouteTables.routerIDToRouteTable.find(RouterID(0));
     if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
+      auto* manager = synchronizedRouteTables.nextHopIDManager.get();
+      ClientNextHopsResolver resolveClient =
+          [manager](const RouteNextHopEntry& entry) {
+            return getClientNextHopsFromRib(manager, entry);
+          };
       for (auto rit = it->second.labelToRoute.begin();
            rit != it->second.labelToRoute.end();
            ++rit) {
         MplsRouteDetails mplsRouteDetail;
         auto routeDetails = rit->second->toRouteDetails(
-            rit->second->getForwardInfo().getNextHopSet());
+            getResolvedNextHopsFromRib(manager, rit->second->getForwardInfo()),
+            std::nullopt,
+            resolveClient);
         mplsRouteDetail.topLabel() = rit->first;
         mplsRouteDetail.nextHopMulti() = *routeDetails.nextHopMulti();
         mplsRouteDetail.nextHops() = *routeDetails.nextHops();
@@ -1516,19 +1527,27 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     const auto it = synchronizedRouteTables.routerIDToRouteTable.find(rid);
     if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
       auto* manager = synchronizedRouteTables.nextHopIDManager.get();
+      // Per-client entries carry only clientNextHopSetID; resolve them through
+      // the manager rather than inline.
+      ClientNextHopsResolver resolveClient =
+          [manager](const RouteNextHopEntry& entry) {
+            return getClientNextHopsFromRib(manager, entry);
+          };
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(
-            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
-                manager, rit->value()->getForwardInfo())));
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            getResolvedNextHopsFromRib(manager, rit->value()->getForwardInfo()),
+            std::nullopt,
+            resolveClient));
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(
-            rit->value()->toRouteDetails(getResolvedNextHopsFromRib(
-                manager, rit->value()->getForwardInfo())));
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            getResolvedNextHopsFromRib(manager, rit->value()->getForwardInfo()),
+            std::nullopt,
+            resolveClient));
       }
     }
   });

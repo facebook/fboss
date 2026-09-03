@@ -1,5 +1,24 @@
 {
   "fwConfigs": {
+    "cpu_cpld": {
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmarconi_cpu_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/CPU_FPGA_INFO_ROM/fw_ver"
+      },
+      "priority": 2
+    },
     "smb_fpga": {
       "upgrade": [
         {

@@ -27,6 +27,7 @@ sai_status_t create_next_hop_group_fn(
   sai_object_id_t ars_id = SAI_NULL_OBJECT_ID;
   sai_int32_t hash_algorithm = SAI_HASH_ALGORITHM_NONE;
   bool hierarchical_nexthop = true;
+  std::optional<bool> split_horizon_enable;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_GROUP_ATTR_TYPE:
@@ -40,6 +41,9 @@ sai_status_t create_next_hop_group_fn(
         break;
       case SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP:
         hierarchical_nexthop = attr_list[i].value.booldata;
+        break;
+      case SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE:
+        split_horizon_enable = attr_list[i].value.booldata;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -57,7 +61,11 @@ sai_status_t create_next_hop_group_fn(
       return SAI_STATUS_INVALID_PARAMETER;
   }
   *next_hop_group_id = fs->nextHopGroupManager.create(
-      type.value(), ars_id, hash_algorithm, hierarchical_nexthop);
+      type.value(),
+      ars_id,
+      hash_algorithm,
+      hierarchical_nexthop,
+      split_horizon_enable);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -87,6 +95,10 @@ sai_status_t get_next_hop_group_attribute_fn(
       case SAI_NEXT_HOP_GROUP_ATTR_HIERARCHICAL_NEXTHOP:
         attr[i].value.booldata = nextHopGroup.hierarchical_nexthop;
         break;
+      case SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE:
+        attr[i].value.booldata =
+            nextHopGroup.split_horizon_enable.value_or(false);
+        break;
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =
             fs->nextHopGroupManager.get(next_hop_group_id).fm().map();
@@ -115,6 +127,9 @@ sai_status_t set_next_hop_group_attribute_fn(
   switch (attr->id) {
     case SAI_NEXT_HOP_GROUP_ATTR_ARS_OBJECT_ID:
       nextHopGroup.ars_id = attr->value.oid;
+      break;
+    case SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE:
+      nextHopGroup.split_horizon_enable = attr->value.booldata;
       break;
     default:
       return SAI_STATUS_NOT_SUPPORTED;

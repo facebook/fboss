@@ -24,16 +24,28 @@ fbthrift
 fizz
 fmt
 folly
+googletest
 magic_enum
+openr = !default, !full, exported_libraries
 wangle
 re2
 zstd
 gcc12
 
+[cmake.defines.test=on]
+BUILD_TESTING=ON
+
+[cmake.defines.test=off]
+BUILD_TESTING=OFF
+
 [shipit.pathmap]
 fbcode/neteng/fboss/bgp/public_tld = .
 fbcode/neteng/fboss/bgp = neteng/fboss/bgp
-fbcode/fboss/common = common
+# AddressUtil is shared code, not an FBOSS package dependency. Ship only this
+# header into the OSS common/ tree so BGP keeps the same include path.
+fbcode/common/network = common/network
+fbcode/fboss/common/fb303/if = common/fb303/if
+fbcode/fboss/common/network/if = common/network/if
 # common.thrift defines the @AllowSkipThriftCow annotation whose C++ type is
 # derived from its package, so rib_policy.thrift must resolve the exact FBOSS
 # schema. A committed copy under public_tld would duplicate the configerator
@@ -41,15 +53,14 @@ fbcode/fboss/common = common
 fbcode/configerator/structs/neteng/fboss/thrift = configerator/structs/neteng/fboss/thrift
 
 [shipit.strip]
+^fbcode/common/network/(?!AddressUtil\.h$).*
+^fbcode/fboss/common/fb303/if/(?!fb303\.thrift$).*
+^fbcode/fboss/common/network/if/(?!Address\.thrift$).*
 ^fbcode/neteng/fboss/bgp/.*facebook.*
 ^fbcode/neteng/fboss/bgp/.*\.bzl
 ^fbcode/neteng/fboss/bgp/\.llms/.*
 ^fbcode/neteng/fboss/bgp/tools/.*
-^fbcode/neteng/fboss/bgp/cpp/rib/RibBB\..*
-^fbcode/neteng/fboss/bgp/cpp/nexthopTracker/NetlinkWrapper\..*
-^fbcode/neteng/fboss/bgp/cpp/common/platform/bb/.*
 ^fbcode/neteng/fboss/bgp/cpp/tests/NetlinkWrapperTest\.cpp
-^fbcode/neteng/fboss/bgp/cpp/tests/PlatformConstantBbTest\.cpp
 ^fbcode/neteng/fboss/bgp/cpp/tests/FibEbbTest\.cpp
 # Only common.thrift is needed from configerator/structs/neteng/fboss/thrift;
 # strip the unrelated schemas the pathmap above would otherwise ship.

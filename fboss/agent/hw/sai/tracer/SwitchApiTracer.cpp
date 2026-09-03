@@ -179,6 +179,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PfcMonitorEnable);
   SAI_EXT_ATTR_MAP(Switch, CablePropagationDelayMeasurement);
   SAI_EXT_ATTR_MAP(Switch, PortCl72RetryEnable);
+  SAI_EXT_ATTR_MAP(Switch, PacketDropTypeIngressList);
+  SAI_EXT_ATTR_MAP(Switch, PacketDropTypeEgressList);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif

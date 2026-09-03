@@ -2,6 +2,14 @@
 
 #include "fboss/cli/fboss2/commands/show/route/utils.h"
 
+#include <folly/Conv.h>
+#include <folly/String.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
+#include <cctype>
+#include <stdexcept>
+#include "fboss/agent/AddressUtil.h"
+
 namespace facebook::fboss::show::route::utils {
 
 using facebook::fboss::NextHopThrift;
@@ -13,6 +21,33 @@ bool isFpfEncoding(
   return encoding.has_value() &&
       encoding->getType() ==
       facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::fpf_l2_encoding;
+}
+
+ClientID parseClientId(const std::string& str) {
+  auto upper = str;
+  std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+  ClientID clientId;
+  if (apache::thrift::util::tryParseEnum(upper, &clientId)) {
+    return clientId;
+  }
+  if (!str.empty() && std::all_of(str.begin(), str.end(), [](unsigned char c) {
+        return std::isdigit(c) != 0;
+      })) {
+    return static_cast<ClientID>(folly::to<int16_t>(str));
+  }
+  std::vector<std::string> names;
+  for (auto id : apache::thrift::TEnumTraits<ClientID>::names) {
+    names.emplace_back(id);
+  }
+  throw std::invalid_argument(
+      fmt::format(
+          "Invalid --clientID '{}'. Accepted values are: {} or a numeric ClientID",
+          str,
+          folly::join(", ", names)));
+}
+
+std::string getAddressFamilyStr(const IpPrefix& dest) {
+  return facebook::network::toIPAddress(*dest.ip()).isV4() ? "ipv4" : "ipv6";
 }
 
 std::string getMplsActionCodeStr(MplsActionCode mplsActionCode) {

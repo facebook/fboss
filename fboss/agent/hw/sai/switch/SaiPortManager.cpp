@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMacsecManager.h"
@@ -1731,6 +1732,58 @@ void SaiPortManager::changePort(
     setClm(newPort->getID(), newPort->getClmEnable().value_or(false));
   }
   changePortImpl(oldPort, newPort);
+}
+
+void SaiPortManager::setIngressAcl(const std::shared_ptr<Port>& swPort) {
+  const auto ingressAclTableName = swPort->getIngressAclTableName();
+  auto* portHandle = getPortHandle(swPort->getID());
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot set ingress ACL on non-existent port ", swPort->getID());
+  }
+  const auto currentIngressAcl =
+      std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+          portHandle->port->attributes());
+  if (!ingressAclTableName) {
+    if (!currentIngressAcl ||
+        currentIngressAcl->value() == SAI_NULL_OBJECT_ID) {
+      return;
+    }
+    XLOGF(DBG2, "Unbinding {} from {}", currentIngressAcl, swPort->getID());
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+    return;
+  }
+  const auto* aclTableHandle =
+      managerTable_->aclTableManager().getAclTableHandle(*ingressAclTableName);
+  if (!aclTableHandle) {
+    throw FbossError(
+        "Cannot bind missing ingress ACL table ",
+        *ingressAclTableName,
+        " to port ",
+        swPort->getID());
+  }
+  if (currentIngressAcl &&
+      currentIngressAcl->value() == aclTableHandle->aclTable->adapterKey()) {
+    return;
+  }
+  XLOGF(
+      DBG2,
+      "Binding ingress ACL table {} to {}, was {}",
+      *ingressAclTableName,
+      swPort->getID(),
+      currentIngressAcl);
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::IngressAcl{
+          aclTableHandle->aclTable->adapterKey()});
+}
+
+void SaiPortManager::changeIngressAcl(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& newPort) {
+  // A create-only attribute change may recreate the SAI port, so reapply
+  // the ACL even when its table name is unchanged.
+  setIngressAcl(newPort);
 }
 
 void SaiPortManager::resetCableLength(PortID portId) {

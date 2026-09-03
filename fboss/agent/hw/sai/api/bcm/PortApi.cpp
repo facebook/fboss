@@ -625,8 +625,10 @@ SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+// TODO ruinanhu once SDK can properly support linkdowndebouncingtimeout add
+// attribute back
 #if defined(BRCM_SAI_SDK_GTE_15_4)
-  return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_TIMEOUT;
+  return std::nullopt;
 #else
   return std::nullopt;
 #endif

@@ -1603,6 +1603,12 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
       printf(" %-12d", *(signal.dataPathDeInit()));
     }
   }
+  if (signals[0].modeMismatch()) {
+    printf("\n    %-22s", "Mode Mismatch");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.modeMismatch()));
+    }
+  }
   if (signals[0].cmisLaneState()) {
     printf("\n    %-22s", "Lane state");
     for (const auto& signal : signals) {
@@ -1640,6 +1646,12 @@ void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
     printf("\n    %-22s", "Tx Fault");
     for (const auto& signal : signals) {
       printf(" %-12d", *(signal.txFault()));
+    }
+  }
+  if (signals[0].modeMismatch()) {
+    printf("\n    %-22s", "Mode Mismatch");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.modeMismatch()));
     }
   }
   printf("\n");
@@ -1896,6 +1908,12 @@ void printDomMonitors(const TransceiverInfo& transceiverInfo) {
   printLaneDomMonitors(*(tcvrStats.channels()));
   if (globalSensors) {
     printGlobalDomMonitors(*globalSensors);
+  }
+  if (auto dspTempMargin = tcvrStats.dspTempMargin()) {
+    printf("    DSP Temperature Margin: %.2f C\n", *dspTempMargin);
+  }
+  if (auto laserTempMargin = tcvrStats.laserTempMargin()) {
+    printf("    Laser Temperature Margin: %.2f C\n", *laserTempMargin);
   }
 }
 
@@ -2324,6 +2342,18 @@ void printCmisDetailService(
     }
     if (auto fwFault = fwStatus.fwFault()) {
       printf("  Firmware fault: 0x%x\n", *fwFault);
+    }
+  }
+
+  if (moduleStatus) {
+    if (auto modeMismatch = moduleStatus->modeMismatchFlag()) {
+      printf("  Mode Mismatch Flag: %d\n", *modeMismatch);
+    }
+    if (auto dspNegMargin = moduleStatus->dspTempNegativeMarginFlag()) {
+      printf("  DSP Temp Negative Margin Flag: %d\n", *dspNegMargin);
+    }
+    if (auto laserNegMargin = moduleStatus->laserTempNegativeMarginFlag()) {
+      printf("  Laser Temp Negative Margin Flag: %d\n", *laserNegMargin);
     }
   }
 
@@ -4191,7 +4221,7 @@ bool printDiagsInfo(folly::EventBase& evb) {
   auto returnedModulesInfo =
       fetchInfoFromQsfpService(std::vector<int32_t>{}, evb);
   printf(
-      "Mod   Diag   VDM   CDB   PRBS_Line PRBS_Sys Lpbk_Line Lpbk_Sys TxDis RxDis SNR_Line SNR_Sys\n");
+      "Mod   Diag   VDM   CDB   PRBS_Line PRBS_Sys Lpbk_Line Lpbk_Sys TxDis RxDis SNR_Line SNR_Sys ModeMismatch DSP_TempMargin Laser_TempMargin\n");
 
   for (auto& moduleInfo : returnedModulesInfo) {
     if (!moduleInfo.second.tcvrState().value().present().value()) {
@@ -4212,6 +4242,9 @@ bool printDiagsInfo(folly::EventBase& evb) {
     printf("%6s", *diagCap.rxOutputControl() ? "Y" : "N");
     printf("%7s", *diagCap.snrLine() ? "Y" : "N");
     printf("%9s", *diagCap.snrSystem() ? "Y" : "N");
+    printf("%13s", *diagCap.modeMismatchFlag() ? "Y" : "N");
+    printf("%15s", *diagCap.dspTempMargin() ? "Y" : "N");
+    printf("%17s", *diagCap.laserTempMargin() ? "Y" : "N");
     printf("\n");
   }
   return true;
@@ -4776,7 +4809,8 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
                                  .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "wedge800cact") {
+    } else if (
+        FLAGS_platform == "wedge800cact" || FLAGS_platform == "wedge800cnhp") {
       auto systemContainer = BspGenericSystemContainer<
                                  Wedge800CACTBspPlatformMapping>::getInstance()
                                  .get();
@@ -4889,7 +4923,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800CACT ||
+      mode == PlatformType::PLATFORM_WEDGE800CNHP) {
     auto systemContainer =
         BspGenericSystemContainer<Wedge800CACTBspPlatformMapping>::getInstance()
             .get();

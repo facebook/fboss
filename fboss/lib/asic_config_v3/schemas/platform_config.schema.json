@@ -52,7 +52,7 @@
                     "properties": {
                         "config_type": {
                             "type": "string",
-                            "enum": ["YAML_CONFIG", "JSON_CONFIG"],
+                            "enum": ["KEY_VALUE_CONFIG", "JSON_CONFIG", "YAML_CONFIG"],
                             "description": "Output configuration format."
                         },
                         "exact_match": {

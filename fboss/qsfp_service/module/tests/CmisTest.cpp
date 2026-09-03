@@ -1869,6 +1869,153 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerCapabilityCheck) {
   EXPECT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 }
 
+// A CMIS >= 5.1 module advertising all three Meta custom features in Page 01h
+// Byte 191 surfaces them in DiagsCapability.
+TEST_F(CmisTest, customFeatureCapabilityAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_TRUE(*diagsCap->modeMismatchFlag());
+  EXPECT_TRUE(*diagsCap->dspTempMargin());
+  EXPECT_TRUE(*diagsCap->laserTempMargin());
+}
+
+// A CMIS >= 5.1 module that leaves Page 01h Byte 191 clear advertises nothing.
+TEST_F(CmisTest, customFeatureCapabilityNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
+// A healthy advertised module reports all three latched flags clear and
+// positive thermal margins decoded from the quarter-degree S8 registers.
+TEST_F(CmisTest, customFlagsAndThermalMarginsHealthy) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), false);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), false);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), false);
+
+  // Byte 68 = 0x7f = 127 quarter-degrees, byte 69 = 0x3d = 61 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), 31.75);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), 15.25);
+}
+
+// Asserted latched flags and negative (over-temperature) margins are reported
+// as such, including the sign of the S8 decode.
+TEST_F(CmisTest, customFlagsAndThermalMarginsNegative) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), true);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), true);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), true);
+
+  // Byte 68 = 0xf8 = -8 quarter-degrees, byte 69 = 0xfc = -4 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), -2.0);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), -1.0);
+}
+
+// Page 14h Bytes 130/131 carry one mode-mismatch bit per lane, which maps onto
+// the per-lane host and media signal vectors.
+TEST_F(CmisTest, perLaneModeMismatch) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+
+  // Byte 130 = 0x05: host lanes 0 and 2.
+  std::vector<bool> expectedHost(xcvr->numHostLanes(), false);
+  expectedHost[0] = true;
+  expectedHost[2] = true;
+  std::vector<bool> actualHost;
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    actualHost.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualHost, expectedHost);
+
+  // Byte 131 = 0x01: media lane 0 only.
+  std::vector<bool> expectedMedia(xcvr->numMediaLanes(), false);
+  expectedMedia[0] = true;
+  std::vector<bool> actualMedia;
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    actualMedia.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualMedia, expectedMedia);
+}
+
+// A healthy module reports no lane mismatched.
+TEST_F(CmisTest, perLaneModeMismatchClear) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "host lane " << *signal.lane();
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "media lane " << *signal.lane();
+  }
+}
+
+// A module that doesn't advertise the custom features leaves the flags and
+// margins unset rather than reporting whatever the custom bytes happen to hold.
+TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_FALSE(status.modeMismatchFlag().has_value());
+  EXPECT_FALSE(status.dspTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(status.laserTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(info.tcvrStats()->dspTempMargin().has_value());
+  EXPECT_FALSE(info.tcvrStats()->laserTempMargin().has_value());
+
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+}
+
+// Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on
+// modules built to the spec that defines it (CMIS >= 5.1). Below that revision
+// its contents must be ignored.
+TEST_F(CmisTest, customFeatureCapabilityIgnoredBelowCmis51) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4Cmis50Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_EQ(xcvr->getCmisRevision(), std::make_pair(uint8_t(5), uint8_t(0)));
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
 TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(

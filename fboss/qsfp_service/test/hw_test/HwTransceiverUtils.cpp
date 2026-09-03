@@ -85,6 +85,17 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     auto tcvrInfoItr = tcvrInfos.find(tcvrIds[0]);
     ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
 
+    if (!TransceiverManager::opticalOrActiveCable(
+            *tcvrInfoItr->second.tcvrState())) {
+      // Passive DAC is never programmed, so its lane map is derived from the
+      // widest advertised application instead of the port's own datapath. On
+      // breakout subports that yields the module's full lane set for the first
+      // subport and an empty set for the rest.
+      XLOG(INFO) << " Skip verifying lane map: " << portName
+                 << ", for passive copper cable";
+      continue;
+    }
+
     auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();
     // Verify port exists in the map
     EXPECT_NE(hostLaneMap.find(portName), hostLaneMap.end());

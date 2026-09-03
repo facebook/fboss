@@ -10,6 +10,8 @@
 #pragma once
 
 #include <iosfwd>
+#include <map>
+#include <optional>
 
 #include <cstdint>
 #include <type_traits>
@@ -18,6 +20,14 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
+
+// Per group type ECMP settings, as carried on SwitchSettings. A group type with
+// no entry is unconfigured, which for most types means the attribute is left
+// alone rather than programmed false. An empty map is therefore the same as
+// nobody using the feature, and is the default.
+using EcmpGroupSettingsMap =
+    std::map<cfg::EcmpGroupType, cfg::EcmpGroupSettings>;
+
 template <typename>
 struct is_fboss_key_object_type {
   static constexpr bool value = false;

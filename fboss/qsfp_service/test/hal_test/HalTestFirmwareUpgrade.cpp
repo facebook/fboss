@@ -24,6 +24,15 @@ namespace facebook::fboss {
 
 namespace {
 constexpr auto kUpgradeTimeout = std::chrono::minutes(6);
+// ZR (coherent) optics carry much larger firmware images and a slower commit
+// step, so they need a bigger budget than fixed-wavelength optics.
+constexpr auto kUpgradeTimeoutZr = std::chrono::minutes(20);
+
+std::chrono::minutes upgradeTimeoutForModule(QsfpModule* module) {
+  return module->getModuleMediaInterface() == MediaInterfaceCode::ZR_800G
+      ? kUpgradeTimeoutZr
+      : kUpgradeTimeout;
+}
 
 constexpr int kInterruptNumIterations = 5;
 // Interrupt the upgrade at a random point in [min, max] seconds.
@@ -75,12 +84,15 @@ TEST_F(T0HalTest, FirmwareUpgrade) {
             ? *entry->previousFirmware()
             : currentFw;
 
+        XLOG(INFO) << "Transceiver " << tcvrId
+                   << ": ensuring previousFirmware before upgrade";
+        hal_test::upgradeFirmware(getModule(tcvrId), previousFw);
+
+        // Read after the refresh above so the media interface is populated.
+        const auto upgradeTimeout = upgradeTimeoutForModule(getModule(tcvrId));
+
         // previousFirmware -> currentFirmware
         {
-          XLOG(INFO) << "Transceiver " << tcvrId
-                     << ": ensuring previousFirmware before upgrade";
-          hal_test::upgradeFirmware(getModule(tcvrId), previousFw);
-
           auto start = std::chrono::steady_clock::now();
           XLOG(INFO) << "Transceiver " << tcvrId
                      << ": upgrading previousFirmware -> currentFirmware";
@@ -96,13 +108,13 @@ TEST_F(T0HalTest, FirmwareUpgrade) {
           oss << "Transceiver " << tcvrId
               << " firmware upgrade previousFirmware -> currentFirmware exceeded "
               << std::chrono::duration_cast<std::chrono::seconds>(
-                     kUpgradeTimeout)
+                     upgradeTimeout)
                      .count()
               << "s timeout (took "
               << std::chrono::duration_cast<std::chrono::seconds>(elapsed)
                      .count()
               << "s)";
-          HAL_CHECK(result, elapsed < kUpgradeTimeout, oss.str());
+          HAL_CHECK(result, elapsed < upgradeTimeout, oss.str());
         }
 
         // currentFirmware -> previousFirmware
@@ -126,13 +138,13 @@ TEST_F(T0HalTest, FirmwareUpgrade) {
           oss << "Transceiver " << tcvrId
               << " firmware upgrade currentFirmware -> previousFirmware exceeded "
               << std::chrono::duration_cast<std::chrono::seconds>(
-                     kUpgradeTimeout)
+                     upgradeTimeout)
                      .count()
               << "s timeout (took "
               << std::chrono::duration_cast<std::chrono::seconds>(elapsed)
                      .count()
               << "s)";
-          HAL_CHECK(result, elapsed < kUpgradeTimeout, oss.str());
+          HAL_CHECK(result, elapsed < upgradeTimeout, oss.str());
         }
       },
       [this](int tcvrId) {

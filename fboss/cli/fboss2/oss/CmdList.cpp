@@ -10,7 +10,6 @@
 #include "fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h"
 #include "fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
-#include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedDryRun.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h"
@@ -87,11 +86,7 @@ const CommandTree& kBaseAdditionalCommandTree() {
          argTypeHandler<CmdShowBgpNeighborsTraits>,
          {{"advertised",
            "Show BGP advertised routes",
-           {{"dry-run",
-             "Show BGP advertised routes (dry-run)",
-             commandHandler<BgpNeighborsAdvertisedDryRun>,
-             argTypeHandler<BgpNeighborsAdvertisedDryRunTraits>},
-            {"post-policy",
+           {{"post-policy",
              "Show BGP advertised routes (post-policy)",
              commandHandler<BgpNeighborsAdvertisedPostPolicy>,
              argTypeHandler<BgpNeighborsAdvertisedPostPolicyTraits>},

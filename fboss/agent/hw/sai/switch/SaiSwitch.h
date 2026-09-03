@@ -270,6 +270,7 @@ class SaiSwitch : public HwSwitch {
 
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
+  bool ecmpGroupSettingsChangeProhibited() const;
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfoImpl() override;
 
@@ -738,7 +739,8 @@ class SaiSwitch : public HwSwitch {
 
   /* reconstruction state apis */
   std::shared_ptr<MultiSwitchAclTableGroupMap>
-  reconstructMultiSwitchAclTableGroupMap() const;
+  reconstructMultiSwitchAclTableGroupMap(
+      cfg::AclTableGroupBindPoint bindPoint) const;
   std::shared_ptr<MultiSwitchAclMap> reconstructMultiSwitchAclMap() const;
 
   void startThreads();

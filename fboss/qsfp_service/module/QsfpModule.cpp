@@ -563,6 +563,14 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.timeCollected() = lastRefreshTime_;
     tcvrStats.timeCollected() = lastRefreshTime_;
 
+    const auto thermalMargins = getThermalMargins();
+    if (thermalMargins.dspTempMargin) {
+      tcvrStats.dspTempMargin() = *thermalMargins.dspTempMargin;
+    }
+    if (thermalMargins.laserTempMargin) {
+      tcvrStats.laserTempMargin() = *thermalMargins.laserTempMargin;
+    }
+
     tcvrStats.remediationCounter() = numRemediation_;
     tcvrState.eepromCsumValid() = verifyEepromChecksums();
     tcvrState.moduleMediaInterface() = getModuleMediaInterface();

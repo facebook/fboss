@@ -27,7 +27,8 @@ struct FakeArs {
       std::optional<sai_uint32_t> alternate_path_cost = std::nullopt,
       std::optional<sai_uint32_t> alternate_path_bias = std::nullopt,
       std::optional<sai_int32_t> next_hop_group_type = std::nullopt,
-      std::optional<bool> source_port_prune = std::nullopt)
+      std::optional<bool> source_port_prune = std::nullopt,
+      std::optional<sai_uint32_t> ecmp_member_count = std::nullopt)
       : mode(mode),
         idle_time(idle_time),
         max_flows(max_flows),
@@ -35,7 +36,8 @@ struct FakeArs {
         alternate_path_cost(alternate_path_cost),
         alternate_path_bias(alternate_path_bias),
         next_hop_group_type(next_hop_group_type),
-        source_port_prune(source_port_prune) {}
+        source_port_prune(source_port_prune),
+        ecmp_member_count(ecmp_member_count) {}
   sai_ars_mode_t mode;
   sai_uint32_t idle_time;
   sai_uint32_t max_flows;
@@ -44,6 +46,7 @@ struct FakeArs {
   std::optional<sai_uint32_t> alternate_path_bias;
   std::optional<sai_int32_t> next_hop_group_type;
   std::optional<bool> source_port_prune;
+  std::optional<sai_uint32_t> ecmp_member_count;
   sai_object_id_t id;
 };
 

@@ -136,6 +136,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::QCM:

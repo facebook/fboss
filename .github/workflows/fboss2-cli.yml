@@ -4,6 +4,7 @@ on:
   # Allow on pull request
   pull_request:
     paths:
+      - 'fboss-sim/**'
       - 'fboss/cli/**'
       - 'cmake/CliFboss2.cmake'
       - 'cmake/CliFboss2Test.cmake'
@@ -12,6 +13,16 @@ on:
       - '.github/workflows/fboss2-cli.yml'
   # Allow manually triggering the workflow
   workflow_dispatch:
+    inputs:
+      suite:
+        description: Test suite to run
+        required: true
+        default: cli
+        type: choice
+        options:
+          - cli
+          - simulator
+          - all
   # Also schedule the workflow to run every 3 hours during day only
   # ShipIt job will sync hourly around HH:21, so schedule the run with 15 minute offset
   schedule:
@@ -19,28 +30,44 @@ on:
     # Run daily at 1:36PM UTC = 6:36AM PDT
     # Run daily at 7:36PM UTC = 12:36PM PDT
     - cron: '36 1,13,19 * * *'
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   fboss2-CLI-Build:
     if: github.repository_owner == 'facebook'
     runs-on: 32-core-ubuntu
+    timeout-minutes: 120
     steps:
-      - run: echo "Confirming hardware specications:"; sudo lscpu
+      - run: echo "Confirming hardware specifications:"; sudo lscpu
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
         uses: actions/checkout@v7
-      - name: Run Docker-based build for fboss2 CLI
+      - name: Build fake-SAI agent and fboss2 targets
         run: >
           sudo
           ./fboss/oss/scripts/docker-build.py
           --scratch-path
-          ${{ github.workspace }}/build-output
+          ${{ github.workspace }}/.build_dir
+          --target
+          fboss_fake_agent_targets
           --target
           fboss2_targets
           --no-docker-output
           --env-var
+          BUILD_SAI_FAKE
+          --env-var
           GITHUB_ACTIONS_BUILD
           --local
+          --num-jobs
+          18
           &&
           sudo
           chown
@@ -55,7 +82,7 @@ jobs:
           -v
           ${{ github.workspace }}:/var/FBOSS/fboss:z
           -v
-          ${{ github.workspace }}/build-output:/var/FBOSS/tmp_bld_dir:z
+          ${{ github.workspace }}/.build_dir:/var/FBOSS/tmp_bld_dir:z
           --cap-add=CAP_AUDIT_WRITE
           --name
           FBOSS2_CLI_PACKAGE_CONTAINER
@@ -66,18 +93,46 @@ jobs:
           --scratch-path=/var/FBOSS/tmp_bld_dir
           --compress
       - name: Save Docker image
-        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
-      - name: Upload build artifacts
+        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/.build_dir/fboss_docker_image.tar.zst
+      - name: Collect fboss-sim artifacts
+        run: >
+          sudo
+          docker
+          run
+          --rm
+          -v
+          ${{ github.workspace }}:/var/FBOSS/fboss:z
+          --cap-add=CAP_AUDIT_WRITE
+          fboss_image:latest
+          python3
+          /var/FBOSS/fboss/fboss-sim/scripts/fboss-sim-docker-package.py
+          --collect-only
+      - name: Restore workspace ownership
+        run: sudo chown -R runner:runner ${{ github.workspace }}
+      - name: Build fboss-sim runtime image
+        run: python3 fboss-sim/scripts/fboss-sim-docker-package.py --build-only
+      - name: Save fboss-sim runtime image
+        run: sudo docker save fboss_sim_runtime_runner:latest | zstd -o ${{ github.workspace }}/.build_dir/fboss_sim_runtime_image.tar.zst
+      - name: Upload fboss2 CLI artifacts
         uses: actions/upload-artifact@v7
         with:
           name: fboss2-cli
           path: |
-            ${{ github.workspace }}/build-output/fboss_bins.tar.zst
-            ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
+            ${{ github.workspace }}/.build_dir/fboss_bins.tar.zst
+            ${{ github.workspace }}/.build_dir/fboss_docker_image.tar.zst
           # Explicitly set the retention at the object level
           retention-days: 14
+      - name: Upload fboss-sim runtime artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fboss2-fake-sai-runtime
+          path: ${{ github.workspace }}/.build_dir/fboss_sim_runtime_image.tar.zst
+          retention-days: 1
   fboss2-CLI-Test:
-    if: github.repository_owner == 'facebook'
+    if: >-
+      github.repository_owner == 'facebook' &&
+      (github.event_name != 'workflow_dispatch' ||
+      inputs.suite == 'cli' || inputs.suite == 'all')
     runs-on: 4-core-ubuntu
     needs: fboss2-CLI-Build
     steps:
@@ -101,3 +156,47 @@ jobs:
           -R
           runner:runner
           ${{ github.workspace }}
+  fboss2-Fake-SAI-Integration-Test:
+    if: >-
+      github.repository_owner == 'facebook' &&
+      (github.event_name == 'pull_request' || github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+      (inputs.suite == 'simulator' || inputs.suite == 'all')))
+    runs-on: 32-core-ubuntu
+    needs: fboss2-CLI-Build
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+      - name: Download fboss-sim runtime artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: fboss2-fake-sai-runtime
+      - name: Load fboss-sim runtime image
+        run: zstd -dc ${{ github.workspace }}/fboss_sim_runtime_image.tar.zst | sudo docker load
+      - name: Start fboss-sim runtime container
+        id: start
+        run: python3 fboss-sim/scripts/fboss-sim-docker-run.py
+      - name: Wait for agent services to be ready
+        env:
+          CONTAINER: ${{ steps.start.outputs.container_name }}
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec "$CONTAINER" /opt/fboss/bin/fboss2 show interface >/dev/null 2>&1; then
+              echo "✓ Agent ready after $(( (i - 1) * 2 ))s"
+              exit 0
+            fi
+            echo "  [$(( (i - 1) * 2 ))s] not ready yet, retrying..."
+            sleep 2
+          done
+          echo "❌ Agent not ready"
+          # Split mode is the default, and each unit logs to its own file.
+          for log in sw_agent hw_agent0; do
+            echo "===== /var/facebook/logs/fboss/$log.log (last 50) ====="
+            docker exec "$CONTAINER" tail -n 50 "/var/facebook/logs/fboss/$log.log" || true
+          done
+          exit 1
+      - name: Run fboss2 integration test
+        env:
+          CONTAINER: ${{ steps.start.outputs.container_name }}
+        run: docker exec "$CONTAINER" /opt/fboss/bin/fboss2_integration_test

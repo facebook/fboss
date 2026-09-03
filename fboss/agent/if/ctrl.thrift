@@ -468,6 +468,14 @@ struct PortInfoThrift {
   // profile bound on an LLR-capable ASIC.
   35: optional hardware_stats.LlrTxStatus llrTxStatus;
   36: optional hardware_stats.LlrRxStatus llrRxStatus;
+
+  // Lookup class assigned to packets ingressing on this port. Mirrors
+  // switch_config.Port.userMetaData. Unset when the port has no class ID.
+  37: optional switch_config.AclLookupClassPort userMetaData;
+
+  // Ingress ACL table bound directly to this port. Mirrors
+  // switch_config.Port.ingressAclTableName. Unset when no table is bound.
+  38: optional string ingressAclTableName;
 }
 
 // Port queueing configuration
@@ -736,6 +744,10 @@ struct AclEntryThrift {
   22: optional byte lookupClassL2;
   23: optional bool enabled;
   24: optional list<string> udfGroups;
+
+  // Ingress port class ID this entry matches on. Mirrors
+  // switch_config.AclEntry.lookupClassPort.
+  25: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct AclTableThrift {

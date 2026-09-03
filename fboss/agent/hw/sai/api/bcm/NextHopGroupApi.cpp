@@ -18,4 +18,14 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  return SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

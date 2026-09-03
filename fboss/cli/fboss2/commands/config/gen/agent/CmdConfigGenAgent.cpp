@@ -10,12 +10,12 @@
 
 #include "fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.h"
 
-#include "fboss/cli/fboss2/CmdHandler.cpp"
-#include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h"
-
 #include <filesystem>
 #include <iostream>
 #include <optional>
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h"
 
 namespace facebook::fboss {
 
@@ -26,6 +26,8 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
       std::string(kConfigGenAgentCommand), kConfigGenAgentPlatform);
   auto profile = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentProfile);
+  auto fbossRoot = options->getLocalOption(
+      std::string(kConfigGenAgentCommand), kConfigGenAgentFbossRoot);
   auto outputDirectory = options->getLocalOption(
       std::string(kConfigGenAgentCommand), kConfigGenAgentOutputDirectory);
 
@@ -33,7 +35,8 @@ CmdConfigGenAgent::RetType CmdConfigGenAgent::queryClient(
   if (!outputDirectory.empty()) {
     outputDirectoryPath = outputDirectory;
   }
-  return configgen::generateAgentConfig(platform, profile, outputDirectoryPath)
+  return configgen::generateAgentConfig(
+             platform, profile, fbossRoot, outputDirectoryPath)
       .string();
 }
 
