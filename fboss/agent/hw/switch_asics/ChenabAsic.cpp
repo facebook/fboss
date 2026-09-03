@@ -334,7 +334,7 @@ HwAsic::AsicVendor ChenabAsic::getAsicVendor() const {
   return HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 }
 std::string ChenabAsic::getVendor() const {
-  return "chenab_vendor";
+  return "chenab";
 }
 bool ChenabAsic::isSupported(Feature feature) const {
   return getSwitchType() != cfg::SwitchType::FABRIC
