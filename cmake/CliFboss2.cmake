@@ -396,6 +396,13 @@ add_fbthrift_cpp_library(
     phy_cpp2
 )
 
+add_fbthrift_cpp_library(
+  show_interface_transceiver_performancemonitoring
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/model.thrift
+  OPTIONS
+    json
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_library(fboss2_config_file_utils
@@ -599,6 +606,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.cpp
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.cpp
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.cpp
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
@@ -817,6 +828,7 @@ target_link_libraries(fboss2_lib
   show_fabric_topology_model
   show_rif
   show_interface_counters_fec_uncorrectable
+  show_interface_transceiver_performancemonitoring
   thrift_service_client
   ${RE2}
 )
