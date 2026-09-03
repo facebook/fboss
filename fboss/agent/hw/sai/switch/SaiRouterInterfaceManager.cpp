@@ -113,14 +113,12 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-  // Ebro (Cisco/leaba) disables MPLS on a router interface by default. Enable
-  // it explicitly so MPLS traffic is routed on the RIF.
+  // Enable MPLS admin state if supported
   std::optional<SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState>
-      adminMplsStateAttribute{std::nullopt};
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_P200) {
+      adminMplsStateAttribute = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
     adminMplsStateAttribute =
-        SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState{true};
+        SaiVlanRouterInterfaceTraits::Attributes::AdminMplsState(true);
   }
 #endif
 
@@ -199,13 +197,29 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
       ? getSystemPortId(swInterface)
       : (swInterface->getAggregatePortIDf() ? getAggregatePortId(swInterface)
                                             : getPortId(swInterface));
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    // Enable MPLS admin state if supported
+    std::optional<SaiPortRouterInterfaceTraits::Attributes::AdminMplsState>
+        adminMplsStateAttribute = std::nullopt;
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::MPLS)) {
+      adminMplsStateAttribute =
+          SaiPortRouterInterfaceTraits::Attributes::AdminMplsState(true);
+    }
+#endif
+
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
       typeAttribute,
       portIdAttribute,
       srcMacAttribute,
-      mtuAttribute};
+      mtuAttribute
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+          ,
+      adminMplsStateAttribute
+#endif
+  };
   SaiPortRouterInterfaceTraits::AdapterHostKey k{
       virtualRouterIdAttribute,
       portIdAttribute,
