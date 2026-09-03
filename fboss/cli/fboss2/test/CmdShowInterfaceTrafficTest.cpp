@@ -185,6 +185,23 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {
   EXPECT_EQ(expectedOutput, output);
 }
 
+// A box with every front panel port down and no transceivers reports zero for
+// every rate counter, so isInterestingTraffic() filters out every row and the
+// Total is computed over an empty set. Totals must read 0.00%.
+TEST_F(CmdShowInterfaceTrafficTestFixture, printOutputNoInterestingTraffic) {
+  auto cmd = CmdShowInterfaceTraffic();
+  auto model = cmd.createModel(portInfo, {} /* intCounters */, queriedIfs);
+
+  EXPECT_TRUE(model.traffic_counters()->empty());
+
+  std::stringstream ss;
+  cmd.printOutput(model, ss);
+
+  const std::string output = ss.str();
+  EXPECT_NE(output.find("Total"), std::string::npos);
+  EXPECT_NE(output.find("0.00%"), std::string::npos);
+}
+
 // CLI reference wiki hooks: a human description and a non-empty sample model.
 // Property checks only (no golden text).
 TEST_F(CmdShowInterfaceTrafficTestFixture, wikiDocHooks) {
