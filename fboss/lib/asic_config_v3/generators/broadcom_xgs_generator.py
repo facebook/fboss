@@ -8,7 +8,9 @@ import yaml
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
 from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
-from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+)
 
 
 class BroadcomXgsGenerator(BaseAsicConfigGenerator):
@@ -41,7 +43,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             "platform_mapping_name", self.platform_name
         )
         self.parser = PlatformMappingParser(
-            read_all_vendor_data(self.paths.platform_mapping_dir), mapping_name
+            discover_platform_mapping_inputs(self.paths.platforms_dir), mapping_name
         )
 
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)

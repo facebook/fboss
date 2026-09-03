@@ -232,7 +232,7 @@ No Python changes are required to add a platform on an ASIC family that the
 tool already supports. Suppose a new Tomahawk5 board named `newboard` is being
 added.
 
-1. Ensure that `fboss/lib/platform_mapping_v2/platforms/newboard/` exists and
+1. Ensure that `fboss/configs/platforms/<system_vendor>/newboard/platform_mapping/` exists and
    contains the platform's static mapping and vendor data (see the
    [platform mapping documentation](../platform_mapping.md)).
 2. Create

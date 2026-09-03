@@ -10,7 +10,9 @@ from typing import Dict, List
 from fboss.lib.platform_mapping_v2.gen import (
     generate_platform_mappings_from_vendor_data,
 )
-from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+)
 
 
 class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
@@ -85,7 +87,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     _FBCODE_GENERATED_DIR: str = (
         "fboss/lib/platform_mapping_v2/generated_platform_mappings"
     )
-    _OSS_INPUT_DIR: str = "fboss/lib/platform_mapping_v2/platforms"
+    _OSS_INPUT_DIR: str = "fboss/configs/platforms"
     _TMP_GENERATED_DIR: str = "/tmp/generated_platform_mappings/"
 
     def _clear_tmp_generated_mappings(self) -> None:
@@ -114,7 +116,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
                         )
 
     def _generate_all_oss_platform_mappings_in_tmp(self) -> None:
-        vendor_data_map = read_all_vendor_data(self._OSS_INPUT_DIR)
+        vendor_data_map = discover_platform_mapping_inputs(self._OSS_INPUT_DIR)
         for is_multi_npu, platforms in self._OSS_MULTI_NPU_SUPPORTED_PLATFORMS.items():
             for platform in platforms:
                 generate_platform_mappings_from_vendor_data(

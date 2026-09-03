@@ -8,7 +8,8 @@ from typing import Any, Optional, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
 from fboss.lib.platform_mapping_v2.read_files_utils import (
-    read_all_vendor_data,
+    discover_platform_mapping_inputs,
+    PlatformMappingInputs,
     read_platform_descriptor,
 )
 from neteng.fboss.platform_config.platform_config.thrift_types import (
@@ -18,7 +19,6 @@ from thrift.python.serializer import Protocol, serialize
 
 JsonValue = Union[dict[str, Any], list[Any], str, int, float, bool, None]
 PlatformDescriptorData = tuple[str, dict[str, Any]]
-VendorDataMap = dict[str, dict[str, str]]
 
 
 @dataclass(frozen=True)
@@ -41,10 +41,7 @@ class PlatformMappingPaths:
 
         return cls(
             fboss_root=root,
-            input_dir=resolve(
-                input_dir
-                or os.path.join(root, "lib", "platform_mapping_v2", "platforms")
-            ),
+            input_dir=resolve(input_dir or os.path.join(root, "configs", "platforms")),
             output_dir=resolve(
                 output_dir
                 or os.path.join(
@@ -135,7 +132,7 @@ def get_command_line_args() -> tuple[str, str, str, bool]:
         required=False,
         help=(
             "Path to the directory containing platform input directories. "
-            "When omitted, uses FBOSS_ROOT/lib/platform_mapping_v2/platforms."
+            "When omitted, uses FBOSS_ROOT/configs/platforms."
         ),
     )
     parser.add_argument(
@@ -172,14 +169,14 @@ def generate_platform_mappings(
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
-    vendor_data_map = read_all_vendor_data(input_dir)
+    vendor_data_map = discover_platform_mapping_inputs(input_dir)
     generate_platform_mappings_from_vendor_data(
         vendor_data_map, output_dir, platform_name, is_multi_npu
     )
 
 
 def generate_platform_mappings_from_vendor_data(
-    vendor_data_map: VendorDataMap,
+    vendor_data_map: PlatformMappingInputs,
     output_dir: str,
     platform_name: str,
     is_multi_npu: bool,
@@ -255,7 +252,7 @@ def _serialize_port_assignments(generator: PlatformMappingV2) -> str:
 
 
 def write_raw_platform_mapping_artifacts(
-    vendor_data_map: dict[str, dict[str, str]],
+    vendor_data_map: PlatformMappingInputs,
     output_dir: str,
     platform_name: str,
     is_multi_npu: bool,
@@ -291,11 +288,11 @@ def write_raw_platform_mapping_artifacts(
 
 
 def get_platform_descriptor_data(
-    vendor_data_map: dict[str, dict[str, str]], platform_name: str
+    vendor_data_map: PlatformMappingInputs, platform_name: str
 ) -> Optional[PlatformDescriptorData]:
     try:
         platform_descriptor = read_platform_descriptor(
-            vendor_data_map[platform_name], platform_name
+            vendor_data_map[platform_name].data, platform_name
         )
     except FileNotFoundError:
         return None
@@ -308,7 +305,7 @@ def get_platform_descriptor_data(
 
 
 def generate_platform_descriptor(
-    vendor_data_map: dict[str, dict[str, str]],
+    vendor_data_map: PlatformMappingInputs,
     output_dir: str,
     platform_name: str,
     num_switch_asics: int,
