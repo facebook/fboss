@@ -316,9 +316,7 @@ void verifyTxSettting(
         EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
       }
       if (saiPlatform->getAsic()->getAsicVendor() !=
-              HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
-          asicType != cfg::AsicType::ASIC_TYPE_YUBA &&
-          asicType != cfg::AsicType::ASIC_TYPE_G202X) {
+              HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         if (expectedTxFromPin.firPost2().has_value()) {
           EXPECT_EQ(post2[i], expectedTxFromPin.firPost2());
         } else {
