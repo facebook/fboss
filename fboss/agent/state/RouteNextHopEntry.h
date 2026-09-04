@@ -319,8 +319,23 @@ RouteNextHopSet toRouteNextHopSet(
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops
+ *
+ * With replicateWeightedNexthops, a next hop of weight w > 1 is expanded back
+ * into w next hops of ECMP_WEIGHT, undoing the combining toRouteNextHopSet
+ * does for combineDuplicateWeights. Next hops at ECMP_WEIGHT or
+ * UCMP_DEFAULT_WEIGHT are emitted once, verbatim.
  */
-std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs);
+std::vector<NextHopThrift> fromRouteNextHopSet(
+    RouteNextHopSet const& nhs,
+    bool replicateWeightedNexthops = false);
+
+/**
+ * Same conversion for nexthops held in a vector, e.g. as resolved from a
+ * next hop set id.
+ */
+std::vector<NextHopThrift> fromNextHops(
+    std::vector<NextHop> const& nhs,
+    bool replicateWeightedNexthops = false);
 
 UnicastRoute toUnicastRoute(
     const folly::CIDRNetwork& nw,

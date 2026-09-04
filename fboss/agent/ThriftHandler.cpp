@@ -3526,12 +3526,7 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
 
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
-      std::vector<NextHopThrift> nexthopsThrift;
-      nexthopsThrift.reserve(nextHops.size());
-      for (const auto& hop : nextHops) {
-        nexthopsThrift.push_back(hop.toThrift());
-      }
-      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      thriftGroup.nexthops() = util::fromNextHops(nextHops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
@@ -3572,12 +3567,7 @@ void ThriftHandler::getNamedNextHopGroups(
         refCounts.count(NextHopSetID(nextHopSetId)) > 0;
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
-      std::vector<NextHopThrift> nexthopsThrift;
-      nexthopsThrift.reserve(nextHops.size());
-      for (const auto& hop : nextHops) {
-        nexthopsThrift.push_back(hop.toThrift());
-      }
-      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      thriftGroup.nexthops() = util::fromNextHops(nextHops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for named group '" << name

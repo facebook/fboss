@@ -1400,3 +1400,65 @@ TEST(RouteNextHopEntry, DuplicateWeightsNotCombinedByDefault) {
           true),
       identical);
 }
+
+namespace {
+
+using AddrAndWeight = std::pair<std::string, int32_t>;
+
+// Address and weight of each thrift next hop, sorted so the comparison does
+// not depend on the next hop set's ordering.
+std::vector<AddrAndWeight> toAddrAndWeights(
+    const std::vector<NextHopThrift>& nhts) {
+  std::vector<AddrAndWeight> out;
+  out.reserve(nhts.size());
+  for (const auto& nht : nhts) {
+    out.emplace_back(
+        facebook::network::toIPAddress(*nht.address()).str(), *nht.weight());
+  }
+  std::sort(out.begin(), out.end());
+  return out;
+}
+
+std::vector<AddrAndWeight> replicateWeighted(const RouteNextHopSet& nhs) {
+  return toAddrAndWeights(
+      util::fromRouteNextHopSet(nhs, true /* replicateWeightedNexthops */));
+}
+
+} // namespace
+
+TEST(RouteNextHopEntry, ReplicateWeightedNexthopsExpandsWeight) {
+  const std::vector<AddrAndWeight> expected{
+      {nextHopAddr2.str(), ECMP_WEIGHT},
+      {nextHopAddr2.str(), ECMP_WEIGHT},
+      {nextHopAddr2.str(), ECMP_WEIGHT}};
+
+  const RouteNextHopSet weighted{UnresolvedNextHop(nextHopAddr2, 3)};
+  EXPECT_EQ(replicateWeighted(weighted), expected);
+}
+
+TEST(RouteNextHopEntry, ReplicateWeightedNexthopsLeavesUnweightedAlone) {
+  const std::vector<AddrAndWeight> expected{
+      {nextHopAddr3.str(), ECMP_WEIGHT},
+      {nextHopAddr2.str(), UCMP_DEFAULT_WEIGHT}};
+
+  const RouteNextHopSet unweighted{
+      UnresolvedNextHop(nextHopAddr2, UCMP_DEFAULT_WEIGHT),
+      UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
+  EXPECT_EQ(replicateWeighted(unweighted), expected);
+}
+
+TEST(RouteNextHopEntry, ReplicateWeightedNexthopsUndoesCombine) {
+  const std::vector<NextHopThrift> nhts{
+      makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+      makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
+      makeNextHopThrift(nextHopAddr3, ECMP_WEIGHT)};
+
+  EXPECT_EQ(replicateWeighted(combineDuplicates(nhts)), toAddrAndWeights(nhts));
+}
+
+TEST(RouteNextHopEntry, WeightedNexthopsNotReplicatedByDefault) {
+  const std::vector<AddrAndWeight> expected{{nextHopAddr2.str(), 3}};
+
+  const RouteNextHopSet weighted{UnresolvedNextHop(nextHopAddr2, 3)};
+  EXPECT_EQ(toAddrAndWeights(util::fromRouteNextHopSet(weighted)), expected);
+}

@@ -138,13 +138,38 @@ RouteNextHopSet toRouteNextHopSet(
   return rnhs;
 }
 
-std::vector<NextHopThrift> fromRouteNextHopSet(RouteNextHopSet const& nhs) {
+namespace {
+
+template <typename NextHops>
+std::vector<NextHopThrift> toThriftNextHops(
+    const NextHops& nhs,
+    bool replicateWeightedNexthops) {
   std::vector<NextHopThrift> nhts;
   nhts.reserve(nhs.size());
   for (const auto& nh : nhs) {
-    nhts.emplace_back(nh.toThrift());
+    auto nht = nh.toThrift();
+    if (!replicateWeightedNexthops || nh.weight() <= UCMP_DEFAULT_WEIGHT) {
+      nhts.push_back(std::move(nht));
+      continue;
+    }
+    *nht.weight() = ECMP_WEIGHT;
+    nhts.insert(nhts.end(), nh.weight(), nht);
   }
   return nhts;
+}
+
+} // namespace
+
+std::vector<NextHopThrift> fromRouteNextHopSet(
+    RouteNextHopSet const& nhs,
+    bool replicateWeightedNexthops) {
+  return toThriftNextHops(nhs, replicateWeightedNexthops);
+}
+
+std::vector<NextHopThrift> fromNextHops(
+    std::vector<NextHop> const& nhs,
+    bool replicateWeightedNexthops) {
+  return toThriftNextHops(nhs, replicateWeightedNexthops);
 }
 
 UnicastRoute toUnicastRoute(
