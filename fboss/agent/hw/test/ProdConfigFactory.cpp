@@ -149,6 +149,10 @@ cfg::PortSpeed getPortSpeed(PlatformType platformType) {
     case PlatformType::PLATFORM_MONTBLANC:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
+    case PlatformType::PLATFORM_MINIPACK3N:
+      // Spectrum4, 64 x 800G; every interface controlling port supports 800G.
+      portSpeed = cfg::PortSpeed::EIGHTHUNDREDG;
+      break;
     case PlatformType::PLATFORM_TAHAN800BC:
     case PlatformType::PLATFORM_TAHANSB800BC:
     case PlatformType::PLATFORM_WEDGE800BACT:
