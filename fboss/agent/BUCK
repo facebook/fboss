@@ -292,6 +292,8 @@ cpp_library(
         "//fboss/lib:thrift_method_rate_limit_setup",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/platform/helpers:platform_thrift_acceptor",
+        "//fboss/platform/helpers:platform_thrift_acceptor_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:multiplex_async_processor",
     ],
