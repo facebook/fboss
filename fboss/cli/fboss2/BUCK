@@ -629,6 +629,7 @@ cpp_library(
         "utils/CmdClientUtils.cpp",
         "utils/CmdUtils.cpp",
         "utils/LoopbackUtils.cpp",
+        "utils/LookupClassUtils.cpp",
         "utils/NetwhoamiUtils.cpp",
         "utils/PortMap.cpp",
         "utils/PrbsUtils.cpp",
@@ -838,6 +839,7 @@ cpp_library(
         "commands/stream/fsdb/CmdStreamSubFsdbOperStats.h",
         "utils/CmdUtils.h",
         "utils/LoopbackUtils.h",
+        "utils/LookupClassUtils.h",
         "utils/clients/BmcClient.h",
     ],
     deps = [

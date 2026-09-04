@@ -741,6 +741,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/SafetyPromptUtils.h
   fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
