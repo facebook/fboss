@@ -74,7 +74,7 @@ class ControlLogic {
       uint64_t /*timestamp*/,
       bool /*fanAbsent*/>
   readFanRpm(const Fan& fan);
-  void updateOpticsPwms(SensorData& sensorData);
+  int updateOpticsPwms(SensorData& sensorData);
   bool /* pwm update fail */
   programFan(const Zone& zone, const Fan& fan, int16_t fanPwm);
   int16_t calculateZonePwm(const Zone& zone, bool boostMode);

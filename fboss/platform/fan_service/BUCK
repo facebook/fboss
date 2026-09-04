@@ -40,7 +40,18 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/range-v3:range-v3",
+        ":fan_service_config_types",
         "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fan_service_config_types",
+    headers = [
+        "FanServiceConfigTypes.h",
     ],
     exported_deps = [
         "//fboss/platform/fan_service/if:fan_service-cpp2-types",
@@ -80,6 +91,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fan_service_config_types",
         ":pid_logic_library",
         "//common/fbwhoami:fb_who_am_i",
         "//common/services/cpp:facebook_identity_verifier",
