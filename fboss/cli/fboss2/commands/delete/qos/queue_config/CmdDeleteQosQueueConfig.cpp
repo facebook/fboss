@@ -45,7 +45,7 @@ CmdDeleteQosQueueConfigTraits::RetType CmdDeleteQosQueueConfig::queryClient(
     defaultPortQueues.clear();
 
     session.saveConfig(
-        cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
     return "Successfully deleted the default queue config";
   }
 
@@ -77,7 +77,7 @@ CmdDeleteQosQueueConfigTraits::RetType CmdDeleteQosQueueConfig::queryClient(
   portQueueConfigs.erase(it);
 
   session.saveConfig(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
 
   return fmt::format("Successfully deleted queue config '{}'", name.getName());
 }

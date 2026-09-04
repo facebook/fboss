@@ -57,7 +57,7 @@ TEST(FbossServiceUtilTest, RestartService_MonolithicMode_Warmboot) {
       std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   auto services = util.restartService(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
 
   EXPECT_EQ(services.size(), 1);
   EXPECT_EQ(services[0], "wedge_agent");
@@ -76,7 +76,8 @@ TEST(FbossServiceUtilTest, RestartService_MonolithicMode_Coldboot) {
       std::vector<int>{}, /*multiSwitch=*/false, std::move(mockSystemd));
 
   auto services = util.restartService(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      cli::ServiceType::AGENT,
+      cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART);
 
   EXPECT_EQ(services.size(), 1);
   EXPECT_EQ(services[0], "wedge_agent");
@@ -100,7 +101,7 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Warmboot_SingleHwAgent) {
       std::vector<int>{0}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
 
   EXPECT_EQ(services.size(), 2);
   EXPECT_EQ(services[0], "fboss_hw_agent@0");
@@ -126,7 +127,8 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Coldboot_SingleHwAgent) {
       std::vector<int>{0}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      cli::ServiceType::AGENT,
+      cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART);
 
   EXPECT_EQ(services.size(), 2);
   EXPECT_EQ(services[0], "fboss_hw_agent@0");
@@ -154,7 +156,7 @@ TEST(FbossServiceUtilTest, RestartService_SplitMode_Warmboot_MultipleHwAgents) {
       std::vector<int>{0, 1}, /*multiSwitch=*/true, std::move(mockSystemd));
 
   auto services = util.restartService(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
 
   EXPECT_EQ(services.size(), 3);
   EXPECT_EQ(services[0], "fboss_hw_agent@0");
@@ -174,7 +176,7 @@ TEST(FbossServiceUtilTest, RestartService_PropagatesFailure) {
 
   EXPECT_THROW(
       util.restartService(
-          cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT),
+          cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART),
       std::runtime_error);
 }
 
@@ -193,7 +195,7 @@ TEST(FbossServiceUtilTest, RestartService_ServiceFailsToStart) {
 
   EXPECT_THROW(
       util.restartService(
-          cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT),
+          cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART),
       std::runtime_error);
 }
 
@@ -203,7 +205,7 @@ TEST(FbossServiceUtilTest, RestartService_ServiceFailsToStart) {
 // delegates to fbossServiceUtil_ without touching real systemd or thrift.
 // ============================================================
 
-// Test: applyServiceActions() delegates AGENT_WARMBOOT to
+// Test: applyServiceActions() delegates SERVICE_RESTART to
 // FbossServiceUtil::restartService()
 TEST(
     ConfigSessionServiceTest,
@@ -217,21 +219,21 @@ TEST(
   EXPECT_CALL(
       *mockPtr,
       restartService(
-          cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT))
+          cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART))
       .WillOnce(::testing::Return(std::vector<std::string>{"wedge_agent"}));
 
   TestableConfigSession session(
       "/tmp/test_session", "/tmp/test_system", std::move(mock));
 
   std::map<cli::ServiceType, cli::ConfigActionLevel> actions = {
-      {cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT}};
+      {cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART}};
   auto serviceNames = session.applyServiceActions(actions, hostInfo);
 
   ASSERT_EQ(serviceNames[cli::ServiceType::AGENT].size(), 1);
   EXPECT_EQ(serviceNames[cli::ServiceType::AGENT][0], "wedge_agent");
 }
 
-// Test: applyServiceActions() delegates AGENT_COLDBOOT to
+// Test: applyServiceActions() delegates DISRUPTIVE_SERVICE_RESTART to
 // FbossServiceUtil::restartService()
 TEST(
     ConfigSessionServiceTest,
@@ -245,7 +247,8 @@ TEST(
   EXPECT_CALL(
       *mockPtr,
       restartService(
-          cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT))
+          cli::ServiceType::AGENT,
+          cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART))
       .WillOnce(
           ::testing::Return(
               std::vector<std::string>{"fboss_hw_agent@0", "fboss_sw_agent"}));
@@ -254,7 +257,8 @@ TEST(
       "/tmp/test_session", "/tmp/test_system", std::move(mock));
 
   std::map<cli::ServiceType, cli::ConfigActionLevel> actions = {
-      {cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT}};
+      {cli::ServiceType::AGENT,
+       cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART}};
   auto serviceNames = session.applyServiceActions(actions, hostInfo);
 
   ASSERT_EQ(serviceNames[cli::ServiceType::AGENT].size(), 2);
@@ -351,7 +355,8 @@ TEST(
       "localhost", "localhost-oob", folly::IPAddress("127.0.0.1"));
 
   std::map<cli::ServiceType, cli::ConfigActionLevel> actions = {
-      {cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_COLDBOOT}};
+      {cli::ServiceType::AGENT,
+       cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART}};
 
   auto serviceNames = session.applyServiceActions(actions, hostInfo);
 

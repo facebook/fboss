@@ -277,9 +277,8 @@ class ConfigSession {
 
   // Update the required action level for the current session.
   // Tracks the highest action level across all config commands, per service.
-  // Higher action levels take precedence (for the agent: AGENT_COLDBOOT >
-  // AGENT_WARMBOOT > HITLESS; for bgpd: SERVICE_RESTART > HITLESS). Levels
-  // are only compared within one service.
+  // Higher action levels take precedence (DISRUPTIVE_SERVICE_RESTART >
+  // SERVICE_RESTART > HITLESS).
   void updateRequiredAction(
       cli::ServiceType service,
       cli::ConfigActionLevel actionLevel);
@@ -320,7 +319,7 @@ class ConfigSession {
   virtual std::string readCommandLineFromProc() const;
 
   // Apply actions (restart or reload) to all services based on their action
-  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
+  // levels. For the restart levels, restarts the service. For HITLESS, reloads
   // the config.
   // Returns a map of service type to list of actual systemd service names.
   std::map<cli::ServiceType, std::vector<std::string>> applyServiceActions(

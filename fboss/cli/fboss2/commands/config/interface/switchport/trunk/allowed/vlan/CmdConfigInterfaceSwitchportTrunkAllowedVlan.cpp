@@ -161,7 +161,7 @@ CmdConfigInterfaceSwitchportTrunkAllowedVlan::queryClient(
 
   // VLAN changes require agent warmboot as reloadConfig() doesn't apply them
   session.saveConfig(
-      cli::ServiceType::AGENT, cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
 
   return fmt::format(
       "Successfully {} {} VLAN-port association(s) for VLAN(s) {} on interface(s) {}",

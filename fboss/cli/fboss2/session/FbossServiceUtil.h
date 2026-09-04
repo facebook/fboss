@@ -62,6 +62,12 @@ class FbossServiceUtil {
   // Returns the systemd service name for a given service type.
   static std::string getServiceName(cli::ServiceType service);
 
+  // Human-readable restart kind for a (service, level) pair, e.g. the agent
+  // restarts by "warmboot" or "coldboot", bgpd (no warmboot) by "restart".
+  static std::string restartTypeName(
+      cli::ServiceType service,
+      cli::ConfigActionLevel level);
+
  private:
   std::unique_ptr<SystemdInterface> systemd_;
   std::vector<int> switchIndexes_;
