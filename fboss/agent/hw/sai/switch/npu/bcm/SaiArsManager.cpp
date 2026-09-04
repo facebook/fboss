@@ -35,8 +35,14 @@ void SaiArsManager::addArs(
   std::optional<SaiArsTraits::Attributes::AlternatePathBias>
       alternatePathBiasForArs = std::nullopt;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_ALTERNATE_MEMBERS) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+#else
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+#endif
     // Need to set default values as these attributes are part of adapter key
     alternatePathCostForArs = SaiArsTraits::Attributes::AlternatePathCost{0};
     alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
@@ -136,8 +142,8 @@ void SaiArsManager::addArs(
             idleTime,
             maxFlows,
             virtualArsQualityThreshold,
-            std::nullopt,
-            std::nullopt,
+            alternatePathCostForArs,
+            alternatePathBiasForArs,
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
             std::nullopt,
