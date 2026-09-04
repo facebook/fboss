@@ -65,7 +65,7 @@ struct SaiArsTraits {
     using NextHopGroupType = SaiExtensionAttribute<
         sai_int32_t,
         AttributeNextHopGroupType,
-        SaiIntDefault<sai_int32_t>>;
+        StdNullOptDefault<sai_int32_t>>;
     struct AttributeSourcePortPrune {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -83,7 +83,7 @@ struct SaiArsTraits {
     using EcmpMemberCount = SaiExtensionAttribute<
         sai_uint32_t,
         AttributeEcmpMemberCount,
-        SaiIntDefault<sai_uint32_t>>;
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;

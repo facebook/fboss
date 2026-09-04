@@ -45,8 +45,10 @@ void SaiArsManager::addArs(
   std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType =
       std::nullopt;
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
-  nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
-      SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+    nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
+        SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
+  }
 #endif
 
   setArsObject(
