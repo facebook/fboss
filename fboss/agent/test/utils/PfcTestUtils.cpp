@@ -222,7 +222,8 @@ void setupPortPgConfig(
     std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
     const std::vector<int>& losslessPgIds,
     const std::vector<int>& lossyPgIds,
-    const PfcBufferParams& buffer) {
+    const PfcBufferParams& buffer,
+    const std::string& pgConfigName = "foo") {
   std::vector<cfg::PortPgConfig> portPgConfigs;
 
   for (auto pgId : losslessPgIds) {
@@ -279,7 +280,7 @@ void setupPortPgConfig(
     portPgConfigs.emplace_back(pgConfig);
   }
 
-  portPgConfigMap["foo"] = std::move(portPgConfigs);
+  portPgConfigMap[pgConfigName] = std::move(portPgConfigs);
 }
 
 } // namespace
