@@ -520,6 +520,7 @@ cpp_library(
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/test:utils",
+        "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
         "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
@@ -529,6 +530,7 @@ cpp_library(
         ":config_factory",
         "//fboss/agent:hw_switch",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test/utils:load_balancer_test_utils",
     ],
 )

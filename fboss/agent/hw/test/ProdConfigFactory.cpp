@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -401,4 +402,55 @@ cfg::SwitchConfig createProdRswMhnicConfig(
       masterLogicalPortIds,
       isSai);
 }
+cfg::SwitchConfig createProdMmuLosslessRoleConfig(
+    const std::vector<const HwAsic*>& asics,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    const std::vector<PortID>& masterLogicalPortIds,
+    const TestEnsembleIf* /*ensemble*/,
+    ProdMmuLosslessRole role,
+    bool isSai) {
+  auto hwAsic = checkSameAndGetAsicForTesting(asics);
+  auto portSpeed = getPortSpeed(platformType);
+
+  auto config = createUplinkDownlinkConfig(
+      platformMapping,
+      hwAsic,
+      platformType,
+      supportsAddRemovePort,
+      masterLogicalPortIds,
+      uplinksCountFromSwitch(platformType),
+      portSpeed,
+      portSpeed,
+      hwAsic->desiredLoopbackModes());
+
+  // STSW/SUSW sit at the top of the hierarchy and have no uplinks.
+  std::vector<PortID> uplinks, downlinks;
+  for (const auto& portId : masterLogicalPortIds) {
+    // May have been dropped as subsumed by a prior speed update.
+    if (utility::findCfgPortIf(config, portId) == config.ports()->end()) {
+      continue;
+    }
+    downlinks.push_back(portId);
+  }
+  if (role == ProdMmuLosslessRole::RTSW || role == ProdMmuLosslessRole::FTSW) {
+    auto splitAt = downlinks.begin() + downlinks.size() / 2;
+    uplinks.assign(downlinks.begin(), splitAt);
+    downlinks.erase(downlinks.begin(), splitAt);
+  }
+
+  addCpuQueueConfig(config, asics, isSai);
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addNetworkAIQosToConfig(config, hwAsic);
+  }
+  setDefaultCpuTrafficPolicyConfig(
+      config, std::vector<const HwAsic*>({hwAsic}), isSai);
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwAsic, LBHash::FULL_HASH);
+  }
+
+  return config;
+}
+
 } // namespace facebook::fboss::utility
