@@ -349,6 +349,75 @@ class AgentFlowletSourcePortPruneTest : public AgentFlowletSwitchingTest {
   }
 };
 
+// Prune on for ARS groups. Split horizon is CREATE_ONLY and the setting cannot
+// change after the first config application, so this is a fixture of its own
+// rather than a flag flipped inside the test.
+class AgentFlowletArsSourcePortPruneEnabledTest
+    : public AgentFlowletSourcePortPruneTest {
+ protected:
+  EcmpGroupSettingsMap splitHorizonSettings() const override {
+    return splitHorizonOn({cfg::EcmpGroupType::ARS});
+  }
+};
+
+// DLB eligible traffic, so the ARS object forwards and the attribute under
+// test is SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE. The ECMP group is sized so
+// the front panel injection port is itself a member, otherwise there would be
+// nothing for prune to suppress.
+TEST_F(
+    AgentFlowletArsSourcePortPruneEnabledTest,
+    VerifyArsSourcePortPruneEnabled) {
+  constexpr int kEcmpWidth = 12;
+  static_assert(
+      kEcmpWidth > kFrontPanelPortForTest,
+      "front panel injection port must be inside the ECMP group");
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        kPrunedDlbLoadBalanceDeviationPct);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Counterpart with the flag never set: the ingress port stays in the ARS group
+// and keeps carrying its share.
+TEST_F(AgentFlowletSourcePortPruneTest, VerifyArsSourcePortPruneDisabled) {
+  constexpr int kEcmpWidth = 12;
+  static_assert(
+      kEcmpWidth > kFrontPanelPortForTest,
+      "front panel injection port must be inside the ECMP group");
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    this->setup(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+  };
+
+  auto verify = [&]() {
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth - 1 /* the count excludes the ingress, pruned or not */,
+        kMemberIngressDlbDeviationPct);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
