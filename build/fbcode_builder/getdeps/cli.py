@@ -276,7 +276,7 @@ class InstallSysDepsCmd(ProjectCmdBase):
             packages = sorted(set(all_packages["rpm"]))
             if packages:
                 cmd_argss.append(
-                    sudo_cmd + ["dnf", "install", "-y", "--skip-broken"] + packages
+                    sudo_cmd + ["-E", "dnf", "install", "-y", "-4", "--skip-broken"] + packages
                 )
         elif manager == "deb":
             packages = sorted(set(all_packages["deb"]))
