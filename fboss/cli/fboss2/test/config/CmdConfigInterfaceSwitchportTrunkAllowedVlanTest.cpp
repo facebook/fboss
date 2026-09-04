@@ -284,7 +284,7 @@ TEST_F(
   // VLAN changes require an agent warmboot, so the save must record it
   EXPECT_EQ(
       session.getRequiredAction(cli::ServiceType::AGENT),
-      cli::ConfigActionLevel::AGENT_WARMBOOT);
+      cli::ConfigActionLevel::SERVICE_RESTART);
 }
 
 TEST_F(
@@ -434,7 +434,7 @@ TEST_F(
   EXPECT_THAT(result, HasSubstr("No changes made"));
 
   // A no-op must skip the save, so the required action stays at the
-  // default (HITLESS) instead of being escalated to AGENT_WARMBOOT.
+  // default (HITLESS) instead of being escalated to SERVICE_RESTART.
   auto& session = ConfigSession::getInstance();
   EXPECT_EQ(
       session.getRequiredAction(cli::ServiceType::AGENT),

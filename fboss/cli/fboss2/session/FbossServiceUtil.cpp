@@ -166,36 +166,38 @@ std::vector<std::string> FbossServiceUtil::reloadConfig(
   return reloadedServices;
 }
 
+std::string FbossServiceUtil::restartTypeName(
+    cli::ServiceType service,
+    cli::ConfigActionLevel level) {
+  // The action level is generic; what it means is decided per service. Only
+  // the agent distinguishes a warmboot from a coldboot -- bgpd has neither, so
+  // every restart level is a plain restart for it.
+  switch (level) {
+    case cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART:
+      return service == cli::ServiceType::AGENT ? "coldboot" : "restart";
+    case cli::ConfigActionLevel::SERVICE_RESTART:
+      return service == cli::ServiceType::AGENT ? "warmboot" : "restart";
+    case cli::ConfigActionLevel::HITLESS:
+      // Not expected: HITLESS is applied via reloadConfig(), not restart.
+      return "reload";
+  }
+  return "restart";
+}
+
 std::vector<std::string> FbossServiceUtil::restartService(
     cli::ServiceType service,
     cli::ConfigActionLevel level) {
-  std::string restartType;
-  switch (level) {
-    case cli::ConfigActionLevel::AGENT_COLDBOOT:
-      restartType = "coldboot";
-      break;
-    case cli::ConfigActionLevel::AGENT_WARMBOOT:
-      restartType = "warmboot";
-      break;
-    case cli::ConfigActionLevel::SERVICE_RESTART:
-      // Plain restart for daemons with no warmboot (bgpd); mechanically the
-      // same restart-and-wait path as a warmboot, only the label differs.
-      restartType = "restart";
-      break;
-    case cli::ConfigActionLevel::HITLESS:
-      // Not expected: HITLESS is applied via reloadConfig(), not restart.
-      restartType = "reload";
-      break;
-  }
+  const std::string restartType = restartTypeName(service, level);
 
   auto services = getServicesToRestart(service);
 
   LOG(INFO) << "Restarting " << getServiceName(service) << " (" << restartType
             << ")...";
 
-  // Only AGENT_COLDBOOT needs the coldboot marker file; every other level is a
-  // plain restart-and-wait.
-  if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
+  // Only an agent coldboot needs the coldboot marker files; every other
+  // (service, level) pair is the same plain restart-and-wait sequence.
+  if (service == cli::ServiceType::AGENT &&
+      level == cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART) {
     performColdboot(services);
   } else {
     performWarmboot(services);

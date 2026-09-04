@@ -928,8 +928,7 @@ ConfigSession::applyServiceActions(
   std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
-      case cli::ConfigActionLevel::AGENT_COLDBOOT:
-      case cli::ConfigActionLevel::AGENT_WARMBOOT:
+      case cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART:
       case cli::ConfigActionLevel::SERVICE_RESTART:
         serviceNames[service] =
             fbossServiceUtil_->restartService(service, level);

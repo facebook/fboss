@@ -16,6 +16,7 @@
 #include <folly/String.h>
 #include <vector>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 
 namespace facebook::fboss {
 
@@ -47,22 +48,16 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
     const auto& serviceNamesList = it->second;
 
     switch (level) {
-      case cli::ConfigActionLevel::AGENT_COLDBOOT:
-        for (const auto& serviceName : serviceNamesList) {
-          restartedServices.push_back(
-              fmt::format("{} (coldboot)", serviceName));
-        }
-        break;
-      case cli::ConfigActionLevel::AGENT_WARMBOOT:
-        for (const auto& serviceName : serviceNamesList) {
-          restartedServices.push_back(
-              fmt::format("{} (warmboot)", serviceName));
-        }
-        break;
+      case cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART:
       case cli::ConfigActionLevel::SERVICE_RESTART:
-        // Plain restart (bgpd has no warmboot) -- no boot-type suffix.
+        // Label with what the level meant for this service (agent: warmboot
+        // or coldboot; bgpd: a plain restart).
         for (const auto& serviceName : serviceNamesList) {
-          restartedServices.push_back(serviceName);
+          restartedServices.push_back(
+              fmt::format(
+                  "{} ({})",
+                  serviceName,
+                  FbossServiceUtil::restartTypeName(service, level)));
         }
         break;
       case cli::ConfigActionLevel::HITLESS:
