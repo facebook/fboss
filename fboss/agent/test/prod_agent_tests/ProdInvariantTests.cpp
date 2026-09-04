@@ -193,13 +193,24 @@ void ProdInvariantTest::sendTraffic(int numPackets) {
 
 PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
-  auto downlinkPort = utility::getAllUplinkDownlinkPorts(
-                          getSw()->getPlatformType(),
-                          getSw()->getConfig(),
-                          kEcmpWidth,
-                          is_mmu_lossless_mode())
-                          .second[0];
-  return downlinkPort;
+  auto [uplinks, downlinks] = utility::getAllUplinkDownlinkPorts(
+      getSw()->getPlatformType(),
+      getSw()->getConfig(),
+      kEcmpWidth,
+      is_mmu_lossless_mode());
+  // In mmu-lossless mode the lists come from each port's PFC
+  // portPgConfigName, so a config generated without PFC yields none.
+  if (downlinks.empty()) {
+    throw FbossError(
+        "No downlink ports in config (uplinks=",
+        uplinks.size(),
+        ", mmu_lossless=",
+        is_mmu_lossless_mode(),
+        "). In mmu-lossless mode uplinks/downlinks are derived from each "
+        "port's PFC portPgConfigName, so a config generated without PFC "
+        "yields none.");
+  }
+  return downlinks[0];
 }
 
 std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
