@@ -132,12 +132,13 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig(
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   ports.reserve(0);
-  if (checkBaseConfigPortsEmpty()) {
+  const auto baseConfig = getConfigFromFlag();
+  if (baseConfig.ports()->empty()) {
     useProdConfig_ = false;
     ports = getAllPlatformPorts(ensemble.getPlatformPorts());
     auto role = getProdRole();
     if (role.has_value()) {
-      return utility::createProdMmuLosslessRoleConfig(
+      cfg = utility::createProdMmuLosslessRoleConfig(
           ensemble.getL3Asics(),
           ensemble.getSw()->getPlatformType(),
           ensemble.getSw()->getPlatformMapping(),
@@ -146,19 +147,26 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig(
           &ensemble,
           *role,
           ensemble.isSai());
+    } else {
+      cfg = utility::createProdRswConfig(
+          ensemble.getL3Asics(),
+          ensemble.getSw()->getPlatformType(),
+          ensemble.getSw()->getPlatformMapping(),
+          ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+          ports,
+          ensemble.isSai());
     }
-    cfg = utility::createProdRswConfig(
-        ensemble.getL3Asics(),
-        ensemble.getSw()->getPlatformType(),
-        ensemble.getSw()->getPlatformMapping(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        ports,
-        ensemble.isSai());
 
+    // Generated configs never set sdkVersion. Without it isSaiConfig() reports
+    // false and checkConfigHasAclEntry() searches the flat acls list instead of
+    // aclTableGroups, so ACL lookups miss.
+    if (baseConfig.sdkVersion().has_value()) {
+      cfg.sdkVersion() = *baseConfig.sdkVersion();
+    }
     return cfg;
   } else {
     useProdConfig_ = true;
-    return getConfigFromFlag();
+    return baseConfig;
   }
 }
 
