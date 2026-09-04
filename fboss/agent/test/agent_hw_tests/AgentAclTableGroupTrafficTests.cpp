@@ -224,7 +224,8 @@ class AgentAclTableGroupTrafficTest : public AgentHwTest {
 
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
-    auto statBefore = utility::getAclInOutPackets(getSw(), ttlCounterName);
+    auto statBefore =
+        utility::waitForAndGetAclInOutPackets(getSw(), ttlCounterName);
 
     const auto beforePortStats =
         this->getLatestPortStats(this->masterLogicalPortIds()[0]);
