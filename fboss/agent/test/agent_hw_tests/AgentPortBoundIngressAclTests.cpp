@@ -20,10 +20,7 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     return {
-        ProductionFeature::ACL_COUNTER,
         ProductionFeature::L3_FORWARDING,
-        ProductionFeature::L4_DST_PORT_ACL,
-        ProductionFeature::MULTI_ACL_TABLE,
         ProductionFeature::PORT_BOUND_INGRESS_ACL};
   }
 
