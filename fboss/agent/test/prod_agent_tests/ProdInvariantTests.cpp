@@ -92,6 +92,12 @@ std::vector<PortID> ProdInvariantTest::getAllPlatformPorts(
   ports.reserve(0);
   auto subsidiaryPortMap = utility::getSubsidiaryPortIDs(platformPorts);
   for (auto& port : subsidiaryPortMap) {
+    // createUplinkDownlinkConfig() applies one speed to every port it is
+    // handed, and non-data-plane ports advertise no profile at that speed.
+    const auto& portMapping = *platformPorts.at(port.first).mapping();
+    if (*portMapping.portType() != cfg::PortType::INTERFACE_PORT) {
+      continue;
+    }
     ports.emplace_back(port.first);
   }
   return ports;
