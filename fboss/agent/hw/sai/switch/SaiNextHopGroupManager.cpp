@@ -620,6 +620,12 @@ void SaiNextHopGroupManager::setEcmpGroupSettings(
   ecmpGroupSettings_ = ecmpGroupSettings;
 }
 
+bool SaiNextHopGroupManager::isSplitHorizonEnabled(
+    cfg::EcmpGroupType groupType) const {
+  auto it = ecmpGroupSettings_.find(groupType);
+  return it != ecmpGroupSettings_.end() && *it->second.enableSplitHorizon();
+}
+
 std::string SaiNextHopGroupManager::listManagedObjects() const {
   std::set<std::string> outputs{};
   for (auto entry : handles_) {

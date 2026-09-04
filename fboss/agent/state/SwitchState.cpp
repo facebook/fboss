@@ -1005,6 +1005,10 @@ std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
         XLOG(ERR) << "No port node found for port " << port.phyPortID();
         return std::nullopt;
       }
+      if (physicalPort->getInterfaceIDs().empty()) {
+        // Fabric ports never have an interface.
+        return std::nullopt;
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).

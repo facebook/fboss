@@ -244,10 +244,12 @@ bool QsfpModule::upgradeFirmwareLocked(
       triggerModuleReset();
       // If there are more than 1 firmware to update on the optic (for modules
       // that have separate MCU and DSP firmwares), then update the cache in
-      // preparation for the next upgrade. The sleep here is for the module to
-      // recover after the previous hard reset
+      // preparation for the next upgrade.
+      // Adding additional 3s beyond the 2s already in triggerModuleReset, to
+      // keep it consistent with the prior delay. We should check and remove it
+      // if its not needed
       // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
-      sleep(5);
+      sleep(3);
       updateQsfpData(true);
       updateCachedTransceiverInfoLocked({});
     }
@@ -281,6 +283,15 @@ bool QsfpModule::upgradeFirmwareLocked(
 
 void QsfpModule::triggerModuleReset() {
   qsfpImpl_->triggerQsfpHardReset();
+  // Required delay time between a transceiver getting out of reset and fully
+  // functional.
+  //
+  // This blocks with qsfpModuleMutex_ held, which is acceptable given the two
+  // callers: remediation, which is being removed fleetwide, and the reset that
+  // follows a firmware download, which already holds the lock far longer than
+  // 2s.
+  // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+  sleep(kSecAfterModuleOutOfReset);
 }
 
 // Note that this needs to be called while holding the
@@ -1500,12 +1511,10 @@ void QsfpModule::programTransceiver(
       // Don't consider ports for programming if they have a startHostLane >=
       // the number of lanes on the plugged in transceiver.
       auto hostLaneCount = numHostLanes();
-      for (auto portIt : programTcvrState.ports) {
+      std::erase_if(programTcvrState.ports, [hostLaneCount](const auto& port) {
         // startHostLane is 0-indexed hence the >= comparison
-        if (portIt.second.startHostLane >= hostLaneCount) {
-          programTcvrState.ports.erase(portIt.first);
-        }
-      }
+        return port.second.startHostLane >= hostLaneCount;
+      });
 
       if (!cacheIsValid()) {
         throw FbossError(

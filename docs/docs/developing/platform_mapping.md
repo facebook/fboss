@@ -16,7 +16,7 @@ We expect vendors to provide the source files in blue, run the parser / config g
 
 ### Static Mapping (Board Configuration)
 
-File: `PLATFORM_static_mapping.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/montblanc/montblanc_static_mapping.csv))
+File: `PLATFORM_static_mapping.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/celestica/montblanc/platform_mapping/montblanc_static_mapping.csv))
 
 This config file contains swap, polarities, and other board layout-related information.
 - Enumerates all pairs of A->Z pins on the board.
@@ -25,7 +25,7 @@ This config file contains swap, polarities, and other board layout-related infor
 
 ### Signal Integrity Settings
 
-File: `PLATFORM_si_settings.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/montblanc/montblanc_si_settings.csv))
+File: `PLATFORM_si_settings.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/celestica/montblanc/platform_mapping/montblanc_si_settings.csv))
 
 This config file contains the signal integrity settings like pre, post, and main for every port / serdes speed combination.
 
@@ -38,13 +38,13 @@ This config file contains the signal integrity settings like pre, post, and main
 
 ### Port Profile Mapping
 
-File: `PLATFORM_port_profile_mapping.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/montblanc/montblanc_port_profile_mapping.csv))
+File: `PLATFORM_port_profile_mapping.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/celestica/montblanc/platform_mapping/montblanc_port_profile_mapping.csv))
 
 This config file contains information about the ports that exist on the switch and what [profiles](https://github.com/facebook/fboss/blob/main/fboss/agent/switch_config.thrift#L121) each port supports.
 
 ### Profile Settings
 
-File: `PLATFORM_profile_settings.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/montblanc/montblanc_profile_settings.csv))
+File: `PLATFORM_profile_settings.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/celestica/montblanc/platform_mapping/montblanc_profile_settings.csv))
 
 This config file contains the information about what modulation, FEC, InterfaceType, etc., needs to be configured on different hardware components (NPU/XPHY) for different port speeds.
 
@@ -54,13 +54,13 @@ This config file contains the information about what modulation, FEC, InterfaceT
 
 ### Vendor Specific Configuration
 
-File: `PLATFORM_vendor_config.json` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/montblanc/montblanc_vendor_config.json))
+File: `PLATFORM_vendor_config.json` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/celestica/montblanc/platform_mapping/montblanc_vendor_config.json))
 
 This config file contains vendor-specific configurations that are included in the `wedge_agent` configuration and passed directly to the SAI SDK during ASIC initialization. This file only contains information that cannot be derived from the other configuration files provided by the vendor. For example, this shouldn’t contain lane swap or polarity swap properties as that’s already derived from the static mapping file.
 
 ### Platform Descriptor (Config-Driven Platform Detection)
 
-File: `PLATFORM_platform_descriptor.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/lib/platform_mapping_v2/platforms/wedge800bact/wedge800bact_platform_descriptor.csv))
+File: `PLATFORM_platform_descriptor.csv` ([example](https://github.com/facebook/fboss/blob/main/fboss/configs/platforms/accton/wedge800bact/platform_mapping/wedge800bact_platform_descriptor.csv))
 
 This config file describes the platform's identity so the agent can detect the platform and
 select the right ASIC and mapping **at runtime**, without hardcoded `if/else` dispatch chains.
@@ -128,7 +128,7 @@ sudo dnf install python3
 Platform mapping config generation is done via running the helper script below from the root of the FBOSS repository.
 
 ```shell
-$ ./fboss/lib/platform_mapping_v2/run-helper.sh --platform-name XXX --output-dir XXX
+$ ./fboss/lib/platform_mapping_v2/run-helper.sh --platform-name XXX
 ```
 
 Below are the command line arguments that are relevant to this script.
@@ -137,14 +137,17 @@ Below are the command line arguments that are relevant to this script.
 |------------------------------------|-------------------------------------------------------------|
 | --fboss-root (required) | Path to the `fboss/` source directory. The helper supplies `fboss` when it is run from the repository root. |
 | --platform-name (required)  | Platform name that each CSV file has as prefix (e.g. montblanc in `montblanc_static_mapping.csv`).   |
-| --input-dir | Directory containing the per-platform vendor input directories (default: `FBOSS_ROOT/lib/platform_mapping_v2/platforms/`). |
-| --output-dir  | Directory to write platform mapping config (default: `FBOSS_ROOT/lib/platform_mapping_v2/generated_platform_mappings/`).   |
+| --input-dir | Platform config root containing vendor and platform directories (default: `FBOSS_ROOT/configs/platforms/`). |
+| --output-dir  | Optional common directory for generated platform mappings. When omitted, output is written beside the inputs under `platform_mapping/generated/`. |
 | --multi-npu  | Generates multi-NPU platform mapping config (default: `False`).   |
 
 
-To use this command, the selected platform directory under the input directory
-needs to include the following files, with `PLATFORM` being a common string that
-identifies your platform:
+To use this command, place base platform inputs under
+`<system_vendor>/<platform>/platform_mapping/`. Place variant-specific
+overrides under
+`<system_vendor>/<platform>/variants/<variant>/platform_mapping/`; omitted
+files are inherited from the base platform. Each input directory uses the base
+`PLATFORM` filename prefix:
 - `PLATFORM_port_profile_mapping.csv`
 - `PLATFORM_profile_settings.csv`
 - `PLATFORM_si_settings.csv`
@@ -152,11 +155,14 @@ identifies your platform:
 - `PLATFORM_vendor_config.json`
 - `PLATFORM_platform_descriptor.csv` (for config-driven platform detection)
 
+Internal platform mapping inputs are kept under
+`platforms/<vendor>/<platform>/facebook/platform_mapping/`, with generated
+artifacts under its `generated/` subdirectory.
+
 #### Generated Output
 
-When a `PLATFORM_platform_descriptor.csv` is present, the tool emits two files into a
-vendor-scoped, self-describing directory
-`generated_platform_mappings/<system_vendor>/<platform_name>/`:
+When a `PLATFORM_platform_descriptor.csv` is present, the tool emits two files
+beside the inputs in `platform_mapping/generated/`:
 
 - `platform_mapping.json` — the platform mapping described above.
 - `platform_descriptor.json` — the platform identity (`platformType`, `productNamePrefixes`,
@@ -167,13 +173,20 @@ vendor-scoped, self-describing directory
 chip type is `NPU` in the static mapping. Core and lane entries belonging to the
 same physical ASIC do not increase the count.
 
-The `<system_vendor>` segment comes from the `System_Vendor` column of the descriptor CSV.
+Variant output is similarly written under
+`variants/<variant>/platform_mapping/generated/`. When `--output-dir` is
+provided, all mappings use the aggregate
+`<output-dir>/<vendor>/<platform-or-variant>/platform_mapping.json`
+layout.
+
+Generated mappings for internal platform inputs are colocated under the same
+`platforms/<vendor>/<platform>/facebook/platform_mapping/` path.
 
 
 ### Validating Platform Mapping JSON
 The first step in validing your platform mapping source files is to ensure a valid JSON is created in `output-dir` by running the above tool.
 
-The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/PLATFORM-platform-mapping.json`.
+The second step is using this platform mapping JSON to ensure `qsfp_service` and `wedge_agent` binaries are brought up correctly. We typically have platfom mapping JSONs embedded into our FBOSS binaries, but to enable faster testing for external users, you can run both binaries with the `--platform_mapping_override_path` flag followed by the filepath to your platform mapping JSON – e.g. `./qsfp_service --platform_mapping_override_path /tmp/generated_platform_mappings/VENDOR/PLATFORM/platform_mapping.json`.
 
 To exercise the full config-driven path (external platform mapping **and** descriptor-based
 platform detection), point the binaries at the descriptor config root instead, using the

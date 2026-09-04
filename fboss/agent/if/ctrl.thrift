@@ -1467,17 +1467,23 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    */
   void addNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    * Deprecated. Use addNamedNextHopGroups.
    */
   void addOrUpdateNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*

@@ -346,6 +346,11 @@ class SaiNextHopGroupManager {
 
   void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings);
 
+  // Absent key means the feature was not configured for that group type, which
+  // is not the same as configured off. Callers outside this manager want the
+  // combined answer, so the lookup is not exposed raw.
+  bool isSplitHorizonEnabled(cfg::EcmpGroupType groupType) const;
+
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 

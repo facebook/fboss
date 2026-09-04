@@ -27,10 +27,15 @@ namespace facebook::fboss {
 namespace {
 
 bool useGenericSaiTajoPlatform(PlatformType type) {
-  return type == PlatformType::PLATFORM_WEDGE800CACT ||
-      type == PlatformType::PLATFORM_WEDGE800CNHP ||
-      type == PlatformType::PLATFORM_M5120CSC ||
-      type == PlatformType::PLATFORM_MORGAN800CC;
+  switch (type) {
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+      return false;
+    default:
+      return true;
+  }
 }
 
 std::unique_ptr<PlatformMapping> createGenericSaiTajoPlatformMapping(

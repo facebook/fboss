@@ -39,6 +39,7 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+#include <map>
 
 DECLARE_bool(enable_nexthop_id_manager);
 DECLARE_bool(resolve_nexthops_from_id);
@@ -3796,6 +3797,119 @@ TEST_F(NamedNextHopGroupThriftTest, addAndGetNextHopGroup) {
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(*result[0].name(), "group1");
   EXPECT_EQ(result[0].nexthops()->size(), 2);
+}
+
+namespace {
+// Weight each next hop of a named group came back with, keyed by address.
+std::map<std::string, int32_t> readGroupWeights(
+    ThriftHandler& handler,
+    const std::string& name) {
+  std::vector<NextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back(name);
+  handler.getNamedNextHopGroups(result, std::move(nameFilter));
+  CHECK_EQ(result.size(), 1);
+
+  std::map<std::string, int32_t> weights;
+  for (const auto& nhop : *result[0].nexthops()) {
+    weights[facebook::network::toIPAddress(*nhop.address()).str()] =
+        *nhop.weight();
+  }
+  return weights;
+}
+} // namespace
+
+TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsCombinedWhenRequested) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups), true);
+
+  // The repeated next hop becomes one weighted next hop; the one listed once
+  // keeps ECMP_WEIGHT.
+  const std::map<std::string, int32_t> expected{
+      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 0}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, addNamedNextHopGroupsCombinesDuplicates) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3"}));
+  handler.addNamedNextHopGroups(std::move(groups), true);
+
+  const std::map<std::string, int32_t> expected{
+      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 0}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, combineFlagLeavesDistinctNextHopsAlone) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3",
+       "2401:db00:2110:3001::4"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups), true);
+
+  // Nothing is duplicated, so every next hop keeps ECMP_WEIGHT and the group
+  // is not promoted to UCMP.
+  const std::map<std::string, int32_t> expected{
+      {"2401:db00:2110:3001::2", 0},
+      {"2401:db00:2110:3001::3", 0},
+      {"2401:db00:2110:3001::4", 0}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    addNamedNextHopGroupsCombineFlagLeavesDistinctNextHopsAlone) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3",
+       "2401:db00:2110:3001::4"}));
+  handler.addNamedNextHopGroups(std::move(groups), true);
+
+  const std::map<std::string, int32_t> expected{
+      {"2401:db00:2110:3001::2", 0},
+      {"2401:db00:2110:3001::3", 0},
+      {"2401:db00:2110:3001::4", 0}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsDroppedByDefault) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3"}));
+  // No flag passed, so this exercises the default.
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Repeat is dropped rather than combined, leaving both next hops at
+  // ECMP_WEIGHT.
+  const std::map<std::string, int32_t> expected{
+      {"2401:db00:2110:3001::2", 0}, {"2401:db00:2110:3001::3", 0}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, addNamedNextHopGroups) {

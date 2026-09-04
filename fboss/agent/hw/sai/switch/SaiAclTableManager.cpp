@@ -1540,7 +1540,17 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
             auto arsProfileHandle =
                 managerTable_->arsProfileManager().getArsProfileHandle();
-            if (arsProfileHandle && arsProfileHandle->arsVirtualGroupsEnabled) {
+            // A DLB eligible packet hits entries in both IFP groups, and
+            // DynamicEcmpEnable and L3Switch are not mutually exclusive, so
+            // both actions get applied. Without the cancel the packet then
+            // egresses through the static ECMP group rather than the DLB one,
+            // and split horizon on the ARS group never comes into play.
+            const bool arsSplitHorizonEnabled =
+                managerTable_->nextHopGroupManager().isSplitHorizonEnabled(
+                    cfg::EcmpGroupType::ARS);
+            if ((arsProfileHandle &&
+                 arsProfileHandle->arsVirtualGroupsEnabled) ||
+                arsSplitHorizonEnabled) {
               aclActionL3SwitchCancel =
                   SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
             }

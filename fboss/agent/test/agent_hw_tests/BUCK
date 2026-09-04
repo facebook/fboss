@@ -49,6 +49,7 @@ cpp_library(
         "//fboss/agent:asic_utils",
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
@@ -67,6 +68,7 @@ cpp_library(
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/config:fboss_config_utils",
+        "//folly:conv",
     ],
     exported_deps = [
         "//fboss/agent:agent_features",
@@ -278,6 +280,7 @@ cpp_library(
         "AgentPfcConfigTest.cpp",
         "AgentPfcTests.cpp",
         "AgentPortBandWidthTests.cpp",
+        "AgentPortBoundIngressAclTests.cpp",
         "AgentPortLedTests.cpp",
         "AgentPortProfileTests.cpp",
         "AgentPrbsTests.cpp",

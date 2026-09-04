@@ -3376,20 +3376,25 @@ void ThriftHandler::getTeFlowTableDetails(
 }
 
 void ThriftHandler::addNamedNextHopGroups(
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+  addNamedNextHopGroupsImpl(
+      __func__, std::move(nextHopGroups), combineDuplicatedNextHops);
 }
 
 void ThriftHandler::addOrUpdateNamedNextHopGroups(
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
-  addNamedNextHopGroupsImpl(__func__, std::move(nextHopGroups));
+  addNamedNextHopGroupsImpl(
+      __func__, std::move(nextHopGroups), combineDuplicatedNextHops);
 }
 
 void ThriftHandler::addNamedNextHopGroupsImpl(
     folly::StringPiece function,
-    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) {
+    std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+    bool combineDuplicatedNextHops) {
   ensureConfigured(function);
 
   auto* rib = sw_->getRib();
@@ -3425,7 +3430,9 @@ void ThriftHandler::addNamedNextHopGroupsImpl(
     groups.emplace_back(
         *group.name(),
         util::toRouteNextHopSet(
-            *group.nexthops(), true /* allowV6NonLinkLocal */));
+            *group.nexthops(),
+            true /* allowV6NonLinkLocal */,
+            combineDuplicatedNextHops));
   }
 
   // RIB handles allocation + route reprogramming on the RIB thread.

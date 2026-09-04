@@ -6,7 +6,9 @@ import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk5 import Tomahawk5AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
-from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+)
 
 
 class MontblancAsicConfig(Tomahawk5AsicConfig):
@@ -19,7 +21,7 @@ class MontblancAsicConfig(Tomahawk5AsicConfig):
         super(MontblancAsicConfig, self).__init__(asic_config_params)
 
         self.parser = PlatformMappingParser(
-            read_all_vendor_data(platform_mapping_input_dir), "montblanc"
+            discover_platform_mapping_inputs(platform_mapping_input_dir), "montblanc"
         )
         self.num_ports_per_core = 2
         if mgmt_port_speed == 10000:

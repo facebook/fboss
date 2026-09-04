@@ -79,6 +79,8 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h"
+#include "fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h"
 #include "fboss/cli/fboss2/commands/show/l2/CmdShowL2.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
@@ -389,6 +391,18 @@ const CommandTree& kCommandTree() {
                  "Show PRBS stats",
                  commandHandler<CmdShowInterfacePrbsStats>,
                  argTypeHandler<CmdShowInterfacePrbsStatsTraits>},
+            }},
+           {"transceiver",
+            "Show Transceiver information for the interface",
+            commandHandler<CmdShowInterfaceTransceiver>,
+            argTypeHandler<CmdShowInterfaceTransceiverTraits>,
+            {
+                {"performance-monitoring",
+                 "Show transceiver VDM performance monitoring stats",
+                 commandHandler<
+                     CmdShowInterfaceTransceiverPerformanceMonitoring>,
+                 argTypeHandler<
+                     CmdShowInterfaceTransceiverPerformanceMonitoringTraits>},
             }},
        }},
       {"show",

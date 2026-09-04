@@ -251,6 +251,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::RX_PACKET_TYPE:
       return false;
   }
   return false;
