@@ -27,38 +27,49 @@ namespace facebook::fboss::utility {
 
 namespace {
 
+struct PfcPriorityMaps {
+  std::map<int16_t, int16_t> tcToPg;
+  std::map<int16_t, int16_t> pfcPriToPg;
+  std::map<int16_t, int16_t> pfcPriToQueue;
+};
+
+// Identity maps with any PfcQosMapParams overrides merged on top.
+PfcPriorityMaps makePfcPriorityMaps(const PfcQosMapParams& params) {
+  PfcPriorityMaps maps;
+  for (auto i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+       i++) {
+    maps.tcToPg.emplace(i, i);
+    maps.pfcPriToPg.emplace(i, i);
+    maps.pfcPriToQueue.emplace(i, i);
+  }
+  for (const auto& [tc, pg] : params.tcToPg) {
+    maps.tcToPg[tc] = pg;
+  }
+  for (const auto& [pri, pg] : params.pfcPriToPg) {
+    maps.pfcPriToPg[pri] = pg;
+  }
+  for (const auto& [pri, queue] : params.pfcPriToQueue) {
+    maps.pfcPriToQueue[pri] = queue;
+  }
+  return maps;
+}
+
 void setupQosMapForPfc(
     cfg::QosMap& qosMap,
     bool isCpuQosMap,
     const PfcQosMapParams& qosMapParams = {}) {
-  // update pfc maps
-  std::map<int16_t, int16_t> tc2PgId;
-  std::map<int16_t, int16_t> tc2QueueId;
-  std::map<int16_t, int16_t> pfcPri2PgId;
-  std::map<int16_t, int16_t> pfcPri2QueueId;
-  // program defaults
-  for (auto i = 0; i < 8; i++) {
-    tc2PgId.emplace(i, i);
-    if (isCpuQosMap) {
-      // Jericho3 cpu/recycle port only has 2 egress queues. Tomahawk has more
-      // queues, but we stick to the lowest common denominator here.
-      // See https://fburl.com/gdoc/nyyg1cve and https://fburl.com/code/mhdeuiky
-      tc2QueueId.emplace(i, i < 7 ? 0 : 1);
-    } else {
-      tc2QueueId.emplace(i, i);
-    }
-    pfcPri2PgId.emplace(i, i);
-    pfcPri2QueueId.emplace(i, i);
-  }
+  auto priorityMaps = makePfcPriorityMaps(qosMapParams);
+  auto tc2PgId = std::move(priorityMaps.tcToPg);
+  auto pfcPri2PgId = std::move(priorityMaps.pfcPriToPg);
+  auto pfcPri2QueueId = std::move(priorityMaps.pfcPriToQueue);
 
-  for (auto& tc2Pg : qosMapParams.tcToPg) {
-    tc2PgId[tc2Pg.first] = tc2Pg.second;
-  }
-  for (auto& pfcPri2Pg : qosMapParams.pfcPriToPg) {
-    pfcPri2PgId[pfcPri2Pg.first] = pfcPri2Pg.second;
-  }
-  for (auto& pfcPri2Queue : qosMapParams.pfcPriToQueue) {
-    pfcPri2QueueId[pfcPri2Queue.first] = pfcPri2Queue.second;
+  std::map<int16_t, int16_t> tc2QueueId;
+  for (auto i = 0; i <= cfg::switch_config_constants::PORT_PG_VALUE_MAX();
+       i++) {
+    // Jericho3 cpu/recycle port only has 2 egress queues. Tomahawk has more
+    // queues, but we stick to the lowest common denominator here.
+    // See https://fburl.com/gdoc/nyyg1cve and https://fburl.com/code/mhdeuiky
+    tc2QueueId.emplace(i, isCpuQosMap ? (i < 7 ? 0 : 1) : i);
   }
 
   // Build the DSCP -> TC map only when not classifying by PCP. When PCP
@@ -401,6 +412,90 @@ void setupPfcBuffers(
     cfg.switchSettings()->sramGlobalFreePercentXoffThreshold() = 10;
     cfg.switchSettings()->sramGlobalFreePercentXonThreshold() = 20;
     cfg.switchSettings()->linkFlowControlCreditThreshold() = 99;
+  }
+}
+
+void setupUplinkDownlinkPfc(
+    const TestEnsembleIf* ensemble,
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& uplinkPorts,
+    const std::vector<PortID>& downlinkPorts,
+    const std::vector<int>& losslessPgIds,
+    const std::vector<int>& lossyPgIds,
+    const PfcQosMapParams& qosMapParams) {
+  auto buffer =
+      PfcBufferParams::getPfcBufferParams(checkSameAndGetAsicType(cfg));
+
+  // The "uplink"/"downlink" substrings in the pg config name are load-bearing
+  // for getRtswUplinkDownlinkPorts(), so a port in both lists would be
+  // silently misclassified by whichever call runs last.
+  for (const auto& portID : uplinkPorts) {
+    if (std::find(downlinkPorts.begin(), downlinkPorts.end(), portID) !=
+        downlinkPorts.end()) {
+      throw FbossError("Port ", portID, " is both an uplink and a downlink");
+    }
+  }
+
+  auto tagPorts = [&cfg](
+                      const std::vector<PortID>& ports,
+                      const std::string& pgConfigName) {
+    cfg::PortPfc pfc;
+    pfc.tx() = true;
+    pfc.rx() = true;
+    pfc.portPgConfigName() = pgConfigName;
+    for (const auto& portID : ports) {
+      auto portCfg = std::find_if(
+          cfg.ports()->begin(), cfg.ports()->end(), [&portID](auto& port) {
+            return PortID(*port.logicalID()) == portID;
+          });
+      if (portCfg == cfg.ports()->end()) {
+        throw FbossError("No port ", portID, " in config to apply PFC to");
+      }
+      portCfg->pfc() = pfc;
+    }
+  };
+  tagPorts(uplinkPorts, kUplinkPgConfigName);
+  tagPorts(downlinkPorts, kDownlinkPgConfigName);
+
+  auto portPgConfigMap = cfg.portPgConfigs().ensure();
+  for (const auto& pgConfigName :
+       {kUplinkPgConfigName, kDownlinkPgConfigName}) {
+    setupPortPgConfig(
+        ensemble,
+        portPgConfigMap,
+        losslessPgIds,
+        lossyPgIds,
+        buffer,
+        pgConfigName);
+  }
+  cfg.portPgConfigs() = std::move(portPgConfigMap);
+
+  auto bufferPoolCfgMap = cfg.bufferPoolConfigs().ensure();
+  setupBufferPoolConfig(
+      checkSameAndGetAsic(ensemble->getL3Asics(), FLAGS_switch_id_for_testing),
+      bufferPoolCfgMap,
+      buffer.globalShared,
+      buffer.globalHeadroom);
+  cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+
+  // Merge into the existing QoS policies rather than adding one. A second
+  // policy would give getOlympicQosMaps() a competing DSCP -> traffic class
+  // mapping for the same traffic classes.
+  auto priorityMaps = makePfcPriorityMaps(qosMapParams);
+  bool merged = false;
+  for (auto& qosPolicy : *cfg.qosPolicies()) {
+    if (!qosPolicy.qosMap().has_value()) {
+      continue;
+    }
+    qosPolicy.qosMap()->trafficClassToPgId() = priorityMaps.tcToPg;
+    qosPolicy.qosMap()->pfcPriorityToPgId() = priorityMaps.pfcPriToPg;
+    qosPolicy.qosMap()->pfcPriorityToQueueId() = priorityMaps.pfcPriToQueue;
+    merged = true;
+  }
+  if (!merged) {
+    throw FbossError(
+        "No QoS policy with a qosMap to merge PFC priority maps into; "
+        "install the QoS policy before calling setupUplinkDownlinkPfc()");
   }
 }
 
