@@ -72,7 +72,8 @@ CmdShowNextHopGroups::RetType CmdShowNextHopGroups::queryClient(
   std::vector<NextHopGroup> nextHopGroups;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  client->sync_getNextHopGroups(nextHopGroups);
+  client->sync_getNextHopGroups(
+      nextHopGroups, false /* replicateWeightedNexthops */);
   return createModel(nextHopGroups);
 }
 
@@ -97,7 +98,8 @@ CmdShowNamedNextHopGroups::RetType CmdShowNamedNextHopGroups::queryClient(
   // single hardware NextHopSetId) are each listed by name, rather than being
   // collapsed into one entry as sync_getNextHopGroups would do.
   std::vector<std::string> names; // empty => return all named groups
-  client->sync_getNamedNextHopGroups(nextHopGroups, names);
+  client->sync_getNamedNextHopGroups(
+      nextHopGroups, names, false /* replicateWeightedNexthops */);
   return createModel(nextHopGroups);
 }
 

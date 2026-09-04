@@ -3912,6 +3912,94 @@ TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsDroppedByDefault) {
   EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
 }
 
+namespace {
+// Addresses of a group's next hops, sorted, with repeats preserved.
+std::vector<std::string> nextHopAddrs(const NextHopGroup& group) {
+  std::vector<std::string> addrs;
+  for (const auto& nhop : *group.nexthops()) {
+    addrs.push_back(facebook::network::toIPAddress(*nhop.address()).str());
+  }
+  std::sort(addrs.begin(), addrs.end());
+  return addrs;
+}
+
+std::vector<std::string> readGroupNextHopAddrs(
+    ThriftHandler& handler,
+    const std::string& name,
+    bool replicateWeightedNexthops) {
+  std::vector<NextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back(name);
+  handler.getNamedNextHopGroups(
+      result, std::move(nameFilter), replicateWeightedNexthops);
+  CHECK_EQ(result.size(), 1);
+  return nextHopAddrs(result[0]);
+}
+
+// A group whose repeated next hop was combined into a single weighted one.
+void addCombinedDuplicateGroup(ThriftHandler& handler) {
+  auto groups = std::make_unique<std::vector<NextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1",
+      {"2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::2",
+       "2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(
+      std::move(groups), true /* combineDuplicatedNextHops */);
+}
+} // namespace
+
+TEST_F(NamedNextHopGroupThriftTest, weightedNextHopsReplicatedWhenRequested) {
+  ThriftHandler handler(sw_);
+  addCombinedDuplicateGroup(handler);
+
+  // The weight-2 next hop comes back as the two next hops it was built from.
+  const std::vector<std::string> expected{
+      "2401:db00:2110:3001::2",
+      "2401:db00:2110:3001::2",
+      "2401:db00:2110:3001::3"};
+  EXPECT_EQ(
+      readGroupNextHopAddrs(
+          handler, "group1", true /* replicateWeightedNexthops */),
+      expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, weightedNextHopsNotReplicatedByDefault) {
+  ThriftHandler handler(sw_);
+  addCombinedDuplicateGroup(handler);
+
+  const std::vector<std::string> expected{
+      "2401:db00:2110:3001::2", "2401:db00:2110:3001::3"};
+  EXPECT_EQ(
+      readGroupNextHopAddrs(
+          handler, "group1", false /* replicateWeightedNexthops */),
+      expected);
+}
+
+TEST_F(
+    NamedNextHopGroupThriftTest,
+    getNextHopGroupsReplicatesWeightedNextHops) {
+  ThriftHandler handler(sw_);
+  addCombinedDuplicateGroup(handler);
+
+  std::vector<NextHopGroup> result;
+  handler.getNextHopGroups(result, true /* replicateWeightedNexthops */);
+
+  const NextHopGroup* group = nullptr;
+  for (const auto& g : result) {
+    if (g.name().has_value() && *g.name() == "group1") {
+      group = &g;
+    }
+  }
+  ASSERT_NE(group, nullptr);
+
+  const std::vector<std::string> expected{
+      "2401:db00:2110:3001::2",
+      "2401:db00:2110:3001::2",
+      "2401:db00:2110:3001::3"};
+  EXPECT_EQ(nextHopAddrs(*group), expected);
+}
+
 TEST_F(NamedNextHopGroupThriftTest, addNamedNextHopGroups) {
   ThriftHandler handler(sw_);
 

@@ -1495,16 +1495,21 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to get next hop groups
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
-  list<common.NextHopGroup> getNextHopGroups() throws (
-    1: fboss.FbossBaseError error,
-  );
+  list<common.NextHopGroup> getNextHopGroups(
+    1: bool replicateWeightedNexthops = false,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to get named next hop groups, optionally filtered by name
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
   list<common.NextHopGroup> getNamedNextHopGroups(
     1: list<string> names,
+    2: bool replicateWeightedNexthops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*

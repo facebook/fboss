@@ -153,11 +153,13 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   using InterfaceDetailMap =
       std::map<int32_t, facebook::fboss::InterfaceDetail>&;
   MOCK_METHOD(void, getAllInterfaces, (InterfaceDetailMap));
-  MOCK_METHOD(void, getNextHopGroups, (std::vector<NextHopGroup>&));
+  MOCK_METHOD(void, getNextHopGroups, (std::vector<NextHopGroup>&, bool));
   MOCK_METHOD(
       void,
       getNamedNextHopGroups,
-      (std::vector<NextHopGroup>&, std::unique_ptr<std::vector<std::string>>));
+      (std::vector<NextHopGroup>&,
+       std::unique_ptr<std::vector<std::string>>,
+       bool));
 };
 
 class MockFbossHwCtrlAgent

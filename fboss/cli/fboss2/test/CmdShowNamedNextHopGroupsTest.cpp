@@ -66,8 +66,10 @@ class CmdShowNamedNextHopGroupsTestFixture : public CmdHandlerTestBase {};
 TEST_F(CmdShowNamedNextHopGroupsTestFixture, queryClientReturnsBothSharedSet) {
   setupMockedAgentServer();
   auto groups = createSameSetNamedGroups();
-  EXPECT_CALL(getMockAgent(), getNamedNextHopGroups(_, _))
-      .WillOnce(Invoke([&](auto& result, auto /*names*/) { result = groups; }));
+  EXPECT_CALL(getMockAgent(), getNamedNextHopGroups(_, _, _))
+      .WillOnce(Invoke([&](auto& result, auto /*names*/, auto /*replicate*/) {
+        result = groups;
+      }));
 
   auto cmd = CmdShowNamedNextHopGroups();
   auto model = cmd.queryClient(localhost());

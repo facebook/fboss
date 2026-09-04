@@ -134,10 +134,13 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       bool combineDuplicatedNextHops = false) override;
   void deleteNamedNextHopGroups(
       std::unique_ptr<std::vector<std::string>> names) override;
-  void getNextHopGroups(std::vector<NextHopGroup>& result) override;
+  void getNextHopGroups(
+      std::vector<NextHopGroup>& result,
+      bool replicateWeightedNexthops = false) override;
   void getNamedNextHopGroups(
       std::vector<NextHopGroup>& result,
-      std::unique_ptr<std::vector<std::string>> names) override;
+      std::unique_ptr<std::vector<std::string>> names,
+      bool replicateWeightedNexthops = false) override;
 
   SwSwitch* getSw() const {
     return sw_;

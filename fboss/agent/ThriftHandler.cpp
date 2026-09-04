@@ -3489,7 +3489,9 @@ std::optional<NhgFibContext> getNhgFibContext(
 
 } // namespace
 
-void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
+void ThriftHandler::getNextHopGroups(
+    std::vector<NextHopGroup>& result,
+    bool replicateWeightedNexthops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
@@ -3526,7 +3528,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
 
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(setId);
-      thriftGroup.nexthops() = util::fromNextHops(nextHops);
+      thriftGroup.nexthops() =
+          util::fromNextHops(nextHops, replicateWeightedNexthops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
@@ -3537,7 +3540,8 @@ void ThriftHandler::getNextHopGroups(std::vector<NextHopGroup>& result) {
 
 void ThriftHandler::getNamedNextHopGroups(
     std::vector<NextHopGroup>& result,
-    std::unique_ptr<std::vector<std::string>> names) {
+    std::unique_ptr<std::vector<std::string>> names,
+    bool replicateWeightedNexthops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
@@ -3567,7 +3571,8 @@ void ThriftHandler::getNamedNextHopGroups(
         refCounts.count(NextHopSetID(nextHopSetId)) > 0;
     try {
       auto nextHops = ctx->fibInfo->resolveNextHopSetFromId(nextHopSetId);
-      thriftGroup.nexthops() = util::fromNextHops(nextHops);
+      thriftGroup.nexthops() =
+          util::fromNextHops(nextHops, replicateWeightedNexthops);
       result.push_back(std::move(thriftGroup));
     } catch (const FbossError& e) {
       XLOG(ERR) << "Failed to resolve nexthops for named group '" << name
