@@ -1039,6 +1039,414 @@ TEST_F(AgentFlowletSwitchingTest, VerifyEcmp) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Pruning off: every member, including the one traffic ingressed on, has to
+// carry an even share and nothing may be dropped.
+TEST_F(
+    AgentFlowletSourcePortPruneTest,
+    VerifyDlbSecondaryNoPruneFourMembersBalancesEvenly) {
+  constexpr int kEcmpWidth = 4;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kMemberIngressDlbDeviationPct);
+    // Nothing is pruned, so the hash may pick the ingress itself -- and the
+    // helper counts the ingress separately, which would read as zero members.
+    // Phase 2 already pins the one member property with an ingress outside the
+    // group; here only absence of loss is assertable.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        false,
+        std::nullopt,
+        std::nullopt,
+        false /* assertMemberCount */);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        hashSpreadBoundPct(kEcmpWidth));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentFlowletSourcePortPruneTest,
+    VerifyDlbSecondaryNoPruneFiveMembersBalancesEvenly) {
+  constexpr int kEcmpWidth = 5;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kMemberIngressDlbDeviationPct);
+    // Nothing is pruned, so the hash may pick the ingress itself -- and the
+    // helper counts the ingress separately, which would read as zero members.
+    // Phase 2 already pins the one member property with an ingress outside the
+    // group; here only absence of loss is assertable.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        false,
+        std::nullopt,
+        std::nullopt,
+        false /* assertMemberCount */);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        hashSpreadBoundPct(kEcmpWidth));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentFlowletSourcePortPruneTest,
+    VerifyDlbSecondaryNoPruneSixMembersBalancesEvenly) {
+  constexpr int kEcmpWidth = 6;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kMemberIngressDlbDeviationPct);
+    // Nothing is pruned, so the hash may pick the ingress itself -- and the
+    // helper counts the ingress separately, which would read as zero members.
+    // Phase 2 already pins the one member property with an ingress outside the
+    // group; here only absence of loss is assertable.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        false,
+        std::nullopt,
+        std::nullopt,
+        false /* assertMemberCount */);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        hashSpreadBoundPct(kEcmpWidth));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Pruning on, four members: needs no padding, so the pruned member's slot goes
+// to a single survivor which then carries twice what the others do.
+TEST_F(
+    AgentFlowletArsSourcePortPruneEnabledTest,
+    VerifyDlbSecondaryPruneFourMembersRedistributesToOneMember) {
+  constexpr int kEcmpWidth = 4;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        true,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kPrunedDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        true,
+        1 /* one member; pruning only changes which one */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        kPrunedDlbLoadBalanceDeviationPct);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Pruning on, five and six members: padding rounds the secondary up to eight
+// slots with duplicate entries, so the spread is 2:1 by construction and the
+// DLB phase asserts only that nothing is lost. Member count and balance are
+// asserted on the hash cancelled phases, which are not slot quantised the same
+// way.
+TEST_F(
+    AgentFlowletArsSourcePortPruneEnabledTest,
+    VerifyDlbSecondaryPruneFiveMembersNoLoss) {
+  constexpr int kEcmpWidth = 5;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        true,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kPrunedDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        true,
+        1 /* one member; pruning only changes which one */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        kPrunedDlbLoadBalanceDeviationPct);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(
+    AgentFlowletArsSourcePortPruneEnabledTest,
+    VerifyDlbSecondaryPruneSixMembersNoLoss) {
+  constexpr int kEcmpWidth = 6;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() {
+    checkEnoughPhyLoopbackPorts(kEcmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    this->setup(kEcmpWidth);
+  };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        1 /* no entropy, so exactly one member */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon can act on it.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        true,
+        kEcmpWidth - 1 /* the count excludes the ingress */,
+        kPrunedDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        true,
+        1 /* one member; pruning only changes which one */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        kPrunedDlbLoadBalanceDeviationPct);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentFlowletSwitchingEnhancedScaleTest
     : public AgentFlowletSwitchingTest {
  public:
