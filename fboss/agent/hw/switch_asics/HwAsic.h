@@ -586,6 +586,9 @@ class HwAsic {
     // Each attribute returns the drop reasons seen since the last read, which
     // is cleared on read. Counterpart to SWITCH_CUSTOM_DROP_BITMAP_SUPPORT.
     SWITCH_DROP_REASON_LIST_SUPPORT,
+    // SDK reports the type of a received packet, so the application does
+    // not have to classify the packet itself to identify specific types.
+    RX_PACKET_TYPE,
   };
 
   enum class AsicMode {

@@ -141,6 +141,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::RX_PACKET_TYPE:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
       return true;
     // Features not expected to work on SIM
