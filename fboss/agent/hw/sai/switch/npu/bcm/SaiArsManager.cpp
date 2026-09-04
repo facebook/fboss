@@ -115,7 +115,8 @@ void SaiArsManager::addArs(
 #endif
 
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP) &&
+      flowletSwitchConfig->getMinWidthForArsVirtualGroup().has_value()) {
     std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
         virtualArsQualityThreshold = std::nullopt;
     std::optional<SaiArsTraits::Attributes::EcmpMemberCount> ecmpMemberCount =
@@ -148,6 +149,9 @@ void SaiArsManager::addArs(
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
             std::nullopt,
             ecmpMemberCount));
+  } else if (virtualArsGroupHandle_->ars) {
+    // Config no longer asks for virtual groups, so drop the one we created.
+    virtualArsGroupHandle_->ars.reset();
   }
 #endif
 }
