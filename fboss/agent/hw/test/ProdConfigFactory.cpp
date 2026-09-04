@@ -17,16 +17,18 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
+#include "fboss/agent/test/utils/UdfTestUtils.h"
 
 namespace {
 auto constexpr kTopLabel = 5000;
-}
+} // namespace
 
 namespace facebook::fboss::utility {
 
@@ -39,6 +41,38 @@ const std::vector<int>& kLosslessPgIds() {
 const std::vector<int>& kLossyPgIds() {
   static const std::vector<int> pgIds{7};
   return pgIds;
+}
+// Prod masks the BTH opcode to its low 7 bits, unlike the 0xFF
+// utility::kUdfRoceOpcodeMask used elsewhere. Same result for opcode 17.
+constexpr int8_t kProdRoceOpcodeMask = 0x7F;
+
+// verifyFlowletAcls() looks this up by name, and on SAI reads the counter back
+// under the ACL's own name.
+void addUdfRoceOpcodeAcl(cfg::SwitchConfig& config, bool isSai) {
+  cfg::AclEntry acl;
+  acl.name() = utility::kUdfAclRoceOpcodeName;
+  acl.actionType() = cfg::AclActionType::PERMIT;
+  auto asicType = checkSameAndGetAsicType(config);
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
+    acl.etherType() = cfg::EtherType::IPv6;
+  }
+  if (isSai) {
+    utility::addUdfTableToAcl(
+        &acl,
+        utility::kUdfAclRoceOpcodeGroupName,
+        {utility::kUdfRoceOpcodeAck},
+        {kProdRoceOpcodeMask});
+  } else {
+    acl.udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+    acl.roceOpcode() = utility::kUdfRoceOpcodeAck;
+  }
+  utility::addAcl(&config, acl, cfg::AclStage::INGRESS);
+  utility::addAclStat(
+      &config,
+      utility::kUdfAclRoceOpcodeName,
+      isSai ? utility::kUdfAclRoceOpcodeName : utility::kUdfAclRoceOpcodeStats,
+      {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
 }
 } // namespace
 
@@ -438,6 +472,20 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
       portSpeed,
       hwAsic->desiredLoopbackModes());
 
+  const bool addArsConfig = hwAsic->isSupported(HwAsic::Feature::ARS);
+  // Append to the table createUplinkDownlinkConfig() already made rather than
+  // re-adding the group: addAclTableGroup() overwrites an existing group,
+  // dropping its tables.
+  if (addArsConfig && FLAGS_enable_acl_table_group) {
+    if (auto* aclTableGroup =
+            utility::getAclTableGroup(config, cfg::AclStage::INGRESS)) {
+      for (auto& aclTable : *aclTableGroup->aclTables()) {
+        aclTable.udfGroups()->push_back(utility::kUdfAclRoceOpcodeGroupName);
+        aclTable.udfGroups()->push_back(utility::kRoceUdfFlowletGroupName);
+      }
+    }
+  }
+
   // STSW/SUSW sit at the top of the hierarchy and have no uplinks.
   std::vector<PortID> uplinks, downlinks;
   for (const auto& portId : masterLogicalPortIds) {
@@ -479,7 +527,7 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
         qosMapParams);
   }
 
-  if (hwAsic->isSupported(HwAsic::Feature::ARS)) {
+  if (addArsConfig) {
     std::vector<PortID> allLinks(uplinks);
     allLinks.insert(allLinks.end(), downlinks.begin(), downlinks.end());
     // Prod runs per-packet spray with flowlet disabled, i.e. FIXED_ASSIGNMENT,
@@ -492,6 +540,17 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         cfg::SwitchingMode::FIXED_ASSIGNMENT,
         hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD));
+    config.udfConfig() =
+        utility::addUdfAclConfig(kUdfOffsetBthOpcode | kUdfOffsetBthReserved);
+    addUdfRoceOpcodeAcl(config, isSai);
+    // Name must match prod for verifyFlowletAcls() to find it.
+    const std::string kSelectiveEnableAclName{"flowlet-selective-enable"};
+    const std::string kSelectiveEnableStatsName{"flowlet-selective-stats"};
+    utility::addFlowletAcl(
+        config,
+        isSai,
+        kSelectiveEnableAclName,
+        isSai ? kSelectiveEnableAclName : kSelectiveEnableStatsName);
   }
 
   return config;
