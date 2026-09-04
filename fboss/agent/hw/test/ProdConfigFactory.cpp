@@ -21,6 +21,7 @@
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 namespace {
@@ -28,6 +29,18 @@ auto constexpr kTopLabel = 5000;
 }
 
 namespace facebook::fboss::utility {
+
+namespace {
+// Prod RTSW-family PGs: PG2/PG6 lossless, PG7 lossy.
+const std::vector<int>& kLosslessPgIds() {
+  static const std::vector<int> pgIds{2, 6};
+  return pgIds;
+}
+const std::vector<int>& kLossyPgIds() {
+  static const std::vector<int> pgIds{7};
+  return pgIds;
+}
+} // namespace
 
 /*
  * Setup and enable Olympic QoS on the given config. Common among all platforms;
@@ -408,7 +421,7 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
     const PlatformMapping* platformMapping,
     bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
-    const TestEnsembleIf* /*ensemble*/,
+    const TestEnsembleIf* ensemble,
     ProdMmuLosslessRole role,
     bool isSai) {
   auto hwAsic = checkSameAndGetAsicForTesting(asics);
@@ -448,6 +461,22 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
       config, std::vector<const HwAsic*>({hwAsic}), isSai);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwAsic, LBHash::FULL_HASH);
+  }
+
+  // Gated on L3_QOS as well as PFC: setupUplinkDownlinkPfc() merges into the
+  // QoS policy added above, which only exists when L3_QOS is supported.
+  if (hwAsic->isSupported(HwAsic::Feature::PFC) &&
+      hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    utility::PfcQosMapParams qosMapParams;
+    qosMapParams.tcToPg = {{0, kLossyPgIds().front()}};
+    utility::setupUplinkDownlinkPfc(
+        ensemble,
+        config,
+        uplinks,
+        downlinks,
+        kLosslessPgIds(),
+        kLossyPgIds(),
+        qosMapParams);
   }
 
   return config;
