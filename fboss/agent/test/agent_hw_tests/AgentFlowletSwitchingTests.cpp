@@ -10,6 +10,8 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentArsBase.h"
 
+#include <folly/Conv.h>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/EcmpResourceManager.h"
@@ -27,6 +29,7 @@
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -63,6 +66,286 @@ class AgentFlowletSwitchingTest : public AgentArsBase {
     FLAGS_flowletSwitchingEnable = true;
     FLAGS_force_init_fp = false;
     FLAGS_enable_ecmp_random_spray = true;
+  }
+};
+
+// Prune keys off the link state the ASIC sees, and BRCM only reports that with
+// PHY loopback rather than the default MAC loopback. The adapter rejects PHY
+// loopback on the 400G ports, so -- as AgentAdjFrrRouteTest does -- every port
+// this fixture hands to a test is one of the 800G ports it put in PHY loopback.
+class AgentFlowletSourcePortPruneTest : public AgentFlowletSwitchingTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentFlowletSwitchingTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ARS_SOURCE_PORT_PRUNE);
+    return features;
+  }
+
+ protected:
+  static constexpr int kMaxDlbLoadBalanceDeviationPct = 25;
+  // A pruned member hands its whole share to a single survivor rather than
+  // spreading it, so that survivor carries roughly twice what the others do.
+  // Measured at every width, including widths needing no padding.
+  static constexpr int kPrunedDlbLoadBalanceDeviationPct = 125;
+  // Injecting from a member skews DLB even with nothing pruned. DLB steers on
+  // measured port load and the ingress port is carrying the injected burst
+  // under PHY loopback, so it looks busy and is given less: measured 27% to
+  // 39% across widths, against under 5% when the ingress sits outside the
+  // group. The spread is the mechanism working, not a defect, so the bound is
+  // only here to catch a member dropping out entirely -- which the member
+  // count assertion covers more directly.
+  static constexpr int kMemberIngressDlbDeviationPct = 125;
+
+  static constexpr int kFlowCount = 2048;
+  static constexpr int kPacketsPerFlow = 8;
+  static constexpr int kPacketCount = kFlowCount * kPacketsPerFlow;
+  // Any UDP port other than 4791 misses the flowlet ACL, so the burst is not
+  // DLB eligible and falls to the SDK's internally created secondary group.
+  // No ECMP_HASH_CANCEL ACL is needed here: the DLB secondary is static hash
+  // already, so missing the flowlet rule is enough to reach it. The FRR tests
+  // do install one, because their backup group is random spray and the spray
+  // has to be cancelled to get a static hash contrast.
+  static constexpr int kNonDlbL4DstPort = 1024;
+
+  // Which selection mechanism a burst exercises.
+  enum class TrafficType {
+    // 4791, one 5 tuple: the ARS object forwards. DLB selects per packet, not
+    // per flow -- it spreads on measured port and queue load rather than on
+    // header entropy -- so a single tuple still reaches every member. Sending
+    // one flow is what makes the spread meaningful: with kFlowCount tuples the
+    // members would fill up from hashing alone and prove nothing about DLB.
+    Dlb,
+    // 1024, one 5 tuple: secondary group with no entropy, so its static hash
+    // must settle on exactly one member.
+    SecondarySingleFlow,
+    // 1024, kFlowCount flows: secondary group with real entropy, so the hash
+    // spreads across members.
+    SecondaryMultiFlow,
+  };
+
+  // Widths that are not a multiple of four map flows onto members unevenly
+  // enough that the sampling noise at kFlowCount shows up: measured ~8% at five
+  // and six members against ~0.4% at four. The wider bound absorbs that.
+  //
+  // It is deliberately *not* justified by secondary padding. Padding keeps
+  // every member reachable but does not visibly skew the distribution -- with
+  // pruning off, five and six member groups measure even. The 2:1 case is
+  // pruning, and that uses kPrunedDlbLoadBalanceDeviationPct instead.
+  static int hashSpreadBoundPct(int ecmpWidth) {
+    return ecmpWidth % 4 == 0 ? kMaxDlbLoadBalanceDeviationPct
+                              : kPrunedDlbLoadBalanceDeviationPct;
+  }
+
+  std::optional<size_t> maxRequiredInterfacePorts() const override {
+    return std::nullopt;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentFlowletSwitchingTest::initialConfig(ensemble);
+    for (auto& port : *cfg.ports()) {
+      if (*port.speed() == cfg::PortSpeed::EIGHTHUNDREDG) {
+        port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+      }
+    }
+    // The ARS config does not program an ECMP hash on its own, so without this
+    // every packet resolves to the same member and prune has nothing to
+    // redistribute across.
+    utility::addLoadBalancerToConfig(
+        cfg,
+        checkSameAndGetAsicForTesting(ensemble.getL3Asics()),
+        utility::LBHash::FULL_HASH);
+    cfg.switchSettings()->ecmpGroupSettings() = splitHorizonSettings();
+    return cfg;
+  }
+
+  // Split horizon is CREATE_ONLY and SaiSwitch rejects an ecmpGroupSettings
+  // change after the first config application, so the value can only arrive
+  // through initialConfig(). A prune-on variant is therefore its own fixture
+  // overriding this, not a setter called mid-test. Empty here: this fixture is
+  // the prune-off side.
+  virtual EcmpGroupSettingsMap splitHorizonSettings() const {
+    return {};
+  }
+
+  static EcmpGroupSettingsMap splitHorizonOn(
+      const std::vector<cfg::EcmpGroupType>& groupTypes) {
+    cfg::EcmpGroupSettings settings;
+    settings.enableSplitHorizon() = true;
+    EcmpGroupSettingsMap enabled;
+    for (auto groupType : groupTypes) {
+      enabled.emplace(groupType, settings);
+    }
+    return enabled;
+  }
+
+  // Derived from the programmed state rather than cached from initialConfig(),
+  // which a warm boot never calls.
+  std::vector<PortID> getTestPorts() const override {
+    std::vector<PortID> phyLoopbackPorts;
+    auto state = getProgrammedState();
+    for (auto portId : masterLogicalInterfacePortIds()) {
+      auto port = state->getPorts()->getNodeIf(portId);
+      if (port && port->getLoopbackMode() == cfg::PortLoopbackMode::PHY) {
+        phyLoopbackPorts.push_back(portId);
+      }
+    }
+    return phyLoopbackPorts;
+  }
+
+  // AgentArsBase::setup() indexes getTestPorts() at both [0, ecmpWidth) and
+  // kFrontPanelPortForTest without bounds checking.
+  void checkEnoughPhyLoopbackPorts(int ecmpWidth) const {
+    size_t needed = std::max(ecmpWidth, kFrontPanelPortForTest + 1);
+    auto available = getTestPorts().size();
+    CHECK_GE(available, needed)
+        << "need " << needed << " ports in PHY loopback, found " << available;
+  }
+
+  // Sends one burst into the group and checks how the group spread it. Delivery
+  // of the whole burst is always asserted; everything else is opt in.
+  //
+  // ecmpWidth
+  //   Members in the group. testPorts[0, ecmpWidth) are the members and stats
+  //   are polled over exactly those ports.
+  // ingressPortIdx
+  //   Index into testPorts of the port the burst is injected on. Inside
+  //   [0, ecmpWidth) it is a member, so split horizon can act on it; outside,
+  //   it is not a pruning candidate and the phase serves as a control.
+  //   When it is a member: the port is in PHY loopback, so its outUnicastPkts
+  //   also counts what the test transmitted, and those are subtracted before
+  //   judging what the group sent back out of it. It is then tallied apart from
+  //   membersWithTraffic. When it is not a member it is outside the polled set
+  //   entirely and nothing about it is measured.
+  // traffic
+  //   Which selection mechanism to exercise. Also decides the L4 destination
+  //   port and whether the burst is one 5 tuple or kFlowCount of them.
+  // expectPruned
+  //   Whether the ingress must egress nothing. Only meaningful when the ingress
+  //   is a member; ignored otherwise.
+  // expectedMembersWithTraffic
+  //   How many members other than the ingress must carry a share. Defaults to
+  //   the whole group, less the ingress when the ingress is a member.
+  // maxDeviationPct
+  //   If set, the lightest and heaviest forwarding member must be within this
+  //   percentage of each other. Unset skips the balance check.
+  // assertMemberCount
+  //   Set false where which members forward cannot be pinned down: a DLB burst
+  //   quantises onto flowlet sets, and a single flow can land on the ingress
+  //   itself, which the count deliberately excludes.
+  void sendFlowsAndVerifyPrune(
+      int ecmpWidth,
+      int ingressPortIdx,
+      TrafficType traffic,
+      bool expectPruned,
+      std::optional<int> expectedMembersWithTraffic = std::nullopt,
+      std::optional<int> maxDeviationPct = std::nullopt,
+      bool assertMemberCount = true) {
+    const bool ingressIsMember = ingressPortIdx < ecmpWidth;
+    const bool dlbExpected = traffic == TrafficType::Dlb;
+    const int l4DstPort =
+        dlbExpected ? utility::kUdfL4DstPort : kNonDlbL4DstPort;
+    // Only SecondaryMultiFlow needs entropy: it is the one burst selected by a
+    // static hash. DLB selects per packet on load, and the secondary single
+    // flow case is asserting what a hash does with no entropy at all, so both
+    // send one 5 tuple.
+    const bool singleFlow = traffic != TrafficType::SecondaryMultiFlow;
+    const int flowCount = singleFlow ? 1 : kFlowCount;
+    const int packetsPerFlow = singleFlow ? kPacketCount : kPacketsPerFlow;
+    auto testPorts = getTestPorts();
+    std::vector<PortID> ecmpPorts(
+        testPorts.begin(), testPorts.begin() + ecmpWidth);
+    auto ingressPort = testPorts[ingressPortIdx];
+    const auto counterName = getCounterName(AclType::FLOWLET);
+
+    auto statsBefore = getNextUpdatedPortStats(ecmpPorts);
+    auto aclPktsBefore = utility::getAclInOutPackets(getSw(), counterName);
+
+    std::vector<uint8_t> rethHdr(16);
+    rethHdr[15] = 0xFF; // non-zero sized packet, so DLB is engaged
+    // setup() programs ::/0, so every source IP still resolves to this ECMP
+    // group while giving the hash something to spread on.
+    for (int flow = 0; flow < flowCount; flow++) {
+      sendRoceTraffic(
+          ingressPort,
+          utility::kUdfRoceOpcodeWriteImmediate,
+          rethHdr,
+          packetsPerFlow,
+          l4DstPort,
+          0,
+          folly::IPAddressV6(folly::to<std::string>("1001::", flow + 1)));
+    }
+
+    WITH_RETRIES({
+      auto statsAfter = getNextUpdatedPortStats(ecmpPorts);
+      int64_t egressed = 0;
+      int64_t ingressEgressed = 0;
+      int membersWithTraffic = 0;
+      int64_t lowestDelta = std::numeric_limits<int64_t>::max();
+      int64_t highestDelta = 0;
+      for (int i = 0; i < ecmpWidth; i++) {
+        auto port = testPorts[i];
+        auto delta = *statsAfter.at(port).outUnicastPkts_() -
+            *statsBefore.at(port).outUnicastPkts_();
+        if (i == ingressPortIdx) {
+          delta -= kPacketCount;
+          ingressEgressed = delta;
+        } else if (delta > 0) {
+          membersWithTraffic++;
+        }
+        if (delta > 0) {
+          lowestDelta = std::min(lowestDelta, delta);
+          highestDelta = std::max(highestDelta, delta);
+        }
+        egressed += delta;
+        XLOG(DBG2) << "Ecmp egress port " << i << " (" << port << "): delta "
+                   << delta;
+      }
+      // Only members are polled, so on a control phase the ingress is outside
+      // ecmpPorts and ingressEgressed is not measured rather than zero.
+      XLOG(DBG2) << "Ingress port " << ingressPort << " egressed "
+                 << (ingressIsMember ? std::to_string(ingressEgressed)
+                                     : std::string("not measured (non member)"))
+                 << ", members with traffic " << membersWithTraffic
+                 << ", expectPruned " << expectPruned;
+      EXPECT_EVENTUALLY_GE(egressed, kPacketCount);
+
+      auto aclPktsAfter = utility::getAclInOutPackets(getSw(), counterName);
+      if (dlbExpected) {
+        EXPECT_EVENTUALLY_GE(aclPktsAfter, aclPktsBefore + kPacketCount);
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktsAfter, aclPktsBefore);
+      }
+
+      if (ingressIsMember) {
+        if (expectPruned) {
+          EXPECT_EVENTUALLY_EQ(0, ingressEgressed);
+        } else if (traffic != TrafficType::SecondarySingleFlow) {
+          // Only the static hash with no entropy is unassertable here: it picks
+          // one member and that need not be the ingress. DLB spreads per packet
+          // even on a single tuple, so an unpruned ingress must carry a share.
+          EXPECT_EVENTUALLY_GT(ingressEgressed, 0);
+        }
+      }
+      // Every member prune did not exclude has to carry a share. This is a
+      // count, not a balance check -- how evenly they share is
+      // maxDeviationPct's job, and padding makes an even split impossible at
+      // some widths.
+      if (assertMemberCount) {
+        EXPECT_EVENTUALLY_EQ(
+            expectedMembersWithTraffic.value_or(
+                ingressIsMember ? ecmpWidth - 1 : ecmpWidth),
+            membersWithTraffic);
+      }
+      if (maxDeviationPct.has_value() && highestDelta > 0) {
+        XLOG(DBG2) << "Load spread lowest " << lowestDelta << ", highest "
+                   << highestDelta;
+        EXPECT_EVENTUALLY_TRUE(
+            utility::isDeviationWithinThreshold(
+                lowestDelta, highestDelta, *maxDeviationPct));
+      }
+    });
   }
 };
 
