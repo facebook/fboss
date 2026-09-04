@@ -135,6 +135,18 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig(
   if (checkBaseConfigPortsEmpty()) {
     useProdConfig_ = false;
     ports = getAllPlatformPorts(ensemble.getPlatformPorts());
+    auto role = getProdRole();
+    if (role.has_value()) {
+      return utility::createProdMmuLosslessRoleConfig(
+          ensemble.getL3Asics(),
+          ensemble.getSw()->getPlatformType(),
+          ensemble.getSw()->getPlatformMapping(),
+          ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+          ports,
+          &ensemble,
+          *role,
+          ensemble.isSai());
+    }
     cfg = utility::createProdRswConfig(
         ensemble.getL3Asics(),
         ensemble.getSw()->getPlatformType(),
@@ -593,6 +605,10 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::RTSW;
+  }
+
   void SetUp() override {
     ProdInvariantTest::SetUp();
   }
@@ -762,6 +778,11 @@ class ProdInvariantFtswTest : public ProdInvariantRtswTest {
   ProdInvariantFtswTest() {
     set_mmu_lossless(true);
   }
+
+ protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::FTSW;
+  }
 };
 
 TEST_F(ProdInvariantFtswTest, verifyInvariants) {
@@ -781,6 +802,10 @@ TEST_F(ProdInvariantFtswTest, verifyInvariants) {
 
 class ProdInvariantStswTest : public ProdInvariantRtswTest {
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::STSW;
+  }
+
   void SetUp() override {
     AgentEnsembleTest::SetUp();
     AgentEnsemble* ensemble = getAgentEnsemble();
@@ -834,6 +859,10 @@ class ProdInvariantSuswTest : public ProdInvariantTest {
   }
 
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::SUSW;
+  }
+
   void SetUp() override {
     // Scale-up switches do not run load-balancing or DLB invariants, so skip
     // the base SetUp's ECMP route programming over uplinks, which requires

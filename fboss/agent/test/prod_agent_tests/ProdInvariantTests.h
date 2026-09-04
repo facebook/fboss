@@ -1,8 +1,10 @@
 #pragma once
+#include <optional>
 #include <vector>
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/SetupThrift.h"
+#include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/test/prod_agent_tests/ProdAgentTests.h"
 
 class HwSwitch;
@@ -37,6 +39,11 @@ class ProdInvariantTest : public ProdAgentTests {
   std::vector<PortID> getAllPlatformPorts(
       const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
   void printDiagCmd(const std::string& cmd);
+  // Role to generate a config for when no prod agent.conf is supplied.
+  // nullopt yields the plain RSW config, which carries no PFC.
+  virtual std::optional<utility::ProdMmuLosslessRole> getProdRole() const {
+    return std::nullopt;
+  }
 
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
