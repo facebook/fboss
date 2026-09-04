@@ -479,6 +479,21 @@ cfg::SwitchConfig createProdMmuLosslessRoleConfig(
         qosMapParams);
   }
 
+  if (hwAsic->isSupported(HwAsic::Feature::ARS)) {
+    std::vector<PortID> allLinks(uplinks);
+    allLinks.insert(allLinks.end(), downlinks.begin(), downlinks.end());
+    // Prod runs per-packet spray with flowlet disabled, i.e. FIXED_ASSIGNMENT,
+    // as the backup mode. Chenab does not support future port load, so gate it
+    // on the ASIC.
+    utility::addFlowletConfigs(
+        config,
+        allLinks,
+        isSai,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+        hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD));
+  }
+
   return config;
 }
 
