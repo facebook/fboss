@@ -3,14 +3,78 @@
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
+#include <exception>
 #include <string>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 
 DECLARE_bool(rx_vlan_untagged_packets);
 
 namespace facebook::fboss::utility {
+
+namespace {
+
+constexpr uint16_t kCsigTpid = 0x9900;
+constexpr uint16_t kVlanTpid = 0x8100;
+constexpr uint16_t kQinqTpid = 0x88a8;
+// Trap scans consume at most 64 copies; drop excess CSIG punts without logging.
+constexpr size_t kMaxQueuedRawPackets = 64;
+
+// Match AgentCsigTests::parseTrapFrameL2 punt layout: optional 4-byte prefix,
+// optional post-MAC 00:00:00:01 meta, then VLAN stack before CSIG.
+bool frameHasCsigEtherType(const folly::IOBuf* buf) {
+  if (buf == nullptr || buf->length() < 14) {
+    return false;
+  }
+  size_t leadingSkip = 0;
+  if (buf->length() >= 4) {
+    uint8_t lead[4];
+    folly::io::Cursor leadCursor(buf);
+    leadCursor.pull(lead, 4);
+    if (lead[0] == 0 && lead[1] == 0 && lead[2] == 0 && lead[3] == 0) {
+      leadingSkip = 4;
+    }
+  }
+
+  folly::io::Cursor ethCursor(buf);
+  ethCursor.skip(leadingSkip + 12);
+  if (leadingSkip == 0 && ethCursor.length() >= 4) {
+    uint8_t meta[4];
+    folly::io::Cursor metaCursor(buf);
+    metaCursor.skip(leadingSkip + 12);
+    metaCursor.pull(meta, 4);
+    if (meta[0] == 0 && meta[1] == 0 && meta[2] == 0 && meta[3] == 1) {
+      ethCursor.skip(4);
+    }
+  }
+  if (ethCursor.length() < 2) {
+    return false;
+  }
+
+  uint16_t etherType = ethCursor.readBE<uint16_t>();
+  while (etherType == kVlanTpid || etherType == kQinqTpid) {
+    if (ethCursor.length() < 4) {
+      return false;
+    }
+    uint8_t vtag[4];
+    ethCursor.pull(vtag, 4);
+    etherType =
+        (static_cast<uint16_t>(vtag[2]) << 8) | static_cast<uint16_t>(vtag[3]);
+  }
+  return etherType == kCsigTpid;
+}
+
+bool isExpectedCsigUnparsedException(const std::exception& ex) {
+  // EthFrame throws "Unhandled etherType: 39168" for CSIG even when a VLAN or
+  // trap prefix precedes 0x9900 on the wire.
+  const std::string what = ex.what();
+  return what.find("39168") != std::string::npos ||
+      what.find("9900") != std::string::npos;
+}
+
+} // namespace
 
 // comparator function for packet snooping to accept case that
 // received packet header fields are not equal to originFrame
@@ -95,14 +159,45 @@ bool PacketSnooper::expectedReceivedPacketType(
 }
 
 void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
-  XLOG(DBG2) << "pkt received on port " << pkt->getSrcPort();
   if (port_.has_value() && port_.value() != pkt->getSrcPort()) {
     // packet arrived on port not of interest.
     return;
   }
+  if (ignoreUnclaimedRxPkts_) {
+    const auto* rxBuf = pkt->buf();
+    if (rxBuf != nullptr && frameHasCsigEtherType(rxBuf)) {
+      std::lock_guard<std::mutex> lock(mtx_);
+      if (receivedRawPackets_.size() >= kMaxQueuedRawPackets) {
+        return;
+      }
+    }
+  }
   auto data = pkt->buf()->clone();
   folly::io::Cursor cursor{data.get()};
-  auto frame = std::make_unique<utility::EthFrame>(cursor);
+
+  std::unique_ptr<utility::EthFrame> frame;
+  try {
+    frame = std::make_unique<utility::EthFrame>(cursor);
+  } catch (const std::exception& ex) {
+    // CSIG (0x9900) and other non-standard ethertypes are validated by trap
+    // tests via raw IOBuf parsing; EthFrame throws before we can queue them.
+    cursor.reset(data.get());
+    if (!expectedReceivedPacketType(cursor)) {
+      return;
+    }
+    const bool csigFrame = frameHasCsigEtherType(data.get()) ||
+        isExpectedCsigUnparsedException(ex);
+    std::lock_guard<std::mutex> lock(mtx_);
+    if (csigFrame && receivedRawPackets_.size() >= kMaxQueuedRawPackets) {
+      return;
+    }
+    if (!csigFrame) {
+      XLOG(DBG2) << "Queueing unparsed packet: " << ex.what();
+    }
+    receivedRawPackets_.push(std::move(data));
+    cv_.notify_all();
+    return;
+  }
 
   if (packetComparator_.has_value() && expectedFrame_.has_value()) {
     if (!packetComparator_.value()(*expectedFrame_, *frame)) {
@@ -126,6 +221,31 @@ void PacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
   std::lock_guard<std::mutex> lock(mtx_);
   receivedFrames_.push(std::move(frame));
   cv_.notify_all();
+}
+
+std::optional<std::unique_ptr<folly::IOBuf>> PacketSnooper::waitForPacketBuf(
+    uint32_t timeout_s) {
+  std::unique_lock<std::mutex> lock(mtx_);
+
+  while (receivedFrames_.empty() && receivedRawPackets_.empty()) {
+    if (timeout_s > 0) {
+      if (cv_.wait_for(lock, std::chrono::seconds(timeout_s)) ==
+          std::cv_status::timeout) {
+        return {};
+      }
+    } else {
+      cv_.wait(lock);
+    }
+  }
+  if (!receivedRawPackets_.empty()) {
+    auto buf = std::move(receivedRawPackets_.front());
+    receivedRawPackets_.pop();
+    return std::move(buf);
+  }
+  utility::EthFrame ret = *receivedFrames_.front();
+  receivedFrames_.pop();
+  lock.unlock();
+  return ret.toIOBuf();
 }
 
 std::optional<utility::EthFrame> PacketSnooper::waitForPacket(
@@ -170,12 +290,7 @@ SwSwitchPacketSnooper::~SwSwitchPacketSnooper() {
 
 std::optional<std::unique_ptr<folly::IOBuf>>
 SwSwitchPacketSnooper::waitForPacket(uint32_t timeout_s) {
-  auto frame = PacketSnooper::waitForPacket(timeout_s);
-  if (!frame) {
-    return {};
-  }
-  auto buf = frame->toIOBuf();
-  return std::move(buf);
+  return waitForPacketBuf(timeout_s);
 }
 
 } // namespace facebook::fboss::utility
