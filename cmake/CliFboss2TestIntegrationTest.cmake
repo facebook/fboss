@@ -13,6 +13,20 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigArpTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigSflowRateTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigSflowSampleDestTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpGlobalTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpNeighborTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPeerGroupTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyAsPathListTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyAsPathListEntryTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyCommunityListTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyCommunityListCommunityTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyPrefixListTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyPrefixListEntryTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyRoutingPolicyTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyRoutingPolicyTermTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyRoutingPolicyTermActionTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyRoutingPolicyTermMatchTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpSessionTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigConcurrentSessionsTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigHostnameTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigIcmpV4UnavailableSrcAddrTest.cpp
