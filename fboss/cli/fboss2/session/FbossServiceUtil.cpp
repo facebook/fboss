@@ -159,7 +159,7 @@ std::vector<std::string> FbossServiceUtil::reloadConfig(
     }
     case cli::ServiceType::BGP:
       // bgpd has no hitless reloadConfig() RPC; config changes are applied by
-      // restarting the service (BGP_RESTART), so this path is never taken.
+      // restarting the service (SERVICE_RESTART), so this path is never taken.
       throw std::runtime_error(
           "bgpd does not support config reload; it must be restarted");
   }
@@ -177,7 +177,9 @@ std::vector<std::string> FbossServiceUtil::restartService(
     case cli::ConfigActionLevel::AGENT_WARMBOOT:
       restartType = "warmboot";
       break;
-    case cli::ConfigActionLevel::BGP_RESTART:
+    case cli::ConfigActionLevel::SERVICE_RESTART:
+      // Plain restart for daemons with no warmboot (bgpd); mechanically the
+      // same restart-and-wait path as a warmboot, only the label differs.
       restartType = "restart";
       break;
     case cli::ConfigActionLevel::HITLESS:
