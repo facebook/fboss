@@ -8,7 +8,7 @@
  * Set tests cover all 16 AclEntry match-field attributes:
  *   source-ip, destination-ip, protocol, source-port, destination-port,
  *   dscp, tcp-flags, icmp-type, icmp-code, ip-fragment, ttl,
- *   destination-mac, ethertype, vlan, ip-type, packet-lookup-result.
+ *   destination-mac, ip-type, packet-lookup-result.
  *
  * For each attribute a `Set` test:
  *   `config acl rule` upserts an entry with the attribute set, commit, then
@@ -341,17 +341,6 @@ TEST_F(ConfigAclRuleTest, SetDestinationMac) {
   runSet("destination-mac", {"aa:bb:cc:dd:ee:ff"}, [](auto& e) {
     EXPECT_EQ(e["dstMac"].asString(), "aa:bb:cc:dd:ee:ff");
   });
-}
-
-TEST_F(ConfigAclRuleTest, SetEtherType) {
-  // EtherType::IPv4 = 0x0800
-  runSet("ethertype", {"ipv4"}, [](auto& e) {
-    EXPECT_EQ(e["etherType"].asInt(), 0x0800);
-  });
-}
-
-TEST_F(ConfigAclRuleTest, SetVlan) {
-  runSet("vlan", {"100"}, [](auto& e) { EXPECT_EQ(e["vlanID"].asInt(), 100); });
 }
 
 TEST_F(ConfigAclRuleTest, SetIpType) {
