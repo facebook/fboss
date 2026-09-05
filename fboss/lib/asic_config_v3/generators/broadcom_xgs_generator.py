@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import yaml
+
 from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
 from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
@@ -256,6 +257,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
           * ``lp_offset_simple``: when true, compute the per-port logical-port
             offset as ``i * lanes_per_port`` on all cores rather than using
             the default even / odd conditional.
+          * ``exclude_logical_ports``: logical port IDs omitted from the
+            mapping, and therefore from PC_PORT_PHYS_MAP, PC_PORT and PORT.
+            Used for front-panel ports that are not populated on a platform.
         """
         port_arch = self.asic_config.get("port_architecture", {})
         port_mapping_overrides = self.variant_config.get("port_mapping_overrides", {})
@@ -272,6 +276,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         lanes_per_core = port_arch.get("num_lanes_per_core", 8)
         lp_start_step_offset = port_mapping_overrides.get("lp_start_step_offset", 1)
         lp_offset_simple = port_mapping_overrides.get("lp_offset_simple", False)
+        exclude_logical_ports = set(
+            port_mapping_overrides.get("exclude_logical_ports", [])
+        )
 
         logical_to_physical_port_mapping = []
         cores = self._get_core_range()
@@ -295,6 +302,8 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                 pp_offset = i * self.lanes_per_port
                 lp_id = lp_start + lp_offset
                 pp_id = pp_start + pp_offset
+                if lp_id in exclude_logical_ports:
+                    continue
                 logical_to_physical_port_mapping.append([lp_id, pp_id])
 
         return logical_to_physical_port_mapping
