@@ -17,9 +17,15 @@ namespace cpp2 facebook.fboss.cli
 // changes.
 enum ConfigActionLevel {
   HITLESS = 0, // Can be applied with reloadConfig() - default
-  AGENT_WARMBOOT = 1, // Requires agent warmboot restart
+  // Requires an agent warmboot restart (forwarding state retained).
+  AGENT_WARMBOOT = 1,
   AGENT_COLDBOOT = 2, // Requires agent coldboot restart (clears ASIC state)
-  BGP_RESTART = 3, // Requires a restart of the bgpd (BGP++) service
+  // Plain service restart, for daemons with no warmboot or hitless-reload
+  // support (bgpd). Mechanically identical to a warmboot restart (plain
+  // systemctl restart-and-wait, no coldboot marker). Levels are only ever
+  // compared within one service, so 3 > 2 does NOT mean "more impactful
+  // than a coldboot".
+  SERVICE_RESTART = 3,
 }
 
 // Identifier for different services that can be configured
