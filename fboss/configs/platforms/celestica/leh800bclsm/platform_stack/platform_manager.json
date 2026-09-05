@@ -728,13 +728,13 @@
           "busName": "SMB_L_MUX_3@0",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_L_OUTLET_TH6_TSENSOR"
+          "pmUnitScopedName": "SMB_L_INLET_TSENSOR1"
         },
         {
           "busName": "SMB_L_MUX_3@1",
           "address": "0x49",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_L_INLET_TSENSOR"
+          "pmUnitScopedName": "SMB_L_OUTLET_TSENSOR2"
         },
         {
           "busName": "SMB_L_MUX_3@2",
@@ -909,7 +909,7 @@
           "busName": "SMB_L_MUX_4@7",
           "address": "0x4a",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_L_INLET_SMB_TSENSOR"
+          "pmUnitScopedName": "SMB_L_INLET_TSENSOR3"
         }
       ]
     },
@@ -1061,13 +1061,13 @@
           "busName": "SMB_R_MUX_3@0",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_R_OUTLET_TH6_TSENSOR"
+          "pmUnitScopedName": "SMB_R_INLET_TSENSOR1"
         },
         {
           "busName": "SMB_R_MUX_3@1",
           "address": "0x49",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_R_INLET_TSENSOR"
+          "pmUnitScopedName": "SMB_R_OUTLET_TSENSOR2"
         },
         {
           "busName": "SMB_R_MUX_3@2",
@@ -1242,7 +1242,7 @@
           "busName": "SMB_R_MUX_4@7",
           "address": "0x4a",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_R_INLET_SMB_TSENSOR"
+          "pmUnitScopedName": "SMB_R_INLET_TSENSOR3"
         }
       ]
     },
@@ -1657,8 +1657,8 @@
     "/run/devmap/sensors/SMB_L_RTM_ADC7_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC7_SENSOR]",
     "/run/devmap/sensors/SMB_L_RTM_ADC8_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC8_SENSOR]",
     "/run/devmap/sensors/SMB_L_RTM_ADC9_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC9_SENSOR]",
-    "/run/devmap/sensors/SMB_L_OUTLET_TH6_TSENSOR": "/SMB_L_SLOT@0/[SMB_L_OUTLET_TH6_TSENSOR]",
-    "/run/devmap/sensors/SMB_L_INLET_TSENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_TSENSOR]",
+    "/run/devmap/sensors/SMB_L_INLET_TSENSOR1": "/SMB_L_SLOT@0/[SMB_L_INLET_TSENSOR1]",
+    "/run/devmap/sensors/SMB_L_OUTLET_TSENSOR2": "/SMB_L_SLOT@0/[SMB_L_OUTLET_TSENSOR2]",
     "/run/devmap/sensors/SMB_L_ADC1_SENSOR": "/SMB_L_SLOT@0/[SMB_L_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_L_RTM_ADC10_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC10_SENSOR]",
     "/run/devmap/sensors/SMB_L_RTM_ADC11_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC11_SENSOR]",
@@ -1668,7 +1668,7 @@
     "/run/devmap/sensors/SMB_L_RTM_ADC2_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC2_SENSOR]",
     "/run/devmap/sensors/SMB_L_RTM_ADC3_SENSOR": "/SMB_L_SLOT@0/[SMB_L_RTM_ADC3_SENSOR]",
     "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_2": "/SMB_L_SLOT@0/[SMB_L_TH6_SENSOR_TMP432_2]",
-    "/run/devmap/sensors/SMB_L_INLET_SMB_TSENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_SMB_TSENSOR]",
+    "/run/devmap/sensors/SMB_L_INLET_TSENSOR3": "/SMB_L_SLOT@0/[SMB_L_INLET_TSENSOR3]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0_1": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_0_1]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0_2": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_0_2]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_1]",
@@ -1685,8 +1685,8 @@
     "/run/devmap/sensors/SMB_R_RTM_ADC7_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC7_SENSOR]",
     "/run/devmap/sensors/SMB_R_RTM_ADC8_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC8_SENSOR]",
     "/run/devmap/sensors/SMB_R_RTM_ADC9_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC9_SENSOR]",
-    "/run/devmap/sensors/SMB_R_OUTLET_TH6_TSENSOR": "/SMB_R_SLOT@0/[SMB_R_OUTLET_TH6_TSENSOR]",
-    "/run/devmap/sensors/SMB_R_INLET_TSENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_TSENSOR]",
+    "/run/devmap/sensors/SMB_R_INLET_TSENSOR1": "/SMB_R_SLOT@0/[SMB_R_INLET_TSENSOR1]",
+    "/run/devmap/sensors/SMB_R_OUTLET_TSENSOR2": "/SMB_R_SLOT@0/[SMB_R_OUTLET_TSENSOR2]",
     "/run/devmap/sensors/SMB_R_ADC1_SENSOR": "/SMB_R_SLOT@0/[SMB_R_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_R_RTM_ADC10_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC10_SENSOR]",
     "/run/devmap/sensors/SMB_R_RTM_ADC11_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC11_SENSOR]",
@@ -1696,7 +1696,7 @@
     "/run/devmap/sensors/SMB_R_RTM_ADC2_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC2_SENSOR]",
     "/run/devmap/sensors/SMB_R_RTM_ADC3_SENSOR": "/SMB_R_SLOT@0/[SMB_R_RTM_ADC3_SENSOR]",
     "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_2": "/SMB_R_SLOT@0/[SMB_R_TH6_SENSOR_TMP432_2]",
-    "/run/devmap/sensors/SMB_R_INLET_SMB_TSENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_SMB_TSENSOR]"
+    "/run/devmap/sensors/SMB_R_INLET_TSENSOR3": "/SMB_R_SLOT@0/[SMB_R_INLET_TSENSOR3]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 2,
