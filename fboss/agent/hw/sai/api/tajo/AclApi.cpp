@@ -22,7 +22,8 @@ SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
-#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211)
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211) && \
+    defined(SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED)
   return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
 #else
   return std::nullopt;
