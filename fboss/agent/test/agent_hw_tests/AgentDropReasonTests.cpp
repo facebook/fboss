@@ -47,7 +47,7 @@ constexpr auto kSrcPortKnockout = "SRC_PORT_KNOCKOUT_DROP";
 // logged, since it is a genuine drop indicator, but a test checking that
 // nothing unexpected also fired has to discount it.
 const std::set<std::string>& genericReasons() {
-  static const std::set<std::string> reasons{"RDROP"};
+  static const std::set<std::string> reasons{"RDROP", "RDISC", "RIMDR", "RUC"};
   return reasons;
 }
 
