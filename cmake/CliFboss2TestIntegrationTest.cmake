@@ -23,6 +23,7 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/DeleteCoppTest.cpp
   fboss/cli/fboss2/test/integration_test/DeleteInterfaceTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceMtuTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigInterfaceVlanIpTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigInterfaceProfileTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigL2LearningModeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigLoadBalancingTest.cpp

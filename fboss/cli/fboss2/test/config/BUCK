@@ -21,6 +21,7 @@ cpp_unittest(
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
+        "CmdConfigInterfaceVlanIpTest.cpp",
         "CmdConfigIpRouteTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigLoadBalancingTest.cpp",

@@ -9,17 +9,81 @@
  */
 
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
+#include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
+#include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss::utils {
+
+namespace {
+
+constexpr std::string_view kVlanNamePrefix = "vlan";
+
+// Parses a "vlan<digits>" SVI name (lowercase prefix, e.g. "vlan2001") into
+// its VLAN ID. Returns nullopt for any other shape.
+//
+// An out-of-range ID throws its own message when the caller wants hard
+// resolution, but degrades to nullopt when `quiet`, so an allowMissing caller
+// treats it like every other unresolvable name instead of being the one rung
+// that throws.
+std::optional<VlanID> parseVlanName(const std::string& name, bool quiet) {
+  if (name.size() <= kVlanNamePrefix.size() ||
+      name.compare(0, kVlanNamePrefix.size(), kVlanNamePrefix) != 0) {
+    return std::nullopt;
+  }
+  auto id = folly::tryTo<int32_t>(name.substr(kVlanNamePrefix.size()));
+  if (!id.hasValue()) {
+    return std::nullopt;
+  }
+  // VlanID is uint16_t; an unbounded int32 would wrap (vlan65537 -> VLAN 1)
+  // and mutate the wrong SVI. Reject anything outside the 802.1Q range.
+  if (*id < kVlanIdMin || *id > kVlanIdMax) {
+    if (quiet) {
+      return std::nullopt;
+    }
+    throw std::invalid_argument(
+        fmt::format(
+            "VLAN ID {} is out of range (valid {}-{})",
+            *id,
+            kVlanIdMin,
+            kVlanIdMax));
+  }
+  return VlanID(*id);
+}
+
+// A vlan<id> name that reached this point is unambiguously a VLAN SVI
+// reference, so report the VLAN-level cause instead of the generic
+// port-or-interface-not-found error. Never creates the VLAN or the SVI.
+void throwVlanNotResolvable(VlanID vlanId) {
+  const auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  const auto& vlans = *swConfig.vlans();
+  bool vlanExists = std::any_of(
+      vlans.cbegin(), vlans.cend(), [vlanId](const cfg::Vlan& vlan) {
+        return *vlan.id() == static_cast<int32_t>(vlanId);
+      });
+  if (vlanExists) {
+    throw std::invalid_argument(
+        fmt::format(
+            "VLAN {} has no L3 interface (SVI) configured",
+            static_cast<int32_t>(vlanId)));
+  }
+  throw std::invalid_argument(
+      fmt::format(
+          "VLAN {} not found in configuration", static_cast<int32_t>(vlanId)));
+}
+
+} // namespace
 
 InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
     : names_(std::move(names)) {
@@ -46,13 +110,33 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
       }
     } else {
       // If not found as a port, try as an interface name, then as an
-      // interface ID.
+      // interface ID, then as a "vlan<id>" SVI name.
       cfg::Interface* interface = portMap.getInterfaceByName(name);
       if (!interface) {
         // A purely-numeric name may be an interface ID.
         auto parsedInterfaceId = folly::tryTo<int32_t>(name);
         if (parsedInterfaceId.hasValue() && *parsedInterfaceId >= 0) {
           interface = portMap.getInterface(InterfaceID(*parsedInterfaceId));
+        }
+      }
+      if (!interface) {
+        // "vlan2001" names the SVI of VLAN 2001: the interface whose vlanID
+        // matches, regardless of the interface's own (often unset) name.
+        if (auto vlanId = parseVlanName(name, /*quiet=*/allowMissing)) {
+          // Two SVIs on one VLAN make "vlan<id>" ambiguous; refuse to pick one
+          // rather than mutating an arbitrary interface.
+          if (portMap.isVlanAmbiguous(*vlanId)) {
+            throw std::invalid_argument(
+                fmt::format(
+                    "VLAN {} has more than one L3 interface; name the "
+                    "interface by its ID instead of \"{}\"",
+                    static_cast<int32_t>(*vlanId),
+                    name));
+          }
+          interface = portMap.getInterfaceForVlan(*vlanId);
+          if (!interface && !allowMissing) {
+            throwVlanNotResolvable(*vlanId);
+          }
         }
       }
       if (interface) {

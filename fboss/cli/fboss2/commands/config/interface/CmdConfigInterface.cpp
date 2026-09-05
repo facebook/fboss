@@ -81,6 +81,30 @@ constexpr auto kValidConfigAttrs =
     "flow-control-rx, flow-control-tx, lldp-expected-*, type, shutdown, "
     "no-shutdown, lookup-class, queue-config";
 
+// Attributes that write cfg::Port fields. An Intf that resolved to an L3
+// interface only (an SVI reached by "vlan<id>" or by interface ID) has no port,
+// so applying one of these silently changes nothing while the command still
+// reports success. `profile` is deliberately absent: it CREATES ports and is
+// specified to run over unresolved Intfs.
+bool isPortOnlyAttr(const std::string& attr) {
+  static const std::unordered_set<std::string> kPortOnly = {
+      "description",
+      "loopback-mode",
+      "flow-control-rx",
+      "flow-control-tx",
+      "type",
+      "shutdown",
+      "no-shutdown",
+      "lookup-class",
+      "queue-config",
+  };
+  if (kPortOnly.find(attr) != kPortOnly.end()) {
+    return true;
+  }
+  const auto lldpNames = lldpAttrNames();
+  return std::find(lldpNames.begin(), lldpNames.end(), attr) != lldpNames.end();
+}
+
 // The value of the `profile` attribute if the parsed attribute list configures
 // one, else nullopt. Centralized (single scan) so the InterfacesConfig
 // allowMissing decision and queryClient stay in sync.
@@ -644,6 +668,32 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   }
   const utils::InterfaceList& effectiveInterfaces =
       profileValue.has_value() ? resolved : interfaces;
+
+  // Reject port-only attributes on port-less Intfs before any of them is
+  // applied, so the command cannot report success for a write that went
+  // nowhere. Interface-only attributes (ip-address, mtu, name) are unaffected.
+  std::vector<std::string> portlessNames;
+  for (const utils::Intf& intf : effectiveInterfaces) {
+    if (!intf.getPort()) {
+      portlessNames.push_back(intf.name());
+    }
+  }
+  if (!portlessNames.empty()) {
+    std::vector<std::string> portOnlyAttrs;
+    for (const auto& [attr, value] : attributes) {
+      if (isPortOnlyAttr(attr)) {
+        portOnlyAttrs.push_back(attr);
+      }
+    }
+    if (!portOnlyAttrs.empty()) {
+      throw std::invalid_argument(
+          fmt::format(
+              "Attribute(s) {} configure a port, but interface(s) {} resolve "
+              "to an L3 interface with no port; no changes made",
+              folly::join(", ", portOnlyAttrs),
+              folly::join(", ", portlessNames)));
+    }
+  }
 
   for (const auto& [attr, value] : attributes) {
     if (attr == "profile") {

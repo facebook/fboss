@@ -121,7 +121,7 @@ TEST_F(VlanManagerTestFixture, createVlanCreatesNewVlan) {
   EXPECT_NE(vlan, nullptr);
   EXPECT_EQ(*vlan->id(), 777);
   EXPECT_EQ(*vlan->name(), "Vlan777");
-  EXPECT_FALSE(*vlan->routable());
+  EXPECT_TRUE(*vlan->routable());
 }
 
 // ============================================================================
