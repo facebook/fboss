@@ -2395,7 +2395,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     return;
   }
 
-  auto intfIdOpt = state->getInterfaceIDForPortIf(getPortFromPkt(pkt.get()));
+  auto intfIdOpt = getInterfaceIDForPkt(*pkt, state);
   if (!intfIdOpt) {
     XLOG_EVERY_N(ERR, 10000)
         << "No interface for port " << pkt->getSrcPort() << ", dropping pkt";

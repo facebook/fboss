@@ -1010,9 +1010,19 @@ std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
         return std::nullopt;
       }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
-      // For non VOQ/Fabric switches, in practice, a port is always part of a
-      // single VLAN (and thus single interface).
-      return physicalPort->getInterfaceID();
+      // For non VOQ/Fabric switches, a port is typically part of a single
+      // VLAN (and thus single interface), but a trunk port may belong to
+      // several. Resolution by port is then ambiguous: return nullopt
+      // rather than abort, callers with a packet in hand should resolve via
+      // getInterfaceIDForPkt() which prefers the packet's ingress VLAN.
+      const auto& intfIDs = physicalPort->getInterfaceIDs();
+      if (intfIDs.size() != 1) {
+        XLOG(ERR) << "Cannot resolve single interface for port "
+                  << physicalPort->getName() << " which belongs to "
+                  << intfIDs.size() << " interfaces";
+        return std::nullopt;
+      }
+      return InterfaceID(intfIDs.at(0));
     }
     case PortDescriptor::PortType::AGGREGATE: {
       auto aggregatePort = getAggregatePorts()->getNodeIf(port.aggPortID());
