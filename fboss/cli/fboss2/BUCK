@@ -1080,6 +1080,7 @@ cpp_library(
     deps = [
         ":fboss2-config-file-utils",
         "//fboss/agent:fboss-error",
+        "//fboss/lib/platforms:platform_descriptor",
         "//fboss/lib/platforms:platform_mapping_utils",
         "//folly:file_util",
         "//folly/json:dynamic",
@@ -1087,6 +1088,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/lib/platforms:platform_descriptor_thrift-cpp2-types",
     ],
 )
 

@@ -427,6 +427,7 @@ target_link_libraries(fboss2_config_gen_lib
   fboss_error
   fboss2_config_file_utils
   Folly::folly
+  platform_descriptor
   split_platform_mapping_utils
 )
 

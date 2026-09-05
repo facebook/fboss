@@ -58,6 +58,18 @@ void writePortAssignments(
           "\",\"portType\":0,\"scope\":0}}}\n");
 }
 
+void writePlatformDescriptor(const fs::path& path, int16_t numSwitchAsics) {
+  PlatformDescriptor descriptor;
+  descriptor.platformType() = PlatformType::PLATFORM_WEDGE800BACT;
+  descriptor.productNamePrefixes() = {"TestPlatform"};
+  descriptor.modeNames() = {std::string(kPlatform)};
+  descriptor.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+  descriptor.numSwitchAsics() = numSwitchAsics;
+  writeTestFile(
+      path,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(descriptor));
+}
+
 std::map<int32_t, cfg::PortAssignment> makePortAssignments(
     int32_t portId,
     std::string_view portName) {
@@ -97,6 +109,11 @@ fs::path createTestPlatform(
           "port_id_to_port_assignment.json",
       1,
       kPortName);
+  writePlatformDescriptor(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+          "generated_platform_mappings" / vendor / platform /
+          "platform_descriptor.json",
+      1);
   return asicConfigDirectory.parent_path();
 }
 
@@ -185,6 +202,56 @@ TEST(AgentConfigGenTest, SelectsGeneratedPlatformArtifacts) {
       fbossRoot / "lib" / "platform_mapping_v2" /
           "generated_platform_mappings" / "test_vendor" / kPlatform /
           "port_id_to_port_assignment.json");
+  const auto [descriptorPath, descriptor] =
+      findPlatformDescriptorConfigWithDescriptor(fbossRoot, kPlatform);
+  EXPECT_EQ(
+      descriptorPath,
+      fbossRoot / "lib" / "platform_mapping_v2" /
+          "generated_platform_mappings" / "test_vendor" / kPlatform /
+          "platform_descriptor.json");
+  EXPECT_EQ(*descriptor.asicType(), cfg::AsicType::ASIC_TYPE_TOMAHAWK5);
+}
+
+TEST(AgentConfigGenTest, GeneratesSingleNpuSwitchSettings) {
+  PlatformDescriptor descriptor;
+  descriptor.asicType() = cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+  descriptor.numSwitchAsics() = 1;
+
+  const auto switchSettings = generateSwitchSettings(descriptor);
+
+  EXPECT_EQ(*switchSettings.switchType(), cfg::SwitchType::NPU);
+  EXPECT_TRUE(*switchSettings.needL2EntryForNeighbor());
+  ASSERT_EQ(switchSettings.switchIdToSwitchInfo()->size(), 1);
+  const auto& switchInfo = switchSettings.switchIdToSwitchInfo()->at(0);
+  EXPECT_EQ(*switchInfo.switchType(), cfg::SwitchType::NPU);
+  EXPECT_EQ(*switchInfo.asicType(), cfg::AsicType::ASIC_TYPE_TOMAHAWK5);
+  EXPECT_EQ(*switchInfo.switchIndex(), 0);
+  EXPECT_EQ(
+      *switchInfo.portIdRange()->minimum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN());
+  EXPECT_EQ(
+      *switchInfo.portIdRange()->maximum(),
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX());
+}
+
+TEST(AgentConfigGenTest, ResolvesVariantDescriptorAndRejectsMultiAsicPlatform) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  const auto generatedMappingDirectory = fbossRoot / "lib" /
+      "platform_mapping_v2" / "generated_platform_mappings" / "test_vendor";
+  fs::remove(
+      generatedMappingDirectory / kPlatform / "platform_descriptor.json");
+  const auto variantDescriptor = generatedMappingDirectory /
+      "test_platform_variant" / "platform_descriptor.json";
+  writePlatformDescriptor(variantDescriptor, 2);
+
+  const auto [descriptorPath, descriptor] =
+      findPlatformDescriptorConfigWithDescriptor(fbossRoot, kPlatform);
+  EXPECT_EQ(descriptorPath, variantDescriptor);
+  EXPECT_EQ(*descriptor.numSwitchAsics(), 2);
+  EXPECT_THROW(
+      generateSwitchConfigFromArtifacts(fbossRoot, kPlatform), FbossError);
 }
 
 TEST(AgentConfigGenTest, GeneratesPlatformConfigFromArtifacts) {
@@ -285,7 +352,8 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   apache::thrift::SimpleJSONSerializer::deserialize(
       readFile(outputPath), config);
   EXPECT_TRUE(config.defaultCommandLineArgs()->empty());
-  EXPECT_EQ(*config.sw(), cfg::SwitchConfig());
+  EXPECT_EQ(
+      *config.sw(), generateSwitchConfigFromArtifacts(fbossRoot, kPlatform));
   EXPECT_EQ(
       *config.platform(),
       generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile));

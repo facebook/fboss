@@ -15,8 +15,10 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 namespace facebook::fboss::configgen {
 
@@ -53,6 +55,26 @@ std::filesystem::path findGeneratedAsicConfig(
 // colocated platform config layout is preferred, with the legacy centralized
 // platform-mapping directory supported during migration.
 std::filesystem::path findPortIdToPortAssignmentConfig(
+    const std::filesystem::path& fbossRoot,
+    std::string_view platform);
+
+// Resolves and loads the generated platform descriptor used to derive
+// platform-level switch properties such as ASIC type and switch ASIC count.
+// Returning both values lets callers reuse descriptors parsed during variant
+// resolution instead of reading the selected file again.
+std::pair<std::filesystem::path, PlatformDescriptor>
+findPlatformDescriptorConfigWithDescriptor(
+    const std::filesystem::path& fbossRoot,
+    std::string_view platform);
+
+// Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
+// rejected until their switch IDs and indexes can be supplied explicitly.
+cfg::SwitchSettings generateSwitchSettings(
+    const PlatformDescriptor& platformDescriptor);
+
+// Loads the selected platform descriptor and constructs the switch section of
+// an AgentConfig from it.
+cfg::SwitchConfig generateSwitchConfigFromArtifacts(
     const std::filesystem::path& fbossRoot,
     std::string_view platform);
 

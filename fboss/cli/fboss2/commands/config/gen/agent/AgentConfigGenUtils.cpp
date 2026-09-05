@@ -10,9 +10,12 @@
 
 #include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h"
 
+#include <algorithm>
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <folly/FileUtil.h>
 #include <folly/json/json.h>
@@ -21,6 +24,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
 namespace facebook::fboss::configgen {
@@ -31,10 +35,17 @@ constexpr std::string_view kAgentConfigFileName = "agent.conf";
 constexpr std::string_view kDefaultProfileName = "default";
 constexpr std::string_view kPortAssignmentFileName =
     "port_id_to_port_assignment.json";
+constexpr std::string_view kPlatformDescriptorFileName =
+    "platform_descriptor.json";
 
 struct GeneratedAsicConfigFile {
   fs::path path;
   cfg::AsicConfigType configType;
+};
+
+struct GeneratedPlatformMappingArtifactPaths {
+  fs::path colocated;
+  fs::path legacy;
 };
 
 std::string readFile(const fs::path& path) {
@@ -208,6 +219,120 @@ cfg::ChipConfig loadAsicConfig(const GeneratedAsicConfigFile& generatedFile) {
   return chipConfig;
 }
 
+GeneratedPlatformMappingArtifactPaths getGeneratedPlatformMappingArtifactPaths(
+    const fs::path& fbossRoot,
+    std::string_view platform,
+    std::string_view fileName) {
+  const auto platformDirectory =
+      findPlatformConfigDirectory(fbossRoot, platform);
+  return {
+      .colocated =
+          platformDirectory.path / "platform_mapping" / "generated" / fileName,
+      .legacy = fbossRoot / "lib" / "platform_mapping_v2" /
+          "generated_platform_mappings" / platformDirectory.systemVendor /
+          std::string(platform) / fileName,
+  };
+}
+
+std::optional<fs::path> findExistingGeneratedPlatformMappingArtifact(
+    const GeneratedPlatformMappingArtifactPaths& paths) {
+  if (fs::is_regular_file(paths.colocated)) {
+    return paths.colocated;
+  }
+  if (fs::is_regular_file(paths.legacy)) {
+    return paths.legacy;
+  }
+  return std::nullopt;
+}
+
+fs::path findGeneratedPlatformMappingArtifact(
+    const fs::path& fbossRoot,
+    std::string_view platform,
+    std::string_view fileName) {
+  const auto paths =
+      getGeneratedPlatformMappingArtifactPaths(fbossRoot, platform, fileName);
+  if (auto path = findExistingGeneratedPlatformMappingArtifact(paths)) {
+    return *path;
+  }
+
+  throw FbossError(
+      "Generated ",
+      fileName,
+      " does not exist for platform '",
+      platform,
+      "'; checked ",
+      paths.colocated.string(),
+      " and ",
+      paths.legacy.string());
+}
+
+void addMatchingPlatformDescriptors(
+    const fs::path& directory,
+    std::string_view platform,
+    std::set<fs::path>& loadedDescriptorPaths,
+    std::vector<std::pair<fs::path, PlatformDescriptor>>& matches) {
+  if (!fs::is_directory(directory)) {
+    return;
+  }
+
+  for (const auto& entry : fs::directory_iterator(directory)) {
+    const auto descriptorPath = entry.path() / kPlatformDescriptorFileName;
+    if (!entry.is_directory() || !fs::is_regular_file(descriptorPath)) {
+      continue;
+    }
+    if (!loadedDescriptorPaths.insert(descriptorPath.lexically_normal())
+             .second) {
+      continue;
+    }
+    auto descriptor =
+        PlatformDescriptorRegistry::loadPlatformDescriptorFromFile(
+            descriptorPath.string());
+    const auto& modeNames = *descriptor.modeNames();
+    if (std::find(modeNames.begin(), modeNames.end(), platform) !=
+        modeNames.end()) {
+      matches.emplace_back(descriptorPath, std::move(descriptor));
+    }
+  }
+}
+
+std::pair<fs::path, PlatformDescriptor> findPlatformDescriptorByVariantScan(
+    const GeneratedPlatformMappingArtifactPaths& paths,
+    std::string_view platform) {
+  std::vector<std::pair<fs::path, PlatformDescriptor>> matches;
+  std::set<fs::path> loadedDescriptorPaths;
+  addMatchingPlatformDescriptors(
+      paths.colocated.parent_path(), platform, loadedDescriptorPaths, matches);
+  addMatchingPlatformDescriptors(
+      paths.legacy.parent_path().parent_path(),
+      platform,
+      loadedDescriptorPaths,
+      matches);
+  if (matches.empty()) {
+    throw FbossError(
+        "Generated platform descriptor does not exist for platform '",
+        platform,
+        "'");
+  }
+
+  std::sort(
+      matches.begin(), matches.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.first < rhs.first;
+      });
+  const auto expectedAsicType = *matches.front().second.asicType();
+  const auto expectedNumSwitchAsics = *matches.front().second.numSwitchAsics();
+  for (const auto& [path, descriptor] : matches) {
+    if (*descriptor.asicType() != expectedAsicType ||
+        *descriptor.numSwitchAsics() != expectedNumSwitchAsics) {
+      throw FbossError(
+          "Platform descriptor variants disagree on switch properties for '",
+          platform,
+          "'; conflicting descriptor: ",
+          path.string());
+    }
+  }
+  return std::move(matches.front());
+}
+
 } // namespace
 
 cfg::AgentConfig assembleAgentConfig(
@@ -240,28 +365,72 @@ fs::path findGeneratedAsicConfig(
 fs::path findPortIdToPortAssignmentConfig(
     const fs::path& fbossRoot,
     std::string_view platform) {
-  const auto platformDirectory =
-      findPlatformConfigDirectory(fbossRoot, platform);
-  const auto colocatedPath = platformDirectory.path / "platform_mapping" /
-      "generated" / kPortAssignmentFileName;
-  if (fs::is_regular_file(colocatedPath)) {
-    return colocatedPath;
+  return findGeneratedPlatformMappingArtifact(
+      fbossRoot, platform, kPortAssignmentFileName);
+}
+
+std::pair<fs::path, PlatformDescriptor>
+findPlatformDescriptorConfigWithDescriptor(
+    const fs::path& fbossRoot,
+    std::string_view platform) {
+  const auto paths = getGeneratedPlatformMappingArtifactPaths(
+      fbossRoot, platform, kPlatformDescriptorFileName);
+  if (auto path = findExistingGeneratedPlatformMappingArtifact(paths)) {
+    auto descriptor =
+        PlatformDescriptorRegistry::loadPlatformDescriptorFromFile(
+            path->string());
+    return {*path, std::move(descriptor)};
+  }
+  return findPlatformDescriptorByVariantScan(paths, platform);
+}
+
+cfg::SwitchSettings generateSwitchSettings(
+    const PlatformDescriptor& platformDescriptor) {
+  // TODO(@joseph5wu): Support multi-NPU platforms and non-NPU switch types.
+  // For now, only single-NPU platforms with SwitchType::NPU are supported.
+  const auto numSwitchAsics = *platformDescriptor.numSwitchAsics();
+  if (numSwitchAsics <= 0) {
+    throw FbossError(
+        "Platform descriptor has invalid numSwitchAsics ", numSwitchAsics);
+  }
+  if (numSwitchAsics > 1) {
+    throw FbossError(
+        "SwitchSettings generation does not support multi-ASIC platforms; "
+        "numSwitchAsics is ",
+        numSwitchAsics);
   }
 
-  const auto legacyPath = fbossRoot / "lib" / "platform_mapping_v2" /
-      "generated_platform_mappings" / platformDirectory.systemVendor /
-      std::string(platform) / kPortAssignmentFileName;
-  if (fs::is_regular_file(legacyPath)) {
-    return legacyPath;
-  }
+  cfg::Range64 portIdRange;
+  portIdRange.minimum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
+  portIdRange.maximum() =
+      cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
 
-  throw FbossError(
-      "Generated port assignments do not exist for platform '",
-      platform,
-      "'; checked ",
-      colocatedPath.string(),
-      " and ",
-      legacyPath.string());
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchType() = cfg::SwitchType::NPU;
+  switchInfo.asicType() = *platformDescriptor.asicType();
+  switchInfo.switchIndex() = 0;
+  switchInfo.portIdRange() = std::move(portIdRange);
+
+  cfg::SwitchSettings switchSettings;
+  switchSettings.switchType() = cfg::SwitchType::NPU;
+  switchSettings.switchIdToSwitchInfo() = {{0, std::move(switchInfo)}};
+  // TODO(@joseph5wu): Remove this legacy field through T286888882. Most SAI
+  // HW-test configs and production COOP configs set it to true; D48978980
+  // derives the production value from the presence of saiSdk.
+  switchSettings.needL2EntryForNeighbor() = true;
+  return switchSettings;
+}
+
+cfg::SwitchConfig generateSwitchConfigFromArtifacts(
+    const fs::path& fbossRoot,
+    std::string_view platform) {
+  auto pathAndDescriptor =
+      findPlatformDescriptorConfigWithDescriptor(fbossRoot, platform);
+  cfg::SwitchConfig switchConfig;
+  switchConfig.switchSettings() =
+      generateSwitchSettings(pathAndDescriptor.second);
+  return switchConfig;
 }
 
 cfg::PlatformConfig generatePlatformConfigFromArtifacts(
@@ -281,7 +450,7 @@ fs::path generateAgentConfig(
     const std::optional<fs::path>& outputDirectory) {
   auto config = assembleAgentConfig(
       {},
-      {},
+      generateSwitchConfigFromArtifacts(fbossRoot, platform),
       generatePlatformConfigFromArtifacts(fbossRoot, platform, profile));
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
