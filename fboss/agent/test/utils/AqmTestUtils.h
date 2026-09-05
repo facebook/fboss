@@ -57,7 +57,8 @@ HwPortStats sendPacketsWithQueueBuildup(
     std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
     TestEnsembleIf* ensemble,
     PortID port,
-    int numPackets);
+    int numPackets,
+    bool enableTxAtEnd = true);
 
 } // namespace utility
 

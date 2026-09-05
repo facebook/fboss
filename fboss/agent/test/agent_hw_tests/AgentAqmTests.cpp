@@ -5,8 +5,11 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <thread>
 #include <utility>
 #include <vector>
+
+#include <folly/ScopeGuard.h>
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwSwitchMatcher.h"
@@ -24,21 +27,29 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 
+namespace facebook::fboss {
 namespace {
 constexpr uint8_t kECT1{1}; // ECN capable transport(1), ECT(1)
 constexpr uint8_t kECT0{2}; // ECN capable transport(0), ECT(0)
 constexpr uint8_t kNotECT{0}; // Not ECN-Capable Transport, Not-ECT
 constexpr auto kDefaultTxPayloadBytes{7000};
+// SAI normalizes a configured maximum of 1 to true zero; 0 means unlimited.
+constexpr uint32_t kCiscoEcnClosedRatePps{1};
+constexpr uint32_t kCiscoEcnPrimeRatePps{12};
+constexpr auto kCiscoEcnPrimeDuration{std::chrono::milliseconds(500)};
+constexpr auto kCiscoEcnQueueConfigName{"ecn_prime_queue_config"};
 
 struct AqmTestStats {
   uint64_t wredDroppedPackets;
@@ -86,9 +97,19 @@ void verifyEcnMarkedPacketCount(
   EXPECT_GT(after.outPackets, before.outPackets + deltaEcnMarkedPackets);
 }
 
+bool requiresCiscoDequeueEcnPriming(const HwAsic* hwAsic) {
+  switch (hwAsic->getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+      return true;
+    default:
+      return false;
+  }
+}
+
 } // namespace
 
-namespace facebook::fboss {
 class AgentAqmTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -197,6 +218,28 @@ class AgentAqmTest : public AgentHwTest {
       utility::addQueueShaperConfig(&config, queueId, minKbps, maxKbps);
       utility::addQueueBurstSizeConfig(
           &config, queueId, minBurstKb, maxBurstKb);
+    }
+  }
+
+  void queuePpsShaperSetup(
+      const std::vector<int>& queueIds,
+      cfg::SwitchConfig& config,
+      uint32_t maxPps) {
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+    auto& queueConfig = asic->getSwitchType() == cfg::SwitchType::VOQ
+        ? *config.defaultVoqConfig()
+        : config.portQueueConfigs()[kCiscoEcnQueueConfigName];
+    for (auto queueId : queueIds) {
+      bool queueFound{false};
+      for (auto& queue : queueConfig) {
+        if (queue.id() == queueId) {
+          queue.portQueueRate() = cfg::PortQueueRate();
+          queue.portQueueRate()->pktsPerSec() = utility::getRange(0, maxPps);
+          queueFound = true;
+          break;
+        }
+      }
+      CHECK(queueFound) << "Queue " << queueId << " not found";
     }
   }
 
@@ -510,6 +553,9 @@ class AgentAqmTest : public AgentHwTest {
         ceilFn(roundedBufferThreshold, effectiveBytesPerPacket) +
         expectedMarkedOrDroppedPacketCount;
 
+    const bool needsCiscoEcnPriming =
+        isEct(ecnCodePoint) && requiresCiscoDequeueEcnPriming(asic);
+
     auto setup = [&]() {
       cfg::SwitchConfig config{getSw()->getConfig()};
       // Configure both WRED and ECN thresholds
@@ -565,11 +611,87 @@ class AgentAqmTest : public AgentHwTest {
       // Update the stats to initialize them before sending packets to build up
       // the queue.
       getAgentEnsemble()->getSw()->updateStats();
+      const PortID egressPort = masterLogicalInterfacePortIds()[0];
+
+      auto applyQueuePpsRate = [&](uint32_t maxPps) {
+        cfg::SwitchConfig config{getSw()->getConfig()};
+        queuePpsShaperSetup({kQueueId}, config, maxPps);
+        applyNewConfig(config);
+        waitForStateUpdates(getAgentEnsemble()->getSw());
+      };
+
+      if (needsCiscoEcnPriming) {
+        // Cold setup starts closed, but warm boot restores the last applied
+        // queue rate. Close it again before filling the queue.
+        applyQueuePpsRate(kCiscoEcnClosedRatePps);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+      }
+
       HwPortStats beforePortStats = utility::sendPacketsWithQueueBuildup(
           sendPackets,
           getAgentEnsemble(),
-          masterLogicalInterfacePortIds()[0],
-          numPacketsToSend);
+          egressPort,
+          numPacketsToSend,
+          !needsCiscoEcnPriming);
+
+      SCOPE_EXIT {
+        if (needsCiscoEcnPriming) {
+          utility::setCreditWatchdogAndPortTx(
+              getAgentEnsemble(), egressPort, true);
+        }
+      };
+
+      if (needsCiscoEcnPriming) {
+        // Cisco ASIC dequeue marking uses a cached deq_ctrl decision. Prime
+        // that cache with packet-mode dequeues while the queue is above the
+        // ECN threshold, close the shaper, and refill every packet that
+        // escaped before starting the measured drain.
+        getAgentEnsemble()->getSw()->updateStats();
+        auto primeStats = getLatestPortStats(egressPort);
+        uint64_t accountedOutPackets = utility::getPortOutPkts(primeStats);
+
+        applyQueuePpsRate(kCiscoEcnPrimeRatePps);
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, true);
+        std::this_thread::sleep_for(kCiscoEcnPrimeDuration);
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, false);
+        applyQueuePpsRate(kCiscoEcnClosedRatePps);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+        getAgentEnsemble()->getSw()->updateStats();
+
+        auto postPrimeStats = getLatestPortStats(egressPort);
+        uint64_t currentOutPackets = utility::getPortOutPkts(postPrimeStats);
+        CHECK_GE(currentOutPackets, accountedOutPackets);
+        uint64_t refillPackets = currentOutPackets - accountedOutPackets;
+        CHECK_GT(refillPackets, 0);
+        CHECK_LE(refillPackets, numPacketsToSend);
+        XLOG(DBG0) << "Cisco ECN priming dequeued " << refillPackets
+                   << " packets";
+        accountedOutPackets = currentOutPackets;
+
+        constexpr int kMaxRefillRounds{5};
+        for (int round = 0; round < kMaxRefillRounds && refillPackets > 0;
+             ++round) {
+          sendPackets(egressPort, static_cast<int>(refillPackets));
+          std::this_thread::sleep_for(std::chrono::milliseconds(300));
+          getAgentEnsemble()->getSw()->updateStats();
+          currentOutPackets =
+              utility::getPortOutPkts(getLatestPortStats(egressPort));
+          CHECK_GE(currentOutPackets, accountedOutPackets);
+          refillPackets = currentOutPackets - accountedOutPackets;
+          accountedOutPackets = currentOutPackets;
+          XLOG(DBG0) << "Cisco ECN refill round " << round
+                     << " leaked packets: " << refillPackets;
+        }
+        CHECK_EQ(refillPackets, 0);
+
+        getAgentEnsemble()->getSw()->updateStats();
+        beforePortStats = getLatestPortStats(egressPort);
+        applyQueuePpsRate(kCiscoEcnPrimeRatePps);
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, true);
+      }
 
       AqmTestStats before{};
       extractAqmTestStats(
@@ -631,6 +753,14 @@ class AgentAqmTest : public AgentHwTest {
       if (verifyPacketCountFn.has_value()) {
         (*verifyPacketCountFn)(
             after, before, expectedMarkedOrDroppedPacketCount);
+      }
+      if (needsCiscoEcnPriming) {
+        // Persist a closed queue for the warm-boot verification iteration.
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, false);
+        applyQueuePpsRate(kCiscoEcnClosedRatePps);
+        utility::setCreditWatchdogAndPortTx(
+            getAgentEnsemble(), egressPort, true);
       }
     };
 
@@ -738,18 +868,43 @@ class AgentAqmTest : public AgentHwTest {
      * spacing of packets egressing to have ECN accounting done
      * with minimal error. However, in prod devices, we should expect
      * to see this +/- error with ECN marking.
+     *
+     * Cisco ASICs use packet-mode shaping to release packets while congested,
+     * then close and refill the queue. This initializes the
+     * dequeue-side CGM cache before the measured drain.
      */
     auto shaperSetup = [&](cfg::SwitchConfig& config,
                            const std::vector<int>& queueIds,
                            const int txPacketLen) {
-      auto maxQueueShaperKbps = ceil(500000 * txPacketLen / 1000);
-      queueShaperAndBurstSetup(
-          queueIds,
-          config,
-          0,
-          maxQueueShaperKbps,
-          utility::kQueueConfigBurstSizeMinKb,
-          utility::kQueueConfigBurstSizeMaxKb);
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
+      if (requiresCiscoDequeueEcnPriming(asic)) {
+        // Packet mode is required on Cisco ASICs. Very low bit-mode rates are
+        // rounded up high enough to drain the queue before it can be closed.
+        if (asic->getSwitchType() != cfg::SwitchType::VOQ) {
+          config.portQueueConfigs()[kCiscoEcnQueueConfigName] =
+              config.portQueueConfigs()["queue_config"];
+          auto egressPort =
+              utility::findCfgPort(config, masterLogicalInterfacePortIds()[0]);
+          CHECK(egressPort != config.ports()->end());
+          egressPort->portQueueConfigName() = kCiscoEcnQueueConfigName;
+        }
+        queuePpsShaperSetup(queueIds, config, kCiscoEcnClosedRatePps);
+        // Drop ingress on the egress port so MAC-loopback traffic cannot
+        // re-enter the queue after TX drain.
+        const PortID egressPort = masterLogicalInterfacePortIds()[0];
+        utility::addIngressPortDropAcl(
+            &config, egressPort, "verifyEcnThreshold-egress-rx-disable");
+      } else {
+        auto maxQueueShaperKbps = ceil(500000 * txPacketLen / 1000);
+        queueShaperAndBurstSetup(
+            queueIds,
+            config,
+            0,
+            maxQueueShaperKbps,
+            utility::kQueueConfigBurstSizeMinKb,
+            utility::kQueueConfigBurstSizeMaxKb);
+      }
     };
     validateAqmThresholds(
         kECT0,
