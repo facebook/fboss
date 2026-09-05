@@ -171,6 +171,18 @@ SAI_ATTRIBUTE_NAME(NextHopGroup, HierarchicalNextHop)
 SAI_ATTRIBUTE_NAME(NextHopGroup, ArsNextHopGroupMetaData)
 SAI_ATTRIBUTE_NAME(NextHopGroup, SplitHorizonEnable)
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+// HierarchicalNextHop and HashAlgorithm are CREATE_ONLY attributes, so
+// they should not be set after create.
+template <>
+struct IsCreateOnlyAttribute<SaiNextHopGroupTraits::Attributes::HashAlgorithm>
+    : public std::true_type {};
+template <>
+struct IsCreateOnlyAttribute<
+    SaiNextHopGroupTraits::Attributes::HierarchicalNextHop>
+    : public std::true_type {};
+#endif
+
 struct SaiNextHopGroupMemberTraits {
   static constexpr sai_object_type_t ObjectType =
       SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER;
