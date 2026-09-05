@@ -1825,6 +1825,108 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       intfTypeVal);
 }
 
+namespace {
+void addAggregatePorts(
+    cfg::SwitchConfig& config,
+    const std::vector<AggregatePortInfo>& aggregatePorts) {
+  for (const auto& aggregatePort : aggregatePorts) {
+    std::vector<int32_t> members;
+    members.reserve(aggregatePort.memberPorts.size());
+    for (auto memberPort : aggregatePort.memberPorts) {
+      members.push_back(memberPort);
+    }
+    switch (aggregatePort.interfaceType) {
+      case cfg::InterfaceType::PORT:
+        // A member port cannot keep a router interface of its own once it
+        // joins a LAG, so the aggregate takes one instead of re-homing the
+        // members onto a shared vlan.
+        addAggPortWithRouterInterface(
+            aggregatePort.id,
+            members,
+            &config,
+            aggregatePort.rate,
+            aggregatePort.minLinkPercentage);
+        break;
+      case cfg::InterfaceType::VLAN:
+        // addAggPort picks the aggregate's vlan off its members. On a config
+        // built for port router interfaces every port sits in vlan 0, which it
+        // would take at face value and quietly produce an aggregate with no L3
+        // interface at all, so rule that out here.
+        if (config.vlans()->empty()) {
+          throw FbossError(
+              "Aggregate port ",
+              aggregatePort.id,
+              " asks for a vlan L3 interface, but this config has no vlans");
+        }
+        addAggPort(
+            aggregatePort.id,
+            members,
+            &config,
+            aggregatePort.rate,
+            aggregatePort.minLinkPercentage);
+        break;
+      default:
+        throw FbossError(
+            "Aggregate port ",
+            aggregatePort.id,
+            " has unsupported router interface type ",
+            static_cast<int>(aggregatePort.interfaceType));
+    }
+  }
+}
+} // namespace
+
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  auto config = onePortPerInterfaceConfig(
+      swSwitch,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts);
+  addAggregatePorts(config, aggregatePorts);
+  return config;
+}
+
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
+  auto config = onePortPerInterfaceConfig(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      switchIdToSwitchInfo,
+      hwAsicTable,
+      platformType);
+  addAggregatePorts(config, aggregatePorts);
+  return config;
+}
+
 void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {
   folly::test::TemporaryFile file;
   XLOG(INFO) << " Cint file " << file.path().c_str();
