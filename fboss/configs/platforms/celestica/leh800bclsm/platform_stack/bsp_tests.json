@@ -1,7 +1,7 @@
 {
-  "platformName": "LEH800BCLS",
+  "platformName": "LEH800BCLSM",
   "testData": {
-    "LEH800BCLS_MCB.MCB_CPLD": {
+    "LEH800BCLSM_MCB.MCB_CPLD": {
       "i2cTestData": {
         "i2cGetData": [
           {
@@ -17,7 +17,7 @@
         ]
       }
     },
-    "LEH800BCLS_MCB.MCB_FAN_CPLD": {
+    "PDB.PDB_FAN_CPLD": {
       "i2cTestData": {
         "i2cSetData": [
           {
@@ -67,10 +67,10 @@
         ]
       },
       "watchdogTestData": {
-        "numWatchdogs": 1
+        "numWatchdogs": 2
       }
     },
-    "LEH800BCLS_MCB.48V_HSC_MONITOR": {
+    "LEH800BCLSM_MCB.48V_HSC_MONITOR": {
       "hwmonTestData": {
         "expectedFeatures": [
           "vin",
