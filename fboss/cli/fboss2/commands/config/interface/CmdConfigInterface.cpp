@@ -215,8 +215,8 @@ std::string applyProfileImpl(
     // Removing a port must not be applied on a live agent (crashes the SwAgent
     // -- see T281221621); escalate the commit to a coldboot.
     if (actionLevel != nullptr) {
-      *actionLevel =
-          std::max(*actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+      *actionLevel = std::max(
+          *actionLevel, cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART);
     }
   }
 
@@ -631,9 +631,10 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   utils::InterfaceList resolved(std::vector<std::string>{});
   // The commit action level required by this command, escalated by attribute
   // handlers as needed. Starts HITLESS (reloadConfig); a profile change that
-  // removes a port escalates it to AGENT_COLDBOOT, because applying a port
-  // removal on a live agent can crash the SwAgent (LookupClassRouteUpdater
-  // dereferences the removed port's now-absent interface). See T281221621.
+  // removes a port escalates it to DISRUPTIVE_SERVICE_RESTART, because applying
+  // a port removal on a live agent can crash the SwAgent
+  // (LookupClassRouteUpdater dereferences the removed port's now-absent
+  // interface). See T281221621.
   cli::ConfigActionLevel actionLevel = cli::ConfigActionLevel::HITLESS;
   if (profileValue.has_value()) {
     results.push_back(
