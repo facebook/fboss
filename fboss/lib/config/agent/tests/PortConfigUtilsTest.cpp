@@ -14,7 +14,7 @@
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/lib/config/AgentConfigUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 
 namespace facebook::fboss {
 
@@ -53,7 +53,7 @@ PlatformMapping makeMapping() {
 }
 } // namespace
 
-TEST(AgentConfigUtilsTest, createDefaultPortConfigSetsAllFields) {
+TEST(PortConfigUtilsTest, createDefaultPortConfigSetsAllFields) {
   auto mapping = makeMapping();
 
   auto port =
@@ -69,7 +69,7 @@ TEST(AgentConfigUtilsTest, createDefaultPortConfigSetsAllFields) {
   EXPECT_EQ(*port.speed(), kProfileSpeed);
 }
 
-TEST(AgentConfigUtilsTest, createDefaultPortConfigDefaultsSpeedWhenUnresolved) {
+TEST(PortConfigUtilsTest, createDefaultPortConfigDefaultsSpeedWhenUnresolved) {
   auto mapping = makeMapping();
 
   auto port = utility::createDefaultPortConfig(
@@ -78,7 +78,7 @@ TEST(AgentConfigUtilsTest, createDefaultPortConfigDefaultsSpeedWhenUnresolved) {
   EXPECT_EQ(*port.speed(), cfg::PortSpeed::DEFAULT);
 }
 
-TEST(AgentConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {
+TEST(PortConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {
   cfg::SwitchConfig config;
   cfg::Vlan vlan2001;
   vlan2001.id() = 2001;
@@ -92,7 +92,7 @@ TEST(AgentConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {
   EXPECT_EQ(utility::allocateFreeVlanId(config), 2004);
 }
 
-TEST(AgentConfigUtilsTest, allocateFreeVlanIdReturnsNextAfterSingleVlan) {
+TEST(PortConfigUtilsTest, allocateFreeVlanIdReturnsNextAfterSingleVlan) {
   cfg::SwitchConfig config;
   cfg::Vlan vlan2001;
   vlan2001.id() = 2001;
@@ -101,7 +101,7 @@ TEST(AgentConfigUtilsTest, allocateFreeVlanIdReturnsNextAfterSingleVlan) {
   EXPECT_EQ(utility::allocateFreeVlanId(config), 2002);
 }
 
-TEST(AgentConfigUtilsTest, allocateFreeVlanIdThrowsWhenExhausted) {
+TEST(PortConfigUtilsTest, allocateFreeVlanIdThrowsWhenExhausted) {
   cfg::SwitchConfig config;
   cfg::Vlan vlan;
   vlan.id() = 2001;
@@ -110,7 +110,7 @@ TEST(AgentConfigUtilsTest, allocateFreeVlanIdThrowsWhenExhausted) {
   EXPECT_THROW(utility::allocateFreeVlanId(config, 2001, 2001), FbossError);
 }
 
-TEST(AgentConfigUtilsTest, addInterfacePortToConfigAppendsAllEntities) {
+TEST(PortConfigUtilsTest, addInterfacePortToConfigAppendsAllEntities) {
   auto mapping = makeMapping();
   cfg::SwitchConfig config;
   // Occupy 2001 so the allocation must skip it.

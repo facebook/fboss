@@ -16,6 +16,7 @@ add_library(acl_test_utils
 )
 
 target_link_libraries(acl_test_utils
+  acl_config_utils
   fboss_error
   hw_switch
   switch_config_cpp2
@@ -154,13 +155,14 @@ add_library(config_utils
 )
 
 target_link_libraries(config_utils
-  agent_config_utils
+  acl_config_utils
   agent_features
   asic_test_utils
   voq_test_utils
   fboss_types
   Folly::folly
   platform_mapping
+  port_config_utils
   switch_config_cpp2
   test_ensemble_if
   port_test_utils
@@ -459,6 +461,7 @@ target_link_libraries(queue_test_utils
   agent_features
   switch_asics
   switch_config_cpp2
+  port_config_utils
 )
 
 add_library(mirror_test_utils

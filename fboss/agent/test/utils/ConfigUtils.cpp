@@ -17,11 +17,10 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-#include "fboss/lib/config/AgentConfigUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/config/agent/AclConfigUtils.h"
 
 #include <fmt/format.h>
 #include <folly/Format.h>
@@ -908,7 +907,7 @@ cfg::SwitchConfig genPortVlanCfg(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
   if (FLAGS_enable_acl_table_group) {
-    utility::setupDefaultAclTableGroups(config);
+    utility::setupDefaultAclTableGroups(config, *asic);
   }
   auto switchType = asic->getSwitchType();
   // VOQ config

@@ -234,6 +234,31 @@ TEST(AgentConfigGenTest, GeneratesSingleNpuSwitchSettings) {
       cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX());
 }
 
+TEST(AgentConfigGenTest, GeneratesDefaultAclTableGroup) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+
+  const auto switchConfig =
+      generateSwitchConfigFromArtifacts(fbossRoot, kPlatform);
+
+  cfg::AclTable table;
+  table.name() = cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
+  table.priority() = 0;
+  table.aclEntries() = {};
+  table.actionTypes() = {};
+  table.qualifiers() = {};
+  table.udfGroups() = {};
+  cfg::AclTableGroup group;
+  group.name() = "acl-table-group-ingress";
+  group.aclTables() = {table};
+  group.stage() = cfg::AclStage::INGRESS;
+  const std::vector<cfg::AclTableGroup> expected{group};
+
+  EXPECT_EQ(*switchConfig.aclTableGroups(), expected);
+  EXPECT_FALSE(switchConfig.aclTableGroup());
+}
+
 TEST(AgentConfigGenTest, ResolvesVariantDescriptorAndRejectsMultiAsicPlatform) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
@@ -351,7 +376,9 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   cfg::AgentConfig config;
   apache::thrift::SimpleJSONSerializer::deserialize(
       readFile(outputPath), config);
-  EXPECT_TRUE(config.defaultCommandLineArgs()->empty());
+  const std::map<std::string, std::string> expectedCommandLineArgs{
+      {"enable_acl_table_group", "true"}};
+  EXPECT_EQ(*config.defaultCommandLineArgs(), expectedCommandLineArgs);
   EXPECT_EQ(
       *config.sw(), generateSwitchConfigFromArtifacts(fbossRoot, kPlatform));
   EXPECT_EQ(

@@ -22,8 +22,10 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/lib/config/agent/AclConfigUtils.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
@@ -33,6 +35,7 @@ namespace {
 
 constexpr std::string_view kAgentConfigFileName = "agent.conf";
 constexpr std::string_view kDefaultProfileName = "default";
+constexpr std::string_view kEnableAclTableGroup = "enable_acl_table_group";
 constexpr std::string_view kPortAssignmentFileName =
     "port_id_to_port_assignment.json";
 constexpr std::string_view kPlatformDescriptorFileName =
@@ -333,6 +336,21 @@ std::pair<fs::path, PlatformDescriptor> findPlatformDescriptorByVariantScan(
   return std::move(matches.front());
 }
 
+std::unique_ptr<HwAsic> generateHwAsic(
+    const cfg::SwitchSettings& switchSettings) {
+  // Even for multiple NPU platforms, we should only have one AsicType
+  const auto& [switchId, switchInfo] =
+      *switchSettings.switchIdToSwitchInfo()->begin();
+  auto asicSwitchInfo = switchInfo;
+  // HwAsic stores a per-switch MAC because runtime packet handling uses it and
+  // the constructor enfoces it. For config generation, we only need
+  // HwAsic::isSupported() and ASIC type/vendor methods. The MAC is not relevant
+  // to config generation.
+  constexpr std::string_view kMockAsicMac = "02:00:00:00:00:01";
+  asicSwitchInfo.switchMac() = kMockAsicMac;
+  return HwAsic::makeAsic(switchId, asicSwitchInfo, std::nullopt, std::nullopt);
+}
+
 } // namespace
 
 cfg::AgentConfig assembleAgentConfig(
@@ -427,9 +445,11 @@ cfg::SwitchConfig generateSwitchConfigFromArtifacts(
     std::string_view platform) {
   auto pathAndDescriptor =
       findPlatformDescriptorConfigWithDescriptor(fbossRoot, platform);
+  auto switchSettings = generateSwitchSettings(pathAndDescriptor.second);
+  auto asic = generateHwAsic(switchSettings);
   cfg::SwitchConfig switchConfig;
-  switchConfig.switchSettings() =
-      generateSwitchSettings(pathAndDescriptor.second);
+  switchConfig.switchSettings() = std::move(switchSettings);
+  utility::setupDefaultAclTableGroups(switchConfig, *asic);
   return switchConfig;
 }
 
@@ -448,9 +468,15 @@ fs::path generateAgentConfig(
     std::string_view profile,
     const fs::path& fbossRoot,
     const std::optional<fs::path>& outputDirectory) {
+  auto switchConfig = generateSwitchConfigFromArtifacts(fbossRoot, platform);
+  std::map<std::string, std::string> defaultCommandLineArgs;
+  if (switchConfig.aclTableGroups() &&
+      !switchConfig.aclTableGroups()->empty()) {
+    defaultCommandLineArgs.emplace(kEnableAclTableGroup, "true");
+  }
   auto config = assembleAgentConfig(
-      {},
-      generateSwitchConfigFromArtifacts(fbossRoot, platform),
+      std::move(defaultCommandLineArgs),
+      std::move(switchConfig),
       generatePlatformConfigFromArtifacts(fbossRoot, platform, profile));
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;

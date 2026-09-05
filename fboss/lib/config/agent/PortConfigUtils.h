@@ -10,12 +10,19 @@
 #pragma once
 
 #include <set>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class PlatformMapping;
 namespace utility {
+
+/*
+ * Utilities for generating and editing port-related portions of an agent
+ * SwitchConfig. This library is shared by FBOSS hardware tests and the fboss2
+ * config CLI so both paths use the same configuration logic.
+ */
 
 /*
  * Use vlan 2000, as the base vlan for ports in configs generated here.

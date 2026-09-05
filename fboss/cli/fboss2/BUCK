@@ -1080,6 +1080,8 @@ cpp_library(
     deps = [
         ":fboss2-config-file-utils",
         "//fboss/agent:fboss-error",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/lib/config:acl_config_utils",
         "//fboss/lib/platforms:platform_descriptor",
         "//fboss/lib/platforms:platform_mapping_utils",
         "//folly:file_util",
@@ -1467,7 +1469,7 @@ cpp_library(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib:common_file_utils",
-        "//fboss/lib/config:agent_config_utils",
+        "//fboss/lib/config:port_config_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//folly:file_util",
         "//folly:range",

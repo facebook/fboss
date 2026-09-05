@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/lib/config/AgentConfigUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 
 #include <algorithm>
 #include <set>
@@ -17,7 +17,6 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 namespace facebook::fboss::utility {
-
 cfg::Port createDefaultPortConfig(
     const PlatformMapping* platformMapping,
     PortID id,
