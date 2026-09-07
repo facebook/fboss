@@ -42,12 +42,17 @@ setfacl -R -d -m g:switching:rwx -m o::rx /etc/coop
 # Default to python 3.12, also simulate the Debian python-is-python3 package
 update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+# Fixup firewalld and its CLIs to definitively use the original system python
+# like the rest of the system tools and services.
+for fwbin in /usr/sbin/firewalld /usr/bin/firewall-cmd /usr/bin/firewall-offline-cmd; do
+  [ -f "$fwbin" ] && sed -i '1s#bin/python3 #bin/python3.9 #' "$fwbin"
+done
 
 # All dnf invocations with an invalid RPM repo configured will fail. Create the
 # metadata for the local_rpm_repo now to prevent that.
 createrepo /usr/local/share/local_rpm_repo
 
-# 1. Process component artifacts and install RPMs
+# Process component artifacts and install RPMs
 #
 # Component artifacts are copied to /repos/<component_name>/
 # Each component is processed in isolation to avoid conflicts
@@ -225,7 +230,8 @@ for component_dir in /repos/*; do
 done
 shopt -u nullglob
 
-# 2. Define paths
+# Define paths
+#
 # Detect the installed kernel version from the boot directory
 # shellcheck disable=SC2012
 VMLINUZ_PATH=$(ls /boot/vmlinuz-* 2>/dev/null | head -n 1)
@@ -247,13 +253,14 @@ echo "Detected kernel version: ${KERNEL_VERSION}"
 echo "Vmlinuz path: ${VMLINUZ_PATH}"
 echo "Initrd path: ${INITRD_PATH}"
 
-# 3. Manually run dracut to create the initrd
+# Manually run dracut to create the initrd
 #    --force is needed to overwrite any existing file
 #    --kver specifies the kernel version to build for
 echo "Running dracut manually..."
 dracut --force --kver "${KERNEL_VERSION}" "${INITRD_PATH}"
 
-# 4. Run kernel-install for grub config
+# Run kernel-install for grub config
+#
 # This wipes ALL interfering variables set by kiwi-ng
 # and runs kernel-install in a "sterile" environment.
 env -i \
@@ -261,11 +268,11 @@ env -i \
   kernel-install add "${KERNEL_VERSION}" "${VMLINUZ_PATH}" --initrd-file "${INITRD_PATH}"
 echo "Custom kernel ${KERNEL_VERSION} install complete."
 
-# 5. Generate a fix-nvme script that "may" need to be run
+# Generate a fix-nvme script that "may" need to be run
 MODULE_DIR="/usr/lib/dracut/modules.d/99nvme-fix"
 mkdir -p "$MODULE_DIR"
 
-# 5a. Generate the script directly in the target directory
+# a. Generate the script directly in the target directory
 cat >"$MODULE_DIR/fix-nvme.sh" <<'EOF'
 #!/bin/bash
 # Force all NVMe drives to 512e mode for KIWI compatibility if they are
@@ -311,10 +318,10 @@ if [ -b "$DEV" ]; then
 fi
 EOF
 
-# 5b. Make the hook executable
+# b. Make the hook executable
 chmod +x "$MODULE_DIR/fix-nvme.sh"
 
-# 5c. Generate the module-setup.sh
+# c. Generate the module-setup.sh
 cat >"$MODULE_DIR/module-setup.sh" <<'EOF'
 #!/bin/bash
 
@@ -338,10 +345,11 @@ install() {
 }
 EOF
 
-# 5d. Make the setup script executable
+# d. Make the setup script executable
 chmod +x "$MODULE_DIR/module-setup.sh"
 
-# 6. Use system GRUB 2.06 from packages
+# Use system GRUB 2.06 from packages
+#
 # The grub2-efi-x64 package already provides grubx64.efi with all necessary modules
 # We just need to make sure the btrfs module is accessible on the EFI partition
 echo "Using system GRUB 2.06 from grub2-efi-x64 package..."
@@ -379,7 +387,7 @@ mkdir -p /boot/grub2/x86_64-efi
 cp -r /usr/lib/grub/x86_64-efi/* /boot/grub2/x86_64-efi/
 echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
 
-# 7. Enable systemd services
+# Enable systemd services
 echo "Enabling FBOSS systemd services..."
 # Ships in sai-runtime.rpm (npu_sai component). The vendor spec is meant to
 # enable it from %post, but not every SDK drop does -- 14.2.0 carries no
@@ -404,11 +412,21 @@ systemctl enable fboss_hw_agents.target
 # does not depend on preset behaviour in the image build.
 systemctl enable logrotate.timer
 
-# 8. Fix NetworkManager connection profile permissions
+# firewalld's default public zone allows only ssh/dhcpv6-client/cockpit
+# and rejects everything else. Enable the "fboss" service (thrift ports) and
+# the fboss-forward policy (transit) for the default zone here so the ports are
+# reachable off-box and transit traffic is not rejected.
+echo "Configuring firewalld for FBOSS..."
+if ! firewall-offline-cmd --zone=public --add-service=fboss; then
+  echo "config.sh: FATAL: could not add the fboss service to the public firewalldzone" >&2
+  exit 1
+fi
+
+# Fix NetworkManager connection profile permissions
 # NM ignores profiles that are world-readable
 chmod 600 /etc/NetworkManager/system-connections/eth0.nmconnection
 
-# 9. Done! Cleanup and install additional packages
+# Done! Cleanup and install additional packages
 echo "Cleaning up /repos directory..."
 rm -rf /repos
 
@@ -419,7 +437,7 @@ if ! rpm -q jq >/dev/null 2>&1; then
   JQ_INSTALLED=true
 fi
 
-#8. Install additional packages from after_pkgs input file user "may" have passed in
+# Install additional packages from after_pkgs input file user "may" have passed in
 if [ -f /var/tmp/after_pkgs_install_file.json ]; then
 
   echo "Processing after_pkgs_install JSON file..."
@@ -439,7 +457,7 @@ else
   echo "No after_pkgs_install JSON file"
 fi
 
-#9. Excute additional commands from after_pkgs_execute_file.json user "may" have passed in
+# Execute additional commands from after_pkgs_execute_file.json user "may" have passed in
 if [ -f /var/tmp/after_pkgs_execute_file.json ]; then
 
   echo "Processing after_pkgs_execute JSON file..."
