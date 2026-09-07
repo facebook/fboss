@@ -265,7 +265,7 @@ class FBOSSOSSVerifier:
                 "libraries",
                 "libsai.a",
             ),
-            os.path.join(self._built_bcmsim_sai_dir, "libsai_impl.a"),
+            os.path.join(self._built_bcmsim_sai_dir, "libsai_impl.so"),
         )
         src_experimental_path = os.path.join(
             self._oss_dir, "bcm_sai", "include", "experimental"
@@ -280,7 +280,7 @@ class FBOSSOSSVerifier:
                 shutil.copy(src, dst)
         os.chdir(self._scripts_dir)
         run_build_helper_cmd = RUN_BUILD_HELPER_CMD.format(
-            os.path.join(self._built_bcmsim_sai_dir, "libsai_impl.a"),
+            os.path.join(self._built_bcmsim_sai_dir, "libsai_impl.so"),
             os.path.join(self._built_bcmsim_sai_dir, "experimental"),
             os.path.join(self._oss_dir, "sai_impl_output"),
         )
