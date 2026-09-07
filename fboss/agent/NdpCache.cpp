@@ -134,10 +134,15 @@ inline void NdpCache::checkReachability(
   InterfaceID intfID;
   std::shared_ptr<Interface> srcIntf;
   switch (port.type()) {
-    case PortDescriptor::PortType::PHYSICAL:
-      intfID = getSw()->getState()->getInterfaceIDForPort(port);
+    case PortDescriptor::PortType::PHYSICAL: {
+      // A trunk port may belong to several interfaces, making port-based
+      // resolution ambiguous; the entries in this cache belong to this
+      // cache's own interface, so use that when the port alone cannot tell.
+      auto intfIDOpt = state->getInterfaceIDForPortIf(port);
+      intfID = intfIDOpt.value_or(getIntfID());
       srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
+    }
     case PortDescriptor::PortType::AGGREGATE: {
       auto aggregatePort =
           getSw()->getState()->getAggregatePorts()->getNodeIf(port.aggPortID());

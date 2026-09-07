@@ -246,8 +246,7 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   auto switchIp = state->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
-    auto intfIDOpt = sw->getState()->getInterfaceIDForPortIf(
-        PortDescriptor(pkt->getSrcPort()));
+    auto intfIDOpt = getInterfaceIDForPkt(*pkt, sw->getState());
     if (!intfIDOpt) {
       sw->stats()->dhcpV6DropPkt();
       XLOG(ERR) << "No interface for port " << pkt->getSrcPort()

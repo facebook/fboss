@@ -297,7 +297,7 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
+    auto intfIDOpt = getInterfaceIDForPkt(*pkt, state);
     if (intfIDOpt) {
       intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
     }
@@ -314,7 +314,7 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
+      auto intfIDOpt = getInterfaceIDForPkt(*pkt, state);
       if (intfIDOpt) {
         intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
       }
@@ -464,8 +464,7 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto intfIDOpt = sw_->getState()->getInterfaceIDForPortIf(
-      PortDescriptor(pkt->getSrcPort()));
+  auto intfIDOpt = getInterfaceIDForPkt(*pkt, sw_->getState());
   auto intf = intfIDOpt
       ? sw_->getState()->getInterfaces()->getNodeIf(intfIDOpt.value())
       : nullptr;
@@ -963,19 +962,25 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
 
   auto state = sw->getState();
 
-  InterfaceID intfID;
+  std::optional<InterfaceID> intfIDOpt;
   switch (portDescriptor.type()) {
     case PortDescriptor::PortType::PHYSICAL:
-      intfID = sw->getState()->getInterfaceIDForPort(portDescriptor);
-      break;
     case PortDescriptor::PortType::AGGREGATE:
-      intfID = sw->getState()->getInterfaceIDForPort(portDescriptor);
+      intfIDOpt = sw->getState()->getInterfaceIDForPortIf(portDescriptor);
       break;
     case PortDescriptor::PortType::SYSTEM_PORT:
       auto physPortID = getPortID(portDescriptor.sysPortID(), sw->getState());
       portToSend = PortDescriptor(physPortID);
-      intfID = sw->getState()->getInterfaceIDForPort(portToSend);
+      intfIDOpt = sw->getState()->getInterfaceIDForPortIf(portToSend);
   }
+  if (!intfIDOpt) {
+    // E.g. a trunk port belonging to several interfaces: the port alone
+    // cannot identify the interface to solicit from.
+    XLOG(DBG2) << "unicast neighbor solicitation not sent for " << targetIP
+               << ": no unique interface for " << portDescriptor.str();
+    return;
+  }
+  InterfaceID intfID = intfIDOpt.value();
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {
     auto intf = state->getInterfaces()->getNodeIf(intfID);

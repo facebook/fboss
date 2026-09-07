@@ -4101,7 +4101,7 @@ void SaiSwitch::packetRxCallbackPort(
   std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
       ? std::nullopt
       : std::make_optional(VlanID(0));
-  auto swVlanIdStr = [swVlanId]() {
+  auto swVlanIdStr = [&swVlanId]() {
     return swVlanId.has_value()
         ? folly::to<std::string>(static_cast<int>(swVlanId.value()))
         : "None";
@@ -4160,14 +4160,34 @@ void SaiSwitch::packetRxCallbackPort(
       return;
     } else {
       swPortId = portItr->second.portID;
-      const auto vlanItr =
-          concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
-      if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-        XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
-                  << portSaiId;
-        return;
+      // Prefer the 802.1Q tag stamped on the punted copy by the hardware:
+      // on a trunk port the packet's VLAN cannot be inferred from the port
+      // alone. Untagged, priority-tagged, QinQ and runt punts (and ASICs
+      // that strip the tag) fall back to the port's ingress VLAN.
+      std::optional<VlanID> tagVlanId;
+      try {
+        folly::io::Cursor cursor(rxPacket->buf());
+        EthHdr ethHdr{cursor};
+        const auto& vlanTags = ethHdr.getVlanTags();
+        if (vlanTags.size() == 1 && vlanTags[0].vid() != 0) {
+          tagVlanId = VlanID(vlanTags[0].vid());
+        }
+      } catch (const std::exception& ex) {
+        XLOG(DBG3) << "Failed to parse ethernet header of RX packet: "
+                   << ex.what();
       }
-      swVlanId = vlanItr->second;
+      if (tagVlanId.has_value()) {
+        swVlanId = tagVlanId;
+      } else {
+        const auto vlanItr =
+            concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
+        if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+          XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
+                    << portSaiId;
+          return;
+        }
+        swVlanId = vlanItr->second;
+      }
     }
   } else {
     // VOQ / FABRIC switch: no vlan needed

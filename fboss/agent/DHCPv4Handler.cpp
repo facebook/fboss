@@ -22,6 +22,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/DHCPv4Packet.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/Ethertype.h"
@@ -304,8 +305,7 @@ void DHCPv4Handler::processRequest(
 
   auto switchIp = state->getDhcpV4RelaySrc();
   if (switchIp.isZero()) {
-    auto interfaceIDOpt = sw->getState()->getInterfaceIDForPortIf(
-        PortDescriptor(pkt->getSrcPort()));
+    auto interfaceIDOpt = getInterfaceIDForPkt(*pkt, sw->getState());
     if (!interfaceIDOpt) {
       sw->stats()->dhcpV4DropPkt();
       XLOG(ERR) << "No interface for port " << pkt->getSrcPort()
