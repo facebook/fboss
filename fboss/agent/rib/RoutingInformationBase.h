@@ -224,6 +224,16 @@ class RibRouteTables {
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
+  /*
+   * Push the current RIB MySid table to SwitchState without touching routes.
+   * Used after config reload when ApplyThriftConfig returns changed=false but
+   * static mySidConfig still needs to be reflected in SwitchState.
+   */
+  void syncMySidSwitchState(
+      const SwitchIdScopeResolver* resolver,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -511,6 +521,11 @@ class RoutingInformationBase {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
+      void* cookie);
+
+  void syncMySidSwitchState(
+      const SwitchIdScopeResolver* resolver,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
   void updateRemoteInterfaceRoutes(

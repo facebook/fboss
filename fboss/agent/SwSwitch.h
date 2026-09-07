@@ -1189,6 +1189,8 @@ class SwSwitch : public HwSwitchCallback {
       const std::string& reason,
       const cfg::SwitchConfig& newConfig);
 
+  void syncStaticMySidSwitchStateFromRib();
+
   void setConfigImpl(std::unique_ptr<AgentConfig> config);
 
   std::shared_ptr<SwitchState> preInit(
