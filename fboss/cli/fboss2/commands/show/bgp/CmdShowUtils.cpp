@@ -319,6 +319,155 @@ void resetBgpMnemonicCaches() {
   cache.communitySetMap.clear();
 }
 
+namespace {
+
+TIpPrefix sampleIpPrefix(const std::string& cidr) {
+  const auto slash = cidr.find_last_of('/');
+  const auto address = (slash == std::string::npos)
+      ? IPAddress(cidr)
+      : IPAddress(cidr.substr(0, slash));
+
+  TIpPrefix prefix;
+  prefix.prefix_bin() =
+      facebook::network::toBinaryAddress(address).addr().value().toStdString();
+  prefix.num_bits() = (slash != std::string::npos)
+      ? folly::to<int>(cidr.substr(slash + 1))
+      : (address.isV4() ? 32 : 128);
+  prefix.afi() = address.isV4() ? TBgpAfi::AFI_IPV4 : TBgpAfi::AFI_IPV6;
+  return prefix;
+}
+
+/*
+ * A two-byte-ASN community. community() carries the packed 32-bit form that
+ * printCommunities() reads; asn()/value() carry the halves. Both inputs are
+ * uint16_t so the pack cannot silently overflow if this is reused with a
+ * larger ASN.
+ */
+neteng::fboss::bgp_attr::TBgpCommunity packedCommunity(
+    uint16_t asn,
+    uint16_t value) {
+  neteng::fboss::bgp_attr::TBgpCommunity community;
+  community.asn() = asn;
+  community.value() = value;
+  community.community() =
+      static_cast<int64_t>((static_cast<uint32_t>(asn) << 16) | value);
+  return community;
+}
+
+struct SamplePathSpec {
+  std::string nextHop;
+  std::string peer;
+  std::string peerDescription;
+  int32_t localPref;
+  // The advertising router, rendered as the Router/Originator line by
+  // 'table detail'. Must be IPv4: router IDs are 32-bit, and sampleBgpPath
+  // throws on anything else.
+  std::string routerAddress;
+  bool isBestPath;
+  // Only the rejected ECMP path carries one; 'table detail' prints it as the
+  // BestPath Rejection Reason.
+  std::string bestPathFilterDescription;
+};
+
+TBgpPath sampleBgpPath(const SamplePathSpec& spec) {
+  TBgpPath path;
+  path.next_hop() = sampleIpPrefix(spec.nextHop);
+  path.peer_id() = sampleIpPrefix(spec.peer);
+  path.peer_description() = spec.peerDescription;
+  path.local_pref() = spec.localPref;
+  // printRIBEntries reads router_id back with IPAddress::fromLongHBO, so store
+  // host byte order.
+  path.router_id() =
+      static_cast<int32_t>(IPAddress(spec.routerAddress).asV4().toLongHBO());
+  // BGP_ORIGIN_IGP; printRIBEntries trims the enum prefix and renders "IGP".
+  path.origin() = 0;
+  path.is_best_path() = spec.isBestPath;
+  if (!spec.bestPathFilterDescription.empty()) {
+    path.bestpath_filter_descr() = spec.bestPathFilterDescription;
+  }
+  // Microseconds; printRIBEntries renders LM as the time elapsed since then,
+  // so this drifts with wall clock rather than being a fixed string.
+  path.last_modified_time() = 1788455780000000;
+  path.next_hop_weight() = 0;
+  path.med() = 0;
+  path.path_id() = 0;
+  path.path_id_to_send() = 4;
+  path.weight() = 0;
+
+  neteng::fboss::bgp_attr::TAsPathSeg segment;
+  segment.seg_type() = TAsPathSegType::AS_SEQUENCE;
+  segment.asns() = {65301, 65332, 64984, 32934};
+  path.as_path() = TAsPath{segment};
+
+  // AS32934.DEFAULT, the community a real default route carries.
+  constexpr uint16_t kDefaultRouteAsn = 65529;
+  constexpr uint16_t kDefaultRouteValue = 15990;
+  path.communities() = {packedCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+
+  return path;
+}
+
+} // namespace
+
+TRibEntryWithHost sampleRibEntriesWithHost() {
+  TRibEntry defaultRoute;
+  defaultRoute.prefix() = sampleIpPrefix("0.0.0.0/0");
+  defaultRoute.best_group() = "best";
+  defaultRoute.best_next_hop() = sampleIpPrefix("192.0.2.11");
+  defaultRoute.paths() = {
+      {"best",
+       {sampleBgpPath(
+            {.nextHop = "192.0.2.11",
+             .peer = "192.0.2.11",
+             .peerDescription = "fsw001.p001.f01.abc1",
+             .localPref = 100,
+             .routerAddress = "192.0.2.101",
+             .isBestPath = true,
+             .bestPathFilterDescription = ""}),
+        sampleBgpPath(
+            {.nextHop = "192.0.2.12",
+             .peer = "192.0.2.12",
+             .peerDescription = "fsw002.p001.f01.abc1",
+             .localPref = 100,
+             .routerAddress = "192.0.2.102",
+             .isBestPath = false,
+             .bestPathFilterDescription =
+                 "Router-Id, Filter Criterion: Choose Lowest Value"})}},
+      // A drained peer advertises the same prefix at a lower local-pref, so it
+      // lands outside the best group and renders without the ECMP marker.
+      {"warm",
+       {sampleBgpPath(
+           {.nextHop = "192.0.2.13",
+            .peer = "192.0.2.13",
+            .peerDescription = "fsw003.p001.f01.abc1",
+            .localPref = 20,
+            .routerAddress = "192.0.2.103",
+            .isBestPath = false,
+            .bestPathFilterDescription = ""})}}};
+
+  TRibEntry v6Prefix;
+  v6Prefix.prefix() = sampleIpPrefix("2001:db8:1c00::/40");
+  v6Prefix.best_group() = "best";
+  v6Prefix.best_next_hop() = sampleIpPrefix("2001:db8:e11e:1062::4e");
+  v6Prefix.paths() = {
+      {"best",
+       {sampleBgpPath(
+           {.nextHop = "2001:db8:e11e:1062::4e",
+            .peer = "2001:db8:e11e:1062::4e",
+            .peerDescription = "fsw001.p001.f01.abc1",
+            .localPref = 100,
+            .routerAddress = "192.0.2.101",
+            .isBestPath = true,
+            .bestPathFilterDescription = ""})}}};
+
+  TRibEntryWithHost data;
+  data.tRibEntries() = {defaultRoute, v6Prefix};
+  data.host() = "rsw001.p001.f01.abc1";
+  data.oobName() = "rsw001.p001.f01.abc1.oob";
+  data.ip() = "192.0.2.1";
+  return data;
+}
+
 const std::vector<std::string> printRoutesInformation(
     const std::map<TIpPrefix, std::vector<TBgpPath>>& networks,
     const HostInfo& hostInfo,
