@@ -12,8 +12,11 @@
 
 #include <fmt/format.h>
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include <chrono>
 #include <stdexcept>
+#include <thread>
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/session/SystemdInterface.h"
@@ -26,6 +29,7 @@ constexpr std::string_view kWedgeAgent = "wedge_agent";
 constexpr std::string_view kSwAgent = "fboss_sw_agent";
 constexpr std::string_view kHwAgentPrefix = "fboss_hw_agent@";
 constexpr std::string_view kBgpd = "bgpd";
+
 } // namespace
 
 namespace facebook::fboss {
@@ -182,6 +186,51 @@ std::string FbossServiceUtil::restartTypeName(
       return "reload";
   }
   return "restart";
+}
+
+// Same check as SwSwitch::isFullyConfigured().
+bool FbossServiceUtil::isAgentConfigured(const HostInfo& hostInfo) {
+  try {
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    auto runState = client->sync_getSwitchRunState();
+    return runState >= SwitchRunState::CONFIGURED &&
+        runState != SwitchRunState::EXITING;
+  } catch (const std::exception& ex) {
+    // Expected while the agent is still starting up.
+    XLOG(DBG2) << "Agent not configured yet (" << ex.what() << "), will retry";
+    return false;
+  }
+}
+
+void FbossServiceUtil::waitForConfigured(
+    cli::ServiceType service,
+    const HostInfo& hostInfo,
+    int maxWaitSeconds,
+    int pollIntervalMs) {
+  switch (service) {
+    case cli::ServiceType::AGENT:
+      break;
+    case cli::ServiceType::BGP:
+      // bgpd has no run state to poll.
+      return;
+  }
+
+  int waitedMs = 0;
+
+  while (waitedMs < maxWaitSeconds * 1000) {
+    if (isAgentConfigured(hostInfo)) {
+      LOG(INFO) << "Agent is configured and serving";
+      return;
+    }
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
+    waitedMs += pollIntervalMs;
+  }
+
+  throw std::runtime_error(
+      fmt::format(
+          "Agent did not become configured within {} seconds", maxWaitSeconds));
 }
 
 std::vector<std::string> FbossServiceUtil::restartService(
