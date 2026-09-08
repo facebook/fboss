@@ -78,7 +78,7 @@ target_link_libraries(common_port_utils
 )
 
 add_library(common_utils
-  fboss/lib/CommonUtils.h
+  fboss/lib/CommonUtils.cpp
 )
 
 target_link_libraries(common_utils
