@@ -123,108 +123,157 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
   EXPECT_TRUE(
       bspPlatformMapping.pimMapping().value().find(1) !=
       bspPlatformMapping.pimMapping().value().end());
-  EXPECT_EQ(bspPlatformMapping.pimMapping().value().at(1).get_pimID(), 1);
+  EXPECT_EQ(bspPlatformMapping.pimMapping().value().at(1).pimID().value(), 1);
   auto tcvrMapping =
       bspPlatformMapping.pimMapping().value().at(1).tcvrMapping().value();
   EXPECT_EQ(tcvrMapping.size(), 1);
   EXPECT_TRUE(tcvrMapping.find(1) != tcvrMapping.end());
   EXPECT_EQ(tcvrMapping.at(1).tcvrId().value(), 1);
-  EXPECT_EQ(tcvrMapping.at(1).accessControl().value().get_controllerId(), "1");
   EXPECT_EQ(
-      tcvrMapping.at(1).accessControl().value().get_type(),
+      tcvrMapping.at(1).accessControl().value().controllerId().value(), "1");
+  EXPECT_EQ(
+      tcvrMapping.at(1).accessControl().value().type().value(),
       facebook::fboss::ResetAndPresenceAccessType::CPLD);
 
   EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_reset().get_sysfsPath() !=
-      nullptr);
-  EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_reset().get_sysfsPath(),
-      "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1");
-  EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_reset().get_mask() !=
-      nullptr);
-  EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_reset().get_mask(), 1);
-  EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_reset().get_gpioOffset() !=
-      nullptr);
-  EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_reset().get_gpioOffset(),
-      0);
-  EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_reset().get_resetHoldHi() !=
-      nullptr);
-  EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_reset().get_resetHoldHi(),
-      1);
-
-  EXPECT_TRUE(
       tcvrMapping.at(1)
           .accessControl()
           .value()
-          .get_presence()
+          .reset()
+          .value()
           .get_sysfsPath() != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_presence().get_sysfsPath(),
-      "/run/devmap/cplds/JANGA_SMB_CPLD/xcvr_present_1");
+      *tcvrMapping.at(1)
+           .accessControl()
+           .value()
+           .reset()
+           .value()
+           .get_sysfsPath(),
+      "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1");
   EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_presence().get_mask() !=
+      tcvrMapping.at(1).accessControl().value().reset().value().get_mask() !=
       nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().get_presence().get_mask(), 1);
+      *tcvrMapping.at(1).accessControl().value().reset().value().get_mask(), 1);
   EXPECT_TRUE(
       tcvrMapping.at(1)
           .accessControl()
           .value()
-          .get_presence()
+          .reset()
+          .value()
           .get_gpioOffset() != nullptr);
   EXPECT_EQ(
       *tcvrMapping.at(1)
            .accessControl()
            .value()
-           .get_presence()
+           .reset()
+           .value()
            .get_gpioOffset(),
       0);
   EXPECT_TRUE(
       tcvrMapping.at(1)
           .accessControl()
           .value()
-          .get_presence()
+          .reset()
+          .value()
+          .get_resetHoldHi() != nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1)
+           .accessControl()
+           .value()
+           .reset()
+           .value()
+           .get_resetHoldHi(),
+      1);
+
+  EXPECT_TRUE(
+      tcvrMapping.at(1)
+          .accessControl()
+          .value()
+          .presence()
+          .value()
+          .get_sysfsPath() != nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1)
+           .accessControl()
+           .value()
+           .presence()
+           .value()
+           .get_sysfsPath(),
+      "/run/devmap/cplds/JANGA_SMB_CPLD/xcvr_present_1");
+  EXPECT_TRUE(
+      tcvrMapping.at(1).accessControl().value().presence().value().get_mask() !=
+      nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1).accessControl().value().presence().value().get_mask(),
+      1);
+  EXPECT_TRUE(
+      tcvrMapping.at(1)
+          .accessControl()
+          .value()
+          .presence()
+          .value()
+          .get_gpioOffset() != nullptr);
+  EXPECT_EQ(
+      *tcvrMapping.at(1)
+           .accessControl()
+           .value()
+           .presence()
+           .value()
+           .get_gpioOffset(),
+      0);
+  EXPECT_TRUE(
+      tcvrMapping.at(1)
+          .accessControl()
+          .value()
+          .presence()
+          .value()
           .get_presentHoldHi() != nullptr);
   EXPECT_EQ(
       *tcvrMapping.at(1)
            .accessControl()
            .value()
-           .get_presence()
+           .presence()
+           .value()
            .get_presentHoldHi(),
       1);
 
   EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().get_gpioChip() != nullptr);
-  EXPECT_EQ(*tcvrMapping.at(1).accessControl().value().get_gpioChip(), "");
-
-  EXPECT_EQ(tcvrMapping.at(1).io().value().get_controllerId(), "1");
+      apache::thrift::get_pointer(
+          tcvrMapping.at(1).accessControl().value().gpioChip()) != nullptr);
   EXPECT_EQ(
-      tcvrMapping.at(1).io().value().get_type(),
+      apache::thrift::can_throw(
+          tcvrMapping.at(1).accessControl().value().gpioChip().value()),
+      "");
+
+  EXPECT_EQ(tcvrMapping.at(1).io().value().controllerId().value(), "1");
+  EXPECT_EQ(
+      tcvrMapping.at(1).io().value().type().value(),
       facebook::fboss::TransceiverIOType::I2C);
   EXPECT_EQ(
-      tcvrMapping.at(1).io().value().get_devicePath(),
+      tcvrMapping.at(1).io().value().devicePath().value(),
       "/run/devmap/xcvrs/xcvr_io_1");
 
   EXPECT_EQ(tcvrMapping.at(1).tcvrLaneToLedId().value().size(), 4);
   std::map<int, int> expectedLaneToLedId = {{1, 1}, {2, 1}, {3, 1}, {4, 1}};
   EXPECT_EQ(tcvrMapping.at(1).tcvrLaneToLedId().value(), expectedLaneToLedId);
 
-  EXPECT_TRUE(
-      bspPlatformMapping.pimMapping().value().at(1).get_phyMapping().empty());
   EXPECT_TRUE(bspPlatformMapping.pimMapping()
                   .value()
                   .at(1)
-                  .get_phyIOControllers()
+                  .phyMapping()
+                  .value()
+                  .empty());
+  EXPECT_TRUE(bspPlatformMapping.pimMapping()
+                  .value()
+                  .at(1)
+                  .phyIOControllers()
+                  .value()
                   .empty());
 
   EXPECT_EQ(
-      bspPlatformMapping.pimMapping().value().at(1).get_ledMapping().size(), 1);
+      bspPlatformMapping.pimMapping().value().at(1).ledMapping().value().size(),
+      1);
   auto ledMapping =
       bspPlatformMapping.pimMapping().value().at(1).ledMapping().value().at(1);
 
