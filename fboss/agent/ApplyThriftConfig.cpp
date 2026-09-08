@@ -3689,13 +3689,21 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
   switch (minCapacity.getType()) {
     case cfg::MinimumCapacity::Type::linkCount:
       // Thrift's byte type is an int8_t
-      CHECK_GE(minCapacity.get_linkCount(), 1);
+      if (minCapacity.get_linkCount() < 1) {
+        throw FbossError(
+            "Minimum capacity linkCount must be >= 1, got ",
+            minCapacity.get_linkCount());
+      }
 
       minLinkCount = minCapacity.get_linkCount();
       break;
     case cfg::MinimumCapacity::Type::linkPercentage:
-      CHECK_GT(minCapacity.get_linkPercentage(), 0);
-      CHECK_LE(minCapacity.get_linkPercentage(), 1);
+      if (minCapacity.get_linkPercentage() <= 0 ||
+          minCapacity.get_linkPercentage() > 1) {
+        throw FbossError(
+            "Minimum capacity linkPercentage must be in (0, 1], got ",
+            minCapacity.get_linkPercentage());
+      }
 
       minLinkCount =
           std::ceil(minCapacity.get_linkPercentage() * memberPortsSize);
