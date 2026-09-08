@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <vector>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h"
@@ -226,4 +227,36 @@ TEST_F(CmdShowBgpShadowRibTestFixture, printCPSOutput) {
   EXPECT_EQ(output, expectedOutput);
 }
 #endif // IS_OSS
+
+TEST_F(CmdShowBgpShadowRibTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpShadowRibTraits::description().empty());
+
+  /*
+   * printRIBEntries looks up the community/local-pref mnemonics through the
+   * MODEL's own host/ip. sampleModel() carries the canned documentation host
+   * the wiki renders under, so point the copy under test at the mocked server
+   * -- otherwise this is a real connect to an unroutable address. The mock
+   * returns an empty config, so the render falls back to raw asn:value
+   * communities and numeric local prefs.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = CmdShowBgpShadowRib::sampleModel();
+  EXPECT_FALSE(model.tRibEntries()->empty());
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+  std::stringstream ss;
+  CmdShowBgpShadowRib().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  // Same listing and markers as 'show bgp table', which is the point of the
+  // shadow RIB being directly comparable against it.
+  EXPECT_THAT(output, testing::HasSubstr("*@  from 192.0.2.11"));
+  EXPECT_THAT(output, testing::HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
+}
+
 } // namespace facebook::fboss
