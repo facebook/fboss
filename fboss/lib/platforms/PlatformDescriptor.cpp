@@ -16,6 +16,7 @@
 #include <optional>
 #include <utility>
 
+#include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
@@ -25,6 +26,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
+#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 DEFINE_string(
     platform_descriptor_config_path,
@@ -41,6 +43,50 @@ namespace {
 constexpr auto kPlatformDescriptorFileName = "platform_descriptor.json";
 constexpr auto kPlatformMappingFileName = "platform_mapping.json";
 constexpr auto kRawPlatformMappingFileName = "raw_platform_mapping.json";
+constexpr auto kAsicConfigFileName = "asic_config.yaml";
+constexpr auto kChassisEepromPath = "/run/devmap/eeproms/CHASSIS_EEPROM";
+
+std::optional<int16_t> parseVersionField(const std::string& value) {
+  if (value.empty()) {
+    return std::nullopt;
+  }
+  int16_t parsed{};
+  try {
+    parsed = folly::to<int16_t>(value);
+  } catch (const std::exception&) {
+    return std::nullopt;
+  }
+  return parsed;
+}
+
+bool matchesPmUnitVersions(
+    const PlatformDescriptor& descriptor,
+    const std::optional<ChassisEepromVersion>& version) {
+  const auto& matches = descriptor.pmUnitVersions();
+  if (!matches.has_value() || matches->empty()) {
+    return true;
+  }
+  if (!version.has_value()) {
+    return false;
+  }
+  for (const auto& match : *matches) {
+    bool matched = (!match.productionState().has_value() ||
+                    *match.productionState() == version->productionState) &&
+        (!match.productionSubState().has_value() ||
+         *match.productionSubState() == version->productionSubState) &&
+        (!match.respinVariantIndicator().has_value() ||
+         *match.respinVariantIndicator() == version->respinVariantIndicator);
+    if (matched) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasVersionSelector(const PlatformDescriptor& descriptor) {
+  return descriptor.pmUnitVersions().has_value() &&
+      !descriptor.pmUnitVersions()->empty();
+}
 
 std::string normalize(std::string_view value) {
   return boost::algorithm::to_lower_copy(std::string(value));
@@ -169,6 +215,41 @@ fs::path getRequiredPlatformFile(
 
 } // namespace
 
+static std::optional<ChassisEepromVersion> readChassisEepromVersion() {
+  const auto& path = kChassisEepromPath;
+  if (!fs::exists(path)) {
+    XLOG(WARN) << "Chassis EEPROM " << path
+               << " not found; version-selected platform descriptors will "
+               << "not match and the default descriptor will be used";
+    return std::nullopt;
+  }
+  try {
+    platform::FbossEepromInterface eeprom(path, 0);
+    auto productionState = parseVersionField(eeprom.getProductionState());
+    auto productionSubState = parseVersionField(eeprom.getProductionSubState());
+    auto respinVariantIndicator = parseVersionField(eeprom.getVariantVersion());
+    if (!productionState || !productionSubState || !respinVariantIndicator) {
+      XLOG(WARN) << "Chassis EEPROM at " << path
+                 << " is missing version fields; version-selected platform "
+                 << "descriptors will not match";
+      return std::nullopt;
+    }
+    return ChassisEepromVersion{
+        *productionState, *productionSubState, *respinVariantIndicator};
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Unable to parse chassis EEPROM at " << path << ": "
+               << ex.what()
+               << "; version-selected platform descriptors will not match";
+    return std::nullopt;
+  }
+}
+
+std::optional<ChassisEepromVersion> getChassisEepromVersion() {
+  static const std::optional<ChassisEepromVersion> version =
+      readChassisEepromVersion();
+  return version;
+}
+
 PlatformDescriptorRegistry::PlatformDescriptorRegistry(
     std::vector<PlatformDescriptorEntry> descriptorEntries)
     : descriptorEntries_(std::move(descriptorEntries)) {}
@@ -197,8 +278,12 @@ PlatformDescriptorRegistry::getDescriptorEntry(PlatformType type) const {
     }
     const auto& variantAttributes =
         entry.descriptor.variantAttributes().value();
-    if (!variantAttributes.empty()) {
-      if (matchesVariantAttributes(entry.descriptor)) {
+    bool isVariant =
+        !variantAttributes.empty() || hasVersionSelector(entry.descriptor);
+    if (isVariant) {
+      if ((variantAttributes.empty() ||
+           matchesVariantAttributes(entry.descriptor)) &&
+          matchesPmUnitVersions(entry.descriptor, getChassisEepromVersion())) {
         return &entry;
       }
       continue;
@@ -263,6 +348,35 @@ std::optional<std::string> PlatformDescriptorRegistry::loadPlatformMapping(
         ex.what());
   }
   return mappingJson;
+}
+
+std::optional<std::string> PlatformDescriptorRegistry::loadAsicConfigYaml(
+    PlatformType type,
+    std::optional<int16_t> switchIndex) const {
+  auto entry = getDescriptorEntry(type);
+  if (!entry || entry->platformMappingPath.empty()) {
+    return std::nullopt;
+  }
+  const auto dir = fs::path(entry->platformMappingPath).parent_path();
+  // Multi-NPU platforms may ship a per-NPU asic_config_idx<N>.yaml, which
+  // wins over the shared asic_config.yaml.
+  auto yamlPath = dir / kAsicConfigFileName;
+  if (switchIndex.has_value()) {
+    auto perNpuPath =
+        dir / folly::to<std::string>("asic_config_idx", *switchIndex, ".yaml");
+    if (fs::exists(perNpuPath)) {
+      yamlPath = std::move(perNpuPath);
+    }
+  }
+  if (!fs::exists(yamlPath)) {
+    return std::nullopt;
+  }
+  std::string yaml;
+  if (!folly::readFile(yamlPath.c_str(), yaml)) {
+    throw FbossError("Unable to read asic config yaml ", yamlPath.string());
+  }
+  XLOG(INFO) << "Loaded asic config yaml from " << yamlPath.string();
+  return yaml;
 }
 
 cfg::PlatformMapping PlatformDescriptorRegistry::loadPlatformMappingFromRaw(
