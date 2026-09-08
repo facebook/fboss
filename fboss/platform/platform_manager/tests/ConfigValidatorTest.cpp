@@ -501,6 +501,30 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
   slotTypeConfig = getValidSlotTypeConfig();
   slotTypeConfig.idpromConfig()->address() = "0xK4";
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
+  // An address is not required when the BSP instantiates the IDPROM and
+  // platform_manager only reads it back from sysfsPath.
+  slotTypeConfig = getValidSlotTypeConfig();
+  slotTypeConfig.idpromConfig()->address() = "";
+  slotTypeConfig.idpromConfig()->busName() = "";
+  slotTypeConfig.idpromConfig()->sysfsPath() =
+      "/run/nexthop_bsp/eeproms/SCM_IDPROM";
+  EXPECT_TRUE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
+}
+
+TEST(ConfigValidatorTest, IdpromSysfsPath) {
+  auto idpromConfig = IdpromConfig();
+  idpromConfig.sysfsPath() = "/run/nexthop_bsp/eeproms/SCM_IDPROM";
+  EXPECT_TRUE(
+      ConfigValidator().isValidIdpromSysfsPath(idpromConfig, "SCM_SLOT"));
+
+  idpromConfig.sysfsPath() = "run/nexthop_bsp/eeproms/SCM_IDPROM";
+  EXPECT_FALSE(
+      ConfigValidator().isValidIdpromSysfsPath(idpromConfig, "SCM_SLOT"));
+
+  idpromConfig.sysfsPath() = "/run/nexthop_bsp/eeproms/SCM_IDPROM";
+  idpromConfig.busName() = "CPU_BUS@3";
+  EXPECT_FALSE(
+      ConfigValidator().isValidIdpromSysfsPath(idpromConfig, "SCM_SLOT"));
 }
 
 TEST(ConfigValidatorTest, SlotConfig) {

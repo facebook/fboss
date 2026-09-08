@@ -328,24 +328,32 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   std::optional<int> respinVariantIndicatorInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig();
-    auto eepromI2cBusNum =
-        dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
     std::string eepromPath;
 
-    /*
-    Because of upstream kernel issues, we have to manually read the
-    SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read
-    directly with ioctl and written to the /run/devmap file. See:
-    https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-    */
     uint16_t eepromOffset = *idpromConfig.offset();
-    if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+    if (idpromConfig.sysfsPath()) {
+      // The BSP instantiates this IDPROM and publishes a handle for it, so
+      // there is no bus to resolve and no device to create here. Record the
+      // path the same way createI2cDevice() would, so DevicePath-based
+      // consumers such as the /run/devmap symlinks still resolve.
+      dataStore_.updateSysfsPath(
+          Utils().createDevicePath(slotPath, "IDPROM"),
+          *idpromConfig.sysfsPath());
+      eepromPath = fmt::format("{}/eeprom", *idpromConfig.sysfsPath());
+    } else if (
+        (platformConfig_.platformName().value() == "MERU800BFA" ||
          platformConfig_.platformName().value() == "MERU800BIA" ||
          platformConfig_.platformName().value() == "ICECUBE800BANW" ||
          platformConfig_.platformName().value() == "BLACKWOLF800BANW" ||
          platformConfig_.platformName().value() == "SAINTPAUL") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
+      /*
+      Because of upstream kernel issues, we have to manually read the
+      SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read
+      directly with ioctl and written to the /run/devmap file. See:
+      https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+      */
       // ICECUBE800BANW has SMB at root level, others have SCM
       std::string eepromName =
           (platformConfig_.platformName().value() == "ICECUBE800BANW")
@@ -374,6 +382,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             ExplorationErrorType::IDPROM_READ, slotPath, "IDPROM", errMsg);
       }
     } else {
+      auto eepromI2cBusNum =
+          dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
       createI2cDevice(
           Utils().createDevicePath(slotPath, "IDPROM"),
           *idpromConfig.kernelDeviceName(),
