@@ -1,5 +1,32 @@
 {
   "fwConfigs": {
+    "bios": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "internal"
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal"
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal"
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/sys/devices/virtual/dmi/id/bios_version"
+      },
+      "priority": 3
+    },
     "cpu_cpld": {
       "upgrade": [
         {
