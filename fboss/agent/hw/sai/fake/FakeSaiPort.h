@@ -58,6 +58,7 @@ struct FakePort {
   std::vector<sai_object_id_t> ingressBufferProfileIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
+  sai_uint32_t metadata{0};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosDot1pToTcMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosTcAndColorToDot1pMap{SAI_NULL_OBJECT_ID};
@@ -77,6 +78,7 @@ struct FakePort {
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   sai_prbs_rx_state_t prbsRxState{SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS, 1};
 #endif
+  sai_object_id_t ingressAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
@@ -126,6 +128,7 @@ struct FakePort {
   sai_int32_t cablePropagationDelayMediaType{0};
   sai_uint16_t pfcPauseDurationOverride{0};
   bool cablePropagationDelayMeasure{false};
+  sai_int32_t linkScanMode{0};
   std::function<void()> onGetAttribute; // test-only hook
 };
 

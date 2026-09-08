@@ -83,13 +83,13 @@ TEST_F(CmdShowBgpTableCommunityTestFixture, filterEntriesByCommunities) {
   ASSERT_EQ(results.size(), 1);
   const auto& entry = results.at(0);
 
-  EXPECT_EQ(entry.get_best_group(), groupNameA);
+  EXPECT_EQ(entry.best_group().value(), groupNameA);
   const auto& paths = entry.paths().value();
   ASSERT_EQ(paths.size(), 1);
   const auto& communities =
       apache::thrift::get_pointer(paths.at(groupNameA).at(0).communities());
   ASSERT_EQ(communities->size(), 1);
-  EXPECT_EQ(communities->at(0).get_asn(), asnA);
-  EXPECT_EQ(communities->at(0).get_value(), valueA);
+  EXPECT_EQ(communities->at(0).asn().value(), asnA);
+  EXPECT_EQ(communities->at(0).value().value(), valueA);
 }
 } // namespace facebook::fboss

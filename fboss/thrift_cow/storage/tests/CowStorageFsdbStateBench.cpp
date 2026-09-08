@@ -42,6 +42,27 @@ void ribmap_state_storage_gtsw(
       enableHybridStorage);
 }
 
+// FPF canonicalRib storage benchmark: exercises the compact, best-path-only
+// bgpData.canonicalRib() payload sized from numPods x numPrefixesPerPod
+// (matching the DNE inject_bgp_prefixes shape) instead of ribMap.
+void canonicalRib_storage(
+    folly::UserCounters& counters,
+    unsigned iters,
+    int numPods,
+    int numPrefixesPerPod,
+    bool enableHybridStorage) {
+  auto scale = test_data::BgpRibMapDataGenerator::makeGtswScale(
+      /*isFPF=*/true, numPods, numPrefixesPerPod);
+  auto factory =
+      test_data::BgpRibMapDataGenerator(test_data::RoleSelector::GTSW, scale);
+  bm_storage_metrics_helper<test_data::BgpRibMapDataGenerator::RootT>(
+      factory,
+      counters,
+      iters,
+      test_data::RoleSelector::GTSW,
+      enableHybridStorage);
+}
+
 // FSDB State-based benchmarks using different production scales
 BENCHMARK_COUNTERS_NAME_PARAM(
     fsdb_state_storage,
@@ -320,6 +341,24 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     4096,
     64,
     false);
+
+// FPF canonicalRib: 144 pods x 240 prefixes/pod = 34560 entries (matches
+// inject_bgp_prefixes --pods 144 --prefixes-per-pod 240).
+BENCHMARK_COUNTERS_NAME_PARAM(
+    canonicalRib_storage,
+    counters,
+    FPF_144x240_ThriftCow,
+    144,
+    240,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    canonicalRib_storage,
+    counters,
+    FPF_144x240_HybridCow,
+    144,
+    240,
+    true);
 
 } // namespace facebook::fboss::thrift_cow::test
 

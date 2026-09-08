@@ -303,7 +303,7 @@ bool HwTestThriftHandler::isAclEntryMirrored(
   }
 
   auto aclEntryHandle = aclTableManager.getAclEntryHandle(
-      aclTableHandle, aclEntry_ptr->getPriority());
+      aclTableHandle, aclEntry_ptr->getPriority(), aclEntry_ptr->getID());
   if (!aclEntryHandle) {
     return false;
   }

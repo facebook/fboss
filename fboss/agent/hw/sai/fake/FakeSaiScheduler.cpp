@@ -41,16 +41,16 @@ sai_status_t create_scheduler_fn(
         meterType = static_cast<sai_meter_type_t>(attr_list[i].value.s32);
         break;
       case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_RATE:
-        minBandwidthRate = attr_list[i].value.s32;
+        minBandwidthRate = attr_list[i].value.u64;
         break;
       case SAI_SCHEDULER_ATTR_MIN_BANDWIDTH_BURST_RATE:
-        minBandwidthBurstRate = attr_list[i].value.s32;
+        minBandwidthBurstRate = attr_list[i].value.u64;
         break;
       case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_RATE:
-        maxBandwidthRate = attr_list[i].value.s32;
+        maxBandwidthRate = attr_list[i].value.u64;
         break;
       case SAI_SCHEDULER_ATTR_MAX_BANDWIDTH_BURST_RATE:
-        maxBandwidthBurstRate = attr_list[i].value.s32;
+        maxBandwidthBurstRate = attr_list[i].value.u64;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

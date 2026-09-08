@@ -31,7 +31,7 @@ cpp_unittest(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/capture:capture",
         "//fboss/agent/hw/mock:pkt",
-        "//fboss/agent/packet:pktutil",
+        "//fboss/agent/packet:packet",
         "//fboss/agent/state:state",
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:utils",

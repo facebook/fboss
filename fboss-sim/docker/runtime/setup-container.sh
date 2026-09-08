@@ -53,11 +53,31 @@ for service in wedge_agent.service fboss_sw_agent.service fboss_hw_agent@.servic
   fi
 done
 
-# 5. Reload systemd to pick up service changes
+# 5. Give each agent unit its own log file
+# The shipped units send every agent's stdout/stderr to the same
+# /var/facebook/logs/fboss/wedge_agent.log. When the hw agent crashes the sw
+# agent usually follows within milliseconds, so the two folly stack traces
+# interleave line-by-line and both become unreadable. wedge_agent.log stays as
+# the mono-mode log.
+echo "→ Splitting agent logs so crash traces don't interleave..."
+mkdir -p /etc/systemd/system/fboss_hw_agent@.service.d \
+  /etc/systemd/system/fboss_sw_agent.service.d
+cat >/etc/systemd/system/fboss_hw_agent@.service.d/logfile.conf <<'DROPIN'
+[Service]
+StandardOutput=append:/var/facebook/logs/fboss/hw_agent%i.log
+StandardError=append:/var/facebook/logs/fboss/hw_agent%i.log
+DROPIN
+cat >/etc/systemd/system/fboss_sw_agent.service.d/logfile.conf <<'DROPIN'
+[Service]
+StandardOutput=append:/var/facebook/logs/fboss/sw_agent.log
+StandardError=append:/var/facebook/logs/fboss/sw_agent.log
+DROPIN
+
+# 6. Reload systemd to pick up service changes
 echo "→ Reloading systemd daemon..."
 systemctl daemon-reload || true
 
-# 6. Enable split mode (fboss_sw_agent + fboss_hw_agent) by default
+# 7. Enable split mode (fboss_sw_agent + fboss_hw_agent) by default
 echo "→ Enabling split mode (fboss_sw_agent + fboss_hw_agent) by default..."
 mkdir -p /etc/systemd/system/multi-user.target.wants
 ln -sf /usr/lib/systemd/system/fboss_sw_agent.service \
@@ -76,7 +96,7 @@ else
   exit 1
 fi
 
-# 7. Mask monolithic agent service (can be unmasked at runtime with switch-agent-mode.sh)
+# 8. Mask monolithic agent service (can be unmasked at runtime with switch-agent-mode.sh)
 echo "→ Masking monolithic agent service..."
 systemctl mask wedge_agent.service || true
 

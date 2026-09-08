@@ -37,7 +37,7 @@ cpp_binary(
 
 custom_rule(
     name = "config_generator_h",
-    build_args = "--json_config_dir $(location fbcode//fboss/platform:configs)/configs",
+    build_args = "--json_config_dir $(location fbcode//fboss/configs:platform_service_configs)/platforms",
     build_script_dep = ":config_generator",
     output_gen_files = ["GeneratedConfig.h"],
 )

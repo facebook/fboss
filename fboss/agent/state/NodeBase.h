@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/types.h"
+#include "fboss/agent/StrongTypes.h"
 
 #include <boost/cast.hpp>
 #include <boost/container/flat_map.hpp>

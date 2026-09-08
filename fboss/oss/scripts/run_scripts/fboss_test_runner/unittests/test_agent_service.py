@@ -31,6 +31,15 @@ class TestAgentCanWarmBootFilePath:
         assert agent_can_warm_boot_file_path(switch_index=3).endswith("_3")
 
 
+class TestServiceUnitEnvironment:
+    def test_empty_library_path_uses_packaged_default(self, monkeypatch):
+        monkeypatch.setenv("LD_LIBRARY_PATH", "")
+
+        unit = service_utils.build_unit_file_content("test", "true", "test")
+
+        assert "Environment=LD_LIBRARY_PATH=/opt/fboss/lib" in unit
+
+
 class TestCleanupHwAgentService:
     def test_stops_all_three_service_variants_and_pkills(self):
         with patch.object(service_utils.subprocess, "run") as mock_run:

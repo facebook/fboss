@@ -3,6 +3,7 @@
 #include <folly/json/dynamic.h>
 
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
+#include "fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
@@ -49,5 +50,21 @@ inline TestStruct createTestStructForExtendedTests() {
   return facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
+
+// Drives one publish + serve cycle inline, which is what the periodic loop does
+// per tick. Lets a test or benchmark control serve timing instead of waiting on
+// subscriptionServeInterval.
+template <typename Root, bool EnableHybridStorage = false>
+class SynchronousServeStorage
+    : public NaivePeriodicSubscribableCowStorage<Root, EnableHybridStorage> {
+ public:
+  using Base = NaivePeriodicSubscribableCowStorage<Root, EnableHybridStorage>;
+  using Base::Base;
+
+  void serveOnce() {
+    auto [oldRoot, newRoot, metadataServer] = this->publishCurrentState();
+    this->subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
+  }
+};
 
 } // namespace

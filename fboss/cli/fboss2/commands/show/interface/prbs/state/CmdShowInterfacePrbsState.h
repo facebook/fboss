@@ -10,6 +10,8 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
+#include <string_view>
+
 namespace facebook::fboss {
 
 struct CmdShowInterfacePrbsStateTraits : public ReadCommandTraits {
@@ -20,6 +22,8 @@ struct CmdShowInterfacePrbsStateTraits : public ReadCommandTraits {
   using RetType = cli::ShowPrbsStateModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  static std::string_view description();
 };
 
 class CmdShowInterfacePrbsState : public CmdHandler<
@@ -32,6 +36,8 @@ class CmdShowInterfacePrbsState : public CmdHandler<
       const std::vector<std::string>& components);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 
   std::map<std::string, prbs::InterfacePrbsState> getComponentPrbsStates(
       const HostInfo& hostInfo,

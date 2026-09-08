@@ -51,6 +51,13 @@ void fillHwSwitchDropBitmapStats(
 
 void logDropBitmapReasons(const HwSwitchDropBitmapStats& /*stats*/) {}
 
+void logDropReasons(
+    const std::vector<sai_int32_t>& ingressDropReasons,
+    const std::vector<sai_int32_t>& egressDropReasons) {
+  CHECK_EQ(ingressDropReasons.size(), 0);
+  CHECK_EQ(egressDropReasons.size(), 0);
+}
+
 void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
 
 void publishSwitchPipelineStats(HwSwitchPipelineStats& /*pipelineStats*/) {}

@@ -91,6 +91,7 @@
 #include <folly/Range.h>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <utility>
 #include <vector>
 
@@ -559,7 +560,12 @@ class ThriftConfigApplier {
       cfg::AclStage aclStage,
       const cfg::AclTableGroup& cfgAclTableGroup,
       const std::shared_ptr<AclTableGroup>& origAclTableGroup);
-  std::shared_ptr<AclTableGroupMap> updateAclTableGroups();
+  struct AclTableGroupMaps {
+    std::shared_ptr<AclTableGroupMap> switchBound;
+    std::shared_ptr<AclTableGroupMap> portBound;
+  };
+  AclTableGroupMaps updateAclTableGroups();
+  void validatePortIngressAcls() const;
   flat_map<std::string, const cfg::AclEntry*> getAllAclsByName(
       const cfg::AclTableGroup& cfgAclTableGroup);
   void checkTrafficPolicyAclsExistInConfig(
@@ -911,9 +917,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     if (FLAGS_enable_acl_table_group) {
       auto newAclTableGroups = updateAclTableGroups();
-      if (newAclTableGroups) {
+      if (newAclTableGroups.switchBound) {
         new_->resetAclTableGroups(toScopedMultiSwitchAclTableGroupMap(
-            newAclTableGroups, scopeResolver_));
+            newAclTableGroups.switchBound, scopeResolver_));
+        changed = true;
+      }
+      if (newAclTableGroups.portBound) {
+        new_->resetPortAclTableGroups(toScopedMultiSwitchAclTableGroupMap(
+            newAclTableGroups.portBound, scopeResolver_));
         changed = true;
       }
     } else {
@@ -926,6 +937,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       }
     }
   }
+  validatePortIngressAcls();
 
   {
     auto newQosPolicies = updateQosPolicies();
@@ -1948,6 +1960,23 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
 void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
     int64_t switchId) {
   flat_map<VlanID, InterfaceID> vlan2InterfaceId;
+  // A port carries at most one port router interface. Binding it twice, either
+  // directly and again through an aggregate port it is a member of, or through
+  // two aggregate ports, is a config bug: a member port of an aggregate port
+  // cannot have a standalone router interface of its own.
+  auto bindPortToInterface = [this](PortID portID, int32_t intfID) {
+    auto [itr, inserted] =
+        port2InterfaceId_.emplace(portID, std::vector<int32_t>{intfID});
+    if (!inserted) {
+      throw FbossError(
+          "Port ",
+          portID,
+          " is bound to more than one router interface: ",
+          itr->second.front(),
+          " and ",
+          intfID);
+    }
+  };
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     switch (*interfaceCfg.type()) {
       case cfg::InterfaceType::VLAN: {
@@ -1955,12 +1984,48 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
             InterfaceID(*interfaceCfg.intfID());
       } break;
       case cfg::InterfaceType::PORT: {
-        if (!interfaceCfg.portID()) {
+        // A port router interface is bound to either a physical port or an
+        // aggregate port. Bind every port it covers, which for an aggregate is
+        // all of its member ports, so that both the member ports and the
+        // aggregate resolve to this interface downstream.
+        auto intfID = *interfaceCfg.intfID();
+        auto aggregatePortID = interfaceCfg.aggregatePortID();
+        if (interfaceCfg.portID().has_value() == aggregatePortID.has_value()) {
           throw FbossError(
-              "Missing port for interface ", *interfaceCfg.intfID());
+              "Port router interface ",
+              intfID,
+              " must set exactly one of portID and aggregatePortID");
         }
-        port2InterfaceId_[PortID(*interfaceCfg.portID())] = {
-            *interfaceCfg.intfID()};
+        if (aggregatePortID) {
+          auto aitr = std::find_if(
+              cfg_->aggregatePorts()->cbegin(),
+              cfg_->aggregatePorts()->cend(),
+              [aggregatePortID](const auto& aggPort) {
+                return *aggPort.key() == *aggregatePortID;
+              });
+          if (aitr == cfg_->aggregatePorts()->cend()) {
+            throw FbossError(
+                "No aggregate port ",
+                *aggregatePortID,
+                " for interface ",
+                intfID);
+          }
+          if (aitr->memberPorts()->empty()) {
+            // Such an interface would bind no ports at all, leaving both the
+            // interface and the aggregate port without a usable binding.
+            throw FbossError(
+                "Aggregate port ",
+                *aggregatePortID,
+                " for interface ",
+                intfID,
+                " has no member ports");
+          }
+          for (const auto& member : *aitr->memberPorts()) {
+            bindPortToInterface(PortID(*member.memberPortID()), intfID);
+          }
+        } else if (auto portID = interfaceCfg.portID()) {
+          bindPortToInterface(PortID(*portID), intfID);
+        }
       } break;
       case cfg::InterfaceType::SYSTEM_PORT:
         throw FbossError("Unsupport interface type for NPU switch");
@@ -2850,6 +2915,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     const shared_ptr<TransceiverSpec>& transceiver) {
   CHECK_EQ(orig->getID(), PortID(*portConf->logicalID()));
 
+  if (portConf->linkTraining().value_or(false) &&
+      (portConf->txPrecoding().value_or(false) ||
+       portConf->rxPrecoding().value_or(false))) {
+    throw FbossError(
+        "Port ",
+        orig->getID(),
+        " linkTraining and precoding cannot both be enabled");
+  }
+
   auto vlans = portVlans_[orig->getID()];
 
   std::vector<cfg::PortQueue> cfgPortQueues;
@@ -3189,6 +3263,26 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       PortID(*portConf->logicalID()),
       *portConf->portType(),
       portConf->expectedNeighborReachability()->size());
+  auto newUserMetaData = portConf->userMetaData().to_optional();
+
+  // A port's router interfaces are derived from the interface config rather
+  // than from portConf, so they have to be compared separately: a port rif
+  // being replaced by an aggregate port rif over the same port changes this
+  // without changing anything else about the port. Only NPU switches bind
+  // ports to interfaces this way; on VOQ switches a port's interface is its
+  // own system port, which cannot be rebound.
+  const auto switchId =
+      scopeResolver_.scope(PortID(*portConf->logicalID())).switchId();
+  const auto switchType = *cfg_->switchSettings()
+                               ->switchIdToSwitchInfo()
+                               ->at(static_cast<int64_t>(switchId))
+                               .switchType();
+  auto interfaceIDsItr = port2InterfaceId_.find(orig->getID());
+  auto interfaceIDsUnchanged = switchType != cfg::SwitchType::NPU ||
+      (interfaceIDsItr == port2InterfaceId_.end()
+           ? orig->getInterfaceIDs().empty()
+           : interfaceIDsItr->second == orig->getInterfaceIDs());
+
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -3233,6 +3327,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getLinkTraining().value_or(false) &&
       portConf->linkTraining().has_value() ==
           orig->getLinkTraining().has_value() &&
+      portConf->txPrecoding().value_or(false) ==
+          orig->getTxPrecoding().value_or(false) &&
+      portConf->txPrecoding().has_value() ==
+          orig->getTxPrecoding().has_value() &&
+      portConf->rxPrecoding().value_or(false) ==
+          orig->getRxPrecoding().value_or(false) &&
+      portConf->rxPrecoding().has_value() ==
+          orig->getRxPrecoding().has_value() &&
+      portConf->linkScanMode().to_optional() == orig->getLinkScanMode() &&
+      portConf->ingressAclTableName().to_optional() ==
+          orig->getIngressAclTableName() &&
       portConf->portDownHoldoffTimeMs().value_or(0) ==
           orig->getPortDownHoldoffTimeMs().value_or(0) &&
       portConf->portDownHoldoffTimeMs().has_value() ==
@@ -3241,7 +3346,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getPortUpHoldoffTimeMs().value_or(0) &&
       portConf->portUpHoldoffTimeMs().has_value() ==
           orig->getPortUpHoldoffTimeMs().has_value() &&
-      newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
+      newUserMetaData == orig->getUserMetaData() &&
+      newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
+      interfaceIDsUnchanged) {
     return nullptr;
   }
 
@@ -3340,6 +3447,20 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   } else {
     newPort->setLinkTraining(std::nullopt);
   }
+  if (portConf->txPrecoding().has_value()) {
+    newPort->setTxPrecoding(portConf->txPrecoding().value());
+  } else {
+    newPort->setTxPrecoding(std::nullopt);
+  }
+  if (portConf->rxPrecoding().has_value()) {
+    newPort->setRxPrecoding(portConf->rxPrecoding().value());
+  } else {
+    newPort->setRxPrecoding(std::nullopt);
+  }
+  newPort->setLinkScanMode(portConf->linkScanMode().to_optional());
+  newPort->setUserMetaData(newUserMetaData);
+  newPort->setIngressAclTableName(
+      portConf->ingressAclTableName().to_optional());
   if (portConf->portDownHoldoffTimeMs().has_value()) {
     auto v = portConf->portDownHoldoffTimeMs().value();
     if (v < 0) {
@@ -3969,35 +4090,57 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
   return make_shared<QosPolicy>(*qosPolicy.name(), ingressDscpMap);
 }
 
-std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
+ThriftConfigApplier::AclTableGroupMaps
+ThriftConfigApplier::updateAclTableGroups() {
   auto origAclTableGroups = orig_->getAclTableGroups();
+  auto origPortAclTableGroups = orig_->getPortAclTableGroups();
   AclTableGroupMap::NodeContainer newAclTableGroups;
+  AclTableGroupMap::NodeContainer newPortAclTableGroups;
 
   flat_map<std::string, const cfg::AclEntry*> aclByName{};
+  flat_set<std::string> aclTableNames;
+  bool switchBoundChanged = false;
+  bool portBoundChanged = false;
 
   auto updateAclTableGroupsInternal =
-      [this, origAclTableGroups, &newAclTableGroups, &aclByName](
-          const cfg::AclTableGroup& cfgAclTableGroup) {
+      [this,
+       origAclTableGroups,
+       origPortAclTableGroups,
+       &newAclTableGroups,
+       &newPortAclTableGroups,
+       &aclByName,
+       &aclTableNames,
+       &switchBoundChanged,
+       &portBoundChanged](const cfg::AclTableGroup& cfgAclTableGroup) {
+        for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
+          if (!aclTableNames.emplace(*aclTable.name()).second) {
+            throw FbossError("Duplicate ACL table name ", *aclTable.name());
+          }
+        }
         aclByName.merge(getAllAclsByName(cfgAclTableGroup));
+        const auto bindPoint = *cfgAclTableGroup.bindPoint();
+        const auto portBound = bindPoint == cfg::AclTableGroupBindPoint::PORT;
+        const auto& origGroups =
+            portBound ? origPortAclTableGroups : origAclTableGroups;
+        auto& newGroups = portBound ? newPortAclTableGroups : newAclTableGroups;
+        auto& changed = portBound ? portBoundChanged : switchBoundChanged;
         auto origAclTableGroup =
-            origAclTableGroups->getNodeIf(*cfgAclTableGroup.stage());
+            origGroups->getNodeIf(*cfgAclTableGroup.stage());
         auto newAclTableGroup = updateAclTableGroup(
             *cfgAclTableGroup.stage(), cfgAclTableGroup, origAclTableGroup);
-        return updateMap(
-            &newAclTableGroups, origAclTableGroup, newAclTableGroup);
+        changed |= updateMap(&newGroups, origAclTableGroup, newAclTableGroup);
       };
 
-  bool changed = false;
   if (!cfg_->aclTableGroup() &&
       (!cfg_->aclTableGroups() || cfg_->aclTableGroups()->empty())) {
     throw FbossError(
         "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   } else if (auto cfgAclTableGroup = cfg_->aclTableGroup()) {
-    changed = updateAclTableGroupsInternal(*cfgAclTableGroup);
+    updateAclTableGroupsInternal(*cfgAclTableGroup);
   } else {
     for (const auto& entry : *cfg_->aclTableGroups()) {
       // acl entry names must be unique across all acl table groups.
-      changed |= updateAclTableGroupsInternal(entry);
+      updateAclTableGroupsInternal(entry);
     }
   }
 
@@ -4011,11 +4154,63 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
     checkTrafficPolicyAclsExistInConfig(*dataPlaneTrafficPolicy, aclByName);
   }
 
-  if (!changed) {
-    return nullptr;
-  }
+  switchBoundChanged |=
+      newAclTableGroups.size() != origAclTableGroups->numNodes();
+  portBoundChanged |=
+      newPortAclTableGroups.size() != origPortAclTableGroups->numNodes();
+  return {
+      switchBoundChanged
+          ? std::make_shared<AclTableGroupMap>(std::move(newAclTableGroups))
+          : nullptr,
+      portBoundChanged
+          ? std::make_shared<AclTableGroupMap>(std::move(newPortAclTableGroups))
+          : nullptr};
+}
 
-  return std::make_shared<AclTableGroupMap>(std::move(newAclTableGroups));
+void ThriftConfigApplier::validatePortIngressAcls() const {
+  for (const auto& port : *cfg_->ports()) {
+    const auto ingressAclTableName = port.ingressAclTableName().to_optional();
+    if (!ingressAclTableName) {
+      continue;
+    }
+    if (!FLAGS_enable_acl_table_group) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " specifies ingress ACL table ",
+          *ingressAclTableName,
+          " while ACL table groups are disabled");
+    }
+    const auto scopedAclTableGroups =
+        new_->getPortAclTableGroups()->getMapNodeIf(scopeResolver_.scope(port));
+    const auto aclTableGroup = scopedAclTableGroups
+        ? scopedAclTableGroups->getNodeIf(cfg::AclStage::INGRESS)
+        : nullptr;
+    if (!aclTableGroup) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " references ingress ACL table ",
+          *ingressAclTableName,
+          " but no port-bound ingress ACL table group exists");
+    }
+    if (aclTableGroup->getBindPoint() != cfg::AclTableGroupBindPoint::PORT) {
+      throw FbossError(
+          "Ingress ACL table group ",
+          aclTableGroup->getName(),
+          " referenced by port ",
+          *port.logicalID(),
+          " must use PORT bind point");
+    }
+    const auto aclTableMap = aclTableGroup->getAclTableMap();
+    if (!aclTableMap || !aclTableMap->getTableIf(*ingressAclTableName)) {
+      throw FbossError(
+          "Port ",
+          *port.logicalID(),
+          " references missing ingress ACL table ",
+          *ingressAclTableName);
+    }
+  }
 }
 
 std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
@@ -4025,6 +4220,15 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
   auto newAclTableMap = std::make_shared<AclTableMap>();
   bool changed = false;
   int numExistingTablesProcessed = 0;
+  const auto newBindPoint = *cfgAclTableGroup.bindPoint();
+
+  if (newBindPoint == cfg::AclTableGroupBindPoint::PORT &&
+      aclStage != cfg::AclStage::INGRESS) {
+    throw FbossError(
+        "Port-bound ACL table group ",
+        *cfgAclTableGroup.name(),
+        " must use the ingress stage");
+  }
 
   // For each table in the config, update the table entries and priority
   for (const auto& aclTable : *cfgAclTableGroup.aclTables()) {
@@ -4034,10 +4238,8 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       changed = true;
       newAclTableMap->addTable(newTable);
     } else {
-      newAclTableMap->addTable(orig_->getAclTableGroups()
-                                   ->getNodeIf(aclStage)
-                                   ->getAclTableMap()
-                                   ->getTableIf(*(aclTable.name())));
+      newAclTableMap->addTable(
+          origAclTableGroup->getAclTableMap()->getTableIf(*aclTable.name()));
     }
   }
 
@@ -4045,6 +4247,11 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       (origAclTableGroup->getAclTableMap() &&
        (numExistingTablesProcessed !=
         origAclTableGroup->getAclTableMap()->numTables()))) {
+    changed = true;
+  }
+  if (origAclTableGroup &&
+      (origAclTableGroup->getName() != *cfgAclTableGroup.name() ||
+       origAclTableGroup->getBindPoint() != newBindPoint)) {
     changed = true;
   }
 
@@ -4056,6 +4263,7 @@ std::shared_ptr<AclTableGroup> ThriftConfigApplier::updateAclTableGroup(
       std::make_shared<AclTableGroup>(*cfgAclTableGroup.stage());
   newAclTableGroup->setAclTableMap(newAclTableMap);
   newAclTableGroup->setName(*cfgAclTableGroup.name());
+  newAclTableGroup->setBindPoint(newBindPoint);
 
   return newAclTableGroup;
 }
@@ -4092,24 +4300,15 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     const cfg::AclTable& configTable,
     int* numExistingTablesProcessed) {
   auto tableName = *configTable.name();
-  std::shared_ptr<AclTable> origTable;
-  if (orig_->getAclTableGroups() &&
-      orig_->getAclTableGroups()->getNodeIf(aclStage) &&
-      orig_->getAclTableGroups()->getNodeIf(aclStage)->getAclTableMap()) {
-    origTable = orig_->getAclTableGroups()
-                    ->getNodeIf(aclStage)
-                    ->getAclTableMap()
-                    ->getTableIf(tableName);
-  }
+  auto origTable = orig_->getAclTable(aclStage, tableName);
 
   auto newTableEntries = updateAclsForTable(
-      aclStage, *(configTable.aclEntries()), std::make_optional(tableName));
+      aclStage, *configTable.aclEntries(), std::make_optional(tableName));
   auto newTablePriority = *configTable.priority();
   std::vector<cfg::AclTableActionType> newActionTypes =
       *configTable.actionTypes();
   std::vector<cfg::AclTableQualifier> newQualifiers = *configTable.qualifiers();
   std::vector<std::string> newUdfGroups = *configTable.udfGroups();
-
   if (origTable) {
     ++(*numExistingTablesProcessed);
     if (!newTableEntries && newTablePriority == origTable->getPriority() &&
@@ -4169,6 +4368,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
   int numExistingProcessed = 0;
   int dataPriority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
+  CHECK_LT(FLAGS_pbr_acl_priority, AclTable::kDataplaneAclMaxPriority)
+      << "PBR must sit below the dataplane band so no config ACL can reach it";
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
   folly::gen::from(*cfg_->trafficCounters()) |
@@ -4300,10 +4501,20 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         ma = &matchAction;
       }
 
+      int aclPriority = isCoppAcl ? cpuPriority++ : dataPriority++;
+      if (aclPriority == FLAGS_pbr_acl_priority) {
+        throw FbossError(
+            "ACL ",
+            *aclCfg.name(),
+            " was assigned priority ",
+            aclPriority,
+            ", which is reserved for PBR ACL entries");
+      }
+
       auto acl = updateAcl(
           aclStage,
           aclCfg,
-          isCoppAcl ? cpuPriority++ : dataPriority++,
+          aclPriority,
           &numExistingProcessed,
           &changed,
           tableName,
@@ -4329,10 +4540,12 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
 
   folly::gen::from(addToAcls()) | folly::gen::appendTo(newAcls);
 
+  auto origAclMap = tableName.has_value()
+      ? orig_->getAclsForTable(aclStage, tableName.value())
+      : nullptr;
+
   if (FLAGS_enable_acl_table_group) {
-    if (orig_->getAclsForTable(aclStage, tableName.value()) &&
-        numExistingProcessed !=
-            orig_->getAclsForTable(aclStage, tableName.value())->size()) {
+    if (origAclMap && numExistingProcessed != origAclMap->size()) {
       // Some existing ACLs were removed from the table (multiple acl tables
       // implementation).
       changed = true;
@@ -4348,10 +4561,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
     return nullptr;
   }
 
-  if (tableName.has_value() &&
-      orig_->getAclsForTable(aclStage, tableName.value())) {
-    return orig_->getAclsForTable(aclStage, tableName.value())
-        ->clone(std::move(newAcls));
+  if (origAclMap) {
+    return origAclMap->clone(std::move(newAcls));
   }
 
   return std::make_shared<AclMap>(std::move(newAcls));
@@ -4370,10 +4581,9 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 
   if (FLAGS_enable_acl_table_group) { // multiple acl tables implementation
     CHECK(tableName.has_value());
-
-    if (orig_->getAclsForTable(aclStage, tableName.value())) {
-      origAcl = orig_->getAclsForTable(aclStage, tableName.value())
-                    ->getEntryIf(*acl.name());
+    auto origAclMap = orig_->getAclsForTable(aclStage, tableName.value());
+    if (origAclMap) {
+      origAcl = origAclMap->getEntryIf(*acl.name());
     }
   } else { // single acl table implementation
     CHECK(!tableName.has_value());
@@ -4459,6 +4669,10 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
       throw FbossError("l4DstPort and l4DstPortRange cannot both be set");
     }
   }
+  if (config->dstIp() && (config->dstIpV6Word3() || config->dstIpV6Word2())) {
+    throw FbossError(
+        "dstIp cannot be combined with dstIpV6Word3 or dstIpV6Word2");
+  }
   if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
@@ -4525,6 +4739,12 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto dstIp = config->dstIp()) {
     newAcl->setDstIp(IPAddress::createNetwork(*dstIp));
   }
+  if (auto dstIpV6Word3 = config->dstIpV6Word3()) {
+    newAcl->setDstIpV6Word3(*dstIpV6Word3);
+  }
+  if (auto dstIpV6Word2 = config->dstIpV6Word2()) {
+    newAcl->setDstIpV6Word2(*dstIpV6Word2);
+  }
   if (auto proto = config->proto()) {
     newAcl->setProto(*proto);
   }
@@ -4545,6 +4765,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto l4DstPortRange = config->l4DstPortRange()) {
     newAcl->setL4DstPortRange(*l4DstPortRange);
+  }
+  if (auto lookupClassPort = config->lookupClassPort()) {
+    newAcl->setLookupClassPort(*lookupClassPort);
   }
   if (auto ipFrag = config->ipFrag()) {
     newAcl->setIpFrag(*ipFrag);
@@ -4699,9 +4922,22 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
         if (!new_->getPorts()->getNodeIf(PortID(*port))) {
           throw FbossError("Port router interface config invalid port");
         }
+      } else if (auto aggPort = interfaceCfg.aggregatePortID()) {
+        if (!new_->getAggregatePorts()->getNodeIf(AggregatePortID(*aggPort))) {
+          throw FbossError(
+              "Port router interface config invalid aggregate port");
+        }
       } else {
         throw FbossError("Port router interface config missing port");
       }
+    } else if (
+        interfaceCfg.portID().has_value() ||
+        interfaceCfg.aggregatePortID().has_value()) {
+      // Only a port router interface is bound to a port or an aggregate port.
+      throw FbossError(
+          "Router interface ",
+          *interfaceCfg.intfID(),
+          " is not of type port, but is bound to a port or aggregate port");
     }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
@@ -4808,6 +5044,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       *config->scope());
   if (auto port = config->portID()) {
     intf->setPortID(PortID(*port));
+  } else if (auto aggPort = config->aggregatePortID()) {
+    intf->setAggregatePortID(AggregatePortID(*aggPort));
   }
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   updateDhcpOverrides(intf.get(), config);
@@ -4870,6 +5108,10 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
+  std::optional<AggregatePortID> cfgAggregatePort{};
+  if (auto aggregatePortID = config->aggregatePortID()) {
+    cfgAggregatePort = AggregatePortID(*aggregatePortID);
+  }
   auto desiredPeerChanged = [](const auto& configVal,
                                const auto& origVal) -> bool {
     if (!configVal.has_value() && !origVal.has_value()) {
@@ -4889,8 +5131,10 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
-      (orig->getPortIDf() == cfgPort) && orig->getName() == name &&
-      orig->getMac() == mac && orig->getAddressesCopy() == addrs &&
+      (orig->getPortIDf() == cfgPort) &&
+      (orig->getAggregatePortIDf() == cfgAggregatePort) &&
+      orig->getName() == name && orig->getMac() == mac &&
+      orig->getAddressesCopy() == addrs &&
       orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
       orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
@@ -4912,6 +5156,12 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
           "Router interface ", newIntf->getID(), " is not of of type port");
     }
     newIntf->setPortID(PortID(*portID));
+  } else if (auto aggregatePortID = config->aggregatePortID()) {
+    if (newIntf->getType() != cfg::InterfaceType::PORT) {
+      throw FbossError(
+          "Router interface ", newIntf->getID(), " is not of of type port");
+    }
+    newIntf->setAggregatePortID(AggregatePortID(*aggregatePortID));
   }
   newIntf->setName(name);
   newIntf->setMac(mac);
@@ -5124,6 +5374,36 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   if (config.maxArsVirtualGroups()) {
     newFlowletSwitchingConfig->setMaxArsVirtualGroups(
         *config.maxArsVirtualGroups());
+  }
+  if (config.standbySwitchingMode()) {
+    // Distinct switching modes keep the standby and primary ARS objects from
+    // collapsing into a single SaiStore entry.
+    if (*config.standbySwitchingMode() == *config.switchingMode()) {
+      throw FbossError(
+          "standbySwitchingMode must differ from switchingMode, both are ",
+          apache::thrift::util::enumNameSafe(*config.switchingMode()));
+    }
+    if (!config.standbyInactivityIntervalUsecs()) {
+      throw FbossError(
+          "standbySwitchingMode is set but standbyInactivityIntervalUsecs "
+          "is missing");
+    }
+    if (!config.standbyFlowletTableSize()) {
+      throw FbossError(
+          "standbySwitchingMode is set but standbyFlowletTableSize is missing");
+    }
+    newFlowletSwitchingConfig->setStandbySwitchingMode(
+        *config.standbySwitchingMode());
+    newFlowletSwitchingConfig->setStandbyInactivityIntervalUsecs(
+        *config.standbyInactivityIntervalUsecs());
+    newFlowletSwitchingConfig->setStandbyFlowletTableSize(
+        *config.standbyFlowletTableSize());
+  } else if (
+      config.standbyInactivityIntervalUsecs() ||
+      config.standbyFlowletTableSize()) {
+    throw FbossError(
+        "standbyInactivityIntervalUsecs and standbyFlowletTableSize require "
+        "standbySwitchingMode to be set");
   }
   return newFlowletSwitchingConfig;
 }
@@ -5987,11 +6267,25 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       switchSettingsChange = true;
     }
   }
-  // Snapshot FLAGS_ecmp_width into switch_state. On warmboot replay a
-  // mismatch between the stored value and the current FLAGS_ecmp_width
-  // triggers assert and coldboot.
+  // Source ecmpWidth from cfg.SwitchSettings, falling back to FLAGS_ecmp_width
+  // during the flag->config migration. Changing it requires a coldboot; see
+  // StateUpdateValidator.
   {
-    int32_t newEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto& configEcmpWidth = cfg_->switchSettings()->ecmpWidth();
+    const auto flagEcmpWidth = static_cast<int32_t>(FLAGS_ecmp_width);
+    const auto newEcmpWidth =
+        configEcmpWidth.has_value() ? *configEcmpWidth : flagEcmpWidth;
+    if (newEcmpWidth <= 0) {
+      throw FbossError("ECMP width must be positive, got ", newEcmpWidth);
+    }
+    // During the flag->config migration both knobs can be set. Config wins;
+    // warn on a mismatch so the precedence isn't silent. Remove once
+    // FLAGS_ecmp_width is retired.
+    if (configEcmpWidth.has_value() && newEcmpWidth != flagEcmpWidth) {
+      XLOG(WARN) << "Config SwitchSettings.ecmpWidth (" << newEcmpWidth
+                 << ") differs from FLAGS_ecmp_width (" << FLAGS_ecmp_width
+                 << "); config value takes precedence";
+    }
     if (origSwitchSettings->getEcmpWidth() != newEcmpWidth) {
       newSwitchSettings->setEcmpWidth(newEcmpWidth);
       switchSettingsChange = true;
@@ -6007,6 +6301,29 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
         origSwitchSettings->getFabricLinkMonitoringSystemPortOffset()) {
       newSwitchSettings->setFabricLinkMonitoringSystemPortOffset(
           fabricLinkMonitoringSystemPortOffset);
+      switchSettingsChange = true;
+    }
+  }
+  {
+    EcmpGroupSettingsMap ecmpGroupSettings =
+        *cfg_->switchSettings()->ecmpGroupSettings();
+    // Split horizon on an FRR parent arms the same-src-dst port check while the
+    // backup provides the tertiary path that catches the suppressed traffic.
+    // Enabling one without the other drops the flows the check suppresses, so
+    // refuse the config rather than program it.
+    auto enabled = [&](cfg::EcmpGroupType type) {
+      auto it = ecmpGroupSettings.find(type);
+      return it != ecmpGroupSettings.end() && *it->second.enableSplitHorizon();
+    };
+    if (enabled(cfg::EcmpGroupType::FRR_PRIMARY) !=
+        enabled(cfg::EcmpGroupType::FRR_BACKUP)) {
+      throw FbossError(
+          "ecmpGroupSettings: FRR_PRIMARY and FRR_BACKUP must enable "
+          "split horizon together; enabling it on the primary alone "
+          "suppresses the source port with no tertiary path on the backup");
+    }
+    if (ecmpGroupSettings != origSwitchSettings->getEcmpGroupSettings()) {
+      newSwitchSettings->setEcmpGroupSettings(ecmpGroupSettings);
       switchSettingsChange = true;
     }
   }

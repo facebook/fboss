@@ -79,6 +79,14 @@ class FakeAclEntry {
   folly::IPAddressV6 fieldDstIpV6Data;
   folly::IPAddressV6 fieldDstIpV6Mask;
 
+  bool fieldDstIpV6Word3Enable{false};
+  folly::IPAddressV6 fieldDstIpV6Word3Data;
+  folly::IPAddressV6 fieldDstIpV6Word3Mask;
+
+  bool fieldDstIpV6Word2Enable{false};
+  folly::IPAddressV6 fieldDstIpV6Word2Data;
+  folly::IPAddressV6 fieldDstIpV6Word2Mask;
+
   bool fieldSrcIpV4Enable{false};
   folly::IPAddressV4 fieldSrcIpV4Data;
   folly::IPAddressV4 fieldSrcIpV4Mask;
@@ -103,9 +111,9 @@ class FakeAclEntry {
   sai_object_id_t fieldOutPortData;
   sai_uint32_t fieldOutPortMask;
 
-  bool fieldNextHopGroupIdEnable{false};
-  sai_object_id_t fieldNextHopGroupIdData{};
-  sai_uint32_t fieldNextHopGroupIdMask{};
+  bool fieldRouteDestinationEnable{false};
+  sai_object_id_t fieldRouteDestinationData{};
+  sai_uint32_t fieldRouteDestinationMask{};
 
   bool fieldL4SrcPortEnable{false};
   sai_uint16_t fieldL4SrcPortData;
@@ -174,6 +182,10 @@ class FakeAclEntry {
   bool fieldNeighborDstUserMetaEnable{false};
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
+
+  bool fieldPortUserMetaEnable{false};
+  sai_uint32_t fieldPortUserMetaData{};
+  sai_uint32_t fieldPortUserMetaMask{};
 
   bool fieldEtherTypeEnable{false};
   sai_uint16_t fieldEtherTypeData;
@@ -252,6 +264,11 @@ class FakeAclEntry {
   bool actionL3SwitchCancelEnable{false};
   bool actionL3SwitchCancelData{false};
 
+  void setLabelExtended(const sai_attribute_t* attr);
+  sai_status_t getLabelExtended(sai_attribute_t* attr) const;
+
+  std::vector<int8_t> labelExtended;
+
   sai_object_id_t id;
 };
 
@@ -263,6 +280,8 @@ class FakeAclTable {
       std::vector<sai_int32_t> actionTypeList,
       bool fieldSrcIpV6,
       bool fieldDstIpV6,
+      bool fieldDstIpV6Word3,
+      bool fieldDstIpV6Word2,
       bool fieldSrcIpV4,
       bool fieldDstIpV4,
       bool fieldL4SrcPort,
@@ -284,6 +303,7 @@ class FakeAclTable {
       bool fieldFdbDstUserMeta,
       bool fieldRouteDstUserMeta,
       bool fieldNeighborDstUserMeta,
+      bool fieldPortUserMeta,
       bool fieldEthertype,
       bool fieldOuterVlanId,
       std::vector<sai_int32_t> fieldAclRangeType,
@@ -299,6 +319,8 @@ class FakeAclTable {
         actionTypeList(actionTypeList),
         fieldSrcIpV6(fieldSrcIpV6),
         fieldDstIpV6(fieldDstIpV6),
+        fieldDstIpV6Word3(fieldDstIpV6Word3),
+        fieldDstIpV6Word2(fieldDstIpV6Word2),
         fieldSrcIpV4(fieldSrcIpV4),
         fieldDstIpV4(fieldDstIpV4),
         fieldL4SrcPort(fieldL4SrcPort),
@@ -320,6 +342,7 @@ class FakeAclTable {
         fieldFdbDstUserMeta(fieldFdbDstUserMeta),
         fieldRouteDstUserMeta(fieldRouteDstUserMeta),
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
+        fieldPortUserMeta(fieldPortUserMeta),
         fieldEthertype(fieldEthertype),
         fieldOuterVlanId(fieldOuterVlanId),
         fieldAclRangeType(fieldAclRangeType),
@@ -341,6 +364,8 @@ class FakeAclTable {
   std::vector<sai_int32_t> actionTypeList;
   bool fieldSrcIpV6;
   bool fieldDstIpV6;
+  bool fieldDstIpV6Word3;
+  bool fieldDstIpV6Word2;
   bool fieldSrcIpV4;
   bool fieldDstIpV4;
   bool fieldL4SrcPort;
@@ -362,6 +387,7 @@ class FakeAclTable {
   bool fieldFdbDstUserMeta;
   bool fieldRouteDstUserMeta;
   bool fieldNeighborDstUserMeta;
+  bool fieldPortUserMeta;
   bool fieldEthertype;
   bool fieldOuterVlanId;
   std::vector<sai_int32_t> fieldAclRangeType;

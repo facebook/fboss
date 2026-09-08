@@ -34,6 +34,11 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
   MOCK_METHOD(void, getBgpLocalConfig, (TBgpLocalConfig&));
   MOCK_METHOD(void, getDrainState, (TBgpDrainState&));
   MOCK_METHOD(void, getAttributeStats, (TAttributeStats&));
+  MOCK_METHOD(
+      void,
+      getDeduplicatorStats,
+      (TGetDeduplicatorStatsResponse&,
+       std::unique_ptr<TGetDeduplicatorStatsRequest>));
   MOCK_METHOD(void, getEntryStats, (TEntryStats&));
   MOCK_METHOD(void, getPolicyStats, (TPolicyStats&));
   MOCK_METHOD(void, getOriginatedRoutes, (std::vector<TOriginatedRoute>&));

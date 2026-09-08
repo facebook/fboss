@@ -27,6 +27,7 @@
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <algorithm>
 #include <optional>
 
 DEFINE_bool(
@@ -35,6 +36,20 @@ DEFINE_bool(
     "Disable valid route check when creating or changing routes in SAI switches");
 
 namespace facebook::fboss {
+
+namespace {
+sai_next_hop_group_type_t getNextHopGroupType(
+    const RouteNextHopEntry::NextHopSet& nextHops) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  if (std::any_of(nextHops.begin(), nextHops.end(), [](const auto& nextHop) {
+        return nextHop.role() == NextHopRole::BACKUP;
+      })) {
+    return SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+  }
+#endif
+  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+}
+} // namespace
 
 sai_object_id_t SaiRouteHandle::nextHopAdapterKey() const {
   return std::visit(
@@ -305,11 +320,14 @@ void SaiRouteManager::addOrUpdateRoute(
        * When no route refers to a next hop set, it will be removed in SAI as
        * well.
        */
+      auto normalizedNextHops = getNormalizedNextHops(state, fwd);
+      const auto nextHopGroupType = getNextHopGroupType(normalizedNextHops);
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               SaiNextHopGroupKey(
-                  getNormalizedNextHops(state, fwd),
-                  fwd.getOverrideEcmpSwitchingMode()));
+                  std::move(normalizedNextHops),
+                  fwd.getOverrideEcmpSwitchingMode(),
+                  nextHopGroupType));
 
       // For multi-NPU switches, if all next hops were filtered out (none have
       // router interfaces on this ASIC), the nextHopGroup will be null.

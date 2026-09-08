@@ -38,12 +38,15 @@ class NextHopGroupApiTest : public ::testing::Test {
   }
 
   NextHopGroupSaiId createNextHopGroup(
-      const sai_next_hop_group_type_t nextHopGroupType) const {
+      const sai_next_hop_group_type_t nextHopGroupType,
+      std::optional<SaiNextHopGroupTraits::Attributes::SplitHorizonEnable>
+          splitHorizonEnable = std::nullopt) const {
     return nextHopGroupApi->create<SaiNextHopGroupTraits>(
         {nextHopGroupType,
          kArsObjectId(),
          kHashAlgorithm(),
-         kHierarchicalNextHop()},
+         kHierarchicalNextHop(),
+         splitHorizonEnable},
         0);
   }
 
@@ -260,6 +263,30 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("HashAlgorithm: 2", fmt::format("{}", h));
   SaiNextHopGroupTraits::Attributes::HierarchicalNextHop hnh{false};
   EXPECT_EQ("HierarchicalNextHop: false", fmt::format("{}", hnh));
+  SaiNextHopGroupTraits::Attributes::SplitHorizonEnable sh{true};
+  EXPECT_EQ("SplitHorizonEnable: true", fmt::format("{}", sh));
+}
+
+TEST_F(NextHopGroupApiTest, splitHorizonEnable) {
+  auto nextHopGroupId = createNextHopGroup(
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+      SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{true});
+  EXPECT_TRUE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
+
+  nextHopGroupApi->setAttribute(
+      nextHopGroupId,
+      SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{false});
+  EXPECT_FALSE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
+}
+
+// Not asking for the attribute at create must leave it off, so adapters that
+// do not implement it are never sent it.
+TEST_F(NextHopGroupApiTest, splitHorizonEnableUnsetByDefault) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_FALSE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

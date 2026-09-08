@@ -58,10 +58,6 @@ using ::testing::_;
 namespace {
 const uint8_t kNCStrictPriorityQueue = 7;
 
-HwSwitchMatcher scope() {
-  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
-}
-
 unique_ptr<HwTestHandle> setupTestHandle(
     std::chrono::seconds arpTimeout = std::chrono::seconds(0),
     uint32_t maxProbes = 1,
@@ -92,23 +88,16 @@ unique_ptr<HwTestHandle> setupTestHandle(
   updater.program();
 
   handle->getSw()->initialConfigApplied(std::chrono::steady_clock::now());
-  auto scopeResolver = handle->getSw()->getScopeResolver();
   handle->getSw()->updateState(
-      " set timers",
-      [arpTimeout, maxProbes, staleTimeout, &scopeResolver](auto inState) {
-        inState = inState->clone();
-        auto switchSettings = make_shared<SwitchSettings>();
+      " set timers", [arpTimeout, maxProbes, staleTimeout](auto inState) {
+        auto switchSettings =
+            utility::getFirstNodeIf(inState->getSwitchSettings());
+        auto newSwitchSettings = switchSettings->modify(&inState);
         if (arpTimeout.count() > 0) {
-          switchSettings->setArpTimeout(arpTimeout);
-          switchSettings->setStaleEntryInterval(staleTimeout);
+          newSwitchSettings->setArpTimeout(arpTimeout);
+          newSwitchSettings->setStaleEntryInterval(staleTimeout);
         }
-        switchSettings->setMaxNeighborProbes(maxProbes);
-        auto multiSwitchSwitchSettings = make_shared<MultiSwitchSettings>();
-        multiSwitchSwitchSettings->addNode(
-            scope().matcherString(), switchSettings);
-
-        inState->resetSwitchSettings(multiSwitchSwitchSettings);
-        inState->publish();
+        newSwitchSettings->setMaxNeighborProbes(maxProbes);
         return inState;
       });
 

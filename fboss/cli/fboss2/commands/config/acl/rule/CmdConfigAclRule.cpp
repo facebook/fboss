@@ -35,7 +35,8 @@ std::string aclRuleConfigHelpText() {
       ". For 'action', <value> is one of: " + aclRuleActionKeysCsv() +
       " (with an attr-specific final token: queue id / dscp / tc / "
       "mirror name / counter name; 'redirect' takes 'nexthop <ip>'; "
-      "permit/deny/trap-to-cpu/copy-to-cpu take no value).";
+      "permit/deny/deny-data-and-control-plane/trap-to-cpu/copy-to-cpu take no "
+      "value).";
   return kText;
 }
 

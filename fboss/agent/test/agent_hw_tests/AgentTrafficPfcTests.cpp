@@ -631,7 +631,6 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   cfg::SwitchConfig getPfcTestConfig(
-      const int trafficClass,
       const int pfcPriority,
       const std::map<int, int>& tcToPgOverride,
       const TrafficTestParams& testParams) {
@@ -734,8 +733,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
     for (const auto& portId : portIds) {
       XLOG(INFO) << "Testing port: " << portDesc(portId);
     }
-    auto cfg =
-        getPfcTestConfig(trafficClass, pfcPriority, tcToPgOverride, testParams);
+    auto cfg = getPfcTestConfig(pfcPriority, tcToPgOverride, testParams);
     runPfcTestWithCfg(
         cfg,
         trafficClass,
@@ -905,7 +903,6 @@ TEST_F(AgentTrafficPfcGenTest, verifyBufferPoolWatermarks) {
 
   auto setup = [&]() {
     auto cfg = getPfcTestConfig(
-        kLosslessTrafficClass,
         kLosslessPriority,
         {},
         TrafficTestParams{.buffer = defaultPfcBufferParams()});
@@ -964,7 +961,6 @@ TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
 
   auto setup = [&]() {
     auto cfg = getPfcTestConfig(
-        kLosslessTrafficClass,
         kLosslessPriority,
         {},
         TrafficTestParams{.buffer = defaultPfcBufferParams()});
@@ -1058,8 +1054,7 @@ TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
   TrafficTestParams param{
       .buffer = defaultPfcBufferParams(),
   };
-  auto cfg =
-      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  auto cfg = getPfcTestConfig(kLosslessPriority, {}, param);
   std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
   setupPfcDurationCounters(
       cfg,
@@ -1085,8 +1080,7 @@ TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
   TrafficTestParams param{
       .buffer = defaultPfcBufferParams(),
   };
-  auto cfg =
-      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  auto cfg = getPfcTestConfig(kLosslessPriority, {}, param);
   std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
   setupPfcDurationCounters(
       cfg,
@@ -1176,6 +1170,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       ASSERT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
       auto switchID = scopeResolver().scope(port).switchId();
+      // Start with a blank command first and then force the PFC frame
+      // generation. This is because, sometimes first diag command doesn't work
+      // in some SDK versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchID);
       getAgentEnsemble()->runDiagCommand(
           fmt::format(
               "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC={}\n", iter->second),
@@ -1344,6 +1342,10 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       // tracked in CS00012388717. Until that is fixed, work around the issue.
       // For that, stop PFC WD being triggered continuously and wait to ensure
       // that the PFC DL generation settles.
+      // Start with a blank command first and then stop the PFC frame
+      // generation. This is because, sometimes first diag command doesn't work
+      // in some SDK versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchID);
       getAgentEnsemble()->runDiagCommand(
           "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\n", out, switchID);
     }

@@ -245,6 +245,7 @@ enum MediaInterfaceCode {
   DR4_800G_GEARBOX = 35,
   // 8x800G over DR4: 4 banks, each a 2x800G-DR4
   DR4_8x800G = 36,
+  FR2_200G = 37,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -316,6 +317,7 @@ enum SMFMediaInterfaceCode {
   ZR_OROADM_FLEXO_4E_DO_400G = 0x64,
   ZR_OPENZRP_OFEC_400G = 0x36,
   FR4_800G = 0x79,
+  FR2_200G = 0xC0,
   FR2_400G = 0xC2,
   FR1_200G = 0xC4,
   ZR_VENDOR_CUSTOM = 0xF7,
@@ -453,6 +455,10 @@ struct MediaLaneSignals {
   5: optional bool rxLol;
   6: optional bool txFault;
   7: optional bool txAdaptEqFault; // DEPRECATED - Use HostLaneSignals instead
+  // Module operation mode does not match the line signal rate on this lane.
+  // CMIS Page 14h Byte 131. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  8: optional bool modeMismatch;
 }
 
 struct HostLaneSignals {
@@ -462,6 +468,10 @@ struct HostLaneSignals {
   4: optional bool txLos;
   5: optional bool txLol;
   6: optional bool txAdaptEqFault;
+  // Module operation mode does not match the host signal rate on this lane.
+  // CMIS Page 14h Byte 130. Only populated when the module advertises
+  // DiagsCapability.modeMismatchFlag.
+  7: optional bool modeMismatch;
 }
 
 struct RxEqualizerSettings {
@@ -717,11 +727,19 @@ struct ModuleStatus {
   3: optional CmisModuleState cmisModuleState;
   4: optional FirmwareStatus fwStatus;
   5: optional bool cmisStateChanged;
+  // Meta custom latched flags, CMIS Lower Memory Byte 67. Only populated when
+  // the module advertises the matching bit in DiagsCapability. These are
+  // read-to-clear, so each value covers the interval since the last refresh.
+  6: optional bool modeMismatchFlag;
+  7: optional bool dspTempNegativeMarginFlag;
+  8: optional bool laserTempNegativeMarginFlag;
 }
 
 enum TransceiverErrorState {
   INVALID_IDENTIFIER = 0x1,
   INVALID_DATA_PATH_LANE_STATE = 0x2,
+  // Bank select register names a bank the module doesn't have
+  INVALID_BANK_SELECT = 0x4,
 }
 
 // Module Technology. Used to identify
@@ -800,6 +818,13 @@ struct TcvrStats {
   15: map<string, i64> lastDatapathResetTime;
   16: set<string> interfaces;
   17: string tcvrName;
+  // Meta custom component thermal margins in degrees Celsius, decoded from the
+  // S8 quarter-degree values in CMIS Lower Memory Bytes 68-69. The margin is
+  // the headroom between the component's measured temperature and its rated
+  // limit, so a negative value means the component is running over spec. Only
+  // populated when the module advertises the matching DiagsCapability bit.
+  18: optional double dspTempMargin;
+  19: optional double laserTempMargin;
 }
 
 struct TransceiverInfo {
@@ -1024,6 +1049,10 @@ struct DiagsCapability {
   18: bool cdbSymbolErrorHistogramSystem = false;
   19: bool cdbRxErrorHistogramLine = false;
   20: bool cdbRxErrorHistogramSystem = false;
+  // Meta custom feature advertisement, CMIS Page 01h Byte 191
+  21: bool modeMismatchFlag = false;
+  22: bool dspTempMargin = false;
+  23: bool laserTempMargin = false;
 }
 
 enum TransceiverStateMachineState {

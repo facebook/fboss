@@ -19,7 +19,9 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <string_view>
 
+#include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -45,6 +47,12 @@ struct CmdShowBgpSummaryTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowBgpSummaryModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description() {
+    return "Displays a one-line-per-peer overview of every BGP session, under a global header carrying the daemon uptime, router ID, local and confederation ASNs, switch drain state, UCMP and update-group settings, aggregate path counts, loc-RIB prefix count and RIB version. The 'BGP is up for' and 'Loc-RIB Prefix Count' header lines are omitted entirely against a bgpd too old to report them, so their absence means an older daemon rather than a zero value. Each row shows the peer address, remote AS, session state, graceful-restart support, prefixes received/accepted/sent, session uptime, the peer's description (its hostname), the peer's BGP identifier in the 'Session ID' column - despite the column name this is the peer's router ID, not a per-connection handle - and the flap count. Three columns are conditional and are absent from the example below: PRD (prefixes received dropped) appears only once some peer has dropped routes at its prefix limit, UG/UGPS only when update-group is enabled, and Downtime only for a peer that is IDLE or admin-down AND has reset at least once - a peer that flapped and is currently retrying in ACTIVE or CONNECT shows no downtime. Listen-range entries with no active session render as IDLE with zero counters. This is the usual first stop when triaging BGP reachability; drill into a single session with 'show bgp neighbors <peer>'.";
+  }
 };
 
 class CmdShowBgpSummary
@@ -416,6 +424,105 @@ class CmdShowBgpSummary
       model.total_prefix_count() = *totalPrefixCount;
     }
     model.rib_version() = ribVersion;
+    return model;
+  }
+
+  // Canned, synthetic model (no real switch data) used to render an example
+  // for the CLI reference wiki. Shaped after an RSW with two upstream FSWs
+  // peered over both address families plus one idle listen-range, trimmed down
+  // from a real fleet capture. Everything renders identically run to run except
+  // the Uptime column, which is derived from the wall clock (see below).
+  static RetType sampleModel() {
+    // printOutput hands my_router_id's raw in-memory bytes to inet_ntop, so the
+    // value has to be in network byte order. Derive it rather than hardcoding
+    // the byte-swapped literal, which would render differently on a big-endian
+    // host.
+    TBgpLocalConfig config;
+    config.my_router_id() =
+        static_cast<int32_t>(folly::IPAddressV4("192.0.2.1").toLong());
+    config.local_as_4_byte() = 65499;
+    config.local_confed_as_4_byte() = 2040;
+    config.program_ucmp_weights() = false;
+    config.enable_update_group() = false;
+
+    TBgpDrainState drainState;
+    drainState.drain_state() = facebook::bgp::bgp_policy::DrainState::UNDRAINED;
+
+    auto establishedSession = [](const std::string& peerAddr,
+                                 uint32_t remoteAs,
+                                 int64_t rcvd,
+                                 int64_t sent,
+                                 const std::string& description,
+                                 const std::string& sessionId) {
+      /*
+       * uptime is a duration in milliseconds. printOutput converts it to an
+       * epoch and then back to an elapsed time, reading the wall clock once
+       * for each, so 39654000ms renders as "11h 0m 54s" give or take a second
+       * between runs rather than as a fixed string.
+       */
+      static constexpr int64_t kSessionUptimeMs = 39654000;
+      TBgpSession session;
+      session.peer()->peer_state() = TBgpPeerState::ESTABLISHED;
+      session.peer()->remote_as_4_byte() = remoteAs;
+      session.peer()->graceful() = true;
+      session.peer_addr() = peerAddr;
+      session.prepolicy_rcvd_prefix_count() = rcvd;
+      session.postpolicy_rcvd_prefix_count() = rcvd;
+      session.postpolicy_sent_prefix_count() = sent;
+      session.uptime() = kSessionUptimeMs;
+      session.reset_time() = 0;
+      session.num_resets() = 0;
+      session.description() = description;
+      session.peer_bgp_id() = sessionId;
+      return session;
+    };
+
+    // A configured listen range that no peer has connected on yet: IDLE with
+    // no resets, so printOutput leaves its uptime and downtime blank. Kept
+    // disjoint from the established peers above, so the example does not read
+    // as a range that already has sessions inside it.
+    TBgpSession listenRange;
+    listenRange.peer()->peer_state() = TBgpPeerState::IDLE;
+    listenRange.peer()->remote_as_4_byte() = 6003;
+    listenRange.peer()->graceful() = false;
+    listenRange.peer_addr() = "198.51.100.0/24";
+    listenRange.prepolicy_rcvd_prefix_count() = 0;
+    listenRange.postpolicy_rcvd_prefix_count() = 0;
+    listenRange.postpolicy_sent_prefix_count() = 0;
+    listenRange.uptime() = 0;
+    listenRange.reset_time() = 0;
+    listenRange.num_resets() = 0;
+    listenRange.description() = "";
+    listenRange.peer_bgp_id() = "0.0.0.0";
+
+    RetType model;
+    // Ordered the way createModel() sorts live sessions: by peer address
+    // string.
+    model.sessions() = {
+        establishedSession(
+            "192.0.2.11", 6001, 121, 43, "fsw001.p001.f01.abc1", "192.0.2.101"),
+        establishedSession(
+            "192.0.2.12", 6002, 121, 43, "fsw002.p001.f01.abc1", "192.0.2.102"),
+        listenRange,
+        establishedSession(
+            "2001:db8:e11e:1062::4e",
+            6001,
+            1343,
+            108,
+            "fsw001.p001.f01.abc1",
+            "192.0.2.101"),
+        establishedSession(
+            "2001:db8:e11e:1162::4e",
+            6002,
+            1343,
+            108,
+            "fsw002.p001.f01.abc1",
+            "192.0.2.102")};
+    model.config() = config;
+    model.drain_state() = drainState;
+    model.process_uptime_seconds() = 39655;
+    model.total_prefix_count() = 1464;
+    model.rib_version() = 2013;
     return model;
   }
 };

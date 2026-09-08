@@ -26,6 +26,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, EntryList),
     SAI_ATTR_MAP(AclTable, FieldSrcIpV6),
     SAI_ATTR_MAP(AclTable, FieldDstIpV6),
+    SAI_ATTR_MAP(AclTable, FieldDstIpV6Word3),
+    SAI_ATTR_MAP(AclTable, FieldDstIpV6Word2),
     SAI_ATTR_MAP(AclTable, FieldSrcIpV4),
     SAI_ATTR_MAP(AclTable, FieldDstIpV4),
     SAI_ATTR_MAP(AclTable, FieldL4SrcPort),
@@ -47,6 +49,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclTable, FieldRouteDstUserMeta),
     SAI_ATTR_MAP(AclTable, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclTable, FieldPortUserMeta),
     SAI_ATTR_MAP(AclTable, AvailableEntry),
     SAI_ATTR_MAP(AclTable, AvailableCounter),
     SAI_ATTR_MAP(AclTable, FieldEthertype),
@@ -105,6 +108,8 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, Enabled),
     SAI_ATTR_MAP(AclEntry, FieldSrcIpV6),
     SAI_ATTR_MAP(AclEntry, FieldDstIpV6),
+    SAI_ATTR_MAP(AclEntry, FieldDstIpV6Word3),
+    SAI_ATTR_MAP(AclEntry, FieldDstIpV6Word2),
     SAI_ATTR_MAP(AclEntry, FieldSrcIpV4),
     SAI_ATTR_MAP(AclEntry, FieldDstIpV4),
     SAI_ATTR_MAP(AclEntry, FieldSrcPort),
@@ -126,6 +131,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, FieldFdbDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldRouteDstUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
+    SAI_ATTR_MAP(AclEntry, FieldPortUserMeta),
     SAI_ATTR_MAP(AclEntry, FieldEthertype),
     SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
     SAI_ATTR_MAP(AclEntry, FieldAclRangeType),
@@ -171,7 +177,8 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
-  SAI_EXT_ATTR_MAP(AclEntry, FieldNextHopGroupId);
+  SAI_EXT_ATTR_MAP(AclEntry, FieldRouteDestination);
+  SAI_EXT_ATTR_MAP(AclEntry, LabelExtended);
 }
 
 } // namespace

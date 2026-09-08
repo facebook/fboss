@@ -289,6 +289,9 @@ struct InterfaceDetail {
   13: switch_config.InterfaceType interfaceType;
   // used in CLI display
   14: list<string> portNames;
+  // AggregatePortId populated only for interfaces of type PORT that are bound
+  // to an aggregate port rather than a physical port
+  15: optional i32 aggregatePortId;
 }
 
 /*
@@ -461,6 +464,18 @@ struct PortInfoThrift {
   32: switch_config.Scope scope;
   33: list<switch_config.PortNeighbor> expectedNeighborReachability;
   34: optional i64 cableLengthMeters;
+  // Current UEC LLR state machine status. Set only for ports with an LLR
+  // profile bound on an LLR-capable ASIC.
+  35: optional hardware_stats.LlrTxStatus llrTxStatus;
+  36: optional hardware_stats.LlrRxStatus llrRxStatus;
+
+  // Lookup class assigned to packets ingressing on this port. Mirrors
+  // switch_config.Port.userMetaData. Unset when the port has no class ID.
+  37: optional switch_config.AclLookupClassPort userMetaData;
+
+  // Ingress ACL table bound directly to this port. Mirrors
+  // switch_config.Port.ingressAclTableName. Unset when no table is bound.
+  38: optional string ingressAclTableName;
 }
 
 // Port queueing configuration
@@ -729,6 +744,10 @@ struct AclEntryThrift {
   22: optional byte lookupClassL2;
   23: optional bool enabled;
   24: optional list<string> udfGroups;
+
+  // Ingress port class ID this entry matches on. Mirrors
+  // switch_config.AclEntry.lookupClassPort.
+  25: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct AclTableThrift {
@@ -764,6 +783,8 @@ enum HwObjectType {
   SYSTEM_PORT = 25,
   FIRMWARE = 26,
   SRV6 = 27,
+  NEXT_HOP_GROUP_MEMBER = 28,
+  SAMPLE_PACKET = 29,
 }
 
 exception FbossFibUpdateError {
@@ -1263,6 +1284,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<string, hardware_stats.HwPortStats> getHwPortStats() throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, hardware_stats.HwSwitchCounter> getRouteCounters() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   map<
     string,
@@ -1443,17 +1467,23 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    */
   void addNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
+   * With combineDuplicatedNextHops, next hops repeated within a group are collapsed into a
+   * single weighted next hop instead of the repeats being dropped.
    * Deprecated. Use addNamedNextHopGroups.
    */
   void addOrUpdateNamedNextHopGroups(
     1: list<common.NextHopGroup> nextHopGroups,
+    2: bool combineDuplicatedNextHops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -1465,16 +1495,21 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
 
   /*
    * API to get next hop groups
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
-  list<common.NextHopGroup> getNextHopGroups() throws (
-    1: fboss.FbossBaseError error,
-  );
+  list<common.NextHopGroup> getNextHopGroups(
+    1: bool replicateWeightedNexthops = false,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to get named next hop groups, optionally filtered by name
+   * With replicateWeightedNexthops, a next hop carrying weight w > 1 is
+   * expanded back into w next hops, undoing combineDuplicatedNextHops.
    */
   list<common.NextHopGroup> getNamedNextHopGroups(
     1: list<string> names,
+    2: bool replicateWeightedNexthops = false,
   ) throws (1: fboss.FbossBaseError error);
 
   /*

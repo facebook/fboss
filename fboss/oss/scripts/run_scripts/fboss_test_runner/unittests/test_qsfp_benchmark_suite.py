@@ -33,8 +33,8 @@ def qsfp_args():
 # ---- binary + config -----------------------------------------------------
 
 
-def test_binary_path(suite, qsfp_args):
-    assert suite.binary_path(qsfp_args) == "/opt/fboss/bin/qsfp_hw_test_benchmark"
+def test_binary_name(suite, qsfp_args):
+    assert suite.binary_name(qsfp_args) == "qsfp_hw_test_benchmark"
 
 
 def test_config_path(suite):

@@ -22,7 +22,9 @@
 #include <folly/json/dynamic.h>
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -2524,6 +2526,271 @@ TEST(Route, RecursiveBgpRoutePreservesTopLevelNextHopRoles) {
       {IPAddress("4001::1"), NextHopRole::BACKUP},
   };
   EXPECT_EQ(rolesByAddress, expectedRoles);
+}
+
+namespace {
+
+using AddressAndRole = std::vector<std::pair<IPAddress, NextHopRole>>;
+
+NextHop makeBackupNextHop(const char* address) {
+  const NextHop nextHop = UnresolvedNextHop(IPAddress(address), ECMP_WEIGHT);
+  auto nextHopThrift = nextHop.toThrift();
+  *nextHopThrift.role() = NextHopRole::BACKUP;
+  return util::fromThrift(nextHopThrift);
+}
+
+/*
+ * Sorted (address, role) pairs. Unlike a map keyed by address this preserves
+ * duplicates, so a backup that should have been pruned is still visible
+ * alongside the primary it duplicates.
+ */
+AddressAndRole addressRoles(const RouteNextHopSet& nextHops) {
+  AddressAndRole roles;
+  for (const auto& nextHop : nextHops) {
+    roles.emplace_back(nextHop.addr(), nextHop.role());
+  }
+  std::sort(roles.begin(), roles.end());
+  return roles;
+}
+
+RouteNextHopSet merged(
+    const RouteNextHopSet& primaryNextHops,
+    const RouteNextHopSet& backupNextHops) {
+  RouteNextHopSet allNextHops = primaryNextHops;
+  allNextHops.insert(backupNextHops.begin(), backupNextHops.end());
+  return allNextHops;
+}
+
+} // namespace
+
+/*
+ * 10::/64, 20::/64, 30::/64 and 40::/64 are interface routes, and 100::/64
+ * recursively resolves to all four of them. A BGP route using 100::1 as a
+ * backup next hop therefore picks up 10::1, 20::2, 30::3 and 40::4 as backups,
+ * any of which may duplicate a primary next hop on the same route.
+ */
+class PrimaryBackupDedupTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    auto interfaceRoute = [](const char* address, InterfaceID interface) {
+      return RouteNextHopEntry(
+          RouteNextHopSet{ResolvedNextHop(
+              IPAddress(address), interface, UCMP_DEFAULT_WEIGHT)},
+          AdminDistance::DIRECTLY_CONNECTED);
+    };
+    updater_.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+        ClientID::INTERFACE_ROUTE,
+        {
+            {{IPAddress("10::"), 64}, interfaceRoute("10::1", InterfaceID(1))},
+            {{IPAddress("20::"), 64}, interfaceRoute("20::2", InterfaceID(2))},
+            {{IPAddress("30::"), 64}, interfaceRoute("30::3", InterfaceID(3))},
+            {{IPAddress("40::"), 64}, interfaceRoute("40::4", InterfaceID(4))},
+        },
+        {},
+        false);
+
+    updater_.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+        ClientID::OPENR,
+        {{{IPAddress("100::"), 64},
+          RouteNextHopEntry(
+              RouteNextHopSet{
+                  UnresolvedNextHop(IPAddress("10::1"), ECMP_WEIGHT),
+                  UnresolvedNextHop(IPAddress("20::2"), ECMP_WEIGHT),
+                  UnresolvedNextHop(IPAddress("30::3"), ECMP_WEIGHT),
+                  UnresolvedNextHop(IPAddress("40::4"), ECMP_WEIGHT)},
+              AdminDistance::OPENR)}},
+        {},
+        false);
+  }
+
+  /*
+   * Programs bgpNextHops over prefix, replacing whatever was programmed there
+   * before, and returns the resolved (address, role) pairs. The normalized
+   * next hop set is expected to agree with the resolved one.
+   */
+  AddressAndRole programBgpRoute(
+      const RouteV6::Prefix& prefix,
+      const RouteNextHopSet& bgpNextHops) {
+    updater_.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+        ClientID::BGPD,
+        {{{prefix.network(), prefix.mask()},
+          RouteNextHopEntry(bgpNextHops, AdminDistance::EBGP)}},
+        {},
+        false);
+
+    const auto route = v6Routes_.exactMatch(prefix.network(), prefix.mask());
+    EXPECT_NE(route, v6Routes_.end());
+    if (route == v6Routes_.end()) {
+      return {};
+    }
+    const auto& forwardInfo = route->value()->getForwardInfo();
+    const auto resolved =
+        addressRoles(getResolvedNextHopsFromRib(&nhopIds_, forwardInfo));
+
+    const auto normalizedID = forwardInfo.getNormalizedResolvedNextHopSetID();
+    EXPECT_TRUE(normalizedID.has_value());
+    if (normalizedID.has_value()) {
+      EXPECT_EQ(addressRoles(nhopIds_.getNextHops(*normalizedID)), resolved);
+    }
+    return resolved;
+  }
+
+  // Programs prefix as a DROP route, i.e. reachable but with no next hops.
+  void programDropRoute(const RouteV6::Prefix& prefix) {
+    updater_.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+        ClientID::BGPD,
+        {{{prefix.network(), prefix.mask()},
+          RouteNextHopEntry(RouteForwardAction::DROP, AdminDistance::EBGP)}},
+        {},
+        false);
+
+    const auto route = v6Routes_.exactMatch(prefix.network(), prefix.mask());
+    EXPECT_NE(route, v6Routes_.end());
+    if (route != v6Routes_.end()) {
+      EXPECT_EQ(
+          route->value()->getForwardInfo().getAction(),
+          RouteForwardAction::DROP);
+    }
+  }
+
+  /*
+   * Dedup must depend only on the final contents of a route, never on the
+   * order its next hops arrived in. Drives the same primary/backup pair to its
+   * final state three ways, each on its own prefix, and requires all three to
+   * converge on expectedRoles. When startFromDrop is set every prefix is first
+   * programmed as a DROP route, so each ordering also covers the transition
+   * out of DROP.
+   */
+  void verifyArrivalOrderIndependence(
+      const RouteNextHopSet& primaryNextHops,
+      const RouteNextHopSet& backupNextHops,
+      const AddressAndRole& expectedRoles,
+      bool startFromDrop = false) {
+    const auto allNextHops = merged(primaryNextHops, backupNextHops);
+    auto seedRoute = [&](const RouteV6::Prefix& prefix) {
+      if (startFromDrop) {
+        programDropRoute(prefix);
+      }
+    };
+    // Asserted on the intermediate states so that a first update which
+    // silently did nothing cannot make an ordering degenerate into the
+    // both-together case and still pass.
+    auto haveOnlyRole = [](const AddressAndRole& addressAndRoles,
+                           NextHopRole role) {
+      return !addressAndRoles.empty() &&
+          std::all_of(
+              addressAndRoles.begin(),
+              addressAndRoles.end(),
+              [role](const auto& addressAndRole) {
+                return addressAndRole.second == role;
+              });
+    };
+
+    // Primaries arrive first, then the backup next hop is added.
+    const RouteV6::Prefix primariesFirst{IPAddressV6("200::"), 64};
+    seedRoute(primariesFirst);
+    EXPECT_TRUE(haveOnlyRole(
+        programBgpRoute(primariesFirst, primaryNextHops),
+        NextHopRole::PRIMARY));
+    EXPECT_EQ(programBgpRoute(primariesFirst, allNextHops), expectedRoles)
+        << "primaries before backups";
+
+    // The backup next hop arrives first, then the primaries are added.
+    const RouteV6::Prefix backupsFirst{IPAddressV6("201::"), 64};
+    seedRoute(backupsFirst);
+    EXPECT_TRUE(haveOnlyRole(
+        programBgpRoute(backupsFirst, backupNextHops), NextHopRole::BACKUP));
+    EXPECT_EQ(programBgpRoute(backupsFirst, allNextHops), expectedRoles)
+        << "backups before primaries";
+
+    // Primaries and the backup next hop arrive together.
+    const RouteV6::Prefix together{IPAddressV6("202::"), 64};
+    seedRoute(together);
+    EXPECT_EQ(programBgpRoute(together, allNextHops), expectedRoles)
+        << "primaries and backups together";
+  }
+
+  IPv4NetworkToRouteMap v4Routes_;
+  IPv6NetworkToRouteMap v6Routes_;
+  NextHopIDManager nhopIds_;
+  RibRouteUpdater updater_{&v4Routes_, &v6Routes_, &nhopIds_, nullptr};
+};
+
+TEST_F(PrimaryBackupDedupTest, BackupNextHopsWithoutAnyPrimaryAreNotPruned) {
+  const RouteV6::Prefix prefix{IPAddressV6("200::"), 64};
+  EXPECT_EQ(
+      programBgpRoute(prefix, RouteNextHopSet{makeBackupNextHop("100::1")}),
+      AddressAndRole({
+          {IPAddress("10::1"), NextHopRole::BACKUP},
+          {IPAddress("20::2"), NextHopRole::BACKUP},
+          {IPAddress("30::3"), NextHopRole::BACKUP},
+          {IPAddress("40::4"), NextHopRole::BACKUP},
+      }));
+}
+
+TEST_F(PrimaryBackupDedupTest, PrimaryNextHopsWithoutAnyBackupAreNotPruned) {
+  const RouteV6::Prefix prefix{IPAddressV6("200::"), 64};
+  EXPECT_EQ(
+      programBgpRoute(
+          prefix,
+          RouteNextHopSet{
+              UnresolvedNextHop(IPAddress("10::1"), ECMP_WEIGHT),
+              UnresolvedNextHop(IPAddress("20::2"), ECMP_WEIGHT)}),
+      AddressAndRole({
+          {IPAddress("10::1"), NextHopRole::PRIMARY},
+          {IPAddress("20::2"), NextHopRole::PRIMARY},
+      }));
+}
+
+TEST_F(PrimaryBackupDedupTest, BackupPrunedForMatchingPrimaryInAnyOrder) {
+  verifyArrivalOrderIndependence(
+      RouteNextHopSet{UnresolvedNextHop(IPAddress("10::1"), ECMP_WEIGHT)},
+      RouteNextHopSet{makeBackupNextHop("100::1")},
+      {
+          {IPAddress("10::1"), NextHopRole::PRIMARY},
+          {IPAddress("20::2"), NextHopRole::BACKUP},
+          {IPAddress("30::3"), NextHopRole::BACKUP},
+          {IPAddress("40::4"), NextHopRole::BACKUP},
+      });
+}
+
+TEST_F(PrimaryBackupDedupTest, BackupPrunedForLaterRecursiveNextHopInAnyOrder) {
+  verifyArrivalOrderIndependence(
+      RouteNextHopSet{UnresolvedNextHop(IPAddress("20::2"), ECMP_WEIGHT)},
+      RouteNextHopSet{makeBackupNextHop("100::1")},
+      {
+          {IPAddress("10::1"), NextHopRole::BACKUP},
+          {IPAddress("20::2"), NextHopRole::PRIMARY},
+          {IPAddress("30::3"), NextHopRole::BACKUP},
+          {IPAddress("40::4"), NextHopRole::BACKUP},
+      });
+}
+
+TEST_F(PrimaryBackupDedupTest, EveryBackupMatchingAPrimaryPrunedInAnyOrder) {
+  verifyArrivalOrderIndependence(
+      RouteNextHopSet{
+          UnresolvedNextHop(IPAddress("20::2"), ECMP_WEIGHT),
+          UnresolvedNextHop(IPAddress("30::3"), ECMP_WEIGHT)},
+      RouteNextHopSet{makeBackupNextHop("100::1")},
+      {
+          {IPAddress("10::1"), NextHopRole::BACKUP},
+          {IPAddress("20::2"), NextHopRole::PRIMARY},
+          {IPAddress("30::3"), NextHopRole::PRIMARY},
+          {IPAddress("40::4"), NextHopRole::BACKUP},
+      });
+}
+
+TEST_F(PrimaryBackupDedupTest, DropTransitionsToPrimaryAndBackupInAnyOrder) {
+  verifyArrivalOrderIndependence(
+      RouteNextHopSet{UnresolvedNextHop(IPAddress("10::1"), ECMP_WEIGHT)},
+      RouteNextHopSet{makeBackupNextHop("100::1")},
+      {
+          {IPAddress("10::1"), NextHopRole::PRIMARY},
+          {IPAddress("20::2"), NextHopRole::BACKUP},
+          {IPAddress("30::3"), NextHopRole::BACKUP},
+          {IPAddress("40::4"), NextHopRole::BACKUP},
+      },
+      /*startFromDrop=*/true);
 }
 
 void verifyBgpNextHopRolesOverrideOpenrNextHopRoles(

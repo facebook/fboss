@@ -4,7 +4,6 @@
 
 #include <folly/Range.h>
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
-#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 namespace facebook::fboss {
 
@@ -20,12 +19,9 @@ inline constexpr folly::StringPiece kPortMappingLadakh800bclsCsv{
     "Ladakh800bcls_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingLeh800bclsCsv{
     "Leh800bcls_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingM4062nhpCsv{
-    "M4062nhp_BspMapping.csv"};
 
 class Parser {
  public:
-  static std::string getNameFor(PlatformType platform);
   static TransceiverConfigRow getTransceiverConfigRowFromCsvLine(
       const std::string_view& line);
   static std::vector<TransceiverConfigRow> getTransceiverConfigRowsFromCsv(

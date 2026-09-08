@@ -85,12 +85,15 @@ class SaiStoreReloadTest : public SaiStoreTest {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // LinkScanMode
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
         std::nullopt, // LlrModeLocal
         std::nullopt, // LlrModeRemote
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
   }
 

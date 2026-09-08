@@ -435,7 +435,7 @@ void SaiPhyManager::removeOnePort(PortID portId) {
 void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
-    std::optional<TransceiverInfo> transceiverInfo,
+    const std::optional<TransceiverInfo>& transceiverInfo,
     bool needResetDataPath) {
   bool isChanged{false};
   {
@@ -516,7 +516,11 @@ void SaiPhyManager::programOnePort(
 
     // Once the port is programmed successfully, update the portToCacheInfo_
     isChanged = setPortToPortCacheInfoLocked(
-        wLockedCache, portId, portProfileId, desiredPhyPortConfig);
+        wLockedCache,
+        portId,
+        portProfileId,
+        transceiverInfo,
+        desiredPhyPortConfig);
     // Only reset phy port stats when there're changes on the xphy ports
     if (isChanged &&
         (getExternalPhyLocked(wLockedCache)

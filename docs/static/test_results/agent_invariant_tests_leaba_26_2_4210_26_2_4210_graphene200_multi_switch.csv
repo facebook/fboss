@@ -1,0 +1,3 @@
+"Test Case","Hardware","Vendor","SDK Version","ASIC","Switch Mode","Role","Status"
+"warm_boot.ProdInvariantTest.verifyInvariants","morgan800cc","Cisco","26.2.4210","graphene200","multi switch","","PASSED"
+"cold_boot.ProdInvariantTest.verifyInvariants","morgan800cc","Cisco","26.2.4210","graphene200","multi switch","","PASSED"

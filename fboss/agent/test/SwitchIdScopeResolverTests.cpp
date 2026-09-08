@@ -349,6 +349,84 @@ TYPED_TEST(SwitchIdScopeResolverTest, portIntfScope) {
   }
 }
 
+namespace {
+// A port router interface bound to an aggregate port whose sole member is
+// port 1, plus the port and aggregate port it refers to.
+cfg::SwitchConfig makeAggPortIntfConfig() {
+  cfg::Port port;
+  port.logicalID() = 1;
+
+  cfg::AggregatePortMember member;
+  member.memberPortID() = 1;
+  cfg::AggregatePort aggPort;
+  aggPort.key() = 55;
+  aggPort.name() = "agg";
+  aggPort.memberPorts()->push_back(member);
+
+  cfg::Interface intf;
+  intf.type() = cfg::InterfaceType::PORT;
+  intf.intfID() = 6001;
+  intf.aggregatePortID() = 55;
+
+  cfg::SwitchConfig cfg{};
+  cfg.ports()->resize(1);
+  cfg.ports()[0] = port;
+  cfg.aggregatePorts()->resize(1);
+  cfg.aggregatePorts()[0] = aggPort;
+  cfg.interfaces()->resize(1);
+  cfg.interfaces()[0] = intf;
+  return cfg;
+}
+} // namespace
+
+TYPED_TEST(SwitchIdScopeResolverTest, aggPortIntfScope) {
+  auto cfg = makeAggPortIntfConfig();
+  const auto& resolver = this->scopeResolver();
+
+  if (this->isFabric()) {
+    // Aggregate port scope is l3 only, as aggPortScope above asserts.
+    EXPECT_THROW(
+        resolver.scope(cfg::InterfaceType::PORT, InterfaceID(6001), cfg),
+        FbossError);
+    return;
+  }
+
+  // An aggregate port bound router interface resolves to the same scope as
+  // the aggregate port, and hence as its member port.
+  auto matcher1 = resolver.scope(PortID(1));
+  auto matcher2 =
+      resolver.scope(cfg::InterfaceType::PORT, InterfaceID(6001), cfg);
+  EXPECT_EQ(matcher1, matcher2);
+  EXPECT_EQ(resolver.scope(cfg.aggregatePorts()[0]), matcher2);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, aggPortIntfScopeUnknownAggPort) {
+  auto cfg = makeAggPortIntfConfig();
+  cfg.interfaces()[0].aggregatePortID() = 99;
+  EXPECT_THROW(
+      this->scopeResolver().scope(
+          cfg::InterfaceType::PORT, InterfaceID(6001), cfg),
+      FbossError);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, portIntfScopeRequiresExactlyOneBinding) {
+  // Both bindings set.
+  auto bothSet = makeAggPortIntfConfig();
+  bothSet.interfaces()[0].portID() = 1;
+  EXPECT_THROW(
+      this->scopeResolver().scope(
+          cfg::InterfaceType::PORT, InterfaceID(6001), bothSet),
+      FbossError);
+
+  // Neither binding set.
+  auto neitherSet = makeAggPortIntfConfig();
+  neitherSet.interfaces()[0].aggregatePortID().reset();
+  EXPECT_THROW(
+      this->scopeResolver().scope(
+          cfg::InterfaceType::PORT, InterfaceID(6001), neitherSet),
+      FbossError);
+}
+
 TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelCfgScope) {
   if (this->isFabric()) {
     return;

@@ -123,10 +123,17 @@ common_deps = [
     "//common/stats:monotonic_counter",
     "//fboss/agent/hw:hardware_stats-cpp2-types",
     "//fboss/agent/hw:hw_resource_stats_publisher",
+    "//fboss/agent/hw:stats_constants",
+    "//fboss/agent/hw/mock:pkt",
+    "//fboss/lib:log_thrift_call",
     "//folly:file",
     "//folly:json",
+    "//fboss/agent:hw_switch",
+    "//fboss/agent:platform_base",
+    "//folly:subprocess",
     "//folly/logging:logging",
     "//fboss/agent:fboss-types",
+    "//fboss/agent:thrifthandler_utils",
     "//fboss/agent/rib:standalone_rib",
     "//fboss/agent/hw:hw_switch_warmboot_helper",
     "//fboss/agent/hw:hw_switch_fb303_stats",
@@ -246,15 +253,17 @@ cpp_library(
     srcs = [
         "BcmConfig.cpp",
     ],
-    exported_deps = [
+    deps = [
         ":bcm_config-cpp2-types",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//folly:file_util",
-        "//folly:range",
         "//folly/gen:string",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//folly:range",
     ],
 )
 
@@ -280,6 +289,7 @@ thrift_library(
     thrift_rust_options = "serde",
     thrift_srcs = {"bcm_config.thrift": []},
     deps = [
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -310,6 +320,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//thrift/lib/cpp/util:enum_utils",
     ],
+    external_deps = [("boost", None, "boost_container")],
     exported_external_deps = [
         ("boost", None, "boost_container"),
         ("broadcom-xgs-robo", None, "xgs_robo"),
@@ -390,6 +401,7 @@ cpp_library(
         "//folly:synchronized",
         "//folly/logging:logging",
     ],
+    external_deps = ["gflags"],
     exported_external_deps = [
         ("broadcom-xgs-robo", None, "xgs_robo"),
         "gflags",
@@ -401,9 +413,8 @@ cpp_library(
     srcs = [
         "SdkWrapSettings.cpp",
     ],
-    exported_deps = [
-        "//folly:singleton",
-    ],
+    deps = ["//folly:singleton"],
+    exported_deps = [],
 )
 
 cpp_library(

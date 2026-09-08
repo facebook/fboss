@@ -20,6 +20,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
@@ -175,6 +176,23 @@ static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
 } // namespace
 
 namespace facebook::fboss {
+
+namespace {
+
+std::shared_ptr<const AclTableMap> getAclTablesForBindPoint(
+    const std::shared_ptr<SwitchState>& state,
+    cfg::AclStage stage,
+    cfg::AclTableGroupBindPoint bindPoint) {
+  const auto& aclTableGroups = bindPoint == cfg::AclTableGroupBindPoint::PORT
+      ? state->getPortAclTableGroups()
+      : state->getAclTableGroups();
+  if (auto aclTableGroup = aclTableGroups->getNodeIf(stage)) {
+    return aclTableGroup->getAclTableMap();
+  }
+  return nullptr;
+}
+
+} // namespace
 
 // We need this global SaiSwitch* to support registering SAI callbacks
 // which can then use SaiSwitch to do their work. The current callback
@@ -1006,6 +1024,20 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
   return getSwitchRunState() >= l2LearningChangeProhibitedAfter;
 }
 
+bool SaiSwitch::ecmpGroupSettingsChangeProhibited() const {
+  // SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE is CREATE_ONLY, so a later
+  // change cannot reach groups already created from the old value. Honouring
+  // one would mean recreating every next hop group and repointing every route
+  // that references it, which we do not support. Prohibit the change instead,
+  // on the same terms as l2 learning mode:
+  // - cold boot, prohibit after the first config application
+  // - warm boot, prohibit after the warm boot state has been applied in init
+  auto ecmpGroupSettingsChangeProhibitedAfter = bootType_ == BootType::WARM_BOOT
+      ? SwitchRunState::INITIALIZED
+      : SwitchRunState::CONFIGURED;
+  return getSwitchRunState() >= ecmpGroupSettingsChangeProhibitedAfter;
+}
+
 template <typename LockPolicyT, typename AddrT>
 void SaiSwitch::processRemovedRoutesDelta(
     const RouterID& routerID,
@@ -1643,21 +1675,41 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   FLAGS_enable_acl_table_group = false;
 #endif
   if (FLAGS_enable_acl_table_group) {
-    processDelta(
-        delta.getAclTableGroupsDelta(),
-        managerTable_->aclTableGroupManager(),
-        lockPolicy,
-        &SaiAclTableGroupManager::changedAclTableGroup,
-        &SaiAclTableGroupManager::addAclTableGroup,
-        &SaiAclTableGroupManager::removeAclTableGroup);
-
-    if (delta.getAclTableGroupsDelta().getNew()) {
-      // Process delta for the entries of each table in the new state
-      for (const auto& [_, tableGroupMap] :
-           *delta.getAclTableGroupsDelta().getNew()) {
-        processAclTableGroupDelta(delta, *tableGroupMap, lockPolicy);
+    auto processAclTableGroups = [&](const auto& aclTableGroupDelta) {
+      processDelta(
+          aclTableGroupDelta,
+          managerTable_->aclTableGroupManager(),
+          lockPolicy,
+          &SaiAclTableGroupManager::changedAclTableGroup,
+          &SaiAclTableGroupManager::addAclTableGroup,
+          &SaiAclTableGroupManager::removeAclTableGroup);
+      if (aclTableGroupDelta.getNew()) {
+        for (const auto& [_, tableGroupMap] : *aclTableGroupDelta.getNew()) {
+          processAclTableGroupDelta(delta, *tableGroupMap, lockPolicy);
+        }
       }
-    }
+    };
+
+    auto aclTableGroupsDelta = delta.getAclTableGroupsDelta();
+    auto portAclTableGroupsDelta =
+        MultiSwitchMapDelta<MultiSwitchAclTableGroupMap>(
+            delta.oldState()->getPortAclTableGroups().get(),
+            delta.newState()->getPortAclTableGroups().get());
+    processAclTableGroups(aclTableGroupsDelta);
+    processAclTableGroups(portAclTableGroupsDelta);
+    // TODO: Require a port-bound ACL table to be deprecated and unbound from
+    // all ports before removing it. Until then, referenced tables are assumed
+    // to remain programmed, allowing a port to atomically replace table OIDs.
+    processChangedDelta(
+        delta.getPortsDelta(),
+        managerTable_->portManager(),
+        lockPolicy,
+        &SaiPortManager::changeIngressAcl);
+    processAddedDelta(
+        delta.getPortsDelta(),
+        managerTable_->portManager(),
+        lockPolicy,
+        &SaiPortManager::setIngressAcl);
   } else {
     std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
     std::set<cfg::AclTableQualifier> newRequiredQualifiers{};
@@ -1923,6 +1975,15 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
       // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->getEcmpGroupSettings();
+    const auto newVal = newSwitchSettings->getEcmpGroupSettings();
+    if (oldVal != newVal) {
+      XLOG(DBG3) << "ecmpGroupSettings changed, updating next hop groups";
+      managerTable_->nextHopGroupManager().setEcmpGroupSettings(newVal);
     }
   }
 
@@ -2564,8 +2625,8 @@ void SaiSwitch::updatePmdInfo(
     laneStates[laneId] = laneState;
   }
 
-  auto pmdRxSNR =
-      managerTable_->portManager().getRxSNR(port->adapterKey(), numPmdLanes);
+  auto pmdRxSNR = managerTable_->portManager().getRxSNR(
+      port->adapterKey(), numPmdLanes, portID);
   for (const auto& pmd : pmdRxSNR) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
@@ -2608,9 +2669,19 @@ void SaiSwitch::updatePmdInfo(
   for (const auto& laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
+  // The hardware latches these per read, so OR-ing across lanes says whether
+  // anything moved on this side since the previous updateAllPhyInfo. This runs
+  // once per collection, so each event is published exactly once.
+  bool signalDetectChanged = false;
+  bool cdrLockChanged = false;
   for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
+    signalDetectChanged |=
+        laneState.second.signalDetectChanged().value_or(false);
+    cdrLockChanged |= laneState.second.cdrLockChanged().value_or(false);
   }
+  managerTable_->portManager().updatePmdChangedFb303Counters(
+      portID, *sideState.side(), signalDetectChanged, cdrLockChanged);
   auto swPort = getProgrammedState()->getPorts()->getNodeIf(portID);
   bool linkTrainingEnabled =
       swPort ? swPort->getLinkTraining().value_or(false) : false;
@@ -2689,8 +2760,19 @@ void SaiSwitch::updatePcsInfo(
     }
 
     std::optional<uint64_t> correctedBitsFromHw = std::nullopt;
+    std::optional<uint64_t> correctedSymbolsFromHw = std::nullopt;
     if (managerTable_->portManager().fecCorrectedBitsSupported(swPort)) {
-      correctedBitsFromHw = *(fb303PortStat->portStats().fecCorrectedBits_());
+      auto correctedBits = *(fb303PortStat->portStats().fecCorrectedBits_());
+      if (correctedBits != hardware_stats_constants::STAT_UNINITIALIZED()) {
+        correctedBitsFromHw = correctedBits;
+      }
+    }
+    if (managerTable_->portManager().fecCorrectedSymbolsSupported(swPort)) {
+      auto correctedSymbols =
+          *(fb303PortStat->portStats().fecCorrectedSymbols_());
+      if (correctedSymbols != hardware_stats_constants::STAT_UNINITIALIZED()) {
+        correctedSymbolsFromHw = correctedSymbols;
+      }
     }
 
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
@@ -2698,6 +2780,7 @@ void SaiSwitch::updatePcsInfo(
         rsFec, /* current RsFecInfo to update */
         lastRsFec, /* previous RsFecInfo */
         correctedBitsFromHw, /* correctedBitsFromHw */
+        correctedSymbolsFromHw, /* correctedSymbolsFromHw */
         now.count() -
             *lastPhyInfo.state()->timeCollected(), /* timeDeltaInSeconds */
         fecMode, /* operational FecMode */
@@ -2716,8 +2799,10 @@ void SaiSwitch::updatePcsInfo(
 void SaiSwitch::updateRsInfo(
     phy::PhySideState& sideState,
     std::shared_ptr<SaiPort> port,
-    [[maybe_unused]] PortID swPort,
-    [[maybe_unused]] phy::PhySideState& lastState) {
+    PortID swPort,
+    phy::PhySideState& lastState) {
+  bool rsInfoSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ERR_STATUS);
   auto errStatus =
       managerTable_->portManager().getPortErrStatus(port->adapterKey());
   phy::LinkFaultStatus faultStatus;
@@ -2734,9 +2819,23 @@ void SaiSwitch::updateRsInfo(
     }
   }
 
+  // Diff against the previous sample so a fault that asserts and clears
+  // between two reads of PhyInfo is still observable. The first sample for a
+  // port has nothing to compare against and reports no change.
+  bool localFaultChanged = false;
+  bool remoteFaultChanged = false;
+  if (lastState.rs().has_value()) {
+    const auto& lastFaultStatus = *lastState.rs()->faultStatus();
+    localFaultChanged =
+        *lastFaultStatus.localFault() != *faultStatus.localFault();
+    remoteFaultChanged =
+        *lastFaultStatus.remoteFault() != *faultStatus.remoteFault();
+  }
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   if (auto highCrcErrorRate = managerTable_->portManager().getHighCrcErrorRate(
           port->adapterKey(), swPort)) {
+    rsInfoSupported = true;
     faultStatus.highCrcErrorRateLive() = highCrcErrorRate->current_status;
     if (highCrcErrorRate->changed) {
       if (lastState.rs().has_value()) {
@@ -2755,11 +2854,12 @@ void SaiSwitch::updateRsInfo(
   }
 #endif
 
-  if (*faultStatus.localFault() || *faultStatus.remoteFault() ||
-      *faultStatus.highCrcErrorRateLive()) {
+  if (rsInfoSupported) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideState.rs() = rsInfo;
+    managerTable_->portManager().updateLinkFaultChangedFb303Counters(
+        swPort, *sideState.side(), localFaultChanged, remoteFaultChanged);
   }
 }
 
@@ -4248,6 +4348,14 @@ bool SaiSwitch::isValidStateUpdateLocked(
                   "application is not permitted");
             }
           }
+          if (oldSwitchSettings->getEcmpGroupSettings() !=
+              newSwitchSettings->getEcmpGroupSettings()) {
+            if (ecmpGroupSettingsChangeProhibited()) {
+              throw FbossError(
+                  "Changing ecmpGroupSettings after initial config "
+                  "application is not permitted");
+            }
+          }
         }
         if (newSwitchSettings->isQcmEnable()) {
           throw FbossError("QCM is not supported on SAI");
@@ -5110,6 +5218,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP);
         objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER);
         break;
+      case HwObjectType::NEXT_HOP_GROUP_MEMBER:
+        objTypes.push_back(SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER);
+        break;
       case HwObjectType::ROUTER_INTERFACE:
         objTypes.push_back(SAI_OBJECT_TYPE_ROUTER_INTERFACE);
         break;
@@ -5210,6 +5321,9 @@ std::string SaiSwitch::listObjects(
         objTypes.push_back(SAI_OBJECT_TYPE_MY_SID_ENTRY);
 #endif
         break;
+      case HwObjectType::SAMPLE_PACKET:
+        objTypes.push_back(SAI_OBJECT_TYPE_SAMPLEPACKET);
+        break;
     }
   }
   FineGrainedLockPolicy policy(saiSwitchMutex_);
@@ -5261,25 +5375,32 @@ void SaiSwitch::processAclTableGroupDelta(
       platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
   for (const auto& [_, tableGroup] : aclTableGroupMap) {
     auto aclStage = tableGroup->getID();
-    if (delta.getAclTablesDelta(aclStage).getNew()->size() > 1 &&
+    auto bindPoint = tableGroup->getBindPoint();
+    auto oldAclTables =
+        getAclTablesForBindPoint(delta.oldState(), aclStage, bindPoint);
+    auto newAclTables =
+        getAclTablesForBindPoint(delta.newState(), aclStage, bindPoint);
+    auto aclTablesDelta =
+        ThriftMapDelta<AclTableMap>(oldAclTables.get(), newAclTables.get());
+    if (aclTablesDelta.getNew() && aclTablesDelta.getNew()->size() > 1 &&
         !multipleAclTableSupport) {
       throw FbossError(
           "multiple ACL tables configured, but platform only support one ACL table");
     }
     processDelta(
-        delta.getAclTablesDelta(aclStage),
+        aclTablesDelta,
         managerTable_->aclTableManager(),
         lockPolicy,
         &SaiAclTableManager::changedAclTable,
         &SaiAclTableManager::addAclTable,
         &SaiAclTableManager::removeAclTable,
         aclStage,
-        delta.newState());
+        delta.newState(),
+        bindPoint);
 
-    if (delta.getAclTablesDelta(aclStage).getNew()) {
+    if (aclTablesDelta.getNew()) {
       // Process delta for the entries of each table in the new state
-      for (const auto& iter :
-           std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
+      for (const auto& iter : std::as_const(*aclTablesDelta.getNew())) {
         auto table = iter.second;
         auto tableName = table->getID();
         processDelta(
@@ -5440,7 +5561,9 @@ void SaiSwitch::processFlowletSwitchingConfigAdded(
     switchManager.setArsProfile(arsProfileHandlePtr->arsProfile->adapterKey());
 
     // create the ARS object and attach to all ECMP groups
-    arsManager.addArs(newFlowletConfig);
+    arsManager.addArs(
+        newFlowletConfig,
+        delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
     auto arsHandlePtr = arsManager.getArsHandle();
     CHECK(arsHandlePtr);
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
@@ -5467,6 +5590,15 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
 
   if (oldFlowletConfig && newFlowletConfig) {
     if (*oldFlowletConfig == *newFlowletConfig) {
+      // SwitchSettings can change while the flowlet config stays put.
+      if (delta.oldState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS) !=
+          delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS)) {
+        XLOG(DBG2) << "ARS split horizon changed, reprogramming ARS";
+        arsManager.changeArs(
+            oldFlowletConfig,
+            newFlowletConfig,
+            delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
+      }
       XLOG(DBG5) << "Flowlet switching config is same";
       // flowlet is enabled here. lets walk through all ecmp objects to ensure
       // things look ok. For most purposes, this will be a no-op
@@ -5483,7 +5615,10 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
       nextHopGroupManager.setMinWidthForArsVirtualGroup(
           newFlowletConfig->getMinWidthForArsVirtualGroup());
       arsProfileManager.changeArsProfile(oldFlowletConfig, newFlowletConfig);
-      arsManager.changeArs(oldFlowletConfig, newFlowletConfig);
+      arsManager.changeArs(
+          oldFlowletConfig,
+          newFlowletConfig,
+          delta.newState()->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
     }
   } else if (newFlowletConfig && !oldFlowletConfig) {
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
@@ -5694,25 +5829,32 @@ void SaiSwitch::reportInterPortGroupCableSkew() const {
 
 std::shared_ptr<SwitchState> SaiSwitch::reconstructSwitchState() const {
   auto state = std::make_shared<SwitchState>();
-  state->resetAclTableGroups(reconstructMultiSwitchAclTableGroupMap());
+  state->resetAclTableGroups(reconstructMultiSwitchAclTableGroupMap(
+      cfg::AclTableGroupBindPoint::SWITCH));
+  state->resetPortAclTableGroups(reconstructMultiSwitchAclTableGroupMap(
+      cfg::AclTableGroupBindPoint::PORT));
   state->resetAcls(reconstructMultiSwitchAclMap());
   return state;
 }
 
 std::shared_ptr<MultiSwitchAclTableGroupMap>
-SaiSwitch::reconstructMultiSwitchAclTableGroupMap() const {
+SaiSwitch::reconstructMultiSwitchAclTableGroupMap(
+    cfg::AclTableGroupBindPoint bindPoint) const {
   auto programmedState = getProgrammedState();
+  const auto& aclTableGroups = bindPoint == cfg::AclTableGroupBindPoint::PORT
+      ? programmedState->getPortAclTableGroups()
+      : programmedState->getAclTableGroups();
   auto multiSwitchAclTableGroupMap =
       std::make_shared<MultiSwitchAclTableGroupMap>();
   for (const auto& [matcher, aclTableGroupMap] :
-       std::as_const(*programmedState->getAclTableGroups())) {
+       std::as_const(*aclTableGroups)) {
     auto reconstructedAclTableGroupMap = std::make_shared<AclTableGroupMap>();
     for (const auto& [stage, aclTableGroup] :
          std::as_const(*aclTableGroupMap)) {
-      auto name = aclTableGroup->getName();
       auto reconstructedAclTableGroup =
           managerTable_->aclTableGroupManager().reconstructAclTableGroup(
-              stage, name);
+              stage, aclTableGroup->getName());
+      reconstructedAclTableGroup->setBindPoint(bindPoint);
       reconstructedAclTableGroupMap->addNode(reconstructedAclTableGroup);
     }
     multiSwitchAclTableGroupMap->addMapNode(

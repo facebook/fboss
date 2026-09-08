@@ -39,7 +39,7 @@ void AgentPreStartExec::run(
     bool cppWedgeAgentWrapper,
     bool isNetOS,
     int switchIndex) {
-  auto mode = config->getRunMode();
+  auto mode = AgentConfig::getRunMode();
 
   XLOG(INFO) << "Agent pre start, cpp wrapper:" << cppWedgeAgentWrapper
              << " netos:" << isNetOS << " switch index:" << switchIndex;

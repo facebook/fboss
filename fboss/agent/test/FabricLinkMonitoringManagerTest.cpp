@@ -267,7 +267,8 @@ TxMatchFn checkFabricMonitoringPacket() {
 std::unique_ptr<RxPacket> createFabricMonitoringRxPacket(
     SwSwitch* /*sw*/,
     const PortID& portId,
-    uint64_t sequenceNumber) {
+    uint64_t sequenceNumber,
+    std::optional<PacketType> packetType = std::nullopt) {
   std::vector<uint8_t> data(kFabricLinkMonitoringPacketSize);
 
   // Serialize sequenceNumber (uint64_t) in big-endian order
@@ -290,6 +291,7 @@ std::unique_ptr<RxPacket> createFabricMonitoringRxPacket(
   auto buf = folly::IOBuf::copyBuffer(data.data(), data.size());
   auto rxPkt = std::make_unique<MockRxPacket>(std::move(buf));
   rxPkt->setSrcPort(portId);
+  rxPkt->setPacketType(packetType);
   return rxPkt;
 }
 
@@ -1004,6 +1006,48 @@ TEST(
     // Most ports should have sent multiple packets, proving round-robin works
     EXPECT_EVENTUALLY_GE(portsWithMultipleTx, 6);
   });
+
+  manager->stop();
+  FabricLinkMonitoringManager::setTestMode(false);
+}
+
+TEST(FabricLinkMonitoringManagerTest, RxClassificationPrefersPacketType) {
+  FabricLinkMonitoringManager::setTestMode(true);
+
+  auto config = createVoqConfig();
+  auto state = setupVoqSwitchState(config);
+  auto handle =
+      createTestHandle(state, SwitchFlags::ENABLE_FABRIC_LINK_MONITORING);
+  auto sw = handle->getSw();
+
+  auto* manager = sw->getFabricLinkMonitoringManager();
+  ASSERT_NE(manager, nullptr);
+  manager->start();
+
+  const auto portId = PortID(*config.ports()->front().logicalID());
+  auto noPendingSeqNums = [&]() {
+    return *manager->getFabricLinkMonPortStats(portId).noPendingSeqNumCount();
+  };
+
+  // Nothing was transmitted, so a consumed packet always lands on the
+  // no-pending-sequence-number path. The counter therefore tracks whether
+  // the packet entered the fabric link monitoring flow.
+  EXPECT_EQ(noPendingSeqNums(), 0);
+
+  // Not a fabric link monitoring packet.
+  sw->packetReceived(
+      createFabricMonitoringRxPacket(sw, portId, 1, PacketType::DEFAULT));
+  EXPECT_EQ(noPendingSeqNums(), 0);
+
+  sw->packetReceived(createFabricMonitoringRxPacket(
+      sw, portId, 2, PacketType::FABRIC_LINK_MONITORING));
+  EXPECT_EQ(noPendingSeqNums(), 1);
+
+  // Where the type is reported, it is authoritative: an untyped packet is
+  // not a monitoring packet even though it arrived on a fabric port.
+  sw->packetReceived(
+      createFabricMonitoringRxPacket(sw, portId, 3, std::nullopt));
+  EXPECT_EQ(noPendingSeqNums(), 1);
 
   manager->stop();
   FabricLinkMonitoringManager::setTestMode(false);

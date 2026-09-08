@@ -76,7 +76,8 @@ class AclRuleConfigArgs : public utils::BaseObjectArgType<std::string> {
   void applyTo(cfg::AclEntry& rule) const;
 
   // True if attribute_ == "action" and the sub-attribute targets a
-  // MatchAction field (everything other than permit/deny). The handler
+  // MatchAction field (everything other than the actionType actions). The
+  // handler
   // routes these through applyActionTo() instead of applyTo().
   bool isMatchAction() const;
 
@@ -95,7 +96,8 @@ class AclRuleConfigArgs : public utils::BaseObjectArgType<std::string> {
   // applyActionTo(). Keeping parse-and-apply together (one lambda per
   // attribute) means each attribute lives in exactly one place instead of a
   // parse chain plus a parallel apply chain. At most one is set: match-field
-  // attrs and permit/deny set applyEntryFn_; MatchAction-typed actions set
+  // attrs and the actionType actions set applyEntryFn_; MatchAction-typed
+  // actions set
   // applyActionFn_.
   std::function<void(cfg::AclEntry&)> applyEntryFn_;
   std::function<void(cfg::MatchAction&)> applyActionFn_;
@@ -113,10 +115,11 @@ struct CmdConfigAclRuleTraits : public WriteCommandTraits {
     // positional, which strands the attribute value as an extra and
     // teleports the parser into the wrong subtree. expected_max=6
     // accommodates the optional ttl mask, the no-arg actions
-    // (permit/deny/trap-to-cpu/copy-to-cpu — 4 tokens), and the
-    // `action redirect nexthop <ip>` form (6 tokens). allow_extra_args()
-    // is needed so CLI11's positional consume loop keeps eating past
-    // expected_min. AclRuleConfigArgs validates exact arity per attr.
+    // (permit/deny/deny-data-and-control-plane/trap-to-cpu/copy-to-cpu — 4
+    // tokens), and the `action redirect nexthop <ip>` form (6 tokens).
+    // allow_extra_args() is needed so CLI11's positional consume loop keeps
+    // eating past expected_min. AclRuleConfigArgs validates exact arity per
+    // attr.
     cmd.add_option("acl_rule_config", args, aclRuleConfigHelpText())
         ->required()
         ->expected(4, 6)

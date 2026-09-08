@@ -1278,6 +1278,39 @@ fboss2-dev config session commit
 
 **Note:** The running config (in-memory) may differ from the startup config if changes have been made directly via Thrift calls to the agent.
 
+### Running these commands without a switch
+
+The `config` commands can also be run inside a container that uses a fake SAI
+implementation instead of real hardware. Build FBOSS (a build that does not specify
+a SAI implementation defaults to fake SAI), start the container pointed at that
+build, then run the CLI inside it:
+
+```bash
+# Build
+time ./fboss/oss/scripts/run-getdeps.py build --allow-system-packages \
+--extra-cmake-defines='{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20", "RANGE_V3_TESTS": "OFF", "RANGE_V3_PERF": "OFF"}' \
+--scratch-path /var/FBOSS/tmp_bld_dir --src-dir . fboss
+
+# Start the container, running the binaries from the build above.
+# The container name is printed once it is up.
+sudo fboss-sim/scripts/fboss-sim-docker-run.py --local \
+--build-dir /var/FBOSS/tmp_bld_dir
+
+# Run a CLI command, or the integration tests
+sudo docker exec fboss_sim_runtime_root /opt/fboss/bin/fboss2 show interface
+sudo docker exec fboss_sim_runtime_root /opt/fboss/bin/fboss2_integration_test
+```
+
+`--build-dir` is the build's `--scratch-path`. If the build tree has since been
+moved elsewhere on the host, point `--build-dir` at where it is now and add
+`--runpath-dir <original scratch path>`, since that path is baked into the
+binaries. With `--local` the container runs those binaries directly, so after
+rebuilding you only need to restart the agent instead of rebuilding the container.
+
+This is intended for fast iteration while developing a command. Nothing here runs
+against real hardware, so a change still has to be validated on a switch before it
+can be considered done.
+
 ---
 
 ## create

@@ -3,8 +3,10 @@
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
 #include <gtest/gtest.h>
+#include <filesystem>
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 
 using namespace ::testing;
 
@@ -178,6 +180,48 @@ TEST_F(CmdConfigHistoryTestFixture, historyMultipleCommits) {
   auto pos_initial = result.find("Initial commit");
   EXPECT_LT(pos_6, pos_5);
   EXPECT_LT(pos_5, pos_initial);
+}
+
+TEST_F(CmdConfigHistoryTestFixture, historyDoesNotCreateSessionFiles) {
+  setupReadOnlyTestableConfigSession();
+
+  std::filesystem::path sessionDir = getTestHomeDir() / ".fboss2";
+  ASSERT_FALSE(std::filesystem::exists(sessionDir));
+
+  auto cmd = CmdConfigHistory();
+  auto result = cmd.queryClient(localhost());
+
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(getSessionConfigPath()));
+  EXPECT_FALSE(std::filesystem::exists(sessionDir / "cli_metadata.json"));
+  EXPECT_FALSE(std::filesystem::exists(sessionDir / "bgp_config.json"));
+  EXPECT_FALSE(ConfigSession::getInstance().hasActiveSession());
+}
+
+TEST_F(CmdConfigHistoryTestFixture, historyLeavesExistingSessionUntouched) {
+  const std::string staged =
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 400000}]}})";
+  std::filesystem::create_directories(getSessionConfigPath().parent_path());
+  createTestConfig(getSessionConfigPath(), staged);
+
+  setupReadOnlyTestableConfigSession();
+
+  auto cmd = CmdConfigHistory();
+  auto result = cmd.queryClient(localhost());
+
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_TRUE(std::filesystem::exists(getSessionConfigPath()));
+  EXPECT_EQ(readFile(getSessionConfigPath()), staged);
+  EXPECT_TRUE(ConfigSession::getInstance().hasActiveSession());
+}
+
+TEST_F(CmdConfigHistoryTestFixture, defaultSessionStillCreatesSessionFile) {
+  ASSERT_FALSE(std::filesystem::exists(getSessionConfigPath()));
+
+  setupTestableConfigSession();
+
+  EXPECT_TRUE(std::filesystem::exists(getSessionConfigPath()));
+  EXPECT_TRUE(ConfigSession::getInstance().hasActiveSession());
 }
 
 TEST_F(CmdConfigHistoryTestFixture, printOutput) {

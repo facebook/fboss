@@ -7,6 +7,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 #include <string>
+#include <string_view>
 
 namespace facebook::fboss {
 
@@ -14,6 +15,8 @@ struct CmdShowTransceiverLoopbackTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowTransceiver;
   using ObjectArgType = std::monostate;
   using RetType = std::string;
+
+  static std::string_view description();
 };
 
 class CmdShowTransceiverLoopback : public CmdHandler<
@@ -27,6 +30,8 @@ class CmdShowTransceiverLoopback : public CmdHandler<
       const utils::PortList& queriedPorts);
 
   void printOutput(const RetType& output, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

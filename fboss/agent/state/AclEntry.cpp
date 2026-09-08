@@ -58,6 +58,12 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
       cfg::AclTableQualifier::DST_IPV4,
       cfg::AclTableQualifier::DST_IPV6);
 
+  if (getDstIpV6Word3()) {
+    qualifiers.insert(cfg::AclTableQualifier::DST_IPV6_WORD3);
+  }
+  if (getDstIpV6Word2()) {
+    qualifiers.insert(cfg::AclTableQualifier::DST_IPV6_WORD2);
+  }
   if (getProto()) {
     qualifiers.insert(cfg::AclTableQualifier::IP_PROTOCOL_NUMBER);
   }
@@ -111,6 +117,9 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getLookupClassRoute()) {
     qualifiers.insert(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
   }
+  if (getLookupClassPort()) {
+    qualifiers.insert(cfg::AclTableQualifier::LOOKUP_CLASS_PORT);
+  }
   if (getPacketLookupResult()) {
     // TODO: add qualifier in AclTableQualifier enum
   }
@@ -152,6 +161,43 @@ AclEntry::AclEntry(int priority, const std::string& name) {
 AclEntry::AclEntry(int priority, std::string&& name) {
   set<switch_state_tags::priority>(priority);
   set<switch_state_tags::name>(std::move(name));
+}
+
+bool onlyCounterChanged(
+    const std::shared_ptr<AclEntry>& oldAclEntry,
+    const std::shared_ptr<AclEntry>& newAclEntry) {
+  auto oldFields = oldAclEntry->toThrift();
+  auto newFields = newAclEntry->toThrift();
+
+  auto counterOf = [](const state::AclEntryFields& fields)
+      -> std::optional<cfg::TrafficCounter> {
+    if (auto action = fields.aclAction()) {
+      return action->trafficCounter().to_optional();
+    }
+    return std::nullopt;
+  };
+
+  if (counterOf(oldFields) == counterOf(newFields)) {
+    return false;
+  }
+
+  // Drop the counter from both sides, then collapse an action that has become
+  // empty back to unset so that "no action" and "action carrying only a
+  // counter" compare equal.
+  auto stripCounter = [](state::AclEntryFields& fields) {
+    auto action = fields.aclAction();
+    if (!action) {
+      return;
+    }
+    action->trafficCounter().reset();
+    if (*action == state::MatchAction{}) {
+      fields.aclAction().reset();
+    }
+  };
+  stripCounter(oldFields);
+  stripCounter(newFields);
+
+  return oldFields == newFields;
 }
 
 template struct ThriftStructNode<AclEntry, state::AclEntryFields>;

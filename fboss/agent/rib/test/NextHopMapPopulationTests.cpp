@@ -33,6 +33,7 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -1187,6 +1188,65 @@ TEST_F(NextHopMapPopulationTest, getClientNextHopsFromRibWrapper) {
   EXPECT_EQ(
       getClientNextHopsFromRib(manager.get(), *entry), entry->getNextHopSet());
   FLAGS_resolve_nexthops_from_id = false;
+}
+
+// Covers the resolver being threaded through getRouteTableDetails. Two
+// clients, so resolving one through another's entry would be caught.
+TEST_F(NextHopMapPopulationTest, getRouteTableDetailsResolvesClientNextHops) {
+  // Pinned: preceding tests leave the flag false without restoring it.
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_resolve_nexthops_from_id = true;
+
+  const ClientID kClientB = ClientID(1002);
+  auto updater = sw_->getRouteUpdater();
+  addV4RouteForClient(
+      updater, kClientA, "10.0.0.0/24", {"1.1.1.10", "2.2.2.10"});
+  addV4RouteForClient(updater, kClientB, "10.0.0.0/24", {"3.3.3.10"});
+  updater.program();
+
+  for (const auto& rd : sw_->getRib()->getRouteTableDetails(kRid0)) {
+    if (*rd.dest()->prefixLength() != 24 ||
+        facebook::network::toIPAddress(*rd.dest()->ip()).str() != "10.0.0.0") {
+      continue;
+    }
+    EXPECT_EQ(
+        clientNextHops(rd, kClientA),
+        (std::set<std::string>{"1.1.1.10", "2.2.2.10"}));
+    EXPECT_EQ(
+        clientNextHops(rd, kClientB), (std::set<std::string>{"3.3.3.10"}));
+    return;
+  }
+  ADD_FAILURE() << "10.0.0.0/24 missing from route table details";
+}
+
+// Label routes carry clientNextHopSetID like v4/v6 and go through the same
+// toThriftLegacy path.
+TEST_F(NextHopMapPopulationTest, getMplsRouteTableDetailsResolvesClientNhops) {
+  // Pinned: preceding tests leave the flag false without restoring it.
+  auto savedMplsRib = FLAGS_mpls_rib;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_mpls_rib = savedMplsRib;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  FLAGS_mpls_rib = true;
+  FLAGS_resolve_nexthops_from_id = true;
+
+  auto updater = sw_->getRouteUpdater();
+  addMplsSwapRoute(updater, 100, 101, folly::IPAddress("1::10"));
+  updater.program();
+
+  for (const auto& rd : sw_->getRib()->getMplsRouteTableDetails()) {
+    if (*rd.topLabel() != 100) {
+      continue;
+    }
+    EXPECT_EQ(clientNextHops(rd, kClientA), (std::set<std::string>{"1::10"}));
+    return;
+  }
+  ADD_FAILURE() << "label 100 missing from MPLS route table details";
 }
 
 // Full mix: resolved + DROP + TO_CPU + unresolved + multi-client routes,

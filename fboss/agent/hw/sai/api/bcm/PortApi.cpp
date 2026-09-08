@@ -64,6 +64,24 @@ SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_TRANSMIT_PRECODING_STATE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_RECEIVE_PRECODING_STATE;
+#else
+  return std::nullopt;
+#endif
+}
+
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)
@@ -607,7 +625,13 @@ SaiPortTraits::Attributes::AttributeLinkUpDebouncePeriodMs::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
+// TODO ruinanhu once SDK can properly support linkdowndebouncingtimeout add
+// attribute back
+#if defined(BRCM_SAI_SDK_GTE_15_4)
   return std::nullopt;
+#else
+  return std::nullopt;
+#endif
 }
 
 std::optional<sai_attr_id_t>
@@ -618,6 +642,15 @@ SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeLinkDownDebounceRetriggerCount::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_15_0)
+  return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
+#else
+  return std::nullopt;
+#endif
 }
 
 const std::vector<sai_stat_id_t>&
@@ -673,6 +706,44 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
       SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION,
       SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION,
       SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  // 15.4 is the first SDK whose saiportextensions.h declares these; guarding on
+  // BRCM_SAI_SDK_XGS_GTE_15_0 would pull in 15.0, which does not.
+  //
+  // All eight are gettable on Tomahawk Ultra 1 (Broadcom CS00012472055); the
+  // SDK counter each resolves to is named in hardware_stats.thrift.
+  //
+  // SAI_PORT_STAT_LLR_REPLAY is omitted on purpose: brcm-sai maps it to
+  // snmpBcmTxLlrReplayedPkts, the same SDK counter as
+  // SAI_PORT_STAT_LLR_TX_REPLAY in llrStats(), so fetching it would publish the
+  // same value under two names.
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_PORT_STAT_LLR_TX_ELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_TX_INELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_RX_ELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_RX_INELIGIBLE_PACKETS,
+      SAI_PORT_STAT_LLR_REPLAY_EVENT,
+      SAI_PORT_STAT_LLR_TX_TIMER_REPLAY,
+      SAI_PORT_STAT_LLR_TOTAL_ERROR};
 #else
   static const std::vector<sai_stat_id_t> stats;
 #endif

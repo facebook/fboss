@@ -10,7 +10,7 @@ add_library(setup_thrift
 
 target_link_libraries(setup_thrift
   load_agent_config
-  thrift_method_rate_limit
+  thrift_method_rate_limit_setup
   thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
@@ -178,7 +178,6 @@ target_link_libraries(utils
   j4sim_platform_mapping
   saintpaul_platform_mapping
   blackwolf800banw_platform_mapping
-  m4062nhp_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping

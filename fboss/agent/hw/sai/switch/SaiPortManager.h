@@ -155,6 +155,10 @@ class SaiPortManager {
   void changePort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void setIngressAcl(const std::shared_ptr<Port>& swPort);
+  void changeIngressAcl(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -280,8 +284,9 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
   std::vector<sai_port_snr_values_t> getRxSNR(
-      PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      const PortSaiId& saiPortId,
+      uint8_t numPmdLanes,
+      const PortID& portID) const;
 #endif
   std::vector<phy::SerdesParameters> getSerdesParameters(
       PortSerdesSaiId serdesSaiPortId,
@@ -313,6 +318,16 @@ class SaiPortManager {
       PortID swPort) const;
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
+  void updatePmdChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool signalDetectChanged,
+      bool cdrLockChanged);
+  void updateLinkFaultChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool localFaultChanged,
+      bool remoteFaultChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 
@@ -329,6 +344,7 @@ class SaiPortManager {
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
+  bool fecCorrectedSymbolsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
@@ -342,6 +358,10 @@ class SaiPortManager {
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  // Throws on SDKs that cannot program the attribute, rather than dropping a
+  // mode the config asked for.
+  static SaiPortTraits::Attributes::LinkScanMode linkScanModeAttribute(
+      cfg::LinkScanMode mode);
   /**
    * Increment the PFC deadlock detection counter for a given port.
    *
@@ -403,6 +423,7 @@ class SaiPortManager {
   void fillInSupportedStats(PortID port);
   void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
+  bool fecCorrectedCounterSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
@@ -413,6 +434,7 @@ class SaiPortManager {
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
   void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
+  void reissueLlrModeRemote(SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

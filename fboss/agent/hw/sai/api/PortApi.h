@@ -28,6 +28,23 @@ extern "C" {
 bool operator==(const sai_map_t& lhs, const sai_map_t& rhs);
 bool operator!=(const sai_map_t& lhs, const sai_map_t& rhs);
 
+/*
+ * SDKs that expose a per-port link up/down debounce hold timer. Leaba has both
+ * (SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS); Broadcom so far
+ * only has the down timer (the SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_TIMEOUT
+ * extension). These gate the corresponding SaiPortTraits::CreateAttributes
+ * tuple members, so every CreateAttributes brace-init site has to be gated on
+ * the same macro or the tuple arity will not line up.
+ */
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+#define FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD
+#endif
+
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD) || \
+    defined(BRCM_SAI_SDK_GTE_15_4)
+#define FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD
+#endif
+
 namespace facebook::fboss {
 
 class PortApi;
@@ -141,6 +158,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_MTU,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -233,6 +255,11 @@ struct SaiPortTraits {
         sai_prbs_rx_state_t,
         SaiPrbsRxStateDefault>;
 #endif
+    using IngressAcl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -591,10 +618,25 @@ struct SaiPortTraits {
     struct AttributeLinkDownDebouncePeriodMs {
       std::optional<sai_attr_id_t> operator()();
     };
+    // The default getter is mandatory: this attr lives in CreateAttributes and
+    // is read back for every port on store reload. SDK drops that expose the
+    // attribute id but do not implement it fail the get with NOT_SUPPORTED;
+    // without a default getter SaiApi rethrows and crashes init. With one it
+    // falls back to the default of 0, i.e. "no debounce". The BRCM adapter also
+    // refuses to read the timer on a port in SW linkscan, which is the state
+    // every port is in during store reload, and reports that as
+    // SAI_STATUS_ATTR_NOT_SUPPORTED_0 -- covered by the same fallback.
     using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
         SaiIntDefault<sai_uint32_t>>;
+    struct AttributeLinkScanMode {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LinkScanMode = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeLinkScanMode,
+        SaiIntDefault<sai_int32_t>>;
     // Read-only counts of how many times a link up/down debounce was
     // retriggered by an additional flap while a debounce timeout was already
     // active.
@@ -778,8 +820,15 @@ struct SaiPortTraits {
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
       std::optional<Attributes::CablePropagationDelayMediaType>,
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      // Must stay ahead of LinkDownDebouncePeriodMs: brcm_sai_create_port_cmn
+      // replays the create list through set_port_attribute in order, and the
+      // BRCM debounce set is rejected outright unless the port is already in
+      // SAI_PORT_LINKSCAN_MODE_HW.
+      std::optional<Attributes::LinkScanMode>,
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
       std::optional<Attributes::LinkUpDebouncePeriodMs>,
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
       std::optional<Attributes::LinkDownDebouncePeriodMs>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -787,7 +836,9 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrModeRemote>,
       std::optional<Attributes::LlrProfile>,
 #endif
-      std::optional<Attributes::PfcPauseDurationOverride>>;
+      std::optional<Attributes::PfcPauseDurationOverride>,
+      std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -808,10 +859,9 @@ struct SaiPortTraits {
   };
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1.11, Table 5-13).
-  // Fetch only the counters Tomahawk Ultra supports: LLR_RX_BAD,
-  // LLR_TX_DISCARD, LLR_TX_POISONED and LLR_RX_POISONED have no SDK backing on
-  // TU, and get_port_stats is all-or-nothing, so they are excluded (Broadcom
-  // CS00012472055).
+  // TU1 does not support LLR_RX_BAD, LLR_TX_DISCARD, LLR_TX_POISONED or
+  // LLR_RX_POISONED (no SDK backing); get_port_stats is all-or-nothing, so
+  // fetch only the counters TU1 supports (Broadcom CS00012472055).
   static const std::vector<sai_stat_id_t>& llrStats() {
     static const std::vector<sai_stat_id_t> ids = {
         SAI_PORT_STAT_LLR_TX_OK,
@@ -870,6 +920,12 @@ struct SaiPortTraits {
   static const std::vector<sai_stat_id_t>& fabricControlRxPacketStats();
   static const std::vector<sai_stat_id_t>& fabricControlTxPacketStats();
   static const std::vector<sai_stat_id_t>& pfcXoffTotalDurationStats();
+  static const std::vector<sai_stat_id_t>& linkDownDebounceRetriggerStats();
+  static const std::vector<sai_stat_id_t>& linkUpDebounceRetriggerStats();
+  // Broadcom LLR stat extensions. Unlike llrStats() above these are not
+  // standard SAI 1.18 enums, so the list is vendor-defined and empty everywhere
+  // except a Broadcom SDK new enough to declare them.
+  static const std::vector<sai_stat_id_t>& llrExtensionStats();
 };
 
 SAI_ATTRIBUTE_NAME(Port, HwLaneList)
@@ -897,6 +953,7 @@ SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
+SAI_ATTRIBUTE_NAME(Port, Metadata)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcAndColorToDot1pMap)
@@ -924,6 +981,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
+SAI_ATTRIBUTE_NAME(Port, IngressAcl)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
@@ -968,6 +1026,7 @@ SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, RxLaneSquelchEnable);
+SAI_ATTRIBUTE_NAME(Port, LinkScanMode);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
 SAI_ATTRIBUTE_NAME(Port, PfcTcDldInterval);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrInterval);
@@ -1091,6 +1150,12 @@ struct SaiPortSerdesTraits {
     struct AttributeRxReachWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeTransmitPrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeReceivePrecodingStateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRVgaWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1170,6 +1235,23 @@ struct SaiPortSerdesTraits {
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxReachWrapper>;
+    // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
+    // These vendor extensions work from 13.3
+    using TransmitPrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTransmitPrecodingStateWrapper>;
+    using ReceivePrecodingState = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeReceivePrecodingStateWrapper>;
+// Alias to vendor extension attributes on bcm SAI
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+    using TxPrecodingAttr = TransmitPrecodingState;
+    using RxPrecodingAttr = ReceivePrecodingState;
+#elif SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    // If not BCM, alias to standard SAI attributes
+    using TxPrecodingAttr = TxPrecoding;
+    using RxPrecodingAttr = RxPrecoding;
+#endif
     using RVga =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRVgaWrapper>;
     using Dco =
@@ -1546,6 +1628,8 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxInstgEnableScan);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLengthBitmap);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFfeLmsDynamicGatingEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxReach);
+SAI_ATTRIBUTE_NAME(PortSerdes, TransmitPrecodingState);
+SAI_ATTRIBUTE_NAME(PortSerdes, ReceivePrecodingState);
 SAI_ATTRIBUTE_NAME(PortSerdes, RVga);
 SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);

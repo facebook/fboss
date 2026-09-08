@@ -339,6 +339,9 @@ TEST_F(PacketStreamTest, registerPortToServerTest) {
   EXPECT_FALSE(handler_->isPortRegistered(g_client, "newport"));
   EXPECT_THROW(
       handler_->disconnect(std::make_unique<std::string>()), TPacketException);
+  EXPECT_NO_THROW(
+      handler_->disconnect(std::make_unique<std::string>(g_client)));
+  EXPECT_FALSE(handler_->isClientConnected(g_client));
   clientReset(std::move(streamClient));
 }
 

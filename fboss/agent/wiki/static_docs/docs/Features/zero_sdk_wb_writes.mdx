@@ -26,12 +26,12 @@ To turn on SAI replayer when running agent HW tests/HW tests, pass in the follow
 Testing Binary:
 
 ```
---enable-replayer --enable_get_attr_log --enable_packet_log --sai-log [PATH TO LOG]
+--enable-replayer --enable_get_attr_log --enable_packet_log --sai-log [PATH TO LOG] --sai_replayer_sdk_log_level [DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL]
 ```
 
 OSS `run_test.py` Script:
 ```
---sai_replayer_logging [PATH TO LOGS]
+--sai_replayer_logging [PATH TO LOGS] --sai_replayer_sdk_log_level [DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL]
 ```
 
 Consider the following SAI replayer logs from the same test run.

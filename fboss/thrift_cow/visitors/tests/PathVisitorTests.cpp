@@ -391,6 +391,79 @@ TYPED_TEST(PathVisitorTests, AccessFieldInContainer) {
   EXPECT_EQ(*got.max(), 200);
 }
 
+TYPED_TEST(PathVisitorTests, RecursiveStruct) {
+  auto structA = createSimpleTestStruct();
+
+  // Build a self-referential RecursiveStruct hierarchy (see
+  // makeRecursiveStruct):
+  //   recursiveMember[0].simpleMember.min = 11
+  //   recursiveMember[0].children[1].name = "childName"
+  //   recursiveMember[0].children[1].children[0].simpleMember.min = 22
+  structA.recursiveMember()->push_back(makeRecursiveStruct());
+
+  auto nodeA = this->initNode(structA);
+  folly::dynamic dyn;
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
+    EXPECT_EQ(begin, end);
+    dyn = node.toFollyDynamic();
+  });
+
+  // Leaf at the top-level recursive struct
+  std::vector<std::string> path{"recursiveMember", "0", "simpleMember", "min"};
+  auto result = RootPathVisitor::visit(
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
+  EXPECT_EQ(dyn.asInt(), 11);
+
+  // Leaf one level of recursion deep (children/1/name)
+  path = {"recursiveMember", "0", "children", "1", "name"};
+  result = RootPathVisitor::visit(
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
+  EXPECT_EQ(dyn.asString(), "childName");
+
+  // Leaf two levels of recursion deep
+  path = {
+      "recursiveMember",
+      "0",
+      "children",
+      "1",
+      "children",
+      "0",
+      "simpleMember",
+      "min"};
+  result = RootPathVisitor::visit(
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
+  EXPECT_EQ(dyn.asInt(), 22);
+
+  // Type-correctness: a path terminating at the recursive struct's struct
+  // member must yield a value convertible back to the correct Thrift type.
+  path = {"recursiveMember", "0", "simpleMember"};
+  result = RootPathVisitor::visit(
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitOptions::visitLeaf(),
+      processPath);
+  EXPECT_EQ(result.toString(), "ThriftTraverseResult::OK");
+  cfg::L4PortRange got = facebook::thrift::from_dynamic<cfg::L4PortRange>(
+      dyn, facebook::thrift::dynamic_format::JSON_1);
+  EXPECT_EQ(*got.min(), 11);
+}
+
 TYPED_TEST(PathVisitorTests, TraversalModeFull) {
   auto structA = createSimpleTestStruct();
   auto nodeA = this->initNode(structA);

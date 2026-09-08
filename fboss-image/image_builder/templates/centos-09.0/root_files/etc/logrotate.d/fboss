@@ -1,0 +1,45 @@
+# Rotation for the FBOSS service logs in /var/facebook/logs/fboss.
+#
+# Picked up by the distro logrotate via `include /etc/logrotate.d` in
+# /etc/logrotate.conf. Nothing else names these paths, so without this file
+# logrotate runs daily and never looks at them, however large they get.
+#
+# Every directive below is set explicitly rather than inherited from the
+# /etc/logrotate.conf globals, so a change to those globals cannot silently
+# alter FBOSS retention.
+#
+# copytruncate is required, not stylistic. Every writer here holds a long-lived
+# O_APPEND file descriptor with no way to reopen it:
+#   - the service logs are opened by systemd via StandardOutput=append:, so the
+#     descriptor belongs to the service process and systemd offers no way to
+#     replace it short of a restart
+#   - the *_snapshots.log files are opened directly by folly::AsyncFileWriter
+#     inside the process
+# Rename-based rotation would therefore leave every writer appending to the
+# inode that was moved aside: the live path would disappear while the writer
+# kept growing the archived file, and no disk space would ever be reclaimed.
+# copytruncate resets the existing inode instead, which both writers handle
+# correctly because both use O_APPEND.
+
+/var/facebook/logs/fboss/*.log {
+    copytruncate
+    # Rotation is size-driven; these logs have no meaningful daily rhythm and a
+    # single link event can produce hundreds of MB. daily is the backstop for a
+    # quiet switch, maxsize is what actually bounds a busy one -- see the
+    # timer drop-in that raises how often maxsize gets evaluated.
+    daily
+    maxsize 100M
+    rotate 20
+    compress
+    # Multiple rotations per day are expected, so timestamp the archives rather
+    # than renumbering them.
+    dateext
+    dateformat -%Y%m%d%H%M
+    olddir /var/facebook/logs/fboss/archive
+    # The image build creates olddir, but logrotate will not: if it is ever
+    # removed at runtime, rotation errors out and logs silently grow unbounded
+    # again. Recreate it rather than depend on that.
+    createolddir 0755 root root
+    missingok
+    notifempty
+}

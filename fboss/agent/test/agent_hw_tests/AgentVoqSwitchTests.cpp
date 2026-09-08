@@ -293,6 +293,10 @@ TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
   auto verify = [this]() {
     std::string out;
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // Start with a blank command first and then set the RCI mappings
+      // This is because, sometimes first diag command doesn't work in some SDK
+      // versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out, switchId);
       getAgentEnsemble()->runDiagCommand(
           "setreg CIG_RCI_DEVICE_MAPPING 0\nsetreg CIG_RCI_CORE_MAPPING 0\n",
           out,
@@ -601,7 +605,7 @@ TEST_F(AgentVoqSwitchTest, localForwardingPostIsolate) {
       sendPacket(ecmpHelper.ip(kPortDesc), portToSendFrom);
       WITH_RETRIES({
         auto afterPkts =
-            getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+            getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value();
         XLOG(DBG2) << "Before pkts: " << beforePkts
                    << " After pkts: " << afterPkts;
         EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 1);
@@ -640,7 +644,7 @@ TEST_F(AgentVoqSwitchTest, stressLocalForwardingPostIsolate) {
     }
     WITH_RETRIES({
       auto afterPkts =
-          getLatestPortStats(kPortDesc.phyPortID()).get_outUnicastPkts_();
+          getLatestPortStats(kPortDesc.phyPortID()).outUnicastPkts_().value();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 20000);
@@ -685,11 +689,19 @@ TEST_F(AgentVoqSwitchTest, packetIntegrityError) {
     auto switchAsic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     std::string out;
     if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      // Start with a blank command first and then force the CRC error
+      // This is because, sometimes first diag command doesn't work in some SDK
+      // versions and in FBOSS OSS
+      getAgentEnsemble()->runDiagCommand("\n", out);
       getAgentEnsemble()->runDiagCommand(
           "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
           out);
     } else if (switchAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       for (const auto& switchIdx : getSw()->getHwAsicTable()->getSwitchIDs()) {
+        // Start with a blank command first and then force the CRC error
+        // This is because, sometimes first diag command doesn't work in some
+        // SDK versions and in FBOSS OSS
+        getAgentEnsemble()->runDiagCommand("\n", out, switchIdx);
         getAgentEnsemble()->runDiagCommand(
             "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out, switchIdx);
       }

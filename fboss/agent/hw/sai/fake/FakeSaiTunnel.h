@@ -39,6 +39,7 @@ class FakeSaiTunnel {
   std::optional<sai_int32_t> encapTtlMode;
   std::optional<sai_int32_t> encapDscpMode;
   std::optional<sai_int32_t> encapEcnMode;
+  std::optional<sai_object_id_t> decapQosDscpToTcMap;
 };
 
 class FakeSaiTunnelTerm {

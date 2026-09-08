@@ -5,9 +5,12 @@
 #include <boost/core/noncopyable.hpp>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Sleep.h>
+#include <re2/re2.h>
+#include <algorithm>
 #include <optional>
 #include <utility>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
+#include "fboss/thrift_cow/visitors/ExtendedPathMatcher.h"
 
 DEFINE_bool(
     forceCloseSlowSubscriber,
@@ -531,10 +534,7 @@ std::optional<FsdbErrorCode> PatchSubscription::flush(
 
 std::optional<FsdbErrorCode> PatchSubscription::offer(
     thrift_cow::PatchNode node) {
-  Patch patch;
-  patch.basePath() = path();
-  patch.patch() = std::move(node);
-  subscription_.buffer(key_, std::move(patch));
+  bufferPatch(subscription_, key_, path(), std::move(node));
   return std::nullopt;
 }
 
@@ -621,9 +621,16 @@ ExtendedPatchSubscription::create(
     int32_t subscriptionQueueFullMinSize) {
   auto [generator, pipe] = folly::coro::BoundedAsyncPipe<
       SubscriptionServeQueueElement<gen_type>>::create(pipeCapacity);
+  auto compiledRegexes = compileRegexes(paths);
+  const bool hasWildcardPath =
+      std::any_of(paths.begin(), paths.end(), [](const auto& entry) {
+        return thrift_cow::hasWildcard(*entry.second.path());
+      });
   auto subscription = std::make_unique<ExtendedPatchSubscription>(
       std::move(subscriber),
       std::move(paths),
+      std::move(compiledRegexes),
+      hasWildcardPath,
       std::move(pipe),
       std::move(protocol),
       std::move(publisherRoot),
@@ -632,6 +639,41 @@ ExtendedPatchSubscription::create(
       subscriptionQueueSizeLimit,
       subscriptionQueueFullMinSize);
   return std::make_pair(std::move(generator), std::move(subscription));
+}
+
+ExtendedPatchSubscription::CompiledRegexPathMap
+ExtendedPatchSubscription::compileRegexes(const ExtSubPathMap& paths) {
+  CompiledRegexPathMap compiledPaths;
+  for (const auto& [key, extPath] : paths) {
+    auto& compiledPath = compiledPaths[key];
+    compiledPath.reserve(extPath.path()->size());
+    for (const auto& elem : *extPath.path()) {
+      if (auto regex = elem.regex()) {
+        compiledPath.push_back(std::make_shared<const re2::RE2>(*regex));
+      } else {
+        compiledPath.push_back(nullptr);
+      }
+    }
+    // Established once here, at subscribe/append time, so consumers on the
+    // per-serve-cycle path can rely on it instead of revalidating.
+    CHECK_EQ(compiledPath.size(), extPath.path()->size());
+  }
+  return compiledPaths;
+}
+
+std::vector<SubscriptionKey> ExtendedPatchSubscription::addPaths(
+    ExtSubPathMap&& newPaths) {
+  auto newCompiledRegexes = compileRegexes(newPaths);
+  const auto added = ExtendedSubscription::addPaths(std::move(newPaths));
+  for (const auto key : added) {
+    compiledRegexes_.emplace(key, std::move(newCompiledRegexes.at(key)));
+    hasWildcardPath_ =
+        hasWildcardPath_ || thrift_cow::hasWildcard(*pathAt(key).path());
+    if (getInitialSyncCompletedAt() != 0) {
+      initialSyncPendingKeys_.insert(key);
+    }
+  }
+  return added;
 }
 
 std::unique_ptr<Subscription> ExtendedPatchSubscription::resolve(
@@ -644,6 +686,17 @@ void ExtendedPatchSubscription::buffer(
     const SubscriptionKey& key,
     Patch&& newVal) {
   buffered_[key].emplace_back(std::move(newVal));
+}
+
+void bufferPatch(
+    ExtendedPatchSubscription& subscription,
+    const SubscriptionKey& key,
+    std::vector<std::string> basePath,
+    thrift_cow::PatchNode patchNode) {
+  Patch patch;
+  patch.basePath() = std::move(basePath);
+  patch.patch() = std::move(patchNode);
+  subscription.buffer(key, std::move(patch));
 }
 
 std::optional<SubscriberChunk> ExtendedPatchSubscription::moveCurChunk(

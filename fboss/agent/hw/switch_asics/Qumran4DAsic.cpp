@@ -230,6 +230,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     // Disabling ANY_TRAP_DROP_COUNTER for the time being.
     // This will result in an early return in
@@ -237,6 +238,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // failing with SAI 14.x
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
@@ -246,6 +248,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
     // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
     // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
@@ -286,6 +289,10 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
+    case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::RX_PACKET_TYPE:
       return false;
   }
   return false;

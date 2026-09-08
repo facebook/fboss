@@ -322,6 +322,22 @@ class FakeSwitch {
     return switchingMode_;
   }
 
+  const std::vector<sai_int32_t>& getPacketDropTypeIngressList() const {
+    return packetDropTypeIngressList_;
+  }
+
+  void setPacketDropTypeIngressList(std::vector<sai_int32_t> dropTypes) {
+    packetDropTypeIngressList_ = std::move(dropTypes);
+  }
+
+  const std::vector<sai_int32_t>& getPacketDropTypeEgressList() const {
+    return packetDropTypeEgressList_;
+  }
+
+  void setPacketDropTypeEgressList(std::vector<sai_int32_t> dropTypes) {
+    packetDropTypeEgressList_ = std::move(dropTypes);
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -379,6 +395,8 @@ class FakeSwitch {
   bool cablePropagationDelayMeasurement_{false};
   bool portCl72RetryEnable_{false};
   sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
+  std::vector<sai_int32_t> packetDropTypeIngressList_;
+  std::vector<sai_int32_t> packetDropTypeEgressList_;
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

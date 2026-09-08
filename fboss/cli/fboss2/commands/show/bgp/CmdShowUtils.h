@@ -64,7 +64,7 @@ void computeCombinations(
 }
 } // namespace
 
-struct CmdShowVersionTraits : public ReadCommandTraits {
+struct CmdShowVersionTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
@@ -150,6 +150,29 @@ const std::string formatBytes(size_t n);
 //     std::ostream& out,
 //     bool detailed,
 //     bool tag2Name = false);
+/*
+ * Marker legend printed above every RIB-entry listing. Single source of truth
+ * shared by the internal and OSS printRIBEntries copies and by the golden
+ * tests, so the legend cannot drift from the markers it describes.
+ *
+ * "!" marks a path excluded from selection before comparison.
+ */
+inline constexpr auto kRibEntryMarkersLegend =
+    "Markers: * - One of the best entries, @ - Best entry, "
+    "% - Pending selection, ! - Inactive path";
+
+/*
+ * Canned RIB data (no real switch data, addresses in documentation ranges)
+ * backing the CLI reference-wiki sampleModel() hooks of the commands that
+ * render a RIB listing. Shared so 'show bgp table' and 'show bgp table detail'
+ * document the same rows, since detail only adds lines to the same paths.
+ *
+ * Two prefixes: an IPv4 default route with two ECMP paths (one selected as
+ * best, one rejected on router-id) plus a third path outside the best group,
+ * and an IPv6 prefix with a single best path.
+ */
+TRibEntryWithHost sampleRibEntriesWithHost();
+
 // Prints entries for bgp table commands
 void printRIBEntries(
     std::ostream& out,

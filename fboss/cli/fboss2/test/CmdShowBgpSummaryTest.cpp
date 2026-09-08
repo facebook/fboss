@@ -580,4 +580,29 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoPrefixDrops) {
   EXPECT_THAT(output, Not(HasSubstr("PRD")));
 }
 
+TEST_F(CmdShowBgpSummaryTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpSummaryTraits::description().empty());
+  EXPECT_FALSE(CmdShowBgpSummary::sampleModel().sessions()->empty());
+
+  // Render the sample the way the wiki generator does. A property-only check
+  // would still pass on a sample missing a field printOutput reads via
+  // .value().
+  std::stringstream ss;
+  CmdShowBgpSummary().printOutput(CmdShowBgpSummary::sampleModel(), ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("Router ID - 192.0.2.1, Local ASN - 65499"));
+  EXPECT_THAT(output, HasSubstr("Peers: UP - 4, TOTAL - 5"));
+  EXPECT_THAT(output, HasSubstr("192.0.2.11"));
+  // The listen range is deliberately disjoint from the established peers, so
+  // the example cannot be misread as a range that already has sessions in it.
+  EXPECT_THAT(output, HasSubstr("198.51.100.0/24"));
+  EXPECT_THAT(output, Not(HasSubstr("192.0.2.0/24")));
+  // description() tells readers the three conditional columns are absent from
+  // this example, so pin that they really are.
+  EXPECT_THAT(output, Not(HasSubstr("PRD")));
+  EXPECT_THAT(output, Not(HasSubstr("UGPS")));
+  EXPECT_THAT(output, Not(HasSubstr("Downtime")));
+}
+
 } // namespace facebook::fboss

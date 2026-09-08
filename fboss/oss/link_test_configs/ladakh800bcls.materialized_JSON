@@ -15,6 +15,7 @@
     "publish_state_to_fsdb": "true",
     "publish_stats_to_fsdb": "true",
     "qsfp_port_manager_mode": "true",
+    "resolve_nexthops_from_id": "true",
     "sai_configure_six_tap": "true",
     "test_fixture": "true",
     "verify_fib_nexthop_id_consistency": "true"

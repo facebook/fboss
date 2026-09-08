@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_types.h"
@@ -25,6 +26,8 @@ struct CmdShowFabricInputBalanceTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SWITCH_NAME_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowFabricInputBalanceModel;
+
+  static std::string_view description();
 };
 class CmdShowFabricInputBalance : public CmdHandler<
                                       CmdShowFabricInputBalance,
@@ -41,6 +44,8 @@ class CmdShowFabricInputBalance : public CmdHandler<
       const std::vector<utility::InputBalanceResult>& inputBalanceResults);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 
  private:
   // Returns unordered_map<neighborSwitch, unordered_map<destinationSwitch,

@@ -201,6 +201,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     ipv6HopLimit1Mine_.addValue(1);
   }
 
+  void mplsTtlExceeded() {
+    mplsTtlExceeded_.addValue(1);
+  }
+
   void srv6DecapMySidToMe() {
     srv6DecapMySidToMe_.addValue(1);
   }
@@ -956,6 +960,11 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
   // Locally destined packets which arrive with
   // hop limit 1
   TLTimeseries ipv6HopLimit1Mine_;
+
+  // MPLS packets trapped to FBOSS because the top-label TTL expired
+  // during forwarding. The received packet carries ingress TTL 1.
+  TLTimeseries mplsTtlExceeded_;
+
   // SRv6 decap: outer header stripped and inner packet re-injected
   TLTimeseries srv6DecapMySidToMe_;
   // SRv6 packet with non-last uSID matching decap MySID

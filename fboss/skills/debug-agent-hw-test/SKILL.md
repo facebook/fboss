@@ -80,11 +80,11 @@ The `--switch_id_for_testing` flag takes the **switch ID** (not the switch index
 
 On every skill invocation:
 1. **Build** the required binaries (mono or multi-switch)
-2. **Strip and copy** them to the switch (`strip_and_copy.sh` uses md5 dedup — unchanged binaries skip the network copy automatically)
+2. **Strip and copy** them to the switch (`strip_and_copy.sh` strips the binary and prints its md5; the separate upload step uses md5 dedup — an unchanged binary skips the network copy)
 3. **Copy** the config file and test scripts to the switch
 4. Then proceed to run the test
 
-The md5 dedup in `strip_and_copy.sh` makes this safe and fast — if the binary hasn't changed, the copy is skipped. But the build must always run to ensure the binary reflects the current source.
+The md5 dedup in the upload step makes this safe and fast — if the binary hasn't changed, the copy is skipped. But the build must always run to ensure the binary reflects the current source.
 
 ## Debug Loop
 
@@ -187,7 +187,7 @@ These scripts run **on the switch**. Upload them once per session, then run in t
 
 | Script | Purpose | Args |
 |--------|---------|------|
-| `scripts/run_mono_test.sh` | Mono cold+warm boot cycle | `<binary> <config> <filter> <user>` |
+| `scripts/run_mono_test.sh` | Mono cold+warm boot cycle | `<binary> <config> <filter> <user> [ld_library_path]` |
 | `scripts/run_multi_test.sh` | Multi-switch cold+warm boot for one switch_id | `<hw_agent> <test_binary> <config> <filter> <switch_id>` |
 | `scripts/collect_vendor_escalation.sh` | Collect a vendor-escalation package (SAI replayer log + hw_config), with optional packet-send logging | `<mono\|multi> <hw_agent\|-> <test_binary> <config> <filter> <switch_id> <out_dir> <pkt_log:0\|1> [get_attr_log:0\|1] [suffix]` |
 

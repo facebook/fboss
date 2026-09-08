@@ -130,3 +130,23 @@ Any buildable target will be specified in the cmake scripts either by
 
 ```bash file=./static/code_snips/build_with_cmake_target.sh
 ```
+
+### Using a Local Checkout with `--src-dir`
+
+By default, `run-getdeps.py` fetches FBOSS sources from GitHub at the commit
+SHA pinned in `build/deps/github_hashes/facebook/fboss-rev.txt` (populated by
+extracting `fboss/oss/stable_commits/latest_stable_hashes.tar.gz`). The same
+archive pins other dependencies. Your local checkout is not used unless you
+opt in.
+
+To build from your local clone instead of the pinned SHA, pass `--src-dir`
+with the path to the repository root. The build will then use that working
+tree, including uncommitted changes. The stable-hashes extraction is still
+required for other dependencies; only the `fboss` source is overridden:
+
+```bash file=./static/code_snips/build_with_src_dir.sh
+```
+
+You can combine `--src-dir` with any of the build commands above, adding it
+alongside `--cmake-target` for platform builds or alongside `--npu-*` flags
+for forwarding builds.

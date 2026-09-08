@@ -7,6 +7,22 @@
         {
           "test_name_regex": "ConfigAclRuleTest\\.SetVlan$"
         }
+    ],
+    "wedge800bact/brcm-13.3.0.0_odp": [
+        {
+          "test_name_regex": "ConfigAclRuleTest\\.SetEtherType$"
+        },
+        {
+          "test_name_regex": "ConfigAclRuleTest\\.SetVlan$"
+        }
+    ],
+    "wedge800bnhp/brcm-13.3.0.0_odp": [
+        {
+          "test_name_regex": "ConfigAclRuleTest\\.SetEtherType$"
+        },
+        {
+          "test_name_regex": "ConfigAclRuleTest\\.SetVlan$"
+        }
     ]
   }
 }

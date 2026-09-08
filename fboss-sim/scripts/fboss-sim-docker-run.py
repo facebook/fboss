@@ -45,6 +45,11 @@ DEFAULT_CONTAINER_NAME = f"fboss_sim_runtime_{USERNAME}"
 # system libs) instead of the packaged runtime image.
 DEFAULT_BUILD_IMAGE = "fboss_docker:latest"
 
+# Agent log directory inside the container. The per-unit log file names under it
+# are set by the logfile.conf drop-ins in docker/runtime/setup-container.sh --
+# keep the two in sync.
+FBOSS_LOG_DIR = "/var/facebook/logs/fboss"
+
 
 def user_subnet_v6(username: str) -> str:
     """Derive a per-user /64 ULA subnet from a stable hash of the username.
@@ -246,6 +251,9 @@ cat > /etc/systemd/system/fboss_sw_agent.service.d/override.conf <<'DROPIN'
 ExecStart=
 ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fboss_sw_agent --fsdb_client_ssl_preferred=false --thrift_ssl_policy=disabled --tun_intf=false'
 DROPIN
+
+# Per-unit agent log files are set up by setup-container.sh (run above), which
+# both this path and Dockerfile.runtime share.
 systemctl daemon-reload
 
 # Neither switch-agent-mode.sh nor a wedge_agent.service unit ship in the
@@ -375,9 +383,53 @@ def _find_repo_root() -> str:
     return str(Path(__file__).resolve().parents[2])
 
 
+def usage_commands(mode: str = "both") -> str:
+    """Post-launch command cheat sheet.
+
+    Rendered both after a successful launch and as the --help epilog, so the
+    commands stay discoverable once the launch output has scrolled away.
+
+    mode: "mono", "split", or "both". --help uses "both" because the agent mode
+    isn't known until the container is up.
+    """
+    c = DEFAULT_CONTAINER_NAME
+    script = Path(__file__).name
+    lines = ["Useful commands (docker/podman needs sudo on most hosts):"]
+    if mode in ("mono", "both"):
+        lines += [
+            "",
+            "  mono (wedge_agent):",
+            f"    Agent status:     sudo docker exec {c} systemctl status wedge_agent",
+            f"    Agent log:        sudo docker exec {c} tail -f {FBOSS_LOG_DIR}/wedge_agent.log",
+            f"    Switch to split:  sudo docker exec {c} switch-agent-mode.sh split",
+        ]
+    if mode in ("split", "both"):
+        lines += [
+            "",
+            "  split (fboss_sw_agent + fboss_hw_agent@N):",
+            f"    SW agent status:  sudo docker exec {c} systemctl status fboss_sw_agent",
+            f"    HW agent status:  sudo docker exec {c} systemctl status fboss_hw_agent@0",
+            f"    SW agent log:     sudo docker exec {c} tail -f {FBOSS_LOG_DIR}/sw_agent.log",
+            f"    HW agent log:     sudo docker exec {c} tail -f {FBOSS_LOG_DIR}/hw_agent0.log",
+            f"    Switch to mono:   sudo docker exec {c} switch-agent-mode.sh mono",
+        ]
+    lines += [
+        "",
+        "  any mode:",
+        f"    Enter shell:      sudo docker exec -it {c} bash",
+        f"    Run CLI test:     sudo docker exec {c} /opt/fboss/bin/fboss2_integration_test",
+        f"    Tear down:        {script} --teardown",
+    ]
+    return "\n".join(lines)
+
+
 def _parse_args() -> argparse.Namespace:
     default_repo = _find_repo_root()
-    parser = argparse.ArgumentParser(description="Run the fboss-sim runtime container")
+    parser = argparse.ArgumentParser(
+        description="Run the fboss-sim runtime container",
+        epilog=usage_commands(),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--local",
         action="store_true",
@@ -426,28 +478,14 @@ def _print_usage_footer(is_mono: bool) -> None:
     mode = (
         "mono (wedge_agent)" if is_mono else "split (fboss_sw_agent + fboss_hw_agent)"
     )
-    other_mode = "split" if is_mono else "mono"
     print(f"\n{'=' * 60}")
     print("✅ Container started successfully!")
     print(f"{'=' * 60}")
     print(f"\nContainer name: {c}")
     print(f"Agent mode:     {mode}")
-    print("\nUseful commands:")
-    if is_mono:
-        print(f"  • Agent status:     docker exec {c} systemctl status wedge_agent")
-    else:
-        print(f"  • SW agent status:  docker exec {c} systemctl status fboss_sw_agent")
-        print(
-            f"  • HW agent status:  docker exec {c} systemctl status fboss_hw_agent@0"
-        )
-    print(f"  • Switch mode:      docker exec {c} switch-agent-mode.sh {other_mode}")
-    print(
-        f"  • View logs:        docker exec {c} tail -f /var/facebook/logs/fboss/wedge_agent.log"
-    )
-    print(f"  • Enter shell:      docker exec -it {c} bash")
-    print(
-        f"  • Run CLI test:     docker exec {c} /opt/fboss/bin/fboss2_integration_test"
-    )
+    print()
+    print(usage_commands("mono" if is_mono else "split"))
+    print(f"\n(Re-run `{Path(__file__).name} --help` to see these again.)")
     print()
 
 

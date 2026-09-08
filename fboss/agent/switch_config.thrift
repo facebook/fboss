@@ -488,8 +488,25 @@ struct MirrorOnDropReport {
  * The action for an access control entry
  */
 enum AclActionType {
+  /** Drop the packet. Maps to SAI_PACKET_ACTION_DROP. */
   DENY = 0,
+
   PERMIT = 1,
+
+  /**
+   * Drop the packet, and additionally cancel any copy to CPU requested for it
+   * by a lower priority ACL or by a host interface trap. Maps to
+   * SAI_PACKET_ACTION_DENY, which the SAI spec defines as a combination of
+   * COPY_CANCEL and DROP.
+   *
+   * Unlike DENY, this also suppresses a punt that the forwarding lookup would
+   * otherwise take, because implementations may realize host interface traps
+   * as lower priority ACLs.
+   *
+   * Not supported on every ASIC. Where the underlying packet action is
+   * unavailable, an entry using it fails to program.
+   */
+  DENY_DATA_AND_CONTROL_PLANE = 2,
 }
 
 /**
@@ -540,6 +557,12 @@ enum AclLookupClass {
   DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
 
   ARS_ALTERNATE_MEMBERS_CLASS = 32,
+}
+
+enum AclLookupClassPort {
+  CLASS_PORT_UNCONSTRAINED = 0,
+  CLASS_PORT_RESTRICTED = 1,
+  CLASS_PORT_BLOCKED = 2,
 }
 
 enum PacketLookupResultType {
@@ -669,6 +692,19 @@ struct AclEntry {
   35: optional list<AclUdfEntry> udfTable;
 
   36: optional Range l4DstPortRange;
+
+  // Thrift has no unsigned 32-bit integer type. Use i64 as the carrier type so
+  // the full IPv6 word range [0, 0xffffffff] is representable. ACL config
+  // application validates the range before programming.
+  //
+  // dstIpV6Word3 matches destination IPv6 bits 127:96, and dstIpV6Word2
+  // matches bits 95:64. For AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222,
+  // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
+  37: optional i64 dstIpV6Word3;
+  38: optional i64 dstIpV6Word2;
+
+  /* Match lookup class assigned to the packet's ingress port. */
+  39: optional AclLookupClassPort lookupClassPort;
 }
 
 enum AclTableActionType {
@@ -716,6 +752,14 @@ enum AclTableQualifier {
   L4_DST_PORT_RANGE = 27,
   TC = 28,
   NEXT_HOP_GROUP_ID = 29,
+  DST_IPV6_WORD3 = 30,
+  DST_IPV6_WORD2 = 31,
+  LOOKUP_CLASS_PORT = 32,
+}
+
+enum AclTableGroupBindPoint {
+  SWITCH = 0,
+  PORT = 1,
 }
 
 struct AclTable {
@@ -739,6 +783,7 @@ struct AclTableGroup {
   1: string name;
   2: list<AclTable> aclTables = [];
   3: AclStage stage = AclStage.INGRESS;
+  4: AclTableGroupBindPoint bindPoint = AclTableGroupBindPoint.SWITCH;
 }
 // enddocs_AclTableGroup_struct
 
@@ -1171,6 +1216,18 @@ enum PortDrainState {
   DRAINED = 1,
 }
 
+/*
+ * Who notices that a port's link status changed: the SDK's software
+ * linkscan thread, or the ASIC itself.
+ *
+ * Unset leaves whatever the SDK came up with alone - FBOSS never
+ * programs the mode. Either value is written down to the SDK.
+ */
+enum LinkScanMode {
+  SOFTWARE = 1,
+  HARDWARE = 2,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1396,6 +1453,26 @@ struct Port {
   // UEC Link Layer Retry: name of the LlrConfig profile to apply to this port.
   // Presence enables LLR on the port (UE Spec 1.0.2 section 5.1).
   42: optional LlrConfigName llrConfigName;
+
+  // Controls whether TX precoding settings from the platform mapping are
+  // applied to the port.
+  43: optional bool txPrecoding;
+  // Controls whether RX precoding settings from the platform mapping are
+  // applied to the port.
+  44: optional bool rxPrecoding;
+
+  /*
+   * Whether link status changes on this port are noticed by the SDK's
+   * software linkscan thread or by the ASIC.
+   * Unset = leave whatever the SDK came up with untouched.
+  */
+  45: optional LinkScanMode linkScanMode;
+
+  // Ingress ACL table bound directly to this port.
+  46: optional string ingressAclTableName;
+
+  /* Lookup class assigned to packets ingressing on this port. */
+  47: optional AclLookupClassPort userMetaData;
 }
 
 enum LacpPortRate {
@@ -1696,6 +1773,12 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
+  /* valid only for port type of interface. Holds the key of the
+   * cfg::AggregatePort this interface is bound to, for a port router interface
+   * over an aggregate port. Exactly one of portID and aggregatePortID is set.
+   * Kept separate from portID because AggregatePortID and PortID share a
+   * numeric space, so a single field could not be disambiguated. */
+  20: optional i32 aggregatePortID;
 }
 
 struct StaticRouteWithNextHops {
@@ -1994,6 +2077,39 @@ enum PacketForwardingMode {
 /*
  * Switch specific settings: global to the switch
  */
+/**
+ * Which kind of ECMP group a setting applies to.
+ *
+ * These are FBOSS level categories, not SAI group types. ARS,
+ * ECMP_FIXED_ASSIGNMENT and ECMP_SPRAY are all SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+ * they are told apart by whether an ARS object is attached and by the group's
+ * switching mode. Where a group could match more than one category, the group
+ * type wins: an FRR backup is programmed with random spray, but it is
+ * FRR_BACKUP, not ECMP_SPRAY.
+ */
+enum EcmpGroupType {
+  // Plain ECMP with an ARS (DLB) object attached.
+  ARS = 0,
+  // FRR protection parent (SAI_NEXT_HOP_GROUP_TYPE_PROTECTION).
+  FRR_PRIMARY = 1,
+  // FRR protection backup (SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION).
+  FRR_BACKUP = 2,
+  // Plain ECMP, fixed assignment switching mode.
+  ECMP_FIXED_ASSIGNMENT = 3,
+  // Plain ECMP, per packet random spray.
+  ECMP_SPRAY = 4,
+}
+
+struct EcmpGroupSettings {
+  /**
+   * Stops a group from egressing a packet on the port it arrived on. On an FRR
+   * protection parent this arms source port based failover to the backup group;
+   * on the backup it enables tertiary member selection; on an ARS group it
+   * prunes the source port member within the group.
+   */
+  1: bool enableSplitHorizon = false;
+}
+
 struct SwitchSettings {
   1: L2LearningMode l2LearningMode = L2LearningMode.HARDWARE;
   2: bool qcmEnable = false;
@@ -2087,6 +2203,30 @@ struct SwitchSettings {
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
   36: optional PacketForwardingMode packetForwardingMode;
+  // Max ECMP width; also implies the UCMP normalization factor. Config-sourced
+  // replacement for FLAGS_ecmp_width. Changing it requires a coldboot.
+  37: optional i32 ecmpWidth;
+  /**
+   * Split horizon, and any future per group knobs, keyed by group type. Lets a
+   * deployment enable it for some group types and not others -- ARS but not
+   * FRR, or the reverse.
+   *
+   * An empty map means nobody is using the feature, and is the default. A
+   * missing key in a non-empty map means the feature is off for that group
+   * type. The agent still programs the attribute explicitly on FRR groups in
+   * that case, because the vendor SDK defaults it to TRUE on an FRR primary
+   * when the attribute is omitted, and inheriting that default blackholes
+   * traffic.
+   *
+   * FRR_PRIMARY and FRR_BACKUP must be set to the same value. Split horizon on
+   * the parent alone suppresses the source port with no tertiary path on the
+   * backup to catch the traffic.
+   *
+   * Split horizon is CREATE_ONLY on a next hop group, so changing an FRR entry
+   * only affects groups created afterwards. The ARS entry is settable and takes
+   * effect on existing groups.
+   */
+  38: map<EcmpGroupType, EcmpGroupSettings> ecmpGroupSettings;
 }
 
 // Global buffer pool
@@ -2359,6 +2499,11 @@ struct PortFlowletConfig {
 
 // Behavior for LLR-desired frames while the LLR TX state machine is in the
 // INIT or FLUSH state (UE Spec 1.0.2 section 5.1.5).
+//
+// The spec permits all three in both states. Tomahawk Ultra accepts only INIT
+// in {BLOCK, BEST_EFFORT} and FLUSH in {BLOCK}, rejecting anything else at SAI
+// profile create. Broadcom confirmed in CS00012472686 that this is a hardware
+// design limit rather than an SDK gap, and that TU2 behaves the same.
 enum LlrFrameAction {
   DISCARD = 0,
   BLOCK = 1,
@@ -2388,10 +2533,9 @@ struct LlrConfig {
   6: i64 dataAgeTimeout;
   // Action for LLR-desired frames in INIT state (llr_init_behavior).
   7: LlrFrameAction initFrameAction = LlrFrameAction.BEST_EFFORT;
-  // Action for LLR-desired frames in FLUSH state (llr_flush_behavior).
-  // Tomahawk Ultra (the only LLR-capable ASIC today) only supports BLOCK in
-  // FLUSH; other values are rejected at SAI profile create, so BLOCK is the
-  // default.
+  // Action for LLR-desired frames in FLUSH state (llr_flush_behavior). BLOCK is
+  // the only value Tomahawk Ultra accepts, hence the default; see
+  // LlrFrameAction.
   8: LlrFrameAction flushFrameAction = LlrFrameAction.BLOCK;
   // Re-initialize LLR on FLUSH (re_init_on_discard).
   9: bool reInitOnFlush = false;

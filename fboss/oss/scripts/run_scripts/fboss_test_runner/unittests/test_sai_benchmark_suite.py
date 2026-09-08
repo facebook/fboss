@@ -33,15 +33,12 @@ def sai_args():
 
 
 def test_binary_mono(suite, sai_args):
-    assert suite.binary_path(sai_args) == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
+    assert suite.binary_name(sai_args) == "sai_all_benchmarks-sai_impl"
 
 
 def test_binary_multi_switch(suite, sai_args):
     sai_args.agent_run_mode = "multi_switch"
-    assert (
-        suite.binary_path(sai_args)
-        == "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
-    )
+    assert suite.binary_name(sai_args) == "sai_multi_switch_all_benchmarks-sai_impl"
 
 
 # ---- build_cmd -----------------------------------------------------------

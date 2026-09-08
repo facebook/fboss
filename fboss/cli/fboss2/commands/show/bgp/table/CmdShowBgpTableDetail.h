@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
@@ -28,6 +30,10 @@ struct CmdShowBgpTableDetailTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = TRibEntryWithHost;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowBgpTableDetail
@@ -38,6 +44,13 @@ class CmdShowBgpTableDetail
 
   void printOutput(RetType& entries, std::ostream& out = std::cout) {
     printRIBEntries(out, entries, /*detail=*/true);
+  }
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. Same rows as
+  // 'show bgp table'; detail only adds lines to each path.
+  static RetType sampleModel() {
+    return sampleRibEntriesWithHost();
   }
 };
 } // namespace facebook::fboss

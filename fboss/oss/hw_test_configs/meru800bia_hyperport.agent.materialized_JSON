@@ -11,6 +11,7 @@
     "hyper_port": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
+    "resolve_nexthops_from_id": "true",
     "sai_configure_six_tap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
     "skip_transceiver_programming": "true",

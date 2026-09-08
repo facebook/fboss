@@ -91,9 +91,10 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   // Mark HwSwitch run state as exiting
   hwAgent_->getPlatform()->getHwSwitch()->switchRunStateChanged(
       SwitchRunState::EXITING);
-  // rx pkt callback handler might be waiting on event enqueue. Cancel any
-  // pending events to avoid sdk callbak unregistration getting stuck
+  // rx pkt and fdb callback handlers might be waiting on event enqueue. Cancel
+  // any pending events to avoid sdk callbak unregistration getting stuck
   syncer_->cancelPendingRxPktEnqueue();
+  syncer_->cancelPendingFdbEnqueue();
   // unregister sdk callbacks so that we do not get sdk updates while shutting
   // down
   XLOG(DBG2) << "[Exit] unregistering callbacks";
@@ -248,16 +249,17 @@ int hwAgentMain(
       {FLAGS_hwagent_port_base + FLAGS_switchIndex},
       true /*setupSSL*/);
 #ifndef IS_OSS
-  server->setMonitoringInterface(
-      std::make_shared<facebook::fb303::DefaultMonitor>());
+  auto monitor = std::make_shared<facebook::fb303::DefaultMonitor>();
+  auto status = std::make_shared<facebook::fb303::DefaultStatus>();
+  markThriftMethodsInternalAndBypassLimits(*server, {monitor, status});
+  server->setMonitoringInterface(std::move(monitor));
   server->setControlInterface(
       std::make_shared<facebook::fb303::DefaultControl>());
   // The NetOS native-service watchdog gates systemd readiness on an fb303
   // getStatus() call against the HwAgent thrift port. Without a status
   // interface that method is unresolvable, so the service never reaches
   // READY and is killed by the watchdog before SwAgent can start.
-  server->setStatusInterface(
-      std::make_shared<facebook::fb303::DefaultStatus>());
+  server->setStatusInterface(std::move(status));
 #endif
 
   SplitHwAgentSignalHandler signalHandler(

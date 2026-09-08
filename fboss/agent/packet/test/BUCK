@@ -45,7 +45,6 @@ cpp_unittest(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
-        "//fboss/agent/packet:pktutil",
         "//fboss/agent/state:state",
         "//fboss/agent/test:utils",
         "//folly:conv",

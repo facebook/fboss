@@ -15,6 +15,7 @@
 #include <memory>
 
 DECLARE_bool(multi_switch);
+DECLARE_bool(use_raw_platform_mapping);
 
 namespace facebook::fboss {
 
@@ -36,7 +37,7 @@ struct AgentConfig {
 
   void dumpConfig(folly::StringPiece path) const;
 
-  cfg::AgentRunMode getRunMode() const;
+  static cfg::AgentRunMode getRunMode();
 
   const cfg::AgentConfig thrift;
   const std::string raw;

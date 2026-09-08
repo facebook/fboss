@@ -18,7 +18,8 @@
 
 namespace facebook::fboss {
 
-struct CmdBgpNeighborsSessionIdTraits : public ReadCommandTraits {
+struct CmdBgpNeighborsSessionIdTraits : public ReadCommandTraits,
+                                        public CliDocsExempt {
   using ParentCmd = CmdShowBgpNeighbors;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST;

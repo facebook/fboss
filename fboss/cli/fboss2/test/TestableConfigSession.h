@@ -26,9 +26,12 @@ class TestableConfigSession : public ConfigSession {
  public:
   TestableConfigSession(
       std::string sessionConfigDir,
-      std::string systemConfigDir)
-      : ConfigSession(std::move(sessionConfigDir), std::move(systemConfigDir)) {
-  }
+      std::string systemConfigDir,
+      SessionInit init = SessionInit::CreateIfAbsent)
+      : ConfigSession(
+            std::move(sessionConfigDir),
+            std::move(systemConfigDir),
+            init) {}
 
   // Constructor with mock FbossServiceUtil
   TestableConfigSession(

@@ -23,7 +23,9 @@
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <unistd.h>
 #include <chrono>
+#include <numeric>
 
 DEFINE_bool(
     optics_data_post_to_rest,
@@ -105,6 +107,24 @@ void WedgeManager::loadConfig() {
   }
 }
 
+void WedgeManager::hardResetTransceivers(const std::vector<int>& tcvrs) {
+  if (tcvrs.empty()) {
+    return;
+  }
+  for (auto idx : tcvrs) {
+    try {
+      triggerQsfpHardReset(idx);
+    } catch (const std::exception& ex) {
+      MODULE_LOG(ERR, "", idx)
+          << "Failed to triggerQsfpHardReset: " << ex.what();
+    }
+  }
+  // Required delay time between a transceiver getting out of reset and fully
+  // functional.
+  // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+  sleep(kSecAfterModuleOutOfReset);
+}
+
 void WedgeManager::initTransceiverMap() {
   // If we can't get access to the USB devices, don't bother to
   // create the QSFP objects;  this is likely to be a permanent
@@ -120,16 +140,11 @@ void WedgeManager::initTransceiverMap() {
   if (!canWarmBoot()) {
     XLOG(INFO) << "[COLD Boot] Will trigger all " << getNumQsfpModules()
                << " qsfps hard reset";
-    for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-      try {
-        // Force hard resets on the transceivers which forces a cold boot of the
-        // modules.
-        triggerQsfpHardReset(idx);
-      } catch (const std::exception& ex) {
-        MODULE_LOG(ERR, "", idx)
-            << "failed to triggerQsfpHardReset: " << ex.what();
-      }
-    }
+    // Force hard resets on the transceivers which forces a cold boot of the
+    // modules.
+    std::vector<int> allTcvrs(getNumQsfpModules());
+    std::iota(allTcvrs.begin(), allTcvrs.end(), 0);
+    hardResetTransceivers(allTcvrs);
   }
 
   // Also try to load the config file here so that we have transceiver to port
@@ -436,8 +451,7 @@ void WedgeManager::syncPorts(
     std::map<int32_t, TransceiverInfo>& info,
     std::unique_ptr<std::map<int32_t, PortStatus>> ports) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("syncPorts");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("syncPorts");
   }
 
   std::set<TransceiverID> tcvrIDs;
@@ -777,15 +791,10 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
   } // end of scope for transceivers_.wlock
 
   for (auto idx : tcvrsToHardReset) {
-    try {
-      MODULE_LOG(INFO, "", idx)
-          << "Try hard reset a present transceiver with unknown interface";
-      triggerQsfpHardReset(idx);
-    } catch (const std::exception& ex) {
-      MODULE_LOG(ERR, "", idx)
-          << "Failed to triggerQsfpHardReset: " << ex.what();
-    }
+    MODULE_LOG(INFO, "", idx)
+        << "Try hard reset a present transceiver with unknown interface";
   }
+  hardResetTransceivers({tcvrsToHardReset.begin(), tcvrsToHardReset.end()});
   return retVal;
 }
 
@@ -967,8 +976,7 @@ void WedgeManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programXphyPort");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programXphyPort");
   }
 
   if (phyManager_ == nullptr) {
@@ -1103,8 +1111,7 @@ void WedgeManager::programXphyPortPrbs(
     phy::Side side,
     const phy::PortPrbsState& prbs) {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("programXphyPortPrbs");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("programXphyPortPrbs");
   }
   phyManager_->setPortPrbs(portID, side, prbs);
 }
@@ -1117,8 +1124,7 @@ phy::PortPrbsState WedgeManager::getXphyPortPrbs(
 
 void WedgeManager::updateAllXphyPortsStats() {
   if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("updateAllXphyPortsStats");
-    return;
+    PORT_MGR_UNEXPECTED_CALL("updateAllXphyPortsStats");
   }
 
   if (!phyManager_) {

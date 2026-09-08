@@ -34,14 +34,9 @@ cpp_library(
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",
     ],
-    exported_deps = [
-        ":test_platform_types",
+    deps = [
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:handler",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw/bcm:bcm",
-        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
         "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
@@ -52,8 +47,15 @@ cpp_library(
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
-        "//fboss/agent/platforms/wedge/utils:bcm-led-utils",  # @manual
         "//fboss/lib/config:fboss_config_utils",
+    ],
+    exported_deps = [
+        ":test_platform_types",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/bcm:bcm",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/wedge/utils:bcm-led-utils",  # @manual
         "//fboss/lib/fpga/facebook/fuji:fuji_container",
         "//fboss/lib/platforms:product-info",
         "//folly:network_address",
@@ -65,6 +67,7 @@ cpp_library(
 )
 
 cpp_library(
+    # @autodeps-skip
     name = "fake_bcm_test_platforms",
     srcs = bcm_test_platforms_common_srcs
     + [
@@ -72,14 +75,9 @@ cpp_library(
         "BcmTestWedgeTomahawkPlatform.cpp",
         "FakeBcmTestPlatform.cpp",
     ],
-    exported_deps = [
-        ":test_platform_types",
+    deps = [
         "//fboss/agent:fboss-error",
-        "//fboss/agent:fboss-types",
         "//fboss/agent:handler",
-        "//fboss/agent:switch_config-cpp2-types",
-        "//fboss/agent/hw/bcm:fake_bcm",  # @manual
-        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/platforms/common/darwin:darwin_platform_mapping",
         "//fboss/agent/platforms/common/elbert:elbert_platform_mapping",
@@ -90,8 +88,15 @@ cpp_library(
         "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
         "//fboss/agent/platforms/common/wedge400:wedge400_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
-        "//fboss/agent/platforms/wedge/utils:bcm-led-utils-oss",
+        "//fboss/agent/platforms/wedge/utils:bcm-led-utils",
         "//fboss/lib/config:fboss_config_utils",
+    ],
+    exported_deps = [
+        ":test_platform_types",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/bcm:fake_bcm",  # @manual
+        "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/lib/fpga/facebook/fuji:fuji_container",
         "//fboss/lib/platforms:product-info",
         "//folly:network_address",

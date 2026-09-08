@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/gen-cpp2/model_types.h"
@@ -15,6 +17,9 @@ struct CmdShowInterfaceCountersFecBerTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowInterfaceCountersFecBerModel;
+
+  // CLI reference wiki hooks
+  static std::string_view description();
 };
 
 class CmdShowInterfaceCountersFecBer
@@ -31,6 +36,9 @@ class CmdShowInterfaceCountersFecBer
       const utils::LinkDirection& direction);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // CLI reference wiki hooks
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

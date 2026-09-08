@@ -606,8 +606,10 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemoved) {
       }
     }
 
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
     WITH_RETRIES_N_TIMED(
-        10 /* retries */,
+        30 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,
@@ -699,11 +701,10 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
       }
     }
 
-    // Due to some platforms are easy to have i2c issue which causes the current
-    // refresh not work as expected. Adding enough retries to make sure that we
-    // at least can meet all `expectedStates` after 10 times.
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
     WITH_RETRIES_N_TIMED(
-        10 /* retries */,
+        30 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,

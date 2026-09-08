@@ -117,6 +117,7 @@ class TestRunTestGtestFallback:
         result = outcome.results[0]
         assert result.status == GtestStatus.SKIPPED
         assert result.test_name == "cold_boot.HwFooTest.Bar"
+        assert result.filter_name == "HwFooTest.Bar"
         # Critical: the fallback must NOT have rewritten this to OK.
         assert result.status != GtestStatus.OK
 
@@ -139,6 +140,7 @@ class TestRunTestGtestFallback:
         result = outcome.results[0]
         assert result.status == GtestStatus.OK
         assert result.test_name == "warm_boot.HwFooTest.Bar"
+        assert result.filter_name == "HwFooTest.Bar"
 
 
 class TestRunTestTimeout:
@@ -166,6 +168,7 @@ class TestRunTestTimeout:
         # dropped or rewritten as OK.
         assert result.status == GtestStatus.TIMEOUT
         assert result.test_name == "cold_boot.HwSlowTest.Slow"
+        assert result.filter_name == "HwSlowTest.Slow"
         # Duration reported is timeout_in_second * 1000.
         assert result.duration_ms == 300000
 

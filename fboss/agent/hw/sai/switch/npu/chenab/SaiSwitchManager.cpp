@@ -103,4 +103,11 @@ void fillHwSwitchDropBitmapStats(
 #endif
 }
 
+void logDropReasons(
+    const std::vector<sai_int32_t>& ingressDropReasons,
+    const std::vector<sai_int32_t>& egressDropReasons) {
+  CHECK_EQ(ingressDropReasons.size(), 0);
+  CHECK_EQ(egressDropReasons.size(), 0);
+}
+
 } // namespace facebook::fboss

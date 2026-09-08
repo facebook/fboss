@@ -35,6 +35,7 @@ std::vector<facebook::fboss::AclEntryThrift> createAclEntries(
       aclTableName, "_cpuPolicing-high-slow-protocols-mac");
   aclEntry3.priority() = 14;
   aclEntry3.dstMac() = "01:80:c2:00:00:02";
+  aclEntry3.lookupClassPort() = cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
   aclEntry3.actionType() = "permit";
 
   return {aclEntry1, aclEntry2, aclEntry3};
@@ -73,27 +74,27 @@ TEST_F(CmdShowAclTestFixture, queryClient) {
     EXPECT_EQ(entries.size(), 3);
 
     EXPECT_EQ(
-        entries[0].get_name(),
+        entries[0].name().value(),
         folly::to<std::string>(
             expectedAclTableName, "_cpuPolicing-CPU-Port-Mcast-v6"));
-    EXPECT_EQ(entries[0].get_priority(), 7);
-    EXPECT_EQ(entries[0].get_actionType(), "permit");
+    EXPECT_EQ(entries[0].priority().value(), 7);
+    EXPECT_EQ(entries[0].actionType().value(), "permit");
 
     EXPECT_EQ(
-        entries[1].get_name(),
+        entries[1].name().value(),
         folly::to<std::string>(
             expectedAclTableName, "_cpuPolicing-high-BGPDstPort-dstLocalIp4"));
-    EXPECT_EQ(entries[1].get_priority(), 2);
+    EXPECT_EQ(entries[1].priority().value(), 2);
     EXPECT_EQ(entries[1].l4DstPort().value(), 179);
-    EXPECT_EQ(entries[1].get_actionType(), "permit");
+    EXPECT_EQ(entries[1].actionType().value(), "permit");
 
     EXPECT_EQ(
-        entries[2].get_name(),
+        entries[2].name().value(),
         folly::to<std::string>(
             expectedAclTableName, "_cpuPolicing-high-slow-protocols-mac"));
-    EXPECT_EQ(entries[2].get_priority(), 14);
+    EXPECT_EQ(entries[2].priority().value(), 14);
     EXPECT_EQ(entries[2].dstMac().value(), "01:80:c2:00:00:02");
-    EXPECT_EQ(entries[2].get_actionType(), "permit");
+    EXPECT_EQ(entries[2].actionType().value(), "permit");
   }
 }
 
@@ -119,6 +120,7 @@ Acl: aclTable1_cpuPolicing-high-BGPDstPort-dstLocalIp4
 Acl: aclTable1_cpuPolicing-high-slow-protocols-mac
    priority: 14
    dst mac: 01:80:c2:00:00:02
+   lookup class port: Restricted
    action: permit
 
 ACL Table Name: aclTable2
@@ -134,6 +136,7 @@ Acl: aclTable2_cpuPolicing-high-BGPDstPort-dstLocalIp4
 Acl: aclTable2_cpuPolicing-high-slow-protocols-mac
    priority: 14
    dst mac: 01:80:c2:00:00:02
+   lookup class port: Restricted
    action: permit
 
 )";

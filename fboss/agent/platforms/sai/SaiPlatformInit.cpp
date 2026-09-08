@@ -19,11 +19,20 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInitImpl.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
+#include "thrift/lib/cpp2/protocol/Serializer.h"
 
 namespace facebook::fboss {
 namespace {
 
-std::string getPlatformMappingForInit(PlatformType type) {
+std::string getPlatformMappingForInit(
+    PlatformType type,
+    const cfg::PlatformConfig& platformConfig) {
+  if (FLAGS_use_raw_platform_mapping) {
+    return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+        PlatformDescriptorRegistry::get().loadPlatformMappingFromRaw(
+            type, platformConfig));
+  }
+
   std::string platformMappingStr;
   if (!FLAGS_platform_mapping_override_path.empty()) {
     if (!folly::readFile(
@@ -74,7 +83,8 @@ std::unique_ptr<Platform> initSaiPlatform(
   productInfo->initialize();
   auto localMac = getLocalMacAddress();
 
-  auto platformMappingStr = getPlatformMappingForInit(productInfo->getType());
+  auto platformMappingStr = getPlatformMappingForInit(
+      productInfo->getType(), *config->thrift.platform());
   auto platform =
       chooseSaiPlatform(std::move(productInfo), localMac, platformMappingStr);
   platform->init(std::move(config), hwFeaturesDesired, switchIndex);

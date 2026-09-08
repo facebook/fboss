@@ -49,6 +49,13 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
     portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
   }
 
+  bool portLoadCurrent = false;
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_CURRENT_PORT_LOAD)) {
+    portLoadCurrent = true;
+  }
+
   // Workarounds until 11.7 completely goes away and 13.0 is rolled out
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   if (samplingInterval < kArsMinSamplingRateNs) {
@@ -113,7 +120,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       portLoadFutureWeight,
       loadFutureMinVal,
       loadFutureMaxVal,
-      true,
+      portLoadCurrent,
       portLoadExponent,
       loadCurrentMinVal,
       loadCurrentMaxVal

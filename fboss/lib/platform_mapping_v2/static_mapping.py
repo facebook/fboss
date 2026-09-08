@@ -151,6 +151,16 @@ class StaticMapping:
 
         return unique_chips
 
+    def get_num_switch_asics(self) -> int:
+        """Return physical switch ASIC count, excluding per-ASIC cores."""
+        return len(
+            {
+                (chip.slot_id, chip.chip_id)
+                for chip in self.get_chips()
+                if chip.chip_type == ChipType.NPU
+            }
+        )
+
     # Given some details about a connection, check and return if the connection exists.
     # The function throws if the connection is not found
     def find_connection_end(

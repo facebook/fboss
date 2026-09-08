@@ -136,10 +136,18 @@ TEST(CmdArgsTest, HwObjectList) {
   ASSERT_NO_THROW(utils::HwObjectList({"PORT"}));
   EXPECT_THAT(
       utils::HwObjectList({"PORT"}).data(), ElementsAre(HwObjectType::PORT));
+  ASSERT_NO_THROW(utils::HwObjectList({"NEXT_HOP_GROUP_MEMBER"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"NEXT_HOP_GROUP_MEMBER"}).data(),
+      ElementsAre(HwObjectType::NEXT_HOP_GROUP_MEMBER));
   ASSERT_NO_THROW(utils::HwObjectList({"LAG", "MIRROR"}));
   EXPECT_THAT(
       utils::HwObjectList({"LAG", "MIRROR"}).data(),
       ElementsAre(HwObjectType::LAG, HwObjectType::MIRROR));
+  ASSERT_NO_THROW(utils::HwObjectList({"SAMPLE_PACKET"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"SAMPLE_PACKET"}).data(),
+      ElementsAre(HwObjectType::SAMPLE_PACKET));
 
   // test invalid arguments
   ASSERT_THROW(utils::HwObjectList({"M"}), std::out_of_range);

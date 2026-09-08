@@ -17,7 +17,8 @@
 namespace facebook::fboss {
 
 // Traits for the "show config running bgp" command
-struct CmdShowConfigRunningBgpTraits : public ReadCommandTraits {
+struct CmdShowConfigRunningBgpTraits : public ReadCommandTraits,
+                                       public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

@@ -90,12 +90,15 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // LinkScanMode
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
         std::nullopt, // LlrModeLocal
         std::nullopt, // LlrModeRemote
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
   }
 
@@ -252,6 +255,22 @@ TEST_F(PortStoreTest, portSetMtu) {
       portId, SaiPortTraits::Attributes::Mtu{});
   EXPECT_EQ(apiMtu, kMtu);
 }
+
+TEST_F(PortStoreTest, portSetIngressAcl) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  constexpr sai_object_id_t kIngressAclId{42};
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(newAttrs) =
+      kIngressAclId;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, IngressAcl, portObj.attributes()), kIngressAclId);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portId, SaiPortTraits::Attributes::IngressAcl{}),
+      kIngressAclId);
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
 TEST_F(PortStoreTest, portFabricIsolate) {
   auto portId = createPort(0);
@@ -301,6 +320,26 @@ TEST_F(PortStoreTest, portSetDisableTtl) {
   EXPECT_TRUE(GET_OPT_ATTR(Port, DisableTtlDecrement, portObj.attributes()));
   EXPECT_TRUE(saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::DisableTtlDecrement{}));
+}
+
+TEST_F(PortStoreTest, portSetMetadata) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, Metadata, portObj.attributes()),
+      static_cast<sai_uint32_t>(0));
+
+  constexpr sai_uint32_t kMetadata{42};
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(newAttrs) =
+      kMetadata;
+  portObj.setAttributes(newAttrs);
+
+  EXPECT_EQ(GET_OPT_ATTR(Port, Metadata, portObj.attributes()), kMetadata);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portId, SaiPortTraits::Attributes::Metadata{}),
+      kMetadata);
 }
 /*
  * Confirm that moving out of a SaiObject<SaiPortTraits> works as expected
@@ -443,6 +482,25 @@ TEST_F(PortStoreTest, portSetResetQueueCreditBalance) {
   apiResetQueueCreditBalance = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::ResetQueueCreditBalance{});
   EXPECT_EQ(apiResetQueueCreditBalance, false);
+}
+
+TEST_F(PortStoreTest, portSetLinkScanMode) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+
+  // Check default value
+  auto apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 0);
+
+  // Set link scan mode to hardware (SAI_PORT_LINKSCAN_MODE_HW == 2)
+  SaiPortTraits::Attributes::LinkScanMode linkScanMode(2);
+  saiApiTable->portApi().setAttribute(portId, linkScanMode);
+
+  // Verify the attribute was set correctly
+  apiLinkScanMode = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkScanMode{});
+  EXPECT_EQ(apiLinkScanMode, 2);
 }
 
 TEST_F(PortStoreTest, portSetPfcMonitorDirection) {

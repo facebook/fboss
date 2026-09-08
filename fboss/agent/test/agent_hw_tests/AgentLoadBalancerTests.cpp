@@ -548,6 +548,10 @@ TEST_F(
 
     // Reset to original hash so verify is idempotent across warmboot
     helper->programLoadBalancer(fullHashNoFlowLabel);
+    // With standard full hash, flow-label-only traffic should NOT
+    // be load balanced (all packets hash to the same port)
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, false /* loadBalanceExpected */);
   };
   runTestAcrossWarmBoots(setup, verify, []() {}, []() {});
 }

@@ -9,6 +9,7 @@
     "log_variable_name": "true",
     "mode": "yangra",
     "multi_switch": "true",
+    "resolve_nexthops_from_id": "true",
     "rx_vlan_untagged_packets": "true",
     "sai_configure_six_tap": "true",
     "sai_user_defined_trap": "true",

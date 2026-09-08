@@ -149,16 +149,16 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, createModel) {
   EXPECT_EQ(errorCounters.size(), 1);
   EXPECT_EQ(trafficCounters.size(), 3);
 
-  EXPECT_EQ(trafficCounters[0].get_peerIf(), "fsw001.p001");
-  EXPECT_EQ(trafficCounters[1].get_peerIf(), "fsw002.p001");
-  EXPECT_EQ(trafficCounters[2].get_peerIf(), "fsw003.p001");
+  EXPECT_EQ(trafficCounters[0].peerIf().value(), "fsw001.p001");
+  EXPECT_EQ(trafficCounters[1].peerIf().value(), "fsw002.p001");
+  EXPECT_EQ(trafficCounters[2].peerIf().value(), "fsw003.p001");
 
-  EXPECT_NEAR(trafficCounters[0].get_inPct(), 9.87654, 0.0001);
-  EXPECT_NEAR(trafficCounters[0].get_outPct(), 79.0123, 0.0001);
-  EXPECT_NEAR(trafficCounters[1].get_inPct(), 4.93827, 0.0001);
-  EXPECT_NEAR(trafficCounters[1].get_outPct(), 39.5062, 0.0001);
-  EXPECT_NEAR(trafficCounters[2].get_inPct(), 2.46914, 0.0001);
-  EXPECT_NEAR(trafficCounters[2].get_outPct(), 19.7531, 0.0001);
+  EXPECT_NEAR(trafficCounters[0].inPct().value(), 9.87654, 0.0001);
+  EXPECT_NEAR(trafficCounters[0].outPct().value(), 79.0123, 0.0001);
+  EXPECT_NEAR(trafficCounters[1].inPct().value(), 4.93827, 0.0001);
+  EXPECT_NEAR(trafficCounters[1].outPct().value(), 39.5062, 0.0001);
+  EXPECT_NEAR(trafficCounters[2].inPct().value(), 2.46914, 0.0001);
+  EXPECT_NEAR(trafficCounters[2].outPct().value(), 19.7531, 0.0001);
 }
 
 TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {
@@ -183,6 +183,23 @@ TEST_F(CmdShowInterfaceTrafficTestFixture, printOutput) {
       " Total           --           --     29629.63  4.23%  18.00   237037.04  33.86%  45.00   \n\n";
 
   EXPECT_EQ(expectedOutput, output);
+}
+
+// A box with every front panel port down and no transceivers reports zero for
+// every rate counter, so isInterestingTraffic() filters out every row and the
+// Total is computed over an empty set. Totals must read 0.00%.
+TEST_F(CmdShowInterfaceTrafficTestFixture, printOutputNoInterestingTraffic) {
+  auto cmd = CmdShowInterfaceTraffic();
+  auto model = cmd.createModel(portInfo, {} /* intCounters */, queriedIfs);
+
+  EXPECT_TRUE(model.traffic_counters()->empty());
+
+  std::stringstream ss;
+  cmd.printOutput(model, ss);
+
+  const std::string output = ss.str();
+  EXPECT_NE(output.find("Total"), std::string::npos);
+  EXPECT_NE(output.find("0.00%"), std::string::npos);
 }
 
 // CLI reference wiki hooks: a human description and a non-empty sample model.

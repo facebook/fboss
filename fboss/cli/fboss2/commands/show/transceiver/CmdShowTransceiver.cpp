@@ -176,13 +176,14 @@ std::map<int32_t, std::string>
 CmdShowTransceiver::queryTransceiverValidationInfo(
     apache::thrift::Client<QsfpService>* qsfpService,
     std::map<int, PortStatus> portStatusEntries) const {
-  std::vector<int32_t> requiredTransceiverEntries;
+  std::set<int32_t> uniqueTransceiverIds;
   for (const auto& portStatusItr : portStatusEntries) {
     if (auto tidx = portStatusItr.second.transceiverIdx()) {
-      requiredTransceiverEntries.push_back(
-          folly::copy(tidx->transceiverId().value()));
+      uniqueTransceiverIds.insert(folly::copy(tidx->transceiverId().value()));
     }
   }
+  const std::vector<int32_t> requiredTransceiverEntries(
+      uniqueTransceiverIds.begin(), uniqueTransceiverIds.end());
 
   std::map<int, std::string> transceiverValidationEntries;
   try {

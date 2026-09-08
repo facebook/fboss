@@ -61,6 +61,12 @@ struct TestHybridStruct {
   5: list<TestStructSimple> structList = [];
 }
 
+struct RecursiveStruct {
+  1: string name;
+  2: TestStructSimple simpleMember;
+  3: list<RecursiveStruct> children = [];
+}
+
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
 struct TestStruct {
   1: bool tx = false;
@@ -90,4 +96,6 @@ struct TestStruct {
   22: optional TestHybridStruct optionalAnnotatedStruct;
   @fboss_common.AllowSkipThriftCow
   23: map<string, OtherStruct> fieldAnnotatedMap;
+  24: list<RecursiveStruct> recursiveMember;
+  25: map<string, RecursiveStruct> mapOfRecursiveStruct = {};
 }

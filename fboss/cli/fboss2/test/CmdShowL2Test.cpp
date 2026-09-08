@@ -42,4 +42,9 @@ TEST_F(CmdShowL2TestFixture, printOutput) {
   EXPECT_EQ(expectOutput, output);
 }
 
+TEST_F(CmdShowL2TestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowL2Traits::description().empty());
+  EXPECT_FALSE(CmdShowL2::sampleModel().empty());
+}
+
 } // namespace facebook::fboss

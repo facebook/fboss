@@ -20,6 +20,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RouteUpdaterUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
@@ -46,6 +47,10 @@ DEFINE_bool(
     enable_capacity_pruning,
     false,
     "Enable path pruning based on capacity");
+DEFINE_bool(
+    enable_fpf_capacity_pruning,
+    false,
+    "Enable FPF (GTSW/STSW) per-STSW path pruning based on capacity");
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -98,7 +103,8 @@ RibRouteUpdater::RibRouteUpdater(
           FLAGS_nsf_num_parallel_rack_links,
           FLAGS_nsf_rack_id,
           FLAGS_nsf_num_spine_failures_to_skip,
-          FLAGS_nsf_spine_prune_step_count) {}
+          FLAGS_nsf_spine_prune_step_count,
+          FLAGS_enable_fpf_capacity_pruning) {}
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
@@ -118,7 +124,8 @@ RibRouteUpdater::RibRouteUpdater(
           FLAGS_nsf_num_parallel_rack_links,
           FLAGS_nsf_rack_id,
           FLAGS_nsf_num_spine_failures_to_skip,
-          FLAGS_nsf_spine_prune_step_count) {}
+          FLAGS_nsf_spine_prune_step_count,
+          FLAGS_enable_fpf_capacity_pruning) {}
 
 void RibRouteUpdater::update(
     const std::map<ClientID, std::vector<RouteEntry>>& toAdd,
@@ -1100,6 +1107,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       RouteNextHopSet nhSet = labelPopandLookup
           ? bestEntryNhops
           : mergeForwardInfos(nhToFwds, route);
+      nhSet = removeBackupNextHopsWithMatchingPrimary(std::move(nhSet));
 
       // normalize weight information for capacity matching if needed
       if (FLAGS_enable_capacity_pruning) {

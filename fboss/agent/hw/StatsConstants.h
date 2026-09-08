@@ -153,6 +153,35 @@ inline folly::StringPiece constexpr kLeakyBucketFlapCnt() {
   return "leaky_bucket_flap_cnt";
 }
 
+// Cumulative per-port counts of phy transitions, qualified by side because
+// updatePmdInfo() runs once per side on XPHY and the two must not share a
+// monotonic counter.
+inline folly::StringPiece constexpr kLineRxSignalDetectChanged() {
+  return "line.rx_signal_detect_changed";
+}
+
+inline folly::StringPiece constexpr kSystemRxSignalDetectChanged() {
+  return "system.rx_signal_detect_changed";
+}
+
+inline folly::StringPiece constexpr kLineRxCdrLockChanged() {
+  return "line.rx_cdr_lock_changed";
+}
+
+inline folly::StringPiece constexpr kSystemRxCdrLockChanged() {
+  return "system.rx_cdr_lock_changed";
+}
+
+// Line side only: RS layer fault status is never collected for the system
+// side, so there is no system.* counterpart to these.
+inline folly::StringPiece constexpr kLineLocalFaultChanged() {
+  return "line.local_fault_changed";
+}
+
+inline folly::StringPiece constexpr kLineRemoteFaultChanged() {
+  return "line.remote_fault_changed";
+}
+
 inline folly::StringPiece constexpr kInLabelMissDiscards() {
   return "in_label_miss_discards";
 }
@@ -366,5 +395,105 @@ inline folly::StringPiece constexpr kOutDiscardsSll() {
 
 inline folly::StringPiece constexpr kOutDiscardsHll() {
   return "out_discards_headroom_lifetime_limit";
+}
+
+// UEC Link Layer Retry counters (UE Spec 1.0.2 section 5.1). Exported only on
+// LLR-capable ASICs (Tomahawk Ultra). The remaining LLR counters in HwPortStats
+// (the control-ordered-set handshake counters and expected_seq_good) are kept
+// in the FSDB stats tree but intentionally not exported to fb303/ODS.
+inline folly::StringPiece constexpr kLlrTxOk() {
+  return "llr_tx_ok";
+}
+
+inline folly::StringPiece constexpr kLlrRxOk() {
+  return "llr_rx_ok";
+}
+
+inline folly::StringPiece constexpr kLlrTxReplay() {
+  return "llr_tx_replay";
+}
+
+inline folly::StringPiece constexpr kLlrRxReplay() {
+  return "llr_rx_replay";
+}
+
+inline folly::StringPiece constexpr kLlrRxMissingSeq() {
+  return "llr_rx_missing_seq";
+}
+
+inline folly::StringPiece constexpr kLlrRxDuplicateSeq() {
+  return "llr_rx_duplicate_seq";
+}
+
+inline folly::StringPiece constexpr kLlrRxAckNackSeqError() {
+  return "llr_rx_ack_nack_seq_error";
+}
+
+inline folly::StringPiece constexpr kLlrRxExpectedSeqPoisoned() {
+  return "llr_rx_expected_seq_poisoned";
+}
+
+inline folly::StringPiece constexpr kLlrRxExpectedSeqBad() {
+  return "llr_rx_expected_seq_bad";
+}
+
+// Current LLR state machine status, exported as an fb303 counter (a gauge)
+// rather than a timeseries. The value is the LlrTxStatus/LlrRxStatus thrift
+// enum value: TX 0=OFF 1=INIT 2=ADVANCE 3=REPLAY 4=FLUSH, RX 0=OFF
+// 1=SEND_ACKS 2=SEND_NACK 3=NACK_SENT. A healthy LLR link with no loss sits at
+// TX ADVANCE / RX SEND_ACKS; a link whose partner never completes the INIT
+// handshake sits at TX INIT.
+inline folly::StringPiece constexpr kLlrTxStatus() {
+  return "llr_tx_status";
+}
+
+inline folly::StringPiece constexpr kLlrRxStatus() {
+  return "llr_rx_status";
+}
+
+// Broadcom LLR stat extensions.
+//
+// A non-zero ineligible rate on a port with an LLR profile bound is the signal
+// that LLR is not protecting traffic -- it is what a port whose TX state
+// machine never left OFF looks like from ODS.
+inline folly::StringPiece constexpr kLlrTxIneligiblePkts() {
+  return "llr_tx_ineligible_pkts";
+}
+
+inline folly::StringPiece constexpr kLlrRxIneligiblePkts() {
+  return "llr_rx_ineligible_pkts";
+}
+
+// The eligible counters are the protected-frame count. They were originally
+// left FSDB-only on the reasoning that eligible plus ineligible is just the
+// port packet count already carried by out_unicast_pkts / in_unicast_pkts, so
+// the protected fraction was derivable from the ineligible counter alone. That
+// no longer holds: on Tomahawk Ultra in_unicast_pkts, llr_tx_ok and llr_rx_ok
+// all under-report by a factor of 25/6, while the eligible counters agree with
+// out_unicast_pkts and with the byte counters. Until Broadcom explains the
+// discrepancy these are the only correct protected-frame count, so they are
+// exported rather than derived.
+inline folly::StringPiece constexpr kLlrTxEligiblePkts() {
+  return "llr_tx_eligible_pkts";
+}
+
+inline folly::StringPiece constexpr kLlrRxEligiblePkts() {
+  return "llr_rx_eligible_pkts";
+}
+
+// Replay episodes, as opposed to the frames replayed in them that
+// llr_tx_replay already counts. NACK-triggered means the partner detected a
+// bad frame; timer-triggered means an ACK never arrived, which is the
+// precursor to a data-age flush and a distinct failure to alert on.
+inline folly::StringPiece constexpr kLlrTxNackReplayEvent() {
+  return "llr_tx_nack_replay_event";
+}
+
+inline folly::StringPiece constexpr kLlrTxTimerReplayEvent() {
+  return "llr_tx_timer_replay_event";
+}
+
+inline folly::StringPiece constexpr kLlrTxError() {
+  return "llr_tx_error";
 }
 } // namespace facebook::fboss

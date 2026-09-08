@@ -67,9 +67,33 @@ sai_status_t remove_buffer_pool_fn(sai_object_id_t pool_id) {
 }
 
 sai_status_t set_buffer_pool_attribute_fn(
-    sai_object_id_t /*buffer_pool_id*/,
-    const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_SUPPORTED;
+    sai_object_id_t buffer_pool_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& pool = fs->bufferPoolManager.get(buffer_pool_id);
+  // Mirrors create_buffer_pool_fn / get_buffer_pool_attribute_fn: settable for
+  // everything FakeBufferPool models. SaiBufferManager reprograms an existing
+  // pool via setObject() -> setAttributes(), so a stub here turns a pool resize
+  // (e.g. XOFF_SIZE once a headroom is configured) into a SaiApiError that
+  // terminates the agent from the oper-delta thread. TYPE is create-only.
+  switch (attr->id) {
+    case SAI_BUFFER_POOL_ATTR_SIZE:
+      pool.size = attr->value.u64;
+      break;
+    case SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE:
+      pool.threshMode =
+          static_cast<sai_buffer_pool_threshold_mode_t>(attr->value.s32);
+      break;
+    case SAI_BUFFER_POOL_ATTR_XOFF_SIZE:
+      pool.xoffSize = attr->value.u64;
+      break;
+    case SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE:
+      pool.reservedBytes = attr->value.u64;
+      break;
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t get_buffer_pool_attribute_fn(

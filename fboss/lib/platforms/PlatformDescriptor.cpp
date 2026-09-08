@@ -29,9 +29,9 @@
 DEFINE_string(
     platform_descriptor_config_path,
     "",
-    "Path to a platform descriptor config root. Expected layout: "
-    "<root>/<system_vendor>/<platform_name>/platform_descriptor.json and "
-    "<root>/<system_vendor>/<platform_name>/platform_mapping.json.");
+    "Path to a platform descriptor config root. Directories containing "
+    "platform_descriptor.json are discovered recursively and must also contain "
+    "platform_mapping.json.");
 
 namespace fs = std::filesystem;
 
@@ -108,14 +108,22 @@ void validatePlatformDescriptor(
   }
 }
 
-void addPlatformDirsFromVendorDir(
-    const fs::path& vendorDir,
-    std::vector<fs::path>& platformDirs) {
-  for (const auto& platformEntry : fs::directory_iterator(vendorDir)) {
-    if (platformEntry.is_directory()) {
-      platformDirs.push_back(platformEntry.path());
-    }
+bool matchesSystemVendor(
+    const fs::path& descriptorDir,
+    const fs::path& platformDir,
+    const std::string& normalizedVendor) {
+  if (normalizedVendor.empty()) {
+    return true;
   }
+
+  auto relativePath = fs::relative(platformDir, descriptorDir);
+  auto component = relativePath.begin();
+  if (component != relativePath.end() &&
+      normalize(component->string()) == "platforms") {
+    ++component;
+  }
+  return component != relativePath.end() &&
+      normalize(component->string()) == normalizedVendor;
 }
 
 std::vector<fs::path> getPlatformDirs(
@@ -125,21 +133,16 @@ std::vector<fs::path> getPlatformDirs(
   std::vector<fs::path> platformDirs;
   auto normalizedVendor = normalize(systemVendor);
 
-  // Descriptor config is organized as <root>/<system_vendor>/<platform_name>/.
-  // When a vendor is specified, only scan that vendor directory.
-  if (!normalizedVendor.empty()) {
-    auto vendorDir = descriptorDir / normalizedVendor;
-    if (fs::is_directory(vendorDir)) {
-      addPlatformDirsFromVendorDir(vendorDir, platformDirs);
-    }
-  } else {
-    // Without a vendor hint, scan all vendor directories under the root.
-    for (const auto& vendorEntry : fs::directory_iterator(descriptorDir)) {
-      if (vendorEntry.is_directory()) {
-        addPlatformDirsFromVendorDir(vendorEntry.path(), platformDirs);
+  for (const auto& entry : fs::recursive_directory_iterator(descriptorDir)) {
+    if (entry.is_regular_file() &&
+        entry.path().filename() == kPlatformDescriptorFileName) {
+      auto platformDir = entry.path().parent_path();
+      if (matchesSystemVendor(descriptorDir, platformDir, normalizedVendor)) {
+        platformDirs.push_back(std::move(platformDir));
       }
     }
   }
+  std::sort(platformDirs.begin(), platformDirs.end());
 
   if (platformDirs.empty()) {
     if (!normalizedVendor.empty()) {
@@ -148,7 +151,7 @@ std::vector<fs::path> getPlatformDirs(
     throw FbossError(
         "Platform descriptor directory ",
         path,
-        " does not contain any vendor/platform directories");
+        " does not contain any platform descriptors");
   }
   return platformDirs;
 }

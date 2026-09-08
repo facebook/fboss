@@ -14,7 +14,7 @@ rpm.builder(
     ],
     features = [
         rpm.install(
-            src = "fbsource//third-party/tp2/flashrom/1.2.1:flashrom-bin",
+            src = "fbsource//third-party/tp2/flashrom/1.7.0:flashrom-bin",
             dst = "/usr/bin/flashrom",
             mode = 0o555,
         ),

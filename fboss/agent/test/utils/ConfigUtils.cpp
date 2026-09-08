@@ -17,11 +17,10 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
-#include "fboss/lib/config/AgentConfigUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/config/agent/AclConfigUtils.h"
 
 #include <fmt/format.h>
 #include <folly/Format.h>
@@ -304,17 +303,6 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           cfg::PortType::INTERFACE_PORT) {
         bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
         bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
-      }
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
-      auto portId = group.first;
-      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
-      if (platPortItr == platformMapping->getPlatformPorts().end()) {
-        throw FbossError("Can't find platform port for:", portId);
-      }
-      if (*platPortItr->second.mapping()->portType() ==
-          cfg::PortType::INTERFACE_PORT) {
-        bestSpeed = cfg::PortSpeed::TWOHUNDREDG;
-        bestProfile = cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL;
       }
     }
     // If bestSpeed is default - pick the largest speed from the safe profiles
@@ -919,7 +907,7 @@ cfg::SwitchConfig genPortVlanCfg(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
   if (FLAGS_enable_acl_table_group) {
-    utility::setupDefaultAclTableGroups(config);
+    utility::setupDefaultAclTableGroups(config, *asic);
   }
   auto switchType = asic->getSwitchType();
   // VOQ config
@@ -1709,12 +1697,22 @@ void modifyPlatformConfig(
       modifyMapFunc(*bcm.config());
     }
   } else if (chip.getType() == cfg::ChipConfig::Type::asicConfig) {
-    auto& common = *(chip.mutable_asicConfig().common());
-    if (common.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
-      // yamlConfig used for TH4
-      modifyYamlFunc(common.mutable_yamlConfig());
-    } else if (common.getType() == cfg::AsicConfigEntry::Type::config) {
-      modifyMapFunc(common.mutable_config());
+    auto& asicConfig = chip.mutable_asicConfig();
+    auto applyOverrides = [&](cfg::AsicConfigEntry& entry) {
+      if (entry.getType() == cfg::AsicConfigEntry::Type::yamlConfig) {
+        // yamlConfig used for TH4
+        modifyYamlFunc(entry.mutable_yamlConfig());
+      } else if (entry.getType() == cfg::AsicConfigEntry::Type::config) {
+        modifyMapFunc(entry.mutable_config());
+      }
+    };
+
+    applyOverrides(*asicConfig.common());
+
+    if (asicConfig.npuEntries().has_value()) {
+      for (auto& [_, entry] : *asicConfig.npuEntries()) {
+        applyOverrides(entry);
+      }
     }
   }
 }
@@ -1824,6 +1822,108 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       std::nullopt /*hwAsicTable*/,
       platformType,
       intfTypeVal);
+}
+
+namespace {
+void addAggregatePorts(
+    cfg::SwitchConfig& config,
+    const std::vector<AggregatePortInfo>& aggregatePorts) {
+  for (const auto& aggregatePort : aggregatePorts) {
+    std::vector<int32_t> members;
+    members.reserve(aggregatePort.memberPorts.size());
+    for (auto memberPort : aggregatePort.memberPorts) {
+      members.push_back(memberPort);
+    }
+    switch (aggregatePort.interfaceType) {
+      case cfg::InterfaceType::PORT:
+        // A member port cannot keep a router interface of its own once it
+        // joins a LAG, so the aggregate takes one instead of re-homing the
+        // members onto a shared vlan.
+        addAggPortWithRouterInterface(
+            aggregatePort.id,
+            members,
+            &config,
+            aggregatePort.rate,
+            aggregatePort.minLinkPercentage);
+        break;
+      case cfg::InterfaceType::VLAN:
+        // addAggPort picks the aggregate's vlan off its members. On a config
+        // built for port router interfaces every port sits in vlan 0, which it
+        // would take at face value and quietly produce an aggregate with no L3
+        // interface at all, so rule that out here.
+        if (config.vlans()->empty()) {
+          throw FbossError(
+              "Aggregate port ",
+              aggregatePort.id,
+              " asks for a vlan L3 interface, but this config has no vlans");
+        }
+        addAggPort(
+            aggregatePort.id,
+            members,
+            &config,
+            aggregatePort.rate,
+            aggregatePort.minLinkPercentage);
+        break;
+      default:
+        throw FbossError(
+            "Aggregate port ",
+            aggregatePort.id,
+            " has unsupported router interface type ",
+            static_cast<int>(aggregatePort.interfaceType));
+    }
+  }
+}
+} // namespace
+
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  auto config = onePortPerInterfaceConfig(
+      swSwitch,
+      ports,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts);
+  addAggregatePorts(config, aggregatePorts);
+  return config;
+}
+
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable,
+    const std::optional<PlatformType> platformType) {
+  auto config = onePortPerInterfaceConfig(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
+      enableFabricPorts,
+      switchIdToSwitchInfo,
+      hwAsicTable,
+      platformType);
+  addAggregatePorts(config, aggregatePorts);
+  return config;
 }
 
 void runCintScript(TestEnsembleIf* ensemble, const std::string& cintStr) {

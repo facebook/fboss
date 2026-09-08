@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(nodebase
+  fboss/agent/StrongTypes.h
   fboss/agent/state/DeltaFunctions.h
   fboss/agent/state/DeltaFunctions-detail.h
   fboss/agent/state/MapDelta.h
@@ -17,11 +18,18 @@ add_library(nodebase
 )
 
 target_link_libraries(nodebase
-  switch_config_cpp2
-  fboss_error
-  fboss_types
+  Boost::container
   Folly::folly
+  fmt::fmt
+  glog::glog
 )
+
+# NodeMap headers use FbossError, but the NodeBase-only OSS surface does not.
+# Keep the existing dependency for the full and fsdb_client profiles while
+# allowing the exported_libraries profile to build NodeBase independently.
+if (NOT FBOSS_BUILD_PROFILE STREQUAL "exported_libraries")
+  target_link_libraries(nodebase fboss_error)
+endif()
 
 add_library(lacp_types
   fboss/agent/LacpTypes.cpp
@@ -47,6 +55,8 @@ add_library(state
   fboss/agent/state/ArpResponseEntry.cpp
   fboss/agent/state/ArpResponseTable.cpp
   fboss/agent/state/ArpTable.cpp
+  fboss/agent/state/ClassBasedPolicyMap.cpp
+  fboss/agent/state/ClassBasedPolicyNode.cpp
   fboss/agent/state/ControlPlane.cpp
   fboss/agent/state/DsfNode.cpp
   fboss/agent/state/DsfNodeMap.cpp

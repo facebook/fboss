@@ -212,6 +212,16 @@ const std::shared_ptr<MultiSwitchAclMap>& SwitchState::getAcls() const {
   return safe_cref<switch_state_tags::aclMaps>();
 }
 
+void SwitchState::resetClassBasedPolicies(
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies) {
+  ref<switch_state_tags::classBasedPolicyMaps>() = policies;
+}
+
+const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+SwitchState::getClassBasedPolicies() const {
+  return safe_cref<switch_state_tags::classBasedPolicyMaps>();
+}
+
 void SwitchState::resetAclTableGroups(
     std::shared_ptr<MultiSwitchAclTableGroupMap> aclTableGroups) {
   ref<switch_state_tags::aclTableGroupMaps>() = aclTableGroups;
@@ -220,6 +230,16 @@ void SwitchState::resetAclTableGroups(
 const std::shared_ptr<MultiSwitchAclTableGroupMap>&
 SwitchState::getAclTableGroups() const {
   return safe_cref<switch_state_tags::aclTableGroupMaps>();
+}
+
+void SwitchState::resetPortAclTableGroups(
+    std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups) {
+  ref<switch_state_tags::portAclTableGroupMaps>() = portAclTableGroups;
+}
+
+const std::shared_ptr<MultiSwitchAclTableGroupMap>&
+SwitchState::getPortAclTableGroups() const {
+  return safe_cref<switch_state_tags::portAclTableGroupMaps>();
 }
 
 void SwitchState::resetAggregatePorts(
@@ -430,15 +450,28 @@ std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
   return nullptr;
 }
 
+std::shared_ptr<const AclTable> SwitchState::getAclTable(
+    cfg::AclStage aclStage,
+    const std::string& tableName) const {
+  if (auto aclTableMap = getAclTablesForStage(aclStage)) {
+    if (auto aclTable = aclTableMap->getTableIf(tableName)) {
+      return aclTable;
+    }
+  }
+  if (auto aclTableGroup = getPortAclTableGroups()->getNodeIf(aclStage)) {
+    if (auto aclTableMap = aclTableGroup->getAclTableMap()) {
+      return aclTableMap->getTableIf(tableName);
+    }
+  }
+  return nullptr;
+}
+
 std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
     cfg::AclStage aclStage,
     const std::string& tableName) const {
-  auto aclTableMap = getAclTablesForStage(aclStage);
-
-  if (aclTableMap && aclTableMap->getTableIf(tableName)) {
-    return aclTableMap->getTable(tableName)->getAclMap().unwrap();
+  if (auto aclTable = getAclTable(aclStage, tableName)) {
+    return aclTable->getAclMap().unwrap();
   }
-
   return nullptr;
 }
 
@@ -618,6 +651,20 @@ const std::shared_ptr<UdfConfig> SwitchState::getUdfConfig() const {
 const std::shared_ptr<FlowletSwitchingConfig>
 SwitchState::getFlowletSwitchingConfig() const {
   return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
+}
+
+EcmpGroupSettingsMap SwitchState::getEcmpGroupSettings() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getEcmpGroupSettings();
+}
+
+std::optional<bool> SwitchState::getSplitHorizonEnabled(
+    cfg::EcmpGroupType type) const {
+  auto settings = getEcmpGroupSettings();
+  auto it = settings.find(type);
+  if (it == settings.end()) {
+    return std::nullopt;
+  }
+  return *it->second.enableSplitHorizon();
 }
 
 void SwitchState::revertNewTeFlowEntry(
@@ -956,6 +1003,10 @@ std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
       auto physicalPort = getPorts()->getNodeIf(port.phyPortID());
       if (!physicalPort) {
         XLOG(ERR) << "No port node found for port " << port.phyPortID();
+        return std::nullopt;
+      }
+      if (physicalPort->getInterfaceIDs().empty()) {
+        // Fabric ports never have an interface.
         return std::nullopt;
       }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.

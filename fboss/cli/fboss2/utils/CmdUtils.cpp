@@ -129,6 +129,24 @@ std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
   }
 }
 
+// Deliberately a switch with no default: a new AclLookupClassPort value then
+// fails -Wswitch here rather than silently rendering as the raw enum name.
+std::string getAclLookupClassPortStr(
+    const std::optional<cfg::AclLookupClassPort>& lookupClassPort) {
+  if (!lookupClassPort.has_value()) {
+    return "--";
+  }
+  switch (*lookupClassPort) {
+    case cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED:
+      return "Unconstrained";
+    case cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED:
+      return "Restricted";
+    case cfg::AclLookupClassPort::CLASS_PORT_BLOCKED:
+      return "Blocked";
+  }
+  return apache::thrift::util::enumNameSafe(*lookupClassPort);
+}
+
 bool isRunningOnSwitch() {
 #ifndef IS_OSS
   try {

@@ -11,6 +11,7 @@
 
 #include <chrono>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -76,6 +77,9 @@ class PortStats {
 
   void setPortActiveStatus(bool isActive) const;
   void clearPortActiveStatusCounter() const;
+
+  void setAccessPolicyState(cfg::AclLookupClassPort accessPolicyState) const;
+  void clearAccessPolicyStateCounter() const;
 
   void pktTooBig() const;
 

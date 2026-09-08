@@ -33,6 +33,33 @@ struct BwInfo {
   uint32_t fabricBwMbps{0};
   uint32_t nifBwMbps{0};
 };
+
+// Names of the port bound ingress ACL tables published by the access policy
+// config templates. Kept in sync by hand with _PORT_ACCESS_POLICY_TABLES in
+// neteng/fboss/coop/configs/patchers.py.
+constexpr auto kAccessPolicyRestrictedTable = "AccessPolicyRestrictedTable";
+constexpr auto kAccessPolicyBlockTable = "AccessPolicyBlockTable";
+
+// A switch expresses access policy either through the port's lookup class or
+// through a port bound ingress ACL table, never both.
+cfg::AclLookupClassPort accessPolicyState(const std::shared_ptr<Port>& port) {
+  const auto lookupClass = port->getUserMetaData().value_or(
+      cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+  if (lookupClass != cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED) {
+    return lookupClass;
+  }
+  // TODO remove deriving access_policy_state from acl table
+  // name once we migrate all chips to use Metadata/ClassId for
+  // this use case.
+  const auto ingressAclTableName = port->getIngressAclTableName();
+  if (ingressAclTableName == kAccessPolicyRestrictedTable) {
+    return cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+  }
+  if (ingressAclTableName == kAccessPolicyBlockTable) {
+    return cfg::AclLookupClassPort::CLASS_PORT_BLOCKED;
+  }
+  return cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED;
+}
 } // namespace
 
 PortUpdateHandler::PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
@@ -213,6 +240,7 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
               portStats = switchStats.updatePortName(
                   newPort->getID(), newPort->getName());
               portStats->setPortStatus(newPort->isUp());
+              portStats->setAccessPolicyState(accessPolicyState(newPort));
             }
           }
         }
@@ -225,6 +253,14 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
           }
           sw_->publishPhyInfoSnapshots(oldPort->getID());
         }
+        if (accessPolicyState(oldPort) != accessPolicyState(newPort)) {
+          for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
+            PortStats* portStats = switchStats.port(newPort->getID());
+            if (portStats) {
+              portStats->setAccessPolicyState(accessPolicyState(newPort));
+            }
+          }
+        }
         disableIfLooped(newPort, delta.newState());
         // Clear error
         if (newPort->isEnabled() && !oldPort->isEnabled()) {
@@ -233,6 +269,8 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
       },
       [&](const std::shared_ptr<Port>& newPort) {
         sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
+        sw_->portStats(newPort->getID())
+            ->setAccessPolicyState(accessPolicyState(newPort));
         disableIfLooped(newPort, delta.newState());
         if (newPort->isEnabled()) {
           // For WB case where all ports will show up as newly added
@@ -242,6 +280,7 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
       [&](const std::shared_ptr<Port>& oldPort) {
         sw_->portStats(oldPort->getID())->clearPortStatusCounter();
         sw_->portStats(oldPort->getID())->clearPortActiveStatusCounter();
+        sw_->portStats(oldPort->getID())->clearAccessPolicyStateCounter();
         for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
           switchStats.deletePortStats(oldPort->getID());
         }

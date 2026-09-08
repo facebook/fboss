@@ -19,6 +19,7 @@ void updateCorrectedBitsAndPreFECBer(
     phy::RsFecInfo& fecInfo,
     const phy::RsFecInfo& oldRsFecInfo,
     std::optional<uint64_t> correctedBitsFromHw,
+    std::optional<uint64_t> correctedSymbolsFromHw,
     int timeDeltaInSeconds,
     phy::FecMode fecMode,
     cfg::PortSpeed speed);

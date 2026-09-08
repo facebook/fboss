@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
+#include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddress.h"
@@ -1390,6 +1391,34 @@ TEST(Acl, L4DstPortRangeQualifier) {
       qualifiers.end());
 }
 
+TEST(Acl, LookupClassPort) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls()->resize(1);
+  config.acls()[0].name() = "acl1";
+  config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].lookupClassPort() =
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+
+  auto newState = publishAndApplyConfig(state, &config, platform.get());
+  ASSERT_NE(nullptr, newState);
+  auto acl = newState->getAcl("acl1");
+  ASSERT_NE(nullptr, acl);
+  ASSERT_TRUE(acl->getLookupClassPort().has_value());
+  EXPECT_EQ(
+      acl->getLookupClassPort().value(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  EXPECT_TRUE(acl->hasMatcher());
+  EXPECT_TRUE(acl->getRequiredAclTableQualifiers().contains(
+      cfg::AclTableQualifier::LOOKUP_CLASS_PORT));
+
+  auto serialized = std::make_shared<AclEntry>(acl->toThrift());
+  EXPECT_EQ(serialized->getLookupClassPort(), acl->getLookupClassPort());
+}
+
 TEST(Acl, PbrFieldsSerialize) {
   auto entry = std::make_unique<AclEntry>(0, std::string("pbr0"));
   entry->setTrafficClass(3);
@@ -1425,6 +1454,29 @@ TEST(Acl, PbrFieldsQualifier) {
   EXPECT_TRUE(
       qualifiers.find(cfg::AclTableQualifier::NEXT_HOP_GROUP_ID) !=
       qualifiers.end());
+}
+
+TEST(Acl, ActionTypeDenyDataAndControlPlane) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(1);
+  preparedMockPortConfig(config.ports()[0], 1);
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "acl0";
+  config.acls()[0].l4DstPort() = 179;
+  *config.acls()[0].actionType() =
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto acl = stateV1->getAcl("acl0");
+  ASSERT_NE(nullptr, acl);
+  EXPECT_EQ(
+      cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE, acl->getActionType());
 }
 
 TEST(Acl, L4DstPortRangeValidation) {
@@ -1502,4 +1554,190 @@ TEST(Acl, L4DstPortRangeValidation) {
     EXPECT_EQ(*acl->getL4DstPortRange()->minimum(), 1000);
     EXPECT_EQ(*acl->getL4DstPortRange()->maximum(), 2000);
   }
+}
+
+TEST(Acl, DstIpV6WordValidation) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  auto makeConfig = []() {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(config.ports()[0], 1);
+    config.acls()->resize(1);
+    config.acls()[0].name() = "acl0";
+    config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    return config;
+  };
+
+  auto applyConfig = [&](cfg::SwitchConfig* config) {
+    return publishAndApplyConfig(stateV0, config, platform.get());
+  };
+
+  // dstIp alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_EQ(acl->getDstIp().first.str(), "1234:5678:9abc:def0::1");
+    EXPECT_EQ(acl->getDstIp().second, 128);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word2 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_FALSE(acl->getDstIpV6Word3());
+  }
+
+  // dstIpV6Word3 alone is valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_FALSE(acl->getDstIpV6Word2());
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIpV6Word2 and dstIpV6Word3 together are valid.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    auto stateV1 = applyConfig(&config);
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_FALSE(acl->getDstIp().first);
+    EXPECT_EQ(acl->getDstIpV6Word2(), 0x9abcdef0);
+    EXPECT_EQ(acl->getDstIpV6Word3(), 0x12345678);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word2.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with dstIpV6Word3.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+
+  // dstIp cannot be combined with both DST IPv6 word qualifiers.
+  {
+    auto config = makeConfig();
+    config.acls()[0].dstIp() = "1234:5678:9abc:def0::1/128";
+    config.acls()[0].dstIpV6Word2() = 0x9abcdef0;
+    config.acls()[0].dstIpV6Word3() = 0x12345678;
+    EXPECT_THROW(applyConfig(&config), FbossError);
+  }
+}
+
+namespace {
+
+std::shared_ptr<AclEntry> makeAclEntryWithCounter(
+    const std::optional<std::string>& counterName,
+    uint8_t dscp = 0x24) {
+  auto entry = std::make_shared<AclEntry>(1, std::string("acl0"));
+  entry->setDscp(dscp);
+  entry->setActionType(cfg::AclActionType::PERMIT);
+  if (counterName.has_value()) {
+    MatchAction action;
+    cfg::TrafficCounter counter;
+    counter.name() = *counterName;
+    counter.types() = {cfg::CounterType::PACKETS};
+    action.setTrafficCounter(counter);
+    entry->setAclAction(action);
+  }
+  return entry;
+}
+
+} // namespace
+
+TEST(Acl, onlyCounterChangedCounterRenamed) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter2")));
+}
+
+TEST(Acl, onlyCounterChangedCounterAdded) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedCounterRemoved) {
+  EXPECT_TRUE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedCounterTypesChanged) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter("counter1");
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter1";
+  counter.types() = {cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  action.setTrafficCounter(counter);
+  newEntry->setAclAction(action);
+
+  EXPECT_TRUE(onlyCounterChanged(oldEntry, newEntry));
+}
+
+TEST(Acl, onlyCounterChangedNothingChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1"),
+      makeAclEntryWithCounter("counter1")));
+}
+
+TEST(Acl, onlyCounterChangedNothingChangedNoCounter) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter(std::nullopt),
+      makeAclEntryWithCounter(std::nullopt)));
+}
+
+TEST(Acl, onlyCounterChangedQualifierChangedToo) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter2", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedOnlyQualifierChanged) {
+  EXPECT_FALSE(onlyCounterChanged(
+      makeAclEntryWithCounter("counter1", 0x24),
+      makeAclEntryWithCounter("counter1", 0x30)));
+}
+
+TEST(Acl, onlyCounterChangedNonCounterActionChangedToo) {
+  auto oldEntry = makeAclEntryWithCounter("counter1");
+  auto newEntry = makeAclEntryWithCounter(std::nullopt);
+  MatchAction action;
+  cfg::TrafficCounter counter;
+  counter.name() = "counter2";
+  counter.types() = {cfg::CounterType::PACKETS};
+  action.setTrafficCounter(counter);
+  action.setIngressMirror("mirror0");
+  newEntry->setAclAction(action);
+
+  EXPECT_FALSE(onlyCounterChanged(oldEntry, newEntry));
 }

@@ -17,6 +17,7 @@
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/types.h"
 
+#include <map>
 #include <memory>
 
 namespace facebook::fboss {
@@ -60,16 +61,23 @@ class SaiAclTableGroupManager {
 
   AclTableGroupMemberSaiId addAclTableGroupMember(
       sai_acl_stage_t aclStage,
+      cfg::AclTableGroupBindPoint bindPoint,
       AclTableSaiId aclTableSaiId,
-      const std::string& aclTableName);
+      const std::string& aclTableName,
+      sai_uint32_t aclTablePriority);
   void removeAclTableGroupMember(
       sai_acl_stage_t aclStage,
+      cfg::AclTableGroupBindPoint bindPoint,
       const std::string& aclTableName);
 
-  const SaiAclTableGroupHandle* FOLLY_NULLABLE
-  getAclTableGroupHandle(sai_acl_stage_t aclStage) const;
-  SaiAclTableGroupHandle* FOLLY_NULLABLE
-  getAclTableGroupHandle(sai_acl_stage_t aclStage);
+  const SaiAclTableGroupHandle* FOLLY_NULLABLE getAclTableGroupHandle(
+      sai_acl_stage_t aclStage,
+      cfg::AclTableGroupBindPoint bindPoint =
+          cfg::AclTableGroupBindPoint::SWITCH) const;
+  SaiAclTableGroupHandle* FOLLY_NULLABLE getAclTableGroupHandle(
+      sai_acl_stage_t aclStage,
+      cfg::AclTableGroupBindPoint bindPoint =
+          cfg::AclTableGroupBindPoint::SWITCH);
 
   const SaiAclTableGroupMemberHandle* FOLLY_NULLABLE
   getAclTableGroupMemberHandle(
@@ -79,21 +87,16 @@ class SaiAclTableGroupManager {
   static sai_acl_stage_t cfgAclStageToSaiAclStage(cfg::AclStage aclStage);
 
  private:
-  SaiAclTableGroupHandle* FOLLY_NULLABLE
-  getAclTableGroupHandleImpl(sai_acl_stage_t aclStage) const;
+  using SaiAclTableGroupHandleKey =
+      std::pair<sai_acl_stage_t, cfg::AclTableGroupBindPoint>;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 
-  // SAI ACL Table Group to corresponding Handle
-  /*
-   * TODO(skhare)
-   * Extend SwitchState to carry AclTable, then use AclStage in the
-   * SwitchState's AclTable as the key.
-   */
-  using SaiAclTableGroupHandles = folly::
-      F14FastMap<sai_acl_stage_t, std::unique_ptr<SaiAclTableGroupHandle>>;
+  // ACL table group stage and bind point to corresponding handle.
+  using SaiAclTableGroupHandles = std::
+      map<SaiAclTableGroupHandleKey, std::unique_ptr<SaiAclTableGroupHandle>>;
   SaiAclTableGroupHandles handles_;
 };
 

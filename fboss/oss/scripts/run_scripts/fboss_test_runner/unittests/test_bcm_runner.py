@@ -14,7 +14,7 @@ def bcm_runner():
 class TestConstants:
     def test_default_paths_and_binary(self, bcm_runner):
         assert bcm_runner._get_config_path() == "/etc/coop/bcm.conf"
-        assert bcm_runner._get_test_binary_name() == "/opt/fboss/bin/bcm_test"
+        assert bcm_runner._get_test_binary_name() == "bcm_test"
         assert bcm_runner._get_known_bad_tests_file() == ""
         assert bcm_runner._get_unsupported_tests_file() == ""
         assert bcm_runner._get_sai_replayer_logging_flags("/any/path") == []

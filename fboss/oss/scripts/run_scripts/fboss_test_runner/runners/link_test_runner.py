@@ -85,10 +85,10 @@ class LinkTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "/opt/fboss/bin/sai_mono_link_test-sai_impl"
+            return "sai_mono_link_test-sai_impl"
 
         # Default to multi_switch mode
-        return "/opt/fboss/bin/sai_multi_link_test-sai_impl"
+        return "sai_multi_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
@@ -148,6 +148,9 @@ class LinkTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=False,
             )
@@ -173,6 +176,9 @@ class LinkTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=True,
             )

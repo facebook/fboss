@@ -25,6 +25,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -155,6 +156,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchAclTableGroupMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::portAclTableGroupMaps,
+    MultiSwitchAclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::dsfNodesMap,
     MultiSwitchDsfNodeMap);
 RESOLVE_STRUCT_MEMBER(
@@ -185,6 +190,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aclMaps,
     MultiSwitchAclMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::classBasedPolicyMaps,
+    MultiSwitchClassBasedPolicyMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::portFlowletCfgMaps,
@@ -293,11 +302,19 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchAclMap>& getAcls() const;
 
+  const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& getClassBasedPolicies()
+      const;
+
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
+  const std::shared_ptr<MultiSwitchAclTableGroupMap>& getPortAclTableGroups()
+      const;
 
   std::chrono::seconds getArpTimeout() const;
 
   std::shared_ptr<const AclMap> getAclsForTable(
+      cfg::AclStage aclStage,
+      const std::string& tableName) const;
+  std::shared_ptr<const AclTable> getAclTable(
       cfg::AclStage aclStage,
       const std::string& tableName) const;
 
@@ -367,6 +384,18 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<UdfConfig> getUdfConfig() const;
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const;
+  EcmpGroupSettingsMap getEcmpGroupSettings() const;
+
+  /*
+   * Split horizon for one group type, resolved from ecmpGroupSettings.
+   *
+   * std::nullopt when the map has no entry for the type: that group type is
+   * unconfigured and callers should leave the attribute alone rather than
+   * program a value. FRR groups are the exception and are handled at their
+   * call site, because omitting the attribute there makes the vendor SDK
+   * default it to TRUE.
+   */
+  std::optional<bool> getSplitHorizonEnabled(cfg::EcmpGroupType type) const;
 
   /*
    * Remote objects
@@ -403,8 +432,12 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
   void addAclTable(const std::shared_ptr<AclTable>& aclTable);
   void resetAcls(const std::shared_ptr<MultiSwitchAclMap>& acls);
+  void resetClassBasedPolicies(
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& policies);
   void resetAclTableGroups(
       std::shared_ptr<MultiSwitchAclTableGroupMap> multiAclTableGroups);
+  void resetPortAclTableGroups(
+      std::shared_ptr<MultiSwitchAclTableGroupMap> portAclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<MultiSwitchSflowCollectorMap>& collectors);
   void resetQosPolicies(

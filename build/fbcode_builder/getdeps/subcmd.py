@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-strict
 
 from __future__ import annotations
 
@@ -68,11 +67,8 @@ def cmd(
             NAME = name
             HELP = help
 
-        # pyre-fixme[6]: For 1st argument expected `Type[SubCmd]` but got
         #  `Type[SubclassedCmd]`.
-        # pyre-fixme[16]: Callable `cmd` has no attribute `wrapper`.
         cmd_table.append(SubclassedCmd)
-        # pyre-fixme[7]: Expected `Type[SubCmd]` but got `Type[SubclassedCmd]`.
         return SubclassedCmd
 
     return wrapper

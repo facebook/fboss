@@ -89,7 +89,7 @@ void validateVdm(
                    << ", portMediaInterface: "
                    << apache::thrift::util::enumNameSafe(portMediaInterface)
                    << ", snrMinThreshold: " << snrMinThreshold;
-        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+        EXPECT_LE(preFecBer.max().value(), thresholds.preFecBer.maxThreshold)
             << fmt::format(
                    "PreFecBer Max for {} is {}",
                    portName,
@@ -389,10 +389,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  * Check VDM parameters are within the threshold for VDM supported optics
  * Steps:
  * 1. Find the list of optical ports with VDM supported optics
- * 2. Wait till we have data for 20 seconds
- * 3. Get the TransceiverInfo from qsfp_service
- * 4. validate the VDM Performance Monitoring parameters within the thresholds
- *    defined in spec
+ * 2. Wait for a VDM interval that started after the test began
+ * 3. Wait for a fresh TransceiverInfo update from qsfp_service and validate the
+ *    VDM Performance Monitoring parameters within the thresholds defined in
+ *    spec, repeating for every iteration
  * Note: Bypass LPO Transceivers for this test since the LPO
  *       transceivers don't have a DSP and there are no VDM stats.
  */
@@ -425,18 +425,31 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
       utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
 
   std::time_t startTime = std::time(nullptr);
-  // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
-  // update to finish after the start of VDM interval. This skips any noise from
-  // the initial interval during the time of link up
-  WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
+  // 2. Wait for TWO VDM interval boundaries after the test began before
+  // validating, to skip the link-up interval entirely. intervalStartTime is
+  // stamped at the freeze and labels the *next* interval, but right after a
+  // freeze the reporting registers still hold the *previous* interval's data --
+  // so a single boundary past startTime can still surface link-up noise. Once a
+  // second boundary (F2 > F1 > startTime) is observed, both the just-frozen
+  // ([F1,F2]) and the live-running ([F2,now]) VDM data are guaranteed to start
+  // after link up.
+  std::time_t firstIntervalStart = 0;
+  WITH_RETRIES_N_TIMED(40, std::chrono::seconds(5), {
     transceiverInfos =
         utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
     auto vdmStat =
         transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
-    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
-    ASSERT_EVENTUALLY_GT(
-        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
+    auto intervalStart = vdmStat->intervalStartTime().value();
+    ASSERT_EVENTUALLY_GT(intervalStart, startTime);
+    // Record the first interval boundary after startTime, then require a
+    // second, later one so even a just-frozen snapshot reflects a post-link-up
+    // interval.
+    if (firstIntervalStart == 0 && intervalStart > startTime) {
+      firstIntervalStart = intervalStart;
+    }
+    ASSERT_EVENTUALLY_GT(intervalStart, firstIntervalStart);
+    ASSERT_EVENTUALLY_GT(vdmStat->statsCollectionTme().value(), intervalStart);
   });
 
   // Track the worst (highest) datapath pre-FEC BER and max FEC tail seen per
@@ -482,14 +495,21 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     }
   };
 
-  // 4. validate the VDM Performance Monitoring parameters within the threshold
+  // 3. validate the VDM Performance Monitoring parameters within the threshold
   int testIterations = FLAGS_link_stress_test ? 60 : 1;
   do {
+    std::map<int32_t, TransceiverInfo> freshInfos;
+    if (!utility::waitForFreshTransceiverInfo(
+            transceiverIds,
+            transceiverInfos,
+            freshInfos,
+            /*includeLpo*/ false)) {
+      ADD_FAILURE() << "qsfp_service published no fresh transceiverInfo";
+      break;
+    }
+    transceiverInfos = std::move(freshInfos);
     validateVdm(transceiverInfos, transceiverIds);
     accumulateVdm(transceiverInfos);
-    /* sleep override */ std::this_thread::sleep_for(10s);
-    transceiverInfos =
-        utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
   } while (testIterations-- && !::testing::Test::HasFailure());
 
   for (const auto& [port, ber] : mediaWorstPreFecBer) {

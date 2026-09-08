@@ -186,6 +186,16 @@ struct PortFields {
   68: optional i32 portUpHoldoffTimeMs;
   69: optional string llrConfigName;
   70: optional LlrFields llrConfig;
+  // Whether platform mapping TX precoding settings are applied to this port
+  71: optional bool txPrecoding;
+  // Whether platform mapping RX precoding settings are applied to this port
+  72: optional bool rxPrecoding;
+  // Whether the SDK's software linkscan thread or the ASIC notices link
+  // status changes on this port. Unset = leave SDK default untouched.
+  73: optional switch_config.LinkScanMode linkScanMode;
+  74: optional string ingressAclTableName;
+  // Lookup class assigned to packets arriving on this port.
+  75: optional switch_config.AclLookupClassPort userMetaData;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -232,6 +242,7 @@ struct MatchAction {
   11: optional switch_config.FlowletAction flowletAction;
   12: optional switch_config.SetEcmpHashAction ecmpHashAction;
   13: optional bool enableAlternateArsMembers;
+  14: optional i64 redirectNextHopGroupId;
 }
 
 struct AclEntryFields {
@@ -271,6 +282,27 @@ struct AclEntryFields {
   33: optional switch_config.Range l4DstPortRange;
   34: optional byte trafficClass;
   35: optional i64 nextHopGroupId;
+  // Thrift has no unsigned 32-bit integer type. Use i64 as the carrier type so
+  // the full IPv6 word range [0, 0xffffffff] is representable. ACL config
+  // application validates the range before programming.
+  //
+  // dstIpV6Word3 matches destination IPv6 bits 127:96, and dstIpV6Word2
+  // matches bits 95:64. For AAAA:BBBB:CCCC:DDDD:EEEE:FFFF:1111:2222,
+  // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
+  36: optional i64 dstIpV6Word3;
+  37: optional i64 dstIpV6Word2;
+  38: optional switch_config.AclLookupClassPort lookupClassPort;
+}
+
+struct NamedNextHopGroupAndID {
+  1: string name;
+  2: i64 id;
+}
+
+struct ClassBasedPolicyFields {
+  1: string name;
+  2: NamedNextHopGroupAndID defaultNextHopGroup;
+  3: map<common.ForwardingClass, NamedNextHopGroupAndID> class2NextHopGroup;
 }
 
 enum NeighborState {
@@ -524,9 +556,13 @@ struct SwitchSettingsFields {
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
   61: optional switch_config.PacketForwardingMode packetForwardingMode;
-  // FLAGS_ecmp_width snapshot. A mismatch on warmboot triggers assert
-  // and coldboot.
+  // ECMP width for this switch, sourced from cfg.SwitchSettings.ecmpWidth
+  // (FLAGS_ecmp_width fallback during migration).
   62: optional i32 ecmpWidth;
+  63: map<
+    switch_config.EcmpGroupType,
+    switch_config.EcmpGroupSettings
+  > ecmpGroupSettings;
 }
 
 struct RoutePrefix {
@@ -660,6 +696,16 @@ struct MySidFields {
   7: optional bool isV6;
   # Optional named next hop group for the MySid entry.
   8: optional string namedNextHopGroup;
+  # SRv6 midpoint FRR: when set, this MySid entry is programmed as a hardware
+  # protection group. resolvedNextHopsId (field 4) is the PRIMARY path; this is
+  # the resolved BACKUP (standby) next hop set id (typically an ECMP of
+  # SRv6-encap next hops that impose a repair SID).
+  9: optional i64 backupResolvedNextHopsId;
+  # SRv6 midpoint FRR: the requested (unresolved) BACKUP next hop set id, set by
+  # the addAdjacencyFrr thrift API. RibMySidUpdater resolves it into
+  # backupResolvedNextHopsId (field 9), symmetric to unresolveNextHopsId
+  # (field 3) -> resolvedNextHopsId (field 4).
+  12: optional i64 backupUnresolveNextHopsId;
 }
 
 struct QosPolicyFields {
@@ -724,6 +770,10 @@ struct InterfaceFields {
   /* These fields contains information of remote GPU */
   24: optional string desiredPeerName;
   25: optional string desiredPeerAddressIPv6;
+  /* applicable only for port type of interface bound to an aggregate port
+   * rather than a physical port. Exactly one of portId and aggregatePortId
+   * is set. */
+  26: optional i32 aggregatePortId;
 }
 
 enum LacpState {
@@ -808,6 +858,7 @@ struct AclTableGroupFields {
   1: switch_config.AclStage stage;
   2: string name;
   3: optional map<string, AclTableFields> aclTableMap;
+  4: switch_config.AclTableGroupBindPoint bindPoint = switch_config.AclTableGroupBindPoint.SWITCH;
 }
 
 struct QcmCfgFields {
@@ -874,6 +925,14 @@ struct SwitchState {
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   127: map<SwitchIdList, map<string, LlrFields>> llrCfgMaps;
+  128: map<
+    SwitchIdList,
+    map<string, ClassBasedPolicyFields>
+  > classBasedPolicyMaps;
+  129: map<
+    SwitchIdList,
+    map<switch_config.AclStage, AclTableGroupFields>
+  > portAclTableGroupMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

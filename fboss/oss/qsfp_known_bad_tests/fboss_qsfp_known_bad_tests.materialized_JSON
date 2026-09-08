@@ -611,41 +611,7 @@
           "test_name_regex": "warm_boot.*$"
         }
     ],
-    "leh800bcls/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
-        },
-        {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
-          "test_name_regex": "OpticsFwUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.*$"
-        }
-    ],
-    "leh800bcls/physdk-credo-0.9.0/credo-0.9.0": [
-        {
-          "test_name_regex": "DummyTest.*$"
-        },
-        {
-          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
-        },
-        {
-          "test_name_regex": "HwXphyPortReprogramTest.ProgramRemoveReprogramCycle$"
-        },
-        {
-          "test_name_regex": "OpticsFwUpgradeTest.*$"
-        },
-        {
-          "test_name_regex": "warm_boot.*$"
-        }
-    ],
-    "leh800bcls/physdk-credo-1.2.8/credo-1.2.8": [
+    "leh800bcls/physdk-brcm_pai-4.1/brcm_pai-4.1": [
         {
           "test_name_regex": "DummyTest.*$"
         },

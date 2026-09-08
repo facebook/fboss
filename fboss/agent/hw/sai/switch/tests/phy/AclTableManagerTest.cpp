@@ -278,7 +278,7 @@ TEST_F(AclTableManagerTest, getAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
 
   EXPECT_TRUE(aclEntryHandle);
   EXPECT_TRUE(aclEntryHandle->aclEntry);
@@ -292,6 +292,6 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
   EXPECT_TRUE(aclTableHandle->aclTable);
 
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
 }

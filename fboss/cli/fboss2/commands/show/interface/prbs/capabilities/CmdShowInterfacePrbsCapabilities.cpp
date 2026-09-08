@@ -117,6 +117,58 @@ void CmdShowInterfacePrbsCapabilities::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowInterfacePrbsCapabilitiesTraits::description() {
+  return "Displays the PRBS polynomials each component of an interface supports: for every component (ASIC, gearbox system and line, transceiver system and line) the list of supported polynomials, left blank where the component supports none. Accepts an optional component name to narrow the output. Use it to find which PRBS patterns a link can run before starting a test.";
+}
+
+CmdShowInterfacePrbsCapabilities::RetType
+CmdShowInterfacePrbsCapabilities::sampleModel() {
+  RetType model;
+  cli::InterfaceEntry interfaceEntry;
+
+  cli::ComponentEntry asic;
+  asic.interfaceName() = "eth1/1/1";
+  asic.component() = phy::PortComponent::ASIC;
+  asic.prbsCapabilties() = {
+      prbs::PrbsPolynomial::PRBS7,
+      prbs::PrbsPolynomial::PRBS15,
+      prbs::PrbsPolynomial::PRBS23,
+      prbs::PrbsPolynomial::PRBS31,
+      prbs::PrbsPolynomial::PRBS9,
+      prbs::PrbsPolynomial::PRBS11,
+      prbs::PrbsPolynomial::PRBS58,
+  };
+  interfaceEntry.componentEntries()->push_back(asic);
+
+  for (const auto component :
+       {phy::PortComponent::GB_SYSTEM, phy::PortComponent::GB_LINE}) {
+    cli::ComponentEntry gearbox;
+    gearbox.interfaceName() = "eth1/1/1";
+    gearbox.component() = component;
+    gearbox.prbsCapabilties() = {};
+    interfaceEntry.componentEntries()->push_back(gearbox);
+  }
+
+  for (const auto component :
+       {phy::PortComponent::TRANSCEIVER_SYSTEM,
+        phy::PortComponent::TRANSCEIVER_LINE}) {
+    cli::ComponentEntry transceiver;
+    transceiver.interfaceName() = "eth1/1/1";
+    transceiver.component() = component;
+    transceiver.prbsCapabilties() = {
+        prbs::PrbsPolynomial::PRBS31Q,
+        prbs::PrbsPolynomial::PRBS31,
+        prbs::PrbsPolynomial::PRBS15Q,
+        prbs::PrbsPolynomial::PRBS15,
+        prbs::PrbsPolynomial::PRBSSSPRQ,
+    };
+    interfaceEntry.componentEntries()->push_back(transceiver);
+  }
+
+  model.interfaceEntries()->push_back(interfaceEntry);
+  return model;
+}
+
 // Template instantiations
 template void CmdHandler<
     CmdShowInterfacePrbsCapabilities,

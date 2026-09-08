@@ -151,4 +151,8 @@ struct QsfpServiceConfig {
   // NOTE: This field is MANDATORY for Ladakh platform - QSFP service will
   // fail to start if this field is missing
   9: optional string phyConfig;
+
+  // Map of thrift API name to Rate limit in thrift API queries per second.
+  // Methods not present in the map are not rate limited.
+  10: map<string, double> thriftApiToRateLimitInQps = {};
 }

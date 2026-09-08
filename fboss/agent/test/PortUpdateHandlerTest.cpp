@@ -12,6 +12,7 @@
 
 #include "fboss/agent/PortUpdateHandler.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -85,6 +86,57 @@ class PortUpdateHandlerTest : public ::testing::Test {
         EXPECT_FALSE(counters.checkExist(port.second->getName() + ".up"));
       }
     }
+  }
+
+  // Rebuilds the port map so that the returned state is a genuinely distinct
+  // node. Port::modify() on an unpublished state would edit `in` in place and
+  // the resulting delta would report no change.
+  template <typename PortMutatorT>
+  std::shared_ptr<SwitchState> stateWithModifiedPort(
+      const std::shared_ptr<SwitchState>& in,
+      PortMutatorT mutator) {
+    auto out = in->clone();
+    auto ports = std::make_shared<MultiSwitchPortMap>();
+    for (const auto& portMap : std::as_const(*in->getPorts())) {
+      for (const auto& origPort : std::as_const(*portMap.second)) {
+        auto newPort = origPort.second->clone();
+        if (newPort->getID() == kPortId()) {
+          mutator(newPort);
+        }
+        ports->addNode(newPort, sw->getScopeResolver()->scope(newPort));
+      }
+    }
+    out->resetPorts(ports);
+    return out;
+  }
+
+  std::shared_ptr<SwitchState> stateWithUserMetaData(
+      const std::shared_ptr<SwitchState>& in,
+      std::optional<cfg::AclLookupClassPort> userMetaData) {
+    return stateWithModifiedPort(in, [userMetaData](auto& port) {
+      port->setUserMetaData(userMetaData);
+    });
+  }
+
+  std::shared_ptr<SwitchState> stateWithIngressAclTable(
+      const std::shared_ptr<SwitchState>& in,
+      std::optional<std::string> ingressAclTableName) {
+    return stateWithModifiedPort(in, [ingressAclTableName](auto& port) {
+      port->setIngressAclTableName(ingressAclTableName);
+    });
+  }
+
+  void expectAccessPolicyState(
+      CounterCache& counters,
+      const std::string& portName,
+      cfg::AclLookupClassPort expected) {
+    const auto counter = portName + ".access_policy_state";
+    ASSERT_TRUE(counters.checkExist(counter));
+    EXPECT_EQ(counters.value(counter), static_cast<int64_t>(expected));
+  }
+
+  PortID kPortId() const {
+    return PortID(1);
   }
 
   void TearDown() override {
@@ -162,6 +214,132 @@ TEST_F(PortUpdateHandlerTest, PortChanged) {
   // make sure PortStats with the new name is created
   expectPortCounterExist(counters, newPorts);
   expectPortCounterNotExist(counters, initPorts);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateDefaultsToUnconstrained) {
+  CounterCache counters(sw);
+
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  counters.update();
+  // Ports in initState carry no userMetaData
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateChanged) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  auto restrictedState = stateWithUserMetaData(
+      initState, cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, restrictedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  auto blockedState = stateWithUserMetaData(
+      initState, cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(restrictedState, blockedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+
+  // Clearing userMetaData reverts the port to unconstrained
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(blockedState, initState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateUnknownLookupClass) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  // A lookup class this agent does not know about is reported as unconstrained
+  auto unknownState = stateWithUserMetaData(
+      initState, static_cast<cfg::AclLookupClassPort>(42));
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, unknownState));
+
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateFromIngressAclTable) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  auto restrictedState =
+      stateWithIngressAclTable(initState, "AccessPolicyRestrictedTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, restrictedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+
+  auto blockedState =
+      stateWithIngressAclTable(initState, "AccessPolicyBlockTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(restrictedState, blockedState));
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateUnrelatedIngressAclTable) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), initState));
+
+  // An ingress ACL table that is not an access policy table leaves the port
+  // unconstrained
+  auto aclState = stateWithIngressAclTable(initState, "SomeOtherAclTable");
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(initState, aclState));
+
+  counters.update();
+  expectAccessPolicyState(
+      counters, "port1", cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED);
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateFollowsPortRename) {
+  CounterCache counters(sw);
+  auto blockedState = stateWithUserMetaData(
+      initState, cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  portUpdateHandler->stateUpdated(*std::make_shared<StateDelta>(
+      std::make_shared<SwitchState>(), blockedState));
+
+  auto renamedState = stateWithModifiedPort(
+      blockedState, [](auto& port) { port->setName("eth1/1/1"); });
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(blockedState, renamedState));
+
+  counters.update();
+  expectAccessPolicyState(
+      counters, "eth1/1/1", cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  EXPECT_FALSE(counters.checkExist("port1.access_policy_state"));
+}
+
+TEST_F(PortUpdateHandlerTest, AccessPolicyStateClearedOnPortRemoved) {
+  CounterCache counters(sw);
+  portUpdateHandler->stateUpdated(
+      *std::make_shared<StateDelta>(std::make_shared<SwitchState>(), addState));
+  counters.update();
+  ASSERT_TRUE(counters.checkExist("port21.access_policy_state"));
+
+  portUpdateHandler->stateUpdated(*deltaRemove);
+
+  counters.update();
+  EXPECT_FALSE(counters.checkExist("port21.access_policy_state"));
 }
 
 template <typename SwitchTypeT>

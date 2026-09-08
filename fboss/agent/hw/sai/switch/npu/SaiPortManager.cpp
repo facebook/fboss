@@ -2,11 +2,13 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include <folly/logging/xlog.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -316,7 +318,9 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             platform_->getAsic()->isSupported(
                 HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER),
             SaiPortManager::isLinkDebounceRetriggerCounterSupported(
-                platform_->getAsic())));
+                platform_->getAsic()),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -382,6 +386,10 @@ void SaiPortManager::changePortImpl(
   }
   SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
+  if (oldPort->getUserMetaData() && !newPort->getUserMetaData()) {
+    std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+        newAttributes) = SaiPortTraits::Attributes::Metadata{0};
+  }
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
     XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
@@ -445,7 +453,9 @@ void SaiPortManager::changePortImpl(
               platform_->getAsic()->isSupported(
                   HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER),
               SaiPortManager::isLinkDebounceRetriggerCounterSupported(
-                  platform_->getAsic())));
+                  platform_->getAsic()),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -491,6 +501,9 @@ void SaiPortManager::changePortImpl(
   if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
       oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
     programLlr(newPort, existingPort);
+  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
+    // The LLR TX trigger only takes effect once the link is up.
+    reissueLlrModeRemote(existingPort);
   }
   changeClm(oldPort, newPort);
 }
@@ -565,6 +578,8 @@ void SaiPortManager::attributesFromSaiStore(
 #endif
   getAndSetAttribute(
       port->attributes(), attributes, SaiPortTraits::Attributes::TamObject{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::IngressAcl{});
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   getAndSetAttribute(
       port->attributes(),
@@ -590,6 +605,24 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::FabricSystemPort{});
   }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // LLR is programmed by programLlr(), not attributesFromSwPort(), which leaves
+  // all three nullopt. Without carrying them over, setObject() below overwrites
+  // the cached values with nullopt -- harmless in hardware, since
+  // setAttributeInHardware() ignores a nullopt, but it leaves programLlr()
+  // comparing every attribute against nullopt and so re-driving the whole
+  // disable/bind/enable sequence on a port whose LLR never changed.
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeLocal{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::LlrModeRemote{});
+  getAndSetAttribute(
+      port->attributes(), attributes, SaiPortTraits::Attributes::LlrProfile{});
 #endif
 }
 
@@ -767,6 +800,24 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
+  std::optional<SaiPortTraits::Attributes::Metadata> metadata;
+  if (auto userMetaData = swPort->getUserMetaData()) {
+    const auto metadataValue = static_cast<uint32_t>(*userMetaData);
+    auto range = SaiApiTable::getInstance()->switchApi().getAttribute(
+        managerTable_->switchManager().getSwitchSaiId(),
+        SaiSwitchTraits::Attributes::PortUserMetaDataRange{});
+    if (metadataValue < range.min || metadataValue > range.max) {
+      throw FbossError(
+          "Port user metadata ",
+          metadataValue,
+          " is outside the ASIC-supported range [",
+          range.min,
+          ", ",
+          range.max,
+          "]");
+    }
+    metadata = SaiPortTraits::Attributes::Metadata{metadataValue};
+  }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
       std::nullopt;
   std::optional<SaiPortTraits::Attributes::PrbsConfig> prbsConfig =
@@ -868,28 +919,67 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   staticModuleId = swPort->getPortSwitchId();
 #endif
 
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
   std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>
       linkUpDebounce{};
+#endif
   std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>
       linkDownDebounce{};
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE)) {
+  // BRCM refuses both the get and the set of its debounce timer unless the
+  // port is already in hardware linkscan, so the timer can only be programmed
+  // on ports the config also puts in that mode. Leaba has no such tie-in and
+  // never reports a linkscan mode at all, so only gate the BRCM build.
+  bool debounceProgrammable = true;
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  debounceProgrammable =
+      swPort->getLinkScanMode() == cfg::LinkScanMode::HARDWARE;
+#endif
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE) &&
+      debounceProgrammable) {
     // Hold timers (ms) the SDK applies before reporting link up/down events.
     // Unset on the swPort maps to the SDK default of "no debounce".
     constexpr sai_uint32_t kSdkDefaultLinkDebouncePeriodMs = 0;
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+    constexpr sai_uint32_t kLinkDownDebounceUnitsPerMs = 1000;
+#else
+    constexpr sai_uint32_t kLinkDownDebounceUnitsPerMs = 1;
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
     linkUpDebounce = SaiPortTraits::Attributes::LinkUpDebouncePeriodMs{
         static_cast<sai_uint32_t>(swPort->getPortUpHoldoffTimeMs().value_or(
             kSdkDefaultLinkDebouncePeriodMs))};
+#else
+    if (swPort->getPortUpHoldoffTimeMs().has_value()) {
+      throw FbossError(
+          "Per-port link up debounce timer (portUpHoldoffTimeMs) is not "
+          "supported by this SAI SDK; cannot apply to port ",
+          swPort->getID());
+    }
+#endif
+    // Leaba takes this timer in milliseconds (hence the attribute name), but
+    // the BRCM extension it maps to is documented -- and implemented -- in
+    // microseconds. Broadcom additionally rounds nothing: only exactly
+    // 0/50/75/100/150/250/500ms are accepted, anything else fails the set with
+    // SAI_STATUS_INVALID_ATTR_VALUE_0.
     linkDownDebounce = SaiPortTraits::Attributes::LinkDownDebouncePeriodMs{
-        static_cast<sai_uint32_t>(swPort->getPortDownHoldoffTimeMs().value_or(
-            kSdkDefaultLinkDebouncePeriodMs))};
+        static_cast<sai_uint32_t>(
+            swPort->getPortDownHoldoffTimeMs().value_or(
+                kSdkDefaultLinkDebouncePeriodMs) *
+            kLinkDownDebounceUnitsPerMs)};
   } else if (
       swPort->getPortUpHoldoffTimeMs().has_value() ||
       swPort->getPortDownHoldoffTimeMs().has_value()) {
+    if (!platform_->getAsic()->isSupported(HwAsic::Feature::PORT_DEBOUNCE)) {
+      throw FbossError(
+          "Per-port link debounce timers (portUpHoldoffTimeMs / "
+          "portDownHoldoffTimeMs) are not supported on this ASIC; cannot apply "
+          "to port ",
+          swPort->getID());
+    }
     throw FbossError(
-        "Per-port link debounce timers (portUpHoldoffTimeMs / "
-        "portDownHoldoffTimeMs) are not supported on this ASIC; cannot apply to "
-        "port ",
+        "Per-port link debounce timers require hardware linkscan; set "
+        "linkScanMode to HARDWARE on port ",
         swPort->getID());
   }
 #else
@@ -898,10 +988,17 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     throw FbossError(
         "Per-port link debounce timers (portUpHoldoffTimeMs / "
         "portDownHoldoffTimeMs) are only supported on Leaba SAI SDK 26.2 or "
-        "newer; cannot apply to port ",
+        "Broadcom SAI SDK 15.4 or newer; cannot apply to port ",
         swPort->getID());
   }
 #endif
+
+  // Left out of the create list unless the port configures a linkscan mode: an
+  // attribute the SDK does not accept fails the port create outright.
+  std::optional<SaiPortTraits::Attributes::LinkScanMode> linkScanMode;
+  if (const auto mode = swPort->getLinkScanMode()) {
+    linkScanMode = linkScanModeAttribute(*mode);
+  }
 
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
@@ -990,8 +1087,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+        std::nullopt, // LinkScanMode
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
         std::nullopt, // LinkUpDebouncePeriodMs
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
         std::nullopt, // LinkDownDebouncePeriodMs
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -1000,6 +1100,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1007,6 +1109,36 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     // vlan ID with value 0 is invalid
     vlanIdAttr.reset();
   }
+
+  // 1. table name set and programmed  -> that table's object id
+  // 2. table name set, not programmed -> unset. Ports are programmed before ACL
+  //    tables, so setIngressAcl() binds this later, after the ACL delta.
+  // 3. no table name, port bound      -> SAI_NULL_OBJECT_ID. Unset would not
+  //    unbind: setObject() skips the hardware write for an unset optional but
+  //    still drops the value from the store, leaving the port bound.
+  // 4. no table name, port unbound    -> unset, nothing to say.
+  // Only for a port that already exists. A new port has no handle;
+  // setIngressAcl() binds it later, once the ACL tables exist.
+  std::optional<SaiPortTraits::Attributes::IngressAcl> ingressAcl;
+  if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    if (const auto aclTableName = swPort->getIngressAclTableName()) {
+      if (const auto* aclTableHandle =
+              managerTable_->aclTableManager().getAclTableHandle(
+                  *aclTableName)) {
+        ingressAcl = SaiPortTraits::Attributes::IngressAcl{
+            aclTableHandle->aclTable->adapterKey()};
+      }
+    } else if (std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+                   portHandle->port->attributes())) {
+      ingressAcl = SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID};
+    }
+  }
+  XLOGF(
+      DBG2,
+      "Port {} ingress ACL table {} resolved to {}",
+      swPort->getID(),
+      swPort->getIngressAclTableName().value_or("none"),
+      ingressAcl);
 
   return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
@@ -1098,8 +1230,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      linkScanMode, // LinkScanMode
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
       linkUpDebounce, // LinkUpDebouncePeriodMs
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
       linkDownDebounce, // LinkDownDebouncePeriodMs
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -1107,11 +1242,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // LlrModeRemote
       std::nullopt, // LlrProfile
 #endif
-#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_21_ea)
+#if defined(CHENAB_SAI_SDK)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride
 #endif
+      ingressAcl,
+      metadata,
   };
 }
 
@@ -1159,11 +1296,8 @@ void SaiPortManager::programLlr(
   if (!wantLlr && !portHandle->llrProfile) {
     return;
   }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeLocal{false});
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{false});
 
+  std::shared_ptr<SaiPortLlrProfile> profile;
   if (wantLlr) {
     const auto& cfg = llrConfig.value();
     SaiPortLlrProfileTraits::CreateAttributes attributes{
@@ -1189,15 +1323,43 @@ void SaiPortManager::programLlr(
             static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
     auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
     SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
+    // Resolve the profile first. On warm boot this reclaims the object the
+    // store loaded from hardware rather than creating one, and claims its warm
+    // boot handle so it is not swept as unreferenced. The attributes match, so
+    // no SAI write is issued.
+    profile = store.setObject(key, attributes);
+
+    // If the port is already bound to exactly this profile, LLR is running with
+    // this config and there is nothing to do. That is the warm boot case: the
+    // ASIC kept forwarding, the session with the link partner is live, and the
+    // sequence below would tear it down and rebuild it -- LlrModeLocal{false}
+    // stops acknowledging the partner, and LlrModeRemote is a one-shot that
+    // re-fires LLR_INIT rather than a persistent enable (CS00012475411).
+    const auto& bound =
+        std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
+            portHandle->port->attributes());
+    if (bound.has_value() && bound->value() == profile->adapterKey()) {
+      portHandle->llrProfile = std::move(profile);
+      return;
+    }
+  }
+
+  // Disable both modes before (re)configuring, so the profile is bound while
+  // LLR is not actively transmitting (SDK config-before-enable ordering).
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeLocal{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+
+  if (wantLlr) {
     // Bind the port to the new profile before releasing the old handle: on a
     // live reconfiguration (content change => new key) the assignment below
     // drops the last reference to the old profile and removes it from HW, so
     // the port must already reference the new profile to avoid pointing at a
     // removed OID during the swap.
-    auto newLlrProfile = store.setObject(key, attributes);
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::LlrProfile{newLlrProfile->adapterKey()});
-    portHandle->llrProfile = std::move(newLlrProfile);
+        SaiPortTraits::Attributes::LlrProfile{profile->adapterKey()});
+    portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
     portHandle->port->setOptionalAttribute(
@@ -1210,6 +1372,36 @@ void SaiPortManager::programLlr(
 #else
   (void)swPort;
   (void)portHandle;
+#endif
+}
+
+// Re-assert LLR mode remote on a port that has just come up.
+//
+// SAI_PORT_ATTR_LLR_MODE_REMOTE is not a persistent enable: the SDK maps it
+// onto the MAC's one-shot, self-clearing SEND_TX_INIT trigger. programLlr()
+// asserts it at port creation, before link up, where bring-up consumes it and
+// no LLR_INIT is sent -- silently, as the field cannot be read back. Verified
+// on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
+// brings a link-up port to 1.
+//
+// Raised with Broadcom as CS00012475411: whether the adapter host is expected
+// to re-apply mode remote on link up, or brcm-sai should, is unanswered, so
+// this works around it here.
+//
+// The false write is required: setOptionalAttribute elides a set whose value
+// already matches, and mode remote is already true in the store. Only remote
+// is cycled -- local is a persistent enable, and clearing it would stop this
+// port acknowledging the partner's frames.
+void SaiPortManager::reissueLlrModeRemote(
+    [[maybe_unused]] SaiPortHandle* portHandle) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!portHandle->llrProfile) {
+    return;
+  }
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{false});
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
 
@@ -1409,11 +1601,11 @@ void SaiPortManager::programSerdes(
     }
   }
 #endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
-    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
     for (const auto& pinConfig : swPort->getPinConfigs()) {
       if (auto rx = pinConfig.rx()) {
         if (auto precoding = rx->precoding()) {
@@ -1426,17 +1618,32 @@ void SaiPortManager::programSerdes(
         }
       }
     }
-    // Precoding is handled by link training
-    if (!rxPrecoding.empty() && !linkTrainingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+    // TODO: Remove the flag fallback once precoding is populated in all port
+    // configs.
+    const auto txPrecodingEnabled =
+        FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
+    const auto rxPrecodingEnabled =
+        FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
+    if (!rxPrecoding.empty() && rxPrecodingEnabled) {
+      SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
+          rxPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), rxPrecodingAttr);
     }
-    if (!txPrecoding.empty() && !linkTrainingEnabled) {
-      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+    if (!txPrecoding.empty() && txPrecodingEnabled) {
+      SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
+          txPrecoding};
       SaiApiTable::getInstance()->portApi().setAttribute(
           portHandle->serdes->adapterKey(), txPrecodingAttr);
     }
+  }
+#else
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    XLOG_EVERY_MS(WARNING, 10000)
+        << "Port " << swPort->getID()
+        << ": SAI_SERDES_PRECODING is supported by the ASIC but no precoding "
+           "attribute is available on this SDK, skipping";
   }
 #endif
 

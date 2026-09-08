@@ -71,6 +71,10 @@ int PlatformProductInfo::getProductVersion() const {
   return *productInfo_.productVersion();
 }
 
+int PlatformProductInfo::getProductionState() const {
+  return *productInfo_.productionState();
+}
+
 void PlatformProductInfo::initMode() {
   if (!FLAGS_platform_descriptor_config_path.empty()) {
     auto descriptorPlatformType =
@@ -109,6 +113,10 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
     } else if (modelName.find("M5120CSC") == 0) {
       type_ = PlatformType::PLATFORM_M5120CSC;
+    } else if (
+        modelName.find("Wedge800CNHP") == 0 ||
+        modelName.find("WEDGE800CNHP") == 0) {
+      type_ = PlatformType::PLATFORM_WEDGE800CNHP;
     } else if (modelName.find("DARWIN48V") == 0) {
       type_ = PlatformType::PLATFORM_DARWIN48V;
     } else if (
@@ -253,6 +261,9 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("M4062nhp") == 0 || modelName.find("M4062NHP") == 0) {
       type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (
+        modelName.find("M4061CLSC") == 0 || modelName.find("M4061clsc") == 0) {
+      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -299,7 +310,7 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
     } else if (
         FLAGS_mode == "montblanc" || FLAGS_mode == "montblancm" ||
-        FLAGS_mode == "minipack3ba") {
+        FLAGS_mode == "minipack3ba" || FLAGS_mode == "minipack3bam") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "icecube800bc" || FLAGS_mode == "icecube800bcm") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
@@ -344,8 +355,12 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_SAINTPAUL;
     } else if (FLAGS_mode == "m4062nhp") {
       type_ = PlatformType::PLATFORM_M4062NHP;
+    } else if (FLAGS_mode == "m4061clsc") {
+      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else if (FLAGS_mode == "wedge800bnhp") {
       type_ = PlatformType::PLATFORM_WEDGE800BNHP;
+    } else if (FLAGS_mode == "wedge800cnhp") {
+      type_ = PlatformType::PLATFORM_WEDGE800CNHP;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
@@ -435,8 +450,18 @@ void PlatformProductInfo::parse(std::string data) {
   if (info.count(kSubVersion)) {
     productInfo_.subVersion() = getInt16Field(info, kSubVersion);
   }
-  if (info.count(kProductionState)) {
-    productInfo_.productionState() = getInt16Field(info, kProductionState);
+  // EEPROM V5 and V6 use different names for this field. A malformed value is
+  // deliberately non-fatal: most initialize() callers, including
+  // SaiPlatformInit, do not catch, and no consumer requires this field.
+  for (auto key : {kProductionState, kProductionStateV6}) {
+    if (info.count(key)) {
+      try {
+        productInfo_.productionState() = getInt16Field(info, key);
+      } catch (const std::exception& ex) {
+        XLOG(WARNING) << "Ignoring unparseable '" << key << "': " << ex.what();
+      }
+      break;
+    }
   }
   if (info.count(kProdVersion)) {
     productInfo_.productVersion() = getInt16Field(info, kProdVersion);

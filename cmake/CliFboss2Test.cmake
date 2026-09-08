@@ -40,9 +40,11 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/tests/CmdConfigGenAgentTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentBootTypeTest.cpp
+  fboss/cli/fboss2/test/CmdShowAgentFirmwareTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentSslTest.cpp
   fboss/cli/fboss2/test/CmdShowArpTest.cpp
   fboss/cli/fboss2/test/CmdShowConfigRunningBgpTest.cpp
@@ -56,32 +58,52 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowNdpTest.cpp
   fboss/cli/fboss2/test/CmdShowAggregatePortTest.cpp
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
+  fboss/cli/fboss2/test/CmdShowDsfNodesTest.cpp
+  fboss/cli/fboss2/test/CmdShowDsfSubscriptionTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricInputBalanceTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricReachabilityTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricTest.cpp
+  fboss/cli/fboss2/test/CmdShowFabricTopologyTest.cpp
   fboss/cli/fboss2/test/CmdShowFlowletTest.cpp
   fboss/cli/fboss2/test/CmdShowFsdbTest.cpp
   fboss/cli/fboss2/test/CmdShowHostTest.cpp
   fboss/cli/fboss2/test/CmdShowHwAgentStatusTest.cpp
   fboss/cli/fboss2/test/CmdShowHwObjectTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfaceCountersFecBerTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfaceCountersFecHistogramTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfaceCountersFecUncorrectableTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfaceCountersTest.cpp
   fboss/cli/fboss2/test/CmdShowInterfaceErrorsTest.cpp
   # fboss/cli/fboss2/test/CmdShowInterfaceFlapsTest.cpp - excluded (depends on hardware model not built in CMake)
+  fboss/cli/fboss2/test/CmdShowInterfacePhyTest.cpp
+  fboss/cli/fboss2/test/CmdShowInterfacePrbsTest.cpp
   fboss/cli/fboss2/test/CmdShowMacDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowMirrorTest.cpp
+  fboss/cli/fboss2/test/CmdShowMySidTest.cpp
+  fboss/cli/fboss2/test/CmdShowNextHopGroupsTest.cpp
   fboss/cli/fboss2/test/CmdShowPortTest.cpp
   fboss/cli/fboss2/test/CmdShowProductDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowProductTest.cpp
+  fboss/cli/fboss2/test/CmdShowRifTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
   fboss/cli/fboss2/test/config/CmdConfigIpRouteTest.cpp
   fboss/cli/fboss2/test/config/CmdDeleteConfigInterfaceTest.cpp
+  fboss/cli/fboss2/test/CmdShowRouteCountersTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteDetailsTest.cpp
   fboss/cli/fboss2/test/CmdShowRouteSummaryTest.cpp
+  fboss/cli/fboss2/test/CmdShowRouteTest.cpp
   fboss/cli/fboss2/test/CmdShowSystemPortTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
+  fboss/cli/fboss2/test/CmdShowTransceiverEepromTest.cpp
+  fboss/cli/fboss2/test/CmdShowTransceiverLoopbackTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
   fboss/cli/fboss2/test/CanonicalRibResolverTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpHealthTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpHoldTimersWikiDocsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpInitializationEventsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedRejectedTest.cpp

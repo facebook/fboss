@@ -490,6 +490,15 @@ class SwitchSettings
     }
   }
 
+  EcmpGroupSettingsMap getEcmpGroupSettings() const {
+    // THRIFT_COPY
+    return get<switch_state_tags::ecmpGroupSettings>()->toThrift();
+  }
+
+  void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings) {
+    set<switch_state_tags::ecmpGroupSettings>(ecmpGroupSettings);
+  }
+
   std::optional<bool> getCreditWatchdog() const {
     if (auto creditWatchdog = cref<switch_state_tags::creditWatchdog>()) {
       return creditWatchdog->toThrift();

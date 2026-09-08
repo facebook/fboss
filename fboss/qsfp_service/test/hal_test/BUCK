@@ -21,7 +21,7 @@ cpp_library(
     exported_deps = [
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
-        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service:transceiver-manager",
     ],
 )
 
@@ -47,9 +47,9 @@ cpp_library(
         ":hal_test_config-cpp2-types",
         "//fboss/lib/bsp:bsp_core",
         "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
         "//fboss/qsfp_service/if:config-cpp2-types",
         "//fboss/qsfp_service/if:transceiver_properties-cpp2-types",
-        "//fboss/qsfp_service/module:firmware_upgrader",
         "//fboss/qsfp_service/module:qsfp-module",
     ],
 )
@@ -90,6 +90,7 @@ cpp_binary(
         "HalTestFirmwareUpgrade.cpp",
         "HalTestModuleAdvertisement.cpp",
         "HalTestModuleInit.cpp",
+        "HalTestVdmLatch.cpp",
         "Main.cpp",
     ],
     deps = [

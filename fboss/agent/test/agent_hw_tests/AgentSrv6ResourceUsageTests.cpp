@@ -20,8 +20,20 @@ class AgentSrv6ResourceUsageTest : public AgentHwTest {
   // decap SID above. Matches utility::makeAdjacencyMySidEntries' SID layout.
   static constexpr int kAdjSidOffset{1};
 
-  // Each mySid entry (decap or adjacency) consumes one HW slot.
-  static constexpr int kMySidEntryCost{1};
+  // On Yuba (GR2) the two SID types cost differently.
+  //
+  // DECAPSULATE_AND_LOOKUP maps to ..._BEHAVIOR_UDT46. Per the Leaba SDK
+  // SAI adapter (sai_srv6.cpp, create_my_sid_entry_internal):
+  //
+  //   "for uDT, we need to detect SRv6 packets with "Sids" after the uDT
+  //   and drop those packets. To achieve this behavior, we install 2
+  //   endpoints: one for exact match and one for miss action."
+  //
+  // ADJACENCY_MICRO_SID maps to ..._BEHAVIOR_UA and takes the
+  // single-endpoint path. Each endpoint is one tunnel_attributes_ipv6_table
+  // entry = one slot.
+  static constexpr int32_t kDecapMySidSlotCost{2};
+  static constexpr int32_t kAdjacencyMySidSlotCost{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -75,18 +87,16 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
   auto setup = []() {};
 
   auto verify = [this]() {
-    auto mySidFreeBefore = getMySidEntriesFree();
+    const auto mySidFreeBaseline = getMySidEntriesFree();
+    const auto mySidFreeWithDecap = mySidFreeBaseline - kDecapMySidSlotCost;
 
-    // Add decap mySid, verify counter drops by one entry.
+    // Add decap mySid.
     utility::addDecapMySidEntry(getSw(), kDecapMySidAddr, kDecapMySidPrefixLen);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          getMySidEntriesFree(), mySidFreeBefore - kMySidEntryCost);
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeWithDecap); });
 
-    // Add adjacency mySid (interface baked into the resolved next hop so the
-    // unresolved/resolved next-hop-set IDs coincide), verify counter drops by
-    // another entry.
+    // Add adjacency (uA) mySid. The interface is baked into the resolved next
+    // hop so the unresolved/resolved next-hop-set IDs coincide.
     auto ecmpHelper = makeEcmpHelper();
     resolveNeighbors(ecmpHelper, 1);
     utility::programMySidEntries(
@@ -95,20 +105,18 @@ TEST_F(AgentSrv6ResourceUsageTest, verifyMySidResourceUsage) {
             ecmpHelper, 1 /*numNhops*/, 1 /*numEntries*/, kAdjSidOffset));
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          getMySidEntriesFree(), mySidFreeBefore - 2 * kMySidEntryCost);
+          getMySidEntriesFree(), mySidFreeWithDecap - kAdjacencyMySidSlotCost);
     });
 
-    // Remove adjacency mySid, verify counter returns to the post-decap level.
+    // Remove adjacency mySid, verify only the decap SID's slots stay consumed.
     utility::deleteScaleMySidEntries(getSw(), 1 /*numEntries*/, kAdjSidOffset);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_EQ(
-          getMySidEntriesFree(), mySidFreeBefore - kMySidEntryCost);
-    });
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeWithDecap); });
 
-    // Remove decap mySid, verify counter returns to baseline.
+    // Remove decap mySid, verify the pool returns to baseline.
     removeDecapMySidEntry();
     WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBefore); });
+        { EXPECT_EVENTUALLY_EQ(getMySidEntriesFree(), mySidFreeBaseline); });
   };
   verifyAcrossWarmBoots(setup, verify);
 }

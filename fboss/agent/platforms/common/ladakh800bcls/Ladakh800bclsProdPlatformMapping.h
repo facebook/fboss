@@ -129114,7 +129114,7 @@ constexpr auto kJsonProdPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 2,
           "modulation": 2,
-          "fec": 1,
+          "fec": 11,
           "medium": 3,
           "interfaceType": 2
         },
@@ -129143,7 +129143,7 @@ constexpr auto kJsonProdPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 1,
           "modulation": 2,
-          "fec": 1,
+          "fec": 11,
           "medium": 3,
           "interfaceType": 1
         },

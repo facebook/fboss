@@ -269,6 +269,9 @@ class HwSwitchFb303Stats {
   void sramLowBufferLimitHitCount() {
     sramLowBufferLimitHitCount_.addValue(1);
   }
+  void sdkDumpSuppressedCount(int64_t value) {
+    sdkDumpSuppressedCount_.addValue(value);
+  }
 
   void updateGlobalWatermarkMax(
       uint64_t globalHeadroomBytes,
@@ -396,6 +399,7 @@ class HwSwitchFb303Stats {
   int64_t getFabricLinkWarnings() const;
   int64_t getNetworkInterfaceWarnings() const;
   int64_t getInterruptMaskedEvents() const;
+  int64_t getSdkDumpSuppressedCount() const;
 
   // FW Errors
   int64_t getIsolationFirmwareCrashes() const;
@@ -484,6 +488,7 @@ class HwSwitchFb303Stats {
   // DDP errors
   TLTimeseries dramDataPathPacketError_;
   TLTimeseries sramLowBufferLimitHitCount_;
+  TLTimeseries sdkDumpSuppressedCount_;
   // fabric connectivity errors
   TLCounter fabricConnectivityMissingCount_;
   TLCounter fabricConnectivityMismatchCount_;

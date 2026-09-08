@@ -289,6 +289,12 @@ TEST_F(SwitchApiTest, getDstUserMetaDataRange) {
               SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange())
           .min,
       0);
+  EXPECT_EQ(
+      switchApi
+          ->getAttribute(
+              switchId, SaiSwitchTraits::Attributes::PortUserMetaDataRange())
+          .min,
+      0);
 }
 
 TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
@@ -310,6 +316,11 @@ TEST_F(SwitchApiTest, setDstUserMetaDataRange) {
       switchApi->setAttribute(
           switchId,
           SaiSwitchTraits::Attributes::NeighborDstUserMetaDataRange(u32Range)),
+      SaiApiError);
+  EXPECT_THROW(
+      switchApi->setAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::PortUserMetaDataRange(u32Range)),
       SaiApiError);
 }
 
@@ -737,6 +748,54 @@ TEST_F(SwitchApiTest, testPortCl72RetryEnable) {
       switchApi->getAttribute(
           switchId, SaiSwitchTraits::Attributes::PortCl72RetryEnable{}),
       false);
+}
+
+TEST_F(SwitchApiTest, getPacketDropTypeIngressList) {
+  const std::vector<sai_int32_t> dropTypes{1, 7, 42};
+  fs->switchManager.get(switchId).setPacketDropTypeIngressList(dropTypes);
+
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PacketDropTypeIngressList{}),
+      dropTypes);
+}
+
+TEST_F(SwitchApiTest, getEmptyPacketDropTypeIngressList) {
+  EXPECT_TRUE(switchApi
+                  ->getAttribute(
+                      switchId,
+                      SaiSwitchTraits::Attributes::PacketDropTypeIngressList{})
+                  .empty());
+}
+
+TEST_F(SwitchApiTest, setPacketDropTypeIngressList) {
+  SaiSwitchTraits::Attributes::PacketDropTypeIngressList dropTypes{
+      std::vector<sai_int32_t>{1}};
+  EXPECT_THROW(switchApi->setAttribute(switchId, dropTypes), SaiApiError);
+}
+
+TEST_F(SwitchApiTest, getPacketDropTypeEgressList) {
+  const std::vector<sai_int32_t> dropTypes{2, 13};
+  fs->switchManager.get(switchId).setPacketDropTypeEgressList(dropTypes);
+
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::PacketDropTypeEgressList{}),
+      dropTypes);
+}
+
+TEST_F(SwitchApiTest, getEmptyPacketDropTypeEgressList) {
+  EXPECT_TRUE(
+      switchApi
+          ->getAttribute(
+              switchId, SaiSwitchTraits::Attributes::PacketDropTypeEgressList{})
+          .empty());
+}
+
+TEST_F(SwitchApiTest, setPacketDropTypeEgressList) {
+  SaiSwitchTraits::Attributes::PacketDropTypeEgressList dropTypes{
+      std::vector<sai_int32_t>{2}};
+  EXPECT_THROW(switchApi->setAttribute(switchId, dropTypes), SaiApiError);
 }
 
 TEST_F(SwitchApiTest, testSwitchingMode) {

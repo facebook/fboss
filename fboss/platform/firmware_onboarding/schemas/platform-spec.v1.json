@@ -24,7 +24,7 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["name", "pcie_address"],
+            "required": ["name"],
             "additionalProperties": false,
             "properties": {
               "name": {"type": "string", "minLength": 1},

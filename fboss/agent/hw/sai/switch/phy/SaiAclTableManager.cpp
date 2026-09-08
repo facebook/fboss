@@ -77,7 +77,8 @@ std::
     pair<SaiAclTableTraits::AdapterHostKey, SaiAclTableTraits::CreateAttributes>
     SaiAclTableManager::aclTableCreateAttributes(
         sai_acl_stage_t aclStage,
-        const std::shared_ptr<AclTable>& addedAclTable) {
+        const std::shared_ptr<AclTable>& addedAclTable,
+        cfg::AclTableGroupBindPoint /*bindPoint*/) {
   SaiAclTableTraits::Attributes::Stage tableStage = aclStage;
   std::vector<sai_int32_t> bindPointList{SAI_ACL_BIND_POINT_TYPE_PORT};
 
@@ -87,6 +88,8 @@ std::
       std::nullopt, // actionTypeList
       std::nullopt, // srcIpv6
       std::nullopt, // dstIpv6
+      std::nullopt, // dstIpv6Word3
+      std::nullopt, // dstIpv6Word2
       std::nullopt, // srcIpV4
       std::nullopt, // dstIpV4
       std::nullopt, // fieldL4SrcPort
@@ -123,6 +126,7 @@ std::
       std::nullopt, // UserDefinedFieldGroupMin3
       std::nullopt, // UserDefinedFieldGroupMin4
 #endif
+      std::nullopt, // port meta
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};

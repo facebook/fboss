@@ -132,6 +132,13 @@ struct TBgpPath {
   // path_id above would be received path ID. A speaker can also allocate
   // its own path ID to send to peers, which would go in this field
   27: optional i64 path_id_to_send;
+  // Whether this path was excluded before best-path comparison. Unset/false
+  // means it was an eligible candidate, whether or not it went on to win.
+  // Set by the loc-RIB getters; left unset by shadow-RIB views, which only hold
+  // selected paths.
+  28: optional bool is_inactive;
+  // Locally configured backup address. This is not a BGP wire attribute.
+  29: optional bgp_attr.TIpPrefix backup_addr;
 }
 
 /**
@@ -381,6 +388,8 @@ struct TBgpDedupedPath {
   12: optional map<string, i64> topology_info;
   /** Cisco-style local BGP weight (path-selection attr). Mirrors TBgpPath.weight. */
   13: optional i32 weight;
+  /** Locally configured backup address. Mirrors TBgpPath.backup_addr. */
+  14: optional bgp_attr.TIpPrefix backup_addr;
 }
 
 /**
@@ -431,6 +440,8 @@ struct TBgpPathCanonical {
    * left unset by the loc-RIB getters. Mirrors TBgpPath.policy_name.
    */
   10: optional string policy_name;
+  /** Whether this path was excluded before comparison. Mirrors TBgpPath.is_inactive. */
+  11: optional bool is_inactive;
 }
 
 /**

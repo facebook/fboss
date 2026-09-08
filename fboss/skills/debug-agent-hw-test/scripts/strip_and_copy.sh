@@ -2,7 +2,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #
 # Strip a binary locally for deployment to a switch.
-# The remote upload is handled by lab_ssh_upload MCP tool (see build-and-load.md).
+# The remote upload is handled by lab_ssh_upload MCP tool (see references/build-and-load.md).
 #
 # Usage: bash strip_and_copy.sh <source_binary_path> <dest_binary_name>
 #

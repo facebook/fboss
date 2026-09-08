@@ -386,4 +386,31 @@ RouteNextHopSet getNormalizedNextHops(
   return getNonOverrideNormalizedNextHops(state, entry);
 }
 
+RouteNextHopSet getMplsNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (!FLAGS_mpls_rib) {
+    return entry.getNextHopSet();
+  }
+  return getNextHops(state, entry);
+}
+
+RouteNextHopSet getMplsClientNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (!FLAGS_mpls_rib) {
+    return entry.getNextHopSet();
+  }
+  return getClientNextHops(state, entry);
+}
+
+RouteNextHopSet getMplsNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (!FLAGS_mpls_rib) {
+    return entry.normalizedNextHops();
+  }
+  return getNormalizedNextHops(state, entry);
+}
+
 } // namespace facebook::fboss

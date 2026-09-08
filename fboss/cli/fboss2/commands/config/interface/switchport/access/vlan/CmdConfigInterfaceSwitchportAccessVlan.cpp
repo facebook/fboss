@@ -14,6 +14,8 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include "fboss/agent/types.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
@@ -31,20 +33,11 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   // Extract the VLAN ID (validation already done in VlanIdValue constructor)
   int32_t vlanId = vlanIdValue.getVlanId();
 
-  // Validate that the VLAN exists before modifying config
+  // Create the VLAN (and its barebone interface) on the fly if it doesn't
+  // exist yet.
   auto& config = ConfigSession::getInstance().getAgentConfig();
-  bool vlanExists = false;
-  for (const auto& vlan : *config.sw()->vlans()) {
-    if (*vlan.id() == vlanId) {
-      vlanExists = true;
-      break;
-    }
-  }
-  if (!vlanExists) {
-    throw std::invalid_argument(
-        "VLAN " + std::to_string(vlanId) +
-        " does not exist. Create the VLAN first before assigning ports to it.");
-  }
+  bool vlanCreated =
+      VlanManager::createVlan(*config.sw(), VlanID(vlanId)).first;
 
   // Collect the logical port IDs we need to update
   std::unordered_set<int32_t> portIds;
@@ -74,6 +67,9 @@ CmdConfigInterfaceSwitchportAccessVlan::queryClient(
   std::string interfaceList = folly::join(", ", interfaces.getNames());
   std::string message = "Successfully set access VLAN for interface(s) " +
       interfaceList + " to " + std::to_string(vlanId);
+  if (vlanCreated) {
+    message += " (VLAN " + std::to_string(vlanId) + " created)";
+  }
 
   return message;
 }

@@ -1,0 +1,26 @@
+{
+  "distribution_formats": {
+    "usb": "fboss-distro-image_usb.iso",
+    "pxe": "fboss-distro-image_pxe.tar"
+  },
+  "kernel": {
+    "download": "file:/tmp/leh800bcls_image_staging/kernel-6.11.1.rpms.tar"
+  },
+  "other_dependencies": [
+  ],
+  "fboss-platform-stack": {
+    "download": "file:/tmp/leh800bcls_image_staging/fboss_bins.tar.zst"
+  },
+  "bsps": [
+    {"download": "file:/tmp/leh800bcls_image_staging/fboss_bsp_kmods.tar"}
+  ],
+  "npu_sai": {
+    "download": "file:/tmp/leh800bcls_image_staging/sai-devel.tar"
+  },
+  "phy_sai": {
+  },
+  "fboss-forwarding-stack": {
+  },
+  "image_build_hooks": {
+  }
+}

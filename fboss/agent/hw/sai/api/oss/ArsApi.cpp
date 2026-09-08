@@ -9,6 +9,16 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return std::nullopt;
+}
 #endif
 
 } // namespace facebook::fboss

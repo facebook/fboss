@@ -36,6 +36,22 @@ static constexpr uint32_t kDefaultRouteDstUserMetaDataRangeMax =
 static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMin = 0;
 static constexpr uint32_t kDefaultNeighborDstUserMetaDataRangeMax =
     std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t kDefaultPortUserMetaDataRangeMin = 0;
+static constexpr uint32_t kDefaultPortUserMetaDataRangeMax = 63;
+
+sai_status_t fillDropTypeList(
+    const std::vector<sai_int32_t>& dropTypes,
+    sai_s32_list_t* list) {
+  if (dropTypes.size() > list->count) {
+    list->count = static_cast<uint32_t>(dropTypes.size());
+    return SAI_STATUS_BUFFER_OVERFLOW;
+  }
+  list->count = static_cast<uint32_t>(dropTypes.size());
+  for (size_t i = 0; i < dropTypes.size(); ++i) {
+    list->list[i] = dropTypes[i];
+  }
+  return SAI_STATUS_SUCCESS;
+}
 
 } // namespace
 
@@ -490,6 +506,10 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.u32range.min = kDefaultNeighborDstUserMetaDataRangeMin;
         attr[i].value.u32range.max = kDefaultNeighborDstUserMetaDataRangeMax;
         break;
+      case SAI_SWITCH_ATTR_PORT_USER_META_DATA_RANGE:
+        attr[i].value.u32range.min = kDefaultPortUserMetaDataRangeMin;
+        attr[i].value.u32range.max = kDefaultPortUserMetaDataRangeMax;
+        break;
       case SAI_SWITCH_ATTR_ECN_ECT_THRESHOLD_ENABLE:
         attr[i].value.booldata = sw.getUseEcnThresholds();
         break;
@@ -617,6 +637,20 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_SWITCHING_MODE:
         attr[i].value.s32 = sw.getSwitchingMode();
         break;
+      case SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST: {
+        auto status = fillDropTypeList(
+            sw.getPacketDropTypeIngressList(), &attr[i].value.s32list);
+        if (status != SAI_STATUS_SUCCESS) {
+          return status;
+        }
+      } break;
+      case SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST: {
+        auto status = fillDropTypeList(
+            sw.getPacketDropTypeEgressList(), &attr[i].value.s32list);
+        if (status != SAI_STATUS_SUCCESS) {
+          return status;
+        }
+      } break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

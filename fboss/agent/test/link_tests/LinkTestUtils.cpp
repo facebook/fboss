@@ -294,6 +294,56 @@ std::map<int32_t, TransceiverInfo> waitForTransceiverInfo(
   throw FbossError("TransceiverInfo was never populated.");
 }
 
+bool waitForFreshTransceiverInfo(
+    const std::vector<int32_t>& transceiverIds,
+    const std::map<int32_t, TransceiverInfo>& prevInfo,
+    std::map<int32_t, TransceiverInfo>& freshInfo,
+    bool includeLpo,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+  // A transceiver missing from prevInfo has no baseline to advance past, so
+  // hold it to the time this wait started rather than accepting whatever
+  // qsfp_service already had cached.
+  const int64_t waitStartTime = std::time(nullptr);
+  std::map<int32_t, int64_t> baseline;
+  for (auto tcvrId : transceiverIds) {
+    auto prevItr = prevInfo.find(tcvrId);
+    baseline[tcvrId] = prevItr != prevInfo.end()
+        ? prevItr->second.tcvrStats()->timeCollected().value()
+        : waitStartTime;
+  }
+
+  while (retries--) {
+    freshInfo.clear();
+    try {
+      freshInfo = waitForTransceiverInfo(transceiverIds, includeLpo);
+    } catch (const std::exception& ex) {
+      XLOG(WARN) << "Failed to fetch transceiverInfo. "
+                 << folly::exceptionStr(ex);
+    }
+    std::vector<int32_t> staleTcvrs;
+    for (auto tcvrId : transceiverIds) {
+      auto tcvrInfoItr = freshInfo.find(tcvrId);
+      if (tcvrInfoItr == freshInfo.end() ||
+          tcvrInfoItr->second.tcvrStats()->timeCollected().value() <=
+              baseline[tcvrId]) {
+        staleTcvrs.push_back(tcvrId);
+      }
+    }
+    if (staleTcvrs.empty()) {
+      return true;
+    }
+    XLOG(DBG2) << "Transceivers:[" << folly::join(",", staleTcvrs)
+               << "] have no transceiverInfo update newer than their baseline, "
+               << retries << " retries left";
+    if (retries) {
+      /* sleep override */
+      std::this_thread::sleep_for(msBetweenRetry);
+    }
+  }
+  return false;
+}
+
 std::map<std::string, MediaInterfaceCode> getPortToMediaInterface() {
   std::map<std::string, MediaInterfaceCode> portToMedia;
   try {

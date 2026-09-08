@@ -135,4 +135,26 @@ TEST_F(FwUtilVersionHandlerTest, GetSingleVersionDeviceNotFound) {
       handler.getSingleVersion("nonexistent_device"), std::runtime_error);
 }
 
+TEST_F(FwUtilVersionHandlerTest, GetSingleVersionSysfsPathMissing) {
+  fw_util_config::FwUtilConfig sysfsConfig;
+  fw_util_config::FwConfig deviceConfig;
+  fw_util_config::VersionConfig version;
+  const std::string missingPath =
+      "/run/devmap/inforoms/NON_EXISTENT_INFO_ROM/fw_ver";
+  version.versionType() = "sysfs";
+  version.path() = missingPath;
+  deviceConfig.version() = version;
+  sysfsConfig.fwConfigs() = {{"missing_sysfs", deviceConfig}};
+
+  std::vector<std::pair<std::string, int>> devices = {{"missing_sysfs", 1}};
+  FwUtilVersionHandler handler(devices, sysfsConfig);
+
+  try {
+    handler.getSingleVersion("missing_sysfs");
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& ex) {
+    EXPECT_EQ(ex.what(), "Failed to read file: " + missingPath);
+  }
+}
+
 } // namespace facebook::fboss::platform::fw_util

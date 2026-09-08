@@ -15,6 +15,7 @@
 #include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <vector>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
@@ -114,14 +115,14 @@ TEST_F(CmdShowBgpTableTestFixture, printOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.1/32, Selected 1/1 paths\n"
-      "*@ from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::1/64, Selected 1/1 paths\n"
-      "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::3/64, Selected 1/1 paths\n"
-      "*@ from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.1/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::3/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
 
   maskDateInOutput(output);
   EXPECT_EQ(output, expectedOutput);
@@ -198,32 +199,69 @@ TEST_F(CmdShowBgpTableTestFixture, printCPSOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.1/32, Selected 0/1 paths\n"
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.1/32, Selected 0/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 8.0.0.1/32\n"
       "    default BGP multipath selector\n"
       "    BGP native min nexthop: 20\n"
-      "   from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 8.0.0.3/32, Selected 1/1 paths\n"
+      "    from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 8.0.0.3/32, Selected 1/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 8.0.0.3/32\n"
       "    default BGP multipath selector\n"
       "    BGP native min nexthop: 20, partial drain: true\n"
-      "*  from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::1/64, Selected 1/1 paths\n"
-      "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
-      "\n> 2001::3/64, Selected 1/1 paths\n"
+      "*   from 8.1.2.8 (eight.one.two.eight) via 8.0.0.2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n"
+      "\n> 2001::3/64, Selected 1/1 paths (1 active, 0 inactive)\n"
       "Path overridden by CPS:\n"
       "  prefix: 2001::3/64\n"
       "    active criteria:\n"
       "      path_matchers:\n"
       "      min nexthop: 13\n"
-      "*@ from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
+      "*@  from 2001::5 (two00one::five) via 2001::4 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100\n";
 
   maskDateInOutput(output);
   EXPECT_EQ(output, expectedOutput);
 }
 #endif // IS_OSS
+
+TEST_F(CmdShowBgpTableTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpTableTraits::description().empty());
+  EXPECT_FALSE(CmdShowBgpTable::sampleModel().tRibEntries()->empty());
+  /*
+   * printRIBEntries reaches getLocalBgpConfig for the community/local-pref
+   * mnemonics, and builds the HostInfo it connects to from the MODEL's own
+   * host/ip fields. sampleModel() carries the canned documentation host the
+   * wiki renders under, so point the copy under test at the mocked server
+   * instead - otherwise this is a real connect to an unroutable address that
+   * only ends on timeout. The mock returns an empty config, so the render falls
+   * back to raw asn:value communities and numeric local prefs, which is what
+   * the expected output below reflects.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = CmdShowBgpTable::sampleModel();
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+  std::stringstream ss;
+  CmdShowBgpTable().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  // Marker semantics the description explains: best path, other ECMP member,
+  // and a lower-local-pref path outside the best group.
+  EXPECT_THAT(output, HasSubstr("*@  from 192.0.2.11"));
+  EXPECT_THAT(output, HasSubstr("*   from 192.0.2.12"));
+  EXPECT_THAT(output, HasSubstr("    from 192.0.2.13"));
+  EXPECT_THAT(output, HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
+  // The plain view is one line per path, with none of detail's extra lines.
+  EXPECT_THAT(output, Not(HasSubstr("Router/Originator:")));
+}
+
 } // namespace facebook::fboss

@@ -431,6 +431,16 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
   return interface;
 }
 
+std::shared_ptr<Interface> ManagerTestBase::makeAggregatePortInterface(
+    const TestInterface& testInterface,
+    AggregatePortID aggregatePortID) const {
+  auto interface = makeInterface(testInterface, cfg::InterfaceType::PORT);
+  // setAggregatePortID clears the port binding makeInterface just set, so the
+  // interface ends up bound to the aggregate port alone.
+  interface->setAggregatePortID(aggregatePortID);
+  return interface;
+}
+
 std::shared_ptr<SystemPort> ManagerTestBase::makeSystemPort(
     const std::optional<std::string>& qosPolicy,
     int64_t sysPortId,

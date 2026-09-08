@@ -592,35 +592,39 @@ TEST_F(AgentEnsembleLinkTest, fabricLinkHealth) {
   WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
     auto afterNifStats = getPortStats({kSrcPort})[kSrcPort];
     auto fabricPortStats = getPortStats(fabricPorts);
-    XLOG(DBG2) << "Before pkts: " << beforeNifStats.get_outUnicastPkts_()
-               << " After pkts: " << afterNifStats.get_outUnicastPkts_();
+    XLOG(DBG2) << "Before pkts: "
+               << folly::copy(beforeNifStats.outUnicastPkts_().value())
+               << " After pkts: "
+               << folly::copy(afterNifStats.outUnicastPkts_().value());
     EXPECT_EVENTUALLY_GE(
-        afterNifStats.get_outUnicastPkts_(),
-        beforeNifStats.get_outUnicastPkts_() + 10000);
+        afterNifStats.outUnicastPkts_().value(),
+        beforeNifStats.outUnicastPkts_().value() + 10000);
 
     auto fabricBytes = 0;
     for (const auto& idAndStats : fabricPortStats) {
-      fabricBytes += idAndStats.second.get_outBytes_();
+      fabricBytes += idAndStats.second.outBytes_().value();
     }
-    XLOG(DBG2) << "NIF bytes: " << afterNifStats.get_outBytes_()
+    XLOG(DBG2) << "NIF bytes: "
+               << folly::copy(afterNifStats.outBytes_().value())
                << " Fabric bytes: " << fabricBytes;
-    EXPECT_EVENTUALLY_GE(fabricBytes, afterNifStats.get_outBytes_());
+    EXPECT_EVENTUALLY_GE(fabricBytes, afterNifStats.outBytes_().value());
 
     for (const auto& idAndStats : fabricPortStats) {
       EXPECT_EQ(
-          idAndStats.second.get_inErrors_(),
-          beforeFabricStats[idAndStats.first].get_inErrors_())
+          idAndStats.second.inErrors_().value(),
+          beforeFabricStats[idAndStats.first].inErrors_().value())
           << "InErrors incremented on " << idAndStats.first;
       EXPECT_EQ(
-          beforeFabricStats[idAndStats.first].get_fecUncorrectableErrors(),
-          idAndStats.second.get_fecUncorrectableErrors())
+          beforeFabricStats[idAndStats.first].fecUncorrectableErrors().value(),
+          idAndStats.second.fecUncorrectableErrors().value())
           << "FEC Uncorrectable erorrs incremented on " << idAndStats.first;
     }
-    EXPECT_EQ(afterNifStats.get_inErrors_(), beforeNifStats.get_inErrors_())
+    EXPECT_EQ(
+        afterNifStats.inErrors_().value(), beforeNifStats.inErrors_().value())
         << "InErrors incremented on " << kSrcPortName;
     EXPECT_EQ(
-        beforeNifStats.get_fecUncorrectableErrors(),
-        afterNifStats.get_fecUncorrectableErrors())
+        beforeNifStats.fecUncorrectableErrors().value(),
+        afterNifStats.fecUncorrectableErrors().value())
         << "FEC Uncorrectable errors incremented on " << kSrcPortName;
   });
 }

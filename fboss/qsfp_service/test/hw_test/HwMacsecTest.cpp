@@ -269,7 +269,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     // Verify ACLs are set up correctly
     auto aclTableHandle = aclManager.getAclTableHandle(aclName);
     EXPECT_NE(aclTableHandle, nullptr);
-    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 1);
+    auto aclEntryHandle =
+        aclManager.getAclEntryHandle(aclTableHandle, 1, aclName);
     EXPECT_NE(aclEntryHandle, nullptr);
 
     // TODO(ccpowers):
@@ -314,7 +315,8 @@ class HwMacsecTest : public HwExternalPhyPortTest {
     }
 
     // Check the default data packet ACL rule action with dropUnencrypted value
-    auto aclEntryHandle = aclManager.getAclEntryHandle(aclTableHandle, 4);
+    auto aclEntryHandle =
+        aclManager.getAclEntryHandle(aclTableHandle, 4, aclName);
     EXPECT_NE(aclEntryHandle, nullptr);
 
     auto aclAttrs = aclEntryHandle->aclEntry->attributes();

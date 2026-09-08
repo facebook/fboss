@@ -38,10 +38,15 @@ BENCHMARK(RibSyncFibBenchmark) {
   const auto& routeChunks = gen.getThriftRoutes();
   CHECK_EQ(1, routeChunks.size());
   // Create a dummy rib since we don't want to go through
-  // AgentSwitchEnsemble and write to HW
+  // AgentSwitchEnsemble and write to HW. The FibsInfoMap is needed so the
+  // dummy rib's NextHopIDManager is reconstructed from the programmed state
+  // instead of minting a fresh, colliding ID space.
   auto rib = RoutingInformationBase::fromThrift(
-      ensemble->getSw()->getRib()->toThrift(), nullptr, nullptr, nullptr);
-  auto switchState = ensemble->getSw()->getState();
+      ensemble->getSw()->getRib()->toThrift(),
+      ensemble->getProgrammedState()->getFibsInfoMap(),
+      nullptr,
+      nullptr);
+  auto switchState = ensemble->getProgrammedState();
   rib->update(
       ensemble->getSw()->getScopeResolver(),
       RouterID(0),

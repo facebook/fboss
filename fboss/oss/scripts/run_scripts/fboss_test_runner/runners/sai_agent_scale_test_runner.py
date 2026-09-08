@@ -71,9 +71,9 @@ class SaiAgentScaleTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "/opt/fboss/bin/sai_agent_scale_test-sai_impl"
+            return "sai_agent_scale_test-sai_impl"
 
-        return "/opt/fboss/bin/multi_switch_agent_scale_test"
+        return "multi_switch_agent_scale_test"
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
@@ -83,13 +83,17 @@ class SaiAgentScaleTestRunner(TestRunner):
             return []
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
-        return [
+        flags = [
             "--enable-replayer",
             "--enable_get_attr_log",
             "--enable_packet_log",
             "--sai-log",
             sai_replayer_log_path,
         ]
+        level = getattr(args, "sai_replayer_sdk_log_level", None)
+        if level is not None:
+            flags.extend(["--sai_replayer_sdk_log_level", level])
+        return flags
 
     def _get_sai_logging_flags(self) -> list[str]:
         args = self.args
@@ -131,6 +135,9 @@ class SaiAgentScaleTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_warm_boot=False,
             )
 
@@ -144,6 +151,9 @@ class SaiAgentScaleTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_warm_boot=True,
             )
 

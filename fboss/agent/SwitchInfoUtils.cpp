@@ -145,6 +145,24 @@ const std::optional<cfg::SdkVersion> getSdkVersionFromConfig(
   return getSdkVersionFromConfigImpl(&swConfig);
 }
 
+cfg::PlatformConfig getPlatformConfigFromConfig() {
+  std::unique_ptr<AgentConfig> config;
+  try {
+    config = AgentConfig::fromDefaultFile();
+  } catch (const std::exception&) {
+    // expected on devservers where no config file is available
+    return cfg::PlatformConfig();
+  }
+  return *config->thrift.platform();
+}
+
+cfg::PlatformConfig getPlatformConfigFromConfig(const AgentConfig* config) {
+  if (!config) {
+    return getPlatformConfigFromConfig();
+  }
+  return *config->thrift.platform();
+}
+
 bool withinRange(const cfg::SystemPortRanges& ranges, InterfaceID intfId) {
   return withinRange(ranges, static_cast<int64_t>(intfId));
 }

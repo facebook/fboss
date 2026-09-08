@@ -242,6 +242,12 @@ struct TBgpSessionDetail {
   51: i64 adjrib_sent_eor_msgs;
   52: i64 adjrib_recv_update_msgs;
   53: i64 adjrib_recv_eor_msgs;
+  /**
+   * True when this peer receives IPv4-unicast routes as RFC 4271 classic NLRI +
+   * NEXT_HOP (attr 3) instead of MP_REACH_NLRI -- i.e. it advertised no MP-EXT
+   * capability. Derived from the AdjRib update-group key.
+   */
+  54: bool legacy_v4_nlri_encoding;
 }
 
 /**
@@ -398,6 +404,23 @@ struct TUpdateGroupKey {
 
   /* Whether peer has per-peer egress policy override. */
   17: bool peer_override;
+
+  /*
+   * Whether IPv4-unicast announcements to this group use RFC 4271 classic NLRI
+   * + NEXT_HOP (for peers that advertised no MP-EXT capability) instead of
+   * MP_REACH_NLRI.
+   */
+  18: bool legacy_v4_nlri_encoding;
+
+  /*
+   * Local AS advertised to this group. Per-peer overridable via the peer /
+   * peer-group local_as cascade (RFC-7705), and it is the ASN prepended to
+   * AS_PATH on egress, so peers with different local AS must not share a group.
+  */
+  19: i64 local_as;
+
+  /* Confederation identifier used by the egress AS_PATH transform. */
+  20: optional i64 as_confed_id;
 }
 
 /**
@@ -515,6 +538,24 @@ struct TUpdateGroupPeerInfo {
 }
 
 /**
+ * Lightweight update-group state used by the all-groups summary view.
+ * Every field is available directly from cached group state; producing this
+ * structure must not walk group members or RIB-OUT trees.
+ */
+struct TUpdateGroupSummary {
+  1: i64 group_id;
+  2: string egress_policy_name;
+  3: string group_state;
+  4: i64 member_count;
+  5: i64 in_sync_peer_count;
+  6: i64 detached_peer_count;
+  7: i64 post_out_prefix_count;
+  8: i64 post_out_prefix_count_ipv4;
+  9: i64 post_out_prefix_count_ipv6;
+  10: i64 last_seen_rib_version;
+}
+
+/**
  * Complete update-group information for CLI display.
  * Organized by mutability with reserved field ranges for extensibility:
  *   1-2:   Identity (immutable)
@@ -589,11 +630,10 @@ struct TUpdateGroupInfo {
 }
 
 /**
- * Request parameters for getUpdateGroupInfo().
- * All fields are optional — omitting them returns all groups.
+ * Request parameters for the single-group detail endpoint.
  */
 struct TGetUpdateGroupInfoRequest {
-  /* Filter by a specific update group ID. Unset returns all groups. */
+  /* Required by the handler. An unset ID returns no detail record. */
   1: optional i64 group_id;
 }
 
@@ -606,6 +646,12 @@ struct TGetUpdateGroupInfoResponse {
   1: list<TUpdateGroupInfo> update_groups;
 
   /* Whether the update-group feature is enabled. */
+  2: bool enable_update_group;
+}
+
+/** Response for the lightweight all-groups summary endpoint. */
+struct TGetUpdateGroupSummariesResponse {
+  1: list<TUpdateGroupSummary> update_groups;
   2: bool enable_update_group;
 }
 
@@ -745,9 +791,7 @@ struct TBgpAttributes {
   7: optional bool install_to_fib;
 }
 
-/**
-* Direction filter for attribute statistics
-*/
+/** Direction filter for BGP statistics. */
 enum TDirectionFilter {
   INGRESS = 0,
   EGRESS = 1,
@@ -766,6 +810,12 @@ enum TPolicyStageFilter {
 /**
 * Get Attribute memory statistics
 */
+enum TAttributeStatsPayloadKind {
+  UNKNOWN = 0,
+  LEGACY_ATTRIBUTE_STATS = 1,
+  DEDUPLICATOR_STATS = 2,
+}
+
 struct TAttributeStats {
   1: i64 total_num_of_attributes;
   2: i64 total_unique_attributes;
@@ -775,6 +825,170 @@ struct TAttributeStats {
   6: double avg_as_path_len;
   7: double avg_cluster_list_len;
   8: double avg_topology_info_len;
+
+  /**
+   * Live size of each DeDuplicator<T>, i.e. how many DISTINCT values of that
+   * type the daemon is currently storing. Read straight from
+   * `DeDuplicator::size()`, so these are O(1) and, unlike fields 1-8, cost
+   * nothing to produce -- they do not require walking the RIB.
+   *
+   * Six SEPARATE collections. They nest by containment, but each one counts
+   * distinct values at ITS OWN level:
+   *
+   *   L1  dedup_bgp_path        BgpPathC       = attrs pointer + nexthop
+   *                                              + topologyInfo
+   *   L2    dedup_bgp_attributes  BgpAttributesC = the attribute bundle L1
+   *                                              points at; no nexthop
+   *   L3      dedup_as_path / dedup_communities / dedup_cluster_list /
+   *           dedup_ext_communities, held BY the bundle as deduplicated
+   *           POINTERS, so each is counted once here however many bundles
+   *           reference it.
+   *
+   * A LEVEL IS NOT THE SUM OF THE LEVEL BELOW IT, in either direction. L2
+   * counts distinct COMBINATIONS: A as_paths x C community sets can reach A*C
+   * bundles, far above the L3 sum, while pairing them 1:1 gives max(A, C),
+   * below it. `BgpAttributesC` also carries med / isMedSet / localPref /
+   * atomicAggregate / aggregator / originatorId / weight, none of which have a
+   * deduplicator -- bundles differing only in MED add L2 entries and no L3
+   * entries at all.
+   *
+   * Nor does L1 bound L2: many paths differing only in nexthop share one
+   * bundle, while bundles interned by transient or egress objects that never
+   * become a stored BgpPath have no L1 entry. Either can exceed the other.
+   *
+   * Each field is named after the deduplicator it reports, so the name says
+   * which level it belongs to. NOTE for anyone correlating with fb303: the L2
+   * bundle count is published there as
+   * `bgpcpp.deduplicated_attributes.total`. That counter name is kept for
+   * continuity, but "total" is a misnomer -- it is the bundle count, never a
+   * sum -- so it is deliberately NOT reproduced in this API.
+   *
+   * CAVEAT on dedup_bgp_path: `AdjRibEntry::setPreIn` and `setPostAttr` route
+   * through DeDuplicatedBgpPath; `setPreOut` stores its path verbatim. In the
+   * announce path that is not a gap -- preOut is handed the RIB best-entry
+   * path, which reached the RIB as an already-interned postAttr -- but an
+   * egress path that minted its own BgpPath would go uncounted here. See
+   * AdjRibEntryTest for the pinned behaviour.
+   */
+  // L1
+  9: optional i64 dedup_bgp_path;
+  // L2
+  10: optional i64 dedup_bgp_attributes;
+  // L3
+  11: optional i64 dedup_as_path;
+  12: optional i64 dedup_communities;
+  13: optional i64 dedup_cluster_list;
+  14: optional i64 dedup_ext_communities;
+
+  /**
+   * Identifies which mutually exclusive payload is populated. The CLI sets
+   * this after selecting an RPC path, so a legacy server does not need to
+   * understand this field for the fallback path to be identified.
+   */
+  15: TAttributeStatsPayloadKind payload_kind = TAttributeStatsPayloadKind.UNKNOWN;
+}
+
+/**
+ * Request wrapper for getDeduplicatorStats().
+ *
+ * The initial API always returns every deduplicator. Future filters or
+ * snapshot options can be added here without changing the method signature.
+ */
+struct TGetDeduplicatorStatsRequest {}
+
+/**
+ * Statistics for one deduplicated collection.
+ *
+ * For example, entry_count = 42 means that the collection currently holds 42
+ * distinct values; it is a count, not a byte size or reference count.
+ */
+struct TDeduplicatorCollectionStats {
+  1: i64 entry_count;
+}
+
+/**
+ * O(1) snapshot of the six BGP attribute deduplicators.
+ *
+ * Each collection is sampled independently, so the response is not an atomic
+ * point-in-time snapshot across all six collections. A successful response
+ * always contains every collection, including collections with zero entries.
+ */
+struct TGetDeduplicatorStatsResponse {
+  /* L1: BgpPathC = attribute bundle + nexthop + topologyInfo. */
+  1: TDeduplicatorCollectionStats bgp_path;
+
+  /* L2: BgpAttributesC bundle. This is not a total of the other fields. */
+  2: TDeduplicatorCollectionStats bgp_attributes;
+
+  /* L3: sub-attributes held by BgpAttributesC. */
+  3: TDeduplicatorCollectionStats as_path;
+  4: TDeduplicatorCollectionStats communities;
+  5: TDeduplicatorCollectionStats cluster_list;
+  6: TDeduplicatorCollectionStats ext_communities;
+}
+
+/** Stable identity for one peer Adj-RIB. */
+struct TAdjRibPeerKey {
+  1: string peer_address;
+  2: i64 remote_bgp_id;
+}
+
+/** Identity of the physical Adj-RIB-OUT group backing a peer. */
+struct TAdjRibGroupKey {
+  1: string egress_policy_name;
+  2: i64 group_id;
+}
+
+/** Effective Adj-RIB-IN view for one peer. */
+struct TAdjRibInPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: string peer_name;
+  3: i64 pre_policy_path_count;
+  4: i64 post_policy_path_count;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  7: i64 stale_prefixes;
+  8: i64 stale_paths;
+}
+
+/** Effective Adj-RIB-OUT view for one peer. */
+struct TAdjRibOutPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: TAdjRibGroupKey group_key;
+  3: string peer_name;
+  4: string peer_state;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  /**
+   * Number of buckets in the packing list responsible for producing this
+   * peer's updates. This is peer-local when update groups are disabled or the
+   * peer is detached, and shared when the peer is in sync with an update
+   * group.
+   */
+  7: i64 packing_list_size;
+  /** Pending advertisement key size due to out-delay. */
+  8: i64 out_delay_pending_keys;
+}
+
+struct TAdjRibInStats {
+  1: list<TAdjRibInPeerStats> peers;
+}
+
+struct TAdjRibOutStats {
+  1: list<TAdjRibOutPeerStats> peers;
+}
+
+struct TGetAdjRibStatsRequest {
+  1: TDirectionFilter direction = TDirectionFilter.BOTH;
+}
+
+/**
+ * O(peers) Adj-RIB statistics with no route-scale tree walk.
+ * Peer snapshots have no ordering guarantee.
+ */
+struct TGetAdjRibStatsResponse {
+  1: TAdjRibInStats rib_in;
+  2: TAdjRibOutStats rib_out;
 }
 
 /**
@@ -795,6 +1009,28 @@ struct TEntryStats {
   4: i64 total_originated_routes;
   5: i64 total_shadow_rib_entries;
   6: i64 total_netlink_wrapper_interfaces;
+  /**
+   * The number of interfaces that have a link-up hold right now
+   * (BgpSettingConfig.enable_netlink_dampening). The value is zero when the
+   * feature is off. This is a device total. To find which interface has a
+   * hold, read the [LinkHold] log lines.
+   */
+  7: i64 total_netlink_wrapper_holds_active;
+}
+
+/**
+ * The link-up hold times (link-flap dampening).
+ *
+ * initial_ms is the length of the first hold after a link-down. max_ms is the
+ * longest hold, and it is also the decay window: a link that stays quiet for
+ * this time returns to the initial hold.
+ */
+struct TNetlinkLinkUpHold {
+  1: i32 initial_ms;
+  2: i32 max_ms;
+  // False when BgpSettingConfig.enable_netlink_dampening is off. The times are
+  // then set but no link-up is held.
+  3: bool enabled;
 }
 
 /**
@@ -832,6 +1068,18 @@ struct TRibSummary {
   // peer advertising N add-path routes for a prefix contributes N. Same
   // semantic as TEntryStats.total_rib_paths, split per address family.
   10: i64 total_paths;
+  // Subset of total_paths that best-path selection excluded as candidates --
+  // today, paths whose next-hop is unresolvable. The remainder
+  // (total_paths - inactive_paths) are the paths that entered selection, of
+  // which the winners form each prefix's best/ECMP set. Mirrors the
+  // bgpcpp.rib.inactive_path.count ODS gauge.
+  //
+  // Optional so a newer client can tell "server did not report this" apart from
+  // a genuine zero: an older bgpd predating this field would otherwise
+  // deserialize as 0 and the CLI would confidently render a fully-active RIB.
+  // Consumers must omit the active/inactive split when this is unset rather
+  // than substituting a default.
+  11: optional i64 inactive_paths;
 }
 
 /**
@@ -1134,6 +1382,7 @@ struct THealthReport {
   8: i32 warnCount;
 }
 
+// @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
    * [Logging]
@@ -1286,6 +1535,11 @@ service TBgpService extends fb303.FacebookService {
   );
 
   /**
+   * Get lightweight summary information for all active update groups.
+   */
+  TGetUpdateGroupSummariesResponse getUpdateGroupSummaries();
+
+  /**
    * Get local config information
    */
   TBgpLocalConfig getBgpLocalConfig();
@@ -1417,33 +1671,6 @@ service TBgpService extends fb303.FacebookService {
     bgp_attr.TIpPrefix,
     list<bgp_route_types.TBgpPath>
   > getPrefilterAdvertisedNetworks2(1: string peer);
-
-  /**
-   * Routes we receive from peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preIn routes of the peer and displays the
-   * postIn output if the policy is applied.
-   * i.e. Determine the effect of policy without effecting the running state.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
-
-  /**
-   * Routes we sent to a peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preOut routes of the peer and displays the
-   * postOut output if the policy is applied.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
 
   /**
    * Get post-policy network information for stream subscribers
@@ -1779,6 +2006,38 @@ service TBgpService extends fb303.FacebookService {
   TResult setRouteFilterPolicy(1: rib_policy.TRouteFilterPolicy policy);
 
   /**
+   * [Link-up hold]
+   */
+  /**
+   * Set the link-up hold times without a restart.
+   *
+   * bgpd reads bgp_netlink_link_up_hold_initial_ms and
+   * bgp_netlink_link_up_hold_max_ms one time at start-up, and a gflag cannot
+   * change while bgpd runs. Each restart is a graceful restart event, so a
+   * qualification test must change these times another way.
+   *
+   * The netlink fiber reads the new values at the next link-down. A hold that
+   * already started keeps its length. To set max_ms to a small value therefore
+   * collapses the ladder within one hold.
+   *
+   * @param initial_ms - the first hold, in milliseconds. Must be more than 0.
+   * @param max_ms - the longest hold, in milliseconds. Must be at least
+   *                 initial_ms.
+   * @return <true, ''> when bgpd accepted the times
+   *         <false, 'Error Msg'> when a value is out of range, or when this
+   *         build has no NetlinkWrapper
+   */
+  TResult setNetlinkLinkUpHold(1: i32 initial_ms, 2: i32 max_ms);
+
+  /**
+   * [Link-up hold]
+   */
+  /**
+   * Show the link-up hold times that bgpd uses now.
+   */
+  TNetlinkLinkUpHold getNetlinkLinkUpHold();
+
+  /**
    * [Route Filter Policy]
    */
   /**
@@ -1877,12 +2136,27 @@ service TBgpService extends fb303.FacebookService {
   monitored_queue_size_map getMonitoredQueueSizes(1: list<string> paths);
 
   /**
-   * Get attribute memory statistics
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB. Use getDeduplicatorStats instead.
    */
   TAttributeStats getAttributeStats();
 
   /**
-   * Get attribute memory statistics filtered by ingress/egress and pre/post policy
+   * Get an O(1) snapshot of the BGP attribute deduplicators.
+   */
+  TGetDeduplicatorStatsResponse getDeduplicatorStats(
+    1: TGetDeduplicatorStatsRequest request,
+  );
+
+  /**
+   * Get cached per-peer Adj-RIB-IN and effective Adj-RIB-OUT statistics without
+   * traversing a radix tree.
+   */
+  TGetAdjRibStatsResponse getAdjRibStats(1: TGetAdjRibStatsRequest request);
+
+  /**
+   * Deprecated wire-compatibility placeholder. Returns an empty response
+   * without scanning the Adj-RIB.
    */
   TAttributeStats getAttributeStatsFiltered(1: TAttributeStatsFilter filter);
 

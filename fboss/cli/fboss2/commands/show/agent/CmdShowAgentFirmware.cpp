@@ -55,6 +55,20 @@ void CmdShowAgentFirmware::printOutput(
   }
 }
 
+std::string_view CmdShowAgentFirmwareTraits::description() {
+  return "Displays the agent firmware version and its operational and functional status. Use it to check firmware state.";
+}
+
+CmdShowAgentFirmware::RetType CmdShowAgentFirmware::sampleModel() {
+  RetType model;
+  cli::AgentFirmwareEntry entry;
+  entry.version() = "1.0.0-EA1";
+  entry.opStatus() = "RUNNING";
+  entry.funcStatus() = "MONITORING";
+  model.firmwareEntries()->push_back(entry);
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();

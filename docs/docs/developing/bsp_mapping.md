@@ -1,6 +1,6 @@
 # FBOSS BSP Mapping
 
-A platform's BSP mapping is derived directly from its `platform_manager.json` (`fboss/platform/configs/PLATFORM/platform_manager.json`).
+A platform's BSP mapping is derived directly from its `platform_manager.json` (`fboss/configs/platforms/VENDOR/PLATFORM/platform_stack/platform_manager.json`).
 
 The same configuration that PlatformManager uses to create the transceiver and LED device nodes is also the single source of the BSP mapping consumed by `qsfp_service` and `led_service`. There is no separate BSP mapping input to maintain.
 

@@ -12,7 +12,7 @@ void PhySnapshotManager::updatePhyInfoLocked(
   snapshot.phyInfo() = phyInfo;
   CHECK(phyInfo.state().has_value());
 
-  CHECK(!phyInfo.state()->get_name().empty());
+  CHECK(!phyInfo.state()->name().value().empty());
   auto result = lockedSnapshotMap->try_emplace(
       portID,
       std::set<std::string>({phyInfo.state()->name().value()}),

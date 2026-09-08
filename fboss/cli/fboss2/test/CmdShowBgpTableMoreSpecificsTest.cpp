@@ -92,8 +92,8 @@ TEST_F(CmdShowBgpTableMoreSpecificsTestFixture, printOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
       "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"

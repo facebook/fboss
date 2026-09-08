@@ -19,7 +19,7 @@ namespace facebook::fboss {
 CmdDeleteQosTraits::RetType CmdDeleteQos::queryClient(
     const HostInfo& /* hostInfo */) {
   return "Delete QoS configuration commands. Use subcommands: default-policy, "
-         "default-queue-config";
+         "queue-config";
 }
 
 void CmdDeleteQos::printOutput(const RetType& output) {

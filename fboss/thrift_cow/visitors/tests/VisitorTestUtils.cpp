@@ -47,4 +47,23 @@ TestStruct createSimpleTestStruct() {
       testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
+RecursiveStruct makeRecursiveStruct() {
+  // Self-referential hierarchy:
+  //   top.simpleMember.min = 11
+  //   top.children[0]                              (left empty)
+  //   top.children[1].name = "childName"
+  //   top.children[1].children[0].simpleMember.min = 22
+  RecursiveStruct top;
+  top.simpleMember()->min() = 11;
+  RecursiveStruct child0; // children[0], left empty
+  RecursiveStruct child1; // children[1]
+  child1.name() = "childName";
+  RecursiveStruct grandchild0; // children[1].children[0]
+  grandchild0.simpleMember()->min() = 22;
+  child1.children()->push_back(std::move(grandchild0));
+  top.children()->push_back(std::move(child0));
+  top.children()->push_back(std::move(child1));
+  return top;
+}
+
 } // namespace facebook::fboss::thrift_cow

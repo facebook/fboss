@@ -18,10 +18,8 @@ from fboss_test_runner.services.fboss_agent_utils import (
 
 SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
 
-SAI_BENCH_BINARY = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
-SAI_MULTI_SWITCH_BENCH_BINARY = (
-    "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
-)
+SAI_BENCH_BINARY = "sai_all_benchmarks-sai_impl"
+SAI_MULTI_SWITCH_BENCH_BINARY = "sai_multi_switch_all_benchmarks-sai_impl"
 
 
 class SaiBenchmarkSuite(BenchmarkSuite):
@@ -39,7 +37,7 @@ class SaiBenchmarkSuite(BenchmarkSuite):
             == SUB_ARG_AGENT_RUN_MODE_MULTI
         )
 
-    def binary_path(self, args: Namespace) -> str:
+    def binary_name(self, args: Namespace) -> str:
         if self._is_multi_switch(args):
             return SAI_MULTI_SWITCH_BENCH_BINARY
         return SAI_BENCH_BINARY

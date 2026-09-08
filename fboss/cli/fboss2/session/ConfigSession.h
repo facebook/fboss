@@ -85,12 +85,19 @@ namespace facebook::fboss {
  */
 class ConfigSession {
  public:
-  ConfigSession();
+  // ReadOnly skips seeding ~/.fboss2 when no session exists; used by commands
+  // (history, session diff) that must not stage one.
+  enum class SessionInit { CreateIfAbsent, ReadOnly };
+
+  explicit ConfigSession(SessionInit init = SessionInit::CreateIfAbsent);
+
   virtual ~ConfigSession() = default;
 
-  // Get or create the current config session
-  // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
-  static ConfigSession& getInstance();
+  // Get or create the current config session.
+  // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf,
+  // unless init == ReadOnly.
+  static ConfigSession& getInstance(
+      SessionInit init = SessionInit::CreateIfAbsent);
 
   // Reset the singleton (for testing only).
   // Destroys the current instance so the next getInstance() creates a fresh
@@ -244,7 +251,10 @@ class ConfigSession {
 
  protected:
   // Constructor for testing with custom paths
-  ConfigSession(std::string sessionConfigDir, std::string systemConfigDir);
+  ConfigSession(
+      std::string sessionConfigDir,
+      std::string systemConfigDir,
+      SessionInit init = SessionInit::CreateIfAbsent);
 
   // Constructor for testing with custom paths and mock FbossServiceUtil
   ConfigSession(
@@ -305,12 +315,24 @@ class ConfigSession {
 
   // git relative path of the bgpd config tracked in the /etc/coop repo.
   static constexpr auto kBgpGitRelPath = "bgpcpp/bgpcpp.conf";
+  // git relative path of the CLI metadata tracked in the /etc/coop repo.
+  static constexpr auto kMetadataGitRelPath = "cli/cli_metadata.json";
   // Like Git::fileAtRevision but returns "" instead of throwing when the path
   // does not exist at that revision (e.g. a pre-BGP commit). Used by
   // rebase/rollback/diff so a missing bgpcpp.conf is treated as empty.
   std::string fileAtRevisionOrEmpty(
       const std::string& revision,
       const std::string& gitRelPath) const;
+
+  // Highest per-service action level recorded in the metadata of every commit
+  // a rollback to resolvedSha would undo (i.e. commits in (resolvedSha, HEAD]).
+  // Undoing a change needs at least the action level applying it did (e.g. a
+  // VLAN membership change requires an agent warmboot in both directions), so
+  // rollback() promotes each service's default action to this level.
+  // If resolvedSha is not found in the metadata history, the max over the
+  // whole history is returned (conservative).
+  std::map<cli::ServiceType, cli::ConfigActionLevel> rolledBackActionLevels(
+      const std::string& resolvedSha) const;
 
   // Track the highest action level required for pending config changes per
   // service. Persisted to disk so it survives across CLI invocations within a
@@ -339,8 +361,9 @@ class ConfigSession {
   // multi-switch state via Thrift, rather than reading the config file.
   virtual void ensureFbossServiceUtil(const HostInfo& hostInfo);
 
-  // Initialize the session (creates session config file if it doesn't exist)
-  void initializeSession();
+  // Initialize the session. With CreateIfAbsent, creates the session config
+  // file if it doesn't exist; with ReadOnly, leaves ~/.fboss2 untouched.
+  void initializeSession(SessionInit init);
   void copySystemConfigToSession() const;
   void loadConfig();
 

@@ -24,7 +24,7 @@ namespace facebook::fboss {
  Define the traits of this command. This will include the inputs and output
  types
 */
-struct CmdShowExampleTraits : public ReadCommandTraits {
+struct CmdShowExampleTraits : public ReadCommandTraits, public CliDocsExempt {
   // The object type that the command accepts
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;

@@ -348,6 +348,12 @@ void accumulateFb303GlobalStats(
     hitCount += toAdd.sram_low_buffer_limit_hit_count().value();
     accumulated.sram_low_buffer_limit_hit_count() = hitCount;
   }
+  if (toAdd.sdk_dump_suppressed_count().has_value()) {
+    uint64_t suppressedCount =
+        accumulated.sdk_dump_suppressed_count().value_or(0);
+    suppressedCount += toAdd.sdk_dump_suppressed_count().value();
+    accumulated.sdk_dump_suppressed_count() = suppressedCount;
+  }
 }
 
 void accumulateGlobalCpuStats(
@@ -506,9 +512,9 @@ SwSwitch::SwSwitch(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       stateUpdateValidator_(new StateUpdateValidator(
-          config->getRunMode(),
+          AgentConfig::getRunMode(),
           getMonolithicHwSwitchHandlerIf(
-              config->getRunMode(),
+              AgentConfig::getRunMode(),
               multiHwSwitchHandler_.get()),
           hwAsicTable_.get(),
           scopeResolver_.get())),
@@ -524,8 +530,8 @@ SwSwitch::SwSwitch(
   utilCreateDir(agentDirUtil_->getPersistentStateDir());
   try {
     platformProductInfo_->initialize();
-    platformMapping_ =
-        utility::initPlatformMapping(platformProductInfo_->getType());
+    platformMapping_ = utility::initPlatformMapping(
+        platformProductInfo_->getType(), getPlatformConfigFromConfig(config));
   } catch (const std::exception& ex) {
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
@@ -859,7 +865,11 @@ state::SwitchState SwSwitch::updateOverrideEcmpSwitchingMode(
           fwd.getAdminDistance(),
           fwd.getCounterID(),
           fwd.getClassID(),
-          std::optional<cfg::SwitchingMode>(switchingMode));
+          std::optional<cfg::SwitchingMode>(switchingMode),
+          fwd.getOverrideNextHops(),
+          fwd.getNormalizedResolvedNextHopSetID(),
+          fwd.getResolvedNextHopSetID(),
+          fwd.getClientNextHopSetID());
       fib.value().at(routeName).fwd() = newFwd.toThrift();
     }
   };
@@ -1012,6 +1022,7 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.switchDropStats()});
       agentStats.switchDropBitmapStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchDropBitmapStats()});
+      agentStats.aclStatsMap()->insert({switchIdx, *hwSwitchStats.aclStats()});
       for (auto& [portID, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
         auto phyStats = phyInfo.stats().value();
@@ -1294,8 +1305,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
 }
 
 bool SwSwitch::isRunModeMultiSwitch() const {
-  return FLAGS_multi_switch ||
-      (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  return AgentConfig::getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
 
 void SwSwitch::getAllHwSysPortStats(
@@ -2356,22 +2366,33 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
   }
 }
 
+bool SwSwitch::isFabricLinkMonitoringPacket(
+    const RxPacket& pkt,
+    const std::shared_ptr<SwitchState>& state) const {
+  if (rxPacketTypeSupported_) {
+    // The reported type is authoritative, so an untyped packet is not a
+    // monitoring packet and needs no ingress port lookup.
+    const auto packetType = pkt.packetType();
+    return packetType.has_value() &&
+        packetType.value() == PacketType::FABRIC_LINK_MONITORING;
+  }
+  // TODO(nivinl): Ramon3 reports the packet type only from SDK 16.x, keep
+  // this code until that is in production.
+  // Where the type is not reported, fabric ports punt nothing other than
+  // fabric link monitoring packets, so port type is a safe proxy.
+  const auto port = state->getPorts()->getNodeIf(PortID(pkt.getSrcPort()));
+  return port && port->getPortType() == cfg::PortType::FABRIC_PORT;
+}
+
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   auto state = getState();
-  if (getFabricLinkMonitoringManager()) {
-    // This flow will be hit only for a subset of VoQ and Fabric switches
-    // where fabric link monitoring manager is running.
-    // TODO(nivinl): Broadcom implemented the new attribute to specify
-    // packet type as requested in CS00012430577, however, its not working
-    // for Fabric devices, hence staying with port check for now. Will
-    // migrate to checking the packetType as below soon:
-    // pkt->packetType().value() == PacketType::FABRIC_LINK_MONITORING
-    auto* port = state->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
-    if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
-      Cursor c(pkt->buf());
-      getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
-      return;
-    }
+  if (getFabricLinkMonitoringManager() &&
+      isFabricLinkMonitoringPacket(*pkt, state)) {
+    // Fabric link monitoring manager is a prerequisite to process these
+    // packets
+    Cursor c(pkt->buf());
+    getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
+    return;
   }
 
   auto intfIdOpt = state->getInterfaceIDForPortIf(getPortFromPkt(pkt.get()));
@@ -3078,6 +3099,8 @@ void SwSwitch::initFabricLinkMonitoringManager() {
         ? false
         : hwAsic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1;
     if (isVoqSwitch || isDualStageL1) {
+      rxPacketTypeSupported_ = getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::RX_PACKET_TYPE);
       fabricLinkMonitoringManager_ =
           std::make_unique<FabricLinkMonitoringManager>(this);
     } else {
@@ -4219,6 +4242,15 @@ multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsExpensive(
 std::map<uint16_t, multiswitch::HwSwitchStats>
 SwSwitch::getHwSwitchStatsExpensive() const {
   return *hwSwitchStats_.rlock();
+}
+
+std::map<std::string, HwSwitchCounter> SwSwitch::getRouteCounters() const {
+  HwSwitchCounterStats counterStats;
+  auto lockedStats = hwSwitchStats_.rlock();
+  for (const auto& [_, hwSwitchStats] : *lockedStats) {
+    accumulateCounterStats(counterStats, *hwSwitchStats.counterStats());
+  }
+  return std::move(*counterStats.routeCounters());
 }
 
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {

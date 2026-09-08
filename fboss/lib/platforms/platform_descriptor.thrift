@@ -15,4 +15,6 @@ struct PlatformDescriptor {
   3: list<string> modeNames;
   4: switch_config.AsicType asicType;
   5: map<string, bool> variantAttributes;
+  // Number of physical switching ASICs in the platform.
+  6: i16 numSwitchAsics = 1;
 }

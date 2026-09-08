@@ -29,6 +29,12 @@ const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
   return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4();
 }
 
+bool hasBackupNextHop(const RouteNextHopSet& nhops) {
+  return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+    return nhop.role() == NextHopRole::BACKUP;
+  });
+}
+
 std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
 getNhops2IdSansMergedOnlyGroups(const EcmpResourceManager& resourceMgr) {
   const auto& nhops2Id = resourceMgr.getNhopsToId();
@@ -60,6 +66,9 @@ std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
       }
       auto nhops = getNormalizedNextHops(in, route->getForwardInfo());
       if (nhops.size() <= 1) {
+        continue;
+      }
+      if (hasBackupNextHop(nhops)) {
         continue;
       }
       if (!filter(route->getForwardInfo())) {
@@ -243,6 +252,15 @@ void assertFibAndGroupsMatch(
         continue;
       }
       const auto& fwdInfo = route->getForwardInfo();
+      auto nonOverrideNormalizedHops =
+          getNonOverrideNormalizedNextHops(state, fwdInfo);
+      if (hasBackupNextHop(nonOverrideNormalizedHops)) {
+        EXPECT_EQ(
+            resourceMgr.getGroupInfo(
+                RouterID(0), route->prefix().toCidrNetwork()),
+            nullptr);
+        continue;
+      }
       auto pfxGrpInfo = resourceMgr.getGroupInfo(
           RouterID(0), route->prefix().toCidrNetwork());
       if (fwdInfo.hasOverrideNextHops()) {
@@ -265,8 +283,6 @@ void assertFibAndGroupsMatch(
           pfxGrpInfo->isBackupEcmpGroupType());
       // Non override nhops must map to a entry in nhops2Id. Confirming
       // that nhops map to a existing group in resourceMgr
-      auto nonOverrideNormalizedHops =
-          getNonOverrideNormalizedNextHops(state, route->getForwardInfo());
       auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
       ASSERT_NE(nitr, nhops2Id.end());
       auto umGroupRefItr =
@@ -373,6 +389,9 @@ void assertDeltasForOverflow(
     if (nhops.size() <= 1) {
       return;
     }
+    if (hasBackupNextHop(nhops)) {
+      return;
+    }
     if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
@@ -396,6 +415,9 @@ void assertDeltasForOverflow(
     }
     auto nhops = getNormalizedNextHops(state, newRoute->getForwardInfo());
     if (nhops.size() <= 1) {
+      return;
+    }
+    if (hasBackupNextHop(nhops)) {
       return;
     }
     if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {

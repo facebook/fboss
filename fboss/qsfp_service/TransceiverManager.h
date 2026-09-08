@@ -62,8 +62,18 @@
 
 #define SM_LOG(level, tcvrID) MODULE_LOG(level, "[SM]", tcvrID)
 
-#define PORT_MGR_SKIP_LOG(func) \
+// Reached in Port Manager mode, where PortManager performs the equivalent
+// work. Doing nothing here is the intended behavior.
+#define PORT_MGR_INTENTIONAL_SKIP_LOG(func) \
   XLOG(DBG2) << func << " called in Port Manager mode. Skipping."
+
+// Not reachable in Port Manager mode: PortManager owns this path and every
+// caller is routed to it. Getting here means a caller was missed during the
+// migration, which would otherwise silently do nothing.
+#define PORT_MGR_UNEXPECTED_CALL(func)                                 \
+  XLOG(FATAL) << func                                                  \
+              << " called in Port Manager mode, but PortManager owns " \
+                 "this path. This is a Port Manager routing bug."
 
 DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
@@ -218,18 +228,6 @@ class TransceiverManager {
    * That class has the function to get the I2c transaction status
    */
   virtual void publishI2cTransactionStats() = 0;
-
-  void publishPhyIOStats() const {
-    if (FLAGS_port_manager_mode) {
-      PORT_MGR_SKIP_LOG("publishPhyIOStats");
-      return;
-    }
-
-    if (!phyManager_) {
-      return;
-    }
-    phyManager_->publishPhyIOStatsToFb303();
-  }
 
   /*
    * Virtual functions to get the cached transceiver signal flags, media lane

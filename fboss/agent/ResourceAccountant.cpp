@@ -17,6 +17,32 @@
 
 namespace {
 constexpr auto kHundredPercentage = 100;
+
+bool hasBackupNextHop(const facebook::fboss::RouteNextHopSet& nhops) {
+  return std::any_of(nhops.begin(), nhops.end(), [](const auto& nhop) {
+    return nhop.role() == facebook::fboss::NextHopRole::BACKUP;
+  });
+}
+
+bool isBackupNextHop(const facebook::fboss::NextHop& nhop) {
+  return nhop.role() == facebook::fboss::NextHopRole::BACKUP;
+}
+
+size_t primaryNextHopCount(const facebook::fboss::RouteNextHopSet& nhops) {
+  return std::count_if(nhops.begin(), nhops.end(), [](const auto& nhop) { //
+    return !isBackupNextHop(nhop);
+  });
+}
+
+// Whether the backup next hops of a protection group occupy members of the
+// group. Some asics program them as ordinary members; others keep them in hw
+// reserved space, where they are not charged here.
+size_t memberNextHopCount(
+    const facebook::fboss::RouteNextHopSet& nhops,
+    bool countBackupNextHops) {
+  return countBackupNextHops ? nhops.size() : primaryNextHopCount(nhops);
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -32,6 +58,15 @@ ResourceAccountant::ResourceAccountant(
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER));
   nativeWeightedEcmp_ = asicTable->isFeatureSupportedOnAllAsic(
       HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
+  // Charge backup members if any asic needs them charged, so a mixed table
+  // accounts for the worst case.
+  const auto asics = asicTable->getHwAsics();
+  countBackupNextHopMembers_ =
+      std::any_of(asics.begin(), asics.end(), [](const auto& idAndAsic) {
+        const auto asicType = idAndAsic.second->getAsicType();
+        return asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
+            asicType == cfg::AsicType::ASIC_TYPE_G202X;
+      });
   checkRouteUpdate_ = shouldCheckRouteUpdate();
 }
 
@@ -39,7 +74,7 @@ bool ResourceAccountant::isVirtualArsGroup(
     const RouteNextHopEntry& fwd,
     const RouteNextHopEntry::NextHopSet& nhSet) const {
   if (!FLAGS_dlbResourceCheckEnable ||
-      !minWidthForArsVirtualGroup_.has_value()) {
+      !minWidthForArsVirtualGroup_.has_value() || hasBackupNextHop(nhSet)) {
     return false;
   }
   // ERM-overridden routes are in backup ECMP mode and don't use the DLB pool.
@@ -97,8 +132,14 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
 size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd,
     const std::shared_ptr<SwitchState>& state) const {
+  const auto nhSet = getNormalizedNextHops(state, fwd);
+  if (hasBackupNextHop(nhSet)) {
+    // Sai programs member weights only for ordinary ECMP groups, so protection
+    // members are unweighted and each costs a single member.
+    return memberNextHopCount(nhSet, countBackupNextHopMembers_);
+  }
   if (isEcmp(fwd, state)) {
-    return getNormalizedNextHops(state, fwd).size();
+    return nhSet.size();
   }
   if (nativeWeightedEcmp_) {
     // Different asic supports native WeightedEcmp in different ways.
@@ -116,10 +157,18 @@ size_t ResourceAccountant::getMemberCountForEcmpGroup(
   // No native weighted ECMP support. Members are replicated to support
   // weighted ECMP.
   auto totalWeight = 0;
-  for (const auto& nhop : getNormalizedNextHops(state, fwd)) {
+  for (const auto& nhop : nhSet) {
     totalWeight += nhop.weight() ? nhop.weight() : 1;
   }
   return totalWeight;
+}
+
+// Each dynamic ARS group is paired with a secondary plain ECMP group when
+// split horizon is on, so the secondary groups need no bookkeeping of their
+// own.
+size_t ResourceAccountant::getEcmpGroupUsage() const {
+  return ecmpGroupRefMap_.size() +
+      (arsSplitHorizon_ ? arsEcmpGroupRefMap_.size() : 0);
 }
 
 bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
@@ -143,11 +192,11 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
           (ecmpMemberLimit.value() * resourcePercentage / kHundredPercentage);
     }
 
+    const auto ecmpGroupUsage = getEcmpGroupUsage();
     if (ecmpGroupEnforcedLimit.has_value() &&
-        ecmpGroupRefMap_.size() >
-            static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
+        ecmpGroupUsage > static_cast<size_t>(*ecmpGroupEnforcedLimit)) {
       XLOG(DBG2) << " Ecmp group limit exceeded. Ecmp demand from this update: "
-                 << ecmpGroupRefMap_.size()
+                 << ecmpGroupUsage
                  << " ASIC limit: " << *ecmpGroupEnforcedLimit;
       return false;
     }
@@ -355,6 +404,11 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
     const auto nhSet = getNormalizedNextHops(state, fwd);
     // Forwarding to nextHops and more than one nextHop - use ECMP
     if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
+      if (hasBackupNextHop(nhSet)) {
+        return true;
+      }
+      arsSplitHorizon_ = state->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS)
+                             .value_or(false);
       // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
       // will be identical since primary and backup groups are
       // indistinguishable.
@@ -374,6 +428,10 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
         CHECK(it->second >= 0);
         if (!add && it->second == 0) {
           arsEcmpGroupRefMap_.erase(it);
+          if (arsSplitHorizon_) {
+            ecmpMemberUsage_ -=
+                static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+          }
         }
         return true;
       }
@@ -381,7 +439,13 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
       // limit
       CHECK(add);
       arsEcmpGroupRefMap_[nhSet] = 1;
-      return checkArsResource(true /* intermediateState */);
+      if (arsSplitHorizon_) {
+        // The secondary group holds its own copy of the members.
+        ecmpMemberUsage_ +=
+            static_cast<uint32_t>(getMemberCountForEcmpGroup(fwd, state));
+      }
+      return checkArsResource(true /* intermediateState */) &&
+          checkEcmpResource(true /* intermediateState */);
     }
   }
   return true;
@@ -578,7 +642,7 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
     XLOG(WARNING)
         << "Invalid route update - exceeding route or ECMP resource limits. New state consumes "
         << routeUsage_ << " routes, " << ecmpMemberUsage_
-        << " ECMP members and " << ecmpGroupRefMap_.size() << " ECMP groups.";
+        << " ECMP members and " << getEcmpGroupUsage() << " ECMP groups.";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
       const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();

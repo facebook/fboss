@@ -4,8 +4,8 @@
 # cmake/FooBar.cmake
 
 
-file(GLOB_RECURSE required_configs
-  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/configs/*.json
+file(GLOB required_configs
+  ${CMAKE_CURRENT_SOURCE_DIR}/fboss/configs/platforms/*/*/platform_stack/*.json
 )
 
 set(generated_header
@@ -25,7 +25,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_CURRENT_BINARY_DIR}/platform_config_lib_config_generator
     --json_config_dir
-    ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/configs
+    ${CMAKE_CURRENT_SOURCE_DIR}/fboss/configs/platforms
     --install_dir
     ${output_dir}
   DEPENDS

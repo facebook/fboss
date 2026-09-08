@@ -619,8 +619,8 @@ TEST_F(MacsecManagerTest, installKeys) {
         saiManagerTable->aclTableManager().getAclTableHandle(aclName);
     ASSERT_NE(aclTable, nullptr);
 
-    auto aclEntry =
-        saiManagerTable->aclTableManager().getAclEntryHandle(aclTable, 1);
+    auto aclEntry = saiManagerTable->aclTableManager().getAclEntryHandle(
+        aclTable, 1, aclName);
     ASSERT_NE(aclEntry, nullptr);
   };
   verify(

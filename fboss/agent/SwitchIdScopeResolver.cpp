@@ -276,6 +276,11 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
     case cfg::InterfaceType::VLAN:
       return scope(state->getVlans()->getNode(intf->getVlanID()));
     case cfg::InterfaceType::PORT:
+      // A port router interface is bound to either a physical port or an
+      // aggregate port. Interface's setters keep the two mutually exclusive.
+      if (auto aggPortID = intf->getAggregatePortIDf()) {
+        return scope(state->getAggregatePorts()->getNode(*aggPortID));
+      }
       return scope(intf->getPortID());
   }
   throw FbossError(
@@ -336,6 +341,29 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
           });
       if (itr == cfg.interfaces()->cend()) {
         throw FbossError("No interface found for : ", interfaceId);
+      }
+      // A port router interface is bound to either a physical port or an
+      // aggregate port, never both and never neither. This is the earliest
+      // point at which the config is inspected for that binding, so reject a
+      // malformed one here rather than letting it fail further down.
+      auto aggPortID = itr->aggregatePortID();
+      if (itr->portID().has_value() == aggPortID.has_value()) {
+        throw FbossError(
+            "Port router interface ",
+            interfaceId,
+            " must set exactly one of portID and aggregatePortID");
+      }
+      if (aggPortID) {
+        auto aitr = std::find_if(
+            cfg.aggregatePorts()->cbegin(),
+            cfg.aggregatePorts()->cend(),
+            [aggPortID](const auto& aggPort) {
+              return *aggPort.key() == *aggPortID;
+            });
+        if (aitr == cfg.aggregatePorts()->cend()) {
+          throw FbossError("No aggregate port found for : ", interfaceId);
+        }
+        return scope(*aitr);
       }
       auto pitr = std::find_if(
           cfg.ports()->cbegin(), cfg.ports()->cend(), [itr](const auto& port) {

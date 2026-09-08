@@ -113,6 +113,17 @@ class MultiHwSwitchHandler {
    */
   bool waitUntilHwSwitchConnected();
 
+  /*
+   * blocks till every HwSwitch this handler fans out to is connected.
+   * returns false if wait is cancelled.
+   *
+   * stateChanged() sends to all of them, and a switch that has not registered
+   * yet reports HWSWITCH_STATE_UPDATE_CANCELLED rather than applied or failed.
+   * A caller that waits for only one can therefore see an update come back
+   * successful that no rollback ever ran for.
+   */
+  bool waitUntilAllHwSwitchesConnected();
+
   std::map<int32_t, SwitchRunState> getHwSwitchRunStates();
 
   void connected(SwitchID switchId) {

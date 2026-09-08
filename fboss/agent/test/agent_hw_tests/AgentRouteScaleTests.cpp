@@ -162,4 +162,18 @@ class AgentHundredThousandRouteScaleTest : public AgentRouteScaleTest {
 TEST_F(AgentHundredThousandRouteScaleTest, hundredThousandRouteScaleTest) {
   runTest<utility::AnticipatedRouteScaleGenerator>();
 }
+
+class AgentEtswRouteScaleTest : public AgentRouteScaleTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentRouteScaleTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ETSW_ROUTE_SCALE);
+    return features;
+  }
+};
+
+TEST_F(AgentEtswRouteScaleTest, etswRouteScaleTest) {
+  runTest<utility::ETSWRouteScaleGenerator>();
+}
 } // namespace facebook::fboss

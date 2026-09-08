@@ -17,12 +17,19 @@
 namespace facebook {
 namespace fboss {
 
+class PhyManager;
+class PortManager;
 class TransceiverManager;
 
 class StatsPublisher {
  public:
-  explicit StatsPublisher(TransceiverManager* transceiverManager)
-      : transceiverManager_(transceiverManager) {}
+  StatsPublisher(
+      TransceiverManager* transceiverManager,
+      PhyManager* phyManager,
+      PortManager* portManager)
+      : transceiverManager_(transceiverManager),
+        phyManager_(phyManager),
+        portManager_(portManager) {}
   void init();
   void publishStats(folly::EventBase* evb, int32_t stats_publish_interval);
   void publishFbagentCounters(
@@ -44,6 +51,12 @@ class StatsPublisher {
 
  private:
   TransceiverManager* transceiverManager_{nullptr};
+  // Owned by either TransceiverManager or, in Port Manager mode, PortManager.
+  // Created once during initialization and never replaced, so caching the raw
+  // pointer for the lifetime of the process is safe.
+  PhyManager* phyManager_{nullptr};
+  // Null outside Port Manager mode, where there are no port state machines
+  PortManager* portManager_{nullptr};
 };
 } // namespace fboss
 } // namespace facebook

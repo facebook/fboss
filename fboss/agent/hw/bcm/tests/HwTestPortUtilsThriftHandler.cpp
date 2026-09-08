@@ -61,6 +61,13 @@ void HwTestThriftHandler::getPortInfo(
   return;
 }
 
+void HwTestThriftHandler::getPortLlrInfo(
+    ::facebook::fboss::utility::PortLlrInfo& /*portLlrInfo*/,
+    int32_t /*port*/) {
+  // LLR is a SAI-only feature today; no BCM-native implementation.
+  throw FbossError("getPortLlrInfo is not implemented in bcm");
+}
+
 bool HwTestThriftHandler::verifyPortLedStatus(int /*portId*/, bool /*status*/) {
   return true;
 }

@@ -6,6 +6,7 @@
 namespace facebook::fboss {
 class TcvrState;
 class LinkQsfpTestPortInfo;
+class LinkQsfpTestPortError;
 
 namespace utility {
 
@@ -18,6 +19,14 @@ void populateTransceiverInfoFields(
     LinkQsfpTestPortInfo& portInfo,
     const TcvrState& tcvrState,
     const std::string& portName);
+
+// Populates the transceiver-derived fields (vendor name, part number) of a
+// LinkQsfpTestPortError from a transceiver's TcvrState. Used when reporting a
+// module that is present in the chassis but absent from the config, so the row
+// identifies which optic is unexpectedly plugged in.
+void populateTransceiverErrorFields(
+    LinkQsfpTestPortError& portError,
+    const TcvrState& tcvrState);
 
 } // namespace utility
 } // namespace facebook::fboss

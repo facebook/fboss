@@ -63,6 +63,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   // The BIOS infers the PlatformName from MCB EEPROM in these platforms
   // This is for platforms reliant on NETLAKE BIOS.
   "ICECUBE_MCB",
+  "ICECUBEM_MCB",
   "LADAKH800BCLS_MCB",
   "LADAKH800BCLSM_MCB",
   "LEH800BCLS_MCB",

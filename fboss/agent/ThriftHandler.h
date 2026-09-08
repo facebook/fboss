@@ -124,16 +124,23 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       MplsRouteDetails& mplsRouteDetail,
       MplsLabel topLabel) override;
 
+  // The thrift default only applies on the wire; spell it out again here so
+  // in-process callers that do not care can omit it.
   void addNamedNextHopGroups(
-      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) override;
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+      bool combineDuplicatedNextHops = false) override;
   void addOrUpdateNamedNextHopGroups(
-      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups) override;
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+      bool combineDuplicatedNextHops = false) override;
   void deleteNamedNextHopGroups(
       std::unique_ptr<std::vector<std::string>> names) override;
-  void getNextHopGroups(std::vector<NextHopGroup>& result) override;
+  void getNextHopGroups(
+      std::vector<NextHopGroup>& result,
+      bool replicateWeightedNexthops = false) override;
   void getNamedNextHopGroups(
       std::vector<NextHopGroup>& result,
-      std::unique_ptr<std::vector<std::string>> names) override;
+      std::unique_ptr<std::vector<std::string>> names,
+      bool replicateWeightedNexthops = false) override;
 
   SwSwitch* getSw() const {
     return sw_;
@@ -338,6 +345,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
+  void getRouteCounters(
+      std::map<std::string, HwSwitchCounter>& routeCounters) override;
   void getHwRouterInterfaceStats(
       std::map<std::string, HwRouterInterfaceStats>& hwRouterInterfaceStats)
       override;
@@ -507,7 +516,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       bool sync);
   void addNamedNextHopGroupsImpl(
       folly::StringPiece function,
-      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups);
+      std::unique_ptr<std::vector<NextHopGroup>> nextHopGroups,
+      bool combineDuplicatedNextHops);
 
   void buildFabricMonitoringLookupMaps(
       const cfg::SwitchConfig& config,

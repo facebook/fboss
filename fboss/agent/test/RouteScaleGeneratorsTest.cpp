@@ -84,6 +84,19 @@ TEST(RouteScaleGeneratorsTest, HgridUuRouteScaleGenerator) {
   verifyChunking(routeDistributionGen, 48350, kChunkSize);
 }
 
+TEST(RouteScaleGeneratorsTest, ETSWRouteScaleGenerator) {
+  auto cfg = getTestConfig();
+  auto handle = createTestHandle(&cfg);
+  auto routeDistributionGen = utility::ETSWRouteScaleGenerator(
+      handle->getSw()->getState(),
+      handle->getSw()->needL2EntryForNeighbor(),
+      kChunkSize,
+      2);
+
+  verifyRouteCount(routeDistributionGen, kExtraRoutes, 125000);
+  verifyChunking(routeDistributionGen, 125000, kChunkSize);
+}
+
 TEST(RouteScaleGeneratorsTest, TurboFSWRouteScaleGenerator) {
   auto cfg = getTestConfig();
   auto handle = createTestHandle(&cfg);

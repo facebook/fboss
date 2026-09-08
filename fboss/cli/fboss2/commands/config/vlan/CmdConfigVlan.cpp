@@ -12,7 +12,35 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include <fmt/format.h>
+#include <iostream>
+#include "fboss/agent/types.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
+
 namespace facebook::fboss {
+
+CmdConfigVlanTraits::RetType CmdConfigVlan::queryClient(
+    const HostInfo& /* hostInfo */,
+    const ObjectArgType& vlanIdArg) {
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  VlanID vlanId(vlanIdArg.getVlanId());
+
+  bool created = VlanManager::createVlan(swConfig, vlanId).first;
+  if (!created) {
+    return fmt::format("VLAN {} already exists", static_cast<uint16_t>(vlanId));
+  }
+
+  session.saveConfig();
+
+  return fmt::format(
+      "Successfully created VLAN {}", static_cast<uint16_t>(vlanId));
+}
+
+void CmdConfigVlan::printOutput(const RetType& logMsg) {
+  std::cout << logMsg << std::endl;
+}
 
 // Explicit template instantiation
 template void CmdHandler<CmdConfigVlan, CmdConfigVlanTraits>::run();

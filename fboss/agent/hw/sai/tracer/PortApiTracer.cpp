@@ -29,6 +29,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, GlobalFlowControlMode),
     SAI_ATTR_MAP(Port, PortVlanId),
     SAI_ATTR_MAP(Port, Mtu),
+    SAI_ATTR_MAP(Port, Metadata),
     SAI_ATTR_MAP(Port, QosDscpToTcMap),
     SAI_ATTR_MAP(Port, QosDot1pToTcMap),
     SAI_ATTR_MAP(Port, QosTcAndColorToDot1pMap),
@@ -54,6 +55,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
     SAI_ATTR_MAP(Port, PrbsRxState),
 #endif
+    SAI_ATTR_MAP(Port, IngressAcl),
     SAI_ATTR_MAP(Port, IngressMacSecAcl),
     SAI_ATTR_MAP(Port, EgressMacSecAcl),
     SAI_ATTR_MAP(Port, PtpMode),
@@ -212,6 +214,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxInstgDfeStop1p7)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEnableScanSelection)
   SAI_EXT_ATTR_MAP(PortSerdes, RxInstgScanUseSrSettings)
+  SAI_EXT_ATTR_MAP(Port, LinkScanMode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrCfgOvEn)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet1stOrdStepOvVal)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCdrTdet2ndOrdStepOvVal)
@@ -241,6 +244,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)
   SAI_EXT_ATTR_MAP(PortSerdes, FltS)
   SAI_EXT_ATTR_MAP(PortSerdes, RxReach)
+  SAI_EXT_ATTR_MAP(PortSerdes, TransmitPrecodingState)
+  SAI_EXT_ATTR_MAP(PortSerdes, ReceivePrecodingState)
   SAI_EXT_ATTR_MAP(PortSerdes, RVga)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq1)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEq2)

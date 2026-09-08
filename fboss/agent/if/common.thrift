@@ -73,6 +73,32 @@ struct NextHopThrift {
   16: optional NetworkTopologyInformation topologyInfo;
   17: optional i64 cost;
   18: NextHopRole role = NextHopRole.PRIMARY;
+
+  // Headend/Binding SID FRR: per Nexthop protection
+  //   Empty: if no FRR for this Nexthop
+  //   Non-empty: Backup ECMP Nexthops providing FRR for this Nexthop
+  19: optional list<NextHopThrift> backupNexthops;
+  //
+  // Using NexthopRole and backupNexthops
+  // ====================================
+  //
+  // RBB/BBF Adjacency SID FRR:
+  //    o addAdjacencyFRR(FrrProtectedObject protectedObject,
+  //          list<common.NexthopThrift> backupNexthops)
+  //    o every NexthopThrift in backupNexthops passed to addAdjacencyFRR
+  //       - role = NextHopRole.BACKUP,
+  //       - list<backupNexthops> member is empty.
+  //
+  // BBF Headend/bindingSID FRR:
+  //    o addOrUpdateNamedNextHopGroups
+  //       - Passes NextHopGroup
+  //       - NextHopGroup contains list<NexthopThrift> nexthops
+  //    o every nexthop in that list is PRIMARY
+  //       - role = NextHopRole.PRIMARY,
+  //       - list<backupNexthops> member is non-empty
+  //    o every nexthop in this list<backupNexthops>
+  //       - role = NextHopRole.BACKUP,
+  //       - list<backupNexthops> member is empty.
 }
 
 /*

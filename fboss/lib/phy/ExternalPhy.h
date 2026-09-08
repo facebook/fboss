@@ -192,6 +192,7 @@ class ExternalPhy {
   virtual PhyPortConfig getConfigOnePort(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes,
+      cfg::PortProfileID profileID,
       bool readFromHw = false) = 0;
   // loopback
   virtual Loopback getLoopback(Side side) = 0;

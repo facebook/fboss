@@ -7,10 +7,13 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -189,12 +192,15 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // LinkScanMode
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
         std::nullopt, // LlrModeLocal
         std::nullopt, // LlrModeRemote
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
+        std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }
@@ -223,6 +229,146 @@ TEST_F(PortManagerTest, addPort) {
   saiManagerTable->portManager().addPort(swPort);
   auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
   checkPort(PortID(0), handle, true);
+}
+
+TEST_F(PortManagerTest, programUserMetaData) {
+  auto swPort = makePort(p0);
+  swPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  auto readMetaData = [&] {
+    return saiApiTable->portApi().getAttribute(
+        handle->port->adapterKey(), SaiPortTraits::Attributes::Metadata{});
+  };
+  EXPECT_EQ(
+      readMetaData(),
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED));
+
+  auto changedPort = swPort->clone();
+  changedPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  saiManagerTable->portManager().changePort(swPort, changedPort);
+  EXPECT_EQ(
+      readMetaData(),
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED));
+
+  auto clearedPort = changedPort->clone();
+  clearedPort->setUserMetaData(std::nullopt);
+  saiManagerTable->portManager().changePort(changedPort, clearedPort);
+  EXPECT_EQ(readMetaData(), 0);
+}
+
+TEST_F(PortManagerTest, setIngressAcl) {
+  const std::string ingressAclTableName{"PortIngressAclTable"};
+  const std::string secondIngressAclTableName{"SecondPortIngressAclTable"};
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("PortIngressAclGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto addAclTable = [&](const std::string& name, int priority) {
+    auto aclTable = std::make_shared<AclTable>(priority, name);
+    return saiManagerTable->aclTableManager().addAclTable(
+        aclTable,
+        cfg::AclStage::INGRESS,
+        nullptr /*state*/,
+        cfg::AclTableGroupBindPoint::PORT);
+  };
+  const auto aclTableId = addAclTable(ingressAclTableName, 0);
+  const auto secondAclTableId = addAclTable(secondIngressAclTableName, 1);
+
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  saiManagerTable->portManager().setIngressAcl(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  EXPECT_FALSE(
+      std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+          handle->port->attributes())
+          .has_value());
+
+  swPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().setIngressAcl(swPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      aclTableId);
+
+  auto recreatedSwPort = makePort(p0, cfg::PortSpeed::FIFTYG);
+  recreatedSwPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().changePort(swPort, recreatedSwPort);
+  saiManagerTable->portManager().changeIngressAcl(swPort, recreatedSwPort);
+  handle =
+      saiManagerTable->portManager().getPortHandle(recreatedSwPort->getID());
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      aclTableId);
+
+  auto newSwPort = recreatedSwPort->clone();
+  newSwPort->setIngressAclTableName(secondIngressAclTableName);
+  saiManagerTable->portManager().changeIngressAcl(recreatedSwPort, newSwPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      secondAclTableId);
+
+  auto portWithoutAcl = newSwPort->clone();
+  portWithoutAcl->setIngressAclTableName(std::nullopt);
+  saiManagerTable->portManager().setIngressAcl(portWithoutAcl);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      SAI_NULL_OBJECT_ID);
+}
+
+// SaiSwitch processes the port delta before the ACL delta, so an unbind always
+// runs changePort() before changeIngressAcl(). The binding has to leave
+// hardware, not just the store.
+TEST_F(PortManagerTest, unbindIngressAclAfterChangePort) {
+  const std::string ingressAclTableName{"PortIngressAclTable"};
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("PortIngressAclGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+  const auto aclTableId = saiManagerTable->aclTableManager().addAclTable(
+      std::make_shared<AclTable>(0, ingressAclTableName),
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto boundPort = makePort(p0);
+  boundPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().addPort(boundPort);
+  saiManagerTable->portManager().setIngressAcl(boundPort);
+  const auto* handle =
+      saiManagerTable->portManager().getPortHandle(boundPort->getID());
+  ASSERT_NE(handle, nullptr);
+  ASSERT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      aclTableId);
+
+  auto unboundPort = boundPort->clone();
+  unboundPort->setIngressAclTableName(std::nullopt);
+
+  // Dropping the table name resolves to an explicit unbind, so changePort()
+  // alone must clear the binding in hardware.
+  saiManagerTable->portManager().changePort(boundPort, unboundPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      SAI_NULL_OBJECT_ID);
+
+  // And the ACL phase that follows it leaves the port unbound.
+  saiManagerTable->portManager().changeIngressAcl(boundPort, unboundPort);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::IngressAcl{}),
+      SAI_NULL_OBJECT_ID);
 }
 
 TEST_F(PortManagerTest, addTwoPorts) {
@@ -872,6 +1018,10 @@ TEST_F(PortManagerTest, updateLlrStatsWhenEnabled) {
   EXPECT_TRUE(stats.llrTxReplay_().has_value());
   EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
   EXPECT_EQ(*stats.llrTxOk_(), 0);
+  // The Broadcom LLR stat extensions are not standard SAI enums, so
+  // SaiPortTraits::llrExtensionStats() is empty on fake and the second read is
+  // skipped entirely. Coverage for those fields is AgentHwLlrTest.
+  EXPECT_FALSE(stats.llrTxIneligiblePkts_().has_value());
 }
 
 TEST_F(PortManagerTest, noLlrStatsWhenDisabled) {
@@ -941,6 +1091,61 @@ TEST_F(PortManagerTest, shareLlrProfileAcrossPorts) {
   // Removing the last referencing port frees it.
   saiManagerTable->portManager().removePort(port1);
   EXPECT_EQ(fs->portLlrProfileManager.map().size(), 0);
+}
+
+TEST_F(PortManagerTest, programPrecodingFromPlatformMappingWhenEnabled) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_montblanc_precoding = false;
+
+  auto verifyPrecoding = [&](std::optional<bool> txEnabled,
+                             std::optional<bool> rxEnabled,
+                             const std::vector<int32_t>& expectedTx,
+                             const std::vector<int32_t>& expectedRx) {
+    auto swPort = makePort(p0);
+    auto pinConfigs = swPort->getPinConfigs();
+    for (auto& pinConfig : pinConfigs) {
+      pinConfig.rx()->precoding() = 2;
+      pinConfig.tx()->precoding() = 1;
+    }
+    swPort->resetPinConfigs(pinConfigs);
+    swPort->setTxPrecoding(txEnabled);
+    swPort->setRxPrecoding(rxEnabled);
+
+    saiManagerTable->portManager().addPort(swPort);
+    auto* handle =
+        saiManagerTable->portManager().getPortHandle(swPort->getID());
+    const auto& fakeSerdes = FakeSai::getInstance()->portSerdesManager.get(
+        handle->serdes->adapterKey());
+    EXPECT_EQ(fakeSerdes.txPrecoding, expectedTx);
+    EXPECT_EQ(fakeSerdes.rxPrecoding, expectedRx);
+    saiManagerTable->portManager().removePort(swPort);
+  };
+
+  verifyPrecoding(std::nullopt, std::nullopt, {}, {});
+  verifyPrecoding(false, false, {}, {});
+  verifyPrecoding(true, false, {1}, {});
+  verifyPrecoding(false, true, {}, {2});
+  verifyPrecoding(true, true, {1}, {2});
+}
+
+TEST_F(PortManagerTest, programPrecodingWhenMontblancFlagEnabled) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_montblanc_precoding = true;
+
+  auto swPort = makePort(p0);
+  auto pinConfigs = swPort->getPinConfigs();
+  for (auto& pinConfig : pinConfigs) {
+    pinConfig.rx()->precoding() = 2;
+    pinConfig.tx()->precoding() = 1;
+  }
+  swPort->resetPinConfigs(pinConfigs);
+
+  saiManagerTable->portManager().addPort(swPort);
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  const auto& fakeSerdes = FakeSai::getInstance()->portSerdesManager.get(
+      handle->serdes->adapterKey());
+  EXPECT_EQ(fakeSerdes.txPrecoding, std::vector<int32_t>{1});
+  EXPECT_EQ(fakeSerdes.rxPrecoding, std::vector<int32_t>{2});
 }
 #endif
 } // namespace facebook::fboss

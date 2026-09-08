@@ -101,7 +101,6 @@ HwPortStats getInitedStats() {
       0, // llrTxOk
       0, // llrTxReplay
       0, // llrRxOk
-      0, // llrRxBad
       0, // llrRxMissingSeq
       0, // llrRxDuplicateSeq
       0, // llrRxAckNackSeqError
@@ -120,6 +119,16 @@ HwPortStats getInitedStats() {
       0, // llrRxExpectedSeqPoisoned
       0, // llrRxExpectedSeqBad
       0, // linkFault_
+      0, // fecCorrectedSymbols
+      LlrTxStatus::OFF, // llrTxStatus
+      LlrRxStatus::OFF, // llrRxStatus
+      0, // llrTxEligiblePkts
+      0, // llrTxIneligiblePkts
+      0, // llrRxEligiblePkts
+      0, // llrRxIneligiblePkts
+      0, // llrTxNackReplayEvent
+      0, // llrTxTimerReplayEvent
+      0, // llrTxError
   };
 }
 

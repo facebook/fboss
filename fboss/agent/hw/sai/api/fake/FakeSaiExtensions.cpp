@@ -149,6 +149,16 @@ SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeTransmitPrecodingStateWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_TRANSMIT_PRECODING_STATE;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
+    AttributeReceivePrecodingStateWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RECEIVE_PRECODING_STATE;
+}
+
+std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
 }
@@ -341,6 +351,11 @@ SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeLinkDownDebounceRetriggerCount::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeLinkScanMode::operator()() {
+  return SAI_PORT_ATTR_EXT_LINKSCAN_MODE;
 }
 
 std::optional<sai_attr_id_t>
@@ -942,6 +957,23 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkDownDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiPortTraits::linkUpDebounceRetriggerStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiPortTraits::llrExtensionStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 std::optional<sai_attr_id_t>
 SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
   return std::nullopt;
@@ -980,6 +1012,16 @@ SaiSystemPortTraits::Attributes::AttributePushQueueEnable::operator()() {
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeSdkRegDumpLogPath::operator()() {
   return SAI_SWITCH_ATTR_SDK_DUMP_LOG_PATH_NAME;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpRateLimitWindow::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_RATE_LIMIT_WINDOW;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkDumpSuppressedCount::operator()() {
+  return SAI_SWITCH_ATTR_SDK_DUMP_SUPPRESSED_COUNT;
 }
 
 std::optional<sai_attr_id_t>
@@ -1065,6 +1107,16 @@ std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributePortCl72RetryEnable::operator()() {
   return SAI_SWITCH_ATTR_PORT_CL72_RETRY_ENABLE;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeIngressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_INGRESS_LIST;
+}
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributePacketDropTypeEgressList::operator()() {
+  return SAI_SWITCH_ATTR_EXT_PACKET_DROP_TYPE_EGRESS_LIST;
+}
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 std::optional<sai_attr_id_t>
 SaiArsProfileTraits::Attributes::AttributeArsMaxGroups::operator()() {
@@ -1102,18 +1154,38 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_SPLIT_HORIZON_ENABLE;
+}
+
+std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeFieldNextHopGroupId::operator()() {
-  return SAI_ACL_ENTRY_ATTR_FIELD_NEXT_HOP_GROUP_ID;
+SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
+  return SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST;
+}
+
+std::optional<sai_attr_id_t>
+SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
+  return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
 }
 
 std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
 }
 #endif
 

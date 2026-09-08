@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/gen-cpp2/model_types.h"
@@ -26,6 +27,8 @@ struct CmdShowDsfSubscriptionTraits : public ReadCommandTraits {
   using RetType = cli::ShowDsfSubscriptionModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  static std::string_view description();
 };
 
 class CmdShowDsfSubscription
@@ -40,5 +43,7 @@ class CmdShowDsfSubscription
       const std::vector<facebook::fboss::DsfSessionThrift>& sessions);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 } // namespace facebook::fboss

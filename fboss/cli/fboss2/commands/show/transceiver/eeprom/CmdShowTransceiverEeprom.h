@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace facebook::fboss {
@@ -18,6 +19,8 @@ struct CmdShowTransceiverEepromTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
   using ObjectArgType = utils::Message; // page, offset, length
   using RetType = std::string;
+
+  static std::string_view description();
 };
 
 class CmdShowTransceiverEeprom : public CmdHandler<
@@ -33,6 +36,8 @@ class CmdShowTransceiverEeprom : public CmdHandler<
       const ObjectArgType& args);
 
   void printOutput(const RetType& output, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 
  private:
   static std::string

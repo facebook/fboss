@@ -7,9 +7,11 @@ cpp_library(
     srcs = [
         "XgsPsampMod.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/agent/packet:hdr_parse_error",
+    ],
+    exported_deps = [
         "//fboss/agent/packet:ipfix_header",
         "//folly/io:iobuf",
     ],

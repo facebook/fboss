@@ -345,4 +345,25 @@ enum CmisField {
   // Lower Page 00h, Byte 70: Maximum CMIS bank capacity. Holds the module's
   // peak bank count directly (e.g. 4 for a 32-lane module).
   MAX_BANK_CAPACITY = 468,
+
+  // Page 01h, Byte 191: Meta custom feature advertisement
+  //   Bit 2: LaserTempMarginSupported
+  //   Bit 1: DSPTempMarginSupported
+  //   Bit 0: ModeMismatchFlagSupported
+  SUPPORTED_CUSTOM_FEATURES = 469,
+
+  // Lower Page 00h, Byte 67: Meta custom latched flags
+  //   Bit 2: LaserTempNegativeMarginFlag
+  //   Bit 1: DSPTempNegativeMarginFlag
+  //   Bit 0: ModeMismatchFlag
+  CUSTOM_FLAGS = 470,
+  // Lower Page 00h, Byte 68: DSP temperature margin, S8 in 1/4 degree C
+  DSP_TEMP_MARGIN = 471,
+  // Lower Page 00h, Byte 69: laser temperature margin, S8 in 1/4 degree C
+  LASER_TEMP_MARGIN = 472,
+
+  // Page 14h, Byte 130: per-host-lane mode mismatch, one bit per lane
+  HOST_MODE_MISMATCH = 473,
+  // Page 14h, Byte 131: per-media-lane mode mismatch, one bit per lane
+  MEDIA_MODE_MISMATCH = 474,
 }

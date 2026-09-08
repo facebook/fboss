@@ -96,6 +96,24 @@ void CmdShowTransceiverLoopback::printOutput(
   out << output;
 }
 
+std::string_view CmdShowTransceiverLoopbackTraits::description() {
+  return "Displays a transceiver's loopback capability and current state for the system (media-far) and line (media-near) sides. Use it to check optic loopback support and whether loopback is enabled.";
+}
+
+CmdShowTransceiverLoopback::RetType CmdShowTransceiverLoopback::sampleModel() {
+  return R"(Port: eth1/1/1
+Transceiver ID: 0
+
+Capability:
+  system (media-far):   supported
+  line (media-near):    supported
+
+State:
+  system (media-far):   0x00  disabled
+  line (media-near):    0x00  disabled
+)";
+}
+
 template void
 CmdHandler<CmdShowTransceiverLoopback, CmdShowTransceiverLoopbackTraits>::run();
 

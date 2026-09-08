@@ -54,6 +54,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::getApplicationField;
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
+  using CmisModule::getCmisRevision;
   using CmisModule::getCurrentAppSelCode;
   using CmisModule::getDiagSelLatchWaitUsec;
   using CmisModule::getInterfaceCodeForAppSel;
@@ -111,6 +112,9 @@ constexpr int kPage14 = static_cast<int>(CmisPages::PAGE14);
 constexpr int kDiagSelUpperPageOffset = 0;
 constexpr uint8_t kDiagSelSnr =
     static_cast<uint8_t>(DiagnosticFeatureEncoding::SNR);
+// VDM FreezeRequest is Page 2Fh byte 144 (upper-page offset 16).
+constexpr int kPage2f = static_cast<int>(CmisPages::PAGE2F);
+constexpr int kVdmLatchRequestUpperPageOffset = 144 - 128;
 } // namespace
 
 // Existing (non-CPO) CMIS modules don't advertise a multi-bank capacity in
@@ -128,6 +132,40 @@ TEST_F(CmisTest, getMaxNumBanksDefaultsToOne) {
       overrideCmisModule<CmisFlatMemTransceiver>(TransceiverID(2))
           ->getMaxNumBanks(),
       1);
+}
+
+// A single-bank module may only ever have bank 0 selected, and a 4-bank CPO is
+// left on bank 0 once a refresh completes.
+TEST_F(CmisTest, validBankSelectIsNotFlagged) {
+  // The CPO fixture is not READY, so its zeroed page 11h separately trips
+  // INVALID_DATA_PATH_LANE_STATE -- assert on bank select alone
+  auto bankSelectFlagged = [](MockCmisModule* xcvr) {
+    return xcvr->getTransceiverInfo().tcvrState()->errorStates()->count(
+        TransceiverErrorState::INVALID_BANK_SELECT);
+  };
+
+  EXPECT_EQ(
+      bankSelectFlagged(
+          overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))),
+      0);
+
+  auto cpo = overrideCmisModule<CmisCpo6P4TDrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::CPO);
+  ASSERT_EQ(cpo->getMaxNumBanks(), 4);
+  EXPECT_EQ(bankSelectFlagged(cpo), 0);
+}
+
+// A single-bank module holding bank 2 is what the fleet-wide
+// qsfp.numModulesWithInvalidBankSelect counter is looking for.
+TEST_F(CmisTest, outOfRangeBankSelectIsFlagged) {
+  auto xcvr = overrideCmisModule<Cmis200GInvalidBankSelectTransceiver>(
+      TransceiverID(0));
+  ASSERT_EQ(xcvr->getMaxNumBanks(), 1);
+  std::set<TransceiverErrorState> expectedErrorStates = {
+      TransceiverErrorState::INVALID_BANK_SELECT};
+  EXPECT_EQ(
+      xcvr->getTransceiverInfo().tcvrState()->errorStates(),
+      expectedErrorStates);
 }
 
 // A CPO module reports identifier 0x80 and 4 banks (Lower Page 00h byte 70).
@@ -502,6 +540,47 @@ TEST_F(CmisTest, cpoConfiguredMediaLanesPerBank) {
       xcvr->configuredMediaLanes(8), (std::vector<uint8_t>{8, 9, 10, 11}));
   EXPECT_EQ(
       xcvr->configuredMediaLanes(12), (std::vector<uint8_t>{12, 13, 14, 15}));
+}
+
+// The CMIS revision lives in Lower Page byte 1: upper nibble is the major
+// number, lower nibble the minor. The 200G FR4 fixture has 0x40 and the 800G
+// ZR fixture has 0x53.
+TEST_F(CmisTest, getCmisRevision) {
+  const std::pair<uint8_t, uint8_t> expected200G{4, 0};
+  EXPECT_EQ(
+      overrideCmisModule<Cmis200GTransceiver>(TransceiverID(0))
+          ->getCmisRevision(),
+      expected200G);
+
+  const std::pair<uint8_t, uint8_t> expected800GZr{5, 3};
+  EXPECT_EQ(
+      overrideCmisModule<Cmis800GZrTransceiver>(
+          TransceiverID(1), TransceiverModuleIdentifier::OSFP)
+          ->getCmisRevision(),
+      expected800GZr);
+}
+
+// ModuleState lives in bits 1-3 of Lower Page byte 3; bits 4-7 are reserved
+// and real modules do set them. Those bits have to be masked off, not merely
+// shifted past, or they leak into CmisModuleState and produce values outside
+// the enum. Byte 3 = 0x56 is READY with the reserved bits set.
+TEST_F(CmisTest, moduleStateIgnoresReservedBitsOfStatusByte) {
+  auto xcvr = overrideCmisModule<Cmis200GReservedStateBitsTransceiver>(
+      TransceiverID(0));
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto status = info.tcvrState()->status();
+  ASSERT_TRUE(status.has_value());
+  ASSERT_TRUE(status->cmisModuleState().has_value());
+  EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+
+  // updateQsfpData() gates the SNR diag page and the VDM cache on the same
+  // decode, so a module misread as not-ready silently loses that data. Page
+  // 14h byte 0 is 0x06 in this fixture; it is only populated when the module
+  // was seen as READY during the refresh.
+  auto cmisData = xcvr->getDOMDataUnion().get_cmis();
+  ASSERT_TRUE(cmisData.page14().has_value());
+  EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
 }
 
 // Tests that the transceiverInfo object is correctly populated
@@ -1790,6 +1869,153 @@ TEST_F(CmisTest, cmis800GZrHoldOffTimerCapabilityCheck) {
   EXPECT_TRUE(xcvr->isRxConsActHoldOffTmrImplSupported());
 }
 
+// A CMIS >= 5.1 module advertising all three Meta custom features in Page 01h
+// Byte 191 surfaces them in DiagsCapability.
+TEST_F(CmisTest, customFeatureCapabilityAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_TRUE(*diagsCap->modeMismatchFlag());
+  EXPECT_TRUE(*diagsCap->dspTempMargin());
+  EXPECT_TRUE(*diagsCap->laserTempMargin());
+}
+
+// A CMIS >= 5.1 module that leaves Page 01h Byte 191 clear advertises nothing.
+TEST_F(CmisTest, customFeatureCapabilityNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
+// A healthy advertised module reports all three latched flags clear and
+// positive thermal margins decoded from the quarter-degree S8 registers.
+TEST_F(CmisTest, customFlagsAndThermalMarginsHealthy) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), false);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), false);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), false);
+
+  // Byte 68 = 0x7f = 127 quarter-degrees, byte 69 = 0x3d = 61 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), 31.75);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), 15.25);
+}
+
+// Asserted latched flags and negative (over-temperature) margins are reported
+// as such, including the sign of the S8 decode.
+TEST_F(CmisTest, customFlagsAndThermalMarginsNegative) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_EQ(status.modeMismatchFlag(), true);
+  EXPECT_EQ(status.dspTempNegativeMarginFlag(), true);
+  EXPECT_EQ(status.laserTempNegativeMarginFlag(), true);
+
+  // Byte 68 = 0xf8 = -8 quarter-degrees, byte 69 = 0xfc = -4 quarter-degrees.
+  EXPECT_EQ(info.tcvrStats()->dspTempMargin(), -2.0);
+  EXPECT_EQ(info.tcvrStats()->laserTempMargin(), -1.0);
+}
+
+// Page 14h Bytes 130/131 carry one mode-mismatch bit per lane, which maps onto
+// the per-lane host and media signal vectors.
+TEST_F(CmisTest, perLaneModeMismatch) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4NegativeMarginTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+
+  // Byte 130 = 0x05: host lanes 0 and 2.
+  std::vector<bool> expectedHost(xcvr->numHostLanes(), false);
+  expectedHost[0] = true;
+  expectedHost[2] = true;
+  std::vector<bool> actualHost;
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    actualHost.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualHost, expectedHost);
+
+  // Byte 131 = 0x01: media lane 0 only.
+  std::vector<bool> expectedMedia(xcvr->numMediaLanes(), false);
+  expectedMedia[0] = true;
+  std::vector<bool> actualMedia;
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    actualMedia.push_back(*signal.modeMismatch());
+  }
+  EXPECT_EQ(actualMedia, expectedMedia);
+}
+
+// A healthy module reports no lane mismatched.
+TEST_F(CmisTest, perLaneModeMismatchClear) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4CustomFeatureTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "host lane " << *signal.lane();
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_EQ(signal.modeMismatch(), false) << "media lane " << *signal.lane();
+  }
+}
+
+// A module that doesn't advertise the custom features leaves the flags and
+// margins unset rather than reporting whatever the custom bytes happen to hold.
+TEST_F(CmisTest, customFlagsAndThermalMarginsUnsetWhenNotAdvertised) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4LiteTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  const auto& info = xcvr->getTransceiverInfo();
+  auto& status = *info.tcvrState()->status();
+  EXPECT_FALSE(status.modeMismatchFlag().has_value());
+  EXPECT_FALSE(status.dspTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(status.laserTempNegativeMarginFlag().has_value());
+  EXPECT_FALSE(info.tcvrStats()->dspTempMargin().has_value());
+  EXPECT_FALSE(info.tcvrStats()->laserTempMargin().has_value());
+
+  for (const auto& signal : *info.tcvrState()->hostLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+  for (const auto& signal : *info.tcvrState()->mediaLaneSignals()) {
+    EXPECT_FALSE(signal.modeMismatch().has_value());
+  }
+}
+
+// Byte 191 lives in CMIS Custom space, so it only carries the Meta meaning on
+// modules built to the spec that defines it (CMIS >= 5.1). Below that revision
+// its contents must be ignored.
+TEST_F(CmisTest, customFeatureCapabilityIgnoredBelowCmis51) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x800GDr4Cmis50Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  ASSERT_EQ(xcvr->getCmisRevision(), std::make_pair(uint8_t(5), uint8_t(0)));
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  ASSERT_TRUE(diagsCap.has_value());
+  EXPECT_FALSE(*diagsCap->modeMismatchFlag());
+  EXPECT_FALSE(*diagsCap->dspTempMargin());
+  EXPECT_FALSE(*diagsCap->laserTempMargin());
+}
+
 TEST_F(CmisTest, cmis800GZrHoldOffTimerDefault10ms) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
@@ -2493,6 +2719,10 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
   std::vector<int32_t> xcvrIds = {xcvrID};
   transceiverManager_->triggerVdmStatsCapture(xcvrIds);
 
+  // VDM ForOds capture is asynchronous: the first refresh after the trigger
+  // writes FreezeRequest, and the next refresh reads the frozen snapshot and
+  // populates the *ForOds fields. Drive both cycles before checking stats.
+  transceiverManager_->refreshStateMachines();
   transceiverManager_->refreshStateMachines();
   const auto& newInfo = xcvr->getTransceiverInfo();
   EXPECT_TRUE(newInfo.tcvrStats()->vdmPerfMonitorStats().has_value());
@@ -2610,6 +2840,77 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
           .value()
           .size(),
       2);
+}
+
+// The VDM ForOds capture is asynchronous and non-blocking: the StatsPublisher
+// trigger makes the next refresh write FreezeRequest (2Fh:144 bit7) WITHOUT
+// waiting for FreezeDone, and the following refresh reads the frozen snapshot
+// and clears FreezeRequest. This keeps the slow freeze wait off the refresh
+// thread. Verify the two-cycle split (one FreezeRequest write per cycle, not
+// set+clear in a single cycle) and that *ForOds only advances on the second
+// refresh.
+TEST_F(CmisTest, cmisVdmForOdsCaptureIsAsync) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  auto* qsfpImpl = lastQsfpImpl();
+  ASSERT_TRUE(xcvr->isVdmSupported());
+
+  // Program the module so the VDM cache is valid and perf-monitor stats parse.
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  portState.portName = "eth1/1/5";
+  portState.startHostLane = 4;
+  portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+
+  // Baseline: with no capture triggered, a refresh writes no FreezeRequest and
+  // leaves *ForOds unset.
+  const int baseFreezeWrites = qsfpImpl->getUpperPageWriteCount(
+      kPage2f, kVdmLatchRequestUpperPageOffset);
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites);
+  EXPECT_FALSE(xcvr->getTransceiverInfo()
+                   .tcvrStats()
+                   ->vdmPerfMonitorStatsForOds()
+                   .has_value());
+
+  // Cycle N: trigger + refresh writes FreezeRequest exactly once (the request)
+  // and does NOT read the frozen snapshot, so *ForOds stays unset. The old
+  // blocking code wrote set+clear (two writes) in this single refresh.
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites + 1);
+  EXPECT_FALSE(xcvr->getTransceiverInfo()
+                   .tcvrStats()
+                   ->vdmPerfMonitorStatsForOds()
+                   .has_value());
+
+  // Cycle N+1: the next refresh reads the frozen snapshot, clears FreezeRequest
+  // (the second write), and now *ForOds is populated.
+  transceiverManager_->refreshStateMachines();
+  EXPECT_EQ(
+      qsfpImpl->getUpperPageWriteCount(
+          kPage2f, kVdmLatchRequestUpperPageOffset),
+      baseFreezeWrites + 2);
+  EXPECT_TRUE(xcvr->getTransceiverInfo()
+                  .tcvrStats()
+                  ->vdmPerfMonitorStatsForOds()
+                  .has_value());
 }
 
 TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
@@ -2821,6 +3122,26 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+TEST_F(CmisTest, cmis2x400GXdr4TransceiverInfoTest) {
+  // XDR4 is the 2km reach variant of DR4 and advertises the same 400G-DR4
+  // application, so it must derive the same media interface as the 500m part
+  // despite its longer SMF length.
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GXdr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_2x400G);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
+  }
+  EXPECT_EQ(*info.tcvrState()->cable()->singleMode(), 2000);
 }
 
 TEST_F(CmisTest, vdmPam4MpiAlarmsTest) {

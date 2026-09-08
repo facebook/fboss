@@ -13,9 +13,11 @@ cpp_library(
         "Tahan800bcPlatformMapping.h",
         "Tahan800bcTestFixturePlatformMapping.h",
     ],
-    exported_deps = [
+    deps = [
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
-        "//fboss/agent/platforms/common:platform_mapping",
         "//neteng/netwhoami/lib/cpp:recover",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
     ],
 )

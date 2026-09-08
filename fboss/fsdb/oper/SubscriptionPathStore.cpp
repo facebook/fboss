@@ -6,6 +6,25 @@
 namespace facebook::fboss::fsdb {
 
 DEFINE_bool(lazyPathStoreCreation, true, "Lazy path store creation");
+DEFINE_bool(
+    dynamicWildcardPatchResolution,
+    false,
+    "Dynamically resolve wildcard PATCH extended subscriptions during serve "
+    "instead of eagerly expanding them into resolved PatchSubscription objects "
+    "and lookup_ path-store nodes");
+
+bool shouldDynamicallyResolve(const ExtendedSubscription& subscription) {
+  if (!FLAGS_dynamicWildcardPatchResolution) {
+    return false;
+  }
+  if (subscription.type() != PubSubType::PATCH) {
+    return false;
+  }
+  // ExtendedPatchSubscription is the only ExtendedSubscription reporting PATCH,
+  // so a static_cast is sufficient and avoids an RTTI walk on the serve path.
+  return static_cast<const ExtendedPatchSubscription&>(subscription)
+      .hasWildcardPath();
+}
 
 SubscriptionPathStore::SubscriptionPathStore(
     SubscriptionPathStoreTreeStats* stats) {
@@ -40,6 +59,16 @@ void SubscriptionPathStore::incrementallyResolve(
     std::vector<std::string>& pathSoFar) {
   // This incrementally extends our subscription tree based on an extended
   // path. Logic is to build up tree until next wildcard, or end of the path.
+
+  if (shouldDynamicallyResolve(*subscription)) {
+    // Dynamic wildcard PATCH subscriptions are matched on the fly during the
+    // serve-cycle delta walk. They must never be expanded into resolved
+    // PatchSubscription objects or parked as partials in lookup_. Returning
+    // here keeps them entirely out of the path-store trie. This is the single
+    // choke point for both the initial seed (doInitialSyncExtended) and the
+    // processAddedPath match path.
+    return;
+  }
 
   const auto& path = subscription->pathAt(subKey).path().value();
   auto idx = pathSoFar.size();

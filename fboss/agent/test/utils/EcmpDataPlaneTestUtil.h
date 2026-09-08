@@ -64,8 +64,15 @@ class HwEcmpDataPlaneTestUtil {
       int deviation,
       bool loadBalanceExpected);
 
+ protected:
+  static constexpr uint64_t kDefaultPacketCount{10000};
+  static constexpr uint64_t kDefaultRocePacketCount{200000};
+
  private:
   virtual void pumpTrafficThroughPort(std::optional<PortID> port) = 0;
+  virtual uint64_t getNumPacketsToPump() const {
+    return kDefaultPacketCount;
+  }
 
   TestEnsembleIf* ensemble_;
   std::unique_ptr<EcmpSetupHelperT> helper_;
@@ -115,6 +122,11 @@ class HwIpRoCEEcmpDataPlaneTestUtil : public HwIpEcmpDataPlaneTestUtil<AddrT> {
 
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
+
+ private:
+  uint64_t getNumPacketsToPump() const override {
+    return BaseT::kDefaultRocePacketCount;
+  }
 };
 
 template <typename AddrT>
@@ -127,6 +139,11 @@ class HwIpRoCEEcmpDestPortDataPlaneTestUtil
 
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
+
+ private:
+  uint64_t getNumPacketsToPump() const override {
+    return BaseT::kDefaultRocePacketCount;
+  }
 };
 
 template <typename AddrT>
