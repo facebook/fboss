@@ -695,6 +695,13 @@ add_fbthrift_cpp_library(
     sensor_service_cpp2
 )
 add_fbthrift_cpp_library(
+  te_srv6_agent_stats_cpp2
+  fboss/fsdb/if/te_srv6_agent/te_srv6_agent_stats.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   phy_cpp2
   fboss/lib/phy/phy.thrift
   SERVICES
@@ -1436,6 +1443,7 @@ set(FBOSS_EXPORTED_TARGETS
   switch_state_cpp2 agent_config_cpp2 agent_info_cpp2
   switch_reachability_cpp2
   qsfp_state_cpp2 qsfp_stats_cpp2 sensor_service_stats_cpp2
+  te_srv6_agent_stats_cpp2
   # Leaf thrift deps of the FsdbOperStateRoot COW model, transitively
   # required by downstream consumers that link it (BGP++ NeighborWatcher
   # FsdbCowStateSubManager). Headers ship via the include dir, but the

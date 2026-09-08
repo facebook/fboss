@@ -20,6 +20,7 @@
 #include <fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h>
 #include <fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h>
 #include <fboss/fsdb/if/gen-cpp2/fsdb_common_types.h>
+#include <fboss/fsdb/if/te_srv6_agent/gen-cpp2/te_srv6_agent_stats_types.h>
 #include <fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/rib_policy_types.h>
@@ -11245,6 +11246,7 @@ class ChildThriftPath<::facebook::fboss::fsdb::FsdbOperStatsRoot, ::facebook::fb
     STRUCT_CHILD_GETTERS(agent, 1);
     STRUCT_CHILD_GETTERS(qsfp_service, 3);
     STRUCT_CHILD_GETTERS(sensor_service, 4);
+    STRUCT_CHILD_GETTERS(te_srv6_agent, 5);
 };
 
 
@@ -13525,6 +13527,35 @@ class ChildThriftPath<::facebook::fboss::Channel, ::facebook::fboss::fsdb::FsdbO
   
     STRUCT_CHILD_GETTERS(channel, 1);
     STRUCT_CHILD_GETTERS(sensors, 6);
+};
+
+
+template<typename Parent, typename Tag>
+class ChildThriftPath<::facebook::fboss::stats::TeSrv6AgentStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Parent, Tag> :
+  public StructuredThriftPath<
+    ::facebook::fboss::stats::TeSrv6AgentStats,
+    ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+    Parent,
+    ::facebook::fboss::stats::TeSrv6AgentStats> {
+  static_assert(
+      ::std::is_same_v<
+          detail::unwrap_type_tag_t<Tag>,
+          ::apache::thrift::type::infer_tag<::facebook::fboss::stats::TeSrv6AgentStats>>,
+      "ChildThriftPath<::facebook::fboss::stats::TeSrv6AgentStats> specialization instantiated with a Tag "
+      "that does not describe ::facebook::fboss::stats::TeSrv6AgentStats.");
+
+ public:
+  using Self = StructuredThriftPath<
+    ::facebook::fboss::stats::TeSrv6AgentStats,
+    ::facebook::fboss::fsdb::FsdbOperStatsRoot,
+    Parent,
+    ::facebook::fboss::stats::TeSrv6AgentStats>;
+
+  template <typename Name>
+  using TypeFor = typename Self::template TypeFor<Name>;
+  using Self::Self;
+  
+    STRUCT_CHILD_GETTERS(fb303Counters, 1);
 };
 
 

@@ -38,6 +38,7 @@ thrift_library(
         "//fboss/agent:switch_reachability",
         "//fboss/agent:switch_state",
         "//fboss/fsdb/if:fsdb_common",
+        "//fboss/fsdb/if/te_srv6_agent:stats",
         "//fboss/platform/sensor_service:sensor_service_stats",
         "//fboss/qsfp_service/if:state",
         "//fboss/qsfp_service/if:stats",
@@ -59,6 +60,7 @@ cpp_library(
         "//fboss/agent:switch_reachability-cpp2-types",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if/te_srv6_agent:stats-cpp2-types",
         "//fboss/platform/sensor_service:sensor_service_stats-cpp2-types",
         "//fboss/qsfp_service/if:state-cpp2-types",
         "//fboss/qsfp_service/if:stats-cpp2-types",
@@ -129,6 +131,7 @@ ci_sandcastle(
         # The FSDB model thrift, header, and sync script
         "fbcode/fboss/fsdb/if/oss/**",
         "fbcode/fboss/fsdb/if/fsdb_common.thrift",
+        "fbcode/fboss/fsdb/if/te_srv6_agent/**",
         # Agent thrift files included by fsdb_model.thrift
         "fbcode/fboss/agent/if/agent_config.thrift",
         "fbcode/fboss/agent/if/agent_info.thrift",
