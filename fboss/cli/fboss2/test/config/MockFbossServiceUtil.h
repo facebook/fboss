@@ -34,7 +34,14 @@ class MockFbossServiceUtil : public FbossServiceUtil {
   MOCK_METHOD(
       std::vector<std::string>,
       restartService,
-      (cli::ServiceType service, cli::ConfigActionLevel level),
+      (cli::ServiceType service,
+       cli::ConfigActionLevel level,
+       bool waitForReady),
+      (override));
+  MOCK_METHOD(
+      void,
+      waitForAgentReady,
+      (int maxWaitSeconds, int pollIntervalMs),
       (override));
   MOCK_METHOD(
       std::vector<std::string>,
