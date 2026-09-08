@@ -1341,7 +1341,7 @@ sai_status_t get_acl_entry_attribute_fn(
 
 sai_status_t create_acl_entry_fn(
     sai_object_id_t* acl_entry_id,
-    sai_object_id_t switch_id,
+    sai_object_id_t /* switch_id */,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
@@ -1578,7 +1578,7 @@ sai_status_t get_acl_range_attribute_fn(
 
 sai_status_t create_acl_table_group_fn(
     sai_object_id_t* acl_table_group_id,
-    sai_object_id_t switch_id,
+    sai_object_id_t /* switch_id */,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
