@@ -231,8 +231,12 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
 
   void verifyUnboundPacket(PortID ingressPort, uint16_t l4DstPort) {
     const auto egressPort = masterLogicalPortIds()[0];
+    const auto restrictPermitCounterBefore =
+        utility::getAclInOutPackets(getSw(), kRestrictPermitCounterName);
     const auto restrictDenyCounterBefore =
         utility::getAclInOutPackets(getSw(), kRestrictDenyCounterName);
+    const auto blockPermitCounterBefore =
+        utility::getAclInOutPackets(getSw(), kBlockPermitCounterName);
     const auto blockDenyCounterBefore =
         utility::getAclInOutPackets(getSw(), kBlockDenyCounterName);
     const auto egressPacketsBefore =
@@ -245,8 +249,14 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
     sendPacket(ingressPort, l4DstPort);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
+          utility::getAclInOutPackets(getSw(), kRestrictPermitCounterName),
+          restrictPermitCounterBefore);
+      EXPECT_EVENTUALLY_EQ(
           utility::getAclInOutPackets(getSw(), kRestrictDenyCounterName),
           restrictDenyCounterBefore);
+      EXPECT_EVENTUALLY_EQ(
+          utility::getAclInOutPackets(getSw(), kBlockPermitCounterName),
+          blockPermitCounterBefore);
       EXPECT_EVENTUALLY_EQ(
           utility::getAclInOutPackets(getSw(), kBlockDenyCounterName),
           blockDenyCounterBefore);
@@ -254,6 +264,78 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
           getPortCounter(egressPort, kOutUnicastPktsCounterName),
           egressPacketsBefore);
     });
+  }
+
+  void verifyPacketForwarded(
+      folly::StringPiece caseName,
+      PortID ingressPort,
+      uint16_t l4DstPort) {
+    const auto egressPort = masterLogicalPortIds()[0];
+    const auto egressPacketsBefore =
+        getPortCounter(egressPort, kOutUnicastPktsCounterName);
+    XLOG(INFO) << "[PortBoundIngressAclWarmboot][" << caseName
+               << "] Sending IPv6 UDP packet " << kSrcIp << ":" << kL4SrcPort
+               << " -> " << kDstIp << ":" << l4DstPort << " on ingress port "
+               << ingressPort << "; expected PERMIT";
+    sendPacket(ingressPort, l4DstPort);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GT(
+          getPortCounter(egressPort, kOutUnicastPktsCounterName),
+          egressPacketsBefore);
+    });
+  }
+
+  void configureDefaultSwitchAcl() {
+    auto config = initialConfig(*getAgentEnsemble());
+    utility::addAclTableGroup(
+        &config, cfg::AclStage::INGRESS, utility::kDefaultAclTableGroupName());
+    utility::addDefaultAclTable(config);
+    applyNewConfig(config);
+    XLOG(INFO)
+        << "[PortBoundIngressAclWarmboot][Cold setup] Applied only the default "
+        << "switch-bound ingress ACL table; no port has an ACL binding";
+  }
+
+  void configurePortBoundAclAfterWarmboot(PortID restrictPort) {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    addPortBoundAclTableGroup(&config);
+    bindPortToAclTable(&config, restrictPort, kRestrictAclTableName);
+
+    applyNewConfig(config);
+    XLOG(INFO) << "[PortBoundIngressAclWarmboot][Warm setup] Applied group "
+               << kAclTableGroupName << " with restrict table "
+               << kRestrictAclTableName << " on port " << restrictPort;
+  }
+
+  void verifyDefaultSwitchAclTraffic() {
+    const auto& ports = masterLogicalPortIds();
+    verifyPacketForwarded(
+        "Default table, port A, UDP/53", ports[1], kRestrictPermitL4DstPort);
+    verifyPacketForwarded(
+        "Default table, port B, UDP/54", ports[2], kDeniedL4DstPort);
+  }
+
+  void verifyPortBoundAclAddedAfterWarmboot() {
+    const auto& ports = masterLogicalPortIds();
+    const auto restrictPort = ports[1];
+    const auto unboundPort = ports[2];
+
+    verifyAclPacket(
+        "Bound UDP/53",
+        restrictPort,
+        kRestrictPermitL4DstPort,
+        kRestrictPermitCounterName,
+        kRestrictDenyCounterName,
+        true);
+    verifyAclPacket(
+        "Bound UDP/54",
+        restrictPort,
+        kDeniedL4DstPort,
+        kRestrictPermitCounterName,
+        kRestrictDenyCounterName,
+        false);
+    verifyUnboundPacket(unboundPort, kRestrictPermitL4DstPort);
+    verifyUnboundPacket(unboundPort, kDeniedL4DstPort);
   }
 
   void verifyPortBoundAcl() {
@@ -325,6 +407,26 @@ TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclTraffic) {
   auto verify = [this]() { verifyPortBoundAcl(); };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+// Cold boot uses only the switch-bound default table. After warm boot, the
+// port-bound group is added and its restrict table is attached to one port.
+TEST_F(
+    AgentPortBoundIngressAclTest,
+    VerifyAddPortBoundIngressAclAfterWarmboot) {
+  auto setup = [this]() {
+    setupL3Forwarding();
+    configureDefaultSwitchAcl();
+  };
+  auto verify = [this]() { verifyDefaultSwitchAclTraffic(); };
+  auto setupPostWarmboot = [this]() {
+    configurePortBoundAclAfterWarmboot(masterLogicalPortIds()[1]);
+  };
+  auto verifyPostWarmboot = [this]() {
+    verifyPortBoundAclAddedAfterWarmboot();
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 } // namespace facebook::fboss
