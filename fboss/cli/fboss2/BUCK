@@ -1,4 +1,3 @@
-load("@fbcode//clifoundation/cli_target/buck_defs:cli.bzl", "cli")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
@@ -1110,18 +1109,6 @@ cpp_binary(
     external_deps = [
         "CLI11",
     ],
-)
-
-cli.metadata(
-    name = "cli-fboss2",
-    binary_name = "fboss2",
-    criticality = cli.criticality(
-        critical_subcommands = [],
-        level = cli.level.TIER_0,
-        reason = "Manages FBOSS network switch agents for configuration, monitoring, and troubleshooting of datacenter network switches",
-    ),
-    description = "FBOSS agent management frontend.",
-    executable = ":fboss2",
 )
 
 auto_tab_complete(
