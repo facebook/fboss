@@ -104,6 +104,29 @@ TEST_F(ConfigBgpPeerGroupTest, SetTimersHoldTimeAndCommit) {
       << "bgpd's running config has no peer-group " << kGroup;
   ASSERT_TRUE(group->count("bgp_peer_timers"));
   EXPECT_EQ((*group)["bgp_peer_timers"]["hold_time_seconds"].asInt(), 90);
+  // bgpd applies the group's timers struct to its members as a whole, so the
+  // fields the user did not set must carry the global defaults (hold/3
+  // keepalive), not the thrift default of 0 that would disable keepalives.
+  ASSERT_TRUE(running.count("hold_time"));
+  EXPECT_EQ(
+      (*group)["bgp_peer_timers"]["keep_alive_seconds"].asInt(),
+      running["hold_time"].asInt() / 3);
+}
+
+TEST_F(ConfigBgpPeerGroupTest, SetPassiveAndCommit) {
+  discardSession();
+  clearBgpSession();
+  stagePeerGroup({kGroup, "passive", "true"});
+  commitAndGetSha();
+  ASSERT_TRUE(waitForBgpDaemonActive())
+      << "bgpd did not return active after commit; state="
+      << bgpDaemonActiveState();
+  auto running = readRunningBgpConfigViaRpc();
+  const auto* group = findGroup(running, kGroup);
+  ASSERT_NE(group, nullptr)
+      << "bgpd's running config has no peer-group " << kGroup;
+  ASSERT_TRUE(group->count("is_passive"));
+  EXPECT_TRUE((*group)["is_passive"].asBool());
 }
 
 TEST_F(ConfigBgpPeerGroupTest, DeleteGroupAndCommit) {

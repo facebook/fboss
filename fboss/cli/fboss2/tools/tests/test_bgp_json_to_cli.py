@@ -232,7 +232,9 @@ class GenerateGlobalCommandsTest(unittest.TestCase):
 
 
 class GeneratePeerGroupCommandsTest(unittest.TestCase):
-    """Tests for generate_peer_group_commands function."""
+    """Tests for generate_peer_group_commands (peer-group grammar)."""
+
+    PREFIX = "config protocol bgp peer-group TEST"
 
     def test_empty_name_returns_empty(self) -> None:
         """Peer group without name should return empty list."""
@@ -248,42 +250,68 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "config protocol bgp peer-group TEST-GROUP remote-asn 65000", commands
         )
 
+    def test_local_asn(self) -> None:
+        """local_as_4_byte should generate local-asn command."""
+        peer_group = {"name": "TEST", "local_as_4_byte": 64512}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} local-asn 64512", commands)
+
     def test_description_with_spaces(self) -> None:
-        """Description with spaces should be properly quoted."""
+        """Description with spaces should be quoted."""
         peer_group = {"name": "TEST", "description": "Test peer group"}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST description 'Test peer group'",
-            commands,
-        )
+        self.assertIn(f"{self.PREFIX} description 'Test peer group'", commands)
 
     def test_boolean_flag_true(self) -> None:
-        """Boolean flag with true value should generate 'true'."""
+        """Boolean true should generate 'true'."""
         peer_group = {"name": "TEST", "next_hop_self": True}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST next-hop-self true", commands
-        )
+        self.assertIn(f"{self.PREFIX} next-hop-self true", commands)
 
     def test_boolean_flag_false(self) -> None:
-        """Boolean flag with false value should generate 'false' (not omitted)."""
+        """Boolean false should generate 'false' (not be omitted)."""
         peer_group = {"name": "TEST", "disable_ipv4_afi": False}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST disable-ipv4-afi false", commands
-        )
+        self.assertIn(f"{self.PREFIX} afi disable-ipv4-afi false", commands)
 
-    def test_is_rr_client(self) -> None:
-        """is_rr_client should generate rr-client command."""
-        peer_group = {"name": "TEST", "is_rr_client": True}
+    def test_afi_flags(self) -> None:
+        """AFI flags use the two-token `afi ...` attributes."""
+        peer_group = {
+            "name": "TEST",
+            "disable_ipv4_afi": True,
+            "disable_ipv6_afi": False,
+            "v4_over_v6_nexthop": True,
+        }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST rr-client true", commands)
+        self.assertIn(f"{self.PREFIX} afi disable-ipv4-afi true", commands)
+        self.assertIn(f"{self.PREFIX} afi disable-ipv6-afi false", commands)
+        self.assertIn(f"{self.PREFIX} afi ipv4-over-ipv6-nh true", commands)
 
-    def test_is_confed_peer(self) -> None:
-        """is_confed_peer should generate confed-peer command."""
-        peer_group = {"name": "TEST", "is_confed_peer": True}
+    def test_session_flags(self) -> None:
+        """Session flags map onto their single-token boolean attributes."""
+        peer_group = {
+            "name": "TEST",
+            "is_rr_client": True,
+            "is_confed_peer": True,
+            "is_redistribute_peer": False,
+            "enhanced_route_refresh": True,
+            "enable_stateful_ha": True,
+        }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST confed-peer true", commands)
+        self.assertIn(f"{self.PREFIX} rr-client true", commands)
+        self.assertIn(f"{self.PREFIX} confed-peer true", commands)
+        self.assertIn(f"{self.PREFIX} redistribute-peer false", commands)
+        self.assertIn(f"{self.PREFIX} enhanced-route-refresh true", commands)
+        self.assertIn(f"{self.PREFIX} graceful-restart stateful-ha true", commands)
+
+    def test_is_passive(self) -> None:
+        """is_passive should generate the passive flag."""
+        peer_group = {"name": "TEST", "is_passive": True}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} passive true", commands)
+        peer_group["is_passive"] = False
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} passive false", commands)
 
     def test_policies(self) -> None:
         """Policy names should generate correct commands."""
@@ -293,23 +321,22 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "egress_policy_name": "OUT_POLICY",
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST ingress-policy IN_POLICY", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST egress-policy OUT_POLICY", commands
-        )
+        self.assertIn(f"{self.PREFIX} ingress-policy IN_POLICY", commands)
+        self.assertIn(f"{self.PREFIX} egress-policy OUT_POLICY", commands)
 
-    def test_v4_over_v6_nexthop(self) -> None:
-        """v4_over_v6_nexthop should generate v4-over-v6-nh command."""
-        peer_group = {"name": "TEST", "v4_over_v6_nexthop": True}
+    def test_add_path(self) -> None:
+        """add_path BOTH should expand to both directions; RECEIVE to one."""
+        peer_group = {"name": "TEST", "add_path": 3}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST v4-over-v6-nh true", commands
-        )
+        self.assertIn(f"{self.PREFIX} add-path receive true", commands)
+        self.assertIn(f"{self.PREFIX} add-path send true", commands)
+        peer_group["add_path"] = "RECEIVE"
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} add-path receive true", commands)
+        self.assertNotIn(f"{self.PREFIX} add-path send true", commands)
 
     def test_timers(self) -> None:
-        """Timer fields should generate correct commands."""
+        """Timers, including zero values, should generate correct commands."""
         peer_group = {
             "name": "TEST",
             "bgp_peer_timers": {
@@ -317,44 +344,142 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
                 "keep_alive_seconds": 10,
                 "out_delay_seconds": 5,
                 "withdraw_unprog_delay_seconds": 0,
+                "graceful_restart_seconds": 120,
             },
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers hold-time 30", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers keepalive 10", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers out-delay 5", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers withdraw-unprog-delay 0",
-            commands,
-        )
+        self.assertIn(f"{self.PREFIX} timers hold-time 30", commands)
+        self.assertIn(f"{self.PREFIX} timers keepalive 10", commands)
+        self.assertIn(f"{self.PREFIX} timers out-delay 5", commands)
+        self.assertIn(f"{self.PREFIX} timers withdraw-unprog-delay 0", commands)
+        self.assertIn(f"{self.PREFIX} graceful-restart restart-time 120", commands)
 
-    def test_pre_filter_max_routes(self) -> None:
-        """pre_filter.max_routes should generate max-routes command."""
-        peer_group = {"name": "TEST", "pre_filter": {"max_routes": 45000}}
+    def test_hold_time_zero_preserved(self) -> None:
+        """hold_time_seconds: 0 is a real value (no keepalives), not 'unset'."""
+        peer_group = {"name": "TEST", "bgp_peer_timers": {"hold_time_seconds": 0}}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST max-routes 45000", commands)
+        self.assertIn(f"{self.PREFIX} timers hold-time 0", commands)
 
-    def test_pre_filter_warning_settings(self) -> None:
-        """pre_filter warning settings should generate correct commands."""
+    def test_pre_filter(self) -> None:
+        """pre_filter maps onto the max-route pre-* attributes."""
         peer_group = {
             "name": "TEST",
-            "pre_filter": {"warning_limit": 100, "warning_only": True},
+            "pre_filter": {
+                "max_routes": 45000,
+                "warning_limit": 100,
+                "warning_only": True,
+            },
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST warning-limit 100", commands)
-        self.assertIn("config protocol bgp peer-group TEST warning-only true", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-filter 45000", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-warning-threshold 100", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-warning-only true", commands)
+
+    def test_post_filter(self) -> None:
+        """post_filter maps onto the max-route post-* attributes."""
+        peer_group = {
+            "name": "TEST",
+            "post_filter": {
+                "max_routes": 50000,
+                "warning_limit": 48000,
+                "warning_only": False,
+            },
+        }
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} max-route post-filter 50000", commands)
+        self.assertIn(f"{self.PREFIX} max-route post-warning-threshold 48000", commands)
+        self.assertIn(f"{self.PREFIX} max-route post-warning-only false", commands)
 
     def test_peer_tag(self) -> None:
         """peer_tag should generate peer-tag command."""
         peer_group = {"name": "TEST", "peer_tag": "FSW"}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST peer-tag FSW", commands)
+        self.assertIn(f"{self.PREFIX} peer-tag FSW", commands)
+
+    def test_complete_peer_group_loses_no_field(self) -> None:
+        """Every CLI-settable PeerGroup field produces exactly one command, in
+        the grammar the peer-group dispatcher accepts."""
+        peer_group = {
+            "name": "TEST",
+            "remote_as_4_byte": 65000,
+            "local_as_4_byte": 64512,
+            "description": "spine group",
+            "peer_tag": "FSW",
+            "ingress_policy_name": "IN_POLICY",
+            "egress_policy_name": "OUT_POLICY",
+            "is_passive": True,
+            "is_rr_client": True,
+            "is_confed_peer": False,
+            "is_redistribute_peer": True,
+            "enhanced_route_refresh": True,
+            "disable_ipv4_afi": True,
+            "disable_ipv6_afi": False,
+            "v4_over_v6_nexthop": True,
+            "enable_stateful_ha": True,
+            "next_hop_self": True,
+            "add_path": 3,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "keep_alive_seconds": 30,
+                "out_delay_seconds": 5,
+                "withdraw_unprog_delay_seconds": 10,
+                "graceful_restart_seconds": 120,
+            },
+            "pre_filter": {
+                "max_routes": 45000,
+                "warning_limit": 40000,
+                "warning_only": True,
+            },
+            "post_filter": {
+                "max_routes": 50000,
+                "warning_limit": 48000,
+                "warning_only": False,
+            },
+        }
+        expected = [
+            "remote-asn 65000",
+            "local-asn 64512",
+            "description 'spine group'",
+            "peer-tag FSW",
+            "ingress-policy IN_POLICY",
+            "egress-policy OUT_POLICY",
+            "passive true",
+            "rr-client true",
+            "confed-peer false",
+            "redistribute-peer true",
+            "enhanced-route-refresh true",
+            "afi disable-ipv4-afi true",
+            "afi disable-ipv6-afi false",
+            "afi ipv4-over-ipv6-nh true",
+            "graceful-restart stateful-ha true",
+            "next-hop-self true",
+            "add-path receive true",
+            "add-path send true",
+            "timers hold-time 90",
+            "timers keepalive 30",
+            "timers out-delay 5",
+            "timers withdraw-unprog-delay 10",
+            "graceful-restart restart-time 120",
+            "max-route pre-filter 45000",
+            "max-route pre-warning-threshold 40000",
+            "max-route pre-warning-only true",
+            "max-route post-filter 50000",
+            "max-route post-warning-threshold 48000",
+            "max-route post-warning-only false",
+        ]
+        commands = generate_peer_group_commands(peer_group)
+        self.assertEqual(commands, [f"{self.PREFIX} {e}" for e in expected])
+        # One command per leaf field: nothing in the input was dropped.
+        leaf_fields = (
+            len(peer_group)
+            - 1  # name is the key, not an attribute
+            - 3  # the three nested structs are counted by their leaves below
+            + 1  # add_path BOTH expands to two commands
+            + len(peer_group["bgp_peer_timers"])
+            + len(peer_group["pre_filter"])
+            + len(peer_group["post_filter"])
+        )
+        self.assertEqual(len(commands), leaf_fields)
 
 
 class GeneratePeerCommandsTest(unittest.TestCase):
@@ -848,7 +973,9 @@ class JsonToCliIntegrationTest(unittest.TestCase):
         # Verify peer group commands
         self.assertIn("peer-group RSW-FSW-V6 next-hop-self true", joined)
         self.assertIn("peer-group RSW-FSW-V6 confed-peer true", joined)
-        self.assertIn("peer-group RSW-RTSW-V6 disable-ipv4-afi true", joined)
+        self.assertIn("peer-group RSW-FSW-V6 afi ipv4-over-ipv6-nh true", joined)
+        self.assertIn("peer-group RSW-FSW-V6 timers hold-time 30", joined)
+        self.assertIn("peer-group RSW-RTSW-V6 afi disable-ipv4-afi true", joined)
 
         # Verify peer commands
         self.assertIn("neighbor 2401:db00:501c::/64 remote-asn 65000", joined)

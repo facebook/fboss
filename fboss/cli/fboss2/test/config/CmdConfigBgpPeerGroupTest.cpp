@@ -44,6 +44,10 @@ class CmdConfigBgpPeerGroupTestFixture : public CmdConfigTestBase {
     return ConfigSession::getInstance().getBgpConfig().peer_groups().ensure();
   }
 
+  bgp::thrift::BgpConfig& config() {
+    return ConfigSession::getInstance().getBgpConfig();
+  }
+
   bool sessionFileExists() {
     return std::filesystem::exists(
         ConfigSession::getInstance().getBgpSessionConfigPath());
@@ -132,18 +136,20 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, addPathMerge) {
   EXPECT_FALSE(groups()[0].add_path().has_value());
 }
 
-TEST_F(CmdConfigBgpPeerGroupTestFixture, connectMode) {
-  run({"SPINE", "connect-mode", "PASSIVE"});
+TEST_F(CmdConfigBgpPeerGroupTestFixture, passive) {
+  // is_passive=true is PASSIVE_ONLY in bgpd, false is PASSIVE_ACTIVE (listen
+  // and connect); the CLI exposes the flag rather than connect-mode names.
+  run({"SPINE", "passive", "true"});
   EXPECT_TRUE(groups()[0].is_passive().value_or(false));
 
-  run({"SPINE", "connect-mode", "ACTIVE"});
+  run({"SPINE", "passive", "false"});
   EXPECT_FALSE(groups()[0].is_passive().value_or(true));
 
-  // BOTH has no thrift representation and must be rejected, leaving the
-  // previous value intact and nothing new persisted.
-  auto result = run({"SPINE", "connect-mode", "BOTH"});
-  EXPECT_THAT(result, HasSubstr("Error"));
+  auto result = run({"SPINE", "passive", "BOTH"});
+  EXPECT_THAT(result, HasSubstr("Invalid"));
   EXPECT_FALSE(groups()[0].is_passive().value_or(true));
+  EXPECT_THROW(
+      run({"SPINE", "connect-mode", "PASSIVE"}), std::invalid_argument);
 }
 
 TEST_F(CmdConfigBgpPeerGroupTestFixture, boolAndStringAttributes) {
@@ -248,6 +254,87 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, namedGroupsAreDistinct) {
   EXPECT_EQ(groups()[0].local_as_4_byte().value_or(0), 64512);
   EXPECT_EQ(groups()[1].remote_as_4_byte().value_or(0), 65001);
   EXPECT_FALSE(groups()[1].local_as_4_byte().has_value());
+}
+
+// ==============================================================================
+// Inherited values: bgpd applies a group's timers to its members as a whole
+// struct, so the first timer attribute must seed the rest from the global
+// defaults instead of leaving them at the thrift default of 0.
+// ==============================================================================
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, timersSeededFromGlobal) {
+  config().hold_time() = 180;
+  run({"SPINE", "graceful-restart", "restart-time", "60"});
+
+  ASSERT_EQ(groups().size(), 1);
+  const auto& timers = *groups()[0].bgp_peer_timers();
+  EXPECT_EQ(*timers.hold_time_seconds(), 180);
+  EXPECT_EQ(*timers.keep_alive_seconds(), 60);
+  EXPECT_EQ(*timers.out_delay_seconds(), 0);
+  EXPECT_EQ(*timers.withdraw_unprog_delay_seconds(), 0);
+  EXPECT_EQ(timers.graceful_restart_seconds().value_or(0), 60);
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, timersNotReseededOncePresent) {
+  run({"SPINE", "timers", "hold-time", "90"});
+  run({"SPINE", "timers", "keepalive", "30"});
+  // Seeding happens once: a later global change does not leak into a group
+  // that already carries its own timers, and other fields are preserved.
+  config().hold_time() = 180;
+  run({"SPINE", "timers", "out-delay", "2"});
+
+  const auto& timers = *groups()[0].bgp_peer_timers();
+  EXPECT_EQ(*timers.hold_time_seconds(), 90);
+  EXPECT_EQ(*timers.keep_alive_seconds(), 30);
+  EXPECT_EQ(*timers.out_delay_seconds(), 2);
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, routeLimitOtherFieldsKeepDefaults) {
+  // No level above a group to inherit a RouteLimit from: the untouched fields
+  // take the thrift defaults bgpd applies to a peer without one.
+  run({"SPINE", "max-route", "pre-warning-only", "true"});
+  const auto& pre = *groups()[0].pre_filter();
+  EXPECT_EQ(*pre.max_routes(), 12000);
+  EXPECT_EQ(*pre.warning_limit(), 0);
+  EXPECT_TRUE(*pre.warning_only());
+  EXPECT_FALSE(groups()[0].post_filter().has_value());
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, timerRanges) {
+  // Hold time: 0 or 3..65535 (bgpd refuses 1-2; the OPEN field is 16 bits).
+  EXPECT_THAT(run({"SPINE", "timers", "hold-time", "1"}), HasSubstr("Error"));
+  EXPECT_THAT(run({"SPINE", "timers", "hold-time", "2"}), HasSubstr("Error"));
+  EXPECT_THAT(
+      run({"SPINE", "timers", "hold-time", "65536"}), HasSubstr("Error"));
+  EXPECT_TRUE(groups().empty())
+      << "rejected first attribute must not leave a half-created group";
+  run({"SPINE", "timers", "hold-time", "0"});
+  EXPECT_EQ(*groups()[0].bgp_peer_timers()->hold_time_seconds(), 0);
+  run({"SPINE", "timers", "hold-time", "3"});
+  EXPECT_EQ(*groups()[0].bgp_peer_timers()->hold_time_seconds(), 3);
+  run({"SPINE", "timers", "hold-time", "65535"});
+  EXPECT_EQ(*groups()[0].bgp_peer_timers()->hold_time_seconds(), 65535);
+
+  // Graceful-restart time: 0..4095 (12-bit field, RFC 4724).
+  EXPECT_THAT(
+      run({"SPINE", "graceful-restart", "restart-time", "4096"}),
+      HasSubstr("Error"));
+  EXPECT_FALSE(groups()[0].bgp_peer_timers()->graceful_restart_seconds());
+  run({"SPINE", "graceful-restart", "restart-time", "4095"});
+  EXPECT_EQ(
+      groups()[0].bgp_peer_timers()->graceful_restart_seconds().value_or(0),
+      4095);
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, rejectedValueLeavesGroupUntouched) {
+  run({"SPINE", "remote-asn", "65000"});
+  // A rejected timer must not leave behind the timers struct that was seeded
+  // for it: that would silently pin the group's members to the current
+  // global hold time.
+  EXPECT_THAT(run({"SPINE", "timers", "hold-time", "2"}), HasSubstr("Error"));
+  ASSERT_EQ(groups().size(), 1);
+  EXPECT_FALSE(groups()[0].bgp_peer_timers().has_value());
+  EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65000);
 }
 
 // ==============================================================================
