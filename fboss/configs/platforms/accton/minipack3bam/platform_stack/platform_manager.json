@@ -95,7 +95,7 @@
         "address": "0x56",
         "kernelDeviceName": "24c128"
       },
-      "pmUnitName": "NETLAKE"
+      "pmUnitName": "NETLAKE20"
     },
     "OPTICL_SLOT": {
       "numOutgoingI2cBuses": 1,
@@ -120,7 +120,7 @@
     "CPU_BUS@0"
   ],
   "versionedPmUnitConfigs": {
-    "NETLAKE": [
+    "NETLAKE20": [
       {
         "pmUnitConfig": {
           "pluggedInSlotType": "COMESE_SLOT",
@@ -1093,7 +1093,7 @@
     "FAN": {
       "pluggedInSlotType": "FAN_SLOT"
     },
-    "NETLAKE": {
+    "NETLAKE20": {
       "pluggedInSlotType": "COMESE_SLOT",
       "i2cDeviceConfigs": [
         {
