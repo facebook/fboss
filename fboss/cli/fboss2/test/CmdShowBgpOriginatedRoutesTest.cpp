@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <string>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "common/network/if/gen-cpp2/Address_types.h"
@@ -120,4 +121,50 @@ TEST_F(CmdShowBgpOriginatedRoutesTestFixture, printOutput) {
 
   EXPECT_EQ(output, expectedOutput);
 }
+
+TEST_F(CmdShowBgpOriginatedRoutesTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpOriginatedRoutesTraits::description().empty());
+
+  /*
+   * printOutput reaches getCommunitySet -> getLocalBgpConfig through the
+   * MODEL's own host/ip, so point the copy under test at the mocked server;
+   * otherwise this is a real connect to an unroutable documentation address
+   * that only ends on timeout. The mock returns an empty config, the same "no
+   * mnemonics" state the offline wiki generator renders under, so the expected
+   * (NA)/asn:value output below is unchanged.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly(Invoke([](std::string& config) { config = "{}"; }));
+
+  auto model = CmdShowBgpOriginatedRoutes::sampleModel();
+  EXPECT_EQ(model.tOriginatedRoutes()->size(), 3);
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+
+  std::stringstream ss;
+  CmdShowBgpOriginatedRoutes().printOutput(model, ss);
+
+  /*
+   * Pin the whole render rather than probing for substrings: the columns are
+   * mostly small integers, so a substring check cannot tell the supporting
+   * count from the minimum from the next-hop-resolution flag. Communities show
+   * as "(NA)/asn:value" because no bgpd is reachable to resolve the mnemonics.
+   */
+  const std::string expectedOutput =
+      " Prefix                       Communities     Supporting Route Cnt  Minimum supporting route  Require Nexthop Resolution \n"
+      "-------------------------------------------------------------------------------------------------------------------------------\n"
+      " 192.0.2.1/32                 (NA)/64497:100  0                     0                         0                          \n"
+      "                              (NA)/64498:400                                                                             \n"
+      " 2001:db8:e111:f162:27::/128  (NA)/64497:100  0                     0                         0                          \n"
+      "                              (NA)/64498:400                                                                             \n"
+      " 2001:db8:111c:6227::/64      (NA)/64496:500  12                    8                         1                          \n"
+      "                              (NA)/64497:100                                                                             \n"
+      "\n";
+
+  EXPECT_EQ(ss.str(), expectedOutput);
+}
+
 } // namespace facebook::fboss

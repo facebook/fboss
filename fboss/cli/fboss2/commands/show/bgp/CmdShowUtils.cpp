@@ -319,8 +319,6 @@ void resetBgpMnemonicCaches() {
   cache.communitySetMap.clear();
 }
 
-namespace {
-
 TIpPrefix sampleIpPrefix(const std::string& cidr) {
   const auto slash = cidr.find_last_of('/');
   const auto address = (slash == std::string::npos)
@@ -337,22 +335,16 @@ TIpPrefix sampleIpPrefix(const std::string& cidr) {
   return prefix;
 }
 
-/*
- * A two-byte-ASN community. community() carries the packed 32-bit form that
- * printCommunities() reads; asn()/value() carry the halves. Both inputs are
- * uint16_t so the pack cannot silently overflow if this is reused with a
- * larger ASN.
- */
-neteng::fboss::bgp_attr::TBgpCommunity packedCommunity(
-    uint16_t asn,
-    uint16_t value) {
-  neteng::fboss::bgp_attr::TBgpCommunity community;
+TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value) {
+  TBgpCommunity community;
   community.asn() = asn;
   community.value() = value;
   community.community() =
       static_cast<int64_t>((static_cast<uint32_t>(asn) << 16) | value);
   return community;
 }
+
+namespace {
 
 struct SamplePathSpec {
   std::string nextHop;
@@ -402,7 +394,7 @@ TBgpPath sampleBgpPath(const SamplePathSpec& spec) {
   // AS32934.DEFAULT, the community a real default route carries.
   constexpr uint16_t kDefaultRouteAsn = 65529;
   constexpr uint16_t kDefaultRouteValue = 15990;
-  path.communities() = {packedCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+  path.communities() = {sampleCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
 
   return path;
 }

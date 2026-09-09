@@ -162,6 +162,26 @@ inline constexpr auto kRibEntryMarkersLegend =
     "% - Pending selection, ! - Inactive path";
 
 /*
+ * Build a TIpPrefix from CIDR text ("0.0.0.0/0", "2001:db8::/32") or a bare
+ * address. Only used to construct the canned data behind the CLI
+ * reference-wiki sampleModel() hooks; live paths get their prefixes from the
+ * daemon already in this form.
+ *
+ * Throws on input it cannot parse (folly::IPAddressFormatException for a
+ * malformed address, folly::ConversionError for a non-numeric prefix length).
+ * Callers pass literals, so a throw here means the literal is wrong and the
+ * unit tests will catch it; do not feed this untrusted input.
+ */
+TIpPrefix sampleIpPrefix(const std::string& cidr);
+
+/*
+ * A two-byte-ASN community for canned sample data. community() carries the
+ * packed 32-bit form printCommunities() reads; asn()/value() carry the halves.
+ * uint16_t inputs so the pack cannot silently overflow.
+ */
+TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value);
+
+/*
  * Canned RIB data (no real switch data, addresses in documentation ranges)
  * backing the CLI reference-wiki sampleModel() hooks of the commands that
  * render a RIB listing. Shared so 'show bgp table' and 'show bgp table detail'
