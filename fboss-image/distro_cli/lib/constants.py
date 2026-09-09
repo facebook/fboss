@@ -27,3 +27,12 @@ IMAGE_COMPONENTS = (
 
 # Manifest keys that are not components.
 MANIFEST_METADATA_FIELDS = ("distribution_formats",)
+
+# Environment variable naming where pre-built artifacts are fetched from.
+# Manifests reference ${ARTIFACT_BASE}/<relative/path>; the relative path is
+# the same everywhere, only the base differs between a Meta build, an external
+# vendor's mirror, and a local directory.
+ARTIFACT_BASE_VAR = "ARTIFACT_BASE"
+
+# Shown in the error when ARTIFACT_BASE is required but unset.
+DEFAULT_ARTIFACT_BUCKET = "fboss.oss.platform.artifacts/tree"

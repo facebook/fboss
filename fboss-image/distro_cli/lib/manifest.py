@@ -9,12 +9,18 @@
 
 import json
 import logging
+import os
 import sys
 from difflib import get_close_matches
 from pathlib import Path
 from typing import Any, ClassVar
 
-from distro_cli.lib.constants import IMAGE_COMPONENTS, MANIFEST_METADATA_FIELDS
+from distro_cli.lib.constants import (
+    ARTIFACT_BASE_VAR,
+    DEFAULT_ARTIFACT_BUCKET,
+    IMAGE_COMPONENTS,
+    MANIFEST_METADATA_FIELDS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +34,42 @@ class ImageManifest:
         self.manifest_path = manifest_path.resolve()
         self.manifest_dir = self.manifest_path.parent
         self.data = self._load_manifest()
+        self._substitute_artifact_base()
         self._validate_manifest()
+
+    def _substitute_artifact_base(self):
+        """Expand ${ARTIFACT_BASE} in download URLs from the environment.
+
+        A manifest names the artifact it needs; where artifacts come from is a
+        property of the machine building it. Keeping the base out of the file
+        is what lets one landed manifest build from Manifold internally and
+        from a local directory or mirror elsewhere.
+        """
+        placeholder = "${" + ARTIFACT_BASE_VAR + "}"
+        base = os.environ.get(ARTIFACT_BASE_VAR, "").rstrip("/")
+
+        def expand(node: Any) -> None:
+            if isinstance(node, dict):
+                url = node.get("download")
+                if isinstance(url, str) and placeholder in url:
+                    if not base:
+                        logger.error(
+                            f"Manifest uses {placeholder} but {ARTIFACT_BASE_VAR} "
+                            f"is not set in the environment: {url}"
+                        )
+                        logger.error(
+                            f"Set it to where artifacts live, e.g. "
+                            f"{ARTIFACT_BASE_VAR}=manifold:{DEFAULT_ARTIFACT_BUCKET}"
+                        )
+                        sys.exit(1)
+                    node["download"] = url.replace(placeholder, base)
+                for value in node.values():
+                    expand(value)
+            elif isinstance(node, list):
+                for item in node:
+                    expand(item)
+
+        expand(self.data)
 
     def _load_manifest(self) -> dict[str, Any]:
         """Load and validate the manifest file."""
