@@ -12,6 +12,7 @@
 
 #include <fmt/format.h>
 #include <folly/Conv.h>
+#include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <algorithm>
 #include <cstdint>
@@ -80,6 +81,34 @@ std::string requireName(std::string_view key, const std::string& name) {
   return name;
 }
 
+// A malformed address would otherwise reach the agent, where
+// AclNexthopHandler::resolveActionNexthops constructs a folly::IPAddress from
+// it mid-apply and throws there instead of here.
+std::string requireIpAddress(std::string_view key, const std::string& ip) {
+  try {
+    (void)folly::IPAddress{ip};
+  } catch (const std::exception& e) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Action '{}' expects an IP address, got '{}': {}",
+            key,
+            ip,
+            e.what()));
+  }
+  return ip;
+}
+
+// trap-to-cpu and copy-to-cpu are separate keywords over one toCpuAction
+// field, so clearing it unconditionally would let a delete of either keyword
+// wipe the other one's action and still report success.
+bool resetToCpuAction(cfg::MatchAction& ma, cfg::ToCpuAction which) {
+  if (ma.toCpuAction().has_value() && *ma.toCpuAction() == which) {
+    ma.toCpuAction().reset();
+    return true;
+  }
+  return false;
+}
+
 // One action keyword: its value arity, a form string for --help and errors, a
 // setter, and a reset used by the delete path. Keeping set and reset in the
 // same row is what stops the two verbs drifting apart.
@@ -128,7 +157,7 @@ const std::vector<ActionRow>& actionRows() {
       {kActionSetTc,
        1,
        1,
-       "<0-7>",
+       "<0-127>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
          cfg::SetTcAction t;
          t.tcValue() = static_cast<int8_t>(
@@ -184,9 +213,7 @@ const std::vector<ActionRow>& actionRows() {
          ma.toCpuAction() = cfg::ToCpuAction::TRAP;
        },
        [](cfg::MatchAction& ma) {
-         bool had = ma.toCpuAction().has_value();
-         ma.toCpuAction().reset();
-         return had;
+         return resetToCpuAction(ma, cfg::ToCpuAction::TRAP);
        }},
       {kActionCopyToCpu,
        0,
@@ -196,9 +223,7 @@ const std::vector<ActionRow>& actionRows() {
          ma.toCpuAction() = cfg::ToCpuAction::COPY;
        },
        [](cfg::MatchAction& ma) {
-         bool had = ma.toCpuAction().has_value();
-         ma.toCpuAction().reset();
-         return had;
+         return resetToCpuAction(ma, cfg::ToCpuAction::COPY);
        }},
       {kActionRedirect,
        2,
@@ -214,7 +239,7 @@ const std::vector<ActionRow>& actionRows() {
          }
          cfg::RedirectToNextHopAction rd;
          cfg::RedirectNextHop nh;
-         nh.ip() = requireName(kActionRedirect, v[1]);
+         nh.ip() = requireIpAddress(kActionRedirect, v[1]);
          rd.redirectNextHops()->push_back(std::move(nh));
          ma.redirectToNextHop() = std::move(rd);
        },
