@@ -1134,3 +1134,107 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   EXPECT_EQ(
       *(stateV8->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
 }
+
+TEST(AclGroup, ModifyClonesTheAclTableChain) {
+  auto tableAt = [](const std::shared_ptr<SwitchState>& state) {
+    return state->getAclTableGroups()
+        ->getMapNodeIf(scope())
+        ->getAclTableGroup(kAclStage1)
+        ->getAclTableMap()
+        ->getTable(kTable1);
+  };
+
+  // 1. A published state holding a single INGRESS ACL table.
+  auto tableMap = std::make_shared<AclTableMap>();
+  tableMap->addTable(std::make_shared<AclTable>(0, kTable1));
+  auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
+  tableGroup->setAclTableMap(tableMap);
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  tableGroups->addNode(tableGroup, scope());
+
+  auto state = std::make_shared<SwitchState>();
+  state->resetAclTableGroups(tableGroups);
+  state->publish();
+
+  auto publishedState = state;
+  auto publishedTable = tableAt(state);
+
+  // 2. modify() reseats the state and hands back an unpublished table.
+  auto* modified = publishedTable->modify(&state, scope(), kAclStage1);
+  EXPECT_NE(state, publishedState);
+  EXPECT_NE(modified, publishedTable.get());
+  EXPECT_FALSE(modified->isPublished());
+
+  // 3. The clone sits at the same coordinates in the new state, and the
+  // published state still holds the original.
+  EXPECT_EQ(tableAt(state).get(), modified);
+  EXPECT_EQ(tableAt(publishedState).get(), publishedTable.get());
+
+  // 4. Modifying the already-unpublished table clones nothing further.
+  auto unpublishedState = state;
+  EXPECT_EQ(modified->modify(&state, scope(), kAclStage1), modified);
+  EXPECT_EQ(state, unpublishedState);
+}
+
+TEST(AclGroup, ModifyLeavesOtherMatchersUntouched) {
+  auto matcher0 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  auto matcher1 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)});
+  auto groupAt = [](const std::shared_ptr<SwitchState>& state,
+                    const HwSwitchMatcher& matcher) {
+    return state->getAclTableGroups()->getMapNodeIf(matcher)->getAclTableGroup(
+        kAclStage1);
+  };
+
+  // 1. Both switches carry a same-named ACL table, as config scoping produces.
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  for (const auto& matcher : {matcher0, matcher1}) {
+    auto tableMap = std::make_shared<AclTableMap>();
+    tableMap->addTable(std::make_shared<AclTable>(0, kTable1));
+    auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
+    tableGroup->setAclTableMap(tableMap);
+    tableGroups->addNode(tableGroup, matcher);
+  }
+
+  auto state = std::make_shared<SwitchState>();
+  state->resetAclTableGroups(tableGroups);
+  state->publish();
+  auto switch1Group = groupAt(state, matcher1);
+
+  // 2. Modifying switch 0's table rewires only switch 0.
+  auto table0 = groupAt(state, matcher0)->getAclTableMap()->getTable(kTable1);
+  auto* modified = table0->modify(&state, matcher0, kAclStage1);
+
+  EXPECT_EQ(
+      groupAt(state, matcher0)->getAclTableMap()->getTable(kTable1).get(),
+      modified);
+  EXPECT_EQ(groupAt(state, matcher1), switch1Group);
+}
+
+TEST(AclGroup, ModifyRejectsCoordinatesTheTableIsNotAt) {
+  auto matcher0 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(0)});
+  auto matcher1 = HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(1)});
+
+  // Both switches hold a table of the same name, so only an identity check
+  // can tell the caller they named the wrong one.
+  auto tableGroups = std::make_shared<MultiSwitchAclTableGroupMap>();
+  for (const auto& matcher : {matcher0, matcher1}) {
+    auto tableMap = std::make_shared<AclTableMap>();
+    tableMap->addTable(std::make_shared<AclTable>(0, kTable1));
+    auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
+    tableGroup->setAclTableMap(tableMap);
+    tableGroups->addNode(tableGroup, matcher);
+  }
+
+  auto state = std::make_shared<SwitchState>();
+  state->resetAclTableGroups(tableGroups);
+  state->publish();
+
+  auto table = state->getAclTableGroups()
+                   ->getMapNodeIf(matcher0)
+                   ->getAclTableGroup(kAclStage1)
+                   ->getAclTableMap()
+                   ->getTable(kTable1);
+
+  EXPECT_THROW(table->modify(&state, matcher1, kAclStage1), FbossError);
+  EXPECT_THROW(table->modify(&state, matcher0, kAclStage2), FbossError);
+}
