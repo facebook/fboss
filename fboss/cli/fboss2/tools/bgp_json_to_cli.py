@@ -114,121 +114,6 @@ def generate_global_commands(config: dict[str, Any]) -> list[str]:
     return commands
 
 
-def _generate_peer_group_basic_commands(
-    peer_group: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate basic peer-group commands (remote-asn, description, policies)."""
-    commands = []
-    if "remote_as_4_byte" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} remote-asn {escape_shell_arg(peer_group['remote_as_4_byte'])}"
-        )
-    if "description" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} description {escape_shell_arg(peer_group['description'])}"
-        )
-    if "ingress_policy_name" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} ingress-policy {escape_shell_arg(peer_group['ingress_policy_name'])}"
-        )
-    if "egress_policy_name" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} egress-policy {escape_shell_arg(peer_group['egress_policy_name'])}"
-        )
-    if "peer_tag" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} peer-tag {escape_shell_arg(peer_group['peer_tag'])}"
-        )
-    return commands
-
-
-def _generate_peer_group_bool_commands(
-    peer_group: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate boolean flag commands for peer-group."""
-    commands = []
-    bool_fields = [
-        ("is_rr_client", "rr-client"),
-        ("next_hop_self", "next-hop-self"),
-        ("is_confed_peer", "confed-peer"),
-        ("v4_over_v6_nexthop", "v4-over-v6-nh"),
-        ("disable_ipv4_afi", "disable-ipv4-afi"),
-    ]
-    for field, cli_name in bool_fields:
-        if field in peer_group:
-            commands.append(
-                f"config protocol bgp peer-group {escaped_name} {cli_name} {_shell_bool(peer_group[field])}"
-            )
-    return commands
-
-
-def _generate_peer_group_timer_commands(
-    timers: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate timer commands for peer-group."""
-    commands = []
-    if timers.get("hold_time_seconds"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers hold-time {escape_shell_arg(timers['hold_time_seconds'])}"
-        )
-    if timers.get("keep_alive_seconds"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers keepalive {escape_shell_arg(timers['keep_alive_seconds'])}"
-        )
-    if "out_delay_seconds" in timers:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers out-delay {escape_shell_arg(timers['out_delay_seconds'])}"
-        )
-    if "withdraw_unprog_delay_seconds" in timers:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers withdraw-unprog-delay {escape_shell_arg(timers['withdraw_unprog_delay_seconds'])}"
-        )
-    return commands
-
-
-def _generate_peer_group_prefilter_commands(
-    pre_filter: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate pre_filter commands for peer-group."""
-    commands = []
-    if pre_filter.get("max_routes"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} max-routes {escape_shell_arg(pre_filter['max_routes'])}"
-        )
-    if "warning_limit" in pre_filter:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-limit {escape_shell_arg(pre_filter['warning_limit'])}"
-        )
-    if "warning_only" in pre_filter:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-only {_shell_bool(pre_filter['warning_only'])}"
-        )
-    return commands
-
-
-def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
-    """Generate CLI commands for a peer group."""
-    name = peer_group.get("name", "")
-    if not name:
-        return []
-
-    escaped_name = escape_shell_arg(name)
-    commands = []
-    commands.extend(_generate_peer_group_basic_commands(peer_group, escaped_name))
-    commands.extend(_generate_peer_group_bool_commands(peer_group, escaped_name))
-    commands.extend(
-        _generate_peer_group_timer_commands(
-            peer_group.get("bgp_peer_timers", {}), escaped_name
-        )
-    )
-    commands.extend(
-        _generate_peer_group_prefilter_commands(
-            peer_group.get("pre_filter", {}), escaped_name
-        )
-    )
-    return commands
-
-
 def format_bandwidth(bps: int) -> str:
     """Format bandwidth in bps with the largest exact K/M/G suffix.
 
@@ -477,6 +362,38 @@ def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
     )
     commands.extend(_generate_scalar_commands(peer, prefix, _NEIGHBOR_SCALAR_FIELDS))
     commands.extend(_generate_session_commands(peer, prefix))
+    return commands
+
+
+# (json field, CLI attribute) — PeerGroup-only fields whose value maps 1:1
+# onto a peer-group attribute token.
+_PEER_GROUP_SCALAR_FIELDS = [
+    ("remote_as_4_byte", "remote-asn"),
+    ("local_as_4_byte", "local-asn"),
+    ("description", "description"),
+    ("peer_tag", "peer-tag"),
+    ("ingress_policy_name", "ingress-policy"),
+    ("egress_policy_name", "egress-policy"),
+]
+
+
+def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp peer-group` CLI commands for a peer group.
+
+    The peer-group and neighbor dispatchers share one attribute grammar for
+    the fields both thrift structs carry, so the per-shape generators are
+    shared; only the scalar field list differs.
+    """
+    name = peer_group.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp peer-group {escape_shell_arg(name)}"
+    commands = []
+    commands.extend(
+        _generate_scalar_commands(peer_group, prefix, _PEER_GROUP_SCALAR_FIELDS)
+    )
+    commands.extend(_generate_session_commands(peer_group, prefix))
     return commands
 
 
