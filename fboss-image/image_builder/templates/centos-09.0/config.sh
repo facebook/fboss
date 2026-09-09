@@ -127,20 +127,42 @@ process_npu_sai_tarball() {
 
   local tarball="${tarballs[0]}"
 
-  # Extract only sai-runtime.rpm from the tarball
-  echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
-  tar -xf "$tarball" -C "$component_dir" 'sai-runtime.rpm'
+  # Two shapes are published. The SDK vendors ship sai-runtime.rpm inside a
+  # tarball; the periodic kmod builds ship the .ko files directly, already
+  # laid out under lib/modules/<kver>/extra/<vendor>/.
+  if tar tf "$tarball" | grep -qE '^(\./)?sai-runtime\.rpm$'; then
+    echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
+    tar -xf "$tarball" -C "$component_dir" --wildcards '*sai-runtime.rpm'
 
-  # Check if the file was extracted successfully
-  if [ -f "$component_dir/sai-runtime.rpm" ]; then
-    echo "  Installing $component_dir/sai-runtime.rpm..."
-    dnf install -y $component_dir/sai-runtime.rpm
-    if [ $? -ne 0 ]; then
-      echo "ERROR: Failed to install $component_dir/sai-runtime.rpm"
+    local rpm
+    rpm=$(find "$component_dir" -name sai-runtime.rpm -print -quit)
+    if [ -z "$rpm" ]; then
+      echo "ERROR: sai-runtime.rpm listed in $(basename "$tarball") but not extracted"
       return 1
     fi
+
+    echo "  Installing $rpm..."
+    if ! dnf install -y "$rpm"; then
+      echo "ERROR: Failed to install $rpm"
+      return 1
+    fi
+  elif tar tf "$tarball" | grep -qE '^(\./)?lib/modules/.*\.ko$'; then
+    echo "  Installing SAI kmods from $(basename "$tarball")..."
+    tar -xf "$tarball" -C / './lib' 2>/dev/null || tar -xf "$tarball" -C / 'lib'
+
+    # The kmods land in a search path but are not in modules.dep until depmod
+    # runs, so modprobe cannot find them at boot without this.
+    local kver
+    kver=$(tar tf "$tarball" | sed -nE 's|^(\./)?lib/modules/([^/]+)/.*|\2|p' | head -1)
+    if [ -n "$kver" ]; then
+      echo "  Running depmod for $kver..."
+      depmod -a "$kver"
+    else
+      echo "  WARNING: could not determine kernel version; skipping depmod"
+    fi
   else
-    echo "  WARNING: $(basename "$tarball") has no sai-runtime.rpm; SAI kmods will not be installed"
+    echo "  WARNING: $(basename "$tarball") has neither sai-runtime.rpm nor"
+    echo "           lib/modules/**/*.ko; SAI kmods will not be installed"
   fi
 
   rm -f "$tarball"
