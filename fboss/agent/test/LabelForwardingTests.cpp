@@ -356,6 +356,36 @@ TEST_P(LabelForwardingTest, getMplsRouteTableByClient) {
   }
 }
 
+// Aborted under mpls_rib=false before the MPLS resolvers were gated.
+TEST_P(LabelForwardingTest, getMplsRouteDetails) {
+  FLAGS_mpls_rib = GetParam();
+  auto inRoutes = util::getTestRoutes(0, 1);
+  const auto& inRoute = inRoutes.front();
+  this->thriftHandler->addMplsRoutes(
+      static_cast<int>(ClientID::OPENR),
+      std::make_unique<std::vector<MplsRoute>>(inRoutes));
+
+  MplsRouteDetails details;
+  this->thriftHandler->getMplsRouteDetails(details, *inRoute.topLabel());
+
+  EXPECT_EQ(*details.topLabel(), *inRoute.topLabel());
+  EXPECT_EQ(
+      util::toRouteNextHopSet(*details.nextHops()),
+      util::toRouteNextHopSet(*inRoute.nextHops()));
+
+  bool foundClient = false;
+  for (const auto& clientNhops : *details.nextHopMulti()) {
+    if (*clientNhops.clientId() != static_cast<int>(ClientID::OPENR)) {
+      continue;
+    }
+    EXPECT_EQ(
+        util::toRouteNextHopSet(*clientNhops.nextHops()),
+        util::toRouteNextHopSet(*inRoute.nextHops()));
+    foundClient = true;
+  }
+  EXPECT_TRUE(foundClient) << "OPENR entry missing from nextHopMulti";
+}
+
 TEST_P(LabelForwardingTest, unresolvedNextHops) {
   FLAGS_mpls_rib = GetParam();
   std::vector<MplsRoute> mplsRoutes;

@@ -531,9 +531,8 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     return count;
   }
 
-  bool isPopAndLookup() const {
-    auto fwd = this->template safe_cref<switch_state_tags::fwd>();
-    const auto nexthops = fwd->getNextHopSet();
+  // Takes resolved nexthops; this node cannot resolve a nexthop set ID.
+  static bool isPopAndLookup(const RouteNextHopSet& nexthops) {
     if (nexthops.size() == 1) {
       // there must be exactly one next hop for POP_AND_LOOKUP action
       return nexthops.begin()->isPopAndLookup();
