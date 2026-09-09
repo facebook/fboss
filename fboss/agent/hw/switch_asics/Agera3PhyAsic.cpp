@@ -24,6 +24,7 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
+    case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     // Per-lane RX SNR. PAI 4.1-only (SAI 1.18.1): the read is gated in
     // SaiPortManager::rxSNRSupported() by
