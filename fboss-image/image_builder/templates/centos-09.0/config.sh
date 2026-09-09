@@ -215,7 +215,13 @@ for component_dir in /repos/*; do
     ;;
 
   *)
-    echo "Skipping component: $component_name (no handler defined)"
+    # Anything under /repos was put there because a manifest declared it, so
+    # a component with no handler is a manifest/handler mismatch rather than
+    # something to ignore. Failing here turns a silently incomplete image
+    # into a build error: an unhandled component previously logged this line
+    # and exited 0, and the image shipped without it.
+    echo "ERROR: no handler defined for component: $component_name"
+    handler_rc=1
     ;;
   esac
 
