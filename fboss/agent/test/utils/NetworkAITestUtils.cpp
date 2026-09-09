@@ -379,10 +379,27 @@ void applyBackendAsicConfig(
         std::string toReplace("LOSSY");
         if (std::size_t pos = yamlCfg.find(toReplace);
             pos != std::string::npos) {
+          // Dynamically determine the line indentation before replacing "LOSSY"
+          // to ensure that the newly inserted "SKIP_BUFFER_RESERVATION: 1"
+          // matches the parent's YAML indentation style (e.g., 6 spaces before
+          // vs 12 spaces now). This prevents Broadcom SDKLT config parser
+          // (bcmcfg) block mapping syntax errors (bcmcfg_parse_error) during
+          // boot.
+          std::size_t lineStart = yamlCfg.rfind('\n', pos);
+          if (lineStart == std::string::npos) {
+            lineStart = 0;
+          } else {
+            lineStart += 1;
+          }
+          std::string indent = "";
+          while (lineStart < pos && std::isspace(yamlCfg[lineStart])) {
+            indent += yamlCfg[lineStart];
+            lineStart++;
+          }
           yamlCfg.replace(
               pos,
               toReplace.length(),
-              "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
+              "LOSSY_AND_LOSSLESS\n" + indent + "SKIP_BUFFER_RESERVATION: 1");
         }
 
         // Do not force qgroups on in backend tests.
