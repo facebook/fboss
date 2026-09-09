@@ -17,6 +17,7 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/UdfTestUtils.h"
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 
 #include <algorithm>
@@ -562,7 +563,12 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
     });
   }
 
-  void pumpRoceTraffic(PortID injectionPort, int packetCount) {
+  // reserved carries spray eligibility: utility::kRoceReserved matches the
+  // flowlet ACL, anything else falls through to the hash cancel ACL.
+  void pumpRoceTraffic(
+      PortID injectionPort,
+      int packetCount,
+      uint8_t reserved = utility::kRoceReserved) {
     utility::pumpRoCETraffic(
         true /* isV6 */,
         utility::getAllocatePktFn(getAgentEnsemble()),
@@ -575,7 +581,7 @@ class AgentAdjFrrRouteTest : public AgentHwTest {
         std::nullopt /* srcMacAddr */,
         packetCount,
         utility::kUdfRoceOpcodeAck,
-        utility::kRoceReserved,
+        reserved,
         std::nullopt /* nextHdr */,
         true /* sameDstQueue */);
   }
@@ -1118,6 +1124,252 @@ TEST_F(AgentAdjFrrRouteTest, priAndBackupNextHopFlap) {
         injectionPort, backupPorts, kPacketCount, "All backups");
 
     restoreNextHop(primaryPort);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verifies the backup next hop group as an ECMP random spray group. Split out
+// from AgentAdjFrrRouteTest so the extra production feature gating does not
+// apply to the tests above. The flowlet and hash cancel ACLs it reads are
+// already installed by AgentAdjFrrRouteTest::initialConfig() and carry no
+// srcPort qualifier, so no additional ACL config is needed here.
+class AgentAdjFrrRouteSprayTest : public AgentAdjFrrRouteTest {
+ protected:
+  static constexpr int kSprayPacketCount = 200000;
+
+  // One row per traffic burst, printed as a summary table at the end so every
+  // phase can be compared side by side.
+  struct PhaseResult {
+    std::string phase;
+    std::string traffic;
+    uint64_t packetsSent{0};
+    uint64_t sprayAclDelta{0};
+    uint64_t cancelAclDelta{0};
+    uint64_t outPktsDelta{0};
+    size_t activePorts{0};
+    size_t totalPorts{0};
+    uint64_t lowestOutBytes{0};
+    uint64_t highestOutBytes{0};
+  };
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentAdjFrrRouteTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ECMP_RANDOM_SPRAY);
+    features.push_back(ProductionFeature::ACL_COUNTER);
+    return features;
+  }
+
+  uint64_t sprayAclPackets() const {
+    return utility::getAclInOutPackets(
+        getSw(), utility::kFlowletAclCounterName);
+  }
+
+  uint64_t cancelAclPackets() const {
+    return utility::getAclInOutPackets(getSw(), kEcmpHashCancelCounterName);
+  }
+
+  // Ports that forwarded at least one packet, and the sole active port when
+  // there is exactly one.
+  static std::pair<size_t, std::optional<PortID>> activeEgressPorts(
+      const std::map<PortID, HwPortStats>& before,
+      const std::map<PortID, HwPortStats>& after) {
+    size_t active{0};
+    std::optional<PortID> onlyActivePort;
+    for (const auto& [portId, afterStats] : after) {
+      if (*afterStats.outUnicastPkts__ref() >
+          *before.at(portId).outUnicastPkts__ref()) {
+        ++active;
+        onlyActivePort = portId;
+      }
+    }
+    if (active != 1) {
+      onlyActivePort.reset();
+    }
+    return {active, onlyActivePort};
+  }
+
+  // Every packet carries the same 5 tuple, so a static hash pins the whole
+  // burst to one member while a spray group scatters it. Eligibility rides
+  // solely in the RoCE BTH reserved field, so the ACL counters say which class
+  // the stream landed in and the port spread says whether the action took
+  // effect.
+  void sendTrafficAndVerifySpray(
+      PortID injectionPort,
+      const std::vector<PortID>& nextHopPorts,
+      bool sprayEligible,
+      bool sprayExpected,
+      std::optional<PortID> expectedSingleEgressPort,
+      const char* phaseDescription) {
+    CHECK(!nextHopPorts.empty());
+    const auto sprayAclBefore = sprayAclPackets();
+    const auto cancelAclBefore = cancelAclPackets();
+    const auto beforePortStats = getLatestPortStats(nextHopPorts);
+
+    pumpRoceTraffic(
+        injectionPort,
+        kSprayPacketCount,
+        sprayEligible ? utility::kRoceReserved : 0);
+
+    PhaseResult row;
+    row.phase = phaseDescription;
+    row.traffic =
+        sprayEligible ? "RoCE spray eligible" : "RoCE spray ineligible";
+    row.packetsSent = kSprayPacketCount;
+    row.totalPorts = nextHopPorts.size();
+
+    WITH_RETRIES({
+      const auto sprayAclAfter = sprayAclPackets();
+      const auto cancelAclAfter = cancelAclPackets();
+      const auto afterPortStats = getLatestPortStats(nextHopPorts);
+      const auto [highestOutBytes, lowestOutBytes] =
+          utility::getHighestAndLowestBytesIncrement(
+              beforePortStats, afterPortStats);
+      const auto [activePorts, onlyActivePort] =
+          activeEgressPorts(beforePortStats, afterPortStats);
+      uint64_t outPktsDelta{0};
+      for (const auto& [portId, afterStats] : afterPortStats) {
+        outPktsDelta += *afterStats.outUnicastPkts__ref() -
+            *beforePortStats.at(portId).outUnicastPkts__ref();
+      }
+      row.sprayAclDelta = sprayAclAfter - sprayAclBefore;
+      row.cancelAclDelta = cancelAclAfter - cancelAclBefore;
+      row.outPktsDelta = outPktsDelta;
+      row.activePorts = activePorts;
+      row.lowestOutBytes = lowestOutBytes;
+      row.highestOutBytes = highestOutBytes;
+
+      XLOG(INFO) << phaseDescription << " ("
+                 << (sprayEligible ? "spray eligible" : "spray ineligible")
+                 << "): flowlet acl " << sprayAclBefore << " -> "
+                 << sprayAclAfter << ", cancel acl " << cancelAclBefore
+                 << " -> " << cancelAclAfter << ", out pkts " << outPktsDelta
+                 << ", active ports " << activePorts << "/"
+                 << nextHopPorts.size() << ", lowest out bytes "
+                 << lowestOutBytes << ", highest out bytes " << highestOutBytes;
+
+      // Classification: exactly one of the two ACLs must claim the stream.
+      if (sprayEligible) {
+        EXPECT_EVENTUALLY_GE(sprayAclAfter, sprayAclBefore + kSprayPacketCount);
+        EXPECT_EVENTUALLY_EQ(cancelAclAfter, cancelAclBefore);
+      } else {
+        EXPECT_EVENTUALLY_GE(
+            cancelAclAfter, cancelAclBefore + kSprayPacketCount);
+        EXPECT_EVENTUALLY_EQ(sprayAclAfter, sprayAclBefore);
+      }
+
+      EXPECT_EVENTUALLY_EQ(outPktsDelta, kSprayPacketCount);
+
+      // Forwarding: a sprayed stream reaches every member, a hashed one pins
+      // to a single member.
+      if (sprayExpected) {
+        EXPECT_EVENTUALLY_EQ(activePorts, nextHopPorts.size());
+        EXPECT_EVENTUALLY_TRUE(
+            utility::isDeviationWithinThreshold(
+                lowestOutBytes, highestOutBytes, kMaxLoadBalanceDeviationPct));
+      } else {
+        EXPECT_EVENTUALLY_EQ(activePorts, 1);
+        if (expectedSingleEgressPort.has_value() &&
+            onlyActivePort.has_value()) {
+          EXPECT_EVENTUALLY_EQ(*onlyActivePort, *expectedSingleEgressPort);
+        }
+      }
+    });
+    phaseResults_.push_back(row);
+  }
+
+  void printPhaseResults() const {
+    std::string table = "\nAdjacency FRR spray verification summary\n";
+    table += fmt::format(
+        "| {:<38} | {:<21} | {:>9} | {:>9} | {:>10} | {:>12} |\n",
+        "Phase",
+        "Traffic",
+        "Pkts sent",
+        "UDF ACL",
+        "Cancel ACL",
+        "Active/Total");
+    for (const auto& row : phaseResults_) {
+      table += fmt::format(
+          "| {:<38} | {:<21} | {:>9} | {:>9} | {:>10} | {:>12} |\n",
+          row.phase,
+          row.traffic,
+          row.packetsSent,
+          row.sprayAclDelta,
+          row.cancelAclDelta,
+          fmt::format("{}/{}", row.activePorts, row.totalPorts));
+    }
+    XLOG(INFO) << table;
+  }
+
+  std::vector<PhaseResult> phaseResults_;
+};
+
+/* Route 2001::/16 = 1 primary nhop + 4 backup nhops, the backups forming an
+ * ECMP random spray group. Spray eligibility rides in the RoCE BTH reserved
+ * field: eligible packets match the flowlet ACL, everything else falls through
+ * to the catch-all which cancels the hash and forces a static assignment.
+ *
+ * The existing coverage sends many distinct 5 tuples, so traffic spreads over
+ * the backups whether the group sprays or merely hashes. A fixed 5 tuple burst
+ * separates the two: it pins to one member under a hash and scatters under
+ * spray.
+ *
+ * 1. Primary up,   RoCE reserved set > flowlet acl, single nhop (primary)
+ * 2. Primary up,   RoCE reserved 0   > cancel acl,  single nhop (primary)
+ * 3. Primary down, RoCE reserved set > flowlet acl, sprayed over 4/4 backups
+ * 4. Primary down, RoCE reserved 0   > cancel acl,  pinned to 1/4 backups
+ */
+TEST_F(AgentAdjFrrRouteSprayTest, backupGroupSprayEligibility) {
+  auto setup = [this]() { setupRouteWithPrimaryAndBackupNhops(); };
+
+  auto verify = [this]() {
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    const auto primaryPort = phyLoopbackPortIds_.at(0);
+    // Outside the group, so nothing here is a pruning or failover candidate.
+    const auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    const std::vector<PortID> backupPorts(
+        phyLoopbackPortIds_.begin() + 1,
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+    const std::vector<PortID> allNextHopPorts(
+        phyLoopbackPortIds_.begin(),
+        phyLoopbackPortIds_.begin() + kNumRouteNextHops);
+
+    // While the primary is up neither class may spray: every packet leaves on
+    // the primary next hop regardless of eligibility.
+    sendTrafficAndVerifySpray(
+        injectionPort,
+        allNextHopPorts,
+        true /* sprayEligible */,
+        false /* sprayExpected */,
+        primaryPort,
+        "Primary up");
+    sendTrafficAndVerifySpray(
+        injectionPort,
+        allNextHopPorts,
+        false /* sprayEligible */,
+        false /* sprayExpected */,
+        primaryPort,
+        "Primary up");
+
+    bringDownPort(primaryPort);
+    sendTrafficAndVerifySpray(
+        injectionPort,
+        backupPorts,
+        true /* sprayEligible */,
+        true /* sprayExpected */,
+        std::nullopt,
+        "Primary down");
+    sendTrafficAndVerifySpray(
+        injectionPort,
+        backupPorts,
+        false /* sprayEligible */,
+        false /* sprayExpected */,
+        std::nullopt,
+        "Primary down");
+    restoreNextHop(primaryPort);
+
+    printPhaseResults();
   };
 
   verifyAcrossWarmBoots(setup, verify);
