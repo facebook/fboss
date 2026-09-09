@@ -23,9 +23,18 @@ import sys
 from typing import Any
 
 
-def escape_shell_arg(arg: str) -> str:
-    """Escape argument for shell usage."""
+def escape_shell_arg(arg: Any) -> str:
+    """Quote a JSON-sourced value for the generated shell script.
+
+    Applied to every value taken from the input JSON, numeric fields included:
+    the script does not validate types, and shlex.quote leaves plain digits
+    and identifiers unchanged, so valid input produces identical output.
+    """
     return shlex.quote(str(arg))
+
+
+def _shell_bool(value: Any) -> str:
+    return escape_shell_arg(str(value).lower())
 
 
 def _generate_global_basic_commands(config: dict[str, Any]) -> list[str]:
@@ -33,17 +42,19 @@ def _generate_global_basic_commands(config: dict[str, Any]) -> list[str]:
     commands = []
     if "router_id" in config:
         commands.append(
-            f"config protocol bgp global router-id {escape_shell_arg(str(config['router_id']))}"
+            f"config protocol bgp global router-id {escape_shell_arg(config['router_id'])}"
         )
     if "local_as_4_byte" in config:
         commands.append(
-            f"config protocol bgp global local-asn {config['local_as_4_byte']}"
+            f"config protocol bgp global local-asn {escape_shell_arg(config['local_as_4_byte'])}"
         )
     if "hold_time" in config:
-        commands.append(f"config protocol bgp global hold-time {config['hold_time']}")
+        commands.append(
+            f"config protocol bgp global hold-time {escape_shell_arg(config['hold_time'])}"
+        )
     if "local_confed_as_4_byte" in config:
         commands.append(
-            f"config protocol bgp global confed-asn {config['local_confed_as_4_byte']}"
+            f"config protocol bgp global confed-asn {escape_shell_arg(config['local_confed_as_4_byte'])}"
         )
     return commands
 
@@ -55,13 +66,17 @@ def _generate_network6_commands(networks: list[dict[str, Any]]) -> list[str]:
         prefix = network.get("prefix", "")
         if not prefix:
             continue
-        cmd_parts = [f"config protocol bgp global network6 add {prefix}"]
+        cmd_parts = [
+            f"config protocol bgp global network6 add {escape_shell_arg(prefix)}"
+        ]
         if "policy_name" in network:
             cmd_parts.append(f"policy {escape_shell_arg(network['policy_name'])}")
         if "install_to_fib" in network:
-            cmd_parts.append(f"install-to-fib {str(network['install_to_fib']).lower()}")
+            cmd_parts.append(f"install-to-fib {_shell_bool(network['install_to_fib'])}")
         if "minimum_supporting_routes" in network:
-            cmd_parts.append(f"min-routes {network['minimum_supporting_routes']}")
+            cmd_parts.append(
+                f"min-routes {escape_shell_arg(network['minimum_supporting_routes'])}"
+            )
         commands.append(" ".join(cmd_parts))
     return commands
 
@@ -71,19 +86,19 @@ def _generate_switch_limit_commands(switch_limit: dict[str, Any]) -> list[str]:
     commands = []
     if "prefix_limit" in switch_limit:
         commands.append(
-            f"config protocol bgp global switch-limit {switch_limit['prefix_limit']}"
+            f"config protocol bgp global switch-limit {escape_shell_arg(switch_limit['prefix_limit'])}"
         )
     if "total_path_limit" in switch_limit:
         commands.append(
-            f"config protocol bgp global switch-limit-total-path {switch_limit['total_path_limit']}"
+            f"config protocol bgp global switch-limit-total-path {escape_shell_arg(switch_limit['total_path_limit'])}"
         )
     if "max_golden_vips" in switch_limit:
         commands.append(
-            f"config protocol bgp global switch-limit-max-golden-vips {switch_limit['max_golden_vips']}"
+            f"config protocol bgp global switch-limit-max-golden-vips {escape_shell_arg(switch_limit['max_golden_vips'])}"
         )
     if "overload_protection_mode" in switch_limit:
         commands.append(
-            f"config protocol bgp global switch-limit-overload-protection-mode {switch_limit['overload_protection_mode']}"
+            f"config protocol bgp global switch-limit-overload-protection-mode {escape_shell_arg(switch_limit['overload_protection_mode'])}"
         )
     return commands
 
@@ -106,7 +121,7 @@ def _generate_peer_group_basic_commands(
     commands = []
     if "remote_as_4_byte" in peer_group:
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} remote-asn {peer_group['remote_as_4_byte']}"
+            f"config protocol bgp peer-group {escaped_name} remote-asn {escape_shell_arg(peer_group['remote_as_4_byte'])}"
         )
     if "description" in peer_group:
         commands.append(
@@ -142,7 +157,7 @@ def _generate_peer_group_bool_commands(
     for field, cli_name in bool_fields:
         if field in peer_group:
             commands.append(
-                f"config protocol bgp peer-group {escaped_name} {cli_name} {str(peer_group[field]).lower()}"
+                f"config protocol bgp peer-group {escaped_name} {cli_name} {_shell_bool(peer_group[field])}"
             )
     return commands
 
@@ -154,19 +169,19 @@ def _generate_peer_group_timer_commands(
     commands = []
     if timers.get("hold_time_seconds"):
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers hold-time {timers['hold_time_seconds']}"
+            f"config protocol bgp peer-group {escaped_name} timers hold-time {escape_shell_arg(timers['hold_time_seconds'])}"
         )
     if timers.get("keep_alive_seconds"):
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers keepalive {timers['keep_alive_seconds']}"
+            f"config protocol bgp peer-group {escaped_name} timers keepalive {escape_shell_arg(timers['keep_alive_seconds'])}"
         )
     if "out_delay_seconds" in timers:
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers out-delay {timers['out_delay_seconds']}"
+            f"config protocol bgp peer-group {escaped_name} timers out-delay {escape_shell_arg(timers['out_delay_seconds'])}"
         )
     if "withdraw_unprog_delay_seconds" in timers:
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers withdraw-unprog-delay {timers['withdraw_unprog_delay_seconds']}"
+            f"config protocol bgp peer-group {escaped_name} timers withdraw-unprog-delay {escape_shell_arg(timers['withdraw_unprog_delay_seconds'])}"
         )
     return commands
 
@@ -178,15 +193,15 @@ def _generate_peer_group_prefilter_commands(
     commands = []
     if pre_filter.get("max_routes"):
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} max-routes {pre_filter['max_routes']}"
+            f"config protocol bgp peer-group {escaped_name} max-routes {escape_shell_arg(pre_filter['max_routes'])}"
         )
     if "warning_limit" in pre_filter:
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-limit {pre_filter['warning_limit']}"
+            f"config protocol bgp peer-group {escaped_name} warning-limit {escape_shell_arg(pre_filter['warning_limit'])}"
         )
     if "warning_only" in pre_filter:
         commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-only {str(pre_filter['warning_only']).lower()}"
+            f"config protocol bgp peer-group {escaped_name} warning-only {_shell_bool(pre_filter['warning_only'])}"
         )
     return commands
 
@@ -229,41 +244,44 @@ def format_bandwidth(bps: int) -> str:
     return str(bps)
 
 
-# (json field, CLI attribute, escape as free-form shell arg) — fields whose
-# value maps 1:1 onto a neighbor attribute token.
+# (json field, CLI attribute) — fields whose value maps 1:1 onto a neighbor
+# attribute token.
 _NEIGHBOR_SCALAR_FIELDS = [
-    ("remote_as_4_byte", "remote-asn", False),
-    ("local_as_4_byte", "local-asn", False),
-    ("peer_group_name", "peer-group", True),
-    ("description", "description", True),
-    ("peer_tag", "peer-tag", True),
-    ("local_addr", "bind-addr address", True),
-    ("ingress_policy_name", "ingress-policy", True),
-    ("egress_policy_name", "egress-policy", True),
-    ("next_hop4", "next-hop4", True),
-    ("next_hop6", "next-hop6", True),
-    ("peer_id", "peer-id", True),
-    ("type", "type", True),
+    ("remote_as_4_byte", "remote-asn"),
+    ("local_as_4_byte", "local-asn"),
+    ("peer_group_name", "peer-group"),
+    ("description", "description"),
+    ("peer_tag", "peer-tag"),
+    ("local_addr", "bind-addr address"),
+    ("ingress_policy_name", "ingress-policy"),
+    ("egress_policy_name", "egress-policy"),
+    ("next_hop4", "next-hop4"),
+    ("next_hop6", "next-hop6"),
+    ("peer_id", "peer-id"),
+    ("type", "type"),
 ]
 
 
 def _generate_neighbor_basic_commands(peer: dict[str, Any], prefix: str) -> list[str]:
     """Generate scalar neighbor commands (ASNs, names, policies, addresses)."""
     commands = []
-    for field, cli_name, escape in _NEIGHBOR_SCALAR_FIELDS:
+    for field, cli_name in _NEIGHBOR_SCALAR_FIELDS:
         if field in peer:
-            value = escape_shell_arg(str(peer[field])) if escape else peer[field]
-            commands.append(f"{prefix} {cli_name} {value}")
+            commands.append(f"{prefix} {cli_name} {escape_shell_arg(peer[field])}")
     if "is_passive" in peer:
-        commands.append(f"{prefix} passive {str(peer['is_passive']).lower()}")
+        commands.append(f"{prefix} passive {_shell_bool(peer['is_passive'])}")
     if "link_bandwidth_bps" in peer:
         bw = peer["link_bandwidth_bps"]
         bw_str = format_bandwidth(bw) if isinstance(bw, int) else str(bw)
-        commands.append(f"{prefix} link-bandwidth {bw_str}")
+        commands.append(f"{prefix} link-bandwidth {escape_shell_arg(bw_str)}")
     if "advertise_link_bandwidth" in peer:
-        commands.append(f"{prefix} advertise-lbw {peer['advertise_link_bandwidth']}")
+        commands.append(
+            f"{prefix} advertise-lbw {escape_shell_arg(peer['advertise_link_bandwidth'])}"
+        )
     if "receive_link_bandwidth" in peer:
-        commands.append(f"{prefix} receive-lbw {peer['receive_link_bandwidth']}")
+        commands.append(
+            f"{prefix} receive-lbw {escape_shell_arg(peer['receive_link_bandwidth'])}"
+        )
     return commands
 
 
@@ -283,7 +301,7 @@ def _generate_neighbor_bool_commands(peer: dict[str, Any], prefix: str) -> list[
     ]
     for field, cli_name in bool_fields:
         if field in peer:
-            commands.append(f"{prefix} {cli_name} {str(peer[field]).lower()}")
+            commands.append(f"{prefix} {cli_name} {_shell_bool(peer[field])}")
     return commands
 
 
@@ -312,18 +330,24 @@ def _generate_neighbor_timer_commands(timers: dict[str, Any], prefix: str) -> li
     """Generate timer and graceful-restart commands for a neighbor."""
     commands = []
     if "hold_time_seconds" in timers:
-        commands.append(f"{prefix} timers hold-time {timers['hold_time_seconds']}")
+        commands.append(
+            f"{prefix} timers hold-time {escape_shell_arg(timers['hold_time_seconds'])}"
+        )
     if "keep_alive_seconds" in timers:
-        commands.append(f"{prefix} timers keepalive {timers['keep_alive_seconds']}")
+        commands.append(
+            f"{prefix} timers keepalive {escape_shell_arg(timers['keep_alive_seconds'])}"
+        )
     if "out_delay_seconds" in timers:
-        commands.append(f"{prefix} timers out-delay {timers['out_delay_seconds']}")
+        commands.append(
+            f"{prefix} timers out-delay {escape_shell_arg(timers['out_delay_seconds'])}"
+        )
     if "withdraw_unprog_delay_seconds" in timers:
         commands.append(
-            f"{prefix} timers withdraw-unprog-delay {timers['withdraw_unprog_delay_seconds']}"
+            f"{prefix} timers withdraw-unprog-delay {escape_shell_arg(timers['withdraw_unprog_delay_seconds'])}"
         )
     if "graceful_restart_seconds" in timers:
         commands.append(
-            f"{prefix} graceful-restart restart-time {timers['graceful_restart_seconds']}"
+            f"{prefix} graceful-restart restart-time {escape_shell_arg(timers['graceful_restart_seconds'])}"
         )
     return commands
 
@@ -335,25 +359,29 @@ def _generate_neighbor_route_limit_commands(
     commands = []
     pre_filter = peer.get("pre_filter", {})
     if "max_routes" in pre_filter:
-        commands.append(f"{prefix} max-route pre-filter {pre_filter['max_routes']}")
+        commands.append(
+            f"{prefix} max-route pre-filter {escape_shell_arg(pre_filter['max_routes'])}"
+        )
     if "warning_limit" in pre_filter:
         commands.append(
-            f"{prefix} max-route pre-warning-threshold {pre_filter['warning_limit']}"
+            f"{prefix} max-route pre-warning-threshold {escape_shell_arg(pre_filter['warning_limit'])}"
         )
     if "warning_only" in pre_filter:
         commands.append(
-            f"{prefix} max-route pre-warning-only {str(pre_filter['warning_only']).lower()}"
+            f"{prefix} max-route pre-warning-only {_shell_bool(pre_filter['warning_only'])}"
         )
     post_filter = peer.get("post_filter", {})
     if "max_routes" in post_filter:
-        commands.append(f"{prefix} max-route post-filter {post_filter['max_routes']}")
+        commands.append(
+            f"{prefix} max-route post-filter {escape_shell_arg(post_filter['max_routes'])}"
+        )
     if "warning_limit" in post_filter:
         commands.append(
-            f"{prefix} max-route post-warning-threshold {post_filter['warning_limit']}"
+            f"{prefix} max-route post-warning-threshold {escape_shell_arg(post_filter['warning_limit'])}"
         )
     if "warning_only" in post_filter:
         commands.append(
-            f"{prefix} max-route post-warning-only {str(post_filter['warning_only']).lower()}"
+            f"{prefix} max-route post-warning-only {_shell_bool(post_filter['warning_only'])}"
         )
     return commands
 
