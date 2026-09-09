@@ -935,6 +935,9 @@ cpp_library(
         "PbrAclManager.cpp",
     ],
     deps = [
+        ":fboss-error",
+        ":switch_config-cpp2-types",
+        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//folly/logging:logging",
     ],
