@@ -1310,8 +1310,9 @@ void RibRouteTables::backfillNextHopIds(
     return;
   }
   auto& manager = *lockedRouteTables->nextHopIDManager;
+  const uint32_t ecmpWidth = lockedRouteTables->ecmpWidth;
 
-  auto backfillOneRoute = [&manager](auto& route) {
+  auto backfillOneRoute = [&manager, ecmpWidth](auto& route) {
     // Per-client: snapshot updates first (route->update rebuilds the
     // nexthopsmulti map and invalidates iterators).
     std::vector<std::pair<ClientID, std::shared_ptr<RouteNextHopEntry>>>
@@ -1358,7 +1359,7 @@ void RibRouteTables::backfillNextHopIds(
           fwdNexthops.size() == 1 && fwdNexthops.begin()->isPopAndLookup();
       if (!newNormalizedId.has_value() && !isPopAndLookup) {
         auto allocResult = manager.getOrAllocRouteNextHopSetID(
-            fwd.nonOverrideNormalizedNextHops());
+            fwd.nonOverrideNormalizedNextHops(ecmpWidth));
         newNormalizedId = allocResult.nextHopIdSetIter->second.id;
         XLOG(DBG3)
             << "[NextHop ID Manager] backfilling normalizedResolvedNextHopSetID="
@@ -1413,9 +1414,11 @@ RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    uint32_t ecmpWidth) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
+  lockedRouteTables->ecmpWidth = ecmpWidth;
 
   for (const auto& [rid, table] : ribThrift) {
     VrfRouteTable rtable = VrfRouteTable::fromThrift(table);
@@ -1504,10 +1507,11 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    uint32_t ecmpWidth) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ =
-      RibRouteTables::fromThrift(ribThrift, fibsInfoMap, labelFib, mySidMap);
+  rib->ribTables_ = RibRouteTables::fromThrift(
+      ribThrift, fibsInfoMap, labelFib, mySidMap, ecmpWidth);
   return rib;
 }
 
@@ -2160,9 +2164,11 @@ std::map<int32_t, state::RouteTableFields> RibRouteTables::warmBootState()
 }
 
 RibRouteTables RibRouteTables::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>& obj) {
+    const std::map<int32_t, state::RouteTableFields>& obj,
+    uint32_t ecmpWidth) {
   RibRouteTables ribRouteTables;
   auto routeTables = ribRouteTables.synchronizedRouteTables_.wlock();
+  routeTables->ecmpWidth = ecmpWidth;
   for (const auto& [rid, routeTableFields] : obj) {
     // @lint-ignore CLANGTIDY
     routeTables->routerIDToRouteTable.emplace(
@@ -2176,9 +2182,10 @@ std::map<int32_t, state::RouteTableFields> RoutingInformationBase::toThrift()
   return ribTables_.toThrift();
 }
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>& obj) {
+    const std::map<int32_t, state::RouteTableFields>& obj,
+    uint32_t ecmpWidth) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromThrift(obj);
+  rib->ribTables_ = RibRouteTables::fromThrift(obj, ecmpWidth);
   return rib;
 }
 

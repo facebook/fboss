@@ -26,6 +26,8 @@ DECLARE_bool(enable_nexthop_id_manager);
 
 namespace {
 
+constexpr uint32_t kEcmpWidth = 64;
+
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
@@ -436,8 +438,8 @@ TEST(FromThriftWithMySid, NullMySidMap) {
   std::map<int32_t, state::RouteTableFields> ribThrift;
   ribThrift.emplace(0, state::RouteTableFields{});
 
-  auto rib =
-      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, nullptr);
+  auto rib = RoutingInformationBase::fromThrift(
+      ribThrift, nullptr, nullptr, nullptr, kEcmpWidth);
 
   EXPECT_EQ(rib->getMySidTableCopy().size(), 0);
 }
@@ -447,8 +449,8 @@ TEST(FromThriftWithMySid, EmptyMySidMap) {
   ribThrift.emplace(0, state::RouteTableFields{});
 
   auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
-  auto rib =
-      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+  auto rib = RoutingInformationBase::fromThrift(
+      ribThrift, nullptr, nullptr, mySidMap, kEcmpWidth);
 
   EXPECT_EQ(rib->getMySidTableCopy().size(), 0);
 }
@@ -463,8 +465,8 @@ TEST(FromThriftWithMySid, PopulatesMySidTable) {
   mySidMap->addNode(makeMySid(prefix1), scope());
   mySidMap->addNode(makeMySid(prefix2), scope());
 
-  auto rib =
-      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+  auto rib = RoutingInformationBase::fromThrift(
+      ribThrift, nullptr, nullptr, mySidMap, kEcmpWidth);
 
   auto mySidTableCopy = rib->getMySidTableCopy();
   EXPECT_EQ(mySidTableCopy.size(), 2);
@@ -481,8 +483,8 @@ TEST(FromThriftWithMySid, PreservesMySidType) {
   mySidMap->addNode(
       makeMySid(prefix, MySidType::DECAPSULATE_AND_LOOKUP), scope());
 
-  auto rib =
-      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+  auto rib = RoutingInformationBase::fromThrift(
+      ribThrift, nullptr, nullptr, mySidMap, kEcmpWidth);
 
   auto mySidTableCopy = rib->getMySidTableCopy();
   ASSERT_EQ(mySidTableCopy.size(), 1);
@@ -528,7 +530,7 @@ TEST(FromThriftWithFibsInfoMap, NextHopIDManagerPopulatedViaMySid) {
   ribThrift.emplace(0, state::RouteTableFields{});
 
   auto rib = RoutingInformationBase::fromThrift(
-      ribThrift, fibsInfoMap, nullptr, mySidMap);
+      ribThrift, fibsInfoMap, nullptr, mySidMap, kEcmpWidth);
 
   auto idManager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(idManager, nullptr);
@@ -587,7 +589,7 @@ TEST(
   ribThrift.emplace(0, state::RouteTableFields{});
 
   auto rib = RoutingInformationBase::fromThrift(
-      ribThrift, fibsInfoMap, nullptr, mySidMap);
+      ribThrift, fibsInfoMap, nullptr, mySidMap, kEcmpWidth);
 
   auto idManager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(idManager, nullptr);
@@ -652,7 +654,7 @@ TEST(FromThriftWithFibsInfoMap, MultipleMySidEntriesCanonicalizeConsistently) {
   ribThrift.emplace(0, state::RouteTableFields{});
 
   auto rib = RoutingInformationBase::fromThrift(
-      ribThrift, fibsInfoMap, nullptr, mySidMap);
+      ribThrift, fibsInfoMap, nullptr, mySidMap, kEcmpWidth);
 
   auto idManager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(idManager, nullptr);
@@ -757,7 +759,7 @@ TEST(FromThriftWithFibsInfoMap, FullCanonicalizationAcrossAllReferenceKinds) {
   ribThrift.emplace(0, state::RouteTableFields{});
 
   auto rib = RoutingInformationBase::fromThrift(
-      ribThrift, fibsInfoMap, nullptr, mySidMap);
+      ribThrift, fibsInfoMap, nullptr, mySidMap, kEcmpWidth);
 
   auto idm = rib->getNextHopIDManagerCopy();
   ASSERT_NE(idm, nullptr);

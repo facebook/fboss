@@ -250,7 +250,8 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -281,7 +282,8 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
@@ -567,7 +569,8 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -610,7 +613,8 @@ class RoutingInformationBase {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static std::unique_ptr<RoutingInformationBase> fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   // Returns a deep copy of the NextHopIDManager. This is an expensive

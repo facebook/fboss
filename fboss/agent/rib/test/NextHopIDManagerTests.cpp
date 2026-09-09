@@ -30,6 +30,7 @@ constexpr int64_t kSetIdOffset = 1LL << 62;
 
 namespace {
 
+constexpr uint32_t kEcmpWidth = 64;
 const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 
 // Helper function to create a V4 route with resolvedNextHopSetID and add to FIB
@@ -1377,7 +1378,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsClientNextHopSetID) {
       ribThrift,
       fibInfoMap,
       std::make_shared<MultiLabelForwardingInformationBase>(),
-      std::make_shared<MultiSwitchMySidMap>());
+      std::make_shared<MultiSwitchMySidMap>(),
+      kEcmpWidth);
   auto manager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(manager, nullptr);
 
@@ -1501,7 +1503,7 @@ TEST_F(NextHopIDManagerTest, reconstructMemberDedupUnresolvedRoute) {
   vrfTable.v4NetworkToRoute()->emplace("20.0.0.0/24", v4Unresolved);
   std::map<int32_t, state::RouteTableFields> ribThrift;
   ribThrift.emplace(0, vrfTable);
-  auto ribTables = RibRouteTables::fromThrift(ribThrift);
+  auto ribTables = RibRouteTables::fromThrift(ribThrift, kEcmpWidth);
 
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(

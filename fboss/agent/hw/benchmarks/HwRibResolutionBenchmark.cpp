@@ -46,7 +46,8 @@ BENCHMARK(RibResolutionBenchmark) {
       ensemble->getSw()->getRib()->toThrift(),
       ensemble->getProgrammedState()->getFibsInfoMap(),
       nullptr,
-      nullptr);
+      nullptr,
+      getEcmpWidth(ensemble->getProgrammedState()));
   auto switchState = ensemble->getProgrammedState();
   suspender.dismiss();
   std::for_each(

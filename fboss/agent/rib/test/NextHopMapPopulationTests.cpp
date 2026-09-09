@@ -1314,7 +1314,8 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingIdsFromWarmBoot) {
       ribThrift,
       nullptr,
       std::make_shared<MultiLabelForwardingInformationBase>(),
-      std::make_shared<MultiSwitchMySidMap>());
+      std::make_shared<MultiSwitchMySidMap>(),
+      getEcmpWidth(sw_->getState()));
 
   // Every NEXTHOPS route must have all three IDs populated.
   auto reThrift = reconstructedRib->toThrift();
@@ -1398,7 +1399,8 @@ TEST_F(NextHopMapPopulationTest, BackfillsMissingMplsIdsFromWarmBoot) {
       ribThrift,
       nullptr,
       std::make_shared<MultiLabelForwardingInformationBase>(),
-      std::make_shared<MultiSwitchMySidMap>());
+      std::make_shared<MultiSwitchMySidMap>(),
+      getEcmpWidth(sw_->getState()));
   auto reThrift = reconstructedRib->toThrift();
   ASSERT_FALSE(reThrift.empty());
   const auto& labelToRoute = *reThrift.begin()->second.labelToRoute();
@@ -1682,7 +1684,8 @@ TEST_F(NextHopMapPopulationTest, WarmbootRoundTripPreservesManagerState) {
       ribThrift,
       sw_->getState()->getFibsInfoMap(),
       sw_->getState()->getLabelForwardingInformationBase(),
-      std::make_shared<MultiSwitchMySidMap>());
+      std::make_shared<MultiSwitchMySidMap>(),
+      getEcmpWidth(sw_->getState()));
   auto postManager = reconstructedRib->getNextHopIDManagerCopy();
   ASSERT_NE(postManager, nullptr);
 
