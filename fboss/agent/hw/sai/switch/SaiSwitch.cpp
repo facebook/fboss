@@ -2485,6 +2485,21 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
             false /* readSerdesParams */);
       }
 
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      // Only read on the PAI retimer. NPU / non-retimer platforms are
+      // unaffected: no extra per-port SAI read and no change to their PhyInfo.
+      // system() is populated above under the same isXphy condition.
+      if (isXphy) {
+        auto& phyPortMgr = managerTable_->portManager();
+        phyParams.state()->line()->loopback() =
+            phyPortMgr.getLoopbackMode(portHandle->port->adapterKey());
+        if (portHandle->sysPort) {
+          phyParams.state()->system()->loopback() =
+              phyPortMgr.getLoopbackMode(portHandle->sysPort->adapterKey());
+        }
+      }
+#endif
+
       // Update PCS Info
       updatePcsInfo(
           *(*phyParams.state()).line(),

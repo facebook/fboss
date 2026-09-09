@@ -4321,6 +4321,16 @@ std::optional<sai_latch_status_t> SaiPortManager::getPcsRxLinkStatus(
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::PcsRxLinkStatus{});
 }
+
+#endif
+
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+phy::Loopback SaiPortManager::getLoopbackMode(PortSaiId saiPortId) const {
+  auto mode = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::PortLoopbackMode{});
+  return (mode == SAI_PORT_LOOPBACK_MODE_NONE) ? phy::Loopback::OFF
+                                               : phy::Loopback::ON;
+}
 #endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)

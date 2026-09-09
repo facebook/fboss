@@ -440,6 +440,7 @@ struct PhySideState {
   4: optional RsInfo rs; // Reconciliation sub-layer
   5: optional InterfaceType interfaceType;
   6: transceiver.TransmitterTechnology medium;
+  7: optional Loopback loopback; // Current loopback state for this side
 }
 
 struct PhySideStats {

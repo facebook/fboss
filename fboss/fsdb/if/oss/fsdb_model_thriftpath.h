@@ -1071,6 +1071,7 @@ class ChildThriftPath<::facebook::fboss::phy::PhySideState, ::facebook::fboss::f
     STRUCT_CHILD_GETTERS(rs, 4);
     STRUCT_CHILD_GETTERS(interfaceType, 5);
     STRUCT_CHILD_GETTERS(medium, 6);
+    STRUCT_CHILD_GETTERS(loopback, 7);
 };
 
 

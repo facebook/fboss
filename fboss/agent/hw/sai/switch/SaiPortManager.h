@@ -312,6 +312,10 @@ class SaiPortManager {
       PortSaiId saiPortId) const;
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  phy::Loopback getLoopbackMode(PortSaiId saiPortId) const;
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::optional<sai_latch_status_t> getHighCrcErrorRate(
       PortSaiId saiPortId,
