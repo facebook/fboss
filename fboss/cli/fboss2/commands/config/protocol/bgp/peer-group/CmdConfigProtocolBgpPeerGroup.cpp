@@ -47,7 +47,7 @@ constexpr std::string_view kEgressPolicy = "egress-policy";
 constexpr std::string_view kRrClient = "rr-client";
 constexpr std::string_view kRedistributePeer = "redistribute-peer";
 constexpr std::string_view kEnhancedRouteRefresh = "enhanced-route-refresh";
-constexpr std::string_view kConnectMode = "connect-mode";
+constexpr std::string_view kPassive = "passive";
 constexpr std::string_view kAddPathSend = "add-path send";
 constexpr std::string_view kAddPathReceive = "add-path receive";
 constexpr std::string_view kAfiDisableIpv4Afi = "afi disable-ipv4-afi";
@@ -79,11 +79,14 @@ constexpr std::string_view kMaxRoutePreWarningOnly =
 constexpr std::string_view kMaxRoutePostWarningOnly =
     "max-route post-warning-only";
 
-// connect-mode values
-constexpr std::string_view kConnectModePassive = "PASSIVE";
-constexpr std::string_view kConnectModeActive = "ACTIVE";
-constexpr std::string_view kConnectModeBoth = "BOTH";
+// Protocol ranges bgpd enforces (or the wire format silently truncates to):
+// the OPEN hold time is 16 bits and bgpd refuses 1-2s; the graceful-restart
+// restart time is the 12-bit field of RFC 4724.
+constexpr int32_t kHoldTimeMinSeconds = 3;
+constexpr int32_t kHoldTimeMaxSeconds = 65535;
+constexpr int32_t kGracefulRestartMaxSeconds = 4095;
 
+using BgpConfig = bgp::thrift::BgpConfig;
 using PeerGroup = bgp::thrift::PeerGroup;
 using bgpcli::asnAttr;
 using bgpcli::AttrHandler;
@@ -95,6 +98,7 @@ using bgpcli::parseBool;
 using bgpcli::Result;
 using bgpcli::routeCountAttr;
 using bgpcli::secondsAttr;
+using bgpcli::SecondsRange;
 using bgpcli::stringAttr;
 using bgpcli::Tokens;
 using facebook::neteng::fboss::bgp_attr::AddPath;
@@ -143,6 +147,13 @@ void setRedistributePeer(PeerGroup& g, bool v) {
 
 void setEnhancedRouteRefresh(PeerGroup& g, bool v) {
   g.enhanced_route_refresh() = v;
+}
+
+// bgpd reads is_passive=true as PASSIVE_ONLY (listen) and false as
+// PASSIVE_ACTIVE (listen and connect); there is no active-only mode, so the
+// CLI exposes the flag itself rather than inventing connect-mode names.
+void setPassive(PeerGroup& g, bool v) {
+  g.is_passive() = v;
 }
 
 void setDisableIpv4Afi(PeerGroup& g, bool v) {
@@ -211,47 +222,55 @@ void setNextHopSelf(PeerGroup& g, bool v) {
   g.next_hop_self() = v;
 }
 
+// ---- inherited values ------------------------------------------------------
+// bgpd applies a peer group's bgp_peer_timers to its members as a WHOLE
+// struct: once the group carries one, every member takes hold, keepalive and
+// out-delay from it, and hold_time_seconds / keep_alive_seconds are
+// non-optional i32 (default 0). Hold time 0 means no keepalives, so a timers
+// struct created for one field would silently disable dead-peer detection for
+// the whole group. Before the first timer attribute is set on a group, the
+// struct is therefore seeded from what its members use today -- the global
+// hold time, with the conventional hold/3 keepalive -- and the requested field
+// is then changed on top of it. pre_filter / post_filter need no seeding: a
+// group has nothing above it to inherit a RouteLimit from, and the setter's
+// ensure() yields the thrift defaults, which is also what bgpd applies to a
+// peer without one.
+
+void seedTimers(const BgpConfig& cfg, PeerGroup& group) {
+  if (group.bgp_peer_timers()) {
+    return;
+  }
+  bgp::thrift::BgpPeerTimers timers;
+  timers.hold_time_seconds() = *cfg.hold_time();
+  timers.keep_alive_seconds() = *cfg.hold_time() / 3;
+  group.bgp_peer_timers() = std::move(timers);
+}
+
+// A peer-group handler sees the whole config (for the global defaults) plus
+// the group being edited. The shared factories only know the group, so they
+// are adapted; the adapter for timer attributes seeds first.
+using PeerGroupHandler =
+    std::function<Result(const BgpConfig&, PeerGroup&, const Tokens&)>;
+
+PeerGroupHandler groupOnly(AttrHandler<PeerGroup> handler) {
+  return [handler = std::move(handler)](
+             const BgpConfig&, PeerGroup& group, const Tokens& values) {
+    return handler(group, values);
+  };
+}
+
+PeerGroupHandler withTimers(AttrHandler<PeerGroup> handler) {
+  return [handler = std::move(handler)](
+             const BgpConfig& cfg, PeerGroup& group, const Tokens& values) {
+    seedTimers(cfg, group);
+    return handler(group, values);
+  };
+}
+
 // ---- hand-written handlers -------------------------------------------------
 // Only for value shapes no factory covers, because the shape is unique to this
-// attribute rather than reusable. Both mirror the neighbor dispatcher's
-// versions, which write the identically-named BgpPeer fields.
-
-// connect-mode: the thrift model only has is_passive (listen vs actively
-// connect), so this is not an enum mapping — BOTH has no representation and is
-// rejected with an explanation rather than silently mapped.
-Result connectMode(PeerGroup& group, const Tokens& values) {
-  if (values.size() != 1) {
-    return err(
-        fmt::format(
-            "Error: {} requires <{}|{}>",
-            kConnectMode,
-            kConnectModePassive,
-            kConnectModeActive));
-  }
-  if (values[0] == kConnectModePassive) {
-    group.is_passive() = true;
-  } else if (values[0] == kConnectModeActive) {
-    group.is_passive() = false;
-  } else if (values[0] == kConnectModeBoth) {
-    return err(
-        fmt::format(
-            "Error: {} {} has no representation in bgp_config.thrift "
-            "(PeerGroup only models is_passive); use {} or {}",
-            kConnectMode,
-            kConnectModeBoth,
-            kConnectModePassive,
-            kConnectModeActive));
-  } else {
-    return err(
-        fmt::format(
-            "Error: Invalid {} value '{}'; expected {} or {}",
-            kConnectMode,
-            values[0],
-            kConnectModePassive,
-            kConnectModeActive));
-  }
-  return ok(fmt::format("Successfully set {} to: {}", kConnectMode, values[0]));
-}
+// attribute rather than reusable. Mirrors the neighbor dispatcher's version,
+// which writes the identically-named BgpPeer field.
 
 // add-path send/receive: a boolean at the CLI, but the two attributes share
 // one thrift field — add_path is a single enum whose values form a bitmask by
@@ -298,73 +317,102 @@ Result addPathReceive(PeerGroup& group, const Tokens& values) {
 // handler bodies here by design — if an attribute appears to need one, its
 // value shape is missing a factory and the fix is to add the factory.
 
-const std::map<std::string, AttrHandler<PeerGroup>, std::less<>>&
-attrHandlers() {
-  static const std::map<std::string, AttrHandler<PeerGroup>, std::less<>>
-      kHandlers = {
+const std::map<std::string, PeerGroupHandler, std::less<>>& attrHandlers() {
+  auto plain = [](AttrHandler<PeerGroup> h) { return groupOnly(std::move(h)); };
+  auto timers = [](AttrHandler<PeerGroup> h) {
+    return withTimers(std::move(h));
+  };
+  static const std::map<std::string, PeerGroupHandler, std::less<>> kHandlers =
+      {
           {std::string(kRemoteAsn),
-           asnAttr<PeerGroup>(kRemoteAsn, setRemoteAsn)},
-          {std::string(kLocalAsn), asnAttr<PeerGroup>(kLocalAsn, setLocalAsn)},
+           plain(asnAttr<PeerGroup>(kRemoteAsn, setRemoteAsn))},
+          {std::string(kLocalAsn),
+           plain(asnAttr<PeerGroup>(kLocalAsn, setLocalAsn))},
           {std::string(kDescription),
-           joinedStringAttr<PeerGroup>(kDescription, setDescription)},
+           plain(joinedStringAttr<PeerGroup>(kDescription, setDescription))},
           {std::string(kPeerTag),
-           stringAttr<PeerGroup>(kPeerTag, "string", setPeerTag)},
+           plain(stringAttr<PeerGroup>(kPeerTag, "string", setPeerTag))},
           {std::string(kIngressPolicy),
-           stringAttr<PeerGroup>(
-               kIngressPolicy, "policy-name", setIngressPolicy)},
+           plain(
+               stringAttr<PeerGroup>(
+                   kIngressPolicy, "policy-name", setIngressPolicy))},
           {std::string(kEgressPolicy),
-           stringAttr<PeerGroup>(
-               kEgressPolicy, "policy-name", setEgressPolicy)},
-          {std::string(kRrClient), boolAttr<PeerGroup>(kRrClient, setRrClient)},
+           plain(
+               stringAttr<PeerGroup>(
+                   kEgressPolicy, "policy-name", setEgressPolicy))},
+          {std::string(kRrClient),
+           plain(boolAttr<PeerGroup>(kRrClient, setRrClient))},
           {std::string(kConfedPeer),
-           boolAttr<PeerGroup>(kConfedPeer, setConfedPeer)},
+           plain(boolAttr<PeerGroup>(kConfedPeer, setConfedPeer))},
           {std::string(kRedistributePeer),
-           boolAttr<PeerGroup>(kRedistributePeer, setRedistributePeer)},
+           plain(boolAttr<PeerGroup>(kRedistributePeer, setRedistributePeer))},
           {std::string(kEnhancedRouteRefresh),
-           boolAttr<PeerGroup>(kEnhancedRouteRefresh, setEnhancedRouteRefresh)},
-          {std::string(kConnectMode), connectMode},
-          {std::string(kAddPathSend), addPathSend},
-          {std::string(kAddPathReceive), addPathReceive},
+           plain(
+               boolAttr<PeerGroup>(
+                   kEnhancedRouteRefresh, setEnhancedRouteRefresh))},
+          {std::string(kPassive),
+           plain(boolAttr<PeerGroup>(kPassive, setPassive))},
+          {std::string(kAddPathSend), plain(addPathSend)},
+          {std::string(kAddPathReceive), plain(addPathReceive)},
           {std::string(kAfiDisableIpv4Afi),
-           boolAttr<PeerGroup>(kAfiDisableIpv4Afi, setDisableIpv4Afi)},
+           plain(boolAttr<PeerGroup>(kAfiDisableIpv4Afi, setDisableIpv4Afi))},
           {std::string(kAfiDisableIpv6Afi),
-           boolAttr<PeerGroup>(kAfiDisableIpv6Afi, setDisableIpv6Afi)},
+           plain(boolAttr<PeerGroup>(kAfiDisableIpv6Afi, setDisableIpv6Afi))},
           {std::string(kAfiIpv4OverIpv6Nh),
-           boolAttr<PeerGroup>(kAfiIpv4OverIpv6Nh, setIpv4OverIpv6Nh)},
+           plain(boolAttr<PeerGroup>(kAfiIpv4OverIpv6Nh, setIpv4OverIpv6Nh))},
           {std::string(kGracefulRestartTime),
-           secondsAttr<PeerGroup>(
-               kGracefulRestartTime, setGracefulRestartTime)},
+           timers(
+               secondsAttr<PeerGroup>(
+                   kGracefulRestartTime,
+                   setGracefulRestartTime,
+                   SecondsRange{0, kGracefulRestartMaxSeconds}))},
           {std::string(kGracefulRestartStatefulHa),
-           boolAttr<PeerGroup>(
-               kGracefulRestartStatefulHa, setGracefulRestartStatefulHa)},
+           plain(
+               boolAttr<PeerGroup>(
+                   kGracefulRestartStatefulHa, setGracefulRestartStatefulHa))},
           {std::string(kMaxRoutePreFilter),
-           routeCountAttr<PeerGroup>(kMaxRoutePreFilter, setMaxRoutePreFilter)},
+           plain(
+               routeCountAttr<PeerGroup>(
+                   kMaxRoutePreFilter, setMaxRoutePreFilter))},
           {std::string(kMaxRoutePostFilter),
-           routeCountAttr<PeerGroup>(
-               kMaxRoutePostFilter, setMaxRoutePostFilter)},
+           plain(
+               routeCountAttr<PeerGroup>(
+                   kMaxRoutePostFilter, setMaxRoutePostFilter))},
           {std::string(kMaxRoutePreWarningThreshold),
-           routeCountAttr<PeerGroup>(
-               kMaxRoutePreWarningThreshold, setMaxRoutePreWarningThreshold)},
+           plain(
+               routeCountAttr<PeerGroup>(
+                   kMaxRoutePreWarningThreshold,
+                   setMaxRoutePreWarningThreshold))},
           {std::string(kMaxRoutePostWarningThreshold),
-           routeCountAttr<PeerGroup>(
-               kMaxRoutePostWarningThreshold, setMaxRoutePostWarningThreshold)},
+           plain(
+               routeCountAttr<PeerGroup>(
+                   kMaxRoutePostWarningThreshold,
+                   setMaxRoutePostWarningThreshold))},
           {std::string(kMaxRoutePreWarningOnly),
-           boolAttr<PeerGroup>(
-               kMaxRoutePreWarningOnly, setMaxRoutePreWarningOnly)},
+           plain(
+               boolAttr<PeerGroup>(
+                   kMaxRoutePreWarningOnly, setMaxRoutePreWarningOnly))},
           {std::string(kMaxRoutePostWarningOnly),
-           boolAttr<PeerGroup>(
-               kMaxRoutePostWarningOnly, setMaxRoutePostWarningOnly)},
+           plain(
+               boolAttr<PeerGroup>(
+                   kMaxRoutePostWarningOnly, setMaxRoutePostWarningOnly))},
           {std::string(kTimersHoldTime),
-           secondsAttr<PeerGroup>(kTimersHoldTime, setTimersHoldTime)},
+           timers(
+               secondsAttr<PeerGroup>(
+                   kTimersHoldTime,
+                   setTimersHoldTime,
+                   SecondsRange{kHoldTimeMinSeconds, kHoldTimeMaxSeconds}))},
           {std::string(kTimersKeepalive),
-           secondsAttr<PeerGroup>(kTimersKeepalive, setTimersKeepalive)},
+           timers(
+               secondsAttr<PeerGroup>(kTimersKeepalive, setTimersKeepalive))},
           {std::string(kTimersOutDelay),
-           secondsAttr<PeerGroup>(kTimersOutDelay, setTimersOutDelay)},
+           timers(secondsAttr<PeerGroup>(kTimersOutDelay, setTimersOutDelay))},
           {std::string(kTimersWithdrawUnprogDelay),
-           secondsAttr<PeerGroup>(
-               kTimersWithdrawUnprogDelay, setTimersWithdrawUnprogDelay)},
+           timers(
+               secondsAttr<PeerGroup>(
+                   kTimersWithdrawUnprogDelay, setTimersWithdrawUnprogDelay))},
           {std::string(kNextHopSelf),
-           boolAttr<PeerGroup>(kNextHopSelf, setNextHopSelf)},
+           plain(boolAttr<PeerGroup>(kNextHopSelf, setNextHopSelf))},
       };
   return kHandlers;
 }
@@ -380,39 +428,20 @@ std::string validAttrList() {
   return out;
 }
 
-// Find the peer-group keyed by name, creating it if absent. Setting an
-// attribute on a not-yet-created group implicitly creates it, so command
-// ordering stays forgiving; a bare `peer-group <name>` creates one explicitly.
-// Unlike a BgpPeer, PeerGroup's only non-optional field is `name`, so no
-// address seeding is needed.
-bgp::thrift::PeerGroup& findOrCreatePeerGroup(
-    bgp::thrift::BgpConfig& cfg,
+// The group named `groupName`, or end(). Setting an attribute on a
+// not-yet-created group implicitly creates it, so command ordering stays
+// forgiving; a bare `peer-group <name>` creates one explicitly. Unlike a
+// BgpPeer, PeerGroup's only non-optional field is `name`, so a new group needs
+// no address seeding.
+std::vector<PeerGroup>::iterator findPeerGroup(
+    std::vector<PeerGroup>& groups,
     const std::string& groupName) {
-  auto& groups = cfg.peer_groups().ensure();
-  for (auto& group : groups) {
-    if (*group.name() == groupName) {
-      return group;
+  for (auto it = groups.begin(); it != groups.end(); ++it) {
+    if (*it->name() == groupName) {
+      return it;
     }
   }
-  groups.emplace_back();
-  auto& group = groups.back();
-  group.name() = groupName;
-  return group;
-}
-
-// Whether a peer-group with the given name already exists.
-bool peerGroupExists(
-    const bgp::thrift::BgpConfig& cfg,
-    const std::string& groupName) {
-  if (!cfg.peer_groups().has_value()) {
-    return false;
-  }
-  for (const auto& group : *cfg.peer_groups()) {
-    if (*group.name() == groupName) {
-      return true;
-    }
-  }
-  return false;
+  return groups.end();
 }
 
 } // namespace
@@ -465,27 +494,38 @@ CmdConfigProtocolBgpPeerGroup::queryClient(
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
-  const bool created = !peerGroupExists(cfg, args.groupName());
-  auto& group = findOrCreatePeerGroup(cfg, args.groupName());
+  auto& groups = cfg.peer_groups().ensure();
+  auto existing = findPeerGroup(groups, args.groupName());
 
+  // Edit a copy: a rejected value (or a struct seeded for it) must leave the
+  // in-memory config exactly as it was, since later lookups in the same
+  // process see it whether or not it was saved.
+  PeerGroup group;
+  if (existing != groups.end()) {
+    group = *existing;
+  } else {
+    group.name() = args.groupName();
+  }
   Result result = args.attr().empty()
       ? ok(fmt::format(
             "Successfully created BGP peer-group {}", args.groupName()))
       // The attribute is guaranteed valid: BgpPeerGroupConfig's constructor
       // rejects an unknown attribute before we get here.
-      : attrHandlers().find(args.attr())->second(group, args.values());
-  if (result.ok) {
-    if (!args.attr().empty()) {
-      result.message += fmt::format(" for peer-group {}", args.groupName());
-    }
-    session.saveBgpConfig();
-    result.message +=
-        fmt::format("\nConfig saved to: {}", session.getBgpSessionConfigPath());
-  } else if (created) {
-    // A rejected value must not leave a half-created group in the in-memory
-    // config (visible to later lookups in the same process, e.g. tests).
-    cfg.peer_groups()->pop_back();
+      : attrHandlers().find(args.attr())->second(cfg, group, args.values());
+  if (!result.ok) {
+    return result.message;
   }
+  if (existing != groups.end()) {
+    *existing = std::move(group);
+  } else {
+    groups.push_back(std::move(group));
+  }
+  if (!args.attr().empty()) {
+    result.message += fmt::format(" for peer-group {}", args.groupName());
+  }
+  session.saveBgpConfig();
+  result.message +=
+      fmt::format("\nConfig saved to: {}", session.getBgpSessionConfigPath());
   return result.message;
 }
 
