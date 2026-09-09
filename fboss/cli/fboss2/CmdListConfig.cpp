@@ -367,7 +367,7 @@ const CommandTree& kConfigCommandTree() {
                           "description, peer-tag, ingress-policy, "
                           "egress-policy, rr-client, confed-peer, "
                           "redistribute-peer, enhanced-route-refresh, "
-                          "connect-mode, next-hop-self, add-path send|receive, "
+                          "passive, next-hop-self, add-path send|receive, "
                           "afi disable-ipv4-afi|disable-ipv6-afi|"
                           "ipv4-over-ipv6-nh, "
                           "graceful-restart restart-time|stateful-ha, "
