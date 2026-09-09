@@ -243,12 +243,41 @@ dprint "Copying /etc/resolv.conf to ${DESCRIPTION_DIR}/root/etc/resolv.conf..."
 mkdir -p "${DESCRIPTION_DIR}/root/etc"
 cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 
-# Add build timestamp to the image
-echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
-
 # Copy rootfs template files to overlay
 dprint "Copying rootfs files to overlay..."
 cp -R ${DESCRIPTION_DIR}/root_files/* ${DESCRIPTION_DIR}/root/
+
+# Written after the root_files copy so an overlay file cannot shadow it.
+write_build_info() {
+  local rel bytes size
+
+  echo "FBOSS distro image"
+  echo "Built on: $(date -u)"
+  echo "Built by: $(whoami)@$(hostname)"
+  echo ""
+  echo "Components:"
+
+  if [ ! -d "${EFFECTIVE_DEPS_DIR}" ]; then
+    echo "  (none: ${EFFECTIVE_DEPS_DIR} does not exist)"
+    return
+  fi
+
+  # Two levels down is <component>/<artifact>, the layout config.sh consumes.
+  find "${EFFECTIVE_DEPS_DIR}" -mindepth 2 -maxdepth 2 -type f -printf '%P\t%s\n' |
+    sort |
+    while IFS=$'\t' read -r rel bytes; do
+      size=$(numfmt --to=iec "$bytes" 2>/dev/null || echo "${bytes}B")
+      echo "  ${rel}  ${size}  sha256:$(sha256sum "${EFFECTIVE_DEPS_DIR}/${rel}" | cut -d' ' -f1)"
+    done
+
+  if [ -z "$(find "${EFFECTIVE_DEPS_DIR}" -mindepth 2 -maxdepth 2 -type f -print -quit)" ]; then
+    echo "  (none: no artifacts were staged)"
+  fi
+}
+
+dprint "Recording image provenance in /etc/build-info..."
+write_build_info >"${DESCRIPTION_DIR}/root/etc/build-info"
+tee -a "${LOG_FILE}" <"${DESCRIPTION_DIR}/root/etc/build-info"
 
 # Remove any existing after_pkgs files from previous runs
 rm -f ${DESCRIPTION_DIR}/root/var/tmp/after_pkgs_install_file.json
