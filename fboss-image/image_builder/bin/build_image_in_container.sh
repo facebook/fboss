@@ -254,6 +254,15 @@ write_build_info() {
   echo "FBOSS distro image"
   echo "Built on: $(date -u)"
   echo "Built by: $(whoami)@$(hostname)"
+
+  # The manifest and the source revision are only knowable outside the
+  # container; the CLI drops them here before starting the build.
+  if [ -f "${WSROOT}/build-provenance" ]; then
+    cat "${WSROOT}/build-provenance"
+  else
+    echo "Manifest: unknown (no build-provenance from the CLI)"
+  fi
+
   echo ""
   echo "Components:"
 

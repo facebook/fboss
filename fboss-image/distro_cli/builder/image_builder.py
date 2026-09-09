@@ -7,6 +7,7 @@
 
 """Image Builder - handles building FBOSS images from manifests."""
 
+import hashlib
 import logging
 import os
 import shutil
@@ -76,6 +77,43 @@ class ImageBuilder:
             self.centos_template_dir / "after_pkgs_execute_file.json"
         )
         self.compress_artifacts = False
+
+    def _source_revision(self) -> str:
+        """Best-effort source revision of the tree this manifest came from."""
+        for cmd in (["sl", "id", "-i"], ["git", "rev-parse", "HEAD"]):
+            try:
+                result = subprocess.run(
+                    cmd,
+                    cwd=self.manifest.manifest_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    check=True,
+                )
+            except (OSError, subprocess.SubprocessError):
+                continue
+            revision = result.stdout.strip()
+            if revision:
+                return revision
+        return "unknown"
+
+    def _write_build_provenance(self) -> None:
+        """Record where this build came from, for /etc/build-info.
+
+        `build_image_in_container.sh` runs inside the container and can see
+        neither the manifest nor the source tree, so the values it cannot
+        derive are handed to it through the /image_builder bind mount.
+        """
+        manifest_path = self.manifest.manifest_path
+        digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        lines = [
+            f"Manifest: {manifest_path.name}",
+            f"Manifest-sha256: {digest}",
+            f"Source-revision: {self._source_revision()}",
+        ]
+        provenance_file = self.image_builder_dir / "build-provenance"
+        provenance_file.write_text("\n".join(lines) + "\n")
+        logger.info(f"Recorded build provenance in {provenance_file}")
 
     def _compress_artifact(self, artifact_path: Path, component_name: str) -> Path:
         """Compress artifact using zstd."""
@@ -248,6 +286,7 @@ class ImageBuilder:
             volumes[self.output_dir] = Path("/image_builder/output")
 
         self._stage_component_artifacts()
+        self._write_build_provenance()
 
         command = [
             "/image_builder/bin/build_image_in_container.sh",
