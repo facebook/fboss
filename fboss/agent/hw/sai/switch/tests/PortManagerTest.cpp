@@ -259,6 +259,27 @@ TEST_F(PortManagerTest, programUserMetaData) {
   EXPECT_EQ(readMetaData(), 0);
 }
 
+// Dropping user metadata from switch state resolves to an explicit 0 for a
+// port that is already tagged, and to nothing for one that is not.
+TEST_F(PortManagerTest, clearUserMetaDataFromSwPort) {
+  auto& portManager = saiManagerTable->portManager();
+  auto readMetaData = [&](const std::shared_ptr<Port>& swPort) {
+    return std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+        portManager.attributesFromSwPort(swPort));
+  };
+
+  auto taggedPort = makePort(p0);
+  taggedPort->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  portManager.addPort(taggedPort);
+  auto clearedPort = taggedPort->clone();
+  clearedPort->setUserMetaData(std::nullopt);
+  EXPECT_EQ(readMetaData(clearedPort), SaiPortTraits::Attributes::Metadata{0});
+
+  auto untaggedPort = makePort(p1);
+  portManager.addPort(untaggedPort);
+  EXPECT_FALSE(readMetaData(untaggedPort).has_value());
+}
+
 TEST_F(PortManagerTest, setIngressAcl) {
   const std::string ingressAclTableName{"PortIngressAclTable"};
   const std::string secondIngressAclTableName{"SecondPortIngressAclTable"};

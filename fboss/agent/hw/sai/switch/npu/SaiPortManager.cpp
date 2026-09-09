@@ -386,10 +386,6 @@ void SaiPortManager::changePortImpl(
   }
   SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
-  if (oldPort->getUserMetaData() && !newPort->getUserMetaData()) {
-    std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
-        newAttributes) = SaiPortTraits::Attributes::Metadata{0};
-  }
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
     XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
@@ -800,8 +796,16 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (platform_->getAsic()->portMtuSupported(swPort->getPortType())) {
     mtu = swPort->getMaxFrameSize();
   }
+  // 1. user metadata set    -> that value
+  // 2. none, port tagged    -> 0, a real clear. Unset would not clear it:
+  //    setObject() skips the hardware write for an unset optional but still
+  //    drops the value from the store, leaving the port tagged with nothing
+  //    left to re-drive it.
+  // 3. none, port untagged  -> unset, nothing to say.
+  // Cases 2 and 3 need a port that already exists. A new port has no handle
+  // yet and comes up untagged, so nothing is said at create.
   std::optional<SaiPortTraits::Attributes::Metadata> metadata;
-  if (auto userMetaData = swPort->getUserMetaData()) {
+  if (const auto userMetaData = swPort->getUserMetaData()) {
     const auto metadataValue = static_cast<uint32_t>(*userMetaData);
     auto range = SaiApiTable::getInstance()->switchApi().getAttribute(
         managerTable_->switchManager().getSwitchSaiId(),
@@ -817,6 +821,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           "]");
     }
     metadata = SaiPortTraits::Attributes::Metadata{metadataValue};
+  } else if (const auto* portHandle = getPortHandle(swPort->getID())) {
+    const auto programmedMetadata =
+        std::get<std::optional<SaiPortTraits::Attributes::Metadata>>(
+            portHandle->port->attributes());
+    if (programmedMetadata && programmedMetadata->value() != 0) {
+      metadata = SaiPortTraits::Attributes::Metadata{0};
+    }
   }
   std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
       std::nullopt;
