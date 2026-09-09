@@ -223,11 +223,12 @@ class AgentMPLSTest : public AgentHwTest {
     }
   }
 
-  void addRoute(LabelID label, LabelNextHopEntry& nexthop) {
+  // Takes nexthops directly; the entry was only read for its inline set.
+  void addRoute(LabelID label, const RouteNextHopSet& nhops) {
     auto updater = getAgentEnsemble()->getRouteUpdaterWrapper();
     MplsRoute route;
     route.topLabel() = label;
-    route.nextHops() = util::fromRouteNextHopSet(nexthop.getNextHopSet());
+    route.nextHops() = util::fromRouteNextHopSet(nhops);
     updater->addRoute(ClientID::BGPD, route);
     updater->program();
   }
@@ -583,9 +584,8 @@ TYPED_TEST(AgentMPLSTest, Pop2Cpu) {
 TYPED_TEST(AgentMPLSTest, punt2Cpu) {
   auto setup = [=, this]() {
     this->setup();
-    LabelNextHopEntry nexthop{
-        LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
-    this->addRoute(LabelID(1101), nexthop);
+    // An empty set is the TO_CPU case, all the old entry argument conveyed.
+    this->addRoute(LabelID(1101), RouteNextHopSet{});
   };
   auto verify = [=, this]() {
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "punt2cpu-verifier");
