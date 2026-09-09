@@ -17,7 +17,7 @@ from typing import ClassVar
 
 from distro_cli.builder.component import ComponentBuilder
 from distro_cli.lib.artifact import ArtifactStore, find_artifact_in_dir
-from distro_cli.lib.constants import FBOSS_BUILDER_IMAGE
+from distro_cli.lib.constants import FBOSS_BUILDER_IMAGE, IMAGE_COMPONENTS
 from distro_cli.lib.docker.container import run_container
 from distro_cli.lib.docker.image import build_fboss_builder_image
 from distro_cli.lib.exceptions import BuildError, ComponentError, ManifestError
@@ -475,3 +475,13 @@ class ImageBuilder:
             artifact_path = self._compress_artifact(artifact_path, component)
 
         self.component_artifacts[component] = artifact_path
+
+
+# The build order above and the canonical component list must describe the same
+# set: manifest validation rejects anything outside IMAGE_COMPONENTS, so a
+# component added here but not there would be unreachable.
+if set(ImageBuilder.COMPONENTS) != set(IMAGE_COMPONENTS):
+    raise RuntimeError(
+        "ImageBuilder.COMPONENTS and constants.IMAGE_COMPONENTS disagree: "
+        f"{set(ImageBuilder.COMPONENTS) ^ set(IMAGE_COMPONENTS)}"
+    )

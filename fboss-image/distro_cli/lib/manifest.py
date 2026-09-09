@@ -10,8 +10,11 @@
 import json
 import logging
 import sys
+from difflib import get_close_matches
 from pathlib import Path
 from typing import Any, ClassVar
+
+from distro_cli.lib.constants import IMAGE_COMPONENTS, MANIFEST_METADATA_FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,7 @@ class ImageManifest:
             sys.exit(1)
 
     def _validate_manifest(self):
-        """Validate manifest has required fields."""
+        """Validate manifest has required fields and no unrecognised ones."""
         missing_required = [
             field for field in self.REQUIRED_FIELDS if field not in self.data
         ]
@@ -50,6 +53,19 @@ class ImageManifest:
             logger.error(
                 f"Missing required fields in manifest: {', '.join(missing_required)}"
             )
+            sys.exit(1)
+
+        known = set(IMAGE_COMPONENTS) | set(MANIFEST_METADATA_FIELDS)
+        unknown = [field for field in self.data if field not in known]
+        if unknown:
+            # An unrecognised key is never built: the builder iterates the
+            # components it knows rather than the manifest's keys, so a
+            # misspelling silently drops that component from the image.
+            for field in unknown:
+                close = get_close_matches(field, sorted(known), n=1)
+                hint = f" (did you mean '{close[0]}'?)" if close else ""
+                logger.error(f"Unrecognised field in manifest: '{field}'{hint}")
+            logger.error(f"Known fields: {', '.join(sorted(known))}")
             sys.exit(1)
 
     def has_component(self, component: str) -> bool:

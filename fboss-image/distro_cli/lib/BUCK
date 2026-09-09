@@ -91,4 +91,5 @@ python_library(
     srcs = ["manifest.py"],
     base_module = "distro_cli.lib",
     labels = ["autodeps2_generated"],
+    deps = [":constants"],
 )
