@@ -83,15 +83,19 @@ process_kernel() {
     --exclude='*-headers-*.rpm' \
     --exclude='*.src.rpm'
 
-  # Copy any unarchived RPMs that may already be in the component directory
-  if ls "$component_dir"/*.rpm >/dev/null 2>&1; then
-    cp "$component_dir"/*.rpm "$component_tmp/"
+  # Copy any unarchived RPMs that may already be in the component directory.
+  # Test the glob via an array: under nullglob an `ls "$dir"/*.rpm` guard
+  # succeeds when there are no matches, because ls falls back to listing the
+  # working directory.
+  local loose_rpms=("$component_dir"/*.rpm)
+  if [ ${#loose_rpms[@]} -gt 0 ]; then
+    cp "${loose_rpms[@]}" "$component_tmp/"
   fi
 
-  # Install RPMs
-  if ls "$component_tmp"/*.rpm >/dev/null 2>&1; then
+  local rpms=("$component_tmp"/*.rpm)
+  if [ ${#rpms[@]} -gt 0 ]; then
     echo "  Installing kernel RPMs..."
-    dnf install --disablerepo=* -y "$component_tmp"/*.rpm
+    dnf install --disablerepo=* -y "${rpms[@]}"
   else
     echo "  WARNING: no kernel RPMs after extracting $(basename "$tarball")"
   fi
