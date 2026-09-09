@@ -40,6 +40,43 @@ COMPONENT_ARTIFACT_PATTERNS = {
 }
 
 
+def _disambiguate_names(
+    artifacts: list[Path], component_name: str
+) -> list[tuple[Path, str]]:
+    """Pair each artifact with a unique filename within its component directory.
+
+    Artifacts published per service share a basename -- every forwarding-stack
+    tarball in Manifold is `fboss_bins.tar.zst`, distinguished only by the
+    directory it sits in. Staging them all under their own basename silently
+    overwrote all but one. Where a name repeats, prefix it with the source's
+    parent directory, which is what actually distinguishes them.
+    """
+    counts: dict[str, int] = {}
+    for artifact_path in artifacts:
+        counts[artifact_path.name] = counts.get(artifact_path.name, 0) + 1
+
+    paired = []
+    used: set[str] = set()
+    for artifact_path in artifacts:
+        name = artifact_path.name
+        if counts[name] > 1:
+            name = f"{artifact_path.parent.name}_{name}"
+        # The parent directory can repeat too (a cache layout that hashes the
+        # URL, say), so fall back to a numeric suffix rather than colliding.
+        candidate, index = name, 1
+        while candidate in used:
+            stem = name.split(".", 1)
+            suffix = f".{stem[1]}" if len(stem) > 1 else ""
+            candidate = f"{stem[0]}_{index}{suffix}"
+            index += 1
+        used.add(candidate)
+        paired.append((artifact_path, candidate))
+
+    if len(used) != len({a.name for a in artifacts}):
+        logger.info(f"{component_name}: staged names disambiguated: {sorted(used)}")
+    return paired
+
+
 class ImageBuilder:
     """Handles building FBOSS images from manifests."""
 
@@ -249,16 +286,17 @@ class ImageBuilder:
             artifacts_to_copy = (
                 [artifact] if not isinstance(artifact, list) else artifact
             )
+            artifacts_to_copy = _disambiguate_names(artifacts_to_copy, component_name)
 
-            for artifact_path in artifacts_to_copy:
-                dest_path = component_dir / artifact_path.name
+            for artifact_path, dest_name in artifacts_to_copy:
+                dest_path = component_dir / dest_name
                 # Hardlink (same fs, read-only in container) to avoid duplicating
                 # multi-GB artifacts; copy if the link fails (e.g. cross-device).
                 try:
                     os.link(artifact_path, dest_path)
                 except OSError:
                     shutil.copy2(artifact_path, dest_path)
-                logger.info(f"Staged {component_name}: {artifact_path.name}")
+                logger.info(f"Staged {component_name}: {dest_name}")
 
         return Path("/image_builder/deps_staging")
 
