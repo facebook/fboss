@@ -177,7 +177,7 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  npu_sai)
+  npu_sai | phy_sai)
     process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
