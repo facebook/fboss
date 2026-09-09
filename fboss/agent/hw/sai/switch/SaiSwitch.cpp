@@ -1560,13 +1560,25 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   }
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_INSEGMENT)) {
-    processDelta(
-        delta.getLabelForwardingInformationBaseDelta(),
+    // Split so removal, which resolves nothing, does not take newState.
+    auto labelDelta = delta.getLabelForwardingInformationBaseDelta();
+    processRemovedDelta(
+        labelDelta,
+        managerTable_->inSegEntryManager(),
+        lockPolicy,
+        &SaiInSegEntryManager::processRemovedInSegEntry);
+    processChangedDelta(
+        labelDelta,
         managerTable_->inSegEntryManager(),
         lockPolicy,
         &SaiInSegEntryManager::processChangedInSegEntry,
+        delta.newState());
+    processAddedDelta(
+        labelDelta,
+        managerTable_->inSegEntryManager(),
+        lockPolicy,
         &SaiInSegEntryManager::processAddedInSegEntry,
-        &SaiInSegEntryManager::processRemovedInSegEntry);
+        delta.newState());
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
