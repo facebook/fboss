@@ -1671,7 +1671,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
        aclFieldRouteDestination.has_value() ||
 #endif
-       platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
+       // With EMPTY_ACL_MATCHER, SaiSwitch allows programming an ACL entry
+       // with no matchers. Such entries implement match-all ACLs. However,
+       // a qualifier SaiSwitch does not support (e.g. PacketLookupResultType)
+       // would also yield an entry with no matchers, i.e. a match-all entry,
+       // which shadows every entry below it in the table. Avoid that by
+       // explicitly disallowing entries where SaiSwitch found no matcher, but
+       // a matcher does exist in the SwitchState.
+       //
+       // TODO(skhare): temporary fix that retains the current SaiSwitch
+       // behavior of not programming the mpls-dest-nomatch ACL, which matches
+       // on PacketLookupResultType. A subsequent config change will remove
+       // this ACL entry altogether. At that time, enhance this into a
+       // stricter check that throws an error if SwSwitch attempts to program
+       // an ACL with matcher(s) not supported by SaiSwitch.
+       (platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER) &&
+        !addedAclEntry->hasMatcher()));
   if ((dstIpV6Word3 || dstIpV6Word2) && !dstIpV6WordQualifiersSupported) {
     throw FbossError(
         "ACL entry ",
