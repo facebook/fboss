@@ -3558,6 +3558,10 @@ void TransceiverManager::setPortLoopbackState(
 
   if (component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
+    if (!getPhyManager()) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     getPhyManager()->setPortLoopbackState(
         PortID(swPort.value()), component, setLoopback);
   } else {

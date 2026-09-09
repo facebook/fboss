@@ -24,6 +24,7 @@
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
+#include "fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
@@ -607,15 +608,21 @@ const CommandTree& kCommandTree() {
           commandHandler<CmdSetInterface>,
           argTypeHandler<CmdSetInterfaceTraits>,
           {{
-              "prbs",
-              "Set PRBS properties",
-              commandHandler<CmdSetInterfacePrbs>,
-              argTypeHandler<CmdSetInterfacePrbsTraits>,
-              {{"state",
-                "Set PRBS state",
-                commandHandler<CmdSetInterfacePrbsState>,
-                argTypeHandler<CmdSetInterfacePrbsStateTraits>}},
-          }},
+               "prbs",
+               "Set PRBS properties",
+               commandHandler<CmdSetInterfacePrbs>,
+               argTypeHandler<CmdSetInterfacePrbsTraits>,
+               {{"state",
+                 "Set PRBS state",
+                 commandHandler<CmdSetInterfacePrbsState>,
+                 argTypeHandler<CmdSetInterfacePrbsStateTraits>}},
+           },
+           {
+               "loopback",
+               "Set loopback mode: <component> <enable|disable>",
+               commandHandler<CmdSetInterfaceLoopback>,
+               argRegistrar<CmdSetInterfaceLoopbackTraits>,
+           }},
       },
       {"set",
        "port",
