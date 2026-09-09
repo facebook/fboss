@@ -1,57 +1,34 @@
-name: Auto Label by Vendor Name
+name: Validate and Label PR Metadata
 
 on:
   pull_request_target:
-    types: [opened, edited]
+    types: [opened, edited, reopened, ready_for_review]
 
-permissions:
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: pr-metadata-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  label-by-company:
+  label-pr-metadata:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+
       - uses: actions/github-script@v9
         with:
           script: |
-            const title = context.payload.pull_request.title;
-            const prNumber = context.issue.number;
-            const { owner, repo } = context.repo;
-
-            // Predefined valid company names (lowercase for matching)
-            const validCompanies = [
-              'accton',
-              'celestica',
-              'nexthop',
-              'arista',
-              'cisco',
-              'nvidia',
-              'meta',
-            ];
-
-            // Extract company name from first [...]
-            const match = title.match(/^\[([^\]]+)\]/);
-            if (!match) {
-              core.setFailed(
-                'PR title must start with a company name in brackets, e.g. "[CompanyName] Your PR title". ' +
-                'This is required for all vendor contributions.'
-              );
-              return;
-            }
-
-            const companyName = match[1].trim();
-            const companyLower = companyName.toLowerCase();
-            core.info(`Extracted company name: "${companyName}"`);
-
-            if (!validCompanies.includes(companyLower)) {
-              core.warning(`Company name "${companyName}" is not recognized.`);
-              return;
-            }
-
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number: prNumber,
-              labels: [companyLower]
-            });
-            core.info(`Added label: "${companyLower}"`);
+            const labelPullRequestMetadata = require(
+              './.github/scripts/label-pr-metadata.js'
+            );
+            await labelPullRequestMetadata({ github, context, core });
