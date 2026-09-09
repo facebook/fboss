@@ -2237,4 +2237,149 @@ TEST_F(NextHopMapPopulationTest, IdempotentReprogramSameRoutes) {
   verifyIdMapsMatchIdManager();
 }
 
+// setEcmpWidth/getEcmpWidth on the RIB round-trip through RibRouteTables.
+TEST_F(NextHopMapPopulationTest, SetEcmpWidthRoundTrips) {
+  // A value distinct from any FLAGS_ecmp_width default so the round-trip is
+  // unambiguous.
+  sw_->getRib()->setEcmpWidth(123);
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 123u);
+}
+
+// ApplyThriftConfig sources the RIB ecmpWidth from cfg.SwitchSettings.ecmpWidth
+// when set; the config value must win over the gflag. Uses a fresh (cold-boot)
+// handle so the width is a first-time add, not a change (which
+// StateUpdateValidator would reject).
+TEST_F(NextHopMapPopulationTest, EcmpWidthSourcedFromConfigOverridesFlag) {
+  auto savedWidth = FLAGS_ecmp_width;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+  };
+  handle_.reset();
+  FLAGS_ecmp_width = 64;
+  auto config = initialConfig();
+  config.switchSettings()->ecmpWidth() = 200;
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 200u);
+}
+
+// The direct-RIB ApplyThriftConfig path resolves routes during config apply,
+// so it must synchronize the processed state's width before reconfigure.
+TEST_F(NextHopMapPopulationTest, EcmpWidthSourcedFromConfigOnDirectRibPath) {
+  auto savedWidth = FLAGS_ecmp_width;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+  };
+  FLAGS_ecmp_width = 64;
+  auto config = initialConfig();
+  config.switchSettings()->ecmpWidth() = 200;
+  auto platform = createMockPlatform();
+  RoutingInformationBase rib;
+
+  auto state = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get(), &rib);
+
+  ASSERT_NE(state, nullptr);
+  EXPECT_EQ(getEcmpWidth(state), 200u);
+  EXPECT_EQ(rib.getEcmpWidth(), 200u);
+}
+
+// A no-op config still synchronizes the independently reconstructed RIB from
+// the accepted SwitchState.
+TEST_F(NextHopMapPopulationTest, NoOpConfigResynchronizesRibEcmpWidth) {
+  auto savedWidth = FLAGS_ecmp_width;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+  };
+  handle_.reset();
+  FLAGS_ecmp_width = 64;
+  auto config = initialConfig();
+  config.switchSettings()->ecmpWidth() = 200;
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+  auto stateBefore = sw_->getState();
+
+  sw_->getRib()->setEcmpWidth(64);
+  sw_->applyConfig("reapply identical ecmpWidth config", config);
+
+  EXPECT_EQ(sw_->getState(), stateBefore);
+  EXPECT_EQ(getEcmpWidth(sw_->getState()), 200u);
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 200u);
+}
+
+// When cfg.SwitchSettings.ecmpWidth is unset, the RIB falls back to
+// FLAGS_ecmp_width during the flag->config migration.
+TEST_F(NextHopMapPopulationTest, EcmpWidthFallsBackToFlagWhenConfigUnset) {
+  auto savedWidth = FLAGS_ecmp_width;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+  };
+  handle_.reset();
+  FLAGS_ecmp_width = 99;
+  auto config = initialConfig(); // leaves ecmpWidth unset
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 99u);
+}
+
+// The RIB ecmpWidth lives on RibRouteTables, not the NextHopIDManager, so the
+// config value must reach the RIB even when enable_nexthop_id_manager is off
+// (the manager is null).
+TEST_F(
+    NextHopMapPopulationTest,
+    EcmpWidthSourcedFromConfigWithManagerDisabled) {
+  auto savedWidth = FLAGS_ecmp_width;
+  auto savedEnable = FLAGS_enable_nexthop_id_manager;
+  auto savedResolve = FLAGS_resolve_nexthops_from_id;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+    FLAGS_enable_nexthop_id_manager = savedEnable;
+    FLAGS_resolve_nexthops_from_id = savedResolve;
+  };
+  handle_.reset();
+  FLAGS_ecmp_width = 64;
+  // resolve_nexthops_from_id requires enable_nexthop_id_manager, so the
+  // manager-off world must turn both off.
+  FLAGS_enable_nexthop_id_manager = false;
+  FLAGS_resolve_nexthops_from_id = false;
+  auto config = initialConfig();
+  config.switchSettings()->ecmpWidth() = 200;
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+
+  // No manager exists, but the RIB still carries the config width.
+  ASSERT_EQ(sw_->getRib()->getNextHopIDManagerCopy(), nullptr);
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 200u);
+}
+
+// A width change on a running agent is rejected by ValidateStateUpdate. The RIB
+// must NOT be left holding the rejected width -- it is sourced from the
+// accepted SwitchState after validation, so a rejected config leaves both the
+// RIB and SwitchState on the original width (no desync).
+TEST_F(NextHopMapPopulationTest, RejectedEcmpWidthChangeDoesNotDesyncRib) {
+  auto savedWidth = FLAGS_ecmp_width;
+  SCOPE_EXIT {
+    FLAGS_ecmp_width = savedWidth;
+  };
+  handle_.reset();
+  FLAGS_ecmp_width = 64;
+  auto config = initialConfig();
+  config.switchSettings()->ecmpWidth() = 200;
+  handle_ = createTestHandle(&config);
+  sw_ = handle_->getSw();
+  ASSERT_EQ(sw_->getRib()->getEcmpWidth(), 200u);
+
+  // Attempt to change the width on the running agent; ValidateStateUpdate
+  // rejects it (a coldboot is required to change ECMP width).
+  auto changed = initialConfig();
+  changed.switchSettings()->ecmpWidth() = 400;
+  EXPECT_THROW(sw_->applyConfig("change ecmpWidth", changed), FbossError);
+
+  // The RIB must still hold the original width, not the rejected 400.
+  EXPECT_EQ(getEcmpWidth(sw_->getState()), 200u);
+  EXPECT_EQ(sw_->getRib()->getEcmpWidth(), 200u);
+}
+
 } // namespace facebook::fboss
