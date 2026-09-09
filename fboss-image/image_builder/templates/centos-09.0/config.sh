@@ -122,7 +122,6 @@ process_npu_sai_tarball() {
 
   local tarball="${tarballs[0]}"
 
-  set -x
   # Extract only sai-runtime.rpm from the tarball
   echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
   tar -xf "$tarball" -C "$component_dir" 'sai-runtime.rpm'
