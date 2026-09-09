@@ -11,9 +11,14 @@
 
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace facebook::fboss {
+
+class AclEntry;
+class ClassBasedPolicyNode;
 
 // Deterministic, debug-facing PBR ACL entry name: "<policyName>_tc<N>".
 std::string makePbrAclEntryName(
@@ -23,5 +28,8 @@ std::string makePbrAclEntryName(
 std::string makePbrCounterName(
     ForwardingClass trafficClass,
     const std::string& redirectNhgName);
+
+std::vector<std::shared_ptr<AclEntry>> createAclEntriesFromPolicy(
+    const std::shared_ptr<ClassBasedPolicyNode>& policy);
 
 } // namespace facebook::fboss
