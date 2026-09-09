@@ -8,6 +8,7 @@
  *
  */
 
+#include <CLI/App.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <stdexcept>
@@ -276,6 +277,155 @@ TEST_F(
   // empty entry is left holding checkTrafficPolicyAclsExistInConfig hostage.
   traffic_policy::deleteAction(swConfig, kind, kRule, "send-to-queue");
   EXPECT_TRUE(swConfig.dataPlaneTrafficPolicy()->matchToAction()->empty());
+}
+
+// Delete-side twin of setMappedActionRows. Every row's reset has to clear the
+// same field its setter wrote; a row whose set and reset disagree would pass
+// the set test above and only show up here.
+TEST_F(CmdConfigDataPlaneTrafficPolicyTestFixture, deleteClearsMappedRows) {
+  struct Case {
+    std::vector<std::string> tokens;
+    const char* actionType;
+    void (*stillSet)(const cfg::MatchAction&);
+  };
+  const std::vector<Case> kCases = {
+      {{"set-dscp", "46"},
+       "set-dscp",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.setDscp().has_value());
+       }},
+      {{"mirror-ingress", "mirror-in"},
+       "mirror-ingress",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.ingressMirror().has_value());
+       }},
+      {{"mirror-egress", "mirror-out"},
+       "mirror-egress",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.egressMirror().has_value());
+       }},
+      {{"copy-to-cpu"},
+       "copy-to-cpu",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.toCpuAction().has_value());
+       }},
+      {{"trap-to-cpu"},
+       "trap-to-cpu",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.toCpuAction().has_value());
+       }},
+      {{"alternate-ars-members"},
+       "alternate-ars-members",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.enableAlternateArsMembers().has_value());
+       }},
+      {{"flowlet", "forward"},
+       "flowlet",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.flowletAction().has_value());
+       }},
+      {{"ecmp-hash", "flowlet-quality"},
+       "ecmp-hash",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.ecmpHashAction().has_value());
+       }},
+      {{"redirect", "nexthop", "2401:db00::1"},
+       "redirect",
+       [](const cfg::MatchAction& a) {
+         EXPECT_FALSE(a.redirectToNextHop().has_value());
+       }},
+  };
+
+  setupTestableConfigSession(cmdPrefix_, "");
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  const auto kind = traffic_policy::PolicyKind::DataPlane;
+  for (const auto& testCase : kCases) {
+    SCOPED_TRACE(testCase.actionType);
+    // A sibling action keeps the entry alive so the delete under test is the
+    // only thing that can clear the field being checked.
+    traffic_policy::applyAction(swConfig, kind, kRule, {"counter", "c-keep"});
+    traffic_policy::applyAction(swConfig, kind, kRule, testCase.tokens);
+
+    auto msg = traffic_policy::deleteAction(
+        swConfig, kind, kRule, testCase.actionType);
+    EXPECT_THAT(msg, HasSubstr("Successfully deleted"));
+    testCase.stillSet(dataPlaneAction(kRule));
+
+    traffic_policy::deleteAction(swConfig, kind, kRule, "counter");
+  }
+}
+
+// trap-to-cpu and copy-to-cpu are two keywords over the single toCpuAction
+// field, so a reset that only checked has_value() would clear whichever one
+// happened to be set and report the other as deleted.
+TEST_F(
+    CmdConfigDataPlaneTrafficPolicyTestFixture,
+    deleteToCpuActionOnlyClearsItsOwnKeyword) {
+  setupTestableConfigSession(cmdPrefix_, "");
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  const auto kind = traffic_policy::PolicyKind::DataPlane;
+  traffic_policy::applyAction(swConfig, kind, kRule, {"trap-to-cpu"});
+
+  auto msg = traffic_policy::deleteAction(swConfig, kind, kRule, "copy-to-cpu");
+  EXPECT_THAT(msg, HasSubstr("already absent"));
+  ASSERT_TRUE(dataPlaneAction(kRule).toCpuAction().has_value());
+  EXPECT_EQ(*dataPlaneAction(kRule).toCpuAction(), cfg::ToCpuAction::TRAP);
+
+  // The owning keyword still clears it.
+  msg = traffic_policy::deleteAction(swConfig, kind, kRule, "trap-to-cpu");
+  EXPECT_THAT(msg, HasSubstr("Successfully deleted"));
+  EXPECT_TRUE(swConfig.dataPlaneTrafficPolicy()->matchToAction()->empty());
+}
+
+// redirect writes RedirectNextHop.ip(), which the agent later feeds to
+// folly::IPAddress mid-apply, so a non-address has to be refused here.
+TEST_F(CmdConfigDataPlaneTrafficPolicyTestFixture, rejectsNonIpRedirect) {
+  EXPECT_THROW(
+      apply({"redirect", "nexthop", "not-an-ip"}), std::invalid_argument);
+  EXPECT_THROW(apply({"redirect", "nexthop", ""}), std::invalid_argument);
+}
+
+// The advertised form string is what an arity error shows the user, so it has
+// to agree with the range the setter enforces.
+TEST_F(
+    CmdConfigDataPlaneTrafficPolicyTestFixture,
+    setTcFormMatchesAcceptedMax) {
+  apply({"set-tc", "127"});
+  EXPECT_EQ(*dataPlaneAction(kRule).setTc()->tcValue(), 127);
+  EXPECT_THROW(apply({"set-tc", "128"}), std::invalid_argument);
+
+  // form is only surfaced in the arity error, so provoke one to read it back.
+  try {
+    apply({"set-tc"});
+    FAIL() << "set-tc with no value should throw";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("<0-127>"));
+  }
+}
+
+// The 0-value forms (trap-to-cpu, copy-to-cpu, alternate-ars-members) and the
+// 2-value one (redirect) only work because addCliArg says expected(4, 6) with
+// allow_extra_args(). Every other test here builds TrafficPolicyArgs directly,
+// so this is the one that runs the real CLI11 parser over that wiring. It
+// parses the option on a bare App, so it covers the arities, not the sibling
+// subcommand reclassification the addCliArg comment warns about.
+TEST_F(
+    CmdConfigDataPlaneTrafficPolicyTestFixture,
+    cli11ParsesEveryActionArity) {
+  const std::vector<std::string> kForms = {
+      "match r1 action trap-to-cpu",
+      "match r1 action set-tc 9",
+      "match r1 action redirect nexthop 2401:db00::1",
+  };
+  for (const auto& form : kForms) {
+    SCOPED_TRACE(form);
+    CLI::App app;
+    std::vector<std::string> parsed;
+    CmdConfigDataPlaneTrafficPolicyTraits::addCliArg(app, parsed);
+    ASSERT_NO_THROW(app.parse(form, false));
+    // Round-trips to the same tokens TrafficPolicyArgs expects.
+    EXPECT_NO_THROW(traffic_policy::TrafficPolicyArgs{parsed});
+  }
 }
 
 TEST_F(

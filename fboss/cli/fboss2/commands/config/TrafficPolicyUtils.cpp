@@ -12,6 +12,7 @@
 
 #include <fmt/format.h>
 #include <folly/Conv.h>
+#include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <algorithm>
 #include <cstdint>
@@ -43,9 +44,9 @@ constexpr std::string_view kActionAlternateArsMembers = "alternate-ars-members";
 constexpr int64_t kQueueIdMax = 32767; // i16 QueueMatchAction
 constexpr int64_t kDscpMax = 63; // 6-bit codepoint
 // SetTcAction.tcValue is a thrift byte. Deliberately not capped at 7: CPU
-// policies in shipped configs use tc 9 alongside CPU queue 9, so the narrower
-// "8 traffic classes" range the acl-rule side applies would reject real
-// configuration. The per-ASIC cap is enforced by the agent at apply time.
+// policies in shipped configs use tc 9 alongside CPU queue 9, so an "8 traffic
+// classes" range would reject real configuration. The per-ASIC cap is enforced
+// by the agent at apply time.
 constexpr int64_t kTcMax = 127;
 
 int64_t parseIntInRange(
@@ -80,13 +81,43 @@ std::string requireName(std::string_view key, const std::string& name) {
   return name;
 }
 
+// A malformed address would otherwise reach the agent, where
+// AclNexthopHandler::resolveActionNexthops constructs a folly::IPAddress from
+// it mid-apply and throws there instead of here.
+std::string requireIpAddress(std::string_view key, const std::string& ip) {
+  try {
+    (void)folly::IPAddress{ip};
+  } catch (const std::exception& e) {
+    throw std::invalid_argument(
+        fmt::format(
+            "Action '{}' expects an IP address, got '{}': {}",
+            key,
+            ip,
+            e.what()));
+  }
+  return ip;
+}
+
+// trap-to-cpu and copy-to-cpu are separate keywords over one toCpuAction
+// field, so clearing it unconditionally would let a delete of either keyword
+// wipe the other one's action and still report success.
+bool resetToCpuAction(cfg::MatchAction& ma, cfg::ToCpuAction which) {
+  if (ma.toCpuAction().has_value() && *ma.toCpuAction() == which) {
+    ma.toCpuAction().reset();
+    return true;
+  }
+  return false;
+}
+
 // One action keyword: its value arity, a form string for --help and errors, a
 // setter, and a reset used by the delete path. Keeping set and reset in the
 // same row is what stops the two verbs drifting apart.
 struct ActionRow {
   std::string_view key;
-  std::size_t minVals;
-  std::size_t maxVals;
+  // Exactly this many tokens must follow the action keyword. Every action has
+  // a fixed arity, and the setters below index their values positionally, so
+  // there is deliberately no optional-value form.
+  std::size_t requiredExtraArgsNum;
   std::string_view form;
   void (*set)(cfg::MatchAction&, const std::vector<std::string>&);
   // Reports whether the action was present, and clears it.
@@ -96,7 +127,6 @@ struct ActionRow {
 const std::vector<ActionRow>& actionRows() {
   static const std::vector<ActionRow> kRows = {
       {kActionSendToQueue,
-       1,
        1,
        "<queue-id>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -112,7 +142,6 @@ const std::vector<ActionRow>& actionRows() {
        }},
       {kActionSetDscp,
        1,
-       1,
        "<0-63>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
          cfg::SetDscpMatchAction d;
@@ -127,8 +156,7 @@ const std::vector<ActionRow>& actionRows() {
        }},
       {kActionSetTc,
        1,
-       1,
-       "<0-7>",
+       "<0-127>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
          cfg::SetTcAction t;
          t.tcValue() = static_cast<int8_t>(
@@ -142,7 +170,6 @@ const std::vector<ActionRow>& actionRows() {
        }},
       {kActionMirrorIngress,
        1,
-       1,
        "<mirror-name>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
          ma.ingressMirror() = requireName(kActionMirrorIngress, v[0]);
@@ -153,7 +180,6 @@ const std::vector<ActionRow>& actionRows() {
          return had;
        }},
       {kActionMirrorEgress,
-       1,
        1,
        "<mirror-name>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -166,7 +192,6 @@ const std::vector<ActionRow>& actionRows() {
        }},
       {kActionCounter,
        1,
-       1,
        "<counter-name>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
          ma.counter() = requireName(kActionCounter, v[0]);
@@ -178,30 +203,23 @@ const std::vector<ActionRow>& actionRows() {
        }},
       {kActionTrapToCpu,
        0,
-       0,
        "",
        [](cfg::MatchAction& ma, const std::vector<std::string>&) {
          ma.toCpuAction() = cfg::ToCpuAction::TRAP;
        },
        [](cfg::MatchAction& ma) {
-         bool had = ma.toCpuAction().has_value();
-         ma.toCpuAction().reset();
-         return had;
+         return resetToCpuAction(ma, cfg::ToCpuAction::TRAP);
        }},
       {kActionCopyToCpu,
-       0,
        0,
        "",
        [](cfg::MatchAction& ma, const std::vector<std::string>&) {
          ma.toCpuAction() = cfg::ToCpuAction::COPY;
        },
        [](cfg::MatchAction& ma) {
-         bool had = ma.toCpuAction().has_value();
-         ma.toCpuAction().reset();
-         return had;
+         return resetToCpuAction(ma, cfg::ToCpuAction::COPY);
        }},
       {kActionRedirect,
-       2,
        2,
        "nexthop <ip>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -214,7 +232,7 @@ const std::vector<ActionRow>& actionRows() {
          }
          cfg::RedirectToNextHopAction rd;
          cfg::RedirectNextHop nh;
-         nh.ip() = requireName(kActionRedirect, v[1]);
+         nh.ip() = requireIpAddress(kActionRedirect, v[1]);
          rd.redirectNextHops()->push_back(std::move(nh));
          ma.redirectToNextHop() = std::move(rd);
        },
@@ -224,7 +242,6 @@ const std::vector<ActionRow>& actionRows() {
          return had;
        }},
       {kActionUserDefinedTrap,
-       1,
        1,
        "<queue-id>",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -239,7 +256,6 @@ const std::vector<ActionRow>& actionRows() {
          return had;
        }},
       {kActionFlowlet,
-       1,
        1,
        "forward|disable",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -260,7 +276,6 @@ const std::vector<ActionRow>& actionRows() {
          return had;
        }},
       {kActionEcmpHash,
-       1,
        1,
        "flowlet-quality|per-packet-quality|fixed-assignment|per-packet-random",
        [](cfg::MatchAction& ma, const std::vector<std::string>& v) {
@@ -297,7 +312,6 @@ const std::vector<ActionRow>& actionRows() {
          return had;
        }},
       {kActionAlternateArsMembers,
-       0,
        0,
        "",
        [](cfg::MatchAction& ma, const std::vector<std::string>&) {
@@ -516,7 +530,7 @@ std::string applyAction(
   }
   const auto& row = requireActionRow(actionTokens[0]);
   std::vector<std::string> values(actionTokens.begin() + 1, actionTokens.end());
-  if (values.size() < row.minVals || values.size() > row.maxVals) {
+  if (values.size() != row.requiredExtraArgsNum) {
     throw std::invalid_argument(
         fmt::format(
             "Action '{}' expects '{}', got {} value token(s)",

@@ -12,7 +12,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
-#include "fboss/cli/fboss2/commands/config/TrafficPolicyUtils.h"
 #include "fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h"
 #include "fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h"
 
@@ -35,10 +34,10 @@ std::string aclRuleConfigHelpText() {
       "creates the rule if missing; <attr> is one of: " +
       aclRuleAttrKeysCsv() +
       ". For 'action', <value> is one of: " + aclRuleActionKeysCsv() +
-      " (with an attr-specific final token: queue id / dscp / tc / "
-      "mirror name / counter name; 'redirect' takes 'nexthop <ip>'; "
-      "permit/deny/deny-data-and-control-plane/trap-to-cpu/copy-to-cpu take no "
-      "value).";
+      " (all take no further value). Richer actions (send-to-queue, set-dscp, "
+      "set-tc, mirror, counter, to-cpu, redirect, ...) are set with `config "
+      "copp traffic-policy` or `config data-plane traffic-policy`, which name "
+      "the policy the action belongs to.";
   return kText;
 }
 
@@ -52,27 +51,12 @@ AclRuleConfigArgs::AclRuleConfigArgs(std::vector<std::string> v) {
   // was set (ttl mask, action value, redirect ip, ...).
   rawValue_ = folly::join(" ", v.begin() + kAclRuleMatchPrefix, v.end());
   applyEntryFn_ = std::move(m.entryFn);
-  applyActionFn_ = std::move(m.actionFn);
   data_ = std::move(v);
 }
 
 void AclRuleConfigArgs::applyTo(cfg::AclEntry& rule) const {
-  // Match-field attrs and `action permit|deny` populate applyEntryFn_; other
-  // actions are MatchAction-typed and leave this empty (see applyActionTo()).
   if (applyEntryFn_) {
     applyEntryFn_(rule);
-  }
-}
-
-bool AclRuleConfigArgs::isMatchAction() const {
-  // MatchAction-typed actions populate applyActionFn_; match fields and action
-  // permit|deny populate applyEntryFn_.
-  return static_cast<bool>(applyActionFn_);
-}
-
-void AclRuleConfigArgs::applyActionTo(cfg::MatchAction& ma) const {
-  if (applyActionFn_) {
-    applyActionFn_(ma);
   }
 }
 
@@ -102,41 +86,9 @@ CmdConfigAclRuleTraits::RetType CmdConfigAclRule::queryClient(
 
   args.applyTo(*eit);
 
-  // MatchAction-typed action sub-attrs (send-to-queue, set-dscp, set-tc,
-  // mirror-ingress, mirror-egress, counter, trap/copy-to-cpu, redirect)
-  // live on dataPlaneTrafficPolicy.matchToAction, keyed by rule name —
-  // not on the AclEntry. Locate or create the MatchToAction for this
-  // rule and apply the action to it.
-  if (args.isMatchAction()) {
-    // Deprecated. An AclEntry carries match conditions and PERMIT/DENY; every
-    // richer action belongs to a policy, and which policy changes behavior
-    // (updateAclsImpl reads a CPU-matched rule's queue id as a CPU queue and a
-    // dataplane-matched one's as a port queue). Setting it here can only ever
-    // mean the dataplane policy, so a CPU action is unreachable this way.
-    //
-    // Still honoured so existing callers and the landed upstream form keep
-    // working, and routed through the same upsert as the policy verbs so the
-    // two cannot diverge. Removal is a follow-up needing upstream agreement.
-    std::cerr << "warning: setting '" << args.getAttribute()
-              << "' on an acl rule is deprecated and assumes the dataplane "
-                 "policy; use `config data-plane traffic-policy match "
-              << args.getRuleName()
-              << " action ...` (or `config copp "
-                 "traffic-policy ...` for CPU actions) instead"
-              << std::endl;
-    traffic_policy::assertNotInOtherPolicy(
-        swConfig, args.getRuleName(), traffic_policy::PolicyKind::DataPlane);
-    auto& action = traffic_policy::upsertMatcher(
-        traffic_policy::policyFor(
-            swConfig, traffic_policy::PolicyKind::DataPlane),
-        args.getRuleName());
-    args.applyActionTo(action);
-  }
-
   // AclEntry mutations are applied at runtime via processAclTableGroupDelta
   // in SaiAclTableManager; SaiSwitch has no warmboot-prohibited guard for
-  // ACL entry attributes (or for MatchAction edits applied alongside the
-  // entry), so every supported attribute is HITLESS.
+  // ACL entry attributes, so every supported attribute is HITLESS.
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   return fmt::format(
