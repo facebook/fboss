@@ -1740,13 +1740,27 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       managerTable_->switchManager().setIngressAcl();
     }
 
-    processDelta(
+    // Removals first: an entry taking over a priority that another entry is
+    // vacating must not be added while the old one still holds it.
+    processRemovedDelta(
+        delta.getAclsDelta(),
+        managerTable_->aclTableManager(),
+        lockPolicy,
+        &SaiAclTableManager::removeAclEntry,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        delta.newState());
+    processChangedDelta(
         delta.getAclsDelta(),
         managerTable_->aclTableManager(),
         lockPolicy,
         &SaiAclTableManager::changedAclEntry,
+        cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
+        delta.newState());
+    processAddedDelta(
+        delta.getAclsDelta(),
+        managerTable_->aclTableManager(),
+        lockPolicy,
         &SaiAclTableManager::addAclEntry,
-        &SaiAclTableManager::removeAclEntry,
         cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
         delta.newState());
   }
@@ -5403,13 +5417,25 @@ void SaiSwitch::processAclTableGroupDelta(
       for (const auto& iter : std::as_const(*aclTablesDelta.getNew())) {
         auto table = iter.second;
         auto tableName = table->getID();
-        processDelta(
+        processRemovedDelta(
+            delta.getAclsDelta(aclStage, tableName),
+            managerTable_->aclTableManager(),
+            lockPolicy,
+            &SaiAclTableManager::removeAclEntry,
+            tableName,
+            delta.newState());
+        processChangedDelta(
             delta.getAclsDelta(aclStage, tableName),
             managerTable_->aclTableManager(),
             lockPolicy,
             &SaiAclTableManager::changedAclEntry,
+            tableName,
+            delta.newState());
+        processAddedDelta(
+            delta.getAclsDelta(aclStage, tableName),
+            managerTable_->aclTableManager(),
+            lockPolicy,
             &SaiAclTableManager::addAclEntry,
-            &SaiAclTableManager::removeAclEntry,
             tableName,
             delta.newState());
       }
