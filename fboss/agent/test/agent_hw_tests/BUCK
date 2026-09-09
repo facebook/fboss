@@ -37,6 +37,7 @@ cpp_library(
         "AgentArsSprayTest.cpp",
         "AgentEcmpSpilloverTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
+        "AgentFrrScaleTests.cpp",
     ],
     headers = [
         "AgentArsBase.h",
@@ -45,6 +46,7 @@ cpp_library(
     ],
     link_whole = True,
     deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:asic_utils",
         "//fboss/agent:ecmp_resource_manager",
@@ -53,6 +55,7 @@ cpp_library(
         "//fboss/agent:fib_helpers",
         "//fboss/agent:packet",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:utils",
