@@ -50,14 +50,14 @@
         "address": "0x56",
         "kernelDeviceName": "24c128"
       },
-      "pmUnitName": "NETLAKE"
+      "pmUnitName": "NETLAKE20"
     }
   },
   "i2cAdaptersFromCpu": [
     "CPU_BUS@0"
   ],
   "versionedPmUnitConfigs": {
-    "NETLAKE": [
+    "NETLAKE20": [
       {
         "pmUnitConfig": {
           "pluggedInSlotType": "COMESE_SLOT",
@@ -910,7 +910,7 @@
       "outgoingSlotConfigs": {},
       "pciDeviceConfigs": []
     },
-    "NETLAKE": {
+    "NETLAKE20": {
       "pluggedInSlotType": "COMESE_SLOT",
       "i2cDeviceConfigs": [
         {
