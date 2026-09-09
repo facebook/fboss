@@ -153,6 +153,7 @@ bool SwitchStateNextHopIdUpdater::verifyNextHopIdConsistency(
     return true;
   }
 
+  const auto ecmpWidth = getEcmpWidth(state);
   XLOG(DBG2) << "Verifying FIB NextHop ID consistency";
   auto verifyNextHopIds = [&](const auto& route,
                               const std::optional<NextHopSetID>& setId,
@@ -214,7 +215,7 @@ bool SwitchStateNextHopIdUpdater::verifyNextHopIdConsistency(
           if (!verifyNextHopIds(
                   route,
                   fwdInfo.getNormalizedResolvedNextHopSetID(),
-                  fwdInfo.nonOverrideNormalizedNextHops(),
+                  fwdInfo.nonOverrideNormalizedNextHops(ecmpWidth),
                   "normalizedResolvedNextHopSetID")) {
             return false;
           }

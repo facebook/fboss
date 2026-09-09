@@ -388,7 +388,8 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   updateRibFn(
       routeTable,
       &lockedRouteTables->mySidTable,
-      lockedRouteTables->nextHopIDManager.get());
+      lockedRouteTables->nextHopIDManager.get(),
+      lockedRouteTables->ecmpWidth);
   if (lockedRouteTables->nextHopIDManager &&
       !lockedRouteTables->mySidTable.empty()) {
     RibMySidUpdater::VrfRouteTables routeTables;
@@ -463,7 +464,10 @@ void RibRouteTables::reconfigure(
         // is processing by the use of boost::filter_iterator.
         updateRib(
             vrf,
-            [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+            [&](auto& routeTable,
+                auto* mySidTable,
+                auto* nextHopIDManager,
+                uint32_t ecmpWidth) {
               ConfigApplier configApplier(
                   vrf,
                   &(routeTable.v4NetworkToRoute),
@@ -491,7 +495,8 @@ void RibRouteTables::reconfigure(
                       staticMplsRoutesToCpu.cend()),
                   folly::range(staticMySids.cbegin(), staticMySids.cend()),
                   nextHopIDManager,
-                  mySidTable);
+                  mySidTable,
+                  ecmpWidth);
               // Apply config
               configApplier.apply();
             });
@@ -589,7 +594,11 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     const auto& toDelIter = toDel.find(vrf);
     if (!toAddRoutes.empty() || toDelIter != toDel.end()) {
       updateRib(
-          vrf, [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+          vrf,
+          [&](auto& routeTable,
+              auto* mySidTable,
+              auto* nextHopIDManager,
+              uint32_t ecmpWidth) {
             if (toDelIter != toDel.end()) {
               for (const auto& [network, intfID] : toDelIter->second) {
                 // Remote interface route deletion is guarded by the
@@ -618,7 +627,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
                 &(routeTable.v6NetworkToRoute),
                 &(routeTable.labelToRoute),
                 nextHopIDManager,
-                mySidTable);
+                mySidTable,
+                ecmpWidth);
             updater.update(
                 {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
                 {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
@@ -644,7 +654,10 @@ void RibRouteTables::update(
     std::size_t* cyclesDetectedOut) {
   updateRib(
       routerID,
-      [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+      [&](auto& routeTable,
+          auto* mySidTable,
+          auto* nextHopIDManager,
+          uint32_t ecmpWidth) {
         auto resolvedRoutes = toAddRoutes;
         if constexpr (std::is_same_v<RouteType, RibRouteUpdater::RouteEntry>) {
           if (nextHopIDManager) {
@@ -698,6 +711,7 @@ void RibRouteTables::update(
             &(routeTable.labelToRoute),
             nextHopIDManager,
             mySidTable,
+            ecmpWidth,
             routerID);
         updater.update(
             clientID, resolvedRoutes, toDelPrefixes, resetClientsRoutes);
@@ -937,7 +951,10 @@ void RibRouteTables::setClassID(
     void* cookie) {
   updateRib(
       rid,
-      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+      [&](auto& routeTable,
+          auto* /*mySidTable*/,
+          auto* /*nextHopIDManager*/,
+          uint32_t /*ecmpWidth*/) {
         // Update rib
         auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
           auto ritr = rib.exactMatch(ip, mask);
@@ -968,7 +985,10 @@ void RibRouteTables::setOverrideEcmpMode(
         std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
   updateRib(
       rid,
-      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+      [&](auto& routeTable,
+          auto* /*mySidTable*/,
+          auto* /*nextHopIDManager*/,
+          uint32_t /*ecmpWidth*/) {
         // Update rib
         auto updateRoute =
             [](auto& rib,
@@ -1018,7 +1038,10 @@ void RibRouteTables::setOverrideEcmpNhops(
         std::optional<RouteNextHopSet>>& prefix2Nhops) {
   updateRib(
       rid,
-      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+      [&](auto& routeTable,
+          auto* /*mySidTable*/,
+          auto* /*nextHopIDManager*/,
+          uint32_t /*ecmpWidth*/) {
         // Update rib
         auto updateRoute =
             [](auto& rib,
@@ -2251,7 +2274,8 @@ RibRouteTables::getRouteAndNextHops(
   } else {
     result = std::make_pair(
         route,
-        normalized ? fwdInfo.normalizedNextHops() : fwdInfo.getNextHopSet());
+        normalized ? fwdInfo.normalizedNextHops(lockedRouteTables->ecmpWidth)
+                   : fwdInfo.getNextHopSet());
   }
   return result;
 }

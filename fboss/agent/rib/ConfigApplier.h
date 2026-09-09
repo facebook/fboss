@@ -67,7 +67,8 @@ class ConfigApplier {
       folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange,
       folly::Range<StaticMySidIterator> staticMySidRange,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      uint32_t ecmpWidth);
 
   void apply();
 
@@ -100,6 +101,7 @@ class ConfigApplier {
   folly::Range<StaticMySidIterator> staticMySidRange_;
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  uint32_t ecmpWidth_;
 };
 
 } // namespace facebook::fboss

@@ -135,7 +135,10 @@ void ResolvedNexthopMonitor::processAddedLabelFibEntry(
     return;
   }
   const auto& fwd = addedEntry->getForwardInfo();
-  for (auto nhop : fwd.normalizedNextHops()) {
+  // Normalize at the config-sourced ECMP width (immutable on a running agent),
+  // not FLAGS_ecmp_width, so we probe the neighbors the forwarding set uses.
+  for (const auto& nhop :
+       fwd.normalizedNextHops(getEcmpWidth(sw_->getState()))) {
     added_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }
 }
@@ -146,7 +149,10 @@ void ResolvedNexthopMonitor::processRemovedLabelFibEntry(
     return;
   }
   const auto& fwd = removedEntry->getForwardInfo();
-  for (auto nhop : fwd.normalizedNextHops()) {
+  // Normalize at the config-sourced ECMP width (immutable on a running agent),
+  // not FLAGS_ecmp_width, so we probe the neighbors the forwarding set uses.
+  for (const auto& nhop :
+       fwd.normalizedNextHops(getEcmpWidth(sw_->getState()))) {
     removed_.emplace_back(nhop.addr(), nhop.intf(), 0);
   }
 }
