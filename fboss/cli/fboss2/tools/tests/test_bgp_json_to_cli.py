@@ -683,6 +683,56 @@ class JsonToCliIntegrationTest(unittest.TestCase):
         self.assertIn("neighbor '$(malicious)'", joined)
         self.assertNotIn("neighbor $(malicious)", joined)
 
+    def test_injection_in_numeric_and_bool_fields_neutralized(self) -> None:
+        """Fields expected to be numeric or boolean are quoted like any other."""
+        config = {
+            "local_as_4_byte": "65000;id",
+            "networks6": [{"prefix": "2401::/64;id", "install_to_fib": "true|id"}],
+            "peer_groups": [{"name": "g", "remote_as_4_byte": "1&&id"}],
+            "peers": [
+                {
+                    "peer_addr": "10.0.0.1",
+                    "remote_as_4_byte": "2;id",
+                    "is_rr_client": "false;id",
+                    "bgp_peer_timers": {"hold_time_seconds": "90;id"},
+                    "pre_filter": {"max_routes": "5|id"},
+                }
+            ],
+        }
+        joined = "\n".join(json_to_cli(config, binary="fboss2"))
+        for payload in (
+            "local-asn '65000;id'",
+            "network6 add '2401::/64;id' install-to-fib 'true|id'",
+            "remote-asn '1&&id'",
+            "remote-asn '2;id'",
+            "rr-client 'false;id'",
+            "hold-time '90;id'",
+            "pre-filter '5|id'",
+        ):
+            self.assertIn(payload, joined)
+        for line in joined.splitlines():
+            self.assertNotRegex(line, r"[;|&]id\b(?!')")
+
+    def test_valid_numeric_fields_render_unquoted(self) -> None:
+        """Quoting is a no-op for well-formed integers and booleans."""
+        config = {
+            "local_as_4_byte": 65000,
+            "peers": [
+                {
+                    "peer_addr": "10.0.0.1",
+                    "remote_as_4_byte": 65001,
+                    "is_rr_client": True,
+                    "bgp_peer_timers": {"hold_time_seconds": 90},
+                }
+            ],
+        }
+        joined = "\n".join(json_to_cli(config, binary="fboss2"))
+        self.assertIn("local-asn 65000", joined)
+        self.assertIn("remote-asn 65001", joined)
+        self.assertIn("rr-client true", joined)
+        self.assertIn("hold-time 90", joined)
+        self.assertNotIn("'", joined.split("set -e")[1].split("echo")[0])
+
 
 if __name__ == "__main__":
     unittest.main()
