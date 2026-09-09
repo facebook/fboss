@@ -30,7 +30,8 @@ RibToSwitchStateUpdater::RibToSwitchStateUpdater(
           vrf,
           v4NetworkToRoute,
           v6NetworkToRoute,
-          labelToRoute),
+          labelToRoute,
+          nextHopIDManager),
       mySidUpdater_(resolver, mySidTable),
       nhopStateUpdater_(nextHopIDManager) {}
 
