@@ -1447,6 +1447,203 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Third group category: a plain ECMP group running random spray.
+//
+// There is no config knob that asks for one. A group becomes a spray group by
+// spilling over: once every ARS group is spoken for, the next group the
+// resource manager creates cannot be DLB and is created as random spray
+// instead. So the fixture fills ARS capacity with filler routes and only then
+// programs the group under test, which is the ::/0 route the shared helper
+// already targets.
+class AgentFlowletSprayGroupPruneTest : public AgentFlowletSourcePortPruneTest {
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentFlowletSourcePortPruneTest::setCmdLineFlagOverrides();
+    // Same knobs VerifyEcmpRandomSpray uses to make the spillover reachable:
+    // no resource ceiling of its own, and the whole ARS pool available so the
+    // fill is deterministic.
+    FLAGS_dlbResourceCheckEnable = false;
+    FLAGS_flowletStatsEnable = true;
+    FLAGS_enable_ecmp_resource_manager = true;
+    FLAGS_ars_resource_percentage = 100;
+    FLAGS_ecmp_resource_manager_make_before_break_buffer = 0;
+  }
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features =
+        AgentFlowletSourcePortPruneTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::ECMP_RANDOM_SPRAY);
+    return features;
+  }
+
+  // Consume every ARS group, then program ::/0 across the ports under test so
+  // it is the one that spills over into spray.
+  void setupSprayGroup(int ecmpWidth) {
+    checkEnoughPhyLoopbackPorts(ecmpWidth);
+    generateApplyConfig(AclType::FLOWLET);
+    generatePrefixes();
+
+    const auto fillCount = getMaxArsGroups();
+    CHECK_GE(prefixes.size(), fillCount)
+        << "need " << fillCount << " filler prefixes to exhaust ARS, have "
+        << prefixes.size();
+    std::vector<RoutePrefixV6> fillPrefixes{
+        prefixes.begin(), prefixes.begin() + fillCount};
+    std::vector<boost::container::flat_set<PortDescriptor>> fillNhopSets{
+        nhopSets.begin(), nhopSets.begin() + fillCount};
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, fillNhopSets, fillPrefixes);
+
+    // ARS is now full, so this one is created as random spray.
+    this->setup(ecmpWidth);
+  }
+};
+
+// Pruning off. Phase 2/5 is the tell that this really is a spray group: one
+// 5 tuple with no entropy still reaches every member, which a hashing group
+// cannot do. If the spillover failed and the group came out as DLB or static
+// hash, that phase collapses onto one member and the test fails rather than
+// quietly passing against the wrong group type.
+//
+// A spray group carries no ARS object, so there is no secondary group and no
+// static hash: all three traffic types spray across every member.
+TEST_F(AgentFlowletSprayGroupPruneTest, VerifySprayGroupNoPruneSpreadsEvenly) {
+  constexpr int kEcmpWidth = 6;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() { setupSprayGroup(kEcmpWidth); };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: nothing is a pruning candidate,
+    // so these are the controls for the member ingress phases below.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        kEcmpWidth /* spray ignores entropy, so one flow still reaches all */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: same three bursts with the ingress
+    // inside the group, so split horizon could act on it if it were on.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        kPrunedDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        hashSpreadBoundPct(kEcmpWidth));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Pruning on.
+class AgentFlowletSprayGroupPruneEnabledTest
+    : public AgentFlowletSprayGroupPruneTest {
+ protected:
+  EcmpGroupSettingsMap splitHorizonSettings() const override {
+    return splitHorizonOn({cfg::EcmpGroupType::ECMP_SPRAY});
+  }
+};
+
+TEST_F(
+    AgentFlowletSprayGroupPruneEnabledTest,
+    VerifySprayGroupPruneExcludesIngress) {
+  constexpr int kEcmpWidth = 6;
+  constexpr int kEcmpMemberInjectionPort = 0;
+
+  auto setup = [&]() { setupSprayGroup(kEcmpWidth); };
+
+  auto verify = [&]() {
+    // Phases 1-3, ingress outside the group: unchanged from the no prune case,
+    // which is what shows pruning does not perturb a group it cannot act on.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::Dlb,
+        false,
+        kEcmpWidth,
+        kMaxDlbLoadBalanceDeviationPct);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondarySingleFlow,
+        false,
+        kEcmpWidth /* spray ignores entropy, so one flow still reaches all */,
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kFrontPanelPortForTest,
+        TrafficType::SecondaryMultiFlow,
+        false,
+        kEcmpWidth,
+        hashSpreadBoundPct(kEcmpWidth));
+    // Phases 4-6, ingress on a member: the ingress must now carry nothing, and
+    // its share redistributes onto a single survivor.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::Dlb,
+        true,
+        kEcmpWidth - 1,
+        // No bound. On a spray group a member ingress already skews the spread
+        // before pruning, and pruning then hands the ingress share to a single
+        // survivor that is often one of the already hot ports -- measured 177%,
+        // past any bound loose enough to still mean anything. The member count
+        // above is the guarantee that every survivor keeps carrying traffic.
+        std::nullopt);
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondarySingleFlow,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        std::nullopt);
+    // No deviation bound: member ingress already skews spray, and pruning
+    // hands the ingress share to one survivor. Member count and the ingress
+    // carrying nothing are the split horizon signals; balance is asserted in
+    // the ingress-outside phases.
+    sendFlowsAndVerifyPrune(
+        kEcmpWidth,
+        kEcmpMemberInjectionPort,
+        TrafficType::SecondaryMultiFlow,
+        true,
+        kEcmpWidth - 1 /* ingress is excluded from the count */,
+        std::nullopt);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentFlowletSwitchingEnhancedScaleTest
     : public AgentFlowletSwitchingTest {
  public:
