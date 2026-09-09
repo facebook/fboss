@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -1740,4 +1741,42 @@ TEST(Acl, onlyCounterChangedNonCounterActionChangedToo) {
   newEntry->setAclAction(action);
 
   EXPECT_FALSE(onlyCounterChanged(oldEntry, newEntry));
+}
+
+TEST(Acl, PrioAclMapHoldsSharedPbrPriority) {
+  // 1. Two PBR entries at the one shared priority, told apart only by name.
+  auto acls = std::make_shared<AclMap>();
+  acls->addNode(
+      std::make_shared<AclEntry>(
+          FLAGS_pbr_acl_priority, std::string("policyA_tc1")));
+  acls->addNode(
+      std::make_shared<AclEntry>(
+          FLAGS_pbr_acl_priority, std::string("policyA_tc2")));
+
+  // 2. Both survive: before the name joined the key this threw duplicate node
+  // ID, which reaches XLOG(FATAL) via getAclsDelta on every state update.
+  PrioAclMap prioAcls;
+  prioAcls.addAcls(acls);
+  EXPECT_EQ(prioAcls.size(), 2);
+}
+
+TEST(Acl, PrioAclMapRenameIsAddAndRemove) {
+  // 1. Same priority, different name -- a config ACL rename.
+  auto makePrioAcls = [](const std::string& name) {
+    auto acls = std::make_shared<AclMap>();
+    acls->addNode(std::make_shared<AclEntry>(1, name));
+    auto prioAcls = std::make_unique<PrioAclMap>();
+    prioAcls->addAcls(acls);
+    return prioAcls;
+  };
+
+  // 2. The name is always part of the key, so a rename is a distinct add and
+  // remove rather than one changed event.
+  AclMapDelta delta(makePrioAcls("zzz"), makePrioAcls("aaa"));
+  int changed = 0, addedOrRemoved = 0;
+  for (const auto& entry : delta) {
+    (entry.getOld() && entry.getNew()) ? ++changed : ++addedOrRemoved;
+  }
+  EXPECT_EQ(changed, 0);
+  EXPECT_EQ(addedOrRemoved, 2);
 }
