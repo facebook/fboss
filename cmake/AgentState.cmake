@@ -89,6 +89,7 @@ add_library(state
   fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp
   fboss/agent/state/NdpTable.cpp
+  fboss/agent/state/PbrUtils.cpp
   fboss/agent/state/Port.cpp
   fboss/agent/state/PortMap.cpp
   fboss/agent/state/PortFlowletConfig.cpp
