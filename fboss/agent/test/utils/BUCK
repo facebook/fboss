@@ -972,6 +972,9 @@ cpp_library(
     name = "nexthop_id_test_utils",
     srcs = ["NextHopIdTestUtils.cpp"],
     headers = ["NextHopIdTestUtils.h"],
+    deps = [
+        "//fboss/agent:agent_features",  # @manual
+    ],
     exported_deps = [
         "//fboss/agent:address_utils",
         "//fboss/agent:hwswitch_matcher",

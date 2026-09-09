@@ -369,7 +369,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 // from optimal allocation (without constraints)
 
 //  a) Compute gcd and reduce weights by gcd
-//  b) Calculate the scaled factor FLAGS_ecmp_width/totalWeight.
+//  b) Calculate the scaled factor ecmpWidth/totalWeight.
 //     Without rounding, multiplying each weight by this will still yield
 //     correct weight ratios between the next hops.
 //  c) Scale each next hop by the scaling factor, rounding up.
@@ -386,12 +386,13 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 
 void RouteNextHopEntry::normalize(
     std::vector<NextHopWeight>& scaledWeights,
-    NextHopWeight totalWeight) {
+    NextHopWeight totalWeight,
+    uint32_t ecmpWidth) {
   // This is the weight distribution without constraints
   std::vector<double> idealWeights;
 
   // compute normalization factor
-  double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
+  double factor = ecmpWidth / static_cast<double>(totalWeight);
   NextHopWeight scaledTotalWeight = 0;
   for (auto& entry : scaledWeights) {
     // Compute the ideal distribution
@@ -423,7 +424,7 @@ void RouteNextHopEntry::normalize(
   };
 
   // current solution is not feasible till it can fit in ecmp_width value
-  while (scaledTotalWeight > FLAGS_ecmp_width) {
+  while (scaledTotalWeight > ecmpWidth) {
     auto key = std::get<0>(findMaxErrorEntry(scaledWeights));
     scaledWeights.at(key)--;
     scaledTotalWeight--;
@@ -469,16 +470,18 @@ void RouteNextHopEntry::normalize(
 }
 
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
-    bool ignoreOverride) const {
+    bool ignoreOverride,
+    uint32_t ecmpWidth) const {
   auto overrideNhops = getOverrideNextHops();
   if (!ignoreOverride && overrideNhops) {
-    return normalizeNextHops(*overrideNhops);
+    return normalizeNextHops(*overrideNhops, ecmpWidth);
   }
-  return normalizeNextHops(getNextHopSet());
+  return normalizeNextHops(getNextHopSet(), ecmpWidth);
 }
 
 RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
-    const NextHopSet& nhopSet) {
+    const NextHopSet& nhopSet,
+    uint32_t ecmpWidth) {
   NextHopSet normalizedNextHops;
   // 1)
   for (const auto& nhop : nhopSet) {
@@ -506,27 +509,27 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
   // 2)
   // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
   // following heuristic algorithm:
-  // 2a) Calculate the scaled factor FLAGS_ecmp_width/totalWeight.
+  // 2a) Calculate the scaled factor ecmpWidth/totalWeight.
   //     Without rounding, multiplying each weight by this will still yield
   //     correct weight ratios between the next hops.
   // 2b) Scale each next hop by the scaling factor, rounding down by default
   //     except for when weights go below 1. In that case, add them in as
-  //     weight 1. At this point, we might _still_ be above FLAGS_ecmp_width,
+  //     weight 1. At this point, we might _still_ be above ecmpWidth,
   //     because we could have rounded too many 0s up to 1.
   // 2c) Do a final pass where we make up any remaining excess weight above
-  //     FLAGS_ecmp_width by iteratively decrementing the max weight. If there
-  //     are more than FLAGS_ecmp_width next hops, this cannot possibly succeed.
+  //     ecmpWidth by iteratively decrementing the max weight. If there
+  //     are more than ecmpWidth next hops, this cannot possibly succeed.
   NextHopWeight totalWeight = std::accumulate(
       normalizedNextHops.begin(),
       normalizedNextHops.end(),
       0,
       [](NextHopWeight w, const NextHop& nh) { return w + nh.weight(); });
   // Total weight after applying the scaling factor
-  // FLAGS_ecmp_width/totalWeight to all next hops.
+  // ecmpWidth/totalWeight to all next hops.
   NextHopWeight scaledTotalWeight = 0;
-  if (totalWeight > FLAGS_ecmp_width) {
+  if (totalWeight > ecmpWidth) {
     XLOG(DBG3) << "Total weight of next hops exceeds max ecmp width: "
-               << totalWeight << " > " << FLAGS_ecmp_width << " ("
+               << totalWeight << " > " << ecmpWidth << " ("
                << normalizedNextHops << ")";
 
     NextHopSet scaledNextHops;
@@ -535,7 +538,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
       for (const auto& nhop : normalizedNextHops) {
         scaledWeights.emplace_back(nhop.weight());
       }
-      normalize(scaledWeights, totalWeight);
+      normalize(scaledWeights, totalWeight, ecmpWidth);
 
       auto index = 0;
       for (const auto& nhop : normalizedNextHops) {
@@ -560,7 +563,7 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
       }
     } else {
       // 2a)
-      double factor = FLAGS_ecmp_width / static_cast<double>(totalWeight);
+      double factor = ecmpWidth / static_cast<double>(totalWeight);
       // 2b)
       for (const auto& nhop : normalizedNextHops) {
         NextHopWeight w = std::max(
@@ -582,12 +585,12 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
         scaledTotalWeight += w;
       }
       // 2c)
-      if (scaledTotalWeight > FLAGS_ecmp_width) {
+      if (scaledTotalWeight > ecmpWidth) {
         XLOG(DBG3) << "Total weight of scaled next hops STILL exceeds max "
-                   << "ecmp width: " << scaledTotalWeight << " > "
-                   << FLAGS_ecmp_width << " (" << scaledNextHops << ")";
+                   << "ecmp width: " << scaledTotalWeight << " > " << ecmpWidth
+                   << " (" << scaledNextHops << ")";
         // calculate number of times we need to decrement the max next hop
-        NextHopWeight overflow = scaledTotalWeight - FLAGS_ecmp_width;
+        NextHopWeight overflow = scaledTotalWeight - ecmpWidth;
         for (int i = 0; i < overflow; ++i) {
           // find the max weight next hop
           auto maxItr = std::max_element(
@@ -614,13 +617,13 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
           // remove the max weight next hop and replace with the
           // decremented version, if the decremented version would
           // not have weight 0. If it would have weight 0, that means
-          // that we have > FLAGS_ecmp_width next hops.
+          // that we have > ecmpWidth next hops.
           scaledNextHops.erase(maxItr);
           if (decMax.weight() > 0) {
             scaledNextHops.insert(decMax);
           }
         }
-        scaledTotalWeight = FLAGS_ecmp_width;
+        scaledTotalWeight = ecmpWidth;
       }
     }
     XLOG(DBG3) << "Scaled next hops from " << nhopSet << " to "
@@ -631,12 +634,12 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizeNextHops(
   }
 
   if (FLAGS_wide_ecmp && scaledTotalWeight > kMinSizeForWideEcmp &&
-      scaledTotalWeight < FLAGS_ecmp_width) {
+      scaledTotalWeight < ecmpWidth) {
     std::vector<uint64_t> nhopWeights;
     for (const auto& nhop : normalizedNextHops) {
       nhopWeights.emplace_back(nhop.weight());
     }
-    normalizeNextHopWeightsToMaxPaths(nhopWeights, FLAGS_ecmp_width);
+    normalizeNextHopWeightsToMaxPaths(nhopWeights, ecmpWidth);
     NextHopSet normalizedToMaxPathNextHops;
     int idx = 0;
     for (const auto& nhop : normalizedNextHops) {

@@ -204,18 +204,23 @@ class RouteNextHopEntry
   bool hasOverrideSwitchingModeOrNhops() const;
   bool hasOverrideSwitchingMode() const;
   bool hasOverrideNextHops() const;
-  NextHopSet normalizedNextHops() const {
-    return normalizedNextHopsImpl(false /*ignoreOverride*/);
+  // ecmpWidth defaults to FLAGS_ecmp_width while the flag is being retired;
+  // callers with a SwitchState (e.g. FibHelpers) pass the config-sourced value.
+  NextHopSet normalizedNextHops(uint32_t ecmpWidth = FLAGS_ecmp_width) const {
+    return normalizedNextHopsImpl(false /*ignoreOverride*/, ecmpWidth);
   }
   // Deprecated: do not add new callers; will be removed. Use the static
   // normalizeNextHops(NextHopSet) instead.
-  NextHopSet nonOverrideNormalizedNextHops() const {
-    return normalizedNextHopsImpl(true /*ignoreOverride*/);
+  NextHopSet nonOverrideNormalizedNextHops(
+      uint32_t ecmpWidth = FLAGS_ecmp_width) const {
+    return normalizedNextHopsImpl(true /*ignoreOverride*/, ecmpWidth);
   }
   // Weight-normalize an arbitrary nexthop set to ECMP width. Pure: depends
   // only on the input set (no `this`), so callers that resolve the set via an
   // ID can normalize without an inline getNextHopSet() read.
-  static NextHopSet normalizeNextHops(const NextHopSet& nhopSet);
+  static NextHopSet normalizeNextHops(
+      const NextHopSet& nhopSet,
+      uint32_t ecmpWidth = FLAGS_ecmp_width);
 
   std::string str() const;
 
@@ -267,7 +272,8 @@ class RouteNextHopEntry
       uint64_t normalizedPathCount);
 
  private:
-  NextHopSet normalizedNextHopsImpl(bool ignoreOverride) const;
+  NextHopSet normalizedNextHopsImpl(bool ignoreOverride, uint32_t ecmpWidth)
+      const;
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,
@@ -281,7 +287,8 @@ class RouteNextHopEntry
       const std::optional<NextHopSetID>& clientNextHopSetID);
   static void normalize(
       std::vector<NextHopWeight>& scaledWeights,
-      NextHopWeight totalWeight);
+      NextHopWeight totalWeight,
+      uint32_t ecmpWidth);
 };
 
 /**

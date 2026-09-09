@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -21,11 +22,15 @@
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
@@ -645,6 +650,35 @@ TYPED_TEST(FibHelperTest, getNormalizedNextHopsFromEntry) {
     EXPECT_EQ(result, fwdInfo.normalizedNextHops());
     EXPECT_EQ(result, getNonOverrideNormalizedNextHops(state, fwdInfo));
   }
+}
+
+TEST(FibHelperEcmpWidthTest, getNormalizedNextHopsUsesStateEcmpWidth) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_resolve_nexthops_from_id = false;
+  FLAGS_wide_ecmp = false;
+  FLAGS_optimized_ucmp = false;
+  FLAGS_ecmp_width = 64;
+
+  // State carrying a narrow ECMP width in SwitchSettings.
+  auto state = std::make_shared<SwitchState>();
+  addSwitchInfo(state, cfg::SwitchType::NPU, 0 /* switchId */);
+  constexpr uint32_t kNarrowEcmpWidth = 1;
+  utility::getFirstNodeIf(state->getSwitchSettings())
+      ->modify(&state)
+      ->setEcmpWidth(kNarrowEcmpWidth);
+  state->publish();
+
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress("1::1"), InterfaceID(1), 1),
+      ResolvedNextHop(folly::IPAddress("1::2"), InterfaceID(2), 1)};
+  RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+
+  // getNormalizedNextHops must normalize to the state's width (collapsing to a
+  // single nexthop), not to FLAGS_ecmp_width (64 would keep both).
+  auto result = getNormalizedNextHops(state, entry);
+  EXPECT_EQ(
+      result, RouteNextHopEntry::normalizeNextHops(nhops, kNarrowEcmpWidth));
+  EXPECT_NE(result, RouteNextHopEntry::normalizeNextHops(nhops));
 }
 
 TYPED_TEST(FibHelperTest, getNormalizedNextHopsWithOverrides) {

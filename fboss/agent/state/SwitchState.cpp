@@ -1191,4 +1191,14 @@ template MultiSwitchDsfNodeMap* SwitchState::modify<
 
 template struct ThriftStructNode<SwitchState, state::SwitchState>;
 
+uint32_t getEcmpWidth(const std::shared_ptr<SwitchState>& state) {
+  auto switchSettings = utility::getFirstNodeIf(state->getSwitchSettings());
+  if (switchSettings) {
+    if (auto ecmpWidth = switchSettings->getEcmpWidth()) {
+      return static_cast<uint32_t>(*ecmpWidth);
+    }
+  }
+  return FLAGS_ecmp_width;
+}
+
 } // namespace facebook::fboss

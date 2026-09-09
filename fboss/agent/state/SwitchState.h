@@ -537,4 +537,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   friend class CloneAllocator;
 };
 
+// Returns the ECMP width from SwitchSettings.ecmpWidth (config-sourced), or
+// FLAGS_ecmp_width when the state carries no value. The single accessor used by
+// FIB, RIB, and warm-boot code so ECMP-width sourcing lives in one place.
+uint32_t getEcmpWidth(const std::shared_ptr<SwitchState>& state);
+
 } // namespace facebook::fboss
