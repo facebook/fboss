@@ -1,7 +1,9 @@
 name: Validate and Label PR Metadata
 
 on:
-  pull_request_target:
+  # Test-only: execute this branch's workflow definition for PR 1619.
+  # The production workflow continues to use pull_request_target.
+  pull_request:
     types: [opened, edited, reopened, ready_for_review]
 
 permissions: {}
