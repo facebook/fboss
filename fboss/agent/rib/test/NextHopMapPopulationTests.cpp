@@ -1062,11 +1062,15 @@ TEST_F(
   auto fibV4 = fibContainer->getFibV4();
 
   auto runChecks = [&]() {
+    // The RIB width must track the config-sourced width on SwitchState.
+    auto ecmpWidth = getEcmpWidth(sw_->getState());
+    EXPECT_EQ(ecmpWidth, sw_->getRib()->getEcmpWidth());
     for (const auto& [_, route] : std::as_const(*fibV4)) {
       const auto& fwd = route->getForwardInfo();
       EXPECT_EQ(
-          getNonOverrideNormalizedNextHopsFromRib(manager.get(), fwd),
-          fwd.nonOverrideNormalizedNextHops());
+          getNonOverrideNormalizedNextHopsFromRib(
+              manager.get(), fwd, ecmpWidth),
+          fwd.nonOverrideNormalizedNextHops(ecmpWidth));
     }
   };
 
@@ -1103,26 +1107,58 @@ TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibOverrideAware) {
 
   // Override branch short-circuits before the flag/manager logic, so it holds
   // for both flag states.
+  // The RIB width must track the config-sourced width on SwitchState.
+  auto ecmpWidth = getEcmpWidth(sw_->getState());
+  EXPECT_EQ(ecmpWidth, sw_->getRib()->getEcmpWidth());
   for (bool flag : {false, true}) {
     FLAGS_resolve_nexthops_from_id = flag;
     EXPECT_EQ(
-        getNormalizedNextHopsFromRib(manager.get(), overrideEntry),
-        overrideEntry.normalizedNextHops());
+        getNormalizedNextHopsFromRib(manager.get(), overrideEntry, ecmpWidth),
+        overrideEntry.normalizedNextHops(ecmpWidth));
   }
   FLAGS_resolve_nexthops_from_id = false;
   // The override actually changes the result vs. ignoring it, so honoring it
   // is meaningful.
   EXPECT_NE(
-      overrideEntry.normalizedNextHops(),
-      overrideEntry.nonOverrideNormalizedNextHops());
+      overrideEntry.normalizedNextHops(ecmpWidth),
+      overrideEntry.nonOverrideNormalizedNextHops(ecmpWidth));
 
   // No overrides: delegates to the non-override helper. Flag off => inline
   // path, so the directly-built entry needs no manager lookup.
   RouteNextHopEntry plainEntry(overrideNhops, DISTANCE);
   ASSERT_FALSE(plainEntry.getOverrideNextHops().has_value());
   EXPECT_EQ(
-      getNormalizedNextHopsFromRib(manager.get(), plainEntry),
-      getNonOverrideNormalizedNextHopsFromRib(manager.get(), plainEntry));
+      getNormalizedNextHopsFromRib(manager.get(), plainEntry, ecmpWidth),
+      getNonOverrideNormalizedNextHopsFromRib(
+          manager.get(), plainEntry, ecmpWidth));
+}
+
+// Verifies getNormalizedNextHopsFromRib sources the ECMP width from the
+// RibRouteTables width (config-sourced via cfg.SwitchSettings.ecmpWidth), not
+// from FLAGS_ecmp_width.
+TEST_F(NextHopMapPopulationTest, getNormalizedNextHopsFromRibUsesRibWidth) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_resolve_nexthops_from_id = false; // exercise the inline normalize path
+  FLAGS_ecmp_width = 64;
+
+  auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  constexpr uint32_t kNarrowEcmpWidth = 1;
+  sw_->getRib()->setEcmpWidth(kNarrowEcmpWidth);
+
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress("1.1.1.1"), InterfaceID(1), ECMP_WEIGHT),
+      ResolvedNextHop(
+          folly::IPAddress("2.2.2.2"), InterfaceID(2), ECMP_WEIGHT)};
+  RouteNextHopEntry entry(nhops, DISTANCE);
+
+  // Must normalize to the RIB width (collapsing to one nexthop), not to
+  // FLAGS_ecmp_width (64 would keep both).
+  auto result = getNormalizedNextHopsFromRib(
+      manager.get(), entry, sw_->getRib()->getEcmpWidth());
+  EXPECT_EQ(
+      result, RouteNextHopEntry::normalizeNextHops(nhops, kNarrowEcmpWidth));
+  EXPECT_NE(result, RouteNextHopEntry::normalizeNextHops(nhops));
 }
 
 // Verifies getResolvedNextHopsFromRib: returns inline fwd nexthops when

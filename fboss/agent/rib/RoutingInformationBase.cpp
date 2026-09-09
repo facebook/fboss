@@ -399,7 +399,8 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
     RibMySidUpdater mySidUpdater(
         routeTables,
         lockedRouteTables->nextHopIDManager.get(),
-        &lockedRouteTables->mySidTable);
+        &lockedRouteTables->mySidTable,
+        lockedRouteTables->ecmpWidth);
     mySidUpdater.resolve();
   }
 }
@@ -415,7 +416,8 @@ void RibRouteTables::updateRibMySids(const RibUpdateFn& updateRibFn) {
   updateRibFn(
       routeTables,
       &lockedRouteTables->mySidTable,
-      lockedRouteTables->nextHopIDManager.get());
+      lockedRouteTables->nextHopIDManager.get(),
+      lockedRouteTables->ecmpWidth);
 }
 
 void RibRouteTables::reconfigure(
@@ -1707,7 +1709,8 @@ void RibRouteTables::updateMySidsImpl(
     void* cookie) {
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
-                      NextHopIDManager* nextHopIDManager) {
+                      NextHopIDManager* nextHopIDManager,
+                      uint32_t ecmpWidth) {
     auto toAddWithNextHops = toAdd;
     for (auto& entry : toAddWithNextHops) {
       if (!entry.nextHopGroupName.has_value()) {
@@ -1826,7 +1829,8 @@ void RibRouteTables::updateMySidsImpl(
       mySidTable->erase(cidr);
     }
     if (nextHopIDManager && !addedPrefixes.empty()) {
-      RibMySidUpdater updater(routeTables, nextHopIDManager, mySidTable);
+      RibMySidUpdater updater(
+          routeTables, nextHopIDManager, mySidTable, ecmpWidth);
       updater.resolve(addedPrefixes);
     }
   });
@@ -2050,7 +2054,10 @@ void RibRouteTables::addOrUpdateNamedNextHopGroups(
             &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
       }
       RibMySidUpdater updater(
-          routeTables, nhIdManager, &lockedRouteTables->mySidTable);
+          routeTables,
+          nhIdManager,
+          &lockedRouteTables->mySidTable,
+          lockedRouteTables->ecmpWidth);
       updater.resolve(mySidsToReresolve);
     }
   }
@@ -2406,7 +2413,8 @@ uint32_t RoutingInformationBase::getEcmpWidth() const {
 
 RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry) {
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth) {
   if (FLAGS_resolve_nexthops_from_id) {
     CHECK(FLAGS_enable_nexthop_id_manager)
         << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
@@ -2419,19 +2427,20 @@ RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     }
     return getNextHopsFromRib(manager, NextHopSetID(*normalizedSetId));
   }
-  return entry.nonOverrideNormalizedNextHops();
+  return entry.nonOverrideNormalizedNextHops(ecmpWidth);
 }
 
 RouteNextHopSet getNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry) {
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth) {
   if (entry.getOverrideNextHops().has_value()) {
     // Override nexthops are inline for now;
     // normalizedNextHops() handles the override normalization path correctly.
-    return entry.normalizedNextHops();
+    return entry.normalizedNextHops(ecmpWidth);
   }
   // No overrides, delegate to ID-aware non-override path.
-  return getNonOverrideNormalizedNextHopsFromRib(manager, entry);
+  return getNonOverrideNormalizedNextHopsFromRib(manager, entry, ecmpWidth);
 }
 
 } // namespace facebook::fboss
