@@ -85,7 +85,7 @@ RetType CmdShowMacDetails::createModel(
       }
     } else {
       l2Details.ifName() =
-          portEntries[folly::copy(entry.port().value())].get_name();
+          portEntries[folly::copy(entry.port().value())].name().value();
     }
     auto classIdPtr = apache::thrift::get_pointer(entry.classID());
     l2Details.classID() =
