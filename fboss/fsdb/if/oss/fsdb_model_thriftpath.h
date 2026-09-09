@@ -8649,6 +8649,7 @@ class ChildThriftPath<::facebook::fboss::state::ClassBasedPolicyFields, ::facebo
     STRUCT_CHILD_GETTERS(name, 1);
     STRUCT_CHILD_GETTERS(defaultNextHopGroup, 2);
     STRUCT_CHILD_GETTERS(class2NextHopGroup, 3);
+    STRUCT_CHILD_GETTERS(referenced, 4);
 };
 
 

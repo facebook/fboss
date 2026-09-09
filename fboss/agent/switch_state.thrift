@@ -303,6 +303,7 @@ struct ClassBasedPolicyFields {
   1: string name;
   2: NamedNextHopGroupAndID defaultNextHopGroup;
   3: map<common.ForwardingClass, NamedNextHopGroupAndID> class2NextHopGroup;
+  4: bool referenced;
 }
 
 enum NeighborState {
