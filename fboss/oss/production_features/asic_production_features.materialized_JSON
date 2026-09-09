@@ -44,7 +44,13 @@
         83,
         87,
         98,
-        115
+        115,
+        36,
+        37,
+        38,
+        39,
+        40,
+        79
     ],
     "chenab2": [
         2,
@@ -90,11 +96,18 @@
         83,
         87,
         98,
-        115
+        115,
+        36,
+        37,
+        38,
+        39,
+        40,
+        79
     ],
     "ebro": [
         2,
         3,
+        4,
         5,
         8,
         10,
@@ -134,7 +147,9 @@
         79,
         86,
         68,
-        110
+        110,
+        124,
+        125
     ],
     "g202x": [
         2,
@@ -384,6 +399,7 @@
     "tomahawk3": [
         2,
         3,
+        4,
         5,
         7,
         8,
@@ -441,7 +457,10 @@
         82,
         86,
         87,
-        88
+        88,
+        124,
+        126,
+        127
     ],
     "tomahawk4": [
         2,
@@ -815,7 +834,13 @@
         "ROUTER_INTERFACE_COUNTERS",
         "UDF_HASH",
         "PFC_RX_TX_DURATION",
-        "CUSTOM_DROP_BITMAP_SUPPORT"
+        "CUSTOM_DROP_BITMAP_SUPPORT",
+        "RSW_ROUTE_SCALE",
+        "FSW_ROUTE_SCALE",
+        "HGRID_DU_ROUTE_SCALE",
+        "HGRID_UU_ROUTE_SCALE",
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "chenab2": [
         "CPU_RX_TX",
@@ -861,11 +886,18 @@
         "ROUTER_INTERFACE_COUNTERS",
         "UDF_HASH",
         "PFC_RX_TX_DURATION",
-        "CUSTOM_DROP_BITMAP_SUPPORT"
+        "CUSTOM_DROP_BITMAP_SUPPORT",
+        "RSW_ROUTE_SCALE",
+        "FSW_ROUTE_SCALE",
+        "HGRID_DU_ROUTE_SCALE",
+        "HGRID_UU_ROUTE_SCALE",
+        "HUNDRED_THOUSAND_ROUTE_SCALE",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "ebro": [
         "CPU_RX_TX",
         "L3_FORWARDING",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "COPP",
         "DSCP_REMARKING",
@@ -905,7 +937,9 @@
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "CLASS_ID_FOR_NEIGHBOR",
         "MPLS",
-        "IP_IN_IP_ENCAP"
+        "IP_IN_IP_ENCAP",
+        "EMPTY_ACL_MATCHER",
+        "PORT_BOUND_INGRESS_ACL"
     ],
     "g202x": [
         "CPU_RX_TX",
@@ -1155,6 +1189,7 @@
     "tomahawk3": [
         "CPU_RX_TX",
         "L3_FORWARDING",
+        "ACL_PORT_IN_DISCARDS_COUNTER",
         "NULL_ROUTE_IN_DISCARDS_COUNTER",
         "PRBS",
         "COPP",
@@ -1212,7 +1247,10 @@
         "ARS_SPRAY",
         "CLASS_ID_FOR_NEIGHBOR",
         "UDF_HASH",
-        "INTER_PACKET_GAP"
+        "INTER_PACKET_GAP",
+        "EMPTY_ACL_MATCHER",
+        "ACL_DENY_DATA_AND_CONTROL_PLANE",
+        "PORT_USER_METADATA"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
@@ -1863,6 +1901,18 @@
           "sdk": 2,
           "minSdkVersion": "24.8.3001",
           "note": "Route stat counters require SAI API >= 1.10, available on Leaba Gibraltar from SDK 24.8.3001"
+        }
+      ]
+    },
+    {
+      "feature": 125,
+      "supportedFrom": [
+        {
+          "asics": [
+            "ebro"
+          ],
+          "sdk": 2,
+          "minSdkVersion": "24.8.3001"
         }
       ]
     },
