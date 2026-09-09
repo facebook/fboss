@@ -930,6 +930,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pbr_acl_manager",
+    srcs = [
+        "PbrAclManager.cpp",
+    ],
+    deps = [
+        "//fboss/agent/state:state",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "state_delta_logger",
     srcs = [
         "StateDeltaLogger.cpp",

@@ -262,6 +262,15 @@ target_link_libraries(shel_manager
   ${GTEST}
 )
 
+add_library(pbr_acl_manager
+  fboss/agent/PbrAclManager.cpp
+)
+
+target_link_libraries(pbr_acl_manager
+  utils
+  state
+)
+
 add_library(fsdb_adapted_sub_manager
   fboss/agent/FsdbAdaptedCowStorage.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
