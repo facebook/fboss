@@ -3814,6 +3814,10 @@ void SwSwitch::applyConfigImpl(
         }
         return newState;
       });
+
+  if (rib_) {
+    rib_->setEcmpWidth(getEcmpWidth(getState()));
+  }
   if (FLAGS_enable_ecmp_resource_manager) {
     // Since config update can also update ecmp overrides - in
     // case of config changing ecmp switching mode. Sync these

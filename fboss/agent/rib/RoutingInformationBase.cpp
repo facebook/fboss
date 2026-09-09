@@ -2357,6 +2357,22 @@ RouteNextHopSet getResolvedNextHopsFromRib(
   return entry.getNextHopSet();
 }
 
+void RibRouteTables::setEcmpWidth(uint32_t ecmpWidth) {
+  synchronizedRouteTables_.wlock()->ecmpWidth = ecmpWidth;
+}
+
+uint32_t RibRouteTables::getEcmpWidth() const {
+  return synchronizedRouteTables_.rlock()->ecmpWidth;
+}
+
+void RoutingInformationBase::setEcmpWidth(uint32_t ecmpWidth) {
+  ribTables_.setEcmpWidth(ecmpWidth);
+}
+
+uint32_t RoutingInformationBase::getEcmpWidth() const {
+  return ribTables_.getEcmpWidth();
+}
+
 RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry) {

@@ -224,6 +224,11 @@ class RibRouteTables {
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
+  // ECMP width used to normalize nexthops in the RIB, sourced from
+  // cfg.SwitchSettings.ecmpWidth; set at config apply.
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -325,6 +330,7 @@ class RibRouteTables {
     std::unique_ptr<NextHopIDManager> nextHopIDManager{
         FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
                                         : nullptr};
+    uint32_t ecmpWidth{FLAGS_ecmp_width};
   };
 
   using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
@@ -512,6 +518,9 @@ class RoutingInformationBase {
       const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
+
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
 
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,

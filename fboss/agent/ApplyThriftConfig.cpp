@@ -1014,6 +1014,9 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
 
+    // reconfigure() below resolves routes, so set the width first.
+    rib_->setEcmpWidth(getEcmpWidth(new_));
+
     rib_->reconfigure(
         &scopeResolver_,
         intfRouteTables_,
