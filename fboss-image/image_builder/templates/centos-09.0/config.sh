@@ -77,10 +77,11 @@ process_kernel() {
 
   local tarball="${tarballs[0]}"
 
-  echo "  Extracting $(basename "$tarball") (excluding devel/header RPMs)..."
+  echo "  Extracting $(basename "$tarball") (excluding devel/header/source RPMs)..."
   tar -xf "$tarball" -C "$component_tmp" \
     --exclude='*-devel-*.rpm' \
-    --exclude='*-headers-*.rpm'
+    --exclude='*-headers-*.rpm' \
+    --exclude='*.src.rpm'
 
   # Copy any unarchived RPMs that may already be in the component directory
   if ls "$component_dir"/*.rpm >/dev/null 2>&1; then
