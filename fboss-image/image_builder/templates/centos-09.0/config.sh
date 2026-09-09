@@ -62,7 +62,7 @@ process_kernel() {
   local tarballs=("$component_dir"/*.tar*)
 
   if [ ${#tarballs[@]} -eq 0 ]; then
-    echo "  No kernel tarballs found in $component_dir, skipping kernel install"
+    echo "  WARNING: no kernel tarballs in $component_dir; the image will have no kernel RPMs"
     return 0
   fi
 
@@ -92,7 +92,7 @@ process_kernel() {
     echo "  Installing kernel RPMs..."
     dnf install --disablerepo=* -y "$component_tmp"/*.rpm
   else
-    echo "  No RPMs found for kernel"
+    echo "  WARNING: no kernel RPMs after extracting $(basename "$tarball")"
   fi
 
   return 0
@@ -107,7 +107,7 @@ process_npu_sai_tarball() {
   local tarballs=("$component_dir"/*.tar*)
 
   if [ ${#tarballs[@]} -eq 0 ]; then
-    echo "  No SAI tarballs found in $component_dir, skipping SAI processing"
+    echo "  WARNING: no SAI tarballs in $component_dir; SAI kmods will not be installed"
     return 0
   fi
 
@@ -135,7 +135,7 @@ process_npu_sai_tarball() {
       return 1
     fi
   else
-    echo "No sai-runtime.rpm found in $tarball"
+    echo "  WARNING: $(basename "$tarball") has no sai-runtime.rpm; SAI kmods will not be installed"
   fi
 
   rm -f "$tarball"
@@ -200,7 +200,7 @@ for component_dir in /repos/*; do
     echo "Processing component: $component_name"
     tarballs=("$component_dir"/*.tar*)
     if [ ${#tarballs[@]} -eq 0 ]; then
-      echo "  No $component_name tarball found in $component_dir, skipping $component_name install"
+      echo "  WARNING: no $component_name tarball in $component_dir; those binaries will be absent from /opt/fboss"
     else
       # A component may carry more than one tarball: manifests that list the
       # forwarding stack per service (agent, fsdb, qsfp, fboss2) stage them all
