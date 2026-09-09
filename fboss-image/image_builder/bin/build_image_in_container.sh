@@ -249,7 +249,7 @@ cp -R ${DESCRIPTION_DIR}/root_files/* ${DESCRIPTION_DIR}/root/
 
 # Written after the root_files copy so an overlay file cannot shadow it.
 write_build_info() {
-  local rel bytes size
+  local rel bytes size repos
 
   echo "FBOSS distro image"
   echo "Built on: $(date -u)"
@@ -266,20 +266,25 @@ write_build_info() {
   echo ""
   echo "Components:"
 
-  if [ ! -d "${EFFECTIVE_DEPS_DIR}" ]; then
-    echo "  (none: ${EFFECTIVE_DEPS_DIR} does not exist)"
+  # Read the overlay's copy rather than the staging directory: it is what
+  # actually ships, it is a real directory rather than the /deps symlink, and
+  # it is the exact tree config.sh consumes as /repos.
+  local repos="${DESCRIPTION_DIR}/root/repos"
+
+  if [ ! -d "$repos" ]; then
+    echo "  (none: $repos does not exist)"
     return
   fi
 
   # Two levels down is <component>/<artifact>, the layout config.sh consumes.
-  find "${EFFECTIVE_DEPS_DIR}" -mindepth 2 -maxdepth 2 -type f -printf '%P\t%s\n' |
+  find "$repos" -mindepth 2 -maxdepth 2 -type f -printf '%P\t%s\n' |
     sort |
     while IFS=$'\t' read -r rel bytes; do
       size=$(numfmt --to=iec "$bytes" 2>/dev/null || echo "${bytes}B")
-      echo "  ${rel}  ${size}  sha256:$(sha256sum "${EFFECTIVE_DEPS_DIR}/${rel}" | cut -d' ' -f1)"
+      echo "  ${rel}  ${size}  sha256:$(sha256sum "${repos}/${rel}" | cut -d' ' -f1)"
     done
 
-  if [ -z "$(find "${EFFECTIVE_DEPS_DIR}" -mindepth 2 -maxdepth 2 -type f -print -quit)" ]; then
+  if [ -z "$(find "$repos" -mindepth 2 -maxdepth 2 -type f -print -quit)" ]; then
     echo "  (none: no artifacts were staged)"
   fi
 }
