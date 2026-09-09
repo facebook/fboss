@@ -202,13 +202,16 @@ for component_dir in /repos/*; do
     tarballs=("$component_dir"/*.tar*)
     if [ ${#tarballs[@]} -eq 0 ]; then
       echo "  No $component_name tarball found in $component_dir, skipping $component_name install"
-    elif [ ${#tarballs[@]} -gt 1 ]; then
-      echo "  Multiple $component_name tarballs found in $component_dir, skipping $component_name install"
     else
-      tarball="${tarballs[0]}"
-      echo "  Extracting $component_name tarball..."
+      # A component may carry more than one tarball: manifests that list the
+      # forwarding stack per service (agent, fsdb, qsfp, fboss2) stage them all
+      # into this one directory. Extract every one -- they unpack into disjoint
+      # paths under /opt/fboss.
       mkdir -p /opt/fboss
-      tar -C /opt/fboss -xf "$tarball"
+      for tarball in "${tarballs[@]}"; do
+        echo "  Extracting $(basename "$tarball")..."
+        tar -C /opt/fboss -xf "$tarball"
+      done
     fi
     ;;
 
