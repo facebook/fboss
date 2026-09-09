@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -424,6 +426,103 @@ TEST_F(
   };
   auto verifyPostWarmboot = [this]() {
     verifyPortBoundAclAddedAfterWarmboot();
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+// A create-only profile change recreates the SAI ports. Their restrict and
+// block table bindings must be restored on the replacement port objects.
+TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclAfterPortRecreate) {
+  const auto& ports = masterLogicalPortIds();
+  ASSERT_GE(ports.size(), 4);
+  const auto restrictPort = ports[1];
+  const auto blockPort = ports[2];
+  // This test is enabled only on Cisco Q200 and reproduces the original
+  // 100G-to-200G port recreation that lost the ACL binding.
+  constexpr auto kRecreateProfile =
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER;
+
+  if (!getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::SAI_PORT_SPEED_CHANGE)) {
+    GTEST_SKIP() << "Port speed changes do not recreate SAI ports";
+  }
+
+  auto* platformMapping = getAgentEnsemble()->getPlatformMapping();
+  for (const auto& port : {restrictPort, blockPort}) {
+    const auto& platformPort = platformMapping->getPlatformPort(port);
+    const auto profileMatcher =
+        PlatformPortProfileConfigMatcher(kRecreateProfile, port);
+    if (platformPort.supportedProfiles()->find(kRecreateProfile) ==
+            platformPort.supportedProfiles()->end() ||
+        !platformMapping->getPortProfileConfig(profileMatcher)) {
+      GTEST_SKIP() << "Port " << port << " does not support profile "
+                   << apache::thrift::util::enumNameSafe(kRecreateProfile);
+    }
+    const auto portState = getProgrammedState()->getPorts()->getNode(port);
+    if (portState->getProfileID() == kRecreateProfile) {
+      GTEST_SKIP() << "Port " << port << " already uses the recreate profile";
+    }
+    if (portState->getSpeed() == cfg::PortSpeed::TWOHUNDREDG) {
+      GTEST_SKIP() << "Port " << port
+                   << " already uses a 200G profile, so the test cannot "
+                      "force a create-only speed change";
+    }
+  }
+
+  for (size_t i = 0; i < 4; ++i) {
+    const auto portGroup =
+        utility::getAllPortsInGroup(platformMapping, ports[i]);
+    for (size_t j = i + 1; j < 4; ++j) {
+      if (std::find(portGroup.begin(), portGroup.end(), ports[j]) !=
+          portGroup.end()) {
+        GTEST_SKIP() << "Selected traffic ports " << ports[i] << " and "
+                     << ports[j] << " share one port group";
+      }
+    }
+  }
+
+  auto setup = [=, this]() {
+    setupL3Forwarding();
+    configurePortBoundAcl(restrictPort, blockPort);
+  };
+  auto verify = [this]() {
+    XLOG(INFO) << "[PortBoundIngressAclRecreate][Before recreate] Verifying "
+                  "both port ACL bindings";
+    verifyPortBoundAcl();
+  };
+  auto setupPostWarmboot = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    for (const auto& port : {restrictPort, blockPort}) {
+      const auto portConfig = utility::findCfgPort(config, port);
+      ASSERT_TRUE(portConfig->profileID().has_value());
+      ASSERT_TRUE(portConfig->ingressAclTableName().has_value());
+      XLOG(INFO) << "[PortBoundIngressAclRecreate] Changing port " << port
+                 << " from profile "
+                 << apache::thrift::util::enumNameSafe(*portConfig->profileID())
+                 << " to "
+                 << apache::thrift::util::enumNameSafe(kRecreateProfile)
+                 << " while keeping ingress ACL table "
+                 << *portConfig->ingressAclTableName();
+      utility::configurePortProfile(
+          platformMapping,
+          getAgentEnsemble()->supportsAddRemovePort(),
+          config,
+          kRecreateProfile,
+          utility::getAllPortsInGroup(platformMapping, port),
+          port);
+    }
+    applyNewConfig(config);
+    for (const auto& port : {restrictPort, blockPort}) {
+      EXPECT_EQ(
+          getProgrammedState()->getPorts()->getNode(port)->getProfileID(),
+          kRecreateProfile);
+    }
+  };
+  auto verifyPostWarmboot = [this]() {
+    XLOG(INFO) << "[PortBoundIngressAclRecreate][After recreate] Verifying "
+                  "both recreated ports remain restricted";
+    verifyPortBoundAcl();
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
