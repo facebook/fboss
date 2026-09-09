@@ -1188,6 +1188,8 @@ template MultiSwitchLlrConfigMap* SwitchState::modify<
     switch_state_tags::llrCfgMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchDsfNodeMap* SwitchState::modify<
     switch_state_tags::dsfNodesMap>(std::shared_ptr<SwitchState>*);
+template MultiSwitchAclTableGroupMap* SwitchState::modify<
+    switch_state_tags::aclTableGroupMaps>(std::shared_ptr<SwitchState>*);
 
 template struct ThriftStructNode<SwitchState, state::SwitchState>;
 
