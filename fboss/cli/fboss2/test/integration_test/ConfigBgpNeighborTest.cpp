@@ -128,6 +128,45 @@ TEST_F(ConfigBgpNeighborTest, GracefulRestartKeepsInheritedHoldTime) {
   EXPECT_EQ((*peer)["bgp_peer_timers"]["graceful_restart_seconds"].asInt(), 60);
 }
 
+TEST_F(ConfigBgpNeighborTest, SessionKnobsAndCommit) {
+  // The per-session knobs bgpd resolves peer > group (remove-private-as,
+  // ttl-security-hops) reach the daemon's running config via the same path.
+  discardSession();
+  clearBgpSession();
+  stageNeighbor({kNeighbor, "remove-private-as", "true"});
+  stageNeighbor({kNeighbor, "ttl-security-hops", "2"});
+  commitAndGetSha();
+  ASSERT_TRUE(waitForBgpDaemonActive())
+      << "bgpd did not return active after commit; state="
+      << bgpDaemonActiveState();
+  auto running = readRunningBgpConfigViaRpc();
+  const auto* peer = findPeer(running, kNeighbor);
+  ASSERT_NE(peer, nullptr) << "bgpd's running config has no peer " << kNeighbor;
+  ASSERT_TRUE(peer->count("remove_private_as"));
+  EXPECT_TRUE((*peer)["remove_private_as"].asBool());
+  ASSERT_TRUE(peer->count("ttl_security_hops"));
+  EXPECT_EQ((*peer)["ttl_security_hops"].asInt(), 2);
+}
+
+TEST_F(ConfigBgpNeighborTest, RouteLimitWarningKeepsUnlimitedCap) {
+  // A warning threshold on a peer with no route limit above it must not
+  // introduce the 12000-route thrift default: bgpd reads max_routes 0 as
+  // unlimited, which is what the peer had before the edit.
+  discardSession();
+  clearBgpSession();
+  stageNeighbor({kNeighbor, "max-route", "pre-warning-threshold", "30000"});
+  commitAndGetSha();
+  ASSERT_TRUE(waitForBgpDaemonActive())
+      << "bgpd did not return active after commit; state="
+      << bgpDaemonActiveState();
+  auto running = readRunningBgpConfigViaRpc();
+  const auto* peer = findPeer(running, kNeighbor);
+  ASSERT_NE(peer, nullptr) << "bgpd's running config has no peer " << kNeighbor;
+  ASSERT_TRUE(peer->count("pre_filter"));
+  EXPECT_EQ((*peer)["pre_filter"]["max_routes"].asInt(), 0);
+  EXPECT_EQ((*peer)["pre_filter"]["warning_limit"].asInt(), 30000);
+}
+
 TEST_F(ConfigBgpNeighborTest, DeleteNeighborAndCommit) {
   // Land a neighbor in the system config, then delete it through a second
   // commit and verify it is gone from the promoted config.

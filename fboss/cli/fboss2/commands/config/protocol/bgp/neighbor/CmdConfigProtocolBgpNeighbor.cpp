@@ -53,6 +53,10 @@ constexpr std::string_view kRrClient = "rr-client";
 constexpr std::string_view kConfedPeer = "confed-peer";
 constexpr std::string_view kRedistributePeer = "redistribute-peer";
 constexpr std::string_view kEnhancedRouteRefresh = "enhanced-route-refresh";
+constexpr std::string_view kRouteRefresh = "route-refresh";
+constexpr std::string_view kRemovePrivateAs = "remove-private-as";
+constexpr std::string_view kEnforceFirstAs = "enforce-first-as";
+constexpr std::string_view kTtlSecurityHops = "ttl-security-hops";
 constexpr std::string_view kPassive = "passive";
 constexpr std::string_view kPeerPort = "peer-port";
 constexpr std::string_view kAddPathSend = "add-path send";
@@ -94,13 +98,20 @@ constexpr std::string_view kMaxRoutePreWarningOnly =
     "max-route pre-warning-only";
 constexpr std::string_view kMaxRoutePostWarningOnly =
     "max-route post-warning-only";
+// BgpPeer fields deliberately NOT exposed: `enabled` and `router_port_id`
+// (nothing in bgpd reads them) and
+// bgp_peer_timers.graceful_restart_end_of_rib_seconds (same). Staging them
+// would persist config the daemon ignores.
 
 // Protocol ranges bgpd enforces (or the wire format silently truncates to):
 // the OPEN hold time is 16 bits and bgpd refuses 1-2s; the graceful-restart
-// restart time is the 12-bit field of RFC 4724.
+// restart time is the 12-bit field of RFC 4724; TTL security hops are
+// bgpd's kMin/kMaxTtlSecurityHops (it throws on anything else at load).
 constexpr int32_t kHoldTimeMinSeconds = 3;
 constexpr int32_t kHoldTimeMaxSeconds = 65535;
 constexpr int32_t kGracefulRestartMaxSeconds = 4095;
+constexpr int32_t kTtlSecurityHopsMin = 1;
+constexpr int32_t kTtlSecurityHopsMax = 255;
 
 // Value placeholders for the generated help. One per value shape, so the
 // wording matches the factory that validates that shape.
@@ -118,6 +129,7 @@ constexpr std::string_view kUsageHoldTime = "<seconds: 0 or 3-65535>";
 constexpr std::string_view kUsageGracefulRestart = "<seconds: 0-4095>";
 constexpr std::string_view kUsageRouteCount = "<route-count>";
 constexpr std::string_view kUsageBitRate = "<bits-per-second>[K|M|G] | auto";
+constexpr std::string_view kUsageTtlHops = "<hops: 1-255>";
 
 using bgpcli::Tokens;
 using BgpConfig = bgp::thrift::BgpConfig;
@@ -128,6 +140,7 @@ using bgpcli::AttrHandler;
 using bgpcli::bitRateAttr;
 using bgpcli::boolAttr;
 using bgpcli::err;
+using bgpcli::intAttr;
 using bgpcli::ipAttr;
 using bgpcli::joinedStringAttr;
 using bgpcli::ok;
@@ -193,9 +206,27 @@ void setEnhancedRouteRefresh(BgpPeer& p, bool v) {
   p.enhanced_route_refresh() = v;
 }
 
+void setRouteRefresh(BgpPeer& p, bool v) {
+  p.route_refresh() = v;
+}
+
+void setRemovePrivateAs(BgpPeer& p, bool v) {
+  p.remove_private_as() = v;
+}
+
+void setEnforceFirstAs(BgpPeer& p, bool v) {
+  p.enforce_first_as() = v;
+}
+
+void setTtlSecurityHops(BgpPeer& p, int32_t v) {
+  p.ttl_security_hops() = v;
+}
+
 // bgpd reads is_passive=true as PASSIVE_ONLY (listen) and false as
-// PASSIVE_ACTIVE (listen and connect); there is no active-only mode, so the
-// CLI exposes the flag itself rather than inventing connect-mode names.
+// PASSIVE_ACTIVE (listen and connect). Its session code also knows an
+// ACTIVE_ONLY mode, but the config model has no way to request it (the mode
+// is derived from is_passive alone), so the CLI exposes the flag itself
+// rather than inventing connect-mode names.
 void setPassive(BgpPeer& p, bool v) {
   p.is_passive() = v;
 }
@@ -344,9 +375,18 @@ void seedRouteLimit(const BgpConfig& cfg, BgpPeer& peer, bool pre) {
   }
   if (const auto* group = peerGroupOf(cfg, peer); group && field(*group)) {
     field(peer) = *field(*group);
+    return;
   }
-  // Otherwise the setter's ensure() yields the RouteLimit thrift defaults,
-  // which is also what bgpd applies to a peer without one.
+  // No limit anywhere above: bgpd applies none to a peer without a struct
+  // (capRoutesPerPeer returns early) and reads max_routes == 0 as unlimited,
+  // so seed that. The thrift default the setter's ensure() would leave behind
+  // is a 12000-route hard cap with session teardown -- a warning-only or
+  // threshold edit must not introduce one.
+  bgp::thrift::RouteLimit unlimited;
+  unlimited.max_routes() = 0;
+  unlimited.warning_only() = false;
+  unlimited.warning_limit() = 0;
+  field(peer) = std::move(unlimited);
 }
 
 // A neighbor handler sees the whole config (for the peer group lookup) plus
@@ -531,6 +571,24 @@ const std::map<std::string, NeighborAttr, std::less<>>& attrHandlers() {
        plain(
            kUsageBool,
            boolAttr<BgpPeer>(kEnhancedRouteRefresh, setEnhancedRouteRefresh))},
+      {std::string(kRouteRefresh),
+       plain(kUsageBool, boolAttr<BgpPeer>(kRouteRefresh, setRouteRefresh))},
+      {std::string(kRemovePrivateAs),
+       plain(
+           kUsageBool,
+           boolAttr<BgpPeer>(kRemovePrivateAs, setRemovePrivateAs))},
+      {std::string(kEnforceFirstAs),
+       plain(
+           kUsageBool, boolAttr<BgpPeer>(kEnforceFirstAs, setEnforceFirstAs))},
+      {std::string(kTtlSecurityHops),
+       plain(
+           kUsageTtlHops,
+           intAttr<BgpPeer>(
+               kTtlSecurityHops,
+               "1-255",
+               kTtlSecurityHopsMin,
+               kTtlSecurityHopsMax,
+               setTtlSecurityHops))},
       {std::string(kPassive),
        plain(kUsageBool, boolAttr<BgpPeer>(kPassive, setPassive))},
       {std::string(kPeerPort), rejected(kPeerPort, kNoPeerPortField)},
