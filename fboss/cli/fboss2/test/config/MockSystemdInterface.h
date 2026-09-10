@@ -45,6 +45,11 @@ class MockSystemdInterface : public SystemdInterface {
       waitForServiceActive,
       (const std::string& serviceName, int maxWaitSeconds, int pollIntervalMs),
       (override));
+  MOCK_METHOD(
+      void,
+      waitForServiceInactive,
+      (const std::string& serviceName, int maxWaitSeconds, int pollIntervalMs),
+      (override));
 };
 
 } // namespace facebook::fboss
