@@ -22,6 +22,9 @@ cfg::Port createDefaultPortConfig(
     PortID id,
     cfg::PortProfileID profileID,
     int32_t ingressVlan) {
+  if (!platformMapping) {
+    throw FbossError("Platform mapping must not be null");
+  }
   cfg::Port port;
   const auto& mapping = *platformMapping->getPlatformPort(id).mapping();
   port.name() = *mapping.name();

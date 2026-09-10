@@ -1071,10 +1071,12 @@ cpp_library(
 cpp_library(
     name = "fboss2-config-gen-lib",
     srcs = [
+        "commands/config/gen/FeatureDefaultCommandArgs.cpp",
         "commands/config/gen/PlatformConfigPathUtils.cpp",
         "commands/config/gen/agent/AgentConfigGenUtils.cpp",
     ],
     headers = [
+        "commands/config/gen/FeatureDefaultCommandArgs.h",
         "commands/config/gen/PlatformConfigPathUtils.h",
         "commands/config/gen/agent/AgentConfigGenUtils.h",
     ],
@@ -1088,9 +1090,12 @@ cpp_library(
         "//folly:file_util",
         "//folly/json:dynamic",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [
         "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/configs/platforms/generic/forwarding_stacks:feature_default_command_args-cpp2-types",
         "//fboss/lib/platforms:platform_descriptor_thrift-cpp2-types",
     ],
 )
