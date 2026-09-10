@@ -516,6 +516,9 @@ class HwAsic {
     SAI_PORT_IN_CONGESTION_DISCARDS,
     TEMPERATURE_MONITORING,
     ROUTER_INTERFACE_STATISTICS,
+    // Set to true if router interfaces can be bound directly to aggregate
+    // ports (non-VLAN router interfaces on LAGs).
+    AGGREGATE_PORT_ROUTER_INTERFACE,
     CPU_PORT_EGRESS_BUFFER_POOL,
     TECH_SUPPORT,
     DRAM_QUARANTINED_BUFFER_STATS,
