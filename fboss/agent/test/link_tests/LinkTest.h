@@ -61,7 +61,9 @@ class LinkTest : public AgentTest {
    * their names.
    */
   std::tuple<std::vector<PortID>, std::string>
-  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
+  getOpticalAndActiveCabledPortsAndNames(
+      bool pluggableOnly = false,
+      bool opticalOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.

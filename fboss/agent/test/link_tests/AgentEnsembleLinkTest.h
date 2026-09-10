@@ -57,10 +57,14 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   std::set<std::pair<PortID, PortID>> getConnectedPairs() const;
 
   /*
-   * Return plugged in optical transceivers and their names.
+   * Return plugged in optical transceivers and their names. Active electrical
+   * cables are included too, unless opticalOnly is set, which restricts the
+   * result to transceivers reporting TransmitterTechnology::OPTICAL.
    */
   std::tuple<std::vector<PortID>, std::string>
-  getOpticalAndActiveCabledPortsAndNames(bool pluggableOnly = false) const;
+  getOpticalAndActiveCabledPortsAndNames(
+      bool pluggableOnly = false,
+      bool opticalOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.

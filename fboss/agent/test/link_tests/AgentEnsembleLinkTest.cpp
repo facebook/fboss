@@ -311,7 +311,8 @@ void AgentEnsembleLinkTest::reinitializeCabledPorts() {
 
 std::tuple<std::vector<PortID>, std::string>
 AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
-    bool pluggableOnly) const {
+    bool pluggableOnly,
+    bool opticalOnly) const {
   std::string portNames;
   std::vector<PortID> ports;
   std::vector<int32_t> transceiverIds;
@@ -347,8 +348,13 @@ AgentEnsembleLinkTest::getOpticalAndActiveCabledPortsAndNames(
       } else if (
           tcvrState.cable().value_or({}).mediaTypeEncoding() ==
           MediaTypeEncodings::ACTIVE_CABLES) {
-        ports.push_back(port);
-        portNames += portName + " ";
+        if (opticalOnly) {
+          XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                     << ", is an active cable, skip it (opticalOnly)";
+        } else {
+          ports.push_back(port);
+          portNames += portName + " ";
+        }
       } else {
         XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
