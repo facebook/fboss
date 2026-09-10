@@ -12,7 +12,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/platforms/common/m5120csc/M5120CSCPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
@@ -50,8 +49,6 @@ std::unique_ptr<PlatformMapping> createGenericSaiTajoPlatformMapping(
   }
 
   switch (type) {
-    case PlatformType::PLATFORM_M5120CSC:
-      return std::make_unique<M5120CSCPlatformMapping>();
     case PlatformType::PLATFORM_MORGAN800CC:
       return std::make_unique<Morgan800ccPlatformMapping>();
     case PlatformType::PLATFORM_WEDGE800CACT:
