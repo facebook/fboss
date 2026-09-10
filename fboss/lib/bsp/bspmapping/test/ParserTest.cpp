@@ -136,106 +136,130 @@ TEST(ParserTest, GetBspPlatformMappingFromCsvTest) {
       facebook::fboss::ResetAndPresenceAccessType::CPLD);
 
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .reset()
-          .value()
-          .get_sysfsPath() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .reset()
+                                      .value()
+                                      .sysfsPath()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .reset()
-           .value()
-           .get_sysfsPath(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .reset()
+                                    .value()
+                                    .sysfsPath()
+                                    .value()),
       "/run/devmap/xcvrs/xcvr_ctrl_1/xcvr_reset_1");
   EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().reset().value().get_mask() !=
+      apache::thrift::get_pointer(
+          tcvrMapping.at(1).accessControl().value().reset().value().mask()) !=
       nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().reset().value().get_mask(), 1);
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .reset()
+                                    .value()
+                                    .mask()
+                                    .value()),
+      1);
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .reset()
-          .value()
-          .get_gpioOffset() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .reset()
+                                      .value()
+                                      .gpioOffset()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .reset()
-           .value()
-           .get_gpioOffset(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .reset()
+                                    .value()
+                                    .gpioOffset()
+                                    .value()),
       0);
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .reset()
-          .value()
-          .get_resetHoldHi() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .reset()
+                                      .value()
+                                      .resetHoldHi()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .reset()
-           .value()
-           .get_resetHoldHi(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .reset()
+                                    .value()
+                                    .resetHoldHi()
+                                    .value()),
       1);
 
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .presence()
-          .value()
-          .get_sysfsPath() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .presence()
+                                      .value()
+                                      .sysfsPath()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .presence()
-           .value()
-           .get_sysfsPath(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .presence()
+                                    .value()
+                                    .sysfsPath()
+                                    .value()),
       "/run/devmap/cplds/JANGA_SMB_CPLD/xcvr_present_1");
   EXPECT_TRUE(
-      tcvrMapping.at(1).accessControl().value().presence().value().get_mask() !=
-      nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .presence()
+                                      .value()
+                                      .mask()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1).accessControl().value().presence().value().get_mask(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .presence()
+                                    .value()
+                                    .mask()
+                                    .value()),
       1);
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .presence()
-          .value()
-          .get_gpioOffset() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .presence()
+                                      .value()
+                                      .gpioOffset()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .presence()
-           .value()
-           .get_gpioOffset(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .presence()
+                                    .value()
+                                    .gpioOffset()
+                                    .value()),
       0);
   EXPECT_TRUE(
-      tcvrMapping.at(1)
-          .accessControl()
-          .value()
-          .presence()
-          .value()
-          .get_presentHoldHi() != nullptr);
+      apache::thrift::get_pointer(tcvrMapping.at(1)
+                                      .accessControl()
+                                      .value()
+                                      .presence()
+                                      .value()
+                                      .presentHoldHi()) != nullptr);
   EXPECT_EQ(
-      *tcvrMapping.at(1)
-           .accessControl()
-           .value()
-           .presence()
-           .value()
-           .get_presentHoldHi(),
+      apache::thrift::can_throw(tcvrMapping.at(1)
+                                    .accessControl()
+                                    .value()
+                                    .presence()
+                                    .value()
+                                    .presentHoldHi()
+                                    .value()),
       1);
 
   EXPECT_TRUE(
