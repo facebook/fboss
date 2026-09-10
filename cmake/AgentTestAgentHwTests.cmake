@@ -202,6 +202,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentPfcConfigTest.cpp
   fboss/agent/test/agent_hw_tests/AgentPfcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentCsigTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6BindingSidTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6EncapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6DecapTests.cpp
@@ -265,6 +266,7 @@ target_link_libraries(agent_hw_test_src
   route_scale_gen
   route_test_utils
   srv6_test_utils
+  csig_test_utils
   switch_asics
   trunk_test_utils
   resourcelibutil
@@ -393,6 +395,17 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--no-whole-archive
   )
 
+  if(SAI_TAJO_IMPL)
+  # Link libraries only under TAJO_SAI_SDK
+  target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif()
+
   set_target_properties(sai_agent_hw_test-${SAI_IMPL_NAME}
     PROPERTIES COMPILE_FLAGS
     "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
@@ -420,6 +433,18 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}
   )
+
+  if(SAI_TAJO_IMPL)
+  # Link libraries only under TAJO_SAI_SDK
+  target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
+    ${GRPC}
+    ${ABSL_SYNCHRONIZATION}
+    ${PROTOBUF}
+    ${LIBNL3}
+    ${LIBNL_GENL3}
+  )
+  endif()
+
 endfunction()
 
 if(BUILD_SAI_FAKE)
@@ -438,4 +463,7 @@ if(SAI_IMPL)
   install(
     TARGETS
     sai_agent_hw_test-sai_impl)
+  install(
+    TARGETS
+    sai_agent_scale_test-sai_impl)
 endif()

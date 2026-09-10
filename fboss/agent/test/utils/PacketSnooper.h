@@ -54,22 +54,30 @@ class PacketSnooper : public PacketObserverIf {
   virtual ~PacketSnooper() override {
     if (!ignoreUnclaimedRxPkts_) {
       EXPECT_TRUE(receivedFrames_.empty());
+      EXPECT_TRUE(receivedRawPackets_.empty());
     }
   }
   // Wait until timeout (seconds), If timeout = 0, wait forever.
   std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
+  // Prefer unparsed raw frames (e.g. CSIG 0x9900), else serialize parsed
+  // EthFrame.
+  std::optional<std::unique_ptr<folly::IOBuf>> waitForPacketBuf(
+      uint32_t timeout_s = 0);
   void ignoreUnclaimedRxPkts() {
     ignoreUnclaimedRxPkts_ = true;
   }
+
+ protected:
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
+  std::queue<std::unique_ptr<folly::IOBuf>> receivedRawPackets_;
 
  private:
   packetSnooperReceivePacketType receivePktType_;
   std::optional<PortID> port_;
   std::optional<utility::EthFrame> expectedFrame_;
   PacketComparatorFn packetComparator_;
-  std::mutex mtx_;
-  std::condition_variable cv_;
-  std::queue<std::unique_ptr<utility::EthFrame>> receivedFrames_;
   bool ignoreUnclaimedRxPkts_{false};
 };
 

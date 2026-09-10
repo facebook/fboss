@@ -18,6 +18,31 @@ cpp_library(
 )
 
 cpp_library(
+    name = "csig_test_utils",
+    srcs = [
+        "CsigTestUtils.cpp",
+    ],
+    headers = [
+        "CsigTestUtils.h",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:packet",
+        "//fboss/agent/hw/sai/api:sai_api",
+        "//fboss/agent/hw/sai/switch:sai_switch",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:pkt_factory",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//folly:network_address",
+    ],
+)
+
+cpp_library(
     name = "srv6_test_utils",
     srcs = [
         "Srv6TestUtils.cpp",
