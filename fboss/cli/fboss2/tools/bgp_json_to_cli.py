@@ -366,15 +366,27 @@ def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
 
 
 # (json field, CLI attribute) — PeerGroup-only fields whose value maps 1:1
-# onto a peer-group attribute token.
+# onto a peer-group attribute token. Deprecated i32 ASNs map to the 4-byte
+# attribute, as for neighbors. PeerGroup also carries local_addr, next_hop4,
+# next_hop6, enabled and router_port_id, but bgpd reads none of them from a
+# group (the first three per peer only, the last two nowhere), so the
+# dispatcher has no attribute for them and they are flagged instead.
 _PEER_GROUP_SCALAR_FIELDS = [
     ("remote_as_4_byte", "remote-asn"),
+    ("remote_as", "remote-asn"),
     ("local_as_4_byte", "local-asn"),
+    ("local_as", "local-asn"),
     ("description", "description"),
     ("peer_tag", "peer-tag"),
     ("ingress_policy_name", "ingress-policy"),
     ("egress_policy_name", "egress-policy"),
 ]
+
+_PEER_GROUP_HANDLED_FIELDS = (
+    {"name"}
+    | {field for field, _ in _PEER_GROUP_SCALAR_FIELDS}
+    | _SHARED_HANDLED_FIELDS
+)
 
 
 def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
@@ -389,7 +401,9 @@ def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
         return []
 
     prefix = f"config protocol bgp peer-group {escape_shell_arg(name)}"
-    commands = []
+    commands = _unconverted_field_warnings(
+        peer_group, _PEER_GROUP_HANDLED_FIELDS, f"peer-group {_printable(name)}"
+    )
     commands.extend(
         _generate_scalar_commands(peer_group, prefix, _PEER_GROUP_SCALAR_FIELDS)
     )
