@@ -2494,7 +2494,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
             lastSysPmdState,
             lastSysPmdStats,
             portID,
-            false /* readSerdesParams */);
+            readSerdesParams);
       }
 
 #if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -2549,16 +2549,16 @@ void SaiSwitch::updatePmdInfo(
     [[maybe_unused]] phy::PmdStats& lastPmdStats,
     [[maybe_unused]] PortID portID,
     bool readSerdesParams) {
-  uint32_t numPmdLanes;
+  std::vector<uint32_t> pmdLanes;
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
     // HwLaneList might mean physical port list instead of pmd lane list on
-    // TH4 So, use getNumPmdLanes() to get the number of pmd lanes
-    numPmdLanes =
-        managerTable_->portManager().getNumPmdLanes(port->adapterKey());
+    // TH4 So, use getPmdLaneList() to get the pmd lanes
+    pmdLanes = managerTable_->portManager().getPmdLaneList(port->adapterKey());
   } else {
-    numPmdLanes = GET_ATTR(Port, HwLaneList, port->attributes()).size();
+    pmdLanes = GET_ATTR(Port, HwLaneList, port->attributes());
   }
+  uint32_t numPmdLanes = pmdLanes.size();
   if (!numPmdLanes) {
     return;
   }
@@ -2680,28 +2680,55 @@ void SaiSwitch::updatePmdInfo(
   }
 #endif
 
+  // Serdes parameters need BRCM_SAI_SDK_GTE_13_0 plus the RX_SERDES_PARAMETERS
+  // feature; where they are unavailable the TX FIR taps still read, but
+  // nothing supplies a lane label for them, so fall back to the pmd lane list.
+  const bool haveSerdesParams =
+      managerTable_->portManager().rxSerdesParametersSupported();
   std::vector<phy::SerdesParameters> pmdSerdesParameters;
   std::vector<phy::TxSettings> pmdTxSettings;
+  std::vector<int> txLaneLabels;
   if (readSerdesParams && serdes) {
-    pmdSerdesParameters = managerTable_->portManager().getSerdesParameters(
-        serdes->adapterKey(), portID, numPmdLanes);
+    if (haveSerdesParams) {
+      pmdSerdesParameters = managerTable_->portManager().getSerdesParameters(
+          serdes->adapterKey(), portID, numPmdLanes);
+    }
     pmdTxSettings = managerTable_->portManager().getTxSettings(
         serdes->adapterKey(), portID, numPmdLanes);
+    if (!haveSerdesParams) {
+      txLaneLabels.assign(pmdLanes.begin(), pmdLanes.end());
+    }
   } else {
     // Use the previous state
-    for (const auto& [_, laneState] : *lastPmdState.lanes()) {
-      pmdSerdesParameters.push_back(*laneState.serdesParameters());
+    for (const auto& [laneId, laneState] : *lastPmdState.lanes()) {
+      if (haveSerdesParams) {
+        pmdSerdesParameters.push_back(*laneState.serdesParameters());
+        pmdTxSettings.push_back(*laneState.txSettings());
+        continue;
+      }
+      // txSettings is a non-optional field, so dereferencing an unset one
+      // yields a zeroed struct rather than throwing; skip lanes never read.
+      if (!apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+              laneState.txSettings())) {
+        continue;
+      }
       pmdTxSettings.push_back(*laneState.txSettings());
+      txLaneLabels.push_back(laneId);
     }
   }
-  for (int l = 0; l < pmdSerdesParameters.size(); l++) {
-    auto laneId = *pmdSerdesParameters[l].lane();
+  auto numEntries =
+      haveSerdesParams ? pmdSerdesParameters.size() : pmdTxSettings.size();
+  for (size_t l = 0; l < numEntries; l++) {
+    auto laneId =
+        haveSerdesParams ? *pmdSerdesParameters[l].lane() : txLaneLabels[l];
     phy::LaneState laneState;
     if (laneStates.find(laneId) != laneStates.end()) {
       laneState = laneStates[laneId];
     }
     laneState.lane() = laneId;
-    laneState.serdesParameters() = pmdSerdesParameters[l];
+    if (haveSerdesParams) {
+      laneState.serdesParameters() = pmdSerdesParameters[l];
+    }
     if (l < pmdTxSettings.size()) {
       laneState.txSettings() = pmdTxSettings[l];
     }

@@ -4455,6 +4455,11 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
 }
 
 uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
+  return getPmdLaneList(saiPortId).size();
+}
+
+std::vector<uint32_t> SaiPortManager::getPmdLaneList(
+    PortSaiId saiPortId) const {
 #if defined(BRCM_SAI_SDK_XGS)
   std::vector<uint32_t> lanes;
   if (hwLaneListIsPmdLaneList_) {
@@ -4468,7 +4473,7 @@ uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
   auto lanes = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::HwLaneList{});
 #endif
-  return lanes.size();
+  return lanes;
 }
 
 void SaiPortManager::resetQueues() {
