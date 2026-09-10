@@ -59,13 +59,16 @@ class RecordingGenerator(BaseAsicConfigGenerator):
             raise ValueError(f"{name}: {key} is not a string")
 
 
-def entry(
-    name: str, condition: dict[str, Any] | None = None, **effects: Any
-) -> dict[str, Any]:
-    result: dict[str, Any] = {"name": name, **effects}
-    if condition is not None:
-        result["condition"] = condition
-    return result
+# A condition that holds for every test variant: the parameter is never
+# declared, so it evaluates as None and satisfies the negative operator.
+# Passed explicitly by tests whose subject is effects or ordering rather
+# than condition evaluation.
+_HOLDS: dict[str, Any] = {"param": "_test_param_not_set", "not_equals": "_sentinel"}
+
+
+def entry(name: str, condition: dict[str, Any], **effects: Any) -> dict[str, Any]:
+    """Build an entry; the condition is required, mirroring the schema."""
+    return {"name": name, "condition": condition, **effects}
 
 
 def matches(condition: dict[str, Any], params: dict[str, Any]) -> bool:
@@ -124,8 +127,20 @@ class ConditionEvaluationTest(unittest.TestCase):
         )
         self.assertEqual(len(generator._matching_conditional_settings()), 1)
 
-    def test_entry_without_condition_always_applies(self) -> None:
-        self.assertTrue(matches({}, {}))
+    def test_entry_without_condition_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            RecordingGenerator(
+                {
+                    "conditional_settings": [
+                        {"name": "bare", "apply": {"common": {"k": "v"}}}
+                    ]
+                },
+                {},
+            )
+
+    def test_entry_with_empty_condition_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            matches({}, {})
 
     def test_unknown_source_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
@@ -144,15 +159,20 @@ class EffectTest(unittest.TestCase):
             {
                 "block": {"from_block": "1"},
                 "conditional_settings": [
-                    entry("a1", apply={"common": {"a1": "1"}}),
+                    entry("a1", _HOLDS, apply={"common": {"a1": "1"}}),
                     entry(
                         "a2",
+                        _HOLDS,
                         apply={"common": {"a2": "1"}},
                         apply_from={"source": "block", "target_table": "common"},
                     ),
                 ],
             },
-            {"conditional_settings": [entry("p1", apply={"common": {"p1": "1"}})]},
+            {
+                "conditional_settings": [
+                    entry("p1", _HOLDS, apply={"common": {"p1": "1"}})
+                ]
+            },
         )
         generator.generate()
         self.assertEqual(
@@ -167,8 +187,12 @@ class EffectTest(unittest.TestCase):
 
     def test_collect_effect_values_spans_both_scopes(self) -> None:
         generator = RecordingGenerator(
-            {"conditional_settings": [entry("a", skip_from_sai_common=["x"])]},
-            {"conditional_settings": [entry("p", skip_from_sai_common=["y", "z"])]},
+            {"conditional_settings": [entry("a", _HOLDS, skip_from_sai_common=["x"])]},
+            {
+                "conditional_settings": [
+                    entry("p", _HOLDS, skip_from_sai_common=["y", "z"])
+                ]
+            },
         )
         self.assertEqual(
             generator._collect_effect_values("skip_from_sai_common"), ["x", "y", "z"]
@@ -211,7 +235,12 @@ class EagerValidationTest(unittest.TestCase):
     def test_unknown_target_rejected(self) -> None:
         with self.assertRaises(ValueError):
             RecordingGenerator(
-                {"conditional_settings": [entry("x", apply={"bogus": {"k": "v"}})]}, {}
+                {
+                    "conditional_settings": [
+                        entry("x", _HOLDS, apply={"bogus": {"k": "v"}})
+                    ]
+                },
+                {},
             )
 
     def test_missing_apply_from_source_rejected(self) -> None:
@@ -221,6 +250,7 @@ class EagerValidationTest(unittest.TestCase):
                     "conditional_settings": [
                         entry(
                             "x",
+                            _HOLDS,
                             apply_from={"source": "missing", "target_table": "common"},
                         )
                     ]
@@ -231,7 +261,7 @@ class EagerValidationTest(unittest.TestCase):
     def test_empty_settings_rejected(self) -> None:
         with self.assertRaises(ValueError):
             RecordingGenerator(
-                {"conditional_settings": [entry("x", apply={"common": {}})]}, {}
+                {"conditional_settings": [entry("x", _HOLDS, apply={"common": {}})]}, {}
             )
 
     def test_entry_without_effect_rejected(self) -> None:
@@ -253,7 +283,7 @@ class EagerValidationTest(unittest.TestCase):
                 RecordingGenerator(
                     {
                         "block": {"k": "v"},
-                        "conditional_settings": [entry("x", **effects)],
+                        "conditional_settings": [entry("x", _HOLDS, **effects)],
                     },
                     {},
                 )
@@ -261,12 +291,17 @@ class EagerValidationTest(unittest.TestCase):
     def test_value_validation_hook(self) -> None:
         with self.assertRaises(ValueError):
             RecordingGenerator(
-                {"conditional_settings": [entry("x", apply={"common": {"k": 1}})]},
+                {
+                    "conditional_settings": [
+                        entry("x", _HOLDS, apply={"common": {"k": 1}})
+                    ]
+                },
                 {},
                 strings_only=True,
             )
         RecordingGenerator(
-            {"conditional_settings": [entry("x", apply={"common": {"k": 1}})]}, {}
+            {"conditional_settings": [entry("x", _HOLDS, apply={"common": {"k": 1}})]},
+            {},
         )
 
 

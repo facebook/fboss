@@ -131,7 +131,7 @@ class BaseAsicConfigGenerator(ABC):
                     )
             if not any(effect in entry for effect in self.SUPPORTED_EFFECTS):
                 raise ValueError(f"Conditional setting '{name}' declares no effect")
-            self._validate_condition(name, entry.get("condition", {}))
+            self._validate_condition(name, entry.get("condition"))
             if "apply" in entry:
                 apply = entry["apply"]
                 if not isinstance(apply, dict) or not apply:
@@ -173,10 +173,13 @@ class BaseAsicConfigGenerator(ABC):
                         "skip_from_sai_common keys as a non-empty array of strings"
                     )
 
-    def _validate_condition(self, name: str, condition: dict[str, Any]) -> None:
+    def _validate_condition(self, name: str, condition: dict[str, Any] | None) -> None:
         """Raise ValueError unless the condition names a parameter and one operator."""
         if not condition:
-            return
+            raise ValueError(
+                f"Conditional setting '{name}' has no condition; unconditional "
+                "settings belong in the unconditional layers"
+            )
         source = condition.get("source", "asic_config_params")
         if source not in _CONDITION_SOURCES:
             raise ValueError(
@@ -205,13 +208,9 @@ class BaseAsicConfigGenerator(ABC):
     def _evaluate_condition(self, condition: dict[str, Any]) -> bool:
         """Evaluate a condition against this variant.
 
-        An empty condition always holds. An absent parameter evaluates as
-        None, so each negative operator is the strict complement of its
-        positive counterpart.
+        An absent parameter evaluates as None, so each negative operator is
+        the strict complement of its positive counterpart.
         """
-        if not condition:
-            return True
-
         source = condition.get("source", "asic_config_params")
         param = condition["param"]
         if source == "asic_config_params":
@@ -235,7 +234,7 @@ class BaseAsicConfigGenerator(ABC):
             self._active_conditional_settings = [
                 entry
                 for entry in self._conditional_setting_entries()
-                if self._evaluate_condition(entry.get("condition", {}))
+                if self._evaluate_condition(entry["condition"])
             ]
         return self._active_conditional_settings
 
