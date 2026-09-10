@@ -573,14 +573,19 @@ std::set<std::pair<PortID, PortID>> AgentEnsembleLinkTest::getConnectedPairs()
  * Returns the set of connected port pairs with optical link and the optics
  * supporting the given feature. For feature==None, this will return set of
  * connected port pairs using optical links
+ *
+ * opticalModulesOnly restricts the candidate ports to optical transceivers,
+ * excluding active electrical cables.
  */
 std::set<std::pair<PortID, PortID>>
 AgentEnsembleLinkTest::getConnectedOpticalAndActivePortPairWithFeature(
     TransceiverFeature feature,
     phy::Side side,
-    bool skipLoopback) const {
+    bool skipLoopback,
+    bool opticalModulesOnly) const {
   auto connectedPairs = getConnectedPairs();
-  auto ports = std::get<0>(getOpticalAndActiveCabledPortsAndNames(false));
+  auto ports = std::get<0>(
+      getOpticalAndActiveCabledPortsAndNames(false, opticalModulesOnly));
 
   std::set<std::pair<PortID, PortID>> connectedOpticalPortPairs;
   for (auto connectedPair : connectedPairs) {

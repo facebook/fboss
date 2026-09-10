@@ -145,7 +145,8 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   getConnectedOpticalAndActivePortPairWithFeature(
       TransceiverFeature feature,
       phy::Side side,
-      bool skipLoopback = false) const;
+      bool skipLoopback = false,
+      bool opticalModulesOnly = false) const;
 
   void waitForLldpOnCabledPorts(
       uint32_t retries = 60,
