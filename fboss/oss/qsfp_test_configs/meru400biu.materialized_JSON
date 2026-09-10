@@ -407,6 +407,30 @@
             }
           ]
       },
+      "FTCF2519E3PCAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
       "FTCF4719E6PCB-FB": {
           "versions": [
             {
@@ -652,6 +676,22 @@
           ]
       },
       "T-RH8ENH-N00": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.247"
+            }
+          ]
+      },
+      "T-RH8ENH-NBM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "86.247"
+            }
+          ]
+      },
+      "T-RH8ENH-NBY": {
           "versions": [
             {
               "fwType": 1,
