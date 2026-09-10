@@ -20,6 +20,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleFabricLinkTests.cpp
   fboss/agent/test/link_tests/AgentEnsembleQsfpFsdbTests.cpp
   fboss/agent/test/link_tests/AgentEnsembleLinkDebounceTests.cpp
+  fboss/agent/test/link_tests/AgentEnsembleLoopbackTest.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
