@@ -132,15 +132,19 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
         aclTableName.str();
   }
 
-  void configurePortBoundAcl(PortID restrictPort, PortID blockPort) {
+  void configurePortBoundAcl(
+      const std::vector<PortID>& restrictPorts,
+      PortID blockPort) {
     auto config = initialConfig(*getAgentEnsemble());
     addPortBoundAclTableGroup(&config);
-    bindPortToAclTable(&config, restrictPort, kRestrictAclTableName);
+    for (const auto& restrictPort : restrictPorts) {
+      bindPortToAclTable(&config, restrictPort, kRestrictAclTableName);
+    }
     bindPortToAclTable(&config, blockPort, kBlockAclTableName);
 
     XLOG(INFO) << "Configuring port-bound ingress ACL group "
-               << kAclTableGroupName << ": port " << restrictPort
-               << " -> table " << kRestrictAclTableName << ", port "
+               << kAclTableGroupName << ": " << restrictPorts.size()
+               << " port(s) -> table " << kRestrictAclTableName << ", port "
                << blockPort << " -> table " << kBlockAclTableName;
     applyNewConfig(config);
   }
@@ -340,6 +344,81 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
     verifyUnboundPacket(unboundPort, kDeniedL4DstPort);
   }
 
+  void replaceRestrictAclTableWithBlockAclTable() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    const auto& ports = masterLogicalPortIds();
+
+    for (const auto& restrictPort : {ports[1], ports[3]}) {
+      bindPortToAclTable(&config, restrictPort, kBlockAclTableName);
+    }
+    utility::delAclStat(
+        &config, kRestrictPermitAclName, kRestrictPermitCounterName);
+    utility::delAclStat(
+        &config, kRestrictDenyAclName, kRestrictDenyCounterName);
+    utility::delAclTable(&config, kRestrictAclTableName);
+
+    XLOG(INFO) << "[PortBoundIngressAclReplace] Rebinding ports " << ports[1]
+               << " and " << ports[3] << " from " << kRestrictAclTableName
+               << " to " << kBlockAclTableName << " and removing "
+               << kRestrictAclTableName << " in the same config update";
+    applyNewConfig(config);
+  }
+
+  void verifyPortUsesBlockAclTable(PortID ingressPort) {
+    ASSERT_EQ(
+        getProgrammedState()
+            ->getPorts()
+            ->getNode(ingressPort)
+            ->getIngressAclTableName(),
+        kBlockAclTableName);
+    verifyAclPacket(
+        "Rebound port block permit",
+        ingressPort,
+        kBlockPermitL4DstPort,
+        kBlockPermitCounterName,
+        kBlockDenyCounterName,
+        true);
+    verifyAclPacket(
+        "Rebound port block deny",
+        ingressPort,
+        kRestrictPermitL4DstPort,
+        kBlockPermitCounterName,
+        kBlockDenyCounterName,
+        false);
+  }
+
+  void verifyReplacementSetup() {
+    const auto& ports = masterLogicalPortIds();
+    for (const auto& restrictPort : {ports[1], ports[3]}) {
+      ASSERT_EQ(
+          getProgrammedState()
+              ->getPorts()
+              ->getNode(restrictPort)
+              ->getIngressAclTableName(),
+          kRestrictAclTableName);
+    }
+    ASSERT_EQ(
+        getProgrammedState()
+            ->getPorts()
+            ->getNode(ports[2])
+            ->getIngressAclTableName(),
+        kBlockAclTableName);
+  }
+
+  void verifyReplacement() {
+    const auto& ports = masterLogicalPortIds();
+    const auto aclTableGroup =
+        getProgrammedState()->getAclTableGroups()->getNodeIf(
+            cfg::AclStage::INGRESS);
+    ASSERT_NE(aclTableGroup, nullptr);
+    ASSERT_EQ(
+        aclTableGroup->getAclTableMap()->getTableIf(kRestrictAclTableName),
+        nullptr);
+    for (const auto& port : {ports[1], ports[2], ports[3]}) {
+      verifyPortUsesBlockAclTable(port);
+    }
+  }
+
   void verifyPortBoundAcl() {
     const auto& ports = masterLogicalPortIds();
     const auto restrictPort = ports[1];
@@ -404,7 +483,8 @@ class AgentPortBoundIngressAclTest : public AgentHwTest {
 TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclTraffic) {
   auto setup = [this]() {
     setupL3Forwarding();
-    configurePortBoundAcl(masterLogicalPortIds()[1], masterLogicalPortIds()[2]);
+    configurePortBoundAcl(
+        {masterLogicalPortIds()[1]}, masterLogicalPortIds()[2]);
   };
   auto verify = [this]() { verifyPortBoundAcl(); };
 
@@ -484,7 +564,7 @@ TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclAfterPortRecreate) {
 
   auto setup = [=, this]() {
     setupL3Forwarding();
-    configurePortBoundAcl(restrictPort, blockPort);
+    configurePortBoundAcl({restrictPort}, blockPort);
   };
   auto verify = [this]() {
     XLOG(INFO) << "[PortBoundIngressAclRecreate][Before recreate] Verifying "
@@ -524,6 +604,25 @@ TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclAfterPortRecreate) {
                   "both recreated ports remain restricted";
     verifyPortBoundAcl();
   };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+// Rebind two ports from the restrict table to the existing block table before
+// removing the obsolete restrict table in the same update.
+TEST_F(
+    AgentPortBoundIngressAclTest,
+    VerifyReplaceAndRemovePortBoundAclInOneUpdate) {
+  auto setup = [this]() {
+    setupL3Forwarding();
+    const auto& ports = masterLogicalPortIds();
+    configurePortBoundAcl({ports[1], ports[3]}, ports[2]);
+  };
+  auto verify = [this]() { verifyReplacementSetup(); };
+  auto setupPostWarmboot = [this]() {
+    replaceRestrictAclTableWithBlockAclTable();
+  };
+  auto verifyPostWarmboot = [this]() { verifyReplacement(); };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
