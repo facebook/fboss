@@ -70,8 +70,8 @@
         },
         "conditional_setting": {
             "type": "object",
-            "description": "A single conditional-setting entry. An entry without a condition always applies. At least one effect is required.",
-            "required": ["name"],
+            "description": "A single conditional-setting entry. A condition and at least one effect are required.",
+            "required": ["name", "condition"],
             "additionalProperties": false,
             "properties": {
                 "name": {
