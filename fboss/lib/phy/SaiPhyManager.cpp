@@ -779,8 +779,8 @@ void SaiPhyManager::setSaiPortAdminState(
 
 std::unique_ptr<ExternalPhyPortStatsUtils>
 SaiPhyManager::createExternalPhyPortStats(PortID portID) {
-  // TODO(joseph5wu) Need to check what kinda stas we can get from
-  // SaiPhyManager here
+  // Base default: no-op stats so Credo/Elbert behavior is unchanged.
+  // BspSaiPhyManager (Agera3) overrides this with a real stats object.
   return std::make_unique<NullPortStats>(getPortName(portID));
 }
 

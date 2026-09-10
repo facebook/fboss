@@ -46,6 +46,7 @@ thrift_library(
         "//fboss/agent/if:fboss",
         "//fboss/lib/if:fboss_io_stats",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -75,6 +76,7 @@ thrift_library(
     ],
     thrift_srcs = {"prbs.thrift": []},
     deps = [
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -104,6 +106,7 @@ thrift_library(
     ],
     thrift_srcs = {"link.thrift": []},
     deps = [
+        "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
 )
@@ -119,6 +122,7 @@ cpp_library(
         "ExternalPhy.h",
         "ExternalPhyPortStatsUtils.h",
         "NullPortStats.h",
+        "SaiExternalPhyPortStats.h",
     ],
     deps = [
         "//fb303:service_data",

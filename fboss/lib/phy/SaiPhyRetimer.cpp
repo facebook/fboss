@@ -168,8 +168,12 @@ bool SaiPhyRetimer::isSupported(Feature feature) const {
   switch (feature) {
     case Feature::PRBS:
     case Feature::PRBS_STATS:
-    case Feature::LOOPBACK:
+      return false;
     case Feature::PORT_STATS:
+      // Stats come from SaiPhyManager's getAllPhyInfo() path, not
+      // ExternalPhy::getPortStats(); this flag gates the stats test infra.
+      return true;
+    case Feature::LOOPBACK:
     case Feature::PORT_INFO:
     case Feature::MACSEC:
       return false;
