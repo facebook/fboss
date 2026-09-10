@@ -4277,9 +4277,19 @@ void SaiSwitch::packetRxCallbackLag(
     std::optional<PacketType> packetType) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
-  VlanID swVlanId(0);
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
+      ? std::nullopt
+      : std::make_optional(VlanID(0));
+  auto swVlanIdStr = [&swVlanId]() {
+    return swVlanId.has_value()
+        ? folly::to<std::string>(static_cast<int>(swVlanId.value()))
+        : "None";
+  };
   auto rxPacket = std::make_unique<SaiRxPacket>(
       buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId, packetType);
+
+  folly::io::Cursor c0(rxPacket->buf());
+  XLOG(DBG6) << PktUtil::hexDump(c0);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -4290,14 +4300,19 @@ void SaiSwitch::packetRxCallbackLag(
     return;
   }
   swAggPortId = aggPortItr->second;
-  const auto vlanItr =
-      concurrentIndices_->vlanIds.find(PortDescriptorSaiId(lagSaiId));
-  if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-    XLOG(ERR) << "RX packet had lag in no known vlan: 0x" << std::hex
-              << lagSaiId;
-    return;
+  // Resolve a vlan only where the platform has them. A lag carrying a router
+  // interface of its own is in no vlan, and the frames it traps arrive
+  // untagged, the same way they do for a port router interface.
+  if (!processVlanUntaggedPackets()) {
+    const auto vlanItr =
+        concurrentIndices_->vlanIds.find(PortDescriptorSaiId(lagSaiId));
+    if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+      XLOG(ERR) << "RX packet had lag in no known vlan: 0x" << std::hex
+                << lagSaiId;
+      return;
+    }
+    swVlanId = vlanItr->second;
   }
-  swVlanId = vlanItr->second;
   rxPacket->setSrcAggregatePort(swAggPortId);
   rxPacket->setSrcVlan(swVlanId);
 
@@ -4311,11 +4326,9 @@ void SaiSwitch::packetRxCallbackLag(
   swPortId = swPortItr->second.portID;
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
-             << " vlan: " << swVlanId
+             << " vlan: " << swVlanIdStr()
              << " trap: " << packetRxReasonToString(rxReason) << " queue: "
              << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
-  folly::io::Cursor c0(rxPacket->buf());
-  XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
 }
 
