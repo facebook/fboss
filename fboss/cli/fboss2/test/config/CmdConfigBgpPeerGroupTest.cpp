@@ -157,6 +157,9 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, boolAndStringAttributes) {
   run({"SPINE", "confed-peer", "false"});
   run({"SPINE", "redistribute-peer", "true"});
   run({"SPINE", "enhanced-route-refresh", "true"});
+  run({"SPINE", "route-refresh", "true"});
+  run({"SPINE", "remove-private-as", "true"});
+  run({"SPINE", "enforce-first-as", "false"});
   run({"SPINE", "afi", "disable-ipv4-afi", "true"});
   run({"SPINE", "afi", "disable-ipv6-afi", "false"});
   run({"SPINE", "afi", "ipv4-over-ipv6-nh", "true"});
@@ -174,6 +177,9 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, boolAndStringAttributes) {
   EXPECT_FALSE(group.is_confed_peer().value_or(true));
   EXPECT_TRUE(group.is_redistribute_peer().value_or(false));
   EXPECT_TRUE(group.enhanced_route_refresh().value_or(false));
+  EXPECT_TRUE(group.route_refresh().value_or(false));
+  EXPECT_TRUE(group.remove_private_as().value_or(false));
+  EXPECT_FALSE(group.enforce_first_as().value_or(true));
   EXPECT_TRUE(group.disable_ipv4_afi().value_or(false));
   EXPECT_FALSE(group.disable_ipv6_afi().value_or(true));
   EXPECT_TRUE(group.v4_over_v6_nexthop().value_or(false));
@@ -202,6 +208,52 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, routeLimits) {
   EXPECT_EQ(*group.pre_filter()->warning_limit(), 40000);
   EXPECT_TRUE(*group.pre_filter()->warning_only());
   EXPECT_FALSE(*group.post_filter()->warning_only());
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, linkBandwidthAttributes) {
+  // Same spellings and validation as the neighbor command: bgpd resolves the
+  // link-bandwidth trio peer > group.
+  run({"SPINE", "link-bandwidth", "10G"});
+  EXPECT_EQ(groups()[0].link_bandwidth_bps().value_or(""), "10G");
+  run({"SPINE", "link-bandwidth", "1.5G"});
+  EXPECT_EQ(groups()[0].link_bandwidth_bps().value_or(""), "1.5G");
+  run({"SPINE", "link-bandwidth", "auto"});
+  EXPECT_EQ(groups()[0].link_bandwidth_bps().value_or(""), "auto");
+  EXPECT_THAT(run({"SPINE", "link-bandwidth", "10Q"}), HasSubstr("Invalid"));
+  EXPECT_THAT(run({"SPINE", "link-bandwidth", "10T"}), HasSubstr("Invalid"));
+  EXPECT_EQ(groups()[0].link_bandwidth_bps().value_or(""), "auto");
+
+  run({"SPINE", "advertise-lbw", "1"});
+  run({"SPINE", "receive-lbw", "ACCEPT"}); // enum value name accepted
+  const auto& group = groups()[0];
+  EXPECT_EQ(
+      static_cast<int>(group.advertise_link_bandwidth().value_or(
+          facebook::neteng::fboss::bgp_attr::AdvertiseLinkBandwidth::DISABLE)),
+      1);
+  EXPECT_EQ(
+      static_cast<int>(group.receive_link_bandwidth().value_or(
+          facebook::neteng::fboss::bgp_attr::ReceiveLinkBandwidth::DISABLE)),
+      1);
+  EXPECT_THAT(
+      run({"SPINE", "advertise-lbw", "99"}), HasSubstr("not a valid mode"));
+  EXPECT_THAT(
+      run({"SPINE", "receive-lbw", "SOMETIMES"}),
+      HasSubstr("not a valid mode"));
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, ttlSecurityHopsRange) {
+  // bgpd throws at config load outside kMin/kMaxTtlSecurityHops (1..255).
+  EXPECT_THAT(run({"SPINE", "ttl-security-hops", "0"}), HasSubstr("Error"));
+  EXPECT_THAT(run({"SPINE", "ttl-security-hops", "256"}), HasSubstr("Error"));
+  EXPECT_THAT(run({"SPINE", "ttl-security-hops", "x"}), HasSubstr("Error"));
+  EXPECT_TRUE(groups().empty())
+      << "rejected first attribute must not leave a half-created group";
+  run({"SPINE", "ttl-security-hops", "1"});
+  EXPECT_EQ(groups()[0].ttl_security_hops().value_or(0), 1);
+  run({"SPINE", "ttl-security-hops", "255"});
+  EXPECT_EQ(groups()[0].ttl_security_hops().value_or(0), 255);
+  EXPECT_THAT(run({"SPINE", "ttl-security-hops", "256"}), HasSubstr("Error"));
+  EXPECT_EQ(groups()[0].ttl_security_hops().value_or(0), 255);
 }
 
 TEST_F(CmdConfigBgpPeerGroupTestFixture, valueValidation) {
@@ -289,15 +341,30 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, timersNotReseededOncePresent) {
   EXPECT_EQ(*timers.out_delay_seconds(), 2);
 }
 
-TEST_F(CmdConfigBgpPeerGroupTestFixture, routeLimitOtherFieldsKeepDefaults) {
-  // No level above a group to inherit a RouteLimit from: the untouched fields
-  // take the thrift defaults bgpd applies to a peer without one.
+TEST_F(CmdConfigBgpPeerGroupTestFixture, routeLimitSeededUnlimited) {
+  // A group with no RouteLimit imposes none on its members (bgpd skips the
+  // check when the struct is absent), so the struct created for a
+  // warning-only/threshold edit must keep that: max_routes 0 = unlimited,
+  // not the 12000 thrift default, which would be a hard cap with teardown.
   run({"SPINE", "max-route", "pre-warning-only", "true"});
   const auto& pre = *groups()[0].pre_filter();
-  EXPECT_EQ(*pre.max_routes(), 12000);
+  EXPECT_EQ(*pre.max_routes(), 0);
   EXPECT_EQ(*pre.warning_limit(), 0);
   EXPECT_TRUE(*pre.warning_only());
   EXPECT_FALSE(groups()[0].post_filter().has_value());
+
+  run({"SPINE", "max-route", "post-warning-threshold", "30000"});
+  const auto& post = *groups()[0].post_filter();
+  EXPECT_EQ(*post.max_routes(), 0);
+  EXPECT_EQ(*post.warning_limit(), 30000);
+  EXPECT_FALSE(*post.warning_only());
+}
+
+TEST_F(CmdConfigBgpPeerGroupTestFixture, routeLimitNotReseededOncePresent) {
+  run({"SPINE", "max-route", "pre-filter", "45000"});
+  run({"SPINE", "max-route", "pre-warning-threshold", "30000"});
+  EXPECT_EQ(*groups()[0].pre_filter()->max_routes(), 45000);
+  EXPECT_EQ(*groups()[0].pre_filter()->warning_limit(), 30000);
 }
 
 TEST_F(CmdConfigBgpPeerGroupTestFixture, timerRanges) {
@@ -335,6 +402,13 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, rejectedValueLeavesGroupUntouched) {
   ASSERT_EQ(groups().size(), 1);
   EXPECT_FALSE(groups()[0].bgp_peer_timers().has_value());
   EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65000);
+  // Likewise a rejected route-limit value must not leave a seeded RouteLimit.
+  EXPECT_THAT(
+      run({"SPINE", "max-route", "pre-warning-threshold", "-1"}),
+      HasSubstr("Error"));
+  EXPECT_FALSE(groups()[0].pre_filter().has_value());
+  EXPECT_THAT(run({"SPINE", "ttl-security-hops", "0"}), HasSubstr("Error"));
+  EXPECT_FALSE(groups()[0].ttl_security_hops().has_value());
 }
 
 // ==============================================================================

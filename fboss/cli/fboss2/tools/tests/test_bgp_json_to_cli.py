@@ -412,11 +412,18 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "is_confed_peer": False,
             "is_redistribute_peer": True,
             "enhanced_route_refresh": True,
+            "route_refresh": False,
+            "remove_private_as": True,
+            "enforce_first_as": True,
             "disable_ipv4_afi": True,
             "disable_ipv6_afi": False,
             "v4_over_v6_nexthop": True,
             "enable_stateful_ha": True,
             "next_hop_self": True,
+            "ttl_security_hops": 2,
+            "link_bandwidth_bps": "10G",
+            "advertise_link_bandwidth": 1,
+            "receive_link_bandwidth": "ACCEPT",
             "add_path": 3,
             "bgp_peer_timers": {
                 "hold_time_seconds": 90,
@@ -448,11 +455,18 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "confed-peer false",
             "redistribute-peer true",
             "enhanced-route-refresh true",
+            "route-refresh false",
+            "remove-private-as true",
+            "enforce-first-as true",
             "afi disable-ipv4-afi true",
             "afi disable-ipv6-afi false",
             "afi ipv4-over-ipv6-nh true",
             "graceful-restart stateful-ha true",
             "next-hop-self true",
+            "ttl-security-hops 2",
+            "link-bandwidth 10G",
+            "advertise-lbw 1",
+            "receive-lbw ACCEPT",
             "add-path receive true",
             "add-path send true",
             "timers hold-time 90",
@@ -480,6 +494,66 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             + len(peer_group["post_filter"])
         )
         self.assertEqual(len(commands), leaf_fields)
+        self.assertEqual(len(commands), 36)
+
+    def test_link_bandwidth(self) -> None:
+        """The link-bandwidth trio bgpd resolves peer > group is generated."""
+        peer_group = {
+            "name": "TEST",
+            "link_bandwidth_bps": 10_000_000_000,
+            "advertise_link_bandwidth": "ADVERTISE",
+            "receive_link_bandwidth": 1,
+        }
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} link-bandwidth 10G", commands)
+        self.assertIn(f"{self.PREFIX} advertise-lbw ADVERTISE", commands)
+        self.assertIn(f"{self.PREFIX} receive-lbw 1", commands)
+
+    def test_deprecated_asn_fields_map_to_4_byte_attribute(self) -> None:
+        """The deprecated i32 ASNs are carried over, not dropped."""
+        peer_group = {"name": "TEST", "remote_as": 65000, "local_as": 64512}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} remote-asn 65000", commands)
+        self.assertIn(f"{self.PREFIX} local-asn 64512", commands)
+        self.assertFalse(any(c.startswith("# WARNING") for c in commands))
+
+    def test_unrepresentable_peer_group_fields_warn(self) -> None:
+        """PeerGroup fields bgpd never reads from a group are reported, not
+        silently dropped, and produce no config command."""
+        peer_group = {
+            "name": "TEST",
+            "remote_as_4_byte": 65000,
+            "local_addr": "2001:db8::2",
+            "next_hop4": "10.1.1.1",
+            "next_hop6": "2001:db8::a",
+            "enabled": True,
+            "router_port_id": 7,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "graceful_restart_end_of_rib_seconds": 30,
+            },
+        }
+        commands = generate_peer_group_commands(peer_group)
+        warnings = [c for c in commands if c.startswith("# WARNING")]
+        self.assertEqual(
+            warnings,
+            [
+                f"# WARNING: peer-group TEST: field {f} has no CLI equivalent, "
+                "not converted"
+                for f in (
+                    "local_addr",
+                    "next_hop4",
+                    "next_hop6",
+                    "enabled",
+                    "router_port_id",
+                    "bgp_peer_timers.graceful_restart_end_of_rib_seconds",
+                )
+            ],
+        )
+        self.assertEqual(
+            [c for c in commands if not c.startswith("#")],
+            [f"{self.PREFIX} remote-asn 65000", f"{self.PREFIX} timers hold-time 90"],
+        )
 
 
 class GeneratePeerCommandsTest(unittest.TestCase):

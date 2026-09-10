@@ -47,6 +47,13 @@ constexpr std::string_view kEgressPolicy = "egress-policy";
 constexpr std::string_view kRrClient = "rr-client";
 constexpr std::string_view kRedistributePeer = "redistribute-peer";
 constexpr std::string_view kEnhancedRouteRefresh = "enhanced-route-refresh";
+constexpr std::string_view kRouteRefresh = "route-refresh";
+constexpr std::string_view kRemovePrivateAs = "remove-private-as";
+constexpr std::string_view kEnforceFirstAs = "enforce-first-as";
+constexpr std::string_view kTtlSecurityHops = "ttl-security-hops";
+constexpr std::string_view kLinkBandwidth = "link-bandwidth";
+constexpr std::string_view kAdvertiseLbw = "advertise-lbw";
+constexpr std::string_view kReceiveLbw = "receive-lbw";
 constexpr std::string_view kPassive = "passive";
 constexpr std::string_view kAddPathSend = "add-path send";
 constexpr std::string_view kAddPathReceive = "add-path receive";
@@ -78,20 +85,30 @@ constexpr std::string_view kMaxRoutePreWarningOnly =
     "max-route pre-warning-only";
 constexpr std::string_view kMaxRoutePostWarningOnly =
     "max-route post-warning-only";
+// PeerGroup fields deliberately NOT exposed, because bgpd never reads them
+// from a group: local_addr, next_hop4, next_hop6 (per-peer only, the
+// neighbor command owns them), `enabled` and `router_port_id` (read nowhere)
+// and bgp_peer_timers.graceful_restart_end_of_rib_seconds (same). Staging
+// them would persist config the daemon ignores.
 
 // Protocol ranges bgpd enforces (or the wire format silently truncates to):
 // the OPEN hold time is 16 bits and bgpd refuses 1-2s; the graceful-restart
-// restart time is the 12-bit field of RFC 4724.
+// restart time is the 12-bit field of RFC 4724; TTL security hops are
+// bgpd's kMin/kMaxTtlSecurityHops (it throws on anything else at load).
 constexpr int32_t kHoldTimeMinSeconds = 3;
 constexpr int32_t kHoldTimeMaxSeconds = 65535;
 constexpr int32_t kGracefulRestartMaxSeconds = 4095;
+constexpr int32_t kTtlSecurityHopsMin = 1;
+constexpr int32_t kTtlSecurityHopsMax = 255;
 
 using BgpConfig = bgp::thrift::BgpConfig;
 using PeerGroup = bgp::thrift::PeerGroup;
 using bgpcli::asnAttr;
 using bgpcli::AttrHandler;
+using bgpcli::bitRateAttr;
 using bgpcli::boolAttr;
 using bgpcli::err;
+using bgpcli::intAttr;
 using bgpcli::joinedStringAttr;
 using bgpcli::ok;
 using bgpcli::parseBool;
@@ -100,8 +117,11 @@ using bgpcli::routeCountAttr;
 using bgpcli::secondsAttr;
 using bgpcli::SecondsRange;
 using bgpcli::stringAttr;
+using bgpcli::thriftEnumAttr;
 using bgpcli::Tokens;
 using facebook::neteng::fboss::bgp_attr::AddPath;
+using facebook::neteng::fboss::bgp_attr::AdvertiseLinkBandwidth;
+using facebook::neteng::fboss::bgp_attr::ReceiveLinkBandwidth;
 
 // ---- per-attribute setters -------------------------------------------------
 // Pure thrift assignment: no validation, no messages. Parsing, bounds and the
@@ -149,9 +169,39 @@ void setEnhancedRouteRefresh(PeerGroup& g, bool v) {
   g.enhanced_route_refresh() = v;
 }
 
+void setRouteRefresh(PeerGroup& g, bool v) {
+  g.route_refresh() = v;
+}
+
+void setRemovePrivateAs(PeerGroup& g, bool v) {
+  g.remove_private_as() = v;
+}
+
+void setEnforceFirstAs(PeerGroup& g, bool v) {
+  g.enforce_first_as() = v;
+}
+
+void setTtlSecurityHops(PeerGroup& g, int32_t v) {
+  g.ttl_security_hops() = v;
+}
+
+void setLinkBandwidth(PeerGroup& g, const std::string& v) {
+  g.link_bandwidth_bps() = v;
+}
+
+void setAdvertiseLbw(PeerGroup& g, AdvertiseLinkBandwidth v) {
+  g.advertise_link_bandwidth() = v;
+}
+
+void setReceiveLbw(PeerGroup& g, ReceiveLinkBandwidth v) {
+  g.receive_link_bandwidth() = v;
+}
+
 // bgpd reads is_passive=true as PASSIVE_ONLY (listen) and false as
-// PASSIVE_ACTIVE (listen and connect); there is no active-only mode, so the
-// CLI exposes the flag itself rather than inventing connect-mode names.
+// PASSIVE_ACTIVE (listen and connect). Its session code also knows an
+// ACTIVE_ONLY mode, but the config model has no way to request it (the mode
+// is derived from is_passive alone), so the CLI exposes the flag itself
+// rather than inventing connect-mode names.
 void setPassive(PeerGroup& g, bool v) {
   g.is_passive() = v;
 }
@@ -231,10 +281,15 @@ void setNextHopSelf(PeerGroup& g, bool v) {
 // the whole group. Before the first timer attribute is set on a group, the
 // struct is therefore seeded from what its members use today -- the global
 // hold time, with the conventional hold/3 keepalive -- and the requested field
-// is then changed on top of it. pre_filter / post_filter need no seeding: a
-// group has nothing above it to inherit a RouteLimit from, and the setter's
-// ensure() yields the thrift defaults, which is also what bgpd applies to a
-// peer without one.
+// is then changed on top of it.
+//
+// pre_filter / post_filter are seeded too, though a group has nothing above
+// it to inherit from: bgpd applies NO limit to a member without a RouteLimit
+// (capRoutesPerPeer returns early) and reads max_routes == 0 as unlimited,
+// whereas the thrift default the setter's ensure() would leave behind is a
+// 12000-route hard cap with session teardown. A warning-only or threshold
+// edit must not introduce a cap the operator never asked for, so the struct
+// starts as {0, false, 0} and only the requested field changes.
 
 void seedTimers(const BgpConfig& cfg, PeerGroup& group) {
   if (group.bgp_peer_timers()) {
@@ -246,9 +301,21 @@ void seedTimers(const BgpConfig& cfg, PeerGroup& group) {
   group.bgp_peer_timers() = std::move(timers);
 }
 
+void seedRouteLimit(PeerGroup& group, bool pre) {
+  auto field = pre ? group.pre_filter() : group.post_filter();
+  if (field) {
+    return;
+  }
+  bgp::thrift::RouteLimit unlimited;
+  unlimited.max_routes() = 0;
+  unlimited.warning_only() = false;
+  unlimited.warning_limit() = 0;
+  field = std::move(unlimited);
+}
+
 // A peer-group handler sees the whole config (for the global defaults) plus
 // the group being edited. The shared factories only know the group, so they
-// are adapted; the adapter for timer attributes seeds first.
+// are adapted; the adapters for struct-valued attributes seed first.
 using PeerGroupHandler =
     std::function<Result(const BgpConfig&, PeerGroup&, const Tokens&)>;
 
@@ -263,6 +330,14 @@ PeerGroupHandler withTimers(AttrHandler<PeerGroup> handler) {
   return [handler = std::move(handler)](
              const BgpConfig& cfg, PeerGroup& group, const Tokens& values) {
     seedTimers(cfg, group);
+    return handler(group, values);
+  };
+}
+
+PeerGroupHandler withRouteLimit(bool pre, AttrHandler<PeerGroup> handler) {
+  return [pre, handler = std::move(handler)](
+             const BgpConfig&, PeerGroup& group, const Tokens& values) {
+    seedRouteLimit(group, pre);
     return handler(group, values);
   };
 }
@@ -322,6 +397,12 @@ const std::map<std::string, PeerGroupHandler, std::less<>>& attrHandlers() {
   auto timers = [](AttrHandler<PeerGroup> h) {
     return withTimers(std::move(h));
   };
+  auto preLimit = [](AttrHandler<PeerGroup> h) {
+    return withRouteLimit(/* pre */ true, std::move(h));
+  };
+  auto postLimit = [](AttrHandler<PeerGroup> h) {
+    return withRouteLimit(/* pre */ false, std::move(h));
+  };
   static const std::map<std::string, PeerGroupHandler, std::less<>> kHandlers =
       {
           {std::string(kRemoteAsn),
@@ -350,6 +431,30 @@ const std::map<std::string, PeerGroupHandler, std::less<>>& attrHandlers() {
            plain(
                boolAttr<PeerGroup>(
                    kEnhancedRouteRefresh, setEnhancedRouteRefresh))},
+          {std::string(kRouteRefresh),
+           plain(boolAttr<PeerGroup>(kRouteRefresh, setRouteRefresh))},
+          {std::string(kRemovePrivateAs),
+           plain(boolAttr<PeerGroup>(kRemovePrivateAs, setRemovePrivateAs))},
+          {std::string(kEnforceFirstAs),
+           plain(boolAttr<PeerGroup>(kEnforceFirstAs, setEnforceFirstAs))},
+          {std::string(kTtlSecurityHops),
+           plain(
+               intAttr<PeerGroup>(
+                   kTtlSecurityHops,
+                   "1-255",
+                   kTtlSecurityHopsMin,
+                   kTtlSecurityHopsMax,
+                   setTtlSecurityHops))},
+          {std::string(kLinkBandwidth),
+           plain(bitRateAttr<PeerGroup>(kLinkBandwidth, setLinkBandwidth))},
+          {std::string(kAdvertiseLbw),
+           plain(
+               thriftEnumAttr<PeerGroup, AdvertiseLinkBandwidth>(
+                   kAdvertiseLbw, setAdvertiseLbw))},
+          {std::string(kReceiveLbw),
+           plain(
+               thriftEnumAttr<PeerGroup, ReceiveLinkBandwidth>(
+                   kReceiveLbw, setReceiveLbw))},
           {std::string(kPassive),
            plain(boolAttr<PeerGroup>(kPassive, setPassive))},
           {std::string(kAddPathSend), plain(addPathSend)},
@@ -371,29 +476,29 @@ const std::map<std::string, PeerGroupHandler, std::less<>>& attrHandlers() {
                boolAttr<PeerGroup>(
                    kGracefulRestartStatefulHa, setGracefulRestartStatefulHa))},
           {std::string(kMaxRoutePreFilter),
-           plain(
+           preLimit(
                routeCountAttr<PeerGroup>(
                    kMaxRoutePreFilter, setMaxRoutePreFilter))},
           {std::string(kMaxRoutePostFilter),
-           plain(
+           postLimit(
                routeCountAttr<PeerGroup>(
                    kMaxRoutePostFilter, setMaxRoutePostFilter))},
           {std::string(kMaxRoutePreWarningThreshold),
-           plain(
+           preLimit(
                routeCountAttr<PeerGroup>(
                    kMaxRoutePreWarningThreshold,
                    setMaxRoutePreWarningThreshold))},
           {std::string(kMaxRoutePostWarningThreshold),
-           plain(
+           postLimit(
                routeCountAttr<PeerGroup>(
                    kMaxRoutePostWarningThreshold,
                    setMaxRoutePostWarningThreshold))},
           {std::string(kMaxRoutePreWarningOnly),
-           plain(
+           preLimit(
                boolAttr<PeerGroup>(
                    kMaxRoutePreWarningOnly, setMaxRoutePreWarningOnly))},
           {std::string(kMaxRoutePostWarningOnly),
-           plain(
+           postLimit(
                boolAttr<PeerGroup>(
                    kMaxRoutePostWarningOnly, setMaxRoutePostWarningOnly))},
           {std::string(kTimersHoldTime),
