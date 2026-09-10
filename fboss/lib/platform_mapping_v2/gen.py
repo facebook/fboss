@@ -44,6 +44,74 @@ class PlatformMappingPaths:
         )
 
 
+# Canonical registry of open-sourced platforms to generate, keyed by whether the
+# platform is multi-NPU. Add new open-sourced platforms here: this drives both
+# the internal generator (facebook/gen.py, which layers internal-only platforms
+# on top) and test/verify_generated_files.py. Keeping it in one place stops the
+# two from drifting, which silently leaves a platform out of regeneration until
+# verify_generated_files catches the stale output.
+OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
+    False: [
+        "montblanc",
+        "montblanc_odd_ports_8x100G",
+        "montblanc_gtsw_yolo",
+        "montblanc_precoding",
+        "minipack3n",
+        "minipack3bta",
+        "minipack3bta_16rifs",
+        "meru800bia",
+        "meru800bia_dual_stage_rdsw",
+        "meru800bia_dual_stage_rdsw_fabric_uniform_local_offset",
+        "meru800bia_dual_stage_edsw",
+        "meru800bia_dual_stage_edsw_fabric_uniform_local_offset",
+        "meru800bia_100g_nif_port_breakout",
+        "meru800bia_800g",
+        "meru800bia_800g_hyperport",
+        "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
+        "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
+        "meru800bia_800g_uniform_local_offset",
+        "meru800bia_uniform_local_offset",
+        "meru800bia_fabric_uniform_local_offset",
+        "meru800bia_800g_fabric_uniform_local_offset",
+        "meru800bia_hyperport_fabric_uniform_local_offset",
+        "janga800bic_dctype1_prod",
+        "janga800bic_dctype1_prod_fabric_uniform_local_offset",
+        "janga800bic_dctype1_test_fixture",
+        "tahan800bc_test_fixture",
+        "tahan800bc_chassis",
+        "icecube800bc",
+        "icetea800bc",
+        "tahansb800bc",
+        "tahansb800bc_test_fixture",
+        "wedge800bact",
+        "m4052actm",
+        "m4062nhp",
+        "m4061clsc",
+        "m5120csc",
+        "wedge800bnhp",
+        "wedge800cact",
+        "blackwolf800banw",
+        "j4sim",
+        "icecube800banw",
+        "example_integrated_optics",
+    ],
+    True: [
+        "meru800bfa",
+        "janga800bic_dctypef_prod",
+        "janga800bic_dctypef_test_fixture",
+        "ladakh800bcls",
+        "ladakh800bcls_rack",
+        "ladakh800bcls_test_fixture",
+        "ladakh800bcls_osfp_tray",
+        "ladakh800bcls_rack_postevt",
+        "ladakh800bcls_test_fixture_postevt",
+        "leh800bcls",
+        "leh800bcls_rack",
+        "leh800bcls_test_fixture",
+        "saintpaul",
+    ],
+}
+
 _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "icecube800bc": ("icecube800bc",),
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G", "montblanc_gtsw_yolo"),

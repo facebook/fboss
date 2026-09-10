@@ -11,6 +11,7 @@ from fboss.lib.platform_mapping_v2.gen import (
     generate_platform_mappings_from_vendor_data,
     get_platform_descriptor_data,
     get_platform_mapping_output_dir,
+    OSS_MULTI_NPU_SUPPORTED_PLATFORMS,
 )
 from fboss.lib.platform_mapping_v2.read_files_utils import (
     discover_platform_mapping_inputs,
@@ -27,67 +28,12 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     This test will be run in OSS for all open-sourced platforms.
     """
 
-    _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: ClassVar[dict[bool, list[str]]] = {
-        False: [
-            "montblanc",
-            "montblanc_odd_ports_8x100G",
-            "montblanc_gtsw_yolo",
-            "montblanc_precoding",
-            "minipack3n",
-            "minipack3bta",
-            "minipack3bta_16rifs",
-            "meru800bia",
-            "meru800bia_dual_stage_rdsw",
-            "meru800bia_dual_stage_rdsw_fabric_uniform_local_offset",
-            "meru800bia_dual_stage_edsw",
-            "meru800bia_dual_stage_edsw_fabric_uniform_local_offset",
-            "meru800bia_100g_nif_port_breakout",
-            "meru800bia_800g",
-            "meru800bia_800g_hyperport",
-            "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw",
-            "meru800bia_single_stage_192_rdsw_40_fdsw_32_edsw_800g",
-            "meru800bia_800g_uniform_local_offset",
-            "meru800bia_uniform_local_offset",
-            "meru800bia_fabric_uniform_local_offset",
-            "meru800bia_800g_fabric_uniform_local_offset",
-            "meru800bia_hyperport_fabric_uniform_local_offset",
-            "janga800bic_dctype1_prod",
-            "janga800bic_dctype1_prod_fabric_uniform_local_offset",
-            "janga800bic_dctype1_test_fixture",
-            "tahan800bc_test_fixture",
-            "tahan800bc_chassis",
-            "icecube800bc",
-            "icetea800bc",
-            "tahansb800bc",
-            "tahansb800bc_test_fixture",
-            "wedge800bact",
-            "m4052actm",
-            "m4062nhp",
-            "m4061clsc",
-            "m5120csc",
-            "wedge800bnhp",
-            "wedge800cact",
-            "blackwolf800banw",
-            "j4sim",
-            "icecube800banw",
-            "example_integrated_optics",
-        ],
-        True: [
-            "meru800bfa",
-            "janga800bic_dctypef_prod",
-            "janga800bic_dctypef_test_fixture",
-            "ladakh800bcls",
-            "ladakh800bcls_rack",
-            "ladakh800bcls_test_fixture",
-            "ladakh800bcls_osfp_tray",
-            "ladakh800bcls_rack_postevt",
-            "ladakh800bcls_test_fixture_postevt",
-            "leh800bcls",
-            "leh800bcls_rack",
-            "leh800bcls_test_fixture",
-            "saintpaul",
-        ],
-    }
+    # Shared with facebook internal gen.py via the registry in gen.py, so a platform can
+    # never be registered for verification without also being registered for
+    # generation.
+    _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: ClassVar[dict[bool, list[str]]] = (
+        OSS_MULTI_NPU_SUPPORTED_PLATFORMS
+    )
     _OSS_INPUT_DIR: str = "fboss/configs/platforms"
     _TMP_GENERATED_DIR: str = "/tmp/generated_platform_mappings/"
 
