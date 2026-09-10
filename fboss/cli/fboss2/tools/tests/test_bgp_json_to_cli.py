@@ -20,6 +20,7 @@ import unittest
 from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     escape_shell_arg,
     format_bandwidth,
+    generate_commands,
     generate_exec_commands,
     generate_global_commands,
     generate_peer_commands,
@@ -558,6 +559,190 @@ class GeneratePeerCommandsTest(unittest.TestCase):
             "config protocol bgp neighbor 2001:db8::1 add-path send true", commands
         )
 
+    def test_session_flags(self) -> None:
+        """The session knobs bgpd resolves peer > group all have a spelling."""
+        peer = {
+            "peer_addr": "2001:db8::1",
+            "route_refresh": True,
+            "remove_private_as": True,
+            "enforce_first_as": False,
+            "ttl_security_hops": 2,
+        }
+        commands = generate_peer_commands(peer)
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        self.assertIn(f"{prefix} route-refresh true", commands)
+        self.assertIn(f"{prefix} remove-private-as true", commands)
+        self.assertIn(f"{prefix} enforce-first-as false", commands)
+        self.assertIn(f"{prefix} ttl-security-hops 2", commands)
+
+    def test_deprecated_asn_fields_map_to_4_byte_attribute(self) -> None:
+        """The deprecated i32 ASNs are carried over, not dropped."""
+        peer = {"peer_addr": "2001:db8::1", "remote_as": 65000, "local_as": 64512}
+        commands = generate_peer_commands(peer)
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        self.assertIn(f"{prefix} remote-asn 65000", commands)
+        self.assertIn(f"{prefix} local-asn 64512", commands)
+        self.assertFalse(any(c.startswith("# WARNING") for c in commands))
+
+    def test_complete_neighbor_loses_no_field(self) -> None:
+        """Every BgpPeer field bgpd reads produces exactly one command, in the
+        grammar the neighbor dispatcher accepts, and nothing is flagged."""
+        peer = {
+            "peer_addr": "2001:db8::1",
+            "remote_as_4_byte": 65000,
+            "local_as_4_byte": 64512,
+            "peer_group_name": "SPINE",
+            "description": "spine peer",
+            "peer_tag": "FSW",
+            "local_addr": "2001:db8::2",
+            "ingress_policy_name": "IN_POLICY",
+            "egress_policy_name": "OUT_POLICY",
+            "next_hop4": "10.1.1.1",
+            "next_hop6": "2001:db8::a",
+            "peer_id": "test-peer:v6:1",
+            "type": "BGP_MONITOR",
+            "is_passive": True,
+            "is_rr_client": True,
+            "is_confed_peer": False,
+            "is_redistribute_peer": True,
+            "enhanced_route_refresh": True,
+            "route_refresh": False,
+            "remove_private_as": True,
+            "enforce_first_as": True,
+            "disable_ipv4_afi": True,
+            "disable_ipv6_afi": False,
+            "v4_over_v6_nexthop": True,
+            "enable_stateful_ha": True,
+            "next_hop_self": True,
+            "ttl_security_hops": 2,
+            "link_bandwidth_bps": "10G",
+            "advertise_link_bandwidth": 1,
+            "receive_link_bandwidth": "ACCEPT",
+            "add_path": 3,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "keep_alive_seconds": 30,
+                "out_delay_seconds": 5,
+                "withdraw_unprog_delay_seconds": 10,
+                "graceful_restart_seconds": 120,
+            },
+            "pre_filter": {
+                "max_routes": 45000,
+                "warning_limit": 40000,
+                "warning_only": True,
+            },
+            "post_filter": {
+                "max_routes": 50000,
+                "warning_limit": 48000,
+                "warning_only": False,
+            },
+        }
+        expected = [
+            "remote-asn 65000",
+            "local-asn 64512",
+            "peer-group SPINE",
+            "description 'spine peer'",
+            "peer-tag FSW",
+            "bind-addr address 2001:db8::2",
+            "ingress-policy IN_POLICY",
+            "egress-policy OUT_POLICY",
+            "next-hop4 10.1.1.1",
+            "next-hop6 2001:db8::a",
+            "peer-id test-peer:v6:1",
+            "type BGP_MONITOR",
+            "passive true",
+            "rr-client true",
+            "confed-peer false",
+            "redistribute-peer true",
+            "enhanced-route-refresh true",
+            "route-refresh false",
+            "remove-private-as true",
+            "enforce-first-as true",
+            "afi disable-ipv4-afi true",
+            "afi disable-ipv6-afi false",
+            "afi ipv4-over-ipv6-nh true",
+            "graceful-restart stateful-ha true",
+            "next-hop-self true",
+            "ttl-security-hops 2",
+            "link-bandwidth 10G",
+            "advertise-lbw 1",
+            "receive-lbw ACCEPT",
+            "add-path receive true",
+            "add-path send true",
+            "timers hold-time 90",
+            "timers keepalive 30",
+            "timers out-delay 5",
+            "timers withdraw-unprog-delay 10",
+            "graceful-restart restart-time 120",
+            "max-route pre-filter 45000",
+            "max-route pre-warning-threshold 40000",
+            "max-route pre-warning-only true",
+            "max-route post-filter 50000",
+            "max-route post-warning-threshold 48000",
+            "max-route post-warning-only false",
+        ]
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        commands = generate_peer_commands(peer)
+        self.assertEqual(commands, [f"{prefix} {e}" for e in expected])
+        # One command per leaf field: nothing in the input was dropped.
+        leaf_fields = (
+            len(peer)
+            - 1  # peer_addr is the key, not an attribute
+            - 3  # the three nested structs are counted by their leaves below
+            + 1  # add_path BOTH expands to two commands
+            + len(peer["bgp_peer_timers"])
+            + len(peer["pre_filter"])
+            + len(peer["post_filter"])
+        )
+        self.assertEqual(len(commands), leaf_fields)
+
+    def test_unrepresentable_neighbor_fields_warn(self) -> None:
+        """Fields nothing in bgpd reads are reported, not silently dropped."""
+        peer = {
+            "peer_addr": "2001:db8::1",
+            "remote_as_4_byte": 65000,
+            "enabled": True,
+            "router_port_id": 7,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "graceful_restart_end_of_rib_seconds": 30,
+            },
+        }
+        commands = generate_peer_commands(peer)
+        prefix = "config protocol bgp neighbor 2001:db8::1"
+        warnings = [c for c in commands if c.startswith("# WARNING")]
+        self.assertEqual(
+            warnings,
+            [
+                "# WARNING: neighbor 2001:db8::1: field enabled has no CLI "
+                "equivalent, not converted",
+                "# WARNING: neighbor 2001:db8::1: field router_port_id has no CLI "
+                "equivalent, not converted",
+                "# WARNING: neighbor 2001:db8::1: field "
+                "bgp_peer_timers.graceful_restart_end_of_rib_seconds has no CLI "
+                "equivalent, not converted",
+            ],
+        )
+        # ... and only the convertible fields produce commands.
+        self.assertEqual(
+            [c for c in commands if not c.startswith("#")],
+            [f"{prefix} remote-asn 65000", f"{prefix} timers hold-time 90"],
+        )
+
+    def test_warning_subject_cannot_break_out_of_comment(self) -> None:
+        """A hostile peer_addr must not turn a warning into a script line."""
+        peer = {"peer_addr": "x\nrm -rf /", "enabled": True}
+        script = json_to_cli(peer_config(peer), binary="fboss2")
+        self.assertFalse(any(line.startswith("rm ") for line in script))
+        self.assertTrue(
+            any(line.startswith("# WARNING: neighbor x?rm") for line in script)
+        )
+
+
+def peer_config(peer: dict) -> dict:
+    """A whole-config wrapper around one peer."""
+    return {"peers": [peer]}
+
 
 class GenerateScriptCommandsTest(unittest.TestCase):
     """Tests for generate_exec_commands."""
@@ -577,6 +762,22 @@ class GenerateScriptCommandsTest(unittest.TestCase):
         self.assertIn(
             "/path/to/fboss2 config protocol bgp global router-id 10.0.0.1", result
         )
+
+    def test_exec_commands_keep_warning_comments(self) -> None:
+        """A `# WARNING` line is a comment in the script, not a command."""
+        commands = [
+            "# WARNING: neighbor 2001:db8::1: field enabled has no CLI equivalent"
+        ]
+        result = generate_exec_commands(commands, "/path/to/fboss2")
+        self.assertIn(commands[0], result)
+        self.assertFalse(any(line.startswith("/path/to/fboss2 #") for line in result))
+
+    def test_generate_commands_carries_warnings_in_raw_output(self) -> None:
+        """--raw output keeps the warning lines next to the object's commands."""
+        commands = generate_commands(
+            peer_config({"peer_addr": "2001:db8::1", "enabled": True})
+        )
+        self.assertTrue(commands[0].startswith("# WARNING: neighbor 2001:db8::1"))
 
 
 class JsonToCliIntegrationTest(unittest.TestCase):

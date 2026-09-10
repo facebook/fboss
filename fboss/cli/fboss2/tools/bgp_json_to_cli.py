@@ -244,74 +244,120 @@ def format_bandwidth(bps: int) -> str:
     return str(bps)
 
 
-# (json field, CLI attribute) — fields whose value maps 1:1 onto a neighbor
-# attribute token.
-_NEIGHBOR_SCALAR_FIELDS = [
-    ("remote_as_4_byte", "remote-asn"),
-    ("local_as_4_byte", "local-asn"),
-    ("peer_group_name", "peer-group"),
-    ("description", "description"),
-    ("peer_tag", "peer-tag"),
-    ("local_addr", "bind-addr address"),
-    ("ingress_policy_name", "ingress-policy"),
-    ("egress_policy_name", "egress-policy"),
-    ("next_hop4", "next-hop4"),
-    ("next_hop6", "next-hop6"),
-    ("peer_id", "peer-id"),
-    ("type", "type"),
+def _printable(text: Any) -> str:
+    """A JSON-sourced name made safe for a `#` comment line: no control
+    characters, so it cannot break out of the comment."""
+    return "".join(ch if ch.isprintable() else "?" for ch in str(text))
+
+
+# ---------------------------------------------------------------------------
+# Fields BgpPeer and PeerGroup share. The neighbor and peer-group dispatchers
+# spell these attributes identically, so one table drives both generators.
+# ---------------------------------------------------------------------------
+
+# (json field, CLI attribute) — boolean flags.
+_BOOL_FIELDS = [
+    ("is_rr_client", "rr-client"),
+    ("is_confed_peer", "confed-peer"),
+    ("is_redistribute_peer", "redistribute-peer"),
+    ("enhanced_route_refresh", "enhanced-route-refresh"),
+    ("route_refresh", "route-refresh"),
+    ("remove_private_as", "remove-private-as"),
+    ("enforce_first_as", "enforce-first-as"),
+    ("disable_ipv4_afi", "afi disable-ipv4-afi"),
+    ("disable_ipv6_afi", "afi disable-ipv6-afi"),
+    ("v4_over_v6_nexthop", "afi ipv4-over-ipv6-nh"),
+    ("enable_stateful_ha", "graceful-restart stateful-ha"),
+    ("next_hop_self", "next-hop-self"),
 ]
 
+# (json field, CLI attribute) — integer-valued attributes.
+_INT_FIELDS = [("ttl_security_hops", "ttl-security-hops")]
 
-def _generate_neighbor_basic_commands(peer: dict[str, Any], prefix: str) -> list[str]:
-    """Generate scalar neighbor commands (ASNs, names, policies, addresses)."""
+_TIMER_FIELDS = [
+    ("hold_time_seconds", "timers hold-time"),
+    ("keep_alive_seconds", "timers keepalive"),
+    ("out_delay_seconds", "timers out-delay"),
+    ("withdraw_unprog_delay_seconds", "timers withdraw-unprog-delay"),
+    ("graceful_restart_seconds", "graceful-restart restart-time"),
+]
+
+# RouteLimit leaves, as (json field, attribute suffix, is_bool); the prefix is
+# `max-route pre-` or `max-route post-`.
+_ROUTE_LIMIT_FIELDS = [
+    ("max_routes", "filter", False),
+    ("warning_limit", "warning-threshold", False),
+    ("warning_only", "warning-only", True),
+]
+
+# Every shared key the generators below convert. Anything else present on the
+# JSON object is reported (see _unconverted_field_warnings) instead of being
+# dropped silently.
+_SHARED_HANDLED_FIELDS = (
+    {
+        "is_passive",
+        "link_bandwidth_bps",
+        "advertise_link_bandwidth",
+        "receive_link_bandwidth",
+        "add_path",
+        "bgp_peer_timers",
+        "pre_filter",
+        "post_filter",
+    }
+    | {field for field, _ in _BOOL_FIELDS}
+    | {field for field, _ in _INT_FIELDS}
+)
+_TIMER_HANDLED_FIELDS = {field for field, _ in _TIMER_FIELDS}
+_ROUTE_LIMIT_HANDLED_FIELDS = {field for field, _, _ in _ROUTE_LIMIT_FIELDS}
+
+
+def _generate_scalar_commands(
+    obj: dict[str, Any], prefix: str, fields: list[tuple[str, str]]
+) -> list[str]:
+    """Generate `<prefix> <attribute> <value>` for each present scalar field."""
     commands = []
-    for field, cli_name in _NEIGHBOR_SCALAR_FIELDS:
-        if field in peer:
-            commands.append(f"{prefix} {cli_name} {escape_shell_arg(peer[field])}")
-    if "is_passive" in peer:
-        commands.append(f"{prefix} passive {_shell_bool(peer['is_passive'])}")
-    if "link_bandwidth_bps" in peer:
-        bw = peer["link_bandwidth_bps"]
+    for field, cli_name in fields:
+        if field in obj:
+            commands.append(f"{prefix} {cli_name} {escape_shell_arg(obj[field])}")
+    return commands
+
+
+def _generate_bool_commands(obj: dict[str, Any], prefix: str) -> list[str]:
+    """Generate boolean flag commands for a neighbor or peer group."""
+    commands = []
+    for field, cli_name in _BOOL_FIELDS:
+        if field in obj:
+            commands.append(f"{prefix} {cli_name} {_shell_bool(obj[field])}")
+    return commands
+
+
+def _generate_link_bandwidth_commands(obj: dict[str, Any], prefix: str) -> list[str]:
+    """Generate the link-bandwidth trio for a neighbor or peer group.
+
+    advertise/receive enum values are passed through as found (name or
+    integer): the dispatchers accept both spellings for a thrift enum.
+    """
+    commands = []
+    if "link_bandwidth_bps" in obj:
+        bw = obj["link_bandwidth_bps"]
         bw_str = format_bandwidth(bw) if isinstance(bw, int) else str(bw)
         commands.append(f"{prefix} link-bandwidth {escape_shell_arg(bw_str)}")
-    if "advertise_link_bandwidth" in peer:
+    if "advertise_link_bandwidth" in obj:
         commands.append(
-            f"{prefix} advertise-lbw {escape_shell_arg(peer['advertise_link_bandwidth'])}"
+            f"{prefix} advertise-lbw {escape_shell_arg(obj['advertise_link_bandwidth'])}"
         )
-    if "receive_link_bandwidth" in peer:
+    if "receive_link_bandwidth" in obj:
         commands.append(
-            f"{prefix} receive-lbw {escape_shell_arg(peer['receive_link_bandwidth'])}"
+            f"{prefix} receive-lbw {escape_shell_arg(obj['receive_link_bandwidth'])}"
         )
     return commands
 
 
-def _generate_neighbor_bool_commands(peer: dict[str, Any], prefix: str) -> list[str]:
-    """Generate boolean flag commands for a neighbor."""
-    commands = []
-    bool_fields = [
-        ("is_rr_client", "rr-client"),
-        ("is_confed_peer", "confed-peer"),
-        ("is_redistribute_peer", "redistribute-peer"),
-        ("enhanced_route_refresh", "enhanced-route-refresh"),
-        ("disable_ipv4_afi", "afi disable-ipv4-afi"),
-        ("disable_ipv6_afi", "afi disable-ipv6-afi"),
-        ("v4_over_v6_nexthop", "afi ipv4-over-ipv6-nh"),
-        ("enable_stateful_ha", "graceful-restart stateful-ha"),
-        ("next_hop_self", "next-hop-self"),
-    ]
-    for field, cli_name in bool_fields:
-        if field in peer:
-            commands.append(f"{prefix} {cli_name} {_shell_bool(peer[field])}")
-    return commands
-
-
-def _generate_neighbor_add_path_commands(
-    peer: dict[str, Any], prefix: str
-) -> list[str]:
+def _generate_add_path_commands(obj: dict[str, Any], prefix: str) -> list[str]:
     """Generate add-path commands from the AddPath enum (RECEIVE=1, SEND=2, BOTH=3)."""
-    if "add_path" not in peer:
+    if "add_path" not in obj:
         return []
-    raw = peer["add_path"]
+    raw = obj["add_path"]
     value = (
         {"RECEIVE": 1, "SEND": 2, "BOTH": 3}.get(raw, raw)
         if isinstance(raw, str)
@@ -326,64 +372,97 @@ def _generate_neighbor_add_path_commands(
     return commands
 
 
-def _generate_neighbor_timer_commands(timers: dict[str, Any], prefix: str) -> list[str]:
-    """Generate timer and graceful-restart commands for a neighbor."""
-    commands = []
-    if "hold_time_seconds" in timers:
-        commands.append(
-            f"{prefix} timers hold-time {escape_shell_arg(timers['hold_time_seconds'])}"
-        )
-    if "keep_alive_seconds" in timers:
-        commands.append(
-            f"{prefix} timers keepalive {escape_shell_arg(timers['keep_alive_seconds'])}"
-        )
-    if "out_delay_seconds" in timers:
-        commands.append(
-            f"{prefix} timers out-delay {escape_shell_arg(timers['out_delay_seconds'])}"
-        )
-    if "withdraw_unprog_delay_seconds" in timers:
-        commands.append(
-            f"{prefix} timers withdraw-unprog-delay {escape_shell_arg(timers['withdraw_unprog_delay_seconds'])}"
-        )
-    if "graceful_restart_seconds" in timers:
-        commands.append(
-            f"{prefix} graceful-restart restart-time {escape_shell_arg(timers['graceful_restart_seconds'])}"
-        )
-    return commands
+def _generate_timer_commands(timers: dict[str, Any], prefix: str) -> list[str]:
+    """Generate timer and graceful-restart commands for a neighbor or peer group."""
+    return _generate_scalar_commands(timers, prefix, _TIMER_FIELDS)
 
 
-def _generate_neighbor_route_limit_commands(
-    peer: dict[str, Any], prefix: str
-) -> list[str]:
+def _generate_route_limit_commands(obj: dict[str, Any], prefix: str) -> list[str]:
     """Generate max-route commands from pre_filter/post_filter."""
     commands = []
-    pre_filter = peer.get("pre_filter", {})
-    if "max_routes" in pre_filter:
-        commands.append(
-            f"{prefix} max-route pre-filter {escape_shell_arg(pre_filter['max_routes'])}"
-        )
-    if "warning_limit" in pre_filter:
-        commands.append(
-            f"{prefix} max-route pre-warning-threshold {escape_shell_arg(pre_filter['warning_limit'])}"
-        )
-    if "warning_only" in pre_filter:
-        commands.append(
-            f"{prefix} max-route pre-warning-only {_shell_bool(pre_filter['warning_only'])}"
-        )
-    post_filter = peer.get("post_filter", {})
-    if "max_routes" in post_filter:
-        commands.append(
-            f"{prefix} max-route post-filter {escape_shell_arg(post_filter['max_routes'])}"
-        )
-    if "warning_limit" in post_filter:
-        commands.append(
-            f"{prefix} max-route post-warning-threshold {escape_shell_arg(post_filter['warning_limit'])}"
-        )
-    if "warning_only" in post_filter:
-        commands.append(
-            f"{prefix} max-route post-warning-only {_shell_bool(post_filter['warning_only'])}"
-        )
+    for struct, side in (("pre_filter", "pre"), ("post_filter", "post")):
+        limit = obj.get(struct, {})
+        for field, suffix, is_bool in _ROUTE_LIMIT_FIELDS:
+            if field in limit:
+                value = (
+                    _shell_bool(limit[field])
+                    if is_bool
+                    else escape_shell_arg(limit[field])
+                )
+                commands.append(f"{prefix} max-route {side}-{suffix} {value}")
     return commands
+
+
+def _generate_session_commands(obj: dict[str, Any], prefix: str) -> list[str]:
+    """Generate the commands for every field BgpPeer and PeerGroup share."""
+    commands = []
+    if "is_passive" in obj:
+        commands.append(f"{prefix} passive {_shell_bool(obj['is_passive'])}")
+    commands.extend(_generate_bool_commands(obj, prefix))
+    commands.extend(_generate_scalar_commands(obj, prefix, _INT_FIELDS))
+    commands.extend(_generate_link_bandwidth_commands(obj, prefix))
+    commands.extend(_generate_add_path_commands(obj, prefix))
+    commands.extend(_generate_timer_commands(obj.get("bgp_peer_timers", {}), prefix))
+    commands.extend(_generate_route_limit_commands(obj, prefix))
+    return commands
+
+
+def _unconverted_field_warnings(
+    obj: dict[str, Any], handled: set[str], subject: str
+) -> list[str]:
+    """One `# WARNING` comment line per JSON field no generator converts.
+
+    The dispatchers only expose the fields bgpd reads at that level, so a
+    field left here is either dead in the daemon or per-peer-only; either
+    way the operator must see it was not carried over.
+    """
+    warnings = []
+
+    def warn(field: str) -> None:
+        warnings.append(
+            f"# WARNING: {subject}: field {_printable(field)} has no CLI "
+            "equivalent, not converted"
+        )
+
+    for field in obj:
+        if field not in handled:
+            warn(field)
+    for field in obj.get("bgp_peer_timers", {}):
+        if field not in _TIMER_HANDLED_FIELDS:
+            warn(f"bgp_peer_timers.{field}")
+    for struct in ("pre_filter", "post_filter"):
+        for field in obj.get(struct, {}):
+            if field not in _ROUTE_LIMIT_HANDLED_FIELDS:
+                warn(f"{struct}.{field}")
+    return warnings
+
+
+# (json field, CLI attribute) — BgpPeer-only fields whose value maps 1:1 onto
+# a neighbor attribute token. The deprecated i32 ASNs are converted to the
+# 4-byte attribute: bgpd reads either representation and the CLI stores the
+# 4-byte field.
+_NEIGHBOR_SCALAR_FIELDS = [
+    ("remote_as_4_byte", "remote-asn"),
+    ("remote_as", "remote-asn"),
+    ("local_as_4_byte", "local-asn"),
+    ("local_as", "local-asn"),
+    ("peer_group_name", "peer-group"),
+    ("description", "description"),
+    ("peer_tag", "peer-tag"),
+    ("local_addr", "bind-addr address"),
+    ("ingress_policy_name", "ingress-policy"),
+    ("egress_policy_name", "egress-policy"),
+    ("next_hop4", "next-hop4"),
+    ("next_hop6", "next-hop6"),
+    ("peer_id", "peer-id"),
+    ("type", "type"),
+]
+
+_NEIGHBOR_HANDLED_FIELDS = (
+    {"peer_addr"}
+    | {field for field, _ in _NEIGHBOR_SCALAR_FIELDS}
+    | _SHARED_HANDLED_FIELDS
+)
 
 
 def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
@@ -393,14 +472,11 @@ def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
         return []
 
     prefix = f"config protocol bgp neighbor {escape_shell_arg(peer_addr)}"
-    commands = []
-    commands.extend(_generate_neighbor_basic_commands(peer, prefix))
-    commands.extend(_generate_neighbor_bool_commands(peer, prefix))
-    commands.extend(_generate_neighbor_add_path_commands(peer, prefix))
-    commands.extend(
-        _generate_neighbor_timer_commands(peer.get("bgp_peer_timers", {}), prefix)
+    commands = _unconverted_field_warnings(
+        peer, _NEIGHBOR_HANDLED_FIELDS, f"neighbor {_printable(peer_addr)}"
     )
-    commands.extend(_generate_neighbor_route_limit_commands(peer, prefix))
+    commands.extend(_generate_scalar_commands(peer, prefix, _NEIGHBOR_SCALAR_FIELDS))
+    commands.extend(_generate_session_commands(peer, prefix))
     return commands
 
 
@@ -415,7 +491,7 @@ def generate_exec_commands(commands: list[str], binary: str = "fboss2") -> list[
         "",
     ]
     for cmd in commands:
-        exec_commands.append(f"{binary} {cmd}")
+        exec_commands.append(cmd if cmd.startswith("#") else f"{binary} {cmd}")
 
     exec_commands.extend(
         [
@@ -428,22 +504,21 @@ def generate_exec_commands(commands: list[str], binary: str = "fboss2") -> list[
     return exec_commands
 
 
-def json_to_cli(config: dict[str, Any], binary: str = "fboss2") -> list[str]:
-    """Convert BGP++ JSON config to CLI commands."""
+def generate_commands(config: dict[str, Any]) -> list[str]:
+    """Convert BGP++ JSON config to raw CLI commands (plus `#` warning lines
+    for fields that have no CLI equivalent)."""
     commands = []
-
-    # Generate global commands
     commands.extend(generate_global_commands(config))
-
-    # Generate peer-group commands
     for peer_group in config.get("peer_groups", []):
         commands.extend(generate_peer_group_commands(peer_group))
-
-    # Generate peer commands
     for peer in config.get("peers", []):
         commands.extend(generate_peer_commands(peer))
+    return commands
 
-    return generate_exec_commands(commands, binary)
+
+def json_to_cli(config: dict[str, Any], binary: str = "fboss2") -> list[str]:
+    """Convert BGP++ JSON config to an executable CLI script."""
+    return generate_exec_commands(generate_commands(config), binary)
 
 
 def main() -> int:
@@ -477,18 +552,15 @@ def main() -> int:
         print(f"Error: Invalid JSON in '{args.input}': {e}", file=sys.stderr)
         return 1
 
-    if args.raw:
-        # Generate raw CLI commands only (no shell wrapper)
-        commands = []
-        commands.extend(generate_global_commands(config))
-        for peer_group in config.get("peer_groups", []):
-            commands.extend(generate_peer_group_commands(peer_group))
-        for peer in config.get("peers", []):
-            commands.extend(generate_peer_commands(peer))
-        output = "\n".join(commands)
-    else:
-        commands = json_to_cli(config, binary=args.binary)
-        output = "\n".join(commands)
+    commands = generate_commands(config)
+    # Fields with no CLI equivalent are flagged in the script AND on stderr,
+    # so a scripted conversion cannot lose them silently.
+    for line in commands:
+        if line.startswith("# WARNING"):
+            print(line[2:], file=sys.stderr)
+    if not args.raw:
+        commands = generate_exec_commands(commands, args.binary)
+    output = "\n".join(commands)
 
     if args.output:
         with open(args.output, "w") as f:

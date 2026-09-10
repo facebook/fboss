@@ -174,6 +174,9 @@ TEST_F(CmdConfigBgpNeighborTestFixture, boolAndStringAttributes) {
   run({"10.0.0.1", "confed-peer", "false"});
   run({"10.0.0.1", "redistribute-peer", "true"});
   run({"10.0.0.1", "enhanced-route-refresh", "true"});
+  run({"10.0.0.1", "route-refresh", "true"});
+  run({"10.0.0.1", "remove-private-as", "true"});
+  run({"10.0.0.1", "enforce-first-as", "false"});
   run({"10.0.0.1", "afi", "disable-ipv4-afi", "true"});
   run({"10.0.0.1", "afi", "disable-ipv6-afi", "false"});
   run({"10.0.0.1", "afi", "ipv4-over-ipv6-nh", "true"});
@@ -192,6 +195,9 @@ TEST_F(CmdConfigBgpNeighborTestFixture, boolAndStringAttributes) {
   EXPECT_FALSE(peer.is_confed_peer().value_or(true));
   EXPECT_TRUE(peer.is_redistribute_peer().value_or(false));
   EXPECT_TRUE(peer.enhanced_route_refresh().value_or(false));
+  EXPECT_TRUE(peer.route_refresh().value_or(false));
+  EXPECT_TRUE(peer.remove_private_as().value_or(false));
+  EXPECT_FALSE(peer.enforce_first_as().value_or(true));
   EXPECT_TRUE(peer.disable_ipv4_afi().value_or(false));
   EXPECT_FALSE(peer.disable_ipv6_afi().value_or(true));
   EXPECT_TRUE(peer.v4_over_v6_nexthop().value_or(false));
@@ -384,6 +390,52 @@ TEST_F(CmdConfigBgpNeighborTestFixture, routeLimitSeededFromPeerGroup) {
   EXPECT_FALSE(peers()[0].post_filter().has_value());
 }
 
+TEST_F(CmdConfigBgpNeighborTestFixture, routeLimitSeededUnlimitedWithoutGroup) {
+  // Neither the peer nor its group carries a RouteLimit: bgpd applies no cap
+  // at all, so the struct created for a warning-only/threshold edit must keep
+  // that (max_routes 0 = unlimited) rather than the 12000 thrift default.
+  run({"10.0.0.1", "max-route", "pre-warning-only", "true"});
+  const auto& pre = *peers()[0].pre_filter();
+  EXPECT_EQ(*pre.max_routes(), 0);
+  EXPECT_EQ(*pre.warning_limit(), 0);
+  EXPECT_TRUE(*pre.warning_only());
+  EXPECT_FALSE(peers()[0].post_filter().has_value());
+
+  run({"10.0.0.1", "max-route", "post-warning-threshold", "30000"});
+  const auto& post = *peers()[0].post_filter();
+  EXPECT_EQ(*post.max_routes(), 0);
+  EXPECT_EQ(*post.warning_limit(), 30000);
+  EXPECT_FALSE(*post.warning_only());
+
+  // A group with no struct of its own is the same as no group.
+  addPeerGroup("SPINE");
+  run({"10.0.0.2", "peer-group", "SPINE"});
+  run({"10.0.0.2", "max-route", "pre-warning-threshold", "30000"});
+  EXPECT_EQ(*peers()[1].pre_filter()->max_routes(), 0);
+  EXPECT_EQ(*peers()[1].pre_filter()->warning_limit(), 30000);
+}
+
+TEST_F(CmdConfigBgpNeighborTestFixture, routeLimitNotReseededOncePresent) {
+  run({"10.0.0.1", "max-route", "pre-filter", "45000"});
+  run({"10.0.0.1", "max-route", "pre-warning-threshold", "30000"});
+  EXPECT_EQ(*peers()[0].pre_filter()->max_routes(), 45000);
+  EXPECT_EQ(*peers()[0].pre_filter()->warning_limit(), 30000);
+}
+
+TEST_F(CmdConfigBgpNeighborTestFixture, ttlSecurityHopsRange) {
+  // bgpd throws at config load outside kMin/kMaxTtlSecurityHops (1..255).
+  EXPECT_THAT(run({"10.0.0.1", "ttl-security-hops", "0"}), HasSubstr("Error"));
+  EXPECT_THAT(
+      run({"10.0.0.1", "ttl-security-hops", "256"}), HasSubstr("Error"));
+  EXPECT_THAT(run({"10.0.0.1", "ttl-security-hops", "x"}), HasSubstr("Error"));
+  EXPECT_TRUE(peers().empty())
+      << "rejected first attribute must not leave a half-created peer";
+  run({"10.0.0.1", "ttl-security-hops", "1"});
+  EXPECT_EQ(peers()[0].ttl_security_hops().value_or(0), 1);
+  run({"10.0.0.1", "ttl-security-hops", "255"});
+  EXPECT_EQ(peers()[0].ttl_security_hops().value_or(0), 255);
+}
+
 TEST_F(CmdConfigBgpNeighborTestFixture, addPathMergesWithPeerGroupValue) {
   addPeerGroup("SPINE").add_path() = AddPath::SEND;
   run({"10.0.0.1", "peer-group", "SPINE"});
@@ -455,6 +507,11 @@ TEST_F(CmdConfigBgpNeighborTestFixture, rejectedValueLeavesPeerUntouched) {
   EXPECT_THAT(
       run({"10.0.0.1", "timers", "hold-time", "1"}), HasSubstr("Error"));
   EXPECT_FALSE(peers()[0].bgp_peer_timers().has_value());
+  // Likewise a rejected route-limit value must not leave a seeded RouteLimit.
+  EXPECT_THAT(
+      run({"10.0.0.1", "max-route", "pre-warning-threshold", "-1"}),
+      HasSubstr("Error"));
+  EXPECT_FALSE(peers()[0].pre_filter().has_value());
   EXPECT_EQ(peers().size(), 1);
 }
 
