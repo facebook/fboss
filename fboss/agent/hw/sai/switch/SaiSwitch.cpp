@@ -3237,6 +3237,15 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
               SaiPortDescriptor(swAggPort.value()));
+          if (!needL2EntryForNeighbor()) {
+            // A neighbor on a port rif over an aggregate is keyed on the lag,
+            // not on the member whose link went down, so the per member
+            // notification below never matches it. With no fdb entries to fall
+            // back on, this is the only thing that points its next hop at drop
+            // and shrinks the next hop group.
+            managerTable_->neighborManager().handleLinkDown(
+                SaiPortDescriptor(swAggPort.value()));
+          }
           // if min-link is enabled, neighbor caches in sw switch may not be
           // cleared and re-learned, when port flaps happen around the min-link
           // threshold. As a result, sai neighbor/nexthop object is not updated
