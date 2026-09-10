@@ -3,6 +3,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import os
+import shutil
 import sys
 from argparse import ArgumentParser, Namespace
 
@@ -133,6 +134,36 @@ def _get_fboss_root() -> str:
     )
 
 
+def _setup_platform_descriptors() -> None:
+    fboss_data = os.environ.get("FBOSS_DATA")
+    if not fboss_data:
+        print(
+            "Warning: FBOSS_DATA is not set; platform descriptors will not be configured.",
+            file=sys.stderr,
+        )
+        return
+
+    source = os.path.abspath(os.path.join(fboss_data, "platform_descriptors"))
+    if not os.path.isdir(source):
+        print(
+            f"Warning: packaged platform descriptors not found at {source}; "
+            "platform descriptors will not be configured.",
+            file=sys.stderr,
+        )
+        return
+
+    destination = "/tmp/platform_descriptors"
+    if source == destination:
+        return
+    if os.path.lexists(destination):
+        if os.path.isdir(destination) and not os.path.islink(destination):
+            shutil.rmtree(destination)
+        else:
+            os.unlink(destination)
+    print(f"Creating platform descriptor symlink: {destination} -> {source}")
+    os.symlink(source, destination, target_is_directory=True)
+
+
 def main() -> None:
     os.chdir(_get_fboss_root())
 
@@ -144,6 +175,7 @@ def main() -> None:
         sys.exit(1)
 
     setup_fboss_env()
+    _setup_platform_descriptors()
     if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
         print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
         sys.exit(0)

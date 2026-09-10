@@ -1,10 +1,23 @@
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_distro")
 
-python_binary(
-    name = "package",
+python_library(
+    name = "platform_descriptor_utils",
+    srcs = ["platform_descriptor_utils.py"],
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "package_lib",
     srcs = ["package.py"],
     labels = ["autodeps2_generated"],
+    deps = [":platform_descriptor_utils"],
+)
+
+python_binary(
+    name = "package",
     main_module = "fboss.oss.scripts.package",
+    deps = [":package_lib"],
 )
