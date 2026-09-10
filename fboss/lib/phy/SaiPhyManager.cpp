@@ -121,7 +121,30 @@ void SaiPhyManager::collectXphyStats(
     platformInfo->getHwSwitch()->updateStats();
     platformInfo->getHwSwitch()->updateAllPhyInfo();
     auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
+
+    // IOStats are per-xphy, so read once here (all ports in phyInfos belong to
+    // this xphy). getExternalPhy() takes a GlobalXphyID, not a PortID.
+    IOStats xphyIOStats;
+    try {
+      xphyIOStats = getExternalPhy(xphyID)->getIOStats();
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "getIOStats failed for xphy " << xphyID << ": " << e.what();
+    }
+
     for (auto& [portId, phyInfo] : phyInfos) {
+      // Publish FEC + per-lane stats to fb303, reusing the base helpers
+      // (fromPhyInfo + updateXphyStats). No-op until
+      // createExternalPhyPortStats() returns a real ExternalPhyPortStatsUtils
+      // (NullPortStats does nothing).
+      phyInfo.stats()->ioStats() = xphyIOStats;
+      const auto externalPhyStats =
+          phy::ExternalPhyPortStats::fromPhyInfo(phyInfo);
+      {
+        const auto& wLockedStats = getWLockedStats(portId);
+        if (wLockedStats->stats) {
+          wLockedStats->stats->updateXphyStats(externalPhyStats);
+        }
+      }
       updateXphyInfo(portId, std::move(phyInfo));
     }
   } catch (const std::exception& e) {
@@ -1212,6 +1235,24 @@ void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
  * also let the SAI SDK store its state in a file
  */
 void SaiPhyManager::gracefulExit() {
+  // Drain in-flight XPHY stats collection before teardown: the async
+  // collectXphyStats() callbacks capture `this`, so letting them outlive the
+  // manager would be a use-after-free / pure-virtual call. Move futures out of
+  // the lock before waiting so a callback can't deadlock re-locking the map.
+  std::vector<folly::Future<folly::Unit>> ongoingStatsCollections;
+  {
+    auto wLockedStatsCollection = pim2OngoingStatsCollection_.wlock();
+    for (auto& [pimId, ongoing] : *wLockedStatsCollection) {
+      if (ongoing.has_value()) {
+        ongoingStatsCollections.push_back(std::move(*ongoing));
+        ongoing.reset();
+      }
+    }
+  }
+  for (auto& ongoing : ongoingStatsCollections) {
+    ongoing.wait();
+  }
+
   // Loop through all pim platforms
   for (auto& pimPlatformItr : saiPlatforms_) {
     auto& pimPlatform = pimPlatformItr.second;
