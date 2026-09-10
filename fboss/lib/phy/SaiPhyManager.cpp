@@ -137,21 +137,37 @@ void SaiPhyManager::updateAllXphyPortsStats() {
 
     // For XPHY_LEVEL threading, we spawn a task per xphy instead of per pim
     if (getXphyThreadingModel() == XphyThreadingModel::XPHY_LEVEL) {
-      for (auto& [xphy, platformInfo] : pimAndXphyToPlatforms.second) {
-        // Spawn a task for each xphy in this pim
-        auto evb = getXphyEventBase(xphy);
-        folly::via(evb).thenValue([xphy,
-                                   platformInfoPtr = platformInfo.get(),
-                                   this](auto&&) {
-          steady_clock::time_point begin = steady_clock::now();
-          collectXphyStats(xphy, platformInfoPtr);
-          XLOG(DBG3) << "Xphy " << static_cast<int>(xphy)
-                     << " stat collection took "
-                     << duration_cast<milliseconds>(steady_clock::now() - begin)
-                            .count()
-                     << "ms";
-        });
+      auto wLockedStatsCollection = pim2OngoingStatsCollection_.wlock();
+      auto& ongoingStatsCollection = (*wLockedStatsCollection)[pimId];
+      if (ongoingStatsCollection && !ongoingStatsCollection->isReady()) {
+        XLOG(DBG4) << " Sai stats collection for PIM : " << pimId
+                   << " is still ongoing";
+        continue;
       }
+      // Spawn one task per xphy and track them together via folly::collectAll
+      // in pim2OngoingStatsCollection_[pimId], so isXphyStatsCollectionDone()
+      // reports completion. Previously these were fire-and-forget, so the
+      // done-check never became true on XPHY_LEVEL platforms (e.g. Ladakh/Leh).
+      std::vector<folly::Future<folly::Unit>> xphyFutures;
+      xphyFutures.reserve(pimAndXphyToPlatforms.second.size());
+      for (auto& [xphy, platformInfo] : pimAndXphyToPlatforms.second) {
+        auto evb = getXphyEventBase(xphy);
+        xphyFutures.emplace_back(
+            folly::via(evb).thenValue(
+                [xphy, platformInfoPtr = platformInfo.get(), this](auto&&) {
+                  steady_clock::time_point begin = steady_clock::now();
+                  collectXphyStats(xphy, platformInfoPtr);
+                  XLOG(DBG3) << "Xphy " << static_cast<int>(xphy)
+                             << " stat collection took "
+                             << duration_cast<milliseconds>(
+                                    steady_clock::now() - begin)
+                                    .count()
+                             << "ms";
+                }));
+      }
+      ongoingStatsCollection = folly::collectAll(std::move(xphyFutures))
+                                   .toUnsafeFuture()
+                                   .thenValue([](auto&&) {});
       continue;
     }
 
