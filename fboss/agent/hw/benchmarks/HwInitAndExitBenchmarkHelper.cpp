@@ -176,7 +176,13 @@ void initAndExitBenchmarkHelper(
               ensemble.getSw()->getPlatformMapping(),
               asic,
               ensemble.masterLogicalPortIds(),
-              ensemble.getSw()->getPlatformSupportsAddRemovePort());
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              utility::kDefaultLoopbackMap(),
+              true,
+              utility::kBaseVlanId,
+              true,
+              true,
+              ensemble.getSw()->getPlatformType());
         }
         /*
          * Based on the uplink/downlink speed, use the ConfigFactory to create
