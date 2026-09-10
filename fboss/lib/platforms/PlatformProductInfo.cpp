@@ -247,9 +247,6 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Saintpaul") == 0 || modelName.find("SAINTPAUL") == 0) {
       type_ = PlatformType::PLATFORM_SAINTPAUL;
-    } else if (
-        modelName.find("M4061CLSC") == 0 || modelName.find("M4061clsc") == 0) {
-      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else {
       throw FbossError("invalid model name " + modelName);
     }
@@ -335,8 +332,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_YANGRA2;
     } else if (FLAGS_mode == "saintpaul") {
       type_ = PlatformType::PLATFORM_SAINTPAUL;
-    } else if (FLAGS_mode == "m4061clsc") {
-      type_ = PlatformType::PLATFORM_M4061CLSC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

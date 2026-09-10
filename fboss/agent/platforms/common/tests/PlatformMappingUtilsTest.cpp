@@ -136,6 +136,7 @@ TEST(
       PlatformType::PLATFORM_WEDGE800CACT,
       PlatformType::PLATFORM_WEDGE800CNHP,
       PlatformType::PLATFORM_M4062NHP,
+      PlatformType::PLATFORM_M4061CLSC,
       futurePlatformType,
   };
   for (const auto type : platformTypes) {
