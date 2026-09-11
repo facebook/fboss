@@ -2,6 +2,11 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.h"
 
+#include <chrono>
+#include <map>
+#include <set>
+#include <sstream>
+
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AgentFeatures.h"
@@ -128,25 +133,90 @@ class AgentMirrorOnDropSrv6Test : public AgentMirrorOnDropStatelessTest {
     waitForStateUpdates(getSw());
   }
 
+  static uint16_t dropCode(const MirrorOnDropPacketFields& fields) {
+    return fields.dropReasonIngress != 0 ? fields.dropReasonIngress
+                                         : fields.dropReasonEgress;
+  }
+
+  static uint16_t expectedDropCode(
+      const MirrorOnDropDropReasonCodes& reasons) {
+    return reasons.ingressDropReason != 0 ? reasons.ingressDropReason
+                                          : reasons.egressDropReason;
+  }
+
   void captureAndValidateModDrop(
       utility::SwSwitchPacketSnooper& snooper,
       const PortID& injectionPortId,
       const MirrorOnDropDropReasonCodes& expectedReasons,
       const folly::IPAddressV6& innerSrc,
       const folly::IPAddressV6& innerDst) {
+    const auto want = expectedDropCode(expectedReasons);
     WITH_RETRIES_N(10, {
       auto frameRx = snooper.waitForPacket(1);
       ASSERT_EVENTUALLY_TRUE(frameRx.has_value());
       auto fields = parseMirrorOnDropPacket(frameRx->get());
-      ASSERT_EVENTUALLY_EQ(
-          fields.dropReasonIngress, expectedReasons.ingressDropReason);
-      ASSERT_EVENTUALLY_EQ(
-          fields.dropReasonEgress, expectedReasons.egressDropReason);
-      XLOG(INFO) << "Captured MirrorOnDrop packet:\n"
+      const auto got = dropCode(fields);
+      if (got != want) {
+        XLOG(INFO) << "Ignoring MoD drop code " << got << " (want " << want
+                   << ")";
+        ASSERT_EVENTUALLY_TRUE(false);
+      }
+      XLOG(INFO) << "Captured MirrorOnDrop packet drop=" << got << ":\n"
                  << PktUtil::hexDump(frameRx->get());
       validateMirrorOnDropPacket(
           frameRx->get(), injectionPortId, expectedReasons, innerDst, innerSrc);
     });
+  }
+
+  // Drain MoD exports until trap codes 161, 162, and 164 have each been
+  // seen and field-validated. Any other drop code is ignored.
+  void waitForExpectedSrv6ModDrops(
+      utility::SwSwitchPacketSnooper& snooper,
+      const PortID& injectionPortId,
+      const std::map<
+          uint16_t,
+          std::pair<MirrorOnDropDropReasonCodes, folly::IPAddressV6>>&
+          expectedByCode) {
+    std::set<uint16_t> remaining;
+    for (const auto& [code, _] : expectedByCode) {
+      remaining.insert(code);
+    }
+
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    while (!remaining.empty() &&
+           std::chrono::steady_clock::now() < deadline) {
+      auto frameRx = snooper.waitForPacket(1);
+      if (!frameRx.has_value()) {
+        continue;
+      }
+      auto fields = parseMirrorOnDropPacket(frameRx->get());
+      const auto got = dropCode(fields);
+      auto it = expectedByCode.find(got);
+      if (it == expectedByCode.end()) {
+        XLOG(INFO) << "Ignoring unexpected MoD drop code " << got;
+        continue;
+      }
+      if (remaining.count(got) == 0) {
+        XLOG(INFO) << "Duplicate MoD drop code " << got << ", ignoring";
+        continue;
+      }
+      XLOG(INFO) << "Captured expected MoD drop code " << got << ":\n"
+                 << PktUtil::hexDump(frameRx->get());
+      const auto& [reasons, innerDst] = it->second;
+      validateMirrorOnDropPacket(
+          frameRx->get(), injectionPortId, reasons, innerDst, kSrv6OuterSrcIp);
+      remaining.erase(got);
+    }
+
+    if (!remaining.empty()) {
+      std::ostringstream oss;
+      oss << "Timed out waiting for MoD drop codes";
+      for (auto code : remaining) {
+        oss << " " << code;
+      }
+      ADD_FAILURE() << oss.str();
+    }
   }
 
   // Inject an SRv6 packet (received-SRv6 path) and verify the resulting MoD
@@ -414,19 +484,22 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
     //     kMidpointMySidPrefix,
     //     getSrv6MidpointIsLastSidDropReason());
 
-    XLOG(INFO) << "--- Decap non-last-segment drop ---";
-    sendAndVerifyModPacket(
-        injectionPortId,
-        kDecapNonLastDst,
-        getSrv6DecapNonLastSegmentDropReasons());
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(),
+        "mod-srv6-snooper",
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        impl()->snooperReceivePacketType());
+    snooper.ignoreUnclaimedRxPkts();
 
-    XLOG(INFO) << "--- Binding SID non-last-SID drop ---";
-    sendAndVerifyModPacket(
-        injectionPortId,
-        kBindingSidNonLastDst,
-        getSrv6BindingSidNonLastSidDropReasons());
+    XLOG(INFO) << "--- Inject decap non-last-segment (162) ---";
+    sendSrv6Packet(injectionPortId, kDecapNonLastDst);
 
-    XLOG(INFO) << "--- Midpoint unresolved neighbor drop ---";
+    XLOG(INFO) << "--- Inject binding SID non-last-SID (164) ---";
+    sendSrv6Packet(injectionPortId, kBindingSidNonLastDst);
+
+    XLOG(INFO) << "--- Inject midpoint unresolved neighbor (161) ---";
     auto ecmpHelper = utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
@@ -443,11 +516,22 @@ TEST_F(AgentMirrorOnDropSrv6Test, Srv6Drops) {
         kMidpointMySidPrefix,
         kMidpointMySidPrefixLen,
         /*resolved=*/false);
+    sendSrv6Packet(injectionPortId, kMidpointValidDst);
 
-    sendAndVerifyModPacket(
+    const auto decapReasons = getSrv6DecapNonLastSegmentDropReasons();
+    const auto bindingReasons = getSrv6BindingSidNonLastSidDropReasons();
+    const auto unresolvedReasons = getSrv6MidpointUnresolvedDropReasons();
+    waitForExpectedSrv6ModDrops(
+        snooper,
         injectionPortId,
-        kMidpointValidDst,
-        getSrv6MidpointUnresolvedDropReasons());
+        {
+            {expectedDropCode(decapReasons),
+             {decapReasons, kDecapNonLastDst}},
+            {expectedDropCode(bindingReasons),
+             {bindingReasons, kBindingSidNonLastDst}},
+            {expectedDropCode(unresolvedReasons),
+             {unresolvedReasons, kMidpointValidDst}},
+        });
 
     // Re-resolve so the next warmboot iteration starts from the same state
     // as setup() established.

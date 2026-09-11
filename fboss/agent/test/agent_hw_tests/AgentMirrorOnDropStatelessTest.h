@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -201,6 +202,16 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
       const MirrorOnDropDropReasonCodes& expectedReasons,
       std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt,
       std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt);
+
+  // Drain MoD exports until the expected drop code is seen and validated.
+  // Other drop codes are ignored (same pattern as Srv6Drops).
+  void waitForExpectedModDrop(
+      utility::SwSwitchPacketSnooper& snooper,
+      const PortID& injectionPortId,
+      const MirrorOnDropDropReasonCodes& expectedReasons,
+      std::optional<folly::IPAddressV6> expectedInnerDstIp = std::nullopt,
+      std::optional<folly::IPAddressV6> expectedInnerSrcIp = std::nullopt,
+      std::chrono::seconds timeout = std::chrono::seconds(30));
 
   // Wait until outUnicastPkts on every port stabilizes across 3 iterations.
   void waitForStatsToStabilize(const std::vector<PortID>& ports);

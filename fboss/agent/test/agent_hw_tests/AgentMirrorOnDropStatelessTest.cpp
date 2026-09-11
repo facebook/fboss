@@ -2,6 +2,8 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentMirrorOnDropStatelessTest.h"
 
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 #include <folly/ScopeGuard.h>
@@ -48,7 +50,7 @@ std::unique_ptr<MirrorOnDropImpl> createMirrorOnDropImpl(cfg::AsicType type) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       return std::make_unique<XgsMirrorOnDropImpl>();
-    case cfg::AsicType::ASIC_TYPE_YUBA: // gibraltar
+    case cfg::AsicType::ASIC_TYPE_YUBA: // G-series GR2/GR3
     case cfg::AsicType::ASIC_TYPE_G202X: // graphene200
       return std::make_unique<TajoMirrorOnDropImpl>();
     default:
@@ -199,6 +201,43 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   }
 }
 
+void AgentMirrorOnDropStatelessTest::waitForExpectedModDrop(
+    utility::SwSwitchPacketSnooper& snooper,
+    const PortID& injectionPortId,
+    const MirrorOnDropDropReasonCodes& expectedReasons,
+    std::optional<folly::IPAddressV6> expectedInnerDstIp,
+    std::optional<folly::IPAddressV6> expectedInnerSrcIp,
+    std::chrono::seconds timeout) {
+  const auto want = expectedReasons.ingressDropReason != 0
+      ? expectedReasons.ingressDropReason
+      : expectedReasons.egressDropReason;
+  const auto deadline = std::chrono::steady_clock::now() + timeout;
+  while (std::chrono::steady_clock::now() < deadline) {
+    auto frameRx = snooper.waitForPacket(1);
+    if (!frameRx.has_value()) {
+      continue;
+    }
+    auto fields = parseMirrorOnDropPacket(frameRx->get());
+    const auto got = fields.dropReasonIngress != 0 ? fields.dropReasonIngress
+                                                   : fields.dropReasonEgress;
+    if (got != want) {
+      XLOG(INFO) << "Ignoring unexpected MoD drop code " << got << " (want "
+                 << want << ")";
+      continue;
+    }
+    XLOG(INFO) << "Captured expected MoD drop code " << got << ":\n"
+               << PktUtil::hexDump(frameRx->get());
+    validateMirrorOnDropPacket(
+        frameRx->get(),
+        injectionPortId,
+        expectedReasons,
+        expectedInnerDstIp,
+        expectedInnerSrcIp);
+    return;
+  }
+  ADD_FAILURE() << "Timed out waiting for MoD drop code " << want;
+}
+
 void AgentMirrorOnDropStatelessTest::waitForStatsToStabilize(
     const std::vector<PortID>& ports) {
   constexpr int kStableIterations = 3;
@@ -256,19 +295,8 @@ void AgentMirrorOnDropStatelessTest::testDefaultRouteDrop() {
     snooper.ignoreUnclaimedRxPkts();
     sendPackets(1, injectionPortId, kDropDestIp);
 
-    WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-      if (frameRx.has_value()) {
-        XLOG(INFO) << "Captured MirrorOnDrop packet for default-route drop:\n"
-                   << PktUtil::hexDump(frameRx->get());
-        validateMirrorOnDropPacket(
-            frameRx->get(),
-            injectionPortId,
-            getDefaultRouteDropReasons(),
-            kDropDestIp);
-      }
-    });
+    waitForExpectedModDrop(
+        snooper, injectionPortId, getDefaultRouteDropReasons(), kDropDestIp);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -315,19 +343,8 @@ void AgentMirrorOnDropStatelessTest::testAclDrop() {
     XLOG(INFO) << "Sent packet to trigger ACL drop:\n"
                << PktUtil::hexDump(pkt->buf());
 
-    WITH_RETRIES_N(5, {
-      auto frameRx = snooper.waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-      if (frameRx.has_value()) {
-        XLOG(INFO) << "Captured MirrorOnDrop packet for ACL drop:\n"
-                   << PktUtil::hexDump(frameRx->get());
-        validateMirrorOnDropPacket(
-            frameRx->get(),
-            injectionPortId,
-            getAclDropReasons(),
-            kAclDropDestIp);
-      }
-    });
+    waitForExpectedModDrop(
+        snooper, injectionPortId, getAclDropReasons(), kAclDropDestIp);
   };
 
   verifyAcrossWarmBoots(setup, verify);
