@@ -20,6 +20,7 @@ cpp_binary(
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
+        "ConfigCoppTrafficPolicyTest.cpp",
         "ConfigCoppTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
         "ConfigHostnameTest.cpp",
