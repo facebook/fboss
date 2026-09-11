@@ -1236,6 +1236,23 @@ When a session is committed, the CLI determines, **per service**, the least disr
 
 Most `config` subcommands have a matching `delete` counterpart to remove or reset the corresponding piece of configuration (e.g. `fboss2-dev delete protocol static ip route ...`).  Note, that not all configuration parameters can be individually deleted.  Modification of leaf parameters may require deleting the parent object and re-configuring with the desired parameter modified or deleted appropriately.
 
+### Config vs. Set - what's the difference?
+
+As noted, `fboss2-dev` is a strict superset of the `fboss2` command suite.  This leads some to wonder what the differences and expected applications are for the `config` and `set` commands.
+
+`set` is a runtime write operation; nothing is persisted.  There is a limited suite of commands which are available under the `set` command hierarchy and these commands open a thrift client to the running agent and set a value/state.  The changes associated with `set` actions are not persisted to `agent.conf`, nothing is committed to git, and the change lives only in the running `SwitchState`.
+
+`config` edits the configuration file through a staged session.  Every `config <area> ...` command changes the associated `AgentConfig` elements and writes it to a per-user session file that is subsequently committed to the `agent.conf` (or the associated configuration file for the changes of interest).
+
+#### What happens when both are run on a switch?
+
+1. `config` will "win" in terms of application. `fboss2 set port <ports> state disable` and `fboss2-dev config interface <ports> shutdown` both drive port admin state: `set` ephemerally at runtime, `config` via `ports[].state` in `agent.conf`. Any subsequent config session commit or config reload, even for a completely unrelated change, re-applies the config and reverts a `set`. The same holds true for a warmboot or coldboot restart. Runtime `set` state has no protection against a `config` apply.
+
+2. `set` is invisible to an audit trail.  It never appears in a `config session diff`, it is never committed into `git`, and `config history` won't capture it.  If a change needs to survive a reload or a reboot, it must be driven by a `config` change.
+
+3. `config` has no impact until a `commit` action is completed.  `fboss2 show ...` reports the current running state, so a staged edit will show nothing.  `config session diff` is the only way to see what is pending.
+
+
 ### BGP Configuration
 
 :::note
