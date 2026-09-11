@@ -18,6 +18,48 @@ using namespace folly::io;
 
 namespace facebook::fboss::psamp {
 
+namespace {
+
+// How the two drop reason bytes are laid out differs by chip.
+//
+// TH5 gives each pipeline its own byte holding a raw code, and has no egress
+// slot:
+//
+//   byte 0  ingress code
+//   byte 1  MMU code
+//
+// A zero byte means that pipeline reported nothing. There is no separate valid
+// bit, so a genuine code 0 is indistinguishable from absent.
+
+// Each chip reads the bytes itself rather than being handed values named for
+// another chip's layout.
+void deserializeDropReason(
+    Cursor& cursor,
+    XgsPsampData& data,
+    cfg::AsicType asicType) {
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
+      const uint8_t ingress = cursor.read<uint8_t>();
+      const uint8_t mmu = cursor.read<uint8_t>();
+      if (ingress != 0) {
+        data.dropReasonIngress = ingress;
+      }
+      if (mmu != 0) {
+        data.dropReasonMmu = mmu;
+      }
+      return;
+    }
+    default:
+      throw HdrParseError(
+          fmt::format(
+              "Unsupported ASIC type for XGS PSAMP deserialization: {}",
+              static_cast<int>(asicType)));
+  }
+}
+
+} // namespace
+
 uint16_t xgsPsampTemplateIdForAsic(cfg::AsicType asicType) {
   // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
   switch (asicType) {
@@ -58,7 +100,7 @@ uint32_t XgsPsampData::size() const {
   return static_cast<uint32_t>(24 + sampledPacketData.size());
 }
 
-XgsPsampData XgsPsampData::deserialize(Cursor& cursor) {
+XgsPsampData XgsPsampData::deserialize(Cursor& cursor, cfg::AsicType asicType) {
   if (cursor.totalLength() < 24) {
     throw HdrParseError(
         "PSAMP data too small: need 24 bytes, have " +
@@ -70,8 +112,7 @@ XgsPsampData XgsPsampData::deserialize(Cursor& cursor) {
   data.switchId = cursor.readBE<uint32_t>();
   data.egressModPortId = cursor.readBE<uint16_t>();
   data.ingressPort = cursor.readBE<uint16_t>();
-  data.dropReasonIngress = cursor.read<uint8_t>();
-  data.dropReasonMmu = cursor.read<uint8_t>();
+  deserializeDropReason(cursor, data, asicType);
   data.userMetaField = cursor.readBE<uint16_t>();
   data.cosColorProb = cursor.read<uint8_t>();
   data.varLenIndicator = cursor.read<uint8_t>();
@@ -96,11 +137,13 @@ uint32_t XgsPsampModPacket::size() const {
   return ipfixHeader.size() + templateHeader.size() + data.size();
 }
 
-XgsPsampModPacket XgsPsampModPacket::deserialize(Cursor& cursor) {
+XgsPsampModPacket XgsPsampModPacket::deserialize(
+    Cursor& cursor,
+    cfg::AsicType asicType) {
   XgsPsampModPacket pkt;
   pkt.ipfixHeader = IpfixHeader::deserialize(cursor);
   pkt.templateHeader = XgsPsampTemplateHeader::deserialize(cursor);
-  pkt.data = XgsPsampData::deserialize(cursor);
+  pkt.data = XgsPsampData::deserialize(cursor, asicType);
   if (pkt.ipfixHeader.length != pkt.size()) {
     throw HdrParseError(
         "IPFIX length mismatch: header says " +

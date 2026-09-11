@@ -35,13 +35,14 @@ struct XgsMirrorOnDropPacketParsed {
 };
 
 XgsMirrorOnDropPacketParsed deserializeXgsMirrorOnDropPacket(
-    const folly::IOBuf* buf) {
+    const folly::IOBuf* buf,
+    cfg::AsicType asicType) {
   XgsMirrorOnDropPacketParsed parsed;
   folly::io::Cursor cursor(buf);
   parsed.ethHeader = EthHdr(cursor);
   parsed.ipv6Header = IPv6Hdr(cursor);
   parsed.udpHeader.parse(&cursor);
-  parsed.psampPacket = psamp::XgsPsampModPacket::deserialize(cursor);
+  parsed.psampPacket = psamp::XgsPsampModPacket::deserialize(cursor, asicType);
   return parsed;
 }
 
@@ -70,7 +71,7 @@ cfg::MirrorOnDropReport XgsMirrorOnDropImpl::makeReport(
 
 MirrorOnDropPacketFields XgsMirrorOnDropImpl::parsePacket(
     const folly::IOBuf* buf) const {
-  auto parsed = deserializeXgsMirrorOnDropPacket(buf);
+  auto parsed = deserializeXgsMirrorOnDropPacket(buf, asicType_);
 
   auto innerBuf = folly::IOBuf::copyBuffer(
       parsed.psampPacket.data.sampledPacketData.data(),
@@ -89,10 +90,11 @@ MirrorOnDropPacketFields XgsMirrorOnDropImpl::parsePacket(
       .outerSrcPort = parsed.udpHeader.srcPort,
       .outerDstPort = parsed.udpHeader.dstPort,
       .ingressPort = parsed.psampPacket.data.ingressPort,
-      .dropReasonIngress = parsed.psampPacket.data.dropReasonIngress,
+      .dropReasonIngress =
+          parsed.psampPacket.data.dropReasonIngress.value_or(0),
       // XgsPsampData uses dropReasonMmu; the common struct abstracts it as
       // dropReasonEgress.
-      .dropReasonEgress = parsed.psampPacket.data.dropReasonMmu,
+      .dropReasonEgress = parsed.psampPacket.data.dropReasonMmu.value_or(0),
       .innerSrcMac = innerEth.getSrcMac(),
       .innerDstMac = innerEth.getDstMac(),
       .innerSrcIp = innerIpv6.srcAddr,
@@ -103,7 +105,7 @@ MirrorOnDropPacketFields XgsMirrorOnDropImpl::parsePacket(
 }
 
 void XgsMirrorOnDropImpl::verifyInvariants(const folly::IOBuf* buf) const {
-  auto parsed = deserializeXgsMirrorOnDropPacket(buf);
+  auto parsed = deserializeXgsMirrorOnDropPacket(buf, asicType_);
   EXPECT_EQ(
       parsed.ipv6Header.nextHeader,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));

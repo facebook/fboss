@@ -15,6 +15,8 @@ namespace facebook::fboss {
 //     discard, 0x10 = ingress FP/ACL drop, 0x03 = egress port drop).
 class XgsMirrorOnDropImpl : public MirrorOnDropImpl {
  public:
+  explicit XgsMirrorOnDropImpl(cfg::AsicType asicType) : asicType_(asicType) {}
+
   cfg::MirrorOnDropReport makeReport(
       const std::string& name,
       const folly::IPAddressV6& collectorIp,
@@ -44,6 +46,9 @@ class XgsMirrorOnDropImpl : public MirrorOnDropImpl {
       const PortID& srcPortId) const override;
 
   ProductionFeature getProductionFeature() const override;
+
+ private:
+  cfg::AsicType asicType_;
 };
 
 } // namespace facebook::fboss

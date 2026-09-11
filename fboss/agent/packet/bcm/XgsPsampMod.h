@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include <folly/io/Cursor.h>
@@ -56,8 +57,10 @@ struct XgsPsampData {
   uint32_t switchId{};
   uint16_t egressModPortId{};
   uint16_t ingressPort{};
-  uint8_t dropReasonIngress{};
-  uint8_t dropReasonMmu{};
+  // Empty means that pipeline reported nothing. Wire layout differs by chip;
+  // see XgsPsampMod.cpp.
+  std::optional<uint8_t> dropReasonIngress;
+  std::optional<uint8_t> dropReasonMmu;
   uint16_t userMetaField{};
   uint8_t cosColorProb{};
   uint8_t varLenIndicator{XGS_PSAMP_VAR_LEN_INDICATOR};
@@ -65,7 +68,9 @@ struct XgsPsampData {
   std::vector<uint8_t> sampledPacketData;
 
   uint32_t size() const;
-  static XgsPsampData deserialize(folly::io::Cursor& cursor);
+  static XgsPsampData deserialize(
+      folly::io::Cursor& cursor,
+      cfg::AsicType asicType);
 };
 
 struct XgsPsampModPacket {
@@ -74,8 +79,9 @@ struct XgsPsampModPacket {
   XgsPsampData data;
 
   uint32_t size() const;
-  static XgsPsampModPacket deserialize(folly::io::Cursor& cursor);
-  // throws HdrParseError if ipfixHeader.length != size()
+  static XgsPsampModPacket deserialize(
+      folly::io::Cursor& cursor,
+      cfg::AsicType asicType);
 };
 
 } // namespace facebook::fboss::psamp

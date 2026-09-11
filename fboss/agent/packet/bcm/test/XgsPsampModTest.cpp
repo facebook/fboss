@@ -34,6 +34,23 @@ std::string xgsAsicName(cfg::AsicType asicType) {
       return fmt::format("Asic{}", static_cast<int>(asicType));
   }
 }
+
+// A bare EXPECT_THROW would also be satisfied by the unsupported-ASIC throw,
+// so each case names the failure it is testing for.
+void expectDataParseError(
+    const std::vector<uint8_t>& bytes,
+    cfg::AsicType asicType,
+    const std::string& expected) {
+  auto buf = folly::IOBuf::wrapBuffer(bytes.data(), bytes.size());
+  folly::io::Cursor cursor(buf.get());
+  try {
+    XgsPsampData::deserialize(cursor, asicType);
+    ADD_FAILURE() << "expected HdrParseError: " << expected;
+  } catch (const HdrParseError& e) {
+    EXPECT_NE(std::string(e.what()).find(expected), std::string::npos)
+        << e.what();
+  }
+}
 } // namespace
 
 // Tests whose behaviour depends on which XGS chip produced the packet. Adding
@@ -145,17 +162,15 @@ TEST(XgsPsampModTest, XgsPsampTemplateHeaderWrongTemplateId) {
 // dropReasonMmu(1) + userMetaField(2) + cosColorProb(1) + varLenIndicator(1) +
 // packetSampledLength(2)) before the variable-length sampled packet payload.
 // Deserialize must throw when the buffer is shorter than this fixed prefix.
-TEST(XgsPsampModTest, XgsPsampDataTruncatedBuffer) {
+TEST_P(XgsPsampAsicTest, DataTruncatedBuffer) {
   std::vector<uint8_t> smallBuf(20); // 20 < 24 fixed-field bytes
-  auto buf = folly::IOBuf::wrapBuffer(smallBuf.data(), smallBuf.size());
-  folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampData::deserialize(cursor), HdrParseError);
+  expectDataParseError(smallBuf, GetParam(), "PSAMP data too small");
 }
 
 // The fixed fields parse successfully but packetSampledLength claims 100 bytes
 // of sampled packet data while only 2 bytes remain in the buffer. Deserialize
 // must throw because the cursor cannot satisfy the advertised payload length.
-TEST(XgsPsampModTest, XgsPsampDataInsufficientSampledData) {
+TEST_P(XgsPsampAsicTest, DataInsufficientSampledData) {
   // packetSampledLength=100 but only 2 data bytes follow
   // clang-format off
   std::vector<uint8_t> buffer = {
@@ -172,12 +187,10 @@ TEST(XgsPsampModTest, XgsPsampDataInsufficientSampledData) {
       0xAA, 0xBB,                         // only 2 bytes of data
   };
   // clang-format on
-  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
-  folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampData::deserialize(cursor), HdrParseError);
+  expectDataParseError(buffer, GetParam(), "sampled packet data too small");
 }
 
-TEST(XgsPsampModTest, XgsPsampDataInvalidVarLenIndicator) {
+TEST_P(XgsPsampAsicTest, DataInvalidVarLenIndicator) {
   // clang-format off
   std::vector<uint8_t> buffer = {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // observationTimeNs
@@ -192,9 +205,33 @@ TEST(XgsPsampModTest, XgsPsampDataInvalidVarLenIndicator) {
       0x00, 0x00,                         // packetSampledLength
   };
   // clang-format on
+  expectDataParseError(buffer, GetParam(), "variable length indicator");
+}
+
+TEST(XgsPsampModTest, DataUnsupportedAsicType) {
+  // clang-format off
+  std::vector<uint8_t> buffer = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // observationTimeNs
+      0x00, 0x00, 0x00, 0x00,             // switchId
+      0x00, 0x00,                         // egressModPortId
+      0x00, 0x00,                         // ingressPort
+      0x00,                               // dropReasonIngress
+      0x00,                               // dropReasonMmu
+      0x00, 0x00,                         // userMetaField
+      0x00,                               // cosColorProb
+      0xFF,                               // varLenIndicator
+      0x00, 0x00,                         // packetSampledLength = 0
+  };
+  // clang-format on
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
+  folly::io::Cursor supportedCursor(buf.get());
+  EXPECT_NO_THROW(
+      XgsPsampData::deserialize(
+          supportedCursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5));
   folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampData::deserialize(cursor), HdrParseError);
+  EXPECT_THROW(
+      XgsPsampData::deserialize(cursor, cfg::AsicType::ASIC_TYPE_JERICHO3),
+      HdrParseError);
 }
 
 // Every sub-header parses, and only the final length cross-check fails.
@@ -226,7 +263,8 @@ TEST_P(XgsPsampAsicTest, ModPacketLengthMismatch) {
   buffer[17] = static_cast<uint8_t>(templateId & 0xFF);
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
   folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampModPacket::deserialize(cursor), HdrParseError);
+  EXPECT_THROW(
+      XgsPsampModPacket::deserialize(cursor, GetParam()), HdrParseError);
 }
 
 TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
@@ -289,7 +327,8 @@ TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
   auto buf =
       folly::IOBuf::wrapBuffer(fullPacket.data() + ipfixOffset, ipfixLen);
   folly::io::Cursor cursor(buf.get());
-  auto pkt = XgsPsampModPacket::deserialize(cursor);
+  auto pkt = XgsPsampModPacket::deserialize(
+      cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5);
 
   EXPECT_EQ(pkt.ipfixHeader.version, 10);
   EXPECT_EQ(pkt.ipfixHeader.length, 64);
@@ -305,7 +344,7 @@ TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
   EXPECT_EQ(pkt.data.egressModPortId, 0);
   EXPECT_EQ(pkt.data.ingressPort, 1);
   EXPECT_EQ(pkt.data.dropReasonIngress, 0x1A);
-  EXPECT_EQ(pkt.data.dropReasonMmu, 0);
+  EXPECT_FALSE(pkt.data.dropReasonMmu.has_value());
   EXPECT_EQ(pkt.data.userMetaField, 0x1234);
   EXPECT_EQ(pkt.data.cosColorProb, 0);
   EXPECT_EQ(pkt.data.varLenIndicator, 0xFF);
