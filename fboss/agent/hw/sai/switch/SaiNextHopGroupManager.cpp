@@ -673,8 +673,8 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
-// TODO(nivinl): the counter is summed over the groups that exist right now, so
-// deleting a group drops its contribution and the published total goes
+// TODO(nivinl): the counters are summed over the groups that exist right now,
+// so deleting a group drops its contribution and the published total goes
 // backwards. Fix by banking a per group delta against a remembered baseline
 // every interval and publishing the accumulator, so a deleted group keeps what
 // it already counted.
@@ -685,18 +685,23 @@ void SaiNextHopGroupManager::updateStats() {
       SaiNextHopGroupTraits::Attributes::ArsFailPktCount::
           optionalExtensionAttributeId()
               .has_value();
-  if (!haveFailPktCount) {
+  static const bool havePortReassignCount =
+      SaiNextHopGroupTraits::Attributes::ArsPortReassignCount::
+          optionalExtensionAttributeId()
+              .has_value();
+  if (!haveFailPktCount && !havePortReassignCount) {
     return;
   }
   uint64_t failPackets = 0;
+  uint64_t portReassignments = 0;
   auto& nextHopGroupApi = SaiApiTable::getInstance()->nextHopGroupApi();
   for (const auto& entry : handles_) {
     auto handle = entry.second.lock();
     if (!handle || !handle->nextHopGroup) {
       continue;
     }
-    // The counter is an ARS attribute, so only read it on groups that have an
-    // ARS object attached.
+    // The counters are ARS attributes, so only read them on groups that have
+    // an ARS object attached.
     auto arsObjectId =
         std::get<std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId>>(
             handle->nextHopGroup->attributes());
@@ -704,11 +709,19 @@ void SaiNextHopGroupManager::updateStats() {
         arsObjectId->value() == SAI_NULL_OBJECT_ID) {
       continue;
     }
-    failPackets += nextHopGroupApi.getAttribute(
-        handle->nextHopGroup->adapterKey(),
-        SaiNextHopGroupTraits::Attributes::ArsFailPktCount{});
+    auto adapterKey = handle->nextHopGroup->adapterKey();
+    if (haveFailPktCount) {
+      failPackets += nextHopGroupApi.getAttribute(
+          adapterKey, SaiNextHopGroupTraits::Attributes::ArsFailPktCount{});
+    }
+    if (havePortReassignCount) {
+      portReassignments += nextHopGroupApi.getAttribute(
+          adapterKey,
+          SaiNextHopGroupTraits::Attributes::ArsPortReassignCount{});
+    }
   }
   arsStats_.l3EcmpDlbFailPackets() = failPackets;
+  arsStats_.l3EcmpDlbPortReassignmentCount() = portReassignments;
 #endif
 }
 

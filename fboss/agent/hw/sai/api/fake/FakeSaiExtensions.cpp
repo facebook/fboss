@@ -1164,6 +1164,11 @@ SaiNextHopGroupTraits::Attributes::AttributeArsFailPktCount::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsPortReassignCount::operator()() {
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_PORT_REASSIGN_COUNT;
+}
+
+std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
 }

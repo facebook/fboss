@@ -45,4 +45,15 @@ SaiNextHopGroupTraits::Attributes::AttributeArsFailPktCount::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsPortReassignCount::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+  // Times ARS moved a packet to a different egress port than the one its flow
+  // set entry last held.
+  return SAI_NEXT_HOP_GROUP_ATTR_ARS_PORT_REASSIGN_COUNT;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

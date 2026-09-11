@@ -105,6 +105,9 @@ sai_status_t get_next_hop_group_attribute_fn(
       case SAI_NEXT_HOP_GROUP_ATTR_ARS_FAIL_PKT_COUNT:
         attr[i].value.u64 = nextHopGroup.ars_fail_pkt_count;
         break;
+      case SAI_NEXT_HOP_GROUP_ATTR_ARS_PORT_REASSIGN_COUNT:
+        attr[i].value.u64 = nextHopGroup.ars_port_reassign_count;
+        break;
       case SAI_NEXT_HOP_GROUP_ATTR_NEXT_HOP_MEMBER_LIST: {
         const auto& nextHopGroupMemberMap =
             fs->nextHopGroupManager.get(next_hop_group_id).fm().map();

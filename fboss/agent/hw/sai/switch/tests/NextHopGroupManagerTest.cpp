@@ -569,6 +569,13 @@ class NextHopGroupArsCounterTest : public NextHopGroupManagerTest {
         .ars_fail_pkt_count = failPackets;
   }
 
+  void setPortReassignments(
+      const std::shared_ptr<SaiNextHopGroupHandle>& handle,
+      uint64_t portReassignments) {
+    fs->nextHopGroupManager.get(handle->nextHopGroup->adapterKey())
+        .ars_port_reassign_count = portReassignments;
+  }
+
   // One stats sweep, returning what would be published afterwards.
   HwFlowletStats collect() {
     auto& manager = saiManagerTable->nextHopGroupManager();
@@ -594,7 +601,10 @@ class NextHopGroupArsCounterTest : public NextHopGroupManagerTest {
 TEST_F(NextHopGroupArsCounterTest, arsAttachedGroupContributes) {
   auto handle = addArsGroup(nextHops());
   setFailPackets(handle, 100);
-  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 100);
+  setPortReassignments(handle, 7);
+  auto stats = collect();
+  EXPECT_EQ(*stats.l3EcmpDlbFailPackets(), 100);
+  EXPECT_EQ(*stats.l3EcmpDlbPortReassignmentCount(), 7);
 }
 
 // The published value is switch wide, so every ARS group has to be walked.
@@ -603,8 +613,12 @@ TEST_F(NextHopGroupArsCounterTest, sumsAcrossArsGroups) {
   auto handle2 = addArsGroup(otherNextHops());
   ASSERT_NE(handle1, handle2);
   setFailPackets(handle1, 100);
+  setPortReassignments(handle1, 7);
   setFailPackets(handle2, 40);
-  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 140);
+  setPortReassignments(handle2, 3);
+  auto stats = collect();
+  EXPECT_EQ(*stats.l3EcmpDlbFailPackets(), 140);
+  EXPECT_EQ(*stats.l3EcmpDlbPortReassignmentCount(), 10);
 }
 
 // The counter is an ARS attribute, so a group without one contributes nothing.
@@ -613,6 +627,9 @@ TEST_F(NextHopGroupArsCounterTest, ignoresGroupsWithoutArs) {
       SaiNextHopGroupKey(nextHops(), cfg::SwitchingMode::FIXED_ASSIGNMENT));
   ASSERT_FALSE(arsObjectIdOf(handle).has_value());
   setFailPackets(handle, 900);
-  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 0);
+  setPortReassignments(handle, 31);
+  auto stats = collect();
+  EXPECT_EQ(*stats.l3EcmpDlbFailPackets(), 0);
+  EXPECT_EQ(*stats.l3EcmpDlbPortReassignmentCount(), 0);
 }
 #endif
