@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <map>
 #include <vector>
 
@@ -422,6 +423,12 @@ void AgentEnsemble::gracefulExit() {
   bool gracefulExit = !::testing::Test::HasFailure();
   initializer->stopAgent(
       true /* setupWarmboot */, gracefulExit /* gracefulExit */);
+  // handleExitSignal() now returns and lets serve() unwind on asyncInitThread_;
+  // join it then exit here to skip gtest TearDown() (which would tear down
+  // state the next warm boot depends on).
+  joinAsyncInitThread();
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
+  exit(gracefulExit ? 0 : 1);
 }
 
 void AgentEnsemble::applyNewState(

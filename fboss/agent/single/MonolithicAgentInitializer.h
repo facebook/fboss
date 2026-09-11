@@ -69,7 +69,7 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
    */
   virtual void setCmdLineFlagOverrides() const {}
 
-  void handleExitSignal(bool gracefulExit) override;
+  void handleExitSignal(bool gracefulExit, bool skipWarmBootStateSave) override;
 
   /*
    * MonoithicAgentInitializer overrides stopServices to stop the HwAgent first,
