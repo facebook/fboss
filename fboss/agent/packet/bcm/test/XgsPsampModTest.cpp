@@ -11,14 +11,42 @@
 #include "fboss/agent/packet/IpfixHeader.h"
 
 #include <cstdint>
+#include <string>
 #include <vector>
+
+#include <fmt/core.h>
 
 #include <folly/container/Array.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/packet/HdrParseError.h"
 
 namespace facebook::fboss::psamp {
+
+namespace {
+std::string xgsAsicName(cfg::AsicType asicType) {
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      return "TH5";
+    default:
+      return fmt::format("Asic{}", static_cast<int>(asicType));
+  }
+}
+} // namespace
+
+// Tests whose behaviour depends on which XGS chip produced the packet. Adding
+// an ASIC here runs every one of them against it.
+class XgsPsampAsicTest : public testing::TestWithParam<cfg::AsicType> {};
+
+INSTANTIATE_TEST_SUITE_P(
+    PerAsic,
+    XgsPsampAsicTest,
+    ::testing::Values(cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
+    [](const testing::TestParamInfo<cfg::AsicType>& info) {
+      return xgsAsicName(info.param);
+    });
 
 TEST(XgsPsampModTest, IpfixHeaderSerializeDeserialize) {
   IpfixHeader header;
@@ -82,6 +110,15 @@ TEST(XgsPsampModTest, IpfixHeaderWrongVersion) {
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
   folly::io::Cursor cursor(buf.get());
   EXPECT_THROW(IpfixHeader::deserialize(cursor), HdrParseError);
+}
+
+TEST(XgsPsampModTest, XgsPsampTemplateIdForAsic) {
+  EXPECT_EQ(
+      xgsPsampTemplateIdForAsic(cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
+      XGS_PSAMP_TEMPLATE_ID);
+  EXPECT_THROW(
+      xgsPsampTemplateIdForAsic(cfg::AsicType::ASIC_TYPE_JERICHO3),
+      HdrParseError);
 }
 
 TEST(XgsPsampModTest, XgsPsampTemplateHeaderTruncatedBuffer) {
@@ -161,7 +198,8 @@ TEST(XgsPsampModTest, XgsPsampDataInvalidVarLenIndicator) {
 }
 
 // Every sub-header parses, and only the final length cross-check fails.
-TEST(XgsPsampModTest, XgsPsampModPacketLengthMismatch) {
+TEST_P(XgsPsampAsicTest, ModPacketLengthMismatch) {
+  const uint16_t templateId = xgsPsampTemplateIdForAsic(GetParam());
   // clang-format off
   std::vector<uint8_t> buffer = {
       0x00, 0x0A,                         // IPFIX version 10
@@ -169,7 +207,7 @@ TEST(XgsPsampModTest, XgsPsampModPacketLengthMismatch) {
       0x00, 0x00, 0x00, 0x00,             // export time
       0x00, 0x00, 0x00, 0x00,             // sequence number
       0x00, 0x00, 0x00, 0x00,             // observation domain ID
-      0x12, 0x34,                         // template ID
+      0x00, 0x00,                         // template ID, filled in below
       0x00, 0x1E,                         // psamp length = 30
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // observationTimeNs
       0x00, 0x00, 0x00, 0x00,             // switchId
@@ -184,6 +222,8 @@ TEST(XgsPsampModTest, XgsPsampModPacketLengthMismatch) {
       0xAA, 0xBB,                         // sampled data
   };
   // clang-format on
+  buffer[16] = static_cast<uint8_t>(templateId >> 8);
+  buffer[17] = static_cast<uint8_t>(templateId & 0xFF);
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
   folly::io::Cursor cursor(buf.get());
   EXPECT_THROW(XgsPsampModPacket::deserialize(cursor), HdrParseError);

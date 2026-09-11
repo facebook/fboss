@@ -12,6 +12,7 @@ cpp_library(
         "//fboss/agent/packet:hdr_parse_error",
     ],
     exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/packet:ipfix_header",
         "//folly/io:iobuf",
     ],

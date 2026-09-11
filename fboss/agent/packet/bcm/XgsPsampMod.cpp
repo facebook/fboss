@@ -18,6 +18,19 @@ using namespace folly::io;
 
 namespace facebook::fboss::psamp {
 
+uint16_t xgsPsampTemplateIdForAsic(cfg::AsicType asicType) {
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      return XGS_PSAMP_TEMPLATE_ID;
+    default:
+      throw HdrParseError(
+          fmt::format(
+              "No XGS PSAMP template ID for ASIC type {}",
+              static_cast<int>(asicType)));
+  }
+}
+
 uint32_t XgsPsampTemplateHeader::size() const {
   return 4;
 }

@@ -14,6 +14,7 @@
 
 #include <folly/io/Cursor.h>
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/packet/IpfixHeader.h"
 
 namespace facebook::fboss::psamp {
@@ -39,6 +40,8 @@ namespace facebook::fboss::psamp {
 
 constexpr uint16_t XGS_PSAMP_TEMPLATE_ID = 0x1234;
 constexpr uint8_t XGS_PSAMP_VAR_LEN_INDICATOR = 0xFF;
+
+uint16_t xgsPsampTemplateIdForAsic(cfg::AsicType asicType);
 
 struct XgsPsampTemplateHeader {
   uint16_t templateId{XGS_PSAMP_TEMPLATE_ID};
