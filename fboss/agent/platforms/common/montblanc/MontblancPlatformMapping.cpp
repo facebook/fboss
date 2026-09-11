@@ -12,7 +12,6 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancGtswYoloPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancOddPort100GPlatformMapping.h"
-#include "fboss/agent/platforms/common/montblanc/MontblancPrecodingPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
@@ -164049,11 +164048,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
 namespace facebook::fboss {
 
 std::string MontblancPlatformMapping::getPlatformMappingStr() {
-  // Currently only VR200 (San Miguel) racks need precoding.
-  if (FLAGS_montblanc_precoding) {
-    return kJsonPrecodingPlatformMappingStr;
-  }
-
   if (FLAGS_montblanc_gtsw_yolo) {
     return kJsonGtswYoloPlatformMappingStr;
   }
