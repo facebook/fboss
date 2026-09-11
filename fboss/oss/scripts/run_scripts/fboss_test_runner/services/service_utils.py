@@ -135,6 +135,20 @@ def build_unit_file_content(
     tsan_options: str = "die_after_fork=0",
 ) -> str:
     library_path = os.environ.get("LD_LIBRARY_PATH") or "/opt/fboss/lib"
+
+    # Forward BASE_OUTPUT_DIR from the harness process into the unit.
+    # systemd services do NOT inherit the launching shell's environment, so a
+    # var the SDK needs to locate its resources must be declared in the unit.
+    # BASE_OUTPUT_DIR points some ASIC SDKs (e.g. Silicon One G2) at their
+    # resource tree (res/...); without it the SDK cannot find its mapping files
+    # and aborts hw_agent init. Emitted only when set, so this is a no-op for
+    # SDKs/platforms that don't use it (no regression). Mirrors the existing
+    # LD_LIBRARY_PATH forwarding above.
+    base_output_dir = os.environ.get("BASE_OUTPUT_DIR")
+    base_output_dir_line = (
+        f"Environment=BASE_OUTPUT_DIR={base_output_dir}\n" if base_output_dir else ""
+    )
+
     return f"""
 [Unit]
 Description={description}
@@ -147,7 +161,7 @@ MemorySwapMax=0
 
 Environment=TSAN_OPTIONS={tsan_options}
 Environment=LD_LIBRARY_PATH={library_path}
-ExecStart={exec_start_cmd}
+{base_output_dir_line}ExecStart={exec_start_cmd}
 SyslogIdentifier={syslog_identifier}
 Restart=no
 
