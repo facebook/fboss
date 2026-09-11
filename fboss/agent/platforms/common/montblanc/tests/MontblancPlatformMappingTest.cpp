@@ -68,14 +68,11 @@ std::set<int> extendedReachTransceivers(const PlatformMapping& mapping) {
 
 } // namespace
 
-// The base montblanc mapping must construct with the default flags
-// (FLAGS_montblanc_precoding defaults to false) and must not enable precoding
-// anywhere.
-TEST(MontblancPlatformMappingTest, defaultConstructsWithoutPrecoding) {
+TEST(MontblancPlatformMappingTest, defaultPrecodesDownlinksOnly) {
   MontblancPlatformMapping mapping;
   EXPECT_FALSE(mapping.getPlatformPorts().empty());
-  EXPECT_TRUE(precodedTransceivers(mapping).empty());
-  EXPECT_TRUE(extendedReachTransceivers(mapping).empty());
+  EXPECT_EQ(precodedTransceivers(mapping), downlinkTransceivers());
+  EXPECT_EQ(extendedReachTransceivers(mapping), downlinkTransceivers());
 }
 
 // The precoding variant blob must parse and enable precoding and RX_REACH on
