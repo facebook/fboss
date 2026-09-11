@@ -632,4 +632,100 @@ TEST_F(NextHopGroupArsCounterTest, ignoresGroupsWithoutArs) {
   EXPECT_EQ(*stats.l3EcmpDlbFailPackets(), 0);
   EXPECT_EQ(*stats.l3EcmpDlbPortReassignmentCount(), 0);
 }
+
+// Each sweep adds only what the group counted since the previous one.
+TEST_F(NextHopGroupArsCounterTest, accumulatesDeltaAcrossSweeps) {
+  auto handle = addArsGroup(nextHops());
+
+  setFailPackets(handle, 100);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 100);
+
+  setFailPackets(handle, 250);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 250);
+
+  // Nothing new in hardware, so the published total must not move.
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 250);
+}
+
+// Each group advances its own reading, so a later sweep adds only what each
+// of them counted rather than re-counting either in full.
+TEST_F(NextHopGroupArsCounterTest, accumulatesPerGroupAcrossSweeps) {
+  auto handle1 = addArsGroup(nextHops());
+  auto handle2 = addArsGroup(otherNextHops());
+  ASSERT_NE(handle1, handle2);
+
+  setFailPackets(handle1, 100);
+  setFailPackets(handle2, 40);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 140);
+
+  setFailPackets(handle1, 130);
+  setFailPackets(handle2, 45);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 175);
+}
+
+// The counters are consumed as monotonic, so losing a group must not subtract
+// what it already contributed.
+TEST_F(NextHopGroupArsCounterTest, survivesGroupDeletion) {
+  sai_object_id_t adapterKey{};
+  {
+    auto handle = addArsGroup(nextHops());
+    adapterKey = handle->nextHopGroup->adapterKey();
+    setFailPackets(handle, 500);
+    EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+  }
+  // The group has to actually be gone. A group still present with an unmoved
+  // counter would publish the same total, so without this the check below
+  // would pass whether or not the deletion happened.
+  ASSERT_FALSE(fs->nextHopGroupManager.exists(adapterKey));
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+}
+
+// The previous reading lives on the handle, so a group standing up after
+// another was deleted starts from zero rather than being measured against a
+// stale one.
+TEST_F(NextHopGroupArsCounterTest, laterGroupStartsFromZero) {
+  {
+    auto handle = addArsGroup(nextHops());
+    setFailPackets(handle, 500);
+    EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+  }
+  auto handle = addArsGroup(nextHops());
+  setFailPackets(handle, 40);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 540);
+}
+
+// A reading below the previous one is a restarted counter. The reading is the
+// delta, and an unsigned subtract must not wrap.
+TEST_F(NextHopGroupArsCounterTest, doesNotUnderflowWhenCounterRestarts) {
+  auto handle = addArsGroup(nextHops());
+  setFailPackets(handle, 500);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+
+  setFailPackets(handle, 10);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 510);
+}
+
+// Flowlet config removal nulls ArsObjectId on live groups and re-adding it
+// restores them, same group and same adapter key throughout. The counter is
+// free running, so a dropped reading would count its whole history twice.
+TEST_F(NextHopGroupArsCounterTest, survivesArsDetachAndReattach) {
+  auto handle = addArsGroup(nextHops());
+  auto arsObjectId = arsObjectIdOf(handle);
+  ASSERT_TRUE(arsObjectId.has_value());
+
+  setFailPackets(handle, 500);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+
+  handle->nextHopGroup->setOptionalAttribute(
+      SaiNextHopGroupTraits::Attributes::ArsObjectId{SAI_NULL_OBJECT_ID});
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+
+  handle->nextHopGroup->setOptionalAttribute(
+      SaiNextHopGroupTraits::Attributes::ArsObjectId{arsObjectId->value()});
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 500);
+
+  // Still counting against the retained reading rather than from zero.
+  setFailPackets(handle, 560);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 560);
+}
 #endif
