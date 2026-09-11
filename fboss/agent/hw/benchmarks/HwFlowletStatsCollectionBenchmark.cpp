@@ -8,78 +8,10 @@
  *
  */
 
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/test/AgentEnsemble.h"
-#include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/utils/ConfigUtils.h"
-#include "fboss/agent/test/utils/UdfTestUtils.h"
-
-#include <folly/Benchmark.h>
-#include <folly/IPAddress.h>
-
 namespace facebook::fboss {
 
-/*
- * Collect FlowletStats Benchmark time
- */
-
-BENCHMARK(HwFlowletStatsCollection) {
-  folly::BenchmarkSuspender suspender;
-  constexpr int kEcmpWidth = 4;
-
-  // @lint-ignore CLANGTIDY
-  FLAGS_flowletSwitchingEnable = true;
-  // @lint-ignore CLANGTIDY
-  FLAGS_flowletStatsEnable = true;
-  std::unique_ptr<AgentEnsemble> ensemble{};
-
-  AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](const AgentEnsemble& ensemble) {
-        auto ports = ensemble.masterLogicalPortIds();
-        auto config =
-            utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
-        config.udfConfig() =
-            utility::addUdfAclConfig(utility::kUdfOffsetBthReserved);
-        utility::addFlowletConfigs(
-            config, ensemble.masterLogicalPortIds(), ensemble.isSai());
-        utility::addFlowletAcl(
-            config,
-            ensemble.isSai(),
-            utility::kFlowletAclName,
-            utility::kFlowletAclCounterName);
-        return config;
-      };
-
-  ensemble =
-      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
-  // Resolve nextHops
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
-      ensemble->getSw()->getState(),
-      ensemble->getSw()->needL2EntryForNeighbor());
-  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
-  });
-  ecmpHelper.programRoutes(
-      std::make_unique<SwSwitchRouteUpdateWrapper>(
-          ensemble->getSw(), ensemble->getSw()->getRib()),
-      kEcmpWidth);
-
-  // Measure Flowlet stats collection time
-  int iterations = 10'000;
-
-  auto switchId = ensemble->getSw()
-                      ->getScopeResolver()
-                      ->scope(ensemble->masterLogicalPortIds()[0])
-                      .switchId();
-  auto client = ensemble->getHwAgentTestClient(switchId);
-
-  suspender.dismiss();
-  for (auto i = 0; i < iterations; ++i) {
-    client->sync_updateFlowletStats();
-  }
-  suspender.rehire();
-}
+// TODO(nivinl): HwFlowletStatsCollection drove stats collection over the
+// updateFlowletStats thrift RPC, which is removed here. A replacement
+// benchmark will be added.
 
 } // namespace facebook::fboss

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -355,6 +356,8 @@ class SaiNextHopGroupManager {
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
+  void updateStats();
+  HwFlowletStats getHwFlowletStats() const;
 
  private:
   bool isFixedWidthNextHopGroup(
@@ -378,6 +381,7 @@ class SaiNextHopGroupManager {
   std::optional<cfg::SwitchingMode> primaryArsMode_;
   std::optional<int32_t> minWidthForArsVirtualGroup_;
   EcmpGroupSettingsMap ecmpGroupSettings_;
+  HwFlowletStats arsStats_;
 };
 
 } // namespace facebook::fboss

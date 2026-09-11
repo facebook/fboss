@@ -673,6 +673,12 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
 }
 
+void SaiNextHopGroupManager::updateStats() {}
+
+HwFlowletStats SaiNextHopGroupManager::getHwFlowletStats() const {
+  return arsStats_;
+}
+
 std::vector<EcmpDetails> SaiNextHopGroupManager::getAllEcmpDetails() const {
   std::vector<EcmpDetails> ecmpDetails;
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
