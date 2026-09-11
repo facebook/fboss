@@ -14,6 +14,7 @@
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <sstream>
 #include <vector>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
@@ -184,4 +185,36 @@ TEST_F(NeighborsAdvertisedPostPolicyTestFixtureWithoutMed, printOutput) {
       "Policy: Accepted/Modified by PROPAGATE_RSW_FSW_IN term N/A\n";
   EXPECT_EQ(output, expectedOutput);
 }
+
+TEST_F(NeighborsAdvertisedPostPolicyTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(BgpNeighborsAdvertisedPostPolicyTraits::description().empty());
+
+  /*
+   * printRoutesInformation resolves community and local-pref mnemonics
+   * through the MODEL's own host/ip, so point the copy under test at the
+   * mocked server rather than the canned documentation host.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = BgpNeighborsAdvertisedPostPolicy::sampleModel();
+  EXPECT_EQ(model.networkPath()->size(), 2);
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+
+  std::stringstream ss;
+  BgpNeighborsAdvertisedPostPolicy().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("Network: 198.51.100.0/24"));
+  // The advertised direction must render the downstream confed ASN; this
+  // pins that sampleNetworkPaths() honours its ASN argument.
+  EXPECT_THAT(output, HasSubstr("AsPath: (6002)"));
+  EXPECT_THAT(
+      output, HasSubstr("Policy: Accepted/Modified by PROPAGATE_RSW_FSW_OUT"));
+}
+
 } // namespace facebook::fboss
