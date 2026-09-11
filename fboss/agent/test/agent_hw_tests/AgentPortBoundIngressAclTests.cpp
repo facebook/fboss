@@ -511,6 +511,43 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+// Removing a port binding updates the SAI port before ACL processing. The
+// hardware attribute must be explicitly cleared while the table remains.
+TEST_F(AgentPortBoundIngressAclTest, VerifyUnbindPortBoundIngressAcl) {
+  const auto restrictPort = masterLogicalPortIds()[1];
+  auto setup = [=, this]() {
+    setupL3Forwarding();
+    configurePortBoundAcl({restrictPort}, masterLogicalPortIds()[2]);
+  };
+  auto verify = [=, this]() {
+    verifyAclPacket(
+        "Before unbind deny",
+        restrictPort,
+        kDeniedL4DstPort,
+        kRestrictPermitCounterName,
+        kRestrictDenyCounterName,
+        false);
+  };
+  auto setupPostWarmboot = [=, this]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    auto port = utility::findCfgPort(config, restrictPort);
+    ASSERT_TRUE(port->ingressAclTableName().has_value());
+    port->ingressAclTableName().reset();
+    applyNewConfig(config);
+  };
+  auto verifyPostWarmboot = [=, this]() {
+    EXPECT_FALSE(
+        getProgrammedState()
+            ->getPorts()
+            ->getNode(restrictPort)
+            ->getIngressAclTableName()
+            .has_value());
+    verifyUnboundPacket(restrictPort, kDeniedL4DstPort);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 // A create-only profile change recreates the SAI ports. Their restrict and
 // block table bindings must be restored on the replacement port objects.
 TEST_F(AgentPortBoundIngressAclTest, VerifyPortBoundAclAfterPortRecreate) {
