@@ -167,6 +167,12 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
     return xphyIO_;
   }
 
+  // Surface the MDIO IO counters the MdioController already records on each
+  // register read/write.
+  IOStats getIOStats() override {
+    return getXphyIO()->getMdioController()->getIOStats();
+  }
+
   phy::PhyAddress getPhyAddr() const {
     return phyAddr_;
   }
