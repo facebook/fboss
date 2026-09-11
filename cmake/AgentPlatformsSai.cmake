@@ -155,7 +155,6 @@ target_link_libraries(sai_platform
   saintpaul_platform_mapping
   led_structs_types_cpp2
   led_mapping_cpp2
-  wedge800cact_platform_mapping
   yangra2_platform_mapping
 )
 

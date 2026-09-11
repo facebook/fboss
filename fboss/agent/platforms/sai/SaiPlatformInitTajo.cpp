@@ -13,7 +13,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/sai/GenericSaiTajoPlatform.h"
 #include "fboss/agent/platforms/sai/SaiTajoPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
@@ -51,9 +50,6 @@ std::unique_ptr<PlatformMapping> createGenericSaiTajoPlatformMapping(
   switch (type) {
     case PlatformType::PLATFORM_MORGAN800CC:
       return std::make_unique<Morgan800ccPlatformMapping>();
-    case PlatformType::PLATFORM_WEDGE800CACT:
-    case PlatformType::PLATFORM_WEDGE800CNHP:
-      return std::make_unique<Wedge800CACTPlatformMapping>();
     default:
       throw FbossError(
           "Generic Tajo SAI platform is missing platform mapping for platform type ",
