@@ -95,6 +95,7 @@ const list<string> PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM = [
   "MORGAN800CC",
   "JANGA800BIC",
   "TAHAN800BC",
+  "M4062NHP",
 ];
 
 // List of platforms that are allowed to have logical EEPROMs.
