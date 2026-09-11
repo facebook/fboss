@@ -77,7 +77,9 @@ uint32_t XgsPsampTemplateHeader::size() const {
   return 4;
 }
 
-XgsPsampTemplateHeader XgsPsampTemplateHeader::deserialize(Cursor& cursor) {
+XgsPsampTemplateHeader XgsPsampTemplateHeader::deserialize(
+    Cursor& cursor,
+    cfg::AsicType asicType) {
   if (cursor.totalLength() < 4) {
     throw HdrParseError(
         "PSAMP template header too small: need 4 bytes, have " +
@@ -86,11 +88,13 @@ XgsPsampTemplateHeader XgsPsampTemplateHeader::deserialize(Cursor& cursor) {
 
   XgsPsampTemplateHeader hdr;
   hdr.templateId = cursor.readBE<uint16_t>();
-  if (hdr.templateId != XGS_PSAMP_TEMPLATE_ID) {
+  const uint16_t expectedId = xgsPsampTemplateIdForAsic(asicType);
+  if (hdr.templateId != expectedId) {
     throw HdrParseError(
-        "Unexpected PSAMP template ID: expected 0x" +
-        fmt::format("{:04X}", XGS_PSAMP_TEMPLATE_ID) + ", got 0x" +
-        fmt::format("{:04X}", hdr.templateId));
+        fmt::format(
+            "Unexpected PSAMP template ID: expected 0x{:04X}, got 0x{:04X}",
+            expectedId,
+            hdr.templateId));
   }
   hdr.psampLength = cursor.readBE<uint16_t>();
   return hdr;
@@ -142,7 +146,7 @@ XgsPsampModPacket XgsPsampModPacket::deserialize(
     cfg::AsicType asicType) {
   XgsPsampModPacket pkt;
   pkt.ipfixHeader = IpfixHeader::deserialize(cursor);
-  pkt.templateHeader = XgsPsampTemplateHeader::deserialize(cursor);
+  pkt.templateHeader = XgsPsampTemplateHeader::deserialize(cursor, asicType);
   pkt.data = XgsPsampData::deserialize(cursor, asicType);
   if (pkt.ipfixHeader.length != pkt.size()) {
     throw HdrParseError(

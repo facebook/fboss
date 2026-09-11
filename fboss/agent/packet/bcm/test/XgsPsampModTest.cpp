@@ -142,7 +142,10 @@ TEST(XgsPsampModTest, XgsPsampTemplateHeaderTruncatedBuffer) {
   std::vector<uint8_t> smallBuf(3); // < 4 bytes
   auto buf = folly::IOBuf::wrapBuffer(smallBuf.data(), smallBuf.size());
   folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampTemplateHeader::deserialize(cursor), HdrParseError);
+  EXPECT_THROW(
+      XgsPsampTemplateHeader::deserialize(
+          cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
+      HdrParseError);
 }
 
 TEST(XgsPsampModTest, XgsPsampTemplateHeaderWrongTemplateId) {
@@ -154,7 +157,10 @@ TEST(XgsPsampModTest, XgsPsampTemplateHeaderWrongTemplateId) {
   // clang-format on
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
   folly::io::Cursor cursor(buf.get());
-  EXPECT_THROW(XgsPsampTemplateHeader::deserialize(cursor), HdrParseError);
+  EXPECT_THROW(
+      XgsPsampTemplateHeader::deserialize(
+          cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
+      HdrParseError);
 }
 
 // XgsPsampData has 24 bytes of fixed fields (observationTimeNs(8) +

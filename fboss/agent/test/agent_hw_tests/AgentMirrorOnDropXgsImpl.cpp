@@ -112,9 +112,6 @@ void XgsMirrorOnDropImpl::verifyInvariants(const folly::IOBuf* buf) const {
   EXPECT_EQ(parsed.udpHeader.csum, 0);
   EXPECT_EQ(parsed.psampPacket.ipfixHeader.version, psamp::IPFIX_VERSION);
   EXPECT_EQ(
-      parsed.psampPacket.templateHeader.templateId,
-      psamp::XGS_PSAMP_TEMPLATE_ID);
-  EXPECT_EQ(
       parsed.psampPacket.data.varLenIndicator,
       psamp::XGS_PSAMP_VAR_LEN_INDICATOR);
 }

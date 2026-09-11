@@ -49,7 +49,9 @@ struct XgsPsampTemplateHeader {
   uint16_t psampLength{};
 
   uint32_t size() const;
-  static XgsPsampTemplateHeader deserialize(folly::io::Cursor& cursor);
+  static XgsPsampTemplateHeader deserialize(
+      folly::io::Cursor& cursor,
+      cfg::AsicType asicType);
 };
 
 struct XgsPsampData {
