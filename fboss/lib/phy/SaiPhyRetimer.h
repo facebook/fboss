@@ -104,6 +104,11 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
       cfg::PortProfileID profileID,
       bool readFromHw = false) override;
 
+  PhyInfo getPortInfo(
+      const std::vector<LaneID>& sysLanes,
+      const std::vector<LaneID>& lineLanes,
+      PhyInfo& lastPhyInfo) override;
+
   void dump() override {
     dumpImpl();
   }

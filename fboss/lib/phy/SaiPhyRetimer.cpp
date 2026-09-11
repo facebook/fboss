@@ -16,6 +16,9 @@
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -173,8 +176,12 @@ bool SaiPhyRetimer::isSupported(Feature feature) const {
       // Stats come from SaiPhyManager's getAllPhyInfo() path, not
       // ExternalPhy::getPortStats(); this flag gates the stats test infra.
       return true;
-    case Feature::LOOPBACK:
     case Feature::PORT_INFO:
+      // getPortInfo() returns real PhyInfo by delegating to
+      // SaiSwitch::getAllPhyInfo() (the same builder
+      // SaiPhyManager::getPhyInfo() uses), so PORT_INFO is supported.
+      return true;
+    case Feature::LOOPBACK:
     case Feature::MACSEC:
       return false;
     default:
@@ -705,6 +712,73 @@ PhyPortConfig SaiPhyRetimer::getConfigOnePort(
              << ", line.lanes=" << config.profile.line.numLanes().value();
 
   return config;
+}
+
+PhyInfo SaiPhyRetimer::getPortInfo(
+    const std::vector<LaneID>& /* sysLanes */,
+    const std::vector<LaneID>& lineLanes,
+    PhyInfo& /* lastPhyInfo */) {
+  if (!platform_) {
+    throw FbossError("Platform is null for xphyID=", xphyID_);
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(platform_->getHwSwitch());
+  if (!saiSwitch) {
+    throw FbossError("SaiSwitch is null for xphyID=", xphyID_);
+  }
+
+  // Reuse SaiSwitch's PhyInfo (updateAllPhyInfo/getAllPhyInfo), like
+  // SaiPhyManager::getPhyInfo(). It's keyed by SwitchState PortID, so map this
+  // xphy's line lanes -> SAI port (by AdapterHostKey) -> owning PortID.
+  auto& portStore = saiSwitch->getSaiStore()->get<SaiPortTraits>();
+  const auto lineSaiLanes = toLaneVector(lineLanes);
+  auto linePort = portStore.get(SaiPortTraits::AdapterHostKey{lineSaiLanes});
+  if (!linePort) {
+    throw FbossError(
+        "Line port not found for xphyID=",
+        xphyID_,
+        ", lanes=[",
+        formatLanes(lineSaiLanes),
+        "]");
+  }
+  const auto linePortSaiId = linePort->adapterKey();
+
+  // SaiSwitch already indexes SAI port id -> PortID; use it instead of scanning
+  // every port handle.
+  const auto& portSaiId2PortInfo =
+      saiSwitch->concurrentIndices().portSaiId2PortInfo;
+  const auto portInfoIt = portSaiId2PortInfo.find(linePortSaiId);
+  if (portInfoIt == portSaiId2PortInfo.end()) {
+    throw FbossError(
+        "No PortID found for xphyID=",
+        xphyID_,
+        " line lanes=[",
+        formatLanes(lineSaiLanes),
+        "]");
+  }
+  const auto portID = portInfoIt->second.portID;
+
+  saiSwitch->updateAllPhyInfo();
+  auto allPhyInfo = saiSwitch->getAllPhyInfo();
+  auto it = allPhyInfo.find(portID);
+  if (it == allPhyInfo.end()) {
+    throw FbossError(
+        "PhyInfo not found for xphyID=", xphyID_, " portID=", portID);
+  }
+  auto phyInfo = std::move(it->second);
+
+  // SaiSwitch sets phyChip.type() but not phyChip.name(); fill the name from
+  // the platform mapping (XPHY chip whose physicalID == xphyID_).
+  auto& phyChip = *phyInfo.state()->phyChip();
+  if (phyChip.name()->empty()) {
+    for (const auto& [chipName, dpChip] : platformMapping_->getChips()) {
+      if (dpChip.type().value() == DataPlanePhyChipType::XPHY &&
+          dpChip.physicalID().value() == static_cast<int32_t>(xphyID_)) {
+        phyChip.name() = dpChip.name().value();
+        break;
+      }
+    }
+  }
+  return phyInfo;
 }
 
 } // namespace facebook::fboss::phy
