@@ -163,6 +163,7 @@ cpp_unittest(
         "CmdShowBgpTablePrefixTest.cpp",
         "CmdShowBgpTableSummaryTest.cpp",
         "CmdShowBgpTableTest.cpp",
+        "CmdShowBgpTechsupportTest.cpp",
         "CmdShowConfigRunningTest.cpp",
         "CmdShowCpuPortTest.cpp",
         "CmdShowDsfNodesTest.cpp",
