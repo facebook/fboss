@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -511,5 +512,107 @@ TEST_F(NextHopGroupManagerTest, portRifPrimaryMonitorsPortResolvedLater) {
 
   expectPrimaryMonitoredObject(
       handle->nextHopGroup->adapterKey(), expectedMonitoredObj);
+}
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+class NextHopGroupArsCounterTest : public NextHopGroupManagerTest {
+ public:
+  void SetUp() override {
+    NextHopGroupManagerTest::SetUp();
+    // ManagerTestBase declares fs but never assigns it.
+    fs = FakeSai::getInstance();
+    flowletSwitchingEnable_ = FLAGS_flowletSwitchingEnable;
+    FLAGS_flowletSwitchingEnable = true;
+    saiManagerTable->arsManager().addArs(makeFlowletSwitchingConfig());
+    saiManagerTable->nextHopGroupManager().setPrimaryArsSwitchingMode(
+        cfg::SwitchingMode::PER_PACKET_QUALITY);
+  }
+
+  void TearDown() override {
+    FLAGS_flowletSwitchingEnable = flowletSwitchingEnable_;
+    NextHopGroupManagerTest::TearDown();
+  }
+
+  std::shared_ptr<FlowletSwitchingConfig> makeFlowletSwitchingConfig() {
+    auto fsc = std::make_shared<FlowletSwitchingConfig>();
+    fsc->setInactivityIntervalUsecs(1000);
+    fsc->setFlowletTableSize(256);
+    fsc->setSwitchingMode(cfg::SwitchingMode::PER_PACKET_QUALITY);
+    return fsc;
+  }
+
+  // A group carrying an ARS object, which is what updateStats() reads.
+  std::shared_ptr<SaiNextHopGroupHandle> addArsGroup(
+      const RouteNextHopEntry::NextHopSet& swNextHops) {
+    auto handle =
+        saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+            SaiNextHopGroupKey(
+                swNextHops, cfg::SwitchingMode::PER_PACKET_QUALITY));
+    EXPECT_TRUE(arsObjectIdOf(handle).has_value());
+    return handle;
+  }
+
+  std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> arsObjectIdOf(
+      const std::shared_ptr<SaiNextHopGroupHandle>& handle) {
+    return std::get<
+        std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId>>(
+        handle->nextHopGroup->attributes());
+  }
+
+  // Drives what the next walk reads back off the group, standing in for the
+  // free running hardware counter.
+  void setFailPackets(
+      const std::shared_ptr<SaiNextHopGroupHandle>& handle,
+      uint64_t failPackets) {
+    fs->nextHopGroupManager.get(handle->nextHopGroup->adapterKey())
+        .ars_fail_pkt_count = failPackets;
+  }
+
+  // One stats sweep, returning what would be published afterwards.
+  HwFlowletStats collect() {
+    auto& manager = saiManagerTable->nextHopGroupManager();
+    manager.updateStats();
+    return manager.getHwFlowletStats();
+  }
+
+  RouteNextHopEntry::NextHopSet nextHops() {
+    ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+    ResolvedNextHop nh2{h1.ip, InterfaceID(intf1.id), ECMP_WEIGHT};
+    return RouteNextHopEntry::NextHopSet{nh1, nh2};
+  }
+
+  RouteNextHopEntry::NextHopSet otherNextHops() {
+    ResolvedNextHop nh1{h0.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+    return RouteNextHopEntry::NextHopSet{nh1};
+  }
+
+ private:
+  bool flowletSwitchingEnable_{false};
+};
+
+TEST_F(NextHopGroupArsCounterTest, arsAttachedGroupContributes) {
+  auto handle = addArsGroup(nextHops());
+  setFailPackets(handle, 100);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 100);
+}
+
+// The published value is switch wide, so every ARS group has to be walked.
+TEST_F(NextHopGroupArsCounterTest, sumsAcrossArsGroups) {
+  auto handle1 = addArsGroup(nextHops());
+  auto handle2 = addArsGroup(otherNextHops());
+  ASSERT_NE(handle1, handle2);
+  setFailPackets(handle1, 100);
+  setFailPackets(handle2, 40);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 140);
+}
+
+// The counter is an ARS attribute, so a group without one contributes nothing.
+TEST_F(NextHopGroupArsCounterTest, ignoresGroupsWithoutArs) {
+  auto handle = saiManagerTable->nextHopGroupManager().incRefOrAddNextHopGroup(
+      SaiNextHopGroupKey(nextHops(), cfg::SwitchingMode::FIXED_ASSIGNMENT));
+  ASSERT_FALSE(arsObjectIdOf(handle).has_value());
+  setFailPackets(handle, 900);
+  EXPECT_EQ(*collect().l3EcmpDlbFailPackets(), 0);
 }
 #endif

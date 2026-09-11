@@ -265,6 +265,17 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("HierarchicalNextHop: false", fmt::format("{}", hnh));
   SaiNextHopGroupTraits::Attributes::SplitHorizonEnable sh{true};
   EXPECT_EQ("SplitHorizonEnable: true", fmt::format("{}", sh));
+  SaiNextHopGroupTraits::Attributes::ArsFailPktCount fpc{42};
+  EXPECT_EQ("ArsFailPktCount: 42", fmt::format("{}", fpc));
+}
+
+TEST_F(NextHopGroupApiTest, arsFailPktCount) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_EQ(
+      0,
+      nextHopGroupApi->getAttribute(
+          nextHopGroupId,
+          SaiNextHopGroupTraits::Attributes::ArsFailPktCount{}));
 }
 
 TEST_F(NextHopGroupApiTest, splitHorizonEnable) {
