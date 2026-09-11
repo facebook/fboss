@@ -18,11 +18,6 @@ using namespace folly::io;
 
 namespace facebook::fboss::psamp {
 
-void XgsPsampTemplateHeader::serialize(RWPrivateCursor* cursor) const {
-  cursor->writeBE<uint16_t>(templateId);
-  cursor->writeBE<uint16_t>(psampLength);
-}
-
 uint32_t XgsPsampTemplateHeader::size() const {
   return 4;
 }
@@ -44,20 +39,6 @@ XgsPsampTemplateHeader XgsPsampTemplateHeader::deserialize(Cursor& cursor) {
   }
   hdr.psampLength = cursor.readBE<uint16_t>();
   return hdr;
-}
-
-void XgsPsampData::serialize(RWPrivateCursor* cursor) const {
-  cursor->writeBE<uint64_t>(observationTimeNs);
-  cursor->writeBE<uint32_t>(switchId);
-  cursor->writeBE<uint16_t>(egressModPortId);
-  cursor->writeBE<uint16_t>(ingressPort);
-  cursor->write<uint8_t>(dropReasonIngress);
-  cursor->write<uint8_t>(dropReasonMmu);
-  cursor->writeBE<uint16_t>(userMetaField);
-  cursor->write<uint8_t>(cosColorProb);
-  cursor->write<uint8_t>(varLenIndicator);
-  cursor->writeBE<uint16_t>(packetSampledLength);
-  cursor->push(sampledPacketData.data(), sampledPacketData.size());
 }
 
 uint32_t XgsPsampData::size() const {
@@ -96,12 +77,6 @@ XgsPsampData XgsPsampData::deserialize(Cursor& cursor) {
   data.sampledPacketData.resize(data.packetSampledLength);
   cursor.pull(data.sampledPacketData.data(), data.packetSampledLength);
   return data;
-}
-
-void XgsPsampModPacket::serialize(RWPrivateCursor* cursor) const {
-  ipfixHeader.serialize(cursor);
-  templateHeader.serialize(cursor);
-  data.serialize(cursor);
 }
 
 uint32_t XgsPsampModPacket::size() const {

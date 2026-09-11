@@ -84,39 +84,6 @@ TEST(XgsPsampModTest, IpfixHeaderWrongVersion) {
   EXPECT_THROW(IpfixHeader::deserialize(cursor), HdrParseError);
 }
 
-TEST(XgsPsampModTest, XgsPsampTemplateHeaderSerializeDeserialize) {
-  XgsPsampTemplateHeader header;
-  header.templateId = XGS_PSAMP_TEMPLATE_ID;
-  header.psampLength = 602;
-
-  EXPECT_EQ(header.size(), 4);
-
-  constexpr int bufSize = 1024;
-  std::vector<uint8_t> buffer(bufSize);
-  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
-  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
-
-  header.serialize(cursor.get());
-  size_t serializedSize = bufSize - cursor->length();
-  EXPECT_EQ(serializedSize, 4);
-
-  // clang-format off
-  std::vector<uint8_t> expected = {
-      0x12, 0x34,                         // templateId = 0x1234
-      0x02, 0x5A,                         // psampLength = 602
-  };
-  // clang-format on
-  std::vector<uint8_t> actual(buffer.begin(), buffer.begin() + serializedSize);
-  EXPECT_EQ(actual, expected);
-
-  auto deserializeBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
-  folly::io::Cursor deserializeCursor(deserializeBuf.get());
-  auto deserialized = XgsPsampTemplateHeader::deserialize(deserializeCursor);
-
-  EXPECT_EQ(deserialized.templateId, header.templateId);
-  EXPECT_EQ(deserialized.psampLength, header.psampLength);
-}
-
 TEST(XgsPsampModTest, XgsPsampTemplateHeaderTruncatedBuffer) {
   std::vector<uint8_t> smallBuf(3); // < 4 bytes
   auto buf = folly::IOBuf::wrapBuffer(smallBuf.data(), smallBuf.size());
@@ -134,67 +101,6 @@ TEST(XgsPsampModTest, XgsPsampTemplateHeaderWrongTemplateId) {
   auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
   folly::io::Cursor cursor(buf.get());
   EXPECT_THROW(XgsPsampTemplateHeader::deserialize(cursor), HdrParseError);
-}
-
-TEST(XgsPsampModTest, XgsPsampDataSerializeDeserialize) {
-  XgsPsampData data;
-  data.observationTimeNs = 0x692F800B0B4769CE;
-  data.switchId = 7;
-  data.egressModPortId = 3;
-  data.ingressPort = 1;
-  data.dropReasonIngress = 0x1A;
-  data.dropReasonMmu = 0;
-  data.userMetaField = 0x1234;
-  data.cosColorProb = 0;
-  data.varLenIndicator = XGS_PSAMP_VAR_LEN_INDICATOR;
-  data.packetSampledLength = 4;
-  data.sampledPacketData = {0xDE, 0xAD, 0xBE, 0xEF};
-
-  EXPECT_EQ(
-      data.size(), 28); // 24 fixed-field bytes + 4 sampledPacketData bytes
-
-  constexpr int bufSize = 1024;
-  std::vector<uint8_t> buffer(bufSize);
-  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
-  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
-
-  data.serialize(cursor.get());
-  size_t serializedSize = bufSize - cursor->length();
-  EXPECT_EQ(serializedSize, 28);
-
-  // clang-format off
-  std::vector<uint8_t> expected = {
-      0x69, 0x2F, 0x80, 0x0B, 0x0B, 0x47, 0x69, 0xCE, // observationTimeNs
-      0x00, 0x00, 0x00, 0x07,             // switchId = 7
-      0x00, 0x03,                         // egressModPortId = 3
-      0x00, 0x01,                         // ingressPort = 1
-      0x1A,                               // dropReasonIngress
-      0x00,                               // dropReasonMmu
-      0x12, 0x34,                         // userMetaField
-      0x00,                               // cosColorProb
-      0xFF,                               // varLenIndicator
-      0x00, 0x04,                         // packetSampledLength = 4
-      0xDE, 0xAD, 0xBE, 0xEF,            // sampledPacketData
-  };
-  // clang-format on
-  std::vector<uint8_t> actual(buffer.begin(), buffer.begin() + serializedSize);
-  EXPECT_EQ(actual, expected);
-
-  auto deserializeBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
-  folly::io::Cursor deserializeCursor(deserializeBuf.get());
-  auto deserialized = XgsPsampData::deserialize(deserializeCursor);
-
-  EXPECT_EQ(deserialized.observationTimeNs, data.observationTimeNs);
-  EXPECT_EQ(deserialized.switchId, data.switchId);
-  EXPECT_EQ(deserialized.egressModPortId, data.egressModPortId);
-  EXPECT_EQ(deserialized.ingressPort, data.ingressPort);
-  EXPECT_EQ(deserialized.dropReasonIngress, data.dropReasonIngress);
-  EXPECT_EQ(deserialized.dropReasonMmu, data.dropReasonMmu);
-  EXPECT_EQ(deserialized.userMetaField, data.userMetaField);
-  EXPECT_EQ(deserialized.cosColorProb, data.cosColorProb);
-  EXPECT_EQ(deserialized.varLenIndicator, data.varLenIndicator);
-  EXPECT_EQ(deserialized.packetSampledLength, data.packetSampledLength);
-  EXPECT_EQ(deserialized.sampledPacketData, data.sampledPacketData);
 }
 
 // XgsPsampData has 24 bytes of fixed fields (observationTimeNs(8) +
@@ -254,88 +160,33 @@ TEST(XgsPsampModTest, XgsPsampDataInvalidVarLenIndicator) {
   EXPECT_THROW(XgsPsampData::deserialize(cursor), HdrParseError);
 }
 
-TEST(XgsPsampModTest, XgsPsampModPacketRoundTrip) {
-  XgsPsampModPacket pkt;
-  pkt.data.observationTimeNs = 0x692F800B0B4769CE;
-  pkt.data.switchId = 0;
-  pkt.data.egressModPortId = 0;
-  pkt.data.ingressPort = 1;
-  pkt.data.dropReasonIngress = 0x1A;
-  pkt.data.dropReasonMmu = 0;
-  pkt.data.userMetaField = 0x1234;
-  pkt.data.cosColorProb = 0;
-  pkt.data.varLenIndicator = XGS_PSAMP_VAR_LEN_INDICATOR;
-  pkt.data.packetSampledLength = 4;
-  pkt.data.sampledPacketData = {0xCA, 0xFE, 0xBA, 0xBE};
-
-  pkt.templateHeader.templateId = XGS_PSAMP_TEMPLATE_ID;
-  pkt.templateHeader.psampLength = pkt.templateHeader.size() + pkt.data.size();
-
-  pkt.ipfixHeader.version = IPFIX_VERSION;
-  pkt.ipfixHeader.length = pkt.size();
-  pkt.ipfixHeader.exportTime = 0x692F800E;
-  pkt.ipfixHeader.sequenceNumber = 1;
-  pkt.ipfixHeader.observationDomainId = 1;
-
-  // 16 + 4 + 24 + 4 = 48
-  EXPECT_EQ(pkt.size(), 48);
-
-  constexpr int bufSize = 1024;
-  std::vector<uint8_t> buffer(bufSize);
-  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
-  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
-
-  pkt.serialize(cursor.get());
-  size_t serializedSize = bufSize - cursor->length();
-  EXPECT_EQ(serializedSize, 48);
-
-  auto deserializeBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
-  folly::io::Cursor deserializeCursor(deserializeBuf.get());
-  auto deserialized = XgsPsampModPacket::deserialize(deserializeCursor);
-
-  EXPECT_EQ(deserialized.ipfixHeader.version, pkt.ipfixHeader.version);
-  EXPECT_EQ(deserialized.ipfixHeader.length, pkt.ipfixHeader.length);
-  EXPECT_EQ(deserialized.ipfixHeader.exportTime, pkt.ipfixHeader.exportTime);
-  EXPECT_EQ(
-      deserialized.ipfixHeader.sequenceNumber, pkt.ipfixHeader.sequenceNumber);
-  EXPECT_EQ(
-      deserialized.ipfixHeader.observationDomainId,
-      pkt.ipfixHeader.observationDomainId);
-  EXPECT_EQ(
-      deserialized.templateHeader.templateId, pkt.templateHeader.templateId);
-  EXPECT_EQ(
-      deserialized.templateHeader.psampLength, pkt.templateHeader.psampLength);
-  EXPECT_EQ(deserialized.data.switchId, pkt.data.switchId);
-  EXPECT_EQ(deserialized.data.ingressPort, pkt.data.ingressPort);
-  EXPECT_EQ(
-      deserialized.data.packetSampledLength, pkt.data.packetSampledLength);
-  EXPECT_EQ(deserialized.data.sampledPacketData, pkt.data.sampledPacketData);
-}
-
-// Serialize a valid packet but with an intentionally wrong IPFIX length.
-// deserialize should parse all sub-headers successfully, then throw
-// HdrParseError when the final length cross-check fails.
+// Every sub-header parses, and only the final length cross-check fails.
 TEST(XgsPsampModTest, XgsPsampModPacketLengthMismatch) {
-  XgsPsampModPacket pkt;
-  pkt.ipfixHeader.version = IPFIX_VERSION;
-  pkt.data.varLenIndicator = XGS_PSAMP_VAR_LEN_INDICATOR;
-  pkt.data.packetSampledLength = 2;
-  pkt.data.sampledPacketData = {0xAA, 0xBB};
-  pkt.templateHeader.psampLength = pkt.templateHeader.size() + pkt.data.size();
-  pkt.ipfixHeader.length = 9999; // intentionally wrong
-
-  constexpr int bufSize = 1024;
-  std::vector<uint8_t> buffer(bufSize);
-  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), bufSize);
-  auto cursor = std::make_shared<folly::io::RWPrivateCursor>(buf.get());
-
-  pkt.serialize(cursor.get());
-  size_t serializedSize = bufSize - cursor->length();
-
-  auto deserializeBuf = folly::IOBuf::wrapBuffer(buffer.data(), serializedSize);
-  folly::io::Cursor deserializeCursor(deserializeBuf.get());
-  EXPECT_THROW(
-      XgsPsampModPacket::deserialize(deserializeCursor), HdrParseError);
+  // clang-format off
+  std::vector<uint8_t> buffer = {
+      0x00, 0x0A,                         // IPFIX version 10
+      0x27, 0x0F,                         // length = 9999, does not match
+      0x00, 0x00, 0x00, 0x00,             // export time
+      0x00, 0x00, 0x00, 0x00,             // sequence number
+      0x00, 0x00, 0x00, 0x00,             // observation domain ID
+      0x12, 0x34,                         // template ID
+      0x00, 0x1E,                         // psamp length = 30
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // observationTimeNs
+      0x00, 0x00, 0x00, 0x00,             // switchId
+      0x00, 0x00,                         // egressModPortId
+      0x00, 0x00,                         // ingressPort
+      0x00,                               // dropReasonIngress
+      0x00,                               // dropReasonMmu
+      0x00, 0x00,                         // userMetaField
+      0x00,                               // cosColorProb
+      0xFF,                               // varLenIndicator
+      0x00, 0x02,                         // packetSampledLength = 2
+      0xAA, 0xBB,                         // sampled data
+  };
+  // clang-format on
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
+  folly::io::Cursor cursor(buf.get());
+  EXPECT_THROW(XgsPsampModPacket::deserialize(cursor), HdrParseError);
 }
 
 TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {

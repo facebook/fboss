@@ -44,7 +44,6 @@ struct XgsPsampTemplateHeader {
   uint16_t templateId{XGS_PSAMP_TEMPLATE_ID};
   uint16_t psampLength{};
 
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
   static XgsPsampTemplateHeader deserialize(folly::io::Cursor& cursor);
 };
@@ -62,7 +61,6 @@ struct XgsPsampData {
   uint16_t packetSampledLength{};
   std::vector<uint8_t> sampledPacketData;
 
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
   static XgsPsampData deserialize(folly::io::Cursor& cursor);
 };
@@ -72,7 +70,6 @@ struct XgsPsampModPacket {
   XgsPsampTemplateHeader templateHeader;
   XgsPsampData data;
 
-  void serialize(folly::io::RWPrivateCursor* cursor) const;
   uint32_t size() const;
   static XgsPsampModPacket deserialize(folly::io::Cursor& cursor);
   // throws HdrParseError if ipfixHeader.length != size()
