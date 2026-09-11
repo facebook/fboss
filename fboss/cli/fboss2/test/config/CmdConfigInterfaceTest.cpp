@@ -1911,9 +1911,9 @@ TEST_F(
   }
 }
 
-// A subsuming profile change escalates the action level to AGENT_COLDBOOT so
-// the CLI commits it as an agent coldboot instead of a hitless reloadConfig
-// (T281221621).
+// A subsuming profile change escalates the action level to
+// DISRUPTIVE_SERVICE_RESTART so the CLI commits it as an agent coldboot instead
+// of a hitless reloadConfig (T281221621).
 TEST_F(ApplyProfileSubsumeTestFixture, subsumeEscalatesToColdboot) {
   setupTestableConfigSession(
       "config interface", "eth1/1/1 profile PROFILE_400G_8_PAM4_RS544X2N");
@@ -1929,7 +1929,7 @@ TEST_F(ApplyProfileSubsumeTestFixture, subsumeEscalatesToColdboot) {
       "PROFILE_400G_8_PAM4_RS544X2N",
       &actionLevel);
 
-  EXPECT_EQ(actionLevel, cli::ConfigActionLevel::AGENT_COLDBOOT);
+  EXPECT_EQ(actionLevel, cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART);
 }
 
 // ============================================================================
