@@ -8,6 +8,8 @@
  *
  */
 
+#include <algorithm>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
@@ -248,6 +250,79 @@ TEST_F(CmdShowBgpSummaryEgressTestFixture, printPeerSummary) {
       " 5.6.7.8          IBGP v4 Peers         IBGP_GROUP  ESTA   0h 0m 0s            0   0   25  50  5   5          5                   1969-12-31 16:05:00.0 PST  5          5                   1969-12-31 16:05:00.0 PST  5                1969-12-31 16:05:00.0 PST \n\n";
 
   EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(CmdShowBgpSummaryEgressTestFixture, wikiDocHooks) {
+  const auto description = CmdShowBgpSummaryEgressTraits::description();
+  EXPECT_FALSE(description.empty());
+  // IQ and SQ are the two queues this view exists to expose; prose that has
+  // lost them is not doing its job.
+  EXPECT_THAT(std::string(description), HasSubstr("IQ"));
+  EXPECT_THAT(std::string(description), HasSubstr("SQ"));
+
+  const auto model = CmdShowBgpSummaryEgress::sampleModel();
+  ASSERT_FALSE(model.peer_egress_stats()->empty());
+
+  // The listen range's group name is deliberately left unset so the render has
+  // to fall back to kNoGroupName; asserting on "NONE" below would otherwise
+  // only be reading back a hardcoded literal. Find it by address rather than
+  // by position, which would break the moment another peer is appended.
+  const auto& allStats = *model.peer_egress_stats();
+  const auto listenRange = std::find_if(
+      allStats.begin(), allStats.end(), [](const TPeerEgressStats& stats) {
+        return *stats.session()->peer_addr() == "198.51.100.0/24";
+      });
+  ASSERT_NE(listenRange, allStats.end());
+  EXPECT_FALSE(listenRange->group_name().has_value());
+
+  // createModel() sorts by peer_addr before rendering, so the sample must
+  // already be in that order or the wiki example shows a row order the command
+  // never emits.
+  EXPECT_TRUE(
+      std::is_sorted(
+          allStats.begin(),
+          allStats.end(),
+          [](const TPeerEgressStats& lhs, const TPeerEgressStats& rhs) {
+            return *lhs.session()->peer_addr() < *rhs.session()->peer_addr();
+          }));
+
+  std::stringstream ss;
+  CmdShowBgpSummaryEgress().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  // Both tables render: per-group percentiles, then the per-peer detail.
+  const auto groupTableStart =
+      output.find("BGP Peer Egress Summary by Group Percentiles");
+  ASSERT_NE(groupTableStart, std::string::npos);
+  EXPECT_THAT(output, HasSubstr("p50"));
+  EXPECT_THAT(output, HasSubstr("p99"));
+  EXPECT_THAT(output, HasSubstr("RSW-FSW-V4"));
+  EXPECT_THAT(output, HasSubstr("RSW-FSW-V6"));
+
+  // The listen range carries no group name, so the render substitutes
+  // kNoGroupName for it.
+  EXPECT_THAT(output, HasSubstr(kNoGroupName));
+  EXPECT_THAT(output, HasSubstr("198.51.100.0/24"));
+
+  /*
+   * It is IDLE, so makeGroupTable excludes it from the percentile table: the
+   * substituted group name must appear only in the per-peer table. Anchor on
+   * the per-peer header explicitly rather than "the second occurrence of a
+   * prefix of it", which silently degenerates when the header is missing.
+   */
+  const auto perPeerTableStart = output.find("\nBGP Peer Egress Summary\n");
+  ASSERT_NE(perPeerTableStart, std::string::npos);
+  ASSERT_GT(perPeerTableStart, groupTableStart);
+  EXPECT_EQ(
+      output.substr(0, perPeerTableStart).find(kNoGroupName),
+      std::string::npos);
+
+  // The tail percentiles must differ from p50, or the percentile table is not
+  // showing the spread the prose says it does.
+  const std::string groupTable =
+      output.substr(groupTableStart, perPeerTableStart - groupTableStart);
+  EXPECT_THAT(groupTable, ContainsRegex("p50 +RSW-FSW-V4 +120 +19 "));
+  EXPECT_THAT(groupTable, ContainsRegex("p99 +RSW-FSW-V4 +120 +31 "));
 }
 
 } // namespace facebook::fboss
