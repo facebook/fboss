@@ -1,9 +1,10 @@
-# /usr/lib/systemd/system/fsdb.service
+# /usr/lib/systemd/system/led_service.service
 [Unit]
-Description=FBOSS FSDB Service
+Description=FBOSS LED Service
+After=platform_manager.service
 After=rc-local.service
-# Unlimited restarts (no start limit hit within a given time period)
-StartLimitIntervalSec=0
+Wants=fboss_init.service
+After=fboss_init.service
 
 [Service]
 Type=simple
@@ -15,16 +16,16 @@ MemorySwapMax=0
 Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
 WorkingDirectory=/opt/fboss
-ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fsdb'
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/led_service'
 
 Restart=always
-RestartSec=3
+RestartSec=30
 TimeoutStartSec=180s
 
 # Logging to journald
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=fsdb
+SyslogIdentifier=led_service
 
 [Install]
 WantedBy=multi-user.target
