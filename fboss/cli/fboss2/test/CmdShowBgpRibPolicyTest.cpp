@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCps.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCrf.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCte.h"
+#include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyGoldenPrefixes.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 using namespace ::testing;
@@ -70,6 +71,29 @@ TEST_F(CmdShowBgpRibPolicyTestFixture, cteWikiDocHooks) {
   CmdShowBgpRibPolicyCte().printOutput(
       CmdShowBgpRibPolicyCte::sampleModel(), ss);
   EXPECT_THAT(ss.str(), HasSubstr("route attribute policy"));
+}
+
+TEST_F(CmdShowBgpRibPolicyTestFixture, goldenPrefixesWikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpRibPolicyGoldenPrefixesTraits::description().empty());
+  const auto model = CmdShowBgpRibPolicyGoldenPrefixes::sampleModel();
+  EXPECT_TRUE(model.policy()->golden_prefix_policy().has_value());
+
+  std::stringstream ss;
+  CmdShowBgpRibPolicyGoldenPrefixes().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("golden prefix (version 1784328957)"));
+  // The state line is the only thing this command adds over 'rib-policy crf',
+  // so the example has to include it.
+  EXPECT_THAT(output, HasSubstr("Golden prefix policy state:"));
+}
+
+// The golden prefixes shown here and by 'show bgp rib-policy crf' come from
+// one builder, so the two wiki entries cannot describe different policies.
+TEST_F(CmdShowBgpRibPolicyTestFixture, goldenPrefixesMatchCrfSample) {
+  EXPECT_EQ(
+      *CmdShowBgpRibPolicyGoldenPrefixes::sampleModel().policy(),
+      CmdShowBgpRibPolicyCrf::sampleModel());
 }
 
 } // namespace facebook::fboss
