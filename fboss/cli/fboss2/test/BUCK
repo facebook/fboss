@@ -141,6 +141,7 @@ cpp_unittest(
         "CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp",
         "CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp",
         "CmdShowBgpNeighborsAdvertisedRejectedTest.cpp",
+        "CmdShowBgpNeighborsByNameTest.cpp",
         "CmdShowBgpNeighborsReceivedPostPolicyTest.cpp",
         "CmdShowBgpNeighborsReceivedPrePolicyTest.cpp",
         "CmdShowBgpNeighborsReceivedRejectedTest.cpp",
