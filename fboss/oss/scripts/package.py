@@ -25,7 +25,13 @@ RUN_CONFIGS_DIR = SRC_DIR / "fboss/oss/scripts/run_configs"
 PLATFORM_CONFIGS_DIR = SRC_DIR / "fboss/configs/platforms"
 
 BUILD_DIR = "--build-dir"
-TARGET_NAMES = ("agent-benchmarks", "forwarding-stack", "platform-stack")
+TARGET_NAMES = (
+    "agent-benchmarks",
+    "forwarding-stack",
+    "platform-stack",
+    "bgp",
+    "openr",
+)
 
 
 # Maps getdeps package name to library name when they differ.
@@ -78,6 +84,35 @@ FORWARDING_EXTRA = {
 }
 
 FORWARDING_LIBS = []
+
+# BGP and Open/R install rather than leaving binaries in the build tree
+# (`install(TARGETS bgp_bin DESTINATION sbin)`), so their binaries come from
+# the getdeps install tree instead of build/fboss.
+BGP_BINARIES = [
+    "bgp",
+]
+
+# Deps from the getdeps manifests that COMMON_LIBS does not already cover.
+BGP_LIBS = [
+    # bgp installs its own shared libraries (install(TARGETS ... DESTINATION lib))
+    "bgp",
+    "fb303",
+    "fbthrift",
+    "openr",
+    "re2",
+    "zstd",
+]
+
+OPENR_BINARIES = [
+    "openr",
+]
+
+OPENR_LIBS = [
+    "openr",
+    "fb303",
+    "fbthrift",
+    "re2",
+]
 
 FORWARDING_TEST_BINARIES = [
     "fboss-platform-mapping-gen",
@@ -164,23 +199,12 @@ def _find_getdeps_libs(
     build_dir: pathlib.Path, packages: list[str]
 ) -> dict[pathlib.Path, str]:
     """Find shared libraries for the given packages under the getdeps installed directory."""
-    installed_dir = build_dir / "installed"
     libs = {}
     for pkg in packages:
-        pkg_dirs = sorted(
-            installed_dir.glob(f"{pkg}-*"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-        if not pkg_dirs:
+        pkg_dir = _find_installed_pkg_dir(build_dir, pkg)
+        if pkg_dir is None:
             print(f"Warning: no .so libraries found for {pkg}")
             continue
-
-        pkg_dir = pkg_dirs[0]
-        if len(pkg_dirs) > 1:
-            print(
-                f"Multiple directories found for {pkg}, using most recent: {pkg_dir.name}"
-            )
 
         lib_name = LIB_NAME_OVERRIDES.get(pkg, pkg)
         matches = []
@@ -215,6 +239,74 @@ def write_tar(filename: str, contents: Mapping[pathlib.Path, str]) -> None:
         tar.addfile(tarinfo)
 
 
+def _find_installed_pkg_dir(build_dir: pathlib.Path, pkg: str) -> pathlib.Path | None:
+    """Most recent getdeps install directory for a package, or None.
+
+    getdeps suffixes install directories with a build-config hash, so the exact
+    name is not known ahead of time.
+    """
+    pkg_dirs = sorted(
+        (build_dir / "installed").glob(f"{pkg}-*"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not pkg_dirs:
+        return None
+    if len(pkg_dirs) > 1:
+        print(
+            f"Multiple directories found for {pkg}, using most recent: {pkg_dirs[0].name}"
+        )
+    return pkg_dirs[0]
+
+
+def _find_installed_bin_dirs(
+    build_dir: pathlib.Path, project: str
+) -> list[pathlib.Path]:
+    """Every binary directory in a project's install tree.
+
+    Both are searched rather than just the first: a project may install some
+    binaries to bin/ and others to sbin/, and picking one would drop the rest
+    with only a warning.
+    """
+    pkg_dir = _find_installed_pkg_dir(build_dir, project)
+    if pkg_dir is None:
+        raise RuntimeError(f"No install tree for {project} under {build_dir}/installed")
+
+    bin_dirs = [pkg_dir / d for d in ("sbin", "bin") if (pkg_dir / d).is_dir()]
+    if not bin_dirs:
+        raise RuntimeError(f"No bin/ or sbin/ under {pkg_dir}")
+    return bin_dirs
+
+
+def _resolve_binaries(
+    bin_dirs: list[pathlib.Path], names: list[str], required: bool = False
+) -> dict:
+    """Map each binary to bin/<name>, searching every candidate directory.
+
+    With required=True a binary that cannot be found raises. Targets whose
+    binary list is a single entry would otherwise publish a tarball holding
+    only libraries, and exit zero doing it.
+    """
+    resolved = {}
+    missing = []
+    for name in names:
+        for bin_dir in bin_dirs:
+            candidate = bin_dir / name
+            if candidate.is_file():
+                resolved[candidate] = f"bin/{name}"
+                break
+        else:
+            missing.append(name)
+            # Fall back to the first candidate so write_tar reports the missing
+            # path, as it did before this searched more than one directory.
+            resolved[bin_dirs[0] / name] = f"bin/{name}"
+
+    if required and missing:
+        searched = ", ".join(str(d) for d in bin_dirs)
+        raise RuntimeError(f"Binaries not found in {searched}: {', '.join(missing)}")
+    return resolved
+
+
 def _build_target(target: str, build_dir: pathlib.Path):
     """Return mappings for a given target and build_dir
 
@@ -225,7 +317,9 @@ def _build_target(target: str, build_dir: pathlib.Path):
     bins = []
     extras = {}
     libs = []
-    test_bins = {}
+    bin_dirs = None
+    require_bins = False
+    test_bins = []
     test_extras = {}
 
     if target == "forwarding-stack":
@@ -248,10 +342,22 @@ def _build_target(target: str, build_dir: pathlib.Path):
         extras = {
             OSS_DIR / "hw_benchmark_tests": "share/hw_benchmark_tests",
         }
+    elif target == "bgp":
+        bins = BGP_BINARIES
+        libs = BGP_LIBS + COMMON_LIBS
+        # bgp and openr install their binaries; fboss leaves them in the build tree.
+        bin_dirs = _find_installed_bin_dirs(build_dir, "bgp")
+        require_bins = True
+    elif target == "openr":
+        bins = OPENR_BINARIES
+        libs = OPENR_LIBS + COMMON_LIBS
+        bin_dirs = _find_installed_bin_dirs(build_dir, "openr")
+        require_bins = True
 
-    fboss_build_dir = build_dir / "build" / "fboss"
+    if bin_dirs is None:
+        bin_dirs = [build_dir / "build" / "fboss"]
 
-    prod_files = {fboss_build_dir / bin_name: f"bin/{bin_name}" for bin_name in bins}
+    prod_files = _resolve_binaries(bin_dirs, bins, required=require_bins)
     prod_files.update(extras)
     prod_files.update(_find_getdeps_libs(build_dir, libs))
 
@@ -264,9 +370,7 @@ def _build_target(target: str, build_dir: pathlib.Path):
             )
         ] = f"lib/libunwind.{ext}"
 
-    test_files = {
-        fboss_build_dir / bin_name: f"bin/{bin_name}" for bin_name in test_bins
-    }
+    test_files = _resolve_binaries(bin_dirs, test_bins)
     test_files.update(test_extras)
 
     return (prod_files, test_files)
