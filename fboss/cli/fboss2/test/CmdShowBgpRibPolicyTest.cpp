@@ -21,6 +21,9 @@
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCrf.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCte.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyGoldenPrefixes.h"
+#include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/changehistory/CmdShowBgpRibPolicyChangeHistory.h"
+#include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/changehistory/CmdShowBgpRibPolicyChangeHistoryCps.h"
+#include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/changehistory/CmdShowBgpRibPolicyChangeHistoryCrf.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 using namespace ::testing;
@@ -122,6 +125,44 @@ TEST_F(CmdShowBgpRibPolicyTestFixture, umbrellaSectionsMatchSubcommands) {
       *model.path_selection_policy(), CmdShowBgpRibPolicyCps::sampleModel());
   EXPECT_EQ(
       *model.route_filter_policy(), CmdShowBgpRibPolicyCrf::sampleModel());
+}
+
+TEST_F(CmdShowBgpRibPolicyTestFixture, changeHistoryWikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpRibPolicyChangeHistoryTraits::description().empty());
+  EXPECT_FALSE(CmdShowBgpRibPolicyChangeHistory::sampleModel().empty());
+
+  std::stringstream ss;
+  CmdShowBgpRibPolicyChangeHistory().printOutput(
+      CmdShowBgpRibPolicyChangeHistory::sampleModel(), ss);
+  const std::string output = ss.str();
+
+  // Unfiltered: both bundles appear.
+  EXPECT_THAT(output, HasSubstr("CPS 1732574075"));
+  EXPECT_THAT(output, HasSubstr("CRF 1784328957"));
+}
+
+// The cps and crf variants read the same file and differ only in the filter
+// they apply, which is what their descriptions tell readers.
+TEST_F(CmdShowBgpRibPolicyTestFixture, changeHistoryVariantsFilterOneBundle) {
+  EXPECT_FALSE(
+      CmdShowBgpRibPolicyChangeHistoryCpsTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowBgpRibPolicyChangeHistoryCrfTraits::description().empty());
+  EXPECT_EQ(
+      CmdShowBgpRibPolicyChangeHistoryCps::sampleModel(),
+      CmdShowBgpRibPolicyChangeHistory::sampleModel());
+
+  std::stringstream cps;
+  CmdShowBgpRibPolicyChangeHistoryCps().printOutput(
+      CmdShowBgpRibPolicyChangeHistoryCps::sampleModel(), cps);
+  EXPECT_THAT(cps.str(), HasSubstr("CPS"));
+  EXPECT_THAT(cps.str(), Not(HasSubstr("CRF")));
+
+  std::stringstream crf;
+  CmdShowBgpRibPolicyChangeHistoryCrf().printOutput(
+      CmdShowBgpRibPolicyChangeHistoryCrf::sampleModel(), crf);
+  EXPECT_THAT(crf.str(), HasSubstr("CRF"));
+  EXPECT_THAT(crf.str(), Not(HasSubstr("CPS")));
 }
 
 } // namespace facebook::fboss
