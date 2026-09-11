@@ -31,8 +31,8 @@ namespace facebook::fboss::psamp {
 //   ID, and it differs per chip.
 // - PSAMP data fields include Broadcom-specific switch/port identifiers
 //   (switchId, egressModPortId) and ASIC-internal drop reason codes
-//   (dropReasonIngress, dropReasonMmu) not defined in the IANA IPFIX
-//   Information Element registry.
+//   (dropReasonIngress, dropReasonMmu, dropReasonEgress) not defined in the
+//   IANA IPFIX Information Element registry.
 // - Additional vendor metadata: userMetaField (from EGR_MIRROR_USER_META_DATA
 //   register) and cosColorProb (packed COS queue, color, probability index).
 // - UDP checksum is always zero (RFC 5101 Section 10.3.2 requires a valid
@@ -65,6 +65,7 @@ struct XgsPsampData {
   // see XgsPsampMod.cpp.
   std::optional<uint8_t> dropReasonIngress;
   std::optional<uint8_t> dropReasonMmu;
+  std::optional<uint8_t> dropReasonEgress;
   uint16_t userMetaField{};
   uint8_t cosColorProb{};
   uint8_t varLenIndicator{XGS_PSAMP_VAR_LEN_INDICATOR};

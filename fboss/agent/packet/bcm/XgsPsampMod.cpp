@@ -11,6 +11,7 @@
 #include "fboss/agent/packet/bcm/XgsPsampMod.h"
 
 #include <fmt/core.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/packet/HdrParseError.h"
 
@@ -20,19 +21,69 @@ namespace facebook::fboss::psamp {
 
 namespace {
 
-// How the two drop reason bytes are laid out differs by chip.
+// Drop reason wire layout, per chip.
 //
-// TH5 gives each pipeline its own byte holding a raw code, and has no egress
-// slot:
+//   TH5  byte 0 ingress code, byte 1 MMU code, no egress slot. Zero means that
+//        pipeline was not involved, so a real code 0 cannot be told from one.
 //
-//   byte 0  ingress code
-//   byte 1  MMU code
-//
-// A zero byte means that pipeline reported nothing. There is no separate valid
-// bit, so a genuine code 0 is indistinguishable from absent.
+//   TH6  byte 0 holds pipeline and code, byte 1 is metadata. The range names
+//        the pipeline, so a zero code is still a decoded value:
+//          0x00-0x78 ingress, 0x90-0x95 MMU, 0x98-0xFF egress
+//        Egress has no documented upper bound; the ranges are SDK-programmed.
+//        A byte between ranges is not a code any pipeline can raise.
 
-// Each chip reads the bytes itself rather than being handed values named for
-// another chip's layout.
+enum class DropPipeline { Ingress, Mmu, Egress };
+
+void setDropReason(XgsPsampData& data, DropPipeline pipeline, uint8_t code) {
+  switch (pipeline) {
+    case DropPipeline::Ingress:
+      data.dropReasonIngress = code;
+      return;
+    case DropPipeline::Mmu:
+      data.dropReasonMmu = code;
+      return;
+    case DropPipeline::Egress:
+      data.dropReasonEgress = code;
+      return;
+  }
+}
+
+constexpr uint8_t kTh6IngressDropReasonMin = 0x00;
+constexpr uint8_t kTh6IngressDropReasonMax = 0x78;
+constexpr uint8_t kTh6MmuDropReasonMin = 0x90;
+constexpr uint8_t kTh6MmuDropReasonMax = 0x95;
+constexpr uint8_t kTh6EgressDropReasonMin = 0x98;
+constexpr uint8_t kTh6EgressDropReasonMax = 0xFF;
+
+// A function, so comparing against 0xFF is not a tautology the compiler warns
+// on.
+bool inDropReasonRange(uint8_t wireByte, uint8_t min, uint8_t max) {
+  return wireByte >= min && wireByte <= max;
+}
+
+void deserializeDropReasonTh6(Cursor& cursor, XgsPsampData& data) {
+  const uint8_t wireByte = cursor.read<uint8_t>();
+  cursor.skip(1);
+  if (inDropReasonRange(
+          wireByte, kTh6EgressDropReasonMin, kTh6EgressDropReasonMax)) {
+    setDropReason(
+        data, DropPipeline::Egress, wireByte - kTh6EgressDropReasonMin);
+  } else if (inDropReasonRange(
+                 wireByte, kTh6MmuDropReasonMin, kTh6MmuDropReasonMax)) {
+    setDropReason(data, DropPipeline::Mmu, wireByte - kTh6MmuDropReasonMin);
+  } else if (inDropReasonRange(
+                 wireByte,
+                 kTh6IngressDropReasonMin,
+                 kTh6IngressDropReasonMax)) {
+    setDropReason(
+        data, DropPipeline::Ingress, wireByte - kTh6IngressDropReasonMin);
+  } else {
+    XLOG_EVERY_N(WARNING, 1000) << fmt::format(
+        "TH6 PSAMP: drop reason byte 0x{:02X} matches no pipeline range",
+        wireByte);
+  }
+}
+
 void deserializeDropReason(
     Cursor& cursor,
     XgsPsampData& data,
@@ -43,13 +94,16 @@ void deserializeDropReason(
       const uint8_t ingress = cursor.read<uint8_t>();
       const uint8_t mmu = cursor.read<uint8_t>();
       if (ingress != 0) {
-        data.dropReasonIngress = ingress;
+        setDropReason(data, DropPipeline::Ingress, ingress);
       }
       if (mmu != 0) {
-        data.dropReasonMmu = mmu;
+        setDropReason(data, DropPipeline::Mmu, mmu);
       }
       return;
     }
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      deserializeDropReasonTh6(cursor, data);
+      return;
     default:
       throw HdrParseError(
           fmt::format(

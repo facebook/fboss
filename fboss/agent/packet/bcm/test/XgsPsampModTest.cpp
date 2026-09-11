@@ -10,8 +10,11 @@
 #include "fboss/agent/packet/bcm/XgsPsampMod.h"
 #include "fboss/agent/packet/IpfixHeader.h"
 
+#include <array>
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <fmt/core.h>
@@ -53,6 +56,65 @@ void expectDataParseError(
         << e.what();
   }
 }
+
+// The pipelines a drop can be attributed to. Empty means that pipeline
+// reported nothing.
+struct DropReasonCase {
+  std::optional<uint8_t> ingress;
+  std::optional<uint8_t> mmu;
+  std::optional<uint8_t> egress;
+};
+
+// The two drop reason bytes as they sit on the wire.
+using WireBytes = std::array<uint8_t, 2>;
+
+std::vector<std::pair<WireBytes, DropReasonCase>> dropReasonCases(
+    cfg::AsicType asicType) {
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      // A byte per pipeline, so both pass straight through.
+      return {
+          {{0x00, 0x00}, {}},
+          {{0x1A, 0x00}, {.ingress = 0x1A}},
+          {{0x00, 0x03}, {.mmu = 3}},
+          {{0x91, 0x00}, {.ingress = 0x91}},
+          {{0xFF, 0x00}, {.ingress = 0xFF}},
+      };
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      // One unified byte, the second is metadata. Which pipeline a code
+      // belongs to is the base offset it sits above.
+      return {
+          {{0x00, 0x00}, {.ingress = 0}}, // ingress base, code 0
+          {{0x1A, 0x00}, {.ingress = 0x1A}},
+          {{0x78, 0x00}, {.ingress = 0x78}}, // last ingress code
+          {{0x90, 0x00}, {.mmu = 0}}, // MMU base, code 0
+          {{0x91, 0x00}, {.mmu = 1}}, // MMU base + 1, seen on hardware
+          {{0x95, 0x00}, {.mmu = 5}}, // last MMU code
+          {{0x98, 0x00}, {.egress = 0}}, // egress base, code 0
+          {{0x99, 0x00}, {.egress = 1}}, // first egress code
+          {{0xFF, 0x00}, {.egress = 0x67}}, // last code the byte can carry
+          {{0x79, 0x00}, {}}, // between the ingress and MMU ranges
+      };
+    default:
+      throw HdrParseError(
+          fmt::format(
+              "No drop reason cases for ASIC type {}",
+              static_cast<int>(asicType)));
+  }
+}
+
+XgsPsampData decodeDropReason(WireBytes wire, cfg::AsicType asicType) {
+  std::vector<uint8_t> bytes(24, 0x00);
+  // Drop reason follows observationTimeNs(8) switchId(4) port(2) port(2).
+  bytes[16] = wire[0];
+  bytes[17] = wire[1];
+  bytes[21] = XGS_PSAMP_VAR_LEN_INDICATOR;
+  auto buf = folly::IOBuf::wrapBuffer(bytes.data(), bytes.size());
+  folly::io::Cursor cursor(buf.get());
+  return XgsPsampData::deserialize(cursor, asicType);
+}
+
 } // namespace
 
 // Tests whose behaviour depends on which XGS chip produced the packet. Adding
@@ -388,6 +450,25 @@ TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
   EXPECT_EQ(pkt.data.sampledPacketData[13], 0xDD);
 
   EXPECT_EQ(pkt.size(), ipfixLen);
+}
+
+TEST_P(XgsPsampAsicTest, DecodeDropReason) {
+  for (const auto& [wire, expected] : dropReasonCases(GetParam())) {
+    auto data = decodeDropReason(wire, GetParam());
+    const auto label =
+        fmt::format("wire bytes 0x{:02X} 0x{:02X}", wire[0], wire[1]);
+    EXPECT_EQ(data.dropReasonIngress, expected.ingress) << label;
+    EXPECT_EQ(data.dropReasonMmu, expected.mmu) << label;
+    EXPECT_EQ(data.dropReasonEgress, expected.egress) << label;
+  }
+}
+
+TEST(XgsPsampModTest, DecodeTh6IgnoresSecondDropReasonByte) {
+  auto data =
+      decodeDropReason({0x1A, 0x03}, cfg::AsicType::ASIC_TYPE_TOMAHAWK6);
+  EXPECT_EQ(data.dropReasonIngress, 0x1A);
+  EXPECT_FALSE(data.dropReasonMmu.has_value());
+  EXPECT_FALSE(data.dropReasonEgress.has_value());
 }
 
 } // namespace facebook::fboss::psamp
