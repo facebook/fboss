@@ -34,6 +34,12 @@ QsfpServiceSignalHandler::QsfpServiceSignalHandler(
 
 using namespace std::chrono;
 void QsfpServiceSignalHandler::signalReceived(int signum) noexcept {
+  if (exitSignalReceived_.exchange(true)) {
+    XLOG(WARNING)
+        << "[Exit] Signal received while shutdown already in progress, ignoring";
+    return;
+  }
+
   XLOG(INFO) << "[Exit] Signal received: " << signum;
   steady_clock::time_point begin = steady_clock::now();
 
@@ -64,6 +70,9 @@ void QsfpServiceSignalHandler::signalReceived(int signum) noexcept {
       << "[Exit] Total qsfp_service Exit time: "
       << duration_cast<duration<float>>(gracefulExitDone - begin).count();
 
-  exit(0);
+  // exit() here would re-drive this EventBase from its own teardown path
+  // and abort. Stop the loop instead; main() exits once it unwinds.
+  shutdownComplete_.store(true);
+  getEventBase()->terminateLoopSoon();
 }
 } // namespace facebook::fboss
