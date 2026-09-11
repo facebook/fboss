@@ -64,7 +64,9 @@ uint16_t xgsPsampTemplateIdForAsic(cfg::AsicType asicType) {
   // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      return XGS_PSAMP_TEMPLATE_ID;
+      return XGS_PSAMP_TEMPLATE_ID_TH5;
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      return XGS_PSAMP_TEMPLATE_ID_TH6;
     default:
       throw HdrParseError(
           fmt::format(

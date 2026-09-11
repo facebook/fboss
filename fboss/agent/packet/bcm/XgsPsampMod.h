@@ -26,8 +26,9 @@ namespace facebook::fboss::psamp {
 // encapsulation used on XGS platforms (e.g. Memory on Drop packets).
 // The format deviates from standard IPFIX/PSAMP (RFC 5476) in several ways:
 //
-// - Uses a fixed hardcoded template ID (0x1234) instead of the standard IPFIX
-//   template exchange mechanism (RFC 5101 Set ID / Template Record).
+// - Uses a fixed hardcoded template ID instead of the standard IPFIX template
+//   exchange mechanism (RFC 5101 Set ID / Template Record). The ASIC picks the
+//   ID, and it differs per chip.
 // - PSAMP data fields include Broadcom-specific switch/port identifiers
 //   (switchId, egressModPortId) and ASIC-internal drop reason codes
 //   (dropReasonIngress, dropReasonMmu) not defined in the IANA IPFIX
@@ -39,13 +40,14 @@ namespace facebook::fboss::psamp {
 //
 // Spec reference: https://pxl.cl/97k6s
 
-constexpr uint16_t XGS_PSAMP_TEMPLATE_ID = 0x1234;
+constexpr uint16_t XGS_PSAMP_TEMPLATE_ID_TH5 = 0x1234;
+constexpr uint16_t XGS_PSAMP_TEMPLATE_ID_TH6 = 0x1239;
 constexpr uint8_t XGS_PSAMP_VAR_LEN_INDICATOR = 0xFF;
 
 uint16_t xgsPsampTemplateIdForAsic(cfg::AsicType asicType);
 
 struct XgsPsampTemplateHeader {
-  uint16_t templateId{XGS_PSAMP_TEMPLATE_ID};
+  uint16_t templateId{};
   uint16_t psampLength{};
 
   uint32_t size() const;

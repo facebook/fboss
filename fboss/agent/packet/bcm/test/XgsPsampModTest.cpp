@@ -30,6 +30,8 @@ std::string xgsAsicName(cfg::AsicType asicType) {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       return "TH5";
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      return "TH6";
     default:
       return fmt::format("Asic{}", static_cast<int>(asicType));
   }
@@ -132,9 +134,31 @@ TEST(XgsPsampModTest, IpfixHeaderWrongVersion) {
 TEST(XgsPsampModTest, XgsPsampTemplateIdForAsic) {
   EXPECT_EQ(
       xgsPsampTemplateIdForAsic(cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
-      XGS_PSAMP_TEMPLATE_ID);
+      XGS_PSAMP_TEMPLATE_ID_TH5);
+  EXPECT_EQ(
+      xgsPsampTemplateIdForAsic(cfg::AsicType::ASIC_TYPE_TOMAHAWK6),
+      XGS_PSAMP_TEMPLATE_ID_TH6);
   EXPECT_THROW(
       xgsPsampTemplateIdForAsic(cfg::AsicType::ASIC_TYPE_JERICHO3),
+      HdrParseError);
+}
+
+TEST(XgsPsampModTest, XgsPsampTemplateHeaderMismatchedAsic) {
+  // clang-format off
+  std::vector<uint8_t> buffer = {
+      0x12, 0x34,                         // template ID = 0x1234 (TH5)
+      0x00, 0x30,                         // psampLength = 48
+  };
+  // clang-format on
+  auto buf = folly::IOBuf::wrapBuffer(buffer.data(), buffer.size());
+  folly::io::Cursor th5Cursor(buf.get());
+  EXPECT_NO_THROW(
+      XgsPsampTemplateHeader::deserialize(
+          th5Cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5));
+  folly::io::Cursor th6Cursor(buf.get());
+  EXPECT_THROW(
+      XgsPsampTemplateHeader::deserialize(
+          th6Cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK6),
       HdrParseError);
 }
 
@@ -305,7 +329,7 @@ TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
       0x00, 0x00, 0x00, 0x01,             // sequence number = 1
       0x00, 0x00, 0x00, 0x01,             // observation domain ID = 1
       // PSAMP template header (4 bytes)
-      0x12, 0x34,                         // template ID = 0x1234
+      0x12, 0x34,                         // template ID = 0x1234 (TH5)
       0x00, 0x30,                         // psamp length = 48
       // PSAMP data fixed fields (24 bytes)
       0x69, 0x2F, 0x80, 0x0B, 0x0B, 0x47, 0x69, 0xCE, // observationTimeNs
