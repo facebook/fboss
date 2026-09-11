@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
+#include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicy.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCps.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCrf.h"
 #include "fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCte.h"
@@ -94,6 +95,33 @@ TEST_F(CmdShowBgpRibPolicyTestFixture, goldenPrefixesMatchCrfSample) {
   EXPECT_EQ(
       *CmdShowBgpRibPolicyGoldenPrefixes::sampleModel().policy(),
       CmdShowBgpRibPolicyCrf::sampleModel());
+}
+
+TEST_F(CmdShowBgpRibPolicyTestFixture, umbrellaWikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpRibPolicyTraits::description().empty());
+  const auto model = CmdShowBgpRibPolicy::sampleModel();
+
+  std::stringstream ss;
+  CmdShowBgpRibPolicy().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("path selection policy"));
+  EXPECT_THAT(output, HasSubstr("route filter policy"));
+  // The route attribute policy is unset, so its section is omitted entirely -
+  // the "an absent section means nothing is loaded" case the description
+  // explains.
+  EXPECT_FALSE(model.route_attribute_policy().has_value());
+  EXPECT_THAT(output, Not(HasSubstr("route attribute policy")));
+}
+
+// The umbrella command prints what the subcommands print, so it must be built
+// from the same samples.
+TEST_F(CmdShowBgpRibPolicyTestFixture, umbrellaSectionsMatchSubcommands) {
+  const auto model = CmdShowBgpRibPolicy::sampleModel();
+  EXPECT_EQ(
+      *model.path_selection_policy(), CmdShowBgpRibPolicyCps::sampleModel());
+  EXPECT_EQ(
+      *model.route_filter_policy(), CmdShowBgpRibPolicyCrf::sampleModel());
 }
 
 } // namespace facebook::fboss
