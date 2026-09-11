@@ -19,7 +19,6 @@
 
 #include <fmt/core.h>
 
-#include <folly/container/Array.h>
 #include <gtest/gtest.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -115,6 +114,82 @@ XgsPsampData decodeDropReason(WireBytes wire, cfg::AsicType asicType) {
   return XgsPsampData::deserialize(cursor, asicType);
 }
 
+// A mirror-on-drop export captured off real hardware. Outer headers are
+// stripped and the sampled payload truncated to 20 bytes with the lengths
+// adjusted; every other byte is verbatim.
+struct CapturedPacket {
+  std::vector<uint8_t> ipfixBytes;
+  uint32_t exportTime;
+  uint64_t observationTimeNs;
+  uint16_t egressModPortId;
+  std::optional<uint8_t> dropReasonIngress;
+  std::optional<uint8_t> dropReasonMmu;
+  uint8_t cosColorProb;
+};
+
+CapturedPacket capturedPacketForAsic(cfg::AsicType asicType) {
+  // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      // clang-format off
+      return {{
+          0x00, 0x0A, 0x00, 0x40,             // IPFIX version 10, length 64
+          0x69, 0x2F, 0x80, 0x0E,             // export time
+          0x00, 0x00, 0x00, 0x01,             // sequence number
+          0x00, 0x00, 0x00, 0x01,             // observation domain ID
+          0x12, 0x34,                         // template ID (TH5)
+          0x00, 0x30,                         // psamp length = 48
+          0x69, 0x2F, 0x80, 0x0B, 0x0B, 0x47, 0x69, 0xCE, // observationTimeNs
+          0x00, 0x00, 0x00, 0x00,             // switchId
+          0x00, 0x00,                         // egressModPortId
+          0x00, 0x01,                         // ingressPort
+          0x1A,                               // dropReasonIngress
+          0x00,                               // dropReasonMmu
+          0x12, 0x34,                         // userMetaField
+          0x00,                               // cosColorProb
+          0xFF,                               // varLenIndicator
+          0x00, 0x14,                         // packetSampledLength = 20
+          0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner dst MAC
+          0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner src MAC
+          0x86, 0xDD,                         // inner EtherType IPv6
+          0x60, 0x00, 0x00, 0x00, 0x02, 0x08, // inner IPv6 prefix
+      }, 0x692F800E, 0x692F800B0B4769CE, 0, 0x1A, {}, 0};
+      // clang-format on
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      // tahansb800bc (BCM78914_B0, brcm-14.2.0.0_odp) running
+      // AgentMirrorOnDropStatelessTest.MmuDrop.
+      // clang-format off
+      return {{
+          0x00, 0x0A, 0x00, 0x40,             // IPFIX version 10, length 64
+          0x6A, 0x98, 0x9B, 0x3B,             // export time
+          0x00, 0x00, 0x00, 0x01,             // sequence number
+          0x00, 0x00, 0x00, 0x01,             // observation domain ID
+          0x12, 0x39,                         // template ID (TH6)
+          0x00, 0x30,                         // psamp length = 48
+          0x6A, 0x98, 0x9B, 0x3B, 0x00, 0xBB, 0xBD, 0xE8, // observationTimeNs
+          0x00, 0x00, 0x00, 0x00,             // switchId
+          0x00, 0x90,                         // egressModPortId = 144
+          0x00, 0x01,                         // ingressPort
+          0x91,                               // MMU base 0x90 + code 1
+          0x00,
+          0x12, 0x34,                         // userMetaField
+          0x20,                               // cosColorProb
+          0xFF,                               // varLenIndicator
+          0x00, 0x14,                         // packetSampledLength = 20
+          0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner dst MAC
+          0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner src MAC
+          0x86, 0xDD,                         // inner EtherType IPv6
+          0x64, 0x00, 0x00, 0x00, 0x02, 0x08, // inner IPv6 prefix
+      }, 0x6A989B3B, 0x6A989B3B00BBBDE8, 144, {}, 1, 0x20};
+      // clang-format on
+    default:
+      throw HdrParseError(
+          fmt::format(
+              "No captured packet for ASIC type {}",
+              static_cast<int>(asicType)));
+  }
+}
+
 } // namespace
 
 // Tests whose behaviour depends on which XGS chip produced the packet. Adding
@@ -124,7 +199,9 @@ class XgsPsampAsicTest : public testing::TestWithParam<cfg::AsicType> {};
 INSTANTIATE_TEST_SUITE_P(
     PerAsic,
     XgsPsampAsicTest,
-    ::testing::Values(cfg::AsicType::ASIC_TYPE_TOMAHAWK5),
+    ::testing::Values(
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK6),
     [](const testing::TestParamInfo<cfg::AsicType>& info) {
       return xgsAsicName(info.param);
     });
@@ -359,97 +436,38 @@ TEST_P(XgsPsampAsicTest, ModPacketLengthMismatch) {
       XgsPsampModPacket::deserialize(cursor, GetParam()), HdrParseError);
 }
 
-TEST(XgsPsampModTest, DeserializeRealCapturedPacket) {
-  // Packet captured from MoD test: Eth+VLAN(18) + IPv6(40) + UDP(8) +
-  // IPFIX(16) + PSAMP Template(4) + PSAMP Data(24+20 inner bytes).
-  // Inner payload truncated to 20 bytes for test brevity; lengths adjusted.
-  // clang-format off
-  auto fullPacket = folly::make_array<uint8_t>(
-      // Outer Ethernet + VLAN (18 bytes)
-      0x02, 0x88, 0x88, 0x88, 0x88, 0x88, // dst MAC
-      0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // src MAC
-      0x81, 0x00, 0x07, 0xD2,             // VLAN tag
-      0x86, 0xDD,                         // EtherType IPv6
-      // IPv6 header (40 bytes)
-      0x60, 0x00, 0x00, 0x00,             // version, TC, flow label
-      0x00, 0x48,                         // payload length = 72
-      0x11,                               // next header = UDP
-      0x0F,                               // hop limit
-      0x24, 0x01, 0xFA, 0xCE, 0xB0, 0x0C, 0x00, 0x00, // src IP
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
-      0x24, 0x01, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, // dst IP
-      0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99,
-      // UDP header (8 bytes)
-      0x66, 0x66,                         // src port = 0x6666
-      0x77, 0x77,                         // dst port = 0x7777
-      0x00, 0x48,                         // length = 72
-      0x00, 0x00,                         // checksum = 0
-      // IPFIX header (16 bytes)
-      0x00, 0x0A,                         // version = 10
-      0x00, 0x40,                         // length = 64
-      0x69, 0x2F, 0x80, 0x0E,             // export time
-      0x00, 0x00, 0x00, 0x01,             // sequence number = 1
-      0x00, 0x00, 0x00, 0x01,             // observation domain ID = 1
-      // PSAMP template header (4 bytes)
-      0x12, 0x34,                         // template ID = 0x1234 (TH5)
-      0x00, 0x30,                         // psamp length = 48
-      // PSAMP data fixed fields (24 bytes)
-      0x69, 0x2F, 0x80, 0x0B, 0x0B, 0x47, 0x69, 0xCE, // observationTimeNs
-      0x00, 0x00, 0x00, 0x00,             // switchId = 0
-      0x00, 0x00,                         // egressModPortId = 0
-      0x00, 0x01,                         // ingressPort = 1
-      0x1A,                               // dropReasonIngress
-      0x00,                               // dropReasonMmu
-      0x12, 0x34,                         // userMetaField
-      0x00,                               // cosColorProb
-      0xFF,                               // varLenIndicator
-      0x00, 0x14,                         // packetSampledLength = 20
-      // Inner sampled packet (20 bytes: Eth header + start of IPv6)
-      0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner dst MAC
-      0x02, 0x00, 0x00, 0x00, 0x00, 0x01, // inner src MAC
-      0x86, 0xDD,                         // inner EtherType IPv6
-      0x60, 0x00, 0x00, 0x00, 0x02, 0x08  // inner IPv6 version+TC+flow+plen
-  );
-  // clang-format on
-
-  // IPFIX+PSAMP starts at offset 66 (after Eth+VLAN+IPv6+UDP)
-  constexpr size_t ipfixOffset = 66;
-  size_t ipfixLen = fullPacket.size() - ipfixOffset;
-
-  auto buf =
-      folly::IOBuf::wrapBuffer(fullPacket.data() + ipfixOffset, ipfixLen);
+TEST_P(XgsPsampAsicTest, DeserializeCapturedPacket) {
+  const auto captured = capturedPacketForAsic(GetParam());
+  auto buf = folly::IOBuf::wrapBuffer(
+      captured.ipfixBytes.data(), captured.ipfixBytes.size());
   folly::io::Cursor cursor(buf.get());
-  auto pkt = XgsPsampModPacket::deserialize(
-      cursor, cfg::AsicType::ASIC_TYPE_TOMAHAWK5);
+  auto pkt = XgsPsampModPacket::deserialize(cursor, GetParam());
 
-  EXPECT_EQ(pkt.ipfixHeader.version, 10);
+  EXPECT_EQ(pkt.ipfixHeader.version, IPFIX_VERSION);
   EXPECT_EQ(pkt.ipfixHeader.length, 64);
-  EXPECT_EQ(pkt.ipfixHeader.exportTime, 0x692F800E);
+  EXPECT_EQ(pkt.ipfixHeader.exportTime, captured.exportTime);
   EXPECT_EQ(pkt.ipfixHeader.sequenceNumber, 1);
   EXPECT_EQ(pkt.ipfixHeader.observationDomainId, 1);
 
-  EXPECT_EQ(pkt.templateHeader.templateId, 0x1234);
+  EXPECT_EQ(
+      pkt.templateHeader.templateId, xgsPsampTemplateIdForAsic(GetParam()));
   EXPECT_EQ(pkt.templateHeader.psampLength, 48);
 
-  EXPECT_EQ(pkt.data.observationTimeNs, 0x692F800B0B4769CE);
+  EXPECT_EQ(pkt.data.observationTimeNs, captured.observationTimeNs);
   EXPECT_EQ(pkt.data.switchId, 0);
-  EXPECT_EQ(pkt.data.egressModPortId, 0);
+  EXPECT_EQ(pkt.data.egressModPortId, captured.egressModPortId);
   EXPECT_EQ(pkt.data.ingressPort, 1);
-  EXPECT_EQ(pkt.data.dropReasonIngress, 0x1A);
-  EXPECT_FALSE(pkt.data.dropReasonMmu.has_value());
+  EXPECT_EQ(pkt.data.dropReasonIngress, captured.dropReasonIngress);
+  EXPECT_EQ(pkt.data.dropReasonMmu, captured.dropReasonMmu);
   EXPECT_EQ(pkt.data.userMetaField, 0x1234);
-  EXPECT_EQ(pkt.data.cosColorProb, 0);
-  EXPECT_EQ(pkt.data.varLenIndicator, 0xFF);
+  EXPECT_EQ(pkt.data.cosColorProb, captured.cosColorProb);
+  EXPECT_EQ(pkt.data.varLenIndicator, XGS_PSAMP_VAR_LEN_INDICATOR);
   EXPECT_EQ(pkt.data.packetSampledLength, 20);
   EXPECT_EQ(pkt.data.sampledPacketData.size(), 20);
-
-  // Inner sampled packet starts with Ethernet header (IPv6 EtherType)
-  EXPECT_EQ(pkt.data.sampledPacketData[0], 0x02);
-  EXPECT_EQ(pkt.data.sampledPacketData[5], 0x01);
+  // Inner sampled packet starts with an Ethernet header (IPv6 EtherType).
   EXPECT_EQ(pkt.data.sampledPacketData[12], 0x86);
   EXPECT_EQ(pkt.data.sampledPacketData[13], 0xDD);
-
-  EXPECT_EQ(pkt.size(), ipfixLen);
+  EXPECT_EQ(pkt.size(), captured.ipfixBytes.size());
 }
 
 TEST_P(XgsPsampAsicTest, DecodeDropReason) {

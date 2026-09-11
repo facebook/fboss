@@ -14,6 +14,5 @@ cpp_unittest(
         "//fboss/agent/packet:hdr_parse_error",
         "//fboss/agent/packet:ipfix_header",
         "//fboss/agent/packet/bcm:xgs_psamp_mod",
-        "//folly/container:array",
     ],
 )
