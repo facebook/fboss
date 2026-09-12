@@ -207,6 +207,7 @@ const CommandTree& kBaseAdditionalCommandTree() {
          "Show BGP summary",
          commandHandler<CmdShowBgpSummary>,
          argTypeHandler<CmdShowBgpSummaryTraits>,
+         localOptionsHandler<CmdShowBgpSummaryTraits>,
          {{"egress",
            "Show BGP summary egress",
            commandHandler<CmdShowBgpSummaryEgress>,

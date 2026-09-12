@@ -360,6 +360,7 @@ cpp_library(
         "fbsource//third-party/re2:re2",
         ":cmd-common-utils",
         ":cmd-handler",
+        ":cmd-local-options",
         ":cmd-show-utils",  # @manual
         ":table-utils",
         "//configerator/structs/neteng/bgp_policy/thrift:bgp_policy-cpp2-types",

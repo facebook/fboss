@@ -286,6 +286,7 @@ cpp_unittest(
         "//folly:file_util",
         "//folly:network_address",
         "//folly:range",
+        "//folly:scope_guard",
         "//folly:string",
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_route_types-cpp2-types",
