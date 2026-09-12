@@ -39,6 +39,26 @@ class TestServiceUnitEnvironment:
 
         assert "Environment=LD_LIBRARY_PATH=/opt/fboss/lib" in unit
 
+    def test_base_output_dir_forwarded_into_unit(self, monkeypatch):
+        # systemd does not inherit the shell env; the SDK-locating BASE_OUTPUT_DIR
+        # must be declared in the unit or SDK resource resolution fails (hw_agent
+        # aborts on e.g. g202_slices_mappings.json).
+        sdk_dir = "/opt/fboss/cisco/mklib.G202X.dc-25.11.4210.7"
+        monkeypatch.setenv("BASE_OUTPUT_DIR", sdk_dir)
+
+        unit = service_utils.build_unit_file_content("test", "true", "test")
+
+        assert f"Environment=BASE_OUTPUT_DIR={sdk_dir}" in unit
+
+    def test_base_output_dir_absent_when_unset(self, monkeypatch):
+        # No regression for SDKs/platforms that don't use BASE_OUTPUT_DIR:
+        # the line must be omitted entirely when the var is unset.
+        monkeypatch.delenv("BASE_OUTPUT_DIR", raising=False)
+
+        unit = service_utils.build_unit_file_content("test", "true", "test")
+
+        assert "BASE_OUTPUT_DIR" not in unit
+
 
 class TestCleanupHwAgentService:
     def test_stops_all_three_service_variants_and_pkills(self):
