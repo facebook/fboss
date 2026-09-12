@@ -751,22 +751,6 @@
             }
           ]
       },
-      "T-RH8ENH-NBM": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "86.247"
-            }
-          ]
-      },
-      "T-RH8ENH-NBY": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "86.247"
-            }
-          ]
-      },
       "T-RH8ENH-NFM": {
           "versions": [
             {
