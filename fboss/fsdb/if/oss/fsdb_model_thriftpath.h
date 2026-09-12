@@ -547,6 +547,7 @@ class ChildThriftPath<::facebook::fboss::cfg::TransceiverFirmware, ::facebook::f
   using Self::Self;
   
     STRUCT_CHILD_GETTERS(versionsMap, 1);
+    STRUCT_CHILD_GETTERS(fwHandleMap, 2);
 };
 
 
