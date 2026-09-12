@@ -471,6 +471,7 @@ cpp_library(
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.cpp",
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.cpp",
         "commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.cpp",
+        "commands/show/bgp/profiler/CmdShowBgpProfiler.cpp",
         "commands/show/bgp/shadowrib/CmdShowBgpShadowRib.cpp",
         "commands/show/bgp/stats/CmdShowBgpStatsEntries.cpp",
         "commands/show/bgp/stats/CmdShowBgpStatsPolicy.cpp",
