@@ -70,9 +70,13 @@ class QsfpModuleError : public std::exception {
 using TransceiverOverrides = std::vector<cfg::TransceiverConfigOverride>;
 
 struct TransceiverConfig {
-  explicit TransceiverConfig(const TransceiverOverrides& overrides)
-      : overridesConfig_(overrides) {}
+  explicit TransceiverConfig(
+      const TransceiverOverrides& overrides,
+      const std::map<std::string, std::string>& partNumberToFwHandle = {})
+      : overridesConfig_(overrides),
+        partNumberToFwHandle_(partNumberToFwHandle) {}
   TransceiverOverrides overridesConfig_;
+  std::map<std::string, std::string> partNumberToFwHandle_;
 };
 
 /*

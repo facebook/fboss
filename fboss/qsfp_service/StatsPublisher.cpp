@@ -28,6 +28,8 @@ static constexpr auto kMissingPortInfo = "missingPortInfo";
 static constexpr auto kPortPrefix = "qsfp.port";
 static constexpr auto kInterfacePrefix = "qsfp.interface";
 static constexpr auto kQsfpModuleErrors = "qsfp.moduleErrors";
+static constexpr auto kFwStorageHandleMissingFromConfig =
+    "qsfp.fwStorageHandleMissingFromConfig";
 static constexpr auto kAOIOverride = "qsfp.aoiOverride";
 static constexpr auto kMaxTimeTakenForFirmwareUpgrade =
     "qsfp.optics_firmware_upgrade.upgrade_time.max";
@@ -56,6 +58,8 @@ void StatsPublisher::init() {
   tcData().addStatExportType(kQsfpReadErrors, facebook::fb303::SUM);
   tcData().addStatExportType(kQsfpWriteErrors, facebook::fb303::SUM);
   tcData().addStatExportType(kQsfpModuleErrors, facebook::fb303::SUM);
+  tcData().addStatExportType(
+      kFwStorageHandleMissingFromConfig, facebook::fb303::SUM);
   tcData().addStatExportType(kAOIOverride, facebook::fb303::SUM);
   tcData().addStatExportType(kHighTemp, facebook::fb303::SUM);
   tcData().addStatExportType(kHighVcc, facebook::fb303::SUM);
@@ -92,6 +96,12 @@ void StatsPublisher::bumpWriteFailure() {
 // static
 void StatsPublisher::bumpModuleErrors() {
   tcData().addStatValue(kQsfpModuleErrors, 1, facebook::fb303::SUM);
+}
+
+// static
+void StatsPublisher::bumpFwStorageHandleMissingFromConfig() {
+  tcData().addStatValue(
+      kFwStorageHandleMissingFromConfig, 1, facebook::fb303::SUM);
 }
 
 // static
