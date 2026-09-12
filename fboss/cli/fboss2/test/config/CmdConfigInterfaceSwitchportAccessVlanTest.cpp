@@ -158,6 +158,29 @@ TEST_F(
 
 // Tests for queryClient
 
+// "vlan2001" resolves to interface 2001, which has no port: ingressVlan and
+// the vlanPorts membership are both port attributes, so the command must
+// refuse instead of creating VLAN 5 and reporting success for a no-op.
+TEST_F(
+    CmdConfigInterfaceSwitchportAccessVlanTestFixture,
+    queryClientRejectsPortlessSvi) {
+  auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
+  VlanIdValue vlanId({"5"});
+  utils::InterfaceList interfaces({"vlan2001"});
+
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  const auto vlanCountBefore = swConfig.vlans()->size();
+
+  try {
+    cmd.queryClient(localhost(), interfaces, vlanId);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(std::string(e.what()), HasSubstr("do not resolve to a port"));
+  }
+  // Nothing was created on the way to the error.
+  EXPECT_EQ(swConfig.vlans()->size(), vlanCountBefore);
+}
+
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientSetsIngressVlanMultiplePorts) {
