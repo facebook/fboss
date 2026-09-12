@@ -878,5 +878,8 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }
