@@ -193,8 +193,11 @@ SffModule::SffModule(
     TransceiverImpl* qsfpImpl,
     std::shared_ptr<const TransceiverConfig> cfg,
     std::string tcvrName)
-    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
-      tcvrConfig_(std::move(cfg)) {}
+    : QsfpModule(
+          std::move(portNames),
+          qsfpImpl,
+          std::move(tcvrName),
+          std::move(cfg)) {}
 
 SffModule::~SffModule() {}
 

@@ -1196,8 +1196,6 @@ class CmisModule : public QsfpModule {
   // FEC errors if supported by transceiver.
   void setMaxFecSamplingLocked();
 
-  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
-
   bool supportRemediate_;
   std::map<int32_t, SymErrHistogramBin> getCdbSymbolErrorHistogramLocked(
       uint8_t datapathId,

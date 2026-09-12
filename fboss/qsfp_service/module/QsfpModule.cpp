@@ -109,9 +109,11 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 QsfpModule::QsfpModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
-    std::string tcvrName)
+    std::string tcvrName,
+    std::shared_ptr<const TransceiverConfig> tcvrConfig)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
+      tcvrConfig_(std::move(tcvrConfig)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())

@@ -671,8 +671,11 @@ CmisModule::CmisModule(
     std::shared_ptr<const TransceiverConfig> cfg,
     bool supportRemediate,
     std::string tcvrName)
-    : QsfpModule(std::move(portNames), qsfpImpl, std::move(tcvrName)),
-      tcvrConfig_(std::move(cfg)),
+    : QsfpModule(
+          std::move(portNames),
+          qsfpImpl,
+          std::move(tcvrName),
+          std::move(cfg)),
       supportRemediate_(supportRemediate) {}
 
 CmisModule::~CmisModule() {}
