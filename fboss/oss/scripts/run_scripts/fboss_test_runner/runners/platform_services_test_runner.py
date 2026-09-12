@@ -58,11 +58,14 @@ class PlatformServicesTestRunner(TestRunner):
     def _get_warmboot_check_file(self) -> str:
         return ""
 
-    def _get_test_run_args(self, conf_file: str) -> list[str]:
+    def _get_test_run_args(self, conf_file: str) -> list[str]:  # noqa: ARG002
         return []
 
     def _run_tests(
-        self, tests_to_run: list[str], conf_file: str, args: Namespace
+        self,
+        tests_to_run: list[str],
+        conf_file: str,
+        args: Namespace,  # noqa: ARG002
     ) -> list[GtestResult]:
         test_binary_name = self._get_test_binary_name()
         all_results: list[GtestResult] = []
@@ -70,7 +73,7 @@ class PlatformServicesTestRunner(TestRunner):
         for idx, test_to_run in enumerate(tests_to_run):
             test_prefix = test_binary_name + "."
             print("########## Running test: " + test_to_run, flush=True)
-            run_outcome = self._run_test(
+            run_outcome = self._run_test_guarded(
                 conf_file,
                 test_prefix,
                 test_to_run,
@@ -87,21 +90,14 @@ class PlatformServicesTestRunner(TestRunner):
 
     @staticmethod
     def _args_for_test_type(args: Namespace, test_type: str) -> Namespace:
-        return Namespace(
-            **{
-                **vars(args),
-                "fruid_path": None,
-                "type": test_type,
-            }
-        )
+        return Namespace(**{**vars(args), "fruid_path": None, "type": test_type})
 
     def list_tests(self, args: Namespace) -> int:
         test_types = [args.type] if args.type else self.TEST_TYPE_CHOICES
         exit_code = 0
         for test_type in test_types:
             exit_code = max(
-                exit_code,
-                super().list_tests(self._args_for_test_type(args, test_type)),
+                exit_code, super().list_tests(self._args_for_test_type(args, test_type))
             )
         return exit_code
 
