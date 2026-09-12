@@ -19,6 +19,8 @@ struct PfcBufferParams {
   // TODO(maxgg): Change this back 85344 once CS00012382848 is fixed.
   static constexpr auto kGlobalSharedBytes{1500000};
   static constexpr auto kGlobalHeadroomBytes{5000}; // keep this small
+  // Egress pool size for PFC tests (252 MB)
+  static constexpr auto kEgressPoolSize{264241152};
 
   int globalShared{0};
   int globalHeadroom{0};
