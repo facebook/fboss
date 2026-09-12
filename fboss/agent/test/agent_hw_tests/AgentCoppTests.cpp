@@ -288,6 +288,11 @@ class AgentCoppTest : public AgentHwTest {
         auto frameRx = snooper.waitForPacket(1);
         EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
       });
+      // Yuba/G300: IP2ME hostif and the COPP ACL both extract the same
+      // device-local packet. Queue 7 is still +1 (ACL), but the extra IP2ME
+      // copy is left in the snooper and fails the destructor empty check.
+      // G200X also emits both copies; the second arrives after unregister.
+      snooper.ignoreUnclaimedRxPkts();
     } else {
       auto frameRx = snooper.waitForPacket(10);
       EXPECT_FALSE(frameRx.has_value());
