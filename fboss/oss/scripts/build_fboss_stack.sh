@@ -21,6 +21,77 @@ log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
+remaining_cgroup_memory_bytes() {
+  local cgroup_path cgroup_root current_dir limit_file usage_file
+  local limit current remaining min_remaining=""
+
+  if [ -r /sys/fs/cgroup/memory.max ]; then
+    cgroup_path=$(awk -F: '$1 == "0" {print $3; exit}' /proc/self/cgroup)
+    cgroup_root=/sys/fs/cgroup
+    limit_file=memory.max
+    usage_file=memory.current
+  elif [ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+    cgroup_path=$(awk -F: '$2 ~ /(^|,)memory(,|$)/ {print $3; exit}' \
+      /proc/self/cgroup)
+    cgroup_root=/sys/fs/cgroup/memory
+    limit_file=memory.limit_in_bytes
+    usage_file=memory.usage_in_bytes
+  else
+    echo max
+    return
+  fi
+
+  current_dir="${cgroup_root}${cgroup_path:-/}"
+  if [[ $current_dir != "$cgroup_root" &&
+    $current_dir != "$cgroup_root/"* ]]; then
+    current_dir=$cgroup_root
+  fi
+
+  # An unlimited child can still be constrained by one of its ancestors.
+  while [[ $current_dir == "$cgroup_root" ||
+    $current_dir == "$cgroup_root/"* ]]; do
+    if [ -r "$current_dir/$limit_file" ] &&
+      [ -r "$current_dir/$usage_file" ]; then
+      limit=$(<"$current_dir/$limit_file")
+      current=$(<"$current_dir/$usage_file")
+      if [[ $limit =~ ^[0-9]+$ ]] && [[ $current =~ ^[0-9]+$ ]] &&
+        [ "$limit" -lt $((1 << 60)) ]; then
+        remaining=$((limit - current))
+        if [ "$remaining" -lt 0 ]; then
+          remaining=0
+        fi
+        if [[ -z $min_remaining || $remaining -lt $min_remaining ]]; then
+          min_remaining=$remaining
+        fi
+      fi
+    fi
+
+    [ "$current_dir" = "$cgroup_root" ] && break
+    current_dir=${current_dir%/*}
+  done
+
+  echo "${min_remaining:-max}"
+}
+
+available_memory_mib() {
+  local available_kib available_bytes cgroup_remaining
+
+  available_kib=$(awk '/^MemAvailable:/ {print $2; exit}' /proc/meminfo)
+  if [[ ! $available_kib =~ ^[0-9]+$ ]]; then
+    available_kib=$((8 * 1024 * 1024))
+  fi
+  available_bytes=$((available_kib * 1024))
+
+  cgroup_remaining=$(remaining_cgroup_memory_bytes)
+  if [[ $cgroup_remaining =~ ^[0-9]+$ ]]; then
+    if [ "$cgroup_remaining" -lt "$available_bytes" ]; then
+      available_bytes="$cgroup_remaining"
+    fi
+  fi
+
+  echo $((available_bytes / 1024 / 1024))
+}
+
 usage() {
   echo "Usage: $0 forwarding|platform [--num-jobs N]" >&2
   exit 1
@@ -56,13 +127,13 @@ forwarding)
   stack_label="forwarding"
   cmake_target="fboss_forwarding_stack"
   package_target="forwarding-stack"
-  mem_per_core=16 # GB
+  mem_per_job_gb=10
   ;;
 platform)
   stack_label="platform"
   cmake_target="fboss_platform_services"
   package_target="platform-stack"
-  mem_per_core=7 # GB
+  mem_per_job_gb=7
   ;;
 *)
   echo "Unsupported stack type: $stack_type (only 'forwarding' and 'platform' are supported)" >&2
@@ -73,13 +144,21 @@ esac
 if [ -n "$job_override" ]; then
   num_jobs="$job_override"
 else
-  gb_per_core=$(free -g | awk '/^Mem:/{print int($2 / '$mem_per_core')}')
+  memory_reserve_gb=8
+  available_mib=$(available_memory_mib)
+  usable_mib=$((available_mib - memory_reserve_gb * 1024))
+  if [ "$usable_mib" -lt "$((mem_per_job_gb * 1024))" ]; then
+    memory_jobs=1
+  else
+    memory_jobs=$((usable_mib / 1024 / mem_per_job_gb))
+  fi
   num_cores=$(nproc)
-  if [ "$num_cores" -gt "$gb_per_core" ]; then
-    num_jobs="$gb_per_core"
+  if [ "$num_cores" -gt "$memory_jobs" ]; then
+    num_jobs="$memory_jobs"
   else
     num_jobs="$num_cores"
   fi
+  log "Memory budget: ${available_mib} MiB available, ${memory_reserve_gb} GiB reserved, ${mem_per_job_gb} GiB per job"
 fi
 export num_jobs # Export so it's available in subshells
 log "Using num_jobs=${num_jobs} for ${stack_type} stack"
