@@ -41,21 +41,9 @@ class NaivePeriodicSubscribableStorage
 
   explicit NaivePeriodicSubscribableStorage(
       const RootT& initialState,
-      StorageParams params = {})
-      : NaivePeriodicSubscribableStorageBase(params),
-        currentState_(std::in_place, initialState),
-        lastPublishedState_(*currentState_.rlock()),
-        subscriptions_(
-            patchOperProtocol_,
-            params.requireResponseOnInitialSync_) {
-    subscriptions_.useIdPaths(params.convertSubsToIDPaths_);
-    auto currentState = currentState_.wlock();
-    currentState->publish();
-  }
+      StorageParams params = {});
 
-  ~NaivePeriodicSubscribableStorage() {
-    stop();
-  }
+  ~NaivePeriodicSubscribableStorage();
 
   using NaivePeriodicSubscribableStorageBase::start_impl;
   using NaivePeriodicSubscribableStorageBase::stop_impl;
@@ -88,74 +76,12 @@ class NaivePeriodicSubscribableStorage
   }
 
   Result<OperState>
-  get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const {
-    Result<OperState> result = folly::makeUnexpected(
-        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
-    if (params_.serveGetRequestsWithLastPublishedState_) {
-      auto state = Storage(*lastPublishedState_.rlock());
-      result = state.get_encoded(begin, end, protocol);
-    } else {
-      // hold rlock on current state to avoid racing with writers
-      auto currentState = currentState_.rlock();
-      result = currentState->get_encoded(begin, end, protocol);
-    }
-    if (result.hasValue() && params_.trackMetadata_) {
-      auto publisherRoot = getPublisherRoot(begin, end);
-      metadataTracker_.withRLock([&](auto& tracker) {
-        CHECK(tracker);
-        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
-        if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
-          result.value().metadata() = metadata->operMetadata;
-          result.value().metadata()->lastServedAt() =
-              std::chrono::duration_cast<std::chrono::milliseconds>(
-                  std::chrono::system_clock::now().time_since_epoch())
-                  .count();
-        } else {
-          throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY,
-              fmt::format("Publisher not ready for root: {}", *publisherRoot));
-        }
-      });
-    }
-    return result;
-  }
+  get_encoded_impl(PathIter begin, PathIter end, OperProtocol protocol) const;
 
   Result<std::vector<TaggedOperState>> get_encoded_extended_impl(
       ExtPathIter begin,
       ExtPathIter end,
-      OperProtocol protocol) const {
-    Result<std::vector<TaggedOperState>> result = folly::makeUnexpected(
-        StorageError(StorageError::Code::INVALID_PATH, "Unknown"));
-    if (params_.serveGetRequestsWithLastPublishedState_) {
-      auto state = Storage(*lastPublishedState_.rlock());
-      result = state.get_encoded_extended(begin, end, protocol);
-    } else {
-      // hold rlock on current state to avoid racing with writers
-      auto currentState = currentState_.rlock();
-      result = currentState->get_encoded_extended(begin, end, protocol);
-    }
-    if (result.hasValue() && params_.trackMetadata_) {
-      auto publisherRoot = getPublisherRoot(begin, end);
-      metadataTracker_.withRLock([&](auto& tracker) {
-        CHECK(tracker);
-        auto metadata = tracker->getPublisherRootMetadata(*publisherRoot);
-        if (metadata && *metadata->operMetadata.lastConfirmedAt() > 0) {
-          auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::system_clock::now().time_since_epoch())
-                         .count();
-          for (auto& state : result.value()) {
-            state.state()->metadata() = metadata->operMetadata;
-            state.state()->metadata()->lastServedAt() = now;
-          }
-        } else {
-          throw Utils::createFsdbException(
-              FsdbErrorCode::PUBLISHER_NOT_READY,
-              fmt::format("Publisher not ready for root: {}", *publisherRoot));
-        }
-      });
-    }
-    return result;
-  }
+      OperProtocol protocol) const;
 
   template <typename T>
   std::optional<StorageError>
@@ -166,12 +92,7 @@ class NaivePeriodicSubscribableStorage
   }
 
   std::optional<StorageError>
-  set_encoded_impl(PathIter begin, PathIter end, const OperState& value) {
-    auto state = currentState_.wlock();
-    auto metadata = value.metadata() ? *value.metadata() : OperMetadata();
-    updateMetadata(begin, end, metadata);
-    return state->set_encoded(begin, end, value);
-  }
+  set_encoded_impl(PathIter begin, PathIter end, const OperState& value);
 
   template <typename T>
   std::optional<StorageError>
@@ -181,50 +102,17 @@ class NaivePeriodicSubscribableStorage
     return state->add(begin, end, std::forward<T>(value));
   }
 
-  void remove_impl(PathIter begin, PathIter end) {
-    auto state = currentState_.wlock();
-    updateMetadata(begin, end);
-    state->remove(begin, end);
-  }
+  void remove_impl(PathIter begin, PathIter end);
 
-  std::optional<StorageError> patch_impl(Patch&& patch) {
-    if (patch.patch()->getType() == thrift_cow::PatchNode::Type::__EMPTY__) {
-      XLOG(DBG3) << "Patch is empty, nothing to do";
-      return StorageError(StorageError::Code::TYPE_ERROR, "Empty patch");
-    }
-    auto& path = *patch.basePath();
-    auto state = currentState_.wlock();
-    updateMetadata(path.begin(), path.end(), *patch.metadata());
-    return state->patch(std::move(patch));
-  }
+  std::optional<StorageError> patch_impl(Patch&& patch);
   using NaivePeriodicSubscribableStorageBase::add_patch_subscription_path_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_patch_impl;
 
-  std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {
-    if (!delta.changes()->size()) {
-      return std::nullopt;
-    }
-    // Pick the publisher root path from first unit.
-    // TODO - have caller to patch send the path like
-    // we do for oper state
-    auto& path = *delta.changes()->begin()->path()->raw();
-    auto state = currentState_.wlock();
-    auto metadata = delta.metadata() ? *delta.metadata() : OperMetadata();
-    updateMetadata(path.begin(), path.end(), metadata);
-    return state->patch(delta);
-  }
+  std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta);
 
   std::optional<StorageError> patch_impl(
-      const fsdb::TaggedOperState& operState) {
-    auto& path = *operState.path()->path();
-    auto state = currentState_.wlock();
-    auto metadata = operState.state()->metadata()
-        ? *operState.state()->metadata()
-        : OperMetadata();
-    updateMetadata(path.begin(), path.end(), metadata);
-    return state->patch(operState);
-  }
+      const fsdb::TaggedOperState& operState);
 
   using NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl;
   using NaivePeriodicSubscribableStorageBase::subscribe_delta_impl;
@@ -236,46 +124,9 @@ class NaivePeriodicSubscribableStorage
       std::shared_ptr<RootNode>,
       std::shared_ptr<RootNode>,
       SubscriptionMetadataServer>
-  publishCurrentState() {
-    auto lastState = lastPublishedState_.wlock();
-    auto currentState = currentState_.rlock();
+  publishCurrentState();
 
-    auto oldRoot = lastState->root();
-    auto newRoot = currentState->root();
-    /*
-     * Grab a copy of metadata while holding current state
-     * lock. This way we are guaranteed to get metadata
-     * corresponding to currentState
-     */
-    SubscriptionMetadataServer metadataServer = getCurrentMetadataServer();
-
-    if (oldRoot != newRoot) {
-      // make sure newRoot is fully published before swapping
-      subscriptions_.publishAndAddPaths(newRoot);
-    }
-
-    *lastState = Storage(*currentState);
-    return std::make_tuple(oldRoot, newRoot, metadataServer);
-  }
-
-  folly::coro::Task<void> serveSubscriptions() override {
-    std::map<std::string, uint64_t> lastServedPublisherRootUpdates;
-
-    while (true) {
-      auto start = std::chrono::steady_clock::now();
-
-      if (auto runningLocked = running_.rlock(); !*runningLocked) {
-        break;
-      }
-
-      auto [oldRoot, newRoot, metadataServer] = publishCurrentState();
-      subscriptions_.serveSubscriptions(oldRoot, newRoot, metadataServer);
-
-      exportServeMetrics(start, metadataServer, lastServedPublisherRootUpdates);
-
-      co_await folly::coro::sleep(params_.subscriptionServeInterval_);
-    }
-  }
+  folly::coro::Task<void> serveSubscriptions() override;
 
   using NaivePeriodicSubscribableStorageBase::getSubscriptions;
   using NaivePeriodicSubscribableStorageBase::numPathStores;
@@ -288,24 +139,14 @@ class NaivePeriodicSubscribableStorage
    * Expensive API to copy current root. To be used only
    * in tests
    */
-  RootT currentStateExpensive() const {
-    return currentState_.rlock()->root()->toThrift();
-  }
+  RootT currentStateExpensive() const;
 
-  OperState publishedStateEncoded(OperProtocol protocol) {
-    auto lastState = Storage(*lastPublishedState_.rlock());
-    std::vector<std::string> rootPath;
-    return *lastState.get_encoded(rootPath.begin(), rootPath.end(), protocol);
-  }
+  OperState publishedStateEncoded(OperProtocol protocol);
 
  protected:
-  const SubscriptionManagerBase& subMgr() const override {
-    return subscriptions_;
-  }
+  const SubscriptionManagerBase& subMgr() const override;
 
-  SubscriptionManagerBase& subMgr() override {
-    return subscriptions_;
-  }
+  SubscriptionManagerBase& subMgr() override;
 
   ConcretePath convertPath(ConcretePath&& path) const override;
 
@@ -316,27 +157,6 @@ class NaivePeriodicSubscribableStorage
 
   SubscribeManager subscriptions_;
 };
-
-// To avoid compiler inlining these heavy functions and allow for caching
-// template instantiations, these need to be implemented outside the class body
-
-template <typename Storage, typename SubscribeManager>
-typename Storage::ConcretePath
-NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
-    ConcretePath&& path) const {
-  return params_.convertSubsToIDPaths_
-      ? PathConverter<RootT>::pathToIdTokens(std::move(path))
-      : path;
-}
-
-template <typename Storage, typename SubscribeManager>
-typename Storage::ExtPath
-NaivePeriodicSubscribableStorage<Storage, SubscribeManager>::convertPath(
-    const ExtPath& path) const {
-  return params_.convertSubsToIDPaths_
-      ? PathConverter<RootT>::extPathToIdTokens(path)
-      : path;
-}
 
 template <typename Root, bool EnableHybridStorage = false>
 using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
@@ -351,3 +171,7 @@ using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
         thrift_cow::ThriftStructResolver<Root, EnableHybridStorage>,
         EnableHybridStorage>>>;
 } // namespace facebook::fboss::fsdb
+
+#ifndef FBOSS_NAIVE_PERIODIC_SUBSCRIBABLE_STORAGE_DECLARATIONS_ONLY
+#include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage-inl.h>
+#endif
