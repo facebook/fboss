@@ -115,6 +115,7 @@ class ResourceAccountant;
 class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
+class PbrAclManager;
 class FabricLinkMonitoringManager;
 class CpuLatencyManager;
 class StateUpdateValidator;
@@ -1146,7 +1147,7 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Reconstruct state modifier from initial switch state.
    */
-  std::vector<StateDelta> reconstructStateFromErmAndShelManager(
+  std::vector<StateDelta> reconstructStateFromManagers(
       const std::shared_ptr<SwitchState>& emptyState,
       const std::shared_ptr<SwitchState>& initialState);
 
@@ -1423,6 +1424,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
+  std::unique_ptr<PbrAclManager> pbrAclManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
   bool rxPacketTypeSupported_{false};
   std::unique_ptr<CpuLatencyManager> cpuLatencyManager_;
