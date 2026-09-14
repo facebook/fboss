@@ -3237,6 +3237,15 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
           // will point to drop and next hop group will shrink.
           managerTable_->fdbManager().handleLinkDown(
               SaiPortDescriptor(swAggPort.value()));
+          if (!needL2EntryForNeighbor()) {
+            // A neighbor on a port rif over an aggregate is keyed on the lag,
+            // not on the member whose link went down, so the per member
+            // notification below never matches it. With no fdb entries to fall
+            // back on, this is the only thing that points its next hop at drop
+            // and shrinks the next hop group.
+            managerTable_->neighborManager().handleLinkDown(
+                SaiPortDescriptor(swAggPort.value()));
+          }
           // if min-link is enabled, neighbor caches in sw switch may not be
           // cleared and re-learned, when port flaps happen around the min-link
           // threshold. As a result, sai neighbor/nexthop object is not updated
@@ -4277,9 +4286,19 @@ void SaiSwitch::packetRxCallbackLag(
     std::optional<PacketType> packetType) {
   AggregatePortID swAggPortId(0);
   PortID swPortId(0);
-  VlanID swVlanId(0);
+  std::optional<VlanID> swVlanId = processVlanUntaggedPackets()
+      ? std::nullopt
+      : std::make_optional(VlanID(0));
+  auto swVlanIdStr = [&swVlanId]() {
+    return swVlanId.has_value()
+        ? folly::to<std::string>(static_cast<int>(swVlanId.value()))
+        : "None";
+  };
   auto rxPacket = std::make_unique<SaiRxPacket>(
       buffer_size, buffer, PortID(0), swVlanId, rxReason, queueId, packetType);
+
+  folly::io::Cursor c0(rxPacket->buf());
+  XLOG(DBG6) << PktUtil::hexDump(c0);
 
   const auto aggPortItr = concurrentIndices_->aggregatePortIds.find(lagSaiId);
 
@@ -4290,14 +4309,19 @@ void SaiSwitch::packetRxCallbackLag(
     return;
   }
   swAggPortId = aggPortItr->second;
-  const auto vlanItr =
-      concurrentIndices_->vlanIds.find(PortDescriptorSaiId(lagSaiId));
-  if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-    XLOG(ERR) << "RX packet had lag in no known vlan: 0x" << std::hex
-              << lagSaiId;
-    return;
+  // Resolve a vlan only where the platform has them. A lag carrying a router
+  // interface of its own is in no vlan, and the frames it traps arrive
+  // untagged, the same way they do for a port router interface.
+  if (!processVlanUntaggedPackets()) {
+    const auto vlanItr =
+        concurrentIndices_->vlanIds.find(PortDescriptorSaiId(lagSaiId));
+    if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+      XLOG(ERR) << "RX packet had lag in no known vlan: 0x" << std::hex
+                << lagSaiId;
+      return;
+    }
+    swVlanId = vlanItr->second;
   }
-  swVlanId = vlanItr->second;
   rxPacket->setSrcAggregatePort(swAggPortId);
   rxPacket->setSrcVlan(swVlanId);
 
@@ -4311,11 +4335,9 @@ void SaiSwitch::packetRxCallbackLag(
   swPortId = swPortItr->second.portID;
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
-             << " vlan: " << swVlanId
+             << " vlan: " << swVlanIdStr()
              << " trap: " << packetRxReasonToString(rxReason) << " queue: "
              << (queueId.has_value() ? static_cast<uint16_t>(*queueId) : 0);
-  folly::io::Cursor c0(rxPacket->buf());
-  XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
 }
 
@@ -5791,8 +5813,8 @@ TeFlowStats SaiSwitch::getTeFlowStats() const {
 }
 
 HwFlowletStats SaiSwitch::getHwFlowletStats() const {
-  // not implemented in SAI. Return empty stats
-  return HwFlowletStats{};
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getHwFlowletStats();
 }
 
 std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {

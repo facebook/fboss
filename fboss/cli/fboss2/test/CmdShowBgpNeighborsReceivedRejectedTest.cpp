@@ -16,6 +16,7 @@
 #include <string_view> // NOLINT(misc-include-cleaner)
 #include <utility> // NOLINT(misc-include-cleaner)
 #include <vector>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
@@ -273,4 +274,36 @@ TEST_F(NeighborsReceivedRejectedTestFixtureWithoutMed, printOutput) {
       "Policy: Accepted/Modified by PROPAGATE_RSW_FSW_IN term N/A\n";
   EXPECT_EQ(output, expectedOutput);
 }
+
+TEST_F(NeighborsReceivedRejectedTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(BgpNeighborsReceivedRejectedTraits::description().empty());
+
+  /*
+   * printRoutesInformation resolves community and local-pref mnemonics
+   * through the MODEL's own host/ip, so point the copy under test at the
+   * mocked server rather than the canned documentation host.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = BgpNeighborsReceivedRejected::sampleModel();
+  EXPECT_EQ(model.networkPath()->size(), 2);
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+
+  std::stringstream ss;
+  BgpNeighborsReceivedRejected().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("Network: 0.0.0.0/0"));
+  // The received direction must render the UPSTREAM confed ASN, not the
+  // advertised one - sampleNetworkPaths() previously ignored its ASN
+  // argument and rendered 6002 here.
+  EXPECT_THAT(output, HasSubstr("AsPath: (6001)"));
+  EXPECT_THAT(output, HasSubstr("Policy: Denied by PROPAGATE_RSW_FSW_IN"));
+}
+
 } // namespace facebook::fboss

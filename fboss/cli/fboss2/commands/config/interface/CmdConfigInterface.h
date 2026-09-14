@@ -76,10 +76,11 @@ class CmdConfigInterface
 // unchanged). Declared here for unit testing.
 //
 // If `actionLevel` is non-null, it is escalated (raised, never lowered) to the
-// commit action level this profile change requires -- e.g. AGENT_COLDBOOT when
-// the change subsumes/removes a port (see T281221621). Callers thread one
-// ConfigActionLevel through every attribute handler and commit at the resulting
-// level, so any future attribute needing warmboot/coldboot can escalate it too.
+// commit action level this profile change requires -- e.g.
+// DISRUPTIVE_SERVICE_RESTART when the change subsumes/removes a port (see
+// T281221621). Callers thread one ConfigActionLevel through every attribute
+// handler and commit at the resulting level, so any future attribute needing
+// warmboot/coldboot can escalate it too.
 std::string applyProfileImpl(
     ProfileValidator& validator,
     cfg::SwitchConfig& swConfig,

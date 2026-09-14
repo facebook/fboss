@@ -166,9 +166,6 @@ service AgentHwTestCtrl {
   // print diag
   void printDiagCmd(1: string cmd);
 
-  // Flowlet utils
-  void updateFlowletStats();
-
   switch_config.SwitchingMode getFwdSwitchingMode(
     1: switch_state.RouteNextHopEntry routeNextHopEntry,
   );

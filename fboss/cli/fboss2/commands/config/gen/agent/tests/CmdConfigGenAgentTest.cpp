@@ -12,6 +12,8 @@
 
 #include <filesystem>
 #include <map>
+#include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -24,6 +26,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 
@@ -70,6 +73,79 @@ void writePlatformDescriptor(const fs::path& path, int16_t numSwitchAsics) {
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(descriptor));
 }
 
+FeatureDefaultCommandArgs makeAutoFeature(
+    std::map<std::string, std::string> args,
+    std::set<std::string> profiles = {},
+    std::set<std::string> asicTypes = {},
+    std::set<std::string> excludedAsicTypes = {},
+    std::set<std::string> platforms = {}) {
+  FeatureEnableConditions conditions;
+  if (!profiles.empty()) {
+    FeatureConditionValues values;
+    values.included() = std::move(profiles);
+    conditions.configProfiles() = std::move(values);
+  }
+  if (!asicTypes.empty() || !excludedAsicTypes.empty()) {
+    FeatureConditionValues values;
+    values.included() = std::move(asicTypes);
+    values.excluded() = std::move(excludedAsicTypes);
+    conditions.asicTypes() = std::move(values);
+  }
+  if (!platforms.empty()) {
+    FeatureConditionValues values;
+    values.included() = std::move(platforms);
+    conditions.platforms() = std::move(values);
+  }
+
+  FeatureDefaultCommandArgs feature;
+  feature.args() = std::move(args);
+  feature.autoEnableWhen() = std::move(conditions);
+  return feature;
+}
+
+void writeFeatureDefaultCommandArgsConfig(
+    const fs::path& fbossRoot,
+    std::string_view platform = kPlatform) {
+  FeatureDefaultCommandArgsConfig config;
+  config.profileDefaultArgs()[std::string(kProfile)] = {
+      {"check_wb_handles", "true"},
+      {"counter_refresh_interval", "0"},
+      {"enable_nexthop_id_manager", "true"},
+      {"intf_nbr_tables", "true"},
+      {"log_variable_name", "true"},
+      {"resolve_nexthops_from_id", "true"},
+      {"skip_transceiver_programming", "true"},
+      {"use_full_dlb_scale", "true"},
+      {"verify_fib_nexthop_id_consistency", "true"},
+  };
+  config.features()["sai_configure_six_tap"] = makeAutoFeature(
+      {{"sai_configure_six_tap", "true"}},
+      {std::string(kProfile)},
+      {"ASIC_TYPE_TOMAHAWK5"});
+  config.features()["enable_acl_table_group"] = makeAutoFeature(
+      {{"enable_acl_table_group", "true"}},
+      {std::string(kProfile)},
+      {},
+      {"ASIC_TYPE_EBRO", "ASIC_TYPE_RAMON3"});
+  config.features()["platform_descriptor_registry"] = makeAutoFeature(
+      {{"platform_descriptor_config_path", "/tmp/platform_descriptors/"}},
+      {std::string(kProfile)},
+      {},
+      {},
+      {std::string(platform)});
+  config.features()["use_raw_platform_mapping"] = makeAutoFeature(
+      {{"use_raw_platform_mapping", "true"}},
+      {std::string(kProfile)},
+      {},
+      {},
+      {std::string(platform)});
+
+  writeTestFile(
+      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks" /
+          "agent" / "feature_default_command_args_config.json",
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(config));
+}
+
 std::map<int32_t, cfg::PortAssignment> makePortAssignments(
     int32_t portId,
     std::string_view portName) {
@@ -87,6 +163,7 @@ fs::path createTestPlatform(
     std::string_view configType = "YAML_CONFIG",
     std::string_view extension = ".yml",
     std::string_view generatedConfig = kAsicYaml) {
+  writeFeatureDefaultCommandArgsConfig(fbossRoot, platform);
   const auto asicConfigDirectory =
       fbossRoot / "configs" / "platforms" / vendor / platform / "asic_config";
   writeTestFile(
@@ -125,6 +202,24 @@ std::string readFile(const fs::path& path) {
   return contents;
 }
 
+std::map<std::string, std::string> expectedHwTestCommandLineArgs() {
+  return {
+      {"check_wb_handles", "true"},
+      {"counter_refresh_interval", "0"},
+      {"enable_acl_table_group", "true"},
+      {"enable_nexthop_id_manager", "true"},
+      {"intf_nbr_tables", "true"},
+      {"log_variable_name", "true"},
+      {"platform_descriptor_config_path", "/tmp/platform_descriptors/"},
+      {"resolve_nexthops_from_id", "true"},
+      {"sai_configure_six_tap", "true"},
+      {"skip_transceiver_programming", "true"},
+      {"use_full_dlb_scale", "true"},
+      {"use_raw_platform_mapping", "true"},
+      {"verify_fib_nexthop_id_consistency", "true"},
+  };
+}
+
 TEST(PlatformConfigPathUtilsTest, FindsPlatformAndComponentDirectories) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
@@ -152,6 +247,89 @@ TEST(PlatformConfigPathUtilsTest, RejectsDuplicatePlatformNames) {
   EXPECT_THROW(findPlatformConfigDirectory(fbossRoot, kPlatform), FbossError);
 }
 
+TEST(PlatformConfigPathUtilsTest, DoesNotTreatGenericDataAsAPlatform) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  fs::create_directories(
+      fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks");
+
+  EXPECT_THROW(
+      findPlatformConfigDirectory(fbossRoot, "forwarding_stacks"), FbossError);
+}
+
+TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {
+  FeatureDefaultCommandArgsConfig config;
+  config.profileDefaultArgs()["hw_test"] = {{"base", "true"}};
+  config.features()["matching"] = makeAutoFeature(
+      {{"matching", "true"}},
+      {"hw_test"},
+      {"ASIC_TYPE_TOMAHAWK5"},
+      {},
+      {"wedge800bact"});
+  config.features()["excluded"] = makeAutoFeature(
+      {{"excluded", "true"}}, {"hw_test"}, {}, {"ASIC_TYPE_TOMAHAWK5"});
+  config.features()["other_profile"] =
+      makeAutoFeature({{"other_profile", "true"}}, {"default"});
+  FeatureDefaultCommandArgs explicitOnly;
+  explicitOnly.args() = {{"explicit_only", "true"}};
+  config.features()["explicit_only"] = std::move(explicitOnly);
+
+  const std::map<std::string, std::string> expected{
+      {"base", "true"}, {"matching", "true"}};
+  EXPECT_EQ(
+      resolveFeatureDefaultCommandArgs(
+          config,
+          "hw_test",
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+          "wedge800bact"),
+      expected);
+}
+
+TEST(FeatureDefaultCommandArgsTest, SkipsAsicConditionsWithoutAsicType) {
+  FeatureDefaultCommandArgsConfig config;
+  config.profileDefaultArgs()["hw_test"] = {{"base", "true"}};
+  config.features()["platform_feature"] = makeAutoFeature(
+      {{"platform_feature", "true"}}, {"hw_test"}, {}, {}, {"wedge800bact"});
+  config.features()["asic_feature"] = makeAutoFeature(
+      {{"asic_feature", "true"}}, {"hw_test"}, {"ASIC_TYPE_TOMAHAWK5"});
+
+  const std::map<std::string, std::string> expected{
+      {"base", "true"}, {"platform_feature", "true"}};
+  EXPECT_EQ(
+      resolveFeatureDefaultCommandArgs(
+          config, "hw_test", std::nullopt, "wedge800bact"),
+      expected);
+}
+
+TEST(FeatureDefaultCommandArgsTest, RejectsEmptyAutomaticConditions) {
+  FeatureDefaultCommandArgsConfig config;
+  FeatureDefaultCommandArgs feature;
+  feature.args() = {{"unexpected", "true"}};
+  feature.autoEnableWhen() = FeatureEnableConditions{};
+  config.features()["empty_conditions"] = std::move(feature);
+
+  EXPECT_THROW(
+      resolveFeatureDefaultCommandArgs(
+          config, "hw_test", std::nullopt, "wedge800bact"),
+      FbossError);
+}
+
+TEST(FeatureDefaultCommandArgsTest, RejectsConflictingArguments) {
+  FeatureDefaultCommandArgsConfig config;
+  config.features()["first"] =
+      makeAutoFeature({{"conflict", "first"}}, {"hw_test"});
+  config.features()["second"] =
+      makeAutoFeature({{"conflict", "second"}}, {"hw_test"});
+
+  EXPECT_THROW(
+      resolveFeatureDefaultCommandArgs(
+          config,
+          "hw_test",
+          cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+          "wedge800bact"),
+      FbossError);
+}
+
 TEST(AgentConfigGenTest, AssemblesEmptyAgentConfig) {
   auto config = assembleAgentConfig({}, {}, {});
 
@@ -161,7 +339,7 @@ TEST(AgentConfigGenTest, AssemblesEmptyAgentConfig) {
   EXPECT_TRUE(config.thriftApiToRateLimitInQps()->empty());
 }
 
-TEST(AgentConfigGenTest, GeneratesPlatformConfigFromProvidedSections) {
+TEST(AgentConfigGenTest, AssemblesPlatformConfig) {
   cfg::AsicConfigEntry common;
   common.set_yamlConfig("asic config");
   cfg::AsicConfig asicConfig;
@@ -176,7 +354,7 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfigFromProvidedSections) {
   std::map<int32_t, cfg::PortAssignment> assignments{
       {1, std::move(assignment)}};
 
-  const auto platformConfig = generatePlatformConfig(chipConfig, assignments);
+  const auto platformConfig = assemblePlatformConfig(chipConfig, assignments);
 
   EXPECT_EQ(*platformConfig.chip(), chipConfig);
   EXPECT_EQ(*platformConfig.portIdToPortAssignment(), assignments);
@@ -239,8 +417,7 @@ TEST(AgentConfigGenTest, GeneratesDefaultAclTableGroup) {
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   createTestPlatform(fbossRoot, "test_vendor");
 
-  const auto switchConfig =
-      generateSwitchConfigFromArtifacts(fbossRoot, kPlatform);
+  const auto switchConfig = generateSwitchConfig(fbossRoot, kPlatform);
 
   cfg::AclTable table;
   table.name() = cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE();
@@ -275,17 +452,16 @@ TEST(AgentConfigGenTest, ResolvesVariantDescriptorAndRejectsMultiAsicPlatform) {
       findPlatformDescriptorConfigWithDescriptor(fbossRoot, kPlatform);
   EXPECT_EQ(descriptorPath, variantDescriptor);
   EXPECT_EQ(*descriptor.numSwitchAsics(), 2);
-  EXPECT_THROW(
-      generateSwitchConfigFromArtifacts(fbossRoot, kPlatform), FbossError);
+  EXPECT_THROW(generateSwitchConfig(fbossRoot, kPlatform), FbossError);
 }
 
-TEST(AgentConfigGenTest, GeneratesPlatformConfigFromArtifacts) {
+TEST(AgentConfigGenTest, GeneratesPlatformConfig) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
   createTestPlatform(fbossRoot, "test_vendor");
 
   const auto platformConfig =
-      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile);
 
   ASSERT_EQ(
       platformConfig.chip()->getType(), cfg::ChipConfig::Type::asicConfig);
@@ -309,7 +485,7 @@ TEST(AgentConfigGenTest, PrefersColocatedPortAssignments) {
   EXPECT_EQ(
       findPortIdToPortAssignmentConfig(fbossRoot, kPlatform), colocatedPath);
   EXPECT_EQ(
-      *generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile)
+      *generatePlatformConfig(fbossRoot, kPlatform, kProfile)
            .portIdToPortAssignment(),
       makePortAssignments(2, "eth1/1/2"));
 }
@@ -321,7 +497,7 @@ TEST(AgentConfigGenTest, GeneratesJsonAsicConfig) {
       fbossRoot, "test_vendor", kPlatform, "JSON_CONFIG", ".json", kAsicJson);
 
   const auto platformConfig =
-      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile);
   const auto& common = *platformConfig.chip()->get_asicConfig().common();
 
   ASSERT_EQ(common.getType(), cfg::AsicConfigEntry::Type::jsonConfig);
@@ -340,7 +516,7 @@ TEST(AgentConfigGenTest, GeneratesKeyValueAsicConfig) {
       kKeyValueConfig);
 
   const auto platformConfig =
-      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile);
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile);
   const auto& common = *platformConfig.chip()->get_asicConfig().common();
   const std::map<std::string, std::string> expected{
       {"answer", "42"}, {"foo", "bar"}};
@@ -356,8 +532,7 @@ TEST(AgentConfigGenTest, RejectsUnsupportedAsicConfigType) {
       fbossRoot, "test_vendor", kPlatform, "UNSUPPORTED_CONFIG", ".json", "{}");
 
   EXPECT_THROW(
-      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile),
-      FbossError);
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile), FbossError);
 }
 
 TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
@@ -376,14 +551,11 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   cfg::AgentConfig config;
   apache::thrift::SimpleJSONSerializer::deserialize(
       readFile(outputPath), config);
-  const std::map<std::string, std::string> expectedCommandLineArgs{
-      {"enable_acl_table_group", "true"}};
-  EXPECT_EQ(*config.defaultCommandLineArgs(), expectedCommandLineArgs);
-  EXPECT_EQ(
-      *config.sw(), generateSwitchConfigFromArtifacts(fbossRoot, kPlatform));
+  EXPECT_EQ(*config.defaultCommandLineArgs(), expectedHwTestCommandLineArgs());
+  EXPECT_EQ(*config.sw(), generateSwitchConfig(fbossRoot, kPlatform));
   EXPECT_EQ(
       *config.platform(),
-      generatePlatformConfigFromArtifacts(fbossRoot, kPlatform, kProfile));
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile));
   EXPECT_TRUE(config.thriftApiToRateLimitInQps()->empty());
 }
 

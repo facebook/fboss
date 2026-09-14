@@ -193,6 +193,26 @@ TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value);
  */
 TRibEntryWithHost sampleRibEntriesWithHost();
 
+// Which side of a peering the canned paths represent. Advertised routes have
+// not been installed anywhere, so they carry no last-modified time; received
+// ones do.
+enum class SampleRouteDirection { Advertised, Received };
+
+/*
+ * Canned per-peer route data (no real switch data) backing the CLI
+ * reference-wiki sampleModel() hooks of the six
+ * 'show bgp neighbors <peer> advertised|received ...' views, which all render
+ * through printRoutesInformation(). Shared so the six entries describe the
+ * same routes rather than drifting apart.
+ *
+ * policyName is rendered only by the post-policy and rejected views (the
+ * pre-policy views pass showPolicy=false), so pass the accept or deny string
+ * the view is meant to illustrate.
+ */
+NetworkPathWithHost sampleNetworkPaths(
+    SampleRouteDirection direction,
+    const std::string& policyName);
+
 // Prints entries for bgp table commands
 void printRIBEntries(
     std::ostream& out,

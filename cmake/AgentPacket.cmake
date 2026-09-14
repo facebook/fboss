@@ -54,6 +54,7 @@ add_library(xgs_psamp_mod
 target_link_libraries(xgs_psamp_mod
   fmt::fmt
   ipfix_header
+  switch_config_cpp2
   Folly::folly
 )
 
@@ -99,6 +100,7 @@ add_executable(xgs_psamp_mod_test
 )
 
 target_link_libraries(xgs_psamp_mod_test
+  fmt::fmt
   ipfix_header
   xgs_psamp_mod
   ${GTEST}

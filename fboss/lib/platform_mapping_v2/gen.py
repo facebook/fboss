@@ -55,7 +55,6 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
         "montblanc",
         "montblanc_odd_ports_8x100G",
         "montblanc_gtsw_yolo",
-        "montblanc_precoding",
         "minipack3n",
         "minipack3bta",
         "minipack3bta_16rifs",

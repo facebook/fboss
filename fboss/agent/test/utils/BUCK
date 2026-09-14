@@ -477,6 +477,7 @@ cpp_library(
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":load_balancer_test_utils",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:route_update_wrapper",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:test_ensemble_if",

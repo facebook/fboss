@@ -109,9 +109,11 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 QsfpModule::QsfpModule(
     std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
-    std::string tcvrName)
+    std::string tcvrName,
+    std::shared_ptr<const TransceiverConfig> tcvrConfig)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
+      tcvrConfig_(std::move(tcvrConfig)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
@@ -185,7 +187,20 @@ std::string QsfpModule::getFwStorageHandle() const {
     return std::string();
   }
 
-  return getFwStorageHandle(vendor->partNumber().value());
+  const auto& tcvrPartNumber = vendor->partNumber().value();
+  if (tcvrConfig_) {
+    const auto& handleFromConfig = tcvrConfig_->partNumberToFwHandle_;
+    auto fwHandle = handleFromConfig.find(tcvrPartNumber);
+    if (fwHandle != handleFromConfig.end()) {
+      return fwHandle->second;
+    }
+    StatsPublisher::bumpFwStorageHandleMissingFromConfig();
+    QSFP_LOG(INFO, this)
+        << "No firmware storage handle in qsfp config for part number: "
+        << tcvrPartNumber << ". Falling back to the built in map";
+  }
+
+  return getFwStorageHandle(tcvrPartNumber);
 }
 
 bool QsfpModule::upgradeFirmwareLocked(

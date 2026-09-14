@@ -78,6 +78,12 @@ TEST(PortConfigUtilsTest, createDefaultPortConfigDefaultsSpeedWhenUnresolved) {
   EXPECT_EQ(*port.speed(), cfg::PortSpeed::DEFAULT);
 }
 
+TEST(PortConfigUtilsTest, createDefaultPortConfigRejectsNullMapping) {
+  EXPECT_THROW(
+      utility::createDefaultPortConfig(nullptr, kPortId, kProfile, 2001),
+      FbossError);
+}
+
 TEST(PortConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {
   cfg::SwitchConfig config;
   cfg::Vlan vlan2001;

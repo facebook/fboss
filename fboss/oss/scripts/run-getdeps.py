@@ -21,6 +21,13 @@ import sysconfig
 import tempfile
 from pathlib import Path
 
+try:
+    import getdeps_fallback_mirror
+except ImportError:
+    # Only ever seeds downloads getdeps can fetch itself, so a missing sibling
+    # must degrade to "no prefetch" rather than break every build.
+    getdeps_fallback_mirror = None
+
 
 def print_info(msg):
     print(f"\033[93m{msg}\033[0m")
@@ -1102,6 +1109,83 @@ def _setup_toolchain(args):
     # and we'll proceed without environment setup
 
 
+def _has_explicit_scratch_path(getdeps_args):
+    return any(
+        arg == "--scratch-path" or arg.startswith("--scratch-path=")
+        for arg in getdeps_args
+    )
+
+
+def _in_fbsource_checkout():
+    """Mirror getdeps' fbsource detection: find the enclosing repo root, then
+    read its .projectid. Reading the first .projectid found while walking up
+    would stop at fbcode/, which declares a different project."""
+    path = os.path.abspath(os.getcwd())
+    while not any(
+        os.path.exists(os.path.join(path, marker)) for marker in (".git", ".hg")
+    ):
+        parent = os.path.dirname(path)
+        if parent == path:
+            return False
+        path = parent
+
+    try:
+        with open(os.path.join(path, ".projectid"), "r") as f:
+            return f.read().strip() == "fbsource"
+    except (OSError, UnicodeDecodeError):
+        return False
+
+
+def _prefetch_gnu_mirrors(args):
+    """Seed getdeps' download dir for GNU-hosted deps from a working mirror.
+
+    getdeps retries a single pinned URL, so a mirror that drops an old release
+    or refuses the connection fails the build outright. Best-effort: anything
+    not seeded here is left for getdeps to fetch normally.
+
+    Skipped when running from an fbsource checkout, where getdeps sets
+    fbsource_dir and its LFS fetcher serves these archives from cache instead
+    of the public internet. Note this keys on the checkout, not on which
+    fetcher module is installed: the build containers have the caching fetcher
+    available but run from a plain fboss checkout, so LFS stays inactive.
+    """
+    if getdeps_fallback_mirror is None:
+        print_info("getdeps_fallback_mirror.py missing; skipping mirror prefetch")
+        return
+
+    # Without an explicit --scratch-path, getdeps derives one of its own
+    # (DISK_TEMP, mkscratch, tempdir) that need not match the default assumed
+    # here, so seeding would fill a directory getdeps never reads.
+    if not _has_explicit_scratch_path(args.getdeps_args):
+        return
+
+    manifests_dir = path_to("build", "fbcode_builder", "manifests")
+    if not os.path.isdir(manifests_dir):
+        return
+
+    # getdeps serves these from its LFS cache when either of these is set, and
+    # that path is both faster and more reliable than the public mirrors.
+    if _in_fbsource_checkout():
+        print_info("Running from fbsource; leaving downloads to getdeps LFS")
+        return
+    if any(a == "--lfs-path" or a.startswith("--lfs-path=") for a in args.getdeps_args):
+        print_info("--lfs-path given; leaving downloads to getdeps LFS")
+        return
+
+    scratch_path = _get_scratch_path(args.getdeps_args)
+
+    print_info("Prefetching GNU-hosted dependencies via fallback mirrors")
+    try:
+        getdeps_fallback_mirror.prefetch(
+            manifests_dir=manifests_dir,
+            download_dir=os.path.join(scratch_path, "downloads"),
+        )
+    except Exception as ex:
+        # Seeding is purely an optimization over what getdeps does anyway, so
+        # no failure in it is worth failing a build for.
+        print_error(f"Mirror prefetch failed ({ex}); continuing with getdeps")
+
+
 def main():
     args = parse_args()
     print_info("Starting run-getdeps.py")
@@ -1115,6 +1199,8 @@ def main():
 
     # Toolchain setup is global; do it once before any pass.
     _setup_toolchain(args)
+
+    _prefetch_gnu_mirrors(args)
 
     passes = _get_pass_specs(args)
 

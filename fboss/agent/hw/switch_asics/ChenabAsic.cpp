@@ -63,6 +63,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
+    case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::ACL_TABLE_GROUP:
@@ -86,6 +87,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
+    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -150,7 +152,6 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
-    case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::MACSEC:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:

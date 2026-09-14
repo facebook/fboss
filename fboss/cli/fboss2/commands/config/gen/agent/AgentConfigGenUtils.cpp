@@ -23,6 +23,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
@@ -35,7 +36,6 @@ namespace {
 
 constexpr std::string_view kAgentConfigFileName = "agent.conf";
 constexpr std::string_view kDefaultProfileName = "default";
-constexpr std::string_view kEnableAclTableGroup = "enable_acl_table_group";
 constexpr std::string_view kPortAssignmentFileName =
     "port_id_to_port_assignment.json";
 constexpr std::string_view kPlatformDescriptorFileName =
@@ -338,6 +338,9 @@ std::pair<fs::path, PlatformDescriptor> findPlatformDescriptorByVariantScan(
 
 std::unique_ptr<HwAsic> generateHwAsic(
     const cfg::SwitchSettings& switchSettings) {
+  if (switchSettings.switchIdToSwitchInfo()->empty()) {
+    throw FbossError("Switch settings do not contain switch information");
+  }
   // Even for multiple NPU platforms, we should only have one AsicType
   const auto& [switchId, switchInfo] =
       *switchSettings.switchIdToSwitchInfo()->begin();
@@ -349,6 +352,16 @@ std::unique_ptr<HwAsic> generateHwAsic(
   constexpr std::string_view kMockAsicMac = "02:00:00:00:00:01";
   asicSwitchInfo.switchMac() = kMockAsicMac;
   return HwAsic::makeAsic(switchId, asicSwitchInfo, std::nullopt, std::nullopt);
+}
+
+cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
+  if (switchConfig.switchSettings()->switchIdToSwitchInfo()->empty()) {
+    throw FbossError("Switch config does not contain switch information");
+  }
+  return *switchConfig.switchSettings()
+              ->switchIdToSwitchInfo()
+              ->begin()
+              ->second.asicType();
 }
 
 } // namespace
@@ -364,7 +377,7 @@ cfg::AgentConfig assembleAgentConfig(
   return config;
 }
 
-cfg::PlatformConfig generatePlatformConfig(
+cfg::PlatformConfig assemblePlatformConfig(
     cfg::ChipConfig chipConfig,
     std::map<int32_t, cfg::PortAssignment> portAssignments) {
   cfg::PlatformConfig platformConfig;
@@ -440,24 +453,27 @@ cfg::SwitchSettings generateSwitchSettings(
   return switchSettings;
 }
 
-cfg::SwitchConfig generateSwitchConfigFromArtifacts(
+cfg::SwitchConfig generateSwitchConfig(
     const fs::path& fbossRoot,
     std::string_view platform) {
   auto pathAndDescriptor =
       findPlatformDescriptorConfigWithDescriptor(fbossRoot, platform);
   auto switchSettings = generateSwitchSettings(pathAndDescriptor.second);
   auto asic = generateHwAsic(switchSettings);
+  if (!asic) {
+    throw FbossError("Unable to construct HwAsic from switch settings");
+  }
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
   return switchConfig;
 }
 
-cfg::PlatformConfig generatePlatformConfigFromArtifacts(
+cfg::PlatformConfig generatePlatformConfig(
     const fs::path& fbossRoot,
     std::string_view platform,
     std::string_view profile) {
-  return generatePlatformConfig(
+  return assemblePlatformConfig(
       loadAsicConfig(resolveGeneratedAsicConfig(fbossRoot, platform, profile)),
       readPortIdToPortAssignment(
           findPortIdToPortAssignmentConfig(fbossRoot, platform).string()));
@@ -468,16 +484,17 @@ fs::path generateAgentConfig(
     std::string_view profile,
     const fs::path& fbossRoot,
     const std::optional<fs::path>& outputDirectory) {
-  auto switchConfig = generateSwitchConfigFromArtifacts(fbossRoot, platform);
-  std::map<std::string, std::string> defaultCommandLineArgs;
-  if (switchConfig.aclTableGroups() &&
-      !switchConfig.aclTableGroups()->empty()) {
-    defaultCommandLineArgs.emplace(kEnableAclTableGroup, "true");
-  }
+  auto switchConfig = generateSwitchConfig(fbossRoot, platform);
+  auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
+      fbossRoot,
+      ServiceType::AGENT,
+      profile,
+      getAsicType(switchConfig),
+      platform);
   auto config = assembleAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),
-      generatePlatformConfigFromArtifacts(fbossRoot, platform, profile));
+      generatePlatformConfig(fbossRoot, platform, profile));
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(

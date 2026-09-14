@@ -28,6 +28,8 @@ static constexpr auto kMissingPortInfo = "missingPortInfo";
 static constexpr auto kPortPrefix = "qsfp.port";
 static constexpr auto kInterfacePrefix = "qsfp.interface";
 static constexpr auto kQsfpModuleErrors = "qsfp.moduleErrors";
+static constexpr auto kFwStorageHandleMissingFromConfig =
+    "qsfp.fwStorageHandleMissingFromConfig";
 static constexpr auto kAOIOverride = "qsfp.aoiOverride";
 static constexpr auto kMaxTimeTakenForFirmwareUpgrade =
     "qsfp.optics_firmware_upgrade.upgrade_time.max";
@@ -56,6 +58,8 @@ void StatsPublisher::init() {
   tcData().addStatExportType(kQsfpReadErrors, facebook::fb303::SUM);
   tcData().addStatExportType(kQsfpWriteErrors, facebook::fb303::SUM);
   tcData().addStatExportType(kQsfpModuleErrors, facebook::fb303::SUM);
+  tcData().addStatExportType(
+      kFwStorageHandleMissingFromConfig, facebook::fb303::SUM);
   tcData().addStatExportType(kAOIOverride, facebook::fb303::SUM);
   tcData().addStatExportType(kHighTemp, facebook::fb303::SUM);
   tcData().addStatExportType(kHighVcc, facebook::fb303::SUM);
@@ -95,6 +99,12 @@ void StatsPublisher::bumpModuleErrors() {
 }
 
 // static
+void StatsPublisher::bumpFwStorageHandleMissingFromConfig() {
+  tcData().addStatValue(
+      kFwStorageHandleMissingFromConfig, 1, facebook::fb303::SUM);
+}
+
+// static
 void StatsPublisher::bumpAOIOverride() {
   tcData().addStatValue(kAOIOverride, 1, facebook::fb303::SUM);
 }
@@ -117,16 +127,16 @@ void StatsPublisher::missingPorts(TransceiverID module) {
 }
 
 // static
-void StatsPublisher::bumpHighTempPort(std::string& portName) {
+void StatsPublisher::bumpHighTempPort(std::string& interfaceName) {
   auto key = folly::to<std::string>(
-      kInterfacePrefix, ".", portName, ".", kInterfaceHighTemp);
+      kInterfacePrefix, ".", interfaceName, ".", kInterfaceHighTemp);
   tcData().addStatValue(key, 1, facebook::fb303::SUM);
 }
 
 // static
-void StatsPublisher::bumpHighVccPort(std::string& portName) {
+void StatsPublisher::bumpHighVccPort(std::string& interfaceName) {
   auto key = folly::to<std::string>(
-      kInterfacePrefix, ".", portName, ".", kInterfaceHighVcc);
+      kInterfacePrefix, ".", interfaceName, ".", kInterfaceHighVcc);
   tcData().addStatValue(key, 1, facebook::fb303::SUM);
 }
 
@@ -152,7 +162,8 @@ void StatsPublisher::publishFbagentCounters(
   int numModulesWithInvalidBankSelect = 0;
   for (const auto& kv : infoMap) {
     const TransceiverInfo& info = kv.second;
-    auto portName = transceiverManager_->getPortName(TransceiverID(kv.first));
+    auto interfaceName =
+        transceiverManager_->getPortName(TransceiverID(kv.first));
     /* prefix of the counter will be qsfp.port.<portname>.<field> */
     std::string prefix = folly::to<std::string>(
         kPortPrefix, ".eth1/", *info.tcvrState()->port(), "/1.");
@@ -161,9 +172,9 @@ void StatsPublisher::publishFbagentCounters(
 
     // Counter with the port/interface name
     std::string interfacePrefix;
-    if (!portName.empty()) {
+    if (!interfaceName.empty()) {
       interfacePrefix = folly::to<std::string>(
-          StatsPublisherHelper::kInterfacePrefix, portName, ".");
+          StatsPublisherHelper::kInterfacePrefix, interfaceName, ".");
       tcData().setCounter(
           interfacePrefix + "present",
           ((*info.tcvrState()->present()) ? 1 : 0));
@@ -186,7 +197,7 @@ void StatsPublisher::publishFbagentCounters(
         ((*info.tcvrState()->transceiver() == TransceiverType::QSFP) ? 1 : 0));
 
     // Counter with the port/interface name
-    if (!portName.empty()) {
+    if (!interfaceName.empty()) {
       tcData().setCounter(
           interfacePrefix + "qsfpTransceiver",
           ((*info.tcvrState()->transceiver() == TransceiverType::QSFP) ? 1
@@ -252,10 +263,11 @@ void StatsPublisher::publishFbagentCounters(
 
   // Signal Flags
   for (const auto& kv : signalFlagsMap) {
-    auto portName = transceiverManager_->getPortName(TransceiverID(kv.first));
-    if (!portName.empty()) {
+    auto interfaceName =
+        transceiverManager_->getPortName(TransceiverID(kv.first));
+    if (!interfaceName.empty()) {
       std::string interfacePrefixPortName = folly::to<std::string>(
-          StatsPublisherHelper::kInterfacePrefix, portName, ".");
+          StatsPublisherHelper::kInterfacePrefix, interfaceName, ".");
       tcData().setCounter(
           interfacePrefixPortName + "txLos", *kv.second.txLos());
       tcData().setCounter(
@@ -275,10 +287,11 @@ void StatsPublisher::publishFbagentCounters(
         aggTxFault |= (*txFault << (*(mediaSignals.second.lane())));
       }
     }
-    auto portName = transceiverManager_->getPortName(TransceiverID(kv.first));
-    if (!portName.empty()) {
+    auto interfaceName =
+        transceiverManager_->getPortName(TransceiverID(kv.first));
+    if (!interfaceName.empty()) {
       std::string interfacePrefixPortName = folly::to<std::string>(
-          StatsPublisherHelper::kInterfacePrefix, portName, ".");
+          StatsPublisherHelper::kInterfacePrefix, interfaceName, ".");
       tcData().setCounter(
           folly::to<std::string>(interfacePrefixPortName, "txFault"),
           aggTxFault);
@@ -339,11 +352,11 @@ void StatsPublisher::publishStats(
     std::map<std::string, PortStateMachineState> portStates;
     portManager_->getPortStates(
         portStates, std::make_unique<std::vector<std::string>>());
-    for (const auto& [portName, portState] : portStates) {
+    for (const auto& [interfaceName, portState] : portStates) {
       tcData().setCounter(
           folly::to<std::string>(
               StatsPublisherHelper::kInterfacePrefix,
-              portName,
+              interfaceName,
               ".",
               kPortStateMachineState),
           static_cast<int64_t>(portState));

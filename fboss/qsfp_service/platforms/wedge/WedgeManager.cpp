@@ -90,8 +90,12 @@ void WedgeManager::loadConfig() {
   // Process QSFP config here
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
   const auto& qsfpCfg = qsfpConfig_->thrift;
+  std::map<std::string, std::string> partNumberToFwHandle;
+  if (const auto& tcvrFw = qsfpCfg.transceiverFirmwareVersions()) {
+    partNumberToFwHandle = *tcvrFw->fwHandleMap();
+  }
   tcvrConfig_ = std::make_shared<TransceiverConfig>(
-      *qsfpCfg.transceiverConfigOverrides());
+      *qsfpCfg.transceiverConfigOverrides(), partNumberToFwHandle);
 
   qsfpConfig_->writePhyConfigToFile();
 

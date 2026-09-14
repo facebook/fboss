@@ -14,17 +14,24 @@
 #include <sys/socket.h>
 #include <ratio> // NOLINT(misc-include-cleaner)
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <exception> // NOLINT(misc-include-cleaner)
 #include <iostream>
+#include <map>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <folly/IPAddress.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/show/bgp/summary/gen-cpp2/bgp_summary_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -42,16 +49,29 @@ using neteng::fboss::bgp::thrift::TBgpPeerState;
 using std::chrono::duration_cast;
 using std::chrono::system_clock;
 
+// Local option name, and the command's key in the CmdLocalOptions registry
+// (the subcommand path joined with underscores; see
+// CmdSubcommands::addCommand).
+inline constexpr auto kBgpSummarySortBy = "--sort-by";
+inline constexpr auto kBgpSummaryCmdName = "show_bgp_summary";
+
 struct CmdShowBgpSummaryTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowBgpSummaryModel;
 
+  std::vector<utils::LocalOption> LocalOptions = {
+      {kBgpSummarySortBy,
+       "Comma-separated column keys to sort peers by, applied in the order "
+       "given: peer, as, state, gr, pr, pa, ps, prd, ug, ugps, uptime, "
+       "downtime, description, session-id, flaps. Append ':desc' to a key to "
+       "reverse it, e.g. --sort-by pr:desc,peer"}};
+
   // Human-authored guide prose for the CLI reference wiki. Superset of the
   // one-line help string registered in the command tree.
   static std::string_view description() {
-    return "Displays a one-line-per-peer overview of every BGP session, under a global header carrying the daemon uptime, router ID, local and confederation ASNs, switch drain state, UCMP and update-group settings, aggregate path counts, loc-RIB prefix count and RIB version. The 'BGP is up for' and 'Loc-RIB Prefix Count' header lines are omitted entirely against a bgpd too old to report them, so their absence means an older daemon rather than a zero value. Each row shows the peer address, remote AS, session state, graceful-restart support, prefixes received/accepted/sent, session uptime, the peer's description (its hostname), the peer's BGP identifier in the 'Session ID' column - despite the column name this is the peer's router ID, not a per-connection handle - and the flap count. Three columns are conditional and are absent from the example below: PRD (prefixes received dropped) appears only once some peer has dropped routes at its prefix limit, UG/UGPS only when update-group is enabled, and Downtime only for a peer that is IDLE or admin-down AND has reset at least once - a peer that flapped and is currently retrying in ACTIVE or CONNECT shows no downtime. Listen-range entries with no active session render as IDLE with zero counters. This is the usual first stop when triaging BGP reachability; drill into a single session with 'show bgp neighbors <peer>'.";
+    return "Displays a one-line-per-peer overview of every BGP session, under a global header carrying the daemon uptime, router ID, local and confederation ASNs, switch drain state, UCMP and update-group settings, aggregate path counts, loc-RIB prefix count and RIB version. The 'BGP is up for' and 'Loc-RIB Prefix Count' header lines are omitted entirely against a bgpd too old to report them, so their absence means an older daemon rather than a zero value. Each row shows the peer address, remote AS, session state, graceful-restart support, prefixes received/accepted/sent, session uptime, the peer's description (its hostname), the peer's BGP identifier in the 'Session ID' column - despite the column name this is the peer's router ID, not a per-connection handle - and the flap count. Three columns are conditional and are absent from the example below: PRD (prefixes received dropped) appears only once some peer has dropped routes at its prefix limit, UG/UGPS only when update-group is enabled, and Downtime only for a peer that is IDLE or admin-down AND has reset at least once - a peer that flapped and is currently retrying in ACTIVE or CONNECT shows no downtime. Listen-range entries with no active session render as IDLE with zero counters. Rows are ordered by peer address by default; '--sort-by' takes a comma-separated list of column keys (peer, as, state, gr, pr, pa, ps, prd, ug, ugps, uptime, description, downtime, session-id, flaps) applied in the order given, each optionally suffixed with ':desc' to reverse it - so '--sort-by pr:desc,peer' puts the noisiest peers first and breaks ties by address. Numeric columns sort numerically, and peers that tie on every requested key stay in peer-address order. This is the usual first stop when triaging BGP reachability; drill into a single session with 'show bgp neighbors <peer>'.";
   }
 };
 
@@ -60,7 +80,109 @@ class CmdShowBgpSummary
  public:
   using RetType = CmdShowBgpSummaryTraits::RetType;
 
+  // Columns the table can be sorted on, named after the header they render
+  // under. Includes the conditional columns (PRD/UG/UGPS/Downtime): sorting on
+  // one that is currently hidden is harmless.
+  enum class SortColumn {
+    PEER,
+    AS,
+    STATE,
+    GR,
+    PR,
+    PA,
+    PS,
+    PRD,
+    UG,
+    UGPS,
+    UPTIME,
+    DOWNTIME,
+    DESCRIPTION,
+    SESSION_ID,
+    FLAPS,
+  };
+
+  struct SortKey {
+    SortColumn column;
+    bool descending{false};
+  };
+
+  /*
+   * Parse the --sort-by value: a comma-separated list of column keys in
+   * priority order, each optionally suffixed with ':asc' or ':desc'. Direction
+   * is a suffix rather than a '-' prefix because CLI11 would parse a leading
+   * dash as the start of another option. Throws std::invalid_argument on an
+   * unknown key or direction, which CmdHandler surfaces as "Invalid argument".
+   */
+  static std::vector<SortKey> parseSortKeys(const std::string& spec) {
+    static const std::map<std::string, SortColumn> kColumnsByKey = {
+        {"as", SortColumn::AS},
+        {"description", SortColumn::DESCRIPTION},
+        {"downtime", SortColumn::DOWNTIME},
+        {"flaps", SortColumn::FLAPS},
+        {"gr", SortColumn::GR},
+        {"pa", SortColumn::PA},
+        {"peer", SortColumn::PEER},
+        {"pr", SortColumn::PR},
+        {"prd", SortColumn::PRD},
+        {"ps", SortColumn::PS},
+        {"session-id", SortColumn::SESSION_ID},
+        {"state", SortColumn::STATE},
+        {"ug", SortColumn::UG},
+        {"ugps", SortColumn::UGPS},
+        {"uptime", SortColumn::UPTIME},
+    };
+
+    std::vector<SortKey> keys;
+    std::vector<std::string> tokens;
+    folly::split(',', spec, tokens);
+    for (const auto& token : tokens) {
+      std::string key = folly::trimWhitespace(token).str();
+      if (key.empty()) {
+        continue;
+      }
+      bool descending = false;
+      if (const auto colon = key.find(':'); colon != std::string::npos) {
+        const std::string direction = key.substr(colon + 1);
+        if (direction == "desc") {
+          descending = true;
+        } else if (direction != "asc") {
+          throw std::invalid_argument(
+              fmt::format(
+                  "{}: unknown sort direction '{}', expected 'asc' or 'desc'",
+                  kBgpSummarySortBy,
+                  direction));
+        }
+        key = key.substr(0, colon);
+      }
+      std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+      });
+      const auto column = kColumnsByKey.find(key);
+      if (column == kColumnsByKey.end()) {
+        std::vector<std::string> validKeys;
+        validKeys.reserve(kColumnsByKey.size());
+        for (const auto& [name, _] : kColumnsByKey) {
+          validKeys.emplace_back(name);
+        }
+        throw std::invalid_argument(
+            fmt::format(
+                "{}: unknown column '{}', expected one of: {}",
+                kBgpSummarySortBy,
+                key,
+                folly::join(", ", validKeys)));
+      }
+      keys.push_back({column->second, descending});
+    }
+    return keys;
+  }
+
   RetType queryClient(const HostInfo& hostInfo) {
+    // Parsed before any thrift call so a bad --sort-by fails immediately
+    // rather than after querying the daemon.
+    const auto sortKeys = parseSortKeys(
+        CmdLocalOptions::getInstance()->getLocalOption(
+            kBgpSummaryCmdName, kBgpSummarySortBy));
+
     std::vector<TBgpSession> sessions;
     TBgpLocalConfig config;
     TBgpDrainState drain_state;
@@ -99,7 +221,8 @@ class CmdShowBgpSummary
         drain_state,
         processUptimeSeconds,
         totalPrefixCount,
-        ribVersion);
+        ribVersion,
+        sortKeys);
   }
 
   // Format process uptime, omitting leading zero units so a short uptime reads
@@ -395,6 +518,104 @@ class CmdShowBgpSummary
     out << table << std::endl;
   }
 
+  // Three-way compare of two sessions on a single column. Numeric columns are
+  // compared as numbers rather than as their rendered strings, so e.g. sorting
+  // on PR does not order 100 before 9.
+  static int compareOnColumn(
+      const TBgpSession& a,
+      const TBgpSession& b,
+      SortColumn column) {
+    auto cmp = [](const auto& lhs, const auto& rhs) {
+      if (lhs < rhs) {
+        return -1;
+      }
+      return rhs < lhs ? 1 : 0;
+    };
+    // TODO(michaeluw): T113736668 deprecate i32 asns field
+    auto remoteAs = [](const TBgpSession& session) -> uint32_t {
+      const auto& peer = session.peer().value();
+      return folly::copy(peer.remote_as_4_byte().value())
+          ? folly::copy(peer.remote_as_4_byte().value())
+          : folly::copy(peer.remote_as().value());
+    };
+    /*
+     * uptime and reset_time are durations, and are only rendered for the peer
+     * states printOutput renders them for. Sessions with a blank cell compare
+     * as -1 so they group together at one end rather than interleaving with
+     * real durations.
+     */
+    auto uptime = [](const TBgpSession& session) -> int64_t {
+      const auto& peer = session.peer().value();
+      return folly::copy(peer.peer_state().value()) ==
+              TBgpPeerState::ESTABLISHED
+          ? folly::copy(session.uptime().value())
+          : -1;
+    };
+    auto downtime = [](const TBgpSession& session) -> int64_t {
+      const auto& peer = session.peer().value();
+      const auto state = folly::copy(peer.peer_state().value());
+      const bool down = (state == TBgpPeerState::IDLE ||
+                         state == TBgpPeerState::IDLE_ADMIN) &&
+          folly::copy(session.num_resets().value()) > 0;
+      return down ? folly::copy(session.reset_time().value()) : -1;
+    };
+
+    switch (column) {
+      case SortColumn::PEER:
+        return cmp(a.peer_addr().value(), b.peer_addr().value());
+      case SortColumn::AS:
+        return cmp(remoteAs(a), remoteAs(b));
+      case SortColumn::STATE:
+        // Compared on the rendered abbreviation so the column reads as sorted.
+        return cmp(
+            enumNameSafe(folly::copy(a.peer().value().peer_state().value()))
+                .substr(0, 4),
+            enumNameSafe(folly::copy(b.peer().value().peer_state().value()))
+                .substr(0, 4));
+      case SortColumn::GR:
+        return cmp(
+            folly::copy(a.peer().value().graceful().value()),
+            folly::copy(b.peer().value().graceful().value()));
+      case SortColumn::PR:
+        return cmp(
+            folly::copy(a.prepolicy_rcvd_prefix_count().value()),
+            folly::copy(b.prepolicy_rcvd_prefix_count().value()));
+      case SortColumn::PA:
+        return cmp(
+            folly::copy(a.postpolicy_rcvd_prefix_count().value()),
+            folly::copy(b.postpolicy_rcvd_prefix_count().value()));
+      case SortColumn::PS:
+        return cmp(
+            folly::copy(a.postpolicy_sent_prefix_count().value()),
+            folly::copy(b.postpolicy_sent_prefix_count().value()));
+      case SortColumn::PRD:
+        return cmp(
+            a.prepolicy_rcvd_dropped_prefix_count().value_or(0),
+            b.prepolicy_rcvd_dropped_prefix_count().value_or(0));
+      case SortColumn::UG:
+        // Unset renders as "-"; -1 keeps those rows together.
+        return cmp(
+            a.update_group_id().value_or(-1), b.update_group_id().value_or(-1));
+      case SortColumn::UGPS:
+        return cmp(
+            a.peer_state_update_group().value_or("-"),
+            b.peer_state_update_group().value_or("-"));
+      case SortColumn::UPTIME:
+        return cmp(uptime(a), uptime(b));
+      case SortColumn::DOWNTIME:
+        return cmp(downtime(a), downtime(b));
+      case SortColumn::DESCRIPTION:
+        return cmp(a.description().value(), b.description().value());
+      case SortColumn::SESSION_ID:
+        return cmp(a.peer_bgp_id().value(), b.peer_bgp_id().value());
+      case SortColumn::FLAPS:
+        return cmp(
+            folly::copy(a.num_resets().value()),
+            folly::copy(b.num_resets().value()));
+    }
+    return 0;
+  }
+
   // Move the data from bgp_thrift:TBgpSession to
   // bgp_summary_thrift:TBgpSummary
   RetType createModel(
@@ -403,13 +624,34 @@ class CmdShowBgpSummary
       TBgpDrainState& drain_state,
       std::optional<int64_t> processUptimeSeconds,
       std::optional<int64_t> totalPrefixCount,
-      int64_t ribVersion) {
+      int64_t ribVersion,
+      const std::vector<SortKey>& sortKeys = {}) {
     std::sort(
         sessions.begin(),
         sessions.end(),
         [](const TBgpSession& a, const TBgpSession& b) {
           return a.peer_addr().value() < b.peer_addr().value();
         });
+
+    /*
+     * Layered on top of the peer-address sort above rather than replacing it,
+     * so the stable sort leaves peers that tie on every requested column in
+     * peer-address order instead of in whatever order the daemon returned.
+     */
+    if (!sortKeys.empty()) {
+      std::stable_sort(
+          sessions.begin(),
+          sessions.end(),
+          [&sortKeys](const TBgpSession& a, const TBgpSession& b) {
+            for (const auto& key : sortKeys) {
+              const int order = compareOnColumn(a, b, key.column);
+              if (order != 0) {
+                return key.descending ? order > 0 : order < 0;
+              }
+            }
+            return false;
+          });
+    }
 
     RetType model;
     model.sessions() = sessions;

@@ -14,7 +14,13 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import fboss_test_runner.main as main_mod
-from fboss_test_runner.main import _get_fboss_root, _parse_args, _runner_action, main
+from fboss_test_runner.main import (
+    _get_fboss_root,
+    _parse_args,
+    _runner_action,
+    _setup_platform_descriptors,
+    main,
+)
 
 
 class ParseArgsValidationTest(unittest.TestCase):
@@ -54,6 +60,143 @@ class FbossRootTest(unittest.TestCase):
                     os.path.join(os.path.dirname(main_mod.__file__), "..", "..")
                 ),
             )
+
+
+class PlatformDescriptorSetupTest(unittest.TestCase):
+    def test_warns_when_fboss_data_is_missing(self):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("builtins.print") as print_warning,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        print_warning.assert_called_once()
+        self.assertIn("FBOSS_DATA", print_warning.call_args.args[0])
+        self.assertIs(print_warning.call_args.kwargs["file"], sys.stderr)
+        symlink.assert_not_called()
+
+    def test_warns_when_packaged_descriptors_are_missing(self):
+        source = "/opt/fboss/share/platform_descriptors"
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": "/opt/fboss/share"}),
+            patch.object(main_mod.os.path, "isdir", return_value=False),
+            patch("builtins.print") as print_warning,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        print_warning.assert_called_once()
+        self.assertIn(source, print_warning.call_args.args[0])
+        self.assertIs(print_warning.call_args.kwargs["file"], sys.stderr)
+        symlink.assert_not_called()
+
+    def test_links_packaged_descriptors(self):
+        def isdir(path):
+            return path == "/opt/fboss/share/platform_descriptors"
+
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": "/opt/fboss/share"}),
+            patch.object(main_mod.os.path, "isdir", side_effect=isdir),
+            patch.object(main_mod.os.path, "lexists", return_value=False),
+            patch("builtins.print") as print_message,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        print_message.assert_called_once()
+        self.assertIn("/tmp/platform_descriptors", print_message.call_args.args[0])
+        self.assertIn(
+            "/opt/fboss/share/platform_descriptors", print_message.call_args.args[0]
+        )
+        symlink.assert_called_once_with(
+            "/opt/fboss/share/platform_descriptors",
+            "/tmp/platform_descriptors",
+            target_is_directory=True,
+        )
+
+    def test_resolves_relative_fboss_data_before_linking(self):
+        relative_data = "relative/share"
+        source = os.path.abspath(f"{relative_data}/platform_descriptors")
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": relative_data}),
+            patch.object(main_mod.os.path, "isdir", return_value=True),
+            patch.object(main_mod.os.path, "lexists", return_value=False),
+            patch("builtins.print"),
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        symlink.assert_called_once_with(
+            source,
+            "/tmp/platform_descriptors",
+            target_is_directory=True,
+        )
+
+    def test_replaces_existing_descriptor_directory(self):
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": "/opt/fboss/share"}),
+            patch.object(main_mod.os.path, "isdir", return_value=True),
+            patch.object(main_mod.os.path, "islink", return_value=False),
+            patch.object(main_mod.os.path, "lexists", return_value=True),
+            patch.object(main_mod.shutil, "rmtree") as rmtree,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        rmtree.assert_called_once_with("/tmp/platform_descriptors")
+        symlink.assert_called_once_with(
+            "/opt/fboss/share/platform_descriptors",
+            "/tmp/platform_descriptors",
+            target_is_directory=True,
+        )
+
+    def test_replaces_existing_descriptor_symlink(self):
+        def isdir(path):
+            return path in {
+                "/opt/fboss/share/platform_descriptors",
+                "/tmp/platform_descriptors",
+            }
+
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": "/opt/fboss/share"}),
+            patch.object(main_mod.os.path, "isdir", side_effect=isdir),
+            patch.object(main_mod.os.path, "islink", return_value=True),
+            patch.object(main_mod.os.path, "lexists", return_value=True),
+            patch.object(main_mod.os, "unlink") as unlink,
+            patch.object(main_mod.shutil, "rmtree") as rmtree,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        unlink.assert_called_once_with("/tmp/platform_descriptors")
+        rmtree.assert_not_called()
+        symlink.assert_called_once_with(
+            "/opt/fboss/share/platform_descriptors",
+            "/tmp/platform_descriptors",
+            target_is_directory=True,
+        )
+
+    def test_replaces_conflicting_destination(self):
+        def isdir(path):
+            return path == "/opt/fboss/share/platform_descriptors"
+
+        with (
+            patch.dict(os.environ, {"FBOSS_DATA": "/opt/fboss/share"}),
+            patch.object(main_mod.os.path, "isdir", side_effect=isdir),
+            patch.object(main_mod.os.path, "islink", return_value=False),
+            patch.object(main_mod.os.path, "lexists", return_value=True),
+            patch.object(main_mod.os, "unlink") as unlink,
+            patch.object(main_mod.os, "symlink") as symlink,
+        ):
+            _setup_platform_descriptors()
+
+        unlink.assert_called_once_with("/tmp/platform_descriptors")
+        symlink.assert_called_once_with(
+            "/opt/fboss/share/platform_descriptors",
+            "/tmp/platform_descriptors",
+            target_is_directory=True,
+        )
 
 
 class LogBundleFlagTest(unittest.TestCase):
@@ -104,6 +247,7 @@ class MainLogBundleGatingTest(unittest.TestCase):
             patch.object(main_mod.os, "chdir"),
             patch.object(main_mod, "LogCapture") as log_capture,
             patch.object(main_mod, "setup_fboss_env"),
+            patch.object(main_mod, "_setup_platform_descriptors"),
             patch.object(
                 main_mod,
                 "_parse_args",
@@ -142,6 +286,7 @@ class MainLogBundleGatingTest(unittest.TestCase):
             ),
             patch.object(main_mod.os, "chdir"),
             patch.object(main_mod, "setup_fboss_env"),
+            patch.object(main_mod, "_setup_platform_descriptors"),
             patch.object(
                 main_mod,
                 "_parse_args",

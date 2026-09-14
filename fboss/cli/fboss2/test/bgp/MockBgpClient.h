@@ -119,5 +119,6 @@ class MockBgpClient : public apache::thrift::ServiceHandler<TBgpService> {
       getSubscriberNetworkInfo,
       (networks, int32_t, std::unique_ptr<std::string>));
   MOCK_METHOD(void, setDebugLevel, (TBgpDebugLevel));
+  MOCK_METHOD(void, getProfilerStats, (std::vector<TBgpProfilerStat>&));
 };
 } // namespace facebook::fboss

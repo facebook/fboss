@@ -41,6 +41,7 @@ class StatsPublisher {
   static void bumpReadFailure();
   static void bumpWriteFailure();
   static void bumpModuleErrors();
+  static void bumpFwStorageHandleMissingFromConfig();
   static void missingPorts(TransceiverID module);
   static void bumpAOIOverride();
   static void bumpHighTemp();

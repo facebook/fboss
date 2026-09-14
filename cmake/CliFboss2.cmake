@@ -403,6 +403,13 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  feature_default_command_args_cpp2
+  fboss/configs/platforms/generic/forwarding_stacks/feature_default_command_args.thrift
+  OPTIONS
+    json
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_library(fboss2_config_file_utils
@@ -418,6 +425,8 @@ target_link_libraries(fboss2_config_file_utils
 add_library(fboss2_config_gen_lib
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
+  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h
+  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
 )
@@ -425,6 +434,7 @@ add_library(fboss2_config_gen_lib
 target_link_libraries(fboss2_config_gen_lib
   acl_config_utils
   agent_config_cpp2
+  feature_default_command_args_cpp2
   fboss_error
   fboss2_config_file_utils
   Folly::folly

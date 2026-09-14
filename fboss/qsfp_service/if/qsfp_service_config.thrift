@@ -1,6 +1,11 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+# This is the source of truth for QsfpServiceConfig. A hand-maintained mirror
+# lives at configerator source/neteng/fboss/coop/inputs/qsfp_service_config.thrift
+# and is what produces the configs deserialized here. There is no automated sync,
+# so any change to this struct needs a matching configerator diff with identical
+# field IDs.
 namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.qsfp_service_config
 namespace py neteng.fboss.qsfp_service_config
@@ -79,6 +84,9 @@ struct Firmware {
 struct TransceiverFirmware {
   // Transceiver Part Number to Firmware version(s) map
   1: map<string, Firmware> versionsMap;
+
+  // Transceiver Part Number to its firmware handle in fboss_firmware.yaml map
+  2: map<string, string> fwHandleMap;
 }
 
 struct TransceiverI2cLogging {
@@ -88,7 +96,7 @@ struct TransceiverI2cLogging {
   4: i32 bufferSlots;
 }
 
-// Center optical channel frequnecy can be specified in either of the following ways
+// Center optical channel frequency can be specified in either of the following ways
 // 1. Frequency in MHz
 // 2. Channel number
 union CenterFrequencyConfig {

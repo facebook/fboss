@@ -886,22 +886,20 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
           EXPECT_EVENTUALLY_EQ(dlbAclCountAfter, dlbAclCountBefore);
         }
 
-        if (!getAgentEnsemble()->isSai()) {
-          auto reassignmentCounterAfter =
-              getSw()
-                  ->getHwSwitchStatsExpensive(switchId)
-                  .flowletStats()
-                  ->l3EcmpDlbPortReassignmentCount()
-                  .value();
-          XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
-                     << " -> " << reassignmentCounterAfter;
-          if (is_dlb) {
-            EXPECT_EVENTUALLY_GT(
-                reassignmentCounterAfter, reassignmentCounterBefore);
-          } else {
-            EXPECT_EVENTUALLY_EQ(
-                reassignmentCounterAfter, reassignmentCounterBefore);
-          }
+        auto reassignmentCounterAfter =
+            getSw()
+                ->getHwSwitchStatsExpensive(switchId)
+                .flowletStats()
+                ->l3EcmpDlbPortReassignmentCount()
+                .value();
+        XLOG(DBG2) << "reassignmentCounter: " << reassignmentCounterBefore
+                   << " -> " << reassignmentCounterAfter;
+        if (is_dlb) {
+          EXPECT_EVENTUALLY_GT(
+              reassignmentCounterAfter, reassignmentCounterBefore);
+        } else {
+          EXPECT_EVENTUALLY_EQ(
+              reassignmentCounterAfter, reassignmentCounterBefore);
         }
 
         auto portStats = getNextUpdatedPortStats(ports);

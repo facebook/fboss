@@ -268,7 +268,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -292,7 +292,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -481,6 +481,30 @@
           ]
       },
       "FTCF2519E3PCA-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB3": {
           "versions": [
             {
               "fwType": 1,
@@ -763,5 +787,8 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

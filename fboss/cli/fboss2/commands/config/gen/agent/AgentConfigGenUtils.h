@@ -39,7 +39,7 @@ cfg::AgentConfig assembleAgentConfig(
 
 // Combines the ASIC configuration and deployment-specific port assignments
 // into the platform section of an AgentConfig.
-cfg::PlatformConfig generatePlatformConfig(
+cfg::PlatformConfig assemblePlatformConfig(
     cfg::ChipConfig chipConfig,
     std::map<int32_t, cfg::PortAssignment> portAssignments);
 
@@ -74,13 +74,13 @@ cfg::SwitchSettings generateSwitchSettings(
 
 // Loads the selected platform descriptor and constructs the switch section of
 // an AgentConfig from it.
-cfg::SwitchConfig generateSwitchConfigFromArtifacts(
+cfg::SwitchConfig generateSwitchConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform);
 
 // Loads the selected ASIC configuration and port assignments into the platform
 // section of an AgentConfig.
-cfg::PlatformConfig generatePlatformConfigFromArtifacts(
+cfg::PlatformConfig generatePlatformConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
     std::string_view profile);
