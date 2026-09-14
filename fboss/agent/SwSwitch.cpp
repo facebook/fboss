@@ -35,6 +35,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/PbrAclManager.h"
 #include "fboss/agent/RemoteIntfRouteAuditor.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/ShelManager.h"
@@ -703,6 +704,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   if (!hwAsicTable_->getVoqAsics().empty() && shelManager_) {
     shelManager_.reset();
+  }
+
+  if (pbrAclManager_) {
+    pbrAclManager_.reset();
   }
 
   // reset tunnel manager only after pkt thread is stopped
@@ -1486,6 +1491,7 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   if (!hwAsicTable_->getVoqAsics().empty()) {
     shelManager_ = std::make_unique<ShelManager>();
   }
+  pbrAclManager_ = std::make_unique<PbrAclManager>();
 
   // Init StateDeltaLogger for logging state deltas
   if (FLAGS_enable_state_delta_logging) {
@@ -1528,7 +1534,7 @@ void SwSwitch::init(
   auto emptyState = std::make_shared<SwitchState>();
   auto origInitialState = initialState;
   emptyState->publish();
-  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
+  auto deltas = reconstructStateFromManagers(emptyState, initialState);
 
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
@@ -1545,6 +1551,9 @@ void SwSwitch::init(
   }
   if (shelManager_) {
     shelManager_->updateDone();
+  }
+  if (pbrAclManager_) {
+    pbrAclManager_->updateDone();
   }
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
@@ -1615,7 +1624,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
   auto origInitialState = initialState;
-  auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
+  auto deltas = reconstructStateFromManagers(emptyState, initialState);
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
     if (!isValidStateUpdate(delta, stats())) {
@@ -1639,6 +1648,9 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   }
   if (shelManager_) {
     shelManager_->updateDone();
+  }
+  if (pbrAclManager_) {
+    pbrAclManager_->updateDone();
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is
@@ -1786,7 +1798,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   runFsdbSyncFunction([&delta](auto& syncer) { syncer->stateUpdated(delta); });
 }
 
-std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
+std::vector<StateDelta> SwSwitch::reconstructStateFromManagers(
     const std::shared_ptr<SwitchState>& emptyState,
     const std::shared_ptr<SwitchState>& initialState) {
   std::vector<StateDelta> deltas;
@@ -1798,6 +1810,11 @@ std::vector<StateDelta> SwSwitch::reconstructStateFromErmAndShelManager(
   }
   if (shelManager_) {
     deltas = shelManager_->reconstructFromSwitchState(deltas.back().newState());
+  }
+  if (pbrAclManager_) {
+    CHECK(!deltas.empty());
+    deltas =
+        pbrAclManager_->reconstructFromSwitchState(deltas.back().newState());
   }
   return deltas;
 }
@@ -2004,6 +2021,9 @@ void SwSwitch::handlePendingUpdates() {
       if (shelManager_) {
         shelManager_->updateFailed(newAppliedState);
       }
+      if (pbrAclManager_) {
+        pbrAclManager_->updateFailed(newAppliedState);
+      }
       if (isExiting()) {
         /*
          * If we started exit, applyUpdate will reject updates leading
@@ -2048,6 +2068,9 @@ void SwSwitch::handlePendingUpdates() {
       }
       if (shelManager_) {
         shelManager_->updateDone();
+      }
+      if (pbrAclManager_) {
+        pbrAclManager_->updateDone();
       }
       // Update successful, update hw update counter to zero.
       fb303::fbData->setCounter(kHwUpdateFailures, 0);
@@ -2150,7 +2173,8 @@ SwSwitch::applyUpdate(
     return true;
   };
   if (!modifyState(ecmpResourceManager_, "Ecmp Resource Manager") ||
-      !modifyState(shelManager_, "Shel Manager")) {
+      !modifyState(shelManager_, "Shel Manager") ||
+      !modifyState(pbrAclManager_, "Pbr Acl Manager")) {
     return std::make_pair(oldState, newDesiredState);
   }
 

@@ -1190,6 +1190,7 @@ cpp_library(
         ":monolithic_hw_switch_handler",
         ":packet",
         ":packet_observer",
+        ":pbr_acl_manager",
         ":pfc_utils",
         ":phy_snapshot_lib",
         ":remote_intf_route_auditor",
