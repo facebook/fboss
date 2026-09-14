@@ -24,9 +24,17 @@
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/Function.h>
 #include <folly/Traits.h>
 
 namespace facebook::fboss::fsdb {
+
+// Single type-erased callback type for extended-path traversal.
+// ExtendedPathVisitor is templated on the callback, so every distinct callable
+// type re-instantiates the whole traversal over the tree. Sharing one type
+// across call sites keeps that to a single instantiation.
+using ExtPathVisitFn = folly::FunctionRef<
+    void(const std::vector<std::string>&, const thrift_cow::Serializable&)>;
 
 namespace {
 
@@ -276,9 +284,11 @@ class CowSubscriptionManager
       const Root& root,
       const std::shared_ptr<ExtendedSubscription>& subscription,
       const std::vector<SubscriptionKey>& keys) {
-    auto process = [&](const auto& path, auto& /* node */) {
+    auto processImpl = [&](const std::vector<std::string>& path,
+                           const thrift_cow::Serializable& /* node */) {
       store.processAddedPath(path.begin(), path.end());
     };
+    ExtPathVisitFn process(processImpl);
     for (const auto& key : keys) {
       const auto& path = subscription->pathAt(key);
       // seed beginnings of the path in to lookup tree
@@ -306,9 +316,9 @@ class CowSubscriptionManager
     thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
     for (const auto key : keys) {
       const auto& extPath = subscription->pathAt(key);
-      auto proc = [&, subKey = key](
-                      const std::vector<std::string>& resolvedPath,
-                      auto& node) {
+      auto procImpl = [&, subKey = key](
+                          const std::vector<std::string>& resolvedPath,
+                          const thrift_cow::Serializable& node) {
         // Encode directly rather than via OperUnitCache: that cache shares one
         // encoded root across subscribers at the same path, and every matched
         // concrete path here is a different node.
@@ -316,6 +326,7 @@ class CowSubscriptionManager
         patchNode.set_val(node.encodeBuf(patchSub->operProtocol()));
         bufferPatch(*patchSub, subKey, resolvedPath, std::move(patchNode));
       };
+      ExtPathVisitFn proc(procImpl);
       thrift_cow::RootExtendedPathVisitor::visit(
           root, extPath.path()->begin(), extPath.path()->end(), options, proc);
     }
