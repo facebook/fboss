@@ -409,6 +409,33 @@ static bool verifyPortMirrorDestinationImpl(
           SaiPortTraits::Attributes::EgressMirrorSession>(portHandle);
     }
   }
+  if ((flags & MIRROR_PORT_SFLOW) && mirrorDestID.has_value()) {
+    auto samplePacketHandle = flags & MIRROR_PORT_INGRESS
+        ? portHandle->ingressSamplePacket
+        : portHandle->egressSamplePacket;
+    if (!samplePacketHandle) {
+      XLOG(ERR) << "Sample packet handle is missing for port " << port;
+      return false;
+    }
+    sai_object_id_t samplePacketAdapterKey;
+    if (flags & MIRROR_PORT_INGRESS) {
+      samplePacketAdapterKey =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::IngressSamplePacketEnable{});
+    } else {
+      samplePacketAdapterKey =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::EgressSamplePacketEnable{});
+    }
+    if (samplePacketAdapterKey != samplePacketHandle->adapterKey()) {
+      XLOG(ERR) << "Sample packet mismatch for port " << port << ": expected "
+                << samplePacketHandle->adapterKey() << ", got "
+                << samplePacketAdapterKey;
+      return false;
+    }
+  }
   if (mirrorDestID.has_value()) {
     if (mirrorSaiOidList.size() == 0) {
       XLOG(ERR) << "mirrorSaiOidList.size() == 0"

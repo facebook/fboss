@@ -248,6 +248,26 @@ static void verifyPortMirrorDestinationImpl(
     }
   }
 
+  if ((flags & MIRROR_PORT_SFLOW) && mirror_dest_id.has_value()) {
+    auto samplePacketHandle = flags & MIRROR_PORT_INGRESS
+        ? portHandle->ingressSamplePacket
+        : portHandle->egressSamplePacket;
+    ASSERT_NE(samplePacketHandle, nullptr);
+    if (flags & MIRROR_PORT_INGRESS) {
+      auto samplePacketAdapterKey =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::IngressSamplePacketEnable{});
+      EXPECT_EQ(samplePacketAdapterKey, samplePacketHandle->adapterKey());
+    } else {
+      auto samplePacketAdapterKey =
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::EgressSamplePacketEnable{});
+      EXPECT_EQ(samplePacketAdapterKey, samplePacketHandle->adapterKey());
+    }
+  }
+
   if (mirror_dest_id.has_value()) {
     EXPECT_NE(mirrorSaiOidList.size(), 0);
     EXPECT_EQ(mirrorSaiOidList[0], mirror_dest_id.value());
