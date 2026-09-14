@@ -28,6 +28,14 @@ struct BspVersion {
   auto operator<=>(const BspVersion&) const = default;
 };
 
+// Outcome of an RPM install attempt. notFound distinguishes "no such package in
+// any enabled repo" -- a permanent failure, usually a wrong version in the
+// platform_manager config -- from transient failures worth retrying.
+struct RpmInstallResult {
+  int exitStatus{0};
+  bool notFound{false};
+};
+
 class SystemInterface {
  public:
   explicit SystemInterface(
@@ -36,7 +44,7 @@ class SystemInterface {
   virtual ~SystemInterface() = default;
   virtual bool loadKmod(const std::string& moduleName) const;
   virtual bool unloadKmod(const std::string& moduleName) const;
-  virtual int installRpm(
+  virtual RpmInstallResult installRpm(
       const std::string& rpmFullName,
       const std::string& repoName = "") const;
   virtual int depmod() const;
@@ -55,6 +63,13 @@ class SystemInterface {
   // the virtual host-state reads above, so tests drive it by faking
   // getHostKernelVersion() and getInstalledRpms().
   std::optional<BspVersion> getInstalledBspVersion(
+      const std::string& rpmBaseName) const;
+
+  // Returns the {version}-{release} tokens of the BSP kmods RPM files sitting
+  // in the local RPM repo (--local_rpm_repo_path) whose package name targets
+  // the running kernel, newest first. Empty when the repo directory is absent
+  // or holds nothing for this kernel.
+  virtual std::vector<std::string> getLocalRepoBspRpmVersions(
       const std::string& rpmBaseName) const;
 
  private:
