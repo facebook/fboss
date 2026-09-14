@@ -51,6 +51,8 @@ class StatsPublisher {
   static void initPerPortFb303Stats(std::set<std::string>& portNames);
 
  private:
+  void publishBootType();
+
   TransceiverManager* transceiverManager_{nullptr};
   // Owned by either TransceiverManager or, in Port Manager mode, PortManager.
   // Created once during initialization and never replaced, so caching the raw

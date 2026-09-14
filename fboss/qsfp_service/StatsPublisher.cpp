@@ -48,6 +48,8 @@ static constexpr auto kTotalTransceiversEepromInvalid =
     "qsfp.totalTransceiversEepromInvalid";
 static constexpr auto kNumModulesWithInvalidBankSelect =
     "qsfp.numModulesWithInvalidBankSelect";
+static constexpr auto kColdBoot = "cold_boot";
+static constexpr auto kWarmBoot = "warm_boot";
 
 void StatsPublisher::init() {
   // Start monitoring aggregation thread
@@ -63,6 +65,19 @@ void StatsPublisher::init() {
   tcData().addStatExportType(kAOIOverride, facebook::fb303::SUM);
   tcData().addStatExportType(kHighTemp, facebook::fb303::SUM);
   tcData().addStatExportType(kHighVcc, facebook::fb303::SUM);
+  tcData().addStatExportType(kColdBoot, facebook::fb303::SUM);
+  tcData().addStatExportType(kWarmBoot, facebook::fb303::SUM);
+  publishBootType();
+}
+
+void StatsPublisher::publishBootType() {
+  if (!transceiverManager_) {
+    return;
+  }
+  tcData().addStatValue(
+      transceiverManager_->canWarmBoot() ? kWarmBoot : kColdBoot,
+      1,
+      facebook::fb303::SUM);
 }
 
 // static
