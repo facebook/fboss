@@ -15,6 +15,7 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FsdbHelper.h"
+#include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/state/ArpEntry.h"
@@ -1322,6 +1323,23 @@ InterfaceID getInterfaceIDForPort(
   }
 
   throw FbossError("Interface not found for port ", portID);
+}
+
+std::optional<InterfaceID> getInterfaceIDForPkt(
+    const RxPacket& pkt,
+    const std::shared_ptr<SwitchState>& state) {
+  if (auto vlanID = pkt.getSrcVlanIf()) {
+    if (auto vlan = state->getVlans()->getNodeIf(*vlanID)) {
+      auto intfID = vlan->getInterfaceID();
+      if (state->getInterfaces()->getNodeIf(intfID)) {
+        return intfID;
+      }
+    }
+  }
+  auto port = pkt.isFromAggregatePort()
+      ? PortDescriptor(AggregatePortID(pkt.getSrcAggregatePort()))
+      : PortDescriptor(pkt.getSrcPort());
+  return state->getInterfaceIDForPortIf(port);
 }
 
 bool isPortDrained(
