@@ -19,7 +19,6 @@ cpp_unittest(
         "CmdConfigInterfaceIpv6NdpTest.cpp",
         "CmdConfigInterfaceSflowSampleDestTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
-        "CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigIpRouteTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",

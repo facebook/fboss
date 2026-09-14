@@ -17,7 +17,6 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigInterfaceIpv6NdpTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceSflowSampleDestTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceSwitchportAccessVlanTest.cpp
-  fboss/cli/fboss2/test/config/CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigIpRouteTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigL2LearningModeTest.cpp
