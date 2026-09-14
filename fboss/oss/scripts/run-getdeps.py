@@ -1109,13 +1109,6 @@ def _setup_toolchain(args):
     # and we'll proceed without environment setup
 
 
-def _has_explicit_scratch_path(getdeps_args):
-    return any(
-        arg == "--scratch-path" or arg.startswith("--scratch-path=")
-        for arg in getdeps_args
-    )
-
-
 def _in_fbsource_checkout():
     """Mirror getdeps' fbsource detection: find the enclosing repo root, then
     read its .projectid. Reading the first .projectid found while walking up
@@ -1136,7 +1129,7 @@ def _in_fbsource_checkout():
         return False
 
 
-def _prefetch_gnu_mirrors(args):
+def _prefetch_gnu_mirrors(args, getdeps_path):
     """Seed getdeps' download dir for GNU-hosted deps from a working mirror.
 
     getdeps retries a single pinned URL, so a mirror that drops an old release
@@ -1153,12 +1146,6 @@ def _prefetch_gnu_mirrors(args):
         print_info("getdeps_fallback_mirror.py missing; skipping mirror prefetch")
         return
 
-    # Without an explicit --scratch-path, getdeps derives one of its own
-    # (DISK_TEMP, mkscratch, tempdir) that need not match the default assumed
-    # here, so seeding would fill a directory getdeps never reads.
-    if not _has_explicit_scratch_path(args.getdeps_args):
-        return
-
     manifests_dir = path_to("build", "fbcode_builder", "manifests")
     if not os.path.isdir(manifests_dir):
         return
@@ -1172,13 +1159,17 @@ def _prefetch_gnu_mirrors(args):
         print_info("--lfs-path given; leaving downloads to getdeps LFS")
         return
 
-    scratch_path = _get_scratch_path(args.getdeps_args)
+    download_dir = getdeps_fallback_mirror.resolve_download_dir(
+        getdeps_path, args.getdeps_args
+    )
+    if download_dir is None:
+        return
 
     print_info("Prefetching GNU-hosted dependencies via fallback mirrors")
     try:
         getdeps_fallback_mirror.prefetch(
             manifests_dir=manifests_dir,
-            download_dir=os.path.join(scratch_path, "downloads"),
+            download_dir=download_dir,
         )
     except Exception as ex:
         # Seeding is purely an optimization over what getdeps does anyway, so
@@ -1200,7 +1191,7 @@ def main():
     # Toolchain setup is global; do it once before any pass.
     _setup_toolchain(args)
 
-    _prefetch_gnu_mirrors(args)
+    _prefetch_gnu_mirrors(args, getdeps_path)
 
     passes = _get_pass_specs(args)
 

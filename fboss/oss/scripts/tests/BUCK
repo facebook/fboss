@@ -20,3 +20,12 @@ python_unittest(
         "//fboss/oss/scripts:platform_descriptor_utils",
     ],
 )
+
+python_unittest(
+    name = "test_getdeps_fallback_mirror",
+    srcs = ["test_getdeps_fallback_mirror.py"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/oss/scripts:getdeps_fallback_mirror_lib",
+    ],
+)

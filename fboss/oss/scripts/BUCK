@@ -22,9 +22,14 @@ python_binary(
     deps = [":package_lib"],
 )
 
-python_binary(
-    name = "getdeps_fallback_mirror",
+python_library(
+    name = "getdeps_fallback_mirror_lib",
     srcs = ["getdeps_fallback_mirror.py"],
     labels = ["autodeps2_generated"],
+)
+
+python_binary(
+    name = "getdeps_fallback_mirror",
     main_module = "fboss.oss.scripts.getdeps_fallback_mirror",
+    deps = [":getdeps_fallback_mirror_lib"],
 )

@@ -23,6 +23,7 @@ import hashlib
 import http.client
 import os
 import shutil
+import subprocess
 import sys
 import time
 import urllib.request
@@ -77,6 +78,35 @@ class _ManifestParser(configparser.ConfigParser):
 
     def optionxform(self, optionstr: str) -> str:
         return optionstr
+
+
+def resolve_download_dir(getdeps_path: str, getdeps_args: list[str]) -> str | None:
+    """Return the download directory that getdeps will use."""
+    scratch_path = None
+    for index, arg in enumerate(getdeps_args):
+        if arg == "--scratch-path":
+            if index + 1 >= len(getdeps_args):
+                print("  WARNING - --scratch-path has no value; skipping prefetch")
+                return None
+            scratch_path = getdeps_args[index + 1]
+            break
+        if arg.startswith("--scratch-path="):
+            scratch_path = arg.split("=", 1)[1]
+            break
+
+    if scratch_path is None:
+        try:
+            scratch_path = subprocess.check_output(
+                [getdeps_path, "show-scratch-dir"], text=True
+            ).strip()
+        except (OSError, subprocess.SubprocessError) as ex:
+            print(f"  WARNING - cannot resolve getdeps scratch directory: {ex}")
+            return None
+
+    if not scratch_path:
+        print("  WARNING - getdeps returned an empty scratch directory")
+        return None
+    return os.path.join(os.path.realpath(scratch_path), "downloads")
 
 
 def sha256_file(path: str) -> str | None:
