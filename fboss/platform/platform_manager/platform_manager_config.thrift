@@ -324,11 +324,16 @@ struct EmbeddedSensorConfig {
 // `kernelDeviceName`: The device name used by kernel to identify the device
 //
 // `offset`: The offset at which Meta V5 IDPROM format resides.
+//
+// `sysfsPath`: Absolute path of the IDPROM's i2c device directory, used
+// when the BSP resolves the IDPROM instead of using the other fields via
+// platform_manager.
 struct IdpromConfig {
   1: string busName;
   2: string address;
   3: string kernelDeviceName;
   4: i16 offset;
+  5: optional string sysfsPath;
 }
 
 // Defines a generic IP block in the FPGA
