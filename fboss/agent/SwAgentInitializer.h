@@ -10,6 +10,7 @@
 #include "fboss/agent/SwSwitch.h"
 
 #include <gflags/gflags.h>
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 
@@ -96,7 +97,9 @@ class SwAgentInitializer : public AgentInitializer {
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<SwSwitchInitializer> initializer_;
   std::shared_ptr<PacketStreamHandler> packetStreamHandler_;
-  virtual void handleExitSignal(bool gracefulExit) = 0;
+  virtual void handleExitSignal(
+      bool gracefulExit,
+      bool skipWarmBootStateSave = false) = 0;
 
   void stopServer();
   /*
@@ -108,6 +111,10 @@ class SwAgentInitializer : public AgentInitializer {
    */
   virtual void stopServices();
   void waitForServerStopped();
+
+  // Exit status recorded by handleExitSignal() and returned by initAgent()
+  // once serve() unwinds.
+  std::atomic<int> exitStatus_{0};
 
  private:
   std::unique_ptr<apache::thrift::ThriftServer> server_;

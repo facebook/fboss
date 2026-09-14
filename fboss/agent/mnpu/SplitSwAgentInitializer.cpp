@@ -55,7 +55,15 @@ SplitSwAgentInitializer::getThrifthandlers() {
   return handlers;
 }
 
-void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
+void SplitSwAgentInitializer::handleExitSignal(
+    bool gracefulExit,
+    bool skipWarmBootStateSave) {
+  if (exitSignalReceived_.exchange(true)) {
+    XLOG(WARNING)
+        << "[Exit] Exit signal received while shutdown is already in progress, ignoring";
+    return;
+  }
+  exitStatus_ = gracefulExit ? 0 : 1;
   if (!sw_->isInitialized()) {
     XLOG(WARNING)
         << "[Exit] Signal received before initializing sw switch, waiting for initialization to finish.";
@@ -80,7 +88,7 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
   initializer_->stopFunctionScheduler();
   multiSwitchThriftHandler_->cancelEventSyncers();
   steady_clock::time_point switchGracefulExitBegin = steady_clock::now();
-  sw_->gracefulExit();
+  sw_->gracefulExit(skipWarmBootStateSave);
   steady_clock::time_point switchGracefulExitEnd = steady_clock::now();
   XLOG(DBG2) << "[Exit] Switch Graceful Exit time "
              << duration_cast<duration<float>>(
@@ -105,12 +113,6 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
 #endif
 #endif
   initializer_.reset();
-  this->waitForServerStopped();
-  if (gracefulExit) {
-    exit(0);
-  } else {
-    exit(1);
-  }
 }
 
 void SplitSwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
@@ -130,6 +132,6 @@ void SplitSwAgentInitializer::exitForColdBoot() {
 }
 
 void SplitSwAgentInitializer::exitForWarmBoot(bool gracefulExit) {
-  handleExitSignal(gracefulExit);
+  handleExitSignal(gracefulExit, false /* skipWarmBootStateSave */);
 }
 } // namespace facebook::fboss
