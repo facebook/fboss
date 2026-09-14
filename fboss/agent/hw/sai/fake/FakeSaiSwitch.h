@@ -314,6 +314,14 @@ class FakeSwitch {
     return portCl72RetryEnable_;
   }
 
+  void setLinkUpDebounceTimeout(sai_uint32_t timeoutUs) {
+    linkUpDebounceTimeoutUs_ = timeoutUs;
+  }
+
+  sai_uint32_t getLinkUpDebounceTimeout() {
+    return linkUpDebounceTimeoutUs_;
+  }
+
   void setSwitchingMode(sai_int32_t mode) {
     switchingMode_ = mode;
   }
@@ -394,6 +402,7 @@ class FakeSwitch {
   bool pfcMonitorEnable_{false};
   bool cablePropagationDelayMeasurement_{false};
   bool portCl72RetryEnable_{false};
+  sai_uint32_t linkUpDebounceTimeoutUs_{0};
   sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
   std::vector<sai_int32_t> packetDropTypeIngressList_;
   std::vector<sai_int32_t> packetDropTypeEgressList_;

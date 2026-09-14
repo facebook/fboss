@@ -902,6 +902,13 @@ struct SaiSwitchTraits {
     using PacketDropTypeEgressList = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributePacketDropTypeEgressList>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    using LinkUpDebounceTimeout = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LINK_UP_DEBOUNCE_TIMEOUT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
@@ -1032,6 +1039,10 @@ struct SaiSwitchTraits {
       std::optional<Attributes::CablePropagationDelayMeasurement>,
       std::optional<Attributes::PortCl72RetryEnable>,
       std::optional<Attributes::SwitchingMode>
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      ,
+      std::optional<Attributes::LinkUpDebounceTimeout>
+#endif
 
 #if defined(SAI_BRCM_PAI_IMPL)
       ,
@@ -1236,6 +1247,9 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
 SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SAI_ATTRIBUTE_NAME(Switch, LinkUpDebounceTimeout)
+#endif
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)

@@ -404,6 +404,9 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // enable cable propagation delay measurement
       std::nullopt, // enable CL72 link training retry
       std::nullopt, // switching mode
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      std::nullopt, // link up debounce timeout
+#endif
 #if defined(SAI_BRCM_PAI_IMPL)
       reinterpret_cast<sai_pointer_t>(pai_lock_callback), // user sync_lock
       reinterpret_cast<sai_pointer_t>(pai_unlock_callback), // user sync_unlock
