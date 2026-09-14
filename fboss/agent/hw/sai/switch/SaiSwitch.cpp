@@ -5729,7 +5729,7 @@ void SaiSwitch::processFlowletSwitchingConfigChanged(
     nextHopGroupManager.updateArsModeAll(newFlowletConfig);
     arsManager.removeArs(newFlowletConfig);
     switchManager.resetArsProfile();
-    arsProfileManager.removeArsProfile(oldFlowletConfig);
+    arsProfileManager.removeArsProfile();
     nextHopGroupManager.setPrimaryArsSwitchingMode(std::nullopt);
     nextHopGroupManager.setMinWidthForArsVirtualGroup(std::nullopt);
   }
