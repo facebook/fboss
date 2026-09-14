@@ -936,6 +936,7 @@ cpp_library(
     ],
     deps = [
         ":fboss-error",
+        ":hwswitch_matcher",
         ":switch_config-cpp2-types",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
