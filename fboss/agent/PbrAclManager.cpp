@@ -4,6 +4,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTable.h"
 #include "fboss/agent/state/AclTableGroup.h"
@@ -51,13 +52,35 @@ void removePolicyEntries(
   }
 }
 
+bool addPolicyEntries(
+    AclMap& aclMap,
+    const std::shared_ptr<ClassBasedPolicyNode>& policy) {
+  bool changed = false;
+  for (const auto& entry : createAclEntriesFromPolicy(policy)) {
+    // reconstructFromSwitchState replays every policy as added against a state
+    // whose ACL map is already populated, so an add can meet its own entry.
+    if (auto cur = aclMap.getEntryIf(entry->getID()); cur && *cur == *entry) {
+      continue;
+    }
+    aclMap.removeNodeIf(entry->getID());
+    aclMap.addNode(entry);
+    changed = true;
+  }
+  return changed;
+}
+
 bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
   bool changed = false;
   DeltaFunctions::forEachChanged(
       delta.getClassBasedPoliciesDelta(),
       [&](const std::shared_ptr<ClassBasedPolicyNode>& /*old*/,
           const std::shared_ptr<ClassBasedPolicyNode>& /*newPolicy*/) {},
-      [&](const std::shared_ptr<ClassBasedPolicyNode>& /*newPolicy*/) {},
+      [&](const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
+        if (!newPolicy->isReferenced()) {
+          return;
+        }
+        changed |= addPolicyEntries(newAclMap, newPolicy);
+      },
       [&](const std::shared_ptr<ClassBasedPolicyNode>& old) {
         if (!old->isReferenced()) {
           return;
@@ -87,9 +110,9 @@ void PbrAclManager::updateDone() {
   XLOG(DBG2) << "PbrAclManager update done";
 }
 
-void PbrAclManager::updateFailed(
-    const std::shared_ptr<SwitchState>& /*curState*/) {
+void PbrAclManager::updateFailed(const std::shared_ptr<SwitchState>& curState) {
   XLOG(DBG2) << "PbrAclManager update failed";
+  reconstructFromSwitchState(curState);
 }
 
 std::shared_ptr<SwitchState> PbrAclManager::processDelta(
