@@ -36,7 +36,7 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   // the ethernet name of the connected transceiver from the other end
   std::unordered_map<int32_t, std::pair<std::string, std::string>> cabledNames;
 
-  for (auto& cabledPairs : utility::getCabledPairs(ensemble)) {
+  for (auto& cabledPairs : utility::getCabledPairsWithTransceivers(ensemble)) {
     auto aPortID = qsfpServiceHandler->getPortIdByPortName(cabledPairs.first);
     auto zPortID = qsfpServiceHandler->getPortIdByPortName(cabledPairs.second);
     CHECK(aPortID.has_value());
