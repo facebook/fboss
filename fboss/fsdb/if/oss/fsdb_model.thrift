@@ -41,6 +41,11 @@ struct BgpData {
   // key is str() of folly::CIDRNetwork, which matches the prefix in TRibEntry exactly
   5: optional map<string, bgp_route_types.TRibEntry> ribMap;
   6: optional bgp_route_types.TPartialDrainState partialDrainState;
+  /*
+   * Compact, deduplicated form of BGP RIB entries (prefix -> paths). See
+   * bgp_route_types.TCanonicalRibState for the encoding.
+   */
+  7: optional bgp_route_types.TCanonicalRibState canonicalRib;
 }
 
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"thriftpath.root": "1"}}
