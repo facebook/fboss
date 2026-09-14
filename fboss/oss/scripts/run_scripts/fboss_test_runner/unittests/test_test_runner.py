@@ -482,3 +482,172 @@ class TestGetTestRunCmdSwitchId:
         with patch.object(runner, "args", new=mock_args):
             cmd = runner._get_test_run_cmd("dummy.conf", "HwFooTest.Bar", [])
             assert not any("switch_id_for_testing" in item for item in cmd)
+
+
+class TestAgentCrashDowngrade:
+    """A unit crash detected after a test must fail that test even though the
+    gtest binary itself reported OK (systemd Restart= resurrects a crashed
+    production agent inside the test's own readiness wait, so gtest never
+    sees it)."""
+
+    _MOD = "fboss_test_runner.runners.test_runner"
+
+    def _make_args(self, mock_args, **overrides):
+        # _run_tests probes these with os.path / getattr; a bare Mock breaks them.
+        mock_args.sai_replayer_logging = None
+        mock_args.simulator = None
+        for k, v in overrides.items():
+            setattr(mock_args, k, v)
+        return mock_args
+
+    def _make_conf(self, tmp_path):
+        conf = tmp_path / "test.conf"
+        conf.write_text("")
+        return str(conf)
+
+    def _ok_outcome(self):
+        return RunOutcome(
+            "[ OK ] cold_boot.HwT.t (1 ms)",
+            [GtestResult("cold_boot.HwT.t", GtestStatus.OK, 1)],
+        )
+
+    def _run(self, runner, mock_args, tmp_path, exits):
+        args = self._make_args(mock_args, coldboot_only=True)
+        conf = self._make_conf(tmp_path)
+        with (
+            patch.object(runner, "_run_test", return_value=self._ok_outcome()),
+            patch.object(runner, "_setup_coldboot_test"),
+            patch.object(runner, "_end_run"),
+            patch(f"{self._MOD}.find_unclean_unit_exits", return_value=exits) as e,
+            patch(f"{self._MOD}.list_core_dumps", return_value=set()) as c,
+        ):
+            all_results = runner._run_tests(["HwT.t"], conf, args)
+        # the journal is read once per test; cores are listed before and after
+        e.assert_called_once()
+        assert c.call_count == 2
+        return all_results
+
+    def test_crash_reason_downgrades_ok_to_failed(self, runner, mock_args, tmp_path):
+        all_results = self._run(
+            runner,
+            mock_args,
+            tmp_path,
+            exits=["fboss_hw_agent@0.service main process dumped core (status=6/ABRT)"],
+        )
+        assert [r.status for r in all_results] == [GtestStatus.FAILED]
+
+    def test_no_crash_leaves_result_untouched(self, runner, mock_args, tmp_path):
+        all_results = self._run(runner, mock_args, tmp_path, exits=[])
+        assert [r.status for r in all_results] == [GtestStatus.OK]
+
+
+class TestCrashDetection:
+    """What `_run_test_guarded` treats as a crash: any unit the test left
+    running (production agents for the CLI suite, qsfp_service and the
+    platform services for the SAI suites, ...) dying uncleanly inside the
+    test window, or any core dump from a process other than the test binary."""
+
+    _MOD = "fboss_test_runner.runners.test_runner"
+
+    _OLD_CORE = "/var/lib/systemd/coredump/core.fboss_sw_agent.0.x.9.9.zst"
+
+    def _reason(self, runner, exits, cores):
+        """Run one guarded test and return the crash reason handed to
+        _apply_agent_crash, or None if it was not called."""
+        outcome = RunOutcome("", [GtestResult("cold_boot.HwT.t", GtestStatus.OK, 1)])
+        listings = iter([{self._OLD_CORE}, {self._OLD_CORE, *cores}])
+        with (
+            patch(f"{self._MOD}.time.time", return_value=1.0),
+            patch.object(runner, "_run_test", return_value=outcome),
+            patch.object(runner, "_apply_agent_crash") as apply,
+            patch(f"{self._MOD}.find_unclean_unit_exits", return_value=exits) as e,
+            patch(
+                f"{self._MOD}.list_core_dumps", side_effect=lambda: next(listings)
+            ) as c,
+        ):
+            assert (
+                runner._run_test_guarded("c", "cold_boot.", "HwT.t", False) is outcome
+            )
+        # both probes look at the window that opened when the binary started
+        e.assert_called_once_with(1.0)
+        assert c.call_count == 2
+        if not apply.called:
+            return None
+        apply.assert_called_once()
+        assert apply.call_args[0][:3] == (outcome, "cold_boot.", "HwT.t")
+        return apply.call_args[0][3]
+
+    def test_unit_crash_is_reported(self, runner):
+        reason = self._reason(
+            runner,
+            ["qsfp_service.service main process dumped core (status=6/ABRT)"],
+            [],
+        )
+        assert reason == "qsfp_service.service main process dumped core (status=6/ABRT)"
+
+    def test_foreign_core_is_reported(self, runner):
+        cores = [
+            "/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst",
+            "/var/lib/systemd/coredump/core.qsfp_service.0.x.3.4.zst",
+        ]
+        assert self._reason(runner, [], cores) == "new core dump(s): " + ", ".join(
+            cores
+        )
+
+    def test_own_core_is_ignored(self, runner):
+        """The test binary dumping core already failed the test on its own;
+        naming its core as a unit crash would be noise."""
+        with patch.object(
+            runner,
+            "_get_test_binary_name",
+            return_value="/opt/fboss/bin/sai_test-sai_impl",
+        ):
+            assert (
+                self._reason(
+                    runner,
+                    [],
+                    ["/var/lib/systemd/coredump/core.sai_test-sai_im.0.x.5.6.zst"],
+                )
+                is None
+            )
+
+    def test_unit_crash_and_core_are_both_named(self, runner):
+        reason = self._reason(
+            runner,
+            ["fboss_hw_agent@0.service main process dumped core (status=11/SEGV)"],
+            ["/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"],
+        )
+        assert reason == (
+            "fboss_hw_agent@0.service main process dumped core (status=11/SEGV); "
+            "new core dump(s): /var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"
+        )
+
+    def test_healthy_window_is_not_a_crash(self, runner):
+        assert self._reason(runner, [], []) is None
+
+    def test_apply_downgrades_ok_and_skipped_only(self, runner):
+        outcome = RunOutcome(
+            "gtest transcript line 1\ngtest transcript line 2\n",
+            [
+                GtestResult("cold_boot.HwT.ok", GtestStatus.OK, 1),
+                GtestResult("cold_boot.HwT.skipped", GtestStatus.SKIPPED, 1),
+                GtestResult("cold_boot.HwT.timeout", GtestStatus.TIMEOUT, 1),
+            ],
+        )
+        runner._apply_agent_crash(
+            outcome, "cold_boot.", "HwT.*", "x.service dumped core"
+        )
+        assert [r.status for r in outcome.results] == [
+            GtestStatus.FAILED,
+            GtestStatus.FAILED,
+            GtestStatus.TIMEOUT,
+        ]
+        # the binary's transcript is kept (it is the only copy), the verdict
+        # is appended after it
+        assert outcome.console_output.startswith(
+            "gtest transcript line 1\ngtest transcript line 2\n########## CRASH"
+        )
+        assert "x.service dumped core" in outcome.console_output
+        assert outcome.console_output.endswith(
+            "\n".join(r.as_log_line() for r in outcome.results)
+        )
