@@ -19,6 +19,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -69,12 +70,68 @@ bool addPolicyEntries(
   return changed;
 }
 
+bool applyChangedPolicy(
+    AclMap& aclMap,
+    const std::shared_ptr<ClassBasedPolicyNode>& old,
+    const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
+  const bool defaultChanged = *old->getDefaultNextHopGroup().id() !=
+      *newPolicy->getDefaultNextHopGroup().id();
+  auto oldTc2Nhg = old->getClass2NextHopGroup();
+  auto newTc2Nhg = newPolicy->getClass2NextHopGroup();
+  std::map<std::string, std::shared_ptr<AclEntry>> newEntries;
+  for (const auto& entry : createAclEntriesFromPolicy(newPolicy)) {
+    newEntries.emplace(entry->getID(), entry);
+  }
+  bool changed = false;
+  for (const auto& [tc, newNhg] : newTc2Nhg) {
+    auto name = makePbrAclEntryName(newPolicy->getID(), tc);
+    auto oldIt = oldTc2Nhg.find(tc);
+    if (oldIt == oldTc2Nhg.end()) {
+      aclMap.addNode(newEntries.at(name));
+      changed = true;
+    } else if (defaultChanged || oldIt->second != newNhg) {
+      if (!aclMap.getEntryIf(name)) {
+        throw FbossError(
+            "changed PBR policy '",
+            newPolicy->getID(),
+            "' has no programmed ACL entry '",
+            name,
+            "' to update");
+      }
+      // TODO(zecheng): implement hitless (make-before-break) update here.
+      aclMap.updateNode(newEntries.at(name));
+      changed = true;
+    }
+  }
+  for (const auto& [tc, _] : oldTc2Nhg) {
+    if (!newTc2Nhg.count(tc)) {
+      if (aclMap.removeNodeIf(makePbrAclEntryName(newPolicy->getID(), tc))) {
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
 bool applyPolicyDelta(AclMap& newAclMap, const StateDelta& delta) {
   bool changed = false;
   DeltaFunctions::forEachChanged(
       delta.getClassBasedPoliciesDelta(),
-      [&](const std::shared_ptr<ClassBasedPolicyNode>& /*old*/,
-          const std::shared_ptr<ClassBasedPolicyNode>& /*newPolicy*/) {},
+      [&](const std::shared_ptr<ClassBasedPolicyNode>& old,
+          const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
+        if (!old->isReferenced()) {
+          if (newPolicy->isReferenced()) {
+            changed |= addPolicyEntries(newAclMap, newPolicy);
+          }
+          return;
+        }
+        if (!newPolicy->isReferenced()) {
+          removePolicyEntries(newAclMap, old);
+          changed = true;
+          return;
+        }
+        changed |= applyChangedPolicy(newAclMap, old, newPolicy);
+      },
       [&](const std::shared_ptr<ClassBasedPolicyNode>& newPolicy) {
         if (!newPolicy->isReferenced()) {
           return;
