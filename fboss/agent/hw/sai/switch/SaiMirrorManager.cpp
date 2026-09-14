@@ -56,7 +56,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeErSpan(
       SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE,
       monitorPort,
       SAI_ERSPAN_ENCAPSULATION_TYPE_MIRROR_L3_GRE_TUNNEL,
-      mirror->getDscp(),
+      static_cast<uint8_t>(mirror->getDscp() << 2),
       mirrorTunnel.srcIp,
       mirrorTunnel.dstIp,
       mirrorTunnel.srcMac,
@@ -92,7 +92,7 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addNodeSflow(
   SaiSflowMirrorTraits::CreateAttributes attributes{
       SAI_MIRROR_SESSION_TYPE_SFLOW,
       monitorPort,
-      mirror->getDscp(),
+      static_cast<uint8_t>(mirror->getDscp() << 2),
       mirrorTunnel.srcIp,
       mirrorTunnel.dstIp,
       mirrorTunnel.srcMac,
