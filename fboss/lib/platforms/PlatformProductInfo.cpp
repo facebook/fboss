@@ -84,11 +84,9 @@ void PlatformProductInfo::initMode() {
       type_ = *descriptorPlatformType;
       return;
     }
-    throw FbossError(
-        "No platform descriptor file under ",
-        FLAGS_platform_descriptor_config_path,
-        " can match platform type ",
-        getProductName());
+    // TODO(T288776433): Guard descriptor lookup with the
+    // platform_descriptor_registry feature scope before making it
+    // authoritative.
   }
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
