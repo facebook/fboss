@@ -50,18 +50,18 @@ class CmdShowBgpTablePrefixTestFixture : public CmdHandlerTestBase {
         folly::dynamic value = folly::dynamic::object
           ("communities",
           folly::dynamic::array(
-          folly::dynamic::object("name", "FABRIC_POD_RSW_LOOP")
+          folly::dynamic::object("name", "SAMPLE_LOOPBACK_COM")
           ("description", "rsw loopback")
-          ("communities", folly::dynamic::array("65527:12705"))
+          ("communities", folly::dynamic::array("65221:28734"))
           )
         )
         ("localprefs",
         folly::dynamic::array(
           folly::dynamic::object("localpref", 20)
-          ("name", "LOCALPREF_CTRL_BACKUP")
+          ("name", "LOCALPREF_SAMPLE_BKUP")
           ("description", "low-priority supplementary/backup routes from bgp controller"),
           folly::dynamic::object("localpref", 25)
-          ("name", "LOCALPREF_DEPRIO")
+          ("name", "LOCALPREF_SAMPL1")
           ("description", "deprioritized local preference value"))
         );
           // clang-format on
@@ -140,9 +140,9 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, printOutput) {
   // Expect one selected path.
   std::string expectedOutput = kRibEntryMarkersHeader +
       "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
-      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n";
 
@@ -186,15 +186,15 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutput_OnlyDefaultPaths) {
   std::string expectedOutput = kRibEntryMarkersHeader +
       "\n> 8.0.0.0/32, Selected 0/2 paths (2 active, 0 inactive)\n"
       // path 1
-      "    from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "    from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
       // path 2
-      "    from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "    from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n";
 
@@ -244,21 +244,21 @@ TEST_F(
   std::string expectedOutput = kRibEntryMarkersHeader +
       "\n> 8.0.0.0/32, Selected 2/3 paths (3 active, 0 inactive)\n"
       // SELECTED path 1 (best path group)
-      "*@  from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*@  from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
       // path 2 (best path group)
-      "*   from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*   from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
       // path 3 (default path group)
-      "    from 1.2.3.4 (1.2.3.4) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "    from 1.2.3.4 (1.2.3.4) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n";
 
@@ -308,15 +308,15 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutput_InactivePath) {
       // 2 total paths, but only 1 was a candidate, so 1 active / 1 inactive.
       "\n> 8.0.0.0/32, Selected 1/2 paths (1 active, 1 inactive)\n"
       // Selected best path: no "!" in the third marker column.
-      "*@  from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*@  from 1.2.3.2 (1.2.3.2) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
       // Inactive path: "!" marker.
-      "  ! from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "  ! from 1.2.3.3 (1.2.3.3) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: []\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n";
 
@@ -348,9 +348,9 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutput_PathSelectionPending) {
   // state - wait for the final result after the marker is cleared.
   std::string expectedOutput = kRibEntryMarkersHeader +
       "\n>% 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
-      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: SAMPL1/25 | ASP: 64712 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
-      "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
+      "    Communities: SAMPLE_LOOPBACK_COM/65221:28734\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n";
 

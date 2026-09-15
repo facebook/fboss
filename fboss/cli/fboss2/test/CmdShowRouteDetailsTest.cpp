@@ -51,7 +51,7 @@ facebook::bgp::bgp_policy::BgpPolicies createFpfPolicies() {
   term.policy_action_entries()->push_back(action);
 
   facebook::bgp::bgp_policy::BgpPolicyStatement statement;
-  statement.name() = "GAR_POLICY";
+  statement.name() = "SAMPLE_GAR";
   statement.policy_version() = "1";
   statement.policy_entries()->push_back(term);
 

@@ -37,7 +37,7 @@ const auto kIpVersion = TBgpAfi::AFI_IPV4;
 const auto kBinaryAddress =
     facebook::network::toBinaryAddress(folly::IPAddress("8.0.0.0"));
 const auto kAddressMask = 32;
-const auto kCommunityNumber = 4294390177;
+const auto kCommunityNumber = 4274352190;
 const auto kSupportingRoutes = 0;
 
 class CmdShowBgpOriginatedRoutesTestFixture : public CmdHandlerTestBase {
@@ -97,9 +97,9 @@ TEST_F(CmdShowBgpOriginatedRoutesTestFixture, printOutput) {
         folly::dynamic value = folly::dynamic::object
           ("communities",
           folly::dynamic::array(
-          folly::dynamic::object("name", "FABRIC_POD_RSW_LOOP")
+          folly::dynamic::object("name", "SAMPLE_LOOPBACK_COM")
           ("description", "rsw loopback")
-          ("communities", folly::dynamic::array("65527:12705"))
+          ("communities", folly::dynamic::array("65221:28734"))
           )
         );
         // clang-format on
@@ -117,7 +117,7 @@ TEST_F(CmdShowBgpOriginatedRoutesTestFixture, printOutput) {
   std::string expectedOutput =
       " Prefix      Communities                      Supporting Route Cnt  Minimum supporting route  Require Nexthop Resolution \n"
       "-------------------------------------------------------------------------------------------------------------------------------\n"
-      " 8.0.0.0/32  FABRIC_POD_RSW_LOOP/65527:12705  0                     0                         N/A                        \n\n";
+      " 8.0.0.0/32  SAMPLE_LOOPBACK_COM/65221:28734  0                     0                         N/A                        \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }

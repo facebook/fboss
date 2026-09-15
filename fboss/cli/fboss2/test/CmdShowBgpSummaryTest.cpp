@@ -294,8 +294,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutput) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -321,8 +321,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWhenConfedAsnIsZero) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -349,8 +349,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithOldAsnField) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -380,8 +380,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputBothAsnFieldPresent) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -409,8 +409,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputUpdateGroupDisabled) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent\n\n"
       " Peer     AS    State  GR  PR  PA  PS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0             0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0             0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -442,8 +442,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithUpdateGroupAndPaValues) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS       Uptime    Downtime  Description           Session ID  Flaps \n"
       "---------------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   2   2   5   Converged  0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   7   Pending              0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   2   2   5   Converged  0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   7   Pending              0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -471,8 +471,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputNoDowntimeColumn) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Description           Session ID  Flaps \n"
       "-----------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s  fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               fsw007.p015.f01.prn6  6.7.8.9     0     \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s  leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               leaf07.p099.f01.lab0  6.7.8.9     0     \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -499,8 +499,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputDrainStateNotSet) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
@@ -529,8 +529,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 
@@ -555,8 +555,8 @@ TEST_F(CmdShowBgpSummaryTestFixture, printOutputWithDifferentDrainStates) {
       "Acronyms: PR - Prefixes Received, PA - Prefixes Accepted, PS - Prefixes Sent, UG - Update Group, UGPS - Update Group Peer State\n\n"
       " Peer     AS    State  GR  PR  PA  PS  UG  UGPS  Uptime    Downtime  Description           Session ID  Flaps \n"
       "----------------------------------------------------------------------------------------------------------------------------\n"
-      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            fsw001.p015.f01.prn6  4.3.2.1     9     \n"
-      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  fsw007.p015.f01.prn6  6.7.8.9     33    \n\n";
+      " 1.2.3.4  1     ESTA   Y   2   0   2   -   -     0h 0m 1s            leaf01.p099.f01.lab0  4.3.2.1     9     \n"
+      " 2.3.4.5  4651  IDLE   N   0   0   0   -   -               0h 0m 2s  leaf07.p099.f01.lab0  6.7.8.9     33    \n\n";
 
   EXPECT_EQ(output, expectedOutput);
 }
