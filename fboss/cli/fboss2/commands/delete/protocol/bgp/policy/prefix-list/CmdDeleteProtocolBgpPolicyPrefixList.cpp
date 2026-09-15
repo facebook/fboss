@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <algorithm>
 #include <iostream>
@@ -35,6 +36,43 @@ namespace {
 // grammar.
 constexpr std::string_view kObjectName = "prefix-list";
 constexpr std::string_view kEntryKeyword = "entry";
+
+// Every routing-policy term whose PREFIX_LIST match names `listName` in
+// prefix_filters.prefix_list_names (the field bgpd resolves at config load),
+// labelled the way the CLI addresses the term.
+std::vector<std::string> findTermsReferencingPrefixList(
+    const bgp::thrift::BgpConfig& cfg,
+    const std::string& listName) {
+  std::vector<std::string> referrers;
+  if (!cfg.policies().has_value()) {
+    return referrers;
+  }
+  for (const auto& policy : *cfg.policies()->bgp_policy_statements()) {
+    for (const auto& term : *policy.policy_entries()) {
+      if (!term.policy_match_entries().has_value()) {
+        continue;
+      }
+      for (const auto& match : *term.policy_match_entries()->match_entries()) {
+        if (!match.prefix_filters().has_value()) {
+          continue;
+        }
+        const auto& names = *match.prefix_filters()->prefix_list_names();
+        if (std::find(names.begin(), names.end(), listName) == names.end()) {
+          continue;
+        }
+        referrers.push_back(
+            term.sequence_number().has_value()
+                ? fmt::format(
+                      "policy {} term {}",
+                      *policy.name(),
+                      *term.sequence_number())
+                : fmt::format(
+                      "policy {} term {}", *policy.name(), *term.name()));
+      }
+    }
+  }
+  return referrers;
+}
 } // namespace
 
 // Parse + validate at construction so queryClient stays a thin dispatch.
@@ -119,6 +157,18 @@ CmdDeleteProtocolBgpPolicyPrefixList::queryClient(
         args.listName(),
         args.seqNum(),
         session.getBgpSessionConfigPath());
+  }
+  // A term's prefix_list_names resolves against this list by name at daemon
+  // load; erasing the list while a term still names it would commit a
+  // dangling reference and fail the load. Refuse and name the terms instead.
+  // Deleting a single entry above is safe: the name stays defined.
+  auto referrers = findTermsReferencingPrefixList(cfg, args.listName());
+  if (!referrers.empty()) {
+    return fmt::format(
+        "Error: BGP prefix-list {} is still referenced by {}; remove those "
+        "matches first",
+        args.listName(),
+        folly::join(", ", referrers));
   }
   lists.erase(it);
   session.saveBgpConfig();
