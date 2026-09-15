@@ -269,10 +269,10 @@ TEST_F(NeighborsReceivedPrePolicyTestFixture, wikiDocHooks) {
   const std::string output = ss.str();
 
   EXPECT_THAT(output, HasSubstr("Network: 0.0.0.0/0"));
-  // The received direction must render the UPSTREAM confed ASN, not the
-  // advertised one - sampleNetworkPaths() previously ignored its ASN
-  // argument and rendered 6002 here.
-  EXPECT_THAT(output, HasSubstr("AsPath: (6001)"));
+  // The received direction must render the UPSTREAM confed ASN (65221), not
+  // the downstream one (64650) the advertised views use - sampleNetworkPaths()
+  // once ignored its ASN argument and rendered the wrong one here.
+  EXPECT_THAT(output, HasSubstr("AsPath: (65221)"));
   // Pre-policy views pass showPolicy=false, so no Policy line.
   EXPECT_THAT(output, Not(HasSubstr("Policy:")));
 }

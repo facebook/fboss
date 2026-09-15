@@ -130,10 +130,8 @@ class CmdShowBgpUpdateGroup
      * version of 0, which renders "N/A" rather than 0.
      */
     model.update_group_summaries() = {
-        summary(
-            1, "PROPAGATE_RSW_FSW_OUT", "READY", 8, 8, 0, 5000, 3000, 123456),
-        summary(
-            2, "PROPAGATE_RSW_SSW_OUT", "WAITING", 11, 7, 4, 5000, 3000, 0)};
+        summary(1, "SAMPLE_UPLINK_OUT", "READY", 8, 8, 0, 5000, 3000, 123456),
+        summary(2, "SAMPLE_SPINE_OUT", "WAITING", 11, 7, 4, 5000, 3000, 0)};
     return model;
   }
 

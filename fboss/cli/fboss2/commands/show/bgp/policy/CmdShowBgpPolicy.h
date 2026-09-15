@@ -86,7 +86,7 @@ class CmdShowBgpPolicy
     permit.type() = BgpPolicyActionType::PERMIT;
 
     BgpPolicyTerm term;
-    term.name() = "LOCAL_ACCEPT_RULE_990";
+    term.name() = "SAMPLE_ACCEPT_TERM";
     term.description() =
         "Accept locally originated prefixes tagged with a sample community";
     term.policy_matches() = {match};
@@ -95,7 +95,7 @@ class CmdShowBgpPolicy
     term.sequence_number() = 990;
 
     BgpPolicyStatement statement;
-    statement.name() = "PROPAGATE_RSW_FSW_OUT";
+    statement.name() = "SAMPLE_UPLINK_OUT";
     statement.description() = "Egress policy applied to FSW uplinks";
     statement.policy_version() = "1";
     statement.policy_entries() = {term};

@@ -739,7 +739,7 @@ TEST_F(CmdShowBgpSummaryTestFixture, wikiDocHooks) {
   CmdShowBgpSummary().printOutput(CmdShowBgpSummary::sampleModel(), ss);
   const std::string output = ss.str();
 
-  EXPECT_THAT(output, HasSubstr("Router ID - 192.0.2.1, Local ASN - 65499"));
+  EXPECT_THAT(output, HasSubstr("Router ID - 192.0.2.1, Local ASN - 65108"));
   EXPECT_THAT(output, HasSubstr("Peers: UP - 4, TOTAL - 5"));
   EXPECT_THAT(output, HasSubstr("192.0.2.11"));
   // The listen range is deliberately disjoint from the established peers, so

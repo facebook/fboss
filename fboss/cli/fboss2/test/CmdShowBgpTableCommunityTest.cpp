@@ -111,10 +111,10 @@ TEST_F(CmdShowBgpTableCommunityTestFixture, wikiDocHooks) {
   const std::string output = ss.str();
 
   EXPECT_THAT(output, HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
-  // The sample is the answer to a query for AS32934.DEFAULT, so every
+  // The sample is the answer to a query for AS65108.DEFAULT, so every
   // rendered path must carry it. printOutput hard-codes detail=true, which is
   // what surfaces the community line at all.
-  EXPECT_THAT(output, HasSubstr("Communities: (NA)/65529:15990"));
+  EXPECT_THAT(output, HasSubstr("Communities: (NA)/65108:337"));
 }
 
 } // namespace facebook::fboss

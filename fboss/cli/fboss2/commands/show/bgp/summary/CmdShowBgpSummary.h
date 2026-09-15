@@ -682,8 +682,10 @@ class CmdShowBgpSummary
     TBgpLocalConfig config;
     config.my_router_id() =
         static_cast<int32_t>(folly::IPAddressV4("192.0.2.1").toLong());
-    config.local_as_4_byte() = 65499;
-    config.local_confed_as_4_byte() = 2040;
+    // Sample ASNs (RFC 6996 private-use range): this sample renders onto the
+    // CLI reference wiki and ships in the open-source tree.
+    config.local_as_4_byte() = 65108;
+    config.local_confed_as_4_byte() = 64873;
     config.program_ucmp_weights() = false;
     config.enable_update_group() = false;
 
@@ -725,7 +727,7 @@ class CmdShowBgpSummary
     // as a range that already has sessions inside it.
     TBgpSession listenRange;
     listenRange.peer()->peer_state() = TBgpPeerState::IDLE;
-    listenRange.peer()->remote_as_4_byte() = 6003;
+    listenRange.peer()->remote_as_4_byte() = 65390;
     listenRange.peer()->graceful() = false;
     listenRange.peer_addr() = "198.51.100.0/24";
     listenRange.prepolicy_rcvd_prefix_count() = 0;
@@ -742,20 +744,30 @@ class CmdShowBgpSummary
     // string.
     model.sessions() = {
         establishedSession(
-            "192.0.2.11", 6001, 121, 43, "fsw001.p001.f01.abc1", "192.0.2.101"),
+            "192.0.2.11",
+            65221,
+            121,
+            43,
+            "fsw001.p001.f01.abc1",
+            "192.0.2.101"),
         establishedSession(
-            "192.0.2.12", 6002, 121, 43, "fsw002.p001.f01.abc1", "192.0.2.102"),
+            "192.0.2.12",
+            64650,
+            121,
+            43,
+            "fsw002.p001.f01.abc1",
+            "192.0.2.102"),
         listenRange,
         establishedSession(
             "2001:db8:e11e:1062::4e",
-            6001,
+            65221,
             1343,
             108,
             "fsw001.p001.f01.abc1",
             "192.0.2.101"),
         establishedSession(
             "2001:db8:e11e:1162::4e",
-            6002,
+            64650,
             1343,
             108,
             "fsw002.p001.f01.abc1",

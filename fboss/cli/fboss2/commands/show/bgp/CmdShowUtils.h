@@ -182,6 +182,25 @@ TIpPrefix sampleIpPrefix(const std::string& cidr);
 TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value);
 
 /*
+ * The community values every BGP wiki sample uses, in one place. The
+ * 'show bgp config' sample defines mnemonics for these exact pairs
+ * (AS65108.DEFAULT and AS65108.AGGREGATE.GLOBAL), so a reader can
+ * cross-reference a rendered community against that config; keeping them here
+ * is what stops the two samples drifting apart. Sample ASNs, RFC 6996
+ * private-use range.
+ */
+struct SampleCommunity {
+  uint16_t asn;
+  uint16_t value;
+};
+inline constexpr SampleCommunity kSampleLiveCommunity{64873, 521};
+inline constexpr SampleCommunity kSampleDefaultCommunity{65108, 337};
+inline constexpr SampleCommunity kSampleAggregateCommunity{65108, 814};
+inline constexpr SampleCommunity kSampleLoopbackCommunity{65221, 291};
+inline constexpr SampleCommunity kSampleRackCommunity{65108, 725};
+TBgpCommunity sampleCommunity(const SampleCommunity& community);
+
+/*
  * Canned RIB data (no real switch data, addresses in documentation ranges)
  * backing the CLI reference-wiki sampleModel() hooks of the commands that
  * render a RIB listing. Shared so 'show bgp table' and 'show bgp table detail'

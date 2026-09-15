@@ -156,12 +156,12 @@ TEST_F(CmdShowBgpOriginatedRoutesTestFixture, wikiDocHooks) {
   const std::string expectedOutput =
       " Prefix                       Communities     Supporting Route Cnt  Minimum supporting route  Require Nexthop Resolution \n"
       "-------------------------------------------------------------------------------------------------------------------------------\n"
-      " 192.0.2.1/32                 (NA)/64497:100  0                     0                         0                          \n"
-      "                              (NA)/64498:400                                                                             \n"
-      " 2001:db8:e111:f162:27::/128  (NA)/64497:100  0                     0                         0                          \n"
-      "                              (NA)/64498:400                                                                             \n"
-      " 2001:db8:111c:6227::/64      (NA)/64496:500  12                    8                         1                          \n"
-      "                              (NA)/64497:100                                                                             \n"
+      " 192.0.2.1/32                 (NA)/64873:521  0                     0                         0                          \n"
+      "                              (NA)/65221:291                                                                             \n"
+      " 2001:db8:e111:f162:27::/128  (NA)/64873:521  0                     0                         0                          \n"
+      "                              (NA)/65221:291                                                                             \n"
+      " 2001:db8:111c:6227::/64      (NA)/64873:521  12                    8                         1                          \n"
+      "                              (NA)/65108:725                                                                             \n"
       "\n";
 
   EXPECT_EQ(ss.str(), expectedOutput);

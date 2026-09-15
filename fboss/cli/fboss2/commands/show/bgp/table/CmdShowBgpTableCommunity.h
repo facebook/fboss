@@ -48,7 +48,7 @@ class CmdShowBgpTableCommunity : public CmdHandler<
       const std::vector<std::string>& queriedCommunities);
 
   // Canned, synthetic model (no real switch data). Every path in the shared
-  // 'table detail' sample carries AS32934.DEFAULT (65529:15990), so that
+  // 'table detail' sample carries AS65108.DEFAULT (65108:337), so that
   // sample is exactly what a query for it returns.
   static RetType sampleModel() {
     return sampleRibEntriesWithHost();

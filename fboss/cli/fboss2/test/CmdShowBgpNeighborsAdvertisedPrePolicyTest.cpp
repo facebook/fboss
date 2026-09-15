@@ -220,7 +220,7 @@ TEST_F(NeighborsAdvertisedPrePolicyTestFixture, wikiDocHooks) {
   EXPECT_THAT(output, HasSubstr("Network: 198.51.100.0/24"));
   // The advertised direction must render the downstream confed ASN; this
   // pins that sampleNetworkPaths() honours its ASN argument.
-  EXPECT_THAT(output, HasSubstr("AsPath: (6002)"));
+  EXPECT_THAT(output, HasSubstr("AsPath: (64650)"));
   // Pre-policy views pass showPolicy=false, so no Policy line.
   EXPECT_THAT(output, Not(HasSubstr("Policy:")));
 }

@@ -335,6 +335,10 @@ TIpPrefix sampleIpPrefix(const std::string& cidr) {
   return prefix;
 }
 
+TBgpCommunity sampleCommunity(const SampleCommunity& community) {
+  return sampleCommunity(community.asn, community.value);
+}
+
 TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value) {
   TBgpCommunity community;
   community.asn() = asn;
@@ -388,13 +392,15 @@ TBgpPath sampleBgpPath(const SamplePathSpec& spec) {
 
   neteng::fboss::bgp_attr::TAsPathSeg segment;
   segment.seg_type() = TAsPathSegType::AS_SEQUENCE;
-  segment.asns() = {65301, 65332, 64984, 32934};
+  // Sample ASNs (RFC 6996 private-use range). These samples are published to
+  // the CLI reference wiki and ship in the open-source tree, so they must not
+  // carry real AS numbers or community assignments.
+  segment.asns() = {64712, 65017, 64961, 65108};
   path.as_path() = TAsPath{segment};
 
-  // AS32934.DEFAULT, the community a real default route carries.
-  constexpr uint16_t kDefaultRouteAsn = 65529;
-  constexpr uint16_t kDefaultRouteValue = 15990;
-  path.communities() = {sampleCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+  // The community a default route carries; the 'show bgp config' sample
+  // defines the matching AS65108.DEFAULT mnemonic for it.
+  path.communities() = {sampleCommunity(kSampleDefaultCommunity)};
 
   return path;
 }
@@ -502,19 +508,16 @@ NetworkPathWithHost sampleNetworkPaths(
    * from and the peer we advertise to are in different sub-ASes, which is
    * what makes the two directions distinguishable in the rendered AS path.
    */
-  constexpr int64_t kUpstreamAsn = 6001;
-  constexpr int64_t kDownstreamAsn = 6002;
+  constexpr int64_t kUpstreamAsn = 65221;
+  constexpr int64_t kDownstreamAsn = 64650;
 
   // LIVE, plus the community that identifies the prefix class.
   const std::vector<TBgpCommunity> aggregateCommunities = {
-      sampleCommunity(65446, 30), sampleCommunity(65527, 36327)};
-  // AS32934.DEFAULT, the community a real default route carries; same values
-  // sampleBgpPath() names for the 'table detail' sample.
-  constexpr uint16_t kDefaultRouteAsn = 65529;
-  constexpr uint16_t kDefaultRouteValue = 15990;
+      sampleCommunity(kSampleLiveCommunity),
+      sampleCommunity(kSampleAggregateCommunity)};
   const std::vector<TBgpCommunity> defaultRouteCommunities = {
-      sampleCommunity(65446, 30),
-      sampleCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+      sampleCommunity(kSampleLiveCommunity),
+      sampleCommunity(kSampleDefaultCommunity)};
 
   NetworkPathWithHost result;
   if (received) {
