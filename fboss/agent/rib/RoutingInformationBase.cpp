@@ -1949,7 +1949,20 @@ void RoutingInformationBase::updateMySidImpl(
 void RoutingInformationBase::updateStateInRibThread(
     const std::function<void()>& fn) {
   ensureRunning();
-  ribUpdateEventBase_.runInEventBaseThreadAndWait([fn] { fn(); });
+  // An exception escaping the event base thread would terminate the process
+  // instead of reaching the caller, so hand it back the way the sibling RIB
+  // entry points do.
+  std::exception_ptr exceptionPtr;
+  ribUpdateEventBase_.runInEventBaseThreadAndWait([&]() {
+    try {
+      fn();
+    } catch (const std::exception&) {
+      exceptionPtr = std::current_exception();
+    }
+  });
+  if (exceptionPtr) {
+    std::rethrow_exception(exceptionPtr);
+  }
 }
 
 template <typename RibUpdateFn>
