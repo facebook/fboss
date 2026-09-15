@@ -16,6 +16,21 @@ python_library(
 )
 
 python_library(
+    name = "npu_sdk_utils_lib",
+    srcs = ["npu_sdk_utils.py"],
+    # The OSS package installs this beside its callers in /opt/fboss/bin.
+    # @lint-ignore BUCKLINT no_base_module_usage_python
+    base_module = "",
+    labels = ["autodeps2_generated"],
+)
+
+python_binary(
+    name = "npu_sdk_utils",
+    main_module = "npu_sdk_utils",
+    deps = [":npu_sdk_utils_lib"],
+)
+
+python_library(
     name = "package_lib",
     srcs = ["package.py"],
     labels = ["autodeps2_generated"],

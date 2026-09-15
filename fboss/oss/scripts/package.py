@@ -8,6 +8,7 @@ import concurrent.futures
 import glob
 import os
 import pathlib
+import stat
 import sys
 import tarfile
 from collections.abc import Mapping
@@ -32,6 +33,8 @@ TARGET_NAMES = (
     "bgp",
     "openr",
 )
+NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
+NPU_SDK_METADATA_ARCHIVE_PATH = f"share/{NPU_SDK_METADATA_FILENAME}"
 
 
 # Maps getdeps package name to library name when they differ.
@@ -372,6 +375,17 @@ def _build_target(target: str, build_dir: pathlib.Path):
 
     test_files = _resolve_binaries(bin_dirs, test_bins)
     test_files.update(test_extras)
+
+    if target in ("agent-benchmarks", "forwarding-stack"):
+        metadata_path = build_dir / "build" / "fboss" / NPU_SDK_METADATA_FILENAME
+        if metadata_path.is_file():
+            if stat.S_IMODE(metadata_path.stat().st_mode) != 0o444:
+                raise RuntimeError(
+                    f"NPU SDK metadata must be read-only: {metadata_path}"
+                )
+            prod_files[metadata_path] = NPU_SDK_METADATA_ARCHIVE_PATH
+            if target == "forwarding-stack":
+                test_files[metadata_path] = NPU_SDK_METADATA_ARCHIVE_PATH
 
     return (prod_files, test_files)
 

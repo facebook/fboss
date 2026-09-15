@@ -6,6 +6,7 @@ import glob
 import os
 import pathlib
 import shutil
+import stat
 import subprocess
 import tempfile
 from typing import ClassVar, TYPE_CHECKING
@@ -51,6 +52,7 @@ class PackageFboss:
     BIN = "bin"
     LIB = "lib"
     DATA = "share"
+    NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
 
     # Suffix for getdeps output location
     INSTALLED = "installed"
@@ -318,6 +320,11 @@ class PackageFboss:
                 effective_binaries = binaries if binaries else os.listdir(project_dir)
 
                 for binary in effective_binaries:
+                    if (
+                        name == PackageFboss.FBOSS
+                        and binary == PackageFboss.NPU_SDK_METADATA_FILENAME
+                    ):
+                        continue
                     bin_abs_path = os.path.join(project_dir, binary)
                     if self._is_python_dir_executable(bin_abs_path):
                         dst = os.path.join(bin_pkg_path, binary)
@@ -343,6 +350,9 @@ class PackageFboss:
                         except OSError:
                             print(f"Skipping library {lib_abs_path}")
 
+                if name == PackageFboss.FBOSS:
+                    self._copy_npu_sdk_metadata(project_dir, tmp_dir_name)
+
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
@@ -354,6 +364,23 @@ class PackageFboss:
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
         self._copy_completion_scripts(tmp_dir_name)
+
+    def _copy_npu_sdk_metadata(self, project_dir: str, tmp_dir_name: str) -> None:
+        metadata_path = os.path.join(
+            project_dir, PackageFboss.NPU_SDK_METADATA_FILENAME
+        )
+        if not os.path.isfile(metadata_path):
+            return
+        if stat.S_IMODE(os.stat(metadata_path).st_mode) != 0o444:
+            raise RuntimeError(f"NPU SDK metadata must be read-only: {metadata_path}")
+
+        destination = os.path.join(
+            tmp_dir_name,
+            PackageFboss.DATA,
+            PackageFboss.NPU_SDK_METADATA_FILENAME,
+        )
+        shutil.copy2(metadata_path, destination)
+        print(f"Copied {metadata_path} to {destination}")
 
     @staticmethod
     def _is_python_dir_executable(path: str) -> bool:

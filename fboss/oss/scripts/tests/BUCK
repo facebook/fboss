@@ -29,3 +29,12 @@ python_unittest(
         "//fboss/oss/scripts:getdeps_fallback_mirror_lib",
     ],
 )
+
+python_unittest(
+    name = "test_npu_sdk_utils",
+    srcs = ["test_npu_sdk_utils.py"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/oss/scripts:npu_sdk_utils_lib",
+    ],
+)
