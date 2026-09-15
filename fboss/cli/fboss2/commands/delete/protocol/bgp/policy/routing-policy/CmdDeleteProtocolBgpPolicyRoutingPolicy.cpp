@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
+#include <folly/String.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <algorithm>
 #include <iostream>
@@ -30,6 +31,44 @@ namespace facebook::fboss {
 
 namespace {
 constexpr std::string_view kObjectName = "routing-policy";
+
+// Everything that names a routing-policy and that bgpd resolves at config
+// load: a neighbor's or peer-group's ingress/egress policy and a network6
+// prefix's policy. Labelled the way the CLI addresses each referrer.
+std::vector<std::string> findReferencesToRoutingPolicy(
+    const bgp::thrift::BgpConfig& cfg,
+    const std::string& policyName) {
+  std::vector<std::string> referrers;
+  auto matches = [&](const auto& field) {
+    return field.has_value() && *field == policyName;
+  };
+  for (const auto& peer : *cfg.peers()) {
+    if (matches(peer.ingress_policy_name())) {
+      referrers.push_back(
+          fmt::format("neighbor {} ingress", *peer.peer_addr()));
+    }
+    if (matches(peer.egress_policy_name())) {
+      referrers.push_back(fmt::format("neighbor {} egress", *peer.peer_addr()));
+    }
+  }
+  if (cfg.peer_groups().has_value()) {
+    for (const auto& group : *cfg.peer_groups()) {
+      if (matches(group.ingress_policy_name())) {
+        referrers.push_back(
+            fmt::format("peer-group {} ingress", *group.name()));
+      }
+      if (matches(group.egress_policy_name())) {
+        referrers.push_back(fmt::format("peer-group {} egress", *group.name()));
+      }
+    }
+  }
+  for (const auto& network : *cfg.networks6()) {
+    if (matches(network.policy_name())) {
+      referrers.push_back(fmt::format("network6 {}", *network.prefix()));
+    }
+  }
+  return referrers;
+}
 } // namespace
 
 // Parse + validate at construction so queryClient stays a thin dispatch.
@@ -75,6 +114,18 @@ CmdDeleteProtocolBgpPolicyRoutingPolicy::queryClient(
   if (it == policies.end()) {
     return fmt::format(
         "Error: BGP routing-policy {} not found", args.policyName());
+  }
+  // ingress/egress_policy_name and network6 policy_name resolve against this
+  // policy by name at daemon load; erasing it while something still names it
+  // would commit a dangling reference and fail the load. Refuse and name the
+  // referrers instead.
+  auto referrers = findReferencesToRoutingPolicy(cfg, args.policyName());
+  if (!referrers.empty()) {
+    return fmt::format(
+        "Error: BGP routing-policy {} is still referenced by {}; re-point or "
+        "remove those references first",
+        args.policyName(),
+        folly::join(", ", referrers));
   }
   policies.erase(it);
   session.saveBgpConfig();
