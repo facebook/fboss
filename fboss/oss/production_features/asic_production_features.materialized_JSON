@@ -1672,7 +1672,10 @@
           ],
           "sdk": 1,
           "minSdkVersion": "15.4_ea_odp",
-          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp",
+          "requiredTestConfigOptions": [
+            "rbb"
+          ]
         }
       ]
     },
@@ -1686,7 +1689,10 @@
           ],
           "sdk": 1,
           "minSdkVersion": "15.4_ea_odp",
-          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp",
+          "requiredTestConfigOptions": [
+            "rbb"
+          ]
         }
       ]
     },
@@ -1700,7 +1706,10 @@
           ],
           "sdk": 1,
           "minSdkVersion": "15.4_ea_odp",
-          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp"
+          "note": "SRv6 encap/decap/midpoint are supported on BRCM_SAI ASICs starting SDK 15.4_ea_odp",
+          "requiredTestConfigOptions": [
+            "rbb"
+          ]
         }
       ]
     },
