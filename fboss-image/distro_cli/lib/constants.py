@@ -26,7 +26,18 @@ IMAGE_COMPONENTS = (
 )
 
 # Manifest keys that are not components.
-MANIFEST_METADATA_FIELDS = ("distribution_formats",)
+MANIFEST_METADATA_FIELDS = ("distribution_formats", "variation")
+
+# Axes that distinguish one image from another. Recorded inside the manifest so
+# a file carries its own identity: the filename enumerates the same values, but
+# nothing should have to parse a filename to recover them.
+VARIATION_KEYS = (
+    "kernel",
+    "asic",
+    "sai_sdk",
+    "kmod_sdk",
+    "pai_sdk",
+)
 
 # Environment variable naming where pre-built artifacts are fetched from.
 # Manifests reference ${ARTIFACT_BASE}/<relative/path>; the relative path is
