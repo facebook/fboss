@@ -30,6 +30,7 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     generate_peer_group_commands,
     generate_policy_commands,
     generate_prefix_list_commands,
+    generate_prefix_list_entry_commands,
     json_to_cli,
 )
 
@@ -1244,6 +1245,85 @@ class GeneratePrefixListCommandsTest(unittest.TestCase):
                 "config protocol bgp policy as-path-list A",
                 "config protocol bgp policy community-list CL",
                 "config protocol bgp policy prefix-list PL",
+            ],
+        )
+
+
+class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_entry_commands (entry grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL entry 10"
+
+    def test_full_entry(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "base_prefix": "10.0.0.0/8",
+                "description": "rfc1918 a",
+                "match_logic": 1,
+                "max_allowed_golden_prefix_subnet_count": 4,
+                "prefix_len_ranges": [{"compare_operator": 3, "value": 24}],
+                "regex": "^10\\.",
+                "communities": ["65000:2", "65000:1"],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
+                f"{self.PREFIX} description 'rfc1918 a'",
+                f"{self.PREFIX} match-logic NOT_EQUAL",
+                f"{self.PREFIX} max-allowed-subnet-count 4",
+                f"{self.PREFIX} prefix-len-range compare-operator LE",
+                f"{self.PREFIX} prefix-len-range value 24",
+                f"{self.PREFIX} regex '^10\\.'",
+                f"{self.PREFIX} communities 65000:1",
+                f"{self.PREFIX} communities 65000:2",
+            ],
+        )
+
+    def test_equal_default_omitted(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"seq_num": 10, "match_logic": 0}
+        )
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_missing_seq_num_warns(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"base_prefix": "10.0.0.0/8"}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("10.0.0.0/8", commands[0])
+
+    def test_extra_ranges_and_ip_version_warn(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "prefix_len_ranges": [{"value": 24}, {"value": 32}],
+                "ip_version": 1,
+            },
+        )
+        self.assertEqual(commands[0], f"{self.PREFIX} prefix-len-range value 24")
+        self.assertEqual(len(commands), 3)
+        self.assertTrue(commands[1].startswith("# WARNING:"))
+        self.assertTrue(commands[2].startswith("# WARNING:"))
+
+    def test_entries_emitted_inside_list(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "version": 4,
+                "prefixes": [{"seq_num": 10, "base_prefix": "10.0.0.0/8"}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy prefix-list PL ip-version v4",
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
             ],
         )
 
