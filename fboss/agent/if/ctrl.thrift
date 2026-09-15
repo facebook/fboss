@@ -476,6 +476,8 @@ struct PortInfoThrift {
   // Ingress ACL table bound directly to this port. Mirrors
   // switch_config.Port.ingressAclTableName. Unset when no table is bound.
   38: optional string ingressAclTableName;
+
+  39: optional i32 ingressVlan;
 }
 
 // Port queueing configuration
