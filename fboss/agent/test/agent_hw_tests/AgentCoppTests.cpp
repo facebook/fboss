@@ -75,6 +75,7 @@ template <typename TestType>
 class AgentCoppTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     FLAGS_sai_user_defined_trap = true;
+    FLAGS_classid_for_unresolved_routes = true;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
@@ -1309,10 +1310,6 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
       RoutePrefix<folly::IPAddressV6>{
           folly::IPAddressV6{"2803:6080:d038:3065::1"}, 128}};
   auto setup = [=, this]() {
-    auto asic =
-        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
-    FLAGS_classid_for_unresolved_routes =
-        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     this->setup();
     utility::EcmpSetupAnyNPorts6 ecmp6(
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
