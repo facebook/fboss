@@ -149,6 +149,12 @@ class RibRouteTables {
       const std::vector<std::string>& names,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
+  void addOrUpdatePolicies(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<ClassBasedPolicy>& policies,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -660,6 +666,12 @@ class RoutingInformationBase {
   void deleteNamedNextHopGroups(
       const std::vector<std::string>& names,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void addOrUpdatePolicies(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<ClassBasedPolicy>& policies,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
 
  private:
   void ensureRunning() const;

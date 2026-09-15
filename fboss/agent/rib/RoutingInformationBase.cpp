@@ -41,6 +41,7 @@
 
 #include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -2156,6 +2157,48 @@ void RibRouteTables::deleteNamedNextHopGroups(
   updateFibNamedNextHopGroups(stateUpdateFn);
 }
 
+void RibRouteTables::addOrUpdatePolicies(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<ClassBasedPolicy>& policies,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
+    void* cookie) {
+  {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    if (!lockedRouteTables->nextHopIDManager) {
+      throw FbossError("NextHopIDManager not initialized");
+    }
+    auto* nhIdManager = lockedRouteTables->nextHopIDManager.get();
+    // Reject the whole batch before storing any of it.
+    auto requireNamedNhg = [&](const std::string& policyName,
+                               const std::string& nhgName) {
+      if (!nhIdManager->hasNamedNextHopGroup(nhgName)) {
+        throw FbossError(
+            "Class-based policy '",
+            policyName,
+            "' references non-existent named next-hop group '",
+            nhgName,
+            "'");
+      }
+    };
+    for (const auto& policy : policies) {
+      requireNamedNhg(*policy.name(), *policy.defaultNexthopGroup());
+      for (const auto& [_fc, nhg] : *policy.class2NextHopGroup()) {
+        requireNamedNhg(*policy.name(), nhg.name().value_or(""));
+      }
+    }
+    for (const auto& policy : policies) {
+      nhIdManager->addOrUpdatePolicy(policy);
+    }
+  }
+
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  if (!lockedRouteTables->routerIDToRouteTable.empty()) {
+    auto vrf = lockedRouteTables->routerIDToRouteTable.begin()->first;
+    lockedRouteTables.unlock();
+    updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
+  }
+}
+
 void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
     const SwitchIdScopeResolver* resolver,
     const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
@@ -2204,6 +2247,39 @@ void RoutingInformationBase::deleteNamedNextHopGroups(
   if (exceptionPtr) {
     std::rethrow_exception(exceptionPtr);
   }
+}
+
+void RoutingInformationBase::addOrUpdatePolicies(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<ClassBasedPolicy>& policies,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
+    void* cookie) {
+  // Pre-validate before entering the RIB thread so no state is mutated on a bad
+  // request.
+  for (const auto& policy : policies) {
+    if (policy.name()->empty()) {
+      throw FbossError("Class-based policy name cannot be empty");
+    }
+    if (policy.defaultNexthopGroup()->empty()) {
+      throw FbossError(
+          "Class-based policy '",
+          *policy.name(),
+          "' must specify a default next-hop group");
+    }
+    for (const auto& [fc, nhg] : *policy.class2NextHopGroup()) {
+      if (!nhg.name().has_value() || nhg.name()->empty()) {
+        throw FbossError(
+            "Class-based policy '",
+            *policy.name(),
+            "' has no next-hop group name for traffic class ",
+            apache::thrift::util::enumNameSafe(fc));
+      }
+    }
+  }
+  updateStateInRibThread([&]() {
+    ribTables_.addOrUpdatePolicies(
+        resolver, policies, ribToSwitchStateFunc, cookie);
+  });
 }
 
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {

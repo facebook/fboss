@@ -52,6 +52,7 @@ cpp_library(
         "//folly:conv",
         "//folly:scope_guard",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_deps = [
         ":network_to_route_map",
