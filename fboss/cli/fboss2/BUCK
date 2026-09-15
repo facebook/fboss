@@ -1427,6 +1427,9 @@ cpp_library(
         "//folly/json:dynamic",
         "//thrift/lib/cpp2:field_ref",
     ],
+    external_deps = [
+        ("boost", None, "boost_regex"),
+    ],
 )
 
 export_file(
