@@ -27,6 +27,11 @@ namespace facebook::fboss {
 // Grammar (from the FBOSS proposed syntax):
 //   as-path-list <name>                          (create/select list)
 //   as-path-list <name> description <string>     (list attribute)
+//   as-path-list <name> regex <regex>            (append to as_paths, the
+//                                                 field bgpd matches on)
+//   as-path-list <name> boolean-operator <AND|OR> (also written through to
+//                                                 every term referencing
+//                                                 the list)
 class BgpAsPathListConfig : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)

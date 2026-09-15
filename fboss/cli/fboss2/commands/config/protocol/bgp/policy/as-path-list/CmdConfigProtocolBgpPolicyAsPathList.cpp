@@ -12,17 +12,22 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include <boost/regex.hpp>
 #include <fmt/core.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#include <algorithm>
+#include <cctype>
 #include <functional>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
+#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -37,20 +42,82 @@ namespace {
 // The attribute names, exactly as documented. Kept here so the
 // valid-attribute set and the handler table stay in sync. The list's entries
 // are their own subcommand, not attributes.
+constexpr std::string_view kBooleanOperator = "boolean-operator";
 constexpr std::string_view kDescription = "description";
+constexpr std::string_view kRegex = "regex";
+
+constexpr std::string_view kBooleanOperatorAnd = "AND";
+constexpr std::string_view kBooleanOperatorOr = "OR";
 
 using AsPathList = bgp::bgp_policy::AsPathList;
+using BooleanOperator = bgp::routing_policy::BooleanOperator;
 using bgpcli::AttrHandler;
+using bgpcli::enumAttr;
+using bgpcli::err;
 using bgpcli::joinedStringAttr;
 using bgpcli::ok;
 using bgpcli::Result;
+using bgpcli::Tokens;
+
+// NOT is deliberately not offered: bgpd treats every operator other than OR
+// as "all must match", so NOT would silently behave as AND.
+std::optional<BooleanOperator> lookupBooleanOperator(const std::string& s) {
+  if (s == kBooleanOperatorAnd) {
+    return BooleanOperator::AND;
+  }
+  if (s == kBooleanOperatorOr) {
+    return BooleanOperator::OR;
+  }
+  return std::nullopt;
+}
 
 // ---- setters ----------------------------------------------------------------
 // Each writes one already-parsed, already-validated value. Parsing and message
 // text belong to the shared factories in BgpCliAttrHandlers.h.
 
+void setListBooleanOperator(AsPathList& list, BooleanOperator op) {
+  list.boolean_operator() = op;
+}
+
 void setListDescription(AsPathList& list, const std::string& description) {
   list.description() = description;
+}
+
+// Hand-written because no factory covers an accumulating, validated set:
+// each `regex` appends one boost::regex to as_paths (the field bgpd matches
+// against the `_`-joined AS path), compiled here so a pattern bgpd would
+// reject at load never reaches the session. Idempotent on repeats.
+Result regex(AsPathList& list, const Tokens& values) {
+  if (values.size() != 1 || values[0].empty()) {
+    return err(
+        fmt::format(
+            "Error: {} requires <regex> (one token; join AS numbers with `_`, "
+            "e.g. ^65000_65001$)",
+            kRegex));
+  }
+  const auto& pattern = values[0];
+  if (std::any_of(pattern.begin(), pattern.end(), [](unsigned char c) {
+        return std::isspace(c) != 0;
+      })) {
+    return err(
+        fmt::format(
+            "Error: {} '{}' must not contain whitespace; bgpd renders the AS "
+            "path with `_` between AS numbers",
+            kRegex,
+            pattern));
+  }
+  try {
+    boost::regex compiled(pattern);
+  } catch (const boost::regex_error& e) {
+    return err(
+        fmt::format("Error: Malformed {} '{}': {}", kRegex, pattern, e.what()));
+  }
+  auto& paths = list.as_paths().ensure();
+  if (std::find(paths.begin(), paths.end(), pattern) != paths.end()) {
+    return ok(fmt::format("{} {} already present", kRegex, pattern));
+  }
+  paths.push_back(pattern);
+  return ok(fmt::format("Successfully added {} {}", kRegex, pattern));
 }
 
 // ---- list-level attribute registry ------------------------------------------
@@ -58,10 +125,19 @@ void setListDescription(AsPathList& list, const std::string& description) {
 // the setter that stores it.
 const std::map<std::string, AttrHandler<AsPathList>, std::less<>>&
 listAttrHandlers() {
+  static const std::string kBooleanOperatorValues =
+      fmt::format("{}|{}", kBooleanOperatorAnd, kBooleanOperatorOr);
   static const std::map<std::string, AttrHandler<AsPathList>, std::less<>>
       kHandlers = {
+          {std::string(kBooleanOperator),
+           enumAttr<AsPathList, BooleanOperator>(
+               kBooleanOperator,
+               kBooleanOperatorValues,
+               lookupBooleanOperator,
+               setListBooleanOperator)},
           {std::string(kDescription),
            joinedStringAttr<AsPathList>(kDescription, setListDescription)},
+          {std::string(kRegex), regex},
       };
   return kHandlers;
 }
@@ -133,6 +209,16 @@ CmdConfigProtocolBgpPolicyAsPathList::queryClient(
   if (result.ok) {
     if (!args.attr().empty()) {
       result.message += fmt::format(" for as-path-list {}", args.listName());
+    }
+    if (args.attr() == kBooleanOperator) {
+      // bgpd rejects a term whose inline copy of the list carries a different
+      // operator ("Conflicting boolean_operator"), so keep every referencing
+      // match in step with the list.
+      for (auto& ref :
+           bgpcli::findTermsReferencingAsPathList(cfg, args.listName())) {
+        ref.match->as_path_filters()->boolean_operator() =
+            *list.boolean_operator();
+      }
     }
     session.saveBgpConfig();
     result.message +=
