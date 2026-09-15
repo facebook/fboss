@@ -228,4 +228,36 @@ TEST_F(CmdShowBgpChangelistTestFixture, printCPSOutput) {
   EXPECT_EQ(output, expectedOutput);
 }
 #endif // IS_OSS
+TEST_F(CmdShowBgpChangelistTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpChangelistTraits::description().empty());
+
+  /*
+   * printRIBEntries reaches getLocalBgpConfig for the community/local-pref
+   * mnemonics and builds the HostInfo it connects to from the MODEL's own
+   * host/ip fields, so point the copy under test at the mocked server rather
+   * than at the canned documentation host.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = CmdShowBgpChangelist::sampleModel();
+  EXPECT_FALSE(model.tRibEntries()->empty());
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+
+  std::stringstream ss;
+  CmdShowBgpChangelist().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, ::testing::HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
+  // printOutput leaves detail off, so the per-path detail lines are absent -
+  // this renders like 'show bgp table', not 'table detail'.
+  EXPECT_THAT(
+      output, ::testing::Not(::testing::HasSubstr("Router/Originator:")));
+  EXPECT_THAT(output, ::testing::Not(::testing::HasSubstr("Communities:")));
+}
+
 } // namespace facebook::fboss
