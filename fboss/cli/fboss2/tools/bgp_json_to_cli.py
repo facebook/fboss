@@ -618,8 +618,102 @@ def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
         else:
             commands.append(f"{prefix} ip-version {keyword}")
     commands.extend(_prefix_list_warnings(name, prefix_list))
+    for entry in prefix_list.get("prefixes") or []:
+        commands.extend(generate_prefix_list_entry_commands(name, entry))
     if not commands:
         # Nothing to set: still recreate the (empty) prefix-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_MATCH_LOGIC_NAMES = {0: "EQUAL", 1: "NOT_EQUAL"}
+
+
+def _prefix_list_entry_scalar_commands(prefix: str, entry: dict[str, Any]) -> list[str]:
+    """The single-valued entry attributes, in the CLI's attribute order."""
+    commands = []
+    if entry.get("base_prefix"):
+        commands.append(
+            f"{prefix} base-prefix {escape_shell_arg(entry['base_prefix'])}"
+        )
+    if entry.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(entry['description'])}"
+        )
+    if "match_logic" in entry:
+        raw = entry["match_logic"]
+        logic = (
+            raw if isinstance(raw, str) else _MATCH_LOGIC_NAMES.get(int(raw), str(raw))
+        )
+        if logic != "EQUAL":
+            commands.append(f"{prefix} match-logic {escape_shell_arg(logic)}")
+    if "max_allowed_golden_prefix_subnet_count" in entry:
+        commands.append(
+            f"{prefix} max-allowed-subnet-count "
+            f"{escape_shell_arg(entry['max_allowed_golden_prefix_subnet_count'])}"
+        )
+    return commands
+
+
+def _prefix_list_entry_range_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """`prefix-len-range` lines for the single range the CLI can express."""
+    ranges = entry.get("prefix_len_ranges") or []
+    if not ranges:
+        return []
+    first = ranges[0]
+    commands = []
+    if "compare_operator" in first:
+        commands.append(
+            f"{prefix} prefix-len-range compare-operator "
+            f"{escape_shell_arg(_comparison_operator_name(first['compare_operator']))}"
+        )
+    if "value" in first:
+        commands.append(
+            f"{prefix} prefix-len-range value {escape_shell_arg(first['value'])}"
+        )
+    if len(ranges) > 1:
+        commands.append(
+            _warning(
+                f"{label}: only the first of {len(ranges)} prefix_len_ranges is "
+                "expressible; the rest are not emitted"
+            )
+        )
+    return commands
+
+
+def generate_prefix_list_entry_commands(
+    list_name: str, entry: dict[str, Any]
+) -> list[str]:
+    """Generate `... prefix-list <name> entry <seq-num>` commands for one entry.
+
+    The CLI keys entries by seq_num and supports a single prefix_len_range;
+    anything beyond that surfaces as a warning.
+    """
+    if "seq_num" not in entry:
+        return [
+            _warning(
+                f"prefix-list {list_name}: entry '{entry.get('base_prefix', '')}' "
+                "has no seq_num and cannot be addressed by the CLI; not emitted"
+            )
+        ]
+    label = f"prefix-list {list_name} entry {entry['seq_num']}"
+    prefix = (
+        f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
+        f"entry {escape_shell_arg(entry['seq_num'])}"
+    )
+    commands = _prefix_list_entry_scalar_commands(prefix, entry)
+    commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
+    if entry.get("regex"):
+        commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")
+    for community in sorted(entry.get("communities") or []):
+        commands.append(f"{prefix} communities {escape_shell_arg(community)}")
+    if "ip_version" in entry:
+        commands.append(
+            _warning(f"{label}: ip_version has no CLI equivalent; not emitted")
+        )
+    if not commands:
         commands.append(prefix)
     return commands
 
