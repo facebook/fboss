@@ -51,7 +51,7 @@ class YubaAsic : public TajoAsic {
     return 3;
   }
   uint64_t getMMUSizeBytes() const override {
-    return 256 * 1024 * 1024;
+    return 250 * 1024 * 1024;
   }
   uint64_t getSramSizeBytes() const override {
     // No HBM!

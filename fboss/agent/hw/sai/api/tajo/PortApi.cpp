@@ -430,13 +430,13 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
   return stats;
 }
 
-// 26.2.4210 dropped SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_RETRIGGER_COUNT and
-// replaced them with counters served by get_port_stats. 25.5.4210 still
-// serve the attributes, so these lists stay empty there and the attribute
-// path below is used instead.
+// 26.2.4210 and master/26.5 dropped
+// SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_RETRIGGER_COUNT and serve the
+// counters via get_port_stats. 25.5.4210 still uses the attributes, so
+// those lists stay empty and the attribute path below is used instead.
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkDownDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_GTE_26_5)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT};
 #else
@@ -447,7 +447,7 @@ SaiPortTraits::linkDownDebounceRetriggerStats() {
 
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkUpDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_GTE_26_5)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_UP_DEBOUNCE_RETRIGGER_COUNT};
 #else
@@ -501,8 +501,8 @@ SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
-// 26.2.4210 deprecated this attribute
-#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+// 26.2+ / master 26.5 use SAI_PORT_STAT_EXT_* instead.
+#if defined(TAJO_SDK_VERSION_25_5_4210)
   return SAI_PORT_ATTR_LINK_UP_DEBOUNCE_RETRIGGER_COUNT;
 #else
   return std::nullopt;
@@ -511,7 +511,7 @@ SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeLinkDownDebounceRetriggerCount::operator()() {
-#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_VERSION_25_5_4210)
   return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT;
 #else
   return std::nullopt;
