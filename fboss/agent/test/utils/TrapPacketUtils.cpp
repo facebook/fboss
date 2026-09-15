@@ -101,6 +101,89 @@ void addTrapPacketAcl(
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
+    PortID port,
+    uint8_t hopLimit) {
+  cfg::Ttl ttl;
+  ttl.value() = hopLimit;
+  ttl.mask() = 0xff;
+
+  auto makeTrapAction = []() {
+    cfg::MatchAction action;
+    action.sendToQueue() = cfg::QueueMatchAction();
+    action.sendToQueue()->queueId() = 0;
+    action.toCpuAction() = cfg::ToCpuAction::COPY;
+    cfg::SetTcAction setTcAction = cfg::SetTcAction();
+    setTcAction.tcValue() = 0;
+    action.setTc() = setTcAction;
+    cfg::UserDefinedTrapAction userDefinedTrap = cfg::UserDefinedTrapAction();
+    userDefinedTrap.queueId() = 0;
+    action.userDefinedTrap() = userDefinedTrap;
+    return action;
+  };
+
+  cfg::TrafficPolicyConfig trafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
+  if (config->cpuTrafficPolicy()) {
+    cpuTrafficPolicy = *config->cpuTrafficPolicy();
+    if (cpuTrafficPolicy.trafficPolicy()) {
+      trafficPolicy = *cpuTrafficPolicy.trafficPolicy();
+    }
+  }
+
+  auto addEntry = [&](const std::string& name,
+                      std::optional<cfg::EtherType> etherType,
+                      std::optional<cfg::IpType> ipType,
+                      const std::string& tableName) {
+    cfg::AclEntry entry{};
+    entry.name() = name;
+    entry.srcPort() = port;
+    entry.ttl() = ttl;
+    if (etherType.has_value()) {
+      entry.etherType() = *etherType;
+    }
+    if (ipType.has_value()) {
+      entry.ipType() = *ipType;
+    }
+    entry.actionType() = cfg::AclActionType::PERMIT;
+    utility::addAclEntry(config, entry, tableName);
+    cfg::MatchToAction match2Action;
+    match2Action.matcher() = name;
+    match2Action.action() = makeTrapAction();
+    trafficPolicy.matchToAction()->push_back(match2Action);
+  };
+
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    addEntry(
+        folly::to<std::string>("trap-packet-", port, "-hop", +hopLimit, "-v4"),
+        cfg::EtherType::IPv4,
+        std::nullopt,
+        utility::kDefaultAclTable());
+    addEntry(
+        folly::to<std::string>("trap-packet-", port, "-hop", +hopLimit, "-v6"),
+        cfg::EtherType::IPv6,
+        std::nullopt,
+        utility::kIpv6AclTable());
+  } else {
+    std::optional<cfg::IpType> ipType;
+    if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE) &&
+        asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      ipType = cfg::IpType::NON_IP;
+    }
+    addEntry(
+        folly::to<std::string>("trap-packet-", port, "-hop", +hopLimit),
+        std::nullopt,
+        ipType,
+        utility::kDefaultAclTable());
+  }
+
+  cpuTrafficPolicy.trafficPolicy() = trafficPolicy;
+  config->cpuTrafficPolicy() = cpuTrafficPolicy;
+}
+
+void addTrapPacketAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig* config,
     const folly::CIDRNetwork& prefix,
     cfg::ToCpuAction toCpuAction) {
   cfg::AclEntry entry{};

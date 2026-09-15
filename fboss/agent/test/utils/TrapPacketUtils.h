@@ -17,6 +17,13 @@ void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
     PortID port);
+// Trap only packets ingressing on port with a specific IPv4/IPv6 hop limit/TTL.
+// Used to exclude plain routed flood (low TTL) from CPU punt during CSIG tests.
+void addTrapPacketAcl(
+    const HwAsic* asic,
+    cfg::SwitchConfig* config,
+    PortID port,
+    uint8_t hopLimit);
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
