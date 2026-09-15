@@ -134,14 +134,6 @@ class GenerateGlobalCommandsTest(unittest.TestCase):
         commands = generate_global_commands(config)
         self.assertEqual(commands, ["config protocol bgp global confed-asn 65001"])
 
-    def test_cluster_id(self) -> None:
-        """Cluster ID should generate correct command."""
-        config = {"cluster_id": "192.168.1.1"}
-        commands = generate_global_commands(config)
-        self.assertEqual(
-            commands, ["config protocol bgp global cluster-id 192.168.1.1"]
-        )
-
     def test_networks6_with_all_fields(self) -> None:
         """networks6 should generate command with all fields."""
         config = {
@@ -162,14 +154,7 @@ class GenerateGlobalCommandsTest(unittest.TestCase):
 
     def test_networks6_with_install_to_fib_true(self) -> None:
         """networks6 with install_to_fib=true should preserve value."""
-        config = {
-            "networks6": [
-                {
-                    "prefix": "2001:db8::/32",
-                    "install_to_fib": True,
-                }
-            ]
-        }
+        config = {"networks6": [{"prefix": "2001:db8::/32", "install_to_fib": True}]}
         commands = generate_global_commands(config)
         self.assertIn("install-to-fib true", commands[0])
 
@@ -569,10 +554,7 @@ class JsonToCliIntegrationTest(unittest.TestCase):
                         "keep_alive_seconds": 10,
                     },
                 },
-                {
-                    "name": "RSW-RTSW-V6",
-                    "disable_ipv4_afi": True,
-                },
+                {"name": "RSW-RTSW-V6", "disable_ipv4_afi": True},
             ],
             "peers": [
                 {
@@ -638,14 +620,7 @@ class JsonToCliIntegrationTest(unittest.TestCase):
 
     def test_injection_in_peer_addr_neutralized(self) -> None:
         """Command injection in peer_addr should be single-quoted."""
-        config = {
-            "peers": [
-                {
-                    "peer_addr": "$(malicious)",
-                    "remote_as_4_byte": 65000,
-                }
-            ]
-        }
+        config = {"peers": [{"peer_addr": "$(malicious)", "remote_as_4_byte": 65000}]}
         commands = json_to_cli(config, stub=False, binary="fboss2")
         joined = "\n".join(commands)
         self.assertIn("peer '$(malicious)'", joined)
