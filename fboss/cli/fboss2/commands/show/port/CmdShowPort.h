@@ -12,6 +12,7 @@
 
 #include <folly/json/json.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
@@ -36,6 +37,10 @@ struct CmdShowPortTraits : public ReadCommandTraits {
   using RetType = cli::ShowPortModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 struct Endpoint {
@@ -79,6 +84,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const std::vector<std::string>& drainedInterfaces);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 
  private:
   std::chrono::seconds peerTimeout = std::chrono::seconds(1);

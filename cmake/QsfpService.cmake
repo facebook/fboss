@@ -5,20 +5,24 @@
 
 add_library(qsfp_stats
   fboss/qsfp_service/StatsPublisher.h
-  fboss/qsfp_service/oss/StatsPublisher.cpp
+  fboss/qsfp_service/StatsPublisher.cpp
+  fboss/qsfp_service/StatsPublisherHelper.h
+  fboss/qsfp_service/StatsPublisherHelper.cpp
 )
 
 target_link_libraries(qsfp_stats
   fboss_types
   transceiver_cpp2
   transceiver_manager
+  phy_management_base
+  port_manager
   Folly::folly
+  fb303::fb303
 )
 
 add_library(qsfp_lib
   fboss/qsfp_service/fsdb/QsfpFsdbSubscriber.cpp
   fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
-  fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp
 )
 
@@ -116,15 +120,6 @@ add_library(montblanc_bsp
 )
 
 target_link_libraries(montblanc_bsp
-  bsp_platform_mapping
-  FBThrift::thriftcpp2
-)
-
-add_library(icecube800banw_bsp
-  fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.cpp
-)
-
-target_link_libraries(icecube800banw_bsp
   bsp_platform_mapping
   FBThrift::thriftcpp2
 )
@@ -248,6 +243,16 @@ target_link_libraries(saintpaul_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(m4062nhp_bsp
+  fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.cpp
+)
+
+target_link_libraries(m4062nhp_bsp
+  bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -277,7 +282,6 @@ target_link_libraries(qsfp_bsp_core
   meru800bia_bsp
   meru800bfa_bsp
   montblanc_bsp
-  icecube800banw_bsp
   icecube800bc_bsp
   icetea800bc_bsp
   minipack3bta_bsp
@@ -291,6 +295,7 @@ target_link_libraries(qsfp_bsp_core
   ladakh800bcls_bsp
   leh800bcls_bsp
   saintpaul_bsp
+  m4062nhp_bsp
   device_mdio
   fpga_device
   phy_management_base
@@ -425,6 +430,8 @@ add_library(qsfp_core
 
 target_link_libraries(qsfp_core
   qsfp_handler
+  qsfp_config
+  thrift_method_rate_limit_setup
   thrift_service_utils
 )
 

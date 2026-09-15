@@ -282,6 +282,35 @@ RetType CmdShowLldp::createModel(
   return model;
 }
 
+std::string_view CmdShowLldpTraits::description() {
+  return "Displays LLDP neighbors seen on each local interface: the discovered peer, the expected peer, the peer's port and platform, and a peer description. Use it to verify cabling and neighbor adjacency.";
+}
+
+CmdShowLldp::RetType CmdShowLldp::sampleModel() {
+  RetType model;
+
+  cli::LldpEntry entry1;
+  entry1.localPort() = "eth1/1/1";
+  entry1.status() = "up";
+  entry1.expectedPeer() = "peer001";
+  entry1.systemName() = "peer001.example";
+  entry1.remotePort() = "eth1/64/1";
+  entry1.remotePlatform() = "FBOSS";
+  entry1.remotePortDescription() = "neighbor peer001 on eth1/1/1";
+
+  cli::LldpEntry entry2;
+  entry2.localPort() = "eth1/2/1";
+  entry2.status() = "up";
+  entry2.expectedPeer() = "peer002";
+  entry2.systemName() = "peer002.example";
+  entry2.remotePort() = "eth1/64/1";
+  entry2.remotePlatform() = "FBOSS";
+  entry2.remotePortDescription() = "neighbor peer002 on eth1/2/1";
+
+  model.lldpEntries() = {entry1, entry2};
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template const ValidFilterMapType

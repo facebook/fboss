@@ -24,9 +24,11 @@
 #include <folly/coro/UnboundedQueue.h>
 #endif
 
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 #include "fboss/agent/mnpu/IpcHealthMonitor.h"
+#include "fboss/agent/types.h"
 #include "fboss/lib/CommonThriftUtils.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 namespace facebook::fboss {
@@ -81,8 +83,11 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
   std::unique_ptr<IpcHealthMonitor> ipcHealthMonitor_;
 };
 
+// Bounded so that a MAC flood cannot grow this queue without limit in the
+// hw agent. Enqueue blocks when full, which backpressures the fdb bottom
+// half; FbossEventBase above it is itself bounded and drops.
 #if FOLLY_HAS_COROUTINES
-using FdbEventQueueType = folly::coro::UnboundedQueue<
+using FdbEventQueueType = folly::coro::BoundedQueue<
     multiswitch::FdbEvent,
     true /*SingleProducer*/,
     true /* SingleConsumer*/>;
@@ -173,6 +178,9 @@ class ThriftSinkClient : public SplitAgentThriftClient {
         // Bounded queue can block on enqueue if queue is full.
         // Use cancellation so that we can cancel enqueue if we
         // are shutting down.
+        if (getHealthMonitor()) {
+          getHealthMonitor()->trackQueueDepth(eventsQueue_.size());
+        }
         try {
           co_await folly::coro::co_withCancellation(
               cancelSource_.getToken(),

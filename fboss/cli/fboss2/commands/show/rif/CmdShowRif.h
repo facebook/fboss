@@ -13,6 +13,7 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <cstdint>
 #include <map>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/rif/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -26,6 +27,9 @@ struct CmdShowRifTraits : public ReadCommandTraits {
   using RetType = cli::ShowRifModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human description for auto-generated CLI reference wiki.
+  static std::string_view description();
 };
 
 class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
@@ -36,6 +40,9 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
   RetType queryClient(const HostInfo& hostInfo);
   RetType createModel(std::map<int32_t, facebook::fboss::InterfaceDetail> rifs);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Synthetic populated model for CLI reference wiki documentation.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

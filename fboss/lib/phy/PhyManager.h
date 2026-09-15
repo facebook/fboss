@@ -117,7 +117,7 @@ class PhyManager {
   virtual void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
-      std::optional<TransceiverInfo> transceiverInfo,
+      const std::optional<TransceiverInfo>& transceiverInfo,
       bool needResetDataPath);
 
   // Return programmed profile id for a specific port
@@ -232,6 +232,12 @@ class PhyManager {
   std::set<GlobalXphyID> getXphysSupportingFeature(
       phy::ExternalPhy::Feature feature) const;
 
+  // Number of XPHYs that were actually created. A PhyManager is constructed
+  // for every platform of an XPHY capable family, but XPHYs are only created
+  // for the PIMs that have them, so this is legitimately 0 on configurations
+  // like Elbert 8x16Q where no PIM carries an XPHY.
+  size_t getNumXphys() const;
+
   // This is to provide the to-be cached warmboot state, which should include
   // the current portToCacheInfo_ map, so that during warmboot, we can use that
   // to recover the already programmed lane vector information from the cached
@@ -338,6 +344,7 @@ class PhyManager {
       const PortCacheWLockedPtr& lockedCache,
       PortID portID,
       cfg::PortProfileID profileID,
+      const std::optional<TransceiverInfo>& transceiverInfo,
       const phy::PhyPortConfig& portConfig);
 
   void setPortToExternalPhyPortStats(
@@ -361,7 +368,10 @@ class PhyManager {
     }
     auto* xphy = getExternalPhyLocked(lockedCache);
     return xphy->getConfigOnePort(
-        lockedCache->systemLanes, lockedCache->lineLanes, readFromHw);
+        lockedCache->systemLanes,
+        lockedCache->lineLanes,
+        lockedCache->profile.value_or(cfg::PortProfileID::PROFILE_DEFAULT),
+        readFromHw);
   }
 
   // Number of slot in the platform

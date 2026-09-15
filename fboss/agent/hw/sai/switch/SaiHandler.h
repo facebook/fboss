@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/ThriftHandler.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 

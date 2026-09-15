@@ -14,9 +14,7 @@
 
 #include <folly/json/json.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
-#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
-#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 
 namespace facebook::fboss {
 
@@ -31,21 +29,13 @@ CmdShowBgpPolicy::RetType CmdShowBgpPolicy::queryClient(
 
   const auto& policyName = policyNames[0];
 
-  auto client = utils::createClient<apache::thrift::Client<
-      facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
-
-  facebook::bgp::thrift::BgpConfig bgpConfig;
-  client->sync_getRunningConfigStruct(bgpConfig);
-
-  auto configJson = facebook::thrift::to_dynamic(
-      bgpConfig, facebook::thrift::dynamic_format::PORTABLE);
-
-  if (!configJson.isObject() || !configJson.count("policies")) {
+  const auto policies = getRunningBgpPolicies(hostInfo);
+  if (!policies.has_value()) {
     std::cerr << "No policies found in config" << std::endl;
     return folly::dynamic::object;
   }
-
-  const auto& policiesJson = configJson["policies"];
+  const auto policiesJson = facebook::thrift::to_dynamic(
+      *policies, facebook::thrift::dynamic_format::PORTABLE);
   if (!policiesJson.isObject() ||
       !policiesJson.count("bgp_policy_statements")) {
     std::cerr << "No policy statements found in config" << std::endl;

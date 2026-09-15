@@ -87,13 +87,17 @@ AgentDirectoryUtil::AgentDirectoryUtil(
     const std::string& packageDirectory,
     const std::string& systemdDirectory,
     const std::string& configDirectory,
-    const std::string& drainConfigDirectory)
+    const std::string& drainConfigDirectory,
+    const std::string& bootHistoryLogDir,
+    const std::string& bootHistoryFallbackDir)
     : volatileStateDir_(volatileStateDir),
       persistentStateDir_(persistentStateDir),
       packageDirectory_(packageDirectory),
       systemdDirectory_(systemdDirectory),
       configDirectory_(configDirectory),
-      drainConfigDirectory_(drainConfigDirectory) {}
+      drainConfigDirectory_(drainConfigDirectory),
+      bootHistoryLogDir_(bootHistoryLogDir),
+      bootHistoryFallbackDir_(bootHistoryFallbackDir) {}
 
 string AgentDirectoryUtil::getVolatileStateDir() const {
   return volatileStateDir_;
@@ -285,6 +289,10 @@ std::string AgentDirectoryUtil::getTestHwAgentConfigFile(
 }
 
 std::string AgentDirectoryUtil::getAgentBootHistoryLogFile() const {
-  return "/var/facebook/logs/fboss/wedge_agent_boot_history.log";
+  return bootHistoryLogDir_ + "/wedge_agent_boot_history.log";
+}
+
+std::string AgentDirectoryUtil::getAgentBootHistoryFallbackLogFile() const {
+  return bootHistoryFallbackDir_ + "/wedge_agent_starts.log";
 }
 } // namespace facebook::fboss

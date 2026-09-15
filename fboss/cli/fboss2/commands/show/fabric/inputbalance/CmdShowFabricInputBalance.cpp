@@ -225,6 +225,33 @@ void CmdShowFabricInputBalance::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowFabricInputBalanceTraits::description() {
+  return "Displays fabric input/output capacity balance toward one or more destination switches: for each destination, source switch and virtual device, whether the path is balanced, its input and output capacity, and any input or output link failures. Takes one or more switch names as an argument. DSF-only — applies to fabric switches and returns data only in a DSF topology.";
+}
+
+CmdShowFabricInputBalance::RetType CmdShowFabricInputBalance::sampleModel() {
+  RetType model;
+  std::vector<cli::InputBalanceEntry> entries;
+
+  for (const auto& sourceSwitch : {"sdsw124", "sdsw125"}) {
+    for (int16_t virtualDeviceID = 0; virtualDeviceID < 4; ++virtualDeviceID) {
+      cli::InputBalanceEntry entry;
+      entry.destinationSwitchName() = "rdsw015";
+      entry.sourceSwitchName() = {sourceSwitch};
+      entry.virtualDeviceID() = virtualDeviceID;
+      entry.balanced() = true;
+      entry.inputCapacity() = {"fab1/1/1"};
+      entry.outputCapacity() = {"fab1/2/1"};
+      entry.inputLinkFailure() = {};
+      entry.outputLinkFailure() = {};
+      entries.push_back(entry);
+    }
+  }
+
+  model.inputBalanceEntry() = entries;
+  return model;
+}
+
 std::unordered_map<
     std::string,
     std::unordered_map<std::string, std::vector<std::string>>>

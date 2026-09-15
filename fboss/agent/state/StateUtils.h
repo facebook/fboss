@@ -22,6 +22,7 @@
 #include <folly/MacAddress.h>
 
 namespace facebook::fboss {
+class AclEntry;
 class SwitchState;
 class Interface;
 class StateDelta;
@@ -44,6 +45,13 @@ template <typename MultiSwitchMapT>
 auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
   return map->size() ? map->cbegin()->second : nullptr;
 }
+
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName);
+std::optional<std::string> getAclTableNameForEntry(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclEntryId);
 
 folly::MacAddress getInterfaceMac(
     const std::shared_ptr<SwitchState>& state,

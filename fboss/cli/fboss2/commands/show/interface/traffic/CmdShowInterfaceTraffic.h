@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #ifndef IS_OSS
 #include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
 #endif
@@ -34,6 +35,10 @@ struct CmdShowInterfaceTrafficTraits : public ReadCommandTraits {
   using RetType = cli::InterfaceTrafficModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowInterfaceTraffic : public CmdHandler<
@@ -62,6 +67,10 @@ class CmdShowInterfaceTraffic : public CmdHandler<
       const std::string& val,
       const std::string& level);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

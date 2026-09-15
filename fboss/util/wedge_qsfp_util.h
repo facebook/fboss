@@ -116,6 +116,8 @@ TransceiverManagementInterface getModuleTypeDirect(
     TransceiverI2CApi* bus,
     unsigned int port);
 
+uint8_t getCmisMajorRevisionDirect(TransceiverI2CApi* bus, unsigned int port);
+
 std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
     const std::vector<unsigned int>& ports,
     folly::EventBase& evb);

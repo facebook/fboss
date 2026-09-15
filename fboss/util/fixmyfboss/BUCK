@@ -15,7 +15,7 @@ python_library(
     ]
     + glob(["modules/*.py"]),
     resources = {
-        "//fboss/platform:configs": "fboss_config_files",
+        "//fboss/configs:platform_manager_configs": "fboss_config_files",
     },
     deps = [
         "fbsource//third-party/pypi/dataclasses-json:dataclasses-json",

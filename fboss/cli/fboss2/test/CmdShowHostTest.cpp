@@ -194,4 +194,11 @@ TEST_F(CmdShowHostTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowHostTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowHostTraits::description().empty());
+  EXPECT_FALSE(CmdShowHost::sampleModel().hostEntries()->empty());
+}
+
 } // namespace facebook::fboss

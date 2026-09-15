@@ -12,4 +12,7 @@ struct FlapCounters {
   3: i64 tenMinute;
   4: i64 oneHour;
   5: i64 totalFlaps;
+  // Flaps plus the debounce retriggers suppressed by the port debounce hold
+  // timers, which the flap counters alone do not see.
+  6: i64 totalLinkFaults;
 }

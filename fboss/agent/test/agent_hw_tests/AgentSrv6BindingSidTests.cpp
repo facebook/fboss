@@ -698,6 +698,13 @@ TYPED_TEST(
          utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid1)});
 
     this->verifyBindingSidCpuAndFrontPanel(egressPorts, {this->kSid1});
+
+    // Restore the named NHG to the state setup() left it in. On warm boot
+    // setup() is skipped and verify() reruns, so the kSid1 update above must
+    // not leak into the next run.
+    this->updateBindingSidNamedNextHopGroup(
+        {utility::makeSrv6NextHopThrift(this->getLoopbacks()[0], this->kSid0),
+         utility::makeSrv6NextHopThrift(this->getLoopbacks()[1], this->kSid0)});
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

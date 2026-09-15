@@ -9,12 +9,14 @@ import subprocess
 import time
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
+from pathlib import Path
 
 from fboss_test_runner.constants import (
     ALL_SIMUALTOR_ASICS_STR,
     DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     DNX_SIMULATOR_ASICS,
     DNX_SIMULATOR_ENV,
+    GENERATED_CONFIG_ROOT,
     OPT_ARG_COLDBOOT,
     OPT_ARG_CONFIG_FILE,
     OPT_ARG_DISABLE_FSDB,
@@ -28,12 +30,15 @@ from fboss_test_runner.constants import (
     OPT_ARG_NUM_WARMBOOT_ITERATIONS,
     OPT_ARG_PROFILE,
     OPT_ARG_QSFP_CONFIG_FILE,
+    OPT_ARG_RESULTS_JSON,
     OPT_ARG_SAI_LOGGING,
     OPT_ARG_SAI_REPLAYER_LOGGING,
+    OPT_ARG_SAI_REPLAYER_SDK_LOG_LEVEL,
     OPT_ARG_SETUP_CB,
     OPT_ARG_SETUP_WB,
     OPT_ARG_SIMULATOR,
     OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+    OPT_ARG_SWITCH_ID_FOR_TESTING,
     OPT_ARG_TEST_RUN_TIMEOUT,
     OPT_KNOWN_BAD_TESTS_FILE,
     OPT_UNSUPPORTED_TESTS_FILE,
@@ -42,12 +47,20 @@ from fboss_test_runner.constants import (
 )
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
-from fboss_test_runner.result_types import GtestResult, GtestStatus, RunOutcome
+from fboss_test_runner.reporters.json_reporter import JsonReporter
+from fboss_test_runner.result_types import (
+    compute_exit_code,
+    GtestResult,
+    GtestStatus,
+    RunOutcome,
+    TestExecutionResult,
+)
 from fboss_test_runner.runners.utils import (
     get_test_regexes_from_file,
     load_from_file,
     test_matches_any_regex,
 )
+from npu_sdk_utils import materialize_agent_config, NPU_SDK_METADATA_FILENAME
 
 _YELLOW = "\033[1;33m"
 _RED = "\033[1;31m"
@@ -62,6 +75,10 @@ def _print_deprecation_banner(lines: list[str]) -> None:
     for line in lines:
         print(f"* {_YELLOW}{line.ljust(width - 4)}{_RED} *")
     print(f"{border}{_RESET}\n", flush=True)
+
+
+class _TestBinaryNotFoundError(RuntimeError):
+    """Raised when the selected test binary cannot be resolved."""
 
 
 class TestRunner(abc.ABC):
@@ -94,6 +111,10 @@ class TestRunner(abc.ABC):
 
     def _get_config_path(self) -> str:
         return ""
+
+    def _get_npu_sdk_metadata_binary_name(self) -> str | None:
+        """Executable whose linked NPU SDK must be reflected in the agent config."""
+        return None
 
     def _resolve_tests_file(
         self, user_file: str | None, default_file: str, label: str
@@ -147,6 +168,15 @@ class TestRunner(abc.ABC):
     def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None) -> None:  # noqa: B027
         pass
 
+    def _on_suite_start(self, suite: str) -> None:  # noqa: B027
+        """Called before the first test of each gtest suite (the `Suite` in
+        `Suite.Case`). The test list is sorted, so a suite's cases are
+        contiguous and this fires once per suite per run."""
+
+    def _on_suite_end(self, suite: str) -> None:  # noqa: B027
+        """Called after the last test of each gtest suite, including the final
+        suite (before _end_run). Runs even when the loop is aborted mid-suite."""
+
     def _end_run(self) -> None:  # noqa: B027
         pass
 
@@ -179,9 +209,12 @@ class TestRunner(abc.ABC):
             help="Only lists the tests, do not run any test",
         )
         sub_parser.add_argument(
-            OPT_ARG_CONFIG_FILE,
-            type=str,
-            help="run with the specified config file",
+            OPT_ARG_RESULTS_JSON,
+            default=None,
+            help="Write structured per-test results to this JSON file",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_CONFIG_FILE, type=str, help="run with the specified config file"
         )
         sub_parser.add_argument(
             OPT_ARG_SKIP_KNOWN_BAD_TESTS,
@@ -225,6 +258,12 @@ class TestRunner(abc.ABC):
             help="Specify test run timeout in seconds",
         )
         sub_parser.add_argument(
+            OPT_ARG_SWITCH_ID_FOR_TESTING,
+            type=int,
+            default=None,
+            help="Specify switch ID for testing on multi-NPU/multi-switch platforms",
+        )
+        sub_parser.add_argument(
             OPT_ARG_NUM_WARMBOOT_ITERATIONS,
             type=int,
             default=1,
@@ -259,6 +298,13 @@ class TestRunner(abc.ABC):
             OPT_ARG_SAI_REPLAYER_LOGGING,
             type=str,
             help="Enable SAI Replayer logging and store logs in the supplied directory",
+        )
+        sub_parser.add_argument(
+            OPT_ARG_SAI_REPLAYER_SDK_LOG_LEVEL,
+            type=str,
+            choices=["DEBUG", "INFO", "NOTICE", "WARN", "ERROR", "CRITICAL"],
+            default=None,
+            help="SAI replayer SDK log level for replayer (Options: DEBUG|INFO|NOTICE|WARN|ERROR|CRITICAL; requires --sai_replayer_logging)",
         )
         sub_parser.add_argument(
             OPT_ARG_SIMULATOR,
@@ -325,22 +371,20 @@ class TestRunner(abc.ABC):
     ) -> list[str]:
         args = self.args
         test_binary_name = self._get_test_binary_name()
-        run_cmd = [
-            test_binary_name,
-            "--gtest_filter=" + test_to_run,
-        ]
+        run_cmd = [test_binary_name, "--gtest_filter=" + test_to_run]
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
+        if getattr(args, "switch_id_for_testing", None) is not None:
+            run_cmd.append(
+                f"{OPT_ARG_SWITCH_ID_FOR_TESTING}={args.switch_id_for_testing}"
+            )
         run_cmd += self._get_test_run_args(conf_file)
         run_cmd += self._get_common_gflags()
 
         return run_cmd + flags if flags else run_cmd
 
     def _get_test_regexes_from_file(
-        self,
-        file_path: str,
-        test_dict_key: str,
-        keys_to_try: list[str],
+        self, file_path: str, test_dict_key: str, keys_to_try: list[str]
     ) -> list[str]:
         return get_test_regexes_from_file(file_path, test_dict_key, keys_to_try)
 
@@ -513,15 +557,10 @@ class TestRunner(abc.ABC):
         start_time = time.time()
         try:
             test_run_cmd = self._get_test_run_cmd(conf_file, test_to_run, flags)
-            print(
-                f"Running command {test_run_cmd}",
-                flush=True,
-            )
+            print(f"Running command {test_run_cmd}", flush=True)
 
             run_test_output = subprocess.check_output(
-                test_run_cmd,
-                timeout=args.test_run_timeout,
-                env=self.env_var,
+                test_run_cmd, timeout=args.test_run_timeout, env=self.env_var
             )
             elapsed_ms = int((time.time() - start_time) * 1000)
 
@@ -529,13 +568,17 @@ class TestRunner(abc.ABC):
             # boot-phase prefix (cold_boot./warm_boot.).
             results = self._parse_gtest_run_output(run_test_output)
             for result in results:
+                result.filter_name = test_to_run
                 result.test_name = test_prefix + result.test_name
             if not results:
                 # No gtest result line found (e.g. --setup-for-warmboot causes
                 # an early exit); synthesize an OK so the test still appears in
                 # the summary.
                 synthesized = GtestResult(
-                    test_prefix + test_to_run, GtestStatus.OK, elapsed_ms
+                    test_name=test_prefix + test_to_run,
+                    status=GtestStatus.OK,
+                    duration_ms=elapsed_ms,
+                    filter_name=test_to_run,
                 )
                 return RunOutcome(synthesized.as_log_line(), [synthesized])
             return RunOutcome(run_test_output.decode("utf-8"), results)
@@ -547,9 +590,10 @@ class TestRunner(abc.ABC):
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             result = GtestResult(
-                test_prefix + test_to_run,
-                GtestStatus.TIMEOUT,
-                args.test_run_timeout * 1000,
+                test_name=test_prefix + test_to_run,
+                status=GtestStatus.TIMEOUT,
+                duration_ms=args.test_run_timeout * 1000,
+                filter_name=test_to_run,
             )
             return RunOutcome(result.as_log_line(), [result])
         except subprocess.CalledProcessError as e:
@@ -561,7 +605,10 @@ class TestRunner(abc.ABC):
             stderr = e.stderr.decode("utf-8") if e.stderr else None
             print(f"Test error {stderr}", flush=True)
             result = GtestResult(
-                test_prefix + test_to_run, GtestStatus.FAILED, elapsed_ms
+                test_name=test_prefix + test_to_run,
+                status=GtestStatus.FAILED,
+                duration_ms=elapsed_ms,
+                filter_name=test_to_run,
             )
             return RunOutcome(result.as_log_line(), [result])
 
@@ -576,47 +623,66 @@ class TestRunner(abc.ABC):
     def _replace_string_in_file(
         self, file_path: str, old_str: str, new_str: str
     ) -> None:
-        try:
-            with open(file_path) as file:
-                file_contents = file.read()
+        with open(file_path) as file:
+            file_contents = file.read()
 
-            new_file_contents = file_contents.replace(old_str, new_str)
+        new_file_contents = file_contents.replace(old_str, new_str)
+        if new_file_contents != file_contents:
+            with open(file_path, "w") as file:
+                file.write(new_file_contents)
+            print(f"Replaced {old_str} by {new_str} in file {file_path}")
 
-            if new_file_contents != file_contents:
-                with open(file_path, "w") as file:
-                    file.write(new_file_contents)
-                print(f"Replaced {old_str} by {new_str} in file {file_path}")
-        except FileNotFoundError:
-            print(f"File not found when replacing string: {file_path}")
-        except Exception as e:
-            print(f"Error when replacing string in {file_path}: {e!s}")
-
-    def _backup_and_modify_config(self, conf_file: str) -> str:
-        """Create a copy of the config and modify settings"""
+    def _prepare_config_for_run(self) -> str:
+        """Create and retain a config containing all runner-required changes."""
         args = self.args
-        if getattr(args, "run_on_reference_board", False):
-            # Create a copy of the config file for modification
-            try:
-                # Create a modified copy in /tmp with standard name
-                config_filename = os.path.basename(conf_file)
-                _config_file_modified = f"/tmp/modified-{config_filename}"
-                shutil.copy2(conf_file, _config_file_modified)
+        original_config = (
+            args.config if args.config is not None else self._get_config_path()
+        )
+        binary_name = self._get_npu_sdk_metadata_binary_name()
+        run_on_reference_board = getattr(args, "run_on_reference_board", False)
+        if not original_config or (binary_name is None and not run_on_reference_board):
+            return original_config
 
-                print(
-                    f"Using a modified config file {_config_file_modified} for test runs"
-                )
+        runner_type = getattr(args, "command", None)
+        if not runner_type:
+            raise RuntimeError("Test runner type is unavailable")
+
+        output_directory = Path(GENERATED_CONFIG_ROOT) / runner_type
+        output_directory.mkdir(parents=True, exist_ok=True)
+        prepared_config = output_directory / Path(original_config).name
+        staging_config = output_directory / f".{prepared_config.name}.tmp"
+
+        try:
+            staging_config.unlink(missing_ok=True)
+            shutil.copyfile(original_config, staging_config)
+            if run_on_reference_board:
                 # Some platforms, like TH5 SVK, need to set
-                # AUTOLOAD_BOARD_SETTINGS=1 to autodetect reference board
+                # AUTOLOAD_BOARD_SETTINGS=1 to autodetect reference board.
                 self._replace_string_in_file(
-                    _config_file_modified,
+                    str(staging_config),
                     "AUTOLOAD_BOARD_SETTINGS: 0",
                     "AUTOLOAD_BOARD_SETTINGS: 1",
                 )
-                return _config_file_modified
-            except Exception as e:
-                print(f"Error creating config copy {conf_file}: {e!s}")
-                return conf_file
-        return conf_file
+
+            if binary_name is not None:
+                fboss_data = os.environ.get("FBOSS_DATA")
+                if not fboss_data:
+                    raise RuntimeError(
+                        "FBOSS_DATA is not set; cannot locate NPU SDK metadata"
+                    )
+                materialize_agent_config(
+                    config_path=staging_config,
+                    metadata_path=Path(fboss_data) / NPU_SDK_METADATA_FILENAME,
+                    binary_name=binary_name,
+                    output_directory=output_directory,
+                )
+            os.replace(staging_config, prepared_config)
+        except Exception:
+            staging_config.unlink(missing_ok=True)
+            raise
+
+        print(f"Using generated test config {prepared_config}")
+        return str(prepared_config)
 
     def _apply_simulator_env(self, simulator: str | None) -> None:
         """Overlay simulator-specific env vars onto this run's environment."""
@@ -625,10 +691,15 @@ class TestRunner(abc.ABC):
         elif simulator in DNX_SIMULATOR_ASICS:
             self.env_var.update(DNX_SIMULATOR_ENV)
 
-    def _run_tests(  # noqa: PLR0915 - complex orchestration; splitting would harm readability
+    def _run_tests(  # noqa: PLR0912, PLR0915
         self, tests_to_run: list[str], conf_file: str, args: Namespace
     ) -> list[GtestResult]:
         sai_replayer_logging = getattr(args, "sai_replayer_logging", None)
+        sai_replayer_sdk_log_level = getattr(args, "sai_replayer_sdk_log_level", None)
+        if sai_replayer_sdk_log_level is not None and not sai_replayer_logging:
+            print(
+                "Warning: --sai_replayer_sdk_log_level is ignored without --sai_replayer_logging"
+            )
         simulator = getattr(args, "simulator", None)
 
         if sai_replayer_logging:
@@ -653,10 +724,19 @@ class TestRunner(abc.ABC):
             return []
 
         all_results: list[GtestResult] = []
+        # The gtest suite whose tests are currently running; None outside a
+        # suite. Drives the _on_suite_start/_on_suite_end hooks.
+        current_suite: str | None = None
         try:
             self._setup_run(conf_file)
             num_tests = len(tests_to_run)
             for idx, test_to_run in enumerate(tests_to_run):
+                suite = test_to_run.split(".", 1)[0]
+                if suite != current_suite:
+                    if current_suite is not None:
+                        self._on_suite_end(current_suite)
+                    current_suite = suite
+                    self._on_suite_start(suite)
                 test_prefix = self.COLDBOOT_PREFIX
                 sai_replayer_log_path = self._get_sai_replayer_log_path(
                     test_prefix, test_to_run, sai_replayer_logging
@@ -735,28 +815,34 @@ class TestRunner(abc.ABC):
                     if any(r.status != GtestStatus.OK for r in run_outcome.results):
                         break
         finally:
+            if current_suite is not None:
+                self._on_suite_end(current_suite)
             self._end_run()
         return all_results
 
-    def _print_output_summary(self, results: list[GtestResult]) -> None:
+    def _print_output_summary(
+        self, results: list[GtestResult], results_json: str | None = None
+    ) -> None:
         ConsoleReporter().print_gtest_summary(results)
         CsvReporter().write_gtest_results(results)
+        if results_json is not None:
+            JsonReporter().write_gtest_results(results, results_json)
 
-    def run_test(self, args: Namespace) -> None:
+    def _prepare_tests(self, args: Namespace) -> list[str]:
         self.args = args
         test_binary = self._get_test_binary_name()
-        # Some runners return an absolute path (e.g. /opt/fboss/bin/sai_test-sai_impl);
-        # others return a bare binary name resolved via $PATH (e.g. platform_hw_test).
+        # Resolve packaged binaries through the PATH configured by setup_fboss_env.
         if os.path.isabs(test_binary):
             binary_found = os.path.isfile(test_binary)
         else:
             binary_found = shutil.which(test_binary) is not None
         if not binary_found:
+            message = f"Test binary not found: {test_binary}"
             print(
-                f"Error: test binary not found: {test_binary}\n"
+                f"Error: {message}\n"
                 f"\tMake sure the binary is installed at the expected path."
             )
-            return
+            raise _TestBinaryNotFoundError(message)
 
         # Initialize test lists once at the start
         self._initialize_test_lists(args)
@@ -771,27 +857,58 @@ class TestRunner(abc.ABC):
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
         # Sort the tests to run to match internal test infra behavior
-        tests_to_run = sorted(tests_to_run)
+        return sorted(tests_to_run)
 
-        # Check if tests need to be run or only listed
-        if (
-            args.list_tests is False
-            and getattr(args, "list_tests_for_features", None) is None
-        ):
-            start_time = datetime.now()
-            original_conf_file = (
-                args.config if (args.config is not None) else self._get_config_path()
+    def list_tests(self, args: Namespace) -> int:
+        try:
+            tests_to_run = self._prepare_tests(args)
+        except _TestBinaryNotFoundError:
+            return os.EX_TEMPFAIL
+
+        for test in tests_to_run:
+            print(test)
+        return 0
+
+    def _execute_test(self, args: Namespace) -> TestExecutionResult:
+        try:
+            tests_to_run = self._prepare_tests(args)
+            conf_file = self._prepare_config_for_run()
+        except _TestBinaryNotFoundError as error:
+            return TestExecutionResult(
+                exit_code=os.EX_TEMPFAIL, setup_failure=str(error)
             )
-            conf_file = self._backup_and_modify_config(original_conf_file)
+        except Exception as error:
+            return TestExecutionResult(
+                exit_code=os.EX_TEMPFAIL, setup_failure=str(error), error=error
+            )
+
+        original_arg_config = args.config
+        if conf_file:
+            args.config = conf_file
+        try:
+            start_time = datetime.now()
             results = self._run_tests(tests_to_run, conf_file, args)
             end_time = datetime.now()
-            delta_time = end_time - start_time
-            print(
-                f"Running all tests took {delta_time} between {start_time} and {end_time}",
-                flush=True,
-            )
-            self._print_output_summary(results)
-        else:
-            # Print the filtered tests
-            for test in tests_to_run:
-                print(test)
+        finally:
+            args.config = original_arg_config
+        delta_time = end_time - start_time
+        print(
+            f"Running all tests took {delta_time} between {start_time} and {end_time}",
+            flush=True,
+        )
+        exit_code = compute_exit_code(results)
+
+        return TestExecutionResult(exit_code=exit_code, results=results)
+
+    def run_test(self, args: Namespace) -> int:
+        execution = self._execute_test(args)
+        if execution.error is not None and args.results_json is None:
+            raise execution.error
+        if execution.setup_failure is not None:
+            if args.results_json is not None:
+                JsonReporter().write_setup_failure(
+                    args.results_json, execution.setup_failure
+                )
+        elif execution.results is not None:
+            self._print_output_summary(execution.results, args.results_json)
+        return execution.exit_code

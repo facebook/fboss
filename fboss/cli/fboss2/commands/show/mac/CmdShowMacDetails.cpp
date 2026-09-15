@@ -43,14 +43,14 @@ void CmdShowMacDetails::printOutput(const RetType& model, std::ostream& out) {
   out << fmt::format(
       fmtString, "MAC Address", "Port/Trunk", "VLAN", "TYPE", "CLASSID");
 
-  for (const auto& entry : model.get_l2Entries()) {
+  for (const auto& entry : model.l2Entries().value()) {
     out << fmt::format(
         fmtString,
-        entry.get_mac(),
-        entry.get_ifName(),
-        entry.get_vlanID(),
-        entry.get_l2EntryType(),
-        entry.get_classID());
+        entry.mac().value(),
+        entry.ifName().value(),
+        folly::copy(entry.vlanID().value()),
+        entry.l2EntryType().value(),
+        entry.classID().value());
   }
   out << std::endl;
 }
@@ -64,33 +64,67 @@ RetType CmdShowMacDetails::createModel(
   for (const auto& entry : l2Entries) {
     cli::L2Entry l2Details;
 
-    l2Details.mac() = entry.get_mac();
-    l2Details.port() = entry.get_port();
-    l2Details.vlanID() = entry.get_vlanID();
-    l2Details.l2EntryType() = utils::getl2EntryTypeStr(entry.get_l2EntryType());
-    auto trunkPtr = entry.get_trunk();
+    l2Details.mac() = entry.mac().value();
+    l2Details.port() = folly::copy(entry.port().value());
+    l2Details.vlanID() = folly::copy(entry.vlanID().value());
+    l2Details.l2EntryType() =
+        utils::getl2EntryTypeStr(entry.l2EntryType().value());
+    auto trunkPtr = apache::thrift::get_pointer(entry.trunk());
     if (trunkPtr != nullptr) {
       l2Details.trunk() = *trunkPtr;
       std::vector<facebook::fboss::AggregatePortThrift> aggPortEntries;
       for (const auto& agg_port : aggregatePortEntries) {
-        if (agg_port.get_key() == *trunkPtr) {
+        if (agg_port.key().value() == *trunkPtr) {
           aggPortEntries.push_back(agg_port);
         }
       }
       if (aggPortEntries.size() == 1) {
-        l2Details.ifName() = aggPortEntries[0].get_name();
+        l2Details.ifName() = aggPortEntries[0].name().value();
       } else {
         l2Details.ifName() = std::to_string(*trunkPtr) + " (Trunk)";
       }
     } else {
-      l2Details.ifName() = portEntries[entry.get_port()].get_name();
+      l2Details.ifName() =
+          portEntries[folly::copy(entry.port().value())].name().value();
     }
-    auto classIdPtr = entry.get_classID();
+    auto classIdPtr = apache::thrift::get_pointer(entry.classID());
     l2Details.classID() =
         (classIdPtr != nullptr) ? std::to_string(*classIdPtr) : "-";
 
     model.l2Entries()->push_back(l2Details);
   }
+  return model;
+}
+
+std::string_view CmdShowMacDetailsTraits::description() {
+  return "Displays the switch's L2 MAC address table: each learned MAC, the port or trunk and VLAN it was learned on, the entry type, and any class ID. Use it to verify L2 learning and locate where a host is connected.";
+}
+
+CmdShowMacDetails::RetType CmdShowMacDetails::sampleModel() {
+  RetType model;
+
+  cli::L2Entry entry1;
+  entry1.mac() = "02:00:11:22:33:01";
+  entry1.ifName() = "eth1/37/5";
+  entry1.vlanID() = 2074;
+  entry1.l2EntryType() = "Validated";
+  entry1.classID() = "-";
+
+  cli::L2Entry entry2;
+  entry2.mac() = "02:00:11:22:33:02";
+  entry2.ifName() = "eth1/37/1";
+  entry2.vlanID() = 2073;
+  entry2.l2EntryType() = "Validated";
+  entry2.classID() = "-";
+
+  cli::L2Entry entry3;
+  entry3.mac() = "02:00:11:22:33:03";
+  entry3.ifName() = "eth1/25/1";
+  entry3.vlanID() = 2049;
+  entry3.l2EntryType() = "Validated";
+  entry3.classID() = "-";
+
+  model.l2Entries() = {entry1, entry2, entry3};
   return model;
 }
 

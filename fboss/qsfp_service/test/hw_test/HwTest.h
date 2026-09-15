@@ -116,6 +116,11 @@ class HwTest : public ::testing::Test {
   // Scuba-ingestion file. Called from TearDown(). Best effort: never fails the
   // test.
   void dumpTestMetadata();
+  // Dump one row per transceiver that is present in the chassis but absent from
+  // the config, to the Scuba-ingestion file Netcastle publishes to the
+  // fboss_link_qsfp_test_port_errors table. Called from dumpTestMetadata().
+  // Best effort: never fails the test.
+  void dumpPortErrors();
   virtual std::vector<qsfp_production_features::QsfpProductionFeature>
   getProductionFeatures() const;
   // Forbidden copy constructor and assignment operator

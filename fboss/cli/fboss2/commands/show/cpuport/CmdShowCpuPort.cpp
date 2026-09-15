@@ -76,6 +76,40 @@ RetType CmdShowCpuPort::createModel(
   return model;
 }
 
+std::string_view CmdShowCpuPortTraits::description() {
+  return "Displays per-CPU-queue statistics for each switch: the queue ID and name, ingress packet count, and discarded packet count. Use it to see how CPU-bound traffic is classified and whether any CPU queue is dropping.";
+}
+
+RetType CmdShowCpuPort::sampleModel() {
+  RetType model;
+
+  cli::CpuPortQueueEntry entry0, entry1, entry2, entry3;
+
+  entry0.id() = 0;
+  entry0.name() = "cpuQueue-low";
+  entry0.ingressPackets() = 532819;
+  entry0.discardPackets() = 431625;
+
+  entry1.id() = 1;
+  entry1.name() = "cpuQueue-default";
+  entry1.ingressPackets() = 0;
+  entry1.discardPackets() = 0;
+
+  entry2.id() = 2;
+  entry2.name() = "cpuQueue-mid";
+  entry2.ingressPackets() = 93986419;
+  entry2.discardPackets() = 0;
+
+  entry3.id() = 9;
+  entry3.name() = "cpuQueue-high";
+  entry3.ingressPackets() = 182542535;
+  entry3.discardPackets() = 0;
+
+  model.cpuPortStatEntries()[0] = {entry0, entry1, entry2, entry3};
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template const ValidFilterMapType

@@ -114,4 +114,12 @@ TEST_F(CmdShowHwAgentStatusTestFixture, queryClient) {
   EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowHwAgentStatusTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowHwAgentStatusTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowHwAgentStatus::sampleModel().hwAgentStatusEntries()->empty());
+}
+
 } // namespace facebook::fboss

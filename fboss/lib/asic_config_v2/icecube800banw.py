@@ -6,7 +6,9 @@ import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk6 import Tomahawk6AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
-from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+)
 
 SAI_CFG = {
     "l3_ecmp_member_secondary_mem_size": "8192",
@@ -21,10 +23,15 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
     MGMT_PORT_PHYSICAL_ID = 514
 
     def __init__(
-        self, asic_config_params: asic_config_thrift.AsicConfigParameters
+        self,
+        asic_config_params: asic_config_thrift.AsicConfigParameters,
+        platform_mapping_input_dir: str,
     ) -> None:
         super(Icecube800banwConfig, self).__init__(asic_config_params)
-        self.parser = PlatformMappingParser(read_all_vendor_data(), "icecube800banw")
+        self.parser = PlatformMappingParser(
+            discover_platform_mapping_inputs(platform_mapping_input_dir),
+            "icecube800banw",
+        )
         self.num_ports_per_core = 2
 
     def get_asic_vendor_config(self) -> AsicVendorConfig:
@@ -34,7 +41,6 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
-        # pyre-fixme[7]: cross-boundary type mismatch until platform_mapping_v2 migrates
         return self.parser.get_static_mapping().get_static_mapping()
 
     def generate_port_config(self, mgmt_port: bool = False) -> None:
@@ -129,7 +135,8 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
 
 def gen_icecube800banw_asic_config(
     asic_config_params: asic_config_thrift.AsicConfigParameters,
+    platform_mapping_input_dir: str,
 ) -> Icecube800banwConfig:
-    cfg = Icecube800banwConfig(asic_config_params)
+    cfg = Icecube800banwConfig(asic_config_params, platform_mapping_input_dir)
     cfg.generate_asic_config()
     return cfg

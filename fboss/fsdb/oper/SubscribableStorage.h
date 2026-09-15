@@ -268,6 +268,50 @@ class SubscribableStorage {
         std::move(subscriptionParams));
   }
 
+  // Append paths to an already-created patch subscription (located by its
+  // SubscriptionIdentifier). Added paths get a full-state initial sync then
+  // incremental patches on the existing stream. Returns an FsdbErrorCode on
+  // failure (unknown id, non-patch sub, publisher-root mismatch, colliding
+  // key).
+  std::optional<FsdbErrorCode> add_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      std::map<SubscriptionKey, RawOperPath> newPaths,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return static_cast<Impl*>(this)->add_patch_subscription_path_impl(
+        std::move(id), std::move(newPaths), streamRevision);
+  }
+  std::optional<FsdbErrorCode> add_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      SubscriptionKey key,
+      RawOperPath newPath,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return add_patch_subscription_path(
+        std::move(id),
+        std::map<SubscriptionKey, RawOperPath>{{key, std::move(newPath)}},
+        streamRevision);
+  }
+
+  // Append additional extended (wildcard/regex) paths to an already-created
+  // patch subscription. Same semantics as add_patch_subscription_path but
+  // accepts ExtendedOperPath, avoiding the raw→extended conversion.
+  std::optional<FsdbErrorCode> add_extended_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      std::map<SubscriptionKey, ExtendedOperPath> newPaths,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return static_cast<Impl*>(this)->add_extended_patch_subscription_path_impl(
+        std::move(id), std::move(newPaths), streamRevision);
+  }
+  std::optional<FsdbErrorCode> add_extended_patch_subscription_path(
+      SubscriptionIdentifier&& id,
+      SubscriptionKey key,
+      ExtendedOperPath newPath,
+      std::optional<StreamRevision> streamRevision = std::nullopt) {
+    return add_extended_patch_subscription_path(
+        std::move(id),
+        std::map<SubscriptionKey, ExtendedOperPath>{{key, std::move(newPath)}},
+        streamRevision);
+  }
+
   // wrapper calls to underlying storage
 
   template <typename Path>

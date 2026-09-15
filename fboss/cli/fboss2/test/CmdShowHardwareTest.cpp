@@ -63,24 +63,24 @@ TEST_F(CmdShowHardwareTestFixture, createModel) {
 
   EXPECT_EQ(entries.size(), 4);
 
-  EXPECT_EQ(model.get_ctrlUptime(), "1d 2h 3m 45s");
-  EXPECT_EQ(model.get_bgpdUptime(), "1d 2h 3m 45s");
+  EXPECT_EQ(model.ctrlUptime().value(), "1d 2h 3m 45s");
+  EXPECT_EQ(model.bgpdUptime().value(), "1d 2h 3m 45s");
 
-  EXPECT_EQ(entries[0].get_moduleName(), "CHASSIS");
-  EXPECT_EQ(entries[0].get_macAddress(), "F6:E5:D4:C3:B2:A1");
-  EXPECT_EQ(entries[0].get_serialNumber(), "Z654321");
+  EXPECT_EQ(entries[0].moduleName().value(), "CHASSIS");
+  EXPECT_EQ(entries[0].macAddress().value(), "F6:E5:D4:C3:B2:A1");
+  EXPECT_EQ(entries[0].serialNumber().value(), "Z654321");
 
-  EXPECT_EQ(entries[1].get_moduleName(), "PIM1");
-  EXPECT_EQ(entries[1].get_serialNumber(), "A654321");
-  EXPECT_EQ(entries[1].get_fpgaVersion(), "4.10");
+  EXPECT_EQ(entries[1].moduleName().value(), "PIM1");
+  EXPECT_EQ(entries[1].serialNumber().value(), "A654321");
+  EXPECT_EQ(entries[1].fpgaVersion().value(), "4.10");
 
-  EXPECT_EQ(entries[2].get_moduleName(), "PIM2");
-  EXPECT_EQ(entries[2].get_serialNumber(), "A123456");
-  EXPECT_EQ(entries[2].get_fpgaVersion(), "4.10");
+  EXPECT_EQ(entries[2].moduleName().value(), "PIM2");
+  EXPECT_EQ(entries[2].serialNumber().value(), "A123456");
+  EXPECT_EQ(entries[2].fpgaVersion().value(), "4.10");
 
-  EXPECT_EQ(entries[3].get_moduleName(), "SCM");
-  EXPECT_EQ(entries[3].get_macAddress(), "A1:B2:C3:D4:E5:F6");
-  EXPECT_EQ(entries[3].get_serialNumber(), "Z123456");
+  EXPECT_EQ(entries[3].moduleName().value(), "SCM");
+  EXPECT_EQ(entries[3].macAddress().value(), "A1:B2:C3:D4:E5:F6");
+  EXPECT_EQ(entries[3].serialNumber().value(), "Z123456");
 }
 
 TEST_F(CmdShowHardwareTestFixture, printOutput) {

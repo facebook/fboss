@@ -92,15 +92,15 @@ TEST_F(CmdShowArpTestFixture, queryClient) {
   auto entries = result.arpEntries().value();
   EXPECT_EQ(entries.size(), 2);
 
-  EXPECT_EQ(entries[0].get_ip(), "10.120.64.2");
-  EXPECT_EQ(entries[0].get_mac(), "44:4c:a8:e4:1c:3f");
-  EXPECT_EQ(entries[0].get_port(), 102);
-  EXPECT_EQ(entries[0].get_state(), "REACHABLE");
+  EXPECT_EQ(entries[0].ip().value(), "10.120.64.2");
+  EXPECT_EQ(entries[0].mac().value(), "44:4c:a8:e4:1c:3f");
+  EXPECT_EQ(entries[0].port().value(), 102);
+  EXPECT_EQ(entries[0].state().value(), "REACHABLE");
 
-  EXPECT_EQ(entries[1].get_ip(), "10.121.64.2");
-  EXPECT_EQ(entries[1].get_mac(), "44:4c:a8:e4:1b:f1");
-  EXPECT_EQ(entries[1].get_port(), 106);
-  EXPECT_EQ(entries[1].get_state(), "REACHABLE");
+  EXPECT_EQ(entries[1].ip().value(), "10.121.64.2");
+  EXPECT_EQ(entries[1].mac().value(), "44:4c:a8:e4:1b:f1");
+  EXPECT_EQ(entries[1].port().value(), 106);
+  EXPECT_EQ(entries[1].state().value(), "REACHABLE");
 }
 
 TEST_F(CmdShowArpTestFixture, printOutput) {
@@ -112,6 +112,14 @@ TEST_F(CmdShowArpTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::cout << output;
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text), so cosmetic output changes to
+// printOutput() do not churn this test.
+TEST_F(CmdShowArpTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowArpTraits::description().empty());
+  EXPECT_FALSE(CmdShowArp::sampleModel().arpEntries()->empty());
 }
 
 } // namespace facebook::fboss

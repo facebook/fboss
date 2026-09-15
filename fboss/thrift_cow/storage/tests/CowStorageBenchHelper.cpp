@@ -2,6 +2,9 @@
 
 #include "fboss/thrift_cow/storage/tests/CowStorageBenchHelper.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <folly/String.h>
 #include <folly/memory/MallctlHelper.h>
 #include <folly/memory/Malloc.h>
@@ -42,6 +45,54 @@ int64_t getJemallocAllocatedBytes() {
   size_t allocated = 0;
   folly::mallctlRead("stats.allocated", &allocated);
   return static_cast<int64_t>(allocated);
+}
+
+std::optional<MemoryStats> computeMemoryStats(
+    const std::vector<int64_t>& measurements) {
+  if (measurements.empty()) {
+    return std::nullopt;
+  }
+
+  int64_t sum = 0;
+  for (int64_t measurement : measurements) {
+    sum += measurement;
+  }
+  const int64_t avg = sum / static_cast<int64_t>(measurements.size());
+  const int64_t max =
+      *std::max_element(measurements.begin(), measurements.end());
+
+  double stddev = 0.0;
+  if (measurements.size() > 1) {
+    double variance = 0.0;
+    for (int64_t measurement : measurements) {
+      const double diff = static_cast<double>(measurement - avg);
+      variance += diff * diff;
+    }
+    variance /= static_cast<double>(measurements.size() - 1);
+    stddev = std::sqrt(variance);
+  }
+
+  return MemoryStats{
+      static_cast<double>(avg) / 1024.0,
+      static_cast<double>(max) / 1024.0,
+      stddev / 1024.0};
+}
+
+void reportMemoryCounters(
+    folly::UserCounters& counters,
+    std::string_view prefix,
+    const MemoryStats& stats) {
+  const auto metricName = [prefix](std::string_view statistic) {
+    std::string name{statistic};
+    name.append("_");
+    name.append(prefix.data(), prefix.size());
+    name.append("_KB");
+    return name;
+  };
+
+  counters[metricName("avg")] = folly::UserMetric(stats.avgKB);
+  counters[metricName("max")] = folly::UserMetric(stats.maxKB);
+  counters[metricName("stddev")] = folly::UserMetric(stats.stddevKB);
 }
 
 std::vector<std::string> parseFsdbPath(const std::string& path) {

@@ -26,6 +26,9 @@
 #include "fboss/lib/CommonUtils.h"
 
 const std::string kSflowMirrorName = "sflow_mirror";
+// Match the addresses pumpRoCETraffic itself defaults to for IPv6.
+constexpr auto kRoceSrcIp = "1001::1";
+constexpr auto kRoceDstIp = "2001::1";
 
 namespace facebook::fboss {
 
@@ -90,6 +93,9 @@ std::string AgentArsBase::getAclName(
       break;
     case AclType::ECMP_HASH_CANCEL:
       aclName = "test-ecmp-hash-cancel";
+      break;
+    case AclType::ROCE_SPRAY_MISS:
+      aclName = "test-roce-spray-miss";
       break;
     default:
       break;
@@ -249,7 +255,9 @@ size_t AgentArsBase::sendRoceTraffic(
     int roceOpcode,
     const std::optional<std::vector<uint8_t>>& nxtHdr,
     int packetCount,
-    int destPort) {
+    int destPort,
+    uint8_t reserved,
+    const std::optional<folly::IPAddressV6>& srcIp) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
       getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
@@ -260,12 +268,14 @@ size_t AgentArsBase::sendRoceTraffic(
       intfMac,
       vlanId,
       frontPanelEgrPort,
+      srcIp.value_or(folly::IPAddressV6(kRoceSrcIp)),
+      folly::IPAddressV6(kRoceDstIp),
       destPort,
       255,
       std::nullopt,
       packetCount,
       roceOpcode,
-      utility::kRoceReserved,
+      reserved,
       nxtHdr);
 }
 
@@ -473,7 +483,8 @@ void AgentArsBase::addRoceAcl(
     ttl.mask() = 0xFF;
     acl->ttl() = ttl;
   }
-  if (aclName == getAclName(AclType::UDF_FLOWLET)) {
+  if (aclName == getAclName(AclType::UDF_FLOWLET) ||
+      aclName == getAclName(AclType::ROCE_SPRAY_MISS)) {
     acl->proto() = 17;
     acl->l4DstPort() = 4791;
     auto asic =
@@ -491,7 +502,9 @@ void AgentArsBase::addRoceAcl(
     // set dscp value to 30 and send to queue 6
     utility::addAclDscpQueueAction(
         config, aclName, counterName, kDscp, kOutQueue);
-  } else if (aclName == getAclName(AclType::ECMP_HASH_CANCEL)) {
+  } else if (
+      aclName == getAclName(AclType::ECMP_HASH_CANCEL) ||
+      aclName == getAclName(AclType::ROCE_SPRAY_MISS)) {
     utility::addAclEcmpHashCancelAction(config, aclName, counterName);
   } else if (aclName == getAclName(AclType::UDF_NAK) && addMirror) {
     // mirror session only present for mirror related tests
@@ -739,6 +752,18 @@ void AgentArsBase::addAclAndStat(
           config,
           getAclName(AclType::ECMP_HASH_CANCEL),
           getCounterName(AclType::ECMP_HASH_CANCEL),
+          isSai,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt);
+      break;
+    case AclType::ROCE_SPRAY_MISS:
+      addRoceAcl(
+          config,
+          getAclName(AclType::ROCE_SPRAY_MISS),
+          getCounterName(AclType::ROCE_SPRAY_MISS),
           isSai,
           std::nullopt,
           std::nullopt,

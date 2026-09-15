@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -31,6 +32,7 @@ cpp_unittest(
         "UDPDatagramTest.cpp",
         "UDPHdrTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent:core",
         "//fboss/agent:dhcpv4_options_of_interest",
@@ -43,7 +45,6 @@ cpp_unittest(
         "//fboss/agent/packet:ipproto",
         "//fboss/agent/packet:packet",
         "//fboss/agent/packet:packet_factory",
-        "//fboss/agent/packet:pktutil",
         "//fboss/agent/state:state",
         "//fboss/agent/test:utils",
         "//folly:conv",
@@ -61,6 +62,7 @@ cpp_unittest(
         "SflowStructsExtTest.cpp",
         "SflowStructsTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
         "//fboss/agent/packet:sflow_structs",
@@ -75,6 +77,7 @@ cpp_unittest(
         "DHCPv6PacketExtTest.cpp",
         "DHCPv6PacketTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
@@ -89,6 +92,7 @@ cpp_unittest(
     srcs = [
         "SflowPacketTest.cpp",
     ],
+    network_access = network_access_utils.none(),
     deps = [
         "//fboss/agent:packet",
         "//fboss/agent/packet:packet_factory",

@@ -6,6 +6,7 @@ import React, {useState, useMemo, useRef, useEffect} from 'react';
 
 const VENDOR_NAMES = {
   brcm: 'Broadcom',
+  'bcm-sai': 'Broadcom',
   leaba: 'Cisco',
   nvda: 'Chenab',
   chenab: 'Chenab',
@@ -19,6 +20,10 @@ const TAG_COLORS = {
   Role: {bg: 'rgba(139,92,246,0.08)', color: '#7c3aed', border: 'rgba(139,92,246,0.2)'},
   Platform: {bg: 'rgba(14,165,233,0.08)', color: '#0284c7', border: 'rgba(14,165,233,0.2)'},
   Component: {bg: 'rgba(168,85,247,0.08)', color: '#9333ea', border: 'rgba(168,85,247,0.2)'},
+  Topology: {bg: 'rgba(236,72,153,0.08)', color: '#db2777', border: 'rgba(236,72,153,0.2)'},
+  Transceiver: {bg: 'rgba(14,165,233,0.08)', color: '#0284c7', border: 'rgba(14,165,233,0.2)'},
+  'Qualifying FW': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
+  'Previous FW': {bg: 'rgba(99,102,241,0.08)', color: '#4f46e5', border: 'rgba(99,102,241,0.2)'},
   'ASIC SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
   'PHY SDK': {bg: 'rgba(37,194,160,0.08)', color: '#059669', border: 'rgba(37,194,160,0.2)'},
 };
@@ -37,7 +42,11 @@ function parseConfig(testType, config) {
     return [{label: 'Platform', value: parts[0]}];
   }
 
-  if (testType === 'Agent HW Test' || testType === 'SAI Test') {
+  const agentShaped = [
+    'Agent HW Test', 'SAI Test', 'Agent Scale Tests', 'Agent Invariant Tests',
+  ];
+
+  if (agentShaped.includes(testType)) {
     const tags = [];
     if (parts[0]) tags.push({label: 'Vendor', value: VENDOR_NAMES[parts[0]] || parts[0]});
     if (parts[1]) tags.push({label: 'SDK', value: parts[1].replace(/_/g, ' ')});
@@ -58,8 +67,44 @@ function parseConfig(testType, config) {
   }
 
   if (testType === 'Link Tests') {
+    // The physdk pair is absent on platforms with no external PHY, so locate
+    // both SDK segments by prefix rather than by index.
     const tags = [{label: 'Platform', value: parts[0]}];
-    if (parts[2]) tags.push({label: 'ASIC SDK', value: parts[2].replace('asicsdk-', '')});
+    const asicSdk = parts.find(p => p.startsWith('asicsdk-'));
+    const phySdk = parts.find(p => p.startsWith('physdk-'));
+    if (asicSdk) tags.push({label: 'ASIC SDK', value: asicSdk.replace('asicsdk-', '')});
+    if (phySdk) tags.push({label: 'PHY SDK', value: phySdk.replace('physdk-', '')});
+    return tags;
+  }
+
+  if (testType === 'Qsfp HAL Tests') {
+    // previous_mcu_fw_ is absent for first-time qualifications.
+    const tags = [{label: 'Transceiver', value: parts[0]}];
+    const qual = parts.find(p => p.startsWith('qualify_mcu_fw_'));
+    const prev = parts.find(p => p.startsWith('previous_mcu_fw_'));
+    if (qual) tags.push({label: 'Qualifying FW', value: qual.replace('qualify_mcu_fw_', '')});
+    if (prev) tags.push({label: 'Previous FW', value: prev.replace('previous_mcu_fw_', '')});
+    return tags;
+  }
+
+  if (testType === 'Multi Node Tests') {
+    // Trailing segment is a DSF fabric topology, not an ASIC.
+    const tags = [];
+    if (parts[0]) tags.push({label: 'Vendor', value: VENDOR_NAMES[parts[0]] || parts[0]});
+    if (parts[1]) tags.push({label: 'SDK', value: parts[1].replace(/_/g, ' ')});
+    if (parts[3]) tags.push({label: 'Topology', value: parts[3].replace(/_/g, ' ')});
+    return tags;
+  }
+
+  if (testType === 'Fboss2 CLI Tests') {
+    const tags = [{label: 'Platform', value: parts[0]}];
+    if (parts[1]) {
+      const dash = parts[1].indexOf('-');
+      const vendor = dash === -1 ? parts[1] : parts[1].slice(0, dash);
+      const sdk = dash === -1 ? '' : parts[1].slice(dash + 1);
+      tags.push({label: 'Vendor', value: VENDOR_NAMES[vendor] || vendor});
+      if (sdk) tags.push({label: 'SDK', value: sdk.replace(/_/g, ' ')});
+    }
     return tags;
   }
 
@@ -187,6 +232,9 @@ function TestTypeCard({data, configCount, onClick}) {
           <span style={{marginRight: '0.6rem'}}>{data.total.toLocaleString()} tests</span>
           <span style={{marginRight: '0.6rem'}}>{data.passed !== null ? data.passed.toLocaleString() : 'N/A'} passed</span>
           <span style={{marginRight: '0.6rem'}}>{data.failed !== null ? data.failed.toLocaleString() : 'N/A'} failed</span>
+          {data.skipped ? (
+            <span style={{marginRight: '0.6rem'}}>{data.skipped.toLocaleString()} skipped</span>
+          ) : null}
           <span>{configCount} configs</span>
         </div>
       </div>
@@ -316,6 +364,8 @@ export default function TestResultsDashboard({summary, details}) {
   const totalTests = summary.reduce((a, s) => a + s.total, 0);
   const totalPassed = summary.reduce((a, s) => a + (s.passed || 0), 0);
   const totalFailed = summary.reduce((a, s) => a + (s.failed || 0), 0);
+  const totalSkipped = summary.reduce((a, s) => a + (s.skipped || 0), 0);
+  // Skipped tests are excluded from the denominator - they neither passed nor failed.
   const passRate = totalPassed > 0
     ? ((totalPassed / (totalPassed + totalFailed)) * 100).toFixed(1) + '%'
     : 'N/A';
@@ -408,7 +458,7 @@ export default function TestResultsDashboard({summary, details}) {
         Facebook Open Switching System &mdash; Continuous Testing Dashboard
       </p>
       <p style={{fontSize: '0.8rem', color: 'var(--ifm-color-emphasis-400)', marginBottom: '2rem'}}>
-        Refreshed daily &middot; {details.length} test configs &middot; {summary.length} test types
+        Refreshed weekly &middot; {details.length} test configs &middot; {summary.length} test types
       </p>
 
       {/* KPI Cards */}
@@ -421,6 +471,7 @@ export default function TestResultsDashboard({summary, details}) {
         <KpiCard label="Total Tests" value={totalTests.toLocaleString()} />
         <KpiCard label="Passed" value={totalPassed.toLocaleString()} />
         <KpiCard label="Failed" value={totalFailed.toLocaleString()} warn />
+        <KpiCard label="Skipped" value={totalSkipped.toLocaleString()} />
         <KpiCard label="Pass Rate" value={passRate} />
         <KpiCard label="CSV Files" value={details.length.toString()} />
         <KpiCard label="Test Types" value={summary.length.toString()} />

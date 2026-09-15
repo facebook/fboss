@@ -231,6 +231,43 @@ void CmdShowMySid::printOutput(const RetType& model, std::ostream& out) {
   }
 }
 
+std::string_view CmdShowMySidTraits::description() {
+  return "Displays the SRv6 MySID table: each locally-instantiated SID prefix, its behavior/type, and (when resolved) the nexthop link-local and egress interface. Use it to inspect SRv6 segment endpoints.";
+}
+
+CmdShowMySid::RetType CmdShowMySid::sampleModel() {
+  RetType model;
+
+  // First entry: fdad:ffff:0001::/48 ADJACENCY_MICRO_SID (no resolved nexthop)
+  cli::MySidEntryModel entry1;
+  entry1.prefix() = "fdad:ffff:0001::/48";
+  entry1.type() = "ADJACENCY_MICRO_SID";
+  entry1.nextHops() = std::vector<std::string>();
+  entry1.resolvedNextHops() = std::vector<std::string>();
+  model.mySidEntries()->push_back(entry1);
+
+  // Second entry: fdad:ffff:0002::/48 ADJACENCY_MICRO_SID (with resolved
+  // nexthop)
+  cli::MySidEntryModel entry2;
+  entry2.prefix() = "fdad:ffff:0002::/48";
+  entry2.type() = "ADJACENCY_MICRO_SID";
+  entry2.nextHops() = std::vector<std::string>();
+  entry2.resolvedNextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 via Port-Channel914, fboss2006"};
+  model.mySidEntries()->push_back(entry2);
+
+  // Third entry: fdad:ffff:7fff::/48 DECAPSULATE_AND_LOOKUP (no resolved
+  // nexthop)
+  cli::MySidEntryModel entry3;
+  entry3.prefix() = "fdad:ffff:7fff::/48";
+  entry3.type() = "DECAPSULATE_AND_LOOKUP";
+  entry3.nextHops() = std::vector<std::string>();
+  entry3.resolvedNextHops() = std::vector<std::string>();
+  model.mySidEntries()->push_back(entry3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<CmdShowMySid, CmdShowMySidTraits>::run();
 

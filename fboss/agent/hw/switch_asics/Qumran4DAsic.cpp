@@ -104,6 +104,9 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    case HwAsic::Feature::ECN:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::QUEUE_ECN_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -210,6 +213,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
+    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
@@ -230,6 +234,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     // Disabling ANY_TRAP_DROP_COUNTER for the time being.
     // This will result in an early return in
@@ -237,6 +242,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // failing with SAI 14.x
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
@@ -246,6 +252,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
     // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
     // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
@@ -258,9 +265,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // enabled once SDK support is available
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
-    case HwAsic::Feature::QUEUE_ECN_COUNTER:
-    case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::ECN:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
@@ -286,6 +290,10 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
+    case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::RX_PACKET_TYPE:
       return false;
   }
   return false;

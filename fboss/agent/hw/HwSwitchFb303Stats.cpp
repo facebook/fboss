@@ -205,6 +205,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "sram_low_buffer_limit_hit_count",
           SUM,
           RATE),
+      sdkDumpSuppressedCount_(
+          map,
+          getCounterPrefix() + "sdk_dump_suppressed_count",
+          SUM,
+          RATE),
       fabricConnectivityMissingCount_(
           map,
           getCounterPrefix() + "fabric_connectivity_missing"),
@@ -931,6 +936,10 @@ int64_t HwSwitchFb303Stats::getInterruptMaskedEvents() const {
   return getCumulativeValue(interruptMaskedEvents_);
 }
 
+int64_t HwSwitchFb303Stats::getSdkDumpSuppressedCount() const {
+  return getCumulativeValue(sdkDumpSuppressedCount_);
+}
+
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }
@@ -1193,6 +1202,7 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   }
   hwFb303Stats.sram_low_buffer_limit_hit_count() =
       getCumulativeValue(sramLowBufferLimitHitCount_);
+  hwFb303Stats.sdk_dump_suppressed_count() = getSdkDumpSuppressedCount();
   return hwFb303Stats;
 }
 
@@ -1224,6 +1234,10 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
     updateValue(
         vsqResourceExhaustionDrops_,
         *globalStats.vsq_resource_exhaustion_drops());
+  }
+  if (globalStats.sdk_dump_suppressed_count().has_value()) {
+    updateValue(
+        sdkDumpSuppressedCount_, *globalStats.sdk_dump_suppressed_count());
   }
   // NOTE: sramLowBufferLimitHitCount_ is a derived counter and hence will
   // be incremented separately with sramLowBufferLimitHitCount() API.

@@ -191,7 +191,6 @@ std::optional<InterfaceID> PortMap::getInterfaceIdForPort(
 }
 
 std::optional<std::string> PortMap::getPortNameForInterface(
-    // @lint-ignore CLANGTIDY performance-unnecessary-value-param
     InterfaceID interfaceId) const {
   auto it = interfaceIdToPortName_.find(interfaceId);
   if (it != interfaceIdToPortName_.end()) {
@@ -213,7 +212,6 @@ bool PortMap::hasPort(const std::string& portName) const {
   return portNameToLogicalId_.find(portName) != portNameToLogicalId_.end();
 }
 
-// @lint-ignore CLANGTIDY performance-unnecessary-value-param
 bool PortMap::hasInterface(InterfaceID interfaceId) const {
   return interfaceIdToPortName_.find(interfaceId) !=
       interfaceIdToPortName_.end();
@@ -255,7 +253,6 @@ PortMap::getInterfaceByName(const std::string& interfaceName) const {
 }
 
 cfg::Interface* FOLLY_NULLABLE
-// @lint-ignore CLANGTIDY performance-unnecessary-value-param
 PortMap::getInterface(InterfaceID interfaceId) const {
   auto it = interfaceIdToInterface_.find(interfaceId);
   if (it != interfaceIdToInterface_.end()) {

@@ -21,6 +21,8 @@
 #include <folly/gen/Base.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 namespace {
 
 using namespace facebook::fboss;
@@ -155,11 +157,25 @@ cfg::PortLoopbackMode LinkStateToggler::findDesiredLoopbackMode(
     const std::shared_ptr<SwitchState>& newState,
     PortID port,
     bool up) const {
+  if (!up) {
+    return cfg::PortLoopbackMode::NONE;
+  }
+  // For bringing up port - prefer loopback mode from config
+  // If not available fall back to loopback mode from ASIC
+  auto config = ensemble_->getCurrentConfig();
+  auto configPort = std::find_if(
+      config.ports()->begin(), config.ports()->end(), [port](const auto& p) {
+        return PortID(*p.logicalID()) == port;
+      });
+  if (configPort != config.ports()->end() &&
+      *configPort->loopbackMode() != cfg::PortLoopbackMode::NONE) {
+    return *configPort->loopbackMode();
+  }
+  XLOG(WARN) << " Falling back to picking loopback mode from ASIC";
   auto currPort = newState->getPorts()->getNodeIf(port);
   auto switchId = ensemble_->scopeResolver().scope(currPort).switchId();
   auto asic = ensemble_->getHwAsicTable()->getHwAsic(switchId);
-  return up ? asic->getDesiredLoopbackMode(currPort->getPortType())
-            : cfg::PortLoopbackMode::NONE;
+  return asic->getDesiredLoopbackMode(currPort->getPortType());
 }
 
 void LinkStateToggler::portStateChangeImpl(

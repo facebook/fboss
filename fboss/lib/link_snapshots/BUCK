@@ -24,6 +24,7 @@ cpp_library(
         "//folly:singleton",
         "//folly/logging:logging",
     ],
+    external_deps = [("boost", None, "boost_filesystem")],
     exported_external_deps = [
         ("boost", None, "boost_filesystem"),
     ],
@@ -37,10 +38,10 @@ cpp_library(
     headers = [
         "SnapshotManager.h",
     ],
+    deps = ["//fboss/lib:alert_logger"],
     exported_deps = [
         ":async_filewriter_factory",
         ":ring_buffer",
-        "//fboss/lib:alert_logger",
         "//fboss/lib/phy:phy-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",

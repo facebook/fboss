@@ -12,13 +12,15 @@ cpp_library(
     headers = [
         "MockTransceiverI2CApi.h",
     ],
+    deps = [
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly/logging:logging",
+    ],
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
         "//fboss/lib/usb:i2-api",
-        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
-        "//folly/logging:logging",
     ],
 )
 

@@ -1,10 +1,16 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/QsfpServer.h"
 
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+#include "fboss/lib/ThriftMethodRateLimitSetup.h"
 #include "fboss/lib/ThriftServiceUtils.h"
+#include "fboss/platform/helpers/PlatformThriftAcceptor.h"
+#include "fboss/platform/helpers/PlatformThriftAcceptorUtil.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/platforms/wedge/FbossMacsecHandler.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
@@ -13,6 +19,26 @@ DEFINE_int32(port, 5910, "Port for the thrift service");
 // current default 5910 is in conflict with VNC ports, need to
 // eventually migrate to 5960
 DEFINE_int32(migrated_port, 5960, "New thrift server port migrate to");
+
+DEFINE_bool(
+    qsfp_enable_thrift_acceptor,
+    false,
+    "If set, install a connection-level acceptor that admits Thrift "
+    "connections only from loopback or --qsfp_trusted_subnets and rejects all "
+    "others. Off by default to preserve existing behavior.");
+
+DEFINE_string(
+    qsfp_trusted_subnets,
+    "",
+    "Comma-separated CIDR subnets, in addition to loopback (which is always "
+    "permitted), allowed to connect when --qsfp_enable_thrift_acceptor is set. "
+    "FBOSS control traffic is IPv6-only; e.g. \"2001:db8::/32\".");
+
+DEFINE_bool(
+    qsfp_thrift_rate_limit_shadow_mode,
+    true,
+    "Run qsfp_service thrift rate limit in shadow mode: log and count "
+    "violations but still serve the request.");
 
 namespace facebook::fboss {
 
@@ -52,6 +78,37 @@ setupThriftServer(
   }
   server->setAddresses(addresses);
   server->setInterface(handler);
+
+  // Reuse the config already parsed by the transceiver manager during
+  // handler->init() above rather than re-reading the config file.
+  // getQsfpConfig() is null if config load was skipped (e.g. I2C bus init
+  // failed), in which case no rate limits are installed.
+  std::map<std::string, double> method2QpsLimit = {};
+  if (const auto* qsfpConfig =
+          handler->getTransceiverManager()->getQsfpConfig()) {
+    for (const auto& item : *qsfpConfig->thrift.thriftApiToRateLimitInQps()) {
+      XLOG(DBG2) << "set rate limit " << item.second << " qps to thrift method "
+                 << item.first;
+      method2QpsLimit[item.first] = item.second;
+    }
+  }
+  installThriftMethodRateLimit(
+      *server, method2QpsLimit, FLAGS_qsfp_thrift_rate_limit_shadow_mode);
+
+  // MACsec SAK install/delete and other qsfp_service RPCs are otherwise
+  // unauthenticated on a wildcard-bound port. When enabled, admit only
+  // loopback (where the on-box MKA daemon, fboss2, wedge_qsfp_util connect)
+  // plus configured trusted subnets, rejecting off-box peers at accept time.
+  if (FLAGS_qsfp_enable_thrift_acceptor) {
+    auto trustedSubnets =
+        platform::helpers::parseTrustedSubnets(FLAGS_qsfp_trusted_subnets);
+    XLOG(INFO) << "Thrift connection acceptor enabled: admitting loopback + "
+               << trustedSubnets.size() << " trusted subnet(s)";
+    server->setAcceptorFactory(
+        std::make_shared<platform::helpers::PlatformThriftAcceptorFactory>(
+            server.get(), std::move(trustedSubnets)));
+  }
+
   return std::make_pair(server, handler);
 }
 

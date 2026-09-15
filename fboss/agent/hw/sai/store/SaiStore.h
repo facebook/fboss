@@ -74,6 +74,16 @@ struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
 
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+// A LAG is keyed on SAI_LAG_ATTR_LABEL, which this adapter accepts on create
+// but never stores: the label setter is a no op and there is no getter at all.
+// Every LAG therefore reads back an all zero label, so two of them collide on
+// one AdapterHostKey and warm boot aborts on reload. Serialize the key into
+// warm boot state and restore it verbatim rather than re-deriving it from HW.
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiLagTraits> : std::false_type {};
+#endif
+
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject

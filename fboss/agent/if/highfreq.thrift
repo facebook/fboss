@@ -1,6 +1,5 @@
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.highfreq
-namespace php fboss
 namespace py neteng.fboss.highfreq
 namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
 namespace py3 neteng.fboss

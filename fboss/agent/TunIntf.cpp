@@ -368,7 +368,11 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
         // Just add this case to be safe. Adding DCHECK for sanity checking
         // in debug mode.
         DCHECK(false) << "Unexpected event. Nothing to read.";
+#ifdef NDEBUG
+        // The preceding DCHECK is fatal in debug builds; in release builds it
+        // compiles out, so keep the loop-exit break there.
         break;
+#endif
       } else if (ret > buf->tailroom()) {
         // The pkt is larger than the buffer. We don't have complete packet.
         // It shall not happen unless the MTU is mis-match. Drop the packet.

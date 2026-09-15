@@ -48,4 +48,14 @@ void populateTransceiverInfoFields(
   }
 }
 
+void populateTransceiverErrorFields(
+    LinkQsfpTestPortError& portError,
+    const TcvrState& tcvrState) {
+  if (tcvrState.vendor().has_value()) {
+    const auto& vendor = *tcvrState.vendor();
+    portError.vendorName() = *vendor.name();
+    portError.partNumber() = *vendor.partNumber();
+  }
+}
+
 } // namespace facebook::fboss::utility

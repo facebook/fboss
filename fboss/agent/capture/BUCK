@@ -12,20 +12,22 @@ cpp_library(
         "PktCapture.cpp",
         "PktCaptureManager.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//fboss/agent:fboss-error",
+        "//fboss/agent:utils",
+        "//folly:exception",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:packet",
         "//fboss/agent:packet_observer",
-        "//fboss/agent:utils",
         "//fboss/agent/if:ctrl-cpp2-types",
-        "//folly:exception",
         "//folly:file",
-        "//folly:file_util",
         "//folly:range",
-        "//folly:string",
         "//folly/io:iobuf",
-        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),

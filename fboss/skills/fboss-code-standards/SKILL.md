@@ -18,6 +18,8 @@ Currently `fboss/` only. TODO: extend to `configerator/source/neteng/fboss`, `ne
 | Area | Pattern | Check |
 |------|---------|-------|
 | Agent | Mono/multi-switch duality | State changes must work in both modes |
+| Agent | SW/HW build boundary | Production HW-agent executables do not depend on SW-agent implementation libraries |
+| SAI/Build | Executable symbol exports | Export only needed SDK symbols in `opt`; keep sanitizer exports working |
 | Agent | Warmboot serialization | New SwitchState fields must serialize/deserialize |
 | SAI | SaiApiTable registration | New SAI attributes must be registered |
 | SAI | SaiStore consistency | SAI objects must be tracked, no orphans |

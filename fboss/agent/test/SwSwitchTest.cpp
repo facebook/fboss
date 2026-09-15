@@ -12,11 +12,13 @@
 
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/ValidateStateUpdate.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -89,8 +91,67 @@ TEST_F(SwSwitchTest, GetPortStats) {
   EXPECT_EQ(sw->stats()->getPortStats()->size(), 2);
   EXPECT_EQ(portStats->getPortName(), "port0");
 }
+
+TEST_F(SwSwitchTest, PhyInfoLinkFlapCountFromLinkScanCallbacks) {
+  const PortID portId{1};
+  phy::PhyInfo phyInfo;
+  phyInfo.state() = phy::PhyState();
+  phyInfo.state()->name() = "port1";
+  phyInfo.stats() = phy::PhyStats();
+  ON_CALL(*getMockHw(sw), updateAllPhyInfoImpl())
+      .WillByDefault(Return(std::map<PortID, phy::PhyInfo>{{portId, phyInfo}}));
+
+  sw->linkStateChanged(portId, true, cfg::PortType::INTERFACE_PORT);
+  waitForStateUpdates(sw);
+
+  CounterCache counters(sw);
+  counters.update();
+  const auto linkStateFlapCount = counters.value("port1.link_state.flap.sum");
+
+  sw->updateStats();
+  std::vector<PortID> portIds{portId};
+  auto phyInfos = sw->getIPhyInfo(portIds);
+  ASSERT_EQ(phyInfos.size(), 1);
+  EXPECT_EQ(
+      phyInfos.at(portId).stats()->linkFlapCount().value(), linkStateFlapCount);
+
+  auto agentStats = sw->fillFsdbStats();
+  EXPECT_EQ(
+      agentStats.phyStats()->at("port1").linkFlapCount().value(),
+      linkStateFlapCount);
+}
+
 ACTION(ThrowException) {
   throw std::exception();
+}
+
+TEST_F(SwSwitchTest, VerifyEcmpWidthChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  auto withEcmpWidth = [](const std::shared_ptr<SwitchState>& base,
+                          std::optional<int32_t> width) {
+    auto state = base->clone();
+    auto settings = utility::getFirstNodeIf(state->getSwitchSettings());
+    settings->modify(&state)->setEcmpWidth(width);
+    state->publish();
+    return state;
+  };
+
+  auto baseState = withEcmpWidth(sw->getState(), 64);
+
+  // Unchanged width is valid.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 64))));
+
+  // First-time set (old side unset, as on coldboot) is valid.
+  auto unsetState = withEcmpWidth(sw->getState(), std::nullopt);
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(unsetState, withEcmpWidth(unsetState, 128))));
+
+  // Changing the width on a running agent is rejected regardless of boot type.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(baseState, withEcmpWidth(baseState, 128))));
 }
 
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
@@ -112,7 +173,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV1)));
 
-  // ACL without any qualifier should fail validation
+  // Empty ACL matcher validity is ASIC-dependent.
   auto stateV2 = stateV0->clone();
   auto acls2 = stateV2->getAcls()->modify(&stateV2);
 
@@ -121,7 +182,12 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   stateV2->publish();
 
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV2)));
+  const auto emptyAclMatcherSupported =
+      sw->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::EMPTY_ACL_MATCHER);
+  EXPECT_EQ(
+      sw->isValidStateUpdate(StateDelta(stateV0, stateV2)),
+      emptyAclMatcherSupported);
 
   // PortQueue with valid WRED probability
   auto stateV3 = stateV0->clone();

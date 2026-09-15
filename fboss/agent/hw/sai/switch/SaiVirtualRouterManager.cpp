@@ -99,8 +99,8 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
           SaiMplsRouterInterfaceTraits::CreateAttributes{
               vrId, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER});
 
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:

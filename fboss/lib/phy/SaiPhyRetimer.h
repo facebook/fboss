@@ -26,6 +26,8 @@
 #include <folly/Conv.h>
 #include <memory>
 
+#include <mutex>
+
 namespace facebook::fboss {
 class SaiPlatform;
 class StateObserver;
@@ -99,7 +101,13 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   PhyPortConfig getConfigOnePort(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes,
+      cfg::PortProfileID profileID,
       bool readFromHw = false) override;
+
+  PhyInfo getPortInfo(
+      const std::vector<LaneID>& sysLanes,
+      const std::vector<LaneID>& lineLanes,
+      PhyInfo& lastPhyInfo) override;
 
   void dump() override {
     dumpImpl();
@@ -159,6 +167,12 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
     return xphyIO_;
   }
 
+  // Surface the MDIO IO counters the MdioController already records on each
+  // register read/write.
+  IOStats getIOStats() override {
+    return getXphyIO()->getMdioController()->getIOStats();
+  }
+
   phy::PhyAddress getPhyAddr() const {
     return phyAddr_;
   }
@@ -170,6 +184,10 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   void* getRegisterReadFuncPtr();
   void* getRegisterWriteFuncPtr();
   SaiSwitchTraits::CreateAttributes getSwitchAttributes();
+
+  std::mutex& getPaiMutex() {
+    return paiMutex_;
+  }
 
  protected:
   void dumpImpl() const;
@@ -186,6 +204,7 @@ class SaiPhyRetimer : public ExternalPhy, public HwSwitchCallback {
   SaiPlatform* platform_;
   BspPhyIO* xphyIO_;
   std::optional<SwitchSaiId> switchId_;
+  std::mutex paiMutex_;
 };
 
 } // namespace facebook::fboss::phy

@@ -15,4 +15,7 @@
 
 namespace facebook::fboss::utility {
 std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType mode);
+std::unique_ptr<PlatformMapping> initPlatformMapping(
+    PlatformType mode,
+    const cfg::PlatformConfig& platformConfig);
 } // namespace facebook::fboss::utility

@@ -70,6 +70,7 @@ cpp_unittest(
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly/io/async:scoped_event_base_thread",
         "//folly/logging:init",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/op:get",

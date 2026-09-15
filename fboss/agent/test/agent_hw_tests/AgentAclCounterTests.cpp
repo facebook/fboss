@@ -42,11 +42,30 @@ enum AclType {
 };
 
 constexpr auto kL4DstPortRangeAclTableName = "l4-dst-port-range-acl-table";
-constexpr auto kL4DstPortRangeAclName = "l4-dst-port-range-acl";
-constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
-constexpr auto kL4DstPortRangeMin = 100;
-constexpr auto kL4DstPortRangeMax = 200;
-constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+// Two disjoint, non-adjacent ranges in a single table, so the table carries two
+// distinct SAI ACL range objects and each range can be checked to match only
+// its own ports. Kept narrow: both ranges are swept exhaustively.
+constexpr auto kL4DstPortRangeAclNameA = "l4-dst-port-range-acl-a";
+constexpr auto kL4DstPortRangeAclCounterNameA = "l4-dst-port-range-acl-a-stats";
+constexpr auto kL4DstPortRangeMinA = 100;
+constexpr auto kL4DstPortRangeMaxA = 119;
+constexpr auto kL4DstPortRangeAclNameB = "l4-dst-port-range-acl-b";
+constexpr auto kL4DstPortRangeAclCounterNameB = "l4-dst-port-range-acl-b-stats";
+constexpr auto kL4DstPortRangeMinB = 300;
+constexpr auto kL4DstPortRangeMaxB = 319;
+
+// Which range is expected to match. Both matching is not a valid outcome, since
+// the ranges are disjoint.
+enum class ExpectedRangeHit { RANGE_A, RANGE_B, NEITHER };
+constexpr auto kDstIpV6WordAclTableName = "dst-ipv6-word-acl-table";
+constexpr auto kDstIpV6WordAclName = "dst-ipv6-word-acl";
+constexpr auto kDstIpV6WordAclCounterName = "dst-ipv6-word-acl-stats";
+constexpr auto kDstIpV6WordEcmpWidth = 1;
+// Program the route to helper port 0, but inject from the next helper port so
+// the packet does not ingress on the same port selected for egress.
+constexpr auto kDstIpV6WordInjectionPortIndex = kDstIpV6WordEcmpWidth;
+constexpr uint32_t kDstIpV6Word3 = 0x12345678;
+constexpr uint32_t kDstIpV6Word2 = 0x9abcdef0;
 } // namespace
 
 namespace facebook::fboss {
@@ -640,26 +659,41 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
         },
         {cfg::AclTableQualifier::L4_DST_PORT_RANGE});
 
-    auto acl = makeL4DstPortRangeAcl();
-    utility::addAclEntry(
-        &cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
-    utility::addAclStat(
+    addRangeAclAndStat(
         &cfg,
-        kL4DstPortRangeAclName,
-        kL4DstPortRangeAclCounterName,
-        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+        kL4DstPortRangeAclNameA,
+        kL4DstPortRangeAclCounterNameA,
+        kL4DstPortRangeMinA,
+        kL4DstPortRangeMaxA);
+    addRangeAclAndStat(
+        &cfg,
+        kL4DstPortRangeAclNameB,
+        kL4DstPortRangeAclCounterNameB,
+        kL4DstPortRangeMinB,
+        kL4DstPortRangeMaxB);
     return cfg;
   }
 
-  cfg::AclEntry makeL4DstPortRangeAcl() const {
+  void addRangeAclAndStat(
+      cfg::SwitchConfig* cfg,
+      const std::string& aclName,
+      const std::string& counterName,
+      int min,
+      int max) const {
     cfg::AclEntry acl;
-    acl.name() = kL4DstPortRangeAclName;
+    acl.name() = aclName;
     acl.actionType() = cfg::AclActionType::PERMIT;
     cfg::Range range;
-    range.minimum() = kL4DstPortRangeMin;
-    range.maximum() = kL4DstPortRangeMax;
+    range.minimum() = min;
+    range.maximum() = max;
     acl.l4DstPortRange() = range;
-    return acl;
+    utility::addAclEntry(
+        cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        cfg,
+        aclName,
+        counterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
   }
 
   void setupRangeAclCounterTest() {
@@ -671,18 +705,27 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
     applyNewConfig(initialConfig(*getAgentEnsemble()));
   }
 
-  uint64_t getRangeAclPacketCounter() const {
-    return utility::getAclInOutPackets(getSw(), kL4DstPortRangeAclCounterName);
+  uint64_t getRangeAclPacketCounter(const std::string& counterName) const {
+    return utility::getAclInOutPackets(getSw(), counterName);
   }
 
-  std::vector<int> getMatchingL4DstPorts() const {
+  std::vector<int> portsInRange(int min, int max) const {
     std::vector<int> l4DstPorts;
-    l4DstPorts.reserve(kL4DstPortRangeMax - kL4DstPortRangeMin + 1);
-    for (auto l4DstPort = kL4DstPortRangeMin; l4DstPort <= kL4DstPortRangeMax;
-         ++l4DstPort) {
+    l4DstPorts.reserve(max - min + 1);
+    for (auto l4DstPort = min; l4DstPort <= max; ++l4DstPort) {
       l4DstPorts.push_back(l4DstPort);
     }
     return l4DstPorts;
+  }
+
+  // Just outside each range on both sides, so both boundaries of both ranges
+  // are pinned.
+  std::vector<int> portsOutsideRanges() const {
+    return {
+        kL4DstPortRangeMinA - 1,
+        kL4DstPortRangeMaxA + 1,
+        kL4DstPortRangeMinB - 1,
+        kL4DstPortRangeMaxB + 1};
   }
 
   void sendPacketWithDstPort(bool frontPanel, bool isV6, int l4DstPort) {
@@ -727,35 +770,208 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
     }
   }
 
-  void verifyL4DstPortRangeAclCounter(
+  // Both counters are sampled on every send, so a range programmed too wide is
+  // caught by the other range's counter moving.
+  void verifyL4DstPortRangeAclCounters(
       const std::string& name,
       bool isFrontPanel,
       bool isV6,
-      bool expectHit,
-      const std::vector<int>& l4DstPorts) {
+      const std::vector<int>& l4DstPorts,
+      ExpectedRangeHit expectedHit) {
     SCOPED_TRACE(name);
     auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
-    auto aclPktCountBefore = getRangeAclPacketCounter();
+    auto countBeforeA =
+        getRangeAclPacketCounter(kL4DstPortRangeAclCounterNameA);
+    auto countBeforeB =
+        getRangeAclPacketCounter(kL4DstPortRangeAclCounterNameB);
     for (auto l4DstPort : l4DstPorts) {
       sendPacketWithDstPort(isFrontPanel, isV6, l4DstPort);
     }
 
     WITH_RETRIES({
-      auto aclPktCountAfter = getRangeAclPacketCounter();
       auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
       XLOG(DBG2) << "\n"
-                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
+                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter;
+      // EXPECT_EVENTUALLY_* reads state declared by WITH_RETRIES, so this must
+      // stay a lambda inside the block rather than a member function.
+      // The upper bound allows for the counter double-counting a packet.
+      auto verifyRangeCounter = [&](const std::string& counterName,
+                                    uint64_t countBefore,
+                                    bool expectHit) {
+        SCOPED_TRACE(counterName);
+        auto countAfter = getRangeAclPacketCounter(counterName);
+        XLOG(DBG2) << "aclPacketCounter(" << counterName << "): " << countBefore
+                   << " -> " << countAfter;
+        if (expectHit) {
+          EXPECT_EVENTUALLY_GE(countAfter, countBefore + l4DstPorts.size());
+          EXPECT_EVENTUALLY_LE(
+              countAfter, countBefore + (2 * l4DstPorts.size()));
+        } else {
+          EXPECT_EVENTUALLY_EQ(countBefore, countAfter);
+        }
+      };
+      verifyRangeCounter(
+          kL4DstPortRangeAclCounterNameA,
+          countBeforeA,
+          expectedHit == ExpectedRangeHit::RANGE_A);
+      verifyRangeCounter(
+          kL4DstPortRangeAclCounterNameB,
+          countBeforeB,
+          expectedHit == ExpectedRangeHit::RANGE_B);
+    });
+  }
+};
+
+class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = AgentAclCounterTest::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::MODIFY_ACL_QUALIFIERS);
+    features.push_back(ProductionFeature::DST_IPV6_WORD_ACL_QUALIFIERS);
+    return features;
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentAclCounterTest::initialConfig(ensemble);
+    if (!FLAGS_enable_acl_table_group) {
+      return cfg;
+    }
+
+    utility::addAclTable(
+        &cfg,
+        kDstIpV6WordAclTableName,
+        1 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {cfg::AclTableQualifier::DST_IPV6_WORD3,
+         cfg::AclTableQualifier::DST_IPV6_WORD2});
+    return cfg;
+  }
+
+  cfg::AclEntry makeDstIpV6WordAcl() const {
+    cfg::AclEntry acl;
+    acl.name() = kDstIpV6WordAclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    acl.dstIpV6Word3() = kDstIpV6Word3;
+    acl.dstIpV6Word2() = kDstIpV6Word2;
+    return acl;
+  }
+
+  void addDstIpV6WordAclAndStat(cfg::SwitchConfig* cfg) const {
+    auto acl = makeDstIpV6WordAcl();
+    if (FLAGS_enable_acl_table_group) {
+      utility::addAclEntry(
+          cfg, acl, kDstIpV6WordAclTableName, cfg::AclStage::INGRESS);
+    } else {
+      utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
+    }
+    utility::addAclStat(
+        cfg,
+        kDstIpV6WordAclName,
+        kDstIpV6WordAclCounterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+  }
+
+  void setupDstIpV6WordAclCounterTest() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, kDstIpV6WordEcmpWidth);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kDstIpV6WordEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addDstIpV6WordAclAndStat(&newCfg);
+    applyNewConfig(newCfg);
+  }
+
+  uint64_t getDstIpV6WordAclPacketCounter() const {
+    return utility::getAclInOutPackets(getSw(), kDstIpV6WordAclCounterName);
+  }
+
+  uint64_t getDstIpV6WordAclByteCounter() const {
+    return utility::getAclInOutPackets(
+        getSw(), kDstIpV6WordAclCounterName, true /* bytes */);
+  }
+
+  size_t sendPacketWithDstIpV6(const folly::IPAddressV6& dstIp) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto txPacket = utility::makeTCPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        kSrcIP(),
+        dstIp,
+        kTestSrcPort,
+        kTestDstPort,
+        0,
+        255);
+    auto txPacketSize = txPacket->buf()->length();
+    auto outPort = helper_->ecmpPortDescriptorAt(kDstIpV6WordInjectionPortIndex)
+                       .phyPortID();
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    return txPacketSize;
+  }
+
+  void verifyDstIpV6WordAclCounter(
+      const std::string& name,
+      const folly::IPAddressV6& dstIp,
+      bool expectHit) {
+    SCOPED_TRACE(name);
+    auto egressPort =
+        helper_->ecmpPortDescriptorAt(kDstIpV6WordEcmpWidth - 1).phyPortID();
+    auto egressPktsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getDstIpV6WordAclPacketCounter();
+    auto aclByteCountBefore = getDstIpV6WordAclByteCounter();
+
+    auto sizeOfPacketSent = sendPacketWithDstIpV6(dstIp);
+
+    WITH_RETRIES({
+      auto egressPktsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      auto aclPktCountAfter = getDstIpV6WordAclPacketCounter();
+      auto aclByteCountAfter = getDstIpV6WordAclByteCounter();
+      XLOG(DBG2) << "\n"
+                 << "egressPacketCounter: " << egressPktsBefore << " -> "
+                 << egressPktsAfter << "\n"
+                 << "aclPacketCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter
                  << "\n"
-                 << "aclPacketCounter(" << kL4DstPortRangeAclCounterName
-                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
+                 << "aclByteCounter(" << kDstIpV6WordAclCounterName
+                 << "): " << aclByteCountBefore << " -> " << aclByteCountAfter;
+      EXPECT_EVENTUALLY_GE(egressPktsAfter, egressPktsBefore + 1);
       if (expectHit) {
-        EXPECT_EVENTUALLY_GE(
-            aclPktCountAfter, aclPktCountBefore + l4DstPorts.size());
-        EXPECT_EVENTUALLY_LE(
-            aclPktCountAfter, aclPktCountBefore + (2 * l4DstPorts.size()));
+        // Some ASICs can count the looped-back packet a second time before it
+        // is dropped later in the ingress pipeline. For one sent packet,
+        // require one or two ACL hits.
+        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
+        EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          auto numAclHits = aclPktCountAfter - aclPktCountBefore;
+          auto expectedByteDelta = numAclHits * sizeOfPacketSent;
+          EXPECT_EVENTUALLY_GE(
+              aclByteCountAfter, aclByteCountBefore + expectedByteDelta);
+          // ACL byte counters may include the 4-byte FCS for each packet that
+          // hits the ACL, so scale the byte tolerance by the observed hit
+          // count.
+          EXPECT_EVENTUALLY_LE(
+              aclByteCountAfter,
+              aclByteCountBefore + expectedByteDelta + (4 * numAclHits));
+        }
       } else {
         EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+        if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          EXPECT_EVENTUALLY_EQ(aclByteCountBefore, aclByteCountAfter);
+        }
       }
     });
   }
@@ -786,25 +1002,57 @@ TEST_F(
 TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
   auto setup = [this]() { setupRangeAclCounterTest(); };
   auto verify = [this]() {
-    auto matchingPorts = getMatchingL4DstPorts();
+    const auto portsA = portsInRange(kL4DstPortRangeMinA, kL4DstPortRangeMaxA);
+    const auto portsB = portsInRange(kL4DstPortRangeMinB, kL4DstPortRangeMaxB);
+    const auto portsOutside = portsOutsideRanges();
     for (auto isFrontPanel : {true, false}) {
       for (auto isV6 : {false, true}) {
         const auto trafficSrc = isFrontPanel ? "front-panel" : "cpu";
         const auto ipFamily = isV6 ? "IPv6" : "IPv4";
-        verifyL4DstPortRangeAclCounter(
-            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", hit"),
+        verifyL4DstPortRangeAclCounters(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", range A hit"),
             isFrontPanel,
             isV6,
-            true,
-            matchingPorts);
-        verifyL4DstPortRangeAclCounter(
+            portsA,
+            ExpectedRangeHit::RANGE_A);
+        verifyL4DstPortRangeAclCounters(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", range B hit"),
+            isFrontPanel,
+            isV6,
+            portsB,
+            ExpectedRangeHit::RANGE_B);
+        verifyL4DstPortRangeAclCounters(
             folly::to<std::string>(trafficSrc, ", ", ipFamily, ", miss"),
             isFrontPanel,
             isV6,
-            false,
-            {kL4DstPortRangeMiss});
+            portsOutside,
+            ExpectedRangeHit::NEITHER);
       }
     }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentDstIpV6WordAclCounterTest, VerifyDstIpV6Word2AndWord3AclCounter) {
+  auto setup = [this]() { setupDstIpV6WordAclCounterTest(); };
+  auto verify = [this]() {
+    verifyDstIpV6WordAclCounter(
+        "word2 and word3 hit",
+        folly::IPAddressV6("1234:5678:9abc:def0::1"),
+        true);
+    verifyDstIpV6WordAclCounter(
+        "word2 miss while word3 still matches",
+        folly::IPAddressV6("1234:5678:1111:2222::1"),
+        false);
+    verifyDstIpV6WordAclCounter(
+        "word3 miss while word2 still matches",
+        folly::IPAddressV6("1111:2222:9abc:def0::1"),
+        false);
+    verifyDstIpV6WordAclCounter(
+        "same word2 and word3 with all lower 64 bits different still hits",
+        folly::IPAddressV6("1234:5678:9abc:def0:ffff:ffff:ffff:ffff"),
+        true);
   };
 
   verifyAcrossWarmBoots(setup, verify);

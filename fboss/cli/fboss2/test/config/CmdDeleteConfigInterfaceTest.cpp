@@ -272,4 +272,95 @@ TEST_F(CmdDeleteWholeInterfaceTestFixture, deletesPortAndDependents) {
       true);
 }
 
+// ============================================================================
+// queue-config reset
+// ============================================================================
+
+// `delete interface <intf> queue-config` is the same reset as
+// `config interface <intf> queue-config default`: it clears
+// Port::portQueueConfigName, which makes the port fall back to
+// SwitchConfig::defaultPortQueues.
+class DeleteQueueConfigAttrTestFixture : public CmdConfigTestBase {
+ public:
+  DeleteQueueConfigAttrTestFixture()
+      : CmdConfigTestBase(
+            "delete_ifqc_attr_test_%%%%-%%%%-%%%%",
+            R"({
+  "sw": {
+    "ports": [
+      {
+        "logicalID": 1,
+        "name": "eth1/1/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1,
+        "portQueueConfigName": "rsw_queues"
+      },
+      {
+        "logicalID": 2,
+        "name": "eth1/2/1",
+        "state": 2,
+        "speed": 100000,
+        "ingressVlan": 1
+      }
+    ],
+    "portQueueConfigs": {
+      "rsw_queues": [
+        {"id": 0, "streamType": 1, "weight": 1, "scheduling": 5}
+      ]
+    }
+  }
+})") {}
+
+ protected:
+  static const cfg::Port* findPort(const std::string& name) {
+    const auto& ports =
+        *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+    for (const auto& port : ports) {
+      if (*port.name() == name) {
+        return &port;
+      }
+    }
+    return nullptr;
+  }
+
+  std::string runDelete(const std::vector<std::string>& args) {
+    auto cmd = CmdDeleteInterface();
+    return cmd.queryClient(localhost(), InterfaceDeleteConfig(args));
+  }
+};
+
+// queue-config takes no value on the delete side -- it is a reset, not a
+// removal of a particular binding.
+TEST_F(DeleteQueueConfigAttrTestFixture, parsesAsValuelessAttribute) {
+  setupTestableConfigSession();
+  InterfaceDeleteConfig config({"eth1/1/1", "queue-config"});
+  ASSERT_EQ(config.getAttributes().size(), 1);
+  EXPECT_EQ(config.getAttributes()[0].first, "queue-config");
+  EXPECT_EQ(config.getAttributes()[0].second, "");
+}
+
+TEST_F(DeleteQueueConfigAttrTestFixture, clearsExistingBinding) {
+  setupTestableConfigSession();
+  ASSERT_TRUE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+
+  auto result = runDelete({"eth1/1/1", "queue-config"});
+  EXPECT_THAT(result, ::testing::HasSubstr("queue-config"));
+
+  EXPECT_FALSE(findPort("eth1/1/1")->portQueueConfigName().has_value());
+  // Clearing a binding must not remove the config it pointed at.
+  EXPECT_TRUE(
+      ConfigSession::getInstance()
+          .getAgentConfig()
+          .sw()
+          ->portQueueConfigs()
+          ->count("rsw_queues"));
+}
+
+TEST_F(DeleteQueueConfigAttrTestFixture, unboundPortIsNoOp) {
+  setupTestableConfigSession();
+  EXPECT_NO_THROW(runDelete({"eth1/2/1", "queue-config"}));
+  EXPECT_FALSE(findPort("eth1/2/1")->portQueueConfigName().has_value());
+}
+
 } // namespace facebook::fboss

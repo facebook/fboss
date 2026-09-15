@@ -16,15 +16,19 @@
 
 namespace cpp2 facebook.nettools.bgplib
 namespace go nettools.bgplib.if.BmpStructs
-namespace php BmpStructs
 namespace py nettools.bgplib.BmpStructs
 namespace py3 nettools.bgplib
 namespace py.asyncio nettools.bgplib_asyncio.BmpStructs
 
 include "neteng/fboss/bgp/if/BgpStructs.thrift"
 include "common/network/if/Address.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "BmpStructs_"}
+@hack.LegacyOmitPrefixInNameString
 package "facebook.com/nettools/bgplib"
+
+namespace hack ""
 
 /**
  * Structure containing a BgpUpdate and additional information from BMP.

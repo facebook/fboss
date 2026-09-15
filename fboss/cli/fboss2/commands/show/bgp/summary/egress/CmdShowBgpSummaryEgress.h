@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
@@ -55,6 +56,10 @@ struct CmdShowBgpSummaryEgressTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowBgpSummaryModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowBgpSummaryEgress : public CmdHandler<
@@ -65,6 +70,10 @@ class CmdShowBgpSummaryEgress : public CmdHandler<
 
   RetType queryClient(const HostInfo& hostInfo);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
   Table makePeerTable(const std::vector<TPeerEgressStats>& peerEgressStats);
   void printPeerSummary(
       const std::vector<TPeerEgressStats>& peerEgressStats,

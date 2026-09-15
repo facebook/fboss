@@ -164,6 +164,41 @@ sai_status_t get_router_interface_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+/*
+ * No dataplane in fake sai, so stats stay 0. Must still be populated:
+ * SaiRouterInterfaceManager::updateStats() calls getStats() every tick, and an
+ * unset pointer in the static api table is nullptr -> SIGSEGV at 0x0.
+ */
+sai_status_t get_router_interface_stats_fn(
+    sai_object_id_t /*router_interface*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+// Stats are always 0, so mode (READ, READ_AND_CLEAR) doesn't matter.
+sai_status_t get_router_interface_stats_ext_fn(
+    sai_object_id_t router_interface,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_router_interface_stats_fn(
+      router_interface, num_of_counters, counter_ids, counters);
+}
+
+// noop: stats are always 0, nothing to clear.
+sai_status_t clear_router_interface_stats_fn(
+    sai_object_id_t /*router_interface*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_router_interface_api_t _router_interface_api;
@@ -176,6 +211,14 @@ void populate_router_interface_api(
       &set_router_interface_attribute_fn;
   _router_interface_api.get_router_interface_attribute =
       &get_router_interface_attribute_fn;
+
+  _router_interface_api.get_router_interface_stats =
+      &get_router_interface_stats_fn;
+  _router_interface_api.get_router_interface_stats_ext =
+      &get_router_interface_stats_ext_fn;
+  _router_interface_api.clear_router_interface_stats =
+      &clear_router_interface_stats_fn;
+
   *router_interface_api = &_router_interface_api;
 }
 

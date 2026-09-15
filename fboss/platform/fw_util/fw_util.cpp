@@ -128,29 +128,35 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  FwUtilImpl fwUtilImpl(
-      fw_binary_file, config_file_path, verify_sha1sum, dry_run);
+  try {
+    FwUtilImpl fwUtilImpl(
+        fw_binary_file, config_file_path, verify_sha1sum, dry_run);
 
-  if (fw_action == "version" && !fw_target_name.empty()) {
-    fwUtilImpl.printVersion(fw_target_name);
-  } else if (
-      fw_action == "program" || fw_action == "verify" || fw_action == "read") {
-    // For actions which involve more than just reading versions/config, we want
-    // to always log all the commands that are run.
-    folly::LoggerDB::get()
-        .getCategory("fboss.platform.helpers.PlatformUtils")
-        ->setLevel(folly::LogLevel::DBG2);
-    fwUtilImpl.doFirmwareAction(fw_target_name, fw_action);
-  } else if (fw_action == "list") {
-    XLOG(INFO) << fmt::format(
-        "Supported binary names: {}",
-        folly::join(" ", fwUtilImpl.getFpdNameList()));
-  } else if (fw_action == "audit") {
-    fwUtilImpl.doVersionAudit();
-  } else {
-    XLOG(ERR)
-        << "Wrong usage. please run fw_util --help for the flags needed for proper usage";
-    exit(1);
+    if (fw_action == "version" && !fw_target_name.empty()) {
+      fwUtilImpl.printVersion(fw_target_name);
+    } else if (
+        fw_action == "program" || fw_action == "verify" ||
+        fw_action == "read") {
+      // For actions which involve more than just reading versions/config, we
+      // want to always log all the commands that are run.
+      folly::LoggerDB::get()
+          .getCategory("fboss.platform.helpers.PlatformUtils")
+          ->setLevel(folly::LogLevel::DBG2);
+      fwUtilImpl.doFirmwareAction(fw_target_name, fw_action);
+    } else if (fw_action == "list") {
+      XLOG(INFO) << fmt::format(
+          "Supported binary names: {}",
+          folly::join(" ", fwUtilImpl.getFpdNameList()));
+    } else if (fw_action == "audit") {
+      fwUtilImpl.doVersionAudit();
+    } else {
+      XLOG(ERR)
+          << "Wrong usage. please run fw_util --help for the flags needed for proper usage";
+      return 1;
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Firmware action failed: " << ex.what();
+    return 1;
   }
 
   return 0;

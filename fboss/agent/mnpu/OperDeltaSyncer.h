@@ -10,7 +10,8 @@
 #pragma once
 #include <memory>
 
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
+#include "fboss/agent/types.h"
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>

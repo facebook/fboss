@@ -300,6 +300,14 @@ void pumpTrafficAndVerifyLoadBalanced(
     const std::function<bool()>& isLoadBalanced,
     bool loadBalanceExpected = true);
 
+void pumpTrafficAndVerifyLoadBalanced(
+    const std::function<void()>& pumpTraffic,
+    const std::function<void()>& clearPortStats,
+    const std::function<std::optional<uint64_t>()>& getPortOutPackets,
+    uint64_t numPacketsSent,
+    const std::function<bool()>& isLoadBalanced,
+    bool loadBalanceExpected = true);
+
 /*
  * Used to determine whether full-hash or half-hash config should be used when
  * enabling load balancing via addLoadBalancerToConfig().

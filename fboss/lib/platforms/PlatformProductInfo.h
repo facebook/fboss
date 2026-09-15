@@ -37,6 +37,7 @@ class PlatformProductInfo {
   std::string getOem() const;
   std::string getProductName();
   int getProductVersion() const;
+  int getProductionState() const;
 
  private:
   // Forbidden copy constructor and assignment operator

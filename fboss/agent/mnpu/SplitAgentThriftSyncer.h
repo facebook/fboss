@@ -17,7 +17,7 @@
 #include <string>
 
 #include "fboss/agent/HwSwitchCallback.h"
-#include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 
 namespace facebook::fboss {
 
@@ -76,6 +76,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void updateHwSwitchStats(multiswitch::HwSwitchStats stats);
   void stopOperDeltaSync();
   void cancelPendingRxPktEnqueue();
+  void cancelPendingFdbEnqueue();
 
  private:
   std::atomic<long> watchdogMissedCount_{0};

@@ -12,6 +12,7 @@
 "LedTest.DeviceLedsCreated","meru800bia","PASSED"
 "KmodTest.UnloadKmods","meru800bia","PASSED"
 "KmodTest.LoadKmods","meru800bia","PASSED"
+"KmodTest.KmodsJsonComplete","meru800bia","PASSED"
 "KmodTest.FbspRemove","meru800bia","PASSED"
 "KmodStressTest.KmodLoadUnloadStress","meru800bia","SKIPPED"
 "I2CTest.I2CTransactions","meru800bia","PASSED"

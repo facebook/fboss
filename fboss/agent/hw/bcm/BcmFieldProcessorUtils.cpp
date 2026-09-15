@@ -441,7 +441,7 @@ void createFPGroup(
   XLOG(DBG1) << " Created FP group: " << gid;
 }
 
-bcm_field_qset_t getAclQset(cfg::AsicType asicType) {
+bcm_field_qset_t getAclQset() {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifySrcIp6);
@@ -457,21 +457,10 @@ bcm_field_qset_t getAclQset(cfg::AsicType asicType) {
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstMac);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyIpType);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyTtl);
-
-  /*
-   * On Trident2, configuring additional qualifier results in SDK running out of
-   * of resources "Failed to create fp group: 128: No resources for operation".
-   * bcmFieldQualifyDstClassL2 qualifier is required for MH-NIC queue-per-host
-   * solution. However, the solution is not applicable for Trident2 as Trident2
-   * does not support queues. Thus, skip configuring this qualifier for Trident2
-   */
-  if (asicType != cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL2);
-    /* Used for counting mpls lookup miss currently. Not used on trident2 */
-    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyPacketRes);
-    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyEtherType);
-    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyOuterVlanId);
-  }
+  BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL2);
+  BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyPacketRes);
+  BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyEtherType);
+  BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyOuterVlanId);
 
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL3);
   return qset;
@@ -531,7 +520,6 @@ int fpGroupNumAclEntries(int unit, bcm_field_group_t gid) {
 bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
   // Currently we know any asic is before TH4 will add extra qualifiers
   switch (asicType) {
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -544,6 +532,7 @@ bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
       return false;
     case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:

@@ -26,6 +26,18 @@ std::vector<std::string> transceiverStatesToNames(
   }
   return stateNames;
 }
+
+// firmwareForUpgradeTest only overrides the versions. Its fwHandleMap is empty,
+// so swapping it in wholesale would leave the modules under test with no
+// firmware storage handles.
+cfg::TransceiverFirmware upgradeTestFirmware(
+    const cfg::QsfpServiceConfig& qsfpCfg) {
+  auto firmware = *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+  if (const auto& tcvrFw = qsfpCfg.transceiverFirmwareVersions()) {
+    firmware.fwHandleMap() = *tcvrFw->fwHandleMap();
+  }
+  return firmware;
+}
 } // namespace
 
 class OpticsFwUpgradeTest : public HwTest {
@@ -383,8 +395,7 @@ TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
 
     // Update the firmware versions in the config
     auto qsfpCfg = wedgeMgr->getQsfpConfig()->thrift;
-    qsfpCfg.transceiverFirmwareVersions() =
-        *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+    qsfpCfg.transceiverFirmwareVersions() = upgradeTestFirmware(qsfpCfg);
     std::string newCfgStr =
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg);
     auto newQsfpCfg = QsfpConfig::fromRawConfig(newCfgStr);
@@ -430,9 +441,8 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
    * - Create a new QSFP config with qsfpConfig.transceiverFirmwareVersions =
    *   qsfpConfig.qsfpTestConfig.firmwareForUpgradeTest
    * - Load the new config to make optics eligible for firmware upgrade
-   * - If there are more than 1 optics requiring upgrade, use
-   *   triggerOpticsFwUpgrade to upgrade 2 interfaces and verify they are
-   * upgraded
+   * - Use triggerOpticsFwUpgrade to upgrade all eligible interfaces and verify
+   * they are upgraded
    * ------------------------------------------------------------------------
    * Warmboot Verify:
    * - Use triggerAllOpticsFwUpgrade to upgrade all transceivers
@@ -450,12 +460,27 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
   auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
   auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
 
+  // Ensure firmwares were upgraded correctly by confirming there are no more
+  // ports requiring firmware upgrade
+  auto expectNoPortsRequireUpgrade = [&]() {
+    auto remaining = getCabledPortsRequiringOpticsFwUpgrade();
+    if (!remaining.empty()) {
+      std::vector<std::string> portsStillRequiringUpgrade;
+      portsStillRequiringUpgrade.reserve(remaining.size());
+      for (const auto& [portToUpgrade, _] : remaining) {
+        portsStillRequiringUpgrade.push_back(portToUpgrade);
+      }
+      ADD_FAILURE()
+          << "The following ports still require upgrade, prior upgrades didn't succeed completely: "
+          << folly::join(",", portsStillRequiringUpgrade);
+    }
+  };
+
   auto setup = [&]() {
     qsfpServiceHandler->refreshStateMachines();
 
     auto qsfpCfg = wedgeMgr->getQsfpConfig()->thrift;
-    qsfpCfg.transceiverFirmwareVersions() =
-        *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+    qsfpCfg.transceiverFirmwareVersions() = upgradeTestFirmware(qsfpCfg);
     std::string newCfgStr =
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg);
     auto newQsfpCfg = QsfpConfig::fromRawConfig(newCfgStr);
@@ -474,12 +499,9 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
 
     if (!portsForFwUpgrade.empty()) {
       std::vector<std::string> interfacesToUpgrade;
-      size_t maxToUpgrade = std::min(portsForFwUpgrade.size(), size_t(2));
+      interfacesToUpgrade.reserve(portsForFwUpgrade.size());
       for (const auto& [portToUpgrade, _] : portsForFwUpgrade) {
         interfacesToUpgrade.push_back(portToUpgrade);
-        if (interfacesToUpgrade.size() >= maxToUpgrade) {
-          break;
-        }
       }
 
       XLOG(INFO) << "Triggering firmware upgrade for interfaces: "
@@ -489,9 +511,6 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
       qsfpServiceHandler->triggerOpticsFwUpgrade(
           upgradedPorts,
           std::make_unique<std::vector<std::string>>(interfacesToUpgrade));
-
-      EXPECT_EQ(upgradedPorts.size(), maxToUpgrade)
-          << "Expected " << maxToUpgrade << " ports to be selected for upgrade";
 
       const auto& portNameToModule = wedgeMgr->getPortNameToModuleMap();
       WITH_RETRIES_N_TIMED(
@@ -520,6 +539,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
           initDoneTimestampSec /* upgradeSinceTsSec */,
           upgradedTcvrIds /* tcvrs */))
           << "Upgrade expected for selected interfaces";
+      expectNoPortsRequireUpgrade();
     }
   };
 
@@ -578,6 +598,7 @@ TEST_F(OpticsFwUpgradeTest, triggerOpticsFwUpgradeTest) {
             verifyStartTimestampSec,
             allUpgradedTcvrIds /* tcvrs */))
             << "Upgrade expected for all transceivers via triggerAllOpticsFwUpgrade";
+        expectNoPortsRequireUpgrade();
       }
     }
   };

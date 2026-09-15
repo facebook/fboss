@@ -216,6 +216,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
         sai_u32_range_t,
         SaiIntRangeDefault<sai_u32_range_t>>;
+    using PortUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_USER_META_DATA_RANGE,
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using AvailableIpv4RouteEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY,
@@ -747,6 +752,18 @@ struct SaiSwitchTraits {
         std::vector<sai_int8_t>,
         AttributeSdkRegDumpLogPath,
         SaiS8ListDefault>;
+    struct AttributeSdkDumpRateLimitWindow {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkDumpRateLimitWindow = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeSdkDumpRateLimitWindow,
+        SaiIntDefault<sai_uint32_t>>;
+    struct AttributeSdkDumpSuppressedCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkDumpSuppressedCount =
+        SaiExtensionAttribute<sai_uint64_t, AttributeSdkDumpSuppressedCount>;
     struct AttributeFirmwareObjectList {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -873,12 +890,50 @@ struct SaiSwitchTraits {
         bool,
         AttributePortCl72RetryEnable,
         SaiBoolDefaultFalse>;
+    struct AttributePacketDropTypeIngressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeIngressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeIngressList>;
+    struct AttributePacketDropTypeEgressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeEgressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeEgressList>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    using LinkUpDebounceTimeout = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LINK_UP_DEBOUNCE_TIMEOUT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+
+#if defined(SAI_BRCM_PAI_IMPL)
+    struct AttributeSyncLockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncLock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncLockWrapper,
+        SaiPointerDefault>;
+
+    struct AttributeSyncUnlockWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SyncUnlock = SaiExtensionAttribute<
+        sai_pointer_t,
+        AttributeSyncUnlockWrapper,
+        SaiPointerDefault>;
+#endif
   };
+
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
   using CreateAttributes = std::tuple<
@@ -970,6 +1025,7 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MaxSwitchId>,
       std::optional<Attributes::SflowAggrNofSamples>,
       std::optional<Attributes::SdkRegDumpLogPath>,
+      std::optional<Attributes::SdkDumpRateLimitWindow>,
       std::optional<Attributes::FirmwareObjectList>,
       std::optional<Attributes::TcRateLimitList>,
       std::optional<Attributes::PfcTcDldTimerGranularityInterval>,
@@ -982,7 +1038,18 @@ struct SaiSwitchTraits {
       std::optional<Attributes::PfcMonitorEnable>,
       std::optional<Attributes::CablePropagationDelayMeasurement>,
       std::optional<Attributes::PortCl72RetryEnable>,
-      std::optional<Attributes::SwitchingMode>>;
+      std::optional<Attributes::SwitchingMode>
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      ,
+      std::optional<Attributes::LinkUpDebounceTimeout>
+#endif
+
+#if defined(SAI_BRCM_PAI_IMPL)
+      ,
+      std::optional<Attributes::SyncLock>,
+      std::optional<Attributes::SyncUnlock>
+#endif
+      >;
 
   // Avoid using SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP as that counts
   // both DramPacketError and EgressRcvPacketError. As we now have a
@@ -1055,6 +1122,7 @@ SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
+SAI_ATTRIBUTE_NAME(Switch, PortUserMetaDataRange)
 
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4RouteEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6RouteEntry)
@@ -1159,6 +1227,8 @@ SAI_ATTRIBUTE_NAME(Switch, ArsAvailableFlows)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, SflowAggrNofSamples)
 SAI_ATTRIBUTE_NAME(Switch, SdkRegDumpLogPath)
+SAI_ATTRIBUTE_NAME(Switch, SdkDumpRateLimitWindow)
+SAI_ATTRIBUTE_NAME(Switch, SdkDumpSuppressedCount)
 SAI_ATTRIBUTE_NAME(Switch, FirmwareObjectList)
 SAI_ATTRIBUTE_NAME(Switch, TcRateLimitList)
 SAI_ATTRIBUTE_NAME(Switch, PfcTcDldTimerGranularityInterval)
@@ -1177,13 +1247,22 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
 SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SAI_ATTRIBUTE_NAME(Switch, LinkUpDebounceTimeout)
+#endif
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeIngressList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeEgressList)
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL)
+SAI_ATTRIBUTE_NAME(Switch, SyncLock)
+SAI_ATTRIBUTE_NAME(Switch, SyncUnlock)
+#endif
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
 

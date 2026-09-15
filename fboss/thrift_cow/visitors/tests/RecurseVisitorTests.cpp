@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
+#include "fboss/thrift_cow/visitors/tests/VisitorTestUtils.h"
 
 using folly::dynamic;
 using namespace facebook::fboss;
@@ -46,7 +47,7 @@ folly::dynamic createTestDynamic() {
           "listOfStruct", dynamic::array())("strMap", dynamic::object())(
           "structMap", dynamic::object())("childSet", dynamic::array()))(
       "hybridMapOfI32ToStruct", dynamic::object())(
-      "hybridMapOfMap", dynamic::object());
+      "hybridMapOfMap", dynamic::object())("recursiveMember", dynamic::array());
 }
 
 TestStruct createTestStruct(folly::dynamic testDyn) {
@@ -139,7 +140,8 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
       {{"setOfI32"}, dynamic::array()},
       {{"setOfString"}, dynamic::array()},
       {{"mapA"}, dynamic::object()},
-      {{"mapB"}, dynamic::object()}};
+      {{"mapB"}, dynamic::object()},
+      {{"recursiveMember"}, dynamic::array()}};
 
   std::map<std::vector<std::string>, folly::dynamic> hybridNodes = {
       {{"mapOfEnumToStruct", "3"}, testDyn["mapOfEnumToStruct"][3]}};
@@ -179,6 +181,112 @@ TYPED_TEST(RecurseVisitorTests, TestFullRecurse) {
   for (auto& [path, dyn] : expected) {
     EXPECT_EQ(dyn, visited[path])
         << "Path /" << folly::join('/', path) << " does not match expected";
+  }
+}
+
+TYPED_TEST(RecurseVisitorTests, RecurseIntoRecursiveStruct) {
+  // Populate TestStruct.recursiveMember with a self-referential hierarchy and
+  // assert the RecurseVisitor descends through the recursion to the deep leaves
+  // under both storage modes. This complements TestFullRecurse, which only
+  // exercises an empty recursiveMember list.
+  auto structA = createTestStruct(createTestDynamic());
+  structA.recursiveMember()->push_back(makeRecursiveStruct());
+
+  auto nodeA = this->initNode(structA);
+  std::map<std::vector<std::string>, folly::dynamic> visited;
+  auto processPath = [&visited](SimpleTraverseHelper& traverser, auto&& node) {
+    folly::dynamic dyn = node->toFollyDynamic();
+    visited.emplace(traverser.path(), dyn);
+  };
+
+  SimpleTraverseHelper traverser;
+  RootRecurseVisitor::visit(
+      traverser,
+      nodeA,
+      RecurseVisitOptions(
+          RecurseVisitMode::LEAVES,
+          RecurseVisitOrder::PARENTS_FIRST,
+          false /* outputIdPaths */,
+          true /* hybridNodeShallowTraversal */),
+      std::move(processPath));
+
+  // recursiveMember is an unannotated list<RecursiveStruct> (pure COW), so its
+  // leaf set is identical under both storage modes. Assert the EXACT set of
+  // leaves under recursiveMember/* (structure derived from the schema, values
+  // from makeRecursiveStruct) rather than probing a few. This way a regression
+  // that drops the intentionally-empty children[0] branch, fails to descend
+  // into the nested simpleMember struct, or emits spurious/duplicate paths is
+  // caught -- matching the exhaustive style of TestFullRecurse/TestLeafRecurse.
+  std::map<std::vector<std::string>, folly::dynamic> recursiveLeaves;
+  for (const auto& entry : visited) {
+    if (!entry.first.empty() && entry.first.front() == "recursiveMember") {
+      recursiveLeaves.insert(entry);
+    }
+  }
+
+  // L4PortRange = {min, max, invert=false}; RecursiveStruct = {name,
+  // simpleMember, children}. All non-optional, so defaulted fields still
+  // appear.
+  const std::map<std::vector<std::string>, folly::dynamic> expected = {
+      {{"recursiveMember", "0", "name"}, ""},
+      {{"recursiveMember", "0", "simpleMember", "min"}, 11},
+      {{"recursiveMember", "0", "simpleMember", "max"}, 0},
+      {{"recursiveMember", "0", "simpleMember", "invert"}, false},
+      // children[0] is intentionally left empty (all-default) by
+      // makeRecursiveStruct.
+      {{"recursiveMember", "0", "children", "0", "name"}, ""},
+      {{"recursiveMember", "0", "children", "0", "simpleMember", "min"}, 0},
+      {{"recursiveMember", "0", "children", "0", "simpleMember", "max"}, 0},
+      {{"recursiveMember", "0", "children", "0", "simpleMember", "invert"},
+       false},
+      {{"recursiveMember", "0", "children", "1", "name"}, "childName"},
+      {{"recursiveMember", "0", "children", "1", "simpleMember", "min"}, 0},
+      {{"recursiveMember", "0", "children", "1", "simpleMember", "max"}, 0},
+      {{"recursiveMember", "0", "children", "1", "simpleMember", "invert"},
+       false},
+      {{"recursiveMember", "0", "children", "1", "children", "0", "name"}, ""},
+      {{"recursiveMember",
+        "0",
+        "children",
+        "1",
+        "children",
+        "0",
+        "simpleMember",
+        "min"},
+       22},
+      {{"recursiveMember",
+        "0",
+        "children",
+        "1",
+        "children",
+        "0",
+        "simpleMember",
+        "max"},
+       0},
+      {{"recursiveMember",
+        "0",
+        "children",
+        "1",
+        "children",
+        "0",
+        "simpleMember",
+        "invert"},
+       false},
+  };
+
+  EXPECT_EQ(recursiveLeaves.size(), expected.size());
+  for (const auto& [path, dyn] : expected) {
+    auto it = recursiveLeaves.find(path);
+    ASSERT_NE(it, recursiveLeaves.end())
+        << "expected recursive leaf /" << folly::join('/', path)
+        << " was not visited";
+    EXPECT_EQ(it->second, dyn)
+        << "recursive leaf /" << folly::join('/', path) << " value mismatch";
+  }
+  for (const auto& entry : recursiveLeaves) {
+    EXPECT_TRUE(expected.count(entry.first))
+        << "unexpected recursive leaf /" << folly::join('/', entry.first)
+        << " was visited";
   }
 }
 

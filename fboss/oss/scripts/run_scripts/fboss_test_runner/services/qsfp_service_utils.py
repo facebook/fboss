@@ -5,7 +5,7 @@
 
 from fboss_test_runner.services import service_utils
 
-_DEFAULT_OSS_QSFP_SERVICE_PATH = "/opt/fboss/bin/qsfp_service"
+_DEFAULT_OSS_QSFP_SERVICE_BINARY = "qsfp_service"
 _PLATFORM_MAPPING_OVERRIDE_PATH_ARG = "--platform_mapping_override_path"
 _BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG = "--bsp_platform_mapping_override_path"
 _DEFAULT_QSFP_SERVICE_VOLATIRE_DIR = "/dev/shm/fboss/qsfp_service"
@@ -27,8 +27,9 @@ def _setup_qsfp_service(
 ) -> None:
     print(f"Setting up {_QSFP_SERVICE_OSS}")
 
-    qsfp_service_bin_path = _DEFAULT_OSS_QSFP_SERVICE_PATH
-    service_utils.validate_path(qsfp_service_bin_path, "qsfp_service binary")
+    qsfp_service_bin_path = service_utils.resolve_binary(
+        _DEFAULT_OSS_QSFP_SERVICE_BINARY, "qsfp_service binary"
+    )
 
     if not qsfp_service_config_path:
         raise Exception(f"qsfp_service config path: {qsfp_service_config_path} is None")

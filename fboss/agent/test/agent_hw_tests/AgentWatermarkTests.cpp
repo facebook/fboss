@@ -48,6 +48,12 @@ class AgentWatermarkTest : public AgentHwTest {
     FLAGS_disable_neighbor_solicitation = true;
   }
 
+  // Only the switch under test has ports configured under the multi_switch
+  // harness; scope watermark checks to it (no-op for single-switch agents).
+  std::set<SwitchID> switchIdsUnderTest() const {
+    return {getCurrentSwitchIdForTesting()};
+  }
+
   folly::IPAddressV6 kDestIp2() const {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
   }
@@ -401,7 +407,7 @@ TEST_F(AgentWatermarkTest, VerifyNonDefaultQueue) {
 TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
   auto setup = [this]() { _setup(true); };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto portToSendTraffic =
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0];
       auto minPktsForLineRate =
@@ -426,7 +432,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
 TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
   auto setup = [this]() {
     _setup(true);
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto minPktsForLineRate = getAgentEnsemble()->getMinPktsForLineRate(
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0]);
       // Sending traffic on 2 queues
@@ -447,7 +453,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     }
   };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       auto queueIdGold =
           utility::getOlympicQueueId(utility::OlympicQueueType::GOLD);
       auto queueIdSilver =
@@ -511,7 +517,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
   auto setup = [this]() { _setup(false); };
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    for (const auto& switchId : switchIdsUnderTest()) {
       const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
       /*
        * This test ensures that the queue watermark reported is accurate.

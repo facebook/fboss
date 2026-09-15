@@ -344,13 +344,13 @@ TEST_F(LinkTest, xPhyInfoTest) {
           ASSERT_EVENTUALLY_TRUE(phyInfo.has_value())
               << getPortName(port) << " has no xphy info.";
           ASSERT_EVENTUALLY_GE(
-              phyInfo->state()->get_timeCollected() -
-                  phyInfoBefore[port].state()->get_timeCollected(),
+              phyInfo->state()->timeCollected().value() -
+                  phyInfoBefore[port].state()->timeCollected().value(),
               kSecondsBetweenSnapshots)
               << getPortName(port) << " has no updated xphy state.";
           ASSERT_EVENTUALLY_GE(
-              phyInfo->stats()->get_timeCollected() -
-                  phyInfoBefore[port].stats()->get_timeCollected(),
+              phyInfo->stats()->timeCollected().value() -
+                  phyInfoBefore[port].stats()->timeCollected().value(),
               kSecondsBetweenSnapshots)
               << getPortName(port) << " has no updated xphy stats.";
           phyInfoAfter.emplace(port, *phyInfo);
@@ -451,14 +451,14 @@ TEST_F(LinkTest, verifyIphyFecCounters) {
                                    .rsFec()
                                    .value_or({});
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_correctedBits(),
-              fecStatsBefore.get_correctedBits());
+              fecStatsAfter.correctedBits().value(),
+              fecStatsBefore.correctedBits().value());
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_correctedCodewords(),
-              fecStatsBefore.get_correctedCodewords());
+              fecStatsAfter.correctedCodewords().value(),
+              fecStatsBefore.correctedCodewords().value());
           EXPECT_EVENTUALLY_GT(
-              fecStatsAfter.get_uncorrectedCodewords(),
-              fecStatsBefore.get_uncorrectedCodewords());
+              fecStatsAfter.uncorrectedCodewords().value(),
+              fecStatsBefore.uncorrectedCodewords().value());
         }
       });
 }
@@ -551,22 +551,22 @@ TEST_F(LinkTest, verifyIphyFecBerCounters) {
 
         // Expect no uncorrected codewords
         EXPECT_EQ(
-            rsFecNow->get_uncorrectedCodewords(),
-            rsFecBefore->get_uncorrectedCodewords());
+            rsFecNow->uncorrectedCodewords().value(),
+            rsFecBefore->uncorrectedCodewords().value());
         // Expect pre-FEC BER to be lower than e-5 (or 5.0e-7 for stress test)
         // TODO: Make the threshold stricter once
         // 1) we start using a SAI version that supports FEC corrected bits.
         // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
         // approximate pre-FEC BER using FEC corrected codewords.
         // 2) we cleanup existing bad links in the lab
-        EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
+        EXPECT_LT(rsFecNow->preFECBer().value(), preFecBerThreshold);
         // If there were corrected codewords in the interval, expect pre-FEC
         // BER non-zero
         bool hasCorrectedCodewords =
             folly::copy(rsFecNow->correctedCodewords().value()) !=
             folly::copy(rsFecBefore->correctedCodewords().value());
         if (hasCorrectedCodewords) {
-          EXPECT_NE(rsFecNow->get_preFECBer(), 0);
+          EXPECT_NE(rsFecNow->preFECBer().value(), 0);
         }
         // If the codewordStats is supported, it should either have 8 keys or
         // 16. For Rs528, there are 7 codeword bins. For Rs544, there are 15.

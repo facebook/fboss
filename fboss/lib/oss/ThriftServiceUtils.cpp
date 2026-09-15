@@ -33,10 +33,19 @@ folly::EventBase::Options getEpollEventBaseOptions() {
       });
 }
 
-// EventBaseManager that creates EventBases with EpollBackend
+// EventBaseManager that creates EventBases with EpollBackend.
+//
+// Intentionally leaked. The ThriftIO threads below register their EventBases
+// with this manager and can still be running at process exit. A function local
+// static is destroyed by the exit handlers, and ~EventBaseManager tears down
+// those thread local EventBases while a ThriftIO thread is still driving one,
+// tripping the prevLoopTid CHECK in folly::EventBase and aborting an otherwise
+// clean shutdown. folly's own global EventBaseManager is leaked for the same
+// reason, see EventBaseManager::get().
 folly::EventBaseManager& getEpollEventBaseManager() {
-  static folly::EventBaseManager manager(getEpollEventBaseOptions());
-  return manager;
+  static auto* manager =
+      new folly::EventBaseManager(getEpollEventBaseOptions());
+  return *manager;
 }
 #endif
 } // namespace

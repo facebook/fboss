@@ -90,6 +90,43 @@ Table::Style CmdShowFabricTopology::getSymmetryStyle(bool isSymmetric) const {
   return isSymmetric ? Table::Style::GOOD : Table::Style::ERROR;
 }
 
+std::string_view CmdShowFabricTopologyTraits::description() {
+  return "Displays the fabric topology from a fabric switch's view: per virtual device, the number of connections and the remote interface switch reached, with the connecting fabric ports. DSF-only, and specifically FDSW-only — it works on fabric switches (FDSW), not on rack switches (RDSW).";
+}
+
+CmdShowFabricTopology::RetType CmdShowFabricTopology::sampleModel() {
+  RetType model;
+
+  cli::FabricVirtualDeviceTopology entry1;
+  entry1.virtualDeviceId() = 0;
+  entry1.numConnections() = 1;
+  entry1.remoteSwitchId() = 0;
+  entry1.remoteSwitchName() = "rdsw001";
+  entry1.connectingPorts() = {"fab1/1/4"};
+  entry1.isSymmetric() = true;
+  model.virtualDeviceTopology()->push_back(entry1);
+
+  cli::FabricVirtualDeviceTopology entry2;
+  entry2.virtualDeviceId() = 0;
+  entry2.numConnections() = 1;
+  entry2.remoteSwitchId() = 4;
+  entry2.remoteSwitchName() = "rdsw002";
+  entry2.connectingPorts() = {"fab1/1/8"};
+  entry2.isSymmetric() = true;
+  model.virtualDeviceTopology()->push_back(entry2);
+
+  cli::FabricVirtualDeviceTopology entry3;
+  entry3.virtualDeviceId() = 0;
+  entry3.numConnections() = 1;
+  entry3.remoteSwitchId() = 8;
+  entry3.remoteSwitchName() = "rdsw003";
+  entry3.connectingPorts() = {"fab1/9/4"};
+  entry3.isSymmetric() = true;
+  model.virtualDeviceTopology()->push_back(entry3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowFabricTopology, CmdShowFabricTopologyTraits>::run();

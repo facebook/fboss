@@ -394,6 +394,45 @@ class Fboss2IntegrationTest : public ::testing::Test {
       std::chrono::seconds timeout = std::chrono::seconds(120)) const;
 
   /**
+   * Bounds of the VLAN ID window tests may create in. See pickUnusedVlanId().
+   */
+  static constexpr int kTestVlanMin = 2000;
+  static constexpr int kTestVlanMax = 2099;
+
+  /**
+   * Pick a VLAN ID that is unused in the running config and safe to create on
+   * any platform. Returns 0 if nothing is available (caller should GTEST_SKIP).
+   *
+   * Creating a VLAN also creates a backing cfg::Interface, and TunManager
+   * gives every L3 interface its own Linux routing table. On platforms without
+   * enable_1to1_intf_route_table_mapping only tables 1-253 exist, and an
+   * interface that maps outside that range aborts the agent unrecoverably
+   * (T284228086).
+   *
+   * Rather than reproduce TunManager's mapping here, the window is kept narrow
+   * enough that the answer is the same however the agent is configured: the
+   * 2000 interface range starts at table 1, so [2000, 2099] can only ever
+   * consume tables 1-100 — well inside 1-253, and clear of the tables the
+   * 3000 (101+) and 4000 (201+) ranges use. Under
+   * enable_1to1_intf_route_table_mapping the same IDs map to tables 2000-2099,
+   * which are equally fine.
+   *
+   * Candidates are also rejected when the ID is already in use as an intfID by
+   * a different VLAN — VlanManager would then allocate 5000 + vlanId instead,
+   * which is out of range under both mappings.
+   */
+  int pickUnusedVlanId() const;
+
+  /**
+   * Remove a VLAN and its backing interface from the running config and
+   * commit. A no-op when the VLAN is not present.
+   *
+   * Tests that create a VLAN must call this, otherwise the TUN interface the
+   * agent created for it survives in the kernel across agent restarts.
+   */
+  void deleteVlanIfPresent(int vlanId) const;
+
+  /**
    * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
    * return that interface's intfID for use as the IP-in-IP tunnel underlay.
    *
@@ -402,9 +441,9 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * a barebone interface are inserted via VlanManager, the staged config is
    * persisted, and the new intfID is returned.
    *
-   * The VLAN ID 3998 is reserved for tunnel-test use.
+   * Defaults to a VLAN chosen by pickUnusedVlanId().
    */
-  int ensureUnderlayIntfId(int vlanId = 3998) const;
+  int ensureUnderlayIntfId(std::optional<int> vlanId = std::nullopt) const;
 
   /**
    * Return the first IPv6 address (without prefix length) configured on the

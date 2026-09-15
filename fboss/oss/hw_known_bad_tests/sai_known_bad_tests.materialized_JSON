@@ -6029,7 +6029,7 @@
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL"
         }
     ],
-    "chenab/2505.34/2505.34/chenab": [
+    "chenab/2511.36/2511.36/chenab": [
         {
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
@@ -6160,7 +6160,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.verifyDefaultProgramming"
         }
     ],
-    "chenab/2511.36/2511.36/chenab": [
+    "chenab/2605.37/2605.37/chenab": [
         {
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
@@ -9100,7 +9100,7 @@
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
-    "nvda/2505.34/2505.34/spectrum4": [
+    "nvda/2511.36/2511.36/spectrum4": [
         {
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
@@ -9231,7 +9231,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.verifyDefaultProgramming"
         }
     ],
-    "nvda/2511.36/2511.36/spectrum4": [
+    "nvda/2605.37/2605.37/spectrum4": [
         {
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },

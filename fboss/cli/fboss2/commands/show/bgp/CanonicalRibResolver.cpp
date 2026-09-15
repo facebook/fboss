@@ -121,6 +121,7 @@ std::optional<TBgpPath> resolveCanonicalPath(
   assignIfSet(path.aggregator(), dedupPath.aggregator());
   assignIfSet(path.topologyInfo(), dedupPath.topology_info());
   assignIfSet(path.weight(), dedupPath.weight());
+  assignIfSet(path.backup_addr(), dedupPath.backup_addr());
 
   // Peer attribution resolves through the shared peers pool by index.
   if (canonPath.peer_idx().has_value()) {
@@ -151,6 +152,7 @@ std::optional<TBgpPath> resolveCanonicalPath(
   assignIfSet(path.path_id_to_send(), canonPath.path_id_to_send());
   assignIfSet(path.bestpath_filter_descr(), canonPath.bestpath_filter_descr());
   assignIfSet(path.policy_name(), canonPath.policy_name());
+  assignIfSet(path.is_inactive(), canonPath.is_inactive());
 
   return path;
 }

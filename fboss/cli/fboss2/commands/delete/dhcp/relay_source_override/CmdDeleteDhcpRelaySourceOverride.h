@@ -1,0 +1,43 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#pragma once
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+
+namespace facebook::fboss {
+
+struct CmdDeleteDhcpRelaySourceOverrideTraits : public WriteCommandTraits {
+  using ParentCmd = CmdDeleteDhcp;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("family", args, "<family> is one of: ipv4, ipv6")
+        ->required()
+        ->expected(1);
+  }
+  using ObjectArgType = DhcpSourceOverrideDeleteArgs;
+  using RetType = std::string;
+};
+
+class CmdDeleteDhcpRelaySourceOverride
+    : public CmdHandler<
+          CmdDeleteDhcpRelaySourceOverride,
+          CmdDeleteDhcpRelaySourceOverrideTraits> {
+ public:
+  using ObjectArgType = CmdDeleteDhcpRelaySourceOverrideTraits::ObjectArgType;
+  using RetType = CmdDeleteDhcpRelaySourceOverrideTraits::RetType;
+
+  RetType queryClient(const HostInfo& hostInfo, const ObjectArgType& args);
+
+  void printOutput(const RetType& logMsg);
+};
+
+} // namespace facebook::fboss

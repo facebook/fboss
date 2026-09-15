@@ -1,20 +1,33 @@
 #!/bin/bash
-# partx wrapper: uses kpartx as fallback when the kernel can't create
-# partition device nodes natively.
+# partx wrapper: creates partition device nodes when the kernel cannot.
 #
-# In Sandcastle containers, /dev is a tmpfs (not the host's devtmpfs).
-# When partx tells the kernel to create partition devices, they land on the
-# real host devtmpfs and are invisible to the container. kpartx sidesteps
-# this by using device-mapper + mknod in userspace, creating /dev/mapper/*
-# entries directly on the container's visible /dev.
+# In Sandcastle containers /dev is a tmpfs, no udev runs, and the loop driver
+# is loaded with max_part=0, so "partx --add" never produces /dev/loopNpM.
+# Fall back through the remaining mechanisms, most-supported first:
+#
+#   1. kpartx, i.e. device-mapper plus mknod in userspace. Unavailable when
+#      dm_mod is not loaded on the worker, where opening /dev/mapper/control
+#      fails with EPERM.
+#   2. one loop device per partition, bound to the backing file at the
+#      partition offset. Needs only the loop driver.
+#
+# Fallback 2 hands KIWI a symlink to an independent loop device rather than a
+# real partition of $device, so the two share no block device. Flush before
+# detaching, and do not assume tools can walk from the node back to the disk.
 #
 # Usage: install as /usr/sbin/partx after renaming the real partx to
 #        /usr/sbin/partx.real.
 
 LOG=/tmp/partx_wrapper.log
-echo "=== partx_wrapper called: $* ===" >> "$LOG"
+STATE_DIR=/tmp/partx_wrapper.state
 
-REAL_PARTX=$(which partx.real 2>/dev/null || echo /usr/sbin/partx.real)
+log() {
+    echo "$*" >>"$LOG"
+}
+
+log "=== partx_wrapper called: $* ==="
+
+REAL_PARTX=$(command -v partx.real 2>/dev/null || echo /usr/sbin/partx.real)
 
 # Find the device argument and operation type
 device=
@@ -27,42 +40,96 @@ for arg in "$@"; do
     esac
 done
 
-[ -z "$device" ] && { echo "no device found in args" >> $LOG; exit 1; }
+[ -z "$device" ] && { log "no device found in args"; exit 1; }
+
+loopname=$(basename "$device")
+state="${STATE_DIR}/${loopname}"
+
+# Detach the per-partition loop devices recorded by fallback 2, if any.
+detach_children() {
+    [ -f "$state" ] || return 0
+    while read -r child; do
+        [ -n "$child" ] || continue
+        blockdev --flushbufs "$child" 2>>"$LOG" || true
+        losetup -d "$child" 2>>"$LOG" || true
+        log "  detached $child"
+    done <"$state"
+    rm -f "$state"
+}
 
 # For non-add/delete operations (--show, --list, etc.), pass through directly
 if [ "$op" != "add" ] && [ "$op" != "delete" ]; then
-    echo "passthrough: forwarding to real partx" >> $LOG
-    "$REAL_PARTX" "$@" 2>>$LOG
+    log "passthrough: forwarding to real partx"
+    "$REAL_PARTX" "$@" 2>>"$LOG"
     exit $?
 fi
 
-# For --delete calls, remove kpartx mappings and symlinks
+# For --delete calls, tear down every mapping this wrapper may have created
 if [ "$op" = "delete" ]; then
-    echo "delete: removing kpartx mappings for $device" >> $LOG
-    kpartx -d "$device" 2>>$LOG || true
-    loopname=$(basename "$device")
+    log "delete: removing mappings for $device"
+    detach_children
+    kpartx -d "$device" 2>>"$LOG" || true
     rm -f /dev/"${loopname}"p* 2>/dev/null
-    "$REAL_PARTX" "$@" 2>>$LOG || true
+    "$REAL_PARTX" "$@" 2>>"$LOG" || true
     exit 0
 fi
 
 # For --add calls: try real partx first
-loopname=$(basename "$device")
-"$REAL_PARTX" "$@" 2>>$LOG || true
+"$REAL_PARTX" "$@" 2>>"$LOG" || true
 if ls /dev/"${loopname}"p* >/dev/null 2>&1; then
-    echo "real partx created partition devices" >> $LOG
+    log "real partx created partition devices"
     exit 0
 fi
 
-# Fallback: use kpartx to create device-mapper entries
-echo "using kpartx fallback for $device" >> $LOG
-kpartx -av "$device" >> $LOG 2>&1
+# Fallback 1: use kpartx to create device-mapper entries, symlinked where
+# KIWI expects them
+log "using kpartx fallback for $device"
+if kpartx -av "$device" >>"$LOG" 2>&1; then
+    created=
+    for dm in /dev/mapper/"${loopname}"p*; do
+        [ -e "$dm" ] || continue
+        pnum="${dm##*p}"
+        ln -sf "$dm" "/dev/${loopname}p${pnum}"
+        log "  CREATED: /dev/${loopname}p${pnum} -> $dm"
+        created=yes
+    done
+    [ -n "$created" ] && exit 0
+fi
 
-# Symlink /dev/mapper/loopNpM -> /dev/loopNpM where KIWI expects them
-for dm in /dev/mapper/"${loopname}"p*; do
-    [ -e "$dm" ] || continue
-    pnum="${dm##*p}"
-    ln -sf "$dm" "/dev/${loopname}p${pnum}"
-    echo "  CREATED: /dev/${loopname}p${pnum} -> $dm" >> $LOG
-done
+# Fallback 2: bind one loop device per partition. partx reads the partition
+# table with libblkid, so it still reports the layout the kernel refused to
+# instantiate.
+log "using loop-offset fallback for $device"
+
+backing=$(losetup -nO BACK-FILE "$device" 2>>"$LOG")
+if [ -z "$backing" ]; then
+    log "  ERROR: no backing file found for $device"
+    exit 1
+fi
+
+sector_size=$(blockdev --getss "$device" 2>/dev/null || echo 512)
+
+mkdir -p "$STATE_DIR"
+: >"$state"
+
+"$REAL_PARTX" -g -o NR,START,SECTORS -r "$device" 2>>"$LOG" |
+    while read -r pnum start sectors; do
+        [ -n "$pnum" ] || continue
+        offset=$((start * sector_size))
+        size=$((sectors * sector_size))
+        child=$(losetup -f --show -o "$offset" --sizelimit "$size" \
+            "$backing" 2>>"$LOG")
+        if [ -z "$child" ]; then
+            log "  ERROR: losetup failed for partition ${pnum}"
+            continue
+        fi
+        echo "$child" >>"$state"
+        ln -sf "$child" "/dev/${loopname}p${pnum}"
+        log "  CREATED: /dev/${loopname}p${pnum} -> $child (offset ${offset}, size ${size})"
+    done
+
+if ! ls /dev/"${loopname}"p* >/dev/null 2>&1; then
+    log "  ERROR: no partition devices could be created for $device"
+    exit 1
+fi
 exit 0

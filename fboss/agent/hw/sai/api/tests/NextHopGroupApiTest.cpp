@@ -38,12 +38,15 @@ class NextHopGroupApiTest : public ::testing::Test {
   }
 
   NextHopGroupSaiId createNextHopGroup(
-      const sai_next_hop_group_type_t nextHopGroupType) const {
+      const sai_next_hop_group_type_t nextHopGroupType,
+      std::optional<SaiNextHopGroupTraits::Attributes::SplitHorizonEnable>
+          splitHorizonEnable = std::nullopt) const {
     return nextHopGroupApi->create<SaiNextHopGroupTraits>(
         {nextHopGroupType,
          kArsObjectId(),
          kHashAlgorithm(),
-         kHierarchicalNextHop()},
+         kHierarchicalNextHop(),
+         splitHorizonEnable},
         0);
   }
 
@@ -52,7 +55,16 @@ class NextHopGroupApiTest : public ::testing::Test {
       const sai_object_id_t nextHopId,
       const sai_uint32_t nextHopWeight) const {
     return nextHopGroupApi->create<SaiNextHopGroupMemberTraits>(
-        {nextHopGroupId, nextHopId, nextHopWeight}, 0);
+        {nextHopGroupId,
+         nextHopId,
+         nextHopWeight
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+         ,
+         std::nullopt,
+         std::nullopt
+#endif
+        },
+        0);
   }
 
   void checkNextHopGroup(const sai_object_id_t& nextHopGroupId) const {
@@ -251,6 +263,52 @@ TEST_F(NextHopGroupApiTest, formatNextHopGroupAttributes) {
   EXPECT_EQ("HashAlgorithm: 2", fmt::format("{}", h));
   SaiNextHopGroupTraits::Attributes::HierarchicalNextHop hnh{false};
   EXPECT_EQ("HierarchicalNextHop: false", fmt::format("{}", hnh));
+  SaiNextHopGroupTraits::Attributes::SplitHorizonEnable sh{true};
+  EXPECT_EQ("SplitHorizonEnable: true", fmt::format("{}", sh));
+  SaiNextHopGroupTraits::Attributes::ArsFailPktCount fpc{42};
+  EXPECT_EQ("ArsFailPktCount: 42", fmt::format("{}", fpc));
+  SaiNextHopGroupTraits::Attributes::ArsPortReassignCount prc{7};
+  EXPECT_EQ("ArsPortReassignCount: 7", fmt::format("{}", prc));
+}
+
+TEST_F(NextHopGroupApiTest, arsFailPktCount) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_EQ(
+      0,
+      nextHopGroupApi->getAttribute(
+          nextHopGroupId,
+          SaiNextHopGroupTraits::Attributes::ArsFailPktCount{}));
+}
+
+TEST_F(NextHopGroupApiTest, arsPortReassignCount) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_EQ(
+      0,
+      nextHopGroupApi->getAttribute(
+          nextHopGroupId,
+          SaiNextHopGroupTraits::Attributes::ArsPortReassignCount{}));
+}
+
+TEST_F(NextHopGroupApiTest, splitHorizonEnable) {
+  auto nextHopGroupId = createNextHopGroup(
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP,
+      SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{true});
+  EXPECT_TRUE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
+
+  nextHopGroupApi->setAttribute(
+      nextHopGroupId,
+      SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{false});
+  EXPECT_FALSE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
+}
+
+// Not asking for the attribute at create must leave it off, so adapters that
+// do not implement it are never sent it.
+TEST_F(NextHopGroupApiTest, splitHorizonEnableUnsetByDefault) {
+  auto nextHopGroupId = createNextHopGroup(SAI_NEXT_HOP_GROUP_TYPE_ECMP);
+  EXPECT_FALSE(nextHopGroupApi->getAttribute(
+      nextHopGroupId, SaiNextHopGroupTraits::Attributes::SplitHorizonEnable{}));
 }
 
 TEST_F(NextHopGroupApiTest, formatNextHopGroupMemberAttributes) {

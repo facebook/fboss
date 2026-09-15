@@ -121,6 +121,21 @@
       "metadata": ""
     },
     {
+      "action": "FbossCtrl.addNamedNextHopGroups",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "ONCALL",
+            "id_data": "fboss_agent"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
       "action": "FbossCtrl.addOrUpdateNamedNextHopGroups",
       "entries": [
         {
@@ -136,7 +151,7 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.addOrUpdatePolicies",
+      "action": "FbossCtrl.addPolicies",
       "entries": [
         {
           "identity": {
@@ -475,7 +490,7 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.removePolicies",
+      "action": "FbossCtrl.deletePolicies",
       "entries": [
         {
           "identity": {

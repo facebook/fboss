@@ -20,6 +20,7 @@
 #include <folly/IPAddress.h>
 
 DECLARE_bool(enable_capacity_pruning);
+DECLARE_bool(enable_fpf_capacity_pruning);
 namespace facebook::fboss {
 class NextHopIDManager;
 
@@ -57,6 +58,7 @@ class RibRouteUpdater {
       IPv6NetworkToRouteMap* v6Routes,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable,
+      uint32_t ecmpWidth,
       RouterID routerID = RouterID(0));
 
   RibRouteUpdater(
@@ -65,6 +67,7 @@ class RibRouteUpdater {
       LabelToRouteMap* mplsRoutes,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable,
+      uint32_t ecmpWidth,
       RouterID routerID = RouterID(0));
 
   struct RouteEntry {
@@ -206,6 +209,8 @@ class RibRouteUpdater {
       const std::optional<TunnelType>& tunnelType,
       const std::optional<std::string>& tunnelId,
       const std::optional<int64_t>& cost,
+      NextHopRole role,
+      std::optional<RouteCounterID>* inheritedCounterID,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
@@ -224,6 +229,7 @@ class RibRouteUpdater {
   LabelToRouteMap* mplsRoutes_{nullptr};
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  uint32_t ecmpWidth_;
   RouterID routerID_{0};
   std::unordered_set<void*> needsResolution_;
   std::unordered_set<void*> resolving_;
@@ -233,7 +239,11 @@ class RibRouteUpdater {
    * its pretty common for the same next hops to repeat, so
    * cache resolution
    */
-  std::map<RouteNextHopSet, RouteNextHopSet> unresolvedToResolvedNhops_;
+  struct ResolvedForwardInfo {
+    RouteNextHopSet nextHops;
+    std::optional<RouteCounterID> counterID;
+  };
+  std::map<RouteNextHopSet, ResolvedForwardInfo> unresolvedToResolvedNhops_;
   RibRouteWeightNormalizer weightNormalizer_;
 };
 

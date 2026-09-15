@@ -8,6 +8,7 @@ set(
     "fboss/lib/asic_config_v3/__init__.py"
     "fboss/lib/asic_config_v3/base_generator.py"
     "fboss/lib/asic_config_v3/gen.py"
+    "fboss/lib/asic_config_v3/paths.py"
     "fboss/lib/asic_config_v3/generators/__init__.py"
     "fboss/lib/asic_config_v3/generators/broadcom_xgs_generator.py"
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"

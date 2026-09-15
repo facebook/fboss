@@ -51,6 +51,31 @@ void CmdShowFabricReachabilityUncached::printOutput(
   CmdShowFabricReachability::printOutput(model, out);
 }
 
+std::string_view CmdShowFabricReachabilityUncachedTraits::description() {
+  return "Displays, per remote switch, how many and which local fabric ports can reach it, read directly from hardware instead of the agent's cached reachability data. Use it when the cached reachability information is suspected to be stale. DSF-only — applies to DSF switches and returns data only in a DSF topology.";
+}
+
+CmdShowFabricReachabilityUncached::RetType
+CmdShowFabricReachabilityUncached::sampleModel() {
+  RetType model;
+
+  cli::ReachabilityEntry entry;
+  entry.switchName() = "rdsw015";
+  entry.reachablePorts() = {
+      "fab1/33/1",
+      "fab1/33/2",
+      "fab1/33/3",
+      "fab1/33/4",
+      "fab1/34/1",
+      "fab1/34/2",
+      "fab1/34/3",
+      "fab1/34/4",
+  };
+  model.reachabilityEntries()->push_back(entry);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void CmdHandler<
     CmdShowFabricReachabilityUncached,

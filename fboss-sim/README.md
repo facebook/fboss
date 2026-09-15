@@ -48,25 +48,38 @@ a user-defined IPv6-enabled Docker network (`fboss_sim_net_${USER}`, subnet `fd0
 
 **Monolithic mode**: single `wedge_agent` process.
 ```bash
-docker exec fboss_sim_runtime_${USER} switch-agent-mode.sh mono
+sudo docker exec fboss_sim_runtime_${USER} switch-agent-mode.sh mono
 ```
 
 ## Useful Commands
 
-```bash
-# Check agent status
-docker exec fboss_sim_runtime_${USER} systemctl status fboss_sw_agent
-docker exec fboss_sim_runtime_${USER} systemctl status fboss_hw_agent@0
+Each agent unit writes to its own log file, so concurrent crash traces from the sw
+and hw agents don't interleave into one file.
 
-# View agent logs
-docker exec fboss_sim_runtime_${USER} tail -f /var/facebook/logs/fboss/wedge_agent.log
+| Mode | Unit | Log file |
+|------|------|----------|
+| split | `fboss_sw_agent` | `/var/facebook/logs/fboss/sw_agent.log` |
+| split | `fboss_hw_agent@N` | `/var/facebook/logs/fboss/hw_agent<N>.log` |
+| mono | `wedge_agent` | `/var/facebook/logs/fboss/wedge_agent.log` |
+
+```bash
+# Check agent status (split mode)
+sudo docker exec fboss_sim_runtime_${USER} systemctl status fboss_sw_agent
+sudo docker exec fboss_sim_runtime_${USER} systemctl status fboss_hw_agent@0
+
+# View agent logs (split mode)
+sudo docker exec fboss_sim_runtime_${USER} tail -f /var/facebook/logs/fboss/sw_agent.log
+sudo docker exec fboss_sim_runtime_${USER} tail -f /var/facebook/logs/fboss/hw_agent0.log
 
 # Run FBOSS CLI
-docker exec fboss_sim_runtime_${USER} /opt/fboss/bin/fboss2 show interface
+sudo docker exec fboss_sim_runtime_${USER} /opt/fboss/bin/fboss2 show interface
 
 # Open a shell
-docker exec -it fboss_sim_runtime_${USER} bash
+sudo docker exec -it fboss_sim_runtime_${USER} bash
 ```
+
+`fboss-sim-docker-run.py --help` prints this command list too, along with the
+`--local` options.
 
 ## Architecture
 

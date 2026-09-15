@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 
 oncall("fboss_agent_push")
 
@@ -8,6 +9,7 @@ cpp_unittest(
         "facebook/BitsflowAclTest.cpp",
         "facebook/BitsflowHelperTest.cpp",
     ],
+    network_access = network_access_utils.all(),
     deps = [
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//configerator/structs/neteng/fboss/bitsflow:bitsflow-cpp2-types",

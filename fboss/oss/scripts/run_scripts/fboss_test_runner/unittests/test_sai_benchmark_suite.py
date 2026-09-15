@@ -33,15 +33,12 @@ def sai_args():
 
 
 def test_binary_mono(suite, sai_args):
-    assert suite.binary_path(sai_args) == "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
+    assert suite.binary_name(sai_args) == "sai_all_benchmarks-sai_impl"
 
 
 def test_binary_multi_switch(suite, sai_args):
     sai_args.agent_run_mode = "multi_switch"
-    assert (
-        suite.binary_path(sai_args)
-        == "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
-    )
+    assert suite.binary_name(sai_args) == "sai_multi_switch_all_benchmarks-sai_impl"
 
 
 # ---- build_cmd -----------------------------------------------------------
@@ -81,6 +78,18 @@ def test_build_cmd_with_config(suite, sai_args):
     cmd = suite.build_cmd("/bin/b", sai_args)
     assert "--config" in cmd and "/path/cfg" in cmd
     assert "--mgmt-if" in cmd and "eth1" in cmd
+
+
+def test_build_cmd_with_switch_id_for_testing_included(suite, sai_args):
+    sai_args.switch_id_for_testing = 1
+    cmd = suite.build_cmd("/bin/b", sai_args)
+    assert "--switch_id_for_testing=1" in cmd
+
+
+def test_build_cmd_with_switch_id_for_testing_excluded(suite, sai_args):
+    sai_args.switch_id_for_testing = None
+    cmd = suite.build_cmd("/bin/b", sai_args)
+    assert not any("switch_id_for_testing" in item for item in cmd)
 
 
 # ---- known_bad_keys ------------------------------------------------------

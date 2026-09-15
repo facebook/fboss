@@ -447,7 +447,7 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
           break;
         }
         auto prbsStats = stats[testPort.portName];
-        if (prbsStats.get_timeCollected() <= timeReference) {
+        if (prbsStats.timeCollected().value() <= timeReference) {
           updated = false;
           break;
         }
@@ -500,20 +500,22 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
           folly::copy(laneStat.ber().value()),
           folly::copy(laneStat.maxBer().value()),
           folly::copy(laneStat.timeSinceLastLocked().value()));
-      EXPECT_TRUE(laneStat.get_locked());
+      EXPECT_TRUE(folly::copy(laneStat.locked().value()));
       auto currentTime = std::time(nullptr);
       EXPECT_LE(
-          laneStat.get_timeSinceLastLocked(), currentTime - testStartTime);
+          laneStat.timeSinceLastLocked().value(), currentTime - testStartTime);
       if (!initial) {
         // These stats may not be valid when initial is true which is when we
         // just enable PRBS
         EXPECT_EQ(laneStat.numLossOfLock().value(), 0);
         auto berThreshold = FLAGS_link_stress_test ? 1e-6 : 1;
         EXPECT_TRUE(
-            laneStat.get_ber() >= 0 && laneStat.get_ber() < berThreshold);
+            laneStat.ber().value() >= 0 &&
+            laneStat.ber().value() < berThreshold);
         EXPECT_TRUE(
-            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < berThreshold);
-        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+            laneStat.maxBer().value() >= 0 &&
+            laneStat.maxBer().value() < berThreshold);
+        EXPECT_TRUE(laneStat.ber().value() <= laneStat.maxBer().value());
       }
     }
   }
@@ -951,6 +953,12 @@ PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR8_800G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_800G, PRBS31Q);
 
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_200G, PRBS31Q);
+
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR2_400G, PRBS31Q);
+
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_800G, PRBS31Q);
+
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
@@ -966,5 +974,11 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(CR8_800G, PRBS31, ASIC, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR8_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_800G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_200G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR2_400G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

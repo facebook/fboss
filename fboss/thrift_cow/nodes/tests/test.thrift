@@ -47,6 +47,12 @@ struct ChildStruct {
   8: optional TestUnion optionalUnion;
 }
 
+struct RecursiveStruct {
+  1: string name;
+  2: switch_config.L4PortRange simpleMember;
+  3: list<RecursiveStruct> children = [];
+}
+
 struct TestStruct {
   1: bool inlineBool;
   2: i32 inlineInt;
@@ -101,6 +107,7 @@ struct TestStruct {
   33: map<i32, map<i32, i32>> hybridMapOfMap;
   @fboss_common.AllowSkipThriftCow
   34: map<i32, set<string>> mapOfI32ToSetOfString;
+  35: list<RecursiveStruct> recursiveMember;
 }
 
 // structs declared to mimic deeper Thrift path accesses

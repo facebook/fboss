@@ -106,12 +106,37 @@ shared helpers (e.g., `helpers::runThriftService()`).
 - **Github PR**: https://github.com/search?q=repo%3Afacebook%2Ffboss+%22Differential+Revision%3A+D91612218%22&type=commits
 - **Severity**: LOW
 
+### L. Preserve the Split-Agent Dependency Boundary
+For changes to `deps`, `exported_deps`, `link_whole`, BUCK macros, or source-less wrapper
+libraries reachable from a production `fboss_hw_agent-*` target, inspect the configured
+`@mode/opt` dependency graph. A new path to `//fboss/agent:core`, `//fboss/agent:handler`, or
+`//fboss/agent:multiswitch_service` is a blocking layering regression.
+- Run `buck2 cquery @mode/opt "somepath(<hw-target>, <forbidden-target>)" --target-universe <hw-target>`.
+- Include the shortest path in the finding and identify the narrow target that owns the required type, header, or symbol.
+- This hard invariant does not apply to `fboss_sw_agent`, monolithic `wedge_agent` binaries, benchmarks, or explicitly test-only targets.
+- Before recommending removal, check static initializers, plugin registration, weak/strong overrides, dynamic loading, and Thrift extra-interface registration. A successful build does not prove behavior is preserved.
+- **Severity**: HIGH
+
+### M. Preserve Agent Executable Symbol Exports
+For each SDK and build mode, identify the runtime consumer and symbol provider. Then check:
+- Plain `opt` exports only needed SDK symbols.
+- Static SDK lists come from exact versioned archives using `llvm-nm --no-sort --defined-only --extern-only -j` and `LC_ALL=C sort -u`; reject manual, globbed, DSO-import, or whole-binary lists.
+- Dynamic SDKs use `DT_NEEDED` libraries unless runtime evidence requires binary exports.
+- Sanitizer builds keep broad exports because link-group DSOs require symbols from the agent binary.
+- Both the HW-agent (`fboss_hw_agent-*`) and wedge-agent (`wedge_agent*`) paths follow this policy and keep SDK version constraints.
+- **Severity**: HIGH
+
+Vendor sources: Broadcom `libxgs_robo.a`; NVIDIA SAI and SX archives; static Leaba 1.42.8 `libsai.a`; dynamic Leaba `libsai.so` and `libsdk.so`.
+
+Require exact plain-`opt` and sanitizer builds. Check `.dynsym` or `DT_NEEDED` as appropriate, runtime loading, relevant boot/ISSU/debug paths, and plain-`opt` hardware jobs. Do not land validation-only diffs.
+
 ### Dispatch Criteria
 Dispatch this reviewer when:
 - Changes touch both SwSwitch AND HwSwitch code paths
 - New state fields are being added to SwitchState
 - New stats/counters are being introduced
-- BUCK target structure is being modified (new targets, library splits)
+- BUCK/Starlark dependencies or target structure are modified, especially `deps`, `exported_deps`, `link_whole`, or generated binary macros
+- Linker exports, dynamic symbol lists, generated agent macros, or SDK wrappers are modified
 - New Thrift client/connection infrastructure is being created
 - Changes span 3+ directories under fboss/
 - Class inheritance hierarchies are being introduced or extended

@@ -15,6 +15,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace facebook {
@@ -107,6 +108,13 @@ enum VdmConfigType {
   Q_MARGIN = 152,
 };
 
+enum class DiagnosticFeatureEncoding : uint8_t {
+  NONE = 0x0,
+  BER = 0x1,
+  SNR = 0x6,
+  LATCHED_BER = 0x11,
+};
+
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
@@ -132,6 +140,12 @@ class CmisModule : public QsfpModule {
   static constexpr int kMediaInterfaceCodeOffset = 1;
   static constexpr int32_t kDefaultFrequencyMhz = 193100000;
   static constexpr uint8_t kInvalidApplication = 0;
+  // CMIS requires 10ms to repopulate page 14h after DIAG_SEL writes
+  static constexpr int kUsecDiagSelectLatchWait = 10000;
+  // Some modules are non-compliant and take 100ms
+  static constexpr std::array<std::string_view, 2> kSlowDiagSelectPartNumbers =
+      {"QDD-400G-XDR4", "FB-P800G-2XDR4-1"};
+  static constexpr int kUsecDiagSelectLatchWaitSlow = 100000;
 
   using ApplicationAdvertisingFields = std::vector<ApplicationAdvertisingField>;
 
@@ -283,11 +297,19 @@ class CmisModule : public QsfpModule {
   // Lower Page 00h byte 70. See cacheMaxNumBanks()/getMaxNumBanks().
   std::optional<uint8_t> maxNumBanks_;
 
+  // Cached <major, minor> CMIS revision the module complies with, read from
+  // Lower Page 00h byte 1. See cacheCmisRevision()/getCmisRevision().
+  std::pair<uint8_t, uint8_t> cmisRevision_{0, 0};
+
   /* Maximum number of CMIS banks supported by the module. Returns 1 until
    * cacheMaxNumBanks() has populated the cache. */
   uint8_t getMaxNumBanks() const {
     return maxNumBanks_.value_or(1);
   }
+
+  /* Whether the bank select register (Lower Page 00h byte 126) cached by the
+   * last refresh names a bank the module doesn't have. */
+  bool hasInvalidBankSelect() const override;
 
   /* A global host/media lane (0..numLanes-1) lives in bank
    * (lane / kMaxOsfpNumLanes); its position within that bank's banked register
@@ -657,6 +679,12 @@ class CmisModule : public QsfpModule {
   std::array<std::string, 3> getFwRevisions();
   FirmwareStatus getFwStatus();
 
+  /* CMIS revision the module complies with, as <major, minor>. Returns {0, 0}
+   * until cacheCmisRevision() has populated the cache. */
+  std::pair<uint8_t, uint8_t> getCmisRevision() const {
+    return cmisRevision_;
+  }
+
   /*
    * Fetches the firmware build number from CDB Get Firmware Info command.
    * Returns the build number if successful, or std::nullopt on failure.
@@ -694,6 +722,26 @@ class CmisModule : public QsfpModule {
 
   virtual void setDiagsCapability() override;
 
+  /*
+   * Populate the Meta custom feature bits (mode mismatch, DSP/laser thermal
+   * margin) advertised in Page 01h Byte 191.
+   */
+  void setCustomFeatureCapability(DiagsCapability& diags);
+
+  /*
+   * Populate the Meta custom latched flags (mode mismatch, negative DSP/laser
+   * thermal margin) from Lower Memory Byte 67.
+   */
+  void setCustomLatchedFlags(ModuleStatus& moduleStatus);
+
+  /*
+   * Whether the module advertises the Meta mode-mismatch feature, which gates
+   * both the Byte 67 latched flag and the per-lane Page 14h registers.
+   */
+  bool isModeMismatchSupported() const;
+
+  ThermalMargins getThermalMargins() override;
+
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() override;
@@ -708,11 +756,6 @@ class CmisModule : public QsfpModule {
    * Trigger next VDM stats capture
    */
   void triggerVdmStatsCapture() override;
-
-  /*
-   * Latch and read VDM data
-   */
-  void latchAndReadVdmDataLocked() override;
 
   bool supportRemediate() override;
 
@@ -807,6 +850,10 @@ class CmisModule : public QsfpModule {
       phy::Side side,
       bool setLoopback) override;
 
+  /* How long this module needs to repopulate page 14h after DIAG_SEL changes,
+   * keyed off the part number. */
+  int getDiagSelLatchWaitUsec() const;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -855,6 +902,12 @@ class CmisModule : public QsfpModule {
    * (i.e. call after the lower page read in updateQsfpData). */
   void cacheMaxNumBanks();
 
+  /* Read the CMIS revision the module complies with from Lower Page 00h byte 1
+   * and cache it in cmisRevision_. The upper nibble is the major number and the
+   * lower nibble the minor number (e.g. 0x50 -> 5.0). Expects the lower page to
+   * be cached (i.e. call after the lower page read in updateQsfpData). */
+  void cacheCmisRevision();
+
   /* Read a banked page for every bank into its per-bank buffer (dest), sized to
    * getMaxNumBanks(). On a single-bank module this is exactly
    * readCmisField(field, dest[0]) (no bank-select write). On a multi-bank (CPO)
@@ -867,6 +920,16 @@ class CmisModule : public QsfpModule {
    * banked page, so DIAG_SEL=SNR is written under each bank's selection before
    * reading. Reads bank 0 last so the module is left selected on bank 0. */
   void readSnrDiagPageLocked(BankedPage& dest);
+
+  /*
+  1. Check if existing diagSel matches the desired one
+  2. If not, write the value and wait for page 14h to repopulate
+   Note that latchWaitUsec overrides getDiagSelLatchWaitUsec().
+  */
+  void setDiagSel(
+      DiagnosticFeatureEncoding diagSel,
+      std::optional<uint8_t> bank = std::nullopt,
+      std::optional<int> latchWaitUsec = std::nullopt);
 
   void getFieldValueLocked(CmisField fieldName, uint8_t* fieldValue) const;
   /*
@@ -1001,6 +1064,32 @@ class CmisModule : public QsfpModule {
 
   void updateVdmCacheLocked();
 
+  /*
+   * Non-blocking VDM ForOds capture handshake, driven once per refresh from
+   * updateCachedTransceiverInfoLocked(). Spreads the freeze across two refresh
+   * cycles so the slow FreezeDone wait never blocks the refresh thread:
+   *   - cycle N: on the StatsPublisher trigger, write FreezeRequest (no wait).
+   *   - cycle N+1: one non-blocking FreezeDone read, then read the frozen pages
+   *     and unfreeze (reading anyway if FreezeDone is still unset).
+   * Returns true on the cycle a frozen snapshot was read (caller refreshes the
+   * ForOds stats that cycle).
+   */
+  bool driveVdmCaptureLocked() override;
+  void requestVdmFreezeLocked();
+  bool finishVdmFreezeReadLocked();
+  // True only when the module is in the READY state (initialized, out of low
+  // power, DSP powered on) so it can process a VDM freeze. Freezing while the
+  // module is still initializing / in low power hangs the latch on some modules
+  // and corrupts VDM intervals, so we gate the freeze request on this.
+  bool isReadyForVdmFreezeLocked();
+  // Reset the async capture state and clear any in-flight freeze (e.g. on a
+  // reprogram/reset while a capture was in progress).
+  void resetVdmCaptureStateLocked();
+  // Low-level VDM freeze helpers shared by the blocking and async paths.
+  void writeVdmFreezeRequestLocked(bool freeze);
+  void readVdmFrozenPagesLocked();
+  bool isVdmFreezeDoneLocked();
+
   void updateCmisStateChanged(
       ModuleStatus& moduleStatus,
       std::optional<ModuleStatus> curModuleStatus = std::nullopt) override;
@@ -1107,8 +1196,6 @@ class CmisModule : public QsfpModule {
   // FEC errors if supported by transceiver.
   void setMaxFecSamplingLocked();
 
-  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
-
   bool supportRemediate_;
   std::map<int32_t, SymErrHistogramBin> getCdbSymbolErrorHistogramLocked(
       uint8_t datapathId,
@@ -1118,6 +1205,12 @@ class CmisModule : public QsfpModule {
       override;
 
   std::time_t vdmIntervalStartTime_{0};
+
+  // Async VDM ForOds capture state (see driveVdmCaptureLocked). IDLE until the
+  // StatsPublisher trigger arms a capture; FREEZE_REQUESTED for the one refresh
+  // between writing FreezeRequest and reading the frozen snapshot.
+  enum class VdmCaptureState { IDLE, FREEZE_REQUESTED };
+  VdmCaptureState vdmCaptureState_{VdmCaptureState::IDLE};
 };
 
 } // namespace fboss

@@ -19,7 +19,6 @@
 namespace facebook::fboss {
 class HwSwitch;
 class Platform;
-class HwSwitchEnsemble;
 namespace utility {
 bool portEnabled(const HwSwitch* hw, PortID port);
 cfg::PortSpeed currentPortSpeed(const HwSwitch* hw, PortID port);
@@ -91,6 +90,6 @@ void verifyFec(
 
 void enableSixtapProgramming();
 
-bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up);
+bool verifyLedStatus(Platform* platform, PortID port, bool up);
 } // namespace utility
 } // namespace facebook::fboss

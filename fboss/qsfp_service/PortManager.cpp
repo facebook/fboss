@@ -323,6 +323,10 @@ void PortManager::setPortLoopbackState(
       << "setPortLoopbackState() called.";
 
   if (isXphyComponent(component)) {
+    if (!phyManager_) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
   } else {
     transceiverManager_->setPortLoopbackStateTransceiver(
@@ -1776,7 +1780,10 @@ void PortManager::handlePendingUpdates() {
   // Pending updates are stored within each PortStateMachineController, so this
   // function asks each StateMachineController to execute a single pending
   // update if possible.
-  PORTMGR_SM_LOG(INFO) << "Trying to update all PortStateMachines";
+  // Invoked once per enqueued state update, so rate limit to keep this from
+  // dominating the log on large port-count platforms.
+  PORTMGR_SM_LOG_EVERY_MS(INFO, 60000)
+      << "Trying to update all PortStateMachines";
 
   // To expedite all these different ports state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;

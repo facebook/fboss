@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -35,9 +36,8 @@ namespace {
 
 constexpr int16_t kMinTCValue = 0;
 constexpr int16_t kMaxTCValue = 7;
-// DSCP: 6-bit field (RFC 2474)
-constexpr int8_t kMinDscpValue = 0;
-constexpr int8_t kMaxDscpValue = 63;
+// DSCP bounds (0..63) are shared with the delete command via utils::kMinDscp /
+// utils::kMaxDscp in QosPolicyUtils.h.
 // MPLS EXP/TC: 3-bit field (RFC 3032, RFC 5462)
 constexpr int8_t kMinExpValue = 0;
 constexpr int8_t kMaxExpValue = 7;
@@ -74,12 +74,12 @@ std::string getMapTypeString(QosMapType mapType, QosMapDirection direction) {
 // Validates value range based on type token and returns the map type.
 QosMapType validateAndGetMapType(const std::string& typeToken, int16_t value) {
   if (typeToken == "dscp") {
-    if (value < kMinDscpValue || value > kMaxDscpValue) {
+    if (value < utils::kMinDscp || value > utils::kMaxDscp) {
       throw std::invalid_argument(
           fmt::format(
               "DSCP value must be between {} and {}, got: {}",
-              kMinDscpValue,
-              kMaxDscpValue,
+              utils::kMinDscp,
+              utils::kMaxDscp,
               value));
     }
     return QosMapType::DSCP;
@@ -317,11 +317,9 @@ CmdConfigQosPolicyMapTraits::RetType CmdConfigQosPolicyMap::queryClient(
 
   // Find or create the QosPolicy with the given name
   cfg::QosPolicy* targetPolicy = nullptr;
-  for (auto& policy : qosPolicies) {
-    if (*policy.name() == name) {
-      targetPolicy = &policy;
-      break;
-    }
+  if (auto it = utils::findQosPolicy(qosPolicies, name);
+      it != qosPolicies.end()) {
+    targetPolicy = &*it;
   }
 
   if (targetPolicy == nullptr) {

@@ -6,9 +6,15 @@ import glob
 import os
 import pathlib
 import shutil
+import stat
 import subprocess
 import tempfile
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING or __package__:
+    from .platform_descriptor_utils import copy_platform_descriptors
+else:
+    from platform_descriptor_utils import copy_platform_descriptors
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -46,6 +52,7 @@ class PackageFboss:
     BIN = "bin"
     LIB = "lib"
     DATA = "share"
+    NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
 
     # Suffix for getdeps output location
     INSTALLED = "installed"
@@ -120,11 +127,11 @@ class PackageFboss:
         # entries *within* a copied directory, not the root passed to copytree.
         skip_dirs = {"unittests", "tests", "__pycache__"}
         src_files = os.listdir(run_scripts_path)
+        script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
         for file_name in src_files:
             if file_name in skip_dirs:
                 continue
             full_file_name = os.path.join(run_scripts_path, file_name)
-            script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
             # run_test.py imports the fboss_test_runner package, so directories
             # (the package and its subpackages) must be copied too, not skipped.
             if os.path.isdir(full_file_name):
@@ -138,6 +145,12 @@ class PackageFboss:
             else:
                 shutil.copy(full_file_name, script_pkg_path)
                 print(f"Copied {full_file_name} to {script_pkg_path}")
+
+        npu_sdk_utils_path = os.path.join(
+            os.path.dirname(run_scripts_path), "npu_sdk_utils.py"
+        )
+        shutil.copy(npu_sdk_utils_path, script_pkg_path)
+        print(f"Copied {npu_sdk_utils_path} to {script_pkg_path}")
 
     def _copy_run_configs(self, tmp_dir_name):
         run_configs_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_configs")
@@ -189,6 +202,34 @@ class PackageFboss:
             hw_benchmark_tests_path,
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_benchmark_tests"),
         )
+
+    def _copy_completion_scripts(self, tmp_dir_name):
+        completion_src = os.path.join(
+            self.get_fboss_subdirectory("fboss/oss/scripts"),
+            "fboss2_completion.bash",
+        )
+        # get_fboss_subdirectory prefers the getdeps source clone, which in a
+        # default (non --local) build is pinned to a stable commit that may
+        # predate this file. The completion script ships alongside this script
+        # in the same commit, so fall back to the copy next to package-fboss.py.
+        if not os.path.isfile(completion_src):
+            completion_src = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "fboss2_completion.bash",
+            )
+        # The completion script is a non-critical convenience artifact; never
+        # fail packaging if it is absent from an older checkout.
+        if not os.path.isfile(completion_src):
+            print(f"Skipping fboss2 bash completion; {completion_src} not found")
+            return
+        completion_dst_dir = os.path.join(
+            tmp_dir_name, PackageFboss.DATA, "bash-completion", "completions"
+        )
+        os.makedirs(completion_dst_dir, exist_ok=True)
+        # bash-completion loads the file named after the command.
+        completion_dst = os.path.join(completion_dst_dir, "fboss2")
+        print(f"Copying {completion_src} to {completion_dst}")
+        shutil.copy(completion_src, completion_dst)
 
     def _copy_production_features(self, tmp_dir_name):
         production_features_path = self.get_fboss_subdirectory(
@@ -285,6 +326,11 @@ class PackageFboss:
                 effective_binaries = binaries if binaries else os.listdir(project_dir)
 
                 for binary in effective_binaries:
+                    if (
+                        name == PackageFboss.FBOSS
+                        and binary == PackageFboss.NPU_SDK_METADATA_FILENAME
+                    ):
+                        continue
                     bin_abs_path = os.path.join(project_dir, binary)
                     if self._is_python_dir_executable(bin_abs_path):
                         dst = os.path.join(bin_pkg_path, binary)
@@ -310,12 +356,37 @@ class PackageFboss:
                         except OSError:
                             print(f"Skipping library {lib_abs_path}")
 
+                if name == PackageFboss.FBOSS:
+                    self._copy_npu_sdk_metadata(project_dir, tmp_dir_name)
+
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
+        copy_platform_descriptors(
+            pathlib.Path(self.get_fboss_subdirectory("fboss/configs/platforms")),
+            pathlib.Path(tmp_dir_name),
+        )
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
+        self._copy_completion_scripts(tmp_dir_name)
+
+    def _copy_npu_sdk_metadata(self, project_dir: str, tmp_dir_name: str) -> None:
+        metadata_path = os.path.join(
+            project_dir, PackageFboss.NPU_SDK_METADATA_FILENAME
+        )
+        if not os.path.isfile(metadata_path):
+            return
+        if stat.S_IMODE(os.stat(metadata_path).st_mode) != 0o444:
+            raise RuntimeError(f"NPU SDK metadata must be read-only: {metadata_path}")
+
+        destination = os.path.join(
+            tmp_dir_name,
+            PackageFboss.DATA,
+            PackageFboss.NPU_SDK_METADATA_FILENAME,
+        )
+        shutil.copy2(metadata_path, destination)
+        print(f"Copied {metadata_path} to {destination}")
 
     @staticmethod
     def _is_python_dir_executable(path: str) -> bool:

@@ -122,4 +122,9 @@ TEST_F(CmdShowProductDetailsTestFixture, printOutput) {
   EXPECT_EQ(output, expectedOutput);
 }
 
+TEST_F(CmdShowProductDetailsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowProductDetailsTraits::description().empty());
+  EXPECT_FALSE(CmdShowProductDetails::sampleModel().product()->empty());
+}
+
 } // namespace facebook::fboss

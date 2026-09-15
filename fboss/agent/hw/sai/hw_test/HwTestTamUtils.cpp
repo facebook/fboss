@@ -112,6 +112,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -129,7 +130,6 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_G202X:
       triggerCiscoParityError(ensemble);
       break;
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:

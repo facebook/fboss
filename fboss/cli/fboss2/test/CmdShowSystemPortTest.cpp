@@ -78,4 +78,11 @@ TEST_F(CmdShowSystemPortTestFixture, createModelFallsBackToUnscopedStats) {
   EXPECT_EQ(getQueueOutBytes(model), 44);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowSystemPortTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowSystemPortTraits::description().empty());
+  EXPECT_FALSE(CmdShowSystemPort::sampleModel().sysPortEntries()->empty());
+}
+
 } // namespace facebook::fboss

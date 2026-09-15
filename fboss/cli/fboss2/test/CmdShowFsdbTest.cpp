@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
@@ -90,6 +92,40 @@ TEST_F(CmdShowFsdbTestFixture, testGetSubscriptionPathStrExtendedFallback) {
   subscriber.extendedPaths() = {extPath};
 
   EXPECT_EQ(utils::getSubscriptionPathStr(subscriber), "99999");
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksSubscribers) {
+  auto description = CmdShowFsdbSubscriberTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbSubscribers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksPublishers) {
+  auto description = CmdShowFsdbPublisherTraits::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbPublishers::sampleModel();
+  EXPECT_FALSE(model.empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksOperState) {
+  auto description = CmdShowFsdbOperState::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbOperState::sampleModel();
+  ASSERT_TRUE(model.contents().has_value());
+  EXPECT_FALSE(model.contents()->empty());
+}
+
+TEST_F(CmdShowFsdbTestFixture, wikiDocHooksOperStats) {
+  auto description = CmdShowFsdbOperStats::description();
+  EXPECT_FALSE(description.empty());
+
+  auto model = CmdShowFsdbOperStats::sampleModel();
+  ASSERT_TRUE(model.contents().has_value());
+  EXPECT_FALSE(model.contents()->empty());
 }
 
 } // namespace facebook::fboss

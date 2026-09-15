@@ -9,64 +9,30 @@
  */
 #pragma once
 
-#include <folly/Conv.h>
 #include <iosfwd>
+#include <map>
+#include <optional>
 
-#include <boost/serialization/strong_typedef.hpp>
-#include <fmt/format.h>
 #include <cstdint>
 #include <type_traits>
 
+#include "fboss/agent/StrongTypes.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
+
+// Per group type ECMP settings, as carried on SwitchSettings. A group type with
+// no entry is unconfigured, which for most types means the attribute is left
+// alone rather than programmed false. An empty map is therefore the same as
+// nobody using the feature, and is the default.
+using EcmpGroupSettingsMap =
+    std::map<cfg::EcmpGroupType, cfg::EcmpGroupSettings>;
+
 template <typename>
 struct is_fboss_key_object_type {
   static constexpr bool value = false;
 };
 } // namespace facebook::fboss
-
-#define FBOSS_STRONG_TYPE(primitive, new_type)                              \
-  namespace facebook::fboss {                                               \
-                                                                            \
-  BOOST_STRONG_TYPEDEF(primitive, new_type);                                \
-                                                                            \
-  /* Define toAppend() so folly::to<string> will work */                    \
-  inline void toAppend(new_type value, std::string* result) {               \
-    folly::toAppend(static_cast<primitive>(value), result);                 \
-  }                                                                         \
-  inline void toAppend(new_type value, folly::fbstring* result) {           \
-    folly::toAppend(static_cast<primitive>(value), result);                 \
-  }                                                                         \
-                                                                            \
-  } /* facebook::fboss */                                                   \
-  namespace std {                                                           \
-                                                                            \
-  template <>                                                               \
-  struct hash<facebook::fboss::new_type> {                                  \
-    size_t operator()(const facebook::fboss::new_type& x) const {           \
-      return hash<primitive>()(static_cast<primitive>(x));                  \
-    }                                                                       \
-  };                                                                        \
-  } /* std */                                                               \
-                                                                            \
-  /* Support formatting with fmt::format as well */                         \
-  namespace fmt {                                                           \
-  template <>                                                               \
-  struct formatter<facebook::fboss::new_type> {                             \
-    template <typename ParseContext>                                        \
-    constexpr auto parse(ParseContext& ctx) const {                         \
-      return ctx.begin();                                                   \
-    }                                                                       \
-                                                                            \
-    template <typename FormatContext>                                       \
-    auto format(const facebook::fboss::new_type& value, FormatContext& ctx) \
-        const {                                                             \
-      return format_to(                                                     \
-          ctx.out(), "{}({})", #new_type, static_cast<primitive>(value));   \
-    }                                                                       \
-  };                                                                        \
-  } /* fmt */
 
 FBOSS_STRONG_TYPE(uint8_t, ChannelID)
 FBOSS_STRONG_TYPE(uint16_t, TransceiverID)
@@ -95,11 +61,6 @@ FBOSS_STRONG_TYPE(int32_t, LabelID);
 FBOSS_STRONG_TYPE(int64_t, SystemPortID);
 FBOSS_STRONG_TYPE(uint16_t, IngressPriorityGroupID);
 FBOSS_STRONG_TYPE(uint16_t, SwitchIndex);
-
-/*
- * A unique ID identifying a node in our state tree.
- */
-FBOSS_STRONG_TYPE(uint64_t, NodeID)
 
 /*
  * Unique ID for a NextHop

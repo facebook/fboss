@@ -12,9 +12,9 @@ cpp_library(
         "Leh800bclsProdPlatformMapping.h",
         "Leh800bclsTestPlatformMapping.h",
     ],
+    deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//folly/logging:logging",
     ],
 )

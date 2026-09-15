@@ -1648,6 +1648,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -1926,6 +1934,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -2193,6 +2209,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -2466,6 +2490,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -2734,6 +2766,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "elbert_2x16Q_6x8DD/credo-0.9.0": [
@@ -2991,6 +3031,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         }
     ],
@@ -3250,6 +3298,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "elbert_5x16Q_3x8DD/credo-0.9.0": [
@@ -3507,6 +3563,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         }
     ],
@@ -3773,6 +3837,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -4054,6 +4126,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -4330,6 +4410,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "fuji_8x16Q/barchetta2-5.2": [
@@ -4580,6 +4668,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "icecube800banw/credo-0.7.2": [
@@ -4808,14 +4904,6 @@
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "RefreshTransceiver_FR4_2x800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
-          "test_name_regex": "ReadRegister_FR4_2x800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
           "test_name_regex": "RefreshTransceiver_FR4_800G$",
           "reason": "Transceiver type not supported."
         },
@@ -4853,6 +4941,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -5094,14 +5190,6 @@
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "RefreshTransceiver_FR4_2x800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
-          "test_name_regex": "ReadRegister_FR4_2x800G$",
-          "reason": "Transceiver type not supported."
-        },
-        {
           "test_name_regex": "RefreshTransceiver_FR4_800G$",
           "reason": "Transceiver type not supported."
         },
@@ -5139,6 +5227,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -5436,6 +5532,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -5730,6 +5834,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -6016,6 +6128,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -6283,6 +6403,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -6564,6 +6692,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -6810,11 +6946,11 @@
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "RefreshTransceiver_DR4_800G_GEARBOX$",
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -7085,6 +7221,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -7380,6 +7524,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "montblanc/credo-0.7.2": [
@@ -7616,11 +7768,11 @@
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "RefreshTransceiver_DR4_800G_GEARBOX$",
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
-          "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -7883,6 +8035,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -8172,6 +8332,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -8455,6 +8623,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -8744,6 +8920,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -9030,6 +9214,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -9276,6 +9468,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -9519,6 +9719,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -9792,6 +10000,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -10059,6 +10275,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -10332,6 +10556,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -10599,6 +10831,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -10872,6 +11112,14 @@
           "reason": "Transceiver type not supported."
         },
         {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
           "test_name_regex": "PhyInitAllColdBoot",
           "reason": "XPHY tests not supported."
         },
@@ -11139,6 +11387,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         },
         {
@@ -11418,6 +11674,14 @@
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
           "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
         }
     ],
     "yamp_8x16Q/credo-0.9.0": [
@@ -11683,6 +11947,14 @@
         },
         {
           "test_name_regex": "ReadRegister_DR4_800G_GEARBOX$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "RefreshTransceiver_DR4_8x800G$",
+          "reason": "Transceiver type not supported."
+        },
+        {
+          "test_name_regex": "ReadRegister_DR4_8x800G$",
           "reason": "Transceiver type not supported."
         }
     ]

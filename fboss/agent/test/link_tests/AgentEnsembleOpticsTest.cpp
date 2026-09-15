@@ -25,6 +25,10 @@ struct OpticsSidePerformanceMonitoringThresholds {
   OpticsThresholdRange pam4Ltp;
   OpticsThresholdRange preFecBer;
   OpticsThresholdRange fecTailMax;
+  // 2x400G-FR4 optics operating in 100G-CWDM4 mode run NRZ on their lanes and
+  // don't report a meaningful PAM4 SNR, so a relaxed SNR minimum is used for
+  // them instead of pam4eSnr.
+  OpticsThresholdRange cwdm4Snr;
 };
 
 struct OpticsPerformanceMonitoringThresholds {
@@ -40,6 +44,7 @@ struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
             .pam4Ltp = {33.0, 99.0},
             .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
             .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
+            .cwdm4Snr = {0.0, 49.0},
         },
     .hostThresholds =
         {
@@ -47,6 +52,7 @@ struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
             .pam4Ltp = {33.0, 99.0},
             .preFecBer = {0, FLAGS_link_stress_test ? 5.0e-7 : 2.4e-5},
             .fecTailMax = {0, FLAGS_link_stress_test ? 11.0 : 14.0},
+            .cwdm4Snr = {0.0, 49.0},
         },
 };
 
@@ -57,16 +63,33 @@ void validateVdm(
       [](const std::string& portName,
          phy::Side side,
          const VdmPerfMonitorPortSideStats& vdmPerfMon,
-         OpticsSidePerformanceMonitoringThresholds thresholds) {
+         OpticsSidePerformanceMonitoringThresholds thresholds,
+         MediaInterfaceCode moduleMediaInterface,
+         MediaInterfaceCode portMediaInterface) {
         auto& preFecBer = vdmPerfMon.datapathBER().value();
         // Fec tail is not implemented on all modules that support VDM. FEC tail
         // is available starting CMIS 5.0 (2x400G-[D|F]R4)
         auto fecTailMax = vdmPerfMon.fecTailMax().value_or({});
         auto& laneSnr = vdmPerfMon.laneSNR().value();
 
+        // 2x400G-FR4 (and FR4-Lite) modules configured in 100G-CWDM4 mode run
+        // NRZ and don't report a meaningful PAM4 SNR, so validate against the
+        // relaxed CWDM4 SNR minimum instead of the PAM4 one.
+        auto snrMinThreshold =
+            ((moduleMediaInterface == MediaInterfaceCode::FR4_2x400G ||
+              moduleMediaInterface == MediaInterfaceCode::FR4_LITE_2x400G) &&
+             portMediaInterface == MediaInterfaceCode::CWDM4_100G)
+            ? thresholds.cwdm4Snr.minThreshold
+            : thresholds.pam4eSnr.minThreshold;
+
         XLOG(DBG2) << "Validating VDM performance monitoring for " << portName
-                   << ", side: " << apache::thrift::util::enumNameSafe(side);
-        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+                   << ", side: " << apache::thrift::util::enumNameSafe(side)
+                   << ", moduleMediaInterface: "
+                   << apache::thrift::util::enumNameSafe(moduleMediaInterface)
+                   << ", portMediaInterface: "
+                   << apache::thrift::util::enumNameSafe(portMediaInterface)
+                   << ", snrMinThreshold: " << snrMinThreshold;
+        EXPECT_LE(preFecBer.max().value(), thresholds.preFecBer.maxThreshold)
             << fmt::format(
                    "PreFecBer Max for {} is {}",
                    portName,
@@ -74,7 +97,7 @@ void validateVdm(
         EXPECT_LE(fecTailMax, thresholds.fecTailMax.maxThreshold)
             << fmt::format("FecTail Max for {} is {}", portName, fecTailMax);
         for (auto& [lane, snr] : laneSnr) {
-          EXPECT_GE(snr, thresholds.pam4eSnr.minThreshold) << fmt::format(
+          EXPECT_GE(snr, snrMinThreshold) << fmt::format(
               "SNR for lane {} on {} is {}", lane, portName, snr);
         }
       };
@@ -82,11 +105,35 @@ void validateVdm(
   for (const auto& tcvrId : tcvrsToTest) {
     auto txInfoItr = transceiverInfos.find(tcvrId);
     ASSERT_TRUE(txInfoItr != transceiverInfos.end());
+    auto& tcvrState = *txInfoItr->second.tcvrState();
     auto vdmPerfMonitorStats =
         txInfoItr->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_TRUE(vdmPerfMonitorStats.has_value());
     auto& mediaStats = vdmPerfMonitorStats->mediaPortVdmStats().value();
     auto& hostStats = vdmPerfMonitorStats->hostPortVdmStats().value();
+
+    auto moduleMediaInterface =
+        tcvrState.moduleMediaInterface().value_or(MediaInterfaceCode::UNKNOWN);
+
+    // Map each port to its current per-lane media interface code so we can tell
+    // when a flexible module (e.g. 2x400G-FR4) is operating in a different mode
+    // (e.g. 100G-CWDM4).
+    std::map<int, MediaInterfaceCode> laneToMediaInterface;
+    if (auto settings = tcvrState.settings()) {
+      for (const auto& mediaIntf : settings->mediaInterface().value_or({})) {
+        laneToMediaInterface[*mediaIntf.lane()] = *mediaIntf.code();
+      }
+    }
+    std::map<std::string, MediaInterfaceCode> portToMediaInterface;
+    for (const auto& [portName, lanes] :
+         tcvrState.portNameToMediaLanes().value()) {
+      if (!lanes.empty()) {
+        auto laneItr = laneToMediaInterface.find(lanes.front());
+        if (laneItr != laneToMediaInterface.end()) {
+          portToMediaInterface[portName] = laneItr->second;
+        }
+      }
+    }
 
     auto validateSideStats =
         [&, validatePerfMon](
@@ -94,7 +141,18 @@ void validateVdm(
             phy::Side side,
             OpticsSidePerformanceMonitoringThresholds threshold) {
           for (auto& [portName, vdmPerfMon] : sideStat) {
-            validatePerfMon(portName, side, vdmPerfMon, threshold);
+            auto portMediaInterface = MediaInterfaceCode::UNKNOWN;
+            auto portIntfItr = portToMediaInterface.find(portName);
+            if (portIntfItr != portToMediaInterface.end()) {
+              portMediaInterface = portIntfItr->second;
+            }
+            validatePerfMon(
+                portName,
+                side,
+                vdmPerfMon,
+                threshold,
+                moduleMediaInterface,
+                portMediaInterface);
           }
         };
     validateSideStats(
@@ -331,10 +389,10 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
  * Check VDM parameters are within the threshold for VDM supported optics
  * Steps:
  * 1. Find the list of optical ports with VDM supported optics
- * 2. Wait till we have data for 20 seconds
- * 3. Get the TransceiverInfo from qsfp_service
- * 4. validate the VDM Performance Monitoring parameters within the thresholds
- *    defined in spec
+ * 2. Wait for a VDM interval that started after the test began
+ * 3. Wait for a fresh TransceiverInfo update from qsfp_service and validate the
+ *    VDM Performance Monitoring parameters within the thresholds defined in
+ *    spec, repeating for every iteration
  * Note: Bypass LPO Transceivers for this test since the LPO
  *       transceivers don't have a DSP and there are no VDM stats.
  */
@@ -367,18 +425,31 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
       utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
 
   std::time_t startTime = std::time(nullptr);
-  // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
-  // update to finish after the start of VDM interval. This skips any noise from
-  // the initial interval during the time of link up
-  WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
+  // 2. Wait for TWO VDM interval boundaries after the test began before
+  // validating, to skip the link-up interval entirely. intervalStartTime is
+  // stamped at the freeze and labels the *next* interval, but right after a
+  // freeze the reporting registers still hold the *previous* interval's data --
+  // so a single boundary past startTime can still surface link-up noise. Once a
+  // second boundary (F2 > F1 > startTime) is observed, both the just-frozen
+  // ([F1,F2]) and the live-running ([F2,now]) VDM data are guaranteed to start
+  // after link up.
+  std::time_t firstIntervalStart = 0;
+  WITH_RETRIES_N_TIMED(40, std::chrono::seconds(5), {
     transceiverInfos =
         utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
     auto vdmStat =
         transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
-    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
-    ASSERT_EVENTUALLY_GT(
-        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
+    auto intervalStart = vdmStat->intervalStartTime().value();
+    ASSERT_EVENTUALLY_GT(intervalStart, startTime);
+    // Record the first interval boundary after startTime, then require a
+    // second, later one so even a just-frozen snapshot reflects a post-link-up
+    // interval.
+    if (firstIntervalStart == 0 && intervalStart > startTime) {
+      firstIntervalStart = intervalStart;
+    }
+    ASSERT_EVENTUALLY_GT(intervalStart, firstIntervalStart);
+    ASSERT_EVENTUALLY_GT(vdmStat->statsCollectionTme().value(), intervalStart);
   });
 
   // Track the worst (highest) datapath pre-FEC BER and max FEC tail seen per
@@ -424,14 +495,21 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
     }
   };
 
-  // 4. validate the VDM Performance Monitoring parameters within the threshold
+  // 3. validate the VDM Performance Monitoring parameters within the threshold
   int testIterations = FLAGS_link_stress_test ? 60 : 1;
   do {
+    std::map<int32_t, TransceiverInfo> freshInfos;
+    if (!utility::waitForFreshTransceiverInfo(
+            transceiverIds,
+            transceiverInfos,
+            freshInfos,
+            /*includeLpo*/ false)) {
+      ADD_FAILURE() << "qsfp_service published no fresh transceiverInfo";
+      break;
+    }
+    transceiverInfos = std::move(freshInfos);
     validateVdm(transceiverInfos, transceiverIds);
     accumulateVdm(transceiverInfos);
-    /* sleep override */ std::this_thread::sleep_for(10s);
-    transceiverInfos =
-        utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
   } while (testIterations-- && !::testing::Test::HasFailure());
 
   for (const auto& [port, ber] : mediaWorstPreFecBer) {

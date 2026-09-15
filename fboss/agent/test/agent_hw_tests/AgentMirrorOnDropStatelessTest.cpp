@@ -47,7 +47,7 @@ std::unique_ptr<MirrorOnDropImpl> createMirrorOnDropImpl(cfg::AsicType type) {
   switch (type) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
-      return std::make_unique<XgsMirrorOnDropImpl>();
+      return std::make_unique<XgsMirrorOnDropImpl>(type);
     case cfg::AsicType::ASIC_TYPE_YUBA: // gibraltar
     case cfg::AsicType::ASIC_TYPE_G202X: // graphene200
       return std::make_unique<TajoMirrorOnDropImpl>();
@@ -137,6 +137,11 @@ AgentMirrorOnDropStatelessTest::getSrv6MidpointUnresolvedDropReasons() {
   return ingressOnly(impl()->getSrv6MidpointUnresolvedDropReason());
 }
 
+MirrorOnDropDropReasonCodes
+AgentMirrorOnDropStatelessTest::getSrv6EncapMtuExceededDropReasons() {
+  return egressOnly(impl()->getSrv6EncapMtuExceededDropReason());
+}
+
 void AgentMirrorOnDropStatelessTest::configureMmuDropBuffers(
     cfg::SwitchConfig& config,
     const PortID& injectionPortId,
@@ -184,14 +189,7 @@ void AgentMirrorOnDropStatelessTest::validateMirrorOnDropPacket(
   EXPECT_EQ(fields.outerSrcIp, kSwitchIp_);
   EXPECT_EQ(fields.outerDstIp, kCollectorIp_);
   EXPECT_EQ(fields.outerDstPort, static_cast<uint16_t>(kMirrorDstPort));
-  // Tajo ingress MoD does not carry the original front-panel ingress port in
-  // the export. The SDK redirects the drop to a fixed recycle port, so the punt
-  // header's source_sp/source_lp are the recycle port's system/logical port
-  // gids (constant across injection ports), not the injection PortID.
-  // TODO: ask Cisco to exposes the original ingress port for ingress MoD.
-  if (!isTajoImpl) {
-    EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
-  }
+  EXPECT_EQ(fields.ingressPort, static_cast<uint16_t>(injectionPortId));
   EXPECT_EQ(fields.dropReasonIngress, expectedReasons.ingressDropReason);
   EXPECT_EQ(fields.dropReasonEgress, expectedReasons.egressDropReason);
   EXPECT_EQ(fields.innerSrcIp, expectedInnerSrcIp.value_or(kPacketSrcIp_));

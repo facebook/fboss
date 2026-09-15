@@ -29,19 +29,40 @@ cpp_library(
     headers = [
         "PlatformDescriptor.h",
     ],
-    exported_deps = [
-        ":platform_descriptor_thrift-cpp2-types",
+    deps = [
+        ":platform_mapping_utils",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:platform_config-cpp2-types",
-        "//folly:cpp_attributes",
         "//folly:file_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2:field_ref",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
-    exported_external_deps = [
+    exported_deps = [
+        ":platform_descriptor_thrift-cpp2-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//folly:cpp_attributes",
+    ],
+    external_deps = [
         ("boost", None, "boost_algorithm"),
         "gflags",
+    ],
+)
+
+cpp_library(
+    name = "platform_mapping_utils",
+    srcs = [
+        "PlatformMappingUtils.cpp",
+    ],
+    headers = [
+        "PlatformMappingUtils.h",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/agent:platform_config-cpp2-types",
     ],
 )
 
@@ -74,21 +95,24 @@ cpp_library(
         "PlatformProductInfo.cpp",
         "facebook/PlatformProductInfo.cpp",
     ],
-    exported_deps = [
+    deps = [
         "fbsource//third-party/re2:re2",
         ":fruid_fields",
         ":platform_descriptor",
         "//common/fbwhoami:fb_who_am_i",
         "//fboss/agent:fboss-error",
-        "//fboss/agent/if:product_info-cpp2-types",
-        "//fboss/lib/if:fboss_common-cpp2-types",
         "//folly:file_util",
         "//folly:network_address",
-        "//folly:range",
-        "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/testing:test_util",
     ],
+    exported_deps = [
+        "//fboss/agent/if:product_info-cpp2-types",
+        "//fboss/lib/if:fboss_common-cpp2-types",
+        "//folly:range",
+        "//folly/json:dynamic",
+    ],
+    external_deps = [("boost", None, "boost_algorithm")],
     exported_external_deps = [
         ("boost", None, "boost_algorithm"),
     ],

@@ -2495,7 +2495,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*$"
         }
     ],
-    "chenab/2505.34/2505.34/chenab": [
+    "chenab/2511.36/2511.36/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -2605,7 +2605,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
-    "chenab/2511.36/2511.36/chenab": [
+    "chenab/2605.37/2605.37/chenab": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -3337,7 +3337,7 @@
           "test_name_regex": "HwAsicDefaultProgrammingTest.*$"
         }
     ],
-    "nvda/2505.34/2505.34/spectrum4": [
+    "nvda/2511.36/2511.36/spectrum4": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },
@@ -3447,7 +3447,7 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         }
     ],
-    "nvda/2511.36/2511.36/spectrum4": [
+    "nvda/2605.37/2605.37/spectrum4": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER"
         },

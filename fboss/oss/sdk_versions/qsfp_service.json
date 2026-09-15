@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_qsfp_sdk_version",
-        "@generated SignedSource<<191c347c9cfd22b15a7a19d977ab63af>>"
+        "@generated SignedSource<<cfe4b089310879798408ed167ad1ef63>>"
     ],
     "MINIPACK": [
         {
@@ -40,7 +40,7 @@
     "LADAKH800BCLS": [
         {
             "rolloutType": "PRODUCTION",
-            "version": "brcm_pai\/4.0"
+            "version": "brcm_pai\/4.1"
         }
     ]
 }

@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+# During asic_config_v3 migration, we use `fboss_oss` as oncall, eventually we
+# will transfer it to `fboss_agent` once we finish the migration
+oncall("fboss_oss")
+
+python_unittest(
+    name = "validate_asic_configs_contents",
+    srcs = ["validate_asic_configs_contents.py"],
+    labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/pypi/pyyaml:pyyaml",
+        "//fboss/lib/asic_config_v3:base_generator",
+        "//fboss/lib/asic_config_v3:gen-library",
+        "//fboss/lib/asic_config_v3:paths",
+    ],
+)
+
+python_unittest(
+    name = "validate_asic_configs_schemas",
+    srcs = ["validate_asic_configs_schemas.py"],
+    labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/pypi/jsonschema:jsonschema",
+        "//fboss/lib/asic_config_v3:paths",
+    ],
+)

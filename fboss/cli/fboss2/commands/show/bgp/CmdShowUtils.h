@@ -12,6 +12,7 @@
 
 #include "folly/json/dynamic.h"
 
+#include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
 #include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
@@ -22,6 +23,11 @@ inline constexpr auto kGar = "--decode-gar-lbw-ext-comm";
 }
 
 namespace facebook::fboss {
+std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
+    const HostInfo& hostInfo);
+std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>
+getNsfTeWeightEncoding(const facebook::bgp::bgp_policy::BgpPolicies& policies);
+
 // This header is included across the entire bgp show-command tree, whose
 // command headers reference many neteng::fboss::bgp::thrift types unqualified
 // (e.g. NetworkPathWithHost, TBgpStreamSession, TRibEntryWithHost). Keep the
@@ -58,7 +64,7 @@ void computeCombinations(
 }
 } // namespace
 
-struct CmdShowVersionTraits : public ReadCommandTraits {
+struct CmdShowVersionTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
@@ -104,6 +110,13 @@ void printAddPathCapability(
     const std::vector<TBgpAddPathNegotiated>& capabilities,
     std::ostream& out);
 void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out);
+void printBgpPrefixTelemetry(
+    const TBgpSession& neighbor,
+    const TBgpSessionDetail& details,
+    std::ostream& out);
+void printBgpMessageCounters(
+    const TBgpSessionDetail& details,
+    std::ostream& out);
 void printBgpNeighborsOutput(
     const std::vector<TBgpSession>& neighbors,
     std::ostream& out);
@@ -137,6 +150,69 @@ const std::string formatBytes(size_t n);
 //     std::ostream& out,
 //     bool detailed,
 //     bool tag2Name = false);
+/*
+ * Marker legend printed above every RIB-entry listing. Single source of truth
+ * shared by the internal and OSS printRIBEntries copies and by the golden
+ * tests, so the legend cannot drift from the markers it describes.
+ *
+ * "!" marks a path excluded from selection before comparison.
+ */
+inline constexpr auto kRibEntryMarkersLegend =
+    "Markers: * - One of the best entries, @ - Best entry, "
+    "% - Pending selection, ! - Inactive path";
+
+/*
+ * Build a TIpPrefix from CIDR text ("0.0.0.0/0", "2001:db8::/32") or a bare
+ * address. Only used to construct the canned data behind the CLI
+ * reference-wiki sampleModel() hooks; live paths get their prefixes from the
+ * daemon already in this form.
+ *
+ * Throws on input it cannot parse (folly::IPAddressFormatException for a
+ * malformed address, folly::ConversionError for a non-numeric prefix length).
+ * Callers pass literals, so a throw here means the literal is wrong and the
+ * unit tests will catch it; do not feed this untrusted input.
+ */
+TIpPrefix sampleIpPrefix(const std::string& cidr);
+
+/*
+ * A two-byte-ASN community for canned sample data. community() carries the
+ * packed 32-bit form printCommunities() reads; asn()/value() carry the halves.
+ * uint16_t inputs so the pack cannot silently overflow.
+ */
+TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value);
+
+/*
+ * Canned RIB data (no real switch data, addresses in documentation ranges)
+ * backing the CLI reference-wiki sampleModel() hooks of the commands that
+ * render a RIB listing. Shared so 'show bgp table' and 'show bgp table detail'
+ * document the same rows, since detail only adds lines to the same paths.
+ *
+ * Two prefixes: an IPv4 default route with two ECMP paths (one selected as
+ * best, one rejected on router-id) plus a third path outside the best group,
+ * and an IPv6 prefix with a single best path.
+ */
+TRibEntryWithHost sampleRibEntriesWithHost();
+
+// Which side of a peering the canned paths represent. Advertised routes have
+// not been installed anywhere, so they carry no last-modified time; received
+// ones do.
+enum class SampleRouteDirection { Advertised, Received };
+
+/*
+ * Canned per-peer route data (no real switch data) backing the CLI
+ * reference-wiki sampleModel() hooks of the six
+ * 'show bgp neighbors <peer> advertised|received ...' views, which all render
+ * through printRoutesInformation(). Shared so the six entries describe the
+ * same routes rather than drifting apart.
+ *
+ * policyName is rendered only by the post-policy and rejected views (the
+ * pre-policy views pass showPolicy=false), so pass the accept or deny string
+ * the view is meant to illustrate.
+ */
+NetworkPathWithHost sampleNetworkPaths(
+    SampleRouteDirection direction,
+    const std::string& policyName);
+
 // Prints entries for bgp table commands
 void printRIBEntries(
     std::ostream& out,

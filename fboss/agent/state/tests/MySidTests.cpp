@@ -363,3 +363,26 @@ TEST(MySidDeltaTest, MixedAddRemoveChange) {
   EXPECT_EQ(removed, (std::set<std::string>{"fc00:100::1/48"}));
   EXPECT_EQ(changed, (std::set<std::string>{"fc00:200::1/64"}));
 }
+
+// SRv6 midpoint FRR: the backup next-hop-set ids are optional and must
+// round-trip through the MySid node accessors.
+TEST(MySidTest, BackupAccessors) {
+  auto mySid = makeMySid();
+  // Unset by default.
+  EXPECT_FALSE(mySid->getBackupResolvedNextHopsId().has_value());
+  EXPECT_FALSE(mySid->getBackupUnresolveNextHopsId().has_value());
+
+  // Set and read back.
+  mySid->setBackupUnresolveNextHopsId(NextHopSetID(1234));
+  mySid->setBackupResolvedNextHopsId(NextHopSetID(5678));
+  ASSERT_TRUE(mySid->getBackupUnresolveNextHopsId().has_value());
+  EXPECT_EQ(*mySid->getBackupUnresolveNextHopsId(), NextHopSetID(1234));
+  ASSERT_TRUE(mySid->getBackupResolvedNextHopsId().has_value());
+  EXPECT_EQ(*mySid->getBackupResolvedNextHopsId(), NextHopSetID(5678));
+
+  // Reset back to unset.
+  mySid->setBackupUnresolveNextHopsId(std::nullopt);
+  mySid->setBackupResolvedNextHopsId(std::nullopt);
+  EXPECT_FALSE(mySid->getBackupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(mySid->getBackupResolvedNextHopsId().has_value());
+}

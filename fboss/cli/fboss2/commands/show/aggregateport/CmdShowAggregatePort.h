@@ -12,6 +12,7 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
@@ -26,6 +27,10 @@ struct CmdShowAggregatePortTraits : public ReadCommandTraits {
   using RetType = cli::ShowAggregatePortModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowAggregatePort
@@ -43,6 +48,10 @@ class CmdShowAggregatePort
       std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
       const std::map<int32_t, facebook::fboss::InterfaceDetail>& interfaces,
       const ObjectArgType& queriedPorts);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

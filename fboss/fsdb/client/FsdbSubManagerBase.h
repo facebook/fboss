@@ -42,6 +42,16 @@ class FsdbSubManagerBase {
 
   std::optional<SubscriptionInfo> getInfo();
 
+  // Whether the FSDB server on the current connection supports adding paths to
+  // a live subscription -- i.e. a path passed to addPathToLiveSubscription is
+  // extended in place for an immediate initial sync, rather than being deferred
+  // to the next (re)connect. Returns false when there is no active
+  // subscription, before the connection's initial sync completes, or when
+  // connected to an older server that does not advertise the capability.
+  // Callers can branch on this to fall back to reconnect()/re-subscribe on
+  // older servers.
+  bool supportsLiveAddPath() const;
+
  protected:
   FsdbSubManagerBase(
       fsdb::SubscriptionOptions opts,
@@ -51,7 +61,20 @@ class FsdbSubManagerBase {
 
   SubscriptionKey addPathImpl(const std::vector<std::string>& pathTokens);
 
+  // Append a path to an already-subscribed (raw-path) subscription. Unlike
+  // addPathImpl, this is valid only after subscribe(). Throws FsdbException
+  // only on a client-side validation error (e.g., empty path tokens).
+  // Server-side rejections are logged and delivered via the reconnect merge,
+  // not surfaced as an exception through this call.
+  SubscriptionKey addPathToLiveSubscriptionImpl(
+      const std::vector<std::string>& pathTokens);
+
   SubscriptionKey addExtendedPathImpl(
+      const std::vector<OperPathElem>& pathTokens);
+
+  // Append an extended path to an already-subscribed (extended-path)
+  // subscription. Valid only after subscribe(). Throws FsdbException on error.
+  SubscriptionKey addExtendedPathToLiveSubscriptionImpl(
       const std::vector<OperPathElem>& pathTokens);
 
   void subscribeImpl(

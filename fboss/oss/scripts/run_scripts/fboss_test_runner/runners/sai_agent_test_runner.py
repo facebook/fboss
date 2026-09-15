@@ -5,7 +5,7 @@
 import json
 import subprocess
 import sys
-from argparse import ArgumentParser
+from argparse import Action, ArgumentParser, Namespace
 
 from fboss_test_runner.constants import (
     OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
@@ -23,6 +23,7 @@ from fboss_test_runner.services.fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+from npu_sdk_utils import NPU_HW_AGENT_BINARY
 
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
@@ -31,6 +32,18 @@ ASIC_PRODUCTION_FEATURES = (
     "./share/production_features/asic_production_features.materialized_JSON"
 )
 FEATURE_LIST_PREFIX = "Feature List: "
+
+
+class _ListTestsForFeaturesAction(Action):
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: str,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, values)
+        namespace.list_tests = True
 
 
 class SaiAgentTestRunner(TestRunner):
@@ -53,6 +66,7 @@ class SaiAgentTestRunner(TestRunner):
         sub_parser.add_argument(
             OPT_ARG_LIST_TESTS_FOR_FEATURE,
             type=str,
+            action=_ListTestsForFeaturesAction,
             help="Return tests whose production feature tags are all contained "
             "in the supplied comma-separated list e.g. DLB,ACL_COUNTER,SINGLE_ACL_TABLE",
             default=None,
@@ -103,10 +117,18 @@ class SaiAgentTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         args = self.args
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
-            return "/opt/fboss/bin/sai_agent_hw_test-sai_impl"
+            return "sai_agent_hw_test-sai_impl"
 
         # Default to multi_switch mode
-        return "/opt/fboss/bin/multi_switch_agent_hw_test"
+        return "multi_switch_agent_hw_test"
+
+    def _get_npu_sdk_metadata_binary_name(self) -> str:
+        # In multi-switch mode the test binary drives the software agent and
+        # does not link the NPU SDK; the separate hardware agent does. The
+        # monolithic test binary links the SDK itself.
+        if self.args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            return NPU_HW_AGENT_BINARY
+        return self._get_test_binary_name()
 
     def _get_sai_replayer_logging_flags(
         self, sai_replayer_log_path: str | None
@@ -118,13 +140,17 @@ class SaiAgentTestRunner(TestRunner):
         # be enabled in the systemd unit file instead of the test binary flags
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             return []
-        return [
+        flags = [
             "--enable-replayer",
             "--enable_get_attr_log",
             "--enable_packet_log",
             "--sai-log",
             sai_replayer_log_path,
         ]
+        level = getattr(args, "sai_replayer_sdk_log_level", None)
+        if level is not None:
+            flags.extend(["--sai_replayer_sdk_log_level", level])
+        return flags
 
     def _get_sai_logging_flags(self) -> list[str]:
         args = self.args
@@ -182,6 +208,9 @@ class SaiAgentTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_warm_boot=False,
             )
 
@@ -195,6 +224,9 @@ class SaiAgentTestRunner(TestRunner):
                 fboss_agent_config_path=args.config,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                sai_replayer_sdk_log_level=getattr(
+                    args, "sai_replayer_sdk_log_level", None
+                ),
                 is_warm_boot=True,
             )
 

@@ -207,4 +207,12 @@ TEST_F(CmdShowAggregatePortTestFixture, printOutput) {
   EXPECT_EQ(output, expectOutput);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowAggregatePortTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowAggregatePortTraits::description().empty());
+  EXPECT_FALSE(
+      CmdShowAggregatePort::sampleModel().aggregatePortEntries()->empty());
+}
+
 } // namespace facebook::fboss

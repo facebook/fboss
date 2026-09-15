@@ -10,6 +10,8 @@ cpp_library(
     headers = [
         "Flags.h",
     ],
+    # Todo: delete once fsdb flags not leak to fboss_hw_agent in netcastle
+    link_whole = True,
     deps = ["//fboss/fsdb/if:fsdb_common-cpp2-types"],
     exported_deps = [],
     exported_external_deps = [

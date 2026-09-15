@@ -125,10 +125,19 @@ TEST_F(IpcHealthMonitorTest, TestTrackQueueDepth) {
   // Stop the monitor
   monitor_->stop();
 
-  // Verify the counter was incremented (only if it exists)
-  if (counterExists("test_prefix.ipc.queue_depth")) {
-    EXPECT_GT(fbData->getCounter("test_prefix.ipc.queue_depth"), 0);
+  // Exported as <key>.avg.60 and friends, never the bare key.
+  ThreadCachedServiceData::get()->publishStats();
+  std::map<std::string, int64_t> counters;
+  fbData->getCounters(counters);
+  int64_t matched = 0;
+  for (const auto& [name, value] : counters) {
+    if (name.starts_with("test_prefix.ipc.queue_depth")) {
+      matched++;
+      EXPECT_EQ(value, 100);
+    }
   }
+  EXPECT_GT(matched, 0)
+      << "no exported counter for test_prefix.ipc.queue_depth";
 }
 
 TEST_F(IpcHealthMonitorTest, TestTrackStateTransition) {

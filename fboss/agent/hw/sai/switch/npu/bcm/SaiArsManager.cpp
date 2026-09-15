@@ -24,14 +24,25 @@ namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
+    std::optional<bool> splitHorizonEnabled) {
+  auto switchingMode = flowletSwitchConfig->getSwitchingMode();
+  auto idleTime = flowletSwitchConfig->getInactivityIntervalUsecs();
+  auto maxFlows = flowletSwitchConfig->getFlowletTableSize();
+
   std::optional<SaiArsTraits::Attributes::AlternatePathCost>
       alternatePathCostForArs = std::nullopt;
   std::optional<SaiArsTraits::Attributes::AlternatePathBias>
       alternatePathBiasForArs = std::nullopt;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_ALTERNATE_MEMBERS) ||
+      platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+#else
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+#endif
     // Need to set default values as these attributes are part of adapter key
     alternatePathCostForArs = SaiArsTraits::Attributes::AlternatePathCost{0};
     alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
@@ -40,83 +51,107 @@ void SaiArsManager::addArs(
   std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType =
       std::nullopt;
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
-  nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
-      SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+    nextHopGroupType = SaiArsTraits::Attributes::NextHopGroupType{
+        SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR};
+  }
 #endif
-  SaiArsTraits::CreateAttributes attributes{
-      SaiArsTraits::Attributes::Mode{
-          cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-      SaiArsTraits::Attributes::IdleTime{
-          flowletSwitchConfig->getInactivityIntervalUsecs()},
-      SaiArsTraits::Attributes::MaxFlows{
-          flowletSwitchConfig->getFlowletTableSize()},
-      std::nullopt, // PrimaryPathQualityThreshold
-      alternatePathCostForArs,
-      alternatePathBiasForArs,
-      nextHopGroupType};
 
-  auto& store = saiStore_->get<SaiArsTraits>();
-  arsHandle_->ars = store.setObject(getAdapterHostKey(attributes), attributes);
+  setArsObject(
+      arsHandle_.get(),
+      makeArsAttributes(
+          switchingMode,
+          idleTime,
+          maxFlows,
+          std::nullopt,
+          alternatePathCostForArs,
+          alternatePathBiasForArs,
+          nextHopGroupType,
+          toSourcePortPruneAttribute(splitHorizonEnabled)));
 
-  bool needAlternateArs =
-      flowletSwitchConfig->getAlternatePathCost().has_value() &&
-      flowletSwitchConfig->getAlternatePathBias().has_value();
-
-  if (needAlternateArs) {
-    std::optional<SaiArsTraits::Attributes::AlternatePathCost>
-        alternatePathCost = std::nullopt;
-    std::optional<SaiArsTraits::Attributes::AlternatePathBias>
-        alternatePathBias = std::nullopt;
+  auto cost = flowletSwitchConfig->getAlternatePathCost();
+  auto bias = flowletSwitchConfig->getAlternatePathBias();
+  if (cost.has_value() && bias.has_value()) {
     std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
         primaryPathQualityThreshold = std::nullopt;
-    if (auto cost = flowletSwitchConfig->getAlternatePathCost()) {
-      alternatePathCost = SaiArsTraits::Attributes::AlternatePathCost{
-          static_cast<sai_uint32_t>(*cost)};
-    }
-
-    if (auto bias = flowletSwitchConfig->getAlternatePathBias()) {
-      alternatePathBias = SaiArsTraits::Attributes::AlternatePathBias{
-          static_cast<sai_uint32_t>(*bias)};
-    }
-
     if (auto threshold =
             flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
       primaryPathQualityThreshold =
           SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
               static_cast<sai_uint32_t>(*threshold)};
     }
-    SaiArsTraits::CreateAttributes alternateMemAttributes{
-        SaiArsTraits::Attributes::Mode{
-            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-        SaiArsTraits::Attributes::IdleTime{
-            flowletSwitchConfig->getInactivityIntervalUsecs()},
-        SaiArsTraits::Attributes::MaxFlows{
-            flowletSwitchConfig->getFlowletTableSize()},
-        primaryPathQualityThreshold,
-        alternatePathCost,
-        alternatePathBias,
-        nextHopGroupType};
-    alternateMemberArsHandle_->ars = store.setObject(
-        getAdapterHostKey(alternateMemAttributes), alternateMemAttributes);
+    setArsObject(
+        alternateMemberArsHandle_.get(),
+        makeArsAttributes(
+            switchingMode,
+            idleTime,
+            maxFlows,
+            primaryPathQualityThreshold,
+            SaiArsTraits::Attributes::AlternatePathCost{
+                static_cast<sai_uint32_t>(*cost)},
+            SaiArsTraits::Attributes::AlternatePathBias{
+                static_cast<sai_uint32_t>(*bias)},
+            nextHopGroupType,
+            std::nullopt));
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  auto standbySwitchingMode = flowletSwitchConfig->getStandbySwitchingMode();
+  if (standbySwitchingMode.has_value()) {
+    // ThriftConfigApplier guarantees the standby idle time and table size are
+    // set alongside the mode, and that the mode differs from the primary's.
+    setArsObject(
+        standbyArsHandle_.get(),
+        makeArsAttributes(
+            *standbySwitchingMode,
+            *flowletSwitchConfig->getStandbyInactivityIntervalUsecs(),
+            *flowletSwitchConfig->getStandbyFlowletTableSize(),
+            std::nullopt,
+            alternatePathCostForArs,
+            alternatePathBiasForArs,
+            nextHopGroupType,
+            std::nullopt));
+  }
+#endif
+
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
-    SaiArsTraits::CreateAttributes virtualArsGroupAttributes{
-        SaiArsTraits::Attributes::Mode{
-            cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
-        SaiArsTraits::Attributes::IdleTime{
-            flowletSwitchConfig->getInactivityIntervalUsecs()},
-        SaiArsTraits::Attributes::MaxFlows{
-            flowletSwitchConfig->getFlowletTableSize()},
-        std::nullopt, // PrimaryPathQualityThreshold
-        std::nullopt, // AlternatePathCost
-        std::nullopt, // AlternatePathBias
-        SaiArsTraits::Attributes::NextHopGroupType{
-            SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL}};
-    virtualArsGroupHandle_->ars = store.setObject(
-        getAdapterHostKey(virtualArsGroupAttributes),
-        virtualArsGroupAttributes);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP) &&
+      flowletSwitchConfig->getMinWidthForArsVirtualGroup().has_value()) {
+    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+        virtualArsQualityThreshold = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::EcmpMemberCount> ecmpMemberCount =
+        std::nullopt;
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+    virtualArsQualityThreshold =
+        SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
+    if (auto threshold =
+            flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
+      virtualArsQualityThreshold =
+          SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
+              static_cast<sai_uint32_t>(*threshold)};
+    }
+    if (auto width = flowletSwitchConfig->getMaxArsVirtualGroupWidth();
+        width && *width > 0) {
+      ecmpMemberCount = SaiArsTraits::Attributes::EcmpMemberCount{
+          static_cast<sai_uint32_t>(*width)};
+    }
+#endif
+    setArsObject(
+        virtualArsGroupHandle_.get(),
+        makeArsAttributes(
+            switchingMode,
+            idleTime,
+            maxFlows,
+            virtualArsQualityThreshold,
+            alternatePathCostForArs,
+            alternatePathBiasForArs,
+            SaiArsTraits::Attributes::NextHopGroupType{
+                SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
+            std::nullopt,
+            ecmpMemberCount));
+  } else if (virtualArsGroupHandle_->ars) {
+    // Config no longer asks for virtual groups, so drop the one we created.
+    virtualArsGroupHandle_->ars.reset();
   }
 #endif
 }

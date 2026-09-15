@@ -22,6 +22,15 @@ size_t hash<facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey>::operator()(
     boost::hash_combine(seed, std::hash<std::decay_t<decltype(p)>>{}(p));
   }
   boost::hash_combine(seed, k.mode);
+  boost::hash_combine(seed, k.groupType);
+  // Recurse into child next hop group identities (hierarchical ECMP).
+  for (const auto& child : k.childNextHopGroups) {
+    boost::hash_combine(
+        seed,
+        std::hash<facebook::fboss::SaiNextHopGroupTraits::AdapterHostKey>{}(
+            child));
+  }
+  boost::hash_combine(seed, k.level);
   return seed;
 }
 } // namespace std

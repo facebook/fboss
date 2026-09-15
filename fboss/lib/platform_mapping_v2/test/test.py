@@ -2,11 +2,24 @@
 
 # pyre-strict
 
+import json
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from typing import Dict, List, Optional
 
-from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
+from fboss.lib.platform_mapping_v2.gen import (
+    generate_platform_mappings_from_vendor_data,
+)
+from fboss.lib.platform_mapping_v2.platform_mapping_v2 import (
+    PlatformMappingParser,
+    PlatformMappingV2,
+)
 from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+    PlatformMappingInput,
+    PlatformMappingInputs,
     read_platform_descriptor,
     read_vendor_data,
 )
@@ -43,10 +56,148 @@ from neteng.fboss.switch_config.thrift_types import (
 from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
 
 
+class TestPlatformMappingInputDiscovery(unittest.TestCase):
+    def _create_input(
+        self,
+        root: str,
+        vendor: str,
+        platform: str,
+        variant: Optional[str] = None,
+        mapping_subdir: str = "platform_mapping",
+    ) -> str:
+        path_parts = [root, vendor, platform]
+        if variant is not None:
+            path_parts.extend(["variants", variant])
+        path_parts.append(mapping_subdir)
+        input_dir = os.path.join(*path_parts)
+        os.makedirs(input_dir)
+        with open(os.path.join(input_dir, "input.json"), "w") as config_file:
+            config_file.write("{}")
+        return input_dir
+
+    def test_discovers_base_and_variant_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as platforms_dir:
+            base_dir = self._create_input(platforms_dir, "arista", "meru800bia")
+            variant_dir = self._create_input(
+                platforms_dir,
+                "arista",
+                "meru800bia",
+                variant="unrelated_alias",
+            )
+
+            inputs = discover_platform_mapping_inputs(platforms_dir)
+
+            self.assertEqual(set(inputs), {"meru800bia", "unrelated_alias"})
+            self.assertEqual(
+                inputs["meru800bia"],
+                PlatformMappingInput(
+                    base_platform="meru800bia",
+                    input_dir=base_dir,
+                    vendor="arista",
+                    data={"input.json": "{}"},
+                ),
+            )
+            self.assertEqual(
+                inputs["unrelated_alias"],
+                PlatformMappingInput(
+                    base_platform="meru800bia",
+                    input_dir=variant_dir,
+                    vendor="arista",
+                    data={"input.json": "{}"},
+                ),
+            )
+
+    def test_rejects_duplicate_platform_names_across_vendors(self) -> None:
+        with tempfile.TemporaryDirectory() as platforms_dir:
+            self._create_input(platforms_dir, "arista", "duplicate")
+            self._create_input(platforms_dir, "celestica", "duplicate")
+
+            with self.assertRaisesRegex(
+                ValueError, "Duplicate platform mapping input 'duplicate'"
+            ):
+                discover_platform_mapping_inputs(platforms_dir)
+
+    def test_rejects_variants_without_base_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as platforms_dir:
+            variant_dir = os.path.join(
+                platforms_dir,
+                "arista",
+                "meru800bia",
+                "variants",
+                "meru800bia_variant",
+                "platform_mapping",
+            )
+            os.makedirs(variant_dir)
+
+            with self.assertRaisesRegex(
+                ValueError, "has platform mapping variants but no base input directory"
+            ):
+                discover_platform_mapping_inputs(platforms_dir)
+
+    def test_ignores_variants_for_other_services(self) -> None:
+        with tempfile.TemporaryDirectory() as platforms_dir:
+            os.makedirs(
+                os.path.join(
+                    platforms_dir,
+                    "arista",
+                    "meru800bia",
+                    "variants",
+                    "service_only_variant",
+                    "services",
+                )
+            )
+
+            inputs = discover_platform_mapping_inputs(platforms_dir)
+
+            self.assertEqual(len(inputs), 0)
+
+    def test_discovers_custom_mapping_subdirectory(self) -> None:
+        with tempfile.TemporaryDirectory() as platforms_dir:
+            input_dir = self._create_input(
+                platforms_dir,
+                "cisco",
+                "morgan800cc",
+                mapping_subdir=os.path.join("facebook", "platform_mapping"),
+            )
+
+            inputs = discover_platform_mapping_inputs(
+                platforms_dir,
+                mapping_subdir=os.path.join("facebook", "platform_mapping"),
+            )
+
+            self.assertEqual(
+                inputs,
+                {
+                    "morgan800cc": PlatformMappingInput(
+                        base_platform="morgan800cc",
+                        input_dir=input_dir,
+                        vendor="cisco",
+                        data={"input.json": "{}"},
+                    )
+                },
+            )
+
+    def test_parser_uses_catalog_base_platform(self) -> None:
+        base_data = read_vendor_data("fboss/lib/platform_mapping_v2/test/test_data")
+        inputs = {
+            "test": PlatformMappingInput("test", "", "test", base_data),
+            "unrelated_alias": PlatformMappingInput("test", "", "test", {}),
+        }
+
+        parser = PlatformMappingParser(inputs, "unrelated_alias")
+
+        self.assertEqual(parser.get_base_platform(), "test")
+        self.assertTrue(parser.get_static_mapping().get_chips())
+
+
 class TestPlatformMappingGeneration(unittest.TestCase):
-    def _get_test_vendor_data(self, folder: str) -> Dict[str, Dict[str, str]]:
+    def _get_test_vendor_data(self, folder: str) -> PlatformMappingInputs:
         input_dir = f"fboss/lib/platform_mapping_v2/test/{folder}"
-        return {"test": read_vendor_data(input_dir)}
+        return {
+            "test": PlatformMappingInput(
+                "test", input_dir, "test", read_vendor_data(input_dir)
+            )
+        }
 
     def _get_expected_single_npu_test_ports(self) -> Dict[int, PlatformPortEntry]:
         port_one_mapping = PlatformPortEntry(
@@ -533,6 +684,33 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         )
         self._verify_multi_npu_platform_mapping(platform_mapping, None)
 
+    def test_get_num_switch_asics(self) -> None:
+        platform_mapping = PlatformMappingV2(
+            self._get_test_vendor_data("test_data"), "test", multi_npu=True
+        )
+
+        self.assertEqual(2, platform_mapping.get_num_switch_asics())
+
+    def test_generated_descriptor_includes_num_switch_asics(self) -> None:
+        vendor_data = self._get_test_vendor_data("test_data")
+        vendor_data["test"].data["test_platform_descriptor.csv"] = "\n".join(
+            [
+                "System_Vendor,Platform_Type,Product_Name_Prefixes,Mode_Names,Asic_Type",
+                "celestica,PLATFORM_WEDGE800BACT,TEST,test,ASIC_TYPE_TOMAHAWK5",
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as output_dir:
+            generate_platform_mappings_from_vendor_data(
+                vendor_data, output_dir, "test", is_multi_npu=True
+            )
+            with open(
+                Path(output_dir) / "celestica" / "test" / "platform_descriptor.json"
+            ) as descriptor_file:
+                descriptor = json.load(descriptor_file)
+
+        self.assertEqual(2, descriptor["numSwitchAsics"])
+
     def test_get_platform_mapping_single_npu_with_overrides(self) -> None:
         platform_mapping = PlatformMappingV2(
             self._get_test_vendor_data("test_data_factor_overrides"),
@@ -552,6 +730,39 @@ class TestPlatformMappingGeneration(unittest.TestCase):
         self._verify_multi_npu_platform_mapping(
             platform_mapping, self._get_expected_override_factors()
         )
+
+    def test_montblanc_family_port_five_uses_cage_root_controller(
+        self,
+    ) -> None:
+        vendor_data = discover_platform_mapping_inputs("fboss/configs/platforms")
+        platform_mappings = [
+            PlatformMappingV2(
+                vendor_data, platform, multi_npu=False
+            ).get_platform_mapping()
+            for platform in (
+                "montblanc",
+                "montblanc_odd_ports_8x100G",
+                "montblanc_gtsw_yolo",
+            )
+        ]
+        try:
+            raw_mapping = PlatformMappingV2.generate_raw_platform_mapping(
+                platform_mappings
+            )
+        except ValueError as error:
+            self.fail(str(error))
+        raw_ports = raw_mapping.rawPlatformPorts
+        self.assertIsNotNone(raw_ports)
+        if raw_ports is None:
+            return
+
+        port_fives = {
+            name: entry for name, entry in raw_ports.items() if name.endswith("/5")
+        }
+        self.assertEqual(64, len(port_fives))
+        for name, entry in port_fives.items():
+            cage_root = f"{name.rsplit('/', 1)[0]}/1"
+            self.assertEqual(cage_root, entry.mapping.controllingPortName, name)
 
     def test_read_platform_descriptor_variant_attributes(self) -> None:
         descriptor = read_platform_descriptor(
@@ -589,7 +800,13 @@ class TestPlatformMappingGeneration(unittest.TestCase):
 
 def run_tests() -> None:
     # Provided for add_fb_python_executable callable
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestPlatformMappingGeneration)
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite(
+        (
+            loader.loadTestsFromTestCase(TestPlatformMappingInputDiscovery),
+            loader.loadTestsFromTestCase(TestPlatformMappingGeneration),
+        )
+    )
     result = unittest.TextTestRunner().run(suite)
 
     if not result.wasSuccessful():

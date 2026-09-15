@@ -83,6 +83,49 @@ void CmdShowDsfSubscription::printOutput(
   out << std::endl;
 }
 
+std::string_view CmdShowDsfSubscriptionTraits::description() {
+  return "Displays this switch's DSF FSDB subscriptions to its peer switches: each peer's name and address, the subscription state, how long it has been established, and the FSDB paths subscribed to. DSF-only — applies to DSF switches and returns data only in a DSF topology.";
+}
+
+CmdShowDsfSubscription::RetType CmdShowDsfSubscription::sampleModel() {
+  RetType model;
+
+  cli::Subscription sub1;
+  sub1.name() = "edsw001::2001:db8:1::1";
+  sub1.state() = "ESTABLISHED";
+  sub1.establishedSince() = "66d 22h 52m 57s";
+  sub1.paths() = {
+      "agent/switchState/systemPortMaps",
+      "agent/switchState/interfaceMaps",
+      "agent/fsdbSubscriptions/rdsw010::2001:db8:2::1",
+  };
+  model.subscriptions()->push_back(sub1);
+
+  cli::Subscription sub2;
+  sub2.name() = "edsw002::2001:db8:1::2";
+  sub2.state() = "ESTABLISHED";
+  sub2.establishedSince() = "66d 22h 52m 57s";
+  sub2.paths() = {
+      "agent/switchState/systemPortMaps",
+      "agent/switchState/interfaceMaps",
+      "agent/fsdbSubscriptions/rdsw010::2001:db8:2::1",
+  };
+  model.subscriptions()->push_back(sub2);
+
+  cli::Subscription sub3;
+  sub3.name() = "edsw003::2001:db8:1::3";
+  sub3.state() = "ESTABLISHED";
+  sub3.establishedSince() = "65d 16h 21m 39s";
+  sub3.paths() = {
+      "agent/switchState/systemPortMaps",
+      "agent/switchState/interfaceMaps",
+      "agent/fsdbSubscriptions/rdsw010::2001:db8:2::1",
+  };
+  model.subscriptions()->push_back(sub3);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowDsfSubscription, CmdShowDsfSubscriptionTraits>::run();

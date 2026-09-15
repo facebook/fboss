@@ -160,6 +160,27 @@ void addSharedSrv6Routes(
   }
 }
 
+// Add every prefix in |prefixes| pointing at the shared |nhops| set, each with
+// its own unique extended (>31 char) route counter label so updateStats() must
+// read a distinct SAI counter per route.
+template <typename AddrT>
+void addSharedSrv6RoutesWithCounters(
+    SwSwitchRouteUpdateWrapper& updater,
+    const std::vector<RoutePrefix<AddrT>>& prefixes,
+    const RouteNextHopSet& nhops) {
+  int i = 0;
+  for (const auto& prefix : prefixes) {
+    std::optional<RouteCounterID> counterID = RouteCounterID(
+        fmt::format("srv6-route-counter-extended-label-{:09d}", i++));
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP, counterID));
+  }
+}
+
 // Delete every prefix in |prefixes|.
 template <typename AddrT>
 void delSrv6Routes(
@@ -414,6 +435,83 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
   suspender.rehire();
 }
 
+// Benchmark: route-counter stats collection at scale.
+// Programs numRoutes IPv6 SRv6 routes (shared SRv6 nhops, prod-derived
+// prefix distribution), each with its own unique extended (>31 char) route
+// counter, then times updateStats() — which reads every route counter once per
+// pass via SaiCounterManager::updateStats(). Reports the aggregate wall time
+// for kStatsCollectionIterations passes.
+//
+// NOTE: collection cost is dominated by counter_refresh_interval
+// (SAI_SWITCH_ATTR_COUNTER_REFRESH_INTERVAL): 0 reads each counter live from HW
+// (~109 us/counter on G200/Yuba), 1 serves from a 1s SW cache (~13 us/counter).
+// The benchmark config sets counter_refresh_interval=1 to measure the
+// prod-representative cached path (prod default is 1; the shared hw-test config
+// forces 0 so tests see live counter changes).
+void srv6RouteCounterStatsCollectionBenchmark(int numRoutes) {
+  folly::BenchmarkSuspender suspender;
+  constexpr int kNumSharedSrv6Nhops = 8;
+  // Collect stats a fixed number of times and report the aggregate (folly is
+  // not told a per-iteration count); the measured region is the whole loop, so
+  // divide the reported time by kStatsCollectionIterations for per-pass cost.
+  // 100 matches the VOQ-switch count in HwStatsCollectionBenchmark.
+  constexpr int kStatsCollectionIterations = 100;
+
+  // Extended-label route counters require FLAGS_srv6 on a 26.2.4210/26.5.5210
+  // build.
+  FLAGS_srv6 = true;
+  FLAGS_enable_stats_update_thread = false;
+  // One counter per route: allow route counters up to the full ASIC capacity
+  // (getMaxRouteCounters(), 4096 on G200/Yuba) rather than the default 75%.
+  FLAGS_route_counter_resource_percentage = 100;
+
+  auto ensemble = createAgentEnsemble(
+      makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
+  // Drive stat collection ourselves: the timed loop must be the only caller of
+  // updateStats(). FLAGS_enable_stats_update_thread can be clobbered by the
+  // config's defaultCommandLineArgs at init, so stop the thread explicitly
+  // (matches srv6FullScaleWarmbootBenchmark).
+  ensemble->stopStatsThread();
+  ensemble->applyNewState(
+      [](const std::shared_ptr<SwitchState>& in) {
+        return utility::enableTrunkPorts(in);
+      },
+      "enable trunk ports");
+
+  utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+      ensemble->getSw()->getState(),
+      ensemble->getSw()->needL2EntryForNeighbor());
+  auto numNhops =
+      std::min(static_cast<int>(ecmpHelper6.getNextHops().size()), 64);
+  CHECK_GT(numNhops, 0);
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper6.resolveNextHops(in, numNhops);
+  });
+
+  auto sharedV6Nhops =
+      makeSharedSrv6Nhops(ecmpHelper6, numNhops, kNumSharedSrv6Nhops);
+  auto v6Prefixes = genDistributedPrefixes<folly::IPAddressV6>(
+      scaleDistribution(kSrv6V6PrefixDistribution, numRoutes),
+      folly::IPAddressV6("2800::"));
+
+  {
+    // Program all counter-bearing routes untimed. If the counter count exceeds
+    // ASIC capacity (getMaxRouteCounters), this aborts here.
+    auto routeUpdater = ensemble->getSw()->getRouteUpdater();
+    addSharedSrv6RoutesWithCounters<folly::IPAddressV6>(
+        routeUpdater, v6Prefixes, sharedV6Nhops);
+    routeUpdater.program();
+  }
+
+  // Timed: collect stats over all route counters kStatsCollectionIterations
+  // times.
+  suspender.dismiss();
+  for (int i = 0; i < kStatsCollectionIterations; ++i) {
+    ensemble->getSw()->updateStats();
+  }
+  suspender.rehire();
+}
+
 // Full-scale SRv6 warmboot benchmark: program numGroups x membersPerGroup
 // unique SRv6 next hops, numV6Routes v6 routes (shared SRv6 nhops), and
 // numMySidEntries ADJACENCY_MICRO_SID MySID entries, then measure the warmboot
@@ -532,6 +630,19 @@ BENCHMARK(HwSrv6V4RouteScaleBenchmark) {
 // 3. Mixed IPv6 + IPv4 routes
 BENCHMARK(HwSrv6MixedRouteScaleBenchmark) {
   srv6RouteScaleBenchmark(25000, 25000);
+}
+
+// Full ASIC route-counter capacity (getMaxRouteCounters = 4096 on G200/Yuba);
+// with route_counter_resource_percentage=100 the benchmark programs exactly
+// this many unique route counters. ASIC-coupled: adjust for a platform with a
+// different capacity.
+constexpr int kRouteCounterScale = 4096;
+
+// Route-counter stats collection at the full ASIC route-counter capacity:
+// kRouteCounterScale IPv6 SRv6 routes, each with a unique extended (>31 char)
+// route counter, then time collecting stats over all counters.
+BENCHMARK(HwSrv6RouteCounter4kStatsCollectionBenchmark) {
+  srv6RouteCounterStatsCollectionBenchmark(kRouteCounterScale);
 }
 
 // Full-scale warmboot: 390 groups x 20 = 7.8K SRv6 next hops + 50K v6 routes +

@@ -17,6 +17,8 @@ mkdir -p /var/FBOSS/pai_impl/include/epdm
 # NOTE: Adjust the correct directory based on your setup
 cp -r /opt/sdk/PAI_4.0/inc/sai /var/FBOSS/pai_impl/include
 cp -r /opt/sdk/PAI_4.0/inc/pai_macsec /var/FBOSS/pai_impl/include
+# Vendor headers at the root of inc/ (brcm_pai_extensions.h and friends)
+cp /opt/sdk/PAI_4.0/inc/*.h /var/FBOSS/pai_impl/include/
 # Copy header from EPDM
 # NOTE: Adjust the correct directory based on your setup
 cp /opt/sdk/epdm_4_5_2/*.h /var/FBOSS/pai_impl/include/epdm/

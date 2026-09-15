@@ -1,8 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/if/gen-cpp2/AgentHwTestCtrl.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -34,16 +38,23 @@ class AgentHwLlrTest : public AgentHwTest {
   void addLlrConfig(cfg::SwitchConfig& cfg, const AgentEnsemble& ensemble)
       const {
     cfg::LlrConfig llr;
-    // Values track the UE Spec section 5.1.4 registers; replayCountMax, frame
-    // actions and ctlosTargetSpacing keep their thrift defaults (replayCountMax
-    // 2, init BEST_EFFORT, flush BLOCK, ctlos 2048).
-    // outstandingFramesMax / outstandingBytesMax are validated at profile-bind
-    // time against a speed-dependent HW maximum (~ the link bandwidth-delay
-    // product); exceeding it fails the bind. Use conservative values that fit
-    // the smallest supported port speed (100G, BDP ~6KB) so the bind succeeds
-    // on any LLR-capable port.
-    llr.outstandingFramesMax() = 32;
-    llr.outstandingBytesMax() = 4096;
+    // 400G TU1 UEC LLR profile mirroring the production COOP values, sized from
+    // the Broadcom BCM78920 LLR Reach Calculator (checked in at
+    // fboss/agent/facebook/wiki/BCM78920_LLR_ReachCalculator_v5.1.html). At
+    // 400G (MTU 9000, ACK 2048): External Budget = 2708ns usable buffer - 132
+    // PHY
+    // - 2x180 MTU - 2x41 ACK - 8 CtlOS - 5.1 header - 5.1 AM ~= 2116ns; x 50
+    // B/ns ~= 105800 B. outstandingBytesMax is the outstanding (un-acked)
+    // window; the full 135400 B usable buffer leaves no room for those reserved
+    // overheads and hangs the profile program, so External Budget is the HW
+    // ceiling; 105800 is bind-validated on TU1 (cold+warm).
+    // outstandingFramesMax = ceil(105800 / 64B min frame) = 1654 so
+    // bytes stays the binding limit. LLR is TU1-400G only today; revisit if an
+    // LLR port at another speed is added. replayCountMax, frame actions and
+    // ctlosTargetSpacing keep their thrift defaults (2, init BEST_EFFORT, flush
+    // BLOCK, ctlos 2048).
+    llr.outstandingFramesMax() = 1654;
+    llr.outstandingBytesMax() = 105800;
     llr.replayTimerMax() = 5000; // ns
     cfg.llrConfigs() = {{kLlrConfigName, llr}};
     for (const auto& portId : ensemble.masterLogicalInterfacePortIds()) {
@@ -90,9 +101,9 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
           port->getLlrConfig().value()->getFlushFrameAction(),
           cfg::LlrFrameAction::BLOCK);
 
-      // Every TU-supported per-port LLR counter is collected into HwPortStats.
+      // Every TU1-supported per-port LLR counter is collected into HwPortStats.
       // Counters read 0 without induced traffic, but each must be present once
-      // LLR is bound. The 4 stats with no SDK backing on Tomahawk Ultra
+      // LLR is bound. The 4 stats with no SDK backing on Tomahawk Ultra 1
       // (RX_BAD, TX_DISCARD, TX_POISONED, RX_POISONED) are neither fetched nor
       // asserted (Broadcom CS00012472055).
       const auto& stats = portStats.at(portId);
@@ -115,6 +126,49 @@ TEST_F(AgentHwLlrTest, verifyLlrConfig) {
       EXPECT_TRUE(stats.llrRxExpectedSeqGood_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqPoisoned_().has_value());
       EXPECT_TRUE(stats.llrRxExpectedSeqBad_().has_value());
+      // Broadcom LLR stat extensions, fetched in their own read. Present
+      // together or not at all, so a partial set here means the extension read
+      // returned NOT_SUPPORTED on some but not all ids.
+      EXPECT_TRUE(stats.llrTxEligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrTxIneligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrRxEligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrRxIneligiblePkts_().has_value());
+      EXPECT_TRUE(stats.llrTxNackReplayEvent_().has_value());
+      EXPECT_TRUE(stats.llrTxTimerReplayEvent_().has_value());
+      EXPECT_TRUE(stats.llrTxError_().has_value());
+
+      // The LLR TX/RX state machine status (UE Spec 1.0.2 sections 5.1.5 and
+      // 5.1.7), read from hardware for every LLR-bound port regardless of link
+      // state. The read leaves both fields unset on failure, so has_value() is
+      // the assertion that the SDK actually served the attribute.
+      ASSERT_TRUE(stats.llrTxStatus_().has_value());
+      ASSERT_TRUE(stats.llrRxStatus_().has_value());
+      // The value itself is logged, not asserted. On Tomahawk Ultra the SDK
+      // derives both attributes from llr_active_tx/llr_active_rx, so a non-OFF
+      // status means LLR completed its INIT handshake on the wire. This
+      // ensemble brings ports up in ASIC loopback with no LLR-capable peer, so
+      // every port reads OFF here -- asserting otherwise would need a real
+      // link partner running LLR (IXIA or a second switch), which is out of
+      // scope for a single-node AgentHwTest.
+      XLOG(DBG2) << "Port " << portId << " LLR status: tx="
+                 << apache::thrift::util::enumNameSafe(*stats.llrTxStatus_())
+                 << " rx="
+                 << apache::thrift::util::enumNameSafe(*stats.llrRxStatus_());
+
+      // Read the LLR binding back from hardware (via the HwAgent process, so
+      // this works in both mono and multi-switch). This confirms the SAI
+      // profile object still exists, is bound to the port, and carries the
+      // last-applied frame actions after the warm boot -- not just that the
+      // SwitchState intent survived.
+      auto switchId =
+          getAgentEnsemble()->scopeResolver().scope(portId).switchId();
+      auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+      utility::PortLlrInfo llrInfo;
+      client->sync_getPortLlrInfo(llrInfo, portId);
+      EXPECT_TRUE(*llrInfo.hasProfile());
+      EXPECT_NE(*llrInfo.profileId(), 0);
+      EXPECT_EQ(*llrInfo.initFrameAction(), kInitActions.back());
+      EXPECT_EQ(*llrInfo.flushFrameAction(), cfg::LlrFrameAction::BLOCK);
     }
   };
   verifyAcrossWarmBoots(setup, verify);

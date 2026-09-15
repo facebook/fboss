@@ -1,10 +1,10 @@
 {
   "defaultCommandLineArgs": {
     "firmware_upgrade_on_coldboot": "true",
-    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "wedge800cact",
+    "platform_descriptor_config_path": "/tmp/platform_descriptors/",
     "remediation_enabled": "false"
   },
   "transceiverConfigOverrides": [
@@ -15,12 +15,7 @@
       {
         "aPortName": "eth1/1/1",
         "zPortName": "eth1/2/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/1/5",
-        "zPortName": "eth1/2/5",
-        "profileID": 38
+        "profileID": 39
       },
       {
         "aPortName": "eth1/5/1",
@@ -40,7 +35,7 @@
       {
         "aPortName": "eth1/9/5",
         "zPortName": "eth1/10/5",
-        "profileID": 25
+        "profileID": 38
       },
       {
         "aPortName": "eth1/13/1",
@@ -53,49 +48,24 @@
         "profileID": 23
       },
       {
-        "aPortName": "eth1/17/1",
-        "zPortName": "eth1/18/1",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/17/5",
-        "zPortName": "eth1/18/5",
-        "profileID": 25
-      },
-      {
-        "aPortName": "eth1/21/1",
-        "zPortName": "eth1/22/1",
-        "profileID": 25
-      },
-      {
-        "aPortName": "eth1/21/5",
-        "zPortName": "eth1/22/5",
-        "profileID": 38
-      },
-      {
-        "aPortName": "eth1/25/1",
-        "zPortName": "eth1/26/1",
-        "profileID": 39
-      },
-      {
-        "aPortName": "eth1/29/1",
-        "zPortName": "eth1/30/1",
-        "profileID": 39
-      },
-      {
         "aPortName": "eth1/3/1",
         "zPortName": "eth1/4/1",
-        "profileID": 50
-      },
-      {
-        "aPortName": "eth1/7/1",
-        "zPortName": "eth1/8/1",
         "profileID": 45
       },
       {
-        "aPortName": "eth1/7/5",
-        "zPortName": "eth1/8/5",
+        "aPortName": "eth1/3/5",
+        "zPortName": "eth1/4/5",
         "profileID": 45
+      },
+      {
+        "aPortName": "eth1/11/1",
+        "zPortName": "eth1/12/1",
+        "profileID": 24
+      },
+      {
+        "aPortName": "eth1/11/5",
+        "zPortName": "eth1/12/5",
+        "profileID": 24
       },
       {
         "aPortName": "eth1/33/1",
@@ -170,11 +140,35 @@
             }
           ]
       },
+      "DP08SFP8-LRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
+            }
+          ]
+      },
       "DP08SFP8-LRB-29D": {
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
             }
           ]
       },
@@ -182,7 +176,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -190,7 +184,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -230,7 +224,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -254,7 +248,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -450,6 +444,38 @@
             }
           ]
       },
+      "FTCF2519E3PCAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF4719E6PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
       "QDD-400G-XDR4": {
           "versions": [
             {
@@ -467,6 +493,14 @@
             {
               "fwType": 1,
               "version": "0.11"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.3"
             }
           ]
       },
@@ -709,5 +743,8 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

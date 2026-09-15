@@ -72,7 +72,8 @@ CmdShowNextHopGroups::RetType CmdShowNextHopGroups::queryClient(
   std::vector<NextHopGroup> nextHopGroups;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  client->sync_getNextHopGroups(nextHopGroups);
+  client->sync_getNextHopGroups(
+      nextHopGroups, false /* replicateWeightedNexthops */);
   return createModel(nextHopGroups);
 }
 
@@ -93,7 +94,12 @@ CmdShowNamedNextHopGroups::RetType CmdShowNamedNextHopGroups::queryClient(
   std::vector<NextHopGroup> nextHopGroups;
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-  client->sync_getNextHopGroups(nextHopGroups);
+  // Use the name-keyed API so groups that share a next-hop set (and thus a
+  // single hardware NextHopSetId) are each listed by name, rather than being
+  // collapsed into one entry as sync_getNextHopGroups would do.
+  std::vector<std::string> names; // empty => return all named groups
+  client->sync_getNamedNextHopGroups(
+      nextHopGroups, names, false /* replicateWeightedNexthops */);
   return createModel(nextHopGroups);
 }
 
@@ -106,6 +112,73 @@ void CmdShowNamedNextHopGroups::printOutput(
     const RetType& model,
     std::ostream& out) {
   printNextHopGroups(model, out);
+}
+
+std::string_view CmdShowNextHopGroupsTraits::description() {
+  return "Displays the switch's nexthop groups: each group's name and programming status, its member nexthops (address, egress interface, weight, cost), and any SRv6 SID list. Use it to inspect ECMP / nexthop-group programming.";
+}
+
+CmdShowNextHopGroups::RetType CmdShowNextHopGroups::sampleModel() {
+  RetType model;
+
+  // First group: unnamed, programmed, with two plain cost members
+  cli::NextHopGroupEntry group1;
+  group1.name() = "--";
+  group1.isNamed() = false;
+  group1.programmed() = "yes";
+  group1.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 dev fboss2008 cost 202",
+      "fe80::200:11ff:fe22:3302 dev fboss2002 cost 202"};
+  model.nextHopGroups()->push_back(group1);
+
+  // Second group: named "lspgrp_example", programmed, with an SRv6 SID list
+  // member
+  cli::NextHopGroupEntry group2;
+  group2.name() = "lspgrp_example";
+  group2.isNamed() = true;
+  group2.programmed() = "yes";
+  group2.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 dev fboss2008 SRv6 SID List [fdad:ffff:7fff::]"};
+  model.nextHopGroups()->push_back(group2);
+
+  return model;
+}
+
+std::string_view CmdShowNamedNextHopGroupsTraits::description() {
+  return "Displays the switch's named nexthop groups (e.g. SRv6 LSP groups): each group's name and programming status, and its member nexthops with egress interface and SRv6 SID list. Unlike `show nexthopgroups`, only named groups are listed. Use it to inspect SRv6/named-LSP nexthop-group programming.";
+}
+
+CmdShowNamedNextHopGroups::RetType CmdShowNamedNextHopGroups::sampleModel() {
+  RetType model;
+
+  cli::NextHopGroupEntry group1;
+  group1.name() = "lspgrp_dc1-dc2-t000-class";
+  group1.isNamed() = true;
+  group1.programmed() = "no";
+  group1.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3302 dev fboss2002 SRv6 SID List [fdad:ffff:7fff::]"};
+  model.nextHopGroups()->push_back(group1);
+
+  cli::NextHopGroupEntry group2;
+  group2.name() = "lspgrp_dc1-dc2-t001-class";
+  group2.isNamed() = true;
+  group2.programmed() = "yes";
+  group2.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3301 dev fboss2001 SRv6 SID List [fdad:ffff:7fff::]"};
+  model.nextHopGroups()->push_back(group2);
+
+  cli::NextHopGroupEntry group3;
+  group3.name() = "lspgrp_rb01-01_dc1-dc2-gold-class";
+  group3.isNamed() = true;
+  group3.programmed() = "yes";
+  group3.nextHops() = std::vector<std::string>{
+      "fe80::200:11ff:fe22:3308 dev fboss2008 SRv6 SID List [fdad:ffff:7fff::]",
+      "fe80::200:11ff:fe22:3307 dev fboss2007 SRv6 SID List [fdad:ffff:7fff::]",
+      "fe80::200:11ff:fe22:3302 dev fboss2002 SRv6 SID List [fdad:ffff:7fff::]",
+      "fe80::200:11ff:fe22:3301 dev fboss2001 SRv6 SID List [fdad:ffff:7fff::]"};
+  model.nextHopGroups()->push_back(group3);
+
+  return model;
 }
 
 // Explicit template instantiation

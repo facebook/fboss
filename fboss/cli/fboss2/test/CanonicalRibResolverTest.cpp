@@ -31,6 +31,7 @@ namespace {
 // Mirrors facebook::bgp::kBestPathGroup / kDefaultPathGroup -- the group keys
 // bgpd uses; the resolver must reconstruct best_group as kBestGroup.
 constexpr auto kBestGroup = "best";
+constexpr auto kBackupAddr = "2001:db8::1";
 
 // A canonical state with a single prefix and sparse path/peer IDs, optionally
 // marked as the selected best.
@@ -40,6 +41,7 @@ TCanonicalRibState makeSingleEntryState(int64_t med, bool markBest) {
   TBgpDedupedPath deduped;
   deduped.next_hop() = getPrefix(kNextHop);
   deduped.med() = med;
+  deduped.backup_addr() = getPrefix(kBackupAddr);
   state.deduped_paths()->emplace(7, deduped);
 
   TCanonicalPeer peer;
@@ -88,6 +90,7 @@ TEST(CanonicalRibResolverTest, ResolvesPathPeerAndBestPath) {
   EXPECT_EQ(kPeerDescription, path.peer_description().value());
   EXPECT_EQ(1234, path.router_id().value());
   EXPECT_EQ(100, path.med().value());
+  EXPECT_EQ(getPrefix(kBackupAddr), path.backup_addr().value());
   EXPECT_TRUE(path.is_best_path().value());
 }
 

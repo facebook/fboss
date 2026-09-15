@@ -96,3 +96,34 @@ TEST(AgentDirectoryUtilTests, Verify) {
       util.getPreStartShellScript(),
       util.getVolatileStateDir() + "/pre_start.sh");
 }
+
+// Boot history has two tiers: a primary under /var/facebook/logs/fboss and a
+// fallback used when that directory is absent, which is the normal case off a
+// switch. Each tier's directory is a constructor argument, so a caller can
+// keep its own pair of paths instead of sharing one file per host.
+TEST(AgentDirectoryUtilTests, BootHistoryPathsDefaultToProductionLocations) {
+  AgentDirectoryUtil util;
+  EXPECT_EQ(
+      util.getAgentBootHistoryLogFile(),
+      "/var/facebook/logs/fboss/wedge_agent_boot_history.log");
+  EXPECT_EQ(
+      util.getAgentBootHistoryFallbackLogFile(), "/tmp/wedge_agent_starts.log");
+}
+
+TEST(AgentDirectoryUtilTests, BootHistoryPathsHonourInjectedDirectories) {
+  AgentDirectoryUtil util(
+      "/vol",
+      "/persist",
+      "/pkg",
+      "/systemd",
+      "/cfg",
+      "/drain",
+      "/injected/logs",
+      "/injected/fallback");
+  EXPECT_EQ(
+      util.getAgentBootHistoryLogFile(),
+      "/injected/logs/wedge_agent_boot_history.log");
+  EXPECT_EQ(
+      util.getAgentBootHistoryFallbackLogFile(),
+      "/injected/fallback/wedge_agent_starts.log");
+}

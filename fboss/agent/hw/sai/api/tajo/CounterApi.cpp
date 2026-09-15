@@ -15,7 +15,8 @@ namespace facebook::fboss {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
 std::optional<sai_attr_id_t>
 SaiCounterTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
-#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_GTE_26_2) && !defined(TAJO_SDK_VERSION_26_2_5210) && \
+    !defined(TAJO_SDK_VERSION_26_5_5211)
   return SAI_COUNTER_ATTR_EXT_LABEL_EXTENDED;
 #else
   return std::nullopt;

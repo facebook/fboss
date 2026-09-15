@@ -13,15 +13,16 @@ cpp_library(
         "FbossFirmware.h",
         "FbossFwStorage.h",
     ],
+    deps = ["//folly:file"],
     exported_deps = [
-        "//folly:file",
+        "fbsource//third-party/yaml-cpp:yaml-cpp",
         "//folly:file_util",
         "//folly/init:init",
         "//folly/io:iobuf",
         "//folly/logging:logging",
     ],
+    external_deps = [("boost", None, "boost_filesystem")],
     exported_external_deps = [
-        ("boost", None, "boost_filesystem"),
         "gflags",
         "yaml-cpp",
     ],

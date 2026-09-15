@@ -40,7 +40,9 @@ std::string formatTime(int64_t timeSec) {
 
 CmdConfigHistoryTraits::RetType CmdConfigHistory::queryClient(
     const HostInfo& /* hostInfo */) {
-  auto& session = ConfigSession::getInstance();
+  // Read-only: reporting committed history must never stage a session.
+  auto& session =
+      ConfigSession::getInstance(ConfigSession::SessionInit::ReadOnly);
   auto& git = session.getGit();
 
   // Get the commit history from Git for the CLI config file

@@ -35,6 +35,7 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
+class MultiSwitchClassBasedPolicyMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
@@ -148,6 +149,12 @@ class RibRouteTables {
       const std::vector<std::string>& names,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
+  void addOrUpdatePolicies(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<ClassBasedPolicy>& policies,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -224,6 +231,11 @@ class RibRouteTables {
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
+  // ECMP width used to normalize nexthops in the RIB, sourced from
+  // cfg.SwitchSettings.ecmpWidth; set at config apply.
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -245,7 +257,10 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -276,10 +291,13 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
+
+  std::string getPolicyDefaultNextHopGroup(const std::string& policyName) const;
 
  private:
   void updateFib(
@@ -325,6 +343,7 @@ class RibRouteTables {
     std::unique_ptr<NextHopIDManager> nextHopIDManager{
         FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
                                         : nullptr};
+    uint32_t ecmpWidth{FLAGS_ecmp_width};
   };
 
   using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
@@ -513,6 +532,9 @@ class RoutingInformationBase {
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
+  void setEcmpWidth(uint32_t ecmpWidth);
+  uint32_t getEcmpWidth() const;
+
   void updateRemoteInterfaceRoutes(
       const SwitchIdScopeResolver* resolver,
       const RouterIDAndNetworkToInterfaceRoutes& toAdd,
@@ -558,7 +580,10 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -601,7 +626,8 @@ class RoutingInformationBase {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static std::unique_ptr<RoutingInformationBase> fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      uint32_t ecmpWidth);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   // Returns a deep copy of the NextHopIDManager. This is an expensive
@@ -640,6 +666,12 @@ class RoutingInformationBase {
   void deleteNamedNextHopGroups(
       const std::vector<std::string>& names,
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void addOrUpdatePolicies(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<ClassBasedPolicy>& policies,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
 
  private:
   void ensureRunning() const;
@@ -715,19 +747,21 @@ RouteNextHopSet getResolvedNextHopsFromRib(
 // via the NextHopIDManager directly. Used by RIB-internal callers operating
 // before the state is published. When FLAGS_resolve_nexthops_from_id is on,
 // resolves via normalizedResolvedNextHopSetID against the manager. When
-// off, falls back to entry.nonOverrideNormalizedNextHops(). Companion to
-// FibHelpers::getNonOverrideNormalizedNextHops.
+// off, falls back to entry.nonOverrideNormalizedNextHops(ecmpWidth). Companion
+// to FibHelpers::getNonOverrideNormalizedNextHops.
 RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry);
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth);
 
 // Resolve the normalized nexthops from a RouteNextHopEntry via the
 // NextHopIDManager. If the entry has override nexthops (inline for now),
-// returns entry.normalizedNextHops() so the override is honored; otherwise
-// delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
+// returns entry.normalizedNextHops(ecmpWidth) so the override is honored;
+// otherwise delegates to the ID-aware getNonOverrideNormalizedNextHopsFromRib.
 // Companion to FibHelpers::getNormalizedNextHops.
 RouteNextHopSet getNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
-    const RouteNextHopEntry& entry);
+    const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth);
 
 } // namespace facebook::fboss

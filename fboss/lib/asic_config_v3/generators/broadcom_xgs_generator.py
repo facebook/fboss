@@ -5,9 +5,12 @@ import os
 from typing import Any
 
 import yaml
-from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator, MODULE_DIR
+from fboss.lib.asic_config_v3.base_generator import BaseAsicConfigGenerator
+from fboss.lib.asic_config_v3.paths import AsicConfigPaths
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingParser
-from fboss.lib.platform_mapping_v2.read_files_utils import read_all_vendor_data
+from fboss.lib.platform_mapping_v2.read_files_utils import (
+    discover_platform_mapping_inputs,
+)
 
 
 class BroadcomXgsGenerator(BaseAsicConfigGenerator):
@@ -19,9 +22,13 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
     ASIC_FAMILY: str = "xgs"
 
     def __init__(
-        self, platform_name: str, variant: str, platform_config: dict[str, Any]
+        self,
+        platform_name: str,
+        variant: str,
+        platform_config: dict[str, Any],
+        paths: AsicConfigPaths,
     ) -> None:
-        super().__init__(platform_name, variant, platform_config)
+        super().__init__(platform_name, variant, platform_config, paths)
 
         self.values: dict[str, Any] = {}
         self.asic_config: dict[str, Any] = {}
@@ -35,7 +42,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         mapping_name = self.variant_config.get(
             "platform_mapping_name", self.platform_name
         )
-        self.parser = PlatformMappingParser(read_all_vendor_data(), mapping_name)
+        self.parser = PlatformMappingParser(
+            discover_platform_mapping_inputs(self.paths.platforms_dir), mapping_name
+        )
 
         self.num_ports_per_core: int = self.platform_config.get("num_ports_per_core", 2)
         self.mmu_size: int = self.asic_config.get("mmu_size", 9416)
@@ -54,7 +63,9 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
         vendor = self.asic_vendor
         asic = self.asic_name
 
-        ocp_sai_common_path = os.path.join(MODULE_DIR, "common", "ocp_sai_common.json")
+        ocp_sai_common_path = os.path.join(
+            self.paths.asic_vendors_dir, "common", "ocp_sai_common.json"
+        )
         if os.path.exists(ocp_sai_common_path):
             with open(ocp_sai_common_path) as f:
                 self.ocp_sai_common = json.load(f)
@@ -62,19 +73,23 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             self.ocp_sai_common = {"global": {}}
 
         vendor_sdk_common_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "sdk_common.json"
+            self.paths.asic_vendors_dir, vendor, self.ASIC_FAMILY, "sdk_common.json"
         )
         with open(vendor_sdk_common_path) as f:
             self.vendor_sdk_common = json.load(f)
 
         vendor_sai_common_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "sai_common.json"
+            self.paths.asic_vendors_dir, vendor, self.ASIC_FAMILY, "sai_common.json"
         )
         with open(vendor_sai_common_path) as f:
             self.vendor_sai_common = json.load(f)
 
         asic_config_path = os.path.join(
-            MODULE_DIR, "vendors", vendor, self.ASIC_FAMILY, "asics", f"{asic}.json"
+            self.paths.asic_vendors_dir,
+            vendor,
+            self.ASIC_FAMILY,
+            "asics",
+            f"{asic}.json",
         )
         with open(asic_config_path) as f:
             self.asic_config = json.load(f)
@@ -89,7 +104,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
 
     def _read_preamble(self, file_name: str) -> str:
         """Read preamble file contents."""
-        preamble_path = os.path.join(MODULE_DIR, file_name)
+        preamble_path = os.path.join(self.paths.module_dir, file_name)
         with open(preamble_path, encoding="utf-8") as f:
             return f.read()
 
@@ -379,6 +394,11 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
             f"FEC_MODE: {fec}",
             f"MAX_FRAME_SIZE: {self.mmu_size}",
         )
+        # Optional pass-through PC_PORT settings, appended in declaration order.
+        for setting_key, setting_value in port_config.get(
+            "pc_port_overrides", {}
+        ).items():
+            pc_value = (*pc_value, f"{setting_key}: {setting_value}")
         self.values["PC_PORT"][pc_key] = pc_value
 
         if mgmt_port and mgmt_port_config.get("enabled", False):
@@ -473,6 +493,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
                     "FP_CONFIG",
                     "CTR_EFLEX_CONFIG",
                     "DLB_ECMP_CONFIG",
+                    "PHB_CONTROL",
                 )
             ):
                 device = "device"

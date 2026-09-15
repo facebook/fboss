@@ -245,9 +245,15 @@ TEST_F(RouteTest, routeApi) {
   auto testRouteApi = [&](auto route) {
     EXPECT_TRUE(std::make_shared<RouteV6>(route.toThrift())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
+    // Locally built route with no IDs allocated, so read inline explicitly.
+    ClientNextHopsResolver readInline = [](const RouteNextHopEntry& entry) {
+      return entry.getNextHopSet();
+    };
     EXPECT_EQ(
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()),
-        route.toRouteDetails(route.getForwardInfo().getNextHopSet()));
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline),
+        route.toRouteDetails(
+            route.getForwardInfo().getNextHopSet(), std::nullopt, readInline));
     EXPECT_EQ(route.str(), route.str());
     EXPECT_EQ(route.flags(), 0);
     EXPECT_FALSE(route.isResolved());
@@ -2898,6 +2904,51 @@ TEST_F(RouteTest, invalidRouteWeights) {
       ClientID(0),
       RouteNextHopEntry(nexthops, DISTANCE));
   EXPECT_THROW(u1.program(), FbossError);
+}
+
+TEST_F(RouteTest, routePruneFpf) {
+  // enable_capacity_pruning is the master switch; enable_fpf_capacity_pruning
+  // selects the FPF (per-STSW) behavior. The latter is captured when the
+  // normalizer is constructed during program(), so set it up front.
+  FLAGS_enable_capacity_pruning = true;
+  FLAGS_enable_fpf_capacity_pruning = true;
+  auto u1 = this->sw_->getRouteUpdater();
+
+  RouteV4::Prefix prefix10{IPAddressV4("10.10.10.0"), 24};
+  NetworkTopologyInformation topologyInfo;
+  topologyInfo.spine_id() = 0;
+  // 4 local nexthops toward the STSW exceed the STSW->remote GTSW capacity
+  // (remote_rack_capacity = 3) => 1 path is oversubscribed and should be pruned
+  topologyInfo.remote_rack_capacity() = 3;
+
+  RouteNextHopSet nexthops1;
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(1), "1.1.1.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(2), "2.2.2.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(3), "3.3.3.1", 1, topologyInfo));
+  nexthops1.emplace(
+      makeResolvedNextHop(InterfaceID(4), "4.4.4.1", 1, topologyInfo));
+
+  u1.addRoute(
+      kRid0,
+      IPAddress("10.10.10.0"),
+      24,
+      ClientID(0),
+      RouteNextHopEntry(nexthops1, DISTANCE));
+  u1.program();
+
+  auto pruneState = this->sw_->getState();
+  auto rt10 = this->findRoute4(pruneState, kRid0, prefix10);
+  int numPrunedPaths = 0;
+  for (auto& nhop : getNextHops(pruneState, rt10->getForwardInfo())) {
+    if (nhop.adjustedWeight().has_value() && *nhop.adjustedWeight() == 0) {
+      numPrunedPaths++;
+    }
+  }
+  EXPECT_EQ(numPrunedPaths, 1);
+  FLAGS_enable_fpf_capacity_pruning = false;
 }
 
 TEST_F(RouteTest, addRouteWithSingleSrv6NextHop) {

@@ -345,7 +345,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
 
   // Get the neighbor cache for the given address family
   template <typename AddrT>
-  auto getNeighborCache(std::shared_ptr<SwitchState> state) {
+  auto getNeighborCache() {
     auto switchType =
         checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
@@ -391,7 +391,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
             ->getSwitchType();
 
     WITH_RETRIES({
-      auto neighborCache = getNeighborCache<AddrT>(outState);
+      auto neighborCache = getNeighborCache<AddrT>();
 
       auto cacheEntry = std::find_if(
           neighborCache.begin(),

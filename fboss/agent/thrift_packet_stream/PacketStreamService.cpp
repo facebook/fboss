@@ -3,6 +3,7 @@
 #include "fboss/agent/thrift_packet_stream/PacketStreamService.h"
 
 #include <folly/logging/xlog.h>
+#include <optional>
 
 #if FOLLY_HAS_COROUTINES
 #include <folly/coro/AsyncGenerator.h>
@@ -205,18 +206,25 @@ void PacketStreamService::disconnect(std::unique_ptr<std::string> clientIdPtr) {
 
   const auto& clientId = *clientIdPtr;
 
+  // Completing a stream runs the callback registered in connect() inline (or
+  // joins it if a concurrent cancellation already started it), and that
+  // callback locks clientMap_. folly::Synchronized is not reentrant, so drop
+  // the client under the lock and complete the publisher only after releasing
+  // it -- otherwise this thread wedges while holding the write lock and every
+  // subsequent connect() blocks forever.
+  std::optional<apache::thrift::ServerStreamPublisher<TPacket>> publisher;
   clientMap_.withWLock([&](auto& lockedMap) {
     auto iter = lockedMap.find(clientId);
     if (iter == lockedMap.end()) {
       throw createTPacketException(
           TPacketErrorCode::CLIENT_NOT_CONNECTED, "client not connected");
     }
-    auto& clientInfo = iter->second;
-    auto publisher = std::move(clientInfo.publisher_);
-    std::move(*publisher.get()).complete();
+    publisher = std::move(*iter->second.publisher_);
     lockedMap.erase(iter);
-    clientDisconnected(clientId);
   });
+
+  // Runs the connect() callback, which invokes clientDisconnected().
+  std::move(*publisher).complete();
 }
 
 void PacketStreamService::processReceivedPacket(

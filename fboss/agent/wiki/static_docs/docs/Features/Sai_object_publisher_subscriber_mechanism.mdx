@@ -48,7 +48,7 @@ detail::SaiObjectEventSubscriber<PublisherObjectTraits>     (base interface)
         │
         └── SaiObjectEventAggregateSubscriber<Impl, SubTraits, PubTraits...>
               (subscriber for multiple publishers)
-              Concrete example: ManagedSaiNextHopGroupMember
+              Concrete example: ManagedSaiNextHopGroupNextHopMember
 ```
 
 ## Publisher
@@ -231,13 +231,13 @@ A concrete aggregate subscriber must implement:
 | `removeObject` | `void removeObject(size_t index, PublisherObjects publishers)` | React to removal of the publisher at the given index |
 | `handleLinkDown` | `void handleLinkDown()` | React to link-down event |
 
-**Example — ManagedSaiNextHopGroupMember** (`SaiNextHopGroupManager.h`):
+**Example — ManagedSaiNextHopGroupNextHopMember** (`SaiNextHopGroupManager.h`):
 
 ```cpp
 template <typename NextHopTraitsT>
-class ManagedSaiNextHopGroupMember
+class ManagedSaiNextHopGroupNextHopMember
     : public SaiObjectEventAggregateSubscriber<
-          ManagedSaiNextHopGroupMember<NextHopTraitsT>,
+          ManagedSaiNextHopGroupNextHopMember<NextHopTraitsT>,
           SaiNextHopGroupMemberTraits,
           NextHopTraitsT> {
   void createObject(PublisherObjects publishers) {
@@ -392,7 +392,7 @@ BridgePort publisher ──notifyLinkDown──> ManagedFdbEntry subscriber
   │                                                                    │              │
   │                                                                    │              ▼
   │                                                                    │    NextHop publisher ──notifyLinkDown──>
-  │                                                                    │       ManagedSaiNextHopGroupMember
+  │                                                                    │       ManagedSaiNextHopGroupNextHopMember
   │                                                                    │              │
   │                                                                    │              ▼
   │                                                                    │    Next hop group shrinks
@@ -404,7 +404,7 @@ BridgePort destroyed (notifyBeforeDestroy)
   ├──> ManagedFdbEntry::removeObject() → FDB destroyed
   │       └──> ManagedVlanRifNeighbor::removeObject() → Neighbor destroyed
   │               └──> ManagedNextHop::removeObject() → NextHop destroyed
-  │                       └──> ManagedSaiNextHopGroupMember::removeObject()
+  │                       └──> ManagedSaiNextHopGroupNextHopMember::removeObject()
   │                               → NextHopGroupMember removed, group shrinks
   └──> ManagedVlanMember::removeObject() → VlanMember destroyed
 ```
@@ -420,7 +420,7 @@ BridgePort destroyed (notifyBeforeDestroy)
 | `ManagedNextHop<SaiIpNextHopTraits>` | IP Next Hop | Neighbor | Adapter Host Key |
 | `ManagedNextHop<SaiMplsNextHopTraits>` | MPLS Next Hop | Neighbor | Adapter Host Key |
 | `ManagedNextHop<SaiSrv6SidlistNextHopTraits>` | SRv6 Next Hop | Neighbor | Adapter Host Key |
-| `ManagedSaiNextHopGroupMember<T>` | Next Hop Group Member | Next Hop | Adapter Host Key |
+| `ManagedSaiNextHopGroupNextHopMember<T>` | Next Hop Group Member | Next Hop | Adapter Host Key |
 | `ManagedRouteNextHop<T>` | Route (single NH) | Next Hop | Adapter Host Key |
 | `ManagedInSegNextHop<T>` | InSeg/Label (single NH) | Next Hop | Adapter Host Key |
 

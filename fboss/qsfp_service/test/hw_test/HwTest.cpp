@@ -14,11 +14,14 @@
 #include <folly/gen/Base.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <algorithm>
+#include <iterator>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
+#include "fboss/lib/if/LinkQsfpTestMachineInfo.h"
 #include "fboss/lib/if/LinkQsfpTestPortInfoUtils.h"
 #include "fboss/lib/if/gen-cpp2/link_qsfp_test_port_info_types.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -54,6 +57,16 @@ namespace {
 const std::string kLinkQsfpTestPortInfoForScuba =
     "/tmp/link_qsfp_test_port_info_for_scuba.log";
 
+// Per-port errors dumped alongside the port info at TearDown. Netcastle
+// downloads this file after each test and logs it to the
+// fboss_link_qsfp_test_port_errors Scuba table. Must match
+// FBOSS_LINK_QSFP_TEST_PORT_ERROR_FILE in
+// fbcode/neteng/netcastle/teams/fboss/constants.py.
+const std::string kLinkQsfpTestPortErrorForScuba =
+    "/tmp/link_qsfp_test_port_error_for_scuba.log";
+
+constexpr auto kPresentButNotInConfig = "EXTRA";
+
 // Builds a single Scuba row for a tested transceiver from its TransceiverInfo
 // (vendor, firmware, module/per-port media interface). Returns a row with just
 // the test/transceiver/port identity if the transceiver has no info entry.
@@ -84,6 +97,66 @@ LinkQsfpTestPortInfo buildPortInfoRow(
   const auto& tcvrState = *tcvrIt->second.tcvrState();
   utility::populateTransceiverInfoFields(portInfo, tcvrState, tcvrPortName);
   return portInfo;
+}
+
+// Transceivers qsfp_service sees as physically present that the config does not
+// cable up. Note this is scoped to the platform mapping: WedgeManager only
+// creates Transceiver objects for slots the mapping knows about, so a module in
+// an unmapped slot can never appear in getPresentTransceivers() and is not
+// reported here.
+std::vector<TransceiverID> getPresentTransceiversNotInConfig(
+    WedgeManager* wedgeManager,
+    const std::vector<TransceiverID>& cabledTcvrs) {
+  const auto present = wedgeManager->getPresentTransceivers();
+  // getCabledPortTranceivers() builds its vector from an unordered_set, so it
+  // arrives unsorted; set_difference requires both ranges ordered.
+  const std::set<TransceiverID> expected(
+      cabledTcvrs.begin(), cabledTcvrs.end());
+  std::vector<TransceiverID> unexpected;
+  std::set_difference(
+      present.begin(),
+      present.end(),
+      expected.begin(),
+      expected.end(),
+      std::back_inserter(unexpected));
+  return unexpected;
+}
+
+// Builds one Scuba row per present-but-unconfigured transceiver. pool is left
+// unset: it is Basset lab inventory state, unknown on the switch, and Netcastle
+// stamps it at upload time.
+LinkQsfpTestPortError buildPortErrorRow(
+    WedgeManager* wedgeManager,
+    const TransceiverID& id,
+    const std::string& machineName,
+    const std::string& machineType,
+    const std::map<int32_t, TransceiverInfo>& tcvrInfos) {
+  LinkQsfpTestPortError portError;
+  portError.machineName() = machineName;
+  portError.machineType() = machineType;
+  portError.error() = kPresentButNotInConfig;
+
+  // Non-empty for every id reachable here (presence implies a mapped port), but
+  // fall back to the transceiver name so a row is never anonymous. Guarded like
+  // buildPortInfoRow: these transceivers are by definition in unusual mapping
+  // state, and one that cannot be named must not abort the whole dump.
+  std::string portName;
+  try {
+    portName = wedgeManager->getPortName(id);
+    if (portName.empty()) {
+      portName = wedgeManager->getTransceiverName(id);
+    }
+  } catch (const std::exception&) {
+    // Leave the port name empty if the transceiver has no mapped port.
+  }
+  portError.portName() = std::move(portName);
+
+  auto tcvrIt = tcvrInfos.find(static_cast<int32_t>(id));
+  if (tcvrIt != tcvrInfos.end()) {
+    utility::populateTransceiverErrorFields(
+        portError, *tcvrIt->second.tcvrState());
+  }
+  return portError;
 }
 } // namespace
 
@@ -447,9 +520,63 @@ void HwTest::dumpTestMetadata() {
     XLOG(ERR) << "Failed to write qsfp hw test port info to "
               << kLinkQsfpTestPortInfoForScuba;
   }
+  dumpPortErrors();
+
   testedTransceivers_.clear();
   perTransceiverMetadata_.clear();
   verifiedProductionFeatures_.clear();
+}
+
+void HwTest::dumpPortErrors() {
+  std::vector<std::string> jsonLines;
+  try {
+    auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+    auto unexpected = getPresentTransceiversNotInConfig(
+        wedgeManager, utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+
+    if (!unexpected.empty()) {
+      std::vector<int32_t> tcvrIds;
+      tcvrIds.reserve(unexpected.size());
+      for (const auto& id : unexpected) {
+        tcvrIds.push_back(static_cast<int32_t>(id));
+      }
+      std::map<int32_t, TransceiverInfo> tcvrInfos;
+      wedgeManager->getTransceiversInfo(
+          tcvrInfos, std::make_unique<std::vector<int32_t>>(tcvrIds));
+
+      auto machineName = utility::getMachineName();
+      auto machineType = utility::getMachineType();
+      for (const auto& id : unexpected) {
+        auto portError = buildPortErrorRow(
+            wedgeManager, id, machineName, machineType, tcvrInfos);
+        jsonLines.push_back(
+            apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                portError));
+        XLOG(WARN) << "Transceiver " << static_cast<int32_t>(id) << " ("
+                   << *portError.portName()
+                   << ") is present but not in the config";
+      }
+    }
+  } catch (const std::exception& ex) {
+    // Drop anything already collected: a partially built set is
+    // indistinguishable in Scuba from a complete one, so publishing it would
+    // silently under-report. Better to emit nothing than a truncated set.
+    jsonLines.clear();
+    XLOG(WARN) << "Failed to build qsfp hw test port errors: "
+               << folly::exceptionStr(ex);
+  }
+
+  // Always (over)write, even with no rows, so a file left by a previous test is
+  // never re-uploaded and mis-attributed to this one.
+  auto content = folly::join("\n", jsonLines);
+  if (writeSysfs(kLinkQsfpTestPortErrorForScuba, content)) {
+    XLOG(DBG2) << "Dumped " << jsonLines.size()
+               << " qsfp hw test port errors to "
+               << kLinkQsfpTestPortErrorForScuba;
+  } else {
+    XLOG(ERR) << "Failed to write qsfp hw test port errors to "
+              << kLinkQsfpTestPortErrorForScuba;
+  }
 }
 
 std::vector<qsfp_production_features::QsfpProductionFeature>

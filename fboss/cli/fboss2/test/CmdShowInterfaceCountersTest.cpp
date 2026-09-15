@@ -115,4 +115,11 @@ TEST_F(CmdShowInterfaceCountersTestFixture, printOutput) {
       " eth2/1/1        100        100               100                 100                 100         100                100                  100                 \n\n";
   EXPECT_EQ(output, expectOutput);
 }
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceCountersTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceCountersTraits::description().empty());
+  EXPECT_FALSE(CmdShowInterfaceCounters::sampleModel().int_counters()->empty());
+}
 } // namespace facebook::fboss

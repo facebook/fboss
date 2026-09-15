@@ -1,11 +1,12 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+import os
 
 from fboss_test_runner.services import service_utils
 
-_DEFAULT_OSS_FSDB_SERVICE_PATH = "/opt/fboss/bin/fsdb"
+_DEFAULT_OSS_FSDB_SERVICE_BINARY = "fsdb"
 # TODO: Add file.
-_DEFAULT_OSS_FSDB_SERVICE_CONFIG_PATH = "/opt/fboss/share/link_test_configs/fsdb.conf"
+_DEFAULT_OSS_FSDB_SERVICE_CONFIG_PATH = "link_test_configs/fsdb.conf"
 _DEFAULT_FSDB_SERVICE_VOLATILE_DIR = "/tmp/fboss/fsdb_service"
 _FSDB_SERVICE_COLD_BOOT_FILE = "cold_boot_once_fsdb_service"
 
@@ -23,11 +24,17 @@ def _setup_fsdb_service(
 ) -> None:
     print(f"Setting up {_FSDB_SERVICE_OSS}")
 
-    fsdb_service_bin_path = _DEFAULT_OSS_FSDB_SERVICE_PATH
-    service_utils.validate_path(fsdb_service_bin_path, "fsdb_service binary")
+    fsdb_service_bin_path = service_utils.resolve_binary(
+        _DEFAULT_OSS_FSDB_SERVICE_BINARY, "fsdb_service binary"
+    )
 
     if not fsdb_service_config_path:
-        fsdb_service_config_path = _DEFAULT_OSS_FSDB_SERVICE_CONFIG_PATH
+        fsdb_service_config_path = os.path.join(
+            os.environ.get("FBOSS_DATA") or "/opt/fboss/share",
+            _DEFAULT_OSS_FSDB_SERVICE_CONFIG_PATH,
+        )
+    else:
+        fsdb_service_config_path = os.path.abspath(fsdb_service_config_path)
     service_utils.validate_path(fsdb_service_config_path, "fsdb_service config path")
 
     cleanup_fsdb_service()

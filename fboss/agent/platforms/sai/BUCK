@@ -32,7 +32,6 @@ cpp_library(
         "SaiPlatformPort.h",
     ],
     exported_deps = [
-        "//fboss/agent:handler",
         "//fboss/agent/platforms/tests/utils:test_platform_types",
     ],
 )

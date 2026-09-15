@@ -91,11 +91,6 @@ void BcmPortTable::initPorts(
     bool warmBoot) {
   // Ask the platform for the list of ports on this platform,
   // and then associate the BcmPort and BcmPlatformPort objects.
-  //
-  // Note that we only create BcmPort objects for ports defined by the
-  // platform.  For instance, even though the Trident2 chip may support up to
-  // 128 ports, if the platform only defines 32 ports we will only create 32
-  // BcmPort objects.
   for (const auto& entry : hw_->getPlatform()->getPlatformPortMap()) {
     bcm_port_t bcmPortNum = entry.first;
 
@@ -211,7 +206,7 @@ void BcmPortTable::initPortGroups() {
     }
 
     // The existing design is based on the assumption that port group == core.
-    // This works on TD2/TH, which a core has 4 lanes, and can have up to 4
+    // This works on TH, where a core has 4 lanes and can have up to 4
     // logical ports. But for TH3 Blackhawk core or future more powerful cores,
     // a core can have 8 lanes and can have up to 8 logical ports. And the
     // portgroup also depends on the hardware design. For example, for Wedge400,

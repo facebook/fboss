@@ -1,9 +1,11 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "counter_refresh_interval": "1",
     "enable_nexthop_id_manager": "true",
     "enable_route_resource_protection": "false",
     "log_variable_name": "true",
+    "resolve_nexthops_from_id": "true",
     "skip_transceiver_programming": "true",
     "use_full_dlb_scale": "true"
   },

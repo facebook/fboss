@@ -88,17 +88,20 @@ void logBootHistory(
         directoryUtil->getAgentBootHistoryLogFile(),
         O_RDWR | O_CREAT | O_APPEND);
   } catch (const std::system_error&) {
-    //   /var/facebook/logs/fboss/ might not exist for testing switch
-    XLOG(WARNING)
-        << "Agent boot history log failed to create under /var/facebook/logs/fboss/, using /tmp/";
+    // The primary directory might not exist, which is the normal case anywhere
+    // that is not a switch.
+    const auto fallbackPath =
+        directoryUtil->getAgentBootHistoryFallbackLogFile();
+    XLOG(WARNING) << "Agent boot history log failed to create under "
+                  << directoryUtil->getAgentBootHistoryLogFile() << ", using "
+                  << fallbackPath;
     // This is best-effort boot history logging, so on failure we log and skip
     // rather than aborting agent startup.
     try {
-      logFile = openSymlinkSafeFallbackLog("/tmp/wedge_agent_starts.log");
+      logFile = openSymlinkSafeFallbackLog(fallbackPath);
     } catch (const std::system_error& ex) {
-      XLOG(WARNING)
-          << "Failed to safely open fallback boot history log /tmp/wedge_agent_starts.log, skipping: "
-          << ex.what();
+      XLOG(WARNING) << "Failed to safely open fallback boot history log "
+                    << fallbackPath << ", skipping: " << ex.what();
       return;
     }
   }
@@ -130,7 +133,9 @@ reconstructStateAndRib(
         *(warmBootState->routeTables()),
         state->getFibsInfoMap(),
         state->getLabelForwardingInformationBase(),
-        state->getMySids());
+        state->getMySids(),
+        getEcmpWidth(state),
+        state->getClassBasedPolicies());
   } else {
     state = SwitchState::fromThrift(state::SwitchState{});
     /* cold boot, setup default rib */
@@ -139,7 +144,13 @@ reconstructStateAndRib(
       /* at least one switch supports route programming, setup default vrf */
       routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
     }
-    rib = RoutingInformationBase::fromThrift(routeTables);
+    rib = RoutingInformationBase::fromThrift(
+        routeTables,
+        nullptr,
+        nullptr,
+        nullptr,
+        getEcmpWidth(state),
+        state->getClassBasedPolicies());
   }
   return std::make_pair(state, std::move(rib));
 }

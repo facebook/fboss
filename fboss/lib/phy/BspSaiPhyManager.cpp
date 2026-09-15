@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
+#include "fboss/lib/phy/SaiExternalPhyPortStats.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -147,8 +148,11 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
     getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
 
     // Mark the SAI adaptor as thread-safe to enable parallel XPHY
-    // initialization.
-    // SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
+    // initialization. Gated to PAI 4.1+ (which installs the PAI lock-sync
+    // callbacks); on PAI 4.0 PAI access is unprotected, so keep serial init.
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 18, 1)
+    SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
+#endif
   }
 
   return true;
@@ -189,6 +193,7 @@ void BspSaiPhyManager::createExternalPhy(
   // Create SaiPhyPlatform for this xphy
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
+  productInfo->initialize();
   addSaiPlatform(
       xphyID,
       std::make_unique<SaiPhyPlatform>(
@@ -215,6 +220,14 @@ void BspSaiPhyManager::createExternalPhy(
 
   XLOG(INFO) << "Created SaiPhyRetimer for xphy " << xphyID << " in PIM "
              << phyIDInfo.pimID;
+}
+
+std::unique_ptr<ExternalPhyPortStatsUtils>
+BspSaiPhyManager::createExternalPhyPortStats(PortID portID) {
+  // Real stats object so collectXphyStats() publishes the XPHY FEC/lane
+  // counters to fb303 via ExternalPhyPortStatsUtils::updateXphyStats(). PRBS
+  // stats are served through SaiPhyManager's SAI attribute path.
+  return std::make_unique<SaiExternalPhyPortStats>(getPortName(portID));
 }
 
 MultiPimPlatformSystemContainer* BspSaiPhyManager::getSystemContainer() {

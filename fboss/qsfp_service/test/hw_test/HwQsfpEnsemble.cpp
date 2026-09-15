@@ -63,7 +63,11 @@ void HwQsfpEnsemble::setupForWarmboot() {
   // warm boot files.
   qsfpServiceHandler_->gracefulExit();
   if (isSaiPlatform()) {
-    getWedgeManager()->releasePhyManager();
+    if (auto* portManager = qsfpServiceHandler_->getPortManager()) {
+      portManager->releasePhyManager();
+    } else {
+      getWedgeManager()->releasePhyManager();
+    }
   }
 }
 
@@ -93,7 +97,9 @@ bool HwQsfpEnsemble::isXphyPlatform() const {
 
 bool HwQsfpEnsemble::isSaiPlatform() const {
   static const std::set<PlatformType> saiPlatforms = {
-      PlatformType::PLATFORM_ELBERT, PlatformType::PLATFORM_LADAKH800BCLS};
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_LADAKH800BCLS,
+      PlatformType::PLATFORM_LEH800BCLS};
 
   return saiPlatforms.find(getWedgeManager()->getPlatformType()) !=
       saiPlatforms.end();

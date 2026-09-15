@@ -20,6 +20,7 @@
 
 #include <unistd.h>
 #include <algorithm>
+#include <string_view>
 
 namespace facebook::fboss {
 
@@ -27,6 +28,10 @@ using utils::Table;
 
 struct CmdShowCpuPortTraits : public ReadCommandTraits {
   using RetType = cli::ShowCpuPortModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
@@ -39,6 +44,10 @@ class CmdShowCpuPort : public CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits> {
 
   RetType createModel(
       std::map<int32_t, facebook::fboss::CpuPortStats>& cpuPortStats);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

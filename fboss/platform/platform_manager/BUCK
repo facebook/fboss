@@ -319,6 +319,7 @@ cpp_library(
     srcs = ["DataStore.cpp"],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        ":utils",
         "//folly/logging:logging",
     ],
     exported_deps = [

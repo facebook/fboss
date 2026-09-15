@@ -92,6 +92,9 @@ class MirrorOnDropImpl {
   virtual uint16_t getSrv6DecapNonLastSegmentDropReason() const = 0;
   virtual uint16_t getSrv6BindingSidNonLastSidDropReason() const = 0;
   virtual uint16_t getSrv6MidpointUnresolvedDropReason() const = 0;
+  // Egress drop when SRv6/tunnel header imposition pushes the packet past the
+  // egress L3 MTU (L3_TX_MTU_FAILURE on Tajo).
+  virtual uint16_t getSrv6EncapMtuExceededDropReason() const = 0;
 
   // Configure an ERSPAN (GRE tunnel) mirror used by the sampling test to
   // generate a high drop-rate packet loop.
@@ -158,6 +161,7 @@ class AgentMirrorOnDropStatelessTest : public AgentMirrorOnDropTestBase {
   MirrorOnDropDropReasonCodes getSrv6DecapNonLastSegmentDropReasons();
   MirrorOnDropDropReasonCodes getSrv6BindingSidNonLastSidDropReasons();
   MirrorOnDropDropReasonCodes getSrv6MidpointUnresolvedDropReasons();
+  MirrorOnDropDropReasonCodes getSrv6EncapMtuExceededDropReasons();
 
   // Configure buffers to trigger MMU drops via setupPfcBuffers.
   void configureMmuDropBuffers(

@@ -42,17 +42,48 @@ class SaiArsManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // splitHorizonEnabled is the resolved ecmpGroupSettings entry for
+  // EcmpGroupType::ARS, threaded in from the state being applied; the
+  // programmed state would still hold the pre-delta value here.
   void addArs(
-      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
+      const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig,
+      std::optional<bool> splitHorizonEnabled = std::nullopt);
   void removeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchingConfig);
   void changeArs(
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitchingConfig,
-      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig);
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitchingConfig,
+      std::optional<bool> splitHorizonEnabled = std::nullopt);
   SaiArsHandle* getArsHandle() const;
   SaiArsHandle* getAlternateMemberArsHandle() const;
   SaiArsHandle* getVirtualArsGroupHandle() const;
+  SaiArsHandle* getStandbyArsHandle() const;
   sai_int32_t cfgSwitchingModeToSai(cfg::SwitchingMode switchingMode) const;
+
+  SaiArsTraits::CreateAttributes makeArsAttributes(
+      cfg::SwitchingMode switchingMode,
+      std::optional<sai_uint32_t> idleTime = std::nullopt,
+      std::optional<sai_uint32_t> maxFlows = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
+          primaryPathQualityThreshold = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::AlternatePathCost>
+          alternatePathCost = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::AlternatePathBias>
+          alternatePathBias = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::NextHopGroupType>
+          nextHopGroupType = std::nullopt,
+      std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune =
+          std::nullopt,
+      const std::optional<SaiArsTraits::Attributes::EcmpMemberCount>&
+          ecmpMemberCount = std::nullopt) const;
+
+  void setArsObject(
+      SaiArsHandle* handle,
+      const SaiArsTraits::CreateAttributes& attributes);
+
+  // An unset setting leaves the create-only attribute alone.
+  static std::optional<SaiArsTraits::Attributes::SourcePortPrune>
+  toSourcePortPruneAttribute(std::optional<bool> splitHorizonEnabled);
 #endif
 
  private:
@@ -64,6 +95,7 @@ class SaiArsManager {
   std::unique_ptr<SaiArsHandle> arsHandle_;
   std::unique_ptr<SaiArsHandle> alternateMemberArsHandle_;
   std::unique_ptr<SaiArsHandle> virtualArsGroupHandle_;
+  std::unique_ptr<SaiArsHandle> standbyArsHandle_;
 #endif
 };
 

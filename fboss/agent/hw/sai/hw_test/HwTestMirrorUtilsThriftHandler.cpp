@@ -6,7 +6,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/state/StateUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -303,7 +303,7 @@ bool HwTestThriftHandler::isAclEntryMirrored(
   }
 
   auto aclEntryHandle = aclTableManager.getAclEntryHandle(
-      aclTableHandle, aclEntry_ptr->getPriority());
+      aclTableHandle, aclEntry_ptr->getPriority(), aclEntry_ptr->getID());
   if (!aclEntryHandle) {
     return false;
   }

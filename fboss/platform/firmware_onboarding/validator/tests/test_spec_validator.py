@@ -136,9 +136,23 @@ class StructuralTest(unittest.TestCase):
         errors = validate_spec_dict(spec)
         self.assertTrue(any("silicon" in e for e in errors))
 
-    def test_silicon_missing_pcie_address_fails(self) -> None:
+    def test_silicon_omitted_pcie_address_validates(self) -> None:
+        # pcie_address is optional: omit it when the NPU address isn't known yet.
         spec = _spec_with()
         spec["platform"]["silicon"] = [{"name": "TH6"}]
+        self.assertEqual([], validate_spec_dict(spec))
+
+    def test_silicon_missing_name_fails(self) -> None:
+        spec = _spec_with()
+        spec["platform"]["silicon"] = [{"pcie_address": "00:01.0"}]
+        errors = validate_spec_dict(spec)
+        self.assertTrue(any("name" in e for e in errors))
+
+    def test_silicon_empty_pcie_address_fails(self) -> None:
+        # An empty string is not an accepted stand-in for "unknown" — omit the
+        # field instead.
+        spec = _spec_with()
+        spec["platform"]["silicon"] = [{"name": "TH6", "pcie_address": ""}]
         errors = validate_spec_dict(spec)
         self.assertTrue(any("pcie_address" in e for e in errors))
 

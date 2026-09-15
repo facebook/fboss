@@ -13,6 +13,7 @@
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <cstdint>
 #include <map>
+#include <string_view>
 #include <vector>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/mac/gen-cpp2/model_types.h"
@@ -26,6 +27,10 @@ struct CmdShowMacDetailsTraits : public ReadCommandTraits {
   using RetType = cli::ShowMacDetailsModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowMacDetails
@@ -39,6 +44,10 @@ class CmdShowMacDetails
       std::vector<facebook::fboss::L2EntryThrift>& l2Entries,
       std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       std::vector<facebook::fboss::AggregatePortThrift>& aggregatePortEntries);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

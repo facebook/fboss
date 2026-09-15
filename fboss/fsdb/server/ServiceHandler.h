@@ -193,6 +193,14 @@ class ServiceHandler : public FsdbServiceSvIf,
       SubscriberMessage>>
   co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) override;
 
+  folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+  co_addStatePatchSubscriptionPaths(
+      std::unique_ptr<AddPatchSubscriptionPathsRequest> request) override;
+
+  folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+  co_addStatsPatchSubscriptionPaths(
+      std::unique_ptr<AddPatchSubscriptionPathsRequest> request) override;
+
   // Management Plane related ---------------------------------------
 
   folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>
@@ -246,6 +254,11 @@ class ServiceHandler : public FsdbServiceSvIf,
   void preStart(const folly::SocketAddress* /*address*/) override;
 
  private:
+  folly::coro::Task<std::unique_ptr<AddPatchSubscriptionPathsResponse>>
+  addPatchSubscriptionPathsImpl(
+      std::unique_ptr<AddPatchSubscriptionPathsRequest> request,
+      bool isStats);
+
   SubscriptionIdentifier makeSubscriptionIdentifier(
       const OperSubscriberInfo& info);
   void registerSubscription(

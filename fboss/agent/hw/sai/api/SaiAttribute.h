@@ -907,6 +907,12 @@ class SaiExtensionAttribute {
   using ValueType = ValueT;
   static constexpr bool HasDefaultGetter =
       !std::is_same_v<DefaultGetterT, void>;
+  static constexpr bool hasOptionalDefaultGetter =
+      IsDefaultStdNullOpt<DefaultGetterT>::value;
+  using DefaultValueType = std::conditional_t<
+      !hasOptionalDefaultGetter,
+      ValueType,
+      std::optional<ValueType>>;
   using AttributeId = AttributeIdT;
   using ExtractSelectionType = ValueT;
   using DefaultGetter = DefaultGetterT;
@@ -947,6 +953,13 @@ class SaiExtensionAttribute {
     return !(*this == other);
   }
 
+  bool operator<(const SaiExtensionAttribute& other) const {
+    if (id() != other.id()) {
+      return id() < other.id();
+    }
+    return value() < other.value();
+  }
+
   /* implicit */ SaiExtensionAttribute(const ValueType& value)
       : SaiExtensionAttribute() {
     saiAttr_.id = kExtensionAttributeId();
@@ -970,9 +983,11 @@ class SaiExtensionAttribute {
     return v;
   }
 
-  static ValueType defaultValue() {
+  static DefaultValueType defaultValue() {
     static_assert(HasDefaultGetter, "No default getter provided for attribute");
-    if constexpr (IsSaiTypeWrapper<ValueT>::value) {
+    if constexpr (hasOptionalDefaultGetter) {
+      return DefaultGetterT{}();
+    } else if constexpr (IsSaiTypeWrapper<ValueT>::value) {
       static thread_local ValueType v;
       _fill(DefaultGetterT{}(), v);
       return v;

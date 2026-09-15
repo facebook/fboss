@@ -31,13 +31,21 @@ class AgentDirectoryUtil {
       const std::string& volatileStateDir,
       const std::string& persistentStateDir);
 
+  // bootHistoryLogDir and bootHistoryFallbackDir default to the production
+  // locations, so production callers need pass neither. They are constructor
+  // arguments rather than literals because the fallback is a single file that
+  // every agent process on a host opens by the same name, unlinking and
+  // recreating it: anything that needs its own copy, a test in particular, has
+  // to be able to point both tiers somewhere private.
   AgentDirectoryUtil(
       const std::string& volatileStateDir,
       const std::string& persistentStateDir,
       const std::string& packageDirectory,
       const std::string& systemdDirectory,
       const std::string& configDirectory,
-      const std::string& drainConfigDirectory);
+      const std::string& drainConfigDirectory,
+      const std::string& bootHistoryLogDir = "/var/facebook/logs/fboss",
+      const std::string& bootHistoryFallbackDir = "/tmp");
 
   /*
    * Get the path to a directory where persistent state can be stored.
@@ -189,6 +197,12 @@ class AgentDirectoryUtil {
 
   std::string getAgentBootHistoryLogFile() const;
 
+  // Where boot history goes when the primary directory is not writable, which
+  // is every host that is not a switch. Kept separate from the primary because
+  // the two tiers behave differently: the primary appends, the fallback
+  // truncates.
+  std::string getAgentBootHistoryFallbackLogFile() const;
+
   std::string getSdkDebugDumpDir() const;
 
  private:
@@ -198,6 +212,8 @@ class AgentDirectoryUtil {
   const std::string systemdDirectory_;
   const std::string configDirectory_;
   const std::string drainConfigDirectory_;
+  const std::string bootHistoryLogDir_;
+  const std::string bootHistoryFallbackDir_;
 };
 
 } // namespace facebook::fboss

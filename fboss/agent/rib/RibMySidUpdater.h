@@ -37,7 +37,8 @@ class RibMySidUpdater {
   RibMySidUpdater(
       const VrfRouteTables& routeTables,
       NextHopIDManager* nextHopIDManager,
-      MySidTable* mySidTable);
+      MySidTable* mySidTable,
+      uint32_t ecmpWidth);
 
   void resolve();
   void resolve(const std::set<folly::CIDRNetwork>& mySidsToResolve);
@@ -54,6 +55,7 @@ class RibMySidUpdater {
   VrfRouteTables routeTables_;
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
+  uint32_t ecmpWidth_;
 };
 
 } // namespace facebook::fboss

@@ -242,46 +242,12 @@ void printBgpNeighborsOutput(
       out << "DISABLED\n" << std::endl;
     }
 
-    const auto rcvdPrefix = *neighbor.prepolicy_rcvd_prefix_count();
-    const auto acceptedPrefix = *neighbor.postpolicy_rcvd_prefix_count();
-    const auto sentPrefix = *neighbor.postpolicy_sent_prefix_count();
-
-    Table table;
-    table.setHeader({"Prefix statistics:", "Sent", "Rcvd", "Accepted"});
-    table.addRow(
-        {"IPv4, IPv6 Unicast:",
-         folly::to<std::string>(sentPrefix),
-         folly::to<std::string>(rcvdPrefix),
-         folly::to<std::string>(acceptedPrefix)});
-
-    out << table << std::endl;
-
-    if (auto sentAnnoucementsIpv4 =
-            *details->sent_update_announcements_ipv4()) {
-      out << "BGP update announcements sent ipv4: " << sentAnnoucementsIpv4
-          << std::endl;
-    }
-    if (auto sentAnnoucementsIpv6 =
-            *details->sent_update_announcements_ipv6()) {
-      out << "BGP update announcements sent ipv6: " << sentAnnoucementsIpv6
-          << std::endl;
-    }
-    if (auto sentWithdrawals = *details->sent_update_withdrawals()) {
-      out << "BGP update withdrawals sent: " << sentWithdrawals << std::endl;
-    }
-    if (auto recvdAnnoucementsIpv4 =
-            *details->recv_update_announcements_ipv4()) {
-      out << "BGP update announcements received ipv4: " << recvdAnnoucementsIpv4
-          << std::endl;
-    }
-    if (auto recvdAnnoucementsIpv6 =
-            *details->recv_update_announcements_ipv6()) {
-      out << "BGP update announcements received ipv6: " << recvdAnnoucementsIpv6
-          << std::endl;
-    }
-    if (auto recvdWithdrawals = *details->recv_update_withdrawals()) {
-      out << "BGP update withdrawals received: " << recvdWithdrawals
-          << std::endl;
+    // Counter telemetry (prefix-level + PDU-level) is only meaningful for an
+    // established session; stats are cleared on session-down, so skip both
+    // tables for non-established peers to avoid all-zero noise.
+    if (peerState == TBgpPeerState::ESTABLISHED) {
+      printBgpPrefixTelemetry(neighbor, *details, out);
+      printBgpMessageCounters(*details, out);
     }
     if (auto enforceFirstAsRejects = *details->enforce_first_as_rejects()) {
       out << "Number of enforce-first-as validation rejections: "
@@ -345,8 +311,7 @@ void printRIBEntries(
     const bool detail,
     const std::string& originator,
     bool fbnetsource) {
-  out << "Markers: * - One of the best entries, @ - The best entry, % - Pending best path selection"
-      << std::endl;
+  out << kRibEntryMarkersLegend << std::endl;
   out << "Acronyms: ASP - AS Path, LP - Local Preference, LBW - Link Bandwidth, LM - Last Modified"
       << std::endl;
   auto& entries = *data.tRibEntries();
@@ -359,7 +324,7 @@ void printRIBEntries(
     const auto& bestGroup = entry.best_group().value();
     const auto& bestNextHop = entry.best_next_hop().value();
     const bool entryHasBestPath = hasBestPath(entry);
-    int totalPaths = 0, ecmpPaths = 0;
+    int totalPaths = 0, ecmpPaths = 0, inactivePaths = 0;
     std::vector<std::string> pathsToPrint;
 
     for (const auto& [group, paths] : entry.paths().value()) {
@@ -380,8 +345,14 @@ void printRIBEntries(
             ? path.is_best_path().value_or(false)
             : (isEcmpPath && bestNextHop == nextHop);
 
+        const bool isInactivePath = path.is_inactive().value_or(false);
+        if (isInactivePath) {
+          ++inactivePaths;
+        }
+
         std::string marker = (isEcmpPath) ? "*" : " ";
         marker += (bestEcmpPath) ? "@" : " ";
+        marker += (isInactivePath) ? "!" : " ";
 
         std::string peerIdStr = "--";
         if (const auto& peerId = apache::thrift::get_pointer(path.peer_id())) {
@@ -448,13 +419,25 @@ void printRIBEntries(
           extCommunitiesStr = printExtCommunities(*extCommunities);
         }
 
+        std::string backupAddrStr;
+        if (const auto* backupAddr =
+                apache::thrift::get_pointer(path.backup_addr())) {
+          backupAddrStr = fmt::format(
+              " (backup: {})",
+              IPAddress::fromBinary(
+                  folly::ByteRange(
+                      folly::StringPiece(*backupAddr->prefix_bin())))
+                  .str());
+        }
+
         std::string pathToPrint = fmt::format(
-            "{} from {} ({}) via {} | LBW: {} | Origin: {} | "
+            "{} from {} ({}) via {}{} | LBW: {} | Origin: {} | "
             "LP: {} | ASP: {} | LM: {} | NH Weight: {} | MED: {} | ID: {} (rcvd) {} (sent) | Weight: {}{} | IgpCost: {}",
             marker,
             peerIdStr,
             peerDescriptionStr,
             nextHopStr,
+            backupAddrStr,
             lbwStr,
             (originStr != nettools::bgplib::kNullMessage)
                 ? originStr.substr(11) // Trim BGP_ORIGIN_ from origin string
@@ -529,11 +512,13 @@ void printRIBEntries(
       pendingMarker = "%";
     }
     out << fmt::format(
-        "\n>{} {}, Selected {}/{} paths\n",
+        "\n>{} {}, Selected {}/{} paths ({} active, {} inactive)\n",
         pendingMarker,
         prefix,
         ecmpPaths,
-        totalPaths);
+        totalPaths,
+        totalPaths - inactivePaths,
+        inactivePaths);
     out << folly::join('\n', pathsToPrint) << std::endl;
   }
 }

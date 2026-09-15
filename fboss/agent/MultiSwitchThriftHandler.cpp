@@ -313,6 +313,9 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
             if (item->cosQueue()) {
               pkt->setCosQueue(static_cast<uint8_t>(*item->cosQueue()));
             }
+            if (item->packetType()) {
+              pkt->setPacketType(*item->packetType());
+            }
             // Agent pkt handling code assumes single buffer, so coalesce
             pkt->buf()->coalesce();
             if (*item->length() != pkt->buf()->length()) {

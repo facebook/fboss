@@ -121,7 +121,6 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
@@ -142,6 +141,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return cfg::ToCpuAction::TRAP;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -736,7 +736,9 @@ std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
         return intf->clone();
       } else if (
           intf->getType() == cfg::InterfaceType::PORT &&
-          intf->getPortID() == srcPort) {
+          // An interface bound to an aggregate port has no physical port of
+          // its own, so it never matches srcPort.
+          intf->getPortIDf() == srcPort) {
         return intf->clone();
       }
     }
@@ -1042,19 +1044,17 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
 
   // EAPOL
   {
-    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-      cfg::AclEntry acl;
-      acl.name() = "cpuPolicing-high-eapol";
-      acl.dstMac() = "ff:ff:ff:ff:ff:ff";
-      acl.etherType() = cfg::EtherType::EAPOL;
-      acls.emplace_back(
-          acl,
-          createQueueMatchAction(
-              hwAsic,
-              getCoppHighPriQueueId(hwAsic),
-              isSai,
-              getCpuActionType(hwAsic)));
-    }
+    cfg::AclEntry acl;
+    acl.name() = "cpuPolicing-high-eapol";
+    acl.dstMac() = "ff:ff:ff:ff:ff:ff";
+    acl.etherType() = cfg::EtherType::EAPOL;
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            hwAsic,
+            getCoppHighPriQueueId(hwAsic),
+            isSai,
+            getCpuActionType(hwAsic)));
   }
 
   // dstClassL3 w/ BGP port to high pri queue

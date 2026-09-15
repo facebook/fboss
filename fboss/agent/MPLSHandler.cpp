@@ -2,8 +2,10 @@
 
 #include "fboss/agent/MPLSHandler.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -16,6 +18,15 @@ void MPLSHandler::handlePacket(
     std::unique_ptr<RxPacket> pkt,
     const MPLSHdr& header,
     folly::io::Cursor cursor) {
+  // Count and discard MPLS packets whose top-label TTL has expired. This is
+  // checked before MPLS label lookup, so TTL-expired packets are counted the
+  // same way for known and unknown labels. This mirrors IPv4/IPv6 handling,
+  // where TTL expiration takes precedence over route lookup failure.
+  // TODO: Explore sending ICMP time exceeded for MPLS TTL expiry.
+  if (header.getLookupLabel().getTTL() <= 1) {
+    sw_->stats()->mplsTtlExceeded();
+    return;
+  }
   if (isLabelProgrammed(header)) {
     return handleKnownLabel(std::move(pkt), header, cursor);
   }
@@ -29,14 +40,15 @@ void MPLSHandler::handleKnownLabel(
   auto topLabel = header.getLookupLabel();
   XLOG(WARNING) << "Received Mpls packet with known label:"
                 << topLabel.getLabelValue();
-  auto entry = sw_->getState()->getLabelForwardingInformationBase()->getNode(
+  auto state = sw_->getState();
+  auto entry = state->getLabelForwardingInformationBase()->getNode(
       topLabel.getLabelValue());
   const auto& fwd = entry->getForwardInfo();
 
   if (fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
     return handleLabel2Me(std::move(pkt), header, cursor);
   }
-  if (entry->isPopAndLookup()) {
+  if (LabelForwardingEntry::isPopAndLookup(getMplsNextHops(state, fwd))) {
     return popLabelAndLookup(std::move(pkt), header, cursor);
   }
   // ignore any packet which is not pop and look up

@@ -6,6 +6,7 @@ import re
 from argparse import Namespace
 
 from fboss_test_runner.constants import (
+    OPT_ARG_SWITCH_ID_FOR_TESTING,
     SUB_ARG_AGENT_RUN_MODE_MONO,
     SUB_ARG_AGENT_RUN_MODE_MULTI,
 )
@@ -17,10 +18,8 @@ from fboss_test_runner.services.fboss_agent_utils import (
 
 SAI_BENCH_CONFIG = "./share/hw_benchmark_tests/sai_bench.materialized_JSON"
 
-SAI_BENCH_BINARY = "/opt/fboss/bin/sai_all_benchmarks-sai_impl"
-SAI_MULTI_SWITCH_BENCH_BINARY = (
-    "/opt/fboss/bin/sai_multi_switch_all_benchmarks-sai_impl"
-)
+SAI_BENCH_BINARY = "sai_all_benchmarks-sai_impl"
+SAI_MULTI_SWITCH_BENCH_BINARY = "sai_multi_switch_all_benchmarks-sai_impl"
 
 
 class SaiBenchmarkSuite(BenchmarkSuite):
@@ -38,7 +37,7 @@ class SaiBenchmarkSuite(BenchmarkSuite):
             == SUB_ARG_AGENT_RUN_MODE_MULTI
         )
 
-    def binary_path(self, args: Namespace) -> str:
+    def binary_name(self, args: Namespace) -> str:
         if self._is_multi_switch(args):
             return SAI_MULTI_SWITCH_BENCH_BINARY
         return SAI_BENCH_BINARY
@@ -82,6 +81,11 @@ class SaiBenchmarkSuite(BenchmarkSuite):
 
         if args.fruid_path is not None:
             run_cmd.append("--fruid_filepath=" + args.fruid_path)
+
+        if getattr(args, "switch_id_for_testing", None) is not None:
+            run_cmd.append(
+                f"{OPT_ARG_SWITCH_ID_FOR_TESTING}={args.switch_id_for_testing}"
+            )
 
         if not is_multi_switch:
             run_cmd.extend(["--enable_sai_log", args.sai_logging])

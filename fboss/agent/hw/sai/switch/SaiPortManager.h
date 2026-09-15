@@ -36,6 +36,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 struct SaiIngressPriorityGroupHandleAndProfile;
+class HwAsic;
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
@@ -154,6 +155,10 @@ class SaiPortManager {
   void changePort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void setIngressAcl(const std::shared_ptr<Port>& swPort);
+  void changeIngressAcl(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -245,6 +250,12 @@ class SaiPortManager {
       bool updateWatermarks = false,
       bool updateCableLengths = false);
 
+  // Link up/down debounce retrigger counts are leaba READ_ONLY port attributes
+  // (25.5.4210 / 26.2+). Compile-time SDK gate; the per-port read in
+  // updateStats is additionally guarded on the port having a debounce hold
+  // timer configured.
+  static bool isLinkDebounceRetriggerCounterSupported(const HwAsic* asic);
+
   void updateConnectivityStats(PortID portID);
 
   void clearStats(PortID portID);
@@ -273,8 +284,9 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
   std::vector<sai_port_snr_values_t> getRxSNR(
-      PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      const PortSaiId& saiPortId,
+      uint8_t numPmdLanes,
+      const PortID& portID) const;
 #endif
   std::vector<phy::SerdesParameters> getSerdesParameters(
       PortSerdesSaiId serdesSaiPortId,
@@ -300,12 +312,26 @@ class SaiPortManager {
       PortSaiId saiPortId) const;
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  phy::Loopback getLoopbackMode(PortSaiId saiPortId) const;
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::optional<sai_latch_status_t> getHighCrcErrorRate(
       PortSaiId saiPortId,
       PortID swPort) const;
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
+  void updatePmdChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool signalDetectChanged,
+      bool cdrLockChanged);
+  void updateLinkFaultChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool localFaultChanged,
+      bool remoteFaultChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 
@@ -314,6 +340,7 @@ class SaiPortManager {
   TransmitterTechnology getMedium(PortID portID) const;
 
   uint8_t getNumPmdLanes(PortSaiId saiPortId) const;
+  std::vector<uint32_t> getPmdLaneList(PortSaiId saiPortId) const;
   void loadPortQueuesForAddedPort(const std::shared_ptr<Port>& swPort);
   void loadPortQueuesForChangedPort(
       const std::shared_ptr<Port>& oldPort,
@@ -322,6 +349,7 @@ class SaiPortManager {
   void setClm(PortID portId, bool clmEnabled);
   bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
+  bool fecCorrectedSymbolsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
   bool rxSNRSupported() const;
@@ -335,6 +363,10 @@ class SaiPortManager {
   void changePortShelEnable(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort) const;
+  // Throws on SDKs that cannot program the attribute, rather than dropping a
+  // mode the config asked for.
+  static SaiPortTraits::Attributes::LinkScanMode linkScanModeAttribute(
+      cfg::LinkScanMode mode);
   /**
    * Increment the PFC deadlock detection counter for a given port.
    *
@@ -396,6 +428,7 @@ class SaiPortManager {
   void fillInSupportedStats(PortID port);
   void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
+  bool fecCorrectedCounterSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
@@ -406,6 +439,7 @@ class SaiPortManager {
       std::shared_ptr<Port> swPort,
       SaiPortHandle* portHandle);
   void programLlr(std::shared_ptr<Port> swPort, SaiPortHandle* portHandle);
+  void reissueLlrModeRemote(SaiPortHandle* portHandle);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

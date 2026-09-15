@@ -7,6 +7,8 @@ load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_
 oncall("fboss_agent_push")
 
 cpp_unittest(
+    # @autodeps-skip PhysicalMemory.h is owned by both :physical_memory (impl) and
+    # :function_call_time_reporter (no impl); autodeps re-picks the latter. Keep :physical_memory.
     name = "test-physical-memory",
     srcs = [
         "PhysicalMemoryTest.cpp",

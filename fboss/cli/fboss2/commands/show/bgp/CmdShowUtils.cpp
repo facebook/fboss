@@ -19,6 +19,7 @@
 #endif
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h" // NOLINT(misc-include-cleaner)
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
@@ -34,6 +35,7 @@
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
+#include "thrift/lib/cpp2/protocol/Serializer.h"
 
 namespace facebook::fboss {
 using namespace neteng::fboss::bgp::thrift;
@@ -64,6 +66,63 @@ using facebook::neteng::fboss::bgp::thrift::TBgpAddPathNegotiated;
 using facebook::neteng::fboss::bgp::thrift::TBgpService;
 using facebook::neteng::fboss::bgp::thrift::TBgpSessionDetail;
 using neteng::fboss::bgp::thrift::TBgpPeerState;
+
+std::optional<facebook::bgp::bgp_policy::BgpPolicies> getRunningBgpPolicies(
+    const HostInfo& hostInfo) {
+  auto client = utils::createClient<Client<TBgpService>>(hostInfo);
+  std::string policyConfigJson;
+  try {
+    client->sync_getPolicyConfig(policyConfigJson);
+    if (!policyConfigJson.empty()) {
+      auto policyConfig = apache::thrift::SimpleJSONSerializer::deserialize<
+          facebook::bgp::thrift::BgpPolicyConfig>(policyConfigJson);
+      return policyConfig.policies().to_optional();
+    }
+  } catch (const std::exception& ex) {
+    XLOGF(DBG2, "Standalone BGP policy config unavailable: {}", ex.what());
+  }
+
+  try {
+    facebook::bgp::thrift::BgpConfig bgpConfig;
+    client->sync_getRunningConfigStruct(bgpConfig);
+    return bgpConfig.policies().to_optional();
+  } catch (const std::exception& ex) {
+    XLOGF(
+        WARN, "BGP policy config unavailable from both sources: {}", ex.what());
+    return std::nullopt;
+  }
+}
+
+std::optional<facebook::bgp::nsf_policy::NsfTeWeightEncoding>
+getNsfTeWeightEncoding(const facebook::bgp::bgp_policy::BgpPolicies& policies) {
+  // A switch's running BGP policy is guaranteed to carry at most one GAR NSF TE
+  // weight encoding scheme, so the first supported encoding we encounter is the
+  // definitive switch-wide scheme; we can safely return on the first match.
+  for (const auto& statement : *policies.bgp_policy_statements()) {
+    for (const auto& term : *statement.policy_entries()) {
+      for (const auto& action : *term.policy_action_entries()) {
+        if (!action.lbw_ext_community_action().has_value() ||
+            !action.lbw_ext_community_action()->encoding_scheme().has_value()) {
+          continue;
+        }
+        const auto& encoding =
+            *action.lbw_ext_community_action()->encoding_scheme();
+        switch (encoding.getType()) {
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
+              fpf_l2_encoding:
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::
+              l2_encoding:
+            return encoding;
+          // Intentionally no default: listing every variant makes -Wswitch-enum
+          // flag any newly added encoding scheme so this switch is revisited.
+          case facebook::bgp::nsf_policy::NsfTeWeightEncoding::Type::__EMPTY__:
+            break;
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
 
 const std::string printCommunities(
     const std::vector<TBgpCommunity>& peer_communities,
@@ -260,6 +319,225 @@ void resetBgpMnemonicCaches() {
   cache.communitySetMap.clear();
 }
 
+TIpPrefix sampleIpPrefix(const std::string& cidr) {
+  const auto slash = cidr.find_last_of('/');
+  const auto address = (slash == std::string::npos)
+      ? IPAddress(cidr)
+      : IPAddress(cidr.substr(0, slash));
+
+  TIpPrefix prefix;
+  prefix.prefix_bin() =
+      facebook::network::toBinaryAddress(address).addr().value().toStdString();
+  prefix.num_bits() = (slash != std::string::npos)
+      ? folly::to<int>(cidr.substr(slash + 1))
+      : (address.isV4() ? 32 : 128);
+  prefix.afi() = address.isV4() ? TBgpAfi::AFI_IPV4 : TBgpAfi::AFI_IPV6;
+  return prefix;
+}
+
+TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value) {
+  TBgpCommunity community;
+  community.asn() = asn;
+  community.value() = value;
+  community.community() =
+      static_cast<int64_t>((static_cast<uint32_t>(asn) << 16) | value);
+  return community;
+}
+
+namespace {
+
+struct SamplePathSpec {
+  std::string nextHop;
+  std::string peer;
+  std::string peerDescription;
+  int32_t localPref;
+  // The advertising router, rendered as the Router/Originator line by
+  // 'table detail'. Must be IPv4: router IDs are 32-bit, and sampleBgpPath
+  // throws on anything else.
+  std::string routerAddress;
+  bool isBestPath;
+  // Only the rejected ECMP path carries one; 'table detail' prints it as the
+  // BestPath Rejection Reason.
+  std::string bestPathFilterDescription;
+};
+
+TBgpPath sampleBgpPath(const SamplePathSpec& spec) {
+  TBgpPath path;
+  path.next_hop() = sampleIpPrefix(spec.nextHop);
+  path.peer_id() = sampleIpPrefix(spec.peer);
+  path.peer_description() = spec.peerDescription;
+  path.local_pref() = spec.localPref;
+  // printRIBEntries reads router_id back with IPAddress::fromLongHBO, so store
+  // host byte order.
+  path.router_id() =
+      static_cast<int32_t>(IPAddress(spec.routerAddress).asV4().toLongHBO());
+  // BGP_ORIGIN_IGP; printRIBEntries trims the enum prefix and renders "IGP".
+  path.origin() = 0;
+  path.is_best_path() = spec.isBestPath;
+  if (!spec.bestPathFilterDescription.empty()) {
+    path.bestpath_filter_descr() = spec.bestPathFilterDescription;
+  }
+  // Microseconds; printRIBEntries renders LM as the time elapsed since then,
+  // so this drifts with wall clock rather than being a fixed string.
+  path.last_modified_time() = 1788455780000000;
+  path.next_hop_weight() = 0;
+  path.med() = 0;
+  path.path_id() = 0;
+  path.path_id_to_send() = 4;
+  path.weight() = 0;
+
+  neteng::fboss::bgp_attr::TAsPathSeg segment;
+  segment.seg_type() = TAsPathSegType::AS_SEQUENCE;
+  segment.asns() = {65301, 65332, 64984, 32934};
+  path.as_path() = TAsPath{segment};
+
+  // AS32934.DEFAULT, the community a real default route carries.
+  constexpr uint16_t kDefaultRouteAsn = 65529;
+  constexpr uint16_t kDefaultRouteValue = 15990;
+  path.communities() = {sampleCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+
+  return path;
+}
+
+} // namespace
+
+TRibEntryWithHost sampleRibEntriesWithHost() {
+  TRibEntry defaultRoute;
+  defaultRoute.prefix() = sampleIpPrefix("0.0.0.0/0");
+  defaultRoute.best_group() = "best";
+  defaultRoute.best_next_hop() = sampleIpPrefix("192.0.2.11");
+  defaultRoute.paths() = {
+      {"best",
+       {sampleBgpPath(
+            {.nextHop = "192.0.2.11",
+             .peer = "192.0.2.11",
+             .peerDescription = "fsw001.p001.f01.abc1",
+             .localPref = 100,
+             .routerAddress = "192.0.2.101",
+             .isBestPath = true,
+             .bestPathFilterDescription = ""}),
+        sampleBgpPath(
+            {.nextHop = "192.0.2.12",
+             .peer = "192.0.2.12",
+             .peerDescription = "fsw002.p001.f01.abc1",
+             .localPref = 100,
+             .routerAddress = "192.0.2.102",
+             .isBestPath = false,
+             .bestPathFilterDescription =
+                 "Router-Id, Filter Criterion: Choose Lowest Value"})}},
+      // A drained peer advertises the same prefix at a lower local-pref, so it
+      // lands outside the best group and renders without the ECMP marker.
+      {"warm",
+       {sampleBgpPath(
+           {.nextHop = "192.0.2.13",
+            .peer = "192.0.2.13",
+            .peerDescription = "fsw003.p001.f01.abc1",
+            .localPref = 20,
+            .routerAddress = "192.0.2.103",
+            .isBestPath = false,
+            .bestPathFilterDescription = ""})}}};
+
+  TRibEntry v6Prefix;
+  v6Prefix.prefix() = sampleIpPrefix("2001:db8:1c00::/40");
+  v6Prefix.best_group() = "best";
+  v6Prefix.best_next_hop() = sampleIpPrefix("2001:db8:e11e:1062::4e");
+  v6Prefix.paths() = {
+      {"best",
+       {sampleBgpPath(
+           {.nextHop = "2001:db8:e11e:1062::4e",
+            .peer = "2001:db8:e11e:1062::4e",
+            .peerDescription = "fsw001.p001.f01.abc1",
+            .localPref = 100,
+            .routerAddress = "192.0.2.101",
+            .isBestPath = true,
+            .bestPathFilterDescription = ""})}}};
+
+  TRibEntryWithHost data;
+  data.tRibEntries() = {defaultRoute, v6Prefix};
+  data.host() = "rsw001.p001.f01.abc1";
+  data.oobName() = "rsw001.p001.f01.abc1.oob";
+  data.ip() = "192.0.2.1";
+  return data;
+}
+
+NetworkPathWithHost sampleNetworkPaths(
+    SampleRouteDirection direction,
+    const std::string& policyName) {
+  const bool received = direction == SampleRouteDirection::Received;
+
+  auto path = [&](const std::string& nextHop,
+                  int64_t peerAsn,
+                  int32_t localPref,
+                  const std::vector<TBgpCommunity>& communities) {
+    TBgpPath bgpPath;
+    bgpPath.next_hop() = sampleIpPrefix(nextHop);
+    bgpPath.local_pref() = localPref;
+    // BGP_ORIGIN_IGP; the renderer trims the enum prefix and prints "IGP".
+    bgpPath.origin() = 0;
+    bgpPath.med() = 0;
+    bgpPath.communities() = communities;
+    if (!policyName.empty()) {
+      bgpPath.policy_name() = policyName;
+    }
+    /*
+     * Microseconds. Advertised routes are rendered straight out of the
+     * AdjRibOut and carry no last-modified time, so the view prints
+     * "LastModified: Not set"; received ones carry the time the path arrived.
+     */
+    if (received) {
+      bgpPath.last_modified_time() = 1788455780000000;
+    }
+
+    neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() = TAsPathSegType::AS_CONFED_SEQUENCE;
+    // printAsPath() prefers asns_4_byte and only falls back to the legacy
+    // asns field, so populate the one the renderer actually reads.
+    segment.asns_4_byte() = {peerAsn};
+    bgpPath.as_path() = TAsPath{segment};
+    return bgpPath;
+  };
+
+  /*
+   * The confederation ASNs either side of the session: the peer we receive
+   * from and the peer we advertise to are in different sub-ASes, which is
+   * what makes the two directions distinguishable in the rendered AS path.
+   */
+  constexpr int64_t kUpstreamAsn = 6001;
+  constexpr int64_t kDownstreamAsn = 6002;
+
+  // LIVE, plus the community that identifies the prefix class.
+  const std::vector<TBgpCommunity> aggregateCommunities = {
+      sampleCommunity(65446, 30), sampleCommunity(65527, 36327)};
+  // AS32934.DEFAULT, the community a real default route carries; same values
+  // sampleBgpPath() names for the 'table detail' sample.
+  constexpr uint16_t kDefaultRouteAsn = 65529;
+  constexpr uint16_t kDefaultRouteValue = 15990;
+  const std::vector<TBgpCommunity> defaultRouteCommunities = {
+      sampleCommunity(65446, 30),
+      sampleCommunity(kDefaultRouteAsn, kDefaultRouteValue)};
+
+  NetworkPathWithHost result;
+  if (received) {
+    // What the peer sends us: a default route and a more specific.
+    result.networkPath() = {
+        {sampleIpPrefix("0.0.0.0/0"),
+         {path("192.0.2.11", kUpstreamAsn, 100, defaultRouteCommunities)}},
+        {sampleIpPrefix("203.0.113.7/32"),
+         {path("192.0.2.11", kUpstreamAsn, 90, aggregateCommunities)}}};
+  } else {
+    // What we send the peer: two rack aggregates.
+    result.networkPath() = {
+        {sampleIpPrefix("198.51.100.0/24"),
+         {path("192.0.2.12", kDownstreamAsn, 100, aggregateCommunities)}},
+        {sampleIpPrefix("203.0.113.0/24"),
+         {path("192.0.2.12", kDownstreamAsn, 100, aggregateCommunities)}}};
+  }
+  result.host() = "rsw001.p001.f01.abc1";
+  result.oobName() = "rsw001.p001.f01.abc1.oob";
+  result.ip() = "192.0.2.1";
+  return result;
+}
+
 const std::vector<std::string> printRoutesInformation(
     const std::map<TIpPrefix, std::vector<TBgpPath>>& networks,
     const HostInfo& hostInfo,
@@ -377,6 +655,10 @@ void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out) {
   if (folly::copy(details.ipv6_unicast().value())) {
     out << "    Multiprotocol IPv6 Unicast: negotiated" << std::endl;
   }
+  if (folly::copy(details.legacy_v4_nlri_encoding().value())) {
+    out << "    Legacy v4 NLRI encoding (RFC 4271 classic NLRI + NEXT_HOP): yes"
+        << std::endl;
+  }
   if (folly::copy(details.rr_client().value())) {
     out << "    Route Refresh: advertised" << std::endl;
   }
@@ -393,6 +675,110 @@ void printBgpCapabilities(const TBgpSessionDetail& details, std::ostream& out) {
   } else {
     out << "    Graceful Restart: NOT sent" << std::endl;
   }
+}
+
+void printBgpPrefixTelemetry(
+    const TBgpSession& neighbor,
+    const TBgpSessionDetail& details,
+    std::ostream& out) {
+  // Prefix-level telemetry: the current advertised/received prefix gauges plus
+  // the cumulative announcement/withdrawal counts (per AFI where tracked).
+  // "Accepted" applies only to the current-gauge row; cumulative rows show "-".
+  const std::string kNa = "-";
+  Table table;
+  table.setHeader({"Prefix Telemetry", "Sent", "Rcvd", "Accepted"});
+  table.addRow(
+      {"Current prefixes",
+       folly::to<std::string>(*neighbor.postpolicy_sent_prefix_count()),
+       folly::to<std::string>(*neighbor.prepolicy_rcvd_prefix_count()),
+       folly::to<std::string>(*neighbor.postpolicy_rcvd_prefix_count())});
+  table.addRow(
+      {"Announcements IPv4",
+       folly::to<std::string>(*details.sent_update_announcements_ipv4()),
+       folly::to<std::string>(*details.recv_update_announcements_ipv4()),
+       kNa});
+  table.addRow(
+      {"Announcements IPv6",
+       folly::to<std::string>(*details.sent_update_announcements_ipv6()),
+       folly::to<std::string>(*details.recv_update_announcements_ipv6()),
+       kNa});
+  table.addRow(
+      {"Withdrawals",
+       folly::to<std::string>(*details.sent_update_withdrawals()),
+       folly::to<std::string>(*details.recv_update_withdrawals()),
+       kNa});
+  out << table << std::endl;
+}
+
+void printBgpMessageCounters(
+    const TBgpSessionDetail& details,
+    std::ostream& out) {
+  // Per-message-type PDU counters for both layers: data-plane (socket, the
+  // SessionManager I/O thread) and control-plane (AdjRib / PeerManager). They
+  // converge for cross-module validation, and `clear bgp egress-counters` /
+  // `clear bgp ingress-counters` zero them for debugging. AdjRib only
+  // produces/consumes UPDATE and EoR PDUs, so the other types show "-" there.
+
+  // Only render when there is something to show, so idle peers stay
+  // uncluttered. A clear zeroes one direction at a time, so the other
+  // direction's non-zero counters keep the table visible for verifying the
+  // clear.
+  const bool anyCounter = *details.socket_tx_open_msgs() ||
+      *details.socket_tx_update_msgs() || *details.socket_tx_keepalive_msgs() ||
+      *details.socket_tx_notification_msgs() ||
+      *details.socket_tx_route_refresh_msgs() ||
+      *details.socket_tx_eor_msgs() || *details.socket_rx_open_msgs() ||
+      *details.socket_rx_update_msgs() || *details.socket_rx_keepalive_msgs() ||
+      *details.socket_rx_notification_msgs() ||
+      *details.socket_rx_route_refresh_msgs() ||
+      *details.socket_rx_eor_msgs() || *details.adjrib_sent_update_msgs() ||
+      *details.adjrib_sent_eor_msgs() || *details.adjrib_recv_update_msgs() ||
+      *details.adjrib_recv_eor_msgs();
+  if (!anyCounter) {
+    return;
+  }
+
+  const std::string kNa = "-";
+  Table table;
+  table.setHeader(
+      {"Message Type", "Socket Tx", "Socket Rx", "AdjRib Sent", "AdjRib Recv"});
+  table.addRow(
+      {"open",
+       folly::to<std::string>(*details.socket_tx_open_msgs()),
+       folly::to<std::string>(*details.socket_rx_open_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"update",
+       folly::to<std::string>(*details.socket_tx_update_msgs()),
+       folly::to<std::string>(*details.socket_rx_update_msgs()),
+       folly::to<std::string>(*details.adjrib_sent_update_msgs()),
+       folly::to<std::string>(*details.adjrib_recv_update_msgs())});
+  table.addRow(
+      {"keepalive",
+       folly::to<std::string>(*details.socket_tx_keepalive_msgs()),
+       folly::to<std::string>(*details.socket_rx_keepalive_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"notification",
+       folly::to<std::string>(*details.socket_tx_notification_msgs()),
+       folly::to<std::string>(*details.socket_rx_notification_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"route-refresh",
+       folly::to<std::string>(*details.socket_tx_route_refresh_msgs()),
+       folly::to<std::string>(*details.socket_rx_route_refresh_msgs()),
+       kNa,
+       kNa});
+  table.addRow(
+      {"end-of-rib",
+       folly::to<std::string>(*details.socket_tx_eor_msgs()),
+       folly::to<std::string>(*details.socket_rx_eor_msgs()),
+       folly::to<std::string>(*details.adjrib_sent_eor_msgs()),
+       folly::to<std::string>(*details.adjrib_recv_eor_msgs())});
+  out << table << std::endl;
 }
 
 void printAddPathCapability(

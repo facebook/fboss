@@ -44,6 +44,11 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     const std::vector<int>& ports,
     bool setupSSL);
 
+void markThriftMethodsInternalAndBypassLimits(
+    apache::thrift::ThriftServer& server,
+    const std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>&
+        interfaces);
+
 template <typename THRIFT_HANDLER>
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,

@@ -88,4 +88,9 @@ TEST_F(CmdShowAgentBootTypeTestFixture, queryClientMultiMode) {
   EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
+TEST_F(CmdShowAgentBootTypeTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowAgentBootTypeTraits::description().empty());
+  EXPECT_FALSE(CmdShowAgentBootType::sampleModel().bootTypeEntries()->empty());
+}
+
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/mnpu/FdbEventSyncer.h"
 #include "fboss/agent/mnpu/HwSwitchStatsSinkClient.h"
 #include "fboss/agent/mnpu/LinkChangeEventSyncer.h"
@@ -116,6 +117,9 @@ void SplitAgentThriftSyncer::packetReceived(
         *pkt->cosQueue(),
         hwSwitch_->getPlatform()->getAsic(),
         hwSwitch_->getSwitchStats());
+  }
+  if (pkt->packetType()) {
+    rxPkt.packetType() = *pkt->packetType();
   }
   // coalesce the IOBuf before copy
   pkt->buf()->coalesce();
@@ -286,6 +290,10 @@ void SplitAgentThriftSyncer::stop() {
 
 void SplitAgentThriftSyncer::cancelPendingRxPktEnqueue() {
   rxPktEventSinkClient_->cancelPendingEnqueue();
+}
+
+void SplitAgentThriftSyncer::cancelPendingFdbEnqueue() {
+  fdbEventSinkClient_->cancelPendingEnqueue();
 }
 
 void SplitAgentThriftSyncer::stopOperDeltaSync() {

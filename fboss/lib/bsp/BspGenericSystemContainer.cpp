@@ -3,12 +3,12 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
-#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
 #include "fboss/lib/bsp/leh800bcls/Leh800bclsBspPlatformMapping.h"
+#include "fboss/lib/bsp/m4062nhp/M4062nhpBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -186,15 +186,6 @@ Leh800bclsSystemContainer::getInstance() {
   return _Leh800bclsSystemContainer.try_get();
 }
 
-using Icecube800banwSystemContainer =
-    BspGenericSystemContainer<Icecube800banwBspPlatformMapping>;
-folly::Singleton<Icecube800banwSystemContainer> _icecube800banwSystemContainer;
-template <>
-std::shared_ptr<Icecube800banwSystemContainer>
-Icecube800banwSystemContainer::getInstance() {
-  return _icecube800banwSystemContainer.try_get();
-}
-
 using SaintpaulSystemContainer =
     BspGenericSystemContainer<SaintpaulBspPlatformMapping>;
 const folly::Singleton<SaintpaulSystemContainer> _saintpaulSystemContainer;
@@ -202,6 +193,15 @@ template <>
 std::shared_ptr<SaintpaulSystemContainer>
 SaintpaulSystemContainer::getInstance() {
   return _saintpaulSystemContainer.try_get();
+}
+
+using M4062nhpSystemContainer =
+    BspGenericSystemContainer<M4062nhpBspPlatformMapping>;
+folly::Singleton<M4062nhpSystemContainer> _m4062nhpSystemContainer;
+template <>
+std::shared_ptr<M4062nhpSystemContainer>
+M4062nhpSystemContainer::getInstance() {
+  return _m4062nhpSystemContainer.try_get();
 }
 
 } // namespace fboss

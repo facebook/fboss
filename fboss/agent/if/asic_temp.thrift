@@ -1,13 +1,16 @@
 namespace cpp2 facebook.fboss.asic_temp
 namespace go neteng.fboss.asic_temp
-namespace php asic_temp
 namespace py neteng.fboss.asic_temp
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.asic_temp
 
 include "fboss/agent/if/fboss.thrift"
 include "thrift/annotation/thrift.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "asic_temp_"}
+@hack.LegacyAlwaysIncludeNamePrefixInProcessor
+@hack.LegacyOmitPrefixInNameString
 @thrift.AllowLegacyMissingUris
 package;
 

@@ -89,6 +89,7 @@
         <package name="openssh-server"/>
         <package name="parted"/>
         <package name="passwd"/>
+        <package name="logrotate"/>
         <package name="policycoreutils"/>
         <package name="policycoreutils-python-utils"/>
         <package name="rootfiles"/>

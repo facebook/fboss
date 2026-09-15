@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/hw_ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -29,6 +30,10 @@ struct CmdShowFabricTopologyTraits : public ReadCommandTraits {
   using RetType = cli::ShowFabricTopologyModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowFabricTopology
@@ -45,6 +50,10 @@ class CmdShowFabricTopology
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
   Table::Style getSymmetryStyle(bool isSymmetric) const;
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

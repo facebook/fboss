@@ -1,12 +1,16 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <string>
+#include <system_error>
 #include <unordered_map>
 #include <utility>
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
+#include <folly/ScopeGuard.h>
 #include <folly/json/json.h>
 #include <filesystem>
 
@@ -17,17 +21,21 @@
 using namespace facebook::fboss::platform;
 
 namespace {
-const std::string kPathPrefix = "/tmp/WeutilDarwin";
-const std::string kPredfl = kPathPrefix + "/system-prefdl-bin";
-const std::string kCreteLayout =
-    "echo \"00001000:0001efff prefdl\" > " + kPathPrefix + "/layout";
 const std::string kFlashromGetFlashType = "flashrom -p internal ";
 
-const std::string kFlashromGetContent = " -l " + kPathPrefix +
-    "/layout -i prefdl -r " + kPathPrefix + "/bios > /dev/null 2>&1";
-
-const std::string kddComands = "dd if=" + kPathPrefix + "/bios of=" + kPredfl +
-    " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
+// Create a fresh, private, root-owned temp directory for this run's SPI dump.
+// mkdtemp yields a 0700 directory with an unpredictable name, so a local
+// attacker cannot pre-create the directory (or plant symlinks inside it) to
+// redirect the root-owned flashrom/dd writes that follow -- unlike the old
+// fixed, predictable /tmp/WeutilDarwin path.
+std::string createSecureRunDir() {
+  std::string tmpl = "/tmp/WeutilDarwin.XXXXXX";
+  if (::mkdtemp(tmpl.data()) == nullptr) {
+    throw std::runtime_error(
+        folly::to<std::string>("Cannot create temp directory from: ", tmpl));
+  }
+  return tmpl;
+}
 
 // Map weutil fields to prefld fields
 const std::unordered_map<std::string, std::string> kMapping{
@@ -87,28 +95,37 @@ std::string getFlashType(const std::string& str) {
 namespace facebook::fboss::platform {
 WeutilDarwin::WeutilDarwin(const std::string& eepromPath) {
   std::string fruPath;
+  std::optional<std::string> runDir;
+  // Remove the per-run temp directory on all paths (success or exception),
+  // after PrefdlBase has parsed the file below.
+  auto cleanup = folly::makeGuard([&runDir]() {
+    if (runDir) {
+      std::error_code ec;
+      std::filesystem::remove_all(*runDir, ec);
+    }
+  });
   if (eepromPath == "") {
-    genSpiPrefdlFile();
-    fruPath = kPredfl;
+    runDir = createSecureRunDir();
+    fruPath = genSpiPrefdlFile(*runDir);
   } else {
     fruPath = eepromPath;
   }
   eepromParser_ = std::make_unique<PrefdlBase>(fruPath);
 }
 
-void WeutilDarwin::genSpiPrefdlFile() {
+std::string WeutilDarwin::genSpiPrefdlFile(const std::string& runDir) {
   int exitStatus = 0;
   std::string standardOut;
 
-  if (!std::filesystem::exists(kPathPrefix)) {
-    if (!std::filesystem::create_directory(kPathPrefix)) {
-      throw std::runtime_error("Cannot create directory: " + kPathPrefix);
-    }
-  }
+  const std::string layoutPath = runDir + "/layout";
+  const std::string biosPath = runDir + "/bios";
+  const std::string prefdlPath = runDir + "/system-prefdl-bin";
 
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(kCreteLayout);
+  const std::string createLayout =
+      "echo \"00001000:0001efff prefdl\" > " + layoutPath;
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(createLayout);
   if (exitStatus != 0) {
-    throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
+    throw std::runtime_error("Cannot create layout file with: " + createLayout);
   }
 
   // Get flash type
@@ -124,15 +141,17 @@ void WeutilDarwin::genSpiPrefdlFile() {
         "Cannot get flash type with: " + kFlashromGetFlashType);
   }
 
+  const std::string flashromGetContent =
+      " -l " + layoutPath + " -i prefdl -r " + biosPath + " > /dev/null 2>&1";
   std::string getPrefdl;
   std::string flashType = getFlashType(standardOut);
 
   if (!flashType.empty()) {
     getPrefdl = folly::to<std::string>(
-        kFlashromGetFlashType, " -c ", flashType, kFlashromGetContent);
+        kFlashromGetFlashType, " -c ", flashType, flashromGetContent);
   } else {
     getPrefdl =
-        folly::to<std::string>(kFlashromGetFlashType, kFlashromGetContent);
+        folly::to<std::string>(kFlashromGetFlashType, flashromGetContent);
   }
 
   std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(getPrefdl);
@@ -146,10 +165,14 @@ void WeutilDarwin::genSpiPrefdlFile() {
             std::to_string(exitStatus)));
   }
 
-  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(kddComands);
+  const std::string ddCommand = "dd if=" + biosPath + " of=" + prefdlPath +
+      " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(ddCommand);
   if (exitStatus != 0) {
-    throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
+    throw std::runtime_error("Cannot create prefdl file with: " + ddCommand);
   }
+
+  return prefdlPath;
 }
 
 std::vector<std::pair<std::string, std::string>> WeutilDarwin::getContents() {

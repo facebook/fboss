@@ -2,10 +2,12 @@
 # @noautodeps
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+import os
 from argparse import ArgumentParser, Namespace
 from typing import ClassVar
 
-from fboss_test_runner.result_types import GtestResult
+from fboss_test_runner.reporters.json_reporter import JsonReporter
+from fboss_test_runner.result_types import GtestResult, TestExecutionResult
 from fboss_test_runner.runners.test_runner import TestRunner
 
 SUB_ARG_TEST_TYPE = "--type"
@@ -83,9 +85,52 @@ class PlatformServicesTestRunner(TestRunner):
         self._end_run()
         return all_results
 
-    def run_test(self, args: Namespace) -> None:
-        args.fruid_path = None
-        types = [args.type] if args.type else self.TEST_TYPE_CHOICES
-        for test_type in types:
-            args.type = test_type
-            super().run_test(args)
+    @staticmethod
+    def _args_for_test_type(args: Namespace, test_type: str) -> Namespace:
+        return Namespace(
+            **{
+                **vars(args),
+                "fruid_path": None,
+                "type": test_type,
+            }
+        )
+
+    def list_tests(self, args: Namespace) -> int:
+        test_types = [args.type] if args.type else self.TEST_TYPE_CHOICES
+        exit_code = 0
+        for test_type in test_types:
+            exit_code = max(
+                exit_code,
+                super().list_tests(self._args_for_test_type(args, test_type)),
+            )
+        return exit_code
+
+    def _run_test_type(self, args: Namespace, test_type: str) -> TestExecutionResult:
+        return self._execute_test(self._args_for_test_type(args, test_type))
+
+    def run_test(self, args: Namespace) -> int:
+        test_types = [args.type] if args.type else self.TEST_TYPE_CHOICES
+        results: list[GtestResult] = []
+        setup_failures: list[str] = []
+        exit_code = 0
+
+        try:
+            for test_type in test_types:
+                execution = self._run_test_type(args, test_type)
+                if execution.error is not None and args.results_json is None:
+                    raise execution.error
+                if execution.results is not None:
+                    results.extend(execution.results)
+                if execution.setup_failure is not None:
+                    setup_failures.append(execution.setup_failure)
+                    exit_code = os.EX_TEMPFAIL
+                elif exit_code != os.EX_TEMPFAIL:
+                    exit_code = max(exit_code, execution.exit_code)
+        finally:
+            if results:
+                self._print_output_summary(results)
+            if args.results_json is not None:
+                JsonReporter().write_run_results(
+                    results, setup_failures, args.results_json
+                )
+        return exit_code

@@ -55,13 +55,13 @@ TEST_F(CredoMacsecUtilTest, getMacsecSaFromJsonTest) {
   CredoMacsecUtil macsec;
   bool rc = macsec.getMacsecSaFromJson(jsonTestFile, sak);
   ASSERT_EQ(rc, true);
-  ASSERT_EQ(sak.sci()->get_macAddress(), "2c-54-91-88-c9-e3");
-  ASSERT_EQ(sak.sci()->get_port(), 1);
-  ASSERT_EQ(sak.get_l2Port(), "2");
-  ASSERT_EQ(sak.get_assocNum(), 4);
-  ASSERT_EQ(sak.get_keyHex(), "0xA");
-  ASSERT_EQ(sak.get_keyIdHex(), "0xB");
-  ASSERT_EQ(sak.get_primary(), true);
+  ASSERT_EQ(sak.sci()->macAddress().value(), "2c-54-91-88-c9-e3");
+  ASSERT_EQ(sak.sci()->port().value(), 1);
+  ASSERT_EQ(sak.l2Port().value(), "2");
+  ASSERT_EQ(sak.assocNum().value(), 4);
+  ASSERT_EQ(sak.keyHex().value(), "0xA");
+  ASSERT_EQ(sak.keyIdHex().value(), "0xB");
+  ASSERT_EQ(sak.primary().value(), true);
 }
 
 TEST_F(CredoMacsecUtilTest, getMacsecScFromJsonTest) {
@@ -82,8 +82,8 @@ TEST_F(CredoMacsecUtilTest, getMacsecScFromJsonTest) {
   CredoMacsecUtil macsec;
   bool rc = macsec.getMacsecScFromJson(jsonTestFile, sci);
   ASSERT_EQ(rc, true);
-  ASSERT_EQ(sci.get_macAddress(), "E3-4F-11-D3-9A-32");
-  ASSERT_EQ(sci.get_port(), 3);
+  ASSERT_EQ(sci.macAddress().value(), "E3-4F-11-D3-9A-32");
+  ASSERT_EQ(sci.port().value(), 3);
 }
 
 } // namespace fboss

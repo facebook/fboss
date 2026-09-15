@@ -73,7 +73,7 @@ TEST_F(AclTableManagerRedirectTest, addAclEntryWithTunnelEncapRedirect) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   ASSERT_TRUE(aclEntryHandle);
   ASSERT_TRUE(aclEntryHandle->tunnelEncapNextHop);
 
@@ -120,7 +120,7 @@ TEST_F(AclTableManagerRedirectTest, removeAclEntryWithTunnelEncapRedirect) {
   auto aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
       cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
   auto aclEntryHandle = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority());
+      aclTableHandle, kPriority(), std::string("AclEntry1"));
   EXPECT_FALSE(aclEntryHandle);
   EXPECT_EQ(nhStore.size(), 0);
 }

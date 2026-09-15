@@ -36,6 +36,10 @@ constexpr int kMtuMax = 9416;
 constexpr int32_t kVlanIdMin = 1;
 constexpr int32_t kVlanIdMax = 4094;
 
+// Queue-id ceiling shared by the qos config/delete commands. Arbitrary but
+// high; the true maximum is ASIC-dependent.
+constexpr int16_t kMaxQueueId = 128;
+
 struct LocalOption {
   std::string name;
   std::string helpMsg;

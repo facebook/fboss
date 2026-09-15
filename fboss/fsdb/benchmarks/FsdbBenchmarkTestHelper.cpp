@@ -24,10 +24,13 @@ namespace facebook::fboss::fsdb::test {
 void FsdbBenchmarkTestHelper::setup(
     int32_t numSubscriptions,
     bool startFsdbTestServer,
-    std::optional<std::string> serviceFileName) {
+    std::optional<std::string> serviceFileName,
+    std::optional<uint32_t> stateServeIntervalMs) {
   if (startFsdbTestServer) {
     fsdbTestServer_ = std::make_unique<fsdb::test::FsdbTestServer>(
-        0, kStateServeIntervalMs, kStatsServeIntervalMs);
+        0,
+        stateServeIntervalMs.value_or(kStateServeIntervalMs),
+        kStatsServeIntervalMs);
     FLAGS_fsdbPort = fsdbTestServer_->getFsdbPort();
 
     // Share two bounded IO pools across all managers so the client thread count

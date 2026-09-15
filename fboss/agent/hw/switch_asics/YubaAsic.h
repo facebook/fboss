@@ -134,27 +134,42 @@ class YubaAsic : public TajoAsic {
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     /*
-     * G200 supports ~20K next hop group(NHG) members, but we are limiting it to
-     * 9088 for now. Reason: ASIC has two level ECMP, where:
+     * G200 has two level ECMP. Each level owns one resolution stage of the
+     * Leaba indirection table, which holds one line per NHG/ECMP member:
      *
-     * Level 1 has:
-     *        1. 512 NHG/ECMP groups
-     *        2. 10240 - 1024 (Service port GID limit)
-     *                 - 128 (max size of ECMP group) = 9088 NHG members
+     *   usable(stage) = INDIRECTION_TABLE_SIZE
+     *                     - wcmp_base(stage)
+     *                     - max_mp_group_size
      *
-     * Level 2 has:
-     *        1. 512 NHG/ECMP groups
-     *        2. 10240 - 512 (IP hosts limit)
-     *                 - 512 (Next hop GID limit)
-     *                 - 128 (max size of ECMP group) = 9088 NHG members
-     * Together:
-     *        1. 1024 NHG/ECMP groups
-     *        2. 9088 + 9088 = 18,176 NHG/ECMP members = ~18K
+     * INDIRECTION_TABLE_SIZE is 10240 (resolution_traits_*.h) and the bases
+     * come from the GID limits in our ASIC config JSON, which the SDK reads in
+     * sai_config_parser.cpp:
      *
-     * But the test passed for 18172 and failed for 18173. So, returning 18172.
-     * Will work with Cisco to understand the reason for this. - MT-803
+     *   l2_service_port_gid_limit 1024   next_hop_gid_limit 512
+     *   prefix_object_gid_limit      0   ip_hosts_limit     512
+     *   max_mp_group_size          128
+     *
+     * Level 1 (WCMP0), base = l2 service port + prefix object GID limits:
+     *        10240 - (1024 + 0) - 128 = 9088 members
+     *
+     * Level 2 (WCMP1), base = next hop GID limit + IP hosts limit:
+     *        10240 - (512 + 512) - 128 = 9088 members  (SDK 25.5)
+     *
+     * Together 9088 + 9088 = 18176. Empirically the last 4 are not usable
+     * (test passed at 18172, failed at 18173) - unexplained, same offset on
+     * every SDK, tracked in MT-803.
+     *
+     * SDK 26.2 costs one more member. Both SDKs reserve an internal "ip
+     * collapse drop" next hop GID, but they charge it to different budgets.
+     * With next_hop_gid_limit = L:
+     *   25.5: the drop GID is carved out of L, so only L-1 next hop GIDs are
+     *         usable and get_wcmp_table_base() returns L.
+     *   26.2: the drop GID is reserved on top of L, so all L are usable and
+     *         get_wcmp_table_base() returns get_internal_gid_limit() = L+1.
+     * The higher base costs one level 2 line: 10240 - 1025 - 128 = 9087, so
+     * 9088 + 9087 - 4 = 18171.
      */
-    return 18172;
+    return 18171;
   }
   uint32_t getNumCores() const override {
     return 12;

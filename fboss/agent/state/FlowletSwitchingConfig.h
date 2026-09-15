@@ -244,6 +244,59 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
+  void setStandbySwitchingMode(
+      const std::optional<cfg::SwitchingMode>& standbySwitchingMode) {
+    if (standbySwitchingMode) {
+      set<switch_config_tags::standbySwitchingMode>(*standbySwitchingMode);
+    } else {
+      ref<switch_config_tags::standbySwitchingMode>().reset();
+    }
+  }
+
+  std::optional<cfg::SwitchingMode> getStandbySwitchingMode() const {
+    if (auto standbySwitchingMode =
+            get<switch_config_tags::standbySwitchingMode>()) {
+      return standbySwitchingMode->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setStandbyInactivityIntervalUsecs(
+      const std::optional<int16_t>& standbyInactivityIntervalUsecs) {
+    if (standbyInactivityIntervalUsecs) {
+      set<switch_config_tags::standbyInactivityIntervalUsecs>(
+          *standbyInactivityIntervalUsecs);
+    } else {
+      ref<switch_config_tags::standbyInactivityIntervalUsecs>().reset();
+    }
+  }
+
+  std::optional<int16_t> getStandbyInactivityIntervalUsecs() const {
+    if (auto standbyInactivityIntervalUsecs =
+            get<switch_config_tags::standbyInactivityIntervalUsecs>()) {
+      return standbyInactivityIntervalUsecs->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setStandbyFlowletTableSize(
+      const std::optional<int16_t>& standbyFlowletTableSize) {
+    if (standbyFlowletTableSize) {
+      set<switch_config_tags::standbyFlowletTableSize>(
+          *standbyFlowletTableSize);
+    } else {
+      ref<switch_config_tags::standbyFlowletTableSize>().reset();
+    }
+  }
+
+  std::optional<int16_t> getStandbyFlowletTableSize() const {
+    if (auto standbyFlowletTableSize =
+            get<switch_config_tags::standbyFlowletTableSize>()) {
+      return standbyFlowletTableSize->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

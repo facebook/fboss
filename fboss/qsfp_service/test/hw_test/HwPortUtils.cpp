@@ -58,9 +58,9 @@ void verifyPhyPortConfig(
   // Just check the attribures we can get
   auto checkProfileSideConfig = [&](const phy::ProfileSideConfig& expected,
                                     const phy::ProfileSideConfig& actual) {
-    EXPECT_EQ(expected.get_numLanes(), actual.get_numLanes());
-    EXPECT_EQ(expected.get_fec(), actual.get_fec());
-    EXPECT_EQ(expected.get_modulation(), actual.get_modulation());
+    EXPECT_EQ(expected.numLanes().value(), actual.numLanes().value());
+    EXPECT_EQ(expected.fec().value(), actual.fec().value());
+    EXPECT_EQ(expected.modulation().value(), actual.modulation().value());
     if (auto interfaceType = actual.interfaceType()) {
       EXPECT_EQ(expected.interfaceType(), interfaceType);
     }
@@ -242,6 +242,26 @@ std::vector<std::pair<std::string, std::string>> getCabledPairs(
     cabledPairs.emplace_back(aPortName, zPortName);
   }
   return cabledPairs;
+}
+
+// Cabled pairs where both ports have a transceiver.
+std::vector<std::pair<std::string, std::string>> getCabledPairsWithTransceivers(
+    const HwQsfpEnsemble* ensemble) {
+  std::vector<std::pair<std::string, std::string>> pairs;
+  const auto& handler = ensemble->getQsfpServiceHandler();
+  for (const auto& [aPortName, zPortName] : getCabledPairs(ensemble)) {
+    auto aPortId = handler->getPortIdByPortName(aPortName);
+    auto zPortId = handler->getPortIdByPortName(zPortName);
+    if (!aPortId.has_value() || !zPortId.has_value()) {
+      continue;
+    }
+    if (!getTranscieverIdx(*aPortId, ensemble).has_value() ||
+        !getTranscieverIdx(*zPortId, ensemble).has_value()) {
+      continue;
+    }
+    pairs.emplace_back(aPortName, zPortName);
+  }
+  return pairs;
 }
 
 std::vector<TransceiverID> getCabledPortTranceivers(

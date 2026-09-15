@@ -14,6 +14,7 @@
 #include <thrift/lib/cpp/TApplicationException.h>
 #include <thrift/lib/cpp2/reflection/testing.h> // NOLINT(misc-include-cleaner)
 #include <vector>
+#include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 #include <folly/json/json.h>
@@ -42,6 +43,11 @@ class CmdShowBgpTableDetailTestFixture : public CmdHandlerTestBase {
     entriesIPv4_ = {buildEntry()};
     entriesIPv6_ = {
         buildEntry("2001::1/64", "2001::2", "2001::3", "two00one::three", 7)};
+    entriesIPv6_.front()
+        .paths()
+        ->at(entriesIPv6_.front().best_group().value())
+        .front()
+        .backup_addr() = getPrefix("2001:db8::1");
     combineEntries();
   }
 
@@ -107,14 +113,14 @@ TEST_F(CmdShowBgpTableDetailTestFixture, printOutput) {
   std::string output = ss.str();
 
   std::string expectedOutput = kRibEntryMarkersHeader +
-      "\n> 8.0.0.0/32, Selected 1/1 paths\n"
-      "*@ from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "\n> 8.0.0.0/32, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 1.2.3.4 (one.two.three.four) via 8.0.0.1 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: N/A | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
       "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
       "    BestPath Rejection Reason: Router-Id, Filter Criterion: Choose Lowest Value\n"
-      "\n> 2001::1/64, Selected 1/1 paths\n"
-      "*@ from 2001::3 (two00one::three) via 2001::2 | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: 7 | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
+      "\n> 2001::1/64, Selected 1/1 paths (1 active, 0 inactive)\n"
+      "*@  from 2001::3 (two00one::three) via 2001::2 (backup: 2001:db8::1) | LBW: None | Origin: INCOMPLETE | LP: DEPRIO/25 | ASP: 65301 | LM: # | NH Weight: 7 | MED: 10 | ID: 5 (rcvd) 6 (sent) | Weight: 20 | IgpCost: 100"
       "\n    Router/Originator: 2.2.2.3 | ClusterList: [1.1.1.2]\n"
       "    Communities: FABRIC_POD_RSW_LOOP/65527:12705\n"
       "    ExtCommunities: Type(64):SubType(2):AS(3):Value(4)\n"
@@ -123,4 +129,44 @@ TEST_F(CmdShowBgpTableDetailTestFixture, printOutput) {
   maskDateInOutput(output);
   EXPECT_EQ(output, expectedOutput);
 }
+
+TEST_F(CmdShowBgpTableDetailTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpTableDetailTraits::description().empty());
+  EXPECT_FALSE(CmdShowBgpTableDetail::sampleModel().tRibEntries()->empty());
+  /*
+   * printRIBEntries reaches getLocalBgpConfig for the community/local-pref
+   * mnemonics, and builds the HostInfo it connects to from the MODEL's own
+   * host/ip fields. sampleModel() carries the canned documentation host the
+   * wiki renders under, so point the copy under test at the mocked server
+   * instead - otherwise this is a real connect to an unroutable address that
+   * only ends on timeout. The mock returns an empty config, so the render falls
+   * back to raw asn:value communities and numeric local prefs, which is what
+   * the expected output below reflects.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  auto model = CmdShowBgpTableDetail::sampleModel();
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+  std::stringstream ss;
+  CmdShowBgpTableDetail().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  // Marker semantics the description explains: best path, other ECMP member,
+  // and a lower-local-pref path outside the best group.
+  EXPECT_THAT(output, HasSubstr("*@  from 192.0.2.11"));
+  EXPECT_THAT(output, HasSubstr("*   from 192.0.2.12"));
+  EXPECT_THAT(output, HasSubstr("    from 192.0.2.13"));
+  EXPECT_THAT(output, HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
+  // detail adds the originator, cluster list and community lines, plus the
+  // tie-break that rejected the non-best ECMP path.
+  EXPECT_THAT(output, HasSubstr("Router/Originator: 192.0.2.102"));
+  EXPECT_THAT(output, HasSubstr("Communities:"));
+  EXPECT_THAT(output, HasSubstr("BestPath Rejection Reason:"));
+}
+
 } // namespace facebook::fboss

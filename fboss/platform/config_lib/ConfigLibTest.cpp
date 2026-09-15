@@ -17,8 +17,9 @@ const std::string kMorgan800cc = "morgan800cc";
 const std::string kJanga800bic = "janga800bic";
 const std::string kTahan800bc = "tahan800bc";
 const std::string kBlackwolf800banw = "blackwolf800banw";
-const std::string kSample = "sample";
+const std::string kIcecube = "icecube";
 const std::string kM4062nhp = "m4062nhp";
+const std::string kSample = "sample";
 const std::string kWedge800cact = "wedge800cact";
 const std::string kWedge800cnhp = "wedge800cnhp";
 const std::string kNonExistentPlatform = "nonExistentPlatform";
@@ -51,7 +52,6 @@ TEST(ConfigLibTest, Basic) {
       std::runtime_error);
 
   // PlatformManager Configs
-  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kSample));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMeru800bia));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMeru800bfa));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kMontblanc));
@@ -60,6 +60,8 @@ TEST(ConfigLibTest, Basic) {
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kJanga800bic));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kTahan800bc));
   EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kBlackwolf800banw));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kIcecube));
+  EXPECT_NO_THROW(ConfigLib().getPlatformManagerConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getPlatformManagerConfig(kNonExistentPlatform),
       std::runtime_error);
@@ -88,6 +90,7 @@ TEST(ConfigLibTest, Basic) {
       ConfigLib().getBspTestConfig(kNonExistentPlatform), std::out_of_range);
 
   // Showtech Configs
+  EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kMorgan800cc));
   EXPECT_NO_THROW(ConfigLib().getShowtechConfig(kSample));
   EXPECT_THROW(
       ConfigLib().getShowtechConfig(kNonExistentPlatform), std::out_of_range);

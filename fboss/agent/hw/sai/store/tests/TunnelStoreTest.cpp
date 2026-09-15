@@ -112,7 +112,8 @@ class TunnelStoreTest : public SaiStoreTest {
         encapDscpMode,
         std::nullopt, // DecapTtlMode (encap tunnel)
         std::nullopt, // DecapDscpMode (encap tunnel)
-        std::nullopt}; // DecapEcnMode (encap tunnel)
+        std::nullopt, // DecapEcnMode (encap tunnel)
+        std::nullopt}; // DecapQosDscpToTcMap (encap tunnel)
   }
   TunnelSaiId createSrv6Tunnel() const {
     auto& tunnelApi = saiApiTable->tunnelApi();
@@ -136,7 +137,8 @@ class TunnelStoreTest : public SaiStoreTest {
         std::nullopt, // EncapDscpMode (decap tunnel)
         decapTtlMode,
         decapDscpMode,
-        decapEcnMode};
+        decapEcnMode,
+        std::nullopt}; // DecapQosDscpToTcMap
   }
 };
 
@@ -359,7 +361,8 @@ TEST_F(TunnelStoreTest, srv6TunnelCreateCtor) {
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL, // EncapDscpMode
       0, // DecapTtlMode
       0, // DecapDscpMode
-      0}; // DecapEcnMode
+      0, // DecapEcnMode
+      0}; // DecapQosDscpToTcMap
   SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(k, k, 0);
   EXPECT_EQ(
       GET_OPT_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),

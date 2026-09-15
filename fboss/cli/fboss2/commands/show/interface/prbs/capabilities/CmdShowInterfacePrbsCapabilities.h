@@ -6,6 +6,8 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/capabilities/gen-cpp2/model_types.h"
 
+#include <string_view>
+
 namespace facebook::fboss {
 
 struct CmdShowInterfacePrbsCapabilitiesTraits : public ReadCommandTraits {
@@ -16,6 +18,8 @@ struct CmdShowInterfacePrbsCapabilitiesTraits : public ReadCommandTraits {
   using RetType = cli::ShowCapabilitiesModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  static std::string_view description();
 };
 
 class CmdShowInterfacePrbsCapabilities
@@ -29,6 +33,8 @@ class CmdShowInterfacePrbsCapabilities
       const std::vector<std::string>& components);
 
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

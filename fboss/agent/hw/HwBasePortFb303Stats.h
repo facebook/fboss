@@ -42,6 +42,7 @@ class HwBasePortFb303Stats {
       bool srv6MysidDiscardCounterSupported = false,
       bool mplsLabelLookupFailCounterSupported = false,
       bool linkDebounceRetriggerCounterSupported = false,
+      bool sllHllDiscardCounterSupported = false,
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
       : queueId2Name_(std::move(queueId2Name)),
         portName_(portName),
@@ -50,6 +51,7 @@ class HwBasePortFb303Stats {
             mplsLabelLookupFailCounterSupported),
         linkDebounceRetriggerCounterSupported_(
             linkDebounceRetriggerCounterSupported),
+        sllHllDiscardCounterSupported_(sllHllDiscardCounterSupported),
         portCounters_(HwFb303Stats(std::move(multiSwitchStatsPrefix))) {
     pfcInfo_.inCongestionDiscardCountSupported =
         inCongestionDiscardCountSupported;
@@ -83,6 +85,11 @@ class HwBasePortFb303Stats {
       std::vector<PfcPriority> enabledPriorities,
       std::optional<cfg::PortPfc> pfc);
   void updateLeakyBucketFlapCnt(int cnt);
+  // Publishes whether a phy status changed during the interval just read, as
+  // a SUM timeseries so ODS sees .sum/.sum.60/... rather than a level a slower
+  // scrape could step over. statKey must be one of the side qualified
+  // k*Changed() keys in StatsConstants.h.
+  void updatePhyChanged(folly::StringPiece statKey, bool changed);
 
   /*
    * Port stat name
@@ -211,6 +218,9 @@ class HwBasePortFb303Stats {
   bool isLinkDebounceRetriggerCounterSupported() const {
     return linkDebounceRetriggerCounterSupported_;
   }
+  bool isSllHllDiscardCounterSupported() const {
+    return sllHllDiscardCounterSupported_;
+  }
 
   // PG ids for per-PG congestion counters: the full range
   // [0, PORT_PG_VALUE_MAX] when PFC is enabled, else empty. Returns a reference
@@ -240,6 +250,7 @@ class HwBasePortFb303Stats {
   bool srv6MysidDiscardCounterSupported_{false};
   bool mplsLabelLookupFailCounterSupported_{false};
   bool linkDebounceRetriggerCounterSupported_{false};
+  bool sllHllDiscardCounterSupported_{false};
   HwFb303Stats portCounters_;
   bool macsecStatsInited_{false};
   PfcPriorityInfo pfcInfo_;

@@ -31,6 +31,7 @@ thrift_library(
     thrift_srcs = {"BgpStructs.thrift": None},
     deps = [
         "//common/network/if:if",
+        "//thrift/annotation:hack",
     ],
 )
 
@@ -42,19 +43,18 @@ thrift_library(
     languages = [
         "cpp2",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "go",
         "python",
         "py-deprecated",
     ],
     py3_namespace = "nettools.bgplib",
-    py_asyncio_base_module = "nettools.bgplib_asyncio",
     py_base_module = "nettools.bgplib",
     thrift_cpp2_options = "json",
     thrift_srcs = {"BmpStructs.thrift": None},
     deps = [
         ":bgp-structs",
         "//common/network/if:if",
+        "//thrift/annotation:hack",
     ],
 )
 

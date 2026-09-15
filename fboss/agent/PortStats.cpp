@@ -18,7 +18,11 @@ namespace facebook::fboss {
 const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
 const std::string kLinkStateFlap = "link_state.flap";
+const std::string kLinkFault = "link_fault";
+const std::string kLinkDownDebounceRetrigger = "link_down_debounce_retrigger";
+const std::string kLinkUpDebounceRetrigger = "link_up_debounce_retrigger";
 const std::string kActive = "active";
+const std::string kAccessPolicyState = "access_policy_state";
 const std::string kLinkActiveStateFlap = "link_active_state.flap";
 const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
 const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
@@ -38,6 +42,7 @@ PortStats::PortStats(
     : portID_(portID), portName_(portName), switchStats_(switchStats) {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 0, SUM);
+    tcData().addStatValue(getCounterKey(kLinkFault), 0, SUM);
     tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 0, SUM);
     tcData().addStatValue(
         getCounterKey(kFabricLinkMonitoringRxPackets), 0, SUM);
@@ -51,6 +56,7 @@ PortStats::~PortStats() {}
 void PortStats::clearCounters() const {
   clearPortStatusCounter();
   clearPortActiveStatusCounter();
+  clearAccessPolicyStateCounter();
   tcData().clearCounter(getCounterKey(kLoadBearingInErrors));
   tcData().clearCounter(getCounterKey(kLoadBearingFecUncorrErrors));
 }
@@ -188,10 +194,22 @@ void PortStats::linkStateChange(
   // TLTimeseries and leave ThreadLocalStats do it for us.
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
+    if (!isUp) {
+      tcData().addStatValue(getCounterKey(kLinkFault), 1, SUM);
+    }
     updateLoadBearingTLStatValue(
         kLoadBearingLinkStateFlap, isDrained, activeState, 1);
   }
   switchStats_->linkStateChange();
+  if (!isUp) {
+    switchStats_->linkFault(1);
+  }
+}
+
+int64_t PortStats::getLinkStateFlapCount() const {
+  return fb303::fbData
+      ->getCounterIfExists(getCounterKey(kLinkStateFlap) + ".sum")
+      .value_or(0);
 }
 
 void PortStats::linkActiveStateChange(bool isActive) const {
@@ -235,6 +253,44 @@ void PortStats::fabricLinkMonitoringTxPackets(int64_t count) {
   curFabricLinkMonitoringTxPackets_ = count;
 }
 
+int64_t PortStats::debounceRetriggerIncrement(
+    std::optional<int64_t> count,
+    std::optional<int64_t>& baseline) {
+  if (!count.has_value()) {
+    baseline.reset();
+    return 0;
+  }
+  int64_t increment = 0;
+  if (baseline.has_value() && *count > *baseline) {
+    increment = *count - *baseline;
+  }
+  baseline = *count;
+  return increment;
+}
+
+void PortStats::linkDebounceRetriggers(
+    std::optional<int64_t> downRetriggers,
+    std::optional<int64_t> upRetriggers) {
+  auto downIncrement = debounceRetriggerIncrement(
+      downRetriggers, curLinkDownDebounceRetriggers_);
+  auto upIncrement =
+      debounceRetriggerIncrement(upRetriggers, curLinkUpDebounceRetriggers_);
+  if (upIncrement != 0 && !portName_.empty()) {
+    tcData().addStatValue(
+        getCounterKey(kLinkUpDebounceRetrigger), upIncrement, SUM);
+  }
+  if (downIncrement == 0) {
+    return;
+  }
+  // Only a link down is a fault; an up retrigger is a re-asserted link up.
+  if (!portName_.empty()) {
+    tcData().addStatValue(
+        getCounterKey(kLinkDownDebounceRetrigger), downIncrement, SUM);
+    tcData().addStatValue(getCounterKey(kLinkFault), downIncrement, SUM);
+  }
+  switchStats_->linkFault(downIncrement);
+}
+
 void PortStats::ipv4DstLookupFailure() const {
   switchStats_->ipv4DstLookupFailure();
 }
@@ -264,6 +320,30 @@ void PortStats::setPortActiveStatus(bool isActive) const {
 void PortStats::clearPortActiveStatusCounter() const {
   if (!portName_.empty()) {
     tcData().clearCounter(getCounterKey(kActive));
+  }
+}
+
+void PortStats::setAccessPolicyState(
+    cfg::AclLookupClassPort accessPolicyState) const {
+  if (portName_.empty()) {
+    return;
+  }
+  // Any value outside the known lookup classes is reported as unconstrained.
+  auto state = cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED;
+  switch (accessPolicyState) {
+    case cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED:
+    case cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED:
+    case cfg::AclLookupClassPort::CLASS_PORT_BLOCKED:
+      state = accessPolicyState;
+      break;
+  }
+  tcData().setCounter(
+      getCounterKey(kAccessPolicyState), static_cast<int64_t>(state));
+}
+
+void PortStats::clearAccessPolicyStateCounter() const {
+  if (!portName_.empty()) {
+    tcData().clearCounter(getCounterKey(kAccessPolicyState));
   }
 }
 

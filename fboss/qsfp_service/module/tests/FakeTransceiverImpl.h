@@ -4,6 +4,10 @@
 
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
+#include <array>
+#include <map>
+#include <utility>
+
 namespace facebook {
 namespace fboss {
 
@@ -16,8 +20,9 @@ class FakeTransceiverImpl : public TransceiverImpl {
  public:
   FakeTransceiverImpl(
       int module,
-      std::map<uint8_t, std::array<uint8_t, 128>>& lowerPage,
-      std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>& upperPages,
+      const std::map<uint8_t, std::array<uint8_t, 128>>& lowerPage,
+      const std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>&
+          upperPages,
       TransceiverManager* mgr) {
     module_ = module;
     moduleName_ = folly::to<std::string>(module);
@@ -44,6 +49,12 @@ class FakeTransceiverImpl : public TransceiverImpl {
   void triggerQsfpHardReset() override;
   void updateTransceiverState(TransceiverStateMachineEvent event) override;
 
+  // Writes seen at (page, offset-within-the-upper-page), summed over all banks
+  int getUpperPageWriteCount(int page, int offset) const {
+    auto it = upperPageWriteCounts_.find(std::make_pair(page, offset));
+    return it == upperPageWriteCounts_.end() ? 0 : it->second;
+  }
+
  protected:
   // Provide distinct EEPROM contents for a specific (bank, page) so multi-bank
   // (CPO) reads can be exercised. When the bank-select register (byte 126) is
@@ -62,6 +73,8 @@ class FakeTransceiverImpl : public TransceiverImpl {
   // Optional per-bank page overrides, indexed [bank][page]. Empty by default,
   // so single-bank fixtures behave exactly as before.
   std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>> bankedPages_;
+  // Write counts keyed by (page, offset within the upper page)
+  std::map<std::pair<int, int>, int> upperPageWriteCounts_;
   std::map<uint8_t, std::array<uint8_t, 128>> lowerPages_;
   TransceiverManager* tcvrManager_;
 };
@@ -111,6 +124,25 @@ class UnknownModuleIdentifierTransceiver : public FakeTransceiverImpl {
 class Cmis200GTransceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis200GTransceiver(int module, TransceiverManager* mgr);
+};
+
+// Cmis200G variant whose Lower Page byte 3 sets the reserved bits 4-7 on top
+// of ModuleState=READY in bits 1-3. Real modules do this, and the state has to
+// be masked out of the byte rather than just shifted.
+class Cmis200GReservedStateBitsTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis200GReservedStateBitsTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
+// Cmis200G variant whose bank select register (Lower Page byte 126) comes up
+// holding a bank this single-bank module doesn't have.
+class Cmis200GInvalidBankSelectTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis200GInvalidBankSelectTransceiver(
+      int module,
+      TransceiverManager* mgr);
 };
 
 class BadCmis200GTransceiver : public FakeTransceiverImpl {
@@ -183,6 +215,14 @@ class Cmis2x400GDr4Transceiver : public FakeTransceiverImpl {
   explicit Cmis2x400GDr4Transceiver(int module, TransceiverManager* mgr);
 };
 
+// The 2km reach (XDR4) variant of the above. XDR4 has no media interface code
+// of its own, so it advertises the same 400G-DR4 application and differs only
+// in the SMF length (Page 01h byte 132).
+class Cmis2x400GXdr4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis2x400GXdr4Transceiver(int module, TransceiverManager* mgr);
+};
+
 // Custom transceiver for testing CWDM4_100G temperature thresholds
 class SffCwdm4TempTransceiver : public FakeTransceiverImpl {
  public:
@@ -207,6 +247,51 @@ class Cmis400GDr4Transceiver : public FakeTransceiverImpl {
 class Cmis2x800GDr4Transceiver : public FakeTransceiverImpl {
  public:
   explicit Cmis2x800GDr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+// Cmis2x800GDr4 variant advertising all three Meta custom features in Page 01h
+// Byte 191 (CMIS 5.1). Used to exercise the mode-mismatch / thermal-margin
+// feature handling on a non-ZR module built to the Meta FW spec.
+class Cmis2x800GDr4CustomFeatureTransceiver : public Cmis2x800GDr4Transceiver {
+ public:
+  explicit Cmis2x800GDr4CustomFeatureTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
+// Same, but reporting CMIS 5.0. The Meta FW spec that gives Byte 191 its
+// meaning requires CMIS >= 5.1, so below that revision the byte must be
+// ignored.
+class Cmis2x800GDr4Cmis50Transceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4Cmis50Transceiver(int module, TransceiverManager* mgr);
+};
+
+// Cmis2x800GDr4 custom-feature variant running out of thermal headroom and
+// mismatched against the host: all three Meta custom latched flags (Lower
+// Memory Byte 67) are asserted, both thermal margins (Bytes 68-69) are
+// negative, and Page 14h Bytes 130-131 flag per-lane mode mismatches.
+class Cmis2x800GDr4NegativeMarginTransceiver
+    : public Cmis2x800GDr4CustomFeatureTransceiver {
+ public:
+  explicit Cmis2x800GDr4NegativeMarginTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
+// Real EEPROM dumps from deployed Arista XDR4 modules -- the parts that serve
+// zeros for up to 100ms after DIAG_SEL changes (T224486560). Both were captured
+// while qsfp_service had them selected on SNR, so page 14h byte 0 reads back
+// as 6.
+class CmisArista400GXdr4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit CmisArista400GXdr4Transceiver(int module, TransceiverManager* mgr);
+};
+
+class CmisArista2x400GXdr4Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit CmisArista2x400GXdr4Transceiver(int module, TransceiverManager* mgr);
 };
 
 class CmisCpo6P4TDrTransceiver : public FakeTransceiverImpl {

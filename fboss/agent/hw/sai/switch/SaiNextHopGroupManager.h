@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -25,6 +26,8 @@
 #include "fboss/lib/RefMap.h"
 
 #include <memory>
+#include <tuple>
+#include <utility>
 #include "folly/container/F14Map.h"
 #include "folly/container/F14Set.h"
 
@@ -48,33 +51,56 @@ using SaiNextHop = ConditionSaiObjectType<SaiNextHopTraits>::type;
 using SaiNextHopGroupMemberInfo = std::pair<
     SaiNextHopGroupMemberTraits::AdapterHostKey,
     SaiNextHopGroupMemberTraits::Attributes::Weight>;
-using SaiNextHopGroupKey =
-    std::pair<RouteNextHopEntry::NextHopSet, std::optional<cfg::SwitchingMode>>;
+
+struct SaiNextHopGroupKey {
+  SaiNextHopGroupKey(
+      RouteNextHopEntry::NextHopSet nextHops,
+      std::optional<cfg::SwitchingMode> switchingMode,
+      sai_next_hop_group_type_t groupType = SAI_NEXT_HOP_GROUP_TYPE_ECMP)
+      : nextHops(std::move(nextHops)),
+        switchingMode(switchingMode),
+        groupType(groupType) {}
+
+  bool operator==(const SaiNextHopGroupKey& other) const {
+    return nextHops == other.nextHops && switchingMode == other.switchingMode &&
+        groupType == other.groupType;
+  }
+
+  bool operator<(const SaiNextHopGroupKey& other) const {
+    return std::tie(nextHops, switchingMode, groupType) <
+        std::tie(other.nextHops, other.switchingMode, other.groupType);
+  }
+
+  RouteNextHopEntry::NextHopSet nextHops;
+  std::optional<cfg::SwitchingMode> switchingMode;
+  sai_next_hop_group_type_t groupType;
+};
 
 template <typename T>
 class ManagedNextHop;
 
 template <typename NextHopTraits>
-class ManagedSaiNextHopGroupMember
+class ManagedSaiNextHopGroupNextHopMember
     : public SaiObjectEventAggregateSubscriber<
-          ManagedSaiNextHopGroupMember<NextHopTraits>,
+          ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
           SaiNextHopGroupMemberTraits,
           NextHopTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      ManagedSaiNextHopGroupMember<NextHopTraits>,
+      ManagedSaiNextHopGroupNextHopMember<NextHopTraits>,
       SaiNextHopGroupMemberTraits,
       NextHopTraits>;
 
   using NextHopWeakPtr = std::weak_ptr<const SaiObject<NextHopTraits>>;
   using PublisherObjects = std::tuple<NextHopWeakPtr>;
   using NextHopWeight =
-      typename SaiNextHopGroupMemberTraits::Attributes::Weight;
-  ManagedSaiNextHopGroupMember(
+      std::optional<typename SaiNextHopGroupMemberTraits::Attributes::Weight>;
+  ManagedSaiNextHopGroupNextHopMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       NextHopWeight weight,
       bool fixedWidthMode)
       : Base(managedNextHop->adapterHostKey()),
@@ -82,10 +108,11 @@ class ManagedSaiNextHopGroupMember
         nhgroup_(nhgroup),
         managedNextHop_(managedNextHop),
         nexthopGroupId_(nexthopGroupId),
+        nextHopGroupType_(nextHopGroupType),
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
-  ~ManagedSaiNextHopGroupMember() {
+  ~ManagedSaiNextHopGroupNextHopMember() {
     this->resetObject();
   }
 
@@ -115,6 +142,7 @@ class ManagedSaiNextHopGroupMember
   SaiNextHopGroupHandle* nhgroup_;
   std::shared_ptr<ManagedNextHop<NextHopTraits>> managedNextHop_;
   SaiNextHopGroupTraits::AdapterKey nexthopGroupId_;
+  sai_next_hop_group_type_t nextHopGroupType_;
   NextHopWeight weight_;
   bool fixedWidthMode_;
   std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
@@ -122,21 +150,52 @@ class ManagedSaiNextHopGroupMember
       createAttributes_;
 };
 
+class SaiNextHopGroupChildGroupMember {
+ public:
+  SaiNextHopGroupChildGroupMember(
+      SaiNextHopGroupManager* manager,
+      std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup,
+      const SaiNextHopGroupTraits::AdapterKey& parentNextHopGroupId);
+
+  std::pair<
+      std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
+      std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
+  getAdapterHostKeyAndCreateAttributes();
+
+  std::shared_ptr<SaiObject<SaiNextHopGroupMemberTraits>>
+  getNhopGroupMemberObject() {
+    return nextHopGroupMember_;
+  }
+
+  std::string toString() const;
+
+ private:
+  std::shared_ptr<SaiNextHopGroupHandle> childNextHopGroup_;
+  SaiNextHopGroupTraits::AdapterKey parentNextHopGroupId_;
+  std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey> adapterHostKey_;
+  std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>
+      createAttributes_;
+  std::shared_ptr<SaiNextHopGroupMember> nextHopGroupMember_;
+};
+
 class NextHopGroupMember {
  public:
+  using NextHopWeight =
+      std::optional<SaiNextHopGroupMemberTraits::Attributes::Weight>;
   using ManagedIpNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiMplsNextHopTraits>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   using ManagedSrv6NextHopGroupMember =
-      ManagedSaiNextHopGroupMember<SaiSrv6SidlistNextHopTraits>;
+      ManagedSaiNextHopGroupNextHopMember<SaiSrv6SidlistNextHopTraits>;
 #endif
 
   NextHopGroupMember(
       SaiNextHopGroupManager* manager,
       SaiNextHopGroupHandle* nhgroup,
       SaiNextHopGroupTraits::AdapterKey nexthopGroupId,
+      sai_next_hop_group_type_t nextHopGroupType,
       ManagedSaiNextHop managedSaiNextHop,
       NextHopWeight nextHopWeight,
       bool fixedWidthMode);
@@ -209,16 +268,29 @@ class NextHopGroupMember {
       managedNextHopGroupMember_;
 };
 
+struct ArsHwCounter {
+  uint64_t failPackets{0};
+  uint64_t portReassignments{0};
+};
+
+// What a group counted between two sweeps, as opposed to what its counters
+// read. Same shape, different meaning, so the distinction is in the name.
+using ArsCounterDelta = ArsHwCounter;
+
 struct SaiNextHopGroupHandle {
   std::shared_ptr<SaiNextHopGroup> nextHopGroup;
   std::vector<std::shared_ptr<NextHopGroupMember>> members_;
+  // Currently only Adj FRR with  1:N protection is supported,
+  // so a group can have only one child next hop group member.
+  std::shared_ptr<SaiNextHopGroupChildGroupMember> childGroupMember_;
   bool fixedWidthMode{false};
   bool bulkCreate{false};
   std::set<SaiNextHopGroupMemberInfo> fixedWidthNextHopGroupMembers_;
-  uint32_t maxVariableWidthEcmpSize;
-  std::optional<cfg::SwitchingMode> desiredArsMode_;
-  SaiStore* saiStore_;
-  const SaiPlatform* platform_;
+  uint32_t maxVariableWidthEcmpSize{0};
+  std::optional<cfg::SwitchingMode> desiredEcmpSwitchingMode_;
+  ArsHwCounter arsHwCounter_;
+  SaiStore* saiStore_{nullptr};
+  const SaiPlatform* platform_{nullptr};
   sai_object_id_t adapterKey() const {
     if (!nextHopGroup) {
       return SAI_NULL_OBJECT_ID;
@@ -226,6 +298,11 @@ struct SaiNextHopGroupHandle {
     return nextHopGroup->adapterKey();
   }
   size_t nextHopGroupSize() const;
+  // Reads this group's ARS counters off the hardware, stores them in
+  // arsHwCounter_ for the next sweep to compare against, and returns how much
+  // they moved since the previous sweep. Zero for a group with no ARS object
+  // attached, whose counters cannot move.
+  ArsCounterDelta updateStats();
   void memberAdded(
       SaiNextHopGroupMemberInfo memberInfo,
       bool updateHardware = true);
@@ -249,6 +326,19 @@ class SaiNextHopGroupManager {
   std::shared_ptr<SaiNextHopGroupHandle> incRefOrAddNextHopGroup(
       const SaiNextHopGroupKey& key);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  // MONITORED_OBJECT for a PROTECTION group's PRIMARY member: the SAI id of
+  // the egress port/LAG its neighbor resolves out of. nullopt when the ASIC
+  // infers it itself. Throws when the ASIC needs the attribute but the egress
+  // object cannot be derived -- without it the ASIC would never fail over.
+  std::optional<SaiNextHopGroupMemberTraits::Attributes::MonitoredObject>
+  getMonitoredObjectIf(
+      const SaiNeighborTraits::NeighborEntry& neighborEntry) const;
+#endif
+
+  const SaiNextHopGroupHandle* getNextHopGroup(
+      const SaiNextHopGroupKey& key) const;
+
   std::shared_ptr<SaiNextHopGroupMember> createSaiObject(
       const typename SaiNextHopGroupMemberTraits::AdapterHostKey& key,
       const typename SaiNextHopGroupMemberTraits::CreateAttributes& attributes);
@@ -270,14 +360,28 @@ class SaiNextHopGroupManager {
   void setMinWidthForArsVirtualGroup(
       std::optional<int32_t> minWidthForArsVirtualGroup);
 
+  void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings);
+
+  // Absent key means the feature was not configured for that group type, which
+  // is not the same as configured off. Callers outside this manager want the
+  // combined answer, so the lookup is not exposed raw.
+  bool isSplitHorizonEnabled(cfg::EcmpGroupType groupType) const;
+
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
+  void updateStats();
+  HwFlowletStats getHwFlowletStats() const;
 
  private:
   bool isFixedWidthNextHopGroup(
       const RouteNextHopEntry::NextHopSet& swNextHops) const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  std::optional<SaiNextHopGroupTraits::Attributes::ArsObjectId> getArsObjectId(
+      std::optional<cfg::SwitchingMode> switchingMode,
+      size_t nextHopGroupSize) const;
+#endif
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
@@ -291,6 +395,8 @@ class SaiNextHopGroupManager {
       nextHopGroupMembers_;
   std::optional<cfg::SwitchingMode> primaryArsMode_;
   std::optional<int32_t> minWidthForArsVirtualGroup_;
+  EcmpGroupSettingsMap ecmpGroupSettings_;
+  HwFlowletStats arsStats_;
 };
 
 } // namespace facebook::fboss

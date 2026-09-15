@@ -21,10 +21,17 @@ namespace facebook::fboss {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
 void SaiArsManager::addArs(
-    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig) {
+    const std::shared_ptr<FlowletSwitchingConfig>& flowletSwitchConfig,
+    [[maybe_unused]] std::optional<bool> splitHorizonEnabled) {
+  // Source port prune and ecmp member count are Broadcom extension attributes.
+  // chenab resolves both through api/oss/ArsApi.cpp, which has no id for
+  // either, and SaiExtensionAttribute CHECKs on a missing id - so constructing
+  // one here would abort. Leave them unset.
   SaiArsTraits::CreateAttributes attributes{
       SaiArsTraits::Attributes::Mode{
           cfgSwitchingModeToSai(flowletSwitchConfig->getSwitchingMode())},
+      std::nullopt,
+      std::nullopt,
       std::nullopt,
       std::nullopt,
       std::nullopt,

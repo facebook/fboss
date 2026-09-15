@@ -69,6 +69,26 @@ void CmdShowFabricReachability::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowFabricReachabilityTraits::description() {
+  return "Displays, per remote switch, how many and which local fabric ports can reach it. DSF-only — applies to DSF switches and returns data only in a DSF topology.";
+}
+
+CmdShowFabricReachability::RetType CmdShowFabricReachability::sampleModel() {
+  RetType model;
+
+  cli::ReachabilityEntry entry1;
+  entry1.switchName() = "rdsw018";
+  entry1.reachablePorts() = {"fab1/1/1", "fab1/1/2", "fab1/1/3", "fab1/1/4"};
+  model.reachabilityEntries()->push_back(entry1);
+
+  cli::ReachabilityEntry entry2;
+  entry2.switchName() = "rdsw019";
+  entry2.reachablePorts() = {"fab1/2/1", "fab1/2/2", "fab1/2/3", "fab1/2/4"};
+  model.reachabilityEntries()->push_back(entry2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();

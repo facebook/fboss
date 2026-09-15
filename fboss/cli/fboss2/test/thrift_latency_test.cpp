@@ -205,7 +205,6 @@ int main(int argc, char** argv) {
   std::cout << "[3/3] Testing IoUring backend..." << std::endl;
 #if FOLLY_HAS_LIBURING
   auto iouringResult = runBackendTest("IoUring", [](ThriftServer& server) {
-    server.setPreferAsyncIoUringSocket(true);
     static folly::EventBaseManager ioUringEbm(
         folly::EventBase::Options().setBackendFactory(
             []() -> std::unique_ptr<folly::EventBaseBackendBase> {

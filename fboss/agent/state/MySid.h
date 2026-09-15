@@ -128,6 +128,38 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
     }
   }
 
+  std::optional<NextHopSetID> getBackupResolvedNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::backupResolvedNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setBackupResolvedNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::backupResolvedNextHopsId>(
+          static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::backupResolvedNextHopsId>().reset();
+    }
+  }
+
+  std::optional<NextHopSetID> getBackupUnresolveNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::backupUnresolveNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setBackupUnresolveNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::backupUnresolveNextHopsId>(
+          static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::backupUnresolveNextHopsId>().reset();
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

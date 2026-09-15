@@ -92,7 +92,7 @@ class SaiPhyManager : public PhyManager {
   void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
-      std::optional<TransceiverInfo> transceiverInfo,
+      const std::optional<TransceiverInfo>& transceiverInfo,
       bool needResetDataPath) override;
 
   /*

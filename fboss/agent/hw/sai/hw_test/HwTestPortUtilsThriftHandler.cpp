@@ -22,6 +22,20 @@ SaiPortTraits::AdapterKey getPortAdapterKey(const HwSwitch* hw, PortID port) {
   CHECK(handle);
   return handle->port->adapterKey();
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+cfg::LlrFrameAction saiLlrFrameActionToCfg(sai_int32_t action) {
+  switch (action) {
+    case SAI_LLR_FRAME_ACTION_DISCARD:
+      return cfg::LlrFrameAction::DISCARD;
+    case SAI_LLR_FRAME_ACTION_BLOCK:
+      return cfg::LlrFrameAction::BLOCK;
+    case SAI_LLR_FRAME_ACTION_BEST_EFFORT:
+      return cfg::LlrFrameAction::BEST_EFFORT;
+  }
+  throw FbossError("Unknown SAI LLR frame action: ", action);
+}
+#endif
 } // namespace
 
 void HwTestThriftHandler::injectFecError(
@@ -49,6 +63,39 @@ void HwTestThriftHandler::getPortInfo(
     portInfos.push_back(portInfo);
   }
   return;
+}
+
+void HwTestThriftHandler::getPortLlrInfo(
+    [[maybe_unused]] PortLlrInfo& portLlrInfo,
+    [[maybe_unused]] int32_t port) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  auto handle =
+      saiSwitch->managerTable()->portManager().getPortHandle(PortID(port));
+  CHECK(handle);
+  if (!handle->llrProfile) {
+    portLlrInfo.hasProfile() = false;
+    return;
+  }
+  portLlrInfo.hasProfile() = true;
+  // Adapter key of the profile the manager created/reclaimed -- a reliable
+  // create-time OID, unlike the port's LLR_PROFILE getAttribute.
+  auto profileKey = handle->llrProfile->adapterKey();
+  portLlrInfo.profileId() = static_cast<int64_t>(profileKey);
+  // Read the frame actions back from the profile object in hardware. This get
+  // path is the same one warm-boot store reload depends on, so it is exercised
+  // on every restart of an LLR-bound switch.
+  portLlrInfo.initFrameAction() = saiLlrFrameActionToCfg(
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          profileKey,
+          SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{}));
+  portLlrInfo.flushFrameAction() = saiLlrFrameActionToCfg(
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          profileKey,
+          SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{}));
+#else
+  throw FbossError("LLR requires SAI 1.18 or newer");
+#endif
 }
 
 bool HwTestThriftHandler::verifyPortLedStatus(int portId, bool status) {

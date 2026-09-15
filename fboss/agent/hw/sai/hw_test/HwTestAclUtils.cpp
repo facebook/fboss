@@ -79,8 +79,8 @@ void checkSwHwAclMatch(
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
       aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
-  auto aclEntryHandle =
-      aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+  auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+      aclTableHandle, swAcl->getPriority(), swAcl->getID());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
   auto aclFieldPriorityExpected =
@@ -515,8 +515,8 @@ void checkAclStat(
         static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
     auto aclTableHandle =
         aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
-    auto aclEntryHandle =
-        aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+    auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+        aclTableHandle, swAcl->getPriority(), swAcl->getID());
     auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
 
     // Get counter corresponding to the ACL entry
@@ -668,8 +668,8 @@ uint64_t getAclCounterId(
       static_cast<const SaiSwitch*>(hw)->managerTable()->aclTableManager();
   auto aclTableHandle =
       aclTableManager.getAclTableHandle(getActualAclTableName(aclTableName));
-  auto aclEntryHandle =
-      aclTableManager.getAclEntryHandle(aclTableHandle, swAcl->getPriority());
+  auto aclEntryHandle = aclTableManager.getAclEntryHandle(
+      aclTableHandle, swAcl->getPriority(), swAcl->getID());
   auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
   auto aclCounterId = SaiApiTable::getInstance()
                           ->aclApi()

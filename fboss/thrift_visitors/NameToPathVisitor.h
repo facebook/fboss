@@ -32,6 +32,53 @@ namespace facebook::fboss::fsdb {
 template <typename>
 struct NameToPathVisitor;
 
+namespace detail {
+
+/*
+ * Shared field-match-and-recurse helper for struct_t / union_t visitors.
+ *
+ * Walks the fields of the path's struct type, matches `token` against each
+ * field by id (numeric token) or name, and on the first match builds the child
+ * path (path(FieldId{})) and hands it to `recurse`. If no field matches,
+ * `notFoundResult` is returned. `recurse` is responsible for deducing the child
+ * tag and dispatching to the appropriate NameToPathVisitor::visit /
+ * visitExtended.
+ *
+ * Implementation detail of the struct/union NameToPathVisitor specializations;
+ * kept in `detail` so it is not part of the public header surface.
+ */
+template <typename Path, typename Recurse>
+NameToPathResult resolveFieldAndRecurse(
+    Path&& path,
+    const std::string& token,
+    NameToPathResult notFoundResult,
+    Recurse&& recurse) {
+  using StructType = typename folly::remove_cvref_t<Path>::DataT;
+  auto result = notFoundResult;
+  bool found = false;
+  auto idTry = folly::tryTo<std::int16_t>(token);
+  apache::thrift::op::for_each_field_id<StructType>(
+      [&]<class FieldId>(FieldId) {
+        if (found) {
+          return;
+        }
+        if (!idTry.hasError()) {
+          if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
+            return;
+          }
+        } else {
+          if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
+            return;
+          }
+        }
+        found = true;
+        result = recurse(std::forward<Path>(path)(FieldId{}));
+      });
+  return result;
+}
+
+} // namespace detail
+
 /**
  * Enumeration
  */
@@ -352,34 +399,17 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
       }
     }
 
-    // Get key
     const auto& token = *curr++;
-    auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
-
-    using StructType = typename folly::remove_cvref_t<Path>::DataT;
-    bool found = false;
-    auto idTry = folly::tryTo<std::int16_t>(token);
-    apache::thrift::op::for_each_field_id<StructType>(
-        [&]<class FieldId>(FieldId) {
-          if (found) {
-            return;
-          }
-          if (!idTry.hasError()) {
-            if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
-              return;
-            }
-          } else {
-            if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
-              return;
-            }
-          }
-          found = true;
-          auto childPath = path(FieldId{});
-          using ChildTag = typename decltype(childPath)::Tag;
-          result = NameToPathVisitor<ChildTag>::visit(
+    return detail::resolveFieldAndRecurse(
+        std::forward<Path>(path),
+        token,
+        NameToPathResult::INVALID_VARIANT_MEMBER,
+        [&](auto&& childPath) {
+          using ChildTag =
+              typename folly::remove_cvref_t<decltype(childPath)>::Tag;
+          return NameToPathVisitor<ChildTag>::visit(
               std::move(childPath), begin, curr, end, std::forward<Func>(f));
         });
-    return result;
   }
 
   template <typename Path, typename Func>
@@ -396,39 +426,20 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
     auto elem = *curr++;
     if (auto raw = elem.raw()) {
       const auto& token = *raw;
-      auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
-
-      using StructType = typename folly::remove_cvref_t<Path>::DataT;
-      bool found = false;
-      auto idTry = folly::tryTo<std::int16_t>(token);
-      apache::thrift::op::for_each_field_id<StructType>([&]<class FieldId>(
-                                                            FieldId) {
-        if (found) {
-          return;
-        }
-        if (!idTry.hasError()) {
-          if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
-            return;
-          }
-        } else {
-          if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
-            return;
-          }
-        }
-        found = true;
-        auto childPath = path(FieldId{});
-        using ChildTag = typename decltype(childPath)::Tag;
-        result = NameToPathVisitor<ChildTag>::visitExtended(
-            std::move(childPath), curr, end, std::forward<Func>(f));
-      });
-
-      return result;
+      return detail::resolveFieldAndRecurse(
+          std::forward<Path>(path),
+          token,
+          NameToPathResult::INVALID_VARIANT_MEMBER,
+          [&](auto&& childPath) {
+            using ChildTag =
+                typename folly::remove_cvref_t<decltype(childPath)>::Tag;
+            return NameToPathVisitor<ChildTag>::visitExtended(
+                std::move(childPath), curr, end, std::forward<Func>(f));
+          });
     } else {
       // Regex/any matches are not allowed against structs
       return NameToPathResult::UNSUPPORTED_WILDCARD_PATH;
     }
-
-    return NameToPathResult::INVALID_PATH;
   }
 };
 
@@ -456,34 +467,17 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
       }
     }
 
-    // Get key
     const auto& token = *curr++;
-    auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
-
-    using StructType = typename folly::remove_cvref_t<Path>::DataT;
-    bool found = false;
-    auto idTry = folly::tryTo<std::int16_t>(token);
-    apache::thrift::op::for_each_field_id<StructType>(
-        [&]<class FieldId>(FieldId) {
-          if (found) {
-            return;
-          }
-          if (!idTry.hasError()) {
-            if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
-              return;
-            }
-          } else {
-            if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
-              return;
-            }
-          }
-          found = true;
-          auto childPath = path(FieldId{});
-          using ChildTag = typename decltype(childPath)::Tag;
-          result = NameToPathVisitor<ChildTag>::visit(
+    return detail::resolveFieldAndRecurse(
+        std::forward<Path>(path),
+        token,
+        NameToPathResult::INVALID_STRUCT_MEMBER,
+        [&](auto&& childPath) {
+          using ChildTag =
+              typename folly::remove_cvref_t<decltype(childPath)>::Tag;
+          return NameToPathVisitor<ChildTag>::visit(
               std::move(childPath), begin, curr, end, std::forward<Func>(f));
         });
-    return result;
   }
 
   template <typename Path, typename Func>
@@ -500,38 +494,20 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
     auto elem = *curr++;
     if (auto raw = elem.raw()) {
       const auto& token = *raw;
-      auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
-
-      using StructType = typename folly::remove_cvref_t<Path>::DataT;
-      bool found = false;
-      auto idTry = folly::tryTo<std::int16_t>(token);
-      apache::thrift::op::for_each_field_id<StructType>([&]<class FieldId>(
-                                                            FieldId) {
-        if (found) {
-          return;
-        }
-        if (!idTry.hasError()) {
-          if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
-            return;
-          }
-        } else {
-          if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
-            return;
-          }
-        }
-        found = true;
-        auto childPath = path(FieldId{});
-        using ChildTag = typename decltype(childPath)::Tag;
-        result = NameToPathVisitor<ChildTag>::visitExtended(
-            std::move(childPath), curr, end, std::forward<Func>(f));
-      });
-      return result;
+      return detail::resolveFieldAndRecurse(
+          std::forward<Path>(path),
+          token,
+          NameToPathResult::INVALID_STRUCT_MEMBER,
+          [&](auto&& childPath) {
+            using ChildTag =
+                typename folly::remove_cvref_t<decltype(childPath)>::Tag;
+            return NameToPathVisitor<ChildTag>::visitExtended(
+                std::move(childPath), curr, end, std::forward<Func>(f));
+          });
     } else {
       // Regex/any matches are not allowed against structs
       return NameToPathResult::UNSUPPORTED_WILDCARD_PATH;
     }
-
-    return NameToPathResult::INVALID_PATH;
   }
 };
 

@@ -6,6 +6,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelUtils.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
@@ -86,7 +87,8 @@ void SaiSrv6TunnelManager::addSrv6Tunnel(
       encapDscpMode,
       std::nullopt, // DecapTtlMode (encap tunnel)
       std::nullopt, // DecapDscpMode (encap tunnel)
-      std::nullopt}; // DecapEcnMode (encap tunnel)
+      std::nullopt, // DecapEcnMode (encap tunnel)
+      std::nullopt}; // DecapQosDscpToTcMap (encap tunnel)
   auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();
   handle->tunnel = tunnelObj;
@@ -133,6 +135,15 @@ void SaiSrv6TunnelManager::addSrv6DecapTunnel(
   if (auto mode = srv6Tunnel->getEcnMode()) {
     ecnMode = getSaiDecapEcnMode(*mode);
   }
+  // Bind the global DSCP->TC qos map to the decap tunnel so the inner packet's
+  // DSCP is classified into a traffic class (and thus queue) after decap.
+  std::optional<SaiSrv6TunnelTraits::Attributes::DecapQosDscpToTcMap>
+      decapQosDscpToTcMap;
+  if (const auto* qosMapHandle = managerTable_->qosMapManager().getQosMap();
+      qosMapHandle && qosMapHandle->dscpToTcMap) {
+    decapQosDscpToTcMap = SaiSrv6TunnelTraits::Attributes::DecapQosDscpToTcMap{
+        qosMapHandle->dscpToTcMap->adapterKey()};
+  }
   // Decap tunnel: only the decap modes are set; encap fields stay unset.
   SaiSrv6TunnelTraits::CreateAttributes attrs{
       SAI_TUNNEL_TYPE_SRV6,
@@ -143,7 +154,8 @@ void SaiSrv6TunnelManager::addSrv6DecapTunnel(
       std::nullopt, // EncapDscpMode (decap tunnel)
       ttlMode,
       dscpMode,
-      ecnMode};
+      ecnMode,
+      decapQosDscpToTcMap};
   auto& tunnelStore = saiStore_->get<SaiSrv6TunnelTraits>();
   auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();

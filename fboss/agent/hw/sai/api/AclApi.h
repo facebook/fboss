@@ -146,6 +146,16 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_IPV6, bool>;
     using FieldDstIpV6 =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6, bool>;
+    using FieldDstIpV6Word3 = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD3,
+        bool,
+        SaiBoolDefaultFalse>;
+    using FieldDstIpV6Word2 = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_DST_IPV6_WORD2,
+        bool,
+        SaiBoolDefaultFalse>;
     using FieldSrcIpV4 =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_SRC_IP, bool>;
     using FieldDstIpV4 =
@@ -201,6 +211,11 @@ struct SaiAclTableTraits {
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         bool>;
+    using FieldPortUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_PORT_USER_META,
+        bool,
+        StdNullOptDefault<bool>>;
     using FieldEthertype =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
@@ -260,6 +275,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::ActionTypeList>,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldDstIpV6Word3>,
+      std::optional<Attributes::FieldDstIpV6Word2>,
       std::optional<Attributes::FieldSrcIpV4>,
       std::optional<Attributes::FieldDstIpV4>,
       std::optional<Attributes::FieldL4SrcPort>,
@@ -303,7 +320,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::UserDefinedFieldGroupMin3>,
       std::optional<Attributes::UserDefinedFieldGroupMin4>
 #endif
-      >;
+      ,
+      std::optional<Attributes::FieldPortUserMeta>>;
 
   using AdapterHostKey = std::string;
 };
@@ -314,6 +332,8 @@ SAI_ATTRIBUTE_NAME(AclTable, ActionTypeList);
 SAI_ATTRIBUTE_NAME(AclTable, EntryList);
 SAI_ATTRIBUTE_NAME(AclTable, FieldSrcIpV6);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstIpV6);
+SAI_ATTRIBUTE_NAME(AclTable, FieldDstIpV6Word3);
+SAI_ATTRIBUTE_NAME(AclTable, FieldDstIpV6Word2);
 SAI_ATTRIBUTE_NAME(AclTable, FieldSrcIpV4);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstIpV4);
 SAI_ATTRIBUTE_NAME(AclTable, FieldL4SrcPort);
@@ -335,6 +355,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclTable, FieldPortUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
@@ -380,6 +401,16 @@ struct SaiAclEntryTraits {
     using FieldDstIpV6 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6,
+        AclEntryFieldIpV6,
+        StdNullOptDefault<AclEntryFieldIpV6>>;
+    using FieldDstIpV6Word3 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6_WORD3,
+        AclEntryFieldIpV6,
+        StdNullOptDefault<AclEntryFieldIpV6>>;
+    using FieldDstIpV6Word2 = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6_WORD2,
         AclEntryFieldIpV6,
         StdNullOptDefault<AclEntryFieldIpV6>>;
     using FieldSrcIpV4 = SaiAttribute<
@@ -477,6 +508,11 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META,
         AclEntryFieldU32>;
+    using FieldPortUserMeta = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_PORT_USER_META,
+        AclEntryFieldU32,
+        StdNullOptDefault<AclEntryFieldU32>>;
     using FieldEthertype = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE,
@@ -599,24 +635,35 @@ struct SaiAclEntryTraits {
         AclEntryActionBool,
         AttributeActionL3SwitchCancel,
         SaiAclEntryActionBoolFalse>;
-    struct AttributeFieldNextHopGroupId {
+    struct AttributeFieldRouteDestination {
       std::optional<sai_attr_id_t> operator()();
     };
-    using FieldNextHopGroupId = SaiExtensionAttribute<
+    using FieldRouteDestination = SaiExtensionAttribute<
         AclEntryFieldSaiObjectIdT,
-        AttributeFieldNextHopGroupId,
+        AttributeFieldRouteDestination,
         SaiAclEntryFieldSaiObjectIdTDefault>;
+    struct AttributeLabelExtendedWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using LabelExtended = SaiExtensionAttribute<
+        std::vector<int8_t>,
+        AttributeLabelExtendedWrapper,
+        SaiS8ListDefault>;
   };
 
   using AdapterKey = AclEntrySaiId;
-  using AdapterHostKey =
-      std::tuple<Attributes::TableId, std::optional<Attributes::Priority>>;
+  using AdapterHostKey = std::tuple<
+      Attributes::TableId,
+      std::optional<Attributes::Priority>,
+      std::optional<Attributes::LabelExtended>>;
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
       Attributes::Enabled,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
+      std::optional<Attributes::FieldDstIpV6Word3>,
+      std::optional<Attributes::FieldDstIpV6Word2>,
       std::optional<Attributes::FieldSrcIpV4>,
       std::optional<Attributes::FieldDstIpV4>,
       std::optional<Attributes::FieldSrcPort>,
@@ -681,9 +728,13 @@ struct SaiAclEntryTraits {
       ,
       std::optional<Attributes::ActionSetEcmpHashAlgorithm>,
       std::optional<Attributes::ActionL3SwitchCancel>,
-      std::optional<Attributes::FieldNextHopGroupId>>;
+      std::optional<Attributes::FieldRouteDestination>,
+      std::optional<Attributes::LabelExtended>,
+      std::optional<Attributes::FieldPortUserMeta>>;
 #else
-      >;
+      ,
+      std::optional<Attributes::LabelExtended>,
+      std::optional<Attributes::FieldPortUserMeta>>;
 #endif
 };
 
@@ -692,6 +743,8 @@ SAI_ATTRIBUTE_NAME(AclEntry, Priority);
 SAI_ATTRIBUTE_NAME(AclEntry, Enabled);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6Word3);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6Word2);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV4);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV4);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcPort);
@@ -713,6 +766,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldPortUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldAclRangeType);
@@ -752,8 +806,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, ActionDisableArsForwarding);
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetEcmpHashAlgorithm);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionL3SwitchCancel);
-SAI_ATTRIBUTE_NAME(AclEntry, FieldNextHopGroupId);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDestination);
 #endif
+SAI_ATTRIBUTE_NAME(AclEntry, LabelExtended);
 
 struct SaiAclCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_COUNTER;
@@ -776,8 +831,11 @@ struct SaiAclCounterTraits {
 
     using CounterPackets =
         SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_PACKETS, sai_uint64_t>;
-    using CounterBytes =
-        SaiAttribute<EnumType, SAI_ACL_COUNTER_ATTR_BYTES, sai_uint64_t>;
+    using CounterBytes = SaiAttribute<
+        EnumType,
+        SAI_ACL_COUNTER_ATTR_BYTES,
+        sai_uint64_t,
+        StdNullOptDefault<sai_uint64_t>>;
   };
 
   using AdapterKey = AclCounterSaiId;

@@ -4,6 +4,7 @@
 
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -147,21 +149,47 @@ void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
     const std::vector<NextHopWeight>& weights,
     int deviation,
     bool loadBalanceExpected) {
+  auto helper = this->ecmpSetupHelper();
+  const auto portDescs = helper->ecmpPortDescs(ecmpWidth);
+  std::vector<PortID> ports;
+  for (const auto& portDesc : portDescs) {
+    if (portDesc.isPhysicalPort()) {
+      ports.push_back(portDesc.phyPortID());
+    }
+  }
+
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=, this]() { this->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
       [=, this]() {
-        auto helper = this->ecmpSetupHelper();
-        auto portDescs = helper->getPortDescs(ecmpWidth);
-        auto ports = std::make_unique<std::vector<int32_t>>();
-        for (const auto& portDesc : portDescs) {
-          if (portDesc.isPhysicalPort()) {
-            ports->push_back(portDesc.phyPortID());
-          }
+        auto portIds = std::make_unique<std::vector<int32_t>>();
+        for (const auto& port : ports) {
+          portIds->push_back(port);
         }
-        ensemble_->clearPortStats(ports);
+        ensemble_->clearPortStats(portIds);
+        WITH_RETRIES({
+          auto clearedStats = ensemble_->getLatestPortStats(ports);
+          for (const auto& clearedStat : clearedStats) {
+            EXPECT_EVENTUALLY_EQ(0, *clearedStat.second.outBytes_());
+          }
+        });
       },
+      [=, this]() -> std::optional<uint64_t> {
+        const auto portStats = ensemble_->getLatestPortStats(ports);
+        uint64_t totalOutPackets{0};
+        for (const auto& port : ports) {
+          // Stats collection is async and may not have caught up for every
+          // port yet. Report "not ready" so the caller retries.
+          auto portStat = portStats.find(port);
+          if (portStat == portStats.end()) {
+            return std::nullopt;
+          }
+          totalOutPackets += *portStat->second.outUnicastPkts_();
+        }
+        return totalOutPackets;
+      },
+      this->getNumPacketsToPump(),
       [=, this]() {
-        return this->isLoadBalanced(ecmpWidth, weights, deviation);
+        return this->isLoadBalanced(portDescs, weights, deviation);
       },
       loadBalanceExpected);
 }
@@ -417,9 +445,14 @@ HwSrv6EcmpDataPlaneTestUtil::HwSrv6EcmpDataPlaneTestUtil(
 
 void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
     int ecmpWidth,
-    const std::vector<NextHopWeight>& /*weights*/) {
+    const std::vector<NextHopWeight>& weights) {
   auto* helper = ecmpSetupHelper();
   auto* ensemble = getEnsemble();
+
+  if (!weights.empty() && weights.size() != static_cast<size_t>(ecmpWidth)) {
+    throw FbossError(
+        "Srv6 weights size ", weights.size(), " != ecmpWidth ", ecmpWidth);
+  }
 
   ensemble->applyNewState(
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -435,7 +468,7 @@ void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
     nhops.insert(ResolvedNextHop(
         nhop.ip,
         nhop.intf,
-        ECMP_WEIGHT,
+        weights.empty() ? ECMP_WEIGHT : weights[i],
         std::nullopt,
         std::nullopt,
         std::nullopt,

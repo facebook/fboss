@@ -98,6 +98,16 @@ class AnticipatedRouteScaleGenerator : public RouteDistributionGenerator {
       RouterID routerId = RouterID(0));
 };
 
+class ETSWRouteScaleGenerator : public RouteDistributionGenerator {
+ public:
+  explicit ETSWRouteScaleGenerator(
+      const std::shared_ptr<SwitchState>& startingState,
+      bool needL2EntryForNeighbor,
+      unsigned int chunkSize = kDefaultChunkSize,
+      unsigned int ecmpWidth = kDefaulEcmpWidth,
+      RouterID routerId = RouterID(0));
+};
+
 class ScaleTestRouteScaleGenerator : public RouteDistributionGenerator {
  public:
   explicit ScaleTestRouteScaleGenerator(

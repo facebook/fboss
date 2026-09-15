@@ -379,6 +379,18 @@ class AgentSrv6EcmpLoadBalancerTest : public AgentLoadBalancerTest<
   }
 };
 
+// SRv6 next hops programmed with unequal weights, forming a UCMP group
+class AgentSrv6UcmpLoadBalancerTest : public AgentSrv6EcmpLoadBalancerTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP,
+        ProductionFeature::ECMP_LOAD_BALANCER,
+        ProductionFeature::UCMP};
+  }
+};
+
 // SRv6 ECMP load balancing driven purely by the IPv6 flow label (fixed 5-tuple)
 class AgentSrv6FlowLabelEcmpLoadBalancerTest
     : public AgentLoadBalancerTest<
@@ -548,6 +560,10 @@ TEST_F(
 
     // Reset to original hash so verify is idempotent across warmboot
     helper->programLoadBalancer(fullHashNoFlowLabel);
+    // With standard full hash, flow-label-only traffic should NOT
+    // be load balanced (all packets hash to the same port)
+    helper->pumpTrafficPortAndVerifyLoadBalanced(
+        kEcmpWidth, false, {}, 25, false /* loadBalanceExpected */);
   };
   runTestAcrossWarmBoots(setup, verify, []() {}, []() {});
 }
@@ -555,6 +571,16 @@ TEST_F(
 RUN_HW_LOAD_BALANCER_TEST_CPU(
     AgentSrv6EcmpLoadBalancerTest,
     Ecmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentSrv6UcmpLoadBalancerTest,
+    Ucmp,
+    FullWithFlowLabel)
+
+RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(
+    AgentSrv6UcmpLoadBalancerTest,
+    Ucmp,
     FullWithFlowLabel)
 
 RUN_HW_LOAD_BALANCER_TEST_CPU(

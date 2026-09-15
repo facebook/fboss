@@ -21,6 +21,14 @@ struct SubscriberStats {
   uint32_t numSlowSubscriptionDisconnects{0};
 };
 
+// Paths newly appended to a live extended subscription, awaiting resolution +
+// initial sync on the next serve cycle. Holds only keys; values live in the
+// sub.
+struct ExtendedSubscriptionAddedPaths {
+  std::shared_ptr<ExtendedSubscription> subscription;
+  std::vector<SubscriptionKey> newKeys;
+};
+
 class SubscriptionStore {
  public:
   SubscriptionStore()
@@ -44,6 +52,19 @@ class SubscriptionStore {
 
   void unregisterExtendedSubscription(const std::string& name);
 
+  // Locate a live extended subscription by its SubscriptionIdentifier.
+  std::shared_ptr<ExtendedSubscription> findExtendedSubscription(
+      const SubscriptionIdentifier& id);
+
+  // Append newPaths to an existing patch subscription (by id); resolved +
+  // initial-synced next serve cycle. Returns an error code on failure (unknown
+  // id, non-patch sub, publisher-root mismatch, or colliding SubscriptionKey).
+  std::optional<FsdbErrorCode> addPatchSubscriptionPaths(
+      const SubscriptionIdentifier& id,
+      ExtSubPathMap newPaths,
+      const std::optional<std::string>& publisherRoot,
+      std::optional<StreamRevision> streamRevision = std::nullopt);
+
   void processAddedPath(
       std::vector<std::string>::const_iterator begin,
       std::vector<std::string>::const_iterator end);
@@ -66,6 +87,9 @@ class SubscriptionStore {
   const auto& initialSyncNeededExtended() const {
     return initialSyncNeededExtended_;
   }
+  const auto& extendedSubsWithAddedPaths() const {
+    return extendedSubsWithAddedPaths_;
+  }
   const auto& lookup() const {
     return lookup_;
   }
@@ -80,6 +104,9 @@ class SubscriptionStore {
   }
   auto& initialSyncNeededExtended() {
     return initialSyncNeededExtended_;
+  }
+  auto& extendedSubsWithAddedPaths() {
+    return extendedSubsWithAddedPaths_;
   }
   auto& lookup() {
     return lookup_;
@@ -130,9 +157,18 @@ class SubscriptionStore {
   std::unordered_map<std::string, std::unique_ptr<Subscription>> subscriptions_;
   std::unordered_map<std::string, std::shared_ptr<ExtendedSubscription>>
       extendedSubscriptions_;
+  // Identifier -> live extended subscription index, for O(1) lookup by id.
+  std::unordered_map<
+      SubscriptionIdentifier,
+      std::weak_ptr<ExtendedSubscription>,
+      SubscriptionIdentifier::Hash>
+      extendedSubsByIdentifier_;
   SubscriptionPathStore initialSyncNeeded_;
   std::unordered_set<std::shared_ptr<ExtendedSubscription>>
       initialSyncNeededExtended_;
+  // Patch subs with paths appended post-creation, awaiting next-cycle
+  // resolution.
+  std::vector<ExtendedSubscriptionAddedPaths> extendedSubsWithAddedPaths_;
 
   // lookup for the subscriptions, keyed on path
   SubscriptionPathStore lookup_;

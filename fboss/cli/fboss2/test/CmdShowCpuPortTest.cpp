@@ -102,4 +102,11 @@ TEST_F(CmdShowCpuPortTestFixture, queryClient) {
   EXPECT_THRIFT_EQ(normalizedModel, model);
 }
 
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowCpuPortTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowCpuPortTraits::description().empty());
+  EXPECT_FALSE(CmdShowCpuPort::sampleModel().cpuPortStatEntries()->empty());
+}
+
 } // namespace facebook::fboss

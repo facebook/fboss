@@ -92,6 +92,12 @@ std::vector<PortID> ProdInvariantTest::getAllPlatformPorts(
   ports.reserve(0);
   auto subsidiaryPortMap = utility::getSubsidiaryPortIDs(platformPorts);
   for (auto& port : subsidiaryPortMap) {
+    // createUplinkDownlinkConfig() applies one speed to every port it is
+    // handed, and non-data-plane ports advertise no profile at that speed.
+    const auto& portMapping = *platformPorts.at(port.first).mapping();
+    if (*portMapping.portType() != cfg::PortType::INTERFACE_PORT) {
+      continue;
+    }
     ports.emplace_back(port.first);
   }
   return ports;
@@ -126,21 +132,41 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig(
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   ports.reserve(0);
-  if (checkBaseConfigPortsEmpty()) {
+  const auto baseConfig = getConfigFromFlag();
+  if (baseConfig.ports()->empty()) {
     useProdConfig_ = false;
     ports = getAllPlatformPorts(ensemble.getPlatformPorts());
-    cfg = utility::createProdRswConfig(
-        ensemble.getL3Asics(),
-        ensemble.getSw()->getPlatformType(),
-        ensemble.getSw()->getPlatformMapping(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        ports,
-        ensemble.isSai());
+    auto role = getProdRole();
+    if (role.has_value()) {
+      cfg = utility::createProdMmuLosslessRoleConfig(
+          ensemble.getL3Asics(),
+          ensemble.getSw()->getPlatformType(),
+          ensemble.getSw()->getPlatformMapping(),
+          ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+          ports,
+          &ensemble,
+          *role,
+          ensemble.isSai());
+    } else {
+      cfg = utility::createProdRswConfig(
+          ensemble.getL3Asics(),
+          ensemble.getSw()->getPlatformType(),
+          ensemble.getSw()->getPlatformMapping(),
+          ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+          ports,
+          ensemble.isSai());
+    }
 
+    // Generated configs never set sdkVersion. Without it isSaiConfig() reports
+    // false and checkConfigHasAclEntry() searches the flat acls list instead of
+    // aclTableGroups, so ACL lookups miss.
+    if (baseConfig.sdkVersion().has_value()) {
+      cfg.sdkVersion() = *baseConfig.sdkVersion();
+    }
     return cfg;
   } else {
     useProdConfig_ = true;
-    return getConfigFromFlag();
+    return baseConfig;
   }
 }
 
@@ -187,13 +213,24 @@ void ProdInvariantTest::sendTraffic(int numPackets) {
 
 PortID ProdInvariantTest::getDownlinkPort() {
   // pick the first downlink in the list
-  auto downlinkPort = utility::getAllUplinkDownlinkPorts(
-                          getSw()->getPlatformType(),
-                          getSw()->getConfig(),
-                          kEcmpWidth,
-                          is_mmu_lossless_mode())
-                          .second[0];
-  return downlinkPort;
+  auto [uplinks, downlinks] = utility::getAllUplinkDownlinkPorts(
+      getSw()->getPlatformType(),
+      getSw()->getConfig(),
+      kEcmpWidth,
+      is_mmu_lossless_mode());
+  // In mmu-lossless mode the lists come from each port's PFC
+  // portPgConfigName, so a config generated without PFC yields none.
+  if (downlinks.empty()) {
+    throw FbossError(
+        "No downlink ports in config (uplinks=",
+        uplinks.size(),
+        ", mmu_lossless=",
+        is_mmu_lossless_mode(),
+        "). In mmu-lossless mode uplinks/downlinks are derived from each "
+        "port's PFC portPgConfigName, so a config generated without PFC "
+        "yields none.");
+  }
+  return downlinks[0];
 }
 
 std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
@@ -370,6 +407,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_FAKE:
     case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_P200:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -391,9 +429,6 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_CHENAB2:
       break;
 
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      diagCmds = validated_shell_commands_constants::TD2_TESTED_CMDS();
-      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       diagCmds = validated_shell_commands_constants::TH_TESTED_CMDS();
       break;
@@ -578,6 +613,10 @@ class ProdInvariantRtswTest : public ProdInvariantTest {
   }
 
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::RTSW;
+  }
+
   void SetUp() override {
     ProdInvariantTest::SetUp();
   }
@@ -747,6 +786,11 @@ class ProdInvariantFtswTest : public ProdInvariantRtswTest {
   ProdInvariantFtswTest() {
     set_mmu_lossless(true);
   }
+
+ protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::FTSW;
+  }
 };
 
 TEST_F(ProdInvariantFtswTest, verifyInvariants) {
@@ -766,6 +810,10 @@ TEST_F(ProdInvariantFtswTest, verifyInvariants) {
 
 class ProdInvariantStswTest : public ProdInvariantRtswTest {
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::STSW;
+  }
+
   void SetUp() override {
     AgentEnsembleTest::SetUp();
     AgentEnsemble* ensemble = getAgentEnsemble();
@@ -819,6 +867,10 @@ class ProdInvariantSuswTest : public ProdInvariantTest {
   }
 
  protected:
+  std::optional<utility::ProdMmuLosslessRole> getProdRole() const override {
+    return utility::ProdMmuLosslessRole::SUSW;
+  }
+
   void SetUp() override {
     // Scale-up switches do not run load-balancing or DLB invariants, so skip
     // the base SetUp's ECMP route programming over uplinks, which requires

@@ -34,12 +34,19 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopGroupMemberMap{
     SAI_ATTR_MAP(NextHopGroupMember, NextHopGroupId),
     SAI_ATTR_MAP(NextHopGroupMember, NextHopId),
     SAI_ATTR_MAP(NextHopGroupMember, Weight),
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+    SAI_ATTR_MAP(NextHopGroupMember, ConfiguredRole),
+    SAI_ATTR_MAP(NextHopGroupMember, MonitoredObject),
+#endif
 };
 
 void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(NextHopGroup, ArsNextHopGroupMetaData);
+  SAI_EXT_ATTR_MAP(NextHopGroup, ArsFailPktCount);
+  SAI_EXT_ATTR_MAP(NextHopGroup, ArsPortReassignCount);
 #endif
+  SAI_EXT_ATTR_MAP(NextHopGroup, SplitHorizonEnable);
 }
 
 } // namespace

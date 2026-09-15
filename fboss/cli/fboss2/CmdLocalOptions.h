@@ -46,6 +46,14 @@ class CmdLocalOptions {
     localOptions[localOption] = value;
   }
 
+  // Drop every parsed local option. Only meaningful for in-process harnesses
+  // that parse more than one command line per process: CLI11 leaves bound
+  // map entries untouched when an option isn't passed, so a value from a
+  // previous parse would otherwise apply to later commands.
+  void clear() {
+    data_.clear();
+  }
+
  private:
   std::map<std::string, std::map<std::string, std::string>> data_;
 };

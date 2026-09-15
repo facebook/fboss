@@ -61,6 +61,12 @@ void populateFibInfoIdMaps(
   }
   fibInfoPtr->setIdToNextHopMap(id2Nhop);
   fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
+
+  std::map<std::string, NextHopSetId> nameToSetId;
+  for (const auto& [name, id] : idManager->getNameToNextHopSetID()) {
+    nameToSetId[name] = static_cast<int64_t>(id);
+  }
+  fibInfoPtr->setNameToNextHopSetId(nameToSetId);
 }
 
 void assignNextHopIdsToAllRoutes(

@@ -5,7 +5,6 @@
 #include <boost/container/flat_map.hpp>
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -242,6 +241,12 @@ class WedgeManager : public TransceiverManager {
 
  private:
   void updateTransceiverLogInfo(const std::vector<TransceiverID>& tcvrs);
+
+  // Hard reset the given transceivers, then wait once for all of them to come
+  // out of reset. Resetting the whole set before waiting keeps the cost at a
+  // single kSecAfterModuleOutOfReset rather than one wait per module. A module
+  // that fails to reset is logged and skipped.
+  void hardResetTransceivers(const std::vector<int>& tcvrs);
 
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;

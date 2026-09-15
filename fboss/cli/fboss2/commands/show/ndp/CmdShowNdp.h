@@ -12,6 +12,7 @@
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <fboss/agent/if/gen-cpp2/fboss_types.h>
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/ndp/gen-cpp2/model_types.h"
 
@@ -24,6 +25,10 @@ struct CmdShowNdpTraits : public ReadCommandTraits {
   using RetType = cli::ShowNdpModel;
   static constexpr bool ALLOW_FILTERING = true;
   static constexpr bool ALLOW_AGGREGATION = true;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description();
 };
 
 class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
@@ -42,6 +47,10 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
       const ObjectArgType& queriedNdpEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       const std::map<int64_t, cfg::DsfNode>& dsfNodes);
+
+  // Canned, synthetic model (no real switch data) used to render a
+  // deterministic example for the CLI reference wiki. No live switch.
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

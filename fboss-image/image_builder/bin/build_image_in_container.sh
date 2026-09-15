@@ -217,10 +217,15 @@ chmod 777 "${TARGET_DIR}"
 
 rm -f "${DESCRIPTION_DIR}/root.tar.gz" # Remove any existing tar file
 
+# Start from an empty overlay. The overlay is populated below by copying
+# root_files/ over it, and a copy can only add files: anything deleted from
+# root_files/ would otherwise survive here from an earlier build and still ship
+# in the image.
+rm -rf "${DESCRIPTION_DIR}/root"
+
 # Hardlink component artifacts to root/repos for processing in config.sh. When
 # no explicit --deps is provided, use /deps (which resolves into the
 # /image_builder filesystem) so that cp -la does not cross mount boundaries.
-rm -rf "${DESCRIPTION_DIR}/root/repos"
 mkdir -p "${DESCRIPTION_DIR}/root/repos"
 
 EFFECTIVE_DEPS_DIR="${DEPS_DIR:-/deps}"
@@ -238,12 +243,55 @@ dprint "Copying /etc/resolv.conf to ${DESCRIPTION_DIR}/root/etc/resolv.conf..."
 mkdir -p "${DESCRIPTION_DIR}/root/etc"
 cp /etc/resolv.conf "${DESCRIPTION_DIR}/root/etc/"
 
-# Add build timestamp to the image
-echo "Built on: $(date -u)" >"$DESCRIPTION_DIR/root/etc/build-info"
-
 # Copy rootfs template files to overlay
 dprint "Copying rootfs files to overlay..."
 cp -R ${DESCRIPTION_DIR}/root_files/* ${DESCRIPTION_DIR}/root/
+
+# Written after the root_files copy so an overlay file cannot shadow it.
+write_build_info() {
+  local rel bytes size repos
+
+  echo "FBOSS distro image"
+  echo "Built on: $(date -u)"
+  echo "Built by: $(whoami)@$(hostname)"
+
+  # The manifest and the source revision are only knowable outside the
+  # container; the CLI drops them here before starting the build.
+  if [ -f "${WSROOT}/build-provenance" ]; then
+    cat "${WSROOT}/build-provenance"
+  else
+    echo "Manifest: unknown (no build-provenance from the CLI)"
+  fi
+
+  echo ""
+  echo "Components:"
+
+  # Read the overlay's copy rather than the staging directory: it is what
+  # actually ships, it is a real directory rather than the /deps symlink, and
+  # it is the exact tree config.sh consumes as /repos.
+  local repos="${DESCRIPTION_DIR}/root/repos"
+
+  if [ ! -d "$repos" ]; then
+    echo "  (none: $repos does not exist)"
+    return
+  fi
+
+  # Two levels down is <component>/<artifact>, the layout config.sh consumes.
+  find "$repos" -mindepth 2 -maxdepth 2 -type f -printf '%P\t%s\n' |
+    sort |
+    while IFS=$'\t' read -r rel bytes; do
+      size=$(numfmt --to=iec "$bytes" 2>/dev/null || echo "${bytes}B")
+      echo "  ${rel}  ${size}  sha256:$(sha256sum "${repos}/${rel}" | cut -d' ' -f1)"
+    done
+
+  if [ -z "$(find "$repos" -mindepth 2 -maxdepth 2 -type f -print -quit)" ]; then
+    echo "  (none: no artifacts were staged)"
+  fi
+}
+
+dprint "Recording image provenance in /etc/build-info..."
+write_build_info >"${DESCRIPTION_DIR}/root/etc/build-info"
+tee -a "${LOG_FILE}" <"${DESCRIPTION_DIR}/root/etc/build-info"
 
 # Remove any existing after_pkgs files from previous runs
 rm -f ${DESCRIPTION_DIR}/root/var/tmp/after_pkgs_install_file.json
@@ -330,6 +378,13 @@ if [ ${PXE_RC} -ne 0 ]; then
 fi
 if [ ${ONIE_RC} -ne 0 ]; then
   dprint "ERROR: ONIE installer build failed"
+fi
+
+# The partx wrapper is installed by CI only, and its container is discarded
+# once this script returns, so surface its trace while we still can.
+if [ -f /tmp/partx_wrapper.log ]; then
+  dprint "partx wrapper trace:"
+  cat /tmp/partx_wrapper.log
 fi
 
 rm -rf ${TARGET_DIR}/btrfs ${TARGET_DIR}/onie

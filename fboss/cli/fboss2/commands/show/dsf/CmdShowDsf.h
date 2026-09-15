@@ -7,7 +7,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowDsfTraits : public ReadCommandTraits {
+struct CmdShowDsfTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

@@ -7,10 +7,11 @@ cpp_library(
     srcs = [
         "HwBenchmarkMain.cpp",
     ],
-    exported_deps = [
+    deps = [
         "//folly:benchmark",
         "//folly/init:init",
         "//folly/json:dynamic",
         "//folly/logging:init",
     ],
+    exported_deps = [],
 )

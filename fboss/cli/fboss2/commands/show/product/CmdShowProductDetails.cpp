@@ -86,6 +86,36 @@ void CmdShowProductDetails::printOutput(
   out << "Version: " << model.version().value() << std::endl;
 }
 
+std::string_view CmdShowProductDetailsTraits::description() {
+  return "Displays detailed product/platform inventory: product and OEM names, serials, management/BMC MAC addresses and extended MAC range, part numbers, production state and versions, and manufacturing metadata. Use it for hardware identification and asset details.";
+}
+
+CmdShowProductDetails::RetType CmdShowProductDetails::sampleModel() {
+  RetType model;
+  model.product() = "MOCK_PLATFORM";
+  model.oem() = "";
+  model.serial() = "MOCK_SERIAL";
+  model.mgmtMac() = "02:00:11:22:33:01";
+  model.bmcMac() = "";
+  model.macRangeStart() = "02:00:11:22:33:02";
+  model.macRangeSize() = "148";
+  model.assembledAt() = "";
+  model.assetTag() = "";
+  model.partNumber() = "";
+  model.productionState() = "4";
+  model.subVersion() = "10";
+  model.productVersion() = "1";
+  model.systemPartNumber() = "";
+  model.mfgDate() = "20240101";
+  model.pcbManufacturer() = "";
+  model.fbPcbaPartNumber() = "";
+  model.fbPcbPartNumber() = "";
+  model.odmPcbaPartNumber() = "";
+  model.odmPcbaSerial() = "";
+  model.version() = "5";
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowProductDetails, CmdShowProductDetailsTraits>::run();

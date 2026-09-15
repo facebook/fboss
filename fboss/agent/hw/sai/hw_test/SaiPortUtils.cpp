@@ -16,13 +16,12 @@
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/platforms/common/utils/GalaxyLedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge100LedUtils.h"
 #include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
-#include "fboss/agent/platforms/common/utils/Wedge40LedUtils.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/FbossError.h"
 
@@ -370,16 +369,12 @@ void verifyTxSettting(
 #endif
 }
 
-bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
-  SaiPlatform* platform = static_cast<SaiPlatform*>(ensemble->getPlatform());
-  SaiPlatformPort* platformPort = platform->getPort(port);
+bool verifyLedStatus(Platform* platform, PortID port, bool up) {
+  auto* saiPlatform = static_cast<SaiPlatform*>(platform);
+  SaiPlatformPort* platformPort = saiPlatform->getPort(port);
   uint32_t currentVal = platformPort->getCurrentLedState();
   uint32_t expectedVal = 0;
   switch (platform->getType()) {
-    case PlatformType::PLATFORM_WEDGE: {
-      expectedVal =
-          static_cast<uint32_t>(Wedge40LedUtils::getExpectedLEDState(up, up));
-    } break;
     case PlatformType::PLATFORM_WEDGE100: {
       expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getExpectedLEDState(
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));

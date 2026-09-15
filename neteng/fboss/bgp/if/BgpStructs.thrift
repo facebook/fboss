@@ -16,15 +16,19 @@
 
 namespace cpp2 facebook.nettools.bgplib
 namespace go nettools.bgplib.if.BgpStructs
-namespace php BgpStructs
 namespace py nettools.bgplib.BgpStructs
 namespace py3 nettools.bgplib
 namespace py.asyncio nettools.bgplib_asyncio.BgpStructs
 namespace java.swift com.facebook.swift.nettools.bgplib
 
 include "common/network/if/Address.thrift"
+include "thrift/annotation/hack.thrift"
 
+@hack.NamePrefix{prefix = "BgpStructs_"}
+@hack.LegacyOmitPrefixInNameString
 package "facebook.com/nettools/bgplib"
+
+namespace hack ""
 
 exception InvalidAddress {
   1: string prefix;

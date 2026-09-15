@@ -4,25 +4,25 @@
 #include <folly/coro/AsyncScope.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Task.h>
-#include <folly/coro/Timeout.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
 #include <folly/synchronization/Baton.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
-#include <algorithm>
-#include <atomic>
-#include <cmath>
 #include <memory>
+#include <optional>
 #include <vector>
 
-#include <common/base/Proc.h>
 #include <fboss/fsdb/if/FsdbModel.h>
+#include <fboss/fsdb/oper/ExtendedPathBuilder.h>
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
-#include <fboss/thrift_cow/nodes/Serializer.h>
+#include <fboss/fsdb/oper/SubscriptionPathStore.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 #include "fboss/fsdb/oper/tests/SubscribableStorageBenchHelper.h"
+#include "fboss/fsdb/oper/tests/TestHelpers.h"
+#include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/thrift_cow/storage/tests/CowStorageBenchHelper.h"
 
 DEFINE_int32(
@@ -34,7 +34,6 @@ namespace {
 constexpr auto kReadsPerTask = 1000;
 constexpr auto kWritesPerTask = 200;
 constexpr auto kNumIncrementalUpdates = 10;
-constexpr auto kSubscriptionServeIntervalMsec = 1;
 } // namespace
 
 namespace facebook::fboss::fsdb::test {
@@ -46,7 +45,7 @@ void bm_get(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(dataGen);
+  StorageBenchmarkHelper<> helper(dataGen);
   helper.startStorage();
 
   // launch get requests from multiple threads
@@ -73,9 +72,9 @@ void bm_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2));
   helper.startStorage();
@@ -107,9 +106,9 @@ void bm_concurrent_get_set(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params()
+      StorageBenchmarkHelper<>::Params()
           .setLargeUpdates(useLargeData)
           .setNumUpdates(2)
           .setServeGetWithLastPublished(
@@ -142,9 +141,9 @@ void bm_serve_initialSync(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setStartWithInitializedData(false));
+      StorageBenchmarkHelper<>::Params().setStartWithInitializedData(false));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -199,9 +198,9 @@ void bm_serve_update_state(
   folly::BenchmarkSuspender suspender;
 
   test_data::TestDataFactory dataGen(test_data::RoleSelector::MaxScale);
-  StorageBenchmarkHelper helper(
+  StorageBenchmarkHelper<> helper(
       dataGen,
-      StorageBenchmarkHelper::Params().setNumUpdates(kNumIncrementalUpdates));
+      StorageBenchmarkHelper<>::Params().setNumUpdates(kNumIncrementalUpdates));
   helper.startStorage();
 
   folly::coro::AsyncScope asyncScope;
@@ -267,100 +266,6 @@ void bm_serve_update_state(
 
 namespace {
 
-// Empty-storage construction. trackMetadata stays false because subscribing at
-// the root path triggers OperPathToPublisherRoot::checkNonEmpty() and throws
-// when trackMetadata is true. With trackMetadata=false, registerPublisher() is
-// an explicit no-op (early-returns), but set_encoded() still drives the
-// per-subscription serve loop and delivers updates to patch subscribers.
-// requireResponseOnInitialSync=true ensures each subscriber receives an initial
-// sync value on attach even when the storage is empty, giving the helper a
-// known sync point before measurement starts.
-template <typename RootT>
-std::unique_ptr<NaivePeriodicSubscribableCowStorage<RootT>>
-initEmptySubscribableStorage() {
-  return std::make_unique<NaivePeriodicSubscribableCowStorage<RootT>>(
-      RootT{},
-      NaivePeriodicSubscribableStorageBase::StorageParams(
-          std::chrono::milliseconds(kSubscriptionServeIntervalMsec),
-          std::chrono::seconds(5),
-          /*trackMetadata=*/false,
-          "fsdb",
-          /*convertToIDPaths=*/true,
-          /*requireResponseOnInitialSync=*/true));
-}
-
-int64_t bm_ribmap_pubsub_mem_helper(
-    test_data::BgpRibMapDataGenerator& gen,
-    int num_subscribers) {
-  using RootT = test_data::BgpRibMapDataGenerator::RootT;
-
-  folly::BenchmarkSuspender suspender;
-  auto state = gen.getStateUpdate(0, false);
-  // Allow the allocator to settle so the baseline memory snapshot is stable.
-  sleep(2);
-
-  // (a) empty storage, then start serving subscriptions.
-  auto storage = initEmptySubscribableStorage<RootT>();
-  storage->start();
-
-  // (b) num_subscribers patch-subscriber tasks subscribed to root path.
-  std::vector<std::string> rootPath;
-  folly::coro::AsyncScope scope;
-  auto executor = std::make_unique<folly::CPUThreadPoolExecutor>(
-      std::max(num_subscribers, 1));
-
-  folly::Baton<> initSyncDone;
-  folly::Baton<> updateReceived;
-  std::atomic<int> initSyncCount{0};
-  std::atomic<int> updateCount{0};
-
-  auto subscriberTask = [&](int subIndex) -> folly::coro::Task<void> {
-    auto streamReader = storage->subscribe_patch(
-        SubscriptionIdentifier(
-            SubscriberId(fmt::format("patch_sub_{}", subIndex))),
-        rootPath.begin(),
-        rootPath.end());
-    auto generator = std::move(streamReader.generator_);
-    co_await generator.next();
-    if (initSyncCount.fetch_add(1) + 1 == num_subscribers) {
-      initSyncDone.post();
-    }
-    co_await generator.next();
-    if (updateCount.fetch_add(1) + 1 == num_subscribers) {
-      updateReceived.post();
-    }
-  };
-
-  for (int i = 0; i < num_subscribers; i++) {
-    scope.add(co_withExecutor(executor.get(), subscriberTask(i)));
-  }
-
-  // (c) PATH publisher registration on root path. Effective only when
-  // trackMetadata=true (see initEmptySubscribableStorage).
-  storage->registerPublisher(
-      rootPath.begin(),
-      rootPath.end(),
-      /*skipThriftStreamLivenessCheck=*/true);
-
-  // (d) wait for all subscribers to receive initial sync.
-  initSyncDone.wait();
-
-  // (e) begin measurement around publish + fanout.
-  auto startMem = facebook::Proc::getMemoryUsage();
-  suspender.dismiss();
-
-  // (f) publish state; wait for all subscribers to receive the update.
-  storage->set_encoded(*state.path()->path(), *state.state());
-  updateReceived.wait();
-
-  // (g) end measurement.
-  suspender.rehire();
-  auto endMem = facebook::Proc::getMemoryUsage();
-
-  folly::coro::blockingWait(scope.joinAsync());
-  return endMem - startMem;
-}
-
 void bm_ribmap_pubsub_mem(
     folly::UserCounters& counters,
     unsigned /* iters */,
@@ -370,43 +275,168 @@ void bm_ribmap_pubsub_mem(
   auto scale =
       test_data::BgpRibMapDataGenerator::makeGtswScale(prefixScale, paths);
   test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  std::vector<std::string> rootPath;
+  auto subscribeFunc = [&](auto& storage, SubscriptionIdentifier&& subId) {
+    return storage.subscribe_patch(
+        std::move(subId), rootPath.begin(), rootPath.end());
+  };
+  StorageBenchmarkHelper<test_data::BgpRibMapDataGenerator::RootT>::
+      reportPubSubMemStats(
+          counters,
+          gen,
+          num_subscribers,
+          FLAGS_bm_subbench_memory_iters,
+          subscribeFunc);
+}
 
-  std::vector<int64_t> memoryMeasurements;
-  for (int i = 0; i < FLAGS_bm_subbench_memory_iters; i++) {
-    auto delta = bm_ribmap_pubsub_mem_helper(gen, num_subscribers);
-    if (delta > 0) {
-      memoryMeasurements.push_back(delta);
+// FPF canonicalRib pub/sub memory: measures fanout of the compact,
+// best-path-only bgpData.canonicalRib() payload (numPods x numPrefixesPerPod
+// entries) that HostReachTracker subscribes to, instead of ribMap.
+void bm_canonicalrib_pubsub_mem(
+    folly::UserCounters& counters,
+    unsigned /* iters */,
+    int numPods,
+    int numPrefixesPerPod,
+    int num_subscribers) {
+  auto scale = test_data::BgpRibMapDataGenerator::makeGtswScale(
+      /*isFPF=*/true, numPods, numPrefixesPerPod);
+  test_data::BgpRibMapDataGenerator gen(test_data::RoleSelector::GTSW, scale);
+  auto subscribeFunc = [&](auto& storage, SubscriptionIdentifier&& subId) {
+    auto extPath = ext_path_builder::raw("bgp")
+                       .raw("canonicalRib")
+                       .raw("rib_entries")
+                       .any()
+                       .raw("best_path")
+                       .get();
+    return storage.subscribe_patch_extended(
+        std::move(subId), {{0, std::move(extPath)}});
+  };
+  StorageBenchmarkHelper<test_data::BgpRibMapDataGenerator::RootT>::
+      reportPubSubMemStats(
+          counters,
+          gen,
+          num_subscribers,
+          FLAGS_bm_subbench_memory_iters,
+          subscribeFunc);
+}
+
+TestStruct makeWideMapStruct(int numKeys) {
+  auto s = initializeTestStruct();
+  for (int i = 0; i < numKeys; ++i) {
+    s.mapOfStringToI32()[fmt::format("key{}", i)] = i;
+  }
+  return s;
+}
+
+// The wildcard benchmarks below never call start(); they drive serve cycles
+// inline via SynchronousServeStorage::serveOnce() so the periodic loop's
+// subscriptionServeInterval sleep stays out of the measurement.
+using SynchronousServeCowStorage = SynchronousServeStorage<TestStruct>;
+
+// Serve benchmark for a single wildcard PATCH extended subscription over a wide
+// map. Reports numPathStores and resolved-subscription counts so the eager
+// (flag OFF) vs dynamic (flag ON) variants can be compared directly: dynamic
+// resolution should keep both counts flat regardless of the number of matching
+// keys.
+void bm_serve_wildcard_patch(
+    folly::UserCounters& counters,
+    unsigned iters,
+    int numKeys,
+    bool dynamicEnabled) {
+  folly::BenchmarkSuspender suspender;
+  gflags::FlagSaver flagSaver;
+  FLAGS_dynamicWildcardPatchResolution = dynamicEnabled;
+
+  auto storage = SynchronousServeCowStorage(
+      makeWideMapStruct(numKeys), detail::makeBenchStorageParams());
+
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("key.*").get();
+  auto reader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId("wildcard_patch_bench")),
+      {{0, path}});
+  // Initial sync cycle covering all matching keys, drained but not measured.
+  storage.serveOnce();
+  auto generator = std::move(reader.generator_);
+  folly::coro::blockingWait(generator.next());
+
+  // Time only the serve cycle. The mutation and the drain stay outside the
+  // measured region; the drain must happen every iteration or the subscription
+  // queue fills and the subscription is pruned mid-benchmark.
+  thriftpath::RootThriftPath<TestStruct> root;
+  std::chrono::nanoseconds serveTime{0};
+  for (unsigned i = 0; i < iters; ++i) {
+    storage.set(root.mapOfStringToI32()["key0"], numKeys + i + 1);
+    const auto start = std::chrono::steady_clock::now();
+    suspender.dismiss();
+    storage.serveOnce();
+    suspender.rehire();
+    serveTime += std::chrono::steady_clock::now() - start;
+    folly::coro::blockingWait(generator.next());
+  }
+
+  counters["serve_ns_per_iter"] = folly::UserMetric(
+      static_cast<double>(serveTime.count()) / static_cast<double>(iters));
+  counters["numPathStores"] =
+      folly::UserMetric(static_cast<double>(storage.numPathStores()));
+  counters["numResolvedSubs"] =
+      folly::UserMetric(static_cast<double>(storage.numSubscriptions()));
+}
+
+// Same shape as bm_serve_wildcard_patch, but with numSubs concurrent wildcard
+// PATCH subscriptions instead of one. WildcardPatchCandidateTracker::seed()
+// scans every registered extended subscription on each serve cycle and push()
+// rescans every in-progress candidate per visited token, so per-cycle cost is
+// expected to grow with subscription count as well as map width. Kept separate
+// from the single-subscription benchmark so those numbers stay comparable.
+void bm_serve_wildcard_patch_many_subs(
+    folly::UserCounters& counters,
+    unsigned iters,
+    int numKeys,
+    int numSubs,
+    bool dynamicEnabled) {
+  folly::BenchmarkSuspender suspender;
+  gflags::FlagSaver flagSaver;
+  FLAGS_dynamicWildcardPatchResolution = dynamicEnabled;
+
+  auto storage = SynchronousServeCowStorage(
+      makeWideMapStruct(numKeys), detail::makeBenchStorageParams());
+
+  auto path = ext_path_builder::raw("mapOfStringToI32").regex("key.*").get();
+  std::vector<decltype(storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId("x")), {}))>
+      readers;
+  readers.reserve(numSubs);
+  for (int i = 0; i < numSubs; ++i) {
+    readers.push_back(storage.subscribe_patch_extended(
+        SubscriptionIdentifier(
+            SubscriberId(fmt::format("wildcard_patch_bench_{}", i))),
+        {{0, path}}));
+  }
+  storage.serveOnce();
+  for (auto& reader : readers) {
+    folly::coro::blockingWait(reader.generator_.next());
+  }
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  std::chrono::nanoseconds serveTime{0};
+  for (unsigned i = 0; i < iters; ++i) {
+    storage.set(root.mapOfStringToI32()["key0"], numKeys + i + 1);
+    const auto start = std::chrono::steady_clock::now();
+    suspender.dismiss();
+    storage.serveOnce();
+    suspender.rehire();
+    serveTime += std::chrono::steady_clock::now() - start;
+    for (auto& reader : readers) {
+      folly::coro::blockingWait(reader.generator_.next());
     }
   }
 
-  if (memoryMeasurements.empty()) {
-    return;
-  }
-
-  int64_t sum = 0;
-  for (int64_t m : memoryMeasurements) {
-    sum += m;
-  }
-  int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
-  int64_t maxMem =
-      *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
-
-  double stddev = 0.0;
-  if (memoryMeasurements.size() > 1) {
-    double variance = 0.0;
-    for (int64_t m : memoryMeasurements) {
-      double diff = static_cast<double>(m - avgMem);
-      variance += diff * diff;
-    }
-    variance /= static_cast<double>(memoryMeasurements.size() - 1);
-    stddev = std::sqrt(variance);
-  }
-
-  counters["avg_memory_KB"] =
-      folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-  counters["max_memory_KB"] =
-      folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-  counters["stddev_memory_KB"] = folly::UserMetric(stddev / 1024.0);
+  counters["serve_ns_per_iter"] = folly::UserMetric(
+      static_cast<double>(serveTime.count()) / static_cast<double>(iters));
+  counters["numPathStores"] =
+      folly::UserMetric(static_cast<double>(storage.numPathStores()));
+  counters["numResolvedSubs"] =
+      folly::UserMetric(static_cast<double>(storage.numSubscriptions()));
 }
 
 } // namespace
@@ -450,6 +480,33 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     70000,
     120,
     1);
+
+// FPF canonicalRib: 144 pods x 240 prefixes/pod = 34560 entries, single
+// subscriber (matches inject_bgp_prefixes --pods 144 --prefixes-per-pod 240).
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S1,
+    144,
+    240,
+    1);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_144x240_S240,
+    144,
+    240,
+    240);
+
+// YUGE scale: 196 pods * 216 GPUs/pod = ~42K prefixes / vf
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_canonicalrib_pubsub_mem,
+    counters,
+    FPF_196x216_S216,
+    196,
+    216,
+    216);
 
 BENCHMARK_NAMED_PARAM(bm_get, threads_1, 1, kReadsPerTask);
 
@@ -531,6 +588,69 @@ BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_delta, 0, 0, 1);
 BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch, 1, 0, 0);
 
 BENCHMARK_NAMED_PARAM(bm_serve_update_state, subs_1_patch_1_delta, 1, 0, 1);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_1000_eager,
+    1000,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_1000_dynamic,
+    1000,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_5000_eager,
+    5000,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch,
+    counters,
+    keys_5000_dynamic,
+    5000,
+    true);
+
+// Scaling with concurrent wildcard subscriptions at a fixed map width, so the
+// per-cycle seed()/push() cost attributable to subscription count is visible
+// separately from map width.
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_1_eager,
+    500,
+    1,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_1_dynamic,
+    500,
+    1,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_50_eager,
+    500,
+    50,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    bm_serve_wildcard_patch_many_subs,
+    counters,
+    keys_500_subs_50_dynamic,
+    500,
+    50,
+    true);
 
 } // namespace facebook::fboss::fsdb::test
 

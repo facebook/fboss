@@ -84,6 +84,19 @@ std::string CmdShowAgentBootType::bootTypeToString(BootType bootType) {
   return apache::thrift::util::enumNameSafe(bootType);
 }
 
+std::string_view CmdShowAgentBootTypeTraits::description() {
+  return "Displays each agent's most recent boot type (warm or cold boot) per switch. Use it to confirm whether the agent warm- or cold-booted.";
+}
+
+CmdShowAgentBootType::RetType CmdShowAgentBootType::sampleModel() {
+  RetType model;
+  cli::AgentBootTypeEntry entry;
+  entry.agentName() = "wedge_agent";
+  entry.bootType() = "WARM_BOOT";
+  model.bootTypeEntries()->push_back(entry);
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowAgentBootType, CmdShowAgentBootTypeTraits>::run();

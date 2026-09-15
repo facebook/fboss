@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 
 namespace facebook::fboss {
@@ -66,6 +67,91 @@ TEST_F(NextHopIdAllocatorTest, addRouteNewNhops) {
   EXPECT_EQ(idNewNhops, 2);
   // One route points to new nhop group
   assertRouteUsageCount(idNewNhops, 1);
+}
+
+TEST_F(NextHopIdAllocatorTest, protectionGroupIsNotTracked) {
+  const auto prefix = nextPrefix();
+  const auto protectionNhops = withBackupNextHops(defaultNhops());
+  const auto groupsBefore = consolidator_->getNhopsToId().size();
+  const auto countsBefore = consolidator_->getPrimaryEcmpAndMemberCounts();
+
+  addRoute(prefix, protectionNhops);
+
+  EXPECT_EQ(consolidator_->getNhopsToId().size(), groupsBefore);
+  EXPECT_EQ(consolidator_->getPrimaryEcmpAndMemberCounts(), countsBefore);
+  EXPECT_FALSE(getNhopId(protectionNhops).has_value());
+  EXPECT_EQ(
+      consolidator_->getGroupInfo(RouterID(0), prefix.toCidrNetwork()),
+      nullptr);
+  const auto route = cfib(state_)->getRouteIf(prefix);
+  ASSERT_NE(route, nullptr);
+  EXPECT_EQ(
+      facebook::fboss::getNextHops(state_, route->getForwardInfo()),
+      protectionNhops);
+  EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops());
+
+  rmRoute(prefix);
+  EXPECT_EQ(consolidator_->getNhopsToId().size(), groupsBefore);
+}
+
+TEST_F(NextHopIdAllocatorTest, singleNextHopToProtectionGroup) {
+  const auto prefix = nextPrefix();
+  const auto protectionNhops = withBackupNextHops(defaultNhops());
+  auto singleNhop = defaultNhops();
+  singleNhop.erase(std::next(singleNhop.begin()), singleNhop.end());
+  addRoute(prefix, singleNhop);
+  const auto groupsBefore = consolidator_->getNhopsToId().size();
+  const auto countsBefore = consolidator_->getPrimaryEcmpAndMemberCounts();
+
+  updateRoute(prefix, protectionNhops);
+
+  EXPECT_EQ(consolidator_->getNhopsToId().size(), groupsBefore);
+  EXPECT_EQ(consolidator_->getPrimaryEcmpAndMemberCounts(), countsBefore);
+  EXPECT_FALSE(getNhopId(protectionNhops).has_value());
+  EXPECT_EQ(
+      consolidator_->getGroupInfo(RouterID(0), prefix.toCidrNetwork()),
+      nullptr);
+  const auto route = cfib(state_)->getRouteIf(prefix);
+  ASSERT_NE(route, nullptr);
+  EXPECT_EQ(
+      facebook::fboss::getNextHops(state_, route->getForwardInfo()),
+      protectionNhops);
+}
+
+TEST_F(NextHopIdAllocatorTest, protectionGroupUnresolveAndRestore) {
+  const auto prefix = nextPrefix();
+  const auto protectionNhops = withBackupNextHops(defaultNhops());
+  addRoute(prefix, protectionNhops);
+
+  auto unresolvedState = state_->clone();
+  const auto route = cfib(state_)->getRouteIf(prefix);
+  ASSERT_NE(route, nullptr);
+  auto unresolvedRoute = route->clone();
+  unresolvedRoute->clearForward();
+  fib(unresolvedState)->updateNode(unresolvedRoute);
+  consolidate(unresolvedState);
+
+  EXPECT_FALSE(getNhopId(protectionNhops).has_value());
+  EXPECT_EQ(
+      consolidator_->getGroupInfo(RouterID(0), prefix.toCidrNetwork()),
+      nullptr);
+
+  auto resolvedState = state_->clone();
+  fib(resolvedState)->updateNode(makeRoute(prefix, protectionNhops));
+  consolidate(resolvedState);
+
+  EXPECT_FALSE(getNhopId(protectionNhops).has_value());
+  EXPECT_EQ(
+      consolidator_->getGroupInfo(RouterID(0), prefix.toCidrNetwork()),
+      nullptr);
+  const auto restoredRoute = cfib(state_)->getRouteIf(prefix);
+  ASSERT_NE(restoredRoute, nullptr);
+  EXPECT_TRUE(restoredRoute->isResolved());
+  EXPECT_EQ(
+      facebook::fboss::getNextHops(state_, restoredRoute->getForwardInfo()),
+      protectionNhops);
+  EXPECT_FALSE(
+      restoredRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops());
 }
 
 TEST_F(NextHopIdAllocatorTest, addRemoveRouteNewNhopsUnresolved) {

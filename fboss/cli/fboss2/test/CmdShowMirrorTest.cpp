@@ -20,6 +20,13 @@ std::string createMirrorMapsWithTunnel() {
   return "{\"id=0\":{\"mirror_with_tunnel\":{\"name\":\"mirror_with_tunnel\",\"dscp\":10,\"truncate\":false,\"configHasEgressPort\":false,\"egressPortDesc\":{\"portId\":5,\"portType\":0},\"destinationIp\":{\"addr\":\"AQIDBA\"},\"tunnel\":{\"srcIp\":{\"addr\":\"Co2RIQ\"},\"dstIp\":{\"addr\":\"AQIDBA\"},\"srcMac\":\"b6:a9:fc:34:2d:a2\",\"dstMac\":\"b6:a9:fc:34:31:20\",\"ttl\":255},\"isResolved\":true}}}";
 }
 
+std::string createMirrorMapsNonZeroSwitchId() {
+  // Same mirror as createMirrorMapsWithoutTunnel(), but under a non-zero
+  // switchId key ("id=7") as produced by VOQ/DSF switches. Regression test for
+  // the previously hardcoded "id=0" lookup that returned an empty model here.
+  return "{\"id=7\":{\"mirror_without_tunnel\":{\"name\":\"mirror_without_tunnel\",\"dscp\":42,\"truncate\":true,\"configHasEgressPort\":true,\"egressPortDesc\":{\"portId\":1,\"portType\":0},\"destinationIp\":{\"addr\":\"Cr//Rg\"},\"srcIp\":{\"addr\":\"CqOAvg\"},\"udpSrcPort\":12355,\"udpDstPort\":6346,\"isResolved\":true}}}";
+}
+
 std::map<int32_t, PortInfoThrift> createPortInfoEntries() {
   std::map<int32_t, PortInfoThrift> portInfoMap;
 
@@ -198,5 +205,28 @@ TEST_F(CmdShowMirrorTestFixture, printOutputWithHighPort) {
       " mirror_with_tunnel  Active  40000        eth1/7/1          GRE          b6:a9:fc:34:2d:a2  10.141.145.33  -             b6:a9:fc:34:31:20  1.2.3.4  -             10    255 \n\n";
 
   EXPECT_EQ(output, expectedOutput);
+}
+
+TEST_F(CmdShowMirrorTestFixture, queryClientNonZeroSwitchId) {
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), getCurrentStateJSON(_, _))
+      .WillOnce(Invoke([&](std::string& ret, std::unique_ptr<std::string>) {
+        ret = createMirrorMapsNonZeroSwitchId();
+      }));
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = mockPortInfoEntries; }));
+
+  auto cmd = CmdShowMirror();
+  auto model = cmd.queryClient(localhost(), queriedMirrors);
+  // The mirror lives under "id=7"; the CLI must still surface it. Before the
+  // fix, createModel() hardcoded find("id=0") and returned an empty model.
+  EXPECT_THRIFT_EQ(expectedWithoutTunnelModel, model);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowMirrorTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowMirrorTraits::description().empty());
+  EXPECT_FALSE(CmdShowMirror::sampleModel().mirrorEntries()->empty());
 }
 } // namespace facebook::fboss

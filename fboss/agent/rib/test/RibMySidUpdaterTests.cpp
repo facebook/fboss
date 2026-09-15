@@ -30,6 +30,8 @@ namespace facebook::fboss {
 
 namespace {
 
+constexpr uint32_t kEcmpWidth = 64;
+
 std::shared_ptr<MySid> makeMySid(
     const std::string& sidPrefix,
     uint8_t prefixLen,
@@ -116,7 +118,8 @@ TEST_F(RibMySidUpdaterTest, noUnresolvedId_entrySkipped) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
@@ -132,7 +135,8 @@ TEST_F(RibMySidUpdaterTest, nhopWithIntfId_resolvedSetIdAllocated) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -152,7 +156,8 @@ TEST_F(RibMySidUpdaterTest, nhopRefCountBumped_afterResolvingNhopWithIntfId) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -185,7 +190,8 @@ TEST_F(RibMySidUpdaterTest, gatewayNhopMatchingV6Route_resolvedSetIdAllocated) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -207,7 +213,8 @@ TEST_F(RibMySidUpdaterTest, gatewayNhopNoRouteMatch_noResolvedSetId) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
@@ -243,7 +250,7 @@ TEST_F(
 
   // First resolve: allocates resolvedId pointing to routeNhops1.
   RibMySidUpdater updater1(
-      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater1.resolve();
 
   const auto firstResolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -255,7 +262,7 @@ TEST_F(
 
   // Second resolve: old resolvedId decremented, new one allocated.
   RibMySidUpdater updater2(
-      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater2.resolve();
 
   const auto secondResolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -299,7 +306,8 @@ TEST_F(
   const folly::CIDRNetworkV6 key2{folly::IPAddressV6("fc00:200::1"), 48};
   mySidTable_[key2] = mySid2;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   const auto id1 = mySidTable_.at(key1)->getResolvedNextHopsId();
@@ -335,7 +343,8 @@ TEST_F(RibMySidUpdaterTest, resolveFiltered_onlyMatchingEntryResolved) {
   const std::set<folly::CIDRNetwork> filter{
       {folly::IPAddress("fc00:100::1"), 48}};
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve(filter);
 
   EXPECT_TRUE(mySidTable_.at(key1)->getResolvedNextHopsId().has_value());
@@ -351,7 +360,8 @@ TEST_F(RibMySidUpdaterTest, resolveFiltered_cidrNotInTable_skipped) {
   const std::set<folly::CIDRNetwork> filter{
       {folly::IPAddress("fc00:999::1"), 48}};
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve(filter);
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
@@ -365,7 +375,8 @@ TEST_F(RibMySidUpdaterTest, resolveFiltered_entryWithNoUnresolvedId_skipped) {
   const std::set<folly::CIDRNetwork> filter{
       {folly::IPAddress("fc00:100::1"), 48}};
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve(filter);
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
@@ -393,7 +404,8 @@ TEST_F(
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -437,7 +449,8 @@ TEST_F(
   RibMySidUpdater updater(
       {{&v4Routes_, &v6Routes_}, {&v4Routes2, &v6Routes2}},
       &manager(),
-      &mySidTable_);
+      &mySidTable_,
+      kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -473,7 +486,8 @@ TEST_F(RibMySidUpdaterTest, multiVrf_nhopMatchInFirstVrf_firstVrfWins) {
   RibMySidUpdater updater(
       {{&v4Routes_, &v6Routes_}, {&v4Routes2, &v6Routes2}},
       &manager(),
-      &mySidTable_);
+      &mySidTable_,
+      kEcmpWidth);
   updater.resolve();
 
   const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
@@ -492,7 +506,8 @@ TEST_F(RibMySidUpdaterTest, resolve_publishesEntryWithNoUnresolvedId) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = makeMySid("fc00:100::1", 48); // no unresolvedId
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   EXPECT_TRUE(mySidTable_.at(key)->isPublished());
@@ -508,7 +523,8 @@ TEST_F(RibMySidUpdaterTest, resolve_publishesEntryAfterResolvingNhops) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   EXPECT_TRUE(mySidTable_.at(key)->isPublished());
@@ -526,7 +542,8 @@ TEST_F(RibMySidUpdaterTest, resolve_publishesEntryWhenNhopCantBeResolved) {
   const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
   mySidTable_[key] = mySid;
 
-  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  RibMySidUpdater updater(
+      {{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_, kEcmpWidth);
   updater.resolve();
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());

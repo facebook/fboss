@@ -864,7 +864,7 @@ void SaiMacsecManager::setupMacsec(
 
   // Step6: Create ACL entry (if does not exist)
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-      aclTable, kMacsecAclPriority);
+      aclTable, kMacsecAclPriority, aclName);
   if (!aclEntryHandle) {
     if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
       // For the ingress direction create one ACL rule to match MACSEC packets
@@ -1119,7 +1119,7 @@ void SaiMacsecManager::setupDropUnencryptedRule(
   // Create the default lower priority ACL rule for inital data packets as
   // per dropUnencrypted value
   auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-      aclTable, kMacsecDefaultAclPriority);
+      aclTable, kMacsecDefaultAclPriority, aclName);
 
   // If aclEntryHandle exists for default data packet then it could be that the
   // dropUnencrypted value has changed
@@ -1317,7 +1317,7 @@ void SaiMacsecManager::removeAclControlPacketRules(
     // Delete the control packet rules:
     // ACL table LLDP rule
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecLldpAclPriority);
+        aclTable, kMacsecLldpAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecLldpAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1326,7 +1326,7 @@ void SaiMacsecManager::removeAclControlPacketRules(
 
     // MKA rule
     aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecMkaAclPriority);
+        aclTable, kMacsecMkaAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecMkaAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1351,7 +1351,7 @@ void SaiMacsecManager::removeDropUnencryptedRule(
   if (aclTable) {
     // Remove the entry for default packet rule
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecDefaultAclPriority);
+        aclTable, kMacsecDefaultAclPriority, aclTableName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecDefaultAclPriority, aclTableName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclTableName);
@@ -1493,7 +1493,7 @@ void SaiMacsecManager::removeScAcls(
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (aclTable) {
     auto aclEntryHandle = managerTable_->aclTableManager().getAclEntryHandle(
-        aclTable, kMacsecAclPriority);
+        aclTable, kMacsecAclPriority, aclName);
     if (aclEntryHandle) {
       auto aclEntry = makeAclEntry(kMacsecAclPriority, aclName);
       managerTable_->aclTableManager().removeAclEntry(aclEntry, aclName);
@@ -1689,9 +1689,11 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         managerTable_->aclTableManager().getAclTableHandle(aclTblName);
     if (aclTable) {
       // Lambda to get the ACL counter value
-      auto getAclCounter = [this, &aclTable](int prio) -> uint64_t {
+      auto getAclCounter =
+          [this, &aclTable, &aclTblName](int prio) -> uint64_t {
         auto aclEntryHandle =
-            managerTable_->aclTableManager().getAclEntryHandle(aclTable, prio);
+            managerTable_->aclTableManager().getAclEntryHandle(
+                aclTable, prio, aclTblName);
         if (aclEntryHandle) {
           auto aclEntryId = aclEntryHandle->aclEntry->adapterKey();
           auto aclCounterIdGot =

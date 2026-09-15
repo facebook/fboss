@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include <string_view>
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 
 namespace facebook::fboss {
@@ -16,6 +17,8 @@ namespace facebook::fboss {
 struct CmdShowFabricReachabilityUncachedTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowFabricReachability;
   using RetType = cli::ShowFabricReachabilityModel;
+
+  static std::string_view description();
 };
 class CmdShowFabricReachabilityUncached
     : public CmdHandler<
@@ -33,5 +36,7 @@ class CmdShowFabricReachabilityUncached
       std::unordered_map<std::string, std::vector<std::string>>&
           reachabilityMatrix);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 } // namespace facebook::fboss

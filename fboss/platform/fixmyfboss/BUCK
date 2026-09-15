@@ -36,6 +36,7 @@ cpp_binary(
 
 fbpkg.builder(
     name = "fboss.fixmyfboss",
+    architectures = ["x86_64"],
     path_actions = {
         "fixmyfboss": "//fboss/platform/fixmyfboss:fixmyfboss",
     },

@@ -87,8 +87,10 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
+    case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
+    case HwAsic::Feature::PORT_DEBOUNCE:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
@@ -99,6 +101,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
+    case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
@@ -123,6 +126,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
+    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -132,6 +136,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::QCM:
@@ -156,7 +161,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
-    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
@@ -179,6 +183,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -223,11 +228,11 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
     case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
+    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
-    case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
@@ -235,12 +240,15 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
-    case HwAsic::Feature::PORT_DEBOUNCE:
+    case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
+    case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::RX_PACKET_TYPE:
       return false;
   }
   return false;

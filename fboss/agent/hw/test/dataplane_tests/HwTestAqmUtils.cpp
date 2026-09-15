@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
 #include <gtest/gtest.h>
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 
 namespace facebook::fboss::utility {

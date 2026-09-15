@@ -158,6 +158,82 @@ RetType CmdShowAggregatePort::createModel(
   return model;
 }
 
+std::string_view CmdShowAggregatePortTraits::description() {
+  return "Displays each link-aggregation group (port-channel): its description, active/configured/min member counts, per-member link and forwarding state, and the routed interfaces (RIFs) with their addresses. Use it to verify LAG membership and health.";
+}
+
+CmdShowAggregatePort::RetType CmdShowAggregatePort::sampleModel() {
+  RetType model;
+
+  // Port-Channel5133
+  cli::AggregatePortEntry entry1;
+  entry1.name() = "Port-Channel5133";
+  entry1.description() = "aggregate to peer001";
+  entry1.activeMembers() = 2;
+  entry1.configuredMembers() = 2;
+  entry1.minMembers() = 2;
+
+  cli::AggregateMemberPortEntry member1;
+  member1.name() = "eth5/1/1";
+  member1.id() = 72;
+  member1.isLinkUp() = true;
+  member1.isUp() = true;
+  member1.lacpRate() = "Slow";
+  entry1.members()->push_back(member1);
+
+  cli::AggregateMemberPortEntry member2;
+  member2.name() = "eth5/3/1";
+  member2.id() = 91;
+  member2.isLinkUp() = true;
+  member2.isUp() = true;
+  member2.lacpRate() = "Slow";
+  entry1.members()->push_back(member2);
+
+  cli::AggregatePortRifEntry rif1;
+  rif1.osIfName() = "fboss2049";
+  rif1.rifID() = 2049;
+  rif1.addresses()->push_back("2001:db8:c::1/127");
+  rif1.addresses()->push_back("fe80::200:11ff:fe22:33aa/64");
+  entry1.rifs()->push_back(rif1);
+
+  model.aggregatePortEntries()->push_back(entry1);
+
+  // Port-Channel5143
+  cli::AggregatePortEntry entry2;
+  entry2.name() = "Port-Channel5143";
+  entry2.description() = "aggregate to peer002";
+  entry2.activeMembers() = 2;
+  entry2.configuredMembers() = 2;
+  entry2.minMembers() = 2;
+
+  cli::AggregateMemberPortEntry member3;
+  member3.name() = "eth5/5/1";
+  member3.id() = 106;
+  member3.isLinkUp() = true;
+  member3.isUp() = true;
+  member3.lacpRate() = "Slow";
+  entry2.members()->push_back(member3);
+
+  cli::AggregateMemberPortEntry member4;
+  member4.name() = "eth5/7/1";
+  member4.id() = 123;
+  member4.isLinkUp() = true;
+  member4.isUp() = true;
+  member4.lacpRate() = "Slow";
+  entry2.members()->push_back(member4);
+
+  cli::AggregatePortRifEntry rif2;
+  rif2.osIfName() = "fboss2053";
+  rif2.rifID() = 2053;
+  rif2.addresses()->push_back("2001:db8:c:2::1/127");
+  rif2.addresses()->push_back("fe80::200:11ff:fe22:33aa/64");
+  entry2.rifs()->push_back(rif2);
+
+  model.aggregatePortEntries()->push_back(entry2);
+
+  return model;
+}
+
 // Explicit template instantiation
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();

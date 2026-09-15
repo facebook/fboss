@@ -27,7 +27,12 @@ DECLARE_bool(override_program_iphy_ports_for_test);
 
 #define TYPED_LOG(level, logType) XLOG(level) << logType << " "
 
+#define TYPED_LOG_EVERY_MS(level, ms, logType) \
+  XLOG_EVERY_MS(level, ms) << logType << " "
+
 #define PORTMGR_SM_LOG(level) TYPED_LOG(level, "[SM]")
+
+#define PORTMGR_SM_LOG_EVERY_MS(level, ms) TYPED_LOG_EVERY_MS(level, ms, "[SM]")
 
 #define SW_PORT_LOG(level, logType, portName, portId)                 \
   XLOG(level) << logType << " [portName: " << portName << ", PortID(" \
@@ -78,15 +83,20 @@ class PortManager {
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::map<int32_t, PortStatus>> ports);
 
-  void publishPhyIOStats() const {
-    if (!phyManager_) {
-      return;
-    }
-    phyManager_->publishPhyIOStatsToFb303();
-  }
-
   PhyManager* getPhyManager() {
     return phyManager_.get();
+  }
+
+  void releasePhyManager() {
+    if (phyManager_) {
+      // Suppressing ASAN warnings as this is expected behavior
+      __attribute__((unused)) auto* leakedPhyManager = phyManager_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+      folly::lsan_ignore_object(leakedPhyManager);
+#endif
+#endif
+    }
   }
 
   void programXphyPort(PortID portId, cfg::PortProfileID portProfileId);

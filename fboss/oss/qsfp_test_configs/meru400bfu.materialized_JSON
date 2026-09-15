@@ -98,11 +98,35 @@
             }
           ]
       },
+      "DP08SFP8-LRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
+            }
+          ]
+      },
+      "DP08SFP8-LRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
+            }
+          ]
+      },
       "DP08SFP8-LRB-29D": {
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
+            }
+          ]
+      },
+      "DP08SFP8-ZRB-291": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.40.15"
             }
           ]
       },
@@ -110,7 +134,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -118,7 +142,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -158,7 +182,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -182,7 +206,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -378,6 +402,38 @@
             }
           ]
       },
+      "FTCF2519E3PCAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF4719E6PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
       "QDD-400G-XDR4": {
           "versions": [
             {
@@ -395,6 +451,14 @@
             {
               "fwType": 1,
               "version": "0.11"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.3"
             }
           ]
       },
@@ -637,5 +701,8 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

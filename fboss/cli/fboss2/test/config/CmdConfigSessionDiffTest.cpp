@@ -6,7 +6,11 @@
 #include <filesystem>
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+#include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+
+#include <string>
+#include <vector>
 
 using namespace ::testing;
 
@@ -294,6 +298,63 @@ TEST_F(CmdConfigSessionDiffTestFixture, printOutput) {
   EXPECT_NE(output.find("+new"), std::string::npos);
 }
 
+TEST_F(
+    CmdConfigSessionDiffTestFixture,
+    diffNoSessionDoesNotCreateSessionFiles) {
+  setupReadOnlyTestableConfigSession();
+
+  std::filesystem::path sessionDir = getTestHomeDir() / ".fboss2";
+  ASSERT_FALSE(std::filesystem::exists(sessionDir));
+
+  auto cmd = CmdConfigSessionDiff();
+  utils::RevisionList emptyRevisions(std::vector<std::string>{});
+  auto result = cmd.queryClient(localhost(), emptyRevisions);
+
+  EXPECT_EQ(result, "No config session exists. Make a config change first.");
+  EXPECT_FALSE(std::filesystem::exists(getSessionConfigPath()));
+  EXPECT_FALSE(std::filesystem::exists(sessionDir / "cli_metadata.json"));
+  EXPECT_FALSE(std::filesystem::exists(sessionDir / "bgp_config.json"));
+}
+
+TEST_F(
+    CmdConfigSessionDiffTestFixture,
+    diffTwoRevisionsDoesNotCreateSessionFiles) {
+  auto commits = git().log((getCliConfigDir() / "agent.conf").string());
+  std::string firstCommit = commits.back().sha1;
+
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 200000}]}})");
+  std::string secondCommit = git().commit({"cli/agent.conf"}, "Second commit");
+
+  setupReadOnlyTestableConfigSession();
+
+  auto cmd = CmdConfigSessionDiff();
+  utils::RevisionList revisions(
+      std::vector<std::string>{firstCommit, secondCommit});
+  auto result = cmd.queryClient(localhost(), revisions);
+
+  EXPECT_NE(result.find("200000"), std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(getTestHomeDir() / ".fboss2"));
+}
+
+TEST_F(CmdConfigSessionDiffTestFixture, diffReadOnlyStillSeesStagedSession) {
+  const std::string staged =
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 400000}]}})";
+  std::filesystem::create_directories(getSessionConfigPath().parent_path());
+  createTestConfig(getSessionConfigPath(), staged);
+
+  setupReadOnlyTestableConfigSession();
+
+  auto cmd = CmdConfigSessionDiff();
+  utils::RevisionList emptyRevisions(std::vector<std::string>{});
+  auto result = cmd.queryClient(localhost(), emptyRevisions);
+
+  EXPECT_NE(result.find("400000"), std::string::npos);
+  EXPECT_EQ(readFile(getSessionConfigPath()), staged);
+}
+
 TEST_F(CmdConfigSessionDiffTestFixture, printOutputNoDifferences) {
   auto cmd = CmdConfigSessionDiff();
   std::string noDiffMessage =
@@ -311,6 +372,25 @@ TEST_F(CmdConfigSessionDiffTestFixture, printOutputNoDifferences) {
   std::string output = buffer.str();
 
   EXPECT_NE(output.find("No differences"), std::string::npos);
+}
+
+TEST_F(CmdConfigSessionDiffTestFixture, diffBgpSession) {
+  setupTestableConfigSession();
+  // Remove the agent session so only a BGP session is staged.
+  std::filesystem::remove(getSessionConfigPath());
+
+  auto& session = ConfigSession::getInstance();
+  session.getBgpConfig().router_id() = "9.9.9.9";
+  session.saveBgpConfig();
+
+  auto cmd = CmdConfigSessionDiff();
+  utils::RevisionList emptyRevisions(std::vector<std::string>{});
+  auto result = cmd.queryClient(localhost(), emptyRevisions);
+
+  // A BGP-only session must be visible (not gated out as "no session"), and
+  // the staged router_id must show up in the diff.
+  EXPECT_EQ(result.find("No config session exists"), std::string::npos);
+  EXPECT_NE(result.find("9.9.9.9"), std::string::npos);
 }
 
 } // namespace facebook::fboss

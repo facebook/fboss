@@ -51,6 +51,9 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(
       flowletCfg1->getBackupSwitchingMode(),
       cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(flowletCfg1->getStandbySwitchingMode(), std::nullopt);
+  EXPECT_EQ(flowletCfg1->getStandbyInactivityIntervalUsecs(), std::nullopt);
+  EXPECT_EQ(flowletCfg1->getStandbyFlowletTableSize(), std::nullopt);
 
   flowletCfg.inactivityIntervalUsecs() = 60;
   flowletCfg.flowletTableSize() = 1024;
@@ -68,6 +71,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.primaryPathQualityThreshold() = 100;
   flowletCfg.alternatePathCost() = 50;
   flowletCfg.alternatePathBias() = 25;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.standbyInactivityIntervalUsecs() = 128;
+  flowletCfg.standbyFlowletTableSize() = 512;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -100,6 +106,11 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getAlternatePathCost().value(), 50);
   EXPECT_TRUE(flowletCfg2->getAlternatePathBias().has_value());
   EXPECT_EQ(flowletCfg2->getAlternatePathBias().value(), 25);
+  EXPECT_EQ(
+      flowletCfg2->getStandbySwitchingMode(),
+      cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(flowletCfg2->getStandbyInactivityIntervalUsecs(), 128);
+  EXPECT_EQ(flowletCfg2->getStandbyFlowletTableSize(), 512);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
@@ -158,6 +169,9 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.primaryPathQualityThreshold() = 200;
   flowletCfg.alternatePathCost() = 75;
   flowletCfg.alternatePathBias() = 30;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.standbyInactivityIntervalUsecs() = 256;
+  flowletCfg.standbyFlowletTableSize() = 2048;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -202,6 +216,9 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(
       flowletCfg1->getBackupSwitchingMode(),
       cfg::SwitchingMode::FIXED_ASSIGNMENT);
+  EXPECT_EQ(flowletCfg1->getStandbySwitchingMode(), std::nullopt);
+  EXPECT_EQ(flowletCfg1->getStandbyInactivityIntervalUsecs(), std::nullopt);
+  EXPECT_EQ(flowletCfg1->getStandbyFlowletTableSize(), std::nullopt);
 
   // change config
   flowletCfg.inactivityIntervalUsecs() = 60;
@@ -219,6 +236,9 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.primaryPathQualityThreshold() = 150;
   flowletCfg.alternatePathCost() = 60;
   flowletCfg.alternatePathBias() = 35;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::PER_PACKET_RANDOM;
+  flowletCfg.standbyInactivityIntervalUsecs() = 256;
+  flowletCfg.standbyFlowletTableSize() = 2048;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -241,6 +261,11 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(
       flowletCfg2->getBackupSwitchingMode(),
       cfg::SwitchingMode::PER_PACKET_RANDOM);
+  EXPECT_EQ(
+      flowletCfg2->getStandbySwitchingMode(),
+      cfg::SwitchingMode::PER_PACKET_RANDOM);
+  EXPECT_EQ(flowletCfg2->getStandbyInactivityIntervalUsecs(), 256);
+  EXPECT_EQ(flowletCfg2->getStandbyFlowletTableSize(), 2048);
 
   flowletCfg.switchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
   flowletCfg.backupSwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
@@ -326,4 +351,65 @@ TEST(FlowletSwitching, mismatchedStateModify) {
   std::ignore = stateV2->getFlowletSwitchingConfig()->modify(&stateV2);
   // newFlowletConfig is part of stateV1 not stateV2
   EXPECT_THROW(newFlowletConfig->modify(&stateV2), FbossError);
+}
+
+TEST(FlowletSwitching, standbySwitchingModeMatchingPrimaryRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.standbyInactivityIntervalUsecs() = 128;
+  flowletCfg.standbyFlowletTableSize() = 2048;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(FlowletSwitching, standbySwitchingModeWithoutIdleTimeRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.standbyFlowletTableSize() = 2048;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(FlowletSwitching, standbySwitchingModeWithoutTableSizeRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.standbySwitchingMode() = cfg::SwitchingMode::FIXED_ASSIGNMENT;
+  flowletCfg.standbyInactivityIntervalUsecs() = 128;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(FlowletSwitching, standbyFieldsWithoutSwitchingModeRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.switchingMode() = cfg::SwitchingMode::PER_PACKET_QUALITY;
+  flowletCfg.standbyInactivityIntervalUsecs() = 128;
+  flowletCfg.standbyFlowletTableSize() = 2048;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }

@@ -14,7 +14,9 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/AclEntry.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/config/agent/AclConfigUtils.h"
 
 class SwSwitch;
 
@@ -61,12 +63,6 @@ void addUdfTableToAcl(
     const std::vector<int8_t>& roceBytes,
     const std::vector<int8_t>& roceMask);
 
-std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
-    cfg::AsicType asicType);
-
-std::vector<cfg::AclTableActionType> genAclActionTypesConfig(
-    cfg::AsicType asicType);
-
 int getAclTableIndex(
     cfg::AclTableGroup* aclTableGroup,
     const std::string& tableName);
@@ -76,14 +72,6 @@ std::shared_ptr<AclEntry> getAclEntryByName(
     cfg::AclStage aclStage,
     const std::string& tableName,
     const std::string& aclName);
-
-std::shared_ptr<AclEntry> getAclEntryByName(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclName);
-
-std::optional<std::string> getAclTableNameForEntry(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclEntryId);
 
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,

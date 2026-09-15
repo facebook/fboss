@@ -27,6 +27,12 @@ struct CmdShowBgpStreamSubscriberTraits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = std::vector<std::string>;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description() {
+    return "Selects a BGP stream subscriber by id so one of the 'pre-policy' or 'post-policy' subcommands can show the routes being streamed to it. This level of the command does no lookup of its own: run without a subscriber id it prints the usage line, and run with an id but no policy subcommand it prints which subcommand is missing. Subscriber ids come from 'show bgp stream summary', which lists the clients currently subscribed to the switch's route stream. Use 'pre-policy' for what the switch selected for the subscriber and 'post-policy' for what the export policy actually let through.";
+  }
 };
 
 class CmdShowBgpStreamSubscriber : public CmdHandler<
@@ -42,6 +48,12 @@ class CmdShowBgpStreamSubscriber : public CmdHandler<
           << std::endl;
     }
     return peerIds;
+  }
+
+  // Canned, synthetic model (no real switch data): the subscriber id list this
+  // level of the command echoes back before a policy subcommand narrows it.
+  static RetType sampleModel() {
+    return {"1"};
   }
 
   void printOutput(RetType& peerIds) {

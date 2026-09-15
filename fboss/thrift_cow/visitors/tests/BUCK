@@ -66,6 +66,17 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "extpath_matcher_tests",
+    srcs = [
+        "ExtendedPathMatcherTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
+
+cpp_unittest(
     name = "delta_visitor_tests",
     srcs = [
         "DeltaVisitorTests.cpp",
@@ -92,6 +103,7 @@ cpp_unittest(
     preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
         "//fboss/thrift_cow/nodes:nodes",
         "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",

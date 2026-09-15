@@ -16,6 +16,7 @@
 #include <thrift/lib/cpp2/op/Encode.h>
 #include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <thrift/lib/cpp2/type/detail/TypeClassToTypeTag.h>
 #include <utility>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 

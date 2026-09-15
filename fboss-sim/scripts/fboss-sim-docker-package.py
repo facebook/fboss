@@ -94,7 +94,7 @@ def verify_binaries(build_dir: Path) -> None:
     print(f"  ✓ All {len(REQUIRED_BINARIES)} required binaries present")
 
 
-def resolve_dependencies(binary_path: Path) -> set[str]:
+def resolve_dependencies(binary_path: Path, installed_dir: Path) -> set[str]:
     """Use ldd to find shared library dependencies for a binary."""
     dependencies = set()
 
@@ -106,10 +106,24 @@ def resolve_dependencies(binary_path: Path) -> set[str]:
     except subprocess.CalledProcessError:
         return dependencies
 
-    # Resolve via the binary's own RUNPATH; strip any inherited LD_LIBRARY_PATH
-    # so a stale dep generation under installed/ can't shadow the correct one.
+    # Resolve via LD_LIBRARY_PATH pointed at THIS build's installed/ tree. The
+    # binaries' baked RUNPATH is the absolute build-time scratch path, which need
+    # not exist in the collect environment -- e.g. the CI collect container mounts
+    # the build tree at a different path than the one baked at build time -- so
+    # RUNPATH-only resolution reports every getdeps lib (folly, wangle, mvfst, ...)
+    # as "not found". Pointing ldd at the installed/ lib dirs resolves them
+    # wherever the tree is mounted.
     env = os.environ.copy()
-    env.pop("LD_LIBRARY_PATH", None)
+    lib_dirs = [
+        str(d)
+        for pat in ("*/lib", "*/lib64")
+        for d in sorted(installed_dir.glob(pat))
+        if d.is_dir()
+    ]
+    if lib_dirs:
+        env["LD_LIBRARY_PATH"] = ":".join(lib_dirs)
+    else:
+        env.pop("LD_LIBRARY_PATH", None)
 
     try:
         output = subprocess.check_output(
@@ -203,7 +217,7 @@ def copy_artifacts(
     all_deps: set[str] = set()
     for binary in REQUIRED_BINARIES:
         binary_path = build_dir / binary
-        all_deps.update(resolve_dependencies(binary_path))
+        all_deps.update(resolve_dependencies(binary_path, installed_dir))
 
     for lib_path in sorted(all_deps):
         lib_name = os.path.basename(lib_path)

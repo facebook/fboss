@@ -10,6 +10,11 @@
 
 #include "fboss/agent/AsyncLogger.h"
 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
+
+#include <folly/FileUtil.h>
 #include <gtest/gtest.h>
 
 #define TEST_LOG "/tmp/sai_logger_test"
@@ -39,6 +44,44 @@ class AsyncLoggerTest : public ::testing::Test {
   std::mutex latch;
   uint32_t logTimeout = 100;
 };
+
+TEST(AsyncLoggerFallbackTest, FallbackRefusesSymlinkTarget) {
+  // A primary log path under a non-existent directory forces the primary open
+  // to fail, so AsyncLoggerBase falls back to /tmp/<name>. The agent runs as
+  // root, and a local attacker could pre-plant that predictable path as a
+  // symlink; the fallback must not follow it and truncate the target.
+  // Use a pid-suffixed name so concurrent runs on a shared host (e.g. parallel
+  // sandcastle jobs) don't race on the same /tmp paths.
+  const std::string suffix = std::to_string(::getpid());
+  const std::string victimPath = "/tmp/async_logger_victim_" + suffix;
+  const std::string fallbackName = "async_logger_fallback_test_" + suffix;
+  const std::string fallbackPath = "/tmp/" + fallbackName;
+  const std::string primaryPath =
+      "/nonexistent_async_logger_dir/" + fallbackName;
+
+  ::unlink(fallbackPath.c_str());
+  ::unlink(victimPath.c_str());
+  ASSERT_TRUE(
+      folly::writeFile(std::string("DO NOT TRUNCATE"), victimPath.c_str()));
+  ASSERT_EQ(::symlink(victimPath.c_str(), fallbackPath.c_str()), 0);
+
+  {
+    AsyncLogger logger(primaryPath, 100, AsyncLogger::BCM_CINTER);
+  }
+
+  // The planted symlink must not have been followed: victim is intact.
+  std::string victimContent;
+  ASSERT_TRUE(folly::readFile(victimPath.c_str(), victimContent));
+  EXPECT_EQ(victimContent, "DO NOT TRUNCATE");
+
+  // The fallback path is now a fresh regular file, not the planted symlink.
+  struct stat st{};
+  ASSERT_EQ(::lstat(fallbackPath.c_str(), &st), 0);
+  EXPECT_TRUE(S_ISREG(st.st_mode));
+
+  ::unlink(fallbackPath.c_str());
+  ::unlink(victimPath.c_str());
+}
 
 // Skip this test in tsan mode because of the slow down introduced by
 // thread sanitizer. It makes the logger flush once in 3-4x log timeout.
