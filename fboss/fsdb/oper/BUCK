@@ -97,6 +97,7 @@ cpp_library(
         "NaivePeriodicSubscribableStorageBase.cpp",
     ],
     headers = [
+        "NaivePeriodicSubscribableStorage-inl.h",
         "NaivePeriodicSubscribableStorage.h",
         "NaivePeriodicSubscribableStorageBase.h",
         "SubscribableStorage.h",

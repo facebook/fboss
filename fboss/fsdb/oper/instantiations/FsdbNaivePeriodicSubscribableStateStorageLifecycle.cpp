@@ -8,13 +8,15 @@
  *
  */
 
-#define FBOSS_NAIVE_PERIODIC_SUBSCRIBABLE_STORAGE_DECLARATIONS_ONLY
 #include <fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h>
 
 namespace facebook::fboss::fsdb {
 
-template class NaivePeriodicSubscribableStorage<
-    CowStorage<FsdbOperStateRoot>,
-    CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>>;
+using StateStorage = FsdbNaivePeriodicSubscribableStorage;
+
+template StateStorage::NaivePeriodicSubscribableStorage(
+    const FsdbOperStateRoot&,
+    NaivePeriodicSubscribableStorageBase::StorageParams);
+template StateStorage::~NaivePeriodicSubscribableStorage();
 
 } // namespace facebook::fboss::fsdb
