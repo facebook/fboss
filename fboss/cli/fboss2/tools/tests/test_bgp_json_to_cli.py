@@ -29,6 +29,7 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     generate_peer_commands,
     generate_peer_group_commands,
     generate_policy_commands,
+    generate_prefix_list_commands,
     json_to_cli,
 )
 
@@ -1173,6 +1174,76 @@ class GenerateCommunityListCommunityCommandsTest(unittest.TestCase):
             [
                 "config protocol bgp policy community-list CL exact-match true",
                 f"{self.PREFIX} value 65000:1",
+            ],
+        )
+
+
+class GeneratePrefixListCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_commands (prefix-list grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"version": 4}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"name": "PL"}), [self.PREFIX])
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "description": "loopbacks",
+                "boolean_operator": "AND",
+                "compare_operator": 2,
+                "version": 6,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description loopbacks",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} compare-operator GE",
+                f"{self.PREFIX} ip-version v6",
+            ],
+        )
+
+    def test_or_default_omitted(self) -> None:
+        self.assertEqual(
+            generate_prefix_list_commands({"name": "PL", "boolean_operator": 2}),
+            [self.PREFIX],
+        )
+
+    def test_unexpressible_values_warn(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "compare_operator": 7,
+                "version": 5,
+                "prefix_list_names": ["X"],
+                "ip_version": 1,
+            }
+        )
+        self.assertEqual(len(commands), 4)
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_order(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+                "config protocol bgp policy prefix-list PL",
             ],
         )
 
