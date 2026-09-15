@@ -631,39 +631,4 @@ TEST_F(CmdConfigAclRuleTestFixture, idempotentSameValue) {
   EXPECT_EQ(*getRule("rule-1").dscp(), 46);
 }
 
-// =============================================================
-// findAclTable() helper — shared by config + delete acl rule
-// =============================================================
-
-TEST(AclRuleFindTableTest, throwsWhenNoAclTableGroups) {
-  cfg::SwitchConfig sw;
-  // No aclTableGroups at all (the deprecated field-45 form is unsupported).
-  EXPECT_THROW(findAclTable(sw, "AclTable1"), std::runtime_error);
-}
-
-TEST(AclRuleFindTableTest, throwsWhenTableMissing) {
-  cfg::SwitchConfig sw;
-  cfg::AclTableGroup group;
-  group.name() = "grp";
-  cfg::AclTable table;
-  table.name() = "AclTable1";
-  group.aclTables() = {table};
-  sw.aclTableGroups() = {group};
-  EXPECT_THROW(findAclTable(sw, "does-not-exist"), std::runtime_error);
-}
-
-TEST(AclRuleFindTableTest, findsTableAndGroup) {
-  cfg::SwitchConfig sw;
-  cfg::AclTableGroup group;
-  group.name() = "grp";
-  cfg::AclTable table;
-  table.name() = "AclTable1";
-  group.aclTables() = {table};
-  sw.aclTableGroups() = {group};
-  auto [found, groupName] = findAclTable(sw, "AclTable1");
-  ASSERT_NE(found, nullptr);
-  EXPECT_EQ(*found->name(), "AclTable1");
-  EXPECT_EQ(groupName, "grp");
-}
-
 } // namespace facebook::fboss

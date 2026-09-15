@@ -14,6 +14,8 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h"
 #include "fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h"
+#include "fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.h"
+#include "fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
@@ -133,6 +135,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h"
 #include "fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h"
+#include "fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.h"
 #include "fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
 #include "fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h"
@@ -207,11 +210,23 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigAcl>,
           argRegistrar<CmdConfigAclTraits>,
           {{
-              "rule",
-              "Configure an ACL rule (e.g. match fields on an AclEntry)",
-              commandHandler<CmdConfigAclRule>,
-              argRegistrar<CmdConfigAclRuleTraits>,
-          }},
+               "rule",
+               "Configure an ACL rule (e.g. match fields on an AclEntry)",
+               commandHandler<CmdConfigAclRule>,
+               argRegistrar<CmdConfigAclRuleTraits>,
+           },
+           {
+               "table",
+               "Create or configure an ACL table within a table-group",
+               commandHandler<CmdConfigAclTable>,
+               argRegistrar<CmdConfigAclTableTraits>,
+           },
+           {
+               "table-group",
+               "Create or configure an ACL table-group and its stage",
+               commandHandler<CmdConfigAclTableGroup>,
+               argRegistrar<CmdConfigAclTableGroupTraits>,
+           }},
       },
 
       {
@@ -1210,11 +1225,17 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdDeleteAcl>,
           argRegistrar<CmdDeleteAclTraits>,
           {{
-              "rule",
-              "Delete an ACL rule (and any associated MatchAction) from an AclTable",
-              commandHandler<CmdDeleteAclRule>,
-              argRegistrar<CmdDeleteAclRuleTraits>,
-          }},
+               "rule",
+               "Delete an ACL rule (and any associated MatchAction) from an AclTable",
+               commandHandler<CmdDeleteAclRule>,
+               argRegistrar<CmdDeleteAclRuleTraits>,
+           },
+           {
+               "table",
+               "Delete an ACL table, its rules, and their traffic-policy actions",
+               commandHandler<CmdDeleteAclTable>,
+               argRegistrar<CmdDeleteAclTableTraits>,
+           }},
       },
 
       {"delete",
