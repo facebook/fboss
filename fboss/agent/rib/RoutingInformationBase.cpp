@@ -780,7 +780,8 @@ void RibRouteTables::updateFib(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
             hwUpdateError.appliedState->getLabelForwardingInformationBase(),
-            this);
+            this,
+            hwUpdateError.appliedState->getClassBasedPolicies());
       }
 
       // Reconstruct MySidTable from the applied state
@@ -836,7 +837,8 @@ void RibRouteTables::updateFib(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
             hwUpdateError.appliedState->getLabelForwardingInformationBase(),
-            this);
+            this,
+            hwUpdateError.appliedState->getClassBasedPolicies());
       }
     }
     throw;
@@ -1459,7 +1461,12 @@ RibRouteTables RibRouteTables::fromThrift(
     // the out-param and it dies when this scope exits.
     std::unordered_map<NextHopSetID, NextHopSetID> setIdRemap;
     lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
-        fibsInfoMap, mySidMap, labelFib, &rib, &setIdRemap);
+        fibsInfoMap,
+        mySidMap,
+        labelFib,
+        &rib,
+        /*classBasedPolicyMaps=*/nullptr,
+        &setIdRemap);
     if (!setIdRemap.empty()) {
       for (auto& [_vrf, routeTable] : lockedRouteTables->routerIDToRouteTable) {
         routeTable.v4NetworkToRoute.forAll([&setIdRemap](auto& ritr) {
@@ -1939,7 +1946,8 @@ void RibRouteTables::updateFibNamedNextHopGroups(
             hwUpdateError.appliedState->getFibsInfoMap(),
             hwUpdateError.appliedState->getMySids(),
             hwUpdateError.appliedState->getLabelForwardingInformationBase(),
-            this);
+            this,
+            hwUpdateError.appliedState->getClassBasedPolicies());
       }
     }
     throw;

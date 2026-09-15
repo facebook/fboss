@@ -3,6 +3,7 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Route.h"
@@ -858,6 +859,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
     const RibRouteTables* ribTables,
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>& classBasedPolicyMaps,
     std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut) {
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
@@ -875,6 +877,7 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
   reconstructMySidPass(mySidMap, ctx);
   reconstructMplsFibPass(labelFib, ctx);
   reconstructUnresolvedRibPass(ribTables, ctx);
+  reconstructClassBasedPolicyPass(classBasedPolicyMaps);
 
   // Set next available IDs. The SetID watermark must clear both the highest
   // persisted SetID and any fresh SetIDs minted for deduped member sets.
@@ -909,6 +912,28 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
       }
       XLOG(DBG3) << "[NextHop ID Manager] reconstructed setId=" << setId
                  << " nhIds={" << ids << "}";
+    }
+  }
+}
+
+void NextHopIDManager::reconstructClassBasedPolicyPass(
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+        classBasedPolicyMaps) {
+  if (!classBasedPolicyMaps) {
+    return;
+  }
+  for (const auto& [matcher, policyMap] :
+       std::as_const(*classBasedPolicyMaps)) {
+    for (const auto& [policyName, policyNode] : std::as_const(*policyMap)) {
+      if (pbrPolicyToNamedNhg_.count(policyName)) {
+        continue;
+      }
+      ClassBasedPolicyNhgs policy;
+      policy.defaultNexthopGroup = *policyNode->getDefaultNextHopGroup().name();
+      for (const auto& [fc, named] : policyNode->getClass2NextHopGroup()) {
+        policy.class2NextHopGroup[fc] = *named.name();
+      }
+      pbrPolicyToNamedNhg_[policyName] = std::move(policy);
     }
   }
 }

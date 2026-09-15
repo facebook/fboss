@@ -23,6 +23,7 @@
 namespace facebook::fboss {
 
 class RibRouteTables;
+class MultiSwitchClassBasedPolicyMap;
 
 // A set of NextHopIDs (used as key for NextHopIDSetID mapping)
 using NextHopIDSet = std::set<NextHopID>;
@@ -327,6 +328,8 @@ class NextHopIDManager {
       const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
       const RibRouteTables* ribTables,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps = nullptr,
       std::unordered_map<NextHopSetID, NextHopSetID>* setIdRemapOut = nullptr);
 
  private:
@@ -393,6 +396,13 @@ class NextHopIDManager {
   void reconstructUnresolvedRibPass(
       const RibRouteTables* ribTables,
       ReconstructionContext& ctx);
+
+  // Policy pass: rebuild the class-based policy store from the persisted
+  // classBasedPolicyMaps, reading each referenced NHG name straight off the
+  // policy's persisted NamedNextHopGroupAndID.
+  void reconstructClassBasedPolicyPass(
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   // Returns the first SetID strictly above every persisted SetID. Used by
   // reconstructFromSwitchStateMaps to mint fresh SetIDs for deduped
