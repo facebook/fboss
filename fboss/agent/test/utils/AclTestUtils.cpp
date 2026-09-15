@@ -396,6 +396,25 @@ void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
   }
 }
 
+void delCPUMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
+  if (auto cpuTrafficPolicy = config->cpuTrafficPolicy()) {
+    if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
+      auto& matchActions = *trafficPolicy->matchToAction();
+      matchActions.erase(
+          std::remove_if(
+              matchActions.begin(),
+              matchActions.end(),
+              [&](cfg::MatchToAction const& matchAction) {
+                if (*matchAction.matcher() == matcherName) {
+                  return true;
+                }
+                return false;
+              }),
+          matchActions.end());
+    }
+  }
+}
+
 void addAclMirrorAction(
     cfg::SwitchConfig* cfg,
     const std::string& matcher,
