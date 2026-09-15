@@ -10,6 +10,9 @@
 #include <vector>
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/routing-policy/CmdConfigProtocolBgpPolicyRoutingPolicy.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/routing-policy/CmdDeleteProtocolBgpPolicyRoutingPolicy.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -53,6 +56,27 @@ class CmdDeleteBgpPolicyRoutingPolicyTestFixture : public CmdConfigTestBase {
                 .policies()
                 .ensure()
                 .bgp_policy_statements();
+  }
+
+  // The referrers are staged through the real CLIs that live below this
+  // level, so the guard is exercised against exactly what those commands
+  // write.
+  std::string configureNeighbor(const std::vector<std::string>& tokens) {
+    CmdConfigProtocolBgpNeighbor cmd;
+    HostInfo hostInfo("testhost");
+    return cmd.queryClient(hostInfo, BgpNeighborConfig(tokens));
+  }
+
+  std::string configurePeerGroup(const std::vector<std::string>& tokens) {
+    CmdConfigProtocolBgpPeerGroup cmd;
+    HostInfo hostInfo("testhost");
+    return cmd.queryClient(hostInfo, BgpPeerGroupConfig(tokens));
+  }
+
+  std::string configureGlobal(const std::vector<std::string>& tokens) {
+    CmdConfigProtocolBgpGlobal cmd;
+    HostInfo hostInfo("testhost");
+    return cmd.queryClient(hostInfo, BgpGlobalConfig(tokens));
   }
 
   bool sessionFileExists() {
@@ -113,6 +137,61 @@ TEST_F(
   configure({"RM100", "description", "one"});
   auto result = del({"RM200"});
   EXPECT_THAT(result, HasSubstr("not found"));
+  ASSERT_EQ(policies().size(), 1);
+  EXPECT_EQ(*policies()[0].name(), "RM100");
+}
+
+// ==============================================================================
+// Reference guard — a policy a neighbor, peer-group or network6 still names is
+// not deletable
+// ==============================================================================
+
+TEST_F(
+    CmdDeleteBgpPolicyRoutingPolicyTestFixture,
+    deleteReferencedPolicyRejected) {
+  configure({"RM100", "description", "in-use"});
+  configureNeighbor({"10.0.0.2", "ingress-policy", "RM100"});
+
+  auto result = del({"RM100"});
+  EXPECT_THAT(result, HasSubstr("still referenced"));
+  // The refusal names the referrer so the user can act on it.
+  EXPECT_THAT(result, HasSubstr("neighbor 10.0.0.2 ingress"));
+  EXPECT_THAT(result, HasSubstr("re-point or remove those references first"));
+  ASSERT_EQ(policies().size(), 1);
+  EXPECT_EQ(*policies()[0].name(), "RM100");
+  EXPECT_EQ(*policies()[0].description(), "in-use");
+}
+
+TEST_F(
+    CmdDeleteBgpPolicyRoutingPolicyTestFixture,
+    deleteReferencedPolicyNamesEveryReferrer) {
+  configure({"RM100"});
+  configureNeighbor({"10.0.0.2", "egress-policy", "RM100"});
+  configurePeerGroup({"SPINE", "ingress-policy", "RM100"});
+  configurePeerGroup({"SPINE", "egress-policy", "RM100"});
+  configureGlobal({"network6", "add", "2001:db8::/64", "policy", "RM100"});
+
+  auto result = del({"RM100"});
+  EXPECT_THAT(result, HasSubstr("neighbor 10.0.0.2 egress"));
+  EXPECT_THAT(result, HasSubstr("peer-group SPINE ingress"));
+  EXPECT_THAT(result, HasSubstr("peer-group SPINE egress"));
+  EXPECT_THAT(result, HasSubstr("network6 2001:db8::/64"));
+  ASSERT_EQ(policies().size(), 1);
+}
+
+TEST_F(
+    CmdDeleteBgpPolicyRoutingPolicyTestFixture,
+    referenceToOtherPolicyDoesNotBlockDelete) {
+  configure({"RM100"});
+  configure({"RM200"});
+  // Referrers of RM100 must not block deleting RM200.
+  configureNeighbor({"10.0.0.2", "ingress-policy", "RM100"});
+  configurePeerGroup({"SPINE", "egress-policy", "RM100"});
+  configureGlobal({"network6", "add", "2001:db8::/64", "policy", "RM100"});
+
+  auto result = del({"RM200"});
+  EXPECT_THAT(
+      result, HasSubstr("Successfully deleted BGP routing-policy RM200"));
   ASSERT_EQ(policies().size(), 1);
   EXPECT_EQ(*policies()[0].name(), "RM100");
 }
