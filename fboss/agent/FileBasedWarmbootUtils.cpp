@@ -134,7 +134,8 @@ reconstructStateAndRib(
         state->getFibsInfoMap(),
         state->getLabelForwardingInformationBase(),
         state->getMySids(),
-        getEcmpWidth(state));
+        getEcmpWidth(state),
+        state->getClassBasedPolicies());
   } else {
     state = SwitchState::fromThrift(state::SwitchState{});
     /* cold boot, setup default rib */
@@ -144,7 +145,12 @@ reconstructStateAndRib(
       routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
     }
     rib = RoutingInformationBase::fromThrift(
-        routeTables, nullptr, nullptr, nullptr, getEcmpWidth(state));
+        routeTables,
+        nullptr,
+        nullptr,
+        nullptr,
+        getEcmpWidth(state),
+        state->getClassBasedPolicies());
   }
   return std::make_pair(state, std::move(rib));
 }

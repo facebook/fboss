@@ -1419,7 +1419,9 @@ RibRouteTables RibRouteTables::fromThrift(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-    uint32_t ecmpWidth) {
+    uint32_t ecmpWidth,
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+        classBasedPolicyMaps) {
   RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
   lockedRouteTables->ecmpWidth = ecmpWidth;
@@ -1465,7 +1467,7 @@ RibRouteTables RibRouteTables::fromThrift(
         mySidMap,
         labelFib,
         &rib,
-        /*classBasedPolicyMaps=*/nullptr,
+        classBasedPolicyMaps,
         &setIdRemap);
     if (!setIdRemap.empty()) {
       for (auto& [_vrf, routeTable] : lockedRouteTables->routerIDToRouteTable) {
@@ -1517,10 +1519,17 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-    uint32_t ecmpWidth) {
+    uint32_t ecmpWidth,
+    const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+        classBasedPolicyMaps) {
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromThrift(
-      ribThrift, fibsInfoMap, labelFib, mySidMap, ecmpWidth);
+      ribThrift,
+      fibsInfoMap,
+      labelFib,
+      mySidMap,
+      ecmpWidth,
+      classBasedPolicyMaps);
   return rib;
 }
 

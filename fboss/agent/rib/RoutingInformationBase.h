@@ -35,6 +35,7 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchFibInfoMap;
 class MultiSwitchMySidMap;
+class MultiSwitchClassBasedPolicyMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
@@ -251,7 +252,9 @@ class RibRouteTables {
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
       const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-      uint32_t ecmpWidth);
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -570,7 +573,9 @@ class RoutingInformationBase {
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
       const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-      uint32_t ecmpWidth);
+      uint32_t ecmpWidth,
+      const std::shared_ptr<MultiSwitchClassBasedPolicyMap>&
+          classBasedPolicyMaps);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);

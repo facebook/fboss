@@ -1386,7 +1386,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsClientNextHopSetID) {
       fibInfoMap,
       std::make_shared<MultiLabelForwardingInformationBase>(),
       std::make_shared<MultiSwitchMySidMap>(),
-      kEcmpWidth);
+      kEcmpWidth,
+      nullptr);
   auto manager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(manager, nullptr);
 

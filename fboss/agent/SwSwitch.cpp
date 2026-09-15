@@ -1468,7 +1468,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
         state->getFibsInfoMap(),
         state->getLabelForwardingInformationBase(),
         state->getMySids(),
-        getEcmpWidth(state));
+        getEcmpWidth(state),
+        state->getClassBasedPolicies());
   }
 
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
