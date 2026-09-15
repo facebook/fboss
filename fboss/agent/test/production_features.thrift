@@ -154,6 +154,8 @@ struct FeatureSdkSupport {
   2: VendorSdk sdk;
   3: string minSdkVersion;
   4: optional string note;
+  // Exact components required in the normalized Netcastle test config.
+  5: optional list<string> requiredTestConfigOptions;
 }
 
 struct FeatureSupportSpec {
