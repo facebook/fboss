@@ -149,6 +149,8 @@ cpp_unittest(
         "CmdShowBgpNexthopInfoWikiDocsTest.cpp",
         "CmdShowBgpOriginatedRoutesTest.cpp",
         "CmdShowBgpPolicyConfigTest.cpp",
+        "CmdShowBgpPolicyTest.cpp",
+        "CmdShowBgpProfilerTest.cpp",
         "CmdShowBgpRibPolicyTest.cpp",
         "CmdShowBgpShadowRibTest.cpp",
         "CmdShowBgpStatsAttrsTest.cpp",

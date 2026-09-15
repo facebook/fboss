@@ -322,6 +322,7 @@ cpp_library(
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h",
         "commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h",
         "commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h",
+        "commands/show/bgp/policy/CmdShowBgpPolicy.h",
         "commands/show/bgp/profiler/CmdShowBgpProfiler.h",
         "commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h",
         "commands/show/bgp/stats/CmdShowBgpStatsAttrs.h",
@@ -386,6 +387,7 @@ cpp_library(
         "//servicerouter/common:tservice_router_exception",
         "//thrift/lib/cpp:thrift_exception",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
