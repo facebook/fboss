@@ -12,6 +12,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/commands/config/TrafficPolicyUtils.h"
 #include "fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h"
 
 #include <fmt/format.h>
@@ -106,21 +107,29 @@ CmdConfigAclRuleTraits::RetType CmdConfigAclRule::queryClient(
   // not on the AclEntry. Locate or create the MatchToAction for this
   // rule and apply the action to it.
   if (args.isMatchAction()) {
-    if (!swConfig.dataPlaneTrafficPolicy()) {
-      swConfig.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig{};
-    }
-    auto& mtaList = *swConfig.dataPlaneTrafficPolicy()->matchToAction();
-    auto mit = std::find_if(
-        mtaList.begin(), mtaList.end(), [&](const cfg::MatchToAction& mta) {
-          return *mta.matcher() == args.getRuleName();
-        });
-    if (mit == mtaList.end()) {
-      cfg::MatchToAction fresh;
-      fresh.matcher() = args.getRuleName();
-      mtaList.push_back(std::move(fresh));
-      mit = std::prev(mtaList.end());
-    }
-    args.applyActionTo(*mit->action());
+    // Deprecated. An AclEntry carries match conditions and PERMIT/DENY; every
+    // richer action belongs to a policy, and which policy changes behavior
+    // (updateAclsImpl reads a CPU-matched rule's queue id as a CPU queue and a
+    // dataplane-matched one's as a port queue). Setting it here can only ever
+    // mean the dataplane policy, so a CPU action is unreachable this way.
+    //
+    // Still honoured so existing callers and the landed upstream form keep
+    // working, and routed through the same upsert as the policy verbs so the
+    // two cannot diverge. Removal is a follow-up needing upstream agreement.
+    std::cerr << "warning: setting '" << args.getAttribute()
+              << "' on an acl rule is deprecated and assumes the dataplane "
+                 "policy; use `config data-plane traffic-policy match "
+              << args.getRuleName()
+              << " action ...` (or `config copp "
+                 "traffic-policy ...` for CPU actions) instead"
+              << std::endl;
+    traffic_policy::assertNotInOtherPolicy(
+        swConfig, args.getRuleName(), traffic_policy::PolicyKind::DataPlane);
+    auto& action = traffic_policy::upsertMatcher(
+        traffic_policy::policyFor(
+            swConfig, traffic_policy::PolicyKind::DataPlane),
+        args.getRuleName());
+    args.applyActionTo(action);
   }
 
   // AclEntry mutations are applied at runtime via processAclTableGroupDelta
