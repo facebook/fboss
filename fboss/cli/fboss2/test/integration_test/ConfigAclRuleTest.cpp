@@ -376,8 +376,8 @@ TEST_F(ConfigAclRuleTest, SetLookupClassL2) {
 
 TEST_F(ConfigAclRuleTest, SetLookupClassNeighbor) {
   runSet(
-      "lookup-class-neighbor", {"CLASS_QUEUE_PER_HOST_QUEUE_9"}, [](auto& e) {
-        EXPECT_EQ(e["lookupClassNeighbor"].asInt(), 19);
+      "lookup-class-neighbor", {"CLASS_QUEUE_PER_HOST_QUEUE_5"}, [](auto& e) {
+        EXPECT_EQ(e["lookupClassNeighbor"].asInt(), 15);
       });
 }
 
