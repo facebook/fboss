@@ -12,6 +12,10 @@
 
 namespace facebook::fboss::fsdb {
 
-template class CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>;
+template void
+CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>::pruneDeletedPaths(
+    SubscriptionStore&,
+    const std::shared_ptr<thrift_cow::FsdbCowStatsRoot>&,
+    const std::shared_ptr<thrift_cow::FsdbCowStatsRoot>&);
 
 } // namespace facebook::fboss::fsdb

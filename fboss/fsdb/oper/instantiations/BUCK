@@ -54,8 +54,12 @@ cpp_library(
 cpp_library(
     name = "fsdb_cow_subscription_manager",
     srcs = [
-        "FsdbCowStateSubscriptionManager.cpp",
-        "FsdbCowStatsSubscriptionManager.cpp",
+        "FsdbCowStateSubscriptionManagerPrune.cpp",
+        "FsdbCowStateSubscriptionManagerServe.cpp",
+        "FsdbCowStateSubscriptionManagerSync.cpp",
+        "FsdbCowStatsSubscriptionManagerPrune.cpp",
+        "FsdbCowStatsSubscriptionManagerServe.cpp",
+        "FsdbCowStatsSubscriptionManagerSync.cpp",
     ],
     headers = ["FsdbCowSubscriptionManager.h"],
     exported_deps = [
