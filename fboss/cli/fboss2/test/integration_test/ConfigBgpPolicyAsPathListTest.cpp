@@ -20,6 +20,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -90,6 +91,49 @@ TEST_F(ConfigBgpPolicyAsPathListTest, SetListDescriptionAndCommit) {
   ASSERT_NE(runningList, nullptr)
       << "bgpd's running config has no as-path-list " << kList;
   EXPECT_EQ((*runningList)["description"].asString(), "test spine as-paths");
+}
+
+TEST_F(ConfigBgpPolicyAsPathListTest, SetRegexAndOperatorAndCommit) {
+  discardSession();
+  clearBgpSession();
+  stageAsPathList({kList, "regex", "^65000_"});
+  stageAsPathList({kList, "regex", "_65001$"});
+  stageAsPathList({kList, "boolean-operator", "AND"});
+  commitAndGetSha();
+  ASSERT_TRUE(waitForBgpDaemonActive())
+      << "bgpd did not return active after commit; state="
+      << bgpDaemonActiveState();
+  // bgpd matches on as_paths + boolean_operator (not the entry list); the
+  // running config proves it parsed and adopted both.
+  auto running = readRunningBgpConfigViaRpc();
+  const auto* list = findList(running, kList);
+  ASSERT_NE(list, nullptr) << "bgpd's running config has no as-path-list "
+                           << kList;
+  ASSERT_TRUE(list->count("as_paths"));
+  std::vector<std::string> paths;
+  for (const auto& p : (*list)["as_paths"]) {
+    paths.push_back(p.asString());
+  }
+  EXPECT_EQ(paths, std::vector<std::string>({"^65000_", "_65001$"}));
+  ASSERT_TRUE(list->count("boolean_operator"));
+  // routing_policy.BooleanOperator.AND == 1
+  EXPECT_EQ((*list)["boolean_operator"].asInt(), 1);
+}
+
+TEST_F(ConfigBgpPolicyAsPathListTest, MalformedRegexRejected) {
+  clearBgpSession();
+  auto result = runCli(
+      {"config",
+       "protocol",
+       "bgp",
+       "policy",
+       "as-path-list",
+       kList,
+       "regex",
+       "^65000_("});
+  EXPECT_THAT(result.stdout, HasSubstr("Malformed regex"));
+  EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
+      << "session file should not exist after rejected input";
 }
 
 TEST_F(ConfigBgpPolicyAsPathListTest, DeleteListAndCommit) {

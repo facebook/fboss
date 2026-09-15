@@ -20,9 +20,11 @@
 
 namespace facebook::fboss {
 
-// Parsed `delete protocol bgp policy as-path-list <name>`, validated at
-// construction. The name is the list's identity, matched exactly the same way
-// the config command stores it. Mirrors BgpPeerGroupRef.
+// Parsed `delete protocol bgp policy as-path-list <name> [regex <regex>]`,
+// validated at construction. The name is the list's identity, matched exactly
+// the same way the config command stores it; the optional `regex` selector
+// removes one as_paths pattern instead of the whole list. Mirrors
+// BgpPeerGroupRef.
 class BgpAsPathListRef : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -30,17 +32,25 @@ class BgpAsPathListRef : public utils::BaseObjectArgType<std::string> {
   const std::string& listName() const {
     return listName_;
   }
+  bool hasRegex() const {
+    return hasRegex_;
+  }
+  const std::string& regex() const {
+    return regex_;
+  }
   const static utils::ObjectArgTypeId id =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 
  private:
   std::string listName_;
+  bool hasRegex_{false};
+  std::string regex_;
 };
 
 struct CmdDeleteProtocolBgpPolicyAsPathListTraits : public WriteCommandTraits {
   using ParentCmd = CmdDeleteProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("args", args, "<name>");
+    cmd.add_option("args", args, "<name> [regex <regex>]");
   }
   using ObjectArgType = BgpAsPathListRef;
   using RetType = std::string;

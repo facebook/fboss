@@ -1163,6 +1163,7 @@ target_link_libraries(fboss2_config_lib
   bgp_config_cpp2
   switchinfo_utils
   platform_mapping
+  Boost::regex
   Folly::folly
 )
 

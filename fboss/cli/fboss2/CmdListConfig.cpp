@@ -443,7 +443,8 @@ const CommandTree& kConfigCommandTree() {
                           {{
                               "as-path-list",
                               "Configure BGP AS-path list: <name> "
-                              "[<attribute> <value> ...] (description)",
+                              "[<attribute> <value> ...] (description, "
+                              "regex, boolean-operator)",
                               commandHandler<
                                   CmdConfigProtocolBgpPolicyAsPathList>,
                               argRegistrar<
@@ -799,7 +800,8 @@ const CommandTree& kConfigCommandTree() {
                     argTypeHandler<CmdDeleteProtocolBgpPolicyTraits>,
                     {{
                         "as-path-list",
-                        "Delete a BGP AS-path list: <name>",
+                        "Delete a BGP AS-path list, or one of its regexes: "
+                        "<name> [regex <regex>]",
                         commandHandler<CmdDeleteProtocolBgpPolicyAsPathList>,
                         argRegistrar<
                             CmdDeleteProtocolBgpPolicyAsPathListTraits>,
