@@ -190,6 +190,7 @@ class MockFbossQsfpService
   MOCK_METHOD2(
       getAllPortSupportedProfiles,
       void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
+  MOCK_METHOD(void, getMacsecCapablePorts, (std::vector<int32_t>&));
   MOCK_METHOD2(
       getSymbolErrorHistogram,
       void(CdbDatapathSymErrHistogram&, std::unique_ptr<std::string>));
