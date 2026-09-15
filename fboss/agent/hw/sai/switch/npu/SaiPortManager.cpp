@@ -1770,7 +1770,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (platform_->getAsic()->getAsicType() ==
               cfg::AsicType::ASIC_TYPE_YUBA ||
           platform_->getAsic()->getAsicType() ==
-              cfg::AsicType::ASIC_TYPE_G202X) {
+              cfg::AsicType::ASIC_TYPE_G202X ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_P200) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
