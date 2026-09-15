@@ -31,6 +31,7 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     generate_policy_commands,
     generate_prefix_list_commands,
     generate_prefix_list_entry_commands,
+    generate_routing_policy_commands,
     json_to_cli,
 )
 
@@ -1324,6 +1325,53 @@ class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
             [
                 "config protocol bgp policy prefix-list PL ip-version v4",
                 f"{self.PREFIX} base-prefix 10.0.0.0/8",
+            ],
+        )
+
+
+class GenerateRoutingPolicyCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_commands (routing-policy grammar)."""
+
+    PREFIX = "config protocol bgp policy routing-policy RM"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_routing_policy_commands({"description": "x"}), [])
+
+    def test_bare_policy_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM"}), [self.PREFIX]
+        )
+
+    def test_description(self) -> None:
+        commands = generate_routing_policy_commands(
+            {"name": "RM", "description": "import from spine"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'import from spine'"])
+
+    def test_result_deny_default_silent_other_warns(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM", "result": 2}), [self.PREFIX]
+        )
+        commands = generate_routing_policy_commands({"name": "RM", "result": "ACCEPT"})
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("ACCEPT", commands[0])
+
+    def test_policy_block_order_lists_then_policies(self) -> None:
+        config = {
+            "policies": {
+                "bgp_policy_statements": [{"name": "RM"}],
+                "aspath_lists": [{"name": "A"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy prefix-list PL",
+                self.PREFIX,
             ],
         )
 

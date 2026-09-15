@@ -760,6 +760,52 @@ def generate_prefix_list_entry_commands(
     return commands
 
 
+_FLOW_CONTROL_ACTION_NAMES = {
+    1: "ACCEPT",
+    2: "DENY",
+    3: "NEXT_TERM",
+    4: "NEXT_POLICY",
+    5: "LOG_AND_NEXT_TERM",
+    6: "LOG_AND_ACCEPT",
+    7: "LOG_AND_DENY",
+}
+
+
+def _flow_control_action_name(raw: Any) -> str:
+    if isinstance(raw, str):
+        return raw
+    return _FLOW_CONTROL_ACTION_NAMES.get(int(raw), str(raw))
+
+
+def generate_routing_policy_commands(policy: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy routing-policy` commands for one
+    policy statement. The policy-level `result` has no CLI spelling (only a
+    term's action result does) and surfaces as a warning when not the DENY
+    default."""
+    name = policy.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy routing-policy {escape_shell_arg(name)}"
+    commands = []
+    if policy.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(policy['description'])}"
+        )
+    if "result" in policy and _flow_control_action_name(policy["result"]) != "DENY":
+        commands.append(
+            _warning(
+                f"routing-policy {name}: policy-level result "
+                f"{_flow_control_action_name(policy['result'])} has no CLI "
+                "equivalent; not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) routing-policy by name.
+        commands.append(prefix)
+    return commands
+
+
 def generate_policy_commands(config: dict[str, Any]) -> list[str]:
     """Generate the `config protocol bgp policy ...` commands.
 
@@ -775,6 +821,9 @@ def generate_policy_commands(config: dict[str, Any]) -> list[str]:
         commands.extend(generate_community_list_commands(community_list))
     for prefix_list in policies.get("prefix_lists", []):
         commands.extend(generate_prefix_list_commands(prefix_list))
+    # Routing-policies last: they reference the lists above by name.
+    for policy in policies.get("bgp_policy_statements", []):
+        commands.extend(generate_routing_policy_commands(policy))
     return commands
 
 
