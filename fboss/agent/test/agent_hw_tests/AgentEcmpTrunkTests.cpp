@@ -26,7 +26,12 @@ class AgentEcmpTrunkTest : public AgentHwTest {
         ensemble.getL3Asics().front(),
         ensemble.masterLogicalPortIds(),
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        ensemble.getL3Asics().front()->desiredLoopbackModes());
+        ensemble.getL3Asics().front()->desiredLoopbackModes(),
+        true, /* interfaceHasSubnet */
+        utility::kBaseVlanId, /* baseVlanId */
+        true, /* optimizePortProfile */
+        true, /* setInterfaceMac */
+        ensemble.getSw()->getPlatformType());
     addAggPort(kAggId, getTrunkMemberPorts(ensemble), &config);
     return config;
   }
