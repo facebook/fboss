@@ -33,8 +33,8 @@ COMPONENT_ARTIFACT_PATTERNS = {
     "kernel": "kernel-*.rpms.tar",
     "npu_sai": "sai-*.tar",
     "phy_sai": "phy_sai-*.tar",
-    "fboss-platform-stack": "fboss-platform-stack-*.tar",
-    "fboss-forwarding-stack": "fboss-forwarding-stack-*.tar",
+    "fboss-platform-stack": "platform-stack*.tar",
+    "fboss-forwarding-stack": "forwarding-stack*.tar",
     "bsps": "bsp-*.tar",
     "other_dependencies": "*.rpm",
 }
