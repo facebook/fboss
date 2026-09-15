@@ -127,11 +127,11 @@ class PackageFboss:
         # entries *within* a copied directory, not the root passed to copytree.
         skip_dirs = {"unittests", "tests", "__pycache__"}
         src_files = os.listdir(run_scripts_path)
+        script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
         for file_name in src_files:
             if file_name in skip_dirs:
                 continue
             full_file_name = os.path.join(run_scripts_path, file_name)
-            script_pkg_path = os.path.join(tmp_dir_name, PackageFboss.BIN)
             # run_test.py imports the fboss_test_runner package, so directories
             # (the package and its subpackages) must be copied too, not skipped.
             if os.path.isdir(full_file_name):
@@ -145,6 +145,12 @@ class PackageFboss:
             else:
                 shutil.copy(full_file_name, script_pkg_path)
                 print(f"Copied {full_file_name} to {script_pkg_path}")
+
+        npu_sdk_utils_path = os.path.join(
+            os.path.dirname(run_scripts_path), "npu_sdk_utils.py"
+        )
+        shutil.copy(npu_sdk_utils_path, script_pkg_path)
+        print(f"Copied {npu_sdk_utils_path} to {script_pkg_path}")
 
     def _copy_run_configs(self, tmp_dir_name):
         run_configs_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_configs")

@@ -12,7 +12,7 @@ from typing import cast
 from unittest import mock
 
 from fboss_test_runner.runners.test_runner import TestRunner
-from npu_sdk_utils import materialize_agent_config
+from npu_sdk_utils import main as npu_sdk_utils_main, materialize_agent_config
 
 
 class NpuSdkConfigTest(unittest.TestCase):
@@ -114,6 +114,27 @@ class NpuSdkConfigTest(unittest.TestCase):
                 "sai_test-sai_impl",
                 self.output_directory,
             )
+
+    def test_command_line_materializes_sdk_version(self) -> None:
+        npu_sdk_utils_main(
+            [
+                "materialize-agent-config",
+                "--config-path",
+                str(self.config_path),
+                "--metadata-path",
+                str(self.metadata_path),
+                "--binary-name",
+                "sai_test-sai_impl",
+                "--output-directory",
+                str(self.output_directory),
+            ]
+        )
+
+        output = json.loads((self.output_directory / "agent.conf").read_text())
+        self.assertEqual(
+            {"asicSdk": "6.5.30-4", "saiSdk": "11.7.0.0_odp"},
+            output["sw"]["sdkVersion"],
+        )
 
 
 class TestRunnerSdkConfigIntegrationTest(unittest.TestCase):

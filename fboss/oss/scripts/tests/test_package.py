@@ -24,6 +24,22 @@ from fboss.oss.scripts import package
 
 
 class PackageTest(unittest.TestCase):
+    @mock.patch.object(package, "get_platform_descriptor_paths", return_value={})
+    @mock.patch.object(package, "_find_getdeps_libs", return_value={})
+    def test_forwarding_package_includes_npu_sdk_utils(
+        self,
+        _mock_find_getdeps_libs: mock.MagicMock,
+        _mock_get_platform_descriptor_paths: mock.MagicMock,
+    ) -> None:
+        production_files, _ = package._build_target(
+            "forwarding-stack", pathlib.Path("/build")
+        )
+
+        self.assertEqual(
+            "bin/npu_sdk_utils.py",
+            production_files[package.NPU_SDK_UTILS_SCRIPT],
+        )
+
     @mock.patch.object(package, "_find_getdeps_libs", return_value={})
     def test_forwarding_package_includes_platform_descriptors(
         self,

@@ -21,7 +21,7 @@ import os
 import pathlib
 import stat
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 
 
@@ -172,7 +172,7 @@ def materialize_agent_config(
 
 def _create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Record NPU SDK metadata after an SDK-linked target builds."
+        description="Manage NPU SDK metadata and apply it to FBOSS configs."
     )
     subparsers = parser.add_subparsers(dest="operation", required=True)
 
@@ -188,11 +188,17 @@ def _create_parser() -> argparse.ArgumentParser:
     remove.add_argument("--metadata-path", type=pathlib.Path, required=True)
     remove.add_argument("--binary-name", required=True)
 
+    materialize = subparsers.add_parser("materialize-agent-config")
+    materialize.add_argument("--config-path", type=pathlib.Path, required=True)
+    materialize.add_argument("--metadata-path", type=pathlib.Path, required=True)
+    materialize.add_argument("--binary-name", required=True)
+    materialize.add_argument("--output-directory", type=pathlib.Path, required=True)
+
     return parser
 
 
-def main() -> None:
-    args = _create_parser().parse_args()
+def main(argv: Sequence[str] | None = None) -> None:
+    args = _create_parser().parse_args(argv)
     if args.operation == "record":
         record_binary_metadata(
             path=args.metadata_path,
@@ -202,8 +208,15 @@ def main() -> None:
             asic_sdk_version=args.asic_sdk_version,
             sai_sdk_version=args.sai_sdk_version,
         )
-    else:
+    elif args.operation == "remove":
         remove_binary_metadata(args.metadata_path, args.binary_name)
+    else:
+        materialize_agent_config(
+            config_path=args.config_path,
+            metadata_path=args.metadata_path,
+            binary_name=args.binary_name,
+            output_directory=args.output_directory,
+        )
 
 
 if __name__ == "__main__":

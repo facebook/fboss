@@ -21,6 +21,7 @@ else:
 
 SRC_DIR = pathlib.Path("/var/FBOSS/fboss")
 OSS_DIR = SRC_DIR / "fboss/oss"
+SCRIPTS_DIR = OSS_DIR / "scripts"
 RUN_SCRIPTS_DIR = SRC_DIR / "fboss/oss/scripts/run_scripts"
 RUN_CONFIGS_DIR = SRC_DIR / "fboss/oss/scripts/run_configs"
 PLATFORM_CONFIGS_DIR = SRC_DIR / "fboss/configs/platforms"
@@ -35,6 +36,7 @@ TARGET_NAMES = (
 )
 NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
 NPU_SDK_METADATA_ARCHIVE_PATH = f"share/{NPU_SDK_METADATA_FILENAME}"
+NPU_SDK_UTILS_SCRIPT = SCRIPTS_DIR / "npu_sdk_utils.py"
 
 
 # Maps getdeps package name to library name when they differ.
@@ -72,6 +74,7 @@ FORWARDING_EXTRA = {
     RUN_SCRIPTS_DIR / "fboss_agent_utils.py": "bin/fboss_agent_utils.py",
     RUN_SCRIPTS_DIR / "qsfp_service_utils.py": "bin/qsfp_service_utils.py",
     RUN_SCRIPTS_DIR / "run_test.py": "bin/run_test.py",
+    NPU_SDK_UTILS_SCRIPT: "bin/npu_sdk_utils.py",
     RUN_SCRIPTS_DIR / "setup.py": "bin/setup.py",
     RUN_SCRIPTS_DIR / "setup_fboss_env": "bin/setup_fboss_env",
     RUN_SCRIPTS_DIR / "topology.cdf": "bin/topology.cdf",
