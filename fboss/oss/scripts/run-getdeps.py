@@ -21,6 +21,13 @@ import sysconfig
 import tempfile
 from pathlib import Path
 
+from sdk_versions import (
+    get_sdk_version_env_vars,
+    NPU_ASIC_SDK_VERSION,
+    NPU_SAI_SDK_VERSION,
+    SDK_VERSIONS,
+)
+
 try:
     import getdeps_fallback_mirror
 except ImportError:
@@ -78,39 +85,7 @@ SAI_VERSION_SHAS = {
     "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
     "1.18.1": "84f2fbd6bf672abaefddfd78a28fec794e37477bf9702fbb56d7bd53ff930ba3",
 }
-SUPPORTED_SAI_SDK_VERSIONS = {
-    # BRCM XGS
-    "SAI_VERSION_8_2_0_0_ODP",
-    "SAI_VERSION_10_2_0_0_ODP",
-    "SAI_VERSION_11_7_0_0_ODP",
-    "SAI_VERSION_12_2_0_0_ODP",
-    "SAI_VERSION_13_3_0_0_ODP",
-    "SAI_VERSION_14_0_EA_ODP",
-    "SAI_VERSION_14_2_0_0_ODP",
-    "SAI_VERSION_15_4_EA_ODP",
-    "SAI_VERSION_15_4_0_0_ODP",
-    # BRCM DNX
-    "SAI_VERSION_11_7_0_0_DNX_ODP",
-    "SAI_VERSION_12_2_0_0_DNX_ODP",
-    "SAI_VERSION_13_3_0_0_DNX_ODP",
-    "SAI_VERSION_14_0_EA_DNX_ODP",
-    "SAI_VERSION_14_2_0_0_DNX_ODP",
-    "SAI_VERSION_15_0_EA_DNX_ODP",
-    "SAI_VERSION_16_0_EA_DNX_ODP",
-    # Tajo
-    "TAJO_SDK_VERSION_1_42_8",
-    "TAJO_SDK_VERSION_24_8_3001",
-    "TAJO_SDK_VERSION_25_5_4210",
-    "TAJO_SDK_VERSION_25_11_4210",
-    "TAJO_SDK_VERSION_26_2_4210",
-    "TAJO_SDK_VERSION_26_2_5210",
-    "TAJO_SDK_VERSION_26_5_5211",
-    "TAJO_SDK_VERSION_26_5_5210",
-    "TAJO_SDK_VERSION_26_7_5211",
-    # Chenab
-    "CHENAB_SAI_SDK_VERSION_2511_36_0_20",
-    "CHENAB_SAI_SDK_VERSION_2605_37_0_20",
-}
+SUPPORTED_SAI_SDK_VERSIONS = frozenset(SDK_VERSIONS)
 
 # Per-pass SAI implementation selectors.
 PASS_IMPL_NPU = "npu"
@@ -137,6 +112,8 @@ _SAI_ENV_VARS = (
     "BUILD_SAI_FAKE",
     "SAI_SDK_VERSION",
     "SAI_VERSION",
+    NPU_ASIC_SDK_VERSION,
+    NPU_SAI_SDK_VERSION,
 )
 
 
@@ -276,7 +253,7 @@ def path_to(*args):
     return os.path.join(root, *args)
 
 
-def detect_toolchain():
+def detect_toolchain():  # noqa: C901
     """
     Detect which toolchain is currently active and extract relevant information.
     Returns a dict with:
@@ -293,7 +270,7 @@ def detect_toolchain():
             timeout=5,
             check=False,
         )
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+    except (subprocess.TimeoutExpired, OSError) as e:
         print(f"Warning: Could not detect compiler: {e}", file=sys.stderr)
         return None
 
@@ -879,6 +856,7 @@ def _impl_env_vars(args, impl):
     if impl == PASS_IMPL_NPU:
         env_vars[args.npu_sai_impl] = "1"
         env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
+        env_vars.update(get_sdk_version_env_vars(args.npu_sai_sdk_version))
         if args.npu_sai_version is not None:
             env_vars["SAI_VERSION"] = args.npu_sai_version
     elif impl == PASS_IMPL_PHY:

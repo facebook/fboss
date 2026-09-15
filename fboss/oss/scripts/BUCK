@@ -10,6 +10,12 @@ python_library(
 )
 
 python_library(
+    name = "sdk_versions",
+    srcs = ["sdk_versions.py"],
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
     name = "package_lib",
     srcs = ["package.py"],
     labels = ["autodeps2_generated"],
