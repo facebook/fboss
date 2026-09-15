@@ -26,15 +26,26 @@ from datetime import datetime, timezone
 
 
 READ_ONLY_MODE = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+NPU_HW_AGENT_BINARY = "fboss_hw_agent-sai_impl"
+NPU_SDK_METADATA_FILENAME = "npu_sdk_metadata.json"
+
+
+def _load_json_object(path: pathlib.Path, description: str) -> dict[str, object]:
+    try:
+        contents = json.loads(path.read_text())
+    except FileNotFoundError as error:
+        raise FileNotFoundError(f"{description} not found: {path}") from error
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Invalid {description} JSON: {path}") from error
+    if not isinstance(contents, dict):
+        raise ValueError(f"{description} must be a JSON object: {path}")
+    return contents
 
 
 def _read_metadata(path: pathlib.Path) -> dict[str, object]:
     if not path.exists():
         return {}
-    contents = json.loads(path.read_text())
-    if not isinstance(contents, dict):
-        raise ValueError(f"NPU SDK metadata must be a JSON object: {path}")
-    return contents
+    return _load_json_object(path, "NPU SDK metadata")
 
 
 def _write_metadata(path: pathlib.Path, metadata: Mapping[str, object]) -> None:
@@ -109,6 +120,54 @@ def record_binary_metadata(
 
 def remove_binary_metadata(path: pathlib.Path, binary_name: str) -> None:
     _update_metadata(path, binary_name, None)
+
+
+def load_binary_sdk_version(
+    metadata_path: pathlib.Path, binary_name: str
+) -> dict[str, str]:
+    """Return the validated config-facing SDK versions for one executable."""
+    metadata = _load_json_object(metadata_path, "NPU SDK metadata")
+    entry = metadata.get(binary_name)
+    if not isinstance(entry, dict):
+        raise ValueError(
+            f"NPU SDK metadata has no entry for binary '{binary_name}': {metadata_path}"
+        )
+
+    sdk_version = entry.get("sdkVersion")
+    if not isinstance(sdk_version, dict):
+        raise ValueError(
+            f"NPU SDK metadata entry for '{binary_name}' has no sdkVersion object"
+        )
+
+    result = {}
+    for field in ("asicSdk", "saiSdk"):
+        value = sdk_version.get(field)
+        if not isinstance(value, str) or not value:
+            raise ValueError(
+                f"NPU SDK metadata entry for '{binary_name}' has invalid {field}"
+            )
+        result[field] = value
+    return result
+
+
+def materialize_agent_config(
+    config_path: pathlib.Path,
+    metadata_path: pathlib.Path,
+    binary_name: str,
+    output_directory: pathlib.Path,
+) -> pathlib.Path:
+    """Write an adjusted config copy while leaving the supplied config untouched."""
+    config = _load_json_object(config_path, "agent config")
+    sw_config = config.get("sw")
+    if not isinstance(sw_config, dict):
+        raise ValueError(f"Agent config has no sw object: {config_path}")
+
+    sw_config["sdkVersion"] = load_binary_sdk_version(metadata_path, binary_name)
+    output_path = output_directory / config_path.name
+    with output_path.open("w") as output:
+        json.dump(config, output, indent=2)
+        output.write("\n")
+    return output_path
 
 
 def _create_parser() -> argparse.ArgumentParser:

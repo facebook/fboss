@@ -36,6 +36,13 @@ class BenchmarkTestRunner(TestRunner):
     def _get_test_binary_name(self) -> str:
         return self._select_suite(self.args).binary_name(self.args)
 
+    def _get_npu_sdk_metadata_binary_name(self) -> str | None:
+        # QSFP benchmarks do not link the NPU SDK. SAI benchmarks are
+        # monolithic, so their test binary links the SDK directly.
+        if getattr(self.args, "qsfp", False):
+            return None
+        return self._get_test_binary_name()
+
     def _get_warmboot_check_file(self) -> str:
         return ""
 
@@ -119,5 +126,13 @@ class BenchmarkTestRunner(TestRunner):
         return 0
 
     def run_test(self, args: Namespace) -> int:
-        self._framework_for_args(args).run(args)
+        framework = self._framework_for_args(args)
+        original_arg_config = args.config
+        try:
+            prepared_config = self._prepare_config_for_run()
+            if prepared_config:
+                args.config = prepared_config
+            framework.run(args)
+        finally:
+            args.config = original_arg_config
         return 0

@@ -90,6 +90,7 @@ DNX_SIMULATOR_ENV: dict[str, str] = {
 }
 
 DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
+GENERATED_CONFIG_ROOT = "/opt/fboss/logs/run_test/generated_configs"
 
 # Shared known-bad / unsupported SAI-agent test list paths (relative to /opt/fboss CWD)
 SAI_AGENT_TEST_KNOWN_BAD_TESTS = (
