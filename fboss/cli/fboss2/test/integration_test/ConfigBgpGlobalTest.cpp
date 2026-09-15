@@ -18,6 +18,8 @@
  *       -> BgpConfig.graceful_restart_convergence_seconds
  *   - rib-allocated-path-ids <true|false>
  *       -> BgpConfig.bgp_setting_config.enable_rib_allocated_path_id
+ *   - switch-limit-overload-protection-mode <mode>
+ *       -> BgpConfig.switch_limit_config.overload_protection_mode
  *
  * Requirements:
  *   - The fboss2-dev binary under test (config subcommand tree).
@@ -105,6 +107,47 @@ TEST_F(ConfigBgpGlobalTest, InvalidBoolValueRejected) {
   // the rejected input.
   EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
       << "session file should not exist after rejected input";
+}
+
+TEST_F(ConfigBgpGlobalTest, RouterIdInvalidRejected) {
+  clearBgpSession();
+  auto result =
+      runCli({"config", "protocol", "bgp", "global", "router-id", "not-an-ip"});
+  EXPECT_THAT(result.stdout, HasSubstr("Invalid router-id address"));
+  EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
+      << "session file should not exist after rejected input";
+}
+
+TEST_F(ConfigBgpGlobalTest, RouterIdV6Rejected) {
+  clearBgpSession();
+  auto result = runCli(
+      {"config", "protocol", "bgp", "global", "router-id", "2001:db8::1"});
+  EXPECT_THAT(result.stdout, HasSubstr("requires an IPv4 address"));
+  EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
+      << "session file should not exist after rejected input";
+}
+
+TEST_F(ConfigBgpGlobalTest, OverloadProtectionModeOutOfRangeRejected) {
+  clearBgpSession();
+  auto result = runCli(
+      {"config",
+       "protocol",
+       "bgp",
+       "global",
+       "switch-limit-overload-protection-mode",
+       "999"});
+  EXPECT_THAT(result.stdout, HasSubstr("is not a valid mode"));
+  EXPECT_THAT(result.stdout, HasSubstr("APPLY_GOLDEN_PREFIX_POLICY"));
+  EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
+      << "session file should not exist after rejected input";
+}
+
+TEST_F(ConfigBgpGlobalTest, SetOverloadProtectionModeAndCommit) {
+  auto config = setAndCommit("switch-limit-overload-protection-mode", "2");
+  ASSERT_TRUE(config.count("switch_limit_config"));
+  ASSERT_TRUE(config["switch_limit_config"].count("overload_protection_mode"));
+  EXPECT_EQ(
+      config["switch_limit_config"]["overload_protection_mode"].asInt(), 2);
 }
 
 TEST_F(ConfigBgpGlobalTest, NegativeGracefulRestartTimeRejected) {

@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
+#include <folly/IPAddress.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <cstddef>
 #include <cstdint>
@@ -30,6 +31,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fmt/format.h"
+#include "thrift/lib/cpp/Thrift.h"
 
 namespace facebook::fboss {
 
@@ -68,12 +70,24 @@ using bgpcli::Result;
 // Each handler mutates the typed bgp::thrift::BgpConfig directly. Field names
 // map 1:1 to bgp_config.thrift, so the compiler validates them.
 
+// bgpd constructs an IPAddress from router_id at config load (a bad string
+// fails the load) and later calls asV4() on it, so only an IPv4 address is
+// safe to persist. Stored normalized.
 Result applyRouterId(BgpConfig& cfg, const Tokens& values) {
   if (values.size() != 1) {
     return err("Error: router-id requires <ip-address>");
   }
-  cfg.router_id() = values[0];
-  return ok(fmt::format("Successfully set BGP router-id to: {}", values[0]));
+  auto addr = folly::IPAddress::tryFromString(values[0]);
+  if (!addr.hasValue()) {
+    return err(fmt::format("Error: Invalid router-id address '{}'", values[0]));
+  }
+  if (!addr->isV4()) {
+    return err(
+        fmt::format(
+            "Error: router-id requires an IPv4 address, got '{}'", values[0]));
+  }
+  cfg.router_id() = addr->str();
+  return ok(fmt::format("Successfully set BGP router-id to: {}", addr->str()));
 }
 
 Result applyLocalAsn(BgpConfig& cfg, const Tokens& values) {
@@ -210,22 +224,44 @@ Result applyInt64Limit(
           "Successfully set switch_limit_config {} to: {}", fieldName, *limit));
 }
 
+// Accepts the enum value name or its integer; anything outside the enum is
+// rejected (bgpd would otherwise treat an unknown value as
+// DROP_EXCESS_PREFIXES without complaint). Validated before ensure() so a
+// rejected value leaves switch_limit_config untouched. The success message
+// prints the integer so the j2c round-trip is stable.
 Result applyOverloadProtectionMode(BgpConfig& cfg, const Tokens& values) {
+  using OverloadProtectionMode = bgp::thrift::OverloadProtectionMode;
   if (values.size() != 1) {
     return err("Error: switch-limit-overload-protection-mode requires <mode>");
   }
-  auto mode = parseInt<int32_t>(values[0]);
-  if (!mode) {
+  OverloadProtectionMode mode;
+  bool valid = false;
+  if (auto parsed = parseInt<int32_t>(values[0])) {
+    mode = static_cast<OverloadProtectionMode>(*parsed);
+    valid = apache::thrift::TEnumTraits<OverloadProtectionMode>::findName(
+                mode) != nullptr;
+  } else {
+    valid = apache::thrift::TEnumTraits<OverloadProtectionMode>::findValue(
+        values[0], &mode);
+  }
+  if (!valid) {
+    std::string names;
+    for (auto n : apache::thrift::TEnumTraits<OverloadProtectionMode>::names) {
+      names += names.empty() ? "" : ", ";
+      names += std::string(n);
+    }
     return err(
         fmt::format(
-            "Error: Invalid overload-protection-mode value '{}'", values[0]));
+            "Error: switch-limit-overload-protection-mode value '{}' is not a "
+            "valid mode; expected one of: {}",
+            values[0],
+            names));
   }
-  cfg.switch_limit_config().ensure().overload_protection_mode() =
-      static_cast<bgp::thrift::OverloadProtectionMode>(*mode);
+  cfg.switch_limit_config().ensure().overload_protection_mode() = mode;
   return ok(
       fmt::format(
           "Successfully set switch_limit_config overload_protection_mode to: {}",
-          *mode));
+          static_cast<int32_t>(mode)));
 }
 
 Result applyNetwork6(BgpConfig& cfg, const Tokens& values) {
