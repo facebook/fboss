@@ -300,8 +300,6 @@ find_package(wangle CONFIG REQUIRED)
 find_package(FBThrift CONFIG REQUIRED COMPONENTS)
 find_package(range-v3 REQUIRED)
 include_directories(${FB303_INCLUDE_DIR})
-find_path(FATAL_INCLUDE_DIR NAMES fatal/portability.h)
-include_directories(${FATAL_INCLUDE_DIR})
 
 
 find_library(NLOHMANN_JSON nlohmann-json)
