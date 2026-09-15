@@ -31,12 +31,17 @@ using facebook::neteng::fboss::bgp::thrift::TUpdateGroupPeerInfo;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupStats;
 using facebook::neteng::fboss::bgp::thrift::TUpdateGroupSummary;
 
-struct CmdShowBgpUpdateGroupTraits : public ReadCommandTraits,
-                                     public CliDocsExempt {
+struct CmdShowBgpUpdateGroupTraits : public ReadCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowBgpUpdateGroupModel;
+
+  // Human-authored guide prose for the CLI reference wiki. Superset of the
+  // one-line help string registered in the command tree.
+  static std::string_view description() {
+    return "Displays BGP update groups - the sets of peers that negotiated identical outbound parameters and therefore share one encoded copy of every update, which is what keeps advertisement cost proportional to distinct peer configurations rather than to peer count. With no argument it lists every group: ID, egress policy, state, how many members it has and how many of those are in sync or detached, the post-policy prefix count split v4/v6, and the RIB version the group last encoded. Pass a group ID for the detail view, which adds the full group key (the negotiated parameters that define the group - session type, peer group, egress policy and route filter, AFIs, add-path, RR-client and confederation status, out-delay, link bandwidth, private-ASN removal, 4-byte-AS and extended-next-hop capability, local AS), the cumulative message and queueing counters, and a per-peer table. Read the member counts first: members far above in-sync, or a non-zero detached count, means one slow peer is holding the group's encoding back, and the per-peer table's queue size and detach RIB version identify which. Two results are not errors - 'Update group: DISABLED' means the feature is off on this switch, and 'No active update groups.' means it is on but nothing has grouped yet. An unknown group ID reports 'Update group not found.'; a non-numeric one is rejected outright.";
+  }
 };
 
 class CmdShowBgpUpdateGroup
@@ -82,6 +87,53 @@ class CmdShowBgpUpdateGroup
     model.update_groups() = std::move(*response.update_groups());
     model.detail_mode() = true;
 
+    return model;
+  }
+
+  /*
+   * Canned, synthetic model (no real switch data) used to render a
+   * deterministic example for the CLI reference wiki. This is the no-argument
+   * summary view, which is what the bare command does; the detail view is
+   * reached by passing a group ID and is described in the prose.
+   */
+  static RetType sampleModel() {
+    auto summary = [](int64_t groupId,
+                      const std::string& policyName,
+                      const std::string& state,
+                      int64_t members,
+                      int64_t inSync,
+                      int64_t detached,
+                      int64_t prefixesV4,
+                      int64_t prefixesV6,
+                      int64_t ribVersion) {
+      TUpdateGroupSummary group;
+      group.group_id() = groupId;
+      group.egress_policy_name() = policyName;
+      group.group_state() = state;
+      group.member_count() = members;
+      group.in_sync_peer_count() = inSync;
+      group.detached_peer_count() = detached;
+      group.post_out_prefix_count() = prefixesV4 + prefixesV6;
+      group.post_out_prefix_count_ipv4() = prefixesV4;
+      group.post_out_prefix_count_ipv6() = prefixesV6;
+      group.last_seen_rib_version() = ribVersion;
+      return group;
+    };
+
+    RetType model;
+    model.enable_update_group() = true;
+    model.detail_mode() = false;
+    /*
+     * Two groups: a healthy one whose members are all in sync, and one where
+     * in-sync trails the member count and a peer has detached - the shape the
+     * prose says to read the member counts for. The second also has a RIB
+     * version of 0, which renders "N/A" rather than 0.
+     */
+    model.update_group_summaries() = {
+        summary(
+            1, "PROPAGATE_RSW_FSW_OUT", "READY", 8, 8, 0, 5000, 3000, 123456),
+        summary(
+            2, "PROPAGATE_RSW_SSW_OUT", "WAITING", 11, 7, 4, 5000, 3000, 0)};
     return model;
   }
 
