@@ -16,7 +16,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowInterfacePhymapTraits : public ReadCommandTraits {
+struct CmdShowInterfacePhymapTraits : public ReadCommandTraits,
+                                      public CliDocsExempt {
   using ParentCmd = CmdShowInterface;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

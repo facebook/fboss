@@ -27,6 +27,7 @@ OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
 OPT_ARG_SWITCH_ID_FOR_TESTING = "--switch_id_for_testing"
 OPT_ARG_NUM_WARMBOOT_ITERATIONS = "--num-warmboot-iterations"
+OPT_ARG_RESULTS_JSON = "--results-json"
 OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
 OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
 
@@ -89,6 +90,7 @@ DNX_SIMULATOR_ENV: dict[str, str] = {
 }
 
 DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
+GENERATED_CONFIG_ROOT = "/opt/fboss/logs/run_test/generated_configs"
 
 # Shared known-bad / unsupported SAI-agent test list paths (relative to /opt/fboss CWD)
 SAI_AGENT_TEST_KNOWN_BAD_TESTS = (

@@ -13,6 +13,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -191,10 +192,13 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
         static_cast<uint32_t>(swInterface->getMtu()));
   }
 
+  // SAI has no LAG specific router interface type: a router interface over an
+  // aggregate port is a port router interface whose PortId is a LAG object id.
   SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute =
       swInterface->getType() == cfg::InterfaceType::SYSTEM_PORT
       ? getSystemPortId(swInterface)
-      : getPortId(swInterface);
+      : (swInterface->getAggregatePortIDf() ? getAggregatePortId(swInterface)
+                                            : getPortId(swInterface));
   // create the router interface
   SaiPortRouterInterfaceTraits::CreateAttributes attributes{
       virtualRouterIdAttribute,
@@ -339,6 +343,21 @@ SaiRouterInterfaceManager::getPortId(
   }
   return SaiPortRouterInterfaceTraits::Attributes::PortId{
       portHandle->port->adapterKey()};
+}
+
+SaiPortRouterInterfaceTraits::Attributes::PortId
+SaiRouterInterfaceManager::getAggregatePortId(
+    const std::shared_ptr<Interface>& swInterface) {
+  CHECK(swInterface->getType() == cfg::InterfaceType::PORT);
+  AggregatePortID aggregatePortID(swInterface->getAggregatePortID());
+  auto* lagHandle = managerTable_->lagManager().getLagHandleIf(aggregatePortID);
+  if (!lagHandle) {
+    throw FbossError(
+        "Failed to add router interface: no sai lag for aggregate port ",
+        aggregatePortID);
+  }
+  return SaiPortRouterInterfaceTraits::Attributes::PortId{
+      lagHandle->lag->adapterKey()};
 }
 
 std::optional<InterfaceID>

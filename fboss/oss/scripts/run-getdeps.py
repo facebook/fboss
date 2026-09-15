@@ -21,6 +21,20 @@ import sysconfig
 import tempfile
 from pathlib import Path
 
+from sdk_versions import (
+    get_sdk_version_env_vars,
+    NPU_ASIC_SDK_VERSION,
+    NPU_SAI_SDK_VERSION,
+    SDK_VERSIONS,
+)
+
+try:
+    import getdeps_fallback_mirror
+except ImportError:
+    # Only ever seeds downloads getdeps can fetch itself, so a missing sibling
+    # must degrade to "no prefetch" rather than break every build.
+    getdeps_fallback_mirror = None
+
 
 def print_info(msg):
     print(f"\033[93m{msg}\033[0m")
@@ -71,38 +85,7 @@ SAI_VERSION_SHAS = {
     "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
     "1.18.1": "84f2fbd6bf672abaefddfd78a28fec794e37477bf9702fbb56d7bd53ff930ba3",
 }
-SUPPORTED_SAI_SDK_VERSIONS = {
-    # BRCM XGS
-    "SAI_VERSION_8_2_0_0_ODP",
-    "SAI_VERSION_10_2_0_0_ODP",
-    "SAI_VERSION_11_7_0_0_ODP",
-    "SAI_VERSION_12_2_0_0_ODP",
-    "SAI_VERSION_13_3_0_0_ODP",
-    "SAI_VERSION_14_0_EA_ODP",
-    "SAI_VERSION_14_2_0_0_ODP",
-    "SAI_VERSION_15_4_EA_ODP",
-    # BRCM DNX
-    "SAI_VERSION_11_7_0_0_DNX_ODP",
-    "SAI_VERSION_12_2_0_0_DNX_ODP",
-    "SAI_VERSION_13_3_0_0_DNX_ODP",
-    "SAI_VERSION_14_0_EA_DNX_ODP",
-    "SAI_VERSION_14_2_0_0_DNX_ODP",
-    "SAI_VERSION_15_0_EA_DNX_ODP",
-    "SAI_VERSION_16_0_EA_DNX_ODP",
-    # Tajo
-    "TAJO_SDK_VERSION_1_42_8",
-    "TAJO_SDK_VERSION_24_8_3001",
-    "TAJO_SDK_VERSION_25_5_4210",
-    "TAJO_SDK_VERSION_25_11_4210",
-    "TAJO_SDK_VERSION_26_2_4210",
-    "TAJO_SDK_VERSION_26_2_5210",
-    "TAJO_SDK_VERSION_26_5_5211",
-    "TAJO_SDK_VERSION_26_5_5210",
-    # Chenab
-    "CHENAB_SAI_SDK_VERSION_2505_34_0_38",
-    "CHENAB_SAI_SDK_VERSION_2511_36_0_20",
-    "CHENAB_SAI_SDK_VERSION_2605_37_0_20",
-}
+SUPPORTED_SAI_SDK_VERSIONS = frozenset(SDK_VERSIONS)
 
 # Per-pass SAI implementation selectors.
 PASS_IMPL_NPU = "npu"
@@ -129,6 +112,8 @@ _SAI_ENV_VARS = (
     "BUILD_SAI_FAKE",
     "SAI_SDK_VERSION",
     "SAI_VERSION",
+    NPU_ASIC_SDK_VERSION,
+    NPU_SAI_SDK_VERSION,
 )
 
 
@@ -268,7 +253,7 @@ def path_to(*args):
     return os.path.join(root, *args)
 
 
-def detect_toolchain():
+def detect_toolchain():  # noqa: C901
     """
     Detect which toolchain is currently active and extract relevant information.
     Returns a dict with:
@@ -285,7 +270,7 @@ def detect_toolchain():
             timeout=5,
             check=False,
         )
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+    except (subprocess.TimeoutExpired, OSError) as e:
         print(f"Warning: Could not detect compiler: {e}", file=sys.stderr)
         return None
 
@@ -871,6 +856,7 @@ def _impl_env_vars(args, impl):
     if impl == PASS_IMPL_NPU:
         env_vars[args.npu_sai_impl] = "1"
         env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
+        env_vars.update(get_sdk_version_env_vars(args.npu_sai_sdk_version))
         if args.npu_sai_version is not None:
             env_vars["SAI_VERSION"] = args.npu_sai_version
     elif impl == PASS_IMPL_PHY:
@@ -1101,6 +1087,74 @@ def _setup_toolchain(args):
     # and we'll proceed without environment setup
 
 
+def _in_fbsource_checkout():
+    """Mirror getdeps' fbsource detection: find the enclosing repo root, then
+    read its .projectid. Reading the first .projectid found while walking up
+    would stop at fbcode/, which declares a different project."""
+    path = os.path.abspath(os.getcwd())
+    while not any(
+        os.path.exists(os.path.join(path, marker)) for marker in (".git", ".hg")
+    ):
+        parent = os.path.dirname(path)
+        if parent == path:
+            return False
+        path = parent
+
+    try:
+        with open(os.path.join(path, ".projectid"), "r") as f:
+            return f.read().strip() == "fbsource"
+    except (OSError, UnicodeDecodeError):
+        return False
+
+
+def _prefetch_gnu_mirrors(args, getdeps_path):
+    """Seed getdeps' download dir for GNU-hosted deps from a working mirror.
+
+    getdeps retries a single pinned URL, so a mirror that drops an old release
+    or refuses the connection fails the build outright. Best-effort: anything
+    not seeded here is left for getdeps to fetch normally.
+
+    Skipped when running from an fbsource checkout, where getdeps sets
+    fbsource_dir and its LFS fetcher serves these archives from cache instead
+    of the public internet. Note this keys on the checkout, not on which
+    fetcher module is installed: the build containers have the caching fetcher
+    available but run from a plain fboss checkout, so LFS stays inactive.
+    """
+    if getdeps_fallback_mirror is None:
+        print_info("getdeps_fallback_mirror.py missing; skipping mirror prefetch")
+        return
+
+    manifests_dir = path_to("build", "fbcode_builder", "manifests")
+    if not os.path.isdir(manifests_dir):
+        return
+
+    # getdeps serves these from its LFS cache when either of these is set, and
+    # that path is both faster and more reliable than the public mirrors.
+    if _in_fbsource_checkout():
+        print_info("Running from fbsource; leaving downloads to getdeps LFS")
+        return
+    if any(a == "--lfs-path" or a.startswith("--lfs-path=") for a in args.getdeps_args):
+        print_info("--lfs-path given; leaving downloads to getdeps LFS")
+        return
+
+    download_dir = getdeps_fallback_mirror.resolve_download_dir(
+        getdeps_path, args.getdeps_args
+    )
+    if download_dir is None:
+        return
+
+    print_info("Prefetching GNU-hosted dependencies via fallback mirrors")
+    try:
+        getdeps_fallback_mirror.prefetch(
+            manifests_dir=manifests_dir,
+            download_dir=download_dir,
+        )
+    except Exception as ex:
+        # Seeding is purely an optimization over what getdeps does anyway, so
+        # no failure in it is worth failing a build for.
+        print_error(f"Mirror prefetch failed ({ex}); continuing with getdeps")
+
+
 def main():
     args = parse_args()
     print_info("Starting run-getdeps.py")
@@ -1114,6 +1168,8 @@ def main():
 
     # Toolchain setup is global; do it once before any pass.
     _setup_toolchain(args)
+
+    _prefetch_gnu_mirrors(args, getdeps_path)
 
     passes = _get_pass_specs(args)
 

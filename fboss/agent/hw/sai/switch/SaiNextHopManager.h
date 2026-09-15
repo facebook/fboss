@@ -95,6 +95,12 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
     return key_;
   }
 
+  // The neighbor this next hop resolves through. ManagedNextHop subscribes to
+  // SaiNeighborTraits, so the publisher key is exactly that neighbor entry.
+  SaiNeighborTraits::NeighborEntry getNeighborEntry() const {
+    return this->getPublisherKey();
+  }
+
   std::string toString() const;
 
   void setDisableTTLDecrement(std::optional<bool> disableTTLDecrement);

@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     phyManager = tcvrManager->getPhyManager();
   }
 
-  StatsPublisher publisher(tcvrManager.get(), phyManager);
+  StatsPublisher publisher(tcvrManager.get(), phyManager, portManager.get());
 
   auto [server, handler] =
       setupThriftServer(std::move(tcvrManager), std::move(portManager));

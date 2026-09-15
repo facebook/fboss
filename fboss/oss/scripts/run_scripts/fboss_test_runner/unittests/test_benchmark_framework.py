@@ -21,6 +21,7 @@ from fboss_test_runner.frameworks.benchmark_framework import BenchmarkFramework
 from fboss_test_runner.frameworks.benchmark_suite import BenchmarkSuite
 
 _BIN = "/opt/fboss/bin/fake_benchmark"
+_BIN_NAME = "fake_benchmark"
 
 
 class FakeSuite(BenchmarkSuite):
@@ -31,8 +32,8 @@ class FakeSuite(BenchmarkSuite):
         self.setup_called = 0
         self.teardown_called = 0
 
-    def binary_path(self, args):
-        return _BIN
+    def binary_name(self, args):
+        return _BIN_NAME
 
     def config_path(self):
         return self._config_path
@@ -81,7 +82,7 @@ def bench_args():
 
 @pytest.fixture(autouse=True)
 def _binary_present():
-    with patch("os.path.isfile", return_value=True):
+    with patch("shutil.which", return_value=_BIN):
         yield
 
 
@@ -335,7 +336,7 @@ def _ok_result(name):
 
 
 def test_run_no_binary(framework, bench_args, capsys):
-    with patch("os.path.isfile", return_value=False):
+    with patch("shutil.which", return_value=None):
         framework.run(bench_args)
     assert "Could not find benchmark binary" in capsys.readouterr().out
 
@@ -357,10 +358,9 @@ def test_run_basic_flow_calls_setup_teardown(
 
 
 @patch.object(BenchmarkFramework, "_list_benchmarks")
-def test_run_list_tests(mock_list, framework, bench_args, capsys):
+def test_list_tests(mock_list, framework, bench_args, capsys):
     mock_list.return_value = ["A", "B"]
-    bench_args.list_tests = True
-    framework.run(bench_args)
+    framework.list_tests(bench_args)
     out = capsys.readouterr().out
     assert "A" in out and "B" in out
 
@@ -418,13 +418,10 @@ def test_run_all_selected_unsupported_reports_skips(
 
 @patch.object(BenchmarkFramework, "_run_benchmark_binary")
 @patch.object(BenchmarkFramework, "_list_benchmarks")
-def test_run_list_tests_does_not_write_results(
-    mock_list, mock_run, framework, bench_args
-):
+def test_list_tests_does_not_write_results(mock_list, mock_run, framework, bench_args):
     mock_list.return_value = ["A"]
-    bench_args.list_tests = True
     with patch.object(framework, "_write_results_and_summary") as mock_write:
-        framework.run(bench_args)
+        framework.list_tests(bench_args)
     mock_run.assert_not_called()
     mock_write.assert_not_called()
 

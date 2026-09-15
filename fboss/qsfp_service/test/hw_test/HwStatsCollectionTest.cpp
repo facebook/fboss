@@ -23,10 +23,37 @@ TEST_F(HwTest, publishStats) {
   addVerifiedProductionFeatures(
       {qsfp_production_features::QsfpProductionFeature::STATS_COLLECTION});
   auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
-  StatsPublisher publisher(getHwQsfpEnsemble()->getWedgeManager(), phyManager);
+  auto* portManager =
+      getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortManager();
+  StatsPublisher publisher(
+      getHwQsfpEnsemble()->getWedgeManager(), phyManager, portManager);
   publisher.init();
   publisher.publishStats(nullptr, 0);
   getHwQsfpEnsemble()->getWedgeManager()->publishI2cTransactionStats();
+
+  auto counterKeys = fb303::fbData->getCounterKeys();
+#ifndef IS_OSS
+  auto anyInterfaceCounter = [&counterKeys](const std::string& suffix) {
+    return std::any_of(
+        counterKeys.begin(), counterKeys.end(), [&suffix](const auto& key) {
+          return key.starts_with("qsfp.interface.") && key.ends_with(suffix);
+        });
+  };
+
+  // getTransceiversInfo stamps the state machine state onto every valid
+  // transceiver, so any platform with named ports exports this.
+  EXPECT_TRUE(anyInterfaceCounter(".tcvrStateMachineState"))
+      << "no qsfp.interface.<portName>.tcvrStateMachineState counter published "
+      << "to fb303";
+
+  // Port state machines only exist in Port Manager mode, so the counter must
+  // appear there and must not appear otherwise.
+  EXPECT_EQ(
+      anyInterfaceCounter(".portStateMachineState"), portManager != nullptr)
+      << "qsfp.interface.<portName>.portStateMachineState counters "
+      << (portManager ? "missing in" : "published outside")
+      << " Port Manager mode";
+#endif
 
   // A PhyManager is constructed for every platform of an XPHY capable family,
   // but the XPHYs themselves only exist on the PIMs that carry them, so having
@@ -38,7 +65,6 @@ TEST_F(HwTest, publishStats) {
   // PhyManager is owned by PortManager in Port Manager mode and by
   // TransceiverManager otherwise, so this also guards against the counters
   // silently disappearing in one of the two modes.
-  auto counterKeys = fb303::fbData->getCounterKeys();
   EXPECT_TRUE(
       std::any_of(
           counterKeys.begin(),
@@ -100,18 +126,23 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
 
     auto verify = [&]() {
       getHwQsfpEnsemble()->getQsfpServiceHandler()->updateAllXphyPortsStats();
-      /* sleep override */
-      sleep(getSleepSeconds(
-          getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
+
+      auto allStatsCollectionDone = [this, &availableXphyPorts]() {
+        for (const auto& [port, _] : availableXphyPorts) {
+          if (!getHwQsfpEnsemble()->getPhyManager()->isXphyStatsCollectionDone(
+                  port)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      WITH_RETRIES_N_TIMED(
+          30 /* retries */,
+          std::chrono::milliseconds(10000) /* msBetweenRetry */,
+          { EXPECT_EVENTUALLY_TRUE(allStatsCollectionDone()); });
 
       auto counterKeys = fb303::fbData->getCounterKeys();
-      // Now check the stats collection future job is done.
       for (const auto& [port, _] : availableXphyPorts) {
-        EXPECT_TRUE(
-            getHwQsfpEnsemble()->getPhyManager()->isXphyStatsCollectionDone(
-                port))
-            << "port:" << port << " xphy stats collection is not done";
-
         // Verify fb303 has the XPHY FEC counters
         auto portName =
             getHwQsfpEnsemble()->getQsfpServiceHandler()->getPortNameByPortId(
@@ -193,36 +224,36 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
 
         // Sanity check the info we received
         auto chipInfo = portInfo.state()->phyChip();
-        EXPECT_EQ(chipInfo->get_type(), phy::DataPlanePhyChipType::XPHY);
-        EXPECT_FALSE(chipInfo->get_name().empty());
+        EXPECT_EQ(chipInfo->type().value(), phy::DataPlanePhyChipType::XPHY);
+        EXPECT_FALSE(chipInfo->name().value().empty());
         if (auto sysState = portInfo.state()->system()) {
-          EXPECT_EQ(sysState->get_side(), phy::Side::SYSTEM);
+          EXPECT_EQ(sysState->side().value(), phy::Side::SYSTEM);
           for (auto const& [lane, laneInfo] :
                sysState->pmd().value().lanes().value()) {
-            EXPECT_EQ(lane, laneInfo.get_lane());
+            EXPECT_EQ(lane, laneInfo.lane().value());
           }
         }
         if (auto sysStats = portInfo.stats()->system()) {
-          EXPECT_EQ(sysStats->get_side(), phy::Side::SYSTEM);
+          EXPECT_EQ(sysStats->side().value(), phy::Side::SYSTEM);
           for (auto const& [lane, laneInfo] :
                sysStats->pmd().value().lanes().value()) {
-            EXPECT_EQ(lane, laneInfo.get_lane());
+            EXPECT_EQ(lane, laneInfo.lane().value());
           }
         }
         auto lineState = portInfo.state()->line();
-        EXPECT_EQ(lineState->get_side(), phy::Side::LINE);
+        EXPECT_EQ(lineState->side().value(), phy::Side::LINE);
         for (auto const& [lane, laneInfo] :
              lineState->pmd().value().lanes().value()) {
-          EXPECT_EQ(lane, laneInfo.get_lane());
+          EXPECT_EQ(lane, laneInfo.lane().value());
         }
         auto lineStats = portInfo.stats()->line();
-        EXPECT_EQ(lineStats->get_side(), phy::Side::LINE);
+        EXPECT_EQ(lineStats->side().value(), phy::Side::LINE);
         for (auto const& [lane, laneInfo] :
              lineStats->pmd().value().lanes().value()) {
-          EXPECT_EQ(lane, laneInfo.get_lane());
+          EXPECT_EQ(lane, laneInfo.lane().value());
         }
-        EXPECT_GT(portInfo.state()->get_timeCollected(), 0);
-        EXPECT_GT(portInfo.stats()->get_timeCollected(), 0);
+        EXPECT_GT(portInfo.state()->timeCollected().value(), 0);
+        EXPECT_GT(portInfo.stats()->timeCollected().value(), 0);
       }
 
       // Verify that there are no PIM errors since all getPortInfo calls above
@@ -390,25 +421,25 @@ TEST_F(HwTest, transceiverIOStats) {
                << ioStatsString<TransceiverStats>(tcvrStatsBefore[tcvrID]);
     XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats After Refresh: "
                << ioStatsString<TransceiverStats>(tcvrStatsAfter);
-    EXPECT_EQ(tcvrStatsAfter.get_readDownTime(), 0);
-    EXPECT_EQ(tcvrStatsAfter.get_writeDownTime(), 0);
+    EXPECT_EQ(tcvrStatsAfter.readDownTime().value(), 0);
+    EXPECT_EQ(tcvrStatsAfter.writeDownTime().value(), 0);
     EXPECT_EQ(
-        tcvrStatsAfter.get_numReadFailed(),
-        tcvrStatsBefore[tcvrID].get_numReadFailed());
+        tcvrStatsAfter.numReadFailed().value(),
+        tcvrStatsBefore[tcvrID].numReadFailed().value());
     EXPECT_EQ(
-        tcvrStatsAfter.get_numWriteFailed(),
-        tcvrStatsBefore[tcvrID].get_numWriteFailed());
+        tcvrStatsAfter.numWriteFailed().value(),
+        tcvrStatsBefore[tcvrID].numWriteFailed().value());
     EXPECT_GT(
-        tcvrStatsAfter.get_numReadAttempted(),
-        tcvrStatsBefore[tcvrID].get_numReadAttempted());
+        tcvrStatsAfter.numReadAttempted().value(),
+        tcvrStatsBefore[tcvrID].numReadAttempted().value());
     if (TransceiverManager::opticalOrActiveCmisCable(tcvrState)) {
       EXPECT_GT(
-          tcvrStatsAfter.get_numWriteAttempted(),
-          tcvrStatsBefore[tcvrID].get_numWriteAttempted());
+          tcvrStatsAfter.numWriteAttempted().value(),
+          tcvrStatsBefore[tcvrID].numWriteAttempted().value());
     } else {
       EXPECT_GE(
-          tcvrStatsAfter.get_numWriteAttempted(),
-          tcvrStatsBefore[tcvrID].get_numWriteAttempted());
+          tcvrStatsAfter.numWriteAttempted().value(),
+          tcvrStatsBefore[tcvrID].numWriteAttempted().value());
     }
   }
 }
@@ -497,18 +528,20 @@ TEST_F(PhyIOTest, phyIOStats) {
                << " Stats Before: " << ioStatsString<IOStats>(ioStatsBefore);
     XLOG(DBG3) << "portID: " << portId
                << " Stats After: " << ioStatsString<IOStats>(ioStatsAfter);
-    EXPECT_EQ(ioStatsAfter.get_readDownTime(), 0);
-    EXPECT_EQ(ioStatsAfter.get_writeDownTime(), 0);
+    EXPECT_EQ(ioStatsAfter.readDownTime().value(), 0);
+    EXPECT_EQ(ioStatsAfter.writeDownTime().value(), 0);
     EXPECT_EQ(
-        ioStatsAfter.get_numReadFailed(), ioStatsBefore.get_numReadFailed());
+        ioStatsAfter.numReadFailed().value(),
+        ioStatsBefore.numReadFailed().value());
     EXPECT_EQ(
-        ioStatsAfter.get_numWriteFailed(), ioStatsBefore.get_numWriteFailed());
+        ioStatsAfter.numWriteFailed().value(),
+        ioStatsBefore.numWriteFailed().value());
     EXPECT_GT(
-        ioStatsAfter.get_numReadAttempted(),
-        ioStatsBefore.get_numReadAttempted());
+        ioStatsAfter.numReadAttempted().value(),
+        ioStatsBefore.numReadAttempted().value());
     EXPECT_GT(
-        ioStatsAfter.get_numWriteAttempted(),
-        ioStatsBefore.get_numWriteAttempted());
+        ioStatsAfter.numWriteAttempted().value(),
+        ioStatsBefore.numWriteAttempted().value());
   }
 }
 } // namespace facebook::fboss

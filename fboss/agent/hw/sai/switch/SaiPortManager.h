@@ -155,6 +155,10 @@ class SaiPortManager {
   void changePort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void setIngressAcl(const std::shared_ptr<Port>& swPort);
+  void changeIngressAcl(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
@@ -280,8 +284,9 @@ class SaiPortManager {
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
   std::vector<sai_port_snr_values_t> getRxSNR(
-      PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      const PortSaiId& saiPortId,
+      uint8_t numPmdLanes,
+      const PortID& portID) const;
 #endif
   std::vector<phy::SerdesParameters> getSerdesParameters(
       PortSerdesSaiId serdesSaiPortId,
@@ -307,12 +312,26 @@ class SaiPortManager {
       PortSaiId saiPortId) const;
 #endif
 
+#if defined(SAI_BRCM_PAI_IMPL) && SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  phy::Loopback getLoopbackMode(PortSaiId saiPortId) const;
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::optional<sai_latch_status_t> getHighCrcErrorRate(
       PortSaiId saiPortId,
       PortID swPort) const;
 #endif
   void updateLeakyBucketFb303Counter(PortID portId, int value);
+  void updatePmdChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool signalDetectChanged,
+      bool cdrLockChanged);
+  void updateLinkFaultChangedFb303Counters(
+      PortID portId,
+      phy::Side side,
+      bool localFaultChanged,
+      bool remoteFaultChanged);
 
   phy::FecMode getFECMode(PortID portId) const;
 
@@ -321,6 +340,7 @@ class SaiPortManager {
   TransmitterTechnology getMedium(PortID portID) const;
 
   uint8_t getNumPmdLanes(PortSaiId saiPortId) const;
+  std::vector<uint32_t> getPmdLaneList(PortSaiId saiPortId) const;
   void loadPortQueuesForAddedPort(const std::shared_ptr<Port>& swPort);
   void loadPortQueuesForChangedPort(
       const std::shared_ptr<Port>& oldPort,
@@ -337,6 +357,7 @@ class SaiPortManager {
       const PortSaiId& saiPortId,
       PortID portID,
       bool linkTrainingEnabled) const;
+  bool linkTrainingSupportedOnPort(const std::shared_ptr<Port>& swPort) const;
   bool fecCodewordsStatsSupported(PortID portID) const;
   void addPortShelEnable(const std::shared_ptr<Port>& swPort) const;
   void changePortShelEnable(

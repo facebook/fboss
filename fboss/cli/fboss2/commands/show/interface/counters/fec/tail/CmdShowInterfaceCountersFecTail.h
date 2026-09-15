@@ -9,7 +9,8 @@
 
 namespace facebook::fboss {
 
-struct CmdShowInterfaceCountersFecTailTraits : public ReadCommandTraits {
+struct CmdShowInterfaceCountersFecTailTraits : public ReadCommandTraits,
+                                               public CliDocsExempt {
   using ParentCmd = CmdShowInterfaceCountersFec;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;

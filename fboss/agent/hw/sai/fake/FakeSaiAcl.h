@@ -183,6 +183,10 @@ class FakeAclEntry {
   sai_uint32_t fieldNeighborDstUserMetaData;
   sai_uint32_t fieldNeighborDstUserMetaMask;
 
+  bool fieldPortUserMetaEnable{false};
+  sai_uint32_t fieldPortUserMetaData{};
+  sai_uint32_t fieldPortUserMetaMask{};
+
   bool fieldEtherTypeEnable{false};
   sai_uint16_t fieldEtherTypeData;
   sai_uint16_t fieldEtherTypeMask;
@@ -299,6 +303,7 @@ class FakeAclTable {
       bool fieldFdbDstUserMeta,
       bool fieldRouteDstUserMeta,
       bool fieldNeighborDstUserMeta,
+      bool fieldPortUserMeta,
       bool fieldEthertype,
       bool fieldOuterVlanId,
       std::vector<sai_int32_t> fieldAclRangeType,
@@ -337,6 +342,7 @@ class FakeAclTable {
         fieldFdbDstUserMeta(fieldFdbDstUserMeta),
         fieldRouteDstUserMeta(fieldRouteDstUserMeta),
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
+        fieldPortUserMeta(fieldPortUserMeta),
         fieldEthertype(fieldEthertype),
         fieldOuterVlanId(fieldOuterVlanId),
         fieldAclRangeType(fieldAclRangeType),
@@ -381,6 +387,7 @@ class FakeAclTable {
   bool fieldFdbDstUserMeta;
   bool fieldRouteDstUserMeta;
   bool fieldNeighborDstUserMeta;
+  bool fieldPortUserMeta;
   bool fieldEthertype;
   bool fieldOuterVlanId;
   std::vector<sai_int32_t> fieldAclRangeType;

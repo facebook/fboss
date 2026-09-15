@@ -87,6 +87,7 @@ add_library(platform_manager_data_store
 target_link_libraries(platform_manager_data_store
   fmt::fmt
   platform_manager_config_cpp2
+  platform_manager_utils
   weutil_eeprom_contents_cpp2
   weutil_fboss_eeprom_interface
   Folly::folly

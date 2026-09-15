@@ -1513,4 +1513,37 @@ TEST_F(PortManagerTest, warmBootStateRoundtrip) {
   EXPECT_EQ(port2["lineLanes"], folly::dynamic::array(2, 3));
 }
 
+TEST_F(PortManagerTest, setPortLoopbackStateXphyWithoutPhyManagerThrows) {
+  // The default fixture builds PortManager with a null PhyManager, which is
+  // the real state on platforms that have no xphy. Setting loopback on an
+  // xphy component must surface an error rather than dereference the null.
+  EXPECT_THROW(
+      portManager_->setPortLoopbackState(
+          "eth1/1/1", phy::PortComponent::GB_LINE, true),
+      FbossError);
+  EXPECT_THROW(
+      portManager_->setPortLoopbackState(
+          "eth1/1/1", phy::PortComponent::GB_SYSTEM, true),
+      FbossError);
+  // Disabling must be just as safe as enabling.
+  EXPECT_THROW(
+      portManager_->setPortLoopbackState(
+          "eth1/1/1", phy::PortComponent::GB_LINE, false),
+      FbossError);
+}
+
+TEST_F(PortManagerTest, setPortLoopbackStateUnsupportedComponentIsNoop) {
+  // qsfp_service does not own ASIC loopback; it is ignored rather than being
+  // treated as an error, and must not reach the PhyManager.
+  EXPECT_NO_THROW(portManager_->setPortLoopbackState(
+      "eth1/1/1", phy::PortComponent::ASIC, true));
+}
+
+TEST_F(PortManagerTest, setPortLoopbackStateInvalidPortThrows) {
+  EXPECT_THROW(
+      portManager_->setPortLoopbackState(
+          "invalid_port", phy::PortComponent::GB_LINE, true),
+      FbossError);
+}
+
 } // namespace facebook::fboss

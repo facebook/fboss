@@ -358,4 +358,35 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutput_PathSelectionPending) {
   EXPECT_EQ(output, expectedOutput);
 }
 
+TEST_F(CmdShowBgpTablePrefixTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpTablePrefixTraits::description().empty());
+
+  /*
+   * printRIBEntries reaches getLocalBgpConfig for the community/local-pref
+   * mnemonics and builds the HostInfo it connects to from the MODEL's own
+   * host/ip fields, so point the copy under test at the mocked server rather
+   * than at the canned documentation host.
+   */
+  setupMockedBgpServer();
+  resetBgpMnemonicCaches();
+  EXPECT_CALL(getMockBgp(), getRunningConfig(_))
+      .WillRepeatedly([](std::string& config) { config = "{}"; });
+
+  // Exact match returns the one prefix, never a covering or covered one.
+  auto model = CmdShowBgpTablePrefix::sampleModel();
+  ASSERT_EQ(model.tRibEntries()->size(), 1);
+  model.host() = localhost().getName();
+  model.oobName() = localhost().getOobName();
+  model.ip() = localhost().getIpStr();
+
+  std::stringstream ss;
+  CmdShowBgpTablePrefix().printOutput(model, ss);
+  const std::string output = ss.str();
+
+  EXPECT_THAT(output, HasSubstr("> 0.0.0.0/0, Selected 2/3 paths"));
+  // printOutput hard-codes detail=true, so the detail-only lines are present.
+  EXPECT_THAT(output, HasSubstr("Router/Originator:"));
+  EXPECT_THAT(output, HasSubstr("Communities:"));
+}
+
 } // namespace facebook::fboss

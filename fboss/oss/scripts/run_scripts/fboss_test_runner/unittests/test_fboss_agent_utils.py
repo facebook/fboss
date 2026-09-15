@@ -186,9 +186,15 @@ class TestCleanupSwAgentService(unittest.TestCase):
 class TestSetupAndStartSwAgentService(unittest.TestCase):
     @patch("fboss_test_runner.services.fboss_agent_utils.subprocess.run")
     @patch("fboss_test_runner.services.service_utils.subprocess.run")
+    @patch(
+        "fboss_test_runner.services.service_utils.shutil.which",
+        return_value="/tmp/fboss/bin/fboss_sw_agent",
+    )
     @patch("fboss_test_runner.services.service_utils.os.path.exists", return_value=True)
     @patch("builtins.open", mock_open())
-    def test_sets_up_and_starts(self, mock_exists, mock_svc_run, mock_agent_run):
+    def test_sets_up_and_starts(
+        self, mock_exists, mock_which, mock_svc_run, mock_agent_run
+    ):
         mock_svc_run.return_value = _mock_run(0)
         mock_agent_run.return_value = _mock_run(0)
 
@@ -202,10 +208,8 @@ class TestSetupAndStartSwAgentService(unittest.TestCase):
         self.assertTrue(any("systemctl enable" in c for c in all_calls))
         self.assertTrue(any("systemctl start fboss_sw_agent" in c for c in all_calls))
 
-    @patch(
-        "fboss_test_runner.services.service_utils.os.path.exists", return_value=False
-    )
-    def test_raises_when_binary_missing(self, mock_exists):
+    @patch("fboss_test_runner.services.service_utils.shutil.which", return_value=None)
+    def test_raises_when_binary_missing(self, mock_which):
         with self.assertRaisesRegex(Exception, "does not exist"):
             setup_and_start_sw_agent_service(
                 fboss_agent_config_path="/etc/coop/agent.conf",

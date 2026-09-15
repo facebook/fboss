@@ -18,12 +18,18 @@ namespace facebook {
 namespace fboss {
 
 class PhyManager;
+class PortManager;
 class TransceiverManager;
 
 class StatsPublisher {
  public:
-  StatsPublisher(TransceiverManager* transceiverManager, PhyManager* phyManager)
-      : transceiverManager_(transceiverManager), phyManager_(phyManager) {}
+  StatsPublisher(
+      TransceiverManager* transceiverManager,
+      PhyManager* phyManager,
+      PortManager* portManager)
+      : transceiverManager_(transceiverManager),
+        phyManager_(phyManager),
+        portManager_(portManager) {}
   void init();
   void publishStats(folly::EventBase* evb, int32_t stats_publish_interval);
   void publishFbagentCounters(
@@ -35,6 +41,7 @@ class StatsPublisher {
   static void bumpReadFailure();
   static void bumpWriteFailure();
   static void bumpModuleErrors();
+  static void bumpFwStorageHandleMissingFromConfig();
   static void missingPorts(TransceiverID module);
   static void bumpAOIOverride();
   static void bumpHighTemp();
@@ -44,11 +51,15 @@ class StatsPublisher {
   static void initPerPortFb303Stats(std::set<std::string>& portNames);
 
  private:
+  void publishBootType();
+
   TransceiverManager* transceiverManager_{nullptr};
   // Owned by either TransceiverManager or, in Port Manager mode, PortManager.
   // Created once during initialization and never replaced, so caching the raw
   // pointer for the lifetime of the process is safe.
   PhyManager* phyManager_{nullptr};
+  // Null outside Port Manager mode, where there are no port state machines
+  PortManager* portManager_{nullptr};
 };
 } // namespace fboss
 } // namespace facebook

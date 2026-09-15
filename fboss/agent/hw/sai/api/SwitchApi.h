@@ -216,6 +216,11 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_NEIGHBOR_DST_USER_META_DATA_RANGE,
         sai_u32_range_t,
         SaiIntRangeDefault<sai_u32_range_t>>;
+    using PortUserMetaDataRange = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_PORT_USER_META_DATA_RANGE,
+        sai_u32_range_t,
+        SaiIntRangeDefault<sai_u32_range_t>>;
     using AvailableIpv4RouteEntry = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_AVAILABLE_IPV4_ROUTE_ENTRY,
@@ -885,6 +890,25 @@ struct SaiSwitchTraits {
         bool,
         AttributePortCl72RetryEnable,
         SaiBoolDefaultFalse>;
+    struct AttributePacketDropTypeIngressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeIngressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeIngressList>;
+    struct AttributePacketDropTypeEgressList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeEgressList = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeEgressList>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    using LinkUpDebounceTimeout = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_LINK_UP_DEBOUNCE_TIMEOUT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
     using SwitchingMode = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_SWITCHING_MODE,
@@ -1015,6 +1039,10 @@ struct SaiSwitchTraits {
       std::optional<Attributes::CablePropagationDelayMeasurement>,
       std::optional<Attributes::PortCl72RetryEnable>,
       std::optional<Attributes::SwitchingMode>
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      ,
+      std::optional<Attributes::LinkUpDebounceTimeout>
+#endif
 
 #if defined(SAI_BRCM_PAI_IMPL)
       ,
@@ -1094,6 +1122,7 @@ SAI_ATTRIBUTE_NAME(Switch, MacAgingTime)
 SAI_ATTRIBUTE_NAME(Switch, FdbDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, RouteDstUserMetaDataRange)
 SAI_ATTRIBUTE_NAME(Switch, NeighborDstUserMetaDataRange)
+SAI_ATTRIBUTE_NAME(Switch, PortUserMetaDataRange)
 
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4RouteEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6RouteEntry)
@@ -1218,9 +1247,14 @@ SAI_ATTRIBUTE_NAME(Switch, DefaultCpuEgressBufferPool)
 SAI_ATTRIBUTE_NAME(Switch, PfcMonitorEnable)
 SAI_ATTRIBUTE_NAME(Switch, CablePropagationDelayMeasurement)
 SAI_ATTRIBUTE_NAME(Switch, PortCl72RetryEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+SAI_ATTRIBUTE_NAME(Switch, LinkUpDebounceTimeout)
+#endif
 SAI_ATTRIBUTE_NAME(Switch, SwitchingMode)
 SAI_ATTRIBUTE_NAME(Switch, TechSupportType)
 SAI_ATTRIBUTE_NAME(Switch, ModuleIdFabricPortList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeIngressList)
+SAI_ATTRIBUTE_NAME(Switch, PacketDropTypeEgressList)
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 SAI_ATTRIBUTE_NAME(Switch, LocalSystemPortIdRangeList)
 #endif

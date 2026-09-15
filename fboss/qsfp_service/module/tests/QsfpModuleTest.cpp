@@ -522,6 +522,22 @@ TEST_F(QsfpModuleTest, getFirmwareUpgradeData) {
   EXPECT_TRUE(transceiverManager_->getFirmwareUpgradeData(*qsfp_).has_value());
 }
 
+TEST_F(QsfpModuleTest, getFwStorageHandlePrefersQsfpConfig) {
+  qsfp_->overrideVendorPN(getFakePartNumber());
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_EQ(qsfp_->getFwStorageHandle(), getFakeFwStorageHandle());
+}
+
+TEST_F(QsfpModuleTest, getFwStorageHandleUnknownPartNumber) {
+  // Not in the qsfp config nor in the built in map, so neither source can
+  // resolve it.
+  qsfp_->overrideVendorPN("PART-NUMBER-IN-NEITHER-MAP");
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_EQ(qsfp_->getFwStorageHandle(), "");
+}
+
 TEST_F(QsfpModuleTest, cdbFwDownloadStartBufferOverflowProtection) {
   // Test that createCdbCmdFwDownloadStart clamps imageChunkLen to prevent
   // stack buffer overflow. A malicious module could set

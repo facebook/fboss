@@ -88,7 +88,9 @@ std::unique_ptr<LedManager> createLedManager() {
       mode == PlatformType::PLATFORM_WEDGE800BACT ||
       mode == PlatformType::PLATFORM_WEDGE800BNHP) {
     return std::make_unique<Wedge800BACTLedManager>();
-  } else if (mode == PlatformType::PLATFORM_WEDGE800CACT) {
+  } else if (
+      mode == PlatformType::PLATFORM_WEDGE800CACT ||
+      mode == PlatformType::PLATFORM_WEDGE800CNHP) {
     return std::make_unique<Wedge800CACTLedManager>();
   } else if (mode == PlatformType::PLATFORM_LADAKH800BCLS) {
     return std::make_unique<Ladakh800bclsLedManager>();

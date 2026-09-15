@@ -299,7 +299,9 @@ TEST_F(EcmpBackupGroupTypeTest, managedAndProtectionRoutesInSameDelta) {
   assertEndState(newState, {managedPrefix});
   const auto protectionRoute = cfib(state_)->getRouteIf(protectionPrefix);
   ASSERT_NE(protectionRoute, nullptr);
-  EXPECT_EQ(protectionRoute->getForwardInfo().getNextHopSet(), protectionNhops);
+  EXPECT_EQ(
+      facebook::fboss::getNextHops(state_, protectionRoute->getForwardInfo()),
+      protectionNhops);
   EXPECT_FALSE(
       protectionRoute->getForwardInfo().hasOverrideSwitchingModeOrNhops());
   EXPECT_EQ(

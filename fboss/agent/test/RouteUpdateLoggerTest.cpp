@@ -195,11 +195,8 @@ class RouteUpdateLoggerTest : public ::testing::Test {
 
   void addLabel(Label label, ClientID client = ClientID::OPENR) {
     SwSwitchRouteUpdateWrapper updater = sw->getRouteUpdater();
-    updater.addRoute(
-        client,
-        label.value(),
-        RouteNextHopEntry(
-            RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+    // An empty set is the DROP case, all the old entry argument conveyed.
+    updater.addRoute(client, label.value(), RouteNextHopSet{});
     updater.program();
   }
 

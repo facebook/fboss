@@ -428,6 +428,11 @@ bool MultiHwSwitchHandler::waitUntilHwSwitchConnected() {
   return connectionStatusTable_.waitUntilHwSwitchConnected();
 }
 
+bool MultiHwSwitchHandler::waitUntilAllHwSwitchesConnected() {
+  return connectionStatusTable_.waitUntilHwSwitchConnected(
+      hwSwitchSyncers_.size());
+}
+
 std::map<int32_t, SwitchRunState> MultiHwSwitchHandler::getHwSwitchRunStates() {
   std::map<int32_t, SwitchRunState> runStates;
   if (!isRunning()) {

@@ -50,7 +50,9 @@ class HwTransceiverResetTest : public HwTransceiverTest {
               isPortUp_ /* up */, true /* enabled */);
     }
 
-    waitTillCabledTcvrProgrammed(10 /* numRetries */, isPortUp_ /* portUp */);
+    // Tunable optics take ~100s for datapath activation. Thus wait sufficient
+    // time for the transceivers to complete transceiver programming state
+    waitTillCabledTcvrProgrammed(30 /* numRetries */, isPortUp_ /* portUp */);
   }
 
   // Verify that the transceiver's module state is correct based on the
@@ -357,7 +359,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           // Expect presence before reset.
           auto info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_TRUE(*info.get_tcvrState().present());
+          EXPECT_TRUE(*info.tcvrState().value().present());
 
           // 1. Put transceiver in reset
           (wedgeManager->*resetFunc)(tcvrID);
@@ -372,7 +374,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           refreshTransceiversWithRetry();
           info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_FALSE(*info.get_tcvrState().present());
+          EXPECT_FALSE(*info.tcvrState().value().present());
 
           WITH_RETRIES_N_TIMED(
               10 /* retries */,
@@ -399,7 +401,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
               verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
             }
             info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
-            EXPECT_TRUE(*info.get_tcvrState().present());
+            EXPECT_TRUE(*info.tcvrState().value().present());
           }
 
           // 4. Undo reset to put transceiver back in normal operation
@@ -410,7 +412,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
 
           refreshTransceiversWithRetry();
           info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
-          EXPECT_TRUE(*info.get_tcvrState().present());
+          EXPECT_TRUE(*info.tcvrState().value().present());
 
           // 5. Verify all other transceivers are present and respond to IO.
           for (auto otherTcvrID : opticalTransceivers) {
@@ -423,7 +425,7 @@ TEST_F(HwTransceiverResetBmcLiteTest, verifyResetControl) {
               verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
             }
             info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
-            EXPECT_TRUE(*info.get_tcvrState().present());
+            EXPECT_TRUE(*info.tcvrState().value().present());
           }
 
           // 6. Wait up to 10 seconds for transceiver to start responding

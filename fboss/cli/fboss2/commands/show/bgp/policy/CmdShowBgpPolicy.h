@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-struct CmdShowBgpPolicyTraits : public ReadCommandTraits {
+struct CmdShowBgpPolicyTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
   using ObjectArgType = std::vector<std::string>;

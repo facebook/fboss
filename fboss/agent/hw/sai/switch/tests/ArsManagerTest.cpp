@@ -27,15 +27,15 @@ class ArsManagerTest : public ManagerTestBase {
   }
 
   std::optional<SaiArsTraits::Attributes::SourcePortPrune> addArsAndGetPrune(
-      std::optional<bool> l3EcmpIngressPortPrune) {
+      std::optional<bool> splitHorizonEnabled) {
     saiManagerTable->arsManager().addArs(
-        makeFlowletSwitchingConfig(), l3EcmpIngressPortPrune);
+        makeFlowletSwitchingConfig(), splitHorizonEnabled);
     return std::get<std::optional<SaiArsTraits::Attributes::SourcePortPrune>>(
         saiManagerTable->arsManager().getArsHandle()->ars->attributes());
   }
 };
 
-TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenTrue) {
+TEST_F(ArsManagerTest, testArsSplitHorizonProgrammedWhenTrue) {
   auto sourcePortPrune = addArsAndGetPrune(true);
   ASSERT_TRUE(sourcePortPrune.has_value());
   EXPECT_TRUE(sourcePortPrune->value());
@@ -43,7 +43,7 @@ TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenTrue) {
 
 // A configured false is programmed as false, so a true to false config change
 // clears the bit on the next create rather than leaving it set.
-TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenFalse) {
+TEST_F(ArsManagerTest, testArsSplitHorizonProgrammedWhenFalse) {
   auto sourcePortPrune = addArsAndGetPrune(false);
   ASSERT_TRUE(sourcePortPrune.has_value());
   EXPECT_FALSE(sourcePortPrune->value());
@@ -51,7 +51,7 @@ TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneProgrammedWhenFalse) {
 
 // Unset is distinct from false: the create-only attribute is left out of the
 // create call entirely rather than being programmed as false.
-TEST_F(ArsManagerTest, testL3EcmpIngressPortPruneNotProgrammedWhenUnset) {
+TEST_F(ArsManagerTest, testArsSplitHorizonNotProgrammedWhenUnset) {
   EXPECT_FALSE(addArsAndGetPrune(std::nullopt).has_value());
 }
 

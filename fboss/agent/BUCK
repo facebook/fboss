@@ -292,6 +292,8 @@ cpp_library(
         "//fboss/lib:thrift_method_rate_limit_setup",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//fboss/platform/helpers:platform_thrift_acceptor",
+        "//fboss/platform/helpers:platform_thrift_acceptor_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:multiplex_async_processor",
     ],
@@ -782,6 +784,7 @@ cpp_library(
     exported_deps = [
         ":agent_stats-cpp2-types",
         ":fboss-types",
+        ":switch_config-cpp2-types",
         "//fb303:thread_cached_service_data",
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/lib:common_utils",
@@ -923,6 +926,21 @@ cpp_library(
         ":fboss-types",
         "//fboss/agent/state:state",
         "//folly:synchronized",
+    ],
+)
+
+cpp_library(
+    name = "pbr_acl_manager",
+    srcs = [
+        "PbrAclManager.cpp",
+    ],
+    deps = [
+        ":fboss-error",
+        ":hwswitch_matcher",
+        ":switch_config-cpp2-types",
+        "//fboss/agent/state:nodebase",
+        "//fboss/agent/state:state",
+        "//folly/logging:logging",
     ],
 )
 
@@ -1139,6 +1157,7 @@ cpp_library(
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
         "fbsource//third-party/googletest:gtest_headers",
+        "fbsource//third-party/googletest:gtest_prod_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
@@ -1171,6 +1190,7 @@ cpp_library(
         ":monolithic_hw_switch_handler",
         ":packet",
         ":packet_observer",
+        ":pbr_acl_manager",
         ":pfc_utils",
         ":phy_snapshot_lib",
         ":remote_intf_route_auditor",
@@ -1385,6 +1405,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "strong-types",
+    headers = [
+        "StrongTypes.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:conv",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_serialization"),
+    ],
+)
+
+cpp_library(
     name = "fboss-types",
     srcs = [
         "PortDescriptorTemplate.cpp",
@@ -1396,8 +1430,8 @@ cpp_library(
         "types.h",
     ],
     exported_deps = [
-        "fbsource//third-party/fmt:fmt",
         ":fboss-error",
+        ":strong-types",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",

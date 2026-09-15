@@ -14,7 +14,6 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/lib/bsp/bspmapping:parser",
-        "//fboss/lib/if:fboss_common-cpp2-types",
         "//folly:range",
     ],
 )

@@ -10,6 +10,7 @@ add_library(radix_tree
 
 target_link_libraries(radix_tree
   Folly::folly
+  glog::glog
 )
 
 add_library(log_thrift_call
@@ -20,7 +21,6 @@ add_library(log_thrift_call
 target_link_libraries(log_thrift_call
   Folly::folly
   FBThrift::thriftcpp2
-  stats
 )
 
 add_library(alert_logger
@@ -29,6 +29,7 @@ add_library(alert_logger
 
 target_link_libraries(alert_logger
   Folly::folly
+  fmt::fmt
 )
 
 add_library(ref_map
@@ -49,6 +50,7 @@ add_library(exponential_back_off
 
 target_link_libraries(exponential_back_off
   Folly::folly
+  glog::glog
 )
 
 add_library(function_call_time_reporter
@@ -76,7 +78,7 @@ target_link_libraries(common_port_utils
 )
 
 add_library(common_utils
-  fboss/lib/CommonUtils.h
+  fboss/lib/CommonUtils.cpp
 )
 
 target_link_libraries(common_utils

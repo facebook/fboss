@@ -90,7 +90,6 @@ constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
-constexpr int kSecAfterModuleOutOfReset = 2;
 // A CPO module presents up to (max CMIS banks) x (host lanes per bank) global
 // host lanes. Expressed as a product so the cap tracks a future change to the
 // bank capacity or per-bank lane count instead of a magic 32. (This is the
@@ -3559,6 +3558,10 @@ void TransceiverManager::setPortLoopbackState(
 
   if (component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {
+    if (!getPhyManager()) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     getPhyManager()->setPortLoopbackState(
         PortID(swPort.value()), component, setLoopback);
   } else {

@@ -20,6 +20,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RouteUpdaterUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
@@ -91,11 +92,13 @@ RibRouteUpdater::RibRouteUpdater(
     IPv6NetworkToRouteMap* v6Routes,
     NextHopIDManager* nextHopIDManager,
     MySidTable* mySidTable,
+    uint32_t ecmpWidth,
     RouterID routerID)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       nextHopIDManager_(nextHopIDManager),
       mySidTable_(mySidTable),
+      ecmpWidth_(ecmpWidth),
       routerID_(routerID),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
@@ -111,12 +114,14 @@ RibRouteUpdater::RibRouteUpdater(
     LabelToRouteMap* mplsRoutes,
     NextHopIDManager* nextHopIDManager,
     MySidTable* mySidTable,
+    uint32_t ecmpWidth,
     RouterID routerID)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       mplsRoutes_(mplsRoutes),
       nextHopIDManager_(nextHopIDManager),
       mySidTable_(mySidTable),
+      ecmpWidth_(ecmpWidth),
       routerID_(routerID),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
@@ -1106,6 +1111,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       RouteNextHopSet nhSet = labelPopandLookup
           ? bestEntryNhops
           : mergeForwardInfos(nhToFwds, route);
+      nhSet = removeBackupNextHopsWithMatchingPrimary(std::move(nhSet));
 
       // normalize weight information for capacity matching if needed
       if (FLAGS_enable_capacity_pruning) {
@@ -1185,7 +1191,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         // allocation but deallocate any existing old ID
         if (!labelPopandLookup) {
           newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
-              RouteNextHopEntry::normalizeNextHops(nhop->getNextHopSet()),
+              RouteNextHopEntry::normalizeNextHops(
+                  nhop->getNextHopSet(), ecmpWidth_),
               oldNormalizedNextHopSetID);
         } else if (oldNormalizedNextHopSetID.has_value()) {
           // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID

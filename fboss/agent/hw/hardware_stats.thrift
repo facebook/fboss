@@ -195,7 +195,9 @@ struct HwPortStats {
   // counters they resolve to: LLR_REPLAY_EVENT is snmpBcmTxLlrNackReplayPkts
   // (NACK-triggered replay episodes), LLR_TX_TIMER_REPLAY is
   // snmpBcmTxLlrTimerReplayPkts (timer-triggered), and LLR_TOTAL_ERROR is
-  // snmpBcmTxLlrErrorPkts, a transmit-side counter despite the name.
+  // snmpBcmTxLlrErrorPkts, a transmit-side counter despite the name. Broadcom
+  // gave the mapping, and confirmed all eight are gettable on Tomahawk Ultra 1,
+  // in CS00012472055.
   //
   // SAI_PORT_STAT_LLR_REPLAY is deliberately absent: it resolves to
   // snmpBcmTxLlrReplayedPkts, the same SDK counter as SAI_PORT_STAT_LLR_TX_OK's

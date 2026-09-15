@@ -16,6 +16,7 @@
 namespace facebook::fboss::fsdb {
 
 DECLARE_bool(lazyPathStoreCreation);
+DECLARE_bool(dynamicWildcardPatchResolution);
 
 enum class LookupType { PARENTS, TARGET, CHILDREN };
 

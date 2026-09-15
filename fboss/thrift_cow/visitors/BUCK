@@ -44,6 +44,7 @@ cpp_library(
     ],
     headers = [
         "DeltaVisitor.h",
+        "ExtendedPathMatcher.h",
         "ExtendedPathVisitor.h",
         "PatchApplier.h",
         "PatchBuilder.h",

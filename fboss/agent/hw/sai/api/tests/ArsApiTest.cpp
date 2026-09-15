@@ -28,7 +28,14 @@ class ArsApiTest : public ::testing::Test {
   SaiArsTraits::CreateAttributes getArsAttributes(
       sai_int32_t mode = SAI_ARS_MODE_FLOWLET_QUALITY,
       std::optional<sai_uint32_t> idleTime = std::nullopt,
-      std::optional<sai_uint32_t> maxFlows = std::nullopt) const {
+      std::optional<sai_uint32_t> maxFlows = std::nullopt,
+      std::optional<sai_uint32_t> ecmpMemberCount = std::nullopt) const {
+    std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
+        ecmpMemberCountAttr = std::nullopt;
+    if (ecmpMemberCount) {
+      ecmpMemberCountAttr =
+          SaiArsTraits::Attributes::EcmpMemberCount{*ecmpMemberCount};
+    }
     return SaiArsTraits::CreateAttributes{
         SaiArsTraits::Attributes::Mode{mode},
         SaiArsTraits::Attributes::IdleTime{idleTime.value_or(kIdleTime())},
@@ -38,7 +45,8 @@ class ArsApiTest : public ::testing::Test {
         SaiArsTraits::Attributes::AlternatePathCost{kAlternatePathCost()},
         SaiArsTraits::Attributes::AlternatePathBias{kAlternatePathBias()},
         std::nullopt, // NextHopGroupType
-        std::nullopt}; // SourcePortPrune
+        std::nullopt, // SourcePortPrune
+        ecmpMemberCountAttr};
   }
 
   ArsSaiId createArs() const {
@@ -69,6 +77,10 @@ class ArsApiTest : public ::testing::Test {
     return 25;
   }
 
+  sai_uint32_t kEcmpMemberCount() const {
+    return 256;
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<ArsApi> arsApi;
 };
@@ -76,6 +88,21 @@ class ArsApiTest : public ::testing::Test {
 TEST_F(ArsApiTest, createArs) {
   auto arsId = createArs();
   checkArs(arsId);
+}
+
+// EcmpMemberCount sizes the DLB super group behind a virtual ARS group.
+TEST_F(ArsApiTest, createArsWithEcmpMemberCount) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(arsId, SaiArsTraits::Attributes::EcmpMemberCount{}),
+      kEcmpMemberCount());
 }
 
 // Mode, IdleTime and MaxFlows are part of SaiArsTraits::AdapterHostKey, so

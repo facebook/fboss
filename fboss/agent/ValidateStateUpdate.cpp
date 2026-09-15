@@ -99,19 +99,23 @@ bool isStateUpdateValidCommon(
   bool isEcnProbabilisticMarkingSupported =
       hwAsicTable->isFeatureSupportedOnAllAsic(
           HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
+  bool isEmptyAclMatcherSupported = hwAsicTable->isFeatureSupportedOnAllAsic(
+      HwAsic::Feature::EMPTY_ACL_MATCHER);
 
   forEachChanged(
       delta.getAclsDelta(),
       [&](const shared_ptr<AclEntry>& /* oldAcl */,
           const shared_ptr<AclEntry>& newAcl) {
-        isValid = isValid && newAcl->hasMatcher();
+        isValid =
+            isValid && (isEmptyAclMatcherSupported || newAcl->hasMatcher());
         if (!isValid) {
           XLOG(ERR) << "Changed acl " << newAcl->getID() << " has no matcher";
         }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& addAcl) {
-        isValid = isValid && addAcl->hasMatcher();
+        isValid =
+            isValid && (isEmptyAclMatcherSupported || addAcl->hasMatcher());
         if (!isValid) {
           XLOG(ERR) << "Newly added acl " << addAcl->getID()
                     << " has no matcher";

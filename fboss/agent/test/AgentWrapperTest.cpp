@@ -233,10 +233,8 @@ std::string AgentWrapperTest<T>::getCoreMetaData(
 }
 
 template <typename T>
-std::vector<std::string> AgentWrapperTest<T>::getDrainFiles() const {
-  std::vector<std::string> drainFiles;
-  drainFiles.push_back(this->util_.getRoutingProtocolColdBootDrainTimeFile());
-
+std::vector<int> AgentWrapperTest<T>::getHwSwitchIndices() const {
+  std::vector<int> switchIndices;
   if (T::kMultiSwitch) {
     auto iter = this->config_->thrift.sw()
                     ->switchSettings()
@@ -247,10 +245,25 @@ std::vector<std::string> AgentWrapperTest<T>::getDrainFiles() const {
                ->switchSettings()
                ->switchIdToSwitchInfo()
                ->end()) {
-      auto switchIndex = *(iter->second.switchIndex());
+      switchIndices.push_back(*(iter->second.switchIndex()));
+      iter++;
+    }
+  }
+  if (switchIndices.empty()) {
+    switchIndices.push_back(0);
+  }
+  return switchIndices;
+}
+
+template <typename T>
+std::vector<std::string> AgentWrapperTest<T>::getDrainFiles() const {
+  std::vector<std::string> drainFiles;
+  drainFiles.push_back(this->util_.getRoutingProtocolColdBootDrainTimeFile());
+
+  if (T::kMultiSwitch) {
+    for (auto switchIndex : this->getHwSwitchIndices()) {
       drainFiles.push_back(
           this->util_.getRoutingProtocolColdBootDrainTimeFile(switchIndex));
-      iter++;
     }
   }
   return drainFiles;
@@ -288,6 +301,13 @@ template <typename T>
 bool AgentWrapperTest<T>::skipTest() const {
   if (T::kMultiSwitch && !isSai()) {
     // multi-switch is only for SAI
+    return true;
+  }
+  if (!T::kMultiSwitch &&
+      config_->thrift.sw()->switchSettings()->switchIdToSwitchInfo()->size() >
+          1) {
+    // Multi-NPU platforms (e.g. Ladakh) only run the split mNPU stack, so the
+    // mono wedge_agent type does not apply.
     return true;
   }
   return false;
@@ -399,9 +419,14 @@ TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
   this->waitForStop();
   EXPECT_FALSE(checkFileExists(this->util_.getColdBootOnceFile()));
   EXPECT_TRUE(checkFileExists(this->util_.getSwSwitchCanWarmBootFile()));
-  EXPECT_TRUE(checkFileExists(this->util_.getHwSwitchCanWarmBootFile(0)));
+  for (auto switchIndex : this->getHwSwitchIndices()) {
+    EXPECT_TRUE(
+        checkFileExists(this->util_.getHwSwitchCanWarmBootFile(switchIndex)));
+  }
   removeFile(this->util_.getSwSwitchCanWarmBootFile());
-  removeFile(this->util_.getHwSwitchCanWarmBootFile(0));
+  for (auto switchIndex : this->getHwSwitchIndices()) {
+    removeFile(this->util_.getHwSwitchCanWarmBootFile(switchIndex));
+  }
 
   this->setupDrainFiles();
   touchFile(this->util_.getUndrainedFlag());

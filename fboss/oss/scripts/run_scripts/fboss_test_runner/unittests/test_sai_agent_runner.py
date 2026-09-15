@@ -54,6 +54,28 @@ class TestWarmbootCheckFile:
             assert not path.endswith("_0")
 
 
+class TestBinaryName:
+    def test_multi_switch_binary_name(self, sai_agent_runner):
+        with patch.object(
+            sai_agent_runner,
+            "args",
+            new=_make_args(agent_run_mode="multi_switch"),
+        ):
+            assert (
+                sai_agent_runner._get_test_binary_name() == "multi_switch_agent_hw_test"
+            )
+
+    def test_mono_binary_name(self, sai_agent_runner):
+        with patch.object(
+            sai_agent_runner,
+            "args",
+            new=_make_args(agent_run_mode="mono"),
+        ):
+            assert (
+                sai_agent_runner._get_test_binary_name() == "sai_agent_hw_test-sai_impl"
+            )
+
+
 class TestSaiReplayerLoggingFlagsByMode:
     """In multi_switch the SAI replayer is configured via the systemd unit
     file (hw agent runs as a service), so the test binary must NOT receive

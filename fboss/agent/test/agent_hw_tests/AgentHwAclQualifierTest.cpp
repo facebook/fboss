@@ -332,7 +332,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       auto asicType = this->getAsicType(switchID);
       if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
         defaultQualifiers = utility::genAclQualifiersConfig(asicType);
-        actions = utility::genAclActionTypesConfig(asicType);
+        actions = utility::genAclActionTypesConfig();
       }
       std::vector<cfg::AclTableQualifier> qualifiers = enableQualifiers
           ? utility::genAclQualifiersConfig(asicType)

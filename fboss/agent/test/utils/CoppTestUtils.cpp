@@ -736,7 +736,9 @@ std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
         return intf->clone();
       } else if (
           intf->getType() == cfg::InterfaceType::PORT &&
-          intf->getPortID() == srcPort) {
+          // An interface bound to an aggregate port has no physical port of
+          // its own, so it never matches srcPort.
+          intf->getPortIDf() == srcPort) {
         return intf->clone();
       }
     }

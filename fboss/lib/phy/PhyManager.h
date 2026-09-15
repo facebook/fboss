@@ -117,7 +117,7 @@ class PhyManager {
   virtual void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
-      std::optional<TransceiverInfo> transceiverInfo,
+      const std::optional<TransceiverInfo>& transceiverInfo,
       bool needResetDataPath);
 
   // Return programmed profile id for a specific port
@@ -344,6 +344,7 @@ class PhyManager {
       const PortCacheWLockedPtr& lockedCache,
       PortID portID,
       cfg::PortProfileID profileID,
+      const std::optional<TransceiverInfo>& transceiverInfo,
       const phy::PhyPortConfig& portConfig);
 
   void setPortToExternalPhyPortStats(

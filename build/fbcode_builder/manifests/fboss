@@ -15,6 +15,25 @@ job_weight_mib = 3072
 [build.not(os=linux)]
 builder = nop
 
+# Defaulting services on keeps every existing consumer, and fboss built as a
+# root, on the full build.
+[features]
+default = services
+services =
+exported_libraries =
+
+[cmake.defines.all(feature_services=off,feature_exported_libraries=off)]
+FBOSS_BUILD_PROFILE=fsdb_client
+
+[cmake.defines.all(feature_services=off,feature_exported_libraries=on)]
+FBOSS_BUILD_PROFILE=exported_libraries
+
+# installed/fboss is unhashed because fboss is first-party, and the env var is
+# not otherwise hashed, so without this a profile flip in an existing scratch
+# dir leaves .built-by-getdeps matching and getdeps skips the rebuild.
+[depends.environment]
+FBOSS_BUILD_PROFILE
+
 [dependencies]
 folly-python
 fb303

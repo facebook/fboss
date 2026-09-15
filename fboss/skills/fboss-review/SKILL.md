@@ -39,7 +39,7 @@ All findings are shown to the user only. Never post to Phabricator automatically
 Use Agent tool (sonnet model) to dispatch all applicable reviewers simultaneously:
 
 - **Generic reviewers 1-5**: ALWAYS dispatch. Use personas from `references/generic-reviewers.md`.
-- **FBOSS reviewers 6-10**: Dispatch ONLY if their area is touched.
+- **FBOSS reviewers 6-11**: Dispatch ONLY if their area is touched.
 - Each reviewer receives: full diff content + their persona instructions.
 - FBOSS reviewers additionally load patterns from `../fboss-code-standards/references/<area>-patterns.md`.
 

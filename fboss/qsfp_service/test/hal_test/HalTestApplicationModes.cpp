@@ -126,8 +126,9 @@ class T1HalTestProgramMode : public T1HalTest {
           const auto& combo =
               TransceiverPropertiesManager::findSpeedCombination(
                   mediaInterface, comboDescription_);
-          auto programState = hal_test::createProgramTransceiverState(combo);
-          module->programTransceiver(programState, true);
+          auto programState =
+              hal_test::createProgramTransceiverState(combo, module);
+          hal_test::programTransceiverUntilComplete(module, programState, true);
           verifyMediaInterfaceCodes(
               result, module, tcvrId, comboDescription_, combo);
         },
@@ -185,20 +186,22 @@ class T2HalTestSpeedChange : public T2HalTest {
           const auto& toCombo =
               TransceiverPropertiesManager::findSpeedCombination(
                   mediaInterface, toDesc_);
-          auto fromState = hal_test::createProgramTransceiverState(fromCombo);
-          module->programTransceiver(fromState, true);
+          auto fromState =
+              hal_test::createProgramTransceiverState(fromCombo, module);
+          hal_test::programTransceiverUntilComplete(module, fromState, true);
           verifyMediaInterfaceCodes(
               result, module, tcvrId, fromDesc_, fromCombo);
           if (!result.passed) {
             return;
           }
-          auto toState = hal_test::createProgramTransceiverState(toCombo);
-          module->programTransceiver(toState, true);
+          auto toState =
+              hal_test::createProgramTransceiverState(toCombo, module);
+          hal_test::programTransceiverUntilComplete(module, toState, true);
           verifyMediaInterfaceCodes(result, module, tcvrId, toDesc_, toCombo);
           if (!result.passed) {
             return;
           }
-          module->programTransceiver(fromState, true);
+          hal_test::programTransceiverUntilComplete(module, fromState, true);
           verifyMediaInterfaceCodes(
               result, module, tcvrId, fromDesc_, fromCombo);
         },

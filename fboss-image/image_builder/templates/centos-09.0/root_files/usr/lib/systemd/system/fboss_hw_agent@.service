@@ -24,8 +24,8 @@ ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss
 
 Restart=always
 
-StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
-StandardError=append:/var/facebook/logs/fboss/wedge_agent.log
+StandardOutput=append:/var/facebook/logs/fboss/fboss_hw_agent%i.log
+StandardError=append:/var/facebook/logs/fboss/fboss_hw_agent%i.log
 
 [Install]
 WantedBy=multi-user.target

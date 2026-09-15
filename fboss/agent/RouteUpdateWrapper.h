@@ -86,8 +86,9 @@ class RouteUpdateWrapper {
 
   void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
   void addRoute(ClientID clientId, const MplsRoute& route);
+  // Takes nexthops directly; the entry was only read for its inline set.
   void
-  addRoute(ClientID clientId, MplsLabel label, const RouteNextHopEntry& entry);
+  addRoute(ClientID clientId, MplsLabel label, const RouteNextHopSet& nhops);
   void delRoute(
       RouterID id,
       const folly::IPAddress& network,

@@ -3,6 +3,7 @@
 # (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 import os
+import shutil
 import sys
 from argparse import ArgumentParser, Namespace
 
@@ -74,7 +75,7 @@ def _build_parser() -> ArgumentParser:
             ),
         )
         runner = runner_cls()
-        parser.set_defaults(func=runner.run_test)
+        parser.set_defaults(runner=runner)
         runner.add_subcommand_arguments(parser)
 
     _register_runner(SUB_CMD_BCM, "run bcm tests", BcmTestRunner)
@@ -123,8 +124,48 @@ def _parse_args(argv: list[str] | None = None) -> Namespace:
     return args
 
 
+def _runner_action(args: Namespace):
+    return args.runner.list_tests if args.list_tests else args.runner.run_test
+
+
+def _get_fboss_root() -> str:
+    return os.environ.get("FBOSS") or os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")
+    )
+
+
+def _setup_platform_descriptors() -> None:
+    fboss_data = os.environ.get("FBOSS_DATA")
+    if not fboss_data:
+        print(
+            "Warning: FBOSS_DATA is not set; platform descriptors will not be configured.",
+            file=sys.stderr,
+        )
+        return
+
+    source = os.path.abspath(os.path.join(fboss_data, "platform_descriptors"))
+    if not os.path.isdir(source):
+        print(
+            f"Warning: packaged platform descriptors not found at {source}; "
+            "platform descriptors will not be configured.",
+            file=sys.stderr,
+        )
+        return
+
+    destination = "/tmp/platform_descriptors"
+    if source == destination:
+        return
+    if os.path.lexists(destination):
+        if os.path.isdir(destination) and not os.path.islink(destination):
+            shutil.rmtree(destination)
+        else:
+            os.unlink(destination)
+    print(f"Creating platform descriptor symlink: {destination} -> {source}")
+    os.symlink(source, destination, target_is_directory=True)
+
+
 def main() -> None:
-    os.chdir("/opt/fboss")
+    os.chdir(_get_fboss_root())
 
     # A test-type subcommand is required; derive it from argv before the (slower)
     # env setup so a bare invocation fails fast with help.
@@ -134,19 +175,22 @@ def main() -> None:
         sys.exit(1)
 
     setup_fboss_env()
+    _setup_platform_descriptors()
     if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
         print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
         sys.exit(0)
 
     args = _parse_args()
+    runner_action = _runner_action(args)
 
     # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
     # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
     if not args.log_bundle:
-        args.func(args)
-        return
+        exit_code = runner_action(args)
+        sys.exit(exit_code)
 
     # LogCapture owns the per-run bundle: it creates the dir, tees output, records
     # the command, and on exit collects the logs/CSVs and zips -- even on failure.
     with LogCapture(test_type):
-        args.func(args)
+        exit_code = runner_action(args)
+    sys.exit(exit_code)

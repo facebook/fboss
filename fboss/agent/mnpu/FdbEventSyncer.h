@@ -39,7 +39,9 @@ class FdbEventSyncer
   void connected() override {}
 
 #if FOLLY_HAS_COROUTINES
-  FdbEventQueueType eventQueue_;
+  // Sized above max_l2_entries so a transient burst such as a warm boot l2
+  // replay is absorbed outright rather than backpressuring the producer.
+  FdbEventQueueType eventQueue_{10000 /* queue max size */};
 #endif
 };
 } // namespace facebook::fboss

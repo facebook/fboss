@@ -636,7 +636,8 @@ HwInitResult HwSwitch::initLightImpl(
   // program min alpm state for npu and voq only on cold boot
   std::map<int32_t, state::RouteTableFields> routeTables{};
   routeTables.emplace(kDefaultVrf, state::RouteTableFields{});
-  auto rib = RoutingInformationBase::fromThrift(routeTables);
+  auto rib = RoutingInformationBase::fromThrift(
+      routeTables, getEcmpWidth(ret.switchState));
   programMinAlpmState(rib.get(), [this](const std::vector<StateDelta>& deltas) {
     return stateChanged(deltas);
   });

@@ -2108,8 +2108,8 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
                                     utility::kCoppLowPriQueueId) *
           (1 + kVariance);
       WITH_RETRIES({
-        auto voqWaterMarkBytes =
-            getLatestCpuSysPortStats().value().get_queueWatermarkBytes_();
+        auto voqWaterMarkBytes = folly::copy(
+            getLatestCpuSysPortStats().value().queueWatermarkBytes_().value());
         auto lowPriorityWaterMarkBytes =
             voqWaterMarkBytes.at(utility::kCoppLowPriQueueId);
         XLOG(DBG2) << "low priority cpu voq watermark counter "

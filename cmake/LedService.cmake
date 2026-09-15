@@ -112,7 +112,6 @@ target_link_libraries(led_manager_lib
   montblanc_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
-  m4062nhp_platform_mapping
   icetea800bc_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
@@ -123,7 +122,6 @@ target_link_libraries(led_manager_lib
   leh800bcls_platform_mapping
   wedge400_fpga
   wedge400_platform_mapping
-  wedge800cact_platform_mapping
   yamp_platform_mapping
   platform_mapping_utils
   product_info

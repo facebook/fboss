@@ -1,3 +1,5 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load(
     "//fboss/agent/hw/sai/switch/tests:switch_test.bzl",
     "manager_test_libs",
@@ -7,6 +9,17 @@ load(
 )
 
 oncall("fboss_agent_push")
+
+# Not a switch_manager_unittest: DropReasonUtils is plain string handling with
+# no SAI dependency, so this needs no fake SAI and is not parameterized by impl.
+cpp_unittest(
+    name = "drop_reason_utils_test",
+    srcs = ["DropReasonUtilsTest.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent/hw/sai/switch:drop_reason_utils",
+    ],
+)
 
 manager_test_libs()
 

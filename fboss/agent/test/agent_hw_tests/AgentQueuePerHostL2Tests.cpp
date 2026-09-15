@@ -101,8 +101,10 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
       std::map<int, int64_t> afterQueueOutPkts;
       for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
         afterQueueOutPkts[queueId] =
-            this->getLatestPortStats(this->masterLogicalPortIds()[0])
-                .get_queueOutPackets_()
+            folly::copy(
+                this->getLatestPortStats(this->masterLogicalPortIds()[0])
+                    .queueOutPackets_()
+                    .value())
                 .at(queueId);
       }
 

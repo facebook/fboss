@@ -66,6 +66,7 @@ struct RouteEntry {
   2: list<NextHopInfo> nextHops;
   3: string overridenEcmpMode;
   4: optional list<NextHopInfo> overridenNextHops;
+  5: string addressFamily;
 }
 
 struct RouteDetailEntry {

@@ -193,6 +193,9 @@ struct PortFields {
   // Whether the SDK's software linkscan thread or the ASIC notices link
   // status changes on this port. Unset = leave SDK default untouched.
   73: optional switch_config.LinkScanMode linkScanMode;
+  74: optional string ingressAclTableName;
+  // Lookup class assigned to packets arriving on this port.
+  75: optional switch_config.AclLookupClassPort userMetaData;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -288,6 +291,7 @@ struct AclEntryFields {
   // word3 is AAAA:BBBB and word2 is CCCC:DDDD.
   36: optional i64 dstIpV6Word3;
   37: optional i64 dstIpV6Word2;
+  38: optional switch_config.AclLookupClassPort lookupClassPort;
 }
 
 struct NamedNextHopGroupAndID {
@@ -299,6 +303,7 @@ struct ClassBasedPolicyFields {
   1: string name;
   2: NamedNextHopGroupAndID defaultNextHopGroup;
   3: map<common.ForwardingClass, NamedNextHopGroupAndID> class2NextHopGroup;
+  4: bool referenced;
 }
 
 enum NeighborState {
@@ -555,7 +560,10 @@ struct SwitchSettingsFields {
   // ECMP width for this switch, sourced from cfg.SwitchSettings.ecmpWidth
   // (FLAGS_ecmp_width fallback during migration).
   62: optional i32 ecmpWidth;
-  63: optional bool l3EcmpIngressPortPrune;
+  63: map<
+    switch_config.EcmpGroupType,
+    switch_config.EcmpGroupSettings
+  > ecmpGroupSettings;
 }
 
 struct RoutePrefix {
@@ -589,6 +597,7 @@ struct RouteNextHopsMulti {
   2: map<ctrl.ClientID, RouteNextHopEntry> client2NextHopEntry;
 }
 
+@fboss_common.AllowSkipThriftCow
 struct RouteFields {
   1: RoutePrefix prefix;
   2: RouteNextHopsMulti nexthopsmulti;
@@ -611,9 +620,7 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  @fboss_common.AllowSkipThriftCow
   2: map<string, RouteFields> fibV4;
-  @fboss_common.AllowSkipThriftCow
   3: map<string, RouteFields> fibV6;
 }
 
@@ -763,6 +770,10 @@ struct InterfaceFields {
   /* These fields contains information of remote GPU */
   24: optional string desiredPeerName;
   25: optional string desiredPeerAddressIPv6;
+  /* applicable only for port type of interface bound to an aggregate port
+   * rather than a physical port. Exactly one of portId and aggregatePortId
+   * is set. */
+  26: optional i32 aggregatePortId;
 }
 
 enum LacpState {
@@ -847,6 +858,7 @@ struct AclTableGroupFields {
   1: switch_config.AclStage stage;
   2: string name;
   3: optional map<string, AclTableFields> aclTableMap;
+  4: switch_config.AclTableGroupBindPoint bindPoint = switch_config.AclTableGroupBindPoint.SWITCH;
 }
 
 struct QcmCfgFields {
@@ -917,6 +929,10 @@ struct SwitchState {
     SwitchIdList,
     map<string, ClassBasedPolicyFields>
   > classBasedPolicyMaps;
+  129: map<
+    SwitchIdList,
+    map<switch_config.AclStage, AclTableGroupFields>
+  > portAclTableGroupMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

@@ -323,6 +323,10 @@ void PortManager::setPortLoopbackState(
       << "setPortLoopbackState() called.";
 
   if (isXphyComponent(component)) {
+    if (!phyManager_) {
+      throw FbossError(
+          "Unable to set xphy loopback state when PhyManager is not set");
+    }
     phyManager_->setPortLoopbackState(PortID(portId), component, setLoopback);
   } else {
     transceiverManager_->setPortLoopbackStateTransceiver(

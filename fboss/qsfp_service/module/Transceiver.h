@@ -25,6 +25,11 @@
 namespace facebook {
 namespace fboss {
 
+// CMIS 5.2 tMgmtInit (Table 10-2): a module may ignore management transactions
+// for up to 2s after Reset is deasserted, so wait this long before any I2C
+// access that follows a reset.
+constexpr int kSecAfterModuleOutOfReset = 2;
+
 struct TransceiverPortState {
   std::string portName;
   uint8_t startHostLane;
@@ -295,7 +300,6 @@ class Transceiver {
   }
 
  protected:
-  virtual void latchAndReadVdmDataLocked() = 0;
   virtual bool shouldRemediateLocked(time_t pauseRemidiation) = 0;
 
   TransceiverManager* getTransceiverManager() const {

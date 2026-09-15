@@ -16,21 +16,23 @@
 
 namespace facebook::fboss {
 
-struct CmdShowConfigTraits : public ReadCommandTraits {
+struct CmdShowConfigTraits : public ReadCommandTraits, public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = std::string;
 };
 
-struct CmdShowConfigVersionTraits : public ReadCommandTraits {
+struct CmdShowConfigVersionTraits : public ReadCommandTraits,
+                                    public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = std::map<std::string, std::string>;
 };
 
-struct CmdShowConfigDynamicTraits : public ReadCommandTraits {
+struct CmdShowConfigDynamicTraits : public ReadCommandTraits,
+                                    public CliDocsExempt {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;

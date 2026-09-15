@@ -490,21 +490,13 @@ class SwitchSettings
     }
   }
 
-  std::optional<bool> getL3EcmpIngressPortPrune() const {
-    if (auto l3EcmpIngressPortPrune =
-            cref<switch_state_tags::l3EcmpIngressPortPrune>()) {
-      return l3EcmpIngressPortPrune->toThrift();
-    }
-    return std::nullopt;
+  EcmpGroupSettingsMap getEcmpGroupSettings() const {
+    // THRIFT_COPY
+    return get<switch_state_tags::ecmpGroupSettings>()->toThrift();
   }
 
-  void setL3EcmpIngressPortPrune(std::optional<bool> l3EcmpIngressPortPrune) {
-    if (!l3EcmpIngressPortPrune) {
-      ref<switch_state_tags::l3EcmpIngressPortPrune>().reset();
-    } else {
-      set<switch_state_tags::l3EcmpIngressPortPrune>(
-          l3EcmpIngressPortPrune.value());
-    }
+  void setEcmpGroupSettings(const EcmpGroupSettingsMap& ecmpGroupSettings) {
+    set<switch_state_tags::ecmpGroupSettings>(ecmpGroupSettings);
   }
 
   std::optional<bool> getCreditWatchdog() const {

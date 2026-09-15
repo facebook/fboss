@@ -660,9 +660,10 @@ ServiceHandler::makeSinkConsumer(
         } catch (const fsdb::FsdbException& ex) {
           XLOG(ERR) << "Publisher " << publisherId
                     << " Server:sink: FsdbException: "
-                    << apache::thrift::util::enumNameSafe(ex.get_errorCode())
-                    << ": " << ex.get_message();
-          *disconnectReason = ex.get_errorCode();
+                    << apache::thrift::util::enumNameSafe(
+                           folly::copy(ex.errorCode().value()))
+                    << ": " << ex.message().value();
+          *disconnectReason = ex.errorCode().value();
           throw;
         } catch (const std::exception& e) {
           XLOG(INFO) << "Publisher " << publisherId

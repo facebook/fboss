@@ -133,6 +133,10 @@ enum ProductionFeature {
   ADJACENCY_FRR = 119,
   ETSW_ROUTE_SCALE = 120,
   DST_IPV6_WORD_ACL_QUALIFIERS = 121,
+  ARS_SOURCE_PORT_PRUNE = 122,
+  DROP_REASON_LIST_SUPPORT = 123,
+  PORT_BOUND_INGRESS_ACL = 125,
+  ACL_DENY_DATA_AND_CONTROL_PLANE = 126,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
@@ -150,6 +154,8 @@ struct FeatureSdkSupport {
   2: VendorSdk sdk;
   3: string minSdkVersion;
   4: optional string note;
+  // Exact components required in the normalized Netcastle test config.
+  5: optional list<string> requiredTestConfigOptions;
 }
 
 struct FeatureSupportSpec {

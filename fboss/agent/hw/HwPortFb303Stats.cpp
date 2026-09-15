@@ -67,6 +67,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kLlrRxExpectedSeqBad(),
       kLlrTxIneligiblePkts(),
       kLlrRxIneligiblePkts(),
+      kLlrTxEligiblePkts(),
+      kLlrRxEligiblePkts(),
       kLlrTxNackReplayEvent(),
       kLlrTxTimerReplayEvent(),
       kLlrTxError(),
@@ -396,6 +398,18 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kLlrTxIneligiblePkts(),
         *curPortStats.llrTxIneligiblePkts_());
+  }
+  if (curPortStats.llrTxEligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrTxEligiblePkts(),
+        *curPortStats.llrTxEligiblePkts_());
+  }
+  if (curPortStats.llrRxEligiblePkts_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLlrRxEligiblePkts(),
+        *curPortStats.llrRxEligiblePkts_());
   }
   if (curPortStats.llrRxIneligiblePkts_().has_value()) {
     updateStat(

@@ -728,4 +728,24 @@ TEST(PrintBgpCapabilitiesTest, LegacyV4NlriEncoding) {
     EXPECT_THAT(out.str(), Not(HasSubstr("Legacy v4 NLRI encoding")));
   }
 }
+
+TEST_F(CmdShowBgpNeighborsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowBgpNeighborsTraits::description().empty());
+  EXPECT_EQ(CmdShowBgpNeighbors::sampleModel().size(), 2);
+
+  // Render the sample the way the wiki generator does; a property-only check
+  // would still pass on a sample missing a field printOutput reads via
+  // .value().
+  std::stringstream ss;
+  CmdShowBgpNeighbors().printOutput(CmdShowBgpNeighbors::sampleModel(), ss);
+  const std::string output = ss.str();
+
+  // One established peer with the rich render, one listen range with the
+  // sparse one - the two cases description() contrasts.
+  EXPECT_THAT(output, HasSubstr("neighbor 1 of 2"));
+  EXPECT_THAT(output, HasSubstr("BGP state is ESTABLISHED"));
+  EXPECT_THAT(output, HasSubstr("Prefix Telemetry"));
+  EXPECT_THAT(output, HasSubstr("neighbor 2 of 2"));
+  EXPECT_THAT(output, HasSubstr("BGP state is IDLE"));
+}
 } // namespace facebook::fboss

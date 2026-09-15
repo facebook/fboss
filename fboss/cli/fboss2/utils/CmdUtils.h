@@ -496,6 +496,10 @@ std::string getAdminDistanceStr(AdminDistance adminDistance);
 const std::string removeFbDomains(const std::string& host);
 std::string getSpeedGbps(int64_t speedMbps);
 std::string getl2EntryTypeStr(L2EntryType l2EntryType);
+// Renders an ingress port class ID for display, e.g. "Restricted". Returns
+// "--" when unset.
+std::string getAclLookupClassPortStr(
+    const std::optional<cfg::AclLookupClassPort>& lookupClassPort);
 
 /**
  * Whether the first port name is smaller than or equal to the second port

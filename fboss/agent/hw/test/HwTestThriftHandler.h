@@ -133,8 +133,6 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   void printDiagCmd(std::unique_ptr<::std::string>) override;
 
-  void updateFlowletStats() override;
-
   cfg::SwitchingMode getFwdSwitchingMode(
       std::unique_ptr<state::RouteNextHopEntry> routeNextHopEntry) override;
 

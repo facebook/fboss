@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -16,10 +17,15 @@ class AgentTrunkTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     return utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw(),
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
         ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1]);
+        ensemble.masterLogicalPortIds()[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()

@@ -57,7 +57,7 @@ RUN if [ "$FBOSS_META_ENV" = "1" ]; then \
 # must use the same Python version consistently.
 RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3.12 /usr/bin/pip
 
 # Necessary for using update-alternatives.
@@ -103,7 +103,7 @@ RUN if [ "$USE_CLANG" = "true" ]; then \
     rm -rf build
 
 # The following libraries are needed for building SDK
-RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static hostname
+RUN dnf install -y doxygen aspell aspell-en libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static hostname
 
 # Install libyaml.a for SDK purposes
 RUN git clone https://github.com/yaml/libyaml.git && \
@@ -116,7 +116,7 @@ RUN git clone https://github.com/yaml/libyaml.git && \
 
 # Install Perl modules
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
-    perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
+    perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-JSON perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
 
 # ============================================================

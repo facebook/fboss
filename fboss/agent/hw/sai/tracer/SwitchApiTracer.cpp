@@ -52,6 +52,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, FdbDstUserMetaDataRange),
     SAI_ATTR_MAP(Switch, RouteDstUserMetaDataRange),
     SAI_ATTR_MAP(Switch, NeighborDstUserMetaDataRange),
+    SAI_ATTR_MAP(Switch, PortUserMetaDataRange),
     SAI_ATTR_MAP(Switch, AvailableIpv4RouteEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv6RouteEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv4NextHopEntry),
@@ -106,6 +107,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, AsicTemperatureList),
     SAI_ATTR_MAP(Switch, NumTemperatureSensors),
     SAI_ATTR_MAP(Switch, SwitchingMode),
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+    SAI_ATTR_MAP(Switch, LinkUpDebounceTimeout),
+#endif
 
 };
 
@@ -178,6 +182,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, PfcMonitorEnable);
   SAI_EXT_ATTR_MAP(Switch, CablePropagationDelayMeasurement);
   SAI_EXT_ATTR_MAP(Switch, PortCl72RetryEnable);
+  SAI_EXT_ATTR_MAP(Switch, PacketDropTypeIngressList);
+  SAI_EXT_ATTR_MAP(Switch, PacketDropTypeEgressList);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif

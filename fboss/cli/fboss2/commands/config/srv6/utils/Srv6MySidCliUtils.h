@@ -51,9 +51,9 @@ class LocatorPrefixArg : public utils::BaseObjectArgType<std::string> {
 
 enum class MySidConfigEntryType { ADJACENCY, NODE, DECAP };
 
-class MySidAddArg : public utils::BaseObjectArgType<std::string> {
+class MySidEntryArg : public utils::BaseObjectArgType<std::string> {
  public:
-  /* implicit */ MySidAddArg(std::vector<std::string> v);
+  /* implicit */ MySidEntryArg(std::vector<std::string> v);
 
   int16_t getFunctionValue() const {
     return functionValue_;
@@ -85,6 +85,18 @@ class MySidAddArg : public utils::BaseObjectArgType<std::string> {
   bool isV6_{true};
   std::string portName_;
   std::string nodeAddress_;
+};
+
+class MySidDeleteEntryArg : public utils::BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ MySidDeleteEntryArg(std::vector<std::string> v);
+
+  int16_t getFunctionValue() const {
+    return functionValue_;
+  }
+
+ private:
+  int16_t functionValue_{0};
 };
 
 } // namespace facebook::fboss

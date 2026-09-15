@@ -84,26 +84,26 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
 
   EXPECT_EQ(flapsEntries.size(), 3);
 
-  EXPECT_EQ(flapsEntries[0].get_interfaceName(), "eth1/1/1");
-  EXPECT_EQ(flapsEntries[0].get_oneMinute(), 0);
-  EXPECT_EQ(flapsEntries[0].get_tenMinute(), 0);
-  EXPECT_EQ(flapsEntries[0].get_oneHour(), 0);
-  EXPECT_EQ(flapsEntries[0].get_totalFlaps(), 0);
-  EXPECT_EQ(flapsEntries[0].get_totalLinkFaults(), 0);
+  EXPECT_EQ(flapsEntries[0].interfaceName().value(), "eth1/1/1");
+  EXPECT_EQ(flapsEntries[0].oneMinute().value(), 0);
+  EXPECT_EQ(flapsEntries[0].tenMinute().value(), 0);
+  EXPECT_EQ(flapsEntries[0].oneHour().value(), 0);
+  EXPECT_EQ(flapsEntries[0].totalFlaps().value(), 0);
+  EXPECT_EQ(flapsEntries[0].totalLinkFaults().value(), 0);
 
-  EXPECT_EQ(flapsEntries[1].get_interfaceName(), "eth2/1/1");
-  EXPECT_EQ(flapsEntries[1].get_oneMinute(), 1);
-  EXPECT_EQ(flapsEntries[1].get_tenMinute(), 2);
-  EXPECT_EQ(flapsEntries[1].get_oneHour(), 3);
-  EXPECT_EQ(flapsEntries[1].get_totalFlaps(), 6);
-  EXPECT_EQ(flapsEntries[1].get_totalLinkFaults(), 9);
+  EXPECT_EQ(flapsEntries[1].interfaceName().value(), "eth2/1/1");
+  EXPECT_EQ(flapsEntries[1].oneMinute().value(), 1);
+  EXPECT_EQ(flapsEntries[1].tenMinute().value(), 2);
+  EXPECT_EQ(flapsEntries[1].oneHour().value(), 3);
+  EXPECT_EQ(flapsEntries[1].totalFlaps().value(), 6);
+  EXPECT_EQ(flapsEntries[1].totalLinkFaults().value(), 9);
 
-  EXPECT_EQ(flapsEntries[2].get_interfaceName(), "eth3/1/1");
-  EXPECT_EQ(flapsEntries[2].get_oneMinute(), 1000);
-  EXPECT_EQ(flapsEntries[2].get_tenMinute(), 10000);
-  EXPECT_EQ(flapsEntries[2].get_oneHour(), 100000);
-  EXPECT_EQ(flapsEntries[2].get_totalFlaps(), 111000);
-  EXPECT_EQ(flapsEntries[2].get_totalLinkFaults(), 111222);
+  EXPECT_EQ(flapsEntries[2].interfaceName().value(), "eth3/1/1");
+  EXPECT_EQ(flapsEntries[2].oneMinute().value(), 1000);
+  EXPECT_EQ(flapsEntries[2].tenMinute().value(), 10000);
+  EXPECT_EQ(flapsEntries[2].oneHour().value(), 100000);
+  EXPECT_EQ(flapsEntries[2].totalFlaps().value(), 111000);
+  EXPECT_EQ(flapsEntries[2].totalLinkFaults().value(), 111222);
 }
 
 TEST_F(CmdShowInterfaceFlapsTestFixture, printOutput) {

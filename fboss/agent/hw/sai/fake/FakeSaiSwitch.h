@@ -314,12 +314,36 @@ class FakeSwitch {
     return portCl72RetryEnable_;
   }
 
+  void setLinkUpDebounceTimeout(sai_uint32_t timeoutUs) {
+    linkUpDebounceTimeoutUs_ = timeoutUs;
+  }
+
+  sai_uint32_t getLinkUpDebounceTimeout() {
+    return linkUpDebounceTimeoutUs_;
+  }
+
   void setSwitchingMode(sai_int32_t mode) {
     switchingMode_ = mode;
   }
 
   sai_int32_t getSwitchingMode() const {
     return switchingMode_;
+  }
+
+  const std::vector<sai_int32_t>& getPacketDropTypeIngressList() const {
+    return packetDropTypeIngressList_;
+  }
+
+  void setPacketDropTypeIngressList(std::vector<sai_int32_t> dropTypes) {
+    packetDropTypeIngressList_ = std::move(dropTypes);
+  }
+
+  const std::vector<sai_int32_t>& getPacketDropTypeEgressList() const {
+    return packetDropTypeEgressList_;
+  }
+
+  void setPacketDropTypeEgressList(std::vector<sai_int32_t> dropTypes) {
+    packetDropTypeEgressList_ = std::move(dropTypes);
   }
 
   sai_object_id_t id;
@@ -378,7 +402,10 @@ class FakeSwitch {
   bool pfcMonitorEnable_{false};
   bool cablePropagationDelayMeasurement_{false};
   bool portCl72RetryEnable_{false};
+  sai_uint32_t linkUpDebounceTimeoutUs_{0};
   sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
+  std::vector<sai_int32_t> packetDropTypeIngressList_;
+  std::vector<sai_int32_t> packetDropTypeEgressList_;
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

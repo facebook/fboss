@@ -133,6 +133,9 @@ struct PeerGroup {
 
   /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
   40: optional bool route_refresh;
+
+  /* Additional remote ASN accepted during migration, e.g. 4200000000. */
+  41: optional i64 additional_remote_as_4_byte; // unsigned int32, RFC 6793
 }
 
 /**
@@ -287,6 +290,9 @@ struct BgpPeer {
 
   /* Enable Route Refresh capability advertisement (RFC 2918, cap 2) */
   104: optional bool route_refresh;
+
+  /* Additional remote ASN accepted during migration, e.g. 4200000000. */
+  105: optional i64 additional_remote_as_4_byte; // unsigned int32, RFC 6793
 }
 
 /**
@@ -680,6 +686,12 @@ struct BgpSettingConfig {
    * rollback.
    */
   20: optional bool enable_stream_subscriber_backpressure;
+
+  /**
+   * Enable link-flap dampening in nexthop tracking. A link-down publishes
+   * immediately; a link-up is held until the interface is stable.
+   */
+  21: optional bool enable_netlink_dampening;
 }
 
 /**

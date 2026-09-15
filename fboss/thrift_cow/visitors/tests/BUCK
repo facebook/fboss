@@ -66,6 +66,17 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "extpath_matcher_tests",
+    srcs = [
+        "ExtendedPathMatcherTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
+
+cpp_unittest(
     name = "delta_visitor_tests",
     srcs = [
         "DeltaVisitorTests.cpp",

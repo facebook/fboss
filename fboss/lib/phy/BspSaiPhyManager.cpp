@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
+#include "fboss/lib/phy/SaiExternalPhyPortStats.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
@@ -219,6 +220,14 @@ void BspSaiPhyManager::createExternalPhy(
 
   XLOG(INFO) << "Created SaiPhyRetimer for xphy " << xphyID << " in PIM "
              << phyIDInfo.pimID;
+}
+
+std::unique_ptr<ExternalPhyPortStatsUtils>
+BspSaiPhyManager::createExternalPhyPortStats(PortID portID) {
+  // Real stats object so collectXphyStats() publishes the XPHY FEC/lane
+  // counters to fb303 via ExternalPhyPortStatsUtils::updateXphyStats(). PRBS
+  // stats are served through SaiPhyManager's SAI attribute path.
+  return std::make_unique<SaiExternalPhyPortStats>(getPortName(portID));
 }
 
 MultiPimPlatformSystemContainer* BspSaiPhyManager::getSystemContainer() {

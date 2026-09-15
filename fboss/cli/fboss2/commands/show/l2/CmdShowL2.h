@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <string_view>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
@@ -20,6 +21,8 @@ struct CmdShowL2Traits : public ReadCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = std::string;
+
+  static std::string_view description();
 };
 
 class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
@@ -29,6 +32,8 @@ class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
   RetType queryClient(const HostInfo& hostInfo);
 
   void printOutput(const RetType& message, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

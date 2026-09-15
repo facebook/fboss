@@ -28,6 +28,32 @@ constexpr auto kSubscriptionServeIntervalMsec = 1;
 // measured publish + fanout region short. Benchmarks never rely on heartbeats,
 // so push the interval past any run.
 constexpr auto kSubscriptionHeartbeatIntervalHours = 1;
+
+// StorageParams::metricPrefix_ is a `const std::string&` that the storage base
+// ctor snapshots during construction, so the referent must outlive the
+// StorageParams value. Namespace scope with static storage duration guarantees
+// that even when StorageParams is returned by value.
+inline const std::string kBenchMetricPrefix{"fsdb"};
+
+// Shared StorageParams for the benchmark storages. trackMetadata stays false
+// because subscribing at the root path triggers
+// OperPathToPublisherRoot::checkNonEmpty() and throws when trackMetadata is
+// true. convertToIDPaths is forced on, as patch subscriptions require it.
+// requireResponseOnInitialSync stays off: it only covers resolved
+// subscriptions, so it cannot provide a sync point for a wildcard subscription
+// that resolves to no paths on an empty root.
+inline NaivePeriodicSubscribableStorageBase::StorageParams
+makeBenchStorageParams(bool serveGetRequestsWithLastPublishedState = true) {
+  return NaivePeriodicSubscribableStorageBase::StorageParams(
+             std::chrono::milliseconds(kSubscriptionServeIntervalMsec),
+             std::chrono::hours(kSubscriptionHeartbeatIntervalHours),
+             /*trackMetadata=*/false,
+             kBenchMetricPrefix,
+             /*convertToIDPaths=*/true,
+             /*requireResponseOnInitialSync=*/false)
+      .setServeGetRequestsWithLastPublishedState(
+          serveGetRequestsWithLastPublishedState);
+}
 } // namespace detail
 
 template <typename Gen>
@@ -112,26 +138,11 @@ class StorageBenchmarkHelper {
       Params params = Params())
       : gen_(gen),
         params_(params),
-        // trackMetadata stays false because subscribing at the root path
-        // triggers OperPathToPublisherRoot::checkNonEmpty() and throws when
-        // trackMetadata is true. convertToIDPaths is forced on (required for
-        // patch subscriptions). requireResponseOnInitialSync stays off: it only
-        // covers resolved subscriptions, so it cannot provide a sync point for
-        // a wildcard subscription that resolves to no paths on an empty root.
         storage_(
             NaivePeriodicSubscribableCowStorage<RootType>(
                 {},
-                NaivePeriodicSubscribableStorageBase::StorageParams(
-                    std::chrono::milliseconds(
-                        detail::kSubscriptionServeIntervalMsec),
-                    std::chrono::hours(
-                        detail::kSubscriptionHeartbeatIntervalHours),
-                    /*trackMetadata=*/false,
-                    "fsdb",
-                    /*convertToIDPaths=*/true,
-                    /*requireResponseOnInitialSync=*/false)
-                    .setServeGetRequestsWithLastPublishedState(
-                        params.serveGetRequestsWithLastPublishedState))) {
+                detail::makeBenchStorageParams(
+                    params.serveGetRequestsWithLastPublishedState))) {
     // initialize test data versions
     testData_.emplace_back(gen_.getStateUpdate(0, false));
     for (int version = 0; version < params_.numUpdates; version++) {

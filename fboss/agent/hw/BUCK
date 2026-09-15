@@ -203,6 +203,7 @@ cpp_library(
         ":stats_constants",
         "//common/stats:macros",
         "//fb303:service_data",
+        "//fb303:thread_cached_service_data",
         "//fboss/agent:switch_config-cpp2-types",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",

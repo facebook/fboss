@@ -21,7 +21,9 @@ struct CmdShowNextHopGroupsTraits : public ReadCommandTraits {
   static std::string_view description();
 };
 
-struct CmdShowNamedNextHopGroupsTraits : public CmdShowNextHopGroupsTraits {};
+struct CmdShowNamedNextHopGroupsTraits : public CmdShowNextHopGroupsTraits {
+  static std::string_view description();
+};
 
 class CmdShowNextHopGroups
     : public CmdHandler<CmdShowNextHopGroups, CmdShowNextHopGroupsTraits> {
@@ -48,6 +50,8 @@ class CmdShowNamedNextHopGroups : public CmdHandler<
   RetType queryClient(const HostInfo& hostInfo);
   RetType createModel(const std::vector<NextHopGroup>& nextHopGroups);
   void printOutput(const RetType& model, std::ostream& out = std::cout);
+
+  static RetType sampleModel();
 };
 
 } // namespace facebook::fboss

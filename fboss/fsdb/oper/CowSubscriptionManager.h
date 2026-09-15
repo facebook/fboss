@@ -24,9 +24,17 @@
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
+#include <folly/Function.h>
 #include <folly/Traits.h>
 
 namespace facebook::fboss::fsdb {
+
+// Single type-erased callback type for extended-path traversal.
+// ExtendedPathVisitor is templated on the callback, so every distinct callable
+// type re-instantiates the whole traversal over the tree. Sharing one type
+// across call sites keeps that to a single instantiation.
+using ExtPathVisitFn = folly::FunctionRef<
+    void(const std::vector<std::string>&, const thrift_cow::Serializable&)>;
 
 namespace {
 
@@ -276,9 +284,11 @@ class CowSubscriptionManager
       const Root& root,
       const std::shared_ptr<ExtendedSubscription>& subscription,
       const std::vector<SubscriptionKey>& keys) {
-    auto process = [&](const auto& path, auto& /* node */) {
+    auto processImpl = [&](const std::vector<std::string>& path,
+                           const thrift_cow::Serializable& /* node */) {
       store.processAddedPath(path.begin(), path.end());
     };
+    ExtPathVisitFn process(processImpl);
     for (const auto& key : keys) {
       const auto& path = subscription->pathAt(key);
       // seed beginnings of the path in to lookup tree
@@ -289,6 +299,36 @@ class CowSubscriptionManager
       thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
       thrift_cow::RootExtendedPathVisitor::visit(
           root, path.path()->begin(), path.path()->end(), options, process);
+    }
+  }
+
+  // Dynamic initial sync for a wildcard PATCH extended subscription: instead of
+  // resolving each matching concrete path into a PatchSubscription child, walk
+  // the current root with the extended path and buffer a full-state patch for
+  // each matched concrete path directly into the extended subscription. The
+  // existing extended-subs flush pass emits the aggregated SubscriberChunk.
+  void doInitialSyncExtendedDynamicPatch(
+      const Root& root,
+      const std::shared_ptr<ExtendedSubscription>& subscription,
+      const std::vector<SubscriptionKey>& keys) {
+    auto* patchSub =
+        static_cast<ExtendedPatchSubscription*>(subscription.get());
+    thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
+    for (const auto key : keys) {
+      const auto& extPath = subscription->pathAt(key);
+      auto procImpl = [&, subKey = key](
+                          const std::vector<std::string>& resolvedPath,
+                          const thrift_cow::Serializable& node) {
+        // Encode directly rather than via OperUnitCache: that cache shares one
+        // encoded root across subscribers at the same path, and every matched
+        // concrete path here is a different node.
+        thrift_cow::PatchNode patchNode;
+        patchNode.set_val(node.encodeBuf(patchSub->operProtocol()));
+        bufferPatch(*patchSub, subKey, resolvedPath, std::move(patchNode));
+      };
+      ExtPathVisitFn proc(procImpl);
+      thrift_cow::RootExtendedPathVisitor::visit(
+          root, extPath.path()->begin(), extPath.path()->end(), options, proc);
     }
   }
 
@@ -314,7 +354,12 @@ class CowSubscriptionManager
       for (const auto& [key, _] : subscription->paths()) {
         keys.push_back(key);
       }
-      resolveExtendedSubscriptionKeys(store, root, subscription, keys);
+      if (shouldDynamicallyResolve(*subscription)) {
+        // Dynamic branch: no resolved children, no lookup_ expansion.
+        doInitialSyncExtendedDynamicPatch(root, subscription, keys);
+      } else {
+        resolveExtendedSubscriptionKeys(store, root, subscription, keys);
+      }
 
       subscription->recordInitialSyncCompleted();
       // Initial sync already resolved the full path set (including keys
@@ -352,7 +397,13 @@ class CowSubscriptionManager
       }
 
       subscription->updateMetadata(metadataServer);
-      resolveExtendedSubscriptionKeys(store, root, subscription, it->newKeys);
+      if (shouldDynamicallyResolve(*subscription)) {
+        doInitialSyncExtendedDynamicPatch(root, subscription, it->newKeys);
+      } else {
+        resolveExtendedSubscriptionKeys(store, root, subscription, it->newKeys);
+      }
+      static_cast<ExtendedPatchSubscription*>(subscription.get())
+          ->clearInitialSyncPending(it->newKeys);
       it = addedPaths.erase(it);
     }
   }
@@ -502,12 +553,28 @@ class CowSubscriptionManager
         }
       }
 
+      // Serve any wildcard PATCH extended subscription whose pattern is fully
+      // matched at this exact node. Equivalent to what PatchSubscription::offer
+      // does for a resolved child, without the resolved object or its lookup_
+      // node. A tracker is only attached when the flag is on and patches are
+      // being built, so a patch builder is guaranteed here.
+      if (auto* tracker = traverser.wildcardTracker()) {
+        DCHECK(traverser.patchBuilder().has_value())
+            << "wildcard tracker attached without a patch builder";
+        for (const auto& candidate : tracker->matchedCandidates()) {
+          bufferPatch(
+              *candidate.sub,
+              candidate.key,
+              path,
+              traverser.patchBuilder()->curPatch());
+        }
+      }
+
       if (visitTag != thrift_cow::DeltaElemTag::MINIMAL) {
         // Done with path subs which need full traversal. Now only care about
         // MINIMAL changes for delta subs
         return;
       }
-
       // serve MINIMAL changes to delta subscription at parent paths
       const auto& traverseElements = traverser.elementsAlongPath();
       for (auto it = traverseElements.begin(); it != traverseElements.end() - 1;
@@ -535,6 +602,20 @@ class CowSubscriptionManager
           patchOperProtocol(), true /* incrementallyCompress */);
     }
     CowSubscriptionTraverseHelper traverser(&store.lookup(), patchBuilder);
+
+    // Dynamic wildcard PATCH resolution: when enabled and patches are being
+    // built (id paths), seed a candidate tracker from the registered extended
+    // subscriptions and attach it to the traverser. Matched candidates are
+    // served inline in processChange above. The tracker must outlive the
+    // traversal, hence it lives on this stack frame.
+    WildcardPatchCandidateTracker wildcardTracker;
+    if (FLAGS_dynamicWildcardPatchResolution && patchBuilder.has_value()) {
+      if (wildcardTracker.seed(store.extendedSubscriptions(), metadataServer) >
+          0) {
+        traverser.setWildcardTracker(&wildcardTracker);
+      }
+    }
+
     if (oldRoot && newRoot) {
       thrift_cow::RootDeltaVisitor::visit(
           traverser,

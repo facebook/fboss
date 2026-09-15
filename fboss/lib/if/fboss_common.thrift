@@ -69,6 +69,8 @@ enum PlatformType {
   PLATFORM_WEDGE800BNHP = 54,
   PLATFORM_M5120CSC = 55,
   PLATFORM_WEDGE800CNHP = 56,
+  PLATFORM_M4061CLSC = 57,
+  PLATFORM_M4052ACTM = 58,
   PLATFORM_UNKNOWN = 1000, # Placeholder for unknown platform type
 }
 

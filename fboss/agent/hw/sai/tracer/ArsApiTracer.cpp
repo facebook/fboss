@@ -32,6 +32,9 @@ void handleExtensionAttributes() {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   SAI_EXT_ATTR_MAP(Ars, SourcePortPrune);
 #endif
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(Ars, EcmpMemberCount);
+#endif
 }
 #endif
 

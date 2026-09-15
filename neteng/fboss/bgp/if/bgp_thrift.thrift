@@ -791,9 +791,7 @@ struct TBgpAttributes {
   7: optional bool install_to_fib;
 }
 
-/**
-* Direction filter for attribute statistics
-*/
+/** Direction filter for BGP statistics. */
 enum TDirectionFilter {
   INGRESS = 0,
   EGRESS = 1,
@@ -929,6 +927,70 @@ struct TGetDeduplicatorStatsResponse {
   6: TDeduplicatorCollectionStats ext_communities;
 }
 
+/** Stable identity for one peer Adj-RIB. */
+struct TAdjRibPeerKey {
+  1: string peer_address;
+  2: i64 remote_bgp_id;
+}
+
+/** Identity of the physical Adj-RIB-OUT group backing a peer. */
+struct TAdjRibGroupKey {
+  1: string egress_policy_name;
+  2: i64 group_id;
+}
+
+/** Effective Adj-RIB-IN view for one peer. */
+struct TAdjRibInPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: string peer_name;
+  3: i64 pre_policy_path_count;
+  4: i64 post_policy_path_count;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  7: i64 stale_prefixes;
+  8: i64 stale_paths;
+}
+
+/** Effective Adj-RIB-OUT view for one peer. */
+struct TAdjRibOutPeerStats {
+  1: TAdjRibPeerKey peer_key;
+  2: TAdjRibGroupKey group_key;
+  3: string peer_name;
+  4: string peer_state;
+  5: i64 active_prefixes;
+  6: i64 active_paths;
+  /**
+   * Number of buckets in the packing list responsible for producing this
+   * peer's updates. This is peer-local when update groups are disabled or the
+   * peer is detached, and shared when the peer is in sync with an update
+   * group.
+   */
+  7: i64 packing_list_size;
+  /** Pending advertisement key size due to out-delay. */
+  8: i64 out_delay_pending_keys;
+}
+
+struct TAdjRibInStats {
+  1: list<TAdjRibInPeerStats> peers;
+}
+
+struct TAdjRibOutStats {
+  1: list<TAdjRibOutPeerStats> peers;
+}
+
+struct TGetAdjRibStatsRequest {
+  1: TDirectionFilter direction = TDirectionFilter.BOTH;
+}
+
+/**
+ * O(peers) Adj-RIB statistics with no route-scale tree walk.
+ * Peer snapshots have no ordering guarantee.
+ */
+struct TGetAdjRibStatsResponse {
+  1: TAdjRibInStats rib_in;
+  2: TAdjRibOutStats rib_out;
+}
+
 /**
 * Filter parameters for attribute statistics
 */
@@ -947,6 +1009,28 @@ struct TEntryStats {
   4: i64 total_originated_routes;
   5: i64 total_shadow_rib_entries;
   6: i64 total_netlink_wrapper_interfaces;
+  /**
+   * The number of interfaces that have a link-up hold right now
+   * (BgpSettingConfig.enable_netlink_dampening). The value is zero when the
+   * feature is off. This is a device total. To find which interface has a
+   * hold, read the [LinkHold] log lines.
+   */
+  7: i64 total_netlink_wrapper_holds_active;
+}
+
+/**
+ * The link-up hold times (link-flap dampening).
+ *
+ * initial_ms is the length of the first hold after a link-down. max_ms is the
+ * longest hold, and it is also the decay window: a link that stays quiet for
+ * this time returns to the initial hold.
+ */
+struct TNetlinkLinkUpHold {
+  1: i32 initial_ms;
+  2: i32 max_ms;
+  // False when BgpSettingConfig.enable_netlink_dampening is off. The times are
+  // then set but no link-up is held.
+  3: bool enabled;
 }
 
 /**
@@ -1589,33 +1673,6 @@ service TBgpService extends fb303.FacebookService {
   > getPrefilterAdvertisedNetworks2(1: string peer);
 
   /**
-   * Routes we receive from peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preIn routes of the peer and displays the
-   * postIn output if the policy is applied.
-   * i.e. Determine the effect of policy without effecting the running state.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterReceivedNetworks(1: string peer, 2: string file_name);
-
-  /**
-   * Routes we sent to a peer, after dry run of new policy config.
-   * This API does a dry run of policy config on production routes, without
-   * effecting production state, traffic. It applies the given policy
-   * (which should be on device) on preOut routes of the peer and displays the
-   * postOut output if the policy is applied.
-   */
-  @hack.SkipCodegen{reason = "Invalid return type"}
-  map<
-    bgp_attr.TIpPrefix,
-    bgp_route_types.TBgpPath
-  > getDryRunPostfilterAdvertisedNetworks(1: string peer, 2: string file_name);
-
-  /**
    * Get post-policy network information for stream subscribers
    *
    * @param peerID - integer ID of BGP stream subscriber
@@ -1949,6 +2006,38 @@ service TBgpService extends fb303.FacebookService {
   TResult setRouteFilterPolicy(1: rib_policy.TRouteFilterPolicy policy);
 
   /**
+   * [Link-up hold]
+   */
+  /**
+   * Set the link-up hold times without a restart.
+   *
+   * bgpd reads bgp_netlink_link_up_hold_initial_ms and
+   * bgp_netlink_link_up_hold_max_ms one time at start-up, and a gflag cannot
+   * change while bgpd runs. Each restart is a graceful restart event, so a
+   * qualification test must change these times another way.
+   *
+   * The netlink fiber reads the new values at the next link-down. A hold that
+   * already started keeps its length. To set max_ms to a small value therefore
+   * collapses the ladder within one hold.
+   *
+   * @param initial_ms - the first hold, in milliseconds. Must be more than 0.
+   * @param max_ms - the longest hold, in milliseconds. Must be at least
+   *                 initial_ms.
+   * @return <true, ''> when bgpd accepted the times
+   *         <false, 'Error Msg'> when a value is out of range, or when this
+   *         build has no NetlinkWrapper
+   */
+  TResult setNetlinkLinkUpHold(1: i32 initial_ms, 2: i32 max_ms);
+
+  /**
+   * [Link-up hold]
+   */
+  /**
+   * Show the link-up hold times that bgpd uses now.
+   */
+  TNetlinkLinkUpHold getNetlinkLinkUpHold();
+
+  /**
    * [Route Filter Policy]
    */
   /**
@@ -2058,6 +2147,12 @@ service TBgpService extends fb303.FacebookService {
   TGetDeduplicatorStatsResponse getDeduplicatorStats(
     1: TGetDeduplicatorStatsRequest request,
   );
+
+  /**
+   * Get cached per-peer Adj-RIB-IN and effective Adj-RIB-OUT statistics without
+   * traversing a radix tree.
+   */
+  TGetAdjRibStatsResponse getAdjRibStats(1: TGetAdjRibStatsRequest request);
 
   /**
    * Deprecated wire-compatibility placeholder. Returns an empty response

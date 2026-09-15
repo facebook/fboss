@@ -1087,6 +1087,21 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
       if (intf->isVirtual() || intf->isStateSyncDisabled()) {
         statusMap.emplace(intf->getID(), true);
       } else if (intf->getType() == cfg::InterfaceType::PORT) {
+        // An aggregate port router interface follows the aggregate: it is up
+        // while at least minimumLinkCount members are forwarding. Below that
+        // LACP puts every member in standby, so the aggregate carries no
+        // traffic even though the member links are still up.
+        if (auto aggregatePortID = intf->getAggregatePortIDf()) {
+          auto aggPort =
+              state->getAggregatePorts()->getNodeIf(*aggregatePortID);
+          if (!aggPort) {
+            XLOG(ERR) << "Aggregate port interface " << intf->getID()
+                      << " does not have aggregate port in state.";
+            continue;
+          }
+          statusMap.emplace(intf->getID(), aggPort->isUp());
+          continue;
+        }
         auto port = state->getPorts()->getNodeIf(intf->getPortID());
         if (!port) {
           XLOG(ERR) << "Port interface " << intf->getID()

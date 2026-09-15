@@ -357,5 +357,27 @@ TEST_F(CmdSubCommandsTest, InitWithMultipleVerbs) {
   EXPECT_NE(utils::getSubcommandIf(*clearCmd, "object2"), nullptr);
 }
 
+TEST_F(CmdSubCommandsTest, RegistersLocalOptionsFromRealCommandTree) {
+  /*
+   * A command's LocalOptions only reach CLI11 if its entry in the command
+   * tree also passes localOptionsHandler<Traits>. Declaring them in the
+   * traits struct alone leaves the flag unparseable at the CLI, which no
+   * per-command test catches because those set the option value directly on
+   * CmdLocalOptions. Guard one real command that carries a local option.
+   */
+  std::vector<Command> emptySpecialCmds;
+
+  CmdSubcommands::getInstance()->init(
+      *app_, kCommandTree(), kAdditionalCommandTree(), emptySpecialCmds);
+
+  auto* showCmd = utils::getSubcommandIf(*app_, "show");
+  ASSERT_NE(showCmd, nullptr);
+  auto* bgpCmd = utils::getSubcommandIf(*showCmd, "bgp");
+  ASSERT_NE(bgpCmd, nullptr);
+  auto* summaryCmd = utils::getSubcommandIf(*bgpCmd, "summary");
+  ASSERT_NE(summaryCmd, nullptr);
+  EXPECT_NE(summaryCmd->get_option_no_throw("--sort-by"), nullptr);
+}
+
 } // namespace
 } // namespace facebook::fboss

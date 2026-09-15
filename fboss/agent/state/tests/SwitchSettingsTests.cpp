@@ -206,43 +206,85 @@ TEST(SwitchSettingsTest, applyPacketForwardingMode) {
   EXPECT_FALSE(switchSettingsV3->getPacketForwardingMode().has_value());
 }
 
-TEST(SwitchSettingsTest, applyL3EcmpIngressPortPrune) {
+TEST(SwitchSettingsTest, applyEcmpGroupSettings) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
-  // Unset when the config does not carry the field
+  auto withSplitHorizon = [](bool enable) {
+    cfg::EcmpGroupSettings settings;
+    settings.enableSplitHorizon() = enable;
+    return settings;
+  };
+
+  // Empty by default. Every group type then resolves to nullopt, i.e. nobody is
+  // using the feature and callers leave the attribute alone.
   cfg::SwitchConfig config;
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV1);
-  EXPECT_FALSE(switchSettingsV1->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_TRUE(switchSettingsV1->getEcmpGroupSettings().empty());
+  EXPECT_FALSE(
+      stateV1->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS).has_value());
 
-  config.switchSettings()->l3EcmpIngressPortPrune() = true;
+  // ARS on, FRR unnamed. Naming one type says nothing about the others: an
+  // unnamed type stays nullopt rather than resolving to false, so it is left
+  // alone rather than programmed off.
+  config.switchSettings()->ecmpGroupSettings() = {
+      {cfg::EcmpGroupType::ARS, withSplitHorizon(true)}};
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_NE(nullptr, stateV2);
   auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV2);
   EXPECT_FALSE(switchSettingsV2->isPublished());
-  ASSERT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().has_value());
-  EXPECT_TRUE(switchSettingsV2->getL3EcmpIngressPortPrune().value());
+  EXPECT_EQ(1, switchSettingsV2->getEcmpGroupSettings().size());
+  EXPECT_TRUE(*stateV2->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
+  EXPECT_FALSE(stateV2->getSplitHorizonEnabled(cfg::EcmpGroupType::FRR_PRIMARY)
+                   .has_value());
 
-  // A configured false is carried through as false, not as unset
-  config.switchSettings()->l3EcmpIngressPortPrune() = false;
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  // A key present and false is distinct from a key absent: false is a
+  // configured off, nullopt is unconfigured.
+  config.switchSettings()->ecmpGroupSettings() = {
+      {cfg::EcmpGroupType::ARS, withSplitHorizon(false)}};
+  auto stateV2b = publishAndApplyConfig(stateV2, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2b);
+  ASSERT_TRUE(
+      stateV2b->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS).has_value());
+  EXPECT_FALSE(*stateV2b->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS));
+
+  // The reverse split: FRR on, ARS off. Both FRR halves must move together.
+  config.switchSettings()->ecmpGroupSettings() = {
+      {cfg::EcmpGroupType::FRR_PRIMARY, withSplitHorizon(true)},
+      {cfg::EcmpGroupType::FRR_BACKUP, withSplitHorizon(true)}};
+  auto stateV3 = publishAndApplyConfig(stateV2b, &config, platform.get());
   EXPECT_NE(nullptr, stateV3);
-  auto switchSettingsV3 = utility::getFirstNodeIf(stateV3->getSwitchSettings());
-  ASSERT_NE(nullptr, switchSettingsV3);
-  ASSERT_TRUE(switchSettingsV3->getL3EcmpIngressPortPrune().has_value());
-  EXPECT_FALSE(switchSettingsV3->getL3EcmpIngressPortPrune().value());
+  EXPECT_TRUE(*stateV3->getSplitHorizonEnabled(cfg::EcmpGroupType::FRR_BACKUP));
+  EXPECT_FALSE(
+      stateV3->getSplitHorizonEnabled(cfg::EcmpGroupType::ARS).has_value());
 
-  // Dropping the field from config resets the state back to unset
-  config.switchSettings()->l3EcmpIngressPortPrune().reset();
+  // Enabling one FRR half alone suppresses the source port with no tertiary
+  // path on the other, so the config is rejected outright.
+  config.switchSettings()->ecmpGroupSettings() = {
+      {cfg::EcmpGroupType::FRR_PRIMARY, withSplitHorizon(true)},
+      {cfg::EcmpGroupType::FRR_BACKUP, withSplitHorizon(false)}};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
+
+  // ... and the same the other way round.
+  config.switchSettings()->ecmpGroupSettings() = {
+      {cfg::EcmpGroupType::FRR_BACKUP, withSplitHorizon(true)}};
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV3, &config, platform.get()), FbossError);
+
+  // Clearing the map puts every group type back to unconfigured.
+  config.switchSettings()->ecmpGroupSettings()->clear();
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   EXPECT_NE(nullptr, stateV4);
   auto switchSettingsV4 = utility::getFirstNodeIf(stateV4->getSwitchSettings());
   ASSERT_NE(nullptr, switchSettingsV4);
-  EXPECT_FALSE(switchSettingsV4->getL3EcmpIngressPortPrune().has_value());
+  EXPECT_TRUE(switchSettingsV4->getEcmpGroupSettings().empty());
+  EXPECT_FALSE(stateV4->getSplitHorizonEnabled(cfg::EcmpGroupType::FRR_BACKUP)
+                   .has_value());
 }
 
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {

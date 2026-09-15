@@ -24,7 +24,11 @@ class MockPhyManager : public PhyManager {
   // Mock the programOnePort method that was requested
   MOCK_METHOD4(
       programOnePort,
-      void(PortID, cfg::PortProfileID, std::optional<TransceiverInfo>, bool));
+      void(
+          PortID,
+          cfg::PortProfileID,
+          const std::optional<TransceiverInfo>&,
+          bool));
 
   // Mock the pure virtual methods from PhyManager
   MOCK_CONST_METHOD1(getPhyIDInfo, phy::PhyIDInfo(GlobalXphyID));

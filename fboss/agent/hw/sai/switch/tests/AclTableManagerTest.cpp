@@ -25,7 +25,8 @@ using namespace facebook::fboss;
 
 namespace {
 const std::string kAclTable2 = "AclTable2";
-}
+const std::string kAclTable3 = "AclTable3";
+} // namespace
 
 class AclTableManagerTest : public ManagerTestBase {
  public:
@@ -86,6 +87,47 @@ TEST_F(AclTableManagerTest, addTwoAclTable) {
   EXPECT_EQ(stageGot2, SAI_ACL_STAGE_INGRESS);
 }
 
+TEST_F(AclTableManagerTest, addPortBoundAclTable) {
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto table = std::make_shared<AclTable>(0, kAclTable2);
+  const auto aclTableId = saiManagerTable->aclTableManager().addAclTable(
+      table,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+  auto secondTable = std::make_shared<AclTable>(1, kAclTable3);
+  const auto secondAclTableId = saiManagerTable->aclTableManager().addAclTable(
+      secondTable,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  const auto bindPoints = saiApiTable->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::BindPointTypeList());
+  EXPECT_EQ(bindPoints, std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT});
+  const auto secondBindPoints = saiApiTable->aclApi().getAttribute(
+      secondAclTableId, SaiAclTableTraits::Attributes::BindPointTypeList());
+  EXPECT_EQ(
+      secondBindPoints, std::vector<sai_int32_t>{SAI_ACL_BIND_POINT_TYPE_PORT});
+
+  auto* aclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(aclTableGroupHandle, nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, kAclTable2),
+      nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, kAclTable3),
+      nullptr);
+}
+
 TEST_F(AclTableManagerTest, addDupAclTable) {
   state::AclTableFields fields{};
   fields.priority() = 0;
@@ -112,6 +154,32 @@ TEST_F(AclTableManagerTest, checkNonExistentAclTable) {
   EXPECT_FALSE(handle);
 }
 
+TEST_F(AclTableManagerTest, legacyAclTablePriorityMigrationDoesNotRecreate) {
+  auto legacyTable = std::make_shared<AclTable>(0, kAclTable2);
+  auto migratedTable = std::make_shared<AclTable>(23, kAclTable2);
+
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      legacyTable, migratedTable, cfg::AclStage::INGRESS));
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      migratedTable, legacyTable, cfg::AclStage::INGRESS));
+}
+
+TEST_F(AclTableManagerTest, preMigrationAclTablePriorityChangeDoesNotRecreate) {
+  auto oldTable = std::make_shared<AclTable>(1, kAclTable2);
+  auto newTable = std::make_shared<AclTable>(23, kAclTable2);
+
+  EXPECT_FALSE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
+}
+
+TEST_F(AclTableManagerTest, configuredAclTablePriorityChangeRecreates) {
+  auto oldTable = std::make_shared<AclTable>(23, kAclTable2);
+  auto newTable = std::make_shared<AclTable>(24, kAclTable2);
+
+  EXPECT_TRUE(saiManagerTable->aclTableManager().needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
+}
+
 TEST_F(AclTableManagerTest, addAclEntry) {
   auto aclTableId =
       saiManagerTable->aclTableManager()
@@ -132,6 +200,146 @@ TEST_F(AclTableManagerTest, addAclEntry) {
   auto tableIdGot = saiApiTable->aclApi().getAttribute(
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
   EXPECT_EQ(tableIdGot, aclTableId);
+}
+
+TEST_F(AclTableManagerTest, defaultAclTableOmitsLookupClassPort) {
+  auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
+  ASSERT_NE(aclTableHandle, nullptr);
+  EXPECT_FALSE(saiApiTable->aclApi().getAttribute(
+      aclTableHandle->aclTable->adapterKey(),
+      SaiAclTableTraits::Attributes::FieldPortUserMeta{}));
+}
+
+TEST_F(AclTableManagerTest, addAclTableWithLookupClassPort) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTable = std::make_shared<AclTable>(0, kAclTable2);
+  aclTable->setQualifiers({cfg::AclTableQualifier::LOOKUP_CLASS_PORT});
+  saiManagerTable->aclTableManager().addAclTable(
+      aclTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+  auto* aclTableHandle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2);
+  ASSERT_NE(aclTableHandle, nullptr);
+  EXPECT_TRUE(saiApiTable->aclApi().getAttribute(
+      aclTableHandle->aclTable->adapterKey(),
+      SaiAclTableTraits::Attributes::FieldPortUserMeta{}));
+}
+
+TEST_F(
+    AclTableManagerTest,
+    publishedQualifiersMatchingAsicDefaultSkipRecreate) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  auto& aclTableManager = saiManagerTable->aclTableManager();
+
+  // A table with no qualifiers is built from the ASIC's own set.
+  auto oldTable = std::make_shared<AclTable>(0, kAclTable2);
+  aclTableManager.addAclTable(oldTable, cfg::AclStage::INGRESS, nullptr);
+  auto tableIdBefore =
+      aclTableManager.getAclTableHandle(kAclTable2)->aclTable->adapterKey();
+
+  auto supported =
+      aclTableManager.getSupportedQualifierSet(cfg::AclStage::INGRESS);
+  auto newTable = std::make_shared<AclTable>(0, kAclTable2);
+  newTable->setQualifiers(
+      std::vector<cfg::AclTableQualifier>(supported.begin(), supported.end()));
+
+  // SAI cannot see the difference, so the table must survive untouched.
+  EXPECT_FALSE(aclTableManager.needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
+  aclTableManager.changedAclTable(
+      oldTable, newTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+  EXPECT_EQ(
+      aclTableManager.getAclTableHandle(kAclTable2)->aclTable->adapterKey(),
+      tableIdBefore);
+}
+
+TEST_F(AclTableManagerTest, reorderedQualifiersSkipRecreate) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  auto& aclTableManager = saiManagerTable->aclTableManager();
+
+  auto oldTable = std::make_shared<AclTable>(0, kAclTable2);
+  oldTable->setQualifiers(
+      {cfg::AclTableQualifier::DSCP, cfg::AclTableQualifier::SRC_IPV6});
+  auto newTable = std::make_shared<AclTable>(0, kAclTable2);
+  newTable->setQualifiers(
+      {cfg::AclTableQualifier::SRC_IPV6, cfg::AclTableQualifier::DSCP});
+
+  EXPECT_FALSE(aclTableManager.needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
+}
+
+TEST_F(AclTableManagerTest, narrowerQualifiersRecreateAclTable) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  auto& aclTableManager = saiManagerTable->aclTableManager();
+
+  // Carry an entry so the recreate exercises the entry remove and re-add.
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry->setDscp(kDscp());
+  aclEntry->setActionType(kActionType());
+  auto aclMap = std::make_shared<AclMap>();
+  aclMap->addNode(aclEntry);
+
+  auto oldTable = std::make_shared<AclTable>(0, kAclTable2);
+  oldTable->setAclMap(aclMap);
+  aclTableManager.addAclTable(oldTable, cfg::AclStage::INGRESS, nullptr);
+  aclTableManager.addAclEntry(aclEntry, kAclTable2, nullptr /*state*/);
+  auto tableIdBefore =
+      aclTableManager.getAclTableHandle(kAclTable2)->aclTable->adapterKey();
+
+  auto newTable = std::make_shared<AclTable>(0, kAclTable2);
+  newTable->setAclMap(aclMap);
+  newTable->setQualifiers({cfg::AclTableQualifier::DSCP});
+
+  EXPECT_TRUE(aclTableManager.needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
+  aclTableManager.changedAclTable(
+      oldTable, newTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+  auto* aclTableHandle = aclTableManager.getAclTableHandle(kAclTable2);
+  ASSERT_NE(aclTableHandle, nullptr);
+  EXPECT_NE(aclTableHandle->aclTable->adapterKey(), tableIdBefore);
+  EXPECT_FALSE(saiApiTable->aclApi().getAttribute(
+      aclTableHandle->aclTable->adapterKey(),
+      SaiAclTableTraits::Attributes::FieldSrcIpV6{}));
+  EXPECT_NE(
+      aclTableManager.getAclEntryHandle(
+          aclTableHandle, kPriority(), "AclEntry1"),
+      nullptr);
+}
+
+TEST_F(AclTableManagerTest, changedTablePropertiesRecreateAclTable) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+  auto& aclTableManager = saiManagerTable->aclTableManager();
+
+  auto qualifiers = std::vector<cfg::AclTableQualifier>{
+      cfg::AclTableQualifier::DSCP, cfg::AclTableQualifier::SRC_IPV6};
+  // Both priorities are past the migration point, so neither is normalized
+  // away.
+  auto oldTable = std::make_shared<AclTable>(23, kAclTable2);
+  oldTable->setQualifiers(qualifiers);
+  auto newTable = std::make_shared<AclTable>(24, kAclTable2);
+  newTable->setQualifiers(qualifiers);
+
+  EXPECT_TRUE(aclTableManager.needsAclTableRecreate(
+      oldTable, newTable, cfg::AclStage::INGRESS));
 }
 
 TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
@@ -170,6 +378,48 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
       AclCounterSaiId(aclCounterIdGot),
       SaiAclCounterTraits::Attributes::TableId());
   EXPECT_EQ(tableIdGot2, aclTableId);
+}
+
+TEST_F(AclTableManagerTest, addAclEntryWithLookupClassPort) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTable = std::make_shared<AclTable>(0, kAclTable2);
+  aclTable->setQualifiers({cfg::AclTableQualifier::LOOKUP_CLASS_PORT});
+  saiManagerTable->aclTableManager().addAclTable(
+      aclTable, cfg::AclStage::INGRESS, nullptr /*state*/);
+
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
+  aclEntry->setLookupClassPort(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  aclEntry->setActionType(kActionType());
+
+  auto aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      aclEntry, kAclTable2, nullptr /*state*/);
+
+  auto field = saiApiTable->aclApi().getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::FieldPortUserMeta{});
+  EXPECT_EQ(
+      field.getDataAndMask().first,
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED));
+  EXPECT_EQ(field.getDataAndMask().second, 0x3F);
+
+  auto secondAclEntry =
+      std::make_shared<AclEntry>(kPriority2(), std::string("AclEntry2"));
+  secondAclEntry->setLookupClassPort(
+      cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  secondAclEntry->setActionType(kActionType());
+
+  auto secondAclEntryId = saiManagerTable->aclTableManager().addAclEntry(
+      secondAclEntry, kAclTable2, nullptr /*state*/);
+  auto secondField = saiApiTable->aclApi().getAttribute(
+      secondAclEntryId, SaiAclEntryTraits::Attributes::FieldPortUserMeta{});
+  EXPECT_EQ(
+      secondField.getDataAndMask().first,
+      static_cast<uint32_t>(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED));
+  EXPECT_EQ(secondField.getDataAndMask().second, 0x3F);
 }
 
 TEST_F(AclTableManagerTest, addTwoAclEntry) {

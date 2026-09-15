@@ -9,4 +9,19 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeSplitHorizonEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsFailPktCount::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiNextHopGroupTraits::Attributes::AttributeArsPortReassignCount::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

@@ -50,9 +50,9 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
       cfg::Interface* interface = portMap.getInterfaceByName(name);
       if (!interface) {
         // A purely-numeric name may be an interface ID.
-        auto id = folly::tryTo<int32_t>(name);
-        if (id.hasValue() && *id >= 0) {
-          interface = portMap.getInterface(InterfaceID(*id));
+        auto parsedInterfaceId = folly::tryTo<int32_t>(name);
+        if (parsedInterfaceId.hasValue() && *parsedInterfaceId >= 0) {
+          interface = portMap.getInterface(InterfaceID(*parsedInterfaceId));
         }
       }
       if (interface) {

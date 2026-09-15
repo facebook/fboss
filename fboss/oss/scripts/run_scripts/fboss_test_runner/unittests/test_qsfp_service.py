@@ -50,7 +50,7 @@ class TestSetupPreconditions:
         _redirect_paths(monkeypatch, tmp_path)
         monkeypatch.setattr(
             qsfp_service_utils,
-            "_DEFAULT_OSS_QSFP_SERVICE_PATH",
+            "_DEFAULT_OSS_QSFP_SERVICE_BINARY",
             str(tmp_path / "missing_qsfp_bin"),
         )
         config = tmp_path / "qsfp.conf"
@@ -61,7 +61,7 @@ class TestSetupPreconditions:
     def test_raises_when_config_none(self, monkeypatch, tmp_path):
         _redirect_paths(monkeypatch, tmp_path)
         monkeypatch.setattr(
-            qsfp_service_utils, "_DEFAULT_OSS_QSFP_SERVICE_PATH", sys.executable
+            qsfp_service_utils, "_DEFAULT_OSS_QSFP_SERVICE_BINARY", sys.executable
         )
         with pytest.raises(Exception, match=r"qsfp_service config path.*is None"):
             setup_and_start_qsfp_service(qsfp_service_config_path=None)
@@ -71,7 +71,7 @@ class TestUnitFileExtraArgs:
     def _setup(self, monkeypatch, tmp_path):
         _redirect_paths(monkeypatch, tmp_path)
         monkeypatch.setattr(
-            qsfp_service_utils, "_DEFAULT_OSS_QSFP_SERVICE_PATH", sys.executable
+            qsfp_service_utils, "_DEFAULT_OSS_QSFP_SERVICE_BINARY", sys.executable
         )
 
     def test_fsdb_enabled_adds_ssl_preferred_flag(self, monkeypatch, tmp_path):

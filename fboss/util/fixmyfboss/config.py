@@ -16,15 +16,31 @@ def load_pm_config() -> Optional[PlatformConfig]:
     Returns a dictionary mapping platform names to their PlatformConfig objects
     """
 
-    parent_dir = "fboss_config_files/configs"
+    parent_dir = "fboss_config_files/platforms"
     platform_name = get_platform_name()
     if not platform_name:
         raise Exception("Failed to get platform name")
 
     platform_name_lower = platform_name.lower()
     filename = "platform_manager.json"
-    config_path = f"{parent_dir}/{platform_name_lower}/{filename}"
-    resource = importlib.resources.files(__package__).joinpath(config_path)
+    configs = importlib.resources.files(__package__).joinpath(parent_dir)
+    resources = []
+    for vendor_dir in sorted(configs.iterdir(), key=lambda entry: entry.name):
+        if not vendor_dir.is_dir():
+            continue
+        resource = vendor_dir.joinpath(platform_name_lower, "platform_stack", filename)
+        if resource.is_file():
+            resources.append(resource)
+    if not resources:
+        return None
+    if len(resources) > 1:
+        print(
+            f"Warning: Found multiple platform manager configs for "
+            f"{platform_name_lower}: "
+            f"{[str(resource) for resource in resources]}"
+        )
+        return None
+    resource = resources[0]
 
     pm_config = None
     try:

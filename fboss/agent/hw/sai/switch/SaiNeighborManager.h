@@ -105,6 +105,12 @@ class PortRifNeighbor {
 
   void handleLinkDown();
 
+  // Creates and publishes the SAI neighbor. Deliberately NOT done from the
+  // constructor: publishing cascades synchronously into next hop and next hop
+  // group member creation, which may look this neighbor back up, so it must
+  // not run until SaiNeighborManager has recorded the entry.
+  void createNeighbor();
+
   SaiNeighborHandle* getHandle() const {
     return handle_.get();
   }
@@ -133,6 +139,8 @@ class PortRifNeighbor {
   std::shared_ptr<SaiNeighbor> neighbor_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   cfg::InterfaceType intfType_;
+  SaiNeighborTraits::AdapterHostKey adapterHostKey_;
+  SaiNeighborTraits::CreateAttributes createAttributes_;
 };
 
 class SaiNeighborEntry {
@@ -147,6 +155,12 @@ class SaiNeighborEntry {
       bool isLocal,
       std::optional<bool> noHostRoute,
       cfg::InterfaceType intfType);
+  // Second phase of construction: create/subscribe so the neighbor becomes
+  // visible to SAI and to subscribers. Must be called only after the owning
+  // SaiNeighborManager has inserted this entry (see
+  // SaiNeighborManager::addNeighbor()).
+  void publish();
+
   void handleLinkDown() {
     std::visit([](auto& handle) { handle->handleLinkDown(); }, neighbor_);
   }
@@ -206,6 +220,12 @@ class SaiNeighborManager {
       const SaiNeighborTraits::NeighborEntry& entry) const;
 
   cfg::InterfaceType getNeighborRifType(
+      const SaiNeighborTraits::NeighborEntry& entry) const;
+
+  // SAI id of the port/LAG/system port this neighbor egresses out of, or
+  // nullopt if the neighbor is not (or not yet) recorded. Used to derive the
+  // MONITORED_OBJECT of a protection next hop group's PRIMARY member.
+  std::optional<sai_object_id_t> getNeighborPortSaiId(
       const SaiNeighborTraits::NeighborEntry& entry) const;
 
   void clear();

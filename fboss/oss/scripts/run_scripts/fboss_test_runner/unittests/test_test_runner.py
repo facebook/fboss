@@ -117,6 +117,7 @@ class TestRunTestGtestFallback:
         result = outcome.results[0]
         assert result.status == GtestStatus.SKIPPED
         assert result.test_name == "cold_boot.HwFooTest.Bar"
+        assert result.filter_name == "HwFooTest.Bar"
         # Critical: the fallback must NOT have rewritten this to OK.
         assert result.status != GtestStatus.OK
 
@@ -139,6 +140,7 @@ class TestRunTestGtestFallback:
         result = outcome.results[0]
         assert result.status == GtestStatus.OK
         assert result.test_name == "warm_boot.HwFooTest.Bar"
+        assert result.filter_name == "HwFooTest.Bar"
 
 
 class TestRunTestTimeout:
@@ -166,6 +168,7 @@ class TestRunTestTimeout:
         # dropped or rewritten as OK.
         assert result.status == GtestStatus.TIMEOUT
         assert result.test_name == "cold_boot.HwSlowTest.Slow"
+        assert result.filter_name == "HwSlowTest.Slow"
         # Duration reported is timeout_in_second * 1000.
         assert result.duration_ms == 300000
 
@@ -309,8 +312,8 @@ class TestSimulatorEnv:
         assert "SOC_TARGET_PORT" not in other.env_var
 
 
-class TestBackupAndModifyConfig:
-    """Test that _backup_and_modify_config copies the config to /tmp and
+class TestPrepareConfigForRun:
+    """Test that _prepare_config_for_run creates a retained config and
     rewrites AUTOLOAD_BOARD_SETTINGS when --run-on-reference-board is set.
     Exercises _string_in_file + _replace_string_in_file transitively."""
 
@@ -318,34 +321,39 @@ class TestBackupAndModifyConfig:
         conf = tmp_path / "platform.materialized_JSON"
         conf.write_text("AUTOLOAD_BOARD_SETTINGS: 0\nother: value\n")
 
-        modified_path = f"/tmp/modified-{conf.name}"
-        try:
-            args = MagicMock()
-            args.run_on_reference_board = True
-            with patch.object(runner, "args", new=args, create=True):
-                returned = runner._backup_and_modify_config(str(conf))
+        generated_root = tmp_path / "generated_configs"
+        modified_path = generated_root / "sai" / conf.name
+        args = MagicMock()
+        args.command = "sai"
+        args.config = str(conf)
+        args.run_on_reference_board = True
+        with (
+            patch.object(runner, "args", new=args, create=True),
+            patch(
+                "fboss_test_runner.runners.test_runner.GENERATED_CONFIG_ROOT",
+                str(generated_root),
+            ),
+        ):
+            returned = runner._prepare_config_for_run()
 
-            assert returned == modified_path
-            assert os.path.isfile(modified_path)
-            with open(modified_path) as f:
-                new_contents = f.read()
-            assert "AUTOLOAD_BOARD_SETTINGS: 1" in new_contents
-            assert "AUTOLOAD_BOARD_SETTINGS: 0" not in new_contents
-            # Original must be untouched.
-            assert "AUTOLOAD_BOARD_SETTINGS: 0" in conf.read_text()
-        finally:
-            if os.path.isfile(modified_path):
-                os.unlink(modified_path)
+        assert returned == str(modified_path)
+        assert modified_path.is_file()
+        new_contents = modified_path.read_text()
+        assert "AUTOLOAD_BOARD_SETTINGS: 1" in new_contents
+        assert "AUTOLOAD_BOARD_SETTINGS: 0" not in new_contents
+        # Original must be untouched.
+        assert "AUTOLOAD_BOARD_SETTINGS: 0" in conf.read_text()
 
     def test_no_reference_board_returns_original_unmodified(self, runner, tmp_path):
         conf = tmp_path / "platform.materialized_JSON"
         conf.write_text("AUTOLOAD_BOARD_SETTINGS: 0\n")
         args = MagicMock()
+        args.config = str(conf)
         args.run_on_reference_board = False
         with patch.object(runner, "args", new=args, create=True):
-            returned = runner._backup_and_modify_config(str(conf))
-        # Should return original path, unchanged contents.
+            returned = runner._prepare_config_for_run()
         assert returned == str(conf)
+        # The original contents remain unchanged.
         assert "AUTOLOAD_BOARD_SETTINGS: 0" in conf.read_text()
 
 

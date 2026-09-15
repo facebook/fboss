@@ -116,18 +116,18 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
        "Ports",
        "Addresses"});
 
-  for (const auto& rif : model.get_rifs()) {
+  for (const auto& rif : model.rifs().value()) {
     outTable.addRow({
-        rif.get_name(),
-        std::to_string(rif.get_rifID()),
-        rif.get_osIfName(),
+        rif.name().value(),
+        std::to_string(folly::copy(rif.rifID().value())),
+        rif.osIfName().value(),
         (rif.vlanID() ? std::to_string(*rif.vlanID()) : "--"),
-        std::to_string(rif.get_routerID()),
-        rif.get_mac(),
-        std::to_string(rif.get_mtu()),
-        rif.get_remoteInterfaceType(),
-        rif.get_remoteInterfaceLivenessStatus(),
-        rif.get_scope(),
+        std::to_string(folly::copy(rif.routerID().value())),
+        rif.mac().value(),
+        std::to_string(folly::copy(rif.mtu().value())),
+        rif.remoteInterfaceType().value(),
+        rif.remoteInterfaceLivenessStatus().value(),
+        rif.scope().value(),
         (rif.portNames()->size() > 0 ? folly::join("\n", *rif.portNames())
                                      : ""),
         (rif.addrs()->size() > 0 ? folly::join("\n", *rif.addrs()) : ""),

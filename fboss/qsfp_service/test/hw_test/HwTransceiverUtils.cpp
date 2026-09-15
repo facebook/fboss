@@ -85,6 +85,17 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     auto tcvrInfoItr = tcvrInfos.find(tcvrIds[0]);
     ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
 
+    if (!TransceiverManager::opticalOrActiveCable(
+            *tcvrInfoItr->second.tcvrState())) {
+      // Passive DAC is never programmed, so its lane map is derived from the
+      // widest advertised application instead of the port's own datapath. On
+      // breakout subports that yields the module's full lane set for the first
+      // subport and an empty set for the rest.
+      XLOG(INFO) << " Skip verifying lane map: " << portName
+                 << ", for passive copper cable";
+      continue;
+    }
+
     auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();
     // Verify port exists in the map
     EXPECT_NE(hostLaneMap.find(portName), hostLaneMap.end());
@@ -237,7 +248,8 @@ void HwTransceiverUtils::verifyTransceiverSettings(
 
   verifyMediaInterfaceCompliance(tcvrState, profile, portName);
 
-  if (profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
+  if (TransceiverManager::opticalOrActiveCable(tcvrState) &&
+      profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER &&
       profile != cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL) {
     // We use these profiles on Meru400biu and Meru400bfu with 200G optics in
     // a hacky configuration which invalidates the verification of datapath in
@@ -506,13 +518,15 @@ void HwTransceiverUtils::verify200gProfile(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G ||
-        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_200G);
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR1_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR2_200G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
         *mediaId.code() == MediaInterfaceCode::DR2_200G ||
         *mediaId.code() == MediaInterfaceCode::DR1_200G ||
-        *mediaId.code() == MediaInterfaceCode::FR1_200G);
+        *mediaId.code() == MediaInterfaceCode::FR1_200G ||
+        *mediaId.code() == MediaInterfaceCode::FR2_200G);
   }
 }
 

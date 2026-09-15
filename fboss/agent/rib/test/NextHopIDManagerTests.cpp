@@ -12,6 +12,8 @@
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/ClassBasedPolicyMap.h"
+#include "fboss/agent/state/ClassBasedPolicyNode.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
@@ -30,6 +32,7 @@ constexpr int64_t kSetIdOffset = 1LL << 62;
 
 namespace {
 
+constexpr uint32_t kEcmpWidth = 64;
 const std::string kSrv6Tunnel0{"srv6Tunnel0"};
 
 // Helper function to create a V4 route with resolvedNextHopSetID and add to FIB
@@ -1213,7 +1216,12 @@ TEST_F(NextHopIDManagerTest, reconstructMemberDedupMintsFreshSetId) {
       createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(
-      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+      multiSwitchFibInfoMap,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr /*classBasedPolicyMaps*/,
+      &remap);
 
   // Duplicate ids 4,5 reclaimed: only 1,2,3,6 survive.
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
@@ -1377,7 +1385,9 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsClientNextHopSetID) {
       ribThrift,
       fibInfoMap,
       std::make_shared<MultiLabelForwardingInformationBase>(),
-      std::make_shared<MultiSwitchMySidMap>());
+      std::make_shared<MultiSwitchMySidMap>(),
+      kEcmpWidth,
+      nullptr);
   auto manager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(manager, nullptr);
 
@@ -1501,11 +1511,16 @@ TEST_F(NextHopIDManagerTest, reconstructMemberDedupUnresolvedRoute) {
   vrfTable.v4NetworkToRoute()->emplace("20.0.0.0/24", v4Unresolved);
   std::map<int32_t, state::RouteTableFields> ribThrift;
   ribThrift.emplace(0, vrfTable);
-  auto ribTables = RibRouteTables::fromThrift(ribThrift);
+  auto ribTables = RibRouteTables::fromThrift(ribThrift, kEcmpWidth);
 
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(
-      multiSwitchFibInfoMap, nullptr, nullptr, &ribTables, &remap);
+      multiSwitchFibInfoMap,
+      nullptr,
+      nullptr,
+      &ribTables,
+      nullptr /*classBasedPolicyMaps*/,
+      &remap);
 
   // Duplicate ids 4,5 reclaimed: only 1,2,3,6 survive.
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
@@ -2540,6 +2555,7 @@ TEST_F(NextHopIDManagerTest, reconstructFullCollapseRemapsToSurvivor) {
       nullptr,
       nullptr,
       nullptr,
+      nullptr /*classBasedPolicyMaps*/,
       &remap);
 
   ASSERT_EQ(remap.size(), 1);
@@ -2624,6 +2640,7 @@ TEST_F(
       nullptr,
       nullptr,
       nullptr,
+      nullptr /*classBasedPolicyMaps*/,
       &remap);
 
   NextHopSetID freshSetId(kSetIdOffset + 3);
@@ -2675,6 +2692,7 @@ TEST_F(
       nullptr,
       nullptr,
       nullptr,
+      nullptr /*classBasedPolicyMaps*/,
       &remap);
 
   // SID1 retired onto a fresh id; the group shrank to a single member. Which of
@@ -2738,7 +2756,12 @@ TEST_F(NextHopIDManagerTest, reconstructMySidSetDedupRecordsRemap) {
 
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(
-      multiSwitchFibInfoMap, mySidMap, nullptr, nullptr, &remap);
+      multiSwitchFibInfoMap,
+      mySidMap,
+      nullptr,
+      nullptr,
+      nullptr /*classBasedPolicyMaps*/,
+      &remap);
 
   ASSERT_EQ(remap.size(), 1);
   EXPECT_EQ(remap.at(setId2), setId1);
@@ -2812,6 +2835,7 @@ TEST_F(NextHopIDManagerTest, reconstructFreshSetIdClearsGlobalMaxSetId) {
       nullptr,
       nullptr,
       nullptr,
+      nullptr /*classBasedPolicyMaps*/,
       &remap);
 
   // Fresh id is global-max (kSetIdOffset + 50) + 1, NOT setId2 + 1.
@@ -2860,7 +2884,12 @@ TEST_F(NextHopIDManagerTest, reconstructNamedGroupSetIdDedupResolves) {
 
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(
-      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+      multiSwitchFibInfoMap,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr /*classBasedPolicyMaps*/,
+      &remap);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 1);
   ASSERT_EQ(remap.count(setId2), 1);
@@ -2920,7 +2949,12 @@ TEST_F(NextHopIDManagerTest, reconstructNamedGroupSetIdDedupFreshId) {
 
   std::unordered_map<NextHopSetID, NextHopSetID> remap;
   manager_->reconstructFromSwitchStateMaps(
-      multiSwitchFibInfoMap, nullptr, nullptr, nullptr, &remap);
+      multiSwitchFibInfoMap,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr /*classBasedPolicyMaps*/,
+      &remap);
 
   // setId2 deduped to {id1,id4} (new) -> retired onto fresh id.
   NextHopSetID freshSetId(kSetIdOffset + 3);
@@ -3029,6 +3063,7 @@ TEST_F(NextHopIDManagerTest, reconstructPerClientCostCollisionCollapse) {
       nullptr,
       nullptr,
       nullptr,
+      nullptr /*classBasedPolicyMaps*/,
       &remap);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 1);
@@ -3039,6 +3074,52 @@ TEST_F(NextHopIDManagerTest, reconstructPerClientCostCollisionCollapse) {
       EXPECT_EQ(manager_->getIdToNextHop().count(m), 1);
     }
   }
+}
+
+namespace {
+state::NamedNextHopGroupAndID makeNamedNhg(
+    const std::string& name,
+    int64_t id) {
+  state::NamedNextHopGroupAndID nhg;
+  nhg.name() = name;
+  nhg.id() = id;
+  return nhg;
+}
+} // namespace
+
+TEST_F(NextHopIDManagerTest, reconstructClassBasedPolicyPassRebuildsStore) {
+  auto matcher0 = HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+  auto matcher1 = HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(1)}};
+
+  // 1. A persisted policy, replicated across two matchers as config scoping
+  // produces.
+  state::ClassBasedPolicyFields fields;
+  fields.name() = "pol1";
+  fields.defaultNextHopGroup() = makeNamedNhg("defaultNhg", 10);
+  fields.class2NextHopGroup() = {
+      {ForwardingClass::CLASS_1, makeNamedNhg("classNhg1", 11)},
+      {ForwardingClass::CLASS_2, makeNamedNhg("classNhg2", 12)}};
+  auto policyMaps = std::make_shared<MultiSwitchClassBasedPolicyMap>();
+  for (const auto& matcher : {matcher0, matcher1}) {
+    auto policyMap = std::make_shared<ClassBasedPolicyMap>();
+    policyMap->addNode(std::make_shared<ClassBasedPolicyNode>(fields));
+    policyMaps->addMapNode(policyMap, matcher);
+  }
+
+  // 2. Reconstruct rebuilds the store from the persisted policies.
+  manager_->reconstructFromSwitchStateMaps(
+      nullptr, nullptr, nullptr, nullptr, policyMaps);
+
+  const auto* stored = manager_->getPolicy("pol1");
+  ASSERT_NE(stored, nullptr);
+  EXPECT_EQ(stored->defaultNexthopGroup, "defaultNhg");
+  const std::map<ForwardingClass, std::string> expected = {
+      {ForwardingClass::CLASS_1, "classNhg1"},
+      {ForwardingClass::CLASS_2, "classNhg2"}};
+  EXPECT_EQ(stored->class2NextHopGroup, expected);
+
+  // 3. The same policy under a second matcher is deduped, not duplicated.
+  EXPECT_EQ(manager_->getPbrPolicyToNamedNhg().size(), 1);
 }
 
 } // namespace facebook::fboss

@@ -97,13 +97,15 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // LinkScanMode
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
         std::nullopt, // LlrModeLocal
         std::nullopt, // LlrModeRemote
         std::nullopt, // LlrProfile
 #endif
         std::nullopt, // PfcPauseDurationOverride
-        std::nullopt, // LinkScanMode
+        std::nullopt, // Ingress ACL
+        std::nullopt, // Metadata
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -232,11 +234,14 @@ TEST_F(PortApiTest, setPortAttributes) {
 
   SaiPortTraits::Attributes::AdminState as_attr(true);
   SaiPortTraits::Attributes::Speed speed_attr(50000);
+  constexpr sai_object_id_t kIngressAclId{42};
+  SaiPortTraits::Attributes::IngressAcl ingressAclAttr{kIngressAclId};
   // set speeds
   portApi->setAttribute(portIds[0], speed_attr);
   portApi->setAttribute(portIds[2], speed_attr);
   // set admin state
   portApi->setAttribute(portIds[2], as_attr);
+  portApi->setAttribute(portIds[0], ingressAclAttr);
   // confirm admin states
   EXPECT_EQ(portApi->getAttribute(portIds[0], as_attr), true);
   EXPECT_EQ(portApi->getAttribute(portIds[1], as_attr), false);
@@ -247,6 +252,7 @@ TEST_F(PortApiTest, setPortAttributes) {
   EXPECT_EQ(portApi->getAttribute(portIds[1], speed_attr), 25000);
   EXPECT_EQ(portApi->getAttribute(portIds[2], speed_attr), 50000);
   EXPECT_EQ(portApi->getAttribute(portIds[3], speed_attr), 25000);
+  EXPECT_EQ(portApi->getAttribute(portIds[0], ingressAclAttr), kIngressAclId);
   // confirm consistency internally, too
   for (const auto& portId : portIds) {
     checkPort(portId);
@@ -350,6 +356,12 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, portMtu);
   auto gotPortMtu = portApi->getAttribute(portId, portMtu);
   EXPECT_EQ(gotPortMtu, mtu);
+
+  // Port metadata
+  constexpr sai_uint32_t kMetadata{42};
+  SaiPortTraits::Attributes::Metadata metadata{kMetadata};
+  portApi->setAttribute(portId, metadata);
+  EXPECT_EQ(portApi->getAttribute(portId, metadata), kMetadata);
 
   // Port DSCP to TC
   sai_object_id_t qosMapDscpToTc{42};

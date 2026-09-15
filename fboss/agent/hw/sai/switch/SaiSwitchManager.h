@@ -181,6 +181,7 @@ class SaiSwitchManager {
   const std::vector<sai_stat_id_t>& supportedPipelineWatermarkStats() const;
   const std::vector<sai_stat_id_t>& supportedPipelineStats() const;
   const std::vector<sai_stat_id_t>& supportedCustomDropBitmapStats() const;
+  void updateDropReasonStats();
   const std::vector<sai_attr_id_t>& supportedTemperatureStats() const;
   const HwSwitchWatermarkStats getHwSwitchWatermarkStats() const;
   const HwSwitchPipelineStats getHwSwitchPipelineStats(
@@ -237,6 +238,11 @@ void fillHwSwitchDropBitmapStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDropBitmapStats& dropBitmapStats);
 void logDropBitmapReasons(const HwSwitchDropBitmapStats& stats);
+// Decode raw SAI drop reason enum values into SDK independent names. The value
+// spaces are vendor specific, so this is implemented per platform.
+void logDropReasons(
+    const std::vector<sai_int32_t>& ingressDropReasons,
+    const std::vector<sai_int32_t>& egressDropReasons);
 void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 void publishSwitchPipelineStats(HwSwitchPipelineStats& pipelineStats);
 void publishSwitchTemperatureStats(HwSwitchTemperatureStats& temperatureStats);

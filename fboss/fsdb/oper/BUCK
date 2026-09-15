@@ -51,6 +51,7 @@ cpp_library(
         "SubscriptionPathStore.h",
         "SubscriptionServeQueue.h",
         "SubscriptionStore.h",
+        "WildcardPatchCandidateTracker.h",
     ],
     deps = [
         "//folly/coro:blocking_wait",
@@ -73,6 +74,7 @@ cpp_library(
         "//folly:cpp_attributes",
         "//folly:demangle",
         "//folly:fbstring",
+        "//folly:function",
         "//folly:string",
         "//folly:traits",
         "//folly/container:f14_hash",

@@ -18,7 +18,7 @@ Patterns for code under `fboss/agent/hw/sai/`, `fboss/lib/phy/`, and vendor SDK 
 **Confidence**: HIGH (always a bug if the field is meant to be programmed)
 
 ### 4. SDK Version Guards
-**Check**: Vendor-specific SAI behavior or attributes must be guarded by SDK version checks (e.g., `#if defined(MEMORY_SAI_VERSION_X_Y_Z)`).
+**Check**: Vendor-specific SAI behavior or attributes must be guarded by SDK version checks (e.g., `#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)`).
 **Why**: Using attributes not supported by older SDK versions causes compilation failures or runtime crashes on platforms with older SDKs.
 **Confidence**: HIGH (always required for vendor-specific features)
 

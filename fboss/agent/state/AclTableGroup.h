@@ -63,6 +63,14 @@ class AclTableGroup
     set<switch_state_tags::name>(name);
   }
 
+  cfg::AclTableGroupBindPoint getBindPoint() const {
+    return cref<switch_state_tags::bindPoint>()->cref();
+  }
+
+  void setBindPoint(cfg::AclTableGroupBindPoint bindPoint) {
+    set<switch_state_tags::bindPoint>(bindPoint);
+  }
+
   std::shared_ptr<const AclTableMap> getAclTableMap() const {
     return get<switch_state_tags::aclTableMap>();
   }

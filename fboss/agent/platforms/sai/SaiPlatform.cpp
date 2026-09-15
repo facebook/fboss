@@ -1007,6 +1007,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       measureCableLengths, // enable cable propagation delay measurement
       portCl72RetryEnable, // enable CL72 link training retry
       std::nullopt, // switching mode (store-and-forward / cut-through)
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+      // Link up debounce timeout. Derived from the per-port
+      // portUpHoldoffTimeMs config, so it is programmed by SaiPortManager
+      // once the port config is known rather than at switch create.
+      std::nullopt,
+#endif
 #if defined(SAI_BRCM_PAI_IMPL)
       std::nullopt, // SyncLock
       std::nullopt, // SyncUnlock

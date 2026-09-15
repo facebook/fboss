@@ -383,6 +383,10 @@ void BcmAclEntry::createAclActions() {
           hw_->getUnit(), handle_, bcmFieldActionDrop, 0, 0);
       bcmCheckError(rv, "failed to add field action");
       break;
+    case cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE:
+      throw FbossError(
+          "AclActionType DENY_DATA_AND_CONTROL_PLANE is not supported by the native BCM "
+          "implementation");
     default:
       throw FbossError("Unrecognized action ", act);
   }

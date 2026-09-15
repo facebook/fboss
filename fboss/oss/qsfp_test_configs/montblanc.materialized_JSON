@@ -1,7 +1,6 @@
 {
   "defaultCommandLineArgs": {
     "firmware_upgrade_on_coldboot": "true",
-    "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "montblanc",
@@ -264,7 +263,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -272,7 +271,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -280,7 +279,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -288,7 +287,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -296,7 +295,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -304,7 +303,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "10.40.13"
+              "version": "10.40.15"
             }
           ]
       },
@@ -344,7 +343,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -368,7 +367,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.6"
+              "version": "3.7"
             }
           ]
       },
@@ -564,6 +563,30 @@
             }
           ]
       },
+      "FTCF2519E3PCAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
+      "FTCF2519E3PCAFB3": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
       "FTCF4719E6PCB-FB": {
           "versions": [
             {
@@ -589,6 +612,14 @@
             {
               "fwType": 1,
               "version": "0.11"
+            }
+          ]
+      },
+      "SPTSHP3CLCK2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.3"
             }
           ]
       },
@@ -831,5 +862,8 @@
     "readLog": true,
     "disableOnFail": false,
     "bufferSlots": 20480
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

@@ -9,6 +9,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
+#include "fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 
 using namespace ::testing;
@@ -81,6 +82,11 @@ TEST_F(CmdShowHwObjectTestFixture, printOutput) {
 TEST_F(CmdShowHwObjectTestFixture, wikiDocHooks) {
   EXPECT_FALSE(CmdShowHwObjectTraits::description().empty());
   EXPECT_FALSE(CmdShowHwObject::sampleModel().empty());
+}
+
+TEST_F(CmdShowHwObjectTestFixture, wikiDocHooksUncached) {
+  EXPECT_FALSE(CmdShowHwObjectUncachedTraits::description().empty());
+  EXPECT_FALSE(CmdShowHwObjectUncached::sampleModel().empty());
 }
 
 } // namespace facebook::fboss

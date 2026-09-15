@@ -40,6 +40,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/tests/CmdConfigGenAgentTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp
   fboss/cli/fboss2/test/CmdShowAclTest.cpp
   fboss/cli/fboss2/test/CmdShowAgentBootTypeTest.cpp
@@ -94,18 +95,25 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowRouteTest.cpp
   fboss/cli/fboss2/test/CmdShowSystemPortTest.cpp
   fboss/cli/fboss2/test/CmdShowTeFlowTest.cpp
+  fboss/cli/fboss2/test/CmdShowTransceiverEepromTest.cpp
   fboss/cli/fboss2/test/CmdShowTransceiverLoopbackTest.cpp
   # fboss/cli/fboss2/test/CmdShowTransceiverTest.cpp - excluded (depends on configerator bgp namespace)
   fboss/cli/fboss2/test/CmdBgpTestUtils.cpp
   fboss/cli/fboss2/test/CanonicalRibResolverTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpChangelistTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpConfigTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpHealthTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpHoldTimersWikiDocsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpInitializationEventsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsAdvertisedRejectedTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPostPolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedPrePolicyTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsReceivedRejectedTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNeighborsByNameTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpNeighborsTest.cpp
+  fboss/cli/fboss2/test/CmdShowBgpNexthopInfoWikiDocsTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpOriginatedRoutesTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpPolicyConfigTest.cpp
   fboss/cli/fboss2/test/CmdShowBgpShadowRibTest.cpp

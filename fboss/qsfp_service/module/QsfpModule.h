@@ -44,6 +44,13 @@ struct QsfpConfig;
 class TransceiverImpl;
 class TransceiverManager;
 
+// Component thermal margins in degrees Celsius. Each is unset unless the
+// module advertises support for it.
+struct ThermalMargins {
+  std::optional<double> dspTempMargin;
+  std::optional<double> laserTempMargin;
+};
+
 /**
  * This is the QSFP module error which should be throw only if it's module
  * related issue.
@@ -63,9 +70,13 @@ class QsfpModuleError : public std::exception {
 using TransceiverOverrides = std::vector<cfg::TransceiverConfigOverride>;
 
 struct TransceiverConfig {
-  explicit TransceiverConfig(const TransceiverOverrides& overrides)
-      : overridesConfig_(overrides) {}
+  explicit TransceiverConfig(
+      const TransceiverOverrides& overrides,
+      const std::map<std::string, std::string>& partNumberToFwHandle = {})
+      : overridesConfig_(overrides),
+        partNumberToFwHandle_(partNumberToFwHandle) {}
   TransceiverOverrides overridesConfig_;
+  std::map<std::string, std::string> partNumberToFwHandle_;
 };
 
 /*
@@ -86,7 +97,8 @@ class QsfpModule : public Transceiver {
   explicit QsfpModule(
       std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
-      std::string tcvrName);
+      std::string tcvrName,
+      std::shared_ptr<const TransceiverConfig> tcvrConfig = nullptr);
   virtual ~QsfpModule() override;
 
   /*
@@ -365,6 +377,9 @@ class QsfpModule : public Transceiver {
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;
+  // Slice of the qsfp config that modules need. Null for modules built
+  // without one, e.g. standalone in tests.
+  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
   /* This counter keeps track of the number of times
@@ -558,6 +573,10 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool hasInvalidBankSelect() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*
@@ -657,7 +676,12 @@ class QsfpModule : public Transceiver {
       const SignalFlags& signalFlags,
       const std::vector<MediaLaneSignals>& mediaLaneSignals);
 
-  virtual void latchAndReadVdmDataLocked() override {}
+  // Non-blocking per-refresh driver for the VDM ForOds freeze/read handshake.
+  // Returns true on the refresh where a frozen snapshot was read. No-op for
+  // module types without VDM (e.g. SFF). Implemented by CmisModule.
+  virtual bool driveVdmCaptureLocked() {
+    return false;
+  }
 
   /*
    * We found that some CMIS module did not enable Rx output squelch by
@@ -670,6 +694,10 @@ class QsfpModule : public Transceiver {
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() {
     return std::nullopt;
+  }
+
+  virtual ThermalMargins getThermalMargins() {
+    return ThermalMargins{};
   }
 
   virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() {

@@ -42,11 +42,21 @@ enum AclType {
 };
 
 constexpr auto kL4DstPortRangeAclTableName = "l4-dst-port-range-acl-table";
-constexpr auto kL4DstPortRangeAclName = "l4-dst-port-range-acl";
-constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
-constexpr auto kL4DstPortRangeMin = 100;
-constexpr auto kL4DstPortRangeMax = 200;
-constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+// Two disjoint, non-adjacent ranges in a single table, so the table carries two
+// distinct SAI ACL range objects and each range can be checked to match only
+// its own ports. Kept narrow: both ranges are swept exhaustively.
+constexpr auto kL4DstPortRangeAclNameA = "l4-dst-port-range-acl-a";
+constexpr auto kL4DstPortRangeAclCounterNameA = "l4-dst-port-range-acl-a-stats";
+constexpr auto kL4DstPortRangeMinA = 100;
+constexpr auto kL4DstPortRangeMaxA = 119;
+constexpr auto kL4DstPortRangeAclNameB = "l4-dst-port-range-acl-b";
+constexpr auto kL4DstPortRangeAclCounterNameB = "l4-dst-port-range-acl-b-stats";
+constexpr auto kL4DstPortRangeMinB = 300;
+constexpr auto kL4DstPortRangeMaxB = 319;
+
+// Which range is expected to match. Both matching is not a valid outcome, since
+// the ranges are disjoint.
+enum class ExpectedRangeHit { RANGE_A, RANGE_B, NEITHER };
 constexpr auto kDstIpV6WordAclTableName = "dst-ipv6-word-acl-table";
 constexpr auto kDstIpV6WordAclName = "dst-ipv6-word-acl";
 constexpr auto kDstIpV6WordAclCounterName = "dst-ipv6-word-acl-stats";
@@ -649,26 +659,41 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
         },
         {cfg::AclTableQualifier::L4_DST_PORT_RANGE});
 
-    auto acl = makeL4DstPortRangeAcl();
-    utility::addAclEntry(
-        &cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
-    utility::addAclStat(
+    addRangeAclAndStat(
         &cfg,
-        kL4DstPortRangeAclName,
-        kL4DstPortRangeAclCounterName,
-        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+        kL4DstPortRangeAclNameA,
+        kL4DstPortRangeAclCounterNameA,
+        kL4DstPortRangeMinA,
+        kL4DstPortRangeMaxA);
+    addRangeAclAndStat(
+        &cfg,
+        kL4DstPortRangeAclNameB,
+        kL4DstPortRangeAclCounterNameB,
+        kL4DstPortRangeMinB,
+        kL4DstPortRangeMaxB);
     return cfg;
   }
 
-  cfg::AclEntry makeL4DstPortRangeAcl() const {
+  void addRangeAclAndStat(
+      cfg::SwitchConfig* cfg,
+      const std::string& aclName,
+      const std::string& counterName,
+      int min,
+      int max) const {
     cfg::AclEntry acl;
-    acl.name() = kL4DstPortRangeAclName;
+    acl.name() = aclName;
     acl.actionType() = cfg::AclActionType::PERMIT;
     cfg::Range range;
-    range.minimum() = kL4DstPortRangeMin;
-    range.maximum() = kL4DstPortRangeMax;
+    range.minimum() = min;
+    range.maximum() = max;
     acl.l4DstPortRange() = range;
-    return acl;
+    utility::addAclEntry(
+        cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        cfg,
+        aclName,
+        counterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
   }
 
   void setupRangeAclCounterTest() {
@@ -680,18 +705,27 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
     applyNewConfig(initialConfig(*getAgentEnsemble()));
   }
 
-  uint64_t getRangeAclPacketCounter() const {
-    return utility::getAclInOutPackets(getSw(), kL4DstPortRangeAclCounterName);
+  uint64_t getRangeAclPacketCounter(const std::string& counterName) const {
+    return utility::getAclInOutPackets(getSw(), counterName);
   }
 
-  std::vector<int> getMatchingL4DstPorts() const {
+  std::vector<int> portsInRange(int min, int max) const {
     std::vector<int> l4DstPorts;
-    l4DstPorts.reserve(kL4DstPortRangeMax - kL4DstPortRangeMin + 1);
-    for (auto l4DstPort = kL4DstPortRangeMin; l4DstPort <= kL4DstPortRangeMax;
-         ++l4DstPort) {
+    l4DstPorts.reserve(max - min + 1);
+    for (auto l4DstPort = min; l4DstPort <= max; ++l4DstPort) {
       l4DstPorts.push_back(l4DstPort);
     }
     return l4DstPorts;
+  }
+
+  // Just outside each range on both sides, so both boundaries of both ranges
+  // are pinned.
+  std::vector<int> portsOutsideRanges() const {
+    return {
+        kL4DstPortRangeMinA - 1,
+        kL4DstPortRangeMaxA + 1,
+        kL4DstPortRangeMinB - 1,
+        kL4DstPortRangeMaxB + 1};
   }
 
   void sendPacketWithDstPort(bool frontPanel, bool isV6, int l4DstPort) {
@@ -736,36 +770,55 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
     }
   }
 
-  void verifyL4DstPortRangeAclCounter(
+  // Both counters are sampled on every send, so a range programmed too wide is
+  // caught by the other range's counter moving.
+  void verifyL4DstPortRangeAclCounters(
       const std::string& name,
       bool isFrontPanel,
       bool isV6,
-      bool expectHit,
-      const std::vector<int>& l4DstPorts) {
+      const std::vector<int>& l4DstPorts,
+      ExpectedRangeHit expectedHit) {
     SCOPED_TRACE(name);
     auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
-    auto aclPktCountBefore = getRangeAclPacketCounter();
+    auto countBeforeA =
+        getRangeAclPacketCounter(kL4DstPortRangeAclCounterNameA);
+    auto countBeforeB =
+        getRangeAclPacketCounter(kL4DstPortRangeAclCounterNameB);
     for (auto l4DstPort : l4DstPorts) {
       sendPacketWithDstPort(isFrontPanel, isV6, l4DstPort);
     }
 
     WITH_RETRIES({
-      auto aclPktCountAfter = getRangeAclPacketCounter();
       auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
       XLOG(DBG2) << "\n"
-                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
-                 << "\n"
-                 << "aclPacketCounter(" << kL4DstPortRangeAclCounterName
-                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
-      if (expectHit) {
-        EXPECT_EVENTUALLY_GE(
-            aclPktCountAfter, aclPktCountBefore + l4DstPorts.size());
-        EXPECT_EVENTUALLY_LE(
-            aclPktCountAfter, aclPktCountBefore + (2 * l4DstPorts.size()));
-      } else {
-        EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
-      }
+                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter;
+      // EXPECT_EVENTUALLY_* reads state declared by WITH_RETRIES, so this must
+      // stay a lambda inside the block rather than a member function.
+      // The upper bound allows for the counter double-counting a packet.
+      auto verifyRangeCounter = [&](const std::string& counterName,
+                                    uint64_t countBefore,
+                                    bool expectHit) {
+        SCOPED_TRACE(counterName);
+        auto countAfter = getRangeAclPacketCounter(counterName);
+        XLOG(DBG2) << "aclPacketCounter(" << counterName << "): " << countBefore
+                   << " -> " << countAfter;
+        if (expectHit) {
+          EXPECT_EVENTUALLY_GE(countAfter, countBefore + l4DstPorts.size());
+          EXPECT_EVENTUALLY_LE(
+              countAfter, countBefore + (2 * l4DstPorts.size()));
+        } else {
+          EXPECT_EVENTUALLY_EQ(countBefore, countAfter);
+        }
+      };
+      verifyRangeCounter(
+          kL4DstPortRangeAclCounterNameA,
+          countBeforeA,
+          expectedHit == ExpectedRangeHit::RANGE_A);
+      verifyRangeCounter(
+          kL4DstPortRangeAclCounterNameB,
+          countBeforeB,
+          expectedHit == ExpectedRangeHit::RANGE_B);
     });
   }
 };
@@ -949,23 +1002,31 @@ TEST_F(
 TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
   auto setup = [this]() { setupRangeAclCounterTest(); };
   auto verify = [this]() {
-    auto matchingPorts = getMatchingL4DstPorts();
+    const auto portsA = portsInRange(kL4DstPortRangeMinA, kL4DstPortRangeMaxA);
+    const auto portsB = portsInRange(kL4DstPortRangeMinB, kL4DstPortRangeMaxB);
+    const auto portsOutside = portsOutsideRanges();
     for (auto isFrontPanel : {true, false}) {
       for (auto isV6 : {false, true}) {
         const auto trafficSrc = isFrontPanel ? "front-panel" : "cpu";
         const auto ipFamily = isV6 ? "IPv6" : "IPv4";
-        verifyL4DstPortRangeAclCounter(
-            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", hit"),
+        verifyL4DstPortRangeAclCounters(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", range A hit"),
             isFrontPanel,
             isV6,
-            true,
-            matchingPorts);
-        verifyL4DstPortRangeAclCounter(
+            portsA,
+            ExpectedRangeHit::RANGE_A);
+        verifyL4DstPortRangeAclCounters(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", range B hit"),
+            isFrontPanel,
+            isV6,
+            portsB,
+            ExpectedRangeHit::RANGE_B);
+        verifyL4DstPortRangeAclCounters(
             folly::to<std::string>(trafficSrc, ", ", ipFamily, ", miss"),
             isFrontPanel,
             isV6,
-            false,
-            {kL4DstPortRangeMiss});
+            portsOutside,
+            ExpectedRangeHit::NEITHER);
       }
     }
   };

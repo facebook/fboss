@@ -25,7 +25,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/types.h"
-#include "fboss/lib/config/AgentConfigUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 
 #include <folly/MacAddress.h>
 #include <vector>
@@ -158,6 +158,46 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseIntfId = kBaseVlanId,
     bool enableFabricPorts = false,
     const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
+
+// Describes one aggregate port to build an L3 interface over.
+struct AggregatePortInfo {
+  AggregatePortID id;
+  std::vector<PortID> memberPorts;
+  // How the aggregate's L3 interface is bound. PORT binds it to the aggregate
+  // port itself, VLAN to a vlan the members share. Not defaulted: it has to
+  // match the config the aggregates are added to, so the caller states it.
+  cfg::InterfaceType interfaceType;
+  cfg::LacpPortRate rate{cfg::LacpPortRate::FAST};
+  double minLinkPercentage{1.0};
+};
+
+// One L3 interface per aggregate port, plus one per port that is not an
+// aggregate member. The aggregate port analogue of onePortPerInterfaceConfig.
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const SwSwitch* swSwitch,
+    const std::vector<PortID>& ports,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet = true,
+    bool setInterfaceMac = true,
+    int baseIntfId = kBaseVlanId,
+    bool enableFabricPorts = false);
+
+cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    bool interfaceHasSubnet = true,
+    bool setInterfaceMac = true,
+    int baseIntfId = kBaseVlanId,
+    bool enableFabricPorts = false,
+    const std::optional<std::map<SwitchID, cfg::SwitchInfo>>&
+        switchIdToSwitchInfo = std::nullopt,
+    const std::optional<std::map<SwitchID, const HwAsic*>>& hwAsicTable =
+        std::nullopt,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2);

@@ -1,4 +1,4 @@
-load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup", "buck_genrule")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_genrule")
 load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_platform")
@@ -27,18 +27,13 @@ fbpkg.builder(
     split_debuginfo = True,
 )
 
-buck_filegroup(
-    name = "configs",
-    srcs = glob(["**/*.json"]),
-)
-
 buck_genrule(
     name = "all_bsp_metadata",
-    srcs = glob(["configs/*/platform_manager.json"]),
+    srcs = ["//fboss/configs:platform_manager_configs"],
     out = "all_bsp_metadata.json",
     cmd = (
-        "jq -s '"
+        "find -L $SRCS -type f -print0 | sort -z | xargs -0 cat | jq -s '"
         + "[.[] | {key: (.platformName | ascii_downcase), value: {platformName, bspKmodsRpmName, bspKmodsRpmVersion}}] | from_entries"
-        + "' $SRCS > $OUT"
+        + "' > $OUT"
     ),
 )

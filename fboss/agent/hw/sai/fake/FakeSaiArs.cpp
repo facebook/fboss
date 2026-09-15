@@ -29,6 +29,7 @@ sai_status_t create_ars_fn(
   std::optional<sai_uint32_t> alternate_path_bias;
   std::optional<sai_int32_t> next_hop_group_type;
   std::optional<bool> source_port_prune;
+  std::optional<sai_uint32_t> ecmp_member_count;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
@@ -55,6 +56,9 @@ sai_status_t create_ars_fn(
       case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
         source_port_prune = attr_list[i].value.booldata;
         break;
+      case SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+        ecmp_member_count = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -67,7 +71,8 @@ sai_status_t create_ars_fn(
       alternate_path_cost,
       alternate_path_bias,
       next_hop_group_type,
-      source_port_prune);
+      source_port_prune,
+      ecmp_member_count);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -107,6 +112,9 @@ sai_status_t set_ars_attribute_fn(
       break;
     case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
       ars.source_port_prune = attr->value.booldata;
+      break;
+    case SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+      ars.ecmp_member_count = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -164,6 +172,9 @@ sai_status_t get_ars_attribute_fn(
         break;
       case SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE:
         attr_list[i].value.booldata = ars.source_port_prune.value_or(false);
+        break;
+      case SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+        attr_list[i].value.u32 = ars.ecmp_member_count.value_or(0);
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

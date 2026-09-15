@@ -80,4 +80,58 @@ void CmdShowBgpOriginatedRoutes::printOutput(
   out << table << std::endl;
 }
 
+std::string_view CmdShowBgpOriginatedRoutesTraits::description() {
+  return "Displays the prefixes this switch originates into BGP itself, rather than ones it learned from a peer: the prefix, the communities attached to it (one per line, resolved to their configured names where the switch knows them), how many supporting routes currently back it, the minimum number of supporting routes configured before it may be advertised, and whether advertising it requires the next hop to resolve - rendered as 0 or 1, or N/A when the switch does not report the flag at all. A supporting-route count of 0 against a minimum of 0 means the prefix is originated unconditionally, which is how a switch loopback is usually configured. When a minimum is configured and the supporting count falls below it, the prefix is withdrawn, so these two columns together explain why an expected origination is missing from 'show bgp table'. This lists intent, not outcome: check the prefix in 'show bgp table' to confirm it is actually in the RIB.";
+}
+
+CmdShowBgpOriginatedRoutes::RetType CmdShowBgpOriginatedRoutes::sampleModel() {
+  using facebook::neteng::fboss::bgp::thrift::TOriginatedRoute;
+  using neteng::fboss::bgp_attr::TBgpCommunity;
+
+  auto originated = [&](const std::string& prefixCidr,
+                        const std::vector<TBgpCommunity>& communities,
+                        int64_t supportingRouteCount,
+                        int64_t minimumSupportingRoutes,
+                        bool requireNexthopResolution) {
+    TOriginatedRoute route;
+    route.prefix() = sampleIpPrefix(prefixCidr);
+    route.communities() = communities;
+    route.supporting_route_count() = supportingRouteCount;
+    route.minimum_supporting_routes() = minimumSupportingRoutes;
+    route.require_nexthop_resolution() = requireNexthopResolution;
+    return route;
+  };
+
+  /*
+   * A LIVE marker plus a loopback / rack-private marker - the shape of the set
+   * an RSW attaches to its own prefixes, with invented values. This file is
+   * built into the open-source distribution and the rendered sample is
+   * published to the CLI reference wiki, so real community assignments must
+   * not appear here; these come from the RFC 5398 documentation ASN range.
+   */
+  const std::vector<TBgpCommunity> loopbackCommunities = {
+      sampleCommunity(64497, 100), sampleCommunity(64498, 400)};
+  const std::vector<TBgpCommunity> rackCommunities = {
+      sampleCommunity(64497, 100), sampleCommunity(64496, 500)};
+
+  TOriginatedRouteWithHost result;
+  /*
+   * Three rows covering the cases the prose describes: two loopbacks
+   * originated unconditionally (no minimum, so no supporting route needed and
+   * no next-hop resolution required), and a rack prefix that does require
+   * next-hop resolution and carries a configured minimum it currently meets -
+   * the pair of columns that explains why an origination gets withdrawn if the
+   * supporting count drops below the minimum.
+   */
+  result.tOriginatedRoutes() = {
+      originated("192.0.2.1/32", loopbackCommunities, 0, 0, false),
+      originated(
+          "2001:db8:e111:f162:27::/128", loopbackCommunities, 0, 0, false),
+      originated("2001:db8:111c:6227::/64", rackCommunities, 12, 8, true)};
+  result.host() = "rsw001.p001.f01.abc1";
+  result.oobName() = "rsw001.p001.f01.abc1.oob";
+  result.ip() = "192.0.2.1";
+  return result;
+}
+
 } // namespace facebook::fboss

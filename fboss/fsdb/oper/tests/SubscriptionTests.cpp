@@ -110,7 +110,126 @@ ExtendedOperPath makeExtendedPath(const std::vector<std::string>& tokens) {
   extPath.path() = std::move(elems);
   return extPath;
 }
+
+ExtendedOperPath makeRegexPath(std::string regex) {
+  ExtendedOperPath extPath;
+  extPath.path()->emplace_back().set_raw("root");
+  extPath.path()->emplace_back().set_regex(std::move(regex));
+  return extPath;
+}
+
+std::unique_ptr<ExtendedPatchSubscription> makePatchSubscription(
+    folly::ScopedEventBaseThread& heartbeatThread,
+    ExtSubPathMap paths) {
+  auto [gen, sub] = ExtendedPatchSubscription::create(
+      SubscriptionIdentifier("test-sub"),
+      std::move(paths),
+      OperProtocol::BINARY,
+      std::nullopt,
+      heartbeatThread.getEventBase(),
+      std::chrono::milliseconds(100),
+      kSubscriptionServeQueueSize);
+  return std::move(sub);
+}
 } // namespace
+
+TEST(ExtendedPatchSubscriptionTest, compilesRegexesOnCreate) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeRegexPath("key[0-9]+");
+
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+
+  ASSERT_TRUE(sub->hasWildcardPath());
+  const auto& regexes = sub->compiledRegexesAt(1);
+  ASSERT_EQ(regexes.size(), 2);
+  EXPECT_EQ(regexes[0], nullptr);
+  ASSERT_NE(regexes[1], nullptr);
+  EXPECT_TRUE(re2::RE2::FullMatch("key42", *regexes[1]));
+}
+
+TEST(ExtendedPatchSubscriptionTest, refreshesRegexesOnAppend) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeExtendedPath({"root", "raw"});
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+  ExtendedSubscription* baseSub = sub.get();
+
+  ExtSubPathMap addedPaths;
+  addedPaths[2] = makeRegexPath("new.*");
+  EXPECT_EQ(
+      baseSub->addPaths(std::move(addedPaths)),
+      std::vector<SubscriptionKey>({2}));
+
+  ASSERT_TRUE(sub->hasWildcardPath());
+  const auto& regexes = sub->compiledRegexesAt(2);
+  ASSERT_EQ(regexes.size(), 2);
+  ASSERT_NE(regexes[1], nullptr);
+  EXPECT_TRUE(re2::RE2::FullMatch("new-key", *regexes[1]));
+  EXPECT_FALSE(sub->isInitialSyncPending(2));
+}
+
+TEST(ExtendedPatchSubscriptionTest, tracksPendingAppendedKeysAfterInitialSync) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeRegexPath("existing.*");
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+  sub->recordInitialSyncCompleted();
+
+  ExtSubPathMap addedPaths;
+  addedPaths[2] = makeRegexPath("new.*");
+  ASSERT_EQ(
+      sub->addPaths(std::move(addedPaths)), std::vector<SubscriptionKey>({2}));
+  EXPECT_FALSE(sub->isInitialSyncPending(1));
+  EXPECT_TRUE(sub->isInitialSyncPending(2));
+
+  sub->clearInitialSyncPending({2});
+  EXPECT_FALSE(sub->isInitialSyncPending(2));
+}
+
+TEST(
+    ExtendedPatchSubscriptionTest,
+    rejectedDuplicateDoesNotChangeWildcardState) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeExtendedPath({"root", "raw"});
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+
+  ExtSubPathMap duplicatePath;
+  duplicatePath[1] = makeRegexPath("duplicate.*");
+  EXPECT_TRUE(sub->addPaths(std::move(duplicatePath)).empty());
+
+  EXPECT_FALSE(sub->hasWildcardPath());
+  EXPECT_EQ(
+      sub->compiledRegexesAt(1),
+      ExtendedPatchSubscription::CompiledRegexPath({nullptr, nullptr}));
+}
+
+TEST(ExtendedPatchSubscriptionTest, invalidRegexMatchesNothing) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeRegexPath("[");
+
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+
+  const auto& regex = sub->compiledRegexesAt(1).at(1);
+  ASSERT_NE(regex, nullptr);
+  EXPECT_FALSE(regex->ok());
+  EXPECT_FALSE(re2::RE2::FullMatch("anything", *regex));
+}
+
+TEST(ExtendedPatchSubscriptionTest, rawOnlyHasNoWildcard) {
+  folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");
+  ExtSubPathMap paths;
+  paths[1] = makeExtendedPath({"root", "raw"});
+
+  auto sub = makePatchSubscription(heartbeatThread, std::move(paths));
+
+  EXPECT_FALSE(sub->hasWildcardPath());
+  EXPECT_EQ(
+      sub->compiledRegexesAt(1),
+      ExtendedPatchSubscription::CompiledRegexPath({nullptr, nullptr}));
+}
 
 TEST(ExtendedSubscriptionTest, addPathsAppendsAndSkipsCollisions) {
   folly::ScopedEventBaseThread heartbeatThread("SubscriptionHeartbeats");

@@ -89,7 +89,7 @@ void validateVdm(
                    << ", portMediaInterface: "
                    << apache::thrift::util::enumNameSafe(portMediaInterface)
                    << ", snrMinThreshold: " << snrMinThreshold;
-        EXPECT_LE(preFecBer.get_max(), thresholds.preFecBer.maxThreshold)
+        EXPECT_LE(preFecBer.max().value(), thresholds.preFecBer.maxThreshold)
             << fmt::format(
                    "PreFecBer Max for {} is {}",
                    portName,
@@ -425,18 +425,31 @@ TEST_F(AgentEnsembleLinkTest, opticsVdmPerformanceMonitoring) {
       utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
 
   std::time_t startTime = std::time(nullptr);
-  // 2. Wait for a VDM interval to begin starting now and a transceiverInfo
-  // update to finish after the start of VDM interval. This skips any noise from
-  // the initial interval during the time of link up
-  WITH_RETRIES_N_TIMED(20, std::chrono::seconds(5), {
+  // 2. Wait for TWO VDM interval boundaries after the test began before
+  // validating, to skip the link-up interval entirely. intervalStartTime is
+  // stamped at the freeze and labels the *next* interval, but right after a
+  // freeze the reporting registers still hold the *previous* interval's data --
+  // so a single boundary past startTime can still surface link-up noise. Once a
+  // second boundary (F2 > F1 > startTime) is observed, both the just-frozen
+  // ([F1,F2]) and the live-running ([F2,now]) VDM data are guaranteed to start
+  // after link up.
+  std::time_t firstIntervalStart = 0;
+  WITH_RETRIES_N_TIMED(40, std::chrono::seconds(5), {
     transceiverInfos =
         utility::waitForTransceiverInfo(transceiverIds, /*includeLpo*/ false);
     auto vdmStat =
         transceiverInfos.begin()->second.tcvrStats()->vdmPerfMonitorStats();
     ASSERT_EVENTUALLY_TRUE(vdmStat.has_value());
-    ASSERT_EVENTUALLY_GT(vdmStat->get_intervalStartTime(), startTime);
-    ASSERT_EVENTUALLY_GT(
-        vdmStat->get_statsCollectionTme(), vdmStat->get_intervalStartTime());
+    auto intervalStart = vdmStat->intervalStartTime().value();
+    ASSERT_EVENTUALLY_GT(intervalStart, startTime);
+    // Record the first interval boundary after startTime, then require a
+    // second, later one so even a just-frozen snapshot reflects a post-link-up
+    // interval.
+    if (firstIntervalStart == 0 && intervalStart > startTime) {
+      firstIntervalStart = intervalStart;
+    }
+    ASSERT_EVENTUALLY_GT(intervalStart, firstIntervalStart);
+    ASSERT_EVENTUALLY_GT(vdmStat->statsCollectionTme().value(), intervalStart);
   });
 
   // Track the worst (highest) datapath pre-FEC BER and max FEC tail seen per

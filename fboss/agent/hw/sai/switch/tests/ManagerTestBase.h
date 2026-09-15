@@ -188,6 +188,12 @@ class ManagerTestBase : public ::testing::Test {
       const TestInterface& testInterface,
       cfg::InterfaceType type = cfg::InterfaceType::VLAN) const;
 
+  // A port router interface bound to an aggregate port rather than to a
+  // physical port.
+  std::shared_ptr<Interface> makeAggregatePortInterface(
+      const TestInterface& testInterface,
+      AggregatePortID aggregatePortID) const;
+
   std::shared_ptr<SystemPort> makeSystemPort(
       const std::optional<std::string>& qosPolicy = std::nullopt,
       int64_t sysPortId = 1,

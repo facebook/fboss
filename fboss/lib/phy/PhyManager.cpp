@@ -207,7 +207,7 @@ phy::PhyPortConfig PhyManager::getHwPhyPortConfig(
 void PhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
-    std::optional<TransceiverInfo> transceiverInfo,
+    const std::optional<TransceiverInfo>& transceiverInfo,
     bool needResetDataPath) {
   const auto& wLockedCache = getWLockedCache(portId);
 
@@ -219,7 +219,11 @@ void PhyManager::programOnePort(
 
   // Once the port is programmed successfully, update the portToCacheInfo_
   bool isChanged = setPortToPortCacheInfoLocked(
-      wLockedCache, portId, portProfileId, desiredPhyPortConfig);
+      wLockedCache,
+      portId,
+      portProfileId,
+      transceiverInfo,
+      desiredPhyPortConfig);
   // Only reset phy port stats when there're changes on the xphy ports
   if (isChanged &&
       (xphy->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
@@ -284,6 +288,7 @@ bool PhyManager::setPortToPortCacheInfoLocked(
     const PortCacheWLockedPtr& lockedCache,
     PortID portID,
     cfg::PortProfileID profileID,
+    const std::optional<TransceiverInfo>& transceiverInfo,
     const phy::PhyPortConfig& portConfig) {
   bool isChanged = false;
   if (lockedCache->profile != profileID) {
@@ -325,14 +330,32 @@ bool PhyManager::setPortToPortCacheInfoLocked(
   if (matched) {
     return isChanged;
   }
-  // Now reset the cached lane info if there's no match
+  // Cache lanes in pin order (matching the create-time AdapterHostKey), not the
+  // std::map-sorted order, so getConfigOnePort()'s order-sensitive SAI lookup
+  // hits. Fall back to sorted config lanes when there's no XPHY pin config.
+  const auto portPinConfig =
+      getDesiredPortPinConfig(portID, profileID, transceiverInfo);
+  auto sysPins = portPinConfig.xphySys();
+  auto linePins = portPinConfig.xphyLine();
   lockedCache->systemLanes.clear();
-  for (const auto& it : portConfig.config.system.lanes) {
-    lockedCache->systemLanes.push_back(it.first);
+  if (sysPins.has_value() && !sysPins->empty()) {
+    for (const auto& pinCfg : *sysPins) {
+      lockedCache->systemLanes.emplace_back(*pinCfg.id()->lane());
+    }
+  } else {
+    for (const auto& it : portConfig.config.system.lanes) {
+      lockedCache->systemLanes.push_back(it.first);
+    }
   }
   lockedCache->lineLanes.clear();
-  for (const auto& it : portConfig.config.line.lanes) {
-    lockedCache->lineLanes.push_back(it.first);
+  if (linePins.has_value() && !linePins->empty()) {
+    for (const auto& pinCfg : *linePins) {
+      lockedCache->lineLanes.emplace_back(*pinCfg.id()->lane());
+    }
+  } else {
+    for (const auto& it : portConfig.config.line.lanes) {
+      lockedCache->lineLanes.push_back(it.first);
+    }
   }
 
   if (!lockedCache->speed || lockedCache->systemLanes.empty() ||

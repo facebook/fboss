@@ -28,6 +28,23 @@ extern "C" {
 bool operator==(const sai_map_t& lhs, const sai_map_t& rhs);
 bool operator!=(const sai_map_t& lhs, const sai_map_t& rhs);
 
+/*
+ * SDKs that expose a per-port link up/down debounce hold timer. Leaba has both
+ * (SAI_PORT_ATTR_LINK_{UP,DOWN}_DEBOUNCE_PERIOD_MILLISECONDS); Broadcom so far
+ * only has the down timer (the SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_TIMEOUT
+ * extension). These gate the corresponding SaiPortTraits::CreateAttributes
+ * tuple members, so every CreateAttributes brace-init site has to be gated on
+ * the same macro or the tuple arity will not line up.
+ */
+#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+#define FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD
+#endif
+
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD) || \
+    defined(BRCM_SAI_SDK_GTE_15_4)
+#define FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD
+#endif
+
 namespace facebook::fboss {
 
 class PortApi;
@@ -141,6 +158,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_MTU,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    using Metadata = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_META_DATA,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
     using QosDscpToTcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_DSCP_TO_TC_MAP,
@@ -233,6 +255,11 @@ struct SaiPortTraits {
         sai_prbs_rx_state_t,
         SaiPrbsRxStateDefault>;
 #endif
+    using IngressAcl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_ACL,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -591,6 +618,14 @@ struct SaiPortTraits {
     struct AttributeLinkDownDebouncePeriodMs {
       std::optional<sai_attr_id_t> operator()();
     };
+    // The default getter is mandatory: this attr lives in CreateAttributes and
+    // is read back for every port on store reload. SDK drops that expose the
+    // attribute id but do not implement it fail the get with NOT_SUPPORTED;
+    // without a default getter SaiApi rethrows and crashes init. With one it
+    // falls back to the default of 0, i.e. "no debounce". The BRCM adapter also
+    // refuses to read the timer on a port in SW linkscan, which is the state
+    // every port is in during store reload, and reports that as
+    // SAI_STATUS_ATTR_NOT_SUPPORTED_0 -- covered by the same fallback.
     using LinkDownDebouncePeriodMs = SaiExtensionAttribute<
         sai_uint32_t,
         AttributeLinkDownDebouncePeriodMs,
@@ -785,8 +820,15 @@ struct SaiPortTraits {
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
       std::optional<Attributes::CablePropagationDelayMediaType>,
-#if defined(TAJO_SDK_GTE_26_2) || defined(TAJO_SDK_VERSION_25_5_4210)
+      // Must stay ahead of LinkDownDebouncePeriodMs: brcm_sai_create_port_cmn
+      // replays the create list through set_port_attribute in order, and the
+      // BRCM debounce set is rejected outright unless the port is already in
+      // SAI_PORT_LINKSCAN_MODE_HW.
+      std::optional<Attributes::LinkScanMode>,
+#if defined(FBOSS_SAI_PORT_LINK_UP_DEBOUNCE_PERIOD)
       std::optional<Attributes::LinkUpDebouncePeriodMs>,
+#endif
+#if defined(FBOSS_SAI_PORT_LINK_DOWN_DEBOUNCE_PERIOD)
       std::optional<Attributes::LinkDownDebouncePeriodMs>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
@@ -795,7 +837,8 @@ struct SaiPortTraits {
       std::optional<Attributes::LlrProfile>,
 #endif
       std::optional<Attributes::PfcPauseDurationOverride>,
-      std::optional<Attributes::LinkScanMode>>;
+      std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -910,6 +953,7 @@ SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
 SAI_ATTRIBUTE_NAME(Port, Mtu)
+SAI_ATTRIBUTE_NAME(Port, Metadata)
 SAI_ATTRIBUTE_NAME(Port, QosDscpToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosDot1pToTcMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcAndColorToDot1pMap)
@@ -937,6 +981,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
+SAI_ATTRIBUTE_NAME(Port, IngressAcl)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)

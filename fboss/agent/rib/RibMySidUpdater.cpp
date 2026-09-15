@@ -12,10 +12,12 @@ namespace facebook::fboss {
 RibMySidUpdater::RibMySidUpdater(
     const VrfRouteTables& routeTables,
     NextHopIDManager* nextHopIDManager,
-    MySidTable* mySidTable)
+    MySidTable* mySidTable,
+    uint32_t ecmpWidth)
     : routeTables_{routeTables},
       nextHopIDManager_{nextHopIDManager},
-      mySidTable_{mySidTable} {}
+      mySidTable_{mySidTable},
+      ecmpWidth_{ecmpWidth} {}
 
 void RibMySidUpdater::resolve() {
   for (auto& [prefix, mySid] : *mySidTable_) {
@@ -78,7 +80,7 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
     }
 
     const auto fwdNhops = getNormalizedNextHopsFromRib(
-        nextHopIDManager_, route->getForwardInfo());
+        nextHopIDManager_, route->getForwardInfo(), ecmpWidth_);
     if (route->isConnected()) {
       resolved.insert(ResolvedNextHop(
           nh.addr(),

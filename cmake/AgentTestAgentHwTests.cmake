@@ -121,6 +121,8 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDropBitmapTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDropReasonTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDropTestBase.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAsicDefaultProgrammingTests.cpp
@@ -368,7 +370,8 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
   )
 
-  add_sai_sdk_dependencies(sai_agent_hw_test-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_agent_hw_test-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
 
   target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
@@ -402,7 +405,8 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/test/agent_hw_tests/SaiAgentHwTest.cpp
   )
 
-  add_sai_sdk_dependencies(sai_agent_scale_test-${SAI_IMPL_NAME})
+  add_sai_sdk_dependencies(
+    sai_agent_scale_test-${SAI_IMPL_NAME} "${SAI_IMPL_ARG}")
 
   target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive

@@ -1540,6 +1540,48 @@ TEST(Port, linkScanModeConfig) {
   EXPECT_FALSE(newPort->toThrift().linkScanMode().has_value());
 }
 
+TEST(Port, userMetaDataConfig) {
+  auto platform = createMockPlatform();
+  auto state = make_shared<SwitchState>();
+  registerPort(state, PortID(1), "port1", scope());
+
+  auto applyAndVerify =
+      [&](std::optional<cfg::AclLookupClassPort> newMetadata) {
+        auto oldMetadata =
+            state->getPorts()->getNodeIf(PortID(1))->getUserMetaData();
+        cfg::SwitchConfig config;
+        config.ports()->resize(1);
+        preparedMockPortConfig(
+            config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+        if (newMetadata.has_value()) {
+          config.ports()[0].userMetaData() = *newMetadata;
+        }
+        auto newState = publishAndApplyConfig(state, &config, platform.get());
+
+        if (oldMetadata == newMetadata) {
+          EXPECT_EQ(nullptr, newState);
+          return;
+        }
+        ASSERT_NE(nullptr, newState);
+        state = newState;
+        EXPECT_EQ(
+            state->getPorts()->getNodeIf(PortID(1))->getUserMetaData(),
+            newMetadata);
+      };
+
+  applyAndVerify(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  applyAndVerify(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  applyAndVerify(cfg::AclLookupClassPort::CLASS_PORT_BLOCKED);
+  applyAndVerify(std::nullopt);
+
+  auto cloned = state->getPorts()->getNodeIf(PortID(1))->clone();
+  cloned->setUserMetaData(cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+  auto serialized = std::make_shared<Port>(cloned->toThrift());
+  EXPECT_EQ(
+      serialized->getUserMetaData(),
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED);
+}
+
 // Test holdoff timer fields: default values, applyConfig propagation,
 // getter/setter methods, and serialization/deserialization.
 TEST(Port, holdoffTimerConfig) {

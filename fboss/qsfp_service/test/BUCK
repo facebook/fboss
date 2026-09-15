@@ -142,7 +142,7 @@ cpp_unittest(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     network_access = network_access_utils.none(),
     resources = [
-        "//fboss/lib/platform_mapping_v2:example_integrated_optics_platform_mapping.json",
+        "//fboss/configs:example_integrated_optics_platform_mapping.json",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",

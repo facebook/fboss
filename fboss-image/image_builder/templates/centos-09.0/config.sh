@@ -62,7 +62,7 @@ process_kernel() {
   local tarballs=("$component_dir"/*.tar*)
 
   if [ ${#tarballs[@]} -eq 0 ]; then
-    echo "  No kernel tarballs found in $component_dir, skipping kernel install"
+    echo "  WARNING: no kernel tarballs in $component_dir; the image will have no kernel RPMs"
     return 0
   fi
 
@@ -77,22 +77,27 @@ process_kernel() {
 
   local tarball="${tarballs[0]}"
 
-  echo "  Extracting $(basename "$tarball") (excluding devel/header RPMs)..."
+  echo "  Extracting $(basename "$tarball") (excluding devel/header/source RPMs)..."
   tar -xf "$tarball" -C "$component_tmp" \
     --exclude='*-devel-*.rpm' \
-    --exclude='*-headers-*.rpm'
+    --exclude='*-headers-*.rpm' \
+    --exclude='*.src.rpm'
 
-  # Copy any unarchived RPMs that may already be in the component directory
-  if ls "$component_dir"/*.rpm >/dev/null 2>&1; then
-    cp "$component_dir"/*.rpm "$component_tmp/"
+  # Copy any unarchived RPMs that may already be in the component directory.
+  # Test the glob via an array: under nullglob an `ls "$dir"/*.rpm` guard
+  # succeeds when there are no matches, because ls falls back to listing the
+  # working directory.
+  local loose_rpms=("$component_dir"/*.rpm)
+  if [ ${#loose_rpms[@]} -gt 0 ]; then
+    cp "${loose_rpms[@]}" "$component_tmp/"
   fi
 
-  # Install RPMs
-  if ls "$component_tmp"/*.rpm >/dev/null 2>&1; then
+  local rpms=("$component_tmp"/*.rpm)
+  if [ ${#rpms[@]} -gt 0 ]; then
     echo "  Installing kernel RPMs..."
-    dnf install --disablerepo=* -y "$component_tmp"/*.rpm
+    dnf install --disablerepo=* -y "${rpms[@]}"
   else
-    echo "  No RPMs found for kernel"
+    echo "  WARNING: no kernel RPMs after extracting $(basename "$tarball")"
   fi
 
   return 0
@@ -107,7 +112,7 @@ process_npu_sai_tarball() {
   local tarballs=("$component_dir"/*.tar*)
 
   if [ ${#tarballs[@]} -eq 0 ]; then
-    echo "  No SAI tarballs found in $component_dir, skipping SAI processing"
+    echo "  WARNING: no SAI tarballs in $component_dir; SAI kmods will not be installed"
     return 0
   fi
 
@@ -122,21 +127,42 @@ process_npu_sai_tarball() {
 
   local tarball="${tarballs[0]}"
 
-  set -x
-  # Extract only sai-runtime.rpm from the tarball
-  echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
-  tar -xf "$tarball" -C "$component_dir" 'sai-runtime.rpm'
+  # Two shapes are published. The SDK vendors ship sai-runtime.rpm inside a
+  # tarball; the periodic kmod builds ship the .ko files directly, already
+  # laid out under lib/modules/<kver>/extra/<vendor>/.
+  if tar tf "$tarball" | grep -qE '^(\./)?sai-runtime\.rpm$'; then
+    echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
+    tar -xf "$tarball" -C "$component_dir" --wildcards '*sai-runtime.rpm'
 
-  # Check if the file was extracted successfully
-  if [ -f "$component_dir/sai-runtime.rpm" ]; then
-    echo "  Installing $component_dir/sai-runtime.rpm..."
-    dnf install -y $component_dir/sai-runtime.rpm
-    if [ $? -ne 0 ]; then
-      echo "ERROR: Failed to install $component_dir/sai-runtime.rpm"
+    local rpm
+    rpm=$(find "$component_dir" -name sai-runtime.rpm -print -quit)
+    if [ -z "$rpm" ]; then
+      echo "ERROR: sai-runtime.rpm listed in $(basename "$tarball") but not extracted"
       return 1
     fi
+
+    echo "  Installing $rpm..."
+    if ! dnf install -y "$rpm"; then
+      echo "ERROR: Failed to install $rpm"
+      return 1
+    fi
+  elif tar tf "$tarball" | grep -qE '^(\./)?lib/modules/.*\.ko$'; then
+    echo "  Installing SAI kmods from $(basename "$tarball")..."
+    tar -xf "$tarball" -C / './lib' 2>/dev/null || tar -xf "$tarball" -C / 'lib'
+
+    # The kmods land in a search path but are not in modules.dep until depmod
+    # runs, so modprobe cannot find them at boot without this.
+    local kver
+    kver=$(tar tf "$tarball" | sed -nE 's|^(\./)?lib/modules/([^/]+)/.*|\2|p' | head -1)
+    if [ -n "$kver" ]; then
+      echo "  Running depmod for $kver..."
+      depmod -a "$kver"
+    else
+      echo "  WARNING: could not determine kernel version; skipping depmod"
+    fi
   else
-    echo "No sai-runtime.rpm found in $tarball"
+    echo "  WARNING: $(basename "$tarball") has neither sai-runtime.rpm nor"
+    echo "           lib/modules/**/*.ko; SAI kmods will not be installed"
   fi
 
   rm -f "$tarball"
@@ -178,7 +204,7 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  npu_sai)
+  npu_sai | phy_sai)
     process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
@@ -201,19 +227,28 @@ for component_dir in /repos/*; do
     echo "Processing component: $component_name"
     tarballs=("$component_dir"/*.tar*)
     if [ ${#tarballs[@]} -eq 0 ]; then
-      echo "  No $component_name tarball found in $component_dir, skipping $component_name install"
-    elif [ ${#tarballs[@]} -gt 1 ]; then
-      echo "  Multiple $component_name tarballs found in $component_dir, skipping $component_name install"
+      echo "  WARNING: no $component_name tarball in $component_dir; those binaries will be absent from /opt/fboss"
     else
-      tarball="${tarballs[0]}"
-      echo "  Extracting $component_name tarball..."
+      # A component may carry more than one tarball: manifests that list the
+      # forwarding stack per service (agent, fsdb, qsfp, fboss2) stage them all
+      # into this one directory. Extract every one -- they unpack into disjoint
+      # paths under /opt/fboss.
       mkdir -p /opt/fboss
-      tar -C /opt/fboss -xf "$tarball"
+      for tarball in "${tarballs[@]}"; do
+        echo "  Extracting $(basename "$tarball")..."
+        tar -C /opt/fboss -xf "$tarball"
+      done
     fi
     ;;
 
   *)
-    echo "Skipping component: $component_name (no handler defined)"
+    # Anything under /repos was put there because a manifest declared it, so
+    # a component with no handler is a manifest/handler mismatch rather than
+    # something to ignore. Failing here turns a silently incomplete image
+    # into a build error: an unhandled component previously logged this line
+    # and exited 0, and the image shipped without it.
+    echo "ERROR: no handler defined for component: $component_name"
+    handler_rc=1
     ;;
   esac
 
@@ -381,6 +416,15 @@ echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
 
 # 7. Enable systemd services
 echo "Enabling FBOSS systemd services..."
+# Ships in sai-runtime.rpm (npu_sai component). The vendor spec is meant to
+# enable it from %post, but not every SDK drop does -- 14.2.0 carries no
+# scriptlets at all -- so enable it here as well. systemctl enable is
+# idempotent, so this is harmless when the RPM does self-enable.
+# The unit runs Before=sysinit.target, putting the BDE kmods and /dev nodes in
+# place before platform_manager and the agents. Absent for manifests with an
+# empty npu_sai (e.g. kernel_only.json), hence the guard.
+systemctl enable sai-device-nodes.service ||
+  echo "WARNING: sai-device-nodes.service not present; SAI kmods will not be loaded at boot"
 systemctl enable fboss_init.service
 systemctl enable local_rpm_repo.service
 systemctl enable platform_manager.service

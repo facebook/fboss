@@ -1,0 +1,11 @@
+{
+  "platformType": 55,
+  "productNamePrefixes": [
+    "M5120CSC"
+  ],
+  "modeNames": [
+    "m5120csc"
+  ],
+  "asicType": 26,
+  "numSwitchAsics": 1
+}

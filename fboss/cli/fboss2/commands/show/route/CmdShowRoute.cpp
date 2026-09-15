@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 
 namespace facebook::fboss {
 
@@ -18,7 +19,17 @@ CmdShowRoute::RetType CmdShowRoute::queryClient(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
-  client->sync_getRouteTable(entries);
+  auto clientIdOpt = CmdLocalOptions::getInstance()->getLocalOption(
+      "show_route", "--clientID");
+  if (clientIdOpt.empty()) {
+    client->sync_getRouteTable(entries);
+  } else {
+    // The agent resolves the per-client entry itself (getEntryForClient), so
+    // the CLI does not need to know about admin distances.
+    client->sync_getRouteTableByClient(
+        entries,
+        static_cast<int16_t>(show::route::utils::parseClientId(clientIdOpt)));
+  }
   return createModel(entries);
 }
 
@@ -79,6 +90,8 @@ CmdShowRoute::RetType CmdShowRoute::createModel(
 
     cli::RouteEntry routeEntry;
     routeEntry.networkAddress() = fmt::format("{}{}", ipPrefix, ucmpActive);
+    routeEntry.addressFamily() =
+        show::route::utils::getAddressFamilyStr(*entry.dest());
 
     if (!nextHops.empty()) {
       for (const auto& nh : nextHops) {

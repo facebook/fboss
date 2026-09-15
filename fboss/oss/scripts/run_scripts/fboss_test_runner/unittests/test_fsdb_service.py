@@ -49,8 +49,11 @@ class TestSetupPreconditions:
         self._patches(monkeypatch, tmp_path)
         monkeypatch.setattr(
             fsdb_service_utils,
-            "_DEFAULT_OSS_FSDB_SERVICE_PATH",
-            str(tmp_path / "missing_fsdb_bin"),
+            "_DEFAULT_OSS_FSDB_SERVICE_BINARY",
+            "missing_fsdb_bin",
+        )
+        monkeypatch.setattr(
+            fsdb_service_utils.service_utils.shutil, "which", lambda _: None
         )
         with pytest.raises(Exception, match="fsdb_service binary"):
             setup_and_start_fsdb_service()
@@ -58,12 +61,61 @@ class TestSetupPreconditions:
     def test_raises_when_config_missing(self, monkeypatch, tmp_path):
         self._patches(monkeypatch, tmp_path)
         monkeypatch.setattr(
-            fsdb_service_utils, "_DEFAULT_OSS_FSDB_SERVICE_PATH", sys.executable
+            fsdb_service_utils, "_DEFAULT_OSS_FSDB_SERVICE_BINARY", sys.executable
         )
         with pytest.raises(Exception, match="fsdb_service config path"):
             setup_and_start_fsdb_service(
                 fsdb_service_config_path=str(tmp_path / "missing.conf")
             )
+
+    def test_resolves_config_path_before_building_unit(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        relative_config_path = "share/link_test_configs/fsdb.conf"
+
+        with patch(
+            "fboss_test_runner.services.fsdb_service_utils.service_utils"
+        ) as mock_svc:
+            setup_and_start_fsdb_service(fsdb_service_config_path=relative_config_path)
+
+        expected_config_path = tmp_path / relative_config_path
+        mock_svc.validate_path.assert_any_call(
+            str(expected_config_path), "fsdb_service config path"
+        )
+        assert (
+            f"--fsdb_config={expected_config_path}"
+            in mock_svc.build_unit_file_content.call_args.kwargs["exec_start_cmd"]
+        )
+
+    def test_default_config_uses_sourced_package_data(self, monkeypatch, tmp_path):
+        package_data = tmp_path / "share"
+        expected_config_path = package_data / "link_test_configs/fsdb.conf"
+        monkeypatch.setenv("FBOSS_DATA", str(package_data))
+
+        with patch(
+            "fboss_test_runner.services.fsdb_service_utils.service_utils"
+        ) as mock_svc:
+            setup_and_start_fsdb_service()
+
+        mock_svc.validate_path.assert_any_call(
+            str(expected_config_path), "fsdb_service config path"
+        )
+        assert (
+            f"--fsdb_config={expected_config_path}"
+            in mock_svc.build_unit_file_content.call_args.kwargs["exec_start_cmd"]
+        )
+
+    def test_empty_package_data_uses_packaged_fallback(self, monkeypatch):
+        expected_config_path = "/opt/fboss/share/link_test_configs/fsdb.conf"
+        monkeypatch.setenv("FBOSS_DATA", "")
+
+        with patch(
+            "fboss_test_runner.services.fsdb_service_utils.service_utils"
+        ) as mock_svc:
+            setup_and_start_fsdb_service()
+
+        mock_svc.validate_path.assert_any_call(
+            expected_config_path, "fsdb_service config path"
+        )
 
 
 class TestStartColdVsWarmBoot:

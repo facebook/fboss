@@ -26,8 +26,8 @@ namespace facebook::fboss {
 class PlatformDescriptorRegistry {
  public:
   // Returns a cached singleton loaded from
-  // FLAGS_platform_descriptor_config_path. All vendor directories are scanned
-  // once on first access.
+  // FLAGS_platform_descriptor_config_path. Descriptor files are discovered
+  // recursively once on first access.
   static const PlatformDescriptorRegistry& get();
 
   const PlatformDescriptor* FOLLY_NULLABLE
@@ -42,10 +42,9 @@ class PlatformDescriptorRegistry {
 
   static PlatformDescriptor loadPlatformDescriptorFromFile(
       const std::string& path);
-  // Loads descriptors from:
-  // <path>/<system_vendor>/<platform_name>/platform_descriptor.json
-  // and records each sibling platform_mapping.json for lazy mapping load.
-  // systemVendor optionally narrows the scan to a single vendor directory.
+  // Recursively loads platform_descriptor.json files and records each sibling
+  // platform_mapping.json for lazy mapping load. systemVendor optionally
+  // narrows the scan to one vendor subtree.
   static PlatformDescriptorRegistry loadPlatformDescriptorRegistryFromDirectory(
       const std::string& path,
       std::string_view systemVendor = "");
