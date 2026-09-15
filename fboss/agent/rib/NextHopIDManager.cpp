@@ -9,6 +9,7 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <boost/functional/hash.hpp>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include <limits>
 
@@ -267,6 +268,7 @@ void NextHopIDManager::clearNhopIdManagerState() {
   nameToNextHopSetID_.clear();
   nameToRoutes_.clear();
   nameToMySids_.clear();
+  pbrPolicyToNamedNhg_.clear();
 }
 
 // Allocate or update a named next-hop group.
@@ -989,6 +991,33 @@ const NextHopIDManager::MySidSet& NextHopIDManager::getMySidsForNamedNhg(
 bool NextHopIDManager::hasMySidsForNamedNhg(const std::string& name) const {
   auto it = nameToMySids_.find(name);
   return it != nameToMySids_.end() && !it->second.empty();
+}
+
+void NextHopIDManager::addOrUpdatePolicy(const ClassBasedPolicy& policy) {
+  CHECK(!policy.name()->empty()) << "ClassBasedPolicy must have a name";
+  ClassBasedPolicyNhgs nhgs;
+  nhgs.defaultNexthopGroup = *policy.defaultNexthopGroup();
+  for (const auto& [fc, nhg] : *policy.class2NextHopGroup()) {
+    if (!nhg.name().has_value() || nhg.name()->empty()) {
+      throw FbossError(
+          "Class-based policy '",
+          *policy.name(),
+          "' has no next-hop group name for traffic class ",
+          apache::thrift::util::enumNameSafe(fc));
+    }
+    nhgs.class2NextHopGroup[fc] = *nhg.name();
+  }
+  pbrPolicyToNamedNhg_[*policy.name()] = std::move(nhgs);
+}
+
+void NextHopIDManager::removePolicy(const std::string& name) {
+  pbrPolicyToNamedNhg_.erase(name);
+}
+
+const ClassBasedPolicyNhgs* NextHopIDManager::getPolicy(
+    const std::string& name) const {
+  auto it = pbrPolicyToNamedNhg_.find(name);
+  return it != pbrPolicyToNamedNhg_.end() ? &it->second : nullptr;
 }
 
 } // namespace facebook::fboss

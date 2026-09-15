@@ -5,10 +5,12 @@
 #include <folly/IPAddress.h>
 #include <gtest/gtest_prod.h>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
@@ -36,6 +38,12 @@ struct hash<facebook::fboss::NextHopIDSet> {
 } // namespace std
 
 namespace facebook::fboss {
+
+struct ClassBasedPolicyNhgs {
+  std::string defaultNexthopGroup;
+  // Forwarding class -> redirect NHG name.
+  std::map<ForwardingClass, std::string> class2NextHopGroup;
+};
 
 /**
  * NextHopIDManager is responsible for generating and managing unique IDs
@@ -270,6 +278,17 @@ class NextHopIDManager {
 
   bool hasMySidsForNamedNhg(const std::string& name) const;
 
+  void addOrUpdatePolicy(const ClassBasedPolicy& policy);
+
+  void removePolicy(const std::string& name);
+
+  const ClassBasedPolicyNhgs* getPolicy(const std::string& name) const;
+
+  const std::unordered_map<std::string, ClassBasedPolicyNhgs>&
+  getPbrPolicyToNamedNhg() const {
+    return pbrPolicyToNamedNhg_;
+  }
+
   /**
    * Reconstruct the NextHopIDManager for two main scenarios:
    *
@@ -413,6 +432,9 @@ class NextHopIDManager {
   std::unordered_map<std::string, RouteSet> nameToRoutes_;
   // Reverse mapping: named NHG name to MySids referencing it
   std::unordered_map<std::string, MySidSet> nameToMySids_;
+
+  // Class-based policy store: policy name -> the NHG names it references.
+  std::unordered_map<std::string, ClassBasedPolicyNhgs> pbrPolicyToNamedNhg_;
 
   // Get the ref count for a given NextHop
   uint32_t getNextHopRefCount(const NextHop& nextHop);
