@@ -55,7 +55,8 @@ class RibIpRouteUpdate {
   static RibRoute ToAddFn(
       const ThriftRoute& route,
       const AdminDistance distance,
-      RoutingInformationBase::UpdateStatistics& stats) {
+      RoutingInformationBase::UpdateStatistics& stats,
+      const RibRouteTables& ribTables) {
     auto network = facebook::network::toIPAddress(*route.dest()->ip());
     auto mask = static_cast<uint8_t>(*route.dest()->prefixLength());
     std::optional<RouteCounterID> counterID;
@@ -74,16 +75,20 @@ class RibIpRouteUpdate {
 
     if (route.namedRouteDestination().has_value()) {
       const auto& namedDest = *route.namedRouteDestination();
-      if (namedDest.getType() == NamedRouteDestination::Type::nextHopGroup) {
-        const auto& nhgName = *namedDest.nextHopGroup();
+      const auto destType = namedDest.getType();
+      if (destType == NamedRouteDestination::Type::nextHopGroup ||
+          destType == NamedRouteDestination::Type::policyName) {
         if (!route.nextHops()->empty()) {
           throw FbossError(
               "Route cannot specify both nextHops and namedRouteDestination");
         }
+        auto namedNhg = destType == NamedRouteDestination::Type::nextHopGroup
+            ? *namedDest.nextHopGroup()
+            : ribTables.getPolicyDefaultNextHopGroup(*namedDest.policyName());
         auto adminDistance = route.adminDistance().value_or(distance);
         RouteNextHopEntry entry(
             RouteForwardAction::NEXTHOPS, adminDistance, counterID, classID);
-        entry.setNamedNextHopGroup(nhgName);
+        entry.setNamedNextHopGroup(namedNhg);
         return RibRoute{{network, mask}, entry};
       }
     }
@@ -115,7 +120,8 @@ class RibMplsRouteUpdate {
   static RibRoute ToAddFn(
       const ThriftRoute& route,
       const AdminDistance distance,
-      RoutingInformationBase::UpdateStatistics& stats) {
+      RoutingInformationBase::UpdateStatistics& stats,
+      const RibRouteTables& /*ribTables*/) {
     ++stats.mplsRoutesAdded;
     return RibRoute{
         LabelID(folly::copy(route.topLabel().value())),
@@ -375,6 +381,23 @@ void reconstructMySidTableFromSwitchState(
       mySidTable->emplace(cidrV6, mySid);
     }
   }
+}
+
+std::string RibRouteTables::getPolicyDefaultNextHopGroup(
+    const std::string& policyName) const {
+  return synchronizedRouteTables_.withRLock(
+      [&](const auto& routeTables) -> std::string {
+        if (!routeTables.nextHopIDManager) {
+          throw FbossError("NextHopIDManager not initialized");
+        }
+        const auto* policy =
+            routeTables.nextHopIDManager->getPolicy(policyName);
+        if (!policy) {
+          throw FbossError(
+              "Class-based policy '", policyName, "' does not exist");
+        }
+        return policy->defaultNexthopGroup;
+      });
 }
 
 template <typename RibUpdateFn>
@@ -1243,9 +1266,11 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
       std::for_each(
           toAdd.begin(),
           toAdd.end(),
-          [adminDistanceFromClientID, &stats, &toAddRoutes](const auto& route) {
+          [adminDistanceFromClientID, &stats, &toAddRoutes, this](
+              const auto& route) {
             toAddRoutes.push_back(
-                TraitsType::ToAddFn(route, adminDistanceFromClientID, stats));
+                TraitsType::ToAddFn(
+                    route, adminDistanceFromClientID, stats, ribTables_));
           });
       std::vector<typename TraitsType::RibRouteId> toDelPrefixes;
       toDelPrefixes.reserve(toDelete.size());

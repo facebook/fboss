@@ -291,6 +291,8 @@ class RibRouteTables {
 
   void updateEcmpOverrides(const StateDelta& delta);
 
+  std::string getPolicyDefaultNextHopGroup(const std::string& policyName) const;
+
  private:
   void updateFib(
       const SwitchIdScopeResolver* resolver,
