@@ -12,6 +12,7 @@ cpp_unittest(
         "CmdConfigAdminDistanceTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
+        "CmdConfigBgpGlobalTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDhcpTest.cpp",
         "CmdConfigHistoryTest.cpp",
