@@ -1466,6 +1466,9 @@ cpp_library(
         "//thrift/lib/cpp2:field_ref",
         "//thrift/lib/cpp2/gen:module_types_h",
     ],
+    external_deps = [
+        ("boost", None, "boost_regex"),
+    ],
 )
 
 export_file(
