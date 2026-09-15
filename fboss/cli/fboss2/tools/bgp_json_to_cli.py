@@ -488,6 +488,50 @@ def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
     return commands
 
 
+def generate_community_list_commands(community_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy community-list` commands for one list.
+
+    The deprecated inline `communities` and the `community_list_names`
+    references have no CLI spelling; they surface as warnings.
+    """
+    name = community_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy community-list {escape_shell_arg(name)}"
+    commands = []
+    if community_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(community_list['description'])}"
+        )
+    if "boolean_operator" in community_list:
+        operator = _boolean_operator_name(community_list["boolean_operator"])
+        if operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if "exact_match" in community_list:
+        commands.append(
+            f"{prefix} exact-match {_shell_bool(community_list['exact_match'])}"
+        )
+    if community_list.get("communities"):
+        commands.append(
+            _warning(
+                f"community-list {name}: inline `communities` has no CLI "
+                "equivalent (use members); not emitted"
+            )
+        )
+    if community_list.get("community_list_names"):
+        commands.append(
+            _warning(
+                f"community-list {name}: community_list_names has no CLI "
+                "equivalent; not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) community-list by name.
+        commands.append(prefix)
+    return commands
+
+
 def generate_policy_commands(config: dict[str, Any]) -> list[str]:
     """Generate the `config protocol bgp policy ...` commands.
 
@@ -499,6 +543,8 @@ def generate_policy_commands(config: dict[str, Any]) -> list[str]:
     commands = []
     for as_path_list in policies.get("aspath_lists", []):
         commands.extend(generate_as_path_list_commands(as_path_list))
+    for community_list in policies.get("community_lists", []):
+        commands.extend(generate_community_list_commands(community_list))
     return commands
 
 
