@@ -23,6 +23,7 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     generate_as_path_list_commands,
     generate_commands,
     generate_community_list_commands,
+    generate_community_list_community_commands,
     generate_exec_commands,
     generate_global_commands,
     generate_peer_commands,
@@ -1108,6 +1109,70 @@ class GenerateCommunityListCommandsTest(unittest.TestCase):
             [
                 "config protocol bgp policy as-path-list A",
                 "config protocol bgp policy community-list CL",
+            ],
+        )
+
+
+class GenerateCommunityListCommunityCommandsTest(unittest.TestCase):
+    """Tests for generate_community_list_community_commands (member grammar)."""
+
+    PREFIX = "config protocol bgp policy community-list CL community C1"
+
+    def test_inline_member(self) -> None:
+        commands = generate_community_list_community_commands(
+            "CL",
+            {
+                "community": {
+                    "name": "C1",
+                    "type": 1,
+                    "value": "65000:100",
+                    "description": "peer tag",
+                }
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description 'peer tag'",
+                f"{self.PREFIX} type NORMAL",
+                f"{self.PREFIX} value 65000:100",
+            ],
+        )
+
+    def test_type_by_name(self) -> None:
+        commands = generate_community_list_community_commands(
+            "CL", {"community": {"name": "C1", "type": "LARGE"}}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} type LARGE"])
+
+    def test_bare_member_is_recreated(self) -> None:
+        commands = generate_community_list_community_commands(
+            "CL", {"community": {"name": "C1"}}
+        )
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_reference_member_warns(self) -> None:
+        commands = generate_community_list_community_commands(
+            "CL", {"community_name": "OTHER"}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("OTHER", commands[0])
+
+    def test_members_emitted_inside_list(self) -> None:
+        """Members follow their list's own attributes in the list generator."""
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "exact_match": True,
+                "members": [{"community": {"name": "C1", "value": "65000:1"}}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy community-list CL exact-match true",
+                f"{self.PREFIX} value 65000:1",
             ],
         )
 

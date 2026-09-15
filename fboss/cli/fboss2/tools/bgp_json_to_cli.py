@@ -519,8 +519,61 @@ def generate_community_list_commands(community_list: dict[str, Any]) -> list[str
                 "equivalent; not emitted"
             )
         )
+    for member in community_list.get("members") or []:
+        commands.extend(generate_community_list_community_commands(name, member))
     if not commands:
         # Nothing to set: still recreate the (empty) community-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_COMMUNITY_TYPE_NAMES = {1: "NORMAL", 2: "EXTENDED", 3: "LARGE"}
+
+
+def generate_community_list_community_commands(
+    list_name: str, member: dict[str, Any]
+) -> list[str]:
+    """Generate `... community-list <name> community <name>` commands for one
+    member. Only inline `community` members have a CLI spelling; a
+    `community_name` reference surfaces as a warning."""
+    if "community" not in member:
+        return [
+            _warning(
+                f"community-list {list_name}: member references community "
+                f"'{member.get('community_name', '')}' by name, which has no "
+                "CLI equivalent; not emitted"
+            )
+        ]
+    community = member["community"]
+    name = community.get("name", "")
+    if not name:
+        return [
+            _warning(
+                f"community-list {list_name}: unnamed community member cannot "
+                "be addressed by the CLI; not emitted"
+            )
+        ]
+
+    prefix = (
+        f"config protocol bgp policy community-list {escape_shell_arg(list_name)} "
+        f"community {escape_shell_arg(name)}"
+    )
+    commands = []
+    if community.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(community['description'])}"
+        )
+    if "type" in community:
+        raw = community["type"]
+        type_name = (
+            raw
+            if isinstance(raw, str)
+            else _COMMUNITY_TYPE_NAMES.get(int(raw), str(raw))
+        )
+        commands.append(f"{prefix} type {escape_shell_arg(type_name)}")
+    if community.get("value"):
+        commands.append(f"{prefix} value {escape_shell_arg(community['value'])}")
+    if not commands:
         commands.append(prefix)
     return commands
 
