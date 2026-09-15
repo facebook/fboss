@@ -4,8 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <filesystem>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -70,6 +72,35 @@ class CmdDeleteBgpPolicyPrefixListTestFixture : public CmdConfigTestBase {
                 .policies()
                 .ensure()
                 .prefix_lists();
+  }
+
+  // Seed a routing-policy term whose PREFIX_LIST match names `listName` (the
+  // term/match CLIs live in higher PRs), the way bgpd reads the reference:
+  // prefix_filters.prefix_list_names.
+  void addPolicyTermMatching(
+      const std::string& policy,
+      int64_t seq,
+      const std::string& listName) {
+    auto& cfg = ConfigSession::getInstance().getBgpConfig();
+    auto& policies = *cfg.policies().ensure().bgp_policy_statements();
+    auto it = std::find_if(policies.begin(), policies.end(), [&](auto& p) {
+      return *p.name() == policy;
+    });
+    if (it == policies.end()) {
+      policies.emplace_back();
+      policies.back().name() = policy;
+      it = std::prev(policies.end());
+    }
+    auto& terms = *it->policy_entries();
+    terms.emplace_back();
+    terms.back().sequence_number() = seq;
+    auto& matches =
+        *terms.back().policy_match_entries().ensure().match_entries();
+    matches.emplace_back();
+    matches.back().type() =
+        bgp::bgp_policy::BgpPolicyAtomicMatchType::PREFIX_LIST;
+    matches.back().prefix_filters().ensure().prefix_list_names() = {listName};
+    ConfigSession::getInstance().saveBgpConfig();
   }
 
   bool sessionFileExists() {
@@ -201,6 +232,66 @@ TEST_F(
       result, HasSubstr("Error: BGP prefix-list NO-SUCH-LIST not found"));
   EXPECT_FALSE(sessionFileExists())
       << "session file should not exist after rejected delete";
+}
+
+// ==============================================================================
+// Reference guard — a list a routing-policy term still names is not deletable
+// ==============================================================================
+
+TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteReferencedListRejected) {
+  configure({"PL100", "description", "in-use"});
+  addPolicyTermMatching("RM100", 10, "PL100");
+
+  auto result = del({"PL100"});
+  EXPECT_THAT(result, HasSubstr("still referenced"));
+  // The refusal names the policy and term so the user can act on it.
+  EXPECT_THAT(result, HasSubstr("policy RM100 term 10"));
+  EXPECT_THAT(result, HasSubstr("remove those matches first"));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_EQ(*lists()[0].name(), "PL100");
+  EXPECT_EQ(*lists()[0].description(), "in-use");
+}
+
+TEST_F(
+    CmdDeleteBgpPolicyPrefixListTestFixture,
+    deleteReferencedListNamesEveryReferrer) {
+  configure({"PL100"});
+  addPolicyTermMatching("RM100", 10, "PL100");
+  addPolicyTermMatching("RM200", 20, "PL100");
+
+  auto result = del({"PL100"});
+  EXPECT_THAT(result, HasSubstr("policy RM100 term 10"));
+  EXPECT_THAT(result, HasSubstr("policy RM200 term 20"));
+  ASSERT_EQ(lists().size(), 1);
+}
+
+TEST_F(
+    CmdDeleteBgpPolicyPrefixListTestFixture,
+    referenceToOtherListDoesNotBlockDelete) {
+  configure({"PL100"});
+  configure({"PL200"});
+  // A term referencing PL100 must not block deleting PL200.
+  addPolicyTermMatching("RM100", 10, "PL100");
+
+  auto result = del({"PL200"});
+  EXPECT_THAT(result, HasSubstr("Successfully deleted BGP prefix-list PL200"));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_EQ(*lists()[0].name(), "PL100");
+}
+
+TEST_F(
+    CmdDeleteBgpPolicyPrefixListTestFixture,
+    entryDeleteOnReferencedListAllowed) {
+  // Removing one entry keeps the name defined, so the reference stays valid.
+  configureEntry("PL100", 10, "10.0.0.0/8");
+  configureEntry("PL100", 20, "192.168.0.0/16");
+  addPolicyTermMatching("RM100", 10, "PL100");
+
+  auto result = del({"PL100", "entry", "10"});
+  EXPECT_THAT(
+      result, HasSubstr("Successfully deleted BGP prefix-list PL100 entry 10"));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_EQ(lists()[0].prefixes()->size(), 1);
 }
 
 } // namespace facebook::fboss
