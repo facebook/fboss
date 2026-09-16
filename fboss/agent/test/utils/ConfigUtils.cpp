@@ -1827,14 +1827,15 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
 namespace {
 void addAggregatePorts(
     cfg::SwitchConfig& config,
-    const std::vector<AggregatePortInfo>& aggregatePorts) {
+    const std::vector<AggregatePortInfo>& aggregatePorts,
+    cfg::InterfaceType interfaceType) {
   for (const auto& aggregatePort : aggregatePorts) {
     std::vector<int32_t> members;
     members.reserve(aggregatePort.memberPorts.size());
     for (auto memberPort : aggregatePort.memberPorts) {
       members.push_back(memberPort);
     }
-    switch (aggregatePort.interfaceType) {
+    switch (interfaceType) {
       case cfg::InterfaceType::PORT:
         // A member port cannot keep a router interface of its own once it
         // joins a LAG, so the aggregate takes one instead of re-homing the
@@ -1869,7 +1870,7 @@ void addAggregatePorts(
             "Aggregate port ",
             aggregatePort.id,
             " has unsupported router interface type ",
-            static_cast<int>(aggregatePort.interfaceType));
+            static_cast<int>(interfaceType));
     }
   }
 }
@@ -1883,15 +1884,24 @@ cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
     bool setInterfaceMac,
     int baseIntfId,
     bool enableFabricPorts) {
-  auto config = onePortPerInterfaceConfig(
-      swSwitch,
+  auto asics = swSwitch->getHwAsicTable()->getL3Asics();
+  auto asic = checkSameAndGetAsicForTesting(asics);
+  auto intfType = getInterfaceType(*asic);
+  return oneAggregatePortPerInterfaceConfig(
+      swSwitch->getPlatformMapping(),
+      asic,
       ports,
+      swSwitch->getPlatformSupportsAddRemovePort(),
+      asic->desiredLoopbackModes(),
+      aggregatePorts,
+      intfType,
       interfaceHasSubnet,
       setInterfaceMac,
       baseIntfId,
-      enableFabricPorts);
-  addAggregatePorts(config, aggregatePorts);
-  return config;
+      enableFabricPorts,
+      swSwitch->getSwitchInfoTable().getSwitchIdToSwitchInfo(),
+      swSwitch->getHwAsicTable()->getHwAsics(),
+      swSwitch->getPlatformType());
 }
 
 cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
@@ -1901,6 +1911,7 @@ cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
     bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     const std::vector<AggregatePortInfo>& aggregatePorts,
+    cfg::InterfaceType intfType,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId,
@@ -1921,8 +1932,9 @@ cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
       enableFabricPorts,
       switchIdToSwitchInfo,
       hwAsicTable,
-      platformType);
-  addAggregatePorts(config, aggregatePorts);
+      platformType,
+      intfType);
+  addAggregatePorts(config, aggregatePorts, intfType);
   return config;
 }
 

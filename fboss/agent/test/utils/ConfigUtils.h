@@ -159,14 +159,13 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool enableFabricPorts = false,
     const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
-// Describes one aggregate port to build an L3 interface over.
+// Describes one aggregate port to build an L3 interface over. How the
+// aggregate's L3 interface is bound (PORT binds it to the aggregate port
+// itself, VLAN to a vlan the members share) is a property of the ASIC, passed
+// once per config via intfType below, not per aggregate.
 struct AggregatePortInfo {
   AggregatePortID id;
   std::vector<PortID> memberPorts;
-  // How the aggregate's L3 interface is bound. PORT binds it to the aggregate
-  // port itself, VLAN to a vlan the members share. Not defaulted: it has to
-  // match the config the aggregates are added to, so the caller states it.
-  cfg::InterfaceType interfaceType;
   cfg::LacpPortRate rate{cfg::LacpPortRate::FAST};
   double minLinkPercentage{1.0};
 };
@@ -189,6 +188,7 @@ cfg::SwitchConfig oneAggregatePortPerInterfaceConfig(
     bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     const std::vector<AggregatePortInfo>& aggregatePorts,
+    cfg::InterfaceType intfType,
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,
