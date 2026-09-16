@@ -50,17 +50,21 @@ CmdDeleteProtocolBgpPeerGroup::queryClient(
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
+  // Delete mirrors add: an absent group is already the requested end state,
+  // so this is a success with a warning. Nothing is saved, so a typo'd delete
+  // can't stage an unrelated session change.
+  auto absent = fmt::format(
+      "Warning: BGP peer-group {} does not exist; nothing to delete",
+      args.groupName());
   if (!cfg.peer_groups().has_value()) {
-    // Nothing is persisted for an unknown group, so a typo'd delete can't
-    // stage an unrelated session change.
-    return fmt::format("Error: BGP peer-group {} not found", args.groupName());
+    return absent;
   }
   auto& groups = *cfg.peer_groups();
   auto it = std::find_if(groups.begin(), groups.end(), [&](const auto& group) {
     return *group.name() == args.groupName();
   });
   if (it == groups.end()) {
-    return fmt::format("Error: BGP peer-group {} not found", args.groupName());
+    return absent;
   }
   // A neighbor's peer_group_name resolves against this group by name at
   // daemon load; erasing the group while a neighbor still points at it would
