@@ -1,4 +1,10 @@
 {
+  "variation": {
+    "kernel": "6.11.1",
+    "asic": "brcm_xgs",
+    "sai_sdk": "14.2.0.0",
+    "kmod_sdk": "6.5.34"
+  },
   "distribution_formats": {
     "usb": "fboss-distro-image_usb.iso",
     "pxe": "fboss-distro-image_pxe.tar"
