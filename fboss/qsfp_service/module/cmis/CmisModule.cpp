@@ -53,8 +53,8 @@ constexpr uint8_t kBankSelectByteOffset = 126;
 constexpr uint8_t kPageSelectByteOffset = 127;
 
 constexpr int kUsecBetweenPowerModeFlap = 100000;
-constexpr int kUsecBetweenLaneInit = 10000;
-constexpr int kUsecDiagSelectLatchWaitPrbs = 200000;
+constexpr int kUsecBetweenLaneInit = 10000; // 10ms
+constexpr int kUsecDiagSelectLatchWaitPrbs = 350000; // 350 ms
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
