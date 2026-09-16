@@ -311,6 +311,14 @@ class CmisCredo800AEC : public FakeTransceiverImpl {
   explicit CmisCredo800AEC(int module, TransceiverManager* mgr);
 };
 
+// 200G/lane active electrical cable: advertises the Annex 176E host interface
+// block (200GAUI-1 / 400GAUI-2 / 800GAUI-4 / 1.6TAUI-8) rather than the
+// 100G/lane codes the 800G part uses. Comes up in its 8x200G default.
+class Cmis1600GAec : public FakeTransceiverImpl {
+ public:
+  explicit Cmis1600GAec(int module, TransceiverManager* mgr);
+};
+
 class InvalidDatapathLaneStateTransceiver : public FakeTransceiverImpl {
  public:
   explicit InvalidDatapathLaneStateTransceiver(

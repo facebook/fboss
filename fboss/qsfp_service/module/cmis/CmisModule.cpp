@@ -3415,12 +3415,12 @@ CmisModule::getAppSelCodeForSpeed(
     }
 
     auto numHostLanes = capability->hostLaneCount;
-    // We could support 100G-1 or 100G-4, 200G-1, 200G-2 or 200G-4, 400G-2 or
-    // 400G-4. Thus compare both speed and number of host lanes
-    if ((speed == cfg::PortSpeed::HUNDREDG ||
-         speed == cfg::PortSpeed::TWOHUNDREDG ||
-         speed == cfg::PortSpeed::FOURHUNDREDG) &&
-        numHostLanesForPort != numHostLanes) {
+    // A speed can be served by applications with different host lane counts
+    // (800G as 8x100G via 800GAUI-8, or as 4x200G via 800GAUI-4), so the lane
+    // count always has to match, at every speed. getMediaIntfCodeFromSpeed()
+    // and tcvrPortStateSupported() already filter unconditionally; this keeps
+    // all three selection paths in agreement.
+    if (numHostLanesForPort != numHostLanes) {
       continue;
     }
 
@@ -4439,11 +4439,24 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfCode, CmisHelper::getSmfMediaInterfaceMapping());
     }
-  } else if (mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES) {
-    // TODO: For now, we only support the 8x100G Active Electrical Cable.
-    // We can use the number of lanes and Interface codes to derive
-    // the MediaInterfaceCode.
-    moduleMediaInterface = MediaInterfaceCode::CR8_800G;
+  } else if (
+      mediaTypeEncoding == MediaTypeEncodings::ACTIVE_CABLES &&
+      !moduleCapabilities_.empty()) {
+    // The module-level code describes the whole cable, so derive it from the
+    // widest application it advertises (an 8-lane 1.6TAUI-8 part reports
+    // CR8_1600G, an 8-lane 800GAUI-8 part still reports CR8_800G). Narrower
+    // breakout applications are reported per lane by getMediaInterfaceId().
+    auto widest = std::max_element(
+        moduleCapabilities_.begin(),
+        moduleCapabilities_.end(),
+        [](const auto& a, const auto& b) {
+          return a.hostLaneCount < b.hostLaneCount;
+        });
+    moduleMediaInterface =
+        CmisHelper::getMediaInterfaceCode<ActiveCuHostInterfaceCode>(
+            static_cast<ActiveCuHostInterfaceCode>(
+                widest->moduleMediaInterface),
+            CmisHelper::getActiveMediaInterfaceMapping());
   }
 
   return moduleMediaInterface;

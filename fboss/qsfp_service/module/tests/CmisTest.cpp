@@ -52,6 +52,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::enableRxLfInsertionForTunableOptics;
   using CmisModule::frequencyGridToGridSelection;
   using CmisModule::getApplicationField;
+  using CmisModule::getAppSelCodeForSpeed;
   using CmisModule::getBankedQsfpValuePtr;
   using CmisModule::getChannelNumFromFrequency;
   using CmisModule::getCmisRevision;
@@ -2641,6 +2642,201 @@ TEST_F(CmisTest, cmisCredo800AecInfoTest) {
   }
 
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+TEST_F(CmisTest, cmis1600GAecInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis1600GAec>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+
+  EXPECT_EQ(
+      info.tcvrState()->transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  // Active cable, copper transmitter: an AEC, not an AOC.
+  EXPECT_EQ(
+      *info.tcvrState()->cable()->mediaTypeEncoding(),
+      MediaTypeEncodings::ACTIVE_CABLES);
+  EXPECT_EQ(
+      *info.tcvrState()->cable()->transmitterTech(),
+      TransmitterTechnology::COPPER);
+
+  // The module-level code comes from the widest advertised application
+  // (1.6TAUI-8 over 8 lanes), not from a hardcoded CR8_800G.
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::CR8_1600G);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+
+  // Every advertised application resolves, on each of its advertised host
+  // start lanes, with the host lane count from the advertisement.
+  const std::vector<
+      std::tuple<ActiveCuHostInterfaceCode, uint8_t, std::vector<int>>>
+      expected = {
+          {ActiveCuHostInterfaceCode::AUI_PAM4_1_200G,
+           1,
+           {0, 1, 2, 3, 4, 5, 6, 7}},
+          {ActiveCuHostInterfaceCode::AUI_PAM4_2_400G, 2, {0, 2, 4, 6}},
+          {ActiveCuHostInterfaceCode::AUI_PAM4_4_800G, 4, {0, 4}},
+          {ActiveCuHostInterfaceCode::AUI_PAM4_8_1600G, 8, {0}},
+      };
+  for (const auto& [application, hostLaneCount, startLanes] : expected) {
+    for (uint8_t lane = 0; lane <= 7; lane++) {
+      auto field =
+          xcvr->getApplicationField(static_cast<uint8_t>(application), lane);
+      bool isStartLane =
+          std::find(startLanes.begin(), startLanes.end(), lane) !=
+          startLanes.end();
+      if (!isStartLane) {
+        EXPECT_EQ(field, std::nullopt)
+            << "application " << apache::thrift::util::enumNameSafe(application)
+            << " lane " << static_cast<int>(lane);
+        continue;
+      }
+      ASSERT_NE(field, std::nullopt)
+          << "application " << apache::thrift::util::enumNameSafe(application)
+          << " lane " << static_cast<int>(lane);
+      EXPECT_EQ(field->hostLaneCount, hostLaneCount);
+      EXPECT_EQ(field->mediaLaneCount, hostLaneCount);
+    }
+  }
+
+  // The 100G/lane codes this module does not advertise must not resolve.
+  for (auto unsupported :
+       {ActiveCuHostInterfaceCode::AUI_PAM4_8S_800G,
+        ActiveCuHostInterfaceCode::AUI_PAM4_4S_400G,
+        ActiveCuHostInterfaceCode::AUI_PAM4_1S_100G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(static_cast<uint8_t>(unsupported), 0),
+        std::nullopt);
+  }
+
+  // Every breakout the module advertises, at the right lane count.
+  const std::vector<std::tuple<cfg::PortSpeed, uint8_t, uint8_t>> goodStates = {
+      {cfg::PortSpeed::ONEPOINTSIXT, 0, 8},
+      {cfg::PortSpeed::EIGHTHUNDREDG, 0, 4},
+      {cfg::PortSpeed::EIGHTHUNDREDG, 4, 4},
+      {cfg::PortSpeed::FOURHUNDREDG, 0, 2},
+      {cfg::PortSpeed::FOURHUNDREDG, 6, 2},
+      {cfg::PortSpeed::TWOHUNDREDG, 0, 1},
+      {cfg::PortSpeed::TWOHUNDREDG, 7, 1},
+  };
+  for (const auto& [speed, startLane, numLanes] : goodStates) {
+    TransceiverPortState portState{
+        "", startLane, speed, numLanes, TransmitterTechnology::COPPER};
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState))
+        << apache::thrift::util::enumNameSafe(speed) << " startLane "
+        << static_cast<int>(startLane) << " numLanes "
+        << static_cast<int>(numLanes);
+  }
+
+  // Right speed, wrong lane count. Before the host lane count was compared at
+  // every speed, 800G-on-8-lanes was accepted here and would have programmed
+  // the 4-lane 800GAUI-4 application onto an 8-lane port.
+  const std::vector<std::tuple<cfg::PortSpeed, uint8_t, uint8_t>> badStates = {
+      {cfg::PortSpeed::EIGHTHUNDREDG, 0, 8},
+      {cfg::PortSpeed::ONEPOINTSIXT, 0, 4},
+      {cfg::PortSpeed::FOURHUNDREDG, 0, 4},
+      {cfg::PortSpeed::TWOHUNDREDG, 0, 2},
+      // Advertised lane count is right but the start lane is not advertised.
+      {cfg::PortSpeed::EIGHTHUNDREDG, 2, 4},
+      {cfg::PortSpeed::FOURHUNDREDG, 1, 2},
+      // Speed the module does not advertise at all.
+      {cfg::PortSpeed::HUNDREDG, 0, 1},
+  };
+  for (const auto& [speed, startLane, numLanes] : badStates) {
+    TransceiverPortState portState{
+        "", startLane, speed, numLanes, TransmitterTechnology::COPPER};
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState))
+        << apache::thrift::util::enumNameSafe(speed) << " startLane "
+        << static_cast<int>(startLane) << " numLanes "
+        << static_cast<int>(numLanes);
+  }
+
+  EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+// getAppSelCodeForSpeed() chooses which application a port is programmed with.
+// A speed can be served by applications with different host lane counts -- 800G
+// as 8x100G via 800GAUI-8, or as 4x200G via 800GAUI-4 -- so a request must only
+// ever resolve to an application whose lane count matches the port's. This
+// fixture advertises only the 200G/lane block, so its 4-lane 800G application
+// must never be handed to an 8-lane port.
+TEST_F(CmisTest, cmis1600GAecAppSelForSpeedTest) {
+  auto xcvr = overrideCmisModule<Cmis1600GAec>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  xcvr->getTransceiverInfo();
+
+  // Every advertised breakout resolves to its own application, on each of that
+  // application's advertised host start lanes.
+  const std::vector<std::tuple<
+      cfg::PortSpeed,
+      uint8_t,
+      uint8_t,
+      uint8_t,
+      ActiveCuHostInterfaceCode>>
+      expected = {
+          {cfg::PortSpeed::ONEPOINTSIXT,
+           0,
+           8,
+           2,
+           ActiveCuHostInterfaceCode::AUI_PAM4_8_1600G},
+          {cfg::PortSpeed::EIGHTHUNDREDG,
+           0,
+           4,
+           3,
+           ActiveCuHostInterfaceCode::AUI_PAM4_4_800G},
+          {cfg::PortSpeed::EIGHTHUNDREDG,
+           4,
+           4,
+           3,
+           ActiveCuHostInterfaceCode::AUI_PAM4_4_800G},
+          {cfg::PortSpeed::FOURHUNDREDG,
+           0,
+           2,
+           4,
+           ActiveCuHostInterfaceCode::AUI_PAM4_2_400G},
+          {cfg::PortSpeed::FOURHUNDREDG,
+           6,
+           2,
+           4,
+           ActiveCuHostInterfaceCode::AUI_PAM4_2_400G},
+      };
+  for (const auto& [speed, startLane, numLanes, apSel, code] : expected) {
+    auto field =
+        xcvr->getAppSelCodeForSpeed("eth1/1/1", speed, startLane, numLanes);
+    ASSERT_NE(field, std::nullopt)
+        << apache::thrift::util::enumNameSafe(speed) << " startLane "
+        << static_cast<int>(startLane);
+    EXPECT_EQ(field->ApSelCode, apSel);
+    EXPECT_EQ(field->moduleMediaInterface, static_cast<uint8_t>(code));
+    EXPECT_EQ(field->hostLaneCount, numLanes);
+  }
+
+  // The fixture comes up in its 8x200G default, so asking for the application
+  // it is already running reports "nothing to program" rather than a field.
+  EXPECT_EQ(
+      xcvr->getAppSelCodeForSpeed(
+          "eth1/1/1", cfg::PortSpeed::TWOHUNDREDG, 0, 1),
+      std::nullopt);
+
+  // Right speed, wrong lane count. Until the host lane count was compared at
+  // every speed, 800G and 1.6T skipped the check entirely: an 8-lane 800G
+  // request resolved to the 4-lane 800GAUI-4 application, and a 4-lane 1.6T
+  // request to the 8-lane 1.6TAUI-8 one.
+  const std::vector<std::tuple<cfg::PortSpeed, uint8_t, uint8_t>> mismatched = {
+      {cfg::PortSpeed::EIGHTHUNDREDG, 0, 8},
+      {cfg::PortSpeed::ONEPOINTSIXT, 0, 4},
+      {cfg::PortSpeed::FOURHUNDREDG, 0, 4},
+      {cfg::PortSpeed::TWOHUNDREDG, 0, 2},
+  };
+  for (const auto& [speed, startLane, numLanes] : mismatched) {
+    EXPECT_THROW(
+        xcvr->getAppSelCodeForSpeed("eth1/1/1", speed, startLane, numLanes),
+        FbossError)
+        << apache::thrift::util::enumNameSafe(speed) << " on "
+        << static_cast<int>(numLanes) << " lanes";
+  }
 }
 
 TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
