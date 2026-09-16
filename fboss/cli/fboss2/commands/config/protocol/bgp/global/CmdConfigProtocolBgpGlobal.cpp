@@ -31,7 +31,6 @@
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fmt/format.h"
-#include "thrift/lib/cpp/Thrift.h"
 
 namespace facebook::fboss {
 
@@ -234,7 +233,7 @@ Result applyOverloadProtectionMode(BgpConfig& cfg, const Tokens& values) {
   if (values.size() != 1) {
     return err("Error: switch-limit-overload-protection-mode requires <mode>");
   }
-  OverloadProtectionMode mode;
+  OverloadProtectionMode mode{};
   bool valid = false;
   if (auto parsed = parseInt<int32_t>(values[0])) {
     mode = static_cast<OverloadProtectionMode>(*parsed);
