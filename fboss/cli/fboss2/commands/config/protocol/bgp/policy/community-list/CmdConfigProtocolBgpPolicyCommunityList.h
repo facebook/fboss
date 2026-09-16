@@ -21,16 +21,18 @@
 namespace facebook::fboss {
 
 // Parsed `community-list <name> [<attribute> <value> ...]`, validated at
-// construction. A CommunityList is keyed by <name>. Its inline Community
-// members are their own subcommand
-// (CmdConfigProtocolBgpPolicyCommunityListCommunity), not attributes.
-// Mirrors BgpAsPathListConfig.
+// construction. A CommunityList is keyed by <name>. Its values are a flat
+// string list in the daemon, so they are flat `community` attributes here
+// (one per invocation), not nested entries. Mirrors BgpAsPathListConfig.
 //
 // Grammar (from the FBOSS proposed syntax):
-//   community-list <name>                          (create/select list)
-//   community-list <name> boolean-operator <op>    (list attribute)
-//   community-list <name> description <string>     (list attribute)
-//   community-list <name> exact-match <true|false> (list attribute)
+//   community-list <name>                            (create/select list)
+//   community-list <name> boolean-operator <AND|OR>  (list attribute)
+//   community-list <name> community <community>      (append to communities,
+//                                                     the field bgpd matches
+//                                                     on)
+//   community-list <name> description <string>       (list attribute)
+//   community-list <name> exact-match <true|false>   (list attribute)
 class BgpCommunityListConfig : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -60,9 +62,9 @@ struct CmdConfigProtocolBgpPolicyCommunityListTraits
     : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    // No positionals_at_end() here: CLI11 must stay free to classify the
-    // `community` token as this command's subcommand rather than swallowing it
-    // into args. See CmdConfigProtocolBgpPolicyAsPathListTraits.
+    // Stops CLI11 from classifying attribute tokens as subcommands once the
+    // list name is consumed. See CmdConfigProtocolBgpNeighborTraits.
+    cmd.positionals_at_end();
     cmd.add_option("args", args, "<name> [<attribute> <value> ...]");
   }
   using ObjectArgType = BgpCommunityListConfig;
