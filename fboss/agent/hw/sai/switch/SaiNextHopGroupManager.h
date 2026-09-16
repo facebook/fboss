@@ -52,6 +52,9 @@ using SaiNextHopGroupMemberInfo = std::pair<
     SaiNextHopGroupMemberTraits::AdapterHostKey,
     SaiNextHopGroupMemberTraits::Attributes::Weight>;
 
+sai_next_hop_group_type_t getNextHopGroupType(
+    const RouteNextHopEntry::NextHopSet& nextHops);
+
 struct SaiNextHopGroupKey {
   SaiNextHopGroupKey(
       RouteNextHopEntry::NextHopSet nextHops,

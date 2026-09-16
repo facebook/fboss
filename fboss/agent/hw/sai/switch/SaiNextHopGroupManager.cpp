@@ -190,6 +190,18 @@ splitHorizonEnableFor(
 }
 } // namespace
 
+sai_next_hop_group_type_t getNextHopGroupType(
+    const RouteNextHopEntry::NextHopSet& nextHops) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  if (std::any_of(nextHops.begin(), nextHops.end(), [](const auto& nextHop) {
+        return nextHop.role() == NextHopRole::BACKUP;
+      })) {
+    return SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+  }
+#endif
+  return SAI_NEXT_HOP_GROUP_TYPE_ECMP;
+}
+
 SaiNextHopGroupManager::SaiNextHopGroupManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
