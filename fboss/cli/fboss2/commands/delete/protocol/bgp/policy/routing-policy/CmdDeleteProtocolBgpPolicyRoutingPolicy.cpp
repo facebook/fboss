@@ -100,11 +100,14 @@ CmdDeleteProtocolBgpPolicyRoutingPolicy::queryClient(
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
+  // Delete mirrors add: an absent target is already the requested end state,
+  // so this is a success with a warning. Nothing is saved, so a typo'd delete
+  // can't stage an unrelated session change.
+  auto absent = fmt::format(
+      "Warning: BGP routing-policy {} does not exist; nothing to delete",
+      args.policyName());
   if (!cfg.policies().has_value()) {
-    // Nothing is persisted for an unknown policy, so a typo'd delete can't
-    // stage an unrelated session change.
-    return fmt::format(
-        "Error: BGP routing-policy {} not found", args.policyName());
+    return absent;
   }
   auto& policies = *cfg.policies()->bgp_policy_statements();
   auto it =
@@ -112,8 +115,7 @@ CmdDeleteProtocolBgpPolicyRoutingPolicy::queryClient(
         return *policy.name() == args.policyName();
       });
   if (it == policies.end()) {
-    return fmt::format(
-        "Error: BGP routing-policy {} not found", args.policyName());
+    return absent;
   }
   // ingress/egress_policy_name and network6 policy_name resolve against this
   // policy by name at daemon load; erasing it while something still names it
