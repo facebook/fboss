@@ -4,8 +4,8 @@
  * End-to-end tests for `fboss2-dev config protocol bgp policy community-list
  * <name> [<attribute> <value> ...]`.
  *
- * Scope: the community-list level (its inline community members are covered by
- * ConfigBgpPolicyCommunityListCommunityTest). Every test
+ * Scope: the whole community-list, including its flat `community` values (the
+ * communities field bgpd matches on). Every test
  * stages the change AND commits it, then asserts the value landed at the
  * correct thrift field path inside the matching .policies.community_lists[]
  * entry of bgpd's running config (via getRunningConfig RPC) — which also
@@ -20,6 +20,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -97,6 +98,49 @@ TEST_F(ConfigBgpPolicyCommunityListTest, SetListAttributesAndCommit) {
   // routing_policy.BooleanOperator.AND = 1.
   EXPECT_EQ((*runningList)["boolean_operator"].asInt(), 1);
   EXPECT_TRUE((*runningList)["exact_match"].asBool());
+}
+
+TEST_F(ConfigBgpPolicyCommunityListTest, SetCommunityAndOperatorAndCommit) {
+  discardSession();
+  clearBgpSession();
+  stageCommunityList({kList, "community", "65000:100"});
+  stageCommunityList({kList, "community", "65000:200"});
+  stageCommunityList({kList, "boolean-operator", "AND"});
+  commitAndGetSha();
+  ASSERT_TRUE(waitForBgpDaemonActive())
+      << "bgpd did not return active after commit; state="
+      << bgpDaemonActiveState();
+  // bgpd matches on the flat `communities` list + boolean_operator (never on
+  // members[]); the running config proves it parsed and adopted both.
+  auto running = readRunningBgpConfigViaRpc();
+  const auto* list = findList(running, kList);
+  ASSERT_NE(list, nullptr) << "bgpd's running config has no community-list "
+                           << kList;
+  ASSERT_TRUE(list->count("communities"));
+  std::vector<std::string> communities;
+  for (const auto& c : (*list)["communities"]) {
+    communities.push_back(c.asString());
+  }
+  EXPECT_EQ(communities, std::vector<std::string>({"65000:100", "65000:200"}));
+  ASSERT_TRUE(list->count("boolean_operator"));
+  // routing_policy.BooleanOperator.AND == 1
+  EXPECT_EQ((*list)["boolean_operator"].asInt(), 1);
+}
+
+TEST_F(ConfigBgpPolicyCommunityListTest, MalformedCommunityRejected) {
+  clearBgpSession();
+  auto result = runCli(
+      {"config",
+       "protocol",
+       "bgp",
+       "policy",
+       "community-list",
+       kList,
+       "community",
+       "65000:("});
+  EXPECT_THAT(result.stdout, HasSubstr("Malformed community"));
+  EXPECT_FALSE(std::filesystem::exists(bgpSessionPath()))
+      << "session file should not exist after rejected input";
 }
 
 TEST_F(ConfigBgpPolicyCommunityListTest, DeleteListAndCommit) {

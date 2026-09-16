@@ -103,24 +103,31 @@ inline std::optional<int64_t> parseAsn4Byte(const std::string& value) {
 // ObjectArgType, where throwing std::invalid_argument IS the framework's
 // error channel — the message is surfaced to the user as the parse error.
 
-// The `<list-name> [<keyword> <member-name>]` prefix shared by the policy
-// list commands (config and delete): the list name, the optional named
-// member selected by `keyword`, and where any remaining tokens begin.
+// The `<list-name> [<keyword> <member-name>]` prefix, for the *delete*
+// command of a policy list whose members are keyed objects (prefix-list
+// entries): the list name, the optional member selected by `keyword`, and
+// where any remaining tokens begin.
+//
+// Only delete parses this shape by hand. The config side reaches the same
+// grammar through CLI11 subcommand nesting instead — the member keyword is a
+// registered subcommand there, so each level gets its own already-split token
+// vector and never calls this helper. Lists whose members are a flat string
+// list in the daemon (as-path-list `regex`, community-list `community`) have
+// no member level at all: their optional `<keyword> <value>` selector is a
+// plain attribute-style pair, parsed inline by their own delete command.
 struct ListMemberSelector {
   std::string listName;
   std::optional<std::string> memberName;
   // Index of the first token after the parsed prefix (== tokens.size() when
-  // nothing follows). The config dispatcher reads an <attribute> <value>...
-  // tail from here; the delete dispatcher rejects any tail.
+  // nothing follows). The delete dispatcher rejects any tail.
   size_t restStart;
 };
 
-// Parse the shared prefix. `objectName` is the list flavor for messages
-// (e.g. "community-list"), `memberKeyword` selects the nested member (e.g.
+// Parse the prefix. `objectName` is the list flavor for messages (e.g.
+// "community-list"), `memberKeyword` selects the nested member (e.g.
 // `community`), and `usage` is the whole-command usage line thrown when no
 // tokens were given. A second token other than `memberKeyword` is left to
-// the caller (restStart == 1): the config grammar treats it as a list-level
-// attribute, delete as an unexpected token.
+// the caller (restStart == 1), which delete rejects as an unexpected token.
 inline ListMemberSelector parseListMemberSelector(
     const std::vector<std::string>& tokens,
     std::string_view objectName,
