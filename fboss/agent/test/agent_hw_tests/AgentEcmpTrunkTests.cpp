@@ -21,7 +21,7 @@ class AgentEcmpTrunkTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto config = utility::oneL3IntfNPortConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         ensemble.getPlatformMapping(),
         ensemble.getL3Asics().front(),
         ensemble.masterLogicalPortIds(),

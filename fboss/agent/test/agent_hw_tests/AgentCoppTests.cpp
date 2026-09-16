@@ -124,11 +124,10 @@ class AgentCoppTest : public AgentHwTest {
     auto asic = checkSameAndGetAsic(
         ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto interfacePorts = ensemble.masterLogicalInterfacePortIds(switchId);
-    auto cfg = utility::oneL3IntfTwoPortConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getPlatformMapping(),
         asic,
-        interfacePorts[0],
-        interfacePorts[1],
+        {interfacePorts[0], interfacePorts[1]},
         ensemble.supportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());

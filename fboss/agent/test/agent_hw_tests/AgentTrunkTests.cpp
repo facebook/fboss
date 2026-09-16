@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -18,11 +19,11 @@ class AgentTrunkTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
-    return utility::oneL3IntfTwoPortConfig(
+    auto ports = ensemble.masterLogicalPortIds();
+    return utility::onePortPerInterfaceConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1],
+        {ports[0], ports[1]},
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
@@ -142,9 +143,17 @@ TEST_F(AgentTrunkTest, TrunkPortStats) {
   };
   auto verify = [=, this]() {
     const std::string kTrunkName = "AGG-1";
-    auto vlanId = VlanID(utility::kBaseVlanId);
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (auto throughPort : {false, true}) {
+      // Tag for the ingress port's own interface: out-of-port injection on
+      // port0, the trunk member's interface for switched packets.
+      auto injectPort =
+          throughPort ? masterLogicalPortIds()[0] : masterLogicalPortIds()[1];
+      auto state = getProgrammedState();
+      auto intf = state->getInterfaces()->getNodeIf(
+          getInterfaceIDForPort(injectPort, state));
+      CHECK(intf != nullptr);
+      auto vlanId = getSw()->getVlanIDForTx(intf);
+      auto intfMac = intf->getMac();
       auto portStats = getLatestPortStats(masterLogicalPortIds()[1]);
       auto portPkts0 = *portStats.outUnicastPkts_() +
           *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();

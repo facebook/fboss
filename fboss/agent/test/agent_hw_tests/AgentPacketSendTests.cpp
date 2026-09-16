@@ -375,11 +375,10 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsicForTesting(l3Asics);
-    auto cfg = utility::oneL3IntfTwoPortConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
-        masterLogicalPortIds[0],
-        masterLogicalPortIds[1],
+        {masterLogicalPortIds[0], masterLogicalPortIds[1]},
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
         ensemble.getSw()->getPlatformType());
