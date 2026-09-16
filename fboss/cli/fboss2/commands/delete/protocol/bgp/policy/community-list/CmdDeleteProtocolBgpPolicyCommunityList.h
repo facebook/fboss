@@ -21,10 +21,10 @@
 namespace facebook::fboss {
 
 // Parsed `delete protocol bgp policy community-list <name>
-// [community <name>]`, validated at construction. The names are the list's
-// and member's identity, matched exactly the same way the config command
-// stores them. Without the `community` selector the whole list is deleted;
-// with it, only that inline member. Mirrors BgpAsPathListRef.
+// [community <community>]`, validated at construction. The name is the
+// list's identity, matched exactly the same way the config command stores
+// it; the optional `community` selector removes one communities value
+// instead of the whole list. Mirrors BgpAsPathListRef.
 class BgpCommunityListRef : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -35,8 +35,8 @@ class BgpCommunityListRef : public utils::BaseObjectArgType<std::string> {
   bool hasCommunity() const {
     return hasCommunity_;
   }
-  const std::string& communityName() const {
-    return communityName_;
+  const std::string& community() const {
+    return community_;
   }
   const static utils::ObjectArgTypeId id =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
@@ -44,14 +44,14 @@ class BgpCommunityListRef : public utils::BaseObjectArgType<std::string> {
  private:
   std::string listName_;
   bool hasCommunity_{false};
-  std::string communityName_;
+  std::string community_;
 };
 
 struct CmdDeleteProtocolBgpPolicyCommunityListTraits
     : public WriteCommandTraits {
   using ParentCmd = CmdDeleteProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    cmd.add_option("args", args, "<name> [community <name>]");
+    cmd.add_option("args", args, "<name> [community <community>]");
   }
   using ObjectArgType = BgpCommunityListRef;
   using RetType = std::string;

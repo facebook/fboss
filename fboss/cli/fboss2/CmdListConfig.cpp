@@ -456,7 +456,8 @@ const CommandTree& kConfigCommandTree() {
                                "community-list",
                                "Configure BGP community-list: <name> "
                                "[<attribute> <value> ...] "
-                               "(boolean-operator, description, exact-match)",
+                               "(boolean-operator, community, description, "
+                               "exact-match)",
                                commandHandler<
                                    CmdConfigProtocolBgpPolicyCommunityList>,
                                argRegistrar<

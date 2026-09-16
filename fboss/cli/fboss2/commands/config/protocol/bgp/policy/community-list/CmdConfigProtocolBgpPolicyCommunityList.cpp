@@ -12,8 +12,11 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
+#include <boost/regex.hpp> // NOLINT(misc-include-cleaner)
 #include <fmt/core.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
+#include <algorithm>
+#include <cctype>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -37,37 +40,40 @@ namespace facebook::fboss {
 namespace {
 
 // The attribute names, exactly as documented. Kept here so the
-// valid-attribute set and the handler table stay in sync. The list's inline
-// Community members are their own subcommand, not attributes.
+// valid-attribute set and the handler table stay in sync. Values are flat
+// `community` attributes because bgpd stores them as a flat string list;
+// nested entries are reserved for families where the daemon stores objects
+// (prefix-list, routing-policy).
 constexpr std::string_view kBooleanOperator = "boolean-operator";
+constexpr std::string_view kCommunity = "community";
 constexpr std::string_view kDescription = "description";
 constexpr std::string_view kExactMatch = "exact-match";
 
 // boolean-operator values (routing_policy.BooleanOperator names).
 constexpr std::string_view kBooleanOperatorAnd = "AND";
 constexpr std::string_view kBooleanOperatorOr = "OR";
-constexpr std::string_view kBooleanOperatorNot = "NOT";
 
 using BooleanOperator = bgp::routing_policy::BooleanOperator;
 using CommunityList = bgp::bgp_policy::CommunityList;
 using bgpcli::AttrHandler;
 using bgpcli::boolAttr;
 using bgpcli::enumAttr;
+using bgpcli::err;
 using bgpcli::joinedStringAttr;
 using bgpcli::ok;
 using bgpcli::Result;
+using bgpcli::Tokens;
 
 // ---- value lookups ----------------------------------------------------------
 
+// NOT is deliberately not offered: bgpd treats every operator other than OR
+// as "all must match", so NOT would silently behave as AND.
 std::optional<BooleanOperator> lookupBooleanOperator(const std::string& s) {
   if (s == kBooleanOperatorAnd) {
     return BooleanOperator::AND;
   }
   if (s == kBooleanOperatorOr) {
     return BooleanOperator::OR;
-  }
-  if (s == kBooleanOperatorNot) {
-    return BooleanOperator::NOT;
   }
   return std::nullopt;
 }
@@ -88,13 +94,54 @@ void setListExactMatch(CommunityList& list, bool exactMatch) {
   list.exact_match() = exactMatch;
 }
 
+// Hand-written because no factory covers an accumulating, validated set:
+// each `community` appends one value to communities (the field bgpd matches
+// against). bgpd accepts either a literal `<asn>:<value>` or a regex, and
+// compiles anything that is not a literal as a regex at load, so compile it
+// here too and keep a pattern bgpd would reject out of the session.
+// Idempotent on repeats.
+Result community(CommunityList& list, const Tokens& values) {
+  if (values.size() != 1 || values[0].empty()) {
+    return err(
+        fmt::format(
+            "Error: {} requires <community> (one token; a literal such as "
+            "65000:100 or a regex)",
+            kCommunity));
+  }
+  const auto& value = values[0];
+  if (std::any_of(value.begin(), value.end(), [](unsigned char c) {
+        return std::isspace(c) != 0;
+      })) {
+    return err(
+        fmt::format(
+            "Error: {} '{}' must not contain whitespace; repeat the command "
+            "once per community",
+            kCommunity,
+            value));
+  }
+  try {
+    boost::regex compiled(value);
+  } catch (const boost::regex_error& e) {
+    return err(
+        fmt::format(
+            "Error: Malformed {} '{}': {}", kCommunity, value, e.what()));
+  }
+  auto& communities = list.communities().ensure();
+  if (std::find(communities.begin(), communities.end(), value) !=
+      communities.end()) {
+    return ok(fmt::format("{} {} already present", kCommunity, value));
+  }
+  communities.push_back(value);
+  return ok(fmt::format("Successfully added {} {}", kCommunity, value));
+}
+
 // ---- list-level attribute registry ------------------------------------------
 // One line per documented attribute: its dispatch key, its value shape, and
 // the setter that stores it.
 const std::map<std::string, AttrHandler<CommunityList>, std::less<>>&
 listAttrHandlers() {
-  static const std::string kBooleanOperatorValues = fmt::format(
-      "{}|{}|{}", kBooleanOperatorAnd, kBooleanOperatorOr, kBooleanOperatorNot);
+  static const std::string kBooleanOperatorValues =
+      fmt::format("{}|{}", kBooleanOperatorAnd, kBooleanOperatorOr);
   static const std::map<std::string, AttrHandler<CommunityList>, std::less<>>
       kHandlers = {
           {std::string(kBooleanOperator),
@@ -103,6 +150,7 @@ listAttrHandlers() {
                kBooleanOperatorValues,
                lookupBooleanOperator,
                setListBooleanOperator)},
+          {std::string(kCommunity), community},
           {std::string(kDescription),
            joinedStringAttr<CommunityList>(kDescription, setListDescription)},
           {std::string(kExactMatch),
