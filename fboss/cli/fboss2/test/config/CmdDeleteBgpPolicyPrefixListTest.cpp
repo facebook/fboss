@@ -156,13 +156,33 @@ TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteExistingList) {
   EXPECT_TRUE(sessionFileExists());
 }
 
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteUnknownListRejected) {
+// Delete mirrors add: an absent target is a success with a warning, never an
+// error, so a replayed script stays idempotent.
+TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteUnknownListWarns) {
   auto result = del({"NO-SUCH-LIST"});
   EXPECT_THAT(
-      result, HasSubstr("Error: BGP prefix-list NO-SUCH-LIST not found"));
-  // Nothing was persisted for the failed delete.
+      result,
+      HasSubstr(
+          "Warning: BGP prefix-list NO-SUCH-LIST does not exist; nothing to "
+          "delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
+  // Nothing changed, so nothing is staged.
   EXPECT_FALSE(sessionFileExists())
-      << "session file should not exist after rejected delete";
+      << "session file should not exist after a no-op delete";
+}
+
+TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteTwiceIsIdempotent) {
+  configure({"PL100", "description", "delete-me"});
+  EXPECT_THAT(del({"PL100"}), HasSubstr("Successfully deleted"));
+  EXPECT_TRUE(lists().empty());
+
+  auto again = del({"PL100"});
+  EXPECT_THAT(
+      again,
+      HasSubstr(
+          "Warning: BGP prefix-list PL100 does not exist; nothing to delete"));
+  EXPECT_THAT(again, Not(HasSubstr("Error:")));
+  EXPECT_TRUE(lists().empty());
 }
 
 TEST_F(
@@ -170,7 +190,7 @@ TEST_F(
     deleteUnknownLeavesOthersIntact) {
   configure({"PL100", "description", "one"});
   auto result = del({"PL200"});
-  EXPECT_THAT(result, HasSubstr("not found"));
+  EXPECT_THAT(result, HasSubstr("does not exist"));
   ASSERT_EQ(lists().size(), 1);
   EXPECT_EQ(*lists()[0].name(), "PL100");
 }
@@ -205,33 +225,55 @@ TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteLastEntryKeepsList) {
   EXPECT_TRUE(lists()[0].prefixes()->empty());
 }
 
-TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteUnknownEntryRejected) {
+TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteUnknownEntryWarns) {
   configureEntry("PL100", 10, "10.0.0.0/8");
   // Remove the session file created by configure so its absence afterwards
-  // proves the rejected delete did not persist anything new.
+  // proves the no-op delete did not persist anything new.
   ASSERT_TRUE(sessionFileExists());
   std::filesystem::remove(
       ConfigSession::getInstance().getBgpSessionConfigPath());
 
   auto result = del({"PL100", "entry", "99"});
   EXPECT_THAT(
-      result, HasSubstr("Error: BGP prefix-list PL100 entry 99 not found"));
+      result,
+      HasSubstr(
+          "Warning: BGP prefix-list PL100 has no entry 99; nothing to delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
   EXPECT_FALSE(sessionFileExists())
-      << "rejected delete must not persist a session file";
+      << "no-op delete must not persist a session file";
   // The existing entry is untouched.
   ASSERT_EQ(lists().size(), 1);
   ASSERT_EQ(lists()[0].prefixes()->size(), 1);
   EXPECT_EQ(*(*lists()[0].prefixes())[0].seq_num(), 10);
 }
 
+TEST_F(CmdDeleteBgpPolicyPrefixListTestFixture, deleteEntryTwiceIsIdempotent) {
+  configureEntry("PL100", 10, "10.0.0.0/8");
+  EXPECT_THAT(del({"PL100", "entry", "10"}), HasSubstr("Successfully"));
+  EXPECT_TRUE(lists()[0].prefixes()->empty());
+
+  auto again = del({"PL100", "entry", "10"});
+  EXPECT_THAT(
+      again,
+      HasSubstr(
+          "Warning: BGP prefix-list PL100 has no entry 10; nothing to delete"));
+  EXPECT_THAT(again, Not(HasSubstr("Error:")));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_TRUE(lists()[0].prefixes()->empty());
+}
+
 TEST_F(
     CmdDeleteBgpPolicyPrefixListTestFixture,
-    deleteEntryFromUnknownListRejected) {
+    deleteEntryFromUnknownListWarns) {
   auto result = del({"NO-SUCH-LIST", "entry", "10"});
   EXPECT_THAT(
-      result, HasSubstr("Error: BGP prefix-list NO-SUCH-LIST not found"));
+      result,
+      HasSubstr(
+          "Warning: BGP prefix-list NO-SUCH-LIST does not exist; nothing to "
+          "delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
   EXPECT_FALSE(sessionFileExists())
-      << "session file should not exist after rejected delete";
+      << "session file should not exist after a no-op delete";
 }
 
 // ==============================================================================
