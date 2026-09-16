@@ -21,8 +21,9 @@
 namespace facebook::fboss {
 
 // Parsed `as-path-list <name> [<attribute> <value> ...]`, validated at
-// construction. An AsPathList is keyed by <name>. The list's entries are their
-// own subcommand (CmdConfigProtocolBgpPolicyAsPathListEntry), not attributes.
+// construction. An AsPathList is keyed by <name>. Its patterns are a flat
+// string list in the daemon, so they are flat `regex` attributes here (one per
+// invocation), not nested entries.
 //
 // Grammar (from the FBOSS proposed syntax):
 //   as-path-list <name>                          (create/select list)
@@ -61,9 +62,9 @@ class BgpAsPathListConfig : public utils::BaseObjectArgType<std::string> {
 struct CmdConfigProtocolBgpPolicyAsPathListTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgpPolicy;
   static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
-    // No positionals_at_end() here: CLI11 must stay free to classify the
-    // `entry` token as this command's subcommand rather than swallowing it
-    // into args. See CmdConfigProtocolBgpPolicyRoutingPolicyTraits.
+    // Stops CLI11 from classifying attribute tokens as subcommands once the
+    // list name is consumed. See CmdConfigProtocolBgpNeighborTraits.
+    cmd.positionals_at_end();
     cmd.add_option("args", args, "<name> [<attribute> <value> ...]");
   }
   using ObjectArgType = BgpAsPathListConfig;

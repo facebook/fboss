@@ -13,17 +13,16 @@
 #include <fmt/core.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <algorithm>
-#include <cstdint>
 #include <string>
 #include <vector>
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
 
 /**
  * Lookup/create helpers for the as-path-list CLI family, shared between the
- * list-level dispatcher (CmdConfigProtocolBgpPolicyAsPathList), the entry
- * subcommand (CmdConfigProtocolBgpPolicyAsPathListEntry), and the delete
- * counterparts. An AsPathList is keyed by name; an AsPathListEntry (in
- * as_path_list[]) is keyed by sequence_number.
+ * list-level dispatcher (CmdConfigProtocolBgpPolicyAsPathList) and its delete
+ * counterpart. An AsPathList is keyed by name. Its patterns live in the flat
+ * as_paths string list, which is the field bgpd matches against; the
+ * structured as_path_list[] entries are never read by bgpd and have no CLI.
  */
 namespace facebook::fboss::bgpcli {
 
@@ -56,34 +55,6 @@ inline bgp::bgp_policy::AsPathList& findOrCreateAsPathList(
   auto& list = lists.back();
   list.name() = name;
   return list;
-}
-
-inline bool asPathListEntryExists(
-    const bgp::bgp_policy::AsPathList& list,
-    int64_t seqNum) {
-  const auto& entries = *list.as_path_list();
-  return std::any_of(entries.begin(), entries.end(), [&](const auto& entry) {
-    return entry.sequence_number().has_value() &&
-        *entry.sequence_number() == seqNum;
-  });
-}
-
-// Find the entry keyed by sequence_number within a list, creating it if
-// absent. sequence_number is the entry's identity.
-inline bgp::bgp_policy::AsPathListEntry& findOrCreateAsPathListEntry(
-    bgp::bgp_policy::AsPathList& list,
-    int64_t seqNum) {
-  auto& entries = *list.as_path_list();
-  for (auto& entry : entries) {
-    if (entry.sequence_number().has_value() &&
-        *entry.sequence_number() == seqNum) {
-      return entry;
-    }
-  }
-  entries.emplace_back();
-  auto& entry = entries.back();
-  entry.sequence_number() = seqNum;
-  return entry;
 }
 
 inline const bgp::bgp_policy::AsPathList* findAsPathList(

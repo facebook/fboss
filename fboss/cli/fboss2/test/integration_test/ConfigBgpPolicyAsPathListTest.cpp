@@ -4,8 +4,8 @@
  * End-to-end tests for `fboss2-dev config protocol bgp policy as-path-list
  * <name> [<attribute> <value> ...]`.
  *
- * Scope: the AS-path list level (its entries are covered by
- * ConfigBgpPolicyAsPathListEntryTest). Every test stages the change AND
+ * Scope: the whole AS-path list, including its flat `regex` patterns (the
+ * as_paths field bgpd matches on). Every test stages the change AND
  * commits it, then asserts the value landed at the correct thrift field path
  * inside the matching .policies.aspath_lists[] entry of bgpd's running config
  * (via getRunningConfig RPC) — which also confirms bgpd accepts and adopts a
