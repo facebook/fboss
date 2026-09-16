@@ -12,7 +12,7 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
-#include <boost/regex.hpp>
+#include <boost/regex.hpp> // NOLINT(misc-include-cleaner)
 #include <fmt/core.h>
 #include <neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h>
 #include <algorithm>
@@ -40,8 +40,10 @@ namespace facebook::fboss {
 namespace {
 
 // The attribute names, exactly as documented. Kept here so the
-// valid-attribute set and the handler table stay in sync. The list's entries
-// are their own subcommand, not attributes.
+// valid-attribute set and the handler table stay in sync. Patterns are flat
+// `regex` attributes because bgpd stores them as a flat string list; nested
+// entries are reserved for families where the daemon stores objects
+// (prefix-list, routing-policy).
 constexpr std::string_view kBooleanOperator = "boolean-operator";
 constexpr std::string_view kDescription = "description";
 constexpr std::string_view kRegex = "regex";

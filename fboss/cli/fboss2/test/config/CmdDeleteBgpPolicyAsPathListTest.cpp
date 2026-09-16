@@ -134,13 +134,33 @@ TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteExistingList) {
   EXPECT_TRUE(sessionFileExists());
 }
 
-TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteUnknownListRejected) {
+// Delete mirrors add: an absent target is a success with a warning, never an
+// error, so a replayed script stays idempotent.
+TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteUnknownListWarns) {
   auto result = del({"NO-SUCH-LIST"});
   EXPECT_THAT(
-      result, HasSubstr("Error: BGP as-path-list NO-SUCH-LIST not found"));
-  // Nothing was persisted for the failed delete.
+      result,
+      HasSubstr(
+          "Warning: BGP as-path-list NO-SUCH-LIST does not exist; nothing to "
+          "delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
+  // Nothing changed, so nothing is staged.
   EXPECT_FALSE(sessionFileExists())
-      << "session file should not exist after rejected delete";
+      << "session file should not exist after a no-op delete";
+}
+
+TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteTwiceIsIdempotent) {
+  configure({"AS100", "description", "delete-me"});
+  EXPECT_THAT(del({"AS100"}), HasSubstr("Successfully deleted"));
+  EXPECT_TRUE(lists().empty());
+
+  auto again = del({"AS100"});
+  EXPECT_THAT(
+      again,
+      HasSubstr(
+          "Warning: BGP as-path-list AS100 does not exist; nothing to delete"));
+  EXPECT_THAT(again, Not(HasSubstr("Error:")));
+  EXPECT_TRUE(lists().empty());
 }
 
 TEST_F(
@@ -148,7 +168,7 @@ TEST_F(
     deleteUnknownLeavesOthersIntact) {
   configure({"AS100", "description", "one"});
   auto result = del({"AS200"});
-  EXPECT_THAT(result, HasSubstr("not found"));
+  EXPECT_THAT(result, HasSubstr("does not exist"));
   ASSERT_EQ(lists().size(), 1);
   EXPECT_EQ(*lists()[0].name(), "AS100");
 }
@@ -246,18 +266,49 @@ TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteOneRegex) {
   EXPECT_FALSE(lists()[0].as_paths().has_value());
 }
 
-TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteUnknownRegexRejected) {
+TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteUnknownRegexWarns) {
   configure({"AS100", "regex", "^65000_"});
+  // Remove the session file created by configure so its absence afterwards
+  // proves the no-op delete did not persist anything new.
+  ASSERT_TRUE(sessionFileExists());
+  std::filesystem::remove(
+      ConfigSession::getInstance().getBgpSessionConfigPath());
+
   auto result = del({"AS100", "regex", "^65002_"});
   EXPECT_THAT(
       result,
-      HasSubstr("Error: BGP as-path-list AS100 regex ^65002_ not found"));
+      HasSubstr(
+          "Warning: BGP as-path-list AS100 has no regex ^65002_; nothing to "
+          "delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
+  EXPECT_FALSE(sessionFileExists())
+      << "no-op delete must not persist a session file";
   ASSERT_EQ(lists().size(), 1);
   EXPECT_EQ(lists()[0].as_paths()->size(), 1);
 
+  auto unknownList = del({"NO-SUCH-LIST", "regex", "^65000_"});
   EXPECT_THAT(
-      del({"NO-SUCH-LIST", "regex", "^65000_"}),
-      HasSubstr("Error: BGP as-path-list NO-SUCH-LIST not found"));
+      unknownList,
+      HasSubstr(
+          "Warning: BGP as-path-list NO-SUCH-LIST does not exist; nothing to "
+          "delete"));
+  EXPECT_THAT(unknownList, Not(HasSubstr("Error:")));
+}
+
+TEST_F(CmdDeleteBgpPolicyAsPathListTestFixture, deleteRegexTwiceIsIdempotent) {
+  configure({"AS100", "regex", "^65000_"});
+  EXPECT_THAT(del({"AS100", "regex", "^65000_"}), HasSubstr("Successfully"));
+  EXPECT_FALSE(lists()[0].as_paths().has_value());
+
+  auto again = del({"AS100", "regex", "^65000_"});
+  EXPECT_THAT(
+      again,
+      HasSubstr(
+          "Warning: BGP as-path-list AS100 has no regex ^65000_; nothing to "
+          "delete"));
+  EXPECT_THAT(again, Not(HasSubstr("Error:")));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_FALSE(lists()[0].as_paths().has_value());
 }
 
 } // namespace facebook::fboss

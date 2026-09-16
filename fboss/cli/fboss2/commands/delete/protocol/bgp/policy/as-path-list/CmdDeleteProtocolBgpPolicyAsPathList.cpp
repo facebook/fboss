@@ -21,7 +21,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -74,17 +73,21 @@ CmdDeleteProtocolBgpPolicyAsPathList::queryClient(
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
+  // Delete mirrors add: an absent target is already the requested end state,
+  // so this is a success with a warning. Nothing is saved, so a typo'd delete
+  // can't stage an unrelated session change.
+  auto absent = fmt::format(
+      "Warning: BGP as-path-list {} does not exist; nothing to delete",
+      args.listName());
   if (!cfg.policies().has_value()) {
-    // Nothing is persisted for an unknown list, so a typo'd delete can't stage
-    // an unrelated session change.
-    return fmt::format("Error: BGP as-path-list {} not found", args.listName());
+    return absent;
   }
   auto& lists = *cfg.policies()->aspath_lists();
   auto it = std::find_if(lists.begin(), lists.end(), [&](const auto& list) {
     return *list.name() == args.listName();
   });
   if (it == lists.end()) {
-    return fmt::format("Error: BGP as-path-list {} not found", args.listName());
+    return absent;
   }
   if (args.hasRegex()) {
     // Removing one pattern from a referenced list is safe: the name the terms
@@ -108,7 +111,7 @@ CmdDeleteProtocolBgpPolicyAsPathList::queryClient(
       }
     }
     return fmt::format(
-        "Error: BGP as-path-list {} regex {} not found",
+        "Warning: BGP as-path-list {} has no regex {}; nothing to delete",
         args.listName(),
         args.regex());
   }

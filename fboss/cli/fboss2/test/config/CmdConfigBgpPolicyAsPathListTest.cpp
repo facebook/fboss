@@ -11,7 +11,6 @@
 
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/bgp_policy_types.h"
 #include "configerator/structs/neteng/bgp_policy/thrift/gen-cpp2/routing_policy_types.h"
-#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
@@ -100,7 +99,8 @@ TEST_F(CmdConfigBgpPolicyAsPathListTestFixture, argValidation) {
   EXPECT_THROW(
       BgpAsPathListConfig({"AS100", "no-such-attr", "1"}),
       std::invalid_argument);
-  // asn-regexp is an entry attribute, not a list attribute.
+  // asn-regexp was the removed entry subcommand's attribute; bgpd never read
+  // the entries it wrote, so it must not be accepted anywhere.
   EXPECT_THROW(
       BgpAsPathListConfig({"AS100", "asn-regexp", "^65000_"}),
       std::invalid_argument);
