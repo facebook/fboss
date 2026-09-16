@@ -121,20 +121,16 @@ class AgentCoppTest : public AgentHwTest {
 
   cfg::SwitchConfig getTrunkInitialConfig(const AgentEnsemble& ensemble) const {
     auto switchId = this->getCurrentSwitchIdForTesting();
-    auto asic = checkSameAndGetAsic(
-        ensemble.getL3Asics(), static_cast<int32_t>(switchId));
     auto interfacePorts = ensemble.masterLogicalInterfacePortIds(switchId);
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getPlatformMapping(),
-        asic,
-        {interfacePorts[0], interfacePorts[1]},
-        ensemble.supportsAddRemovePort(),
-        asic->desiredLoopbackModes(),
-        ensemble.getSw()->getPlatformType());
+    std::vector<PortID> members;
+    for (auto port : {interfacePorts[0], interfacePorts[1]}) {
+      members.emplace_back(port);
+    }
+    auto cfg = utility::oneAggregatePortPerInterfaceConfig(
+        ensemble.getSw(), members, {{AggregatePortID(1), members}});
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addAggPort(1, {interfacePorts[0], interfacePorts[1]}, &cfg);
     return cfg;
   }
 
