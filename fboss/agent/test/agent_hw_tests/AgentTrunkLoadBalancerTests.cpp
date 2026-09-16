@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "folly/IPAddressV4.h"
@@ -73,15 +74,17 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
     return 13;
   }
 
-  void addAggregatePorts(cfg::SwitchConfig* config, AggPortInfo aggInfo) const {
-    AggregatePortID curAggId{1};
+  std::vector<utility::AggregatePortInfo> getAggregatePortInfos(
+      AggPortInfo aggInfo) const {
+    std::vector<utility::AggregatePortInfo> aggPorts;
     for (auto i = 0; i < aggInfo.numAggPorts; ++i) {
-      std::vector<int32_t> members(aggInfo.aggPortWidth);
+      std::vector<PortID> members;
       for (auto j = 0; j < aggInfo.aggPortWidth; ++j) {
-        members[j] = masterLogicalPortIds()[i * aggInfo.aggPortWidth + j];
+        members.push_back(masterLogicalPortIds()[i * aggInfo.aggPortWidth + j]);
       }
-      utility::addAggPort(curAggId++, members, config);
+      aggPorts.push_back({AggregatePortID(i + 1), members});
     }
+    return aggPorts;
   }
   std::vector<PortDescriptor> getPhysicalPorts(AggPortInfo aggInfo) const {
     std::vector<PortDescriptor> physicalPorts;
@@ -206,9 +209,12 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   }
 
   cfg::SwitchConfig configureAggregatePorts(AggPortInfo aggInfo) {
-    auto config = initialConfig(*getAgentEnsemble());
-    addAggregatePorts(&config, aggInfo);
-    return config;
+    auto& ensemble = *getAgentEnsemble();
+    return utility::oneAggregatePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        getAggregatePortInfos(aggInfo),
+        true /*interfaceHasSubnet*/);
   }
 
   void setupIPECMP(AggPortInfo aggInfo) {
