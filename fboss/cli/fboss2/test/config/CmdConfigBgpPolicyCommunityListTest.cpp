@@ -77,10 +77,19 @@ TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, argValidation) {
   EXPECT_THROW(
       BgpCommunityListConfig({"CL100", "no-such-attr", "1"}),
       std::invalid_argument);
-  // value is a community attribute, not a list attribute.
+  // value was the removed community subcommand's attribute; bgpd never read
+  // the members it wrote, so it must not be accepted anywhere.
   EXPECT_THROW(
       BgpCommunityListConfig({"CL100", "value", "65000:100"}),
       std::invalid_argument);
+
+  // List-level community and boolean-operator are recognized.
+  EXPECT_EQ(
+      BgpCommunityListConfig({"CL100", "community", "65000:100"}).attr(),
+      "community");
+  EXPECT_EQ(
+      BgpCommunityListConfig({"CL100", "boolean-operator", "AND"}).attr(),
+      "boolean-operator");
 }
 
 // ==============================================================================
@@ -93,7 +102,7 @@ TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, bareCreateList) {
       result, HasSubstr("Successfully created BGP community-list CL100"));
   ASSERT_EQ(lists().size(), 1);
   EXPECT_EQ(*lists()[0].name(), "CL100");
-  EXPECT_FALSE(lists()[0].members().has_value());
+  EXPECT_FALSE(lists()[0].communities().has_value());
   EXPECT_TRUE(sessionFileExists());
 
   run({"CL200"});
@@ -111,11 +120,19 @@ TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, setListDescription) {
 
 TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, setBooleanOperator) {
   auto result = run({"CL100", "boolean-operator", "AND"});
-  EXPECT_THAT(result, HasSubstr("Successfully set boolean-operator"));
+  EXPECT_THAT(result, HasSubstr("Successfully set boolean-operator to: AND"));
   EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::AND);
 
-  run({"CL100", "boolean-operator", "NOT"});
-  EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::NOT);
+  run({"CL100", "boolean-operator", "OR"});
+  EXPECT_EQ(*lists()[0].boolean_operator(), BooleanOperator::OR);
+}
+
+TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, booleanOperatorNotRejected) {
+  auto result = run({"CL100", "boolean-operator", "NOT"});
+  EXPECT_THAT(result, HasSubstr("Invalid boolean-operator value 'NOT'"));
+  EXPECT_THAT(result, HasSubstr("AND|OR"));
+  EXPECT_TRUE(lists().empty());
+  EXPECT_FALSE(sessionFileExists());
 }
 
 TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, booleanOperatorDefaultIsOr) {
@@ -163,7 +180,7 @@ TEST_F(
   // (a string_view capture dangling over a fmt::format temporary).
   EXPECT_THAT(
       result,
-      HasSubstr("Invalid boolean-operator value 'XOR'; expected AND|OR|NOT"));
+      HasSubstr("Invalid boolean-operator value 'XOR'; expected AND|OR"));
   // The rejected value must not leave a phantom list behind.
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists())
@@ -176,6 +193,69 @@ TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, invalidExactMatchRejected) {
   EXPECT_TRUE(lists().empty());
   EXPECT_FALSE(sessionFileExists())
       << "session file should not exist after rejected input";
+}
+
+// ==============================================================================
+// community — communities, the field bgpd matches against
+// ==============================================================================
+
+TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, communityAppends) {
+  auto result = run({"CL100", "community", "65000:100"});
+  EXPECT_THAT(result, HasSubstr("Successfully added community 65000:100"));
+  EXPECT_THAT(result, HasSubstr("for community-list CL100"));
+  run({"CL100", "community", "65000:200"});
+  ASSERT_EQ(lists().size(), 1);
+  // Regression guard for the inert-config bug: the value must land in the
+  // flat `communities` list bgpd reads, never in the dead `members`.
+  ASSERT_TRUE(lists()[0].communities().has_value());
+  EXPECT_EQ(
+      *lists()[0].communities(),
+      std::vector<std::string>({"65000:100", "65000:200"}));
+  EXPECT_FALSE(lists()[0].members().has_value());
+  EXPECT_TRUE(sessionFileExists());
+}
+
+TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, communityAcceptsRegex) {
+  // bgpd compiles a non-literal value as a regex, so one is accepted here.
+  auto result = run({"CL100", "community", "^65000:.*$"});
+  EXPECT_THAT(result, HasSubstr("Successfully added community ^65000:.*$"));
+  EXPECT_EQ(
+      *lists()[0].communities(), std::vector<std::string>({"^65000:.*$"}));
+}
+
+TEST_F(
+    CmdConfigBgpPolicyCommunityListTestFixture,
+    communityAddAgainIsIdempotent) {
+  run({"CL100", "community", "65000:100"});
+  auto result = run({"CL100", "community", "65000:100"});
+  EXPECT_THAT(result, HasSubstr("already present"));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_EQ(lists()[0].communities()->size(), 1);
+}
+
+TEST_F(CmdConfigBgpPolicyCommunityListTestFixture, malformedCommunityRejected) {
+  // Neither a literal nor a compilable regex: bgpd would refuse it at load.
+  auto result = run({"CL100", "community", "65000:("});
+  EXPECT_THAT(result, HasSubstr("Error: Malformed community"));
+  // A rejected first attribute leaves no phantom list and nothing on disk.
+  EXPECT_TRUE(lists().empty());
+  EXPECT_FALSE(sessionFileExists())
+      << "session file should not exist after rejected input";
+}
+
+TEST_F(
+    CmdConfigBgpPolicyCommunityListTestFixture,
+    communityWithWhitespaceRejected) {
+  run({"CL100"});
+  auto result = run({"CL100", "community", "65000:100 65000:200"});
+  EXPECT_THAT(result, HasSubstr("must not contain whitespace"));
+  ASSERT_EQ(lists().size(), 1);
+  EXPECT_FALSE(lists()[0].communities().has_value());
+
+  EXPECT_THAT(run({"CL100", "community"}), HasSubstr("requires <community>"));
+  EXPECT_THAT(
+      run({"CL100", "community", "65000:100", "65000:200"}),
+      HasSubstr("requires <community>"));
 }
 
 } // namespace facebook::fboss

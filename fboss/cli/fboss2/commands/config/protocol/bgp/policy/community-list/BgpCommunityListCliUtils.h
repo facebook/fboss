@@ -17,10 +17,10 @@
 
 /**
  * Lookup/create helpers for the community-list CLI family, shared between the
- * list-level dispatcher (CmdConfigProtocolBgpPolicyCommunityList), the
- * community subcommand (CmdConfigProtocolBgpPolicyCommunityListCommunity), and
- * the delete counterparts. A CommunityList is keyed by name; the inline
- * Community members it holds are keyed by their own name.
+ * list-level dispatcher (CmdConfigProtocolBgpPolicyCommunityList) and its
+ * delete counterpart. A CommunityList is keyed by name. Its values live in the
+ * flat `communities` string list, which is the field bgpd matches against; the
+ * structured members[] are never read by bgpd and have no CLI.
  */
 namespace facebook::fboss::bgpcli {
 
@@ -53,38 +53,6 @@ inline bgp::bgp_policy::CommunityList& findOrCreateCommunityList(
   auto& list = lists.back();
   list.name() = name;
   return list;
-}
-
-inline bool communityMemberExists(
-    const bgp::bgp_policy::CommunityList& list,
-    const std::string& name) {
-  if (!list.members().has_value()) {
-    return false;
-  }
-  const auto& members = *list.members();
-  return std::any_of(members.begin(), members.end(), [&](const auto& member) {
-    return member.community_ref().has_value() &&
-        *member.community_ref()->name() == name;
-  });
-}
-
-// Find the inline Community member keyed by name within a list, creating it
-// if absent. The CLI always defines members inline (the CommunityRefType
-// union's `community` arm); the member's name is its identity.
-inline bgp::bgp_policy::Community& findOrCreateCommunityMember(
-    bgp::bgp_policy::CommunityList& list,
-    const std::string& name) {
-  auto& members = list.members().ensure();
-  for (auto& member : members) {
-    if (member.community_ref().has_value() &&
-        *member.community_ref()->name() == name) {
-      return *member.community_ref();
-    }
-  }
-  members.emplace_back();
-  auto& community = members.back().set_community();
-  community.name() = name;
-  return community;
 }
 
 } // namespace facebook::fboss::bgpcli

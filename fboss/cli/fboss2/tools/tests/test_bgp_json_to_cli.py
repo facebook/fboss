@@ -1072,15 +1072,38 @@ class GenerateCommunityListCommandsTest(unittest.TestCase):
             ],
         )
 
-    def test_boolean_operator_or_omitted_not_kept(self) -> None:
+    def test_community_per_value(self) -> None:
+        """Each communities value is one quoted `community` line, in order."""
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["65000:100", "^65000:.*$"]}
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} community {escape_shell_arg('65000:100')}",
+                f"{self.PREFIX} community {escape_shell_arg('^65000:.*$')}",
+            ],
+        )
+
+    def test_injection_in_community_neutralized(self) -> None:
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["$(reboot)"]}
+        )
+        self.assertEqual(
+            commands, [f"{self.PREFIX} community {escape_shell_arg('$(reboot)')}"]
+        )
+
+    def test_boolean_operator_or_omitted_not_warns(self) -> None:
         self.assertEqual(
             generate_community_list_commands({"name": "CL", "boolean_operator": "OR"}),
             [self.PREFIX],
         )
-        self.assertEqual(
-            generate_community_list_commands({"name": "CL", "boolean_operator": 3}),
-            [f"{self.PREFIX} boolean-operator NOT"],
+        commands = generate_community_list_commands(
+            {"name": "CL", "boolean_operator": 3}
         )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
 
     def test_exact_match_false_preserved(self) -> None:
         self.assertEqual(
@@ -1089,10 +1112,17 @@ class GenerateCommunityListCommandsTest(unittest.TestCase):
         )
 
     def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
         commands = generate_community_list_commands(
-            {"name": "CL", "communities": ["65000:1"], "community_list_names": ["X"]}
+            {
+                "name": "CL",
+                "community_list_names": ["X"],
+                "members": [{"community": {"name": "CM1", "value": "65000:1"}}],
+            }
         )
         self.assertEqual(len(commands), 2)
+        self.assertIn("community_list_names", commands[0])
+        self.assertIn("members entries", commands[1])
         for c in commands:
             self.assertTrue(c.startswith("# WARNING:"), c)
 

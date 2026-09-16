@@ -484,8 +484,10 @@ def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
 def generate_community_list_commands(community_list: dict[str, Any]) -> list[str]:
     """Generate `config protocol bgp policy community-list` commands for one list.
 
-    The deprecated inline `communities` and the `community_list_names`
-    references have no CLI spelling; they surface as warnings.
+    bgpd matches on `communities` (one `community` line each), `boolean_operator`
+    (emitted only when it differs from the OR default) and `exact_match`.
+    `community_list_names` and the `members` entries are never read by bgpd and
+    have no CLI spelling here, so they surface as warnings rather than vanishing.
     """
     name = community_list.get("name", "")
     if not name:
@@ -497,26 +499,35 @@ def generate_community_list_commands(community_list: dict[str, Any]) -> list[str
         commands.append(
             f"{prefix} description {escape_shell_arg(community_list['description'])}"
         )
+    for community in community_list.get("communities") or []:
+        commands.append(f"{prefix} community {escape_shell_arg(community)}")
     if "boolean_operator" in community_list:
         operator = _boolean_operator_name(community_list["boolean_operator"])
-        if operator != "OR":
+        if operator == "NOT":
+            commands.append(
+                _warning(
+                    f"community-list {name}: boolean_operator NOT is not "
+                    "accepted by the CLI (bgpd treats it as AND); not emitted"
+                )
+            )
+        elif operator != "OR":
             commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
     if "exact_match" in community_list:
         commands.append(
             f"{prefix} exact-match {_shell_bool(community_list['exact_match'])}"
         )
-    if community_list.get("communities"):
-        commands.append(
-            _warning(
-                f"community-list {name}: inline `communities` has no CLI "
-                "equivalent (use members); not emitted"
-            )
-        )
     if community_list.get("community_list_names"):
         commands.append(
             _warning(
-                f"community-list {name}: community_list_names has no CLI "
-                "equivalent; not emitted"
+                f"community-list {name}: community_list_names is not read by "
+                "bgpd and has no CLI equivalent; not emitted"
+            )
+        )
+    if community_list.get("members"):
+        commands.append(
+            _warning(
+                f"community-list {name}: members entries are not read by bgpd "
+                "(bgpd matches communities); not emitted"
             )
         )
     if not commands:
