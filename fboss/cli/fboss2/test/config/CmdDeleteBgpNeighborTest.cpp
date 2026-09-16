@@ -109,18 +109,39 @@ TEST_F(CmdDeleteBgpNeighborTestFixture, deleteByEquivalentPrefixSpelling) {
   EXPECT_TRUE(peers().empty());
 }
 
-TEST_F(CmdDeleteBgpNeighborTestFixture, deleteUnknownNeighborRejected) {
+// Delete mirrors add: an absent target is a success with a warning, never an
+// error, so a replayed script stays idempotent.
+TEST_F(CmdDeleteBgpNeighborTestFixture, deleteUnknownNeighborWarns) {
   auto result = del({"192.0.2.99"});
-  EXPECT_THAT(result, HasSubstr("Error: BGP neighbor 192.0.2.99 not found"));
-  // Nothing was persisted for the failed delete.
+  EXPECT_THAT(
+      result,
+      HasSubstr(
+          "Warning: BGP neighbor 192.0.2.99 does not exist; nothing to "
+          "delete"));
+  EXPECT_THAT(result, Not(HasSubstr("Error:")));
+  // Nothing changed, so nothing is staged.
   EXPECT_FALSE(sessionFileExists())
-      << "session file should not exist after rejected delete";
+      << "session file should not exist after a no-op delete";
+}
+
+TEST_F(CmdDeleteBgpNeighborTestFixture, deleteTwiceIsIdempotent) {
+  configure({"10.0.0.1", "remote-asn", "65000"});
+  EXPECT_THAT(del({"10.0.0.1"}), HasSubstr("Successfully deleted"));
+  EXPECT_TRUE(peers().empty());
+
+  auto again = del({"10.0.0.1"});
+  EXPECT_THAT(
+      again,
+      HasSubstr(
+          "Warning: BGP neighbor 10.0.0.1 does not exist; nothing to delete"));
+  EXPECT_THAT(again, Not(HasSubstr("Error:")));
+  EXPECT_TRUE(peers().empty());
 }
 
 TEST_F(CmdDeleteBgpNeighborTestFixture, deleteUnknownLeavesOthersIntact) {
   configure({"10.0.0.1", "remote-asn", "65000"});
   auto result = del({"10.0.0.99"});
-  EXPECT_THAT(result, HasSubstr("not found"));
+  EXPECT_THAT(result, HasSubstr("does not exist"));
   ASSERT_EQ(peers().size(), 1);
   EXPECT_EQ(*peers()[0].peer_addr(), "10.0.0.1");
 }

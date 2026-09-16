@@ -53,9 +53,12 @@ CmdDeleteProtocolBgpNeighbor::queryClient(
   auto& cfg = session.getBgpConfig();
   auto it = bgpcli::findBgpPeer(cfg, args.peerAddr());
   if (it == cfg.peers()->end()) {
-    // Nothing is persisted for an unknown neighbor, so a typo'd delete can't
-    // stage an unrelated session change.
-    return fmt::format("Error: BGP neighbor {} not found", args.peerAddr());
+    // Delete mirrors add: an absent neighbor is already the requested end
+    // state, so this is a success with a warning. Nothing is saved, so a
+    // typo'd delete can't stage an unrelated session change.
+    return fmt::format(
+        "Warning: BGP neighbor {} does not exist; nothing to delete",
+        args.peerAddr());
   }
   cfg.peers()->erase(it);
   session.saveBgpConfig();
