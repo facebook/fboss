@@ -203,7 +203,8 @@ void SaiSrv6MySidManager::addMySidEntry(
       RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(nhopSet, std::nullopt));
+              SaiNextHopGroupKey(
+                  nhopSet, std::nullopt, getNextHopGroupType(nhopSet)));
       nexthopHandle = nextHopGroupHandle;
     } else if (nhops.size() == 1) {
       auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
