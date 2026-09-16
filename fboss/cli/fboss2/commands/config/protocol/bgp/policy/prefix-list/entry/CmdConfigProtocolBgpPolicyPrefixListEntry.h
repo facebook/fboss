@@ -60,8 +60,9 @@ class BgpPrefixListEntryConfig : public utils::BaseObjectArgType<std::string> {
 };
 
 // The entry level of the prefix-list family as its own CLI11 subcommand; the
-// parent's parsed args arrive through the ancestor-args tuple, mirroring
-// CmdConfigProtocolBgpPolicyAsPathListEntry.
+// parent's parsed args arrive through the ancestor-args tuple. Prefix-list
+// entries are nested (unlike as-path-list/community-list values) because bgpd
+// reads them as structured objects, not a flat string list.
 struct CmdConfigProtocolBgpPolicyPrefixListEntryTraits
     : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocolBgpPolicyPrefixList;
