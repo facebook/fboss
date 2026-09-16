@@ -127,17 +127,21 @@ process_npu_sai_tarball() {
 
   local tarball="${tarballs[0]}"
 
-  # Two shapes are published. The SDK vendors ship sai-runtime.rpm inside a
+  # Two shapes are published. The SDK vendors ship a sai-runtime RPM inside a
   # tarball; the periodic kmod builds ship the .ko files directly, already
   # laid out under lib/modules/<kver>/extra/<vendor>/.
-  if tar tf "$tarball" | grep -qE '^(\./)?sai-runtime\.rpm$'; then
-    echo "  Extracting sai-runtime.rpm from $(basename "$tarball")..."
-    tar -xf "$tarball" -C "$component_dir" --wildcards '*sai-runtime.rpm'
+  #
+  # The RPM name is matched with a wildcard so it can carry its version --
+  # sai-runtime-14.2.0-1.xgs_6_5_34.x86_64.rpm -- which is what makes
+  # `rpm -qi sai-runtime` on a switch report which SDK the image was built with.
+  if tar tf "$tarball" | grep -qE '^(\./)?sai-runtime.*\.rpm$'; then
+    echo "  Extracting sai-runtime RPM from $(basename "$tarball")..."
+    tar -xf "$tarball" -C "$component_dir" --wildcards '*sai-runtime*.rpm'
 
     local rpm
-    rpm=$(find "$component_dir" -name sai-runtime.rpm -print -quit)
+    rpm=$(find "$component_dir" -name 'sai-runtime*.rpm' -print -quit)
     if [ -z "$rpm" ]; then
-      echo "ERROR: sai-runtime.rpm listed in $(basename "$tarball") but not extracted"
+      echo "ERROR: sai-runtime RPM listed in $(basename "$tarball") but not extracted"
       return 1
     fi
 
