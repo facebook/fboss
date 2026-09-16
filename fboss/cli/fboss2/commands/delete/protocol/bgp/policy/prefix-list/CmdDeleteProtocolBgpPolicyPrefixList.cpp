@@ -123,17 +123,21 @@ CmdDeleteProtocolBgpPolicyPrefixList::queryClient(
     const ObjectArgType& args) {
   auto& session = ConfigSession::getInstance();
   auto& cfg = session.getBgpConfig();
+  // Delete mirrors add: an absent target is already the requested end state,
+  // so this is a success with a warning. Nothing is saved, so a typo'd delete
+  // can't stage an unrelated session change.
+  auto absent = fmt::format(
+      "Warning: BGP prefix-list {} does not exist; nothing to delete",
+      args.listName());
   if (!cfg.policies().has_value()) {
-    // Nothing is persisted for an unknown list, so a typo'd delete can't stage
-    // an unrelated session change.
-    return fmt::format("Error: BGP prefix-list {} not found", args.listName());
+    return absent;
   }
   auto& lists = *cfg.policies()->prefix_lists();
   auto it = std::find_if(lists.begin(), lists.end(), [&](const auto& list) {
     return *list.name() == args.listName();
   });
   if (it == lists.end()) {
-    return fmt::format("Error: BGP prefix-list {} not found", args.listName());
+    return absent;
   }
   if (args.hasEntry()) {
     // Delete a single entry; the list itself stays.
@@ -145,7 +149,7 @@ CmdDeleteProtocolBgpPolicyPrefixList::queryClient(
         });
     if (entryIt == entries.end()) {
       return fmt::format(
-          "Error: BGP prefix-list {} entry {} not found",
+          "Warning: BGP prefix-list {} has no entry {}; nothing to delete",
           args.listName(),
           args.seqNum());
     }
