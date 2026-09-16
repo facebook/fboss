@@ -48,6 +48,16 @@ void SaiArsManager::addArs(
     alternatePathBiasForArs = SaiArsTraits::Attributes::AlternatePathBias{0};
   }
 #endif
+  std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
+      ecmpMemberCountForArs = std::nullopt;
+#if defined(BRCM_SAI_SDK_GTE_15_4)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+    if (auto arsWidth = platform_->getAsic()->getMaxArsWidth()) {
+      ecmpMemberCountForArs =
+          SaiArsTraits::Attributes::EcmpMemberCount{*arsWidth};
+    }
+  }
+#endif
   std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType =
       std::nullopt;
 #if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
@@ -67,7 +77,8 @@ void SaiArsManager::addArs(
           alternatePathCostForArs,
           alternatePathBiasForArs,
           nextHopGroupType,
-          toSourcePortPruneAttribute(splitHorizonEnabled)));
+          toSourcePortPruneAttribute(splitHorizonEnabled),
+          ecmpMemberCountForArs));
 
   auto cost = flowletSwitchConfig->getAlternatePathCost();
   auto bias = flowletSwitchConfig->getAlternatePathBias();
@@ -92,7 +103,8 @@ void SaiArsManager::addArs(
             SaiArsTraits::Attributes::AlternatePathBias{
                 static_cast<sai_uint32_t>(*bias)},
             nextHopGroupType,
-            std::nullopt));
+            std::nullopt,
+            ecmpMemberCountForArs));
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -110,7 +122,8 @@ void SaiArsManager::addArs(
             alternatePathCostForArs,
             alternatePathBiasForArs,
             nextHopGroupType,
-            std::nullopt));
+            std::nullopt,
+            ecmpMemberCountForArs));
   }
 #endif
 
