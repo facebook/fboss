@@ -60,9 +60,15 @@ struct RebootCause {
 // `determinedCause`: The cause determined to be responsible for the reboot.
 //
 // `allCauses`: Every cause reported by every provider, for forensics.
+//
+// `bootId`: Kernel boot id (/proc/sys/kernel/random/boot_id) this record
+// belongs to. Doubles as the once-per-boot guard: a run whose boot id matches
+// the previous run's exits without touching the providers. Empty when the boot
+// id could not be read.
 struct RebootCauseRecord {
   1: i64 detectedAtMs;
   2: string detectedAtPacific;
   3: RebootCause determinedCause;
   4: list<RebootCause> allCauses;
+  5: string bootId;
 }
