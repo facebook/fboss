@@ -254,8 +254,8 @@ and NOT try to return to "last known state".
 
 **Applies to: BMC**
 
-To retrieve the Serial Number, Asset Tag and other information essential for
-device identification, the “weutil” command is used. The output is provided as
+To retrieve the Serial Number and other information essential for device
+identification, the “weutil” command is used. The output is provided as
 colon+space separated keys and values, one per line.
 
 Weutil being able to read the **chassis EEPROM** is a hard requirement on the
@@ -272,41 +272,47 @@ on the x86 side and details agreed with Meta.
 Example command output:
 
 ```bash
-            Wedge EEPROM :
-            Version: 1
-            Product Name: WEDGE100S12V
-            Product Part Number: 20-002324
-            System Assembly Part Number: 13-5000013-03
-            Facebook PCBA Part Number: 132-000052-03
-            Facebook PCB Part Number: 131-000025-04
-            ODM PCBA Part Number: NP3FB7632001A
-            ODM PCBA Serial Number: RRG43015754
-            Product Production State: 4
-            Product Version: 1
-            Product Sub-Version: 2
-            Product Serial Number: RRG43015754
-            Product Asset Tag: 8377476
-            System Manufacturer: Joytech
-            System Manufacturing Date: 04-15-21
-            PCB Manufacturer: ISU
-            Assembled At: Joytech
-            Local MAC: 90:3C:B3:17:08:4C
-            Extended MAC Base: 90:3C:B3:17:08:4D
-            Extended MAC Address Size: 128
-            Location on Fabric: WEDGE100
-            CRC8: 0xc3
+Version: 6
+Product Name: FIRST_SQUEEZE
+Product Part Number: 20123456
+System Assembly Part Number: SYSA1234
+Meta PCBA Part Number: PCBA1234567
+Meta PCB Part Number: PCB12345678
+ODM/JDM PCBA Part Number: MYODM1234567
+ODM/JDM PCBA Serial Number: OS123456789AB
+Production State: EVT
+Production Sub-State: 0
+Re-Spin/Variant Indicator: 1
+Product Serial Number: PS1234567890A
+System Manufacturer: UNA_MAS
+System Manufacturing Date: 20130203
+PCB Manufacturer: TERZO
+Assembled At: JUICETORY
+EEPROM location on Fabric: BUDOKAN
+X86 CPU MAC Base: 11:22:33:44:55:66
+X86 CPU MAC Address Size: 258
+BMC MAC Base: 12:34:56:78:9a:bc
+BMC MAC Address Size: 772
+Switch ASIC MAC Base: 66:55:44:33:22:11
+Switch ASIC MAC Address Size: 512
+META Reserved MAC Base: fe:dc:ba:98:76:54
+META Reserved MAC Address Size: 2
+RMA: 1
+Vendor Defined Field 1: 0x0101010101
+Vendor Defined Field 2: 0x48656c6c6f
+Vendor Defined Field 3:
+CRC16: 0x4a05 (CRC Matched)
 ```
 
 Weutil **mandatory** fields:
 
-- Product Serial Number
-- Local MAC
 - Product Name
-- Product Asset Tag
-- Product Part Number
-- Product Version
-- Product Sub-Version
-- CRC8
+- Production State
+- Production Sub-State
+- Re-Spin/Variant Indicator
+- Product Serial Number
+- BMC MAC Base
+- CRC16
 
 As an optional argument, the tool should be able to take a path (eeprom readout
 binary file) and parse/display the data as if it were reading the eeprom itself.
