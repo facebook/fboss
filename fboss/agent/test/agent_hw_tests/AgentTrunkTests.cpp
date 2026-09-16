@@ -16,17 +16,36 @@ using namespace ::testing;
 namespace facebook::fboss {
 class AgentTrunkTest : public AgentHwTest {
  protected:
+  AggregatePortID kAggPort1() const {
+    return AggregatePortID(1);
+  }
+  AggregatePortID kAggPortMax() const {
+    return AggregatePortID(std::numeric_limits<AggregatePortID>::max());
+  }
+  std::vector<PortID> getAggPortMembers(
+      AggregatePortID aggPort,
+      const AgentEnsemble& ensemble) const {
+    auto ports = ensemble.masterLogicalPortIds();
+    if (aggPort == kAggPort1()) {
+      return {ports[0], ports[1]};
+    }
+    CHECK(aggPort == kAggPortMax());
+    return {ports[2], ports[3]};
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto ports = ensemble.masterLogicalPortIds();
-    return utility::onePortPerInterfaceConfig(
-        ensemble.getSw()->getPlatformMapping(),
+    return utility::oneAggregatePortPerInterfaceConfig(
+        ensemble.getPlatformMapping(),
         asic,
-        {ports[0], ports[1]},
+        {ports[0], ports[1], ports[2], ports[3]},
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
         asic->desiredLoopbackModes(),
-        ensemble.getSw()->getPlatformType());
+        {{kAggPort1(), getAggPortMembers(kAggPort1(), ensemble)},
+         {kAggPortMax(), getAggPortMembers(kAggPortMax(), ensemble)}},
+        cfg::InterfaceType::VLAN);
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -46,32 +65,21 @@ class AgentTrunkTest : public AgentHwTest {
 
 TEST_F(AgentTrunkTest, TrunkCreateHighLowKeyIds) {
   auto setup = [=, this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addAggPort(
-        std::numeric_limits<AggregatePortID>::max(),
-        {masterLogicalPortIds()[0]},
-        &cfg);
-    utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
-    applyConfigAndEnableTrunks(cfg);
+    applyConfigAndEnableTrunks(initialConfig(*getAgentEnsemble()));
   };
   auto verify = [=, this]() {
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
           utility::getAggregatePortCount(*getAgentEnsemble()), 2);
       EXPECT_EVENTUALLY_TRUE(
-          utility::verifyAggregatePort(
-              *getAgentEnsemble(), AggregatePortID(1)));
+          utility::verifyAggregatePort(*getAgentEnsemble(), kAggPort1()));
       EXPECT_EVENTUALLY_TRUE(
-          utility::verifyAggregatePort(
-              *getAgentEnsemble(),
-              AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
-      auto aggIDs = {
-          AggregatePortID(1),
-          AggregatePortID(std::numeric_limits<AggregatePortID>::max())};
+          utility::verifyAggregatePort(*getAgentEnsemble(), kAggPortMax()));
+      auto aggIDs = {kAggPort1(), kAggPortMax()};
       for (auto aggId : aggIDs) {
         EXPECT_EVENTUALLY_TRUE(
             utility::verifyAggregatePortMemberCount(
-                *getAgentEnsemble(), aggId, 1));
+                *getAgentEnsemble(), aggId, 2));
       }
     });
   };
@@ -80,45 +88,39 @@ TEST_F(AgentTrunkTest, TrunkCreateHighLowKeyIds) {
 
 TEST_F(AgentTrunkTest, TrunkCheckIngressPktAggPort) {
   auto setup = [=, this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addAggPort(
-        std::numeric_limits<AggregatePortID>::max(),
-        {masterLogicalPortIds()[0]},
-        &cfg);
-    applyConfigAndEnableTrunks(cfg);
+    applyConfigAndEnableTrunks(initialConfig(*getAgentEnsemble()));
+    for (auto member : getAggPortMembers(kAggPort1(), *getAgentEnsemble())) {
+      bringDownPort(member);
+    }
   };
   auto verify = [=, this]() {
     WITH_RETRIES({
       EXPECT_EVENTUALLY_TRUE(
           utility::verifyPktFromAggregatePort(
-              *getAgentEnsemble(),
-              AggregatePortID(std::numeric_limits<AggregatePortID>::max())));
+              *getAgentEnsemble(), kAggPortMax()));
     });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentTrunkTest, TrunkMemberPortDownMinLinksViolated) {
-  auto aggId = AggregatePortID(std::numeric_limits<AggregatePortID>::max());
-
   auto setup = [=, this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addAggPort(
-        aggId, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
-    applyConfigAndEnableTrunks(cfg);
-
-    // Member port count should drop to 1 now.
+    applyConfigAndEnableTrunks(initialConfig(*getAgentEnsemble()));
+    for (auto member : getAggPortMembers(kAggPort1(), *getAgentEnsemble())) {
+      bringDownPort(member);
+    }
   };
   auto verify = [=, this]() {
-    bringDownPort(PortID(masterLogicalPortIds()[0]));
+    // Member port count should drop to 1 now.
+    bringDownPort(getAggPortMembers(kAggPortMax(), *getAgentEnsemble())[0]);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          utility::getAggregatePortCount(*getAgentEnsemble()), 1);
+          utility::getAggregatePortCount(*getAgentEnsemble()), 2);
       EXPECT_EVENTUALLY_TRUE(
-          utility::verifyAggregatePort(*getAgentEnsemble(), aggId));
+          utility::verifyAggregatePort(*getAgentEnsemble(), kAggPortMax()));
       EXPECT_EVENTUALLY_TRUE(
           utility::verifyAggregatePortMemberCount(
-              *getAgentEnsemble(), aggId, 1));
+              *getAgentEnsemble(), kAggPortMax(), 1));
     });
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -126,37 +128,38 @@ TEST_F(AgentTrunkTest, TrunkMemberPortDownMinLinksViolated) {
 
 TEST_F(AgentTrunkTest, TrunkPortStats) {
   auto setup = [=, this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
-    applyConfigAndEnableTrunks(cfg);
+    applyConfigAndEnableTrunks(initialConfig(*getAgentEnsemble()));
     auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     applyNewState(
         [&](const std::shared_ptr<SwitchState>& in) {
-          return ecmpHelper.resolveNextHops(
-              in, {PortDescriptor(AggregatePortID(1))});
+          return ecmpHelper.resolveNextHops(in, {PortDescriptor(kAggPort1())});
         },
         "resolve next hops");
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(
-        &routeUpdater, {PortDescriptor(AggregatePortID(1))});
+    ecmpHelper.programRoutes(&routeUpdater, {PortDescriptor(kAggPort1())});
+    bringDownPort(getAggPortMembers(kAggPortMax(), *getAgentEnsemble())[0]);
   };
   auto verify = [=, this]() {
     const std::string kTrunkName = "AGG-1";
     for (auto throughPort : {false, true}) {
       // Tag for the ingress port's own interface: out-of-port injection on
-      // port0, the trunk member's interface for switched packets.
-      auto injectPort =
-          throughPort ? masterLogicalPortIds()[0] : masterLogicalPortIds()[1];
+      // Agg-max member, the trunk member's interface for switched packets.
+      auto injectPort = throughPort
+          ? getAggPortMembers(kAggPortMax(), *getAgentEnsemble())[1]
+          : getAggPortMembers(kAggPort1(), *getAgentEnsemble())[1];
       auto state = getProgrammedState();
       auto intf = state->getInterfaces()->getNodeIf(
           getInterfaceIDForPort(injectPort, state));
       CHECK(intf != nullptr);
       auto vlanId = getSw()->getVlanIDForTx(intf);
       auto intfMac = intf->getMac();
-      auto portStats = getLatestPortStats(masterLogicalPortIds()[1]);
-      auto portPkts0 = *portStats.outUnicastPkts_() +
-          *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+      auto portPkts0 = int64_t{0};
+      for (auto member : getAggPortMembers(kAggPort1(), *getAgentEnsemble())) {
+        auto portStats = getLatestPortStats(member);
+        portPkts0 += *portStats.outUnicastPkts_() +
+            *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+      }
 
       auto getTrunkOutPkts = [&](const std::string& trunkName) -> int64_t {
         auto hwStats = getAllHwSwitchStats();
@@ -184,12 +187,16 @@ TEST_F(AgentTrunkTest, TrunkPortStats) {
           20001);
       throughPort
           ? getAgentEnsemble()->ensureSendPacketOutOfPort(
-                std::move(pkt), masterLogicalPortIds()[0])
+                std::move(pkt),
+                getAggPortMembers(kAggPortMax(), *getAgentEnsemble())[1])
           : getAgentEnsemble()->ensureSendPacketSwitched(std::move(pkt));
 
-      portStats = getLatestPortStats(masterLogicalPortIds()[1]);
-      auto portPkts1 = *portStats.outUnicastPkts_() +
-          *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+      auto portPkts1 = int64_t{0};
+      for (auto member : getAggPortMembers(kAggPort1(), *getAgentEnsemble())) {
+        auto portStats = getLatestPortStats(member);
+        portPkts1 += *portStats.outUnicastPkts_() +
+            *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+      }
 
       int64_t trunkPkts1 = getTrunkOutPkts(kTrunkName);
 
@@ -200,13 +207,11 @@ TEST_F(AgentTrunkTest, TrunkPortStats) {
   verifyAcrossWarmBoots(setup, verify);
 }
 TEST_F(AgentTrunkTest, TrunkCapacityUpdatesOnMemberDown) {
-  auto aggId = AggregatePortID(1);
-
   auto setup = [=, this]() {
-    auto cfg = initialConfig(*getAgentEnsemble());
-    utility::addAggPort(
-        aggId, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
-    applyConfigAndEnableTrunks(cfg);
+    applyConfigAndEnableTrunks(initialConfig(*getAgentEnsemble()));
+    for (auto member : getAggPortMembers(kAggPortMax(), *getAgentEnsemble())) {
+      bringDownPort(member);
+    }
   };
   auto verify = [=, this]() {
     const std::string kTrunkName = "AGG-1";
@@ -223,17 +228,22 @@ TEST_F(AgentTrunkTest, TrunkCapacityUpdatesOnMemberDown) {
     };
 
     auto state = getProgrammedState();
-    auto port0Speed = static_cast<int64_t>(
-        state->getPorts()->getNodeIf(masterLogicalPortIds()[0])->getSpeed());
-    auto port1Speed = static_cast<int64_t>(
-        state->getPorts()->getNodeIf(masterLogicalPortIds()[1])->getSpeed());
+    auto member0Speed = static_cast<int64_t>(
+        state->getPorts()
+            ->getNodeIf(getAggPortMembers(kAggPort1(), *getAgentEnsemble())[0])
+            ->getSpeed());
+    auto member1Speed = static_cast<int64_t>(
+        state->getPorts()
+            ->getNodeIf(getAggPortMembers(kAggPort1(), *getAgentEnsemble())[1])
+            ->getSpeed());
 
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port0Speed + port1Speed); });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), member0Speed + member1Speed);
+    });
 
-    bringDownPort(PortID(masterLogicalPortIds()[0]));
+    bringDownPort(getAggPortMembers(kAggPort1(), *getAgentEnsemble())[0]);
 
-    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port1Speed); });
+    WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), member1Speed); });
     this->applyNewState(
         [](const std::shared_ptr<SwitchState> state) {
           return utility::disableTrunkPorts(state);
@@ -241,15 +251,16 @@ TEST_F(AgentTrunkTest, TrunkCapacityUpdatesOnMemberDown) {
         "disable trunk ports to sync with LACP state");
 
     WITH_RETRIES({ EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), 0); });
-    bringUpPort(PortID(masterLogicalPortIds()[0]));
+    bringUpPort(getAggPortMembers(kAggPort1(), *getAgentEnsemble())[0]);
     applyNewState(
         [](const std::shared_ptr<SwitchState>& state) {
           return utility::enableTrunkPorts(state);
         },
         "re-enable trunk member port");
 
-    WITH_RETRIES(
-        { EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), port0Speed + port1Speed); });
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(getTrunkCapacity(), member0Speed + member1Speed);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
