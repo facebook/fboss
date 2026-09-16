@@ -47,24 +47,9 @@
       "THRESHOLD_MODE": "LOSSY"
     },
     "platform_sai_overrides": {
-      "pktio_mode": 1,
-      "sai_ip_counter_cstats": 1,
-      "vlan_flooding_l2mc_num_reserved": 0,
-      "shared_block_mask_section": "uc_bc",
-      "skip_protocol_default_entries": 1,
-      "l3_alpm_hit_skip": 1,
-      "l3_alpm_large_vrf_mode": 1,
-      "l3_intf_vlan_split_egress": 1,
-      "l3_ecmp_member_first_lkup_mem_size": 32768,
-      "l3_ecmp_member_secondary_mem_size": 8192,
-      "pfc_deadlock_seq_control": 0,
-      "default_cpu_tx_queue": 7,
-      "stat_custom_receive0_management_mode": 1,
-      "sai_feat_tail_timestamp": 0,
       "sai_tunnel_support": "0x12",
-      "sai_tunnel_ipinip_multi_vrf_support": 1,
-      "sai_stats_disable_mask": "0x200",
-      "sai_eapol_trap_use_bcast_mac": 1
+      "sai_uncached_port_stats": "0x1",
+      "sai_port_phy_time_sync_en": 1
     },
     "features": {
       "generate_dlb_config": true,
