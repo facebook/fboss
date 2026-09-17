@@ -1219,7 +1219,7 @@ TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
             tcField,
             64,
             std::vector<uint8_t>(7000, 0xff));
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
@@ -1275,7 +1275,7 @@ TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
       if (frontPanel) {
         this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
       } else {
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
