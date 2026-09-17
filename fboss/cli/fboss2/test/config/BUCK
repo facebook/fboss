@@ -12,6 +12,7 @@ cpp_unittest(
         "CmdConfigAdminDistanceTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",
+        "CmdConfigBgpGlobalTest.cpp",
         "CmdConfigCoppTest.cpp",
         "CmdConfigDhcpTest.cpp",
         "CmdConfigHistoryTest.cpp",
@@ -69,6 +70,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
+        "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
