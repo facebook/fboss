@@ -11,6 +11,8 @@
 
 #include <folly/io/async/AsyncSignalHandler.h>
 
+#include <atomic>
+
 namespace apache::thrift {
 class ThriftServer;
 }
@@ -31,15 +33,25 @@ class QsfpServiceSignalHandler : public folly::AsyncSignalHandler {
       std::shared_ptr<apache::thrift::ThriftServer> qsfpServer,
       std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler);
 
-  void signalReceived(int signum) noexcept override;
-
- private:
-  // Forbidden copy constructor and assignment operator
   QsfpServiceSignalHandler(QsfpServiceSignalHandler const&) = delete;
   QsfpServiceSignalHandler& operator=(QsfpServiceSignalHandler const&) = delete;
 
+  void signalReceived(int signum) noexcept override;
+
+  // True once the shutdown in signalReceived() completed. Lets main()
+  // distinguish a signal-driven loop exit from any other cause.
+  bool shutdownComplete() const {
+    return shutdownComplete_.load();
+  }
+
+ private:
   folly::FunctionScheduler* functionScheduler_;
   std::shared_ptr<apache::thrift::ThriftServer> qsfpServer_;
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
+
+  // Guards against a second signal (e.g. SIGINT after SIGTERM) re-entering
+  // the shutdown sequence while it's already in progress.
+  std::atomic<bool> exitSignalReceived_{false};
+  std::atomic<bool> shutdownComplete_{false};
 };
 } // namespace facebook::fboss
