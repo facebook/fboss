@@ -5392,6 +5392,16 @@ void CmisModule::resetDataPath(const std::string& portName) {
   resetDataPathWithFunc(portName);
 }
 
+void CmisModule::resetDatapathProgrammingStateLocked() {
+  if (portDatapathStates_.empty()) {
+    return;
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Discarding datapath programming state for {} port(s) after module reset",
+      portDatapathStates_.size());
+  portDatapathStates_.clear();
+}
+
 bool CmisModule::dataPathProgram(
     const std::string& portName,
     uint8_t hostLaneMask,

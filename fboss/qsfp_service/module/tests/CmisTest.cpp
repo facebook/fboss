@@ -68,6 +68,8 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
+  using CmisModule::portDatapathStates_;
+  using CmisModule::triggerModuleReset;
 
  private:
   uint8_t moduleStateChangedReadTimes_{0};
@@ -1819,6 +1821,64 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
       static_cast<uint8_t>(SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G));
   EXPECT_EQ(xcvr->getCurrentAppSelCode(1), 0x1);
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
+}
+
+// A module reset (firmware upgrade, remediation) puts the optic back at its
+// defaults, but the datapath timers in portDatapathStates_ live on the module
+// object and used to survive it. A timer left set by a datapath init that was
+// still in flight when the reset happened then reads as "DP_INIT in prog"
+// forever, and customizeTransceiverLocked skips both programTunableModule and
+// the AppSel write on every subsequent attempt -- leaving the optic on its
+// default frequency and AppSel while programming still reports success.
+// triggerModuleReset calls resetDatapathProgrammingStateLocked to drop it.
+TEST_F(CmisTest, resetDatapathProgrammingStateClearsInFlightDatapathState) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::EIGHTHUNDREDG;
+  portState.numHostLanes = 8;
+
+  cfg::OpticalChannelConfig optChanConfig;
+  cfg::FrequencyConfig freqConfig;
+  freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  cfg::CenterFrequencyConfig centerFreq;
+  centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+  freqConfig.centerFrequencyConfig() = centerFreq;
+  optChanConfig.frequencyConfig() = freqConfig;
+  optChanConfig.txPower0P01Dbm() = 0;
+  optChanConfig.appSelCode() = 1;
+  portState.opticalChannelConfig = optChanConfig;
+  programTcvrState.ports.emplace(portState.portName, portState);
+
+  xcvr->programTransceiver(programTcvrState, false);
+  ASSERT_FALSE(xcvr->portDatapathStates_.empty());
+
+  // Stand in for a reset landing mid datapath init: the start timer is set and
+  // nothing will ever clear it, because the optic is about to be reset out
+  // from under us.
+  auto& initTimers = xcvr->portDatapathStates_[portState.portName].initTimers;
+  initTimers.progStartTimer = std::chrono::steady_clock::now();
+  ASSERT_NE(initTimers.progStartTimer.time_since_epoch().count(), 0);
+
+  // Drive the real entry point rather than the helper, so this covers the
+  // wiring as well: every module reset goes through triggerModuleReset.
+  xcvr->triggerModuleReset();
+
+  // With the map cleared, the next programming attempt default-constructs the
+  // state and sees progStartTimer == 0, so it takes the branch that actually
+  // programs the laser frequency and AppSel.
+  EXPECT_TRUE(xcvr->portDatapathStates_.empty());
+  EXPECT_EQ(
+      xcvr->portDatapathStates_[portState.portName]
+          .initTimers.progStartTimer.time_since_epoch()
+          .count(),
+      0);
 }
 
 // Verify TX and RX squelch disable behavior for tunable optics (ZR modules).

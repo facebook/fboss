@@ -779,6 +779,15 @@ class QsfpModule : public Transceiver {
 
   void triggerModuleReset();
 
+  /*
+   * Discard qsfp_service's in-memory view of datapath programming progress.
+   * A module reset puts the hardware back at its defaults, so any datapath
+   * operation we still believe is in flight will never complete, and its
+   * timers would otherwise gate the next programming attempt.
+   * Called with qsfpModuleMutex_ held.
+   */
+  virtual void resetDatapathProgrammingStateLocked() {}
+
   // Map key = laneId, value = last datapath reset time for that lane
   std::unordered_map<int, std::time_t> lastDatapathResetTimes_;
 

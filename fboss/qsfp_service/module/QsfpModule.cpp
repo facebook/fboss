@@ -298,6 +298,9 @@ bool QsfpModule::upgradeFirmwareLocked(
 
 void QsfpModule::triggerModuleReset() {
   qsfpImpl_->triggerQsfpHardReset();
+  // The hardware is back at its defaults now, so whatever we were tracking
+  // about datapath programming describes a datapath that no longer exists.
+  resetDatapathProgrammingStateLocked();
   // Required delay time between a transceiver getting out of reset and fully
   // functional.
   //

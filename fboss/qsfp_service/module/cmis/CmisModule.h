@@ -761,6 +761,8 @@ class CmisModule : public QsfpModule {
 
   void resetDataPath(const std::string& portName) override;
 
+  void resetDatapathProgrammingStateLocked() override;
+
   /*
    * Returns true if the current module is LPO
    */
