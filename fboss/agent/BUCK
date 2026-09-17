@@ -54,7 +54,6 @@ thrift_library(
     languages = [
         "cpp2",
         "go",
-        "py-deprecated",
         "py3-deprecated",
         "rust",
         "python",
@@ -63,9 +62,7 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_rust_options = [
         "deprecated_default_enum_min_i32",
         "serde",
@@ -85,7 +82,6 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py-deprecated",
         "py3-deprecated",
         "go",
         "rust",
@@ -95,10 +91,8 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     rust_gen_metadata = True,
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_srcs = {"agent_info.thrift": []},
     deps = [
         "//thrift/annotation:thrift",
@@ -189,7 +183,6 @@ thrift_library(
     },
     languages = [
         "cpp2",
-        "py-deprecated",
         "py3-deprecated",
         "go",
         "rust",
@@ -199,10 +192,8 @@ thrift_library(
         thrift_plugin_thriftpath(),
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     rust_gen_metadata = True,
     thrift_cpp2_options = "json,reflection",
-    thrift_py_options = "json,sort_keys",
     thrift_srcs = {"switch_reachability.thrift": []},
     deps = [
         "//thrift/annotation:thrift",
