@@ -19095,6 +19095,9 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/graphene202x/multi_switch": [
@@ -19295,6 +19298,9 @@
         },
         {
           "test_name_regex": "AgentQphRollbackTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifyDefaultSwAgingForPort$"
         }
     ],
     "leaba/25.5.4210/25.5.4210/graphene200/mono": [
