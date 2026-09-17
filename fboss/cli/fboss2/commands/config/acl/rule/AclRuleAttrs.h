@@ -48,26 +48,16 @@ inline constexpr std::string_view kAclRuleAttrPacketLookupResult =
     "packet-lookup-result";
 inline constexpr std::string_view kAclRuleAttrAction = "action";
 
-// `action <subattr> [<value>]` sub-attributes.
-// permit/deny/deny-data-and-control-plane mutate AclEntry.actionType directly;
-// the rest land on the MatchAction stored in
-// dataPlaneTrafficPolicy.matchToAction keyed by rule name.
+// `action <subattr>` sub-attributes. All three mutate AclEntry.actionType,
+// which is the only action an AclEntry carries. Every richer action
+// (send-to-queue, set-dscp, mirror, counter, to-cpu, redirect, ...) lives on a
+// MatchAction in a traffic policy, and which policy a rule lands in changes
+// what the same value means, so those are set by `config copp traffic-policy`
+// and `config data-plane traffic-policy` where the policy is named explicitly.
 inline constexpr std::string_view kAclRuleActionPermit = "permit";
 inline constexpr std::string_view kAclRuleActionDeny = "deny";
 inline constexpr std::string_view kAclRuleActionDenyDataAndControlPlane =
     "deny-data-and-control-plane";
-inline constexpr std::string_view kAclRuleActionSendToQueue = "send-to-queue";
-inline constexpr std::string_view kAclRuleActionSetDscp = "set-dscp";
-inline constexpr std::string_view kAclRuleActionSetTc = "set-tc";
-inline constexpr std::string_view kAclRuleActionMirrorIngress =
-    "mirror-ingress";
-inline constexpr std::string_view kAclRuleActionMirrorEgress = "mirror-egress";
-inline constexpr std::string_view kAclRuleActionCounter = "counter";
-inline constexpr std::string_view kAclRuleActionTrapToCpu = "trap-to-cpu";
-inline constexpr std::string_view kAclRuleActionCopyToCpu = "copy-to-cpu";
-inline constexpr std::string_view kAclRuleActionRedirect = "redirect";
-inline constexpr std::string_view kAclRuleActionRedirectNexthopKeyword =
-    "nexthop";
 
 // Inclusive [min, max] bound for a numeric <attr>/<value>. Names the
 // otherwise-magic limits fed to parseIntInRange and documents why each
@@ -87,16 +77,9 @@ inline constexpr AclRuleRange kTtlRange{0, 0xFF}; // 8-bit TTL value/mask
 inline constexpr AclRuleRange kU16Range{0, 0xFFFF}; // ethertype / pkt-lookup
 inline constexpr int16_t kTtlMaskDefault = 0xFF; // == thrift Ttl.mask default
 
-// Action sub-attribute value ranges.
-inline constexpr AclRuleRange kSendToQueueRange{
-    0,
-    32767}; // i16 QueueMatchAction
-inline constexpr AclRuleRange kSetDscpRange{0, 63}; // 6-bit DSCP codepoint
-inline constexpr AclRuleRange kTrafficClassRange{0, 7}; // 8 traffic classes
-
 // Positions within a `config acl rule` argument vector:
 //   match field:  <table> <rule> <attr>   <value> [<mask>]
-//   action:       <table> <rule> action   <sub>   [<value> | nexthop <ip>]
+//   action:       <table> <rule> action   <sub>
 inline constexpr std::size_t kAclRuleIdxTable = 0;
 inline constexpr std::size_t kAclRuleIdxRule = 1;
 inline constexpr std::size_t kAclRuleIdxAttr = 2;
@@ -111,12 +94,10 @@ inline constexpr std::size_t kAclRuleActionPrefix = 4;
 inline constexpr std::size_t kAclRuleIdxActionSub = kAclRuleMatchPrefix;
 
 // A parsed acl-rule mutation, captured at parse time and replayed later.
-// Exactly one function is set: match fields and the actions that set
-// AclEntry.actionType target the AclEntry; every other action targets a
-// MatchAction.
+// Every attr this command accepts -- match fields and the three actionType
+// actions alike -- targets the AclEntry, so there is one function.
 struct AclRuleMutation {
   std::function<void(cfg::AclEntry&)> entryFn;
-  std::function<void(cfg::MatchAction&)> actionFn;
 };
 
 // Parse a `config acl rule` token vector (<table> <rule> <attr> <value>...)

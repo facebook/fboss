@@ -67,23 +67,6 @@ class CmdConfigAclRuleTestFixture : public CmdConfigTestBase {
     }
     throw std::runtime_error("rule not found: " + name);
   }
-
-  // Look up the MatchAction attached to `ruleName` via
-  // dataPlaneTrafficPolicy.matchToAction. The CLI inserts entries on demand,
-  // so this throws if no entry exists for the rule.
-  cfg::MatchAction& getMatchAction(const std::string& ruleName) {
-    auto& cfg = ConfigSession::getInstance().getAgentConfig();
-    auto policy = cfg.sw()->dataPlaneTrafficPolicy();
-    if (!policy) {
-      throw std::runtime_error("dataPlaneTrafficPolicy not set");
-    }
-    for (auto& mta : *policy->matchToAction()) {
-      if (*mta.matcher() == ruleName) {
-        return *mta.action();
-      }
-    }
-    throw std::runtime_error("matchToAction not found for: " + ruleName);
-  }
 };
 
 // =============================================================
@@ -404,60 +387,31 @@ TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionPermitNoExtra) {
       std::invalid_argument);
 }
 
-TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionRequiresValue) {
-  EXPECT_THROW(
-      AclRuleConfigArgs({"AclTable1", "rule-1", "action", "set-dscp"}),
-      std::invalid_argument);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionRangeChecks) {
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1",
-           "rule-1",
-           "action",
-           "set-dscp",
-           std::to_string(kSetDscpRange.max + 1)}),
-      std::invalid_argument);
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1",
-           "rule-1",
-           "action",
-           "set-tc",
-           std::to_string(kTrafficClassRange.max + 1)}),
-      std::invalid_argument);
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1",
-           "rule-1",
-           "action",
-           "send-to-queue",
-           std::to_string(kSendToQueueRange.min - 1)}),
-      std::invalid_argument);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, argValidation_actionRedirectShape) {
-  // Missing the `nexthop` keyword.
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1", "rule-1", "action", "redirect", "10.0.0.1"}),
-      std::invalid_argument);
-  // Wrong keyword.
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1", "rule-1", "action", "redirect", "nope", "10.0.0.1"}),
-      std::invalid_argument);
-  // Bad IP.
-  EXPECT_THROW(
-      AclRuleConfigArgs(
-          {"AclTable1", "rule-1", "action", "redirect", "nexthop", "garbage"}),
-      std::invalid_argument);
-  // Valid IPv4 / IPv6.
-  EXPECT_NO_THROW(AclRuleConfigArgs(
-      {"AclTable1", "rule-1", "action", "redirect", "nexthop", "10.0.0.1"}));
-  EXPECT_NO_THROW(AclRuleConfigArgs(
-      {"AclTable1", "rule-1", "action", "redirect", "nexthop", "fe80::1"}));
+// Richer actions are no longer settable here: they live on a MatchAction in a
+// traffic policy, and which policy a rule lands in changes what the value
+// means (updateAclsImpl reads a CPU-matched rule's queue id as a CPU queue and
+// a dataplane-matched one's as a port queue). `config copp traffic-policy` and
+// `config data-plane traffic-policy` name the policy explicitly instead.
+TEST_F(CmdConfigAclRuleTestFixture, argValidation_matchActionsRejected) {
+  for (const auto& sub :
+       {"send-to-queue",
+        "set-dscp",
+        "set-tc",
+        "mirror-ingress",
+        "mirror-egress",
+        "counter",
+        "trap-to-cpu",
+        "copy-to-cpu",
+        "redirect"}) {
+    EXPECT_THROW(
+        AclRuleConfigArgs({"AclTable1", "rule-1", "action", sub}),
+        std::invalid_argument)
+        << "action '" << sub << "' should no longer be accepted";
+    EXPECT_THROW(
+        AclRuleConfigArgs({"AclTable1", "rule-1", "action", sub, "7"}),
+        std::invalid_argument)
+        << "action '" << sub << " 7' should no longer be accepted";
+  }
 }
 
 TEST_F(CmdConfigAclRuleTestFixture, setActionPermit) {
@@ -489,105 +443,6 @@ TEST_F(CmdConfigAclRuleTestFixture, setActionDenyDataAndControlPlane) {
   EXPECT_EQ(
       *getRule("rule-1").actionType(),
       cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionSendToQueue) {
-  setupTestableConfigSession(
-      cmdPrefix_, "AclTable1 rule-1 action send-to-queue 7");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args(
-      {"AclTable1", "rule-1", "action", "send-to-queue", "7"});
-  // The success message echoes the whole value tail, so the queue id (7)
-  // must appear — not just the "send-to-queue" sub-attribute.
-  auto result = cmd.queryClient(host, args);
-  EXPECT_THAT(result, HasSubstr("send-to-queue"));
-  EXPECT_THAT(result, HasSubstr("7"));
-  EXPECT_EQ(*getMatchAction("rule-1").sendToQueue()->queueId(), 7);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionSetDscp) {
-  setupTestableConfigSession(cmdPrefix_, "AclTable1 rule-1 action set-dscp 46");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args({"AclTable1", "rule-1", "action", "set-dscp", "46"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").setDscp()->dscpValue(), 46);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionSetTc) {
-  setupTestableConfigSession(cmdPrefix_, "AclTable1 rule-1 action set-tc 3");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args({"AclTable1", "rule-1", "action", "set-tc", "3"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").setTc()->tcValue(), 3);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionMirrorIngress) {
-  setupTestableConfigSession(
-      cmdPrefix_, "AclTable1 rule-1 action mirror-ingress mirror0");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args(
-      {"AclTable1", "rule-1", "action", "mirror-ingress", "mirror0"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").ingressMirror(), "mirror0");
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionMirrorEgress) {
-  setupTestableConfigSession(
-      cmdPrefix_, "AclTable1 rule-1 action mirror-egress mirror1");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args(
-      {"AclTable1", "rule-1", "action", "mirror-egress", "mirror1"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").egressMirror(), "mirror1");
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionCounter) {
-  setupTestableConfigSession(
-      cmdPrefix_, "AclTable1 rule-1 action counter my-counter");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args(
-      {"AclTable1", "rule-1", "action", "counter", "my-counter"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").counter(), "my-counter");
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionTrapToCpu) {
-  setupTestableConfigSession(cmdPrefix_, "AclTable1 rule-1 action trap-to-cpu");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args({"AclTable1", "rule-1", "action", "trap-to-cpu"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").toCpuAction(), cfg::ToCpuAction::TRAP);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionCopyToCpu) {
-  setupTestableConfigSession(cmdPrefix_, "AclTable1 rule-1 action copy-to-cpu");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args({"AclTable1", "rule-1", "action", "copy-to-cpu"});
-  cmd.queryClient(host, args);
-  EXPECT_EQ(*getMatchAction("rule-1").toCpuAction(), cfg::ToCpuAction::COPY);
-}
-
-TEST_F(CmdConfigAclRuleTestFixture, setActionRedirectNexthop) {
-  setupTestableConfigSession(
-      cmdPrefix_, "AclTable1 rule-1 action redirect nexthop 10.10.10.1");
-  CmdConfigAclRule cmd;
-  HostInfo host("testhost");
-  AclRuleConfigArgs args(
-      {"AclTable1", "rule-1", "action", "redirect", "nexthop", "10.10.10.1"});
-  cmd.queryClient(host, args);
-  auto& ma = getMatchAction("rule-1");
-  ASSERT_TRUE(ma.redirectToNextHop().has_value());
-  const auto& nhs = *ma.redirectToNextHop()->redirectNextHops();
-  ASSERT_EQ(nhs.size(), 1u);
-  EXPECT_EQ(*nhs[0].ip(), "10.10.10.1");
 }
 
 TEST_F(CmdConfigAclRuleTestFixture, setPacketLookupResult) {

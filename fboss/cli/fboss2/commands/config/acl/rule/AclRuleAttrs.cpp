@@ -164,10 +164,7 @@ cfg::PacketLookupResultType parsePacketLookupResult(const std::string& s) {
 }
 
 AclRuleMutation onEntry(std::function<void(cfg::AclEntry&)> fn) {
-  return {std::move(fn), nullptr};
-}
-AclRuleMutation onAction(std::function<void(cfg::MatchAction&)> fn) {
-  return {nullptr, std::move(fn)};
+  return {std::move(fn)};
 }
 
 // The value tokens following the fixed prefix (<table> <rule> <attr>, or
@@ -180,9 +177,8 @@ constexpr std::size_t kOneValue = 1;
 constexpr std::size_t kTwoValues = 2;
 
 // Positions within a row's value span.
-constexpr std::size_t kValue0 =
-    0; // single value / ttl value / redirect keyword
-constexpr std::size_t kValue1 = 1; // ttl mask / redirect ip
+constexpr std::size_t kValue0 = 0; // single value / ttl value
+constexpr std::size_t kValue1 = 1; // ttl mask
 
 // Validate `value` parses as a CIDR network (bare IP → /32 or /128).
 void validateCidrNetwork(std::string_view attr, const std::string& value) {
@@ -197,14 +193,6 @@ void validateCidrNetwork(std::string_view attr, const std::string& value) {
             value,
             e.what()));
   }
-}
-
-std::string requireName(std::string_view key, const std::string& name) {
-  if (name.empty()) {
-    throw std::invalid_argument(
-        fmt::format("Action '{}' requires a non-empty name", key));
-  }
-  return name;
 }
 
 // One row of the grammar: a keyword, its value-token arity [minVals, maxVals],
@@ -408,120 +396,6 @@ const std::vector<AclRuleRow>& actionRows() {
        [](std::string_view, Values) {
          return onEntry([](cfg::AclEntry& r) {
            r.actionType() = cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
-         });
-       }},
-      {kAclRuleActionSendToQueue,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         // queue id is i16 in QueueMatchAction; SAI queue ids are small.
-         auto q = static_cast<int16_t>(
-             parseIntInRange(key, v[kValue0], kSendToQueueRange));
-         return onAction([q](cfg::MatchAction& ma) {
-           cfg::QueueMatchAction a;
-           a.queueId() = q;
-           ma.sendToQueue() = a;
-         });
-       }},
-      {kAclRuleActionSetDscp,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         auto d = static_cast<int8_t>(
-             parseIntInRange(key, v[kValue0], kSetDscpRange));
-         return onAction([d](cfg::MatchAction& ma) {
-           cfg::SetDscpMatchAction a;
-           a.dscpValue() = d;
-           ma.setDscp() = a;
-         });
-       }},
-      {kAclRuleActionSetTc,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         auto t = static_cast<int8_t>(
-             parseIntInRange(key, v[kValue0], kTrafficClassRange));
-         return onAction([t](cfg::MatchAction& ma) {
-           cfg::SetTcAction a;
-           a.tcValue() = t;
-           ma.setTc() = a;
-         });
-       }},
-      {kAclRuleActionMirrorIngress,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         auto name = requireName(key, v[kValue0]);
-         return onAction(
-             [name](cfg::MatchAction& ma) { ma.ingressMirror() = name; });
-       }},
-      {kAclRuleActionMirrorEgress,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         auto name = requireName(key, v[kValue0]);
-         return onAction(
-             [name](cfg::MatchAction& ma) { ma.egressMirror() = name; });
-       }},
-      {kAclRuleActionCounter,
-       kOneValue,
-       kOneValue,
-       "<value>",
-       [](std::string_view key, Values v) {
-         auto name = requireName(key, v[kValue0]);
-         return onAction([name](cfg::MatchAction& ma) { ma.counter() = name; });
-       }},
-      {kAclRuleActionTrapToCpu,
-       kNoValue,
-       kNoValue,
-       "",
-       [](std::string_view, Values) {
-         return onAction([](cfg::MatchAction& ma) {
-           ma.toCpuAction() = cfg::ToCpuAction::TRAP;
-         });
-       }},
-      {kAclRuleActionCopyToCpu,
-       kNoValue,
-       kNoValue,
-       "",
-       [](std::string_view, Values) {
-         return onAction([](cfg::MatchAction& ma) {
-           ma.toCpuAction() = cfg::ToCpuAction::COPY;
-         });
-       }},
-      {kAclRuleActionRedirect,
-       kTwoValues,
-       kTwoValues,
-       "nexthop <ip>",
-       [](std::string_view, Values v) {
-         if (v[kValue0] != kAclRuleActionRedirectNexthopKeyword) {
-           throw std::invalid_argument(
-               fmt::format(
-                   "Action 'redirect' expects keyword 'nexthop', got '{}'",
-                   v[kValue0]));
-         }
-         std::string ip = v[kValue1];
-         try {
-           (void)folly::IPAddress{ip};
-         } catch (const std::exception& e) {
-           throw std::invalid_argument(
-               fmt::format(
-                   "Action 'redirect nexthop' expects an IP address, "
-                   "got '{}': {}",
-                   ip,
-                   e.what()));
-         }
-         return onAction([ip](cfg::MatchAction& ma) {
-           cfg::RedirectToNextHopAction rd;
-           cfg::RedirectNextHop nh;
-           nh.ip() = ip;
-           rd.redirectNextHops()->push_back(std::move(nh));
-           ma.redirectToNextHop() = std::move(rd);
          });
        }},
   };

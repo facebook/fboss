@@ -26,6 +26,7 @@ cpp_binary(
         "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
+        "ConfigCoppTrafficPolicyTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
         "ConfigHostnameTest.cpp",
         "ConfigIcmpV4UnavailableSrcAddrTest.cpp",
