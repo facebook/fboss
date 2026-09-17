@@ -1786,6 +1786,21 @@ void SaiPortManager::changeIngressAcl(
   setIngressAcl(newPort);
 }
 
+void SaiPortManager::replaceIngressAcl(
+    AclTableSaiId oldAclTableId,
+    AclTableSaiId newAclTableId) {
+  for (const auto& [_, portHandle] : handles_) {
+    const auto ingressAcl =
+        std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+            portHandle->port->attributes());
+    if (!ingressAcl || ingressAcl->value() != oldAclTableId) {
+      continue;
+    }
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressAcl{newAclTableId});
+  }
+}
+
 void SaiPortManager::resetCableLength(PortID portId) {
   auto portStatItr = portStats_.find(portId);
   if (portStatItr == portStats_.end()) {

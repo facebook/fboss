@@ -337,6 +337,62 @@ void SaiAclTableManager::changedAclTable(
    * Changes to ACL table properties will need a remove and readd
    * Ensure that the newly added table also adds the old acls*/
   if (needsAclTableRecreate(oldAclTable, newAclTable, aclStage)) {
+    if (bindPoint == cfg::AclTableGroupBindPoint::PORT) {
+      // Stage the replacement under a temporary name so both tables coexist.
+      const auto aclTableName = oldAclTable->getID();
+      const auto stagedAclTableName =
+          folly::to<std::string>(aclTableName, "-recreate");
+      if (getAclTableHandle(stagedAclTableName)) {
+        throw FbossError(
+            "staged ACL table already exists: ", stagedAclTableName);
+      }
+
+      auto stagedAclTableFields = newAclTable->toThrift();
+      stagedAclTableFields.id() = stagedAclTableName;
+      auto stagedAclTable =
+          std::make_shared<AclTable>(std::move(stagedAclTableFields));
+      const auto oldAclTableId =
+          getAclTableHandle(aclTableName)->aclTable->adapterKey();
+      const auto newAclTableId =
+          addAclTable(stagedAclTable, aclStage, state, bindPoint);
+
+      try {
+        // Program the replacement, then move ports to its OID.
+        auto oldAclMap = oldAclTable->getAclMap().unwrap();
+        addAclEntriesToTable(stagedAclTable, oldAclMap, state);
+        managerTable_->portManager().replaceIngressAcl(
+            oldAclTableId, newAclTableId);
+      } catch (...) {
+        managerTable_->portManager().replaceIngressAcl(
+            newAclTableId, oldAclTableId);
+        removeAclEntriesFromTable(stagedAclTable);
+        removeAclTable(stagedAclTable, aclStage, state, bindPoint);
+        throw;
+      }
+
+      // The old table is no longer bound and can now be removed.
+      removeAclEntriesFromTable(oldAclTable);
+      removeAclTable(oldAclTable, aclStage, state, bindPoint);
+
+      // Restore the configured name in bookkeeping without changing its OID.
+      managerTable_->aclTableGroupManager().removeAclTableGroupMember(
+          SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage),
+          bindPoint,
+          stagedAclTableName);
+      managerTable_->aclTableGroupManager().addAclTableGroupMember(
+          SaiAclTableGroupManager::cfgAclStageToSaiAclStage(aclStage),
+          bindPoint,
+          newAclTableId,
+          aclTableName,
+          normalizeAclTablePriority(newAclTable->getPriority()));
+
+      auto stagedHandle = std::move(handles_.at(stagedAclTableName));
+      handles_.erase(stagedAclTableName);
+      auto [_, inserted] =
+          handles_.emplace(aclTableName, std::move(stagedHandle));
+      CHECK(inserted);
+      return;
+    }
     // Remove acl entries from old acl table before removing the table
     removeAclEntriesFromTable(oldAclTable);
     removeAclTable(oldAclTable, aclStage, state, bindPoint);
