@@ -159,11 +159,9 @@ thrift_library(
         "go",
         "py3-deprecated",
         "rust",
-        "py-deprecated",
         "python",
     ],
     py3_namespace = "neteng.fboss",
-    py_base_module = "neteng.fboss",
     thrift_cpp2_options = [
         "json",
         "reflection",
