@@ -436,7 +436,7 @@ const std::vector<sai_stat_id_t>& SaiPortTraits::pfcXoffTotalDurationStats() {
 // path below is used instead.
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkDownDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT};
 #else
@@ -447,7 +447,7 @@ SaiPortTraits::linkDownDebounceRetriggerStats() {
 
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::linkUpDebounceRetriggerStats() {
-#if defined(TAJO_SDK_VERSION_26_2_4210)
+#if defined(TAJO_SDK_VERSION_26_2_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
   static const std::vector<sai_stat_id_t> stats{
       SAI_PORT_STAT_EXT_LINK_UP_DEBOUNCE_RETRIGGER_COUNT};
 #else
@@ -502,7 +502,7 @@ SaiPortTraits::Attributes::AttributeLinkDownDebouncePeriodMs::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
 // 26.2.4210 deprecated this attribute
-#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_VERSION_25_5_4210)
   return SAI_PORT_ATTR_LINK_UP_DEBOUNCE_RETRIGGER_COUNT;
 #else
   return std::nullopt;
@@ -511,7 +511,7 @@ SaiPortTraits::Attributes::AttributeLinkUpDebounceRetriggerCount::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeLinkDownDebounceRetriggerCount::operator()() {
-#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_26_5_5210)
+#if defined(TAJO_SDK_VERSION_25_5_4210)
   return SAI_PORT_ATTR_LINK_DOWN_DEBOUNCE_RETRIGGER_COUNT;
 #else
   return std::nullopt;
