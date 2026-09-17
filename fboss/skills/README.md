@@ -9,9 +9,10 @@ such as Claude Code, Codex, MetaCode, or other tools that understand
 skill-style task guidance. They are written to be useful in both open-source
 checkouts and Meta-internal environments.
 
-The open-source skill set focuses on three workflows:
+The open-source skill set focuses on four workflows:
 
 - Debugging FBOSS AgentHwTest failures.
+- Debugging QSFP HW test failures from logs.
 - Applying FBOSS coding standards while changing code.
 - Reviewing FBOSS diffs with FBOSS-specific review guidance.
 
@@ -22,6 +23,7 @@ In an open-source FBOSS checkout, the exported skills are expected under:
 ```text
 fboss/skills/
   debug-agent-hw-test/
+  debug-qsfp-hw-test/
   fboss-code-standards/
   fboss-review/
 ```
@@ -48,6 +50,7 @@ skill by name:
 
 ```text
 Use debug-agent-hw-test to debug AgentAclTest.AclNexthopTest on my switch.
+Use debug-qsfp-hw-test to find why warm_boot.HwStateMachineTest.CheckPortsProgrammed failed in this log.
 Use fboss-code-standards while changing the route updater.
 Use fboss-review to review this pull request.
 ```
@@ -74,6 +77,21 @@ It covers:
 The skill is intentionally environment-neutral. The open-source references use
 standard `ssh`/`scp` style examples. Meta environments may provide their own
 device-access and build-system overrides.
+
+### `debug-qsfp-hw-test`
+
+Use this skill when a QSFP HW test (`qsfp_hw_test-<impl>-<version>`) failed
+and you have its log as pasted text, a file, or a CI run link. It covers:
+
+- Isolating the failing `cold_boot.` / `warm_boot.` gtest verdict.
+- Searching backwards for the killer assertion, fatal CHECK, or setup-gate
+  failure.
+- Dismissing benign retry, telemetry, and teardown noise with sources.
+- Mapping the failing suite to its source file and reporting root cause
+  plus quoted evidence.
+
+The skill reports root cause plus evidence only. It does not suggest code
+fixes or file known-bad entries.
 
 ### `fboss-code-standards`
 
