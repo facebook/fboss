@@ -17,6 +17,7 @@ oncall("fboss_oss")
 cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
+        "AgentMemoryReclamationTest.cpp",
         "ConfigAclRuleTest.cpp",
         "ConfigAclTest.cpp",
         "ConfigAdminDistanceTest.cpp",
@@ -76,6 +77,7 @@ cpp_binary(
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:address_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -95,6 +97,7 @@ cpp_binary(
         "//folly:dynamic",
         "//folly:file_util",
         "//folly:network_address",
+        "//folly:portability",
         "//folly:scope_guard",
         "//folly:string",
         "//folly:subprocess",
