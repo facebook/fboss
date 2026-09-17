@@ -159,6 +159,7 @@ DECLARE_string(pre_manager_delta_log_protocol);
 DECLARE_int32(pre_manager_delta_log_timeout_ms);
 DECLARE_bool(enable_post_manager_delta_logging);
 DECLARE_int32(fsdbStatsStreamIntervalSeconds);
+DECLARE_int32(update_phy_info_interval_s);
 DECLARE_bool(recover_from_hw_switch);
 DECLARE_bool(verify_recover_from_hw_switch);
 DECLARE_int32(fabric_link_monitoring_max_l1_l2_switch_ids);

@@ -287,6 +287,8 @@ class SwSwitch : public HwSwitchCallback {
 
   void publishStatsToFsdb();
 
+  void publishIPhyStatesToFsdb(const std::map<PortID, phy::PhyInfo>& phyInfo);
+
   AgentStats fillFsdbStats();
 
   void updateStats();
@@ -1433,6 +1435,11 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
+  // updateStats() runs every FLAGS_update_stats_interval_s (1s) but phy info is
+  // only recollected every FLAGS_update_phy_info_interval_s (10s), so iphy
+  // PhyState is published at the collection interval instead of every tick.
+  std::optional<std::chrono::time_point<std::chrono::steady_clock>>
+      publishedIPhyStatesToFsdbAt_;
   std::unique_ptr<MultiSwitchPacketStreamMap> packetStreamMap_;
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmbootHelper_;
   std::unique_ptr<HwSwitchThriftClientTable> hwSwitchThriftClientTable_;

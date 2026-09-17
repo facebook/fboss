@@ -394,6 +394,7 @@ target_link_libraries(
 
 set(core_libs
   agent_config_cpp2
+  agent_features
   switchinfo_utils
   stats
   utils
@@ -563,6 +564,7 @@ add_library(hw_switch
 )
 
 target_link_libraries(hw_switch
+  agent_features
   fboss_types
   ctrl_cpp2
   fboss_cpp2

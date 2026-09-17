@@ -1541,6 +1541,7 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/re2:re2",
+        ":agent_features",
         ":fboss-error",
         ":load_agent_config",
         ":tx_packet_utils",
@@ -2309,6 +2310,7 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/fsdb/if:fsdb_model",
+        "//fboss/lib/phy:phy-cpp2-types",
     ],
 )
 

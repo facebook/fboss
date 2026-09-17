@@ -39,6 +39,7 @@ thrift_library(
         "//fboss/agent:switch_state",
         "//fboss/fsdb/if:fsdb_common",
         "//fboss/fsdb/if/te_srv6_agent:stats",
+        "//fboss/lib/phy:phy",
         "//fboss/platform/sensor_service:sensor_service_stats",
         "//fboss/qsfp_service/if:state",
         "//fboss/qsfp_service/if:stats",
@@ -61,6 +62,7 @@ cpp_library(
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
         "//fboss/fsdb/if/te_srv6_agent:stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
         "//fboss/platform/sensor_service:sensor_service_stats-cpp2-types",
         "//fboss/qsfp_service/if:state-cpp2-types",
         "//fboss/qsfp_service/if:stats-cpp2-types",
@@ -138,6 +140,8 @@ ci_sandcastle(
         "fbcode/fboss/agent/if/agent_stats.thrift",
         "fbcode/fboss/agent/if/switch_state.thrift",
         "fbcode/fboss/agent/if/switch_reachability.thrift",
+        # PHY thrift, included for iPhyStates
+        "fbcode/fboss/lib/phy/phy.thrift",
         # QSFP thrift files
         "fbcode/fboss/qsfp_service/if/qsfp_state.thrift",
         "fbcode/fboss/qsfp_service/if/qsfp_stats.thrift",

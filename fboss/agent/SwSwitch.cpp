@@ -1100,6 +1100,26 @@ void SwSwitch::publishStatsToFsdb() {
   });
 }
 
+void SwSwitch::publishIPhyStatesToFsdb(
+    const std::map<PortID, phy::PhyInfo>& phyInfo) {
+  auto now = std::chrono::steady_clock::now();
+  if (publishedIPhyStatesToFsdbAt_ &&
+      std::chrono::duration_cast<std::chrono::seconds>(
+          now - *publishedIPhyStatesToFsdbAt_)
+              .count() < FLAGS_update_phy_info_interval_s) {
+    return;
+  }
+  publishedIPhyStatesToFsdbAt_ = now;
+
+  std::map<std::string, phy::PhyState> iPhyStates;
+  for (const auto& [portID, phyInfoEntry] : phyInfo) {
+    iPhyStates.emplace(*phyInfoEntry.state()->name(), *phyInfoEntry.state());
+  }
+  runFsdbSyncFunction([&iPhyStates](auto& syncer) {
+    syncer->iPhyStatesUpdated(std::move(iPhyStates));
+  });
+}
+
 MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() const {
   CHECK(!isRunModeMultiSwitch())
       << "Monolithic switch handler access should not be attempted in multi switch mode!";
@@ -1201,6 +1221,7 @@ void SwSwitch::updateStats() {
   }
   phySnapshotManager_->updatePhyInfos(phyInfo);
   updatePhyFb303Stats(phyInfo);
+  publishIPhyStatesToFsdb(phyInfo);
   updateFabricLinkMonitoringStats();
 }
 
