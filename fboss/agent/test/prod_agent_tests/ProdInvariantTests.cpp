@@ -246,12 +246,29 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 void ProdInvariantTest::verifyAcl() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto switchConfig = getSw()->getConfig();
-  auto aclTableGroup = utility::getAclTableGroup(switchConfig);
-  auto switchId = getSw()->getScopeResolver()->scope(*aclTableGroup).switchId();
+  auto defaultAclTableGroup = utility::getAclTableGroup(switchConfig);
+  auto switchId =
+      getSw()->getScopeResolver()->scope(*defaultAclTableGroup).switchId();
   auto client = ensemble->getHwAgentTestClient(switchId);
 
   WITH_RETRIES(
       { EXPECT_EVENTUALLY_TRUE(client->sync_isDefaultAclTableEnabled()); });
+
+  for (const auto& aclTableGroup : *switchConfig.aclTableGroups()) {
+    if (aclTableGroup.stage().value() != cfg::AclStage::INGRESS) {
+      continue;
+    }
+
+    EXPECT_FALSE(aclTableGroup.aclTables()->empty());
+    switchId = getSw()->getScopeResolver()->scope(aclTableGroup).switchId();
+    client = ensemble->getHwAgentTestClient(switchId);
+    for (const auto& aclTable : *aclTableGroup.aclTables()) {
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(
+            client->sync_isAclTableEnabled(aclTable.name().value()));
+      });
+    }
+  }
 
   XLOG(DBG2) << "Verify ACL Done";
   std::this_thread::sleep_for(std::chrono::seconds(1));
