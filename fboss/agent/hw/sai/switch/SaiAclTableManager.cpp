@@ -870,16 +870,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclTableHandle->aclTable->adapterKey()};
   SaiAclEntryTraits::Attributes::Priority priority{
       swPriorityToSaiPriority(addedAclEntry->getPriority())};
-  std::optional<SaiAclEntryTraits::Attributes::LabelExtended> labelExtended;
-  if (SaiAclEntryTraits::Attributes::LabelExtended::
-          optionalExtensionAttributeId()
-              .has_value()) {
-    const auto& aclEntryName = addedAclEntry->getID();
-    labelExtended = SaiAclEntryTraits::Attributes::LabelExtended{
-        std::vector<int8_t>(aclEntryName.begin(), aclEntryName.end())};
-  }
-  SaiAclEntryTraits::AdapterHostKey adapterHostKey{
-      aclTableId, priority, labelExtended};
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+  // Two entries in one table may share a priority (PBR does), so the entry name
+  // is carried in the ACL entry label to keep their AdapterHostKeys distinct.
+  const auto& aclEntryName = addedAclEntry->getID();
+  std::optional<SaiAclEntryTraits::Attributes::Label> label{
+      std::vector<sai_int8_t>(aclEntryName.begin(), aclEntryName.end())};
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority, label};
+#else
+  SaiAclEntryTraits::AdapterHostKey adapterHostKey{aclTableId, priority};
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldSrcIpV6> fieldSrcIpV6{
       std::nullopt};
@@ -1833,7 +1833,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       aclActionL3SwitchCancel,
       aclFieldRouteDestination,
 #endif
-      labelExtended,
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+      label,
+#endif
       fieldPortUserMeta,
   };
 

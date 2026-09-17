@@ -171,6 +171,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
     SAI_ATTR_MAP(AclEntry, ActionSetEcmpHashAlgorithm),
 #endif
+#if defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200)
+    SAI_ATTR_MAP(AclEntry, Label),
+#endif
 };
 
 void handleExtensionAttributes() {
@@ -178,7 +181,6 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(AclEntry, ActionL3SwitchCancel);
 #endif
   SAI_EXT_ATTR_MAP(AclEntry, FieldRouteDestination);
-  SAI_EXT_ATTR_MAP(AclEntry, LabelExtended);
 }
 
 } // namespace

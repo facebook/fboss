@@ -243,6 +243,10 @@
 #define TAJO_SAI_SDK
 #endif
 
+#if defined(TAJO_SDK_VERSION_26_5_5211) || defined(TAJO_SDK_VERSION_26_7_5211)
+#define TAJO_SDK_P200
+#endif
+
 /*
  *  High-level Chenab (NVIDIA) flags:
  *   - CHENAB_SAI_SDK: Flags for all Chenab SDK (set in tp2 BUCK)

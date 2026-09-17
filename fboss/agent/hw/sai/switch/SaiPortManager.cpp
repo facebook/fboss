@@ -2766,10 +2766,9 @@ const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
 
 bool SaiPortManager::isLinkDebounceRetriggerCounterSupported(
     [[maybe_unused]] const HwAsic* asic) {
-#if defined(TAJO_SDK_VERSION_25_5_4210) ||                                 \
-    defined(TAJO_SDK_VERSION_26_2_4210) ||                                 \
-    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211) && \
-     !defined(TAJO_SDK_VERSION_26_7_5211))
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200))
   return asic->isSupported(HwAsic::Feature::PORT_DEBOUNCE);
 #else
   return false;
@@ -2988,10 +2987,9 @@ void SaiPortManager::updateStats(
     curPortStats.logicalPortId() = *logicalPortId;
   }
 
-#if defined(TAJO_SDK_VERSION_25_5_4210) ||                                 \
-    defined(TAJO_SDK_VERSION_26_2_4210) ||                                 \
-    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211) && \
-     !defined(TAJO_SDK_VERSION_26_7_5211))
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200))
   if (isLinkDebounceRetriggerCounterSupported(platform_->getAsic())) {
     auto& portApi = SaiApiTable::getInstance()->portApi();
     auto adapterKey = handle->port->adapterKey();

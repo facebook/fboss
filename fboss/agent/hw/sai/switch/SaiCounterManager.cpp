@@ -27,8 +27,7 @@ std::shared_ptr<SaiCounterHandle> SaiCounterManager::incRefOrAddRouteCounter(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   bool useExtendedLabel = false;
 #if defined(TAJO_SDK_GTE_26_2) && !defined(TAJO_SDK_VERSION_26_2_5210) && \
-    !defined(TAJO_SDK_VERSION_26_5_5211) &&                               \
-    !defined(TAJO_SDK_VERSION_26_7_5211)
+    !defined(TAJO_SDK_P200)
   useExtendedLabel = true;
 #endif
   if (!useExtendedLabel && counterID.size() > kMaxCounterLabelSize) {

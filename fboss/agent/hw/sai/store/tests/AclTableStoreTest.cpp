@@ -204,11 +204,6 @@ class AclTableStoreTest : public SaiStoreTest {
     return std::make_pair(81, 0);
   }
 
-  std::vector<int8_t> kLabelExtended() const {
-    static const std::string kLabel{"acl-entry-label"};
-    return std::vector<int8_t>(kLabel.begin(), kLabel.end());
-  }
-
   sai_uint8_t kSetTC() const {
     return 1;
   }
@@ -361,7 +356,6 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryActionU32(this->kHashAlgorithm()),
             AclEntryActionBool(this->kL3SwitchCancel()),
             AclEntryFieldSaiObjectIdT(this->kRouteDestination()),
-            this->kLabelExtended(),
             AclEntryFieldU32(this->kPortUserMeta()),
         },
         0);
@@ -416,8 +410,7 @@ TEST_P(AclTableStoreParamTest, loadAclEntry) {
   s.reload();
   auto& store = s.get<SaiAclEntryTraits>();
 
-  SaiAclEntryTraits::AdapterHostKey k{
-      aclTableId, this->kPriority(), this->kLabelExtended()};
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), aclEntryId);
@@ -521,8 +514,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
 TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
   auto aclTableId = createAclTable(GetParam());
 
-  SaiAclEntryTraits::AdapterHostKey k{
-      aclTableId, this->kPriority(), this->kLabelExtended()};
+  SaiAclEntryTraits::AdapterHostKey k{aclTableId, this->kPriority()};
 
   SaiAclEntryTraits::CreateAttributes c{
       aclTableId,
@@ -577,7 +569,6 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kHashAlgorithm(),
       this->kL3SwitchCancel(),
       this->kRouteDestination(),
-      this->kLabelExtended(),
       this->kPortUserMeta()};
 
   SaiObject<SaiAclEntryTraits> obj = createObj<SaiAclEntryTraits>(k, c, 0);
