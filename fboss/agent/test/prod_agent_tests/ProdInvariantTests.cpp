@@ -815,7 +815,9 @@ TEST_F(ProdInvariantFtswTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing();
+    // Disabled: src-port-prune is not supported on MAC loopback ports,
+    // so hashed egress distribution is undefined.
+    // verifyLoadBalancing();
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();
@@ -867,7 +869,9 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing(90000);
+    // Disabled: src-port-prune is not supported on MAC loopback ports,
+    // so hashed egress distribution is undefined.
+    // verifyLoadBalancing(90000);
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();
