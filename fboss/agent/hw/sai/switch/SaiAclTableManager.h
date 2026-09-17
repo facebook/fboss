@@ -176,6 +176,9 @@ class SaiAclTableManager {
       const std::shared_ptr<SwitchState>& state,
       cfg::AclTableGroupBindPoint bindPoint =
           cfg::AclTableGroupBindPoint::SWITCH);
+  void removeObsoletePortBoundAclTables(
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState);
   void changedAclTable(
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,

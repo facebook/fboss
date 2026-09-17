@@ -30,6 +30,9 @@
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/NodeMapDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <folly/MacAddress.h>
 #include <chrono>
@@ -234,6 +237,33 @@ void SaiAclTableManager::removeAclTable(
 
   // remove from handles
   handles_.erase(aclTableName);
+}
+
+void SaiAclTableManager::removeObsoletePortBoundAclTables(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) {
+  const auto& oldPortAclTableGroups = oldState->getPortAclTableGroups();
+  const auto& newPortAclTableGroups = newState->getPortAclTableGroups();
+  for (const auto& [_, tableGroupMap] : std::as_const(*oldPortAclTableGroups)) {
+    for (const auto& [_, tableGroup] : std::as_const(*tableGroupMap)) {
+      const auto aclStage = tableGroup->getID();
+      const auto oldAclTables = tableGroup->getAclTableMap();
+      std::shared_ptr<const AclTableMap> newAclTables;
+      if (const auto newTableGroup =
+              newPortAclTableGroups->getNodeIf(aclStage)) {
+        newAclTables = newTableGroup->getAclTableMap();
+      }
+      DeltaFunctions::forEachRemoved(
+          ThriftMapDelta<AclTableMap>(oldAclTables.get(), newAclTables.get()),
+          [this, aclStage, &newState](const auto& removedAclTable) {
+            removeAclTable(
+                removedAclTable,
+                aclStage,
+                newState,
+                cfg::AclTableGroupBindPoint::PORT);
+          });
+    }
+  }
 }
 
 bool SaiAclTableManager::needsAclTableRecreate(

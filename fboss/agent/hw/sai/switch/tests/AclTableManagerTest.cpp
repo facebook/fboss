@@ -128,6 +128,60 @@ TEST_F(AclTableManagerTest, addPortBoundAclTable) {
       nullptr);
 }
 
+TEST_F(
+    AclTableManagerTest,
+    removeObsoletePortBoundAclTablesFromPublishedState) {
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto obsoleteTable = std::make_shared<AclTable>(0, kAclTable2);
+  auto retainedTable = std::make_shared<AclTable>(1, kAclTable3);
+  saiManagerTable->aclTableManager().addAclTable(
+      obsoleteTable,
+      cfg::AclStage::INGRESS,
+      nullptr,
+      cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableManager().addAclTable(
+      retainedTable,
+      cfg::AclStage::INGRESS,
+      nullptr,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto makeState = [](const std::vector<std::shared_ptr<AclTable>>& tables) {
+    auto tableMap = std::make_shared<AclTableMap>();
+    for (const auto& table : tables) {
+      tableMap->addTable(table);
+    }
+    auto group = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+    group->setName("portBoundGroup");
+    group->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+    group->setAclTableMap(tableMap);
+    auto groupMap = std::make_shared<AclTableGroupMap>();
+    groupMap->addAclTableGroup(group);
+    auto multiGroupMap = std::make_shared<MultiSwitchAclTableGroupMap>();
+    multiGroupMap->addMapNode(
+        groupMap, HwSwitchMatcher::defaultHwSwitchMatcher());
+    auto state = std::make_shared<SwitchState>();
+    state->resetPortAclTableGroups(multiGroupMap);
+    state->publish();
+    return state;
+  };
+
+  auto oldState = makeState({obsoleteTable, retainedTable});
+  auto newState = makeState({retainedTable});
+  saiManagerTable->aclTableManager().removeObsoletePortBoundAclTables(
+      oldState, newState);
+
+  EXPECT_EQ(
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2),
+      nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable3),
+      nullptr);
+}
+
 TEST_F(AclTableManagerTest, addDupAclTable) {
   state::AclTableFields fields{};
   fields.priority() = 0;
