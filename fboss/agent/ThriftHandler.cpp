@@ -1775,6 +1775,7 @@ void ThriftHandler::setInterfacesPrbs(
 void ThriftHandler::addAdjacencyFrr(
     std::unique_ptr<FrrProtectedObject> protectedObject,
     std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto rib = sw_->getRib();
@@ -1796,6 +1797,7 @@ void ThriftHandler::addAdjacencyFrr(
 
 void ThriftHandler::deleteAdjacencyFrr(
     std::unique_ptr<FrrProtectedObject> protectedObject) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
 
   auto rib = sw_->getRib();
