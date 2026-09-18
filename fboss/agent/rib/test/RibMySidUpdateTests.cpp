@@ -71,8 +71,9 @@ MySidEntry makeMySidEntry(
 MySidEntry makeMySidEntryWithNextHops(
     const std::string& addr,
     uint8_t len,
-    const std::vector<std::string>& nextHopAddrs) {
-  MySidEntry entry = makeMySidEntry(addr, len, MySidType::NODE_MICRO_SID);
+    const std::vector<std::string>& nextHopAddrs,
+    MySidType type = MySidType::NODE_MICRO_SID) {
+  MySidEntry entry = makeMySidEntry(addr, len, type);
   std::vector<NextHopThrift> nextHops;
   for (const auto& nhAddr : nextHopAddrs) {
     NextHopThrift nh;
@@ -425,19 +426,26 @@ StateDelta routeToSwitchStateUpdateViaRibUpdater(
 using NextHopAddrs = std::set<std::pair<folly::IPAddress, InterfaceID>>;
 
 // (address, interface) of every next hop in `id`, which must all be resolved
-// BACKUP next hops.
-NextHopAddrs getBackupNextHops(
+// and carry `role`.
+NextHopAddrs getNextHopsForRole(
     const NextHopIDManager& manager,
-    NextHopSetID id) {
+    NextHopSetID id,
+    NextHopRole role) {
   NextHopAddrs nextHops;
   for (const auto& nextHop : manager.getNextHops(id)) {
-    EXPECT_EQ(nextHop.role(), NextHopRole::BACKUP);
+    EXPECT_EQ(nextHop.role(), role);
     EXPECT_TRUE(nextHop.isResolved());
     if (nextHop.isResolved()) {
       nextHops.emplace(nextHop.addr(), nextHop.intf());
     }
   }
   return nextHops;
+}
+
+NextHopAddrs getBackupNextHops(
+    const NextHopIDManager& manager,
+    NextHopSetID id) {
+  return getNextHopsForRole(manager, id, NextHopRole::BACKUP);
 }
 
 } // namespace
@@ -2238,6 +2246,20 @@ class RibMySidFibInfoTest : public ::testing::Test {
         &switchState_);
   }
 
+  void addAdjacencyMySidWithNextHops(
+      const std::string& addr,
+      uint8_t len,
+      const std::vector<std::string>& nextHopAddrs) {
+    rib_->update(
+        scopeResolver(),
+        {makeMySidEntryWithNextHops(
+            addr, len, nextHopAddrs, MySidType::ADJACENCY_MICRO_SID)},
+        {},
+        "add adjacency mysid with next hops",
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
   void updateGatewayRoute(
       const std::string& prefixAddr,
       uint8_t prefixLen,
@@ -2698,6 +2720,64 @@ TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsResolvedByPreexistingRoute) {
   const auto idSetMap = getIdToNextHopIdSetMap();
   ASSERT_NE(idSetMap, nullptr);
   EXPECT_NE(idSetMap->getNextHopIdSetIf(resolvedId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupInstallLeavesResolvedPrimaryIntact) {
+  // Installing FRR protection re-resolves the MySid's primary next hops too,
+  // since RibMySidUpdater has no notion that only the backup changed. That
+  // must be a no-op: a new primary resolvedNextHopsId would clone the MySid,
+  // and the resulting SwitchState delta tears the entry -- and the primary
+  // path it is meant to protect -- out of hardware and rebuilds it.
+  const std::string kMySidId{"fc00:100::1/48"};
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  updateGatewayRoute("2001:dba::", 32, {"2001:db8::1"});
+  addAdjacencyMySidWithNextHops("fc00:100::1", 48, {"2001:db8::2"});
+
+  const auto beforeMySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(beforeMySid.resolvedNextHopsId().has_value());
+  EXPECT_FALSE(beforeMySid.backupResolvedNextHopsId().has_value());
+  const auto primaryId = *beforeMySid.resolvedNextHopsId();
+  const NextHopAddrs primaryNextHops{
+      {folly::IPAddress("2001:db8::2"), InterfaceID(1)}};
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  ASSERT_EQ(
+      getNextHopsForRole(
+          *manager, NextHopSetID(primaryId), NextHopRole::PRIMARY),
+      primaryNextHops);
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, makeBackupNextHops({"2001:dba::1"})}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto afterMySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(afterMySid.resolvedNextHopsId().has_value());
+  EXPECT_EQ(*afterMySid.resolvedNextHopsId(), primaryId);
+  manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      getNextHopsForRole(
+          *manager, NextHopSetID(primaryId), NextHopRole::PRIMARY),
+      primaryNextHops);
+
+  // The backup was installed, so this is not a no-op overall -- only the
+  // primary is untouched.
+  ASSERT_TRUE(afterMySid.backupResolvedNextHopsId().has_value());
+  EXPECT_NE(*afterMySid.backupResolvedNextHopsId(), primaryId);
+  const NextHopAddrs backupNextHops{
+      {folly::IPAddress("2001:db8::1"), InterfaceID(1)}};
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), backupNextHops);
+
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kMySidId);
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_EQ(stateMySid->getResolvedNextHopsId(), NextHopSetID(primaryId));
+  const auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(primaryId), nullptr);
 }
 
 TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsTrackPartialResolution) {
