@@ -3431,6 +3431,27 @@ TEST_F(ThriftTest, deleteAdjacencyFrrThrowsUntilImplemented) {
       handler.deleteAdjacencyFrr(std::move(protectedObject)), FbossError);
 }
 
+TEST_F(ThriftTest, addAdjacencyFrrRejectsMplsLabel) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mplsLabel() = 100;
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
+TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMplsLabel) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mplsLabel() = 100;
+
+  EXPECT_THROW(
+      handler.deleteAdjacencyFrr(std::move(protectedObject)), FbossError);
+}
+
 TEST_F(ThriftTest, addMySidEntries) {
   ThriftHandler handler(sw_);
 

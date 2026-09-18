@@ -1777,6 +1777,9 @@ void ThriftHandler::addAdjacencyFrr(
     std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  if (protectedObject->getType() == FrrProtectedObject::Type::mplsLabel) {
+    throw FbossError("Adj FRR protection not implemented for MPLS labels");
+  }
 
   auto rib = sw_->getRib();
   if (!rib) {
@@ -1799,6 +1802,9 @@ void ThriftHandler::deleteAdjacencyFrr(
     std::unique_ptr<FrrProtectedObject> protectedObject) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  if (protectedObject->getType() == FrrProtectedObject::Type::mplsLabel) {
+    throw FbossError("Adj FRR protection not implemented for MPLS labels");
+  }
 
   auto rib = sw_->getRib();
   if (!rib) {
