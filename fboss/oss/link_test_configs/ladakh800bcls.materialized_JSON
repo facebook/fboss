@@ -745,7 +745,7 @@
       },
       {
         "logicalID": 41,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -765,7 +765,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/8/1"
+          
         },
         "lookupClasses": [
           
@@ -781,7 +781,7 @@
       },
       {
         "logicalID": 43,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -801,7 +801,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/8/3"
+          
         },
         "lookupClasses": [
           
@@ -817,7 +817,7 @@
       },
       {
         "logicalID": 45,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -837,7 +837,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/8/5"
+          
         },
         "lookupClasses": [
           
@@ -853,7 +853,7 @@
       },
       {
         "logicalID": 47,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -873,7 +873,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/8/7"
+          
         },
         "lookupClasses": [
           
@@ -5353,7 +5353,7 @@
       },
       {
         "logicalID": 297,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -5373,7 +5373,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/80/1"
+          
         },
         "lookupClasses": [
           
@@ -5389,7 +5389,7 @@
       },
       {
         "logicalID": 299,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -5409,7 +5409,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/80/3"
+          
         },
         "lookupClasses": [
           
@@ -5425,7 +5425,7 @@
       },
       {
         "logicalID": 301,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -5445,7 +5445,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/80/5"
+          
         },
         "lookupClasses": [
           
@@ -5461,7 +5461,7 @@
       },
       {
         "logicalID": 303,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -5481,7 +5481,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/80/7"
+          
         },
         "lookupClasses": [
           
@@ -6217,7 +6217,7 @@
       },
       {
         "logicalID": 345,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -6237,7 +6237,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/46/1"
+          
         },
         "lookupClasses": [
           
@@ -6253,7 +6253,7 @@
       },
       {
         "logicalID": 347,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -6273,7 +6273,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/46/3"
+          
         },
         "lookupClasses": [
           
@@ -6289,7 +6289,7 @@
       },
       {
         "logicalID": 349,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -6309,7 +6309,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/46/5"
+          
         },
         "lookupClasses": [
           
@@ -6325,7 +6325,7 @@
       },
       {
         "logicalID": 351,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -6345,7 +6345,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/46/7"
+          
         },
         "lookupClasses": [
           
@@ -6381,7 +6381,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/93/7"
+          "2": "eth1/93/1"
         },
         "lookupClasses": [
           
@@ -6417,7 +6417,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/93/5"
+          "2": "eth1/93/3"
         },
         "lookupClasses": [
           
@@ -6453,7 +6453,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/93/3"
+          "2": "eth1/93/5"
         },
         "lookupClasses": [
           
@@ -6489,7 +6489,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/93/1"
+          "2": "eth1/93/7"
         },
         "lookupClasses": [
           
@@ -7369,7 +7369,7 @@
       },
       {
         "logicalID": 409,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7389,7 +7389,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/54/1"
+          
         },
         "lookupClasses": [
           
@@ -7405,7 +7405,7 @@
       },
       {
         "logicalID": 411,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7425,7 +7425,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/54/3"
+          
         },
         "lookupClasses": [
           
@@ -7441,7 +7441,7 @@
       },
       {
         "logicalID": 413,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7461,7 +7461,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/54/5"
+          
         },
         "lookupClasses": [
           
@@ -7477,7 +7477,7 @@
       },
       {
         "logicalID": 415,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -7497,7 +7497,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/54/7"
+          
         },
         "lookupClasses": [
           
@@ -8809,7 +8809,7 @@
       },
       {
         "logicalID": 489,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -8829,7 +8829,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/64/1"
+          
         },
         "lookupClasses": [
           
@@ -8845,7 +8845,7 @@
       },
       {
         "logicalID": 491,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -8865,7 +8865,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/64/3"
+          
         },
         "lookupClasses": [
           
@@ -8881,7 +8881,7 @@
       },
       {
         "logicalID": 493,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -8901,7 +8901,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/64/5"
+          
         },
         "lookupClasses": [
           
@@ -8917,7 +8917,7 @@
       },
       {
         "logicalID": 495,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -8937,7 +8937,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/64/7"
+          
         },
         "lookupClasses": [
           
@@ -11149,7 +11149,7 @@
       },
       {
         "logicalID": 2153,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -11169,7 +11169,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/40/1"
+          
         },
         "lookupClasses": [
           
@@ -11185,7 +11185,7 @@
       },
       {
         "logicalID": 2155,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -11205,7 +11205,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/40/3"
+          
         },
         "lookupClasses": [
           
@@ -11221,7 +11221,7 @@
       },
       {
         "logicalID": 2157,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -11241,7 +11241,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/40/5"
+          
         },
         "lookupClasses": [
           
@@ -11257,7 +11257,7 @@
       },
       {
         "logicalID": 2159,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -11277,7 +11277,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/40/7"
+          
         },
         "lookupClasses": [
           
@@ -13041,7 +13041,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/47/7"
+          "2": "eth1/47/1"
         },
         "lookupClasses": [
           
@@ -13077,7 +13077,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/47/5"
+          "2": "eth1/47/3"
         },
         "lookupClasses": [
           
@@ -13113,7 +13113,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/47/3"
+          "2": "eth1/47/5"
         },
         "lookupClasses": [
           
@@ -13149,7 +13149,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/47/1"
+          "2": "eth1/47/7"
         },
         "lookupClasses": [
           
@@ -13453,7 +13453,7 @@
       },
       {
         "logicalID": 2281,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -13473,7 +13473,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/104/1"
+          
         },
         "lookupClasses": [
           
@@ -13489,7 +13489,7 @@
       },
       {
         "logicalID": 2283,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -13509,7 +13509,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/104/3"
+          
         },
         "lookupClasses": [
           
@@ -13525,7 +13525,7 @@
       },
       {
         "logicalID": 2285,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -13545,7 +13545,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/104/5"
+          
         },
         "lookupClasses": [
           
@@ -13561,7 +13561,7 @@
       },
       {
         "logicalID": 2287,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -13581,7 +13581,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/104/7"
+          
         },
         "lookupClasses": [
           
@@ -14605,7 +14605,7 @@
       },
       {
         "logicalID": 2345,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -14625,7 +14625,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/96/1"
+          
         },
         "lookupClasses": [
           
@@ -14641,7 +14641,7 @@
       },
       {
         "logicalID": 2347,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -14661,7 +14661,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/96/3"
+          
         },
         "lookupClasses": [
           
@@ -14677,7 +14677,7 @@
       },
       {
         "logicalID": 2349,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -14697,7 +14697,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/96/5"
+          
         },
         "lookupClasses": [
           
@@ -14713,7 +14713,7 @@
       },
       {
         "logicalID": 2351,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -14733,7 +14733,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/96/7"
+          
         },
         "lookupClasses": [
           
@@ -15469,7 +15469,7 @@
       },
       {
         "logicalID": 2393,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -15489,7 +15489,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/110/1"
+          
         },
         "lookupClasses": [
           
@@ -15505,7 +15505,7 @@
       },
       {
         "logicalID": 2395,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -15525,7 +15525,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/110/3"
+          
         },
         "lookupClasses": [
           
@@ -15541,7 +15541,7 @@
       },
       {
         "logicalID": 2397,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -15561,7 +15561,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/110/5"
+          
         },
         "lookupClasses": [
           
@@ -15577,7 +15577,7 @@
       },
       {
         "logicalID": 2399,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -15597,7 +15597,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/110/7"
+          
         },
         "lookupClasses": [
           
@@ -16621,7 +16621,7 @@
       },
       {
         "logicalID": 2457,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -16641,7 +16641,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/118/1"
+          
         },
         "lookupClasses": [
           
@@ -16657,7 +16657,7 @@
       },
       {
         "logicalID": 2459,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -16677,7 +16677,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/118/3"
+          
         },
         "lookupClasses": [
           
@@ -16693,7 +16693,7 @@
       },
       {
         "logicalID": 2461,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -16713,7 +16713,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/118/5"
+          
         },
         "lookupClasses": [
           
@@ -16729,7 +16729,7 @@
       },
       {
         "logicalID": 2463,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -16749,7 +16749,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/118/7"
+          
         },
         "lookupClasses": [
           
@@ -18061,7 +18061,7 @@
       },
       {
         "logicalID": 2537,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -18081,7 +18081,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/128/1"
+          
         },
         "lookupClasses": [
           
@@ -18097,7 +18097,7 @@
       },
       {
         "logicalID": 2539,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -18117,7 +18117,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/128/3"
+          
         },
         "lookupClasses": [
           
@@ -18133,7 +18133,7 @@
       },
       {
         "logicalID": 2541,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -18153,7 +18153,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/128/5"
+          
         },
         "lookupClasses": [
           
@@ -18169,7 +18169,7 @@
       },
       {
         "logicalID": 2543,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -18189,7 +18189,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          "2": "eth1/128/7"
+          
         },
         "lookupClasses": [
           
