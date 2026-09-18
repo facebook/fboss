@@ -26,9 +26,6 @@
 #include "fboss/lib/CommonUtils.h"
 
 const std::string kSflowMirrorName = "sflow_mirror";
-// Match the addresses pumpRoCETraffic itself defaults to for IPv6.
-constexpr auto kRoceSrcIp = "1001::1";
-constexpr auto kRoceDstIp = "2001::1";
 
 namespace facebook::fboss {
 
