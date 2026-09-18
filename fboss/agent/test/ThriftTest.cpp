@@ -3370,6 +3370,16 @@ IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
   return prefix;
 }
 
+facebook::network::thrift::IPPrefix toFrrMySidIpPrefix(
+    const std::string& addr,
+    uint8_t len) {
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  return prefix;
+}
+
 MySidEntry makeMySidEntryWithNextHops(
     const std::string& addr,
     uint8_t len,
@@ -3394,6 +3404,32 @@ MySidEntry makeMySidEntryWithNextHops(
 }
 
 } // namespace
+
+TEST_F(ThriftTest, addAdjacencyFrrThrowsUntilImplemented) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  backupNextHop.role() = NextHopRole::BACKUP;
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
+TEST_F(ThriftTest, deleteAdjacencyFrrThrowsUntilImplemented) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+
+  EXPECT_THROW(
+      handler.deleteAdjacencyFrr(std::move(protectedObject)), FbossError);
+}
 
 TEST_F(ThriftTest, addMySidEntries) {
   ThriftHandler handler(sw_);

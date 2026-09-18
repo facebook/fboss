@@ -1773,19 +1773,41 @@ void ThriftHandler::setInterfacesPrbs(
 }
 
 void ThriftHandler::addAdjacencyFrr(
-    std::unique_ptr<FrrProtectedObject>,
-    std::unique_ptr<std::vector<NextHopThrift>>) {
+    std::unique_ptr<FrrProtectedObject> protectedObject,
+    std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) {
   ensureConfigured(__func__);
 
-  // TODO add support
-  throw FbossError("addAdjacencyFrr Not supported");
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  std::vector<MySidFrrProtectionUpdate> toAddOrUpdate;
+  if (protectedObject->getType() == FrrProtectedObject::Type::mySid) {
+    toAddOrUpdate.emplace_back(
+        MySidFrrProtectionUpdate{
+            .mySidPrefix =
+                facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()),
+            .nextHops = util::toRouteNextHopSet(
+                *backupNextHops, true /* allowV6NonLinkLocal */),
+        });
+  }
+  rib->updateMySidFrrProtection(toAddOrUpdate, {});
 }
 
-void ThriftHandler::deleteAdjacencyFrr(std::unique_ptr<FrrProtectedObject>) {
+void ThriftHandler::deleteAdjacencyFrr(
+    std::unique_ptr<FrrProtectedObject> protectedObject) {
   ensureConfigured(__func__);
 
-  // TODO add support
-  throw FbossError("deleteAdjacencyFrr Not supported");
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  std::vector<folly::CIDRNetwork> toDelete;
+  if (protectedObject->getType() == FrrProtectedObject::Type::mySid) {
+    toDelete.emplace_back(
+        facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()));
+  }
+  rib->updateMySidFrrProtection({}, toDelete);
 }
 
 void ThriftHandler::clearPortPrbsStats(

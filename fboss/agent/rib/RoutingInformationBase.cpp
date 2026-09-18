@@ -1947,6 +1947,12 @@ void RoutingInformationBase::updateMySidImpl(
   }
 }
 
+void RoutingInformationBase::updateMySidFrrProtection(
+    const std::vector<MySidFrrProtectionUpdate>& /*toAddOrUpdate*/,
+    const std::vector<folly::CIDRNetwork>& /*toDelete*/) {
+  throw FbossError("updateMySidFrrProtection Not supported");
+}
+
 void RoutingInformationBase::updateStateInRibThread(
     const std::function<void()>& fn) {
   ensureRunning();
