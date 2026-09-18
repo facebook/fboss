@@ -11,6 +11,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -88,6 +89,37 @@ bool StateUpdateValidator::isEcmpWidthUpdateValid(
                     << "); a coldboot is required to change ECMP width";
           isValid = false;
         }
+      });
+  return isValid;
+}
+
+bool StateUpdateValidator::isLlrConfigUpdateValid(
+    const StateDelta& delta) const {
+  bool isValid = true;
+  // Binding, unbinding or retuning an LLR profile on an administratively
+  // enabled port is rejected by native SDK 6.5.36 with SAI_STATUS_OBJECT_IN_USE
+  // (CS00012478409), and on an SDK that permits it in place it tears down a
+  // running LLR session. The port has to be down for it.
+  //
+  // An update is rejected only when the port is enabled on both sides of it,
+  // since either side being disabled leaves SaiPortManager a port that is down
+  // when the profile is written. A port enabled by the same update that binds
+  // its LLR config is how the first config on a cold boot arrives, and
+  // SaiPortManager holds the enable until the profile is bound. A port disabled
+  // by the same update that changes its LLR config takes the admin state from
+  // the new port, so the port object write puts it down before programLlr runs.
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&isValid](
+          const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!llrConfigChanged(oldPort, newPort) || !oldPort->isEnabled() ||
+            !newPort->isEnabled()) {
+          return;
+        }
+        XLOG(ERR) << "LLR config on port " << newPort->getID()
+                  << " cannot change while the port is admin enabled;"
+                  << " disable the port first";
+        isValid = false;
       });
   return isValid;
 }
@@ -310,6 +342,11 @@ bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
     SwitchStats* stats) {
   if (!isEcmpWidthUpdateValid(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
+  }
+
+  if (!isLlrConfigUpdateValid(delta)) {
     XLOG(ERR) << "State update is not valid.";
     return false;
   }

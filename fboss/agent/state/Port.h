@@ -1051,4 +1051,15 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   friend class CloneAllocator;
 };
 
+/*
+ * Whether the two ports resolve to different LLR config. The profile is
+ * compared by content, not by node identity: ThriftConfigApplier rebuilds every
+ * node in the LlrConfig map whenever any profile changes, so a port whose own
+ * profile is untouched can still end up pointing at a new node holding
+ * identical config.
+ */
+bool llrConfigChanged(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort);
+
 } // namespace facebook::fboss
