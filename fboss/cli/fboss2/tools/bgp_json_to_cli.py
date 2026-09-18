@@ -114,121 +114,6 @@ def generate_global_commands(config: dict[str, Any]) -> list[str]:
     return commands
 
 
-def _generate_peer_group_basic_commands(
-    peer_group: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate basic peer-group commands (remote-asn, description, policies)."""
-    commands = []
-    if "remote_as_4_byte" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} remote-asn {escape_shell_arg(peer_group['remote_as_4_byte'])}"
-        )
-    if "description" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} description {escape_shell_arg(peer_group['description'])}"
-        )
-    if "ingress_policy_name" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} ingress-policy {escape_shell_arg(peer_group['ingress_policy_name'])}"
-        )
-    if "egress_policy_name" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} egress-policy {escape_shell_arg(peer_group['egress_policy_name'])}"
-        )
-    if "peer_tag" in peer_group:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} peer-tag {escape_shell_arg(peer_group['peer_tag'])}"
-        )
-    return commands
-
-
-def _generate_peer_group_bool_commands(
-    peer_group: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate boolean flag commands for peer-group."""
-    commands = []
-    bool_fields = [
-        ("is_rr_client", "rr-client"),
-        ("next_hop_self", "next-hop-self"),
-        ("is_confed_peer", "confed-peer"),
-        ("v4_over_v6_nexthop", "v4-over-v6-nh"),
-        ("disable_ipv4_afi", "disable-ipv4-afi"),
-    ]
-    for field, cli_name in bool_fields:
-        if field in peer_group:
-            commands.append(
-                f"config protocol bgp peer-group {escaped_name} {cli_name} {_shell_bool(peer_group[field])}"
-            )
-    return commands
-
-
-def _generate_peer_group_timer_commands(
-    timers: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate timer commands for peer-group."""
-    commands = []
-    if timers.get("hold_time_seconds"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers hold-time {escape_shell_arg(timers['hold_time_seconds'])}"
-        )
-    if timers.get("keep_alive_seconds"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers keepalive {escape_shell_arg(timers['keep_alive_seconds'])}"
-        )
-    if "out_delay_seconds" in timers:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers out-delay {escape_shell_arg(timers['out_delay_seconds'])}"
-        )
-    if "withdraw_unprog_delay_seconds" in timers:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} timers withdraw-unprog-delay {escape_shell_arg(timers['withdraw_unprog_delay_seconds'])}"
-        )
-    return commands
-
-
-def _generate_peer_group_prefilter_commands(
-    pre_filter: dict[str, Any], escaped_name: str
-) -> list[str]:
-    """Generate pre_filter commands for peer-group."""
-    commands = []
-    if pre_filter.get("max_routes"):
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} max-routes {escape_shell_arg(pre_filter['max_routes'])}"
-        )
-    if "warning_limit" in pre_filter:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-limit {escape_shell_arg(pre_filter['warning_limit'])}"
-        )
-    if "warning_only" in pre_filter:
-        commands.append(
-            f"config protocol bgp peer-group {escaped_name} warning-only {_shell_bool(pre_filter['warning_only'])}"
-        )
-    return commands
-
-
-def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
-    """Generate CLI commands for a peer group."""
-    name = peer_group.get("name", "")
-    if not name:
-        return []
-
-    escaped_name = escape_shell_arg(name)
-    commands = []
-    commands.extend(_generate_peer_group_basic_commands(peer_group, escaped_name))
-    commands.extend(_generate_peer_group_bool_commands(peer_group, escaped_name))
-    commands.extend(
-        _generate_peer_group_timer_commands(
-            peer_group.get("bgp_peer_timers", {}), escaped_name
-        )
-    )
-    commands.extend(
-        _generate_peer_group_prefilter_commands(
-            peer_group.get("pre_filter", {}), escaped_name
-        )
-    )
-    return commands
-
-
 def format_bandwidth(bps: int) -> str:
     """Format bandwidth in bps with the largest exact K/M/G suffix.
 
@@ -480,6 +365,377 @@ def generate_peer_commands(peer: dict[str, Any]) -> list[str]:
     return commands
 
 
+# (json field, CLI attribute) — PeerGroup-only fields whose value maps 1:1
+# onto a peer-group attribute token. Deprecated i32 ASNs map to the 4-byte
+# attribute, as for neighbors. PeerGroup also carries local_addr, next_hop4,
+# next_hop6, enabled and router_port_id, but bgpd reads none of them from a
+# group (the first three per peer only, the last two nowhere), so the
+# dispatcher has no attribute for them and they are flagged instead.
+_PEER_GROUP_SCALAR_FIELDS = [
+    ("remote_as_4_byte", "remote-asn"),
+    ("remote_as", "remote-asn"),
+    ("local_as_4_byte", "local-asn"),
+    ("local_as", "local-asn"),
+    ("description", "description"),
+    ("peer_tag", "peer-tag"),
+    ("ingress_policy_name", "ingress-policy"),
+    ("egress_policy_name", "egress-policy"),
+]
+
+_PEER_GROUP_HANDLED_FIELDS = (
+    {"name"}
+    | {field for field, _ in _PEER_GROUP_SCALAR_FIELDS}
+    | _SHARED_HANDLED_FIELDS
+)
+
+
+def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp peer-group` CLI commands for a peer group.
+
+    The peer-group and neighbor dispatchers share one attribute grammar for
+    the fields both thrift structs carry, so the per-shape generators are
+    shared; only the scalar field list differs.
+    """
+    name = peer_group.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp peer-group {escape_shell_arg(name)}"
+    commands = _unconverted_field_warnings(
+        peer_group, _PEER_GROUP_HANDLED_FIELDS, f"peer-group {_printable(name)}"
+    )
+    commands.extend(
+        _generate_scalar_commands(peer_group, prefix, _PEER_GROUP_SCALAR_FIELDS)
+    )
+    commands.extend(_generate_session_commands(peer_group, prefix))
+    return commands
+
+
+# Emitted verbatim (never prefixed with the binary) for JSON the CLI cannot
+# express, so a replayed script neither fails nor silently drops the field.
+_WARNING_PREFIX = "# WARNING:"
+
+
+def _warning(text: str) -> str:
+    return f"{_WARNING_PREFIX} {text}"
+
+
+_BOOLEAN_OPERATOR_NAMES = {1: "AND", 2: "OR", 3: "NOT"}
+
+
+def _boolean_operator_name(raw: Any) -> str:
+    """routing_policy.BooleanOperator as its name, from the int or the name."""
+    if isinstance(raw, str):
+        return raw
+    return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+
+
+def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy as-path-list` commands for one list.
+
+    bgpd matches on `as_paths` (one `regex` line each) and `boolean_operator`
+    (emitted only when it differs from the OR default). `as_path_list_names`
+    and the `as_path_list` entries are never read by bgpd and have no CLI
+    spelling here, so they surface as warnings rather than vanishing.
+    """
+    name = as_path_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy as-path-list {escape_shell_arg(name)}"
+    commands = []
+    if as_path_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(as_path_list['description'])}"
+        )
+    for regex in as_path_list.get("as_paths") or []:
+        commands.append(f"{prefix} regex {escape_shell_arg(regex)}")
+    if "boolean_operator" in as_path_list:
+        operator = _boolean_operator_name(as_path_list["boolean_operator"])
+        if operator == "NOT":
+            commands.append(
+                _warning(
+                    f"as-path-list {name}: boolean_operator NOT is not "
+                    "accepted by the CLI (bgpd treats it as AND); not emitted"
+                )
+            )
+        elif operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if as_path_list.get("as_path_list_names"):
+        commands.append(
+            _warning(
+                f"as-path-list {name}: as_path_list_names is not read by bgpd "
+                "and has no CLI equivalent; not emitted"
+            )
+        )
+    if as_path_list.get("as_path_list"):
+        commands.append(
+            _warning(
+                f"as-path-list {name}: as_path_list entries are not read by "
+                "bgpd (bgpd matches as_paths); not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) list by name.
+        commands.append(prefix)
+    return commands
+
+
+def generate_community_list_commands(community_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy community-list` commands for one list.
+
+    bgpd matches on `communities` (one `community` line each), `boolean_operator`
+    (emitted only when it differs from the OR default) and `exact_match`.
+    `community_list_names` and the `members` entries are never read by bgpd and
+    have no CLI spelling here, so they surface as warnings rather than vanishing.
+    """
+    name = community_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy community-list {escape_shell_arg(name)}"
+    commands = []
+    if community_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(community_list['description'])}"
+        )
+    for community in community_list.get("communities") or []:
+        commands.append(f"{prefix} community {escape_shell_arg(community)}")
+    if "boolean_operator" in community_list:
+        operator = _boolean_operator_name(community_list["boolean_operator"])
+        if operator == "NOT":
+            commands.append(
+                _warning(
+                    f"community-list {name}: boolean_operator NOT is not "
+                    "accepted by the CLI (bgpd treats it as AND); not emitted"
+                )
+            )
+        elif operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if "exact_match" in community_list:
+        commands.append(
+            f"{prefix} exact-match {_shell_bool(community_list['exact_match'])}"
+        )
+    if community_list.get("community_list_names"):
+        commands.append(
+            _warning(
+                f"community-list {name}: community_list_names is not read by "
+                "bgpd and has no CLI equivalent; not emitted"
+            )
+        )
+    if community_list.get("members"):
+        commands.append(
+            _warning(
+                f"community-list {name}: members entries are not read by bgpd "
+                "(bgpd matches communities); not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) community-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_COMPARISON_OPERATOR_NAMES = {
+    1: "EQ",
+    2: "GE",
+    3: "LE",
+    4: "NE",
+    5: "GT",
+    6: "LT",
+    7: "RG",
+}
+_IP_VERSION_KEYWORDS = {4: "v4", 6: "v6"}
+
+
+def _comparison_operator_name(raw: Any) -> str:
+    if isinstance(raw, str):
+        return raw
+    return _COMPARISON_OPERATOR_NAMES.get(int(raw), str(raw))
+
+
+def _prefix_list_warnings(name: str, prefix_list: dict[str, Any]) -> list[str]:
+    """Warnings for PrefixList fields that have no CLI spelling."""
+    warnings = []
+    if prefix_list.get("prefix_list_names"):
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: prefix_list_names has no CLI equivalent; "
+                "not emitted"
+            )
+        )
+    if "ip_version" in prefix_list:
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: ip_version has no CLI equivalent (the CLI "
+                "writes `version`); not emitted"
+            )
+        )
+    return warnings
+
+
+def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy prefix-list` commands for one list.
+
+    `ip-version` is the CLI spelling of the `version` field (4/6). The
+    `prefix_list_names` references and the `ip_version` enum field have no
+    CLI spelling and surface as warnings.
+    """
+    name = prefix_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy prefix-list {escape_shell_arg(name)}"
+    commands = []
+    if prefix_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(prefix_list['description'])}"
+        )
+    if "boolean_operator" in prefix_list:
+        operator = _boolean_operator_name(prefix_list["boolean_operator"])
+        if operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if "compare_operator" in prefix_list:
+        operator = _comparison_operator_name(prefix_list["compare_operator"])
+        if operator == "RG":
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: compare_operator RG is not accepted at "
+                    "the list level; not emitted"
+                )
+            )
+        else:
+            commands.append(f"{prefix} compare-operator {escape_shell_arg(operator)}")
+    if "version" in prefix_list:
+        keyword = _IP_VERSION_KEYWORDS.get(prefix_list["version"])
+        if keyword is None:
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: version {prefix_list['version']} is "
+                    "neither 4 nor 6; not emitted"
+                )
+            )
+        else:
+            commands.append(f"{prefix} ip-version {keyword}")
+    commands.extend(_prefix_list_warnings(name, prefix_list))
+    for entry in prefix_list.get("prefixes") or []:
+        commands.extend(generate_prefix_list_entry_commands(name, entry))
+    if not commands:
+        # Nothing to set: still recreate the (empty) prefix-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_MATCH_LOGIC_NAMES = {0: "EQUAL", 1: "NOT_EQUAL"}
+
+
+def _prefix_list_entry_scalar_commands(prefix: str, entry: dict[str, Any]) -> list[str]:
+    """The single-valued entry attributes, in the CLI's attribute order."""
+    commands = []
+    if entry.get("base_prefix"):
+        commands.append(
+            f"{prefix} base-prefix {escape_shell_arg(entry['base_prefix'])}"
+        )
+    if entry.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(entry['description'])}"
+        )
+    if "match_logic" in entry:
+        raw = entry["match_logic"]
+        logic = (
+            raw if isinstance(raw, str) else _MATCH_LOGIC_NAMES.get(int(raw), str(raw))
+        )
+        if logic != "EQUAL":
+            commands.append(f"{prefix} match-logic {escape_shell_arg(logic)}")
+    if "max_allowed_golden_prefix_subnet_count" in entry:
+        commands.append(
+            f"{prefix} max-allowed-subnet-count "
+            f"{escape_shell_arg(entry['max_allowed_golden_prefix_subnet_count'])}"
+        )
+    return commands
+
+
+def _prefix_list_entry_range_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """`prefix-len-range` lines for the single range the CLI can express."""
+    ranges = entry.get("prefix_len_ranges") or []
+    if not ranges:
+        return []
+    first = ranges[0]
+    commands = []
+    if "compare_operator" in first:
+        commands.append(
+            f"{prefix} prefix-len-range compare-operator "
+            f"{escape_shell_arg(_comparison_operator_name(first['compare_operator']))}"
+        )
+    if "value" in first:
+        commands.append(
+            f"{prefix} prefix-len-range value {escape_shell_arg(first['value'])}"
+        )
+    if len(ranges) > 1:
+        commands.append(
+            _warning(
+                f"{label}: only the first of {len(ranges)} prefix_len_ranges is "
+                "expressible; the rest are not emitted"
+            )
+        )
+    return commands
+
+
+def generate_prefix_list_entry_commands(
+    list_name: str, entry: dict[str, Any]
+) -> list[str]:
+    """Generate `... prefix-list <name> entry <seq-num>` commands for one entry.
+
+    The CLI keys entries by seq_num and supports a single prefix_len_range;
+    anything beyond that surfaces as a warning.
+    """
+    if "seq_num" not in entry:
+        return [
+            _warning(
+                f"prefix-list {list_name}: entry '{entry.get('base_prefix', '')}' "
+                "has no seq_num and cannot be addressed by the CLI; not emitted"
+            )
+        ]
+    label = f"prefix-list {list_name} entry {entry['seq_num']}"
+    prefix = (
+        f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
+        f"entry {escape_shell_arg(entry['seq_num'])}"
+    )
+    commands = _prefix_list_entry_scalar_commands(prefix, entry)
+    commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
+    if entry.get("regex"):
+        commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")
+    for community in sorted(entry.get("communities") or []):
+        commands.append(f"{prefix} communities {escape_shell_arg(community)}")
+    if "ip_version" in entry:
+        commands.append(
+            _warning(f"{label}: ip_version has no CLI equivalent; not emitted")
+        )
+    if not commands:
+        commands.append(prefix)
+    return commands
+
+
+def generate_policy_commands(config: dict[str, Any]) -> list[str]:
+    """Generate the `config protocol bgp policy ...` commands.
+
+    Lists come before the routing-policies that reference them, and the whole
+    block precedes the peer-group/peer commands that name a policy, so a
+    replayed script never stages a dangling reference.
+    """
+    policies = config.get("policies", {})
+    commands = []
+    for as_path_list in policies.get("aspath_lists", []):
+        commands.extend(generate_as_path_list_commands(as_path_list))
+    for community_list in policies.get("community_lists", []):
+        commands.extend(generate_community_list_commands(community_list))
+    for prefix_list in policies.get("prefix_lists", []):
+        commands.extend(generate_prefix_list_commands(prefix_list))
+    return commands
+
+
 def generate_exec_commands(commands: list[str], binary: str = "fboss2") -> list[str]:
     """Generate executable commands with custom binary."""
     exec_commands = [
@@ -509,6 +765,8 @@ def generate_commands(config: dict[str, Any]) -> list[str]:
     for fields that have no CLI equivalent)."""
     commands = []
     commands.extend(generate_global_commands(config))
+    # Policy objects before the peer-group/peer lines that reference them.
+    commands.extend(generate_policy_commands(config))
     for peer_group in config.get("peer_groups", []):
         commands.extend(generate_peer_group_commands(peer_group))
     for peer in config.get("peers", []):
