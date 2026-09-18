@@ -190,8 +190,11 @@ class RibRouteTables {
       void* cookie);
 
   void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
       const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
-      const std::vector<folly::CIDRNetwork>& toDelete);
+      const std::vector<folly::CIDRNetwork>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
 
   void setClassID(
       const SwitchIdScopeResolver* resolver,
@@ -515,8 +518,11 @@ class RoutingInformationBase {
   }
 
   void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
       const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
-      const std::vector<folly::CIDRNetwork>& toDelete);
+      const std::vector<folly::CIDRNetwork>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
 
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair

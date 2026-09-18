@@ -1798,7 +1798,14 @@ void ThriftHandler::addAdjacencyFrr(
                 *backupNextHops, true /* allowV6NonLinkLocal */),
         });
   }
-  rib->updateMySidFrrProtection(toAddOrUpdate, {});
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->updateMySidFrrProtection(
+      sw_->getScopeResolver(),
+      toAddOrUpdate,
+      {},
+      ribMySidToSwitchStateFunc,
+      sw_);
 }
 
 void ThriftHandler::deleteAdjacencyFrr(
@@ -1818,7 +1825,10 @@ void ThriftHandler::deleteAdjacencyFrr(
     toDelete.emplace_back(
         facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()));
   }
-  rib->updateMySidFrrProtection({}, toDelete);
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->updateMySidFrrProtection(
+      sw_->getScopeResolver(), {}, toDelete, ribMySidToSwitchStateFunc, sw_);
 }
 
 void ThriftHandler::clearPortPrbsStats(

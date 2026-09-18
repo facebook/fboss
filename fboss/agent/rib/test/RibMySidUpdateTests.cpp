@@ -93,6 +93,19 @@ RouteNextHopSet makeUnresolvedNextHops(
   return nextHops;
 }
 
+RouteNextHopSet makeBackupNextHops(
+    const std::vector<std::string>& nextHopAddrs) {
+  std::vector<NextHopThrift> nextHops;
+  for (const auto& nextHopAddr : nextHopAddrs) {
+    NextHopThrift nextHop;
+    nextHop.address() =
+        facebook::network::toBinaryAddress(folly::IPAddress(nextHopAddr));
+    nextHop.role() = NextHopRole::BACKUP;
+    nextHops.push_back(std::move(nextHop));
+  }
+  return util::toRouteNextHopSet(nextHops, true);
+}
+
 NextHopThrift makeSrv6NextHop(const std::string& nextHopAddr) {
   NextHopThrift nhop;
   nhop.address() =
@@ -1050,8 +1063,22 @@ TEST_F(RibMySidValidationTest, rejectFrrProtectionForMissingMySid) {
   const folly::CIDRNetwork prefix{folly::IPAddress("fc00:100::1"), 48};
   const MySidFrrProtectionUpdate update{prefix, {}};
 
-  EXPECT_THROW(rib_.updateMySidFrrProtection({update}, {}), FbossError);
-  EXPECT_THROW(rib_.updateMySidFrrProtection({}, {prefix}), FbossError);
+  EXPECT_THROW(
+      rib_.updateMySidFrrProtection(
+          scopeResolver(),
+          {update},
+          {},
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+  EXPECT_THROW(
+      rib_.updateMySidFrrProtection(
+          scopeResolver(),
+          {},
+          {prefix},
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
 }
 
 TEST_F(RibMySidValidationTest, rejectFrrProtectionForNonAdjacencyMySid) {
@@ -1065,8 +1092,22 @@ TEST_F(RibMySidValidationTest, rejectFrrProtectionForNonAdjacencyMySid) {
   const folly::CIDRNetwork prefix{folly::IPAddress("fc00:100::1"), 48};
   const MySidFrrProtectionUpdate update{prefix, {}};
 
-  EXPECT_THROW(rib_.updateMySidFrrProtection({update}, {}), FbossError);
-  EXPECT_THROW(rib_.updateMySidFrrProtection({}, {prefix}), FbossError);
+  EXPECT_THROW(
+      rib_.updateMySidFrrProtection(
+          scopeResolver(),
+          {update},
+          {},
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
+  EXPECT_THROW(
+      rib_.updateMySidFrrProtection(
+          scopeResolver(),
+          {},
+          {prefix},
+          mySidToSwitchStateUpdate,
+          &switchState_),
+      FbossError);
 }
 
 TEST_F(
@@ -2061,9 +2102,13 @@ class RibMySidFibInfoTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
+  std::shared_ptr<FibInfo> getFibInfo() {
+    return switchState_->getFibsInfoMap()->getNodeIf("id=0");
+  }
+
   // Returns the IdToNextHopIdSetMap from the FibInfo node in the SwitchState.
   std::shared_ptr<IdToNextHopIdSetMap> getIdToNextHopIdSetMap() {
-    auto fibInfo = switchState_->getFibsInfoMap()->getNodeIf("id=0");
+    auto fibInfo = getFibInfo();
     return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
   }
 
@@ -2095,6 +2140,132 @@ TEST_F(RibMySidFibInfoTest, mySidNextHopSetIdReflectedInFibInfo) {
   ASSERT_NE(idSetMap, nullptr);
   EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr)
       << "MySid unresolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsReflectedInSwitchState) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID)},
+      {},
+      "add adjacency mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto firstBackupNextHops =
+      makeBackupNextHops({"2001:db8::1", "2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, firstBackupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_TRUE(mySidTable.at(prefix).backupUnresolveNextHopsId().has_value());
+  const auto firstBackupId = *mySidTable.at(prefix).backupUnresolveNextHopsId();
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(firstBackupId)), firstBackupNextHops);
+
+  auto stateMySid = switchState_->getMySids()->getNodeIf("fc00:100::1/48");
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_EQ(
+      stateMySid->getBackupUnresolveNextHopsId(), NextHopSetID(firstBackupId));
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(firstBackupId), nullptr);
+  const auto firstSwitchStateBackupNextHops =
+      getFibInfo()->resolveNextHopSetFromId(
+          static_cast<NextHopSetId>(firstBackupId));
+  EXPECT_EQ(
+      RouteNextHopSet(
+          firstSwitchStateBackupNextHops.begin(),
+          firstSwitchStateBackupNextHops.end()),
+      firstBackupNextHops);
+
+  const auto secondBackupNextHops = makeBackupNextHops({"2001:db8::3"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, secondBackupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  mySidTable = rib_->getMySidTableCopy();
+  ASSERT_TRUE(mySidTable.at(prefix).backupUnresolveNextHopsId().has_value());
+  const auto secondBackupId =
+      *mySidTable.at(prefix).backupUnresolveNextHopsId();
+  EXPECT_NE(firstBackupId, secondBackupId);
+  manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(firstBackupId)).has_value());
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(secondBackupId)), secondBackupNextHops);
+
+  stateMySid = switchState_->getMySids()->getNodeIf("fc00:100::1/48");
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_EQ(
+      stateMySid->getBackupUnresolveNextHopsId(), NextHopSetID(secondBackupId));
+  idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(firstBackupId), nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(secondBackupId), nullptr);
+  const auto secondSwitchStateBackupNextHops =
+      getFibInfo()->resolveNextHopSetFromId(
+          static_cast<NextHopSetId>(secondBackupId));
+  EXPECT_EQ(
+      RouteNextHopSet(
+          secondSwitchStateBackupNextHops.begin(),
+          secondSwitchStateBackupNextHops.end()),
+      secondBackupNextHops);
+}
+
+TEST_F(RibMySidFibInfoTest, deleteMySidFrrClearsBackupNextHops) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID)},
+      {},
+      "add adjacency mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::1"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+  const auto mySidTableWithBackup = rib_->getMySidTableCopy();
+  ASSERT_TRUE(
+      mySidTableWithBackup.at(prefix).backupUnresolveNextHopsId().has_value());
+  const auto backupId =
+      *mySidTableWithBackup.at(prefix).backupUnresolveNextHopsId();
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {},
+      {prefix},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  EXPECT_FALSE(mySidTable.at(prefix).backupUnresolveNextHopsId().has_value());
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(backupId)).has_value());
+
+  const auto stateMySid =
+      switchState_->getMySids()->getNodeIf("fc00:100::1/48");
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_FALSE(stateMySid->getBackupUnresolveNextHopsId().has_value());
+  const auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(backupId), nullptr);
 }
 
 TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {

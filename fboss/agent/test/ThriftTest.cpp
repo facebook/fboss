@@ -3405,7 +3405,7 @@ MySidEntry makeMySidEntryWithNextHops(
 
 } // namespace
 
-TEST_F(ThriftTest, addAdjacencyFrrThrowsUntilImplemented) {
+TEST_F(ThriftTest, addAdjacencyFrrRejectsMissingMySid) {
   ThriftHandler handler(sw_);
   auto protectedObject = std::make_unique<FrrProtectedObject>();
   protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
@@ -3422,7 +3422,7 @@ TEST_F(ThriftTest, addAdjacencyFrrThrowsUntilImplemented) {
       FbossError);
 }
 
-TEST_F(ThriftTest, deleteAdjacencyFrrThrowsUntilImplemented) {
+TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMissingMySid) {
   ThriftHandler handler(sw_);
   auto protectedObject = std::make_unique<FrrProtectedObject>();
   protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);

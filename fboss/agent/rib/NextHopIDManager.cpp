@@ -739,6 +739,14 @@ void NextHopIDManager::reconstructMySidPass(
         processNextHopSetIdForReconstruction(
             *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
       }
+      if (auto setIdOpt = mySid->getBackupResolvedNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
+      if (auto setIdOpt = mySid->getBackupUnresolveNextHopsId()) {
+        processNextHopSetIdForReconstruction(
+            *setIdOpt, ctx.fibId2NhopMap, ctx.fibId2NhopIdSetMap, ctx);
+      }
       if (auto nhgName = mySid->getNamedNextHopGroup()) {
         const auto cidr = mySid->getMySid();
         nameToMySids_[*nhgName].emplace(cidr.first.asV6(), cidr.second);

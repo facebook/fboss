@@ -1512,12 +1512,18 @@ RibRouteTables RibRouteTables::fromThrift(
       for (auto& [_prefix, mySid] : lockedRouteTables->mySidTable) {
         auto resolvedId = mySid->getResolvedNextHopsId();
         auto unresolvedId = mySid->getUnresolveNextHopsId();
+        auto backupResolvedId = mySid->getBackupResolvedNextHopsId();
+        auto backupUnresolvedId = mySid->getBackupUnresolveNextHopsId();
         bool changed = remapNextHopSetId(resolvedId, setIdRemap);
         changed |= remapNextHopSetId(unresolvedId, setIdRemap);
+        changed |= remapNextHopSetId(backupResolvedId, setIdRemap);
+        changed |= remapNextHopSetId(backupUnresolvedId, setIdRemap);
         if (changed) {
           mySid = mySid->clone();
           mySid->setResolvedNextHopsId(resolvedId);
           mySid->setUnresolveNextHopsId(unresolvedId);
+          mySid->setBackupResolvedNextHopsId(backupResolvedId);
+          mySid->setBackupUnresolveNextHopsId(backupUnresolvedId);
           mySid->publish();
         }
       }
@@ -1743,29 +1749,69 @@ void RibRouteTables::update(
 }
 
 void RibRouteTables::updateMySidFrrProtection(
+    const SwitchIdScopeResolver* resolver,
     const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
-    const std::vector<folly::CIDRNetwork>& toDelete) {
-  auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  const auto validateMySid = [&](const folly::CIDRNetwork& prefix) {
-    const auto prefixStr = folly::IPAddress::networkToString(prefix);
-    if (!prefix.first.isV6()) {
-      throw FbossError("MySid ", prefixStr, " does not exist");
+    const std::vector<folly::CIDRNetwork>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  {
+    auto lockedRouteTables = synchronizedRouteTables_.wlock();
+    if (!lockedRouteTables->nextHopIDManager) {
+      throw FbossError("NextHopIDManager not initialized");
     }
-    const folly::CIDRNetworkV6 prefixV6{prefix.first.asV6(), prefix.second};
-    const auto mySidIt = lockedRouteTables->mySidTable.find(prefixV6);
-    if (mySidIt == lockedRouteTables->mySidTable.end()) {
-      throw FbossError("MySid ", prefixStr, " does not exist");
+    const auto validateMySid = [&](const folly::CIDRNetwork& prefix) {
+      const auto prefixStr = folly::IPAddress::networkToString(prefix);
+      if (!prefix.first.isV6()) {
+        throw FbossError("MySid ", prefixStr, " does not exist");
+      }
+      const folly::CIDRNetworkV6 prefixV6{prefix.first.asV6(), prefix.second};
+      const auto mySidIt = lockedRouteTables->mySidTable.find(prefixV6);
+      if (mySidIt == lockedRouteTables->mySidTable.end()) {
+        throw FbossError("MySid ", prefixStr, " does not exist");
+      }
+      if (mySidIt->second->getType() != MySidType::ADJACENCY_MICRO_SID) {
+        throw FbossError("MySid ", prefixStr, " is not an adjacency MySid");
+      }
+    };
+    for (const auto& update : toAddOrUpdate) {
+      validateMySid(update.mySidPrefix);
     }
-    if (mySidIt->second->getType() != MySidType::ADJACENCY_MICRO_SID) {
-      throw FbossError("MySid ", prefixStr, " is not an adjacency MySid");
+    for (const auto& prefix : toDelete) {
+      validateMySid(prefix);
     }
-  };
-  for (const auto& update : toAddOrUpdate) {
-    validateMySid(update.mySidPrefix);
+
+    auto* nextHopIDManager = lockedRouteTables->nextHopIDManager.get();
+    const auto setBackupNextHops = [&](const folly::CIDRNetwork& cidr,
+                                       const RouteNextHopSet* nextHops) {
+      const folly::CIDRNetworkV6 prefix{cidr.first.asV6(), cidr.second};
+      auto& mySid = lockedRouteTables->mySidTable.at(prefix);
+      const auto oldUnresolvedId = mySid->getBackupUnresolveNextHopsId();
+      const auto oldResolvedId = mySid->getBackupResolvedNextHopsId();
+      std::optional<NextHopSetID> newUnresolvedId;
+      if (nextHops && !nextHops->empty()) {
+        newUnresolvedId =
+            nextHopIDManager->getOrAllocRouteNextHopSetID(*nextHops)
+                .nextHopIdSetIter->second.id;
+      }
+      auto updatedMySid = mySid->clone();
+      updatedMySid->setBackupUnresolveNextHopsId(newUnresolvedId);
+      updatedMySid->setBackupResolvedNextHopsId(std::nullopt);
+      mySid = std::move(updatedMySid);
+      if (oldUnresolvedId.has_value()) {
+        nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldUnresolvedId);
+      }
+      if (oldResolvedId.has_value()) {
+        nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedId);
+      }
+    };
+    for (const auto& update : toAddOrUpdate) {
+      setBackupNextHops(update.mySidPrefix, &update.nextHops);
+    }
+    for (const auto& prefix : toDelete) {
+      setBackupNextHops(prefix, nullptr);
+    }
   }
-  for (const auto& prefix : toDelete) {
-    validateMySid(prefix);
-  }
+  updateFib(resolver, ribMySidToSwitchStateFunc, cookie);
 }
 
 void RibRouteTables::updateMySidsImpl(
@@ -1874,6 +1920,16 @@ void RibRouteTables::updateMySidsImpl(
                   existingIt->second->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedId);
           }
+          if (const auto oldBackupUnresolvedId =
+                  existingIt->second->getBackupUnresolveNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                *oldBackupUnresolvedId);
+          }
+          if (const auto oldBackupResolvedId =
+                  existingIt->second->getBackupResolvedNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                *oldBackupResolvedId);
+          }
         }
       }
       (*mySidTable)[cidrV6] = std::move(mySid);
@@ -1889,6 +1945,12 @@ void RibRouteTables::updateMySidsImpl(
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
           }
           if (const auto id = it->second->getResolvedNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
+          }
+          if (const auto id = it->second->getBackupUnresolveNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
+          }
+          if (const auto id = it->second->getBackupResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
           }
           nextHopIDManager->removeMySidFromNamedNhgs(cidr);
@@ -1974,11 +2036,15 @@ void RoutingInformationBase::updateMySidImpl(
 }
 
 void RoutingInformationBase::updateMySidFrrProtection(
+    const SwitchIdScopeResolver* resolver,
     const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
-    const std::vector<folly::CIDRNetwork>& toDelete) {
-  updateStateInRibThread(
-      [&]() { ribTables_.updateMySidFrrProtection(toAddOrUpdate, toDelete); });
-  throw FbossError("updateMySidFrrProtection Not supported");
+    const std::vector<folly::CIDRNetwork>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  updateStateInRibThread([&]() {
+    ribTables_.updateMySidFrrProtection(
+        resolver, toAddOrUpdate, toDelete, ribMySidToSwitchStateFunc, cookie);
+  });
 }
 
 void RoutingInformationBase::updateStateInRibThread(
