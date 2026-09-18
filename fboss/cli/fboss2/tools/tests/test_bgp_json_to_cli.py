@@ -21,11 +21,19 @@ from typing import Any
 from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     escape_shell_arg,
     format_bandwidth,
+    generate_as_path_list_commands,
     generate_commands,
+    generate_community_list_commands,
     generate_exec_commands,
     generate_global_commands,
     generate_peer_commands,
     generate_peer_group_commands,
+    generate_policy_commands,
+    generate_prefix_list_commands,
+    generate_prefix_list_entry_commands,
+    generate_routing_policy_commands,
+    generate_routing_policy_term_action_commands,
+    generate_routing_policy_term_commands,
     json_to_cli,
 )
 
@@ -233,7 +241,9 @@ class GenerateGlobalCommandsTest(unittest.TestCase):
 
 
 class GeneratePeerGroupCommandsTest(unittest.TestCase):
-    """Tests for generate_peer_group_commands function."""
+    """Tests for generate_peer_group_commands (peer-group grammar)."""
+
+    PREFIX = "config protocol bgp peer-group TEST"
 
     def test_empty_name_returns_empty(self) -> None:
         """Peer group without name should return empty list."""
@@ -249,42 +259,68 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "config protocol bgp peer-group TEST-GROUP remote-asn 65000", commands
         )
 
+    def test_local_asn(self) -> None:
+        """local_as_4_byte should generate local-asn command."""
+        peer_group = {"name": "TEST", "local_as_4_byte": 64512}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} local-asn 64512", commands)
+
     def test_description_with_spaces(self) -> None:
-        """Description with spaces should be properly quoted."""
+        """Description with spaces should be quoted."""
         peer_group = {"name": "TEST", "description": "Test peer group"}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST description 'Test peer group'",
-            commands,
-        )
+        self.assertIn(f"{self.PREFIX} description 'Test peer group'", commands)
 
     def test_boolean_flag_true(self) -> None:
-        """Boolean flag with true value should generate 'true'."""
+        """Boolean true should generate 'true'."""
         peer_group = {"name": "TEST", "next_hop_self": True}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST next-hop-self true", commands
-        )
+        self.assertIn(f"{self.PREFIX} next-hop-self true", commands)
 
     def test_boolean_flag_false(self) -> None:
-        """Boolean flag with false value should generate 'false' (not omitted)."""
+        """Boolean false should generate 'false' (not be omitted)."""
         peer_group = {"name": "TEST", "disable_ipv4_afi": False}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST disable-ipv4-afi false", commands
-        )
+        self.assertIn(f"{self.PREFIX} afi disable-ipv4-afi false", commands)
 
-    def test_is_rr_client(self) -> None:
-        """is_rr_client should generate rr-client command."""
-        peer_group = {"name": "TEST", "is_rr_client": True}
+    def test_afi_flags(self) -> None:
+        """AFI flags use the two-token `afi ...` attributes."""
+        peer_group = {
+            "name": "TEST",
+            "disable_ipv4_afi": True,
+            "disable_ipv6_afi": False,
+            "v4_over_v6_nexthop": True,
+        }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST rr-client true", commands)
+        self.assertIn(f"{self.PREFIX} afi disable-ipv4-afi true", commands)
+        self.assertIn(f"{self.PREFIX} afi disable-ipv6-afi false", commands)
+        self.assertIn(f"{self.PREFIX} afi ipv4-over-ipv6-nh true", commands)
 
-    def test_is_confed_peer(self) -> None:
-        """is_confed_peer should generate confed-peer command."""
-        peer_group = {"name": "TEST", "is_confed_peer": True}
+    def test_session_flags(self) -> None:
+        """Session flags map onto their single-token boolean attributes."""
+        peer_group = {
+            "name": "TEST",
+            "is_rr_client": True,
+            "is_confed_peer": True,
+            "is_redistribute_peer": False,
+            "enhanced_route_refresh": True,
+            "enable_stateful_ha": True,
+        }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST confed-peer true", commands)
+        self.assertIn(f"{self.PREFIX} rr-client true", commands)
+        self.assertIn(f"{self.PREFIX} confed-peer true", commands)
+        self.assertIn(f"{self.PREFIX} redistribute-peer false", commands)
+        self.assertIn(f"{self.PREFIX} enhanced-route-refresh true", commands)
+        self.assertIn(f"{self.PREFIX} graceful-restart stateful-ha true", commands)
+
+    def test_is_passive(self) -> None:
+        """is_passive should generate the passive flag."""
+        peer_group = {"name": "TEST", "is_passive": True}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} passive true", commands)
+        peer_group["is_passive"] = False
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} passive false", commands)
 
     def test_policies(self) -> None:
         """Policy names should generate correct commands."""
@@ -294,23 +330,22 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
             "egress_policy_name": "OUT_POLICY",
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST ingress-policy IN_POLICY", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST egress-policy OUT_POLICY", commands
-        )
+        self.assertIn(f"{self.PREFIX} ingress-policy IN_POLICY", commands)
+        self.assertIn(f"{self.PREFIX} egress-policy OUT_POLICY", commands)
 
-    def test_v4_over_v6_nexthop(self) -> None:
-        """v4_over_v6_nexthop should generate v4-over-v6-nh command."""
-        peer_group = {"name": "TEST", "v4_over_v6_nexthop": True}
+    def test_add_path(self) -> None:
+        """add_path BOTH should expand to both directions; RECEIVE to one."""
+        peer_group = {"name": "TEST", "add_path": 3}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST v4-over-v6-nh true", commands
-        )
+        self.assertIn(f"{self.PREFIX} add-path receive true", commands)
+        self.assertIn(f"{self.PREFIX} add-path send true", commands)
+        peer_group["add_path"] = "RECEIVE"
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} add-path receive true", commands)
+        self.assertNotIn(f"{self.PREFIX} add-path send true", commands)
 
     def test_timers(self) -> None:
-        """Timer fields should generate correct commands."""
+        """Timers, including zero values, should generate correct commands."""
         peer_group = {
             "name": "TEST",
             "bgp_peer_timers": {
@@ -318,44 +353,216 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
                 "keep_alive_seconds": 10,
                 "out_delay_seconds": 5,
                 "withdraw_unprog_delay_seconds": 0,
+                "graceful_restart_seconds": 120,
             },
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers hold-time 30", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers keepalive 10", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers out-delay 5", commands
-        )
-        self.assertIn(
-            "config protocol bgp peer-group TEST timers withdraw-unprog-delay 0",
-            commands,
-        )
+        self.assertIn(f"{self.PREFIX} timers hold-time 30", commands)
+        self.assertIn(f"{self.PREFIX} timers keepalive 10", commands)
+        self.assertIn(f"{self.PREFIX} timers out-delay 5", commands)
+        self.assertIn(f"{self.PREFIX} timers withdraw-unprog-delay 0", commands)
+        self.assertIn(f"{self.PREFIX} graceful-restart restart-time 120", commands)
 
-    def test_pre_filter_max_routes(self) -> None:
-        """pre_filter.max_routes should generate max-routes command."""
-        peer_group = {"name": "TEST", "pre_filter": {"max_routes": 45000}}
+    def test_hold_time_zero_preserved(self) -> None:
+        """hold_time_seconds: 0 is a real value (no keepalives), not 'unset'."""
+        peer_group = {"name": "TEST", "bgp_peer_timers": {"hold_time_seconds": 0}}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST max-routes 45000", commands)
+        self.assertIn(f"{self.PREFIX} timers hold-time 0", commands)
 
-    def test_pre_filter_warning_settings(self) -> None:
-        """pre_filter warning settings should generate correct commands."""
+    def test_pre_filter(self) -> None:
+        """pre_filter maps onto the max-route pre-* attributes."""
         peer_group = {
             "name": "TEST",
-            "pre_filter": {"warning_limit": 100, "warning_only": True},
+            "pre_filter": {
+                "max_routes": 45000,
+                "warning_limit": 100,
+                "warning_only": True,
+            },
         }
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST warning-limit 100", commands)
-        self.assertIn("config protocol bgp peer-group TEST warning-only true", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-filter 45000", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-warning-threshold 100", commands)
+        self.assertIn(f"{self.PREFIX} max-route pre-warning-only true", commands)
+
+    def test_post_filter(self) -> None:
+        """post_filter maps onto the max-route post-* attributes."""
+        peer_group = {
+            "name": "TEST",
+            "post_filter": {
+                "max_routes": 50000,
+                "warning_limit": 48000,
+                "warning_only": False,
+            },
+        }
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} max-route post-filter 50000", commands)
+        self.assertIn(f"{self.PREFIX} max-route post-warning-threshold 48000", commands)
+        self.assertIn(f"{self.PREFIX} max-route post-warning-only false", commands)
 
     def test_peer_tag(self) -> None:
         """peer_tag should generate peer-tag command."""
         peer_group = {"name": "TEST", "peer_tag": "FSW"}
         commands = generate_peer_group_commands(peer_group)
-        self.assertIn("config protocol bgp peer-group TEST peer-tag FSW", commands)
+        self.assertIn(f"{self.PREFIX} peer-tag FSW", commands)
+
+    def test_complete_peer_group_loses_no_field(self) -> None:
+        """Every CLI-settable PeerGroup field produces exactly one command, in
+        the grammar the peer-group dispatcher accepts."""
+        peer_group = {
+            "name": "TEST",
+            "remote_as_4_byte": 65000,
+            "local_as_4_byte": 64512,
+            "description": "spine group",
+            "peer_tag": "FSW",
+            "ingress_policy_name": "IN_POLICY",
+            "egress_policy_name": "OUT_POLICY",
+            "is_passive": True,
+            "is_rr_client": True,
+            "is_confed_peer": False,
+            "is_redistribute_peer": True,
+            "enhanced_route_refresh": True,
+            "route_refresh": False,
+            "remove_private_as": True,
+            "enforce_first_as": True,
+            "disable_ipv4_afi": True,
+            "disable_ipv6_afi": False,
+            "v4_over_v6_nexthop": True,
+            "enable_stateful_ha": True,
+            "next_hop_self": True,
+            "ttl_security_hops": 2,
+            "link_bandwidth_bps": "10G",
+            "advertise_link_bandwidth": 1,
+            "receive_link_bandwidth": "ACCEPT",
+            "add_path": 3,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "keep_alive_seconds": 30,
+                "out_delay_seconds": 5,
+                "withdraw_unprog_delay_seconds": 10,
+                "graceful_restart_seconds": 120,
+            },
+            "pre_filter": {
+                "max_routes": 45000,
+                "warning_limit": 40000,
+                "warning_only": True,
+            },
+            "post_filter": {
+                "max_routes": 50000,
+                "warning_limit": 48000,
+                "warning_only": False,
+            },
+        }
+        expected = [
+            "remote-asn 65000",
+            "local-asn 64512",
+            "description 'spine group'",
+            "peer-tag FSW",
+            "ingress-policy IN_POLICY",
+            "egress-policy OUT_POLICY",
+            "passive true",
+            "rr-client true",
+            "confed-peer false",
+            "redistribute-peer true",
+            "enhanced-route-refresh true",
+            "route-refresh false",
+            "remove-private-as true",
+            "enforce-first-as true",
+            "afi disable-ipv4-afi true",
+            "afi disable-ipv6-afi false",
+            "afi ipv4-over-ipv6-nh true",
+            "graceful-restart stateful-ha true",
+            "next-hop-self true",
+            "ttl-security-hops 2",
+            "link-bandwidth 10G",
+            "advertise-lbw 1",
+            "receive-lbw ACCEPT",
+            "add-path receive true",
+            "add-path send true",
+            "timers hold-time 90",
+            "timers keepalive 30",
+            "timers out-delay 5",
+            "timers withdraw-unprog-delay 10",
+            "graceful-restart restart-time 120",
+            "max-route pre-filter 45000",
+            "max-route pre-warning-threshold 40000",
+            "max-route pre-warning-only true",
+            "max-route post-filter 50000",
+            "max-route post-warning-threshold 48000",
+            "max-route post-warning-only false",
+        ]
+        commands = generate_peer_group_commands(peer_group)
+        self.assertEqual(commands, [f"{self.PREFIX} {e}" for e in expected])
+        # One command per leaf field: nothing in the input was dropped.
+        leaf_fields = (
+            len(peer_group)
+            - 1  # name is the key, not an attribute
+            - 3  # the three nested structs are counted by their leaves below
+            + 1  # add_path BOTH expands to two commands
+            + len(peer_group["bgp_peer_timers"])
+            + len(peer_group["pre_filter"])
+            + len(peer_group["post_filter"])
+        )
+        self.assertEqual(len(commands), leaf_fields)
+        self.assertEqual(len(commands), 36)
+
+    def test_link_bandwidth(self) -> None:
+        """The link-bandwidth trio bgpd resolves peer > group is generated."""
+        peer_group = {
+            "name": "TEST",
+            "link_bandwidth_bps": 10_000_000_000,
+            "advertise_link_bandwidth": "ADVERTISE",
+            "receive_link_bandwidth": 1,
+        }
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} link-bandwidth 10G", commands)
+        self.assertIn(f"{self.PREFIX} advertise-lbw ADVERTISE", commands)
+        self.assertIn(f"{self.PREFIX} receive-lbw 1", commands)
+
+    def test_deprecated_asn_fields_map_to_4_byte_attribute(self) -> None:
+        """The deprecated i32 ASNs are carried over, not dropped."""
+        peer_group = {"name": "TEST", "remote_as": 65000, "local_as": 64512}
+        commands = generate_peer_group_commands(peer_group)
+        self.assertIn(f"{self.PREFIX} remote-asn 65000", commands)
+        self.assertIn(f"{self.PREFIX} local-asn 64512", commands)
+        self.assertFalse(any(c.startswith("# WARNING") for c in commands))
+
+    def test_unrepresentable_peer_group_fields_warn(self) -> None:
+        """PeerGroup fields bgpd never reads from a group are reported, not
+        silently dropped, and produce no config command."""
+        peer_group = {
+            "name": "TEST",
+            "remote_as_4_byte": 65000,
+            "local_addr": "2001:db8::2",
+            "next_hop4": "10.1.1.1",
+            "next_hop6": "2001:db8::a",
+            "enabled": True,
+            "router_port_id": 7,
+            "bgp_peer_timers": {
+                "hold_time_seconds": 90,
+                "graceful_restart_end_of_rib_seconds": 30,
+            },
+        }
+        commands = generate_peer_group_commands(peer_group)
+        warnings = [c for c in commands if c.startswith("# WARNING")]
+        self.assertEqual(
+            warnings,
+            [
+                f"# WARNING: peer-group TEST: field {f} has no CLI equivalent, "
+                "not converted"
+                for f in (
+                    "local_addr",
+                    "next_hop4",
+                    "next_hop6",
+                    "enabled",
+                    "router_port_id",
+                    "bgp_peer_timers.graceful_restart_end_of_rib_seconds",
+                )
+            ],
+        )
+        self.assertEqual(
+            [c for c in commands if not c.startswith("#")],
+            [f"{self.PREFIX} remote-asn 65000", f"{self.PREFIX} timers hold-time 90"],
+        )
 
 
 class GeneratePeerCommandsTest(unittest.TestCase):
@@ -745,6 +952,541 @@ def peer_config(peer: dict) -> dict:
     return {"peers": [peer]}
 
 
+class GenerateAsPathListCommandsTest(unittest.TestCase):
+    """Tests for generate_as_path_list_commands (as-path-list grammar)."""
+
+    PREFIX = "config protocol bgp policy as-path-list ASPL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_as_path_list_commands({"as_paths": ["^1_"]}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        """A list with nothing to set still comes back by name."""
+        self.assertEqual(
+            generate_as_path_list_commands({"name": "ASPL"}), [self.PREFIX]
+        )
+
+    def test_description(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "description": "spine as paths"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'spine as paths'"])
+
+    def test_empty_description_not_emitted(self) -> None:
+        """bgpd's running config carries the "" default; nothing to replay."""
+        commands = generate_as_path_list_commands({"name": "ASPL", "description": ""})
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_regex_per_as_path(self) -> None:
+        """Each as_paths pattern is one quoted `regex` line, in order."""
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "as_paths": ["^65000_", "_65001$"]}
+        )
+        self.assertEqual(
+            commands,
+            [f"{self.PREFIX} regex '^65000_'", f"{self.PREFIX} regex '_65001$'"],
+        )
+
+    def test_boolean_operator_and(self) -> None:
+        for raw in (1, "AND"):
+            commands = generate_as_path_list_commands(
+                {"name": "ASPL", "boolean_operator": raw}
+            )
+            self.assertEqual(commands, [f"{self.PREFIX} boolean-operator AND"], raw)
+
+    def test_boolean_operator_or_is_default(self) -> None:
+        """OR is the thrift default and the CLI's; nothing to emit."""
+        for raw in (2, "OR"):
+            commands = generate_as_path_list_commands(
+                {"name": "ASPL", "boolean_operator": raw}
+            )
+            self.assertEqual(commands, [self.PREFIX], raw)
+
+    def test_boolean_operator_not_warns(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "boolean_operator": 3}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
+
+    def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
+        commands = generate_as_path_list_commands(
+            {
+                "name": "ASPL",
+                "as_path_list_names": ["OTHER"],
+                "as_path_list": [{"sequence_number": 10}],
+            }
+        )
+        self.assertEqual(len(commands), 2)
+        self.assertIn("as_path_list_names", commands[0])
+        self.assertIn("as_path_list entries", commands[1])
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_injection_in_regex_neutralized(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "as_paths": ["$(reboot)"]}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} regex '$(reboot)'"])
+
+    def test_policy_block_orders_lists_first(self) -> None:
+        config = {"policies": {"aspath_lists": [{"name": "A"}, {"name": "B"}]}}
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy as-path-list B",
+            ],
+        )
+
+    def test_no_policies_key(self) -> None:
+        self.assertEqual(generate_policy_commands({}), [])
+
+
+class GenerateCommunityListCommandsTest(unittest.TestCase):
+    """Tests for generate_community_list_commands (community-list grammar)."""
+
+    PREFIX = "config protocol bgp policy community-list CL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_community_list_commands({"exact_match": True}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL"}), [self.PREFIX]
+        )
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "description": "transit communities",
+                "boolean_operator": 1,
+                "exact_match": True,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description 'transit communities'",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} exact-match true",
+            ],
+        )
+
+    def test_community_per_value(self) -> None:
+        """Each communities value is one quoted `community` line, in order."""
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["65000:100", "^65000:.*$"]}
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} community {escape_shell_arg('65000:100')}",
+                f"{self.PREFIX} community {escape_shell_arg('^65000:.*$')}",
+            ],
+        )
+
+    def test_injection_in_community_neutralized(self) -> None:
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["$(reboot)"]}
+        )
+        self.assertEqual(
+            commands, [f"{self.PREFIX} community {escape_shell_arg('$(reboot)')}"]
+        )
+
+    def test_boolean_operator_or_omitted_not_warns(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "boolean_operator": "OR"}),
+            [self.PREFIX],
+        )
+        commands = generate_community_list_commands(
+            {"name": "CL", "boolean_operator": 3}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
+
+    def test_exact_match_false_preserved(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "exact_match": False}),
+            [f"{self.PREFIX} exact-match false"],
+        )
+
+    def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "community_list_names": ["X"],
+                "members": [{"community": {"name": "CM1", "value": "65000:1"}}],
+            }
+        )
+        self.assertEqual(len(commands), 2)
+        self.assertIn("community_list_names", commands[0])
+        self.assertIn("members entries", commands[1])
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_lists_after_as_path_lists(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+            ],
+        )
+
+
+class GeneratePrefixListCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_commands (prefix-list grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"version": 4}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"name": "PL"}), [self.PREFIX])
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "description": "loopbacks",
+                "boolean_operator": "AND",
+                "compare_operator": 2,
+                "version": 6,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description loopbacks",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} compare-operator GE",
+                f"{self.PREFIX} ip-version v6",
+            ],
+        )
+
+    def test_or_default_omitted(self) -> None:
+        self.assertEqual(
+            generate_prefix_list_commands({"name": "PL", "boolean_operator": 2}),
+            [self.PREFIX],
+        )
+
+    def test_unexpressible_values_warn(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "compare_operator": 7,
+                "version": 5,
+                "prefix_list_names": ["X"],
+                "ip_version": 1,
+            }
+        )
+        self.assertEqual(len(commands), 4)
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_order(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+                "config protocol bgp policy prefix-list PL",
+            ],
+        )
+
+
+class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_entry_commands (entry grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL entry 10"
+
+    def test_full_entry(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "base_prefix": "10.0.0.0/8",
+                "description": "rfc1918 a",
+                "match_logic": 1,
+                "max_allowed_golden_prefix_subnet_count": 4,
+                "prefix_len_ranges": [{"compare_operator": 3, "value": 24}],
+                "regex": "^10\\.",
+                "communities": ["65000:2", "65000:1"],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
+                f"{self.PREFIX} description 'rfc1918 a'",
+                f"{self.PREFIX} match-logic NOT_EQUAL",
+                f"{self.PREFIX} max-allowed-subnet-count 4",
+                f"{self.PREFIX} prefix-len-range compare-operator LE",
+                f"{self.PREFIX} prefix-len-range value 24",
+                f"{self.PREFIX} regex '^10\\.'",
+                f"{self.PREFIX} communities 65000:1",
+                f"{self.PREFIX} communities 65000:2",
+            ],
+        )
+
+    def test_equal_default_omitted(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"seq_num": 10, "match_logic": 0}
+        )
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_missing_seq_num_warns(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"base_prefix": "10.0.0.0/8"}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("10.0.0.0/8", commands[0])
+
+    def test_extra_ranges_and_ip_version_warn(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "prefix_len_ranges": [{"value": 24}, {"value": 32}],
+                "ip_version": 1,
+            },
+        )
+        self.assertEqual(commands[0], f"{self.PREFIX} prefix-len-range value 24")
+        self.assertEqual(len(commands), 3)
+        self.assertTrue(commands[1].startswith("# WARNING:"))
+        self.assertTrue(commands[2].startswith("# WARNING:"))
+
+    def test_entries_emitted_inside_list(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "version": 4,
+                "prefixes": [{"seq_num": 10, "base_prefix": "10.0.0.0/8"}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy prefix-list PL ip-version v4",
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
+            ],
+        )
+
+
+class GenerateRoutingPolicyCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_commands (routing-policy grammar)."""
+
+    PREFIX = "config protocol bgp policy routing-policy RM"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_routing_policy_commands({"description": "x"}), [])
+
+    def test_bare_policy_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM"}), [self.PREFIX]
+        )
+
+    def test_description(self) -> None:
+        commands = generate_routing_policy_commands(
+            {"name": "RM", "description": "import from spine"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'import from spine'"])
+
+    def test_result_deny_default_silent_other_warns(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM", "result": 2}), [self.PREFIX]
+        )
+        commands = generate_routing_policy_commands({"name": "RM", "result": "ACCEPT"})
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("ACCEPT", commands[0])
+
+    def test_policy_block_order_lists_then_policies(self) -> None:
+        config = {
+            "policies": {
+                "bgp_policy_statements": [{"name": "RM"}],
+                "aspath_lists": [{"name": "A"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy prefix-list PL",
+                self.PREFIX,
+            ],
+        )
+
+
+class GenerateRoutingPolicyTermCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_term_commands (term grammar)."""
+
+    PREFIX = "config protocol bgp policy routing-policy RM term 10"
+
+    def test_bare_term_is_recreated(self) -> None:
+        commands = generate_routing_policy_term_commands("RM", {"sequence_number": 10})
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_description(self) -> None:
+        commands = generate_routing_policy_term_commands(
+            "RM", {"sequence_number": 10, "description": "deny bogons"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'deny bogons'"])
+
+    def test_missing_sequence_number_warns(self) -> None:
+        commands = generate_routing_policy_term_commands("RM", {"name": "t1"})
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("t1", commands[0])
+
+    def test_terms_emitted_inside_policy(self) -> None:
+        commands = generate_routing_policy_commands(
+            {
+                "name": "RM",
+                "description": "d",
+                "policy_entries": [{"sequence_number": 10}, {"sequence_number": 20}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy routing-policy RM description d",
+                self.PREFIX,
+                "config protocol bgp policy routing-policy RM term 20",
+            ],
+        )
+
+
+class GenerateRoutingPolicyTermActionCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_term_action_commands."""
+
+    TERM = "config protocol bgp policy routing-policy RM term 10"
+
+    def test_result(self) -> None:
+        for raw, keyword in ((1, "ACCEPT"), (2, "REJECT"), ("DENY", "REJECT")):
+            commands = generate_routing_policy_term_action_commands(
+                self.TERM, {"term_miss_action": raw}
+            )
+            self.assertEqual(commands, [f"{self.TERM} action result {keyword}"], raw)
+
+    def test_result_next_term_default_omitted(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_term_action_commands(
+                self.TERM, {"term_miss_action": 3}
+            ),
+            [],
+        )
+
+    def test_result_unexpressible_warns(self) -> None:
+        commands = generate_routing_policy_term_action_commands(
+            self.TERM, {"term_miss_action": 6}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+
+    def test_set_actions(self) -> None:
+        term = {
+            "policy_action_entries": [
+                {"type": 1, "set_as_path_prepend": {"asn": 65000, "repeat_times": 2}},
+                {
+                    "type": 2,
+                    "community_action": {"communities": ["65000:1"], "action_type": 1},
+                },
+                {
+                    "type": "COMMUNITY_LIST",
+                    "community_action": {"communities": ["65000:2"], "action_type": 2},
+                },
+                {"type": 3, "set_local_pref": {"local_pref": 200}},
+                {"type": 4, "set_origin": 3},
+                {
+                    "type": 8,
+                    "set_nexthop": {"next_hop": {"next_hop_prefix": "10.0.0.1"}},
+                },
+                {"type": 10, "med_action": {"med_value": 50, "med_action_type": 1}},
+                {
+                    "type": 15,
+                    "weight_action": {"weight_value": 7, "weight_action_type": 1},
+                },
+            ]
+        }
+        commands = generate_routing_policy_term_action_commands(self.TERM, term)
+        self.assertEqual(
+            commands,
+            [
+                f"{self.TERM} action set as-path prepend 65000 65000",
+                f"{self.TERM} action set community 65000:1 additive",
+                f"{self.TERM} action set community 65000:2",
+                f"{self.TERM} action set local-pref 200",
+                f"{self.TERM} action set origin INCOMPLETE",
+                f"{self.TERM} action set next-hop 10.0.0.1",
+                f"{self.TERM} action set med 50",
+                f"{self.TERM} action set weight 7",
+            ],
+        )
+
+    def test_unexpressible_actions_warn(self) -> None:
+        term = {
+            "policy_action_entries": [
+                {"type": 8, "set_nexthop": {"set_self": True}},
+                {"type": 10, "med_action": {"med_value": 1, "med_action_type": 2}},
+                {"type": 11},
+                {
+                    "type": 2,
+                    "community_action": {"communities": ["a", "b"], "action_type": 2},
+                },
+            ]
+        }
+        commands = generate_routing_policy_term_action_commands(self.TERM, term)
+        self.assertEqual(len(commands), 4)
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_actions_emitted_inside_term(self) -> None:
+        commands = generate_routing_policy_term_commands(
+            "RM",
+            {
+                "sequence_number": 10,
+                "term_miss_action": 1,
+                "policy_action_entries": [
+                    {"type": 3, "set_local_pref": {"local_pref": 5}}
+                ],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.TERM} action result ACCEPT",
+                f"{self.TERM} action set local-pref 5",
+            ],
+        )
+
+
 class GenerateScriptCommandsTest(unittest.TestCase):
     """Tests for generate_exec_commands."""
 
@@ -755,6 +1497,15 @@ class GenerateScriptCommandsTest(unittest.TestCase):
         self.assertIn("#!/bin/bash", result)
         # Check for set -e with any comment
         self.assertTrue(any("set -e" in cmd for cmd in result))
+
+    def test_exec_commands_pass_warnings_through(self) -> None:
+        """Warning comments are never prefixed with the binary."""
+        result = generate_exec_commands(
+            ["config protocol bgp global hold-time 90", "# WARNING: x"], "fboss2"
+        )
+        self.assertIn("fboss2 config protocol bgp global hold-time 90", result)
+        self.assertIn("# WARNING: x", result)
+        self.assertNotIn("fboss2 # WARNING: x", result)
 
     def test_exec_commands_prepends_binary(self) -> None:
         """Exec commands should prepend binary to each command."""
@@ -779,6 +1530,37 @@ class GenerateScriptCommandsTest(unittest.TestCase):
             peer_config({"peer_addr": "2001:db8::1", "enabled": True})
         )
         self.assertTrue(commands[0].startswith("# WARNING: neighbor 2001:db8::1"))
+
+
+class GenerateCommandsOrderTest(unittest.TestCase):
+    """generate_commands is the single generator sequence for --raw and the
+    script: global, then policy objects, then the peer-groups and peers that
+    reference them."""
+
+    def test_policies_between_global_and_peer_groups(self) -> None:
+        config = {
+            "router_id": "10.0.0.1",
+            "policies": {"aspath_lists": [{"name": "ASPL", "as_paths": ["^1_"]}]},
+            "peer_groups": [{"name": "PG", "remote_as_4_byte": 65000}],
+            "peers": [{"peer_addr": "10.0.0.2", "peer_group_name": "PG"}],
+        }
+        commands = generate_commands(config)
+        idx = {
+            "global": next(i for i, c in enumerate(commands) if "global" in c),
+            "policy": next(i for i, c in enumerate(commands) if "as-path-list" in c),
+            "peer_group": next(
+                i for i, c in enumerate(commands) if "peer-group PG" in c
+            ),
+            "peer": next(i for i, c in enumerate(commands) if "neighbor" in c),
+        }
+        self.assertLess(idx["global"], idx["policy"])
+        self.assertLess(idx["policy"], idx["peer_group"])
+        self.assertLess(idx["peer_group"], idx["peer"])
+
+    def test_script_wraps_same_sequence(self) -> None:
+        config = {"policies": {"aspath_lists": [{"name": "ASPL"}]}}
+        script = json_to_cli(config, binary="fboss2")
+        self.assertIn("fboss2 config protocol bgp policy as-path-list ASPL", script)
 
 
 class JsonToCliIntegrationTest(unittest.TestCase):
@@ -849,7 +1631,9 @@ class JsonToCliIntegrationTest(unittest.TestCase):
         # Verify peer group commands
         self.assertIn("peer-group RSW-FSW-V6 next-hop-self true", joined)
         self.assertIn("peer-group RSW-FSW-V6 confed-peer true", joined)
-        self.assertIn("peer-group RSW-RTSW-V6 disable-ipv4-afi true", joined)
+        self.assertIn("peer-group RSW-FSW-V6 afi ipv4-over-ipv6-nh true", joined)
+        self.assertIn("peer-group RSW-FSW-V6 timers hold-time 30", joined)
+        self.assertIn("peer-group RSW-RTSW-V6 afi disable-ipv4-afi true", joined)
 
         # Verify peer commands
         self.assertIn("neighbor 2401:db00:501c::/64 remote-asn 65000", joined)
