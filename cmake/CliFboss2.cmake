@@ -948,6 +948,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.cpp
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h
+  fboss/cli/fboss2/commands/config/port_channel/CmdConfigPortChannel.cpp
+  fboss/cli/fboss2/commands/config/port_channel/CmdConfigPortChannel.h
+  fboss/cli/fboss2/commands/config/port_channel/PortChannelUtils.cpp
+  fboss/cli/fboss2/commands/config/port_channel/PortChannelUtils.h
+  fboss/cli/fboss2/commands/config/port_channel/member/CmdConfigPortChannelMember.cpp
+  fboss/cli/fboss2/commands/config/port_channel/member/CmdConfigPortChannelMember.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h
@@ -1126,6 +1132,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.cpp
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h
+  fboss/cli/fboss2/commands/delete/port_channel/CmdDeletePortChannel.cpp
+  fboss/cli/fboss2/commands/delete/port_channel/CmdDeletePortChannel.h
+  fboss/cli/fboss2/commands/delete/port_channel/member/CmdDeletePortChannelMember.cpp
+  fboss/cli/fboss2/commands/delete/port_channel/member/CmdDeletePortChannelMember.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.cpp
   fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.cpp
   fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h
@@ -1144,8 +1154,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp

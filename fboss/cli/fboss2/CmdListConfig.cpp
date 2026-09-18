@@ -40,6 +40,8 @@
 #include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
 #include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
+#include "fboss/cli/fboss2/commands/config/port_channel/CmdConfigPortChannel.h"
+#include "fboss/cli/fboss2/commands/config/port_channel/member/CmdConfigPortChannelMember.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
@@ -122,6 +124,8 @@
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
 #include "fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h"
 #include "fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h"
+#include "fboss/cli/fboss2/commands/delete/port_channel/CmdDeletePortChannel.h"
+#include "fboss/cli/fboss2/commands/delete/port_channel/member/CmdDeletePortChannelMember.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h"
@@ -395,6 +399,20 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigLoadBalancingLag>,
                argRegistrar<CmdConfigLoadBalancingLagTraits>,
            }},
+      },
+
+      {
+          "config",
+          "port-channel",
+          "Configure port-channel (LAG) settings",
+          commandHandler<CmdConfigPortChannel>,
+          argRegistrar<CmdConfigPortChannelTraits>,
+          {{
+              "member",
+              "Add/remove member interfaces or set per-member LACP attributes",
+              commandHandler<CmdConfigPortChannelMember>,
+              argRegistrar<CmdConfigPortChannelMemberTraits>,
+          }},
       },
 
       {
@@ -1078,6 +1096,20 @@ const CommandTree& kConfigCommandTree() {
                   commandHandler<CmdDeleteSrv6MySidEntry>,
                   argRegistrar<CmdDeleteSrv6MySidEntryTraits>,
               }},
+          }},
+      },
+
+      {
+          "delete",
+          "port-channel",
+          "Delete a port-channel (LAG) or reset its attributes",
+          commandHandler<CmdDeletePortChannel>,
+          argRegistrar<CmdDeletePortChannelTraits>,
+          {{
+              "member",
+              "Remove member interfaces or reset per-member LACP attributes",
+              commandHandler<CmdDeletePortChannelMember>,
+              argRegistrar<CmdDeletePortChannelMemberTraits>,
           }},
       },
 
