@@ -137,6 +137,8 @@ enum ProductionFeature {
   DROP_REASON_LIST_SUPPORT = 123,
   PORT_BOUND_INGRESS_ACL = 125,
   ACL_DENY_DATA_AND_CONTROL_PLANE = 126,
+  PORT_USER_METADATA = 127,
+  MYSID_ADJACENCY_FRR = 128,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
