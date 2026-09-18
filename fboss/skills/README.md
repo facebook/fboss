@@ -9,12 +9,13 @@ such as Claude Code, Codex, MetaCode, or other tools that understand
 skill-style task guidance. They are written to be useful in both open-source
 checkouts and Meta-internal environments.
 
-The open-source skill set focuses on four workflows:
+The open-source skill set focuses on five workflows:
 
 - Debugging FBOSS AgentHwTest failures.
 - Debugging QSFP HW test failures from logs.
 - Applying FBOSS coding standards while changing code.
 - Reviewing FBOSS diffs with FBOSS-specific review guidance.
+- Building, customizing, and provisioning FBOSS Distro images.
 
 ## Directory Layout
 
@@ -24,6 +25,7 @@ In an open-source FBOSS checkout, the exported skills are expected under:
 fboss/skills/
   debug-agent-hw-test/
   debug-qsfp-hw-test/
+  fboss-distro-image/
   fboss-code-standards/
   fboss-review/
 ```
@@ -51,6 +53,7 @@ skill by name:
 ```text
 Use debug-agent-hw-test to debug AgentAclTest.AclNexthopTest on my switch.
 Use debug-qsfp-hw-test to find why warm_boot.HwStateMachineTest.CheckPortsProgrammed failed in this log.
+Use fboss-distro-image to explain and build fboss-image/from_source.json.
 Use fboss-code-standards while changing the route updater.
 Use fboss-review to review this pull request.
 ```
@@ -128,6 +131,21 @@ review with FBOSS-specific reviewers for:
 The skill reports findings to the user only. It does not post review comments
 automatically.
 
+### `fboss-distro-image`
+
+Use this skill to build, customize, explain, or provision FBOSS Distro images.
+It covers:
+
+- Guided platform-to-manifest planning with concrete artifact requirements.
+- Full images and component-only builds with the `fboss-image` CLI.
+- Manifest structure and dependency ordering.
+- Kernel, BSP, NPU/PHY SAI, platform-stack, and forwarding-stack artifacts.
+- USB, PXE, and ONIE output formats.
+- PXE provisioning with `distro_infra`.
+- Build and provisioning failure diagnosis.
+
+The workflow is self-contained for open-source checkouts.
+
 ## Typical Usage
 
 For an AgentHwTest failure:
@@ -144,6 +162,13 @@ For code changes:
 1. Use `fboss-code-standards` while implementing.
 2. Run the relevant unit tests, AgentHwTests, or build targets.
 3. Use `fboss-review` before submitting a diff or pull request.
+
+For a distro image:
+
+1. Use `fboss-distro-image` to inspect or author the manifest.
+2. Choose a complete image or component-only build.
+3. Verify the generated USB, PXE, or ONIE artifacts.
+4. Use the matching provisioning workflow with its safety checks.
 
 ## Environment Notes
 
