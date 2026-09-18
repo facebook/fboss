@@ -296,6 +296,7 @@ cpp_library(
         ":port_test_utils",
         ":voq_test_utils",
         "//fboss/agent:core",
+        "//fboss/agent:load_agent_config",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
