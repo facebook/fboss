@@ -2,11 +2,14 @@
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 DECLARE_bool(enableHybridStateStorage);
 
@@ -48,6 +51,15 @@ class FsdbHybridStateStorageTest : public ::testing::TestWithParam<bool> {
     });
   }
 
+  void publishConfigAndWait(const cfg::AgentConfig& config) {
+    createStatePublisher();
+    pubSubManager_->publishState(makeState(config));
+    WITH_RETRIES({
+      auto root = fsdb_->serviceHandler().operRootExpensive();
+      EXPECT_EVENTUALLY_EQ(*root.agent()->config(), config);
+    });
+  }
+
   bool savedFlag_{false};
   std::unique_ptr<FsdbTestServer> fsdb_;
   std::unique_ptr<FsdbPubSubManager> pubSubManager_;
@@ -58,13 +70,40 @@ TEST_P(FsdbHybridStateStorageTest, selectsRequestedStorage) {
 }
 
 TEST_P(FsdbHybridStateStorageTest, publishedStateVisibleOnSelectedStorage) {
-  createStatePublisher();
   auto config = makeAgentConfig({{"foo", "bar"}});
-  pubSubManager_->publishState(makeState(config));
-  WITH_RETRIES({
-    auto root = fsdb_->serviceHandler().operRootExpensive();
-    EXPECT_EVENTUALLY_EQ(*root.agent()->config(), config);
-  });
+  publishConfigAndWait(config);
+}
+
+TEST_P(FsdbHybridStateStorageTest, getEncodedStateFromSelectedStorage) {
+  auto config = makeAgentConfig({{"foo", "bar"}});
+  publishConfigAndWait(config);
+
+  folly::EventBase evb;
+  auto client = utils::createFsdbClient(
+      utils::ConnectionOptions("::1", fsdb_->getFsdbPort()), &evb);
+
+  OperGetRequest req;
+  req.path()->raw() = {"agent", "config"};
+  req.protocol() = OperProtocol::BINARY;
+  OperState state;
+  client->sync_getOperState(state, req);
+  ASSERT_TRUE(state.contents().has_value());
+  EXPECT_EQ(
+      apache::thrift::BinarySerializer::deserialize<cfg::AgentConfig>(
+          *state.contents()),
+      config);
+
+  OperGetRequestExtended extReq;
+  extReq.paths() = {ext_path_builder::raw("agent").raw("config").get()};
+  extReq.protocol() = OperProtocol::BINARY;
+  std::vector<TaggedOperState> extStates;
+  client->sync_getOperStateExtended(extStates, extReq);
+  ASSERT_EQ(extStates.size(), 1);
+  ASSERT_TRUE(extStates[0].state()->contents().has_value());
+  EXPECT_EQ(
+      apache::thrift::BinarySerializer::deserialize<cfg::AgentConfig>(
+          *extStates[0].state()->contents()),
+      config);
 }
 
 INSTANTIATE_TEST_SUITE_P(
