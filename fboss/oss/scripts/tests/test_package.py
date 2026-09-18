@@ -139,3 +139,45 @@ class PackageTest(unittest.TestCase):
 
             with self.assertRaisesRegex(RuntimeError, "must be read-only"):
                 package._build_target("forwarding-stack", build_dir)
+
+    def test_finds_unsuffixed_install_dir(self) -> None:
+        """getdeps installs first-party projects without a build-config hash."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            (build_dir / "installed" / "bgp" / "sbin").mkdir(parents=True)
+
+            self.assertEqual(
+                package._find_installed_pkg_dir(build_dir, "bgp"),
+                build_dir / "installed" / "bgp",
+            )
+
+    def test_prefers_exact_dir_over_another_project(self) -> None:
+        """`folly-*` also matches folly-python, which is a different project."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            installed = build_dir / "installed"
+            (installed / "folly").mkdir(parents=True)
+            (installed / "folly-python").mkdir()
+
+            self.assertEqual(
+                package._find_installed_pkg_dir(build_dir, "folly"),
+                installed / "folly",
+            )
+
+    def test_falls_back_to_the_hashed_dir(self) -> None:
+        """Third-party projects only ever appear with the hash suffix."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            hashed = build_dir / "installed" / "boost-uWVzwhvt2_BurxQtUxbB8EM2b8"
+            hashed.mkdir(parents=True)
+
+            self.assertEqual(
+                package._find_installed_pkg_dir(build_dir, "boost"), hashed
+            )
+
+    def test_returns_none_when_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            (build_dir / "installed").mkdir()
+
+            self.assertIsNone(package._find_installed_pkg_dir(build_dir, "bgp"))

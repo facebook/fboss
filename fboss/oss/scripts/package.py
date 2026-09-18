@@ -248,11 +248,19 @@ def write_tar(filename: str, contents: Mapping[pathlib.Path, str]) -> None:
 def _find_installed_pkg_dir(build_dir: pathlib.Path, pkg: str) -> pathlib.Path | None:
     """Most recent getdeps install directory for a package, or None.
 
-    getdeps suffixes install directories with a build-config hash, so the exact
-    name is not known ahead of time.
+    getdeps suffixes third-party install directories with a build-config hash,
+    but installs first-party projects under a plain name -- installed/folly and
+    installed/bgp, against installed/boost-<hash>. An exact match therefore wins
+    over the suffixed glob, which also keeps `folly` from resolving to the
+    neighbouring `folly-python`.
     """
+    installed = build_dir / "installed"
+    exact = installed / pkg
+    if exact.is_dir():
+        return exact
+
     pkg_dirs = sorted(
-        (build_dir / "installed").glob(f"{pkg}-*"),
+        installed.glob(f"{pkg}-*"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
