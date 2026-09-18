@@ -1787,6 +1787,9 @@ void ThriftHandler::addAdjacencyFrr(
   }
   std::vector<MySidFrrProtectionUpdate> toAddOrUpdate;
   if (protectedObject->getType() == FrrProtectedObject::Type::mySid) {
+    for (auto& nextHop : *backupNextHops) {
+      nextHop.role() = NextHopRole::BACKUP;
+    }
     toAddOrUpdate.emplace_back(
         MySidFrrProtectionUpdate{
             .mySidPrefix =
