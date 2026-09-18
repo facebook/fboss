@@ -1780,6 +1780,11 @@ void ThriftHandler::addAdjacencyFrr(
   if (protectedObject->getType() == FrrProtectedObject::Type::mplsLabel) {
     throw FbossError("Adj FRR protection not implemented for MPLS labels");
   }
+  if (backupNextHops->empty()) {
+    throw FbossError(
+        "Adjacency FRR requires at least one backup next hop; use "
+        "deleteAdjacencyFrr to remove protection");
+  }
 
   auto rib = sw_->getRib();
   if (!rib) {

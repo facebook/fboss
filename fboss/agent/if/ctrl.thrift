@@ -1734,8 +1734,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Delete Adjacency FRR.
    *
    * protectedObject:
-   *  non-existing (never added by addAdjacencyFrr): throws error
-   *  existing: removes FRR protection
+   *  non-existing MySID: throws error
+   *  existing MySID without FRR protection: no-op
+   *  existing MySID with FRR protection: removes FRR protection
    *
    * FrrProtectedObject is a union. Fill either protected uA mySID or MPLS
    * label.

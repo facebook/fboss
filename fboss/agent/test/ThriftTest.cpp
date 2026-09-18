@@ -3422,6 +3422,38 @@ TEST_F(ThriftTest, addAdjacencyFrrRejectsMissingMySid) {
       FbossError);
 }
 
+TEST_F(ThriftTestWithNhopIdMgr, addAdjacencyFrrRejectsEmptyBackupNextHops) {
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  state::MySidFields fields;
+  fields.type() = MySidType::ADJACENCY_MICRO_SID;
+  fields.mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  fields.adjacencyInterfaceId() = static_cast<int32_t>(kInterfaceA);
+  fields.isV6() = true;
+  fields.clientId() = ClientID::STATIC_ROUTE;
+  auto mySid = std::make_shared<MySid>(fields);
+  const RouteNextHopSet nextHops{
+      ResolvedNextHop(folly::IPAddress(kNhopAddrA), kInterfaceA, ECMP_WEIGHT)};
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      std::vector<MySidWithNextHops>{{mySid, nextHops, std::nullopt}},
+      {},
+      {},
+      "add adjacency mysid via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
 TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMissingMySid) {
   ThriftHandler handler(sw_);
   auto protectedObject = std::make_unique<FrrProtectedObject>();
