@@ -15,6 +15,7 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
 #include "fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h"
+#include "fboss/fsdb/oper/instantiations/FsdbStateStorage.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include "fboss/lib/ThreadHeartbeat.h"
@@ -30,6 +31,7 @@ DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);
 DECLARE_bool(checkOperOwnership);
 DECLARE_bool(enforcePublisherConfig);
+DECLARE_bool(enableHybridStateStorage);
 
 namespace facebook::fboss::fsdb {
 
@@ -235,6 +237,10 @@ class ServiceHandler : public FsdbServiceSvIf,
     return stateStorageBase().getMetadata();
   }
 
+  bool usingHybridStateStorage() const {
+    return operStorage_->usingHybridStorage();
+  }
+
   // Client key (clientId, Path, PubSubType, isStats)
   using ClientKey = std::tuple<std::string, Path, PubSubType, bool>;
   using ActiveSubscriptions =
@@ -362,15 +368,14 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLTimeseries num_publisher_path_requests_rejected_;
   TLTimeseries num_dropped_stats_changes_;
   TLTimeseries num_dropped_state_changes_;
-  std::unique_ptr<FsdbNaivePeriodicSubscribableStorage> operStorage_;
-  // Non-owning; points at operStorage_.
-  NaivePeriodicSubscribableStorageBase* operStorageBase_{nullptr};
+  // cow or hybrid nodes, selected by FLAGS_enableHybridStateStorage.
+  std::unique_ptr<FsdbStateStorage> operStorage_;
   // TODO - decide on right DB abstraction for stats
   FsdbNaivePeriodicSubscribableStatsStorage operStatsStorage_;
 
   // Node-flavor independent APIs live on the storage base.
   NaivePeriodicSubscribableStorageBase& stateStorageBase() const {
-    return *operStorageBase_;
+    return operStorage_->base();
   }
 
   /*

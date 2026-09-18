@@ -115,9 +115,10 @@ target_link_libraries(fsdb_state_sub_mgr_instantiations
 )
 
 add_library(fsdb_naive_periodic_subscribable_storage
+  fboss/fsdb/oper/instantiations/FsdbHybridNaivePeriodicSubscribableStateStorage.cpp
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStateStorage.cpp
   fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStatsStorage.cpp
-  fboss/fsdb/oper/instantiations/FsdbHybridNaivePeriodicSubscribableStateStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbStateStorage.cpp
 )
 
 target_link_libraries(fsdb_naive_periodic_subscribable_storage

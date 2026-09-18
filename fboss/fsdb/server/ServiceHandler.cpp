@@ -94,9 +94,15 @@ DEFINE_bool(
     forceRegisterSubscriptions,
     false,
     "Whether to bypass unique subscriber check. Should only be used during debugging");
+DEFINE_bool(
+    enableHybridStateStorage,
+    false,
+    "Whether to use hybrid thrift-cow storage for the FSDB state tree");
 
 static constexpr auto kWatchdogThreadHeartbeatMissed =
     "watchdog_thread_heartbeat_missed";
+static constexpr auto kHybridStateStorageEnabled =
+    "hybrid_state_storage_enabled";
 
 namespace {
 
@@ -321,9 +327,12 @@ ServiceHandler::ServiceHandler(
               FLAGS_deltaSubscriptionQueueFullMinSize)
           .setDeltaSubscriptionQueueMemoryLimit(
               FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024);
-  operStorage_ = std::make_unique<FsdbNaivePeriodicSubscribableStorage>(
-      FsdbOperStateRoot{}, stateStorageParams);
-  operStorageBase_ = operStorage_.get();
+  operStorage_ = makeFsdbStateStorage(
+      FLAGS_enableHybridStateStorage, FsdbOperStateRoot{}, stateStorageParams);
+  XLOG(INFO) << "FSDB state storage mode: "
+             << (operStorage_->usingHybridStorage() ? "hybrid" : "cow");
+  tcData().setCounter(
+      kHybridStateStorageEnabled, operStorage_->usingHybridStorage() ? 1 : 0);
 
   num_instances_.incrementValue(1);
 
