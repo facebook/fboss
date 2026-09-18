@@ -1742,6 +1742,32 @@ void RibRouteTables::update(
       cookie);
 }
 
+void RibRouteTables::updateMySidFrrProtection(
+    const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+    const std::vector<folly::CIDRNetwork>& toDelete) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  const auto validateMySid = [&](const folly::CIDRNetwork& prefix) {
+    const auto prefixStr = folly::IPAddress::networkToString(prefix);
+    if (!prefix.first.isV6()) {
+      throw FbossError("MySid ", prefixStr, " does not exist");
+    }
+    const folly::CIDRNetworkV6 prefixV6{prefix.first.asV6(), prefix.second};
+    const auto mySidIt = lockedRouteTables->mySidTable.find(prefixV6);
+    if (mySidIt == lockedRouteTables->mySidTable.end()) {
+      throw FbossError("MySid ", prefixStr, " does not exist");
+    }
+    if (mySidIt->second->getType() != MySidType::ADJACENCY_MICRO_SID) {
+      throw FbossError("MySid ", prefixStr, " is not an adjacency MySid");
+    }
+  };
+  for (const auto& update : toAddOrUpdate) {
+    validateMySid(update.mySidPrefix);
+  }
+  for (const auto& prefix : toDelete) {
+    validateMySid(prefix);
+  }
+}
+
 void RibRouteTables::updateMySidsImpl(
     const SwitchIdScopeResolver* resolver,
     const std::vector<MySidWithNextHops>& toAdd,
@@ -1948,8 +1974,10 @@ void RoutingInformationBase::updateMySidImpl(
 }
 
 void RoutingInformationBase::updateMySidFrrProtection(
-    const std::vector<MySidFrrProtectionUpdate>& /*toAddOrUpdate*/,
-    const std::vector<folly::CIDRNetwork>& /*toDelete*/) {
+    const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+    const std::vector<folly::CIDRNetwork>& toDelete) {
+  updateStateInRibThread(
+      [&]() { ribTables_.updateMySidFrrProtection(toAddOrUpdate, toDelete); });
   throw FbossError("updateMySidFrrProtection Not supported");
 }
 

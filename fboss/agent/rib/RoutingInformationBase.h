@@ -189,6 +189,10 @@ class RibRouteTables {
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
+  void updateMySidFrrProtection(
+      const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+      const std::vector<folly::CIDRNetwork>& toDelete);
+
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,

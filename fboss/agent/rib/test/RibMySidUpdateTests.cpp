@@ -1046,6 +1046,29 @@ TEST_F(RibMySidValidationTest, acceptAdjacencySidWithSingleNextHop) {
   EXPECT_EQ(rib_.getMySidTableCopy().size(), 1);
 }
 
+TEST_F(RibMySidValidationTest, rejectFrrProtectionForMissingMySid) {
+  const folly::CIDRNetwork prefix{folly::IPAddress("fc00:100::1"), 48};
+  const MySidFrrProtectionUpdate update{prefix, {}};
+
+  EXPECT_THROW(rib_.updateMySidFrrProtection({update}, {}), FbossError);
+  EXPECT_THROW(rib_.updateMySidFrrProtection({}, {prefix}), FbossError);
+}
+
+TEST_F(RibMySidValidationTest, rejectFrrProtectionForNonAdjacencyMySid) {
+  rib_.update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add node mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const folly::CIDRNetwork prefix{folly::IPAddress("fc00:100::1"), 48};
+  const MySidFrrProtectionUpdate update{prefix, {}};
+
+  EXPECT_THROW(rib_.updateMySidFrrProtection({update}, {}), FbossError);
+  EXPECT_THROW(rib_.updateMySidFrrProtection({}, {prefix}), FbossError);
+}
+
 TEST_F(
     RibMySidValidationTest,
     invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
