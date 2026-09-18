@@ -2351,6 +2351,75 @@ TEST_F(RibMySidFibInfoTest, deleteMySidFrrClearsBackupNextHops) {
   EXPECT_EQ(idSetMap->getNextHopIdSetIf(backupId), nullptr);
 }
 
+TEST_F(RibMySidFibInfoTest, deleteMySidFrrClearsResolvedBackupNextHops) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID)},
+      {},
+      "add adjacency mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, makeBackupNextHops({"2001:db8::1"})}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto mySidWithBackup = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidWithBackup.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(mySidWithBackup.backupResolvedNextHopsId().has_value());
+  const auto backupId = *mySidWithBackup.backupUnresolveNextHopsId();
+  const auto resolvedBackupId = *mySidWithBackup.backupResolvedNextHopsId();
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {},
+      {prefix},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto mySid = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_FALSE(mySid.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(mySid.backupResolvedNextHopsId().has_value());
+
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(backupId)).has_value());
+  EXPECT_FALSE(
+      manager->getNextHopsIf(NextHopSetID(resolvedBackupId)).has_value());
+
+  const auto stateMySid =
+      switchState_->getMySids()->getNodeIf("fc00:100::1/48");
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_FALSE(stateMySid->getBackupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(stateMySid->getBackupResolvedNextHopsId().has_value());
+
+  const auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(backupId), nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(resolvedBackupId), nullptr);
+}
+
 TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {
   // After deleting a MySid entry, its NextHopSetID should be removed from
   // FibInfo->id2NextHopIdSet.
