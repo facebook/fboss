@@ -246,21 +246,15 @@ def write_tar(filename: str, contents: Mapping[pathlib.Path, str]) -> None:
 
 
 def _find_installed_pkg_dir(build_dir: pathlib.Path, pkg: str) -> pathlib.Path | None:
-    """Most recent getdeps install directory for a package, or None.
+    """Most recent getdeps install directory matching a package, or None.
 
-    getdeps suffixes third-party install directories with a build-config hash,
-    but installs first-party projects under a plain name -- installed/folly and
-    installed/bgp, against installed/boost-<hash>. An exact match therefore wins
-    over the suffixed glob, which also keeps `folly` from resolving to the
-    neighbouring `folly-python`.
+    Used to locate shared libraries, which do not necessarily live in the
+    package's own tree: libfolly.so ships from installed/folly-python, while
+    installed/folly holds no .so at all. The suffixed glob is what finds them,
+    so it must not be narrowed to an exact name match.
     """
-    installed = build_dir / "installed"
-    exact = installed / pkg
-    if exact.is_dir():
-        return exact
-
     pkg_dirs = sorted(
-        installed.glob(f"{pkg}-*"),
+        (build_dir / "installed").glob(f"{pkg}-*"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
@@ -273,6 +267,19 @@ def _find_installed_pkg_dir(build_dir: pathlib.Path, pkg: str) -> pathlib.Path |
     return pkg_dirs[0]
 
 
+def _find_installed_project_dir(
+    build_dir: pathlib.Path, project: str
+) -> pathlib.Path | None:
+    """A project's own getdeps install tree, or None.
+
+    Distinct from _find_installed_pkg_dir: a project's binaries are only ever in
+    its own tree, and getdeps names that tree for first-party projects without a
+    build-config hash -- installed/bgp, not installed/bgp-<hash>.
+    """
+    exact = build_dir / "installed" / project
+    return exact if exact.is_dir() else None
+
+
 def _find_installed_bin_dirs(
     build_dir: pathlib.Path, project: str
 ) -> list[pathlib.Path]:
@@ -282,7 +289,7 @@ def _find_installed_bin_dirs(
     binaries to bin/ and others to sbin/, and picking one would drop the rest
     with only a warning.
     """
-    pkg_dir = _find_installed_pkg_dir(build_dir, project)
+    pkg_dir = _find_installed_project_dir(build_dir, project)
     if pkg_dir is None:
         raise RuntimeError(f"No install tree for {project} under {build_dir}/installed")
 
