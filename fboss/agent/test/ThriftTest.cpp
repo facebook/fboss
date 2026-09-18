@@ -3444,6 +3444,27 @@ TEST_F(ThriftTestWithNhopIdMgr, addAdjacencyFrrRejectsEmptyBackupNextHops) {
       sw_);
 
   ThriftHandler handler(sw_);
+  auto protectedObjectWithBackup = std::make_unique<FrrProtectedObject>();
+  protectedObjectWithBackup->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  auto backupNextHopsWithBackup =
+      std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHopsWithBackup->push_back(std::move(backupNextHop));
+  handler.addAdjacencyFrr(
+      std::move(protectedObjectWithBackup),
+      std::move(backupNextHopsWithBackup));
+
+  const folly::CIDRNetworkV6 prefix{folly::IPAddressV6("2001:db8::1"), 64};
+  const auto mySidBefore = sw_->getRib()->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidBefore.backupUnresolveNextHopsId().has_value());
+  const auto backupId = *mySidBefore.backupUnresolveNextHopsId();
+  const auto managerBefore = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(managerBefore, nullptr);
+  const auto backupNextHopsBefore =
+      managerBefore->getNextHops(NextHopSetID(backupId));
+
   auto protectedObject = std::make_unique<FrrProtectedObject>();
   protectedObject->mySid() = toFrrMySidIpPrefix("2001:db8::1", 64);
   auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
@@ -3452,6 +3473,14 @@ TEST_F(ThriftTestWithNhopIdMgr, addAdjacencyFrrRejectsEmptyBackupNextHops) {
       handler.addAdjacencyFrr(
           std::move(protectedObject), std::move(backupNextHops)),
       FbossError);
+
+  const auto mySidAfter = sw_->getRib()->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySidAfter.backupUnresolveNextHopsId().has_value());
+  EXPECT_EQ(*mySidAfter.backupUnresolveNextHopsId(), backupId);
+  const auto managerAfter = sw_->getRib()->getNextHopIDManagerCopy();
+  ASSERT_NE(managerAfter, nullptr);
+  EXPECT_EQ(
+      managerAfter->getNextHops(NextHopSetID(backupId)), backupNextHopsBefore);
 }
 
 TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMissingMySid) {

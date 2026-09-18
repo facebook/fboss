@@ -47,11 +47,24 @@ std::shared_ptr<MySid> makeMySid(
 }
 
 RouteNextHopSet makeResolvedNhops(
-    const std::vector<std::pair<std::string, InterfaceID>>& nhops) {
+    const std::vector<std::pair<std::string, InterfaceID>>& nhops,
+    NextHopRole role = NextHopRole::PRIMARY,
+    NextHopWeight weight = ECMP_WEIGHT) {
   RouteNextHopSet result;
   for (const auto& [addr, intfId] : nhops) {
-    result.emplace(
-        ResolvedNextHop(folly::IPAddress(addr), intfId, ECMP_WEIGHT));
+    result.emplace(ResolvedNextHop(
+        folly::IPAddress(addr),
+        intfId,
+        weight,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        {},
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        role));
   }
   return result;
 }
@@ -286,10 +299,17 @@ TEST_F(RibMySidUpdaterTest, nextHopSetIdsChangeOnlyWhenResolvedNextHopsChange) {
   EXPECT_EQ(
       *mySidTable_.at(key)->getBackupUnresolveNextHopsId(), backupUnresolvedId);
 
-  updateRoute(
-      relevantRoutePrefix,
-      makeResolvedNhops(
-          {{"fe80::3", InterfaceID(3)}, {"fe80::4", InterfaceID(4)}}));
+  const auto updatedRouteNhops = makeResolvedNhops(
+      {{"fe80::3", InterfaceID(3)}, {"fe80::4", InterfaceID(4)}});
+  const auto expectedPrimaryResolvedNhops = makeResolvedNhops(
+      {{"fe80::3", InterfaceID(3)}, {"fe80::4", InterfaceID(4)}},
+      NextHopRole::PRIMARY,
+      UCMP_DEFAULT_WEIGHT);
+  const auto expectedBackupResolvedNhops = makeResolvedNhops(
+      {{"fe80::3", InterfaceID(3)}, {"fe80::4", InterfaceID(4)}},
+      NextHopRole::BACKUP,
+      UCMP_DEFAULT_WEIGHT);
+  updateRoute(relevantRoutePrefix, updatedRouteNhops);
   updater.resolve();
 
   const auto primaryResolvedIdAfterRelevantUpdate =
@@ -301,6 +321,14 @@ TEST_F(RibMySidUpdaterTest, nextHopSetIdsChangeOnlyWhenResolvedNextHopsChange) {
   EXPECT_NE(mySidTable_.at(key), initialResolvedMySid);
   EXPECT_NE(*primaryResolvedIdAfterRelevantUpdate, *initialPrimaryResolvedId);
   EXPECT_NE(*backupResolvedIdAfterRelevantUpdate, *initialBackupResolvedId);
+  EXPECT_EQ(
+      manager().getNextHops(*primaryResolvedIdAfterRelevantUpdate),
+      expectedPrimaryResolvedNhops);
+  EXPECT_EQ(
+      manager().getNextHops(*backupResolvedIdAfterRelevantUpdate),
+      expectedBackupResolvedNhops);
+  EXPECT_FALSE(manager().getNextHopsIf(*initialPrimaryResolvedId).has_value());
+  EXPECT_FALSE(manager().getNextHopsIf(*initialBackupResolvedId).has_value());
   expectBackupRole(*backupResolvedIdAfterRelevantUpdate);
   EXPECT_EQ(
       *mySidTable_.at(key)->getUnresolveNextHopsId(), primaryUnresolvedId);
