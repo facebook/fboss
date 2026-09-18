@@ -24,6 +24,13 @@ extern template class CowStorage<FsdbOperStateRoot>;
 extern template CowStorage<FsdbOperStateRoot>::CowStorage(
     const FsdbOperStateRoot&);
 
+extern template class CowStorage<
+    FsdbOperStateRoot,
+    thrift_cow::FsdbHybridCowStateRoot>;
+extern template CowStorage<
+    FsdbOperStateRoot,
+    thrift_cow::FsdbHybridCowStateRoot>::CowStorage(const FsdbOperStateRoot&);
+
 extern template class CowStorage<FsdbOperStatsRoot>;
 
 } // namespace facebook::fboss::fsdb

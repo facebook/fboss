@@ -20,8 +20,9 @@ namespace facebook::fboss::fsdb {
 // members land in separate TUs instead of one. A whole-class instantiation
 // expands every member into a single object, which peaks the compiler well
 // above what one action should need. Each declaration below has a matching
-// explicit instantiation in one of the FsdbCow{State,Stats}SubscriptionManager*
-// TUs; keep the two in sync or the symbol goes missing at link time.
+// explicit instantiation in one of the
+// FsdbCow{State,HybridState,Stats}SubscriptionManager* TUs; keep the two in
+// sync or the symbol goes missing at link time.
 
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>::serveSubscriptions(
@@ -42,6 +43,27 @@ extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>::doInitialSync(
     SubscriptionStore&,
     const std::shared_ptr<thrift_cow::FsdbCowStateRoot>&,
+    const SubscriptionMetadataServer&);
+
+extern template void
+CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::serveSubscriptions(
+    SubscriptionStore&,
+    const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&,
+    const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&,
+    const SubscriptionMetadataServer&);
+extern template void
+CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::pruneDeletedPaths(
+    SubscriptionStore&,
+    const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&,
+    const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&);
+extern template void
+CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::publishAndAddPaths(
+    SubscriptionStore&,
+    std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&);
+extern template void
+CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::doInitialSync(
+    SubscriptionStore&,
+    const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&,
     const SubscriptionMetadataServer&);
 
 extern template void

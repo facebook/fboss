@@ -56,6 +56,7 @@ target_link_libraries(fsdb_path_visitor_oper_state_instantiations
 add_library(fsdb_cow_storage
   fboss/fsdb/oper/instantiations/FsdbCowStateStorage.cpp
   fboss/fsdb/oper/instantiations/FsdbCowStatsStorage.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowHybridStateStorage.cpp
 )
 
 target_link_libraries(fsdb_cow_storage
@@ -69,6 +70,9 @@ target_link_libraries(fsdb_cow_storage
 )
 
 add_library(fsdb_cow_subscription_manager
+  fboss/fsdb/oper/instantiations/FsdbCowHybridStateSubscriptionManagerPrune.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowHybridStateSubscriptionManagerServe.cpp
+  fboss/fsdb/oper/instantiations/FsdbCowHybridStateSubscriptionManagerSync.cpp
   fboss/fsdb/oper/instantiations/FsdbCowStateSubscriptionManagerPrune.cpp
   fboss/fsdb/oper/instantiations/FsdbCowStateSubscriptionManagerServe.cpp
   fboss/fsdb/oper/instantiations/FsdbCowStateSubscriptionManagerSync.cpp

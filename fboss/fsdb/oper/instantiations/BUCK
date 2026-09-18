@@ -36,6 +36,7 @@ cpp_library(
 cpp_library(
     name = "fsdb_cow_storage",
     srcs = [
+        "FsdbCowHybridStateStorage.cpp",
         "FsdbCowStateStorage.cpp",
         "FsdbCowStatsStorage.cpp",
     ],
@@ -54,6 +55,9 @@ cpp_library(
 cpp_library(
     name = "fsdb_cow_subscription_manager",
     srcs = [
+        "FsdbCowHybridStateSubscriptionManagerPrune.cpp",
+        "FsdbCowHybridStateSubscriptionManagerServe.cpp",
+        "FsdbCowHybridStateSubscriptionManagerSync.cpp",
         "FsdbCowStateSubscriptionManagerPrune.cpp",
         "FsdbCowStateSubscriptionManagerServe.cpp",
         "FsdbCowStateSubscriptionManagerSync.cpp",
