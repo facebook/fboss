@@ -80,6 +80,7 @@ struct BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   static constexpr bool ALLOW_FILTERING = false;
   static constexpr bool ALLOW_AGGREGATION = false;
+  static constexpr bool IS_LOCAL_COMMAND = false;
   static constexpr CliReadWriteMode CLI_READ_WRITE_MODE =
       CliReadWriteMode::CLI_MODE_WRITE;
   std::vector<utils::LocalOption> LocalOptions = {};
@@ -227,7 +228,12 @@ class CmdHandler {
     } catch (std::invalid_argument const& err) {
       errStr = folly::to<std::string>("Invalid argument: ", err.what());
     } catch (std::exception const& err) {
-      errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
+      if constexpr (CmdTypeTraits::IS_LOCAL_COMMAND) {
+        errStr = err.what();
+      } else {
+        errStr =
+            folly::to<std::string>("Thrift call failed: '", err.what(), "'");
+      }
     }
     if (!parsedFilters.empty()) {
       result = filterOutput<CmdTypeT>(result, parsedFilters, validFilterMap);

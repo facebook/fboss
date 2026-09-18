@@ -427,6 +427,8 @@ add_library(fboss2_config_gen_lib
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
   fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h
   fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
 )
@@ -439,9 +441,12 @@ target_link_libraries(fboss2_config_gen_lib
   fboss2_config_file_utils
   Folly::folly
   platform_descriptor
+  ${YAML-CPP}
+  ${YAML}
   split_platform_mapping_utils
   switch_asics
 )
+
 
 add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
