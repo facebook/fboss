@@ -3513,6 +3513,33 @@ TEST_F(ThriftTest, deleteAdjacencyFrrRejectsMplsLabel) {
       handler.deleteAdjacencyFrr(std::move(protectedObject)), FbossError);
 }
 
+TEST_F(ThriftTest, addAdjacencyFrrRejectsUnsetProtectedObject) {
+  // An unset union names no protected object. Rejecting it is what keeps the
+  // call from reaching the RIB as an empty update, which would install no
+  // protection and still report success.
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+  NextHopThrift backupNextHop;
+  backupNextHop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  backupNextHop.role() = NextHopRole::BACKUP;
+  auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+  backupNextHops->push_back(std::move(backupNextHop));
+
+  EXPECT_THROW(
+      handler.addAdjacencyFrr(
+          std::move(protectedObject), std::move(backupNextHops)),
+      FbossError);
+}
+
+TEST_F(ThriftTest, deleteAdjacencyFrrRejectsUnsetProtectedObject) {
+  ThriftHandler handler(sw_);
+  auto protectedObject = std::make_unique<FrrProtectedObject>();
+
+  EXPECT_THROW(
+      handler.deleteAdjacencyFrr(std::move(protectedObject)), FbossError);
+}
+
 TEST_F(ThriftTest, addMySidEntries) {
   ThriftHandler handler(sw_);
 

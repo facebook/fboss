@@ -804,6 +804,27 @@ std::optional<std::string> getDefaultSrv6TunnelId(
   return std::nullopt;
 }
 
+// Adjacency FRR is implemented only for uA MySIDs. Every other arm of the
+// union must be rejected here: an unset union would otherwise reach the RIB
+// as an empty update, which mutates nothing and reports success even though
+// no protection was installed.
+void ensureFrrProtectedObjectIsMySid(
+    const facebook::fboss::FrrProtectedObject& protectedObject) {
+  switch (protectedObject.getType()) {
+    case facebook::fboss::FrrProtectedObject::Type::mySid:
+      return;
+    case facebook::fboss::FrrProtectedObject::Type::mplsLabel:
+      throw facebook::fboss::FbossError(
+          "Adj FRR protection not implemented for MPLS labels");
+    case facebook::fboss::FrrProtectedObject::Type::__EMPTY__:
+      throw facebook::fboss::FbossError(
+          "FrrProtectedObject must specify the protected uA mySID");
+  }
+  throw facebook::fboss::FbossError(
+      "Unknown FrrProtectedObject type ",
+      static_cast<int>(protectedObject.getType()));
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -1777,9 +1798,7 @@ void ThriftHandler::addAdjacencyFrr(
     std::unique_ptr<std::vector<NextHopThrift>> backupNextHops) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
-  if (protectedObject->getType() == FrrProtectedObject::Type::mplsLabel) {
-    throw FbossError("Adj FRR protection not implemented for MPLS labels");
-  }
+  ensureFrrProtectedObjectIsMySid(*protectedObject);
   if (backupNextHops->empty()) {
     throw FbossError(
         "Adjacency FRR requires at least one backup next hop; use "
@@ -1790,19 +1809,15 @@ void ThriftHandler::addAdjacencyFrr(
   if (!rib) {
     throw FbossError("RIB not initialized");
   }
-  std::vector<MySidFrrProtectionUpdate> toAddOrUpdate;
-  if (protectedObject->getType() == FrrProtectedObject::Type::mySid) {
-    for (auto& nextHop : *backupNextHops) {
-      nextHop.role() = NextHopRole::BACKUP;
-    }
-    toAddOrUpdate.emplace_back(
-        MySidFrrProtectionUpdate{
-            .mySidPrefix =
-                facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()),
-            .nextHops = util::toRouteNextHopSet(
-                *backupNextHops, true /* allowV6NonLinkLocal */),
-        });
+  for (auto& nextHop : *backupNextHops) {
+    nextHop.role() = NextHopRole::BACKUP;
   }
+  std::vector<MySidFrrProtectionUpdate> toAddOrUpdate{MySidFrrProtectionUpdate{
+      .mySidPrefix =
+          facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()),
+      .nextHops = util::toRouteNextHopSet(
+          *backupNextHops, true /* allowV6NonLinkLocal */),
+  }};
   auto ribMySidToSwitchStateFunc =
       createRibMySidToSwitchStateFunction(std::nullopt);
   rib->updateMySidFrrProtection(
@@ -1817,19 +1832,14 @@ void ThriftHandler::deleteAdjacencyFrr(
     std::unique_ptr<FrrProtectedObject> protectedObject) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
-  if (protectedObject->getType() == FrrProtectedObject::Type::mplsLabel) {
-    throw FbossError("Adj FRR protection not implemented for MPLS labels");
-  }
+  ensureFrrProtectedObjectIsMySid(*protectedObject);
 
   auto rib = sw_->getRib();
   if (!rib) {
     throw FbossError("RIB not initialized");
   }
-  std::vector<folly::CIDRNetwork> toDelete;
-  if (protectedObject->getType() == FrrProtectedObject::Type::mySid) {
-    toDelete.emplace_back(
-        facebook::network::toCIDRNetwork(*protectedObject->mySid_ref()));
-  }
+  std::vector<folly::CIDRNetwork> toDelete{
+      facebook::network::toCIDRNetwork(*protectedObject->mySid_ref())};
   auto ribMySidToSwitchStateFunc =
       createRibMySidToSwitchStateFunction(std::nullopt);
   rib->updateMySidFrrProtection(
