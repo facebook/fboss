@@ -529,7 +529,11 @@ TEST_F(PortStoreTest, portSetPfcMonitorDirection) {
 TEST_F(PortStoreTest, loadPortBoundToLlrProfile) {
   auto profileId = saiApiTable->portApi().create<SaiPortLlrProfileTraits>(
       makeLlrProfileAttrs(), 0);
-  auto portId = createPort(0);
+  // Admin disabled: the fake refuses a profile attach on an enabled port, as
+  // the SDK does (CS00012478409). This passed before only because the profile
+  // was given id 0, making the attach below a write of SAI_NULL_OBJECT_ID.
+  auto portId = saiApiTable->portApi().create<SaiPortTraits>(
+      makeAttrs(0, 100000, /*adminStateOpt*/ false), 0);
   saiApiTable->portApi().setAttribute(
       portId,
       SaiPortTraits::Attributes::LlrProfile{

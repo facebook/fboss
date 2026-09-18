@@ -241,8 +241,10 @@ using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
 using FakePortConnectorManager =
     FakeManager<sai_object_id_t, FakePortConnector>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// Base the ids at 1: id 0 is SAI_NULL_OBJECT_ID, which a port carries to mean
+// "no profile bound", so a real profile must never share it.
 using FakePortLlrProfileManager =
-    FakeManager<sai_object_id_t, FakePortLlrProfile>;
+    FakeManager<sai_object_id_t, FakePortLlrProfile, 1>;
 #endif
 
 void populate_port_api(sai_port_api_t** port_api);
