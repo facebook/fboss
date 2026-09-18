@@ -211,14 +211,21 @@ void SaiSrv6MySidManager::addMySidEntry(
             nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
       }
     }
-    if (nhops.size() > 1) {
-      RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+    if (nhops.empty()) {
+      throw FbossError("Resolved nhops Id set, but no next hops found");
+    }
+    RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+    const auto nextHopGroupType = getNextHopGroupType(nhopSet);
+    // A lone next hop is normally programmed directly, but not when it is a
+    // backup: the protection group is what carries standby semantics into
+    // hardware. Collapsing a single backup to a plain next hop would forward
+    // over it as if it were the primary path.
+    if (nhops.size() > 1 || isProtectionNextHopGroupType(nextHopGroupType)) {
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(
-                  nhopSet, std::nullopt, getNextHopGroupType(nhopSet)));
+              SaiNextHopGroupKey(nhopSet, std::nullopt, nextHopGroupType));
       nexthopHandle = nextHopGroupHandle;
-    } else if (nhops.size() == 1) {
+    } else {
       auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
       std::shared_ptr<SaiSrv6SidListHandle> sidListHandle;
       if (!resolvedNh.srv6SegmentList().empty()) {
@@ -260,8 +267,6 @@ void SaiSrv6MySidManager::addMySidEntry(
         throw FbossError(
             "Expected IP or SRv6 next hop for MySid entry ", mySid->getID());
       }
-    } else {
-      throw FbossError("Resolved nhops Id set, but no next hops found");
     }
   }
 
