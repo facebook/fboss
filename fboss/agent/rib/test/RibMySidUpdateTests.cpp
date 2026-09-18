@@ -174,6 +174,28 @@ UnicastRoute makeOpenRRoute(
   return route;
 }
 
+// Route whose next hops are plain gateways, recursively resolved by the RIB
+// over a connected route. Unlike makeOpenRRoute the resulting next hops are
+// not link-local, so they stay valid in a SwitchState with no Interfaces.
+UnicastRoute makeGatewayRoute(
+    const std::string& prefixAddr,
+    uint8_t prefixLen,
+    const std::vector<std::string>& gateways) {
+  UnicastRoute route;
+  IpPrefix routePrefix;
+  routePrefix.ip() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(prefixAddr));
+  routePrefix.prefixLength() = prefixLen;
+  route.dest() = routePrefix;
+  for (const auto& gateway : gateways) {
+    NextHopThrift nextHop;
+    nextHop.address() =
+        facebook::network::toBinaryAddress(folly::IPAddress(gateway));
+    route.nextHops()->push_back(std::move(nextHop));
+  }
+  return route;
+}
+
 std::set<folly::IPAddress> getNextHopAddrs(const RouteNextHopSet& nextHops) {
   std::set<folly::IPAddress> addrs;
   for (const auto& nextHop : nextHops) {
@@ -365,6 +387,57 @@ StateDelta mySidToSwitchStateUpdateViaRibUpdater(
   newState->publish();
   *switchState = newState;
   return StateDelta(oldState, newState);
+}
+
+// Route-update counterpart of mySidToSwitchStateUpdateViaRibUpdater. A route
+// update re-resolves MySid next hops, so the MySid map and the FibInfo
+// id2NextHopSet maps have to be refreshed from the post-update RIB for the
+// re-resolution to be observable in SwitchState.
+StateDelta routeToSwitchStateUpdateViaRibUpdater(
+    const SwitchIdScopeResolver* resolver,
+    RouterID vrf,
+    const IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
+    void* cookie) {
+  auto switchState =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+  auto oldState = *switchState;
+
+  RibToSwitchStateUpdater updater(
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager,
+      mySidTable,
+      RibToSwitchStateUpdater::UPDATE_MYSID);
+
+  auto newState = updater(*switchState);
+  newState->publish();
+  *switchState = newState;
+  return StateDelta(oldState, newState);
+}
+
+using NextHopAddrs = std::set<std::pair<folly::IPAddress, InterfaceID>>;
+
+// (address, interface) of every next hop in `id`, which must all be resolved
+// BACKUP next hops.
+NextHopAddrs getBackupNextHops(
+    const NextHopIDManager& manager,
+    NextHopSetID id) {
+  NextHopAddrs nextHops;
+  for (const auto& nextHop : manager.getNextHops(id)) {
+    EXPECT_EQ(nextHop.role(), NextHopRole::BACKUP);
+    EXPECT_TRUE(nextHop.isResolved());
+    if (nextHop.isResolved()) {
+      nextHops.emplace(nextHop.addr(), nextHop.intf());
+    }
+  }
+  return nextHops;
 }
 
 } // namespace
@@ -2134,6 +2207,93 @@ class RibMySidFibInfoTest : public ::testing::Test {
     return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
   }
 
+  // Connected route that every gateway used by the FRR tests below
+  // ultimately resolves over.
+  void addInterfaceRoute() {
+    RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+    interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+        InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {} /* staticMySids */,
+        noopFibUpdate,
+        &switchState_);
+  }
+
+  void addAdjacencyMySid(const std::string& addr, uint8_t len) {
+    rib_->update(
+        scopeResolver(),
+        {makeMySidEntry(addr, len, MySidType::ADJACENCY_MICRO_SID)},
+        {},
+        "add adjacency mysid",
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void updateGatewayRoute(
+      const std::string& prefixAddr,
+      uint8_t prefixLen,
+      const std::vector<std::string>& gateways) {
+    rib_->update(
+        scopeResolver(),
+        kRid,
+        ClientID::OPENR,
+        AdminDistance::OPENR,
+        {makeGatewayRoute(prefixAddr, prefixLen, gateways)},
+        std::vector<IpPrefix>{},
+        false,
+        "update gateway route",
+        routeToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void deleteGatewayRoute(const std::string& prefixAddr, uint8_t prefixLen) {
+    rib_->update(
+        scopeResolver(),
+        kRid,
+        ClientID::OPENR,
+        AdminDistance::OPENR,
+        std::vector<UnicastRoute>{},
+        {toIpPrefix(prefixAddr, prefixLen)},
+        false,
+        "delete gateway route",
+        routeToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  // Backup next hops SwitchState currently has programmed for `mySidId`, as
+  // (address, interface) pairs. Empty when the MySid carries no resolved
+  // backup next hop set.
+  NextHopAddrs getSwitchStateBackupNextHops(const std::string& mySidId) {
+    const auto stateMySid = switchState_->getMySids()->getNodeIf(mySidId);
+    EXPECT_NE(stateMySid, nullptr);
+    if (!stateMySid) {
+      return {};
+    }
+    const auto resolvedId = stateMySid->getBackupResolvedNextHopsId();
+    if (!resolvedId.has_value()) {
+      return {};
+    }
+    NextHopAddrs nextHops;
+    for (const auto& nextHop : getFibInfo()->resolveNextHopSetFromId(
+             static_cast<NextHopSetId>(*resolvedId))) {
+      EXPECT_EQ(nextHop.role(), NextHopRole::BACKUP);
+      EXPECT_TRUE(nextHop.isResolved());
+      if (nextHop.isResolved()) {
+        nextHops.emplace(nextHop.addr(), nextHop.intf());
+      }
+    }
+    return nextHops;
+  }
+
   std::unique_ptr<RoutingInformationBase> rib_;
   std::shared_ptr<SwitchState> switchState_;
 };
@@ -2418,6 +2578,179 @@ TEST_F(RibMySidFibInfoTest, deleteMySidFrrClearsResolvedBackupNextHops) {
   ASSERT_NE(idSetMap, nullptr);
   EXPECT_EQ(idSetMap->getNextHopIdSetIf(backupId), nullptr);
   EXPECT_EQ(idSetMap->getNextHopIdSetIf(resolvedBackupId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsFollowRouteLifecycle) {
+  // Backup next hops programmed before any covering route exists must reach
+  // SwitchState unresolved, then track the route through resolution,
+  // re-resolution and withdrawal with no further FRR API call.
+  const std::string kMySidId{"fc00:100::1/48"};
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  addAdjacencyMySid("fc00:100::1", 48);
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, makeBackupNextHops({"2001:dba::1"})}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  // No route covers the backup gateway yet.
+  auto mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(mySid.backupResolvedNextHopsId().has_value());
+  const auto unresolvedId = *mySid.backupUnresolveNextHopsId();
+  auto stateMySid = switchState_->getMySids()->getNodeIf(kMySidId);
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_EQ(
+      stateMySid->getBackupUnresolveNextHopsId(), NextHopSetID(unresolvedId));
+  EXPECT_FALSE(stateMySid->getBackupResolvedNextHopsId().has_value());
+  EXPECT_TRUE(getSwitchStateBackupNextHops(kMySidId).empty());
+
+  // A route covering the gateway resolves the backup next hops.
+  updateGatewayRoute("2001:dba::", 32, {"2001:db8::1"});
+
+  mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto resolvedId = *mySid.backupResolvedNextHopsId();
+  const NextHopAddrs viaFirstGateway{
+      {folly::IPAddress("2001:db8::1"), InterfaceID(1)}};
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      getBackupNextHops(*manager, NextHopSetID(resolvedId)), viaFirstGateway);
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), viaFirstGateway);
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(resolvedId), nullptr);
+
+  // Re-pointing the route re-resolves the backup next hops.
+  updateGatewayRoute("2001:dba::", 32, {"2001:db8::2"});
+
+  mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto reresolvedId = *mySid.backupResolvedNextHopsId();
+  EXPECT_NE(reresolvedId, resolvedId);
+  const NextHopAddrs viaSecondGateway{
+      {folly::IPAddress("2001:db8::2"), InterfaceID(1)}};
+  manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      getBackupNextHops(*manager, NextHopSetID(reresolvedId)),
+      viaSecondGateway);
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), viaSecondGateway);
+  idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(resolvedId), nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(reresolvedId), nullptr);
+
+  // Withdrawing the route unresolves the backup next hops again. The
+  // requested (unresolved) set is untouched -- only resolution changed.
+  deleteGatewayRoute("2001:dba::", 32);
+
+  mySid = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_EQ(mySid.backupUnresolveNextHopsId(), unresolvedId);
+  EXPECT_FALSE(mySid.backupResolvedNextHopsId().has_value());
+  manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(reresolvedId)).has_value());
+  stateMySid = switchState_->getMySids()->getNodeIf(kMySidId);
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_FALSE(stateMySid->getBackupResolvedNextHopsId().has_value());
+  EXPECT_TRUE(getSwitchStateBackupNextHops(kMySidId).empty());
+  idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(reresolvedId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsResolvedByPreexistingRoute) {
+  // When the covering route is already in the RIB, updateMySidFrrProtection
+  // resolves the backup next hops inline rather than leaving them for a later
+  // route update.
+  const std::string kMySidId{"fc00:100::1/48"};
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  updateGatewayRoute("2001:dba::", 32, {"2001:db8::1"});
+  addAdjacencyMySid("fc00:100::1", 48);
+
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, makeBackupNextHops({"2001:dba::1"})}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto resolvedId = *mySid.backupResolvedNextHopsId();
+  const NextHopAddrs expected{
+      {folly::IPAddress("2001:db8::1"), InterfaceID(1)}};
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(getBackupNextHops(*manager, NextHopSetID(resolvedId)), expected);
+
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kMySidId);
+  ASSERT_NE(stateMySid, nullptr);
+  EXPECT_EQ(
+      stateMySid->getBackupResolvedNextHopsId(), NextHopSetID(resolvedId));
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), expected);
+  const auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(resolvedId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsTrackPartialResolution) {
+  // With two backup gateways the resolved set holds exactly those gateways
+  // that currently have a covering route, and follows routes appearing and
+  // being withdrawn.
+  const std::string kMySidId{"fc00:100::1/48"};
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  updateGatewayRoute("2001:dba::", 32, {"2001:db8::1"});
+  addAdjacencyMySid("fc00:100::1", 48);
+
+  // Only 2001:dba::1 is routable; 2001:dbb::1 has no covering route.
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, makeBackupNextHops({"2001:dba::1", "2001:dbb::1"})}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const NextHopAddrs viaFirstGateway{
+      {folly::IPAddress("2001:db8::1"), InterfaceID(1)}};
+  auto mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto partiallyResolvedId = *mySid.backupResolvedNextHopsId();
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), viaFirstGateway);
+
+  // The second gateway becomes routable -- both backup next hops resolve.
+  updateGatewayRoute("2001:dbb::", 32, {"2001:db8::2"});
+
+  const NextHopAddrs viaBothGateways{
+      {folly::IPAddress("2001:db8::1"), InterfaceID(1)},
+      {folly::IPAddress("2001:db8::2"), InterfaceID(1)}};
+  mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto fullyResolvedId = *mySid.backupResolvedNextHopsId();
+  EXPECT_NE(fullyResolvedId, partiallyResolvedId);
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), viaBothGateways);
+
+  // Withdrawing the first route drops that gateway back out of the set.
+  deleteGatewayRoute("2001:dba::", 32);
+
+  const NextHopAddrs viaSecondGateway{
+      {folly::IPAddress("2001:db8::2"), InterfaceID(1)}};
+  mySid = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(mySid.backupResolvedNextHopsId().has_value());
+  const auto reducedId = *mySid.backupResolvedNextHopsId();
+  EXPECT_NE(reducedId, fullyResolvedId);
+  EXPECT_EQ(getSwitchStateBackupNextHops(kMySidId), viaSecondGateway);
+  const auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(fullyResolvedId), nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(reducedId), nullptr);
 }
 
 TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {
