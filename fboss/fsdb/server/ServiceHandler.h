@@ -13,6 +13,7 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/fsdb/oper/NaivePeriodicSubscribableStorageBase.h"
 #include "fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
@@ -219,7 +220,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   // Expensive API to copy root thrift object. To be used only
   // in tests.
   FsdbOperStateRoot operRootExpensive() const {
-    return operStorage_.currentStateExpensive();
+    return operStorage_->currentStateExpensive();
   }
   // Expensive API to copy root thrift object. To be used only
   // in tests.
@@ -231,7 +232,7 @@ class ServiceHandler : public FsdbServiceSvIf,
     return operStatsStorage_.getMetadata();
   }
   FsdbOperTreeMetadataTracker getStatePublisherMetadata() const {
-    return operStorage_.getMetadata();
+    return stateStorageBase().getMetadata();
   }
 
   // Client key (clientId, Path, PubSubType, isStats)
@@ -361,12 +362,19 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLTimeseries num_publisher_path_requests_rejected_;
   TLTimeseries num_dropped_stats_changes_;
   TLTimeseries num_dropped_state_changes_;
-  FsdbNaivePeriodicSubscribableStorage operStorage_;
+  std::unique_ptr<FsdbNaivePeriodicSubscribableStorage> operStorage_;
+  // Non-owning; points at operStorage_.
+  NaivePeriodicSubscribableStorageBase* operStorageBase_{nullptr};
   // TODO - decide on right DB abstraction for stats
   FsdbNaivePeriodicSubscribableStatsStorage operStatsStorage_;
 
+  // Node-flavor independent APIs live on the storage base.
+  NaivePeriodicSubscribableStorageBase& stateStorageBase() const {
+    return *operStorageBase_;
+  }
+
   /*
-   * A thread dedicated to monitor operStorage_ and operStatsStorage_
+   * A thread dedicated to monitor the state and stats storage threads
    */
   std::unique_ptr<ThreadHeartbeatWatchdog> heartbeatWatchdog_;
 

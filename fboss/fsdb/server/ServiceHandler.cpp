@@ -289,20 +289,6 @@ ServiceHandler::ServiceHandler(
               "num_dropped_state_changes"),
           fb303::SUM,
           fb303::RATE),
-      operStorage_(
-          {},
-          NaivePeriodicSubscribableStorageBase::StorageParams(
-              std::chrono::milliseconds(FLAGS_stateSubscriptionServe_ms),
-              std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
-              FLAGS_trackMetadata,
-              "fsdb",
-              options_.serveIdPathSubs,
-              true,
-              true)
-              .setDeltaSubscriptionQueueFullMinSize(
-                  FLAGS_deltaSubscriptionQueueFullMinSize)
-              .setDeltaSubscriptionQueueMemoryLimit(
-                  FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)),
       operStatsStorage_(
           {},
           NaivePeriodicSubscribableStorageBase::StorageParams(
@@ -320,11 +306,30 @@ ServiceHandler::ServiceHandler(
                   FLAGS_deltaSubscriptionQueueFullMinSize)
               .setDeltaSubscriptionQueueMemoryLimit(
                   FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024)) {
+  // StorageParams holds metricPrefix by reference.
+  const std::string metricPrefix{"fsdb"};
+  auto stateStorageParams =
+      NaivePeriodicSubscribableStorageBase::StorageParams(
+          std::chrono::milliseconds(FLAGS_stateSubscriptionServe_ms),
+          std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
+          FLAGS_trackMetadata,
+          metricPrefix,
+          options_.serveIdPathSubs,
+          true,
+          true)
+          .setDeltaSubscriptionQueueFullMinSize(
+              FLAGS_deltaSubscriptionQueueFullMinSize)
+          .setDeltaSubscriptionQueueMemoryLimit(
+              FLAGS_deltaSubscriptionQueueMemoryLimit_mb * 1024 * 1024);
+  operStorage_ = std::make_unique<FsdbNaivePeriodicSubscribableStorage>(
+      FsdbOperStateRoot{}, stateStorageParams);
+  operStorageBase_ = operStorage_.get();
+
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
 
-  operStorage_.start();
+  stateStorageBase().start_impl();
   operStatsStorage_.start();
   tcData().setCounter(kWatchdogThreadHeartbeatMissed, 0);
 
@@ -344,7 +349,7 @@ ServiceHandler::ServiceHandler(
                   << watchdogThreadHeartbeatMissedCount_ << ")";
       });
   heartbeatWatchdog_->startMonitoringHeartbeat(
-      operStorage_.getThreadHeartbeat());
+      stateStorageBase().getThreadHeartbeat());
   heartbeatWatchdog_->startMonitoringHeartbeat(
       operStatsStorage_.getThreadHeartbeat());
   heartbeatWatchdog_->start();
@@ -417,7 +422,7 @@ void ServiceHandler::registerPublisher(
         info.path()->raw()->end(),
         skipThriftStreamLivenessCheck);
   } else {
-    operStorage_.registerPublisher(
+    stateStorageBase().registerPublisher(
         info.path()->raw()->begin(),
         info.path()->raw()->end(),
         skipThriftStreamLivenessCheck);
@@ -454,7 +459,7 @@ void ServiceHandler::unregisterPublisher(
         info.path()->raw()->end(),
         disconnectReason);
   } else {
-    operStorage_.unregisterPublisher(
+    stateStorageBase().unregisterPublisher(
         info.path()->raw()->begin(),
         info.path()->raw()->end(),
         disconnectReason);
@@ -535,10 +540,10 @@ ServiceHandler::makeSinkConsumer(
                 }
               } else {
                 if (isHeartbeat) {
-                  operStorage_.publisherHeartbeat(
+                  stateStorageBase().publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
-                  patchErr = operStorage_.set_encoded(
+                  patchErr = operStorage_->set_encoded(
                       path.begin(), path.end(), *chunk);
                 }
               }
@@ -578,10 +583,10 @@ ServiceHandler::makeSinkConsumer(
                 }
               } else {
                 if (isHeartbeat) {
-                  operStorage_.publisherHeartbeat(
+                  stateStorageBase().publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
-                  patchErr = operStorage_.patch(*chunk);
+                  patchErr = operStorage_->patch(*chunk);
                 }
               }
               auto numDropped = numChanges - chunk->changes()->size();
@@ -605,7 +610,7 @@ ServiceHandler::makeSinkConsumer(
                         path.end(),
                         heartbeat->metadata().value());
                   } else {
-                    operStorage_.publisherHeartbeat(
+                    stateStorageBase().publisherHeartbeat(
                         path.begin(),
                         path.end(),
                         heartbeat->metadata().value());
@@ -628,7 +633,7 @@ ServiceHandler::makeSinkConsumer(
               if (isStats) {
                 patchErr = operStatsStorage_.patch(std::move(patchChunk));
               } else {
-                patchErr = operStorage_.patch(std::move(patchChunk));
+                patchErr = operStorage_->patch(std::move(patchChunk));
               }
             }
 
@@ -1093,7 +1098,7 @@ ServiceHandler::makeStateStreamGenerator(
                        request->path()->raw()->end(),
                        *request->protocol(),
                        subscriptionParams)
-                 : operStorage_.subscribe_encoded(
+                 : stateStorageBase().subscribe_encoded_impl(
                        std::move(subId),
                        request->path()->raw()->begin(),
                        request->path()->raw()->end(),
@@ -1117,7 +1122,7 @@ ServiceHandler::makeExtendedStateStreamGenerator(
                        std::move(*request->paths()),
                        *request->protocol(),
                        subscriptionParams)
-                 : operStorage_.subscribe_encoded_extended(
+                 : stateStorageBase().subscribe_encoded_extended_impl(
                        std::move(subId),
                        std::move(*request->paths()),
                        *request->protocol(),
@@ -1139,7 +1144,7 @@ ServiceHandler::makePatchStreamGenerator(
     auto streamReader = isStats
         ? operStatsStorage_.subscribe_patch(
               std::move(subId), *request->paths(), subscriptionParams)
-        : operStorage_.subscribe_patch(
+        : stateStorageBase().subscribe_patch_impl(
               std::move(subId), *request->paths(), subscriptionParams);
     return streamReader;
   } else {
@@ -1147,7 +1152,7 @@ ServiceHandler::makePatchStreamGenerator(
     auto streamReader = isStats
         ? operStatsStorage_.subscribe_patch_extended(
               std::move(subId), *request->extPaths(), subscriptionParams)
-        : operStorage_.subscribe_patch_extended(
+        : stateStorageBase().subscribe_patch_extended_impl(
               std::move(subId), *request->extPaths(), subscriptionParams);
     return streamReader;
   }
@@ -1252,7 +1257,7 @@ ServiceHandler::makeDeltaStreamGenerator(
                                     request->path()->raw()->end(),
                                     *request->protocol(),
                                     subscriptionParams)
-                              : operStorage_.subscribe_delta(
+                              : stateStorageBase().subscribe_delta_impl(
                                     std::move(subId),
                                     request->path()->raw()->begin(),
                                     request->path()->raw()->end(),
@@ -1273,16 +1278,17 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
         std::chrono::seconds(request->heartbeatInterval().value());
   }
 
-  auto streamReader = isStats ? operStatsStorage_.subscribe_delta_extended(
-                                    std::move(subId),
-                                    *request->paths(),
-                                    *request->protocol(),
-                                    subscriptionParams)
-                              : operStorage_.subscribe_delta_extended(
-                                    std::move(subId),
-                                    *request->paths(),
-                                    *request->protocol(),
-                                    subscriptionParams);
+  auto streamReader = isStats
+      ? operStatsStorage_.subscribe_delta_extended(
+            std::move(subId),
+            *request->paths(),
+            *request->protocol(),
+            subscriptionParams)
+      : stateStorageBase().subscribe_delta_extended_impl(
+            std::move(subId),
+            *request->paths(),
+            *request->protocol(),
+            subscriptionParams);
   return streamReader;
 }
 
@@ -1863,13 +1869,13 @@ ServiceHandler::addPatchSubscriptionPathsImpl(
     err = isStats
         ? operStatsStorage_.add_extended_patch_subscription_path(
               std::move(id), std::move(*request->extPaths()), streamRevision)
-        : operStorage_.add_extended_patch_subscription_path(
+        : stateStorageBase().add_extended_patch_subscription_path_impl(
               std::move(id), std::move(*request->extPaths()), streamRevision);
   } else {
     err = isStats
         ? operStatsStorage_.add_patch_subscription_path(
               std::move(id), std::move(*request->paths()), streamRevision)
-        : operStorage_.add_patch_subscription_path(
+        : stateStorageBase().add_patch_subscription_path_impl(
               std::move(id), std::move(*request->paths()), streamRevision);
   }
   if (err.has_value()) {
@@ -1901,13 +1907,12 @@ folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperState(
     std::unique_ptr<OperGetRequest> request) {
   auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
-  auto ret =
-      std::make_unique<OperState>(operStorage_
-                                      .get_encoded(
-                                          request->path()->raw()->begin(),
-                                          request->path()->raw()->end(),
-                                          *request->protocol())
-                                      .value());
+  auto encoded = operStorage_->get_encoded(
+      request->path()->raw()->begin(),
+      request->path()->raw()->end(),
+      *request->protocol());
+  // value() on an lvalue Expected would deep-copy the serialized subtree.
+  auto ret = std::make_unique<OperState>(std::move(encoded).value());
   co_return std::move(ret);
 }
 
@@ -1934,7 +1939,7 @@ ServiceHandler::co_getOperStateExtended(
   auto ret = std::make_unique<std::vector<TaggedOperState>>();
 
   for (const auto& path : *request->paths()) {
-    auto curr = operStorage_.get_encoded_extended(
+    auto curr = operStorage_->get_encoded_extended(
         path.path()->begin(), path.path()->end(), *request->protocol());
     ret->insert(
         ret->end(),
@@ -2093,7 +2098,8 @@ ServiceHandler::co_getAllOperSubscriberInfos() {
       }
     }
   });
-  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(
+      *subscriptions, stateStorageBase().getSubscriptions());
   mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
@@ -2114,7 +2120,8 @@ ServiceHandler::co_getOperSubscriberInfos(
       }
     }
   });
-  mergeOperSubscriberInfo(*subscriptions, operStorage_.getSubscriptions());
+  mergeOperSubscriberInfo(
+      *subscriptions, stateStorageBase().getSubscriptions());
   mergeOperSubscriberInfo(*subscriptions, operStatsStorage_.getSubscriptions());
   co_return subscriptions;
 }
