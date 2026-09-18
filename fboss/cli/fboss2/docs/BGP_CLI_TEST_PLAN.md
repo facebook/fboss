@@ -73,10 +73,10 @@ fboss2 config protocol bgp peer-group RSW-FSW-V6 next-hop-self true
 fboss2 config protocol bgp peer-group RSW-FSW-V6 confed-peer true
 fboss2 config protocol bgp peer-group RSW-FSW-V6 ingress-policy PROPAGATE_RSW_FSW_IN
 fboss2 config protocol bgp peer-group RSW-FSW-V6 egress-policy PROPAGATE_RSW_FSW_OUT
-fboss2 config protocol bgp peer-group RSW-FSW-V6 v4-over-v6-nh true
+fboss2 config protocol bgp peer-group RSW-FSW-V6 afi ipv4-over-ipv6-nh true
 fboss2 config protocol bgp peer-group RSW-FSW-V6 timers hold-time 30
 fboss2 config protocol bgp peer-group RSW-FSW-V6 timers keepalive 10
-fboss2 config protocol bgp peer-group RSW-RTSW-V6 disable-ipv4-afi true
+fboss2 config protocol bgp peer-group RSW-RTSW-V6 afi disable-ipv4-afi true
 
 # Peer configuration (with explicit disable_ipv4_afi: false preserved)
 fboss2 config protocol bgp neighbor 2401:db00:501c::/64 remote-asn 65000
@@ -131,11 +131,11 @@ diff <(jq -S . /tmp/rsw_bgp_nao.txt) <(jq -S . ~/.fboss2/bgp_config.json)
 | Peer Group | `config protocol bgp peer-group <name> remote-asn <asn>` | Set remote AS |
 | Peer Group | `config protocol bgp peer-group <name> description <text>` | Set description |
 | Peer Group | `config protocol bgp peer-group <name> next-hop-self <bool>` | Enable/disable next-hop-self |
-| Peer Group | `config protocol bgp peer-group <name> disable-ipv4-afi <bool>` | Disable IPv4 AFI |
-| Peer Group | `config protocol bgp peer-group <name> v4-over-v6-nh <bool>` | Enable v4-over-v6 nexthop |
+| Peer Group | `config protocol bgp peer-group <name> afi disable-ipv4-afi <bool>` | Disable IPv4 AFI |
+| Peer Group | `config protocol bgp peer-group <name> afi ipv4-over-ipv6-nh <bool>` | Enable v4-over-v6 nexthop |
 | Peer Group | `config protocol bgp peer-group <name> timers hold-time <sec>` | Set hold time |
 | Peer Group | `config protocol bgp peer-group <name> timers keepalive <sec>` | Set keepalive interval |
-| Peer Group | `config protocol bgp peer-group <name> max-routes <n>` | Set max routes |
+| Peer Group | `config protocol bgp peer-group <name> max-route pre-filter <n>` | Set max routes (pre-policy; 0 = unlimited) |
 | Neighbor | `config protocol bgp neighbor <addr> remote-asn <asn>` | Set remote AS |
 | Neighbor | `config protocol bgp neighbor <addr> peer-group <name>` | Assign to peer group |
 | Neighbor | `config protocol bgp neighbor <addr> bind-addr address <addr>` | Set local address |
