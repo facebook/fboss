@@ -191,12 +191,30 @@ class MySidManagerWithNextHopIdTest : public MySidManagerTest {
     return nextHops;
   }
 
+  std::shared_ptr<MySid> makeAdjacencySid(
+      const std::string& address,
+      const TestInterface& primaryInterface,
+      const RouteNextHopSet& backupNextHops) {
+    RouteNextHopSet primaryNextHops{
+        makeResolvedNextHop(primaryInterface, NextHopRole::PRIMARY),
+    };
+    auto primaryAllocResult =
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(primaryNextHops);
+    auto backupAllocResult =
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(backupNextHops);
+    auto mySid = makeMySid(address, 48, MySidType::ADJACENCY_MICRO_SID);
+    mySid->setResolvedNextHopsId(
+        primaryAllocResult.nextHopIdSetIter->second.id);
+    mySid->setBackupResolvedNextHopsId(
+        backupAllocResult.nextHopIdSetIter->second.id);
+    return mySid;
+  }
+
   std::shared_ptr<MySid> addAdjacencySid(
       const std::string& address,
-      const RouteNextHopSet& nextHops) {
-    auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nextHops);
-    auto mySid = makeMySid(address, 48, MySidType::ADJACENCY_MICRO_SID);
-    mySid->setResolvedNextHopsId(allocResult.nextHopIdSetIter->second.id);
+      const TestInterface& primaryInterface,
+      const RouteNextHopSet& backupNextHops) {
+    auto mySid = makeAdjacencySid(address, primaryInterface, backupNextHops);
     saiManagerTable->srv6MySidManager().addMySidEntry(
         mySid, getProgrammedState());
     return mySid;
@@ -295,7 +313,8 @@ TEST_F(
       makeResolvedNextHop(testInterfaces.at(1), NextHopRole::BACKUP),
   };
   auto nextHops = makeProtectionNextHops(testInterfaces.at(0), backupNextHops);
-  auto mySid = addAdjacencySid("fc00:100::1", nextHops);
+  auto mySid =
+      addAdjacencySid("fc00:100::1", testInterfaces.at(0), backupNextHops);
 
   const auto* groupHandle = getProtectionNextHopGroup(nextHops);
   ASSERT_NE(groupHandle, nullptr);
@@ -334,8 +353,8 @@ TEST_F(
   auto secondNextHops =
       makeProtectionNextHops(testInterfaces.at(1), backupNextHops);
 
-  addAdjacencySid("fc00:100::1", firstNextHops);
-  addAdjacencySid("fc00:100::2", secondNextHops);
+  addAdjacencySid("fc00:100::1", testInterfaces.at(0), backupNextHops);
+  addAdjacencySid("fc00:100::2", testInterfaces.at(1), backupNextHops);
 
   const auto* firstGroupHandle = getProtectionNextHopGroup(firstNextHops);
   const auto* secondGroupHandle = getProtectionNextHopGroup(secondNextHops);
@@ -366,8 +385,9 @@ TEST_F(
   auto secondNextHops =
       makeProtectionNextHops(testInterfaces.at(1), sharedBackupNextHops);
 
-  addAdjacencySid("fc00:100::1", firstNextHops);
-  auto secondMySid = addAdjacencySid("fc00:100::2", secondNextHops);
+  addAdjacencySid("fc00:100::1", testInterfaces.at(0), sharedBackupNextHops);
+  auto secondMySid = addAdjacencySid(
+      "fc00:100::2", testInterfaces.at(1), sharedBackupNextHops);
 
   const auto* firstGroupHandle = getProtectionNextHopGroup(firstNextHops);
   const auto* secondGroupHandle = getProtectionNextHopGroup(secondNextHops);
@@ -385,12 +405,8 @@ TEST_F(
   };
   auto updatedSecondNextHops =
       makeProtectionNextHops(testInterfaces.at(1), updatedBackupNextHops);
-  auto allocResult =
-      nextHopIDManager_->getOrAllocRouteNextHopSetID(updatedSecondNextHops);
-  auto updatedSecondMySid =
-      makeMySid("fc00:100::2", 48, MySidType::ADJACENCY_MICRO_SID);
-  updatedSecondMySid->setResolvedNextHopsId(
-      allocResult.nextHopIdSetIter->second.id);
+  auto updatedSecondMySid = makeAdjacencySid(
+      "fc00:100::2", testInterfaces.at(1), updatedBackupNextHops);
   saiManagerTable->srv6MySidManager().changeMySidEntry(
       secondMySid, updatedSecondMySid, getProgrammedState());
 

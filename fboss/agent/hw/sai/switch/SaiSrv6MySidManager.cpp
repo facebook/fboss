@@ -2,6 +2,8 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
 
+#include <vector>
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
@@ -196,9 +198,19 @@ void SaiSrv6MySidManager::addMySidEntry(
 
   std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
 
-  auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
-  if (resolvedNextHopsId) {
-    auto nhops = getNextHops(state, static_cast<int64_t>(*resolvedNextHopsId));
+  const auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
+  const auto backupResolvedNextHopsId = mySid->getBackupResolvedNextHopsId();
+  if (resolvedNextHopsId || backupResolvedNextHopsId) {
+    std::vector<NextHop> nhops;
+    for (const auto& nextHopsId :
+         {resolvedNextHopsId, backupResolvedNextHopsId}) {
+      if (nextHopsId) {
+        const auto resolvedNextHops =
+            getNextHops(state, static_cast<int64_t>(*nextHopsId));
+        nhops.insert(
+            nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
+      }
+    }
     if (nhops.size() > 1) {
       RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
       auto nextHopGroupHandle =
