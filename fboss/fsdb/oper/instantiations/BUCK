@@ -21,6 +21,7 @@ cpp_library(
 cpp_library(
     name = "fsdb_cow_root",
     srcs = [
+        "FsdbHybridStateCowRoot.cpp",
         "FsdbStatCowRoot.cpp",
         "FsdbStateCowRoot.cpp",
     ],
