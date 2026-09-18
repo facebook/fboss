@@ -23,6 +23,19 @@ DECLARE_string(platform_descriptor_config_path);
 
 namespace facebook::fboss {
 
+// Chassis EEPROM version fields (Meta EEPROM v6 Types 8/9/10), read from the
+// platform_manager-published /run/devmap/eeproms/CHASSIS_EEPROM symlink.
+struct ChassisEepromVersion {
+  int16_t productionState;
+  int16_t productionSubState;
+  int16_t respinVariantIndicator;
+};
+
+// Returns the chassis EEPROM version, read once and cached for the process
+// lifetime. nullopt when the symlink is absent or the EEPROM does not parse;
+// callers must treat that as "no version" and fall back to their default.
+std::optional<ChassisEepromVersion> getChassisEepromVersion();
+
 class PlatformDescriptorRegistry {
  public:
   // Returns a cached singleton loaded from
@@ -36,6 +49,12 @@ class PlatformDescriptorRegistry {
       std::string_view productName,
       std::string_view mode) const;
   std::optional<std::string> loadPlatformMapping(PlatformType type) const;
+  // Returns the SDK yaml shipped beside the selected descriptor's
+  // platform_mapping.json (asic_config_idx<switchIndex>.yaml if present,
+  // else asic_config.yaml); nullopt when the directory carries no yaml.
+  std::optional<std::string> loadAsicConfigYaml(
+      PlatformType type,
+      std::optional<int16_t> switchIndex = std::nullopt) const;
   cfg::PlatformMapping loadPlatformMappingFromRaw(
       PlatformType type,
       const cfg::PlatformConfig& platformConfig) const;

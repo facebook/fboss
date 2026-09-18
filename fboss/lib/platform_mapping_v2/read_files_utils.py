@@ -5,7 +5,7 @@ import os
 import sys
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.integrated_transceiver_mapping import (
@@ -56,13 +56,13 @@ class PlatformMappingInput:
     base_platform: str
     input_dir: str
     vendor: str
-    data: Dict[str, str]
+    data: dict[str, str]
 
 
-PlatformMappingInputs = Dict[str, PlatformMappingInput]
+PlatformMappingInputs = dict[str, PlatformMappingInput]
 
 
-def read_vendor_data(input_file_path: str) -> Dict[str, str]:
+def read_vendor_data(input_file_path: str) -> dict[str, str]:
     vendor_data = {}
     if not os.path.exists(input_file_path):
         raise FileNotFoundError(f"The folder '{input_file_path}' does not exist.")
@@ -72,7 +72,7 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
         if (
             filepath.endswith(".csv") or filepath.endswith(".json")
         ) and not os.path.isdir(filepath):
-            with open(filepath, "r") as file:
+            with open(filepath) as file:
                 content = file.read()
             vendor_data[filename] = content
 
@@ -80,9 +80,7 @@ def read_vendor_data(input_file_path: str) -> Dict[str, str]:
 
 
 def _add_platform_mapping_input(
-    inputs: PlatformMappingInputs,
-    name: str,
-    platform_input: PlatformMappingInput,
+    inputs: PlatformMappingInputs, name: str, platform_input: PlatformMappingInput
 ) -> None:
     # Platform names are globally unique
     if name in inputs:
@@ -95,9 +93,8 @@ def _add_platform_mapping_input(
 
 
 def _find_variant_inputs(
-    variants_dir: str,
-    mapping_subdir: str,
-) -> List[Tuple[str, str]]:
+    variants_dir: str, mapping_subdir: str
+) -> list[tuple[str, str]]:
     if not os.path.isdir(variants_dir):
         return []
 
@@ -110,8 +107,7 @@ def _find_variant_inputs(
 
 
 def discover_platform_mapping_inputs(
-    platforms_dir: str,
-    mapping_subdir: str = "platform_mapping",
+    platforms_dir: str, mapping_subdir: str = "platform_mapping"
 ) -> PlatformMappingInputs:
     inputs: PlatformMappingInputs = {}
 
@@ -165,7 +161,7 @@ def discover_platform_mapping_inputs(
     return inputs
 
 
-def get_content(directory: Dict[str, str], filename: str) -> str:
+def get_content(directory: dict[str, str], filename: str) -> str:
     if filename not in directory:
         raise FileNotFoundError(
             f"File {filename} not found in directory with keys {directory.keys()}"
@@ -179,11 +175,11 @@ def column_int_enum_generator(string_list: str):
     )
 
 
-def split_csv_list(value: str) -> List[str]:
+def split_csv_list(value: str) -> list[str]:
     return [item for item in value.split("-") if item]
 
 
-def parse_bool_map(value: str) -> Dict[str, bool]:
+def parse_bool_map(value: str) -> dict[str, bool]:
     bool_map = {}
     for item in value.split(";"):
         if not item:
@@ -201,34 +197,34 @@ def parse_bool_map(value: str) -> Dict[str, bool]:
     return bool_map
 
 
-def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping:
-    STATIC_MAPPING_SUFFIX = "_static_mapping.csv"
-    Column = column_int_enum_generator(
+def read_static_mapping(directory: dict[str, str], prefix: str) -> StaticMapping:
+    static_mapping_suffix = "_static_mapping.csv"
+    column = column_int_enum_generator(
         "A_SLOT_ID A_CHIP_ID A_CHIP_TYPE A_CORE_ID A_CORE_TYPE A_CORE_LANE A_PHYSICAL_TX_LANE "
         + "A_PHYSICAL_RX_LANE A_TX_POLARITY_SWAP A_RX_POLARITY_SWAP Z_SLOT_ID "
         + "Z_CHIP_ID Z_CHIP_TYPE Z_CORE_ID Z_CORE_TYPE Z_CORE_LANE Z_PHYSICAL_TX_LANE "
-        + "Z_PHYSICAL_RX_LANE Z_TX_POLARITY_SWAP Z_RX_POLARITY_SWAP",
+        + "Z_PHYSICAL_RX_LANE Z_TX_POLARITY_SWAP Z_RX_POLARITY_SWAP"
     )
     connections = []
     for index, line in enumerate(
-        get_content(directory, prefix + STATIC_MAPPING_SUFFIX).splitlines()
+        get_content(directory, prefix + static_mapping_suffix).splitlines()
     ):
         if index < 1:
             # Skip the header
             continue
         row = line.split(",")
         # pyrefly: ignore [missing-attribute]
-        if row[Column.A_PHYSICAL_TX_LANE]:
+        if row[column.A_PHYSICAL_TX_LANE]:
             # If there this a physical tx lane, there should be information
             # about its and the corresponding rx lane
             # pyrefly: ignore [missing-attribute]
-            a_tx_physical_lane = int(row[Column.A_PHYSICAL_TX_LANE])
+            a_tx_physical_lane = int(row[column.A_PHYSICAL_TX_LANE])
             # pyrefly: ignore [missing-attribute]
-            a_rx_physical_lane = int(row[Column.A_PHYSICAL_RX_LANE])
+            a_rx_physical_lane = int(row[column.A_PHYSICAL_RX_LANE])
             # pyrefly: ignore [missing-attribute]
-            a_tx_polarity_swap = bool(row[Column.A_TX_POLARITY_SWAP] == "Y")
+            a_tx_polarity_swap = bool(row[column.A_TX_POLARITY_SWAP] == "Y")
             # pyrefly: ignore [missing-attribute]
-            a_rx_polarity_swap = bool(row[Column.A_RX_POLARITY_SWAP] == "Y")
+            a_rx_polarity_swap = bool(row[column.A_RX_POLARITY_SWAP] == "Y")
         else:
             a_tx_physical_lane = None
             a_rx_physical_lane = None
@@ -236,7 +232,7 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             a_rx_polarity_swap = None
         a_lane = Lane(
             # pyrefly: ignore [missing-attribute]
-            logical_id=int(row[Column.A_CORE_LANE]),
+            logical_id=int(row[column.A_CORE_LANE]),
             tx_physical_lane=a_tx_physical_lane,
             rx_physical_lane=a_rx_physical_lane,
             tx_polarity_swap=a_tx_polarity_swap,
@@ -244,51 +240,45 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
         )
         a_chip = Chip(
             # pyrefly: ignore [missing-attribute]
-            slot_id=int(row[Column.A_SLOT_ID]),
+            slot_id=int(row[column.A_SLOT_ID]),
             # pyrefly: ignore [missing-attribute]
-            chip_id=int(row[Column.A_CHIP_ID]),
+            chip_id=int(row[column.A_CHIP_ID]),
             # pyrefly: ignore [missing-attribute]
-            chip_type=ChipType[row[Column.A_CHIP_TYPE]],
+            chip_type=ChipType[row[column.A_CHIP_TYPE]],
             # pyrefly: ignore [missing-attribute]
-            core_id=int(row[Column.A_CORE_ID]),
+            core_id=int(row[column.A_CORE_ID]),
             # pyrefly: ignore [missing-attribute]
-            core_type=CoreType[row[Column.A_CORE_TYPE]],
+            core_type=CoreType[row[column.A_CORE_TYPE]],
         )
-        a_connection_end = ConnectionEnd(
-            chip=a_chip,
-            lane=a_lane,
-        )
+        a_connection_end = ConnectionEnd(chip=a_chip, lane=a_lane)
         # Z end is optional for ports like recycle ports
         # pyrefly: ignore [missing-attribute]
-        if row[Column.Z_SLOT_ID]:
+        if row[column.Z_SLOT_ID]:
             z_chip = Chip(
                 # pyrefly: ignore [missing-attribute]
-                slot_id=int(row[Column.Z_SLOT_ID]),
+                slot_id=int(row[column.Z_SLOT_ID]),
                 # pyrefly: ignore [missing-attribute]
-                chip_id=int(row[Column.Z_CHIP_ID]),
+                chip_id=int(row[column.Z_CHIP_ID]),
                 # pyrefly: ignore [missing-attribute]
-                chip_type=ChipType[row[Column.Z_CHIP_TYPE]],
+                chip_type=ChipType[row[column.Z_CHIP_TYPE]],
                 # pyrefly: ignore [missing-attribute]
-                core_id=int(row[Column.Z_CORE_ID]),
+                core_id=int(row[column.Z_CORE_ID]),
                 # pyrefly: ignore [missing-attribute]
-                core_type=CoreType[row[Column.Z_CORE_TYPE]],
+                core_type=CoreType[row[column.Z_CORE_TYPE]],
             )
             z_lane = Lane(
                 # pyrefly: ignore [missing-attribute]
-                logical_id=int(row[Column.Z_CORE_LANE]),
+                logical_id=int(row[column.Z_CORE_LANE]),
                 # pyrefly: ignore [missing-attribute]
-                tx_physical_lane=int(row[Column.Z_PHYSICAL_TX_LANE]),
+                tx_physical_lane=int(row[column.Z_PHYSICAL_TX_LANE]),
                 # pyrefly: ignore [missing-attribute]
-                rx_physical_lane=int(row[Column.Z_PHYSICAL_RX_LANE]),
+                rx_physical_lane=int(row[column.Z_PHYSICAL_RX_LANE]),
                 # pyrefly: ignore [missing-attribute]
-                tx_polarity_swap=bool(row[Column.Z_TX_POLARITY_SWAP] == "Y"),
+                tx_polarity_swap=bool(row[column.Z_TX_POLARITY_SWAP] == "Y"),
                 # pyrefly: ignore [missing-attribute]
-                rx_polarity_swap=bool(row[Column.Z_RX_POLARITY_SWAP] == "Y"),
+                rx_polarity_swap=bool(row[column.Z_RX_POLARITY_SWAP] == "Y"),
             )
-            z_connection_end = ConnectionEnd(
-                chip=z_chip,
-                lane=z_lane,
-            )
+            z_connection_end = ConnectionEnd(chip=z_chip, lane=z_lane)
         else:
             z_connection_end = None
 
@@ -297,25 +287,25 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
     return StaticMapping(az_connections=connections)
 
 
-def read_port_profile_mapping(
-    directory: Dict[str, str], prefix: str, multi_npu: bool
+def read_port_profile_mapping(  # noqa: PLR0912
+    directory: dict[str, str], prefix: str, multi_npu: bool
 ) -> PortProfileMapping:
-    PORT_PROFILE_MAPPING_SUFFIX = "_port_profile_mapping.csv"
-    Column = column_int_enum_generator(
-        "GLOBAL_PORT_ID LOGICAL_PORT_ID PORT_NAME SUPPORTED_PROFILES ATTACHED_COREID ATTACHED_CORE_PORTID VIRTUAL_DEVICE_ID PORT_TYPE SCOPE PARENT_PORT CONTROLLING_PORT",
+    port_profile_mapping_suffix = "_port_profile_mapping.csv"
+    column = column_int_enum_generator(
+        "GLOBAL_PORT_ID LOGICAL_PORT_ID PORT_NAME SUPPORTED_PROFILES ATTACHED_COREID ATTACHED_CORE_PORTID VIRTUAL_DEVICE_ID PORT_TYPE SCOPE PARENT_PORT CONTROLLING_PORT"
     )
     ports = {}
     for index, line in enumerate(
-        get_content(directory, prefix + PORT_PROFILE_MAPPING_SUFFIX).splitlines()
+        get_content(directory, prefix + port_profile_mapping_suffix).splitlines()
     ):
         if index < 1:
             # Skip the header
             continue
         row = line.split(",")
         # pyrefly: ignore [missing-attribute]
-        global_port_id = int(row[Column.GLOBAL_PORT_ID])
+        global_port_id = int(row[column.GLOBAL_PORT_ID])
         # pyrefly: ignore [missing-attribute]
-        logical_port_id = int(row[Column.LOGICAL_PORT_ID])
+        logical_port_id = int(row[column.LOGICAL_PORT_ID])
 
         # If global_port_id is not the same as logical_port_id then this is a multi_npu system.
         # Only include second NPU ports if multi_npu option is used
@@ -323,43 +313,43 @@ def read_port_profile_mapping(
             continue
 
         # pyrefly: ignore [missing-attribute]
-        port_name = row[Column.PORT_NAME]
+        port_name = row[column.PORT_NAME]
         # pyrefly: ignore [missing-attribute]
-        if row[Column.ATTACHED_COREID]:
+        if row[column.ATTACHED_COREID]:
             # pyrefly: ignore [missing-attribute]
-            attached_coreid = int(row[Column.ATTACHED_COREID])
+            attached_coreid = int(row[column.ATTACHED_COREID])
         else:
             attached_coreid = None
         # pyrefly: ignore [missing-attribute]
-        if row[Column.ATTACHED_CORE_PORTID]:
+        if row[column.ATTACHED_CORE_PORTID]:
             # pyrefly: ignore [missing-attribute]
-            attached_core_portid = int(row[Column.ATTACHED_CORE_PORTID])
+            attached_core_portid = int(row[column.ATTACHED_CORE_PORTID])
         else:
             attached_core_portid = None
         # pyrefly: ignore [missing-attribute]
-        if row[Column.VIRTUAL_DEVICE_ID]:
+        if row[column.VIRTUAL_DEVICE_ID]:
             # pyrefly: ignore [missing-attribute]
-            virtual_device_id = int(row[Column.VIRTUAL_DEVICE_ID])
+            virtual_device_id = int(row[column.VIRTUAL_DEVICE_ID])
         else:
             virtual_device_id = None
         supported_profiles = []
         # pyrefly: ignore [missing-attribute]
-        for profile in row[Column.SUPPORTED_PROFILES].split("-"):
+        for profile in row[column.SUPPORTED_PROFILES].split("-"):
             supported_profiles.append(PortProfileID(int(profile)))
         # pyrefly: ignore [missing-attribute]
-        port_type = PortType(int(row[Column.PORT_TYPE]))
+        port_type = PortType(int(row[column.PORT_TYPE]))
         # pyrefly: ignore [missing-attribute]
-        scope = Scope(int(row[Column.SCOPE]))
+        scope = Scope(int(row[column.SCOPE]))
         # pyrefly: ignore [missing-attribute]
-        if Column.PARENT_PORT < len(row) and row[Column.PARENT_PORT]:
+        if len(row) > column.PARENT_PORT and row[column.PARENT_PORT]:
             # pyrefly: ignore [missing-attribute]
-            parent_port_id = int(row[Column.PARENT_PORT])
+            parent_port_id = int(row[column.PARENT_PORT])
         else:
             parent_port_id = None
         # pyrefly: ignore [missing-attribute]
-        if Column.CONTROLLING_PORT < len(row) and row[Column.CONTROLLING_PORT]:
+        if len(row) > column.CONTROLLING_PORT and row[column.CONTROLLING_PORT]:
             # pyrefly: ignore [missing-attribute]
-            controlling_port = int(row[Column.CONTROLLING_PORT])
+            controlling_port = int(row[column.CONTROLLING_PORT])
         else:
             controlling_port = None
         assert global_port_id not in ports
@@ -379,28 +369,49 @@ def read_port_profile_mapping(
     return PortProfileMapping(ports=ports)
 
 
-def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str, Any]:
-    PLATFORM_DESCRIPTOR_SUFFIX = "_platform_descriptor.csv"
-    VARIANT_ATTRIBUTES_COLUMN = 5
-    Column = column_int_enum_generator(
-        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE VARIANT_ATTRIBUTES"
+def parse_pm_unit_versions(cell: str) -> list[dict[str, int]]:
+    """Parse a Pm_Unit_Versions CSV cell into PmUnitVersionMatch dicts.
+
+    Format: matches separated by ';', fields within a match separated by '&',
+    each field 'name=int' with names productionState, productionSubState,
+    respinVariantIndicator. Example: 'productionState=1'.
+    """
+    valid_fields = {"productionState", "productionSubState", "respinVariantIndicator"}
+    matches = []
+    for match_str in cell.split(";"):
+        match: dict[str, int] = {}
+        for field in match_str.split("&"):
+            name, _, value = field.partition("=")
+            if name not in valid_fields:
+                raise ValueError(f"Invalid PmUnitVersionMatch field: {name}")
+            match[name] = int(value)
+        matches.append(match)
+    return matches
+
+
+def read_platform_descriptor(directory: dict[str, str], prefix: str) -> dict[str, Any]:
+    platform_descriptor_suffix = "_platform_descriptor.csv"
+    variant_attributes_column = 5
+    pm_unit_versions_column = 6
+    column = column_int_enum_generator(
+        "SYSTEM_VENDOR PLATFORM_TYPE PRODUCT_NAME_PREFIXES MODE_NAMES ASIC_TYPE VARIANT_ATTRIBUTES PM_UNIT_VERSIONS"
     )
     for index, line in enumerate(
-        get_content(directory, prefix + PLATFORM_DESCRIPTOR_SUFFIX).splitlines()
+        get_content(directory, prefix + platform_descriptor_suffix).splitlines()
     ):
         if index < 1:
             continue
         row = line.split(",")
         # pyrefly: ignore [missing-attribute]
-        system_vendor = row[Column.SYSTEM_VENDOR]
+        system_vendor = row[column.SYSTEM_VENDOR]
         # pyrefly: ignore [missing-attribute]
-        platform_type = PlatformType[row[Column.PLATFORM_TYPE]]
+        platform_type = PlatformType[row[column.PLATFORM_TYPE]]
         # pyrefly: ignore [missing-attribute]
-        product_name_prefixes = split_csv_list(row[Column.PRODUCT_NAME_PREFIXES])
+        product_name_prefixes = split_csv_list(row[column.PRODUCT_NAME_PREFIXES])
         # pyrefly: ignore [missing-attribute]
-        mode_names = split_csv_list(row[Column.MODE_NAMES])
+        mode_names = split_csv_list(row[column.MODE_NAMES])
         # pyrefly: ignore [missing-attribute]
-        asic_type = AsicType[row[Column.ASIC_TYPE]]
+        asic_type = AsicType[row[column.ASIC_TYPE]]
         descriptor = {
             "systemVendor": system_vendor,
             "platformType": int(platform_type),
@@ -408,64 +419,68 @@ def read_platform_descriptor(directory: Dict[str, str], prefix: str) -> Dict[str
             "modeNames": mode_names,
             "asicType": int(asic_type),
         }
-        if VARIANT_ATTRIBUTES_COLUMN < len(row) and row[VARIANT_ATTRIBUTES_COLUMN]:
+        if len(row) > variant_attributes_column and row[variant_attributes_column]:
             descriptor["variantAttributes"] = parse_bool_map(
-                row[VARIANT_ATTRIBUTES_COLUMN]
+                row[variant_attributes_column]
+            )
+        if len(row) > pm_unit_versions_column and row[pm_unit_versions_column]:
+            descriptor["pmUnitVersions"] = parse_pm_unit_versions(
+                row[pm_unit_versions_column]
             )
         return descriptor
     raise ValueError(f"No platform descriptor row found for {prefix}")
 
 
-def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSettings:
-    PROFILE_SETTINGS_SUFFIX = "_profile_settings.csv"
-    Column = column_int_enum_generator(
+def read_profile_settings(directory: dict[str, str], prefix: str) -> ProfileSettings:
+    profile_settings_suffix = "_profile_settings.csv"
+    column = column_int_enum_generator(
         "PORT_SPEED_MBPS A_CHIP_TYPE Z_CHIP_TYPE NUM_LANES MODULATION A_FEC Z_FEC MEDIA_TYPE A_INTERFACE_TYPE Z_INTERFACE_TYPE"
     )
     profiles = []
     for index, line in enumerate(
-        get_content(directory, prefix + PROFILE_SETTINGS_SUFFIX).splitlines()
+        get_content(directory, prefix + profile_settings_suffix).splitlines()
     ):
         if index < 1:
             # Skip the header
             continue
         row = line.split(",")
         # pyrefly: ignore [missing-attribute]
-        speed = int(row[Column.PORT_SPEED_MBPS])
+        speed = int(row[column.PORT_SPEED_MBPS])
         try:
             PortSpeed(speed)
         except ValueError:
             raise Exception("Invalid speed ", speed)
         # pyrefly: ignore [missing-attribute]
-        a_chip_type = ChipType[row[Column.A_CHIP_TYPE]]
+        a_chip_type = ChipType[row[column.A_CHIP_TYPE]]
         # pyrefly: ignore [missing-attribute]
-        if row[Column.Z_CHIP_TYPE]:
+        if row[column.Z_CHIP_TYPE]:
             # pyrefly: ignore [missing-attribute]
-            z_chip_type = ChipType[row[Column.Z_CHIP_TYPE]]
+            z_chip_type = ChipType[row[column.Z_CHIP_TYPE]]
         else:
             z_chip_type = None
         # pyrefly: ignore [missing-attribute]
-        num_lanes = int(row[Column.NUM_LANES])
+        num_lanes = int(row[column.NUM_LANES])
         # pyrefly: ignore [missing-attribute]
-        modulation = IpModulation[row[Column.MODULATION]]
+        modulation = IpModulation[row[column.MODULATION]]
         # pyrefly: ignore [missing-attribute]
-        a_fec = FecMode[row[Column.A_FEC]]
+        a_fec = FecMode[row[column.A_FEC]]
         #  if empty, Z_FEC default to None
         # pyrefly: ignore [missing-attribute]
-        z_fec = FecMode[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
+        z_fec = FecMode[row[column.Z_FEC]] if row[column.Z_FEC] else None
         # pyrefly: ignore [missing-attribute]
-        media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
+        media_type = TransmitterTechnology[row[column.MEDIA_TYPE]]
         a_interface_type = (
             # pyrefly: ignore [missing-attribute]
-            InterfaceType[row[Column.A_INTERFACE_TYPE]]
+            InterfaceType[row[column.A_INTERFACE_TYPE]]
             # pyrefly: ignore [missing-attribute]
-            if row[Column.A_INTERFACE_TYPE]
+            if row[column.A_INTERFACE_TYPE]
             else InterfaceType.NONE
         )
         z_interface_type = (
             # pyrefly: ignore [missing-attribute]
-            InterfaceType[row[Column.Z_INTERFACE_TYPE]]
+            InterfaceType[row[column.Z_INTERFACE_TYPE]]
             # pyrefly: ignore [missing-attribute]
-            if row[Column.Z_INTERFACE_TYPE]
+            if row[column.Z_INTERFACE_TYPE]
             else InterfaceType.NONE
         )
         profiles.append(
@@ -490,101 +505,101 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
     return ProfileSettings(speed_settings=profiles)
 
 
-def read_si_settings(  # noqa: C901
-    directory: Dict[str, str], prefix: str, version: Optional[str] = None
+def read_si_settings(  # noqa: PLR0912, PLR0915
+    directory: dict[str, str], prefix: str, version: Optional[str] = None
 ) -> SiSettings:
     si_suffix = f"_{version}" if version is not None else ""
-    SI_SETTINGS_SUFFIX = f"_si_settings{si_suffix}.csv"
-    CUSTOM_TX_PREFIX = "CUSTOM_TX_"
-    CUSTOM_RX_PREFIX = "CUSTOM_RX_"
+    si_settings_suffix = f"_si_settings{si_suffix}.csv"
+    custom_tx_prefix = "CUSTOM_TX_"
+    custom_rx_prefix = "CUSTOM_RX_"
 
     si_settings = []
-    Column = None
+    column = None
     column_names = ""
     for index, line in enumerate(
-        get_content(directory, prefix + SI_SETTINGS_SUFFIX).splitlines()
+        get_content(directory, prefix + si_settings_suffix).splitlines()
     ):
         row = line.split(",")
         if index < 1:
             column_names = " ".join(f"{name}" for name in row)
             column_names = column_names.replace("(mbps)", "")
             column_names = column_names.replace("(m)", "")
-            Column = column_int_enum_generator(column_names)
+            column = column_int_enum_generator(column_names)
             continue
         chip = Chip(
             # pyrefly: ignore [missing-attribute]
-            slot_id=int(row[Column.SLOT_ID]),
+            slot_id=int(row[column.SLOT_ID]),
             # pyrefly: ignore [missing-attribute]
-            chip_id=int(row[Column.CHIP_ID]),
+            chip_id=int(row[column.CHIP_ID]),
             # pyrefly: ignore [missing-attribute]
-            chip_type=ChipType[row[Column.CHIP_TYPE]],
+            chip_type=ChipType[row[column.CHIP_TYPE]],
             # pyrefly: ignore [missing-attribute]
-            core_type=CoreType[row[Column.CORE_TYPE]],
+            core_type=CoreType[row[column.CORE_TYPE]],
             # pyrefly: ignore [missing-attribute]
-            core_id=int(row[Column.CORE_ID]),
+            core_id=int(row[column.CORE_ID]),
         )
         pin_connection = SiSettingPinConnection(
             chip=chip,
             # pyrefly: ignore [missing-attribute]
-            logical_lane_id=int(row[Column.CORE_LANE]),
+            logical_lane_id=int(row[column.CORE_LANE]),
         )
 
         lane_speed = None
         # pyrefly: ignore [missing-attribute]
-        if row[Column.LANE_SPEED]:
+        if row[column.LANE_SPEED]:
             try:
                 # pyrefly: ignore [missing-attribute]
-                PortSpeed(int(row[Column.LANE_SPEED]))
+                PortSpeed(int(row[column.LANE_SPEED]))
             except ValueError:
                 # pyrefly: ignore [missing-attribute]
-                raise Exception("Invalid speed ", row[Column.LANE_SPEED])
+                raise Exception("Invalid speed ", row[column.LANE_SPEED])
             # pyrefly: ignore [missing-attribute]
-            lane_speed = PortSpeed(int(row[Column.LANE_SPEED]))
+            lane_speed = PortSpeed(int(row[column.LANE_SPEED]))
 
         media_type = None
         # pyrefly: ignore [missing-attribute]
-        if row[Column.MEDIA_TYPE]:
+        if row[column.MEDIA_TYPE]:
             try:
                 # pyrefly: ignore [missing-attribute]
-                media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
+                media_type = TransmitterTechnology[row[column.MEDIA_TYPE]]
             except KeyError:
                 # pyrefly: ignore [missing-attribute]
-                raise Exception("Invalid media type ", row[Column.MEDIA_TYPE])
+                raise Exception("Invalid media type ", row[column.MEDIA_TYPE])
 
         cable_length = None
         # pyrefly: ignore [missing-attribute]
-        if row[Column.CABLE_LENGTH]:
+        if row[column.CABLE_LENGTH]:
             # pyrefly: ignore [missing-attribute]
-            cable_length = float(row[Column.CABLE_LENGTH])
+            cable_length = float(row[column.CABLE_LENGTH])
 
         # Add optics settings if present in the csv file.
         driver_peaking = None
         tcvr_setting = None
         # pyrefly: ignore [missing-attribute]
-        tcvr_vendor = row[Column.TCVR_VENDOR]
+        tcvr_vendor = row[column.TCVR_VENDOR]
         if tcvr_vendor:
             # if the vendor is specified, we need to check the part number and
             # the driver peaking values that they are specified
             # pyrefly: ignore [missing-attribute]
-            tcvr_part_num = row[Column.TCVR_PART_NUM]
+            tcvr_part_num = row[column.TCVR_PART_NUM]
             if not tcvr_part_num:
                 raise Exception(
                     "Invalid transceiver part number type not populated ",
                     # pyrefly: ignore [missing-attribute]
-                    row[Column.TCVR_PART_NUM],
+                    row[column.TCVR_PART_NUM],
                 )
             vendor = Vendor(
                 # pyrefly: ignore [missing-attribute]
-                name=str(row[Column.TCVR_VENDOR]),
+                name=str(row[column.TCVR_VENDOR]),
                 partNumber=str(tcvr_part_num),
             )
             # pyrefly: ignore [missing-attribute]
-            driver_peaking = int(row[Column.DRIVER_PEAKING])
+            driver_peaking = int(row[column.DRIVER_PEAKING])
             if driver_peaking is None:
                 raise Exception(
                     "Invalid driver peaking value not populated ",
                     # pyrefly: ignore [missing-attribute]
-                    row[Column.DRIVER_PEAKING],
+                    row[column.DRIVER_PEAKING],
                 )
             tcvr_setting = TransceiverOverrideSetting(vendor=vendor)
         si_setting_factor = SiSettingFactor(
@@ -594,318 +609,318 @@ def read_si_settings(  # noqa: C901
             tcvr_override_setting=tcvr_setting,
         )
 
-        tx_kwargs: Dict[str, Any] = {}
+        tx_kwargs: dict[str, Any] = {}
         if chip.core_type in (CoreType.G200, CoreType.P200):
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
+            if "TX_PRE3" in column_names and row[column.TX_PRE3]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPre3"] = int(row[Column.TX_PRE3])
+                tx_kwargs["firPre3"] = int(row[column.TX_PRE3])
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
+            if "TX_PRE2" in column_names and row[column.TX_PRE2]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPre2"] = int(row[Column.TX_PRE2])
+                tx_kwargs["firPre2"] = int(row[column.TX_PRE2])
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
+            if "TX_PRE1" in column_names and row[column.TX_PRE1]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPre1"] = int(row[Column.TX_PRE1])
+                tx_kwargs["firPre1"] = int(row[column.TX_PRE1])
             # pyrefly: ignore [missing-attribute]
-            if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
+            if "TX_MAIN" in column_names and row[column.TX_MAIN]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firMain"] = int(row[Column.TX_MAIN])
+                tx_kwargs["firMain"] = int(row[column.TX_MAIN])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST1" in column_names and row[Column.TX_POST1]:
+            if "TX_POST1" in column_names and row[column.TX_POST1]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPost1"] = int(row[Column.TX_POST1])
+                tx_kwargs["firPost1"] = int(row[column.TX_POST1])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST2" in column_names and row[Column.TX_POST2]:
+            if "TX_POST2" in column_names and row[column.TX_POST2]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPost2"] = int(row[Column.TX_POST2])
+                tx_kwargs["firPost2"] = int(row[column.TX_POST2])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST3" in column_names and row[Column.TX_POST3]:
+            if "TX_POST3" in column_names and row[column.TX_POST3]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["firPost3"] = int(row[Column.TX_POST3])
+                tx_kwargs["firPost3"] = int(row[column.TX_POST3])
         else:
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
+            if "TX_PRE3" in column_names and row[column.TX_PRE3]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["pre3"] = int(row[Column.TX_PRE3])
+                tx_kwargs["pre3"] = int(row[column.TX_PRE3])
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
+            if "TX_PRE2" in column_names and row[column.TX_PRE2]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["pre2"] = int(row[Column.TX_PRE2])
+                tx_kwargs["pre2"] = int(row[column.TX_PRE2])
             # pyrefly: ignore [missing-attribute]
-            if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
+            if "TX_PRE1" in column_names and row[column.TX_PRE1]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["pre"] = int(row[Column.TX_PRE1])
+                tx_kwargs["pre"] = int(row[column.TX_PRE1])
             # pyrefly: ignore [missing-attribute]
-            if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
+            if "TX_MAIN" in column_names and row[column.TX_MAIN]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["main"] = int(row[Column.TX_MAIN])
+                tx_kwargs["main"] = int(row[column.TX_MAIN])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST1" in column_names and row[Column.TX_POST1]:
+            if "TX_POST1" in column_names and row[column.TX_POST1]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["post"] = int(row[Column.TX_POST1])
+                tx_kwargs["post"] = int(row[column.TX_POST1])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST2" in column_names and row[Column.TX_POST2]:
+            if "TX_POST2" in column_names and row[column.TX_POST2]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["post2"] = int(row[Column.TX_POST2])
+                tx_kwargs["post2"] = int(row[column.TX_POST2])
             # pyrefly: ignore [missing-attribute]
-            if "TX_POST3" in column_names and row[Column.TX_POST3]:
+            if "TX_POST3" in column_names and row[column.TX_POST3]:
                 # pyrefly: ignore [missing-attribute]
-                tx_kwargs["post3"] = int(row[Column.TX_POST3])
+                tx_kwargs["post3"] = int(row[column.TX_POST3])
 
         # pyrefly: ignore [missing-attribute]
-        if "TX_PRECODING" in column_names and row[Column.TX_PRECODING]:
+        if "TX_PRECODING" in column_names and row[column.TX_PRECODING]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["precoding"] = int(row[Column.TX_PRECODING])
+            tx_kwargs["precoding"] = int(row[column.TX_PRECODING])
         # pyrefly: ignore [missing-attribute]
-        if "TX_DIFF_ENCODER_EN" in column_names and row[Column.TX_DIFF_ENCODER_EN]:
+        if "TX_DIFF_ENCODER_EN" in column_names and row[column.TX_DIFF_ENCODER_EN]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["diffEncoderEn"] = int(row[Column.TX_DIFF_ENCODER_EN])
+            tx_kwargs["diffEncoderEn"] = int(row[column.TX_DIFF_ENCODER_EN])
         # pyrefly: ignore [missing-attribute]
-        if "TX_DIG_GAIN" in column_names and row[Column.TX_DIG_GAIN]:
+        if "TX_DIG_GAIN" in column_names and row[column.TX_DIG_GAIN]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["digGain"] = int(row[Column.TX_DIG_GAIN])
+            tx_kwargs["digGain"] = int(row[column.TX_DIG_GAIN])
         # pyrefly: ignore [missing-attribute]
-        if "TX_DRIVER_SWING" in column_names and row[Column.TX_DRIVER_SWING]:
+        if "TX_DRIVER_SWING" in column_names and row[column.TX_DRIVER_SWING]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["driverSwing"] = int(row[Column.TX_DRIVER_SWING])
+            tx_kwargs["driverSwing"] = int(row[column.TX_DRIVER_SWING])
         # pyrefly: ignore [missing-attribute]
-        if "TX_DRIVE_CURRENT" in column_names and row[Column.TX_DRIVE_CURRENT]:
+        if "TX_DRIVE_CURRENT" in column_names and row[column.TX_DRIVE_CURRENT]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["driveCurrent"] = int(row[Column.TX_DRIVE_CURRENT])
+            tx_kwargs["driveCurrent"] = int(row[column.TX_DRIVE_CURRENT])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_0" in column_names and row[Column.TX_FFE_COEFF_0]:
+        if "TX_FFE_COEFF_0" in column_names and row[column.TX_FFE_COEFF_0]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff0"] = int(row[Column.TX_FFE_COEFF_0])
+            tx_kwargs["ffeCoeff0"] = int(row[column.TX_FFE_COEFF_0])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_1" in column_names and row[Column.TX_FFE_COEFF_1]:
+        if "TX_FFE_COEFF_1" in column_names and row[column.TX_FFE_COEFF_1]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff1"] = int(row[Column.TX_FFE_COEFF_1])
+            tx_kwargs["ffeCoeff1"] = int(row[column.TX_FFE_COEFF_1])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_2" in column_names and row[Column.TX_FFE_COEFF_2]:
+        if "TX_FFE_COEFF_2" in column_names and row[column.TX_FFE_COEFF_2]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff2"] = int(row[Column.TX_FFE_COEFF_2])
+            tx_kwargs["ffeCoeff2"] = int(row[column.TX_FFE_COEFF_2])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_3" in column_names and row[Column.TX_FFE_COEFF_3]:
+        if "TX_FFE_COEFF_3" in column_names and row[column.TX_FFE_COEFF_3]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff3"] = int(row[Column.TX_FFE_COEFF_3])
+            tx_kwargs["ffeCoeff3"] = int(row[column.TX_FFE_COEFF_3])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_4" in column_names and row[Column.TX_FFE_COEFF_4]:
+        if "TX_FFE_COEFF_4" in column_names and row[column.TX_FFE_COEFF_4]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff4"] = int(row[Column.TX_FFE_COEFF_4])
+            tx_kwargs["ffeCoeff4"] = int(row[column.TX_FFE_COEFF_4])
         # pyrefly: ignore [missing-attribute]
-        if "TX_INNER_EYE_NEG" in column_names and row[Column.TX_INNER_EYE_NEG]:
+        if "TX_INNER_EYE_NEG" in column_names and row[column.TX_INNER_EYE_NEG]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["innerEyeNeg"] = int(row[Column.TX_INNER_EYE_NEG])
+            tx_kwargs["innerEyeNeg"] = int(row[column.TX_INNER_EYE_NEG])
         # pyrefly: ignore [missing-attribute]
-        if "TX_INNER_EYE_POS" in column_names and row[Column.TX_INNER_EYE_POS]:
+        if "TX_INNER_EYE_POS" in column_names and row[column.TX_INNER_EYE_POS]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["innerEyePos"] = int(row[Column.TX_INNER_EYE_POS])
+            tx_kwargs["innerEyePos"] = int(row[column.TX_INNER_EYE_POS])
         # pyrefly: ignore [missing-attribute]
-        if "TX_LDO_BYPASS" in column_names and row[Column.TX_LDO_BYPASS]:
+        if "TX_LDO_BYPASS" in column_names and row[column.TX_LDO_BYPASS]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ldoBypass"] = int(row[Column.TX_LDO_BYPASS])
+            tx_kwargs["ldoBypass"] = int(row[column.TX_LDO_BYPASS])
         # pyrefly: ignore [missing-attribute]
-        if "TX_FFE_COEFF_5" in column_names and row[Column.TX_FFE_COEFF_5]:
+        if "TX_FFE_COEFF_5" in column_names and row[column.TX_FFE_COEFF_5]:
             # pyrefly: ignore [missing-attribute]
-            tx_kwargs["ffeCoeff5"] = int(row[Column.TX_FFE_COEFF_5])
+            tx_kwargs["ffeCoeff5"] = int(row[column.TX_FFE_COEFF_5])
         tx_setting = TxSettings(**tx_kwargs)
 
-        rx_kwargs: Dict[str, Any] = {}
+        rx_kwargs: dict[str, Any] = {}
         # pyrefly: ignore [missing-attribute]
-        if "RX_REACH" in column_names and row[Column.RX_REACH]:
+        if "RX_REACH" in column_names and row[column.RX_REACH]:
             rx_kwargs["rxReach"] = (
                 RxReach.RX_NORMAL_REACH
                 # pyrefly: ignore [missing-attribute]
-                if int(row[Column.RX_REACH]) == 0
+                if int(row[column.RX_REACH]) == 0
                 else RxReach.RX_EXTENDED_REACH
             )
         # pyrefly: ignore [missing-attribute]
-        if "RX_CTLE_CODE" in column_names and row[Column.RX_CTLE_CODE]:
+        if "RX_CTLE_CODE" in column_names and row[column.RX_CTLE_CODE]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["ctlCode"] = int(row[Column.RX_CTLE_CODE])
+            rx_kwargs["ctlCode"] = int(row[column.RX_CTLE_CODE])
         # pyrefly: ignore [missing-attribute]
-        if "RX_DSP_MODE" in column_names and row[Column.RX_DSP_MODE]:
+        if "RX_DSP_MODE" in column_names and row[column.RX_DSP_MODE]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["dspMode"] = int(row[Column.RX_DSP_MODE])
+            rx_kwargs["dspMode"] = int(row[column.RX_DSP_MODE])
         # pyrefly: ignore [missing-attribute]
-        if "RX_AFE_TRIM" in column_names and row[Column.RX_AFE_TRIM]:
+        if "RX_AFE_TRIM" in column_names and row[column.RX_AFE_TRIM]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["afeTrim"] = int(row[Column.RX_AFE_TRIM])
+            rx_kwargs["afeTrim"] = int(row[column.RX_AFE_TRIM])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_BOOST1_STRT" in column_names and row[Column.RX_INSTG_BOOST1_STRT]:
+        if "RX_INSTG_BOOST1_STRT" in column_names and row[column.RX_INSTG_BOOST1_STRT]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgBoost1Start"] = int(row[Column.RX_INSTG_BOOST1_STRT])
+            rx_kwargs["instgBoost1Start"] = int(row[column.RX_INSTG_BOOST1_STRT])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_BOOST1_STEP" in column_names and row[Column.RX_INSTG_BOOST1_STEP]:
+        if "RX_INSTG_BOOST1_STEP" in column_names and row[column.RX_INSTG_BOOST1_STEP]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgBoost1Step"] = int(row[Column.RX_INSTG_BOOST1_STEP])
+            rx_kwargs["instgBoost1Step"] = int(row[column.RX_INSTG_BOOST1_STEP])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_BOOST1_STOP" in column_names and row[Column.RX_INSTG_BOOST1_STOP]:
+        if "RX_INSTG_BOOST1_STOP" in column_names and row[column.RX_INSTG_BOOST1_STOP]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgBoost1Stop"] = int(row[Column.RX_INSTG_BOOST1_STOP])
+            rx_kwargs["instgBoost1Stop"] = int(row[column.RX_INSTG_BOOST1_STOP])
         if (
             "RX_INSTG_BOOST2_OR_HR_STRT" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
+            and row[column.RX_INSTG_BOOST2_OR_HR_STRT]
         ):
             rx_kwargs["instgBoost2OrHrStart"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
+                row[column.RX_INSTG_BOOST2_OR_HR_STRT]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STEP" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
+            and row[column.RX_INSTG_BOOST2_OR_HR_STEP]
         ):
             rx_kwargs["instgBoost2OrHrStep"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
+                row[column.RX_INSTG_BOOST2_OR_HR_STEP]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STOP" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
+            and row[column.RX_INSTG_BOOST2_OR_HR_STOP]
         ):
             rx_kwargs["instgBoost2OrHrStop"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
+                row[column.RX_INSTG_BOOST2_OR_HR_STOP]
             )
         if (
             "RX_INSTG_C1_START_1P7" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_C1_START_1P7]
+            and row[column.RX_INSTG_C1_START_1P7]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgC1Start1p7"] = int(row[Column.RX_INSTG_C1_START_1P7])
+            rx_kwargs["instgC1Start1p7"] = int(row[column.RX_INSTG_C1_START_1P7])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_C1_STEP_1P7" in column_names and row[Column.RX_INSTG_C1_STEP_1P7]:
+        if "RX_INSTG_C1_STEP_1P7" in column_names and row[column.RX_INSTG_C1_STEP_1P7]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgC1Step1p7"] = int(row[Column.RX_INSTG_C1_STEP_1P7])
+            rx_kwargs["instgC1Step1p7"] = int(row[column.RX_INSTG_C1_STEP_1P7])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_C1_STOP_1P7" in column_names and row[Column.RX_INSTG_C1_STOP_1P7]:
+        if "RX_INSTG_C1_STOP_1P7" in column_names and row[column.RX_INSTG_C1_STOP_1P7]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgC1Stop1p7"] = int(row[Column.RX_INSTG_C1_STOP_1P7])
+            rx_kwargs["instgC1Stop1p7"] = int(row[column.RX_INSTG_C1_STOP_1P7])
         if (
             "RX_INSTG_DFE_START_1P7" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_DFE_START_1P7]
+            and row[column.RX_INSTG_DFE_START_1P7]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgDfeStart1p7"] = int(row[Column.RX_INSTG_DFE_START_1P7])
+            rx_kwargs["instgDfeStart1p7"] = int(row[column.RX_INSTG_DFE_START_1P7])
         if (
             "RX_INSTG_DFE_STEP_1P7" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_DFE_STEP_1P7]
+            and row[column.RX_INSTG_DFE_STEP_1P7]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgDfeStep1p7"] = int(row[Column.RX_INSTG_DFE_STEP_1P7])
+            rx_kwargs["instgDfeStep1p7"] = int(row[column.RX_INSTG_DFE_STEP_1P7])
         if (
             "RX_INSTG_DFE_STOP_1P7" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_DFE_STOP_1P7]
+            and row[column.RX_INSTG_DFE_STOP_1P7]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgDfeStop1p7"] = int(row[Column.RX_INSTG_DFE_STOP_1P7])
+            rx_kwargs["instgDfeStop1p7"] = int(row[column.RX_INSTG_DFE_STOP_1P7])
         # pyrefly: ignore [missing-attribute]
-        if "RX_DIFF_ENCODER_EN" in column_names and row[Column.RX_DIFF_ENCODER_EN]:
+        if "RX_DIFF_ENCODER_EN" in column_names and row[column.RX_DIFF_ENCODER_EN]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["diffEncoderEn"] = int(row[Column.RX_DIFF_ENCODER_EN])
+            rx_kwargs["diffEncoderEn"] = int(row[column.RX_DIFF_ENCODER_EN])
         if (
             "RX_ENABLE_SCAN_SELECTION" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_ENABLE_SCAN_SELECTION]
+            and row[column.RX_ENABLE_SCAN_SELECTION]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["enableScanSelection"] = int(row[Column.RX_ENABLE_SCAN_SELECTION])
+            rx_kwargs["enableScanSelection"] = int(row[column.RX_ENABLE_SCAN_SELECTION])
         if (
             "RX_INSTG_SCAN_USE_SR_SETTINGS" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
+            and row[column.RX_INSTG_SCAN_USE_SR_SETTINGS]
         ):
             rx_kwargs["instgScanUseSrSettings"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
+                row[column.RX_INSTG_SCAN_USE_SR_SETTINGS]
             )
         # pyrefly: ignore [missing-attribute]
-        if "RX_CDR_CFG_OV_EN" in column_names and row[Column.RX_CDR_CFG_OV_EN]:
+        if "RX_CDR_CFG_OV_EN" in column_names and row[column.RX_CDR_CFG_OV_EN]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["cdrCfgOvEn"] = int(row[Column.RX_CDR_CFG_OV_EN])
+            rx_kwargs["cdrCfgOvEn"] = int(row[column.RX_CDR_CFG_OV_EN])
         if (
             "RX_CDR_TDET_1ST_ORD_STEP_OV_VAL" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
+            and row[column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdet1stOrdStepOvVal"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
+                row[column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_2ND_ORD_STEP_OV_VAL" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
+            and row[column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdet2ndOrdStepOvVal"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
+                row[column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_FINE_STEP_OV_VAL" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
+            and row[column.RX_CDR_TDET_FINE_STEP_OV_VAL]
         ):
             rx_kwargs["cdrTdetFineStepOvVal"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
+                row[column.RX_CDR_TDET_FINE_STEP_OV_VAL]
             )
         # pyrefly: ignore [missing-attribute]
-        if "RX_LDO_BYPASS" in column_names and row[Column.RX_LDO_BYPASS]:
+        if "RX_LDO_BYPASS" in column_names and row[column.RX_LDO_BYPASS]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["ldoBypass"] = int(row[Column.RX_LDO_BYPASS])
+            rx_kwargs["ldoBypass"] = int(row[column.RX_LDO_BYPASS])
         # pyrefly: ignore [missing-attribute]
-        if "RX_FFE_LENGTH_BITMAP" in column_names and row[Column.RX_FFE_LENGTH_BITMAP]:
+        if "RX_FFE_LENGTH_BITMAP" in column_names and row[column.RX_FFE_LENGTH_BITMAP]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["ffeLengthBitmap"] = int(row[Column.RX_FFE_LENGTH_BITMAP])
+            rx_kwargs["ffeLengthBitmap"] = int(row[column.RX_FFE_LENGTH_BITMAP])
         # pyrefly: ignore [missing-attribute]
-        if "RX_INSTG_ENABLE_SCAN" in column_names and row[Column.RX_INSTG_ENABLE_SCAN]:
+        if "RX_INSTG_ENABLE_SCAN" in column_names and row[column.RX_INSTG_ENABLE_SCAN]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["instgEnableScan"] = int(row[Column.RX_INSTG_ENABLE_SCAN])
+            rx_kwargs["instgEnableScan"] = int(row[column.RX_INSTG_ENABLE_SCAN])
         # pyrefly: ignore [missing-attribute]
-        if "RX_DCW_EN" in column_names and row[Column.RX_DCW_EN]:
+        if "RX_DCW_EN" in column_names and row[column.RX_DCW_EN]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["dcwEn"] = int(row[Column.RX_DCW_EN])
+            rx_kwargs["dcwEn"] = int(row[column.RX_DCW_EN])
         if (
             "RX_DCW_STEP_COARSE_OV_VAL" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_DCW_STEP_COARSE_OV_VAL]
+            and row[column.RX_DCW_STEP_COARSE_OV_VAL]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["dcwStepCoarseOvVal"] = int(row[Column.RX_DCW_STEP_COARSE_OV_VAL])
+            rx_kwargs["dcwStepCoarseOvVal"] = int(row[column.RX_DCW_STEP_COARSE_OV_VAL])
         if (
             "RX_DCW_STEP_FINE_OV_VAL" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_DCW_STEP_FINE_OV_VAL]
+            and row[column.RX_DCW_STEP_FINE_OV_VAL]
         ):
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["dcwStepFineOvVal"] = int(row[Column.RX_DCW_STEP_FINE_OV_VAL])
+            rx_kwargs["dcwStepFineOvVal"] = int(row[column.RX_DCW_STEP_FINE_OV_VAL])
         # pyrefly: ignore [missing-attribute]
-        if "RX_DCW_OV_EN" in column_names and row[Column.RX_DCW_OV_EN]:
+        if "RX_DCW_OV_EN" in column_names and row[column.RX_DCW_OV_EN]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["dcwOvEn"] = int(row[Column.RX_DCW_OV_EN])
+            rx_kwargs["dcwOvEn"] = int(row[column.RX_DCW_OV_EN])
         if (
             "RX_FFE_LMS_DYNAMIC_GATING_EN" in column_names
             # pyrefly: ignore [missing-attribute]
-            and row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
+            and row[column.RX_FFE_LMS_DYNAMIC_GATING_EN]
         ):
             rx_kwargs["ffeLmsDynamicGatingEn"] = int(
                 # pyrefly: ignore [missing-attribute]
-                row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
+                row[column.RX_FFE_LMS_DYNAMIC_GATING_EN]
             )
         # pyrefly: ignore [missing-attribute]
-        if "RX_PRECODING" in column_names and row[Column.RX_PRECODING]:
+        if "RX_PRECODING" in column_names and row[column.RX_PRECODING]:
             # pyrefly: ignore [missing-attribute]
-            rx_kwargs["precoding"] = int(row[Column.RX_PRECODING])
+            rx_kwargs["precoding"] = int(row[column.RX_PRECODING])
         rx_setting = RxSettings(**rx_kwargs)
 
         # Handle custom collection attributes.
@@ -916,9 +931,9 @@ def read_si_settings(  # noqa: C901
             value = row[idx]
             if not value:
                 continue
-            if column_name.startswith(CUSTOM_TX_PREFIX):
+            if column_name.startswith(custom_tx_prefix):
                 tx_custom_collection[column_name] = int(value)
-            elif column_name.startswith(CUSTOM_RX_PREFIX):
+            elif column_name.startswith(custom_rx_prefix):
                 rx_custom_collection[column_name] = int(value)
 
         si_settings.append(
@@ -936,13 +951,13 @@ def read_si_settings(  # noqa: C901
     return SiSettings(si_settings=si_settings)
 
 
-def read_asic_vendor_config(directory: Dict[str, str], prefix: str) -> AsicVendorConfig:
-    VENDOR_CONFIG_SUFFIX = "_vendor_config.json"
-    asic_vendor_config_json_str = get_content(directory, prefix + VENDOR_CONFIG_SUFFIX)
+def read_asic_vendor_config(directory: dict[str, str], prefix: str) -> AsicVendorConfig:
+    vendor_config_suffix = "_vendor_config.json"
+    asic_vendor_config_json_str = get_content(directory, prefix + vendor_config_suffix)
     asic_vendor_config_json = json.loads(asic_vendor_config_json_str)
 
-    def stringify_map_values(map: Dict[str, Any]) -> Dict[str, str]:
-        return {key: json.dumps(value) for key, value in map.items()}
+    def stringify_map_values(mapping: dict[str, Any]) -> dict[str, str]:
+        return {key: json.dumps(value) for key, value in mapping.items()}
 
     common_config = copy.deepcopy(asic_vendor_config_json["config"]["common_config"])
     prod_config = copy.deepcopy(asic_vendor_config_json["config"]["prod_config_only"])
@@ -978,52 +993,52 @@ def read_asic_vendor_config(directory: Dict[str, str], prefix: str) -> AsicVendo
 
 
 def read_integrated_transceiver_mapping(
-    directory: Dict[str, str], prefix: str
+    directory: dict[str, str], prefix: str
 ) -> IntegratedTransceiverMapping:
-    SUFFIX = "_integrated_transceiver_mapping.csv"
-    Column = column_int_enum_generator(
+    suffix = "_integrated_transceiver_mapping.csv"
+    column = column_int_enum_generator(
         "TCVR_CHIP_ID TCVR_CORE_ID TCVR_LANE "
         + "OE_CHIP_ID OE_CORE_ID OE_LANE "
-        + "LASER_SOURCE_CHIP_ID LASER_SOURCE_CORE_ID LASER_SOURCE_LANE",
+        + "LASER_SOURCE_CHIP_ID LASER_SOURCE_CORE_ID LASER_SOURCE_LANE"
     )
     connections = []
-    for index, line in enumerate(get_content(directory, prefix + SUFFIX).splitlines()):
+    for index, line in enumerate(get_content(directory, prefix + suffix).splitlines()):
         if index < 1:
             continue
         row = line.split(",")
         tcvr_chip = Chip(
             slot_id=1,
             # pyrefly: ignore [missing-attribute]
-            chip_id=int(row[Column.TCVR_CHIP_ID]),
+            chip_id=int(row[column.TCVR_CHIP_ID]),
             chip_type=ChipType.TRANSCEIVER,
             # pyrefly: ignore [missing-attribute]
-            core_id=int(row[Column.TCVR_CORE_ID]),
+            core_id=int(row[column.TCVR_CORE_ID]),
             core_type=CoreType.BANKED_CMIS_INTEGRATED,
         )
         # pyrefly: ignore [missing-attribute]
-        tcvr_lane = Lane(logical_id=int(row[Column.TCVR_LANE]))
+        tcvr_lane = Lane(logical_id=int(row[column.TCVR_LANE]))
         oe_chip = Chip(
             slot_id=1,
             # pyrefly: ignore [missing-attribute]
-            chip_id=int(row[Column.OE_CHIP_ID]),
+            chip_id=int(row[column.OE_CHIP_ID]),
             chip_type=ChipType.OPTICAL_ENGINE,
             # pyrefly: ignore [missing-attribute]
-            core_id=int(row[Column.OE_CORE_ID]),
+            core_id=int(row[column.OE_CORE_ID]),
             core_type=CoreType.INTEGRATED_OE,
         )
         # pyrefly: ignore [missing-attribute]
-        oe_lane = Lane(logical_id=int(row[Column.OE_LANE]))
+        oe_lane = Lane(logical_id=int(row[column.OE_LANE]))
         laser_source_chip = Chip(
             slot_id=1,
             # pyrefly: ignore [missing-attribute]
-            chip_id=int(row[Column.LASER_SOURCE_CHIP_ID]),
+            chip_id=int(row[column.LASER_SOURCE_CHIP_ID]),
             chip_type=ChipType.LASER_SOURCE,
             # pyrefly: ignore [missing-attribute]
-            core_id=int(row[Column.LASER_SOURCE_CORE_ID]),
+            core_id=int(row[column.LASER_SOURCE_CORE_ID]),
             core_type=CoreType.ELSFP,
         )
         # pyrefly: ignore [missing-attribute]
-        laser_source_lane = Lane(logical_id=int(row[Column.LASER_SOURCE_LANE]))
+        laser_source_lane = Lane(logical_id=int(row[column.LASER_SOURCE_LANE]))
         connections.append(
             IntegratedTransceiverConnection(
                 transceiver=ConnectionEnd(chip=tcvr_chip, lane=tcvr_lane),

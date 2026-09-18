@@ -32,6 +32,8 @@ cpp_library(
     deps = [
         ":platform_mapping_utils",
         "//fboss/agent:fboss-error",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//folly:conv",
         "//folly:file_util",
         "//folly/logging:logging",
         "//thrift/lib/cpp2:field_ref",
