@@ -276,6 +276,7 @@ cpp_library(
         "AgentMirrorOnDropXgsImpl.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
+        "AgentMySidAdjFrrRouteTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentOverflowTestBase.cpp",
         "AgentPacketSendTests.cpp",
