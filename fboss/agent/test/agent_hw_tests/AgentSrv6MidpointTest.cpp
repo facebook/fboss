@@ -48,6 +48,12 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   // the rewritten outer dst forwarded to the next hop.
   const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:2::"};
 
+  // Active uSID 3 sits in the same locator block but has no entry in
+  // mySidConfig (function 1 is the only one configured), so nothing in
+  // hardware claims it. Function 3 also keeps it clear of kExpectedOuterDst
+  // (fdad:ffff:2::), which the trap ACL owns.
+  const folly::IPAddressV6 kUnconfiguredSidOuterDst{"fdad:ffff:3:4::"};
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
@@ -385,6 +391,53 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       verifyMidpointDrop(injectPort, egressPort, isV4, injectPort, outerDst);
     }
   }
+
+  // A SID in the locator block that no mysid entry claims is dropped, but not
+  // as a mysid discard: inSrv6MySidDiscards is backed by
+  // SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP, which fires only while processing
+  // a *configured* local SID, and MySidConfigUtils programs just the
+  // per-function /48s with nothing covering the block. Such a packet misses
+  // the route table instead, so it lands in inDstNullDiscards.
+  void
+  verifyUnconfiguredSidDrop(PortID injectPort, PortID egressPort, bool isV4) {
+    XLOG(DBG2) << "verifyUnconfiguredSidDrop: inner=" << (isV4 ? "v4" : "v6")
+               << " outerDst=" << kUnconfiguredSidOuterDst.str();
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+    auto egressStatsBefore = this->getLatestPortStats(egressPort);
+    auto srv6DiscardsBefore =
+        portStatsBefore.inSrv6MySidDiscards_().value_or(0);
+
+    sendMidpointPacket(
+        false /* ecnMarked */, isV4, injectPort, kUnconfiguredSidOuterDst);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      auto egressStatsAfter = this->getLatestPortStats(egressPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDstNullDiscards_(),
+          *portStatsBefore.inDstNullDiscards_());
+    });
+
+    // Packet should not be forwarded out the egress port.
+    EXPECT_EQ(
+        *this->getLatestPortStats(egressPort).outBytes_(),
+        *egressStatsBefore.outBytes_());
+    // Only once the drop has been counted is it meaningful to say the mysid
+    // counter did not move with it. Checked after the loop rather than as an
+    // EXPECT_EVENTUALLY_EQ inside it: these counters are monotonic, so an
+    // increment would never retry away, and the loop would burn its whole
+    // timeout before failing.
+    EXPECT_EQ(
+        this->getLatestPortStats(injectPort).inSrv6MySidDiscards_().value_or(0),
+        srv6DiscardsBefore);
+  }
+
+  void verifyUnconfiguredSidDropFrontPanel(PortID egressPort) {
+    auto injectPort = findInjectPort(egressPort);
+    for (bool isV4 : {false, true}) {
+      verifyUnconfiguredSidDrop(injectPort, egressPort, isV4);
+    }
+  }
 };
 
 TYPED_TEST_SUITE(AgentSrv6MidpointTest, Srv6MidpointPortTypes);
@@ -422,6 +475,11 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
   auto verify = [this]() {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
     this->verifyMidpointDropFrontPanel(egressPort);
+    // Same locator block, but a function id the config never programmed.
+    // It drops too, yet only the unresolved entry above is a mysid discard —
+    // so the mysid counter distinguishes the two, rather than catching
+    // anything aimed at the block.
+    this->verifyUnconfiguredSidDropFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
