@@ -935,8 +935,8 @@ ConfigSession::applyServiceActions(
     switch (level) {
       case cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART:
       case cli::ConfigActionLevel::SERVICE_RESTART:
-        serviceNames[service] =
-            fbossServiceUtil_->restartService(service, level);
+        serviceNames[service] = fbossServiceUtil_->restartService(
+            service, level, /*waitForReady=*/true);
         break;
       case cli::ConfigActionLevel::HITLESS:
         serviceNames[service] =

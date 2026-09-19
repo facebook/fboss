@@ -23,6 +23,7 @@
 
 using ::testing::_; // NOLINT(bugprone-reserved-identifier)
 using ::testing::InSequence;
+using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::Throw;
 
@@ -200,6 +201,72 @@ TEST(FbossServiceUtilTest, RestartService_ServiceFailsToStart) {
 }
 
 // ============================================================
+// Test: restartService() waits for the agent to report itself configured, not
+// just for systemd to report the unit active. The units are Type=simple, so
+// systemd reports active as soon as the binary is exec'd.
+TEST(FbossServiceUtilTest, RestartService_WaitsForAgentReady) {
+  auto mockSystemd = std::make_unique<NiceMock<MockSystemdInterface>>();
+
+  // Not ready for the first two polls, ready on the third.
+  int probeCalls = 0;
+  auto probe = [&probeCalls] { return ++probeCalls >= 3; };
+
+  FbossServiceUtil util(
+      std::vector<int>{0},
+      /*multiSwitch=*/true,
+      std::move(mockSystemd),
+      probe);
+
+  auto services = util.restartService(
+      cli::ServiceType::AGENT,
+      cli::ConfigActionLevel::SERVICE_RESTART,
+      /*waitForReady=*/true);
+
+  EXPECT_EQ(probeCalls, 3);
+  EXPECT_EQ(services.size(), 2);
+}
+
+// Test: without the waitForReady flag the readiness wait is skipped entirely,
+// so callers that have no agent to poll keep the old systemd-only behaviour.
+TEST(FbossServiceUtilTest, RestartService_NoWaitFlag_SkipsAgentReadyWait) {
+  auto mockSystemd = std::make_unique<NiceMock<MockSystemdInterface>>();
+
+  int probeCalls = 0;
+  auto probe = [&probeCalls] {
+    ++probeCalls;
+    return true;
+  };
+
+  FbossServiceUtil util(
+      std::vector<int>{0},
+      /*multiSwitch=*/true,
+      std::move(mockSystemd),
+      probe);
+
+  util.restartService(
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
+
+  EXPECT_EQ(probeCalls, 0);
+}
+
+// Test: an agent that never reports itself configured fails the wait rather
+// than reporting success.
+TEST(FbossServiceUtilTest, WaitForAgentReady_ThrowsOnTimeout) {
+  auto mockSystemd = std::make_unique<NiceMock<MockSystemdInterface>>();
+
+  auto probe = [] { return false; };
+
+  FbossServiceUtil util(
+      std::vector<int>{0},
+      /*multiSwitch=*/true,
+      std::move(mockSystemd),
+      probe);
+
+  EXPECT_THROW(
+      util.waitForAgentReady(/*maxWaitSeconds=*/1, /*pollIntervalMs=*/10),
+      std::runtime_error);
+}
+
 // ConfigSession integration tests using MockFbossServiceUtil
 // These verify that ConfigSession::applyServiceActions() correctly
 // delegates to fbossServiceUtil_ without touching real systemd or thrift.
@@ -219,7 +286,9 @@ TEST(
   EXPECT_CALL(
       *mockPtr,
       restartService(
-          cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART))
+          cli::ServiceType::AGENT,
+          cli::ConfigActionLevel::SERVICE_RESTART,
+          ::testing::_))
       .WillOnce(::testing::Return(std::vector<std::string>{"wedge_agent"}));
 
   TestableConfigSession session(
@@ -248,7 +317,8 @@ TEST(
       *mockPtr,
       restartService(
           cli::ServiceType::AGENT,
-          cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART))
+          cli::ConfigActionLevel::DISRUPTIVE_SERVICE_RESTART,
+          ::testing::_))
       .WillOnce(
           ::testing::Return(
               std::vector<std::string>{"fboss_hw_agent@0", "fboss_sw_agent"}));
