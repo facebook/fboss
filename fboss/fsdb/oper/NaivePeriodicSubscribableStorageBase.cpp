@@ -106,6 +106,19 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
   }
 }
 
+std::optional<uint32_t>
+NaivePeriodicSubscribableStorageBase::resolveServeIntervalMs(
+    const std::optional<SubscriptionStorageParams>& subscriptionParams) const {
+  if (!subscriptionParams ||
+      !subscriptionParams->serveIntervalMs_.has_value()) {
+    return std::nullopt;
+  }
+  return normalizeServeIntervalMs(
+      *subscriptionParams->serveIntervalMs_,
+      static_cast<uint32_t>(params_.serveTickInterval_.count()),
+      static_cast<uint32_t>(params_.subscriptionServeInterval_.count()));
+}
+
 FsdbOperTreeMetadataTracker NaivePeriodicSubscribableStorageBase::getMetadata()
     const {
   return metadataTracker_.withRLock([&](auto& tracker) {
@@ -134,7 +147,8 @@ void NaivePeriodicSubscribableStorageBase::start_impl() {
       FLAGS_storage_thread_heartbeat_ms,
       heartbeatStatsFunc);
 
-  backgroundScope_.add(co_withExecutor(&evb_, serveSubscriptions()));
+  // One loop drives every bucket; it runs on the main serve evb.
+  backgroundScope_.add(co_withExecutor(&evb_, serveSubscriptionsTick()));
 
   *runningLocked = true;
 }
@@ -284,7 +298,8 @@ void exportSubscriberStats(
 void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
     std::chrono::steady_clock::time_point serveStartTime,
     SubscriptionMetadataServer& metadata,
-    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates) {
+    std::map<std::string, uint64_t>& lastServedPublisherRootUpdates,
+    std::chrono::milliseconds loopInterval) {
   auto currentTimestamp =
       std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::system_clock::now().time_since_epoch())
@@ -310,9 +325,7 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
         serveSubMs_, elapsed.count());
   }
   // Surface slow serve cycles (>2x interval) for OSS vendors without fb303/ODS.
-  auto intervalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        params_.subscriptionServeInterval_)
-                        .count();
+  auto intervalMs = loopInterval.count();
   if (intervalMs > 0 && elapsed.count() > 2 * intervalMs) {
     XLOG_EVERY_MS(WARN, 5000)
         << "FSDB[" << metricPrefixOwned_ << "] slow serve: " << elapsed.count()
@@ -458,6 +471,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       subscriptionParams->heartbeatInterval_.has_value()) {
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = PathSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -467,6 +481,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.pathSubscriptionServeQueueSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   subMgr().registerSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -484,6 +499,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       subscriptionParams->heartbeatInterval_.has_value()) {
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = DeltaSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -495,6 +511,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       params_.defaultSubscriptionServeQueueSize_,
       params_.deltaSubscriptionQueueMemoryLimit_,
       params_.deltaSubscriptionQueueFullMinSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerSubscription(std::move(subscription));
   return SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>{
@@ -514,6 +531,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto publisherRoot = getPublisherRoot(paths);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = ExtendedPathSubscription::create(
       std::move(subscriber),
       std::move(paths),
@@ -522,6 +540,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
       heartbeatThread_ ? heartbeatThread_->getEventBase() : nullptr,
       heartbeatInterval,
       params_.pathSubscriptionServeQueueSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   subMgr().registerExtendedSubscription(std::move(subscription));
   return std::move(gen);
 }
@@ -540,6 +559,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto publisherRoot = getPublisherRoot(paths);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = ExtendedDeltaSubscription::create(
       std::move(subscriber),
       std::move(paths),
@@ -550,6 +570,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
       params_.defaultSubscriptionServeQueueSize_,
       params_.deltaSubscriptionQueueMemoryLimit_,
       params_.deltaSubscriptionQueueFullMinSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
@@ -572,6 +593,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(rawPaths);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
       std::move(subscriber),
       std::move(rawPaths),
@@ -582,6 +604,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       params_.defaultSubscriptionServeQueueSize_,
       params_.deltaSubscriptionQueueMemoryLimit_,
       params_.deltaSubscriptionQueueFullMinSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<
@@ -604,6 +627,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(paths);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
       std::move(subscriber),
       std::move(paths),
@@ -614,6 +638,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
       params_.defaultSubscriptionServeQueueSize_,
       params_.deltaSubscriptionQueueMemoryLimit_,
       params_.deltaSubscriptionQueueFullMinSize_);
+  subscription->setServeIntervalMs(serveIntervalMs);
   auto sharedStreamInfo = subscription->getSharedStreamInfo();
   subMgr().registerExtendedSubscription(std::move(subscription));
   return SubscriptionStreamReader<

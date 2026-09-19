@@ -225,7 +225,9 @@ FullyResolvedExtendedPathSubscription::FullyResolvedExtendedPathSubscription(
           subscription.publisherTreeRoot(),
           subscription.heartbeatEvb(),
           subscription.heartbeatInterval()),
-      subscription_(subscription) {}
+      subscription_(subscription) {
+  setServeIntervalMs(subscription.serveIntervalMs());
+}
 
 bool FullyResolvedExtendedPathSubscription::isActive() const {
   return subscription_.isActive();
@@ -293,7 +295,9 @@ FullyResolvedExtendedDeltaSubscription::FullyResolvedExtendedDeltaSubscription(
           subscription.publisherTreeRoot(),
           subscription.heartbeatEvb(),
           subscription.heartbeatInterval()),
-      subscription_(subscription) {}
+      subscription_(subscription) {
+  setServeIntervalMs(subscription.serveIntervalMs());
+}
 
 std::optional<FsdbErrorCode> FullyResolvedExtendedDeltaSubscription::flush(
     const SubscriptionMetadataServer& metadataServer) {
@@ -511,7 +515,9 @@ PatchSubscription::PatchSubscription(
           subscription.heartbeatEvb(),
           subscription.heartbeatInterval()),
       key_(key),
-      subscription_(subscription) {}
+      subscription_(subscription) {
+  setServeIntervalMs(subscription.serveIntervalMs());
+}
 
 void PatchSubscription::allPublishersGone(
     FsdbErrorCode disconnectReason,

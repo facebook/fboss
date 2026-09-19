@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <fboss/fsdb/oper/CowSubscriptionManager.h>
 #include <fboss/fsdb/oper/instantiations/FsdbCowRoot.h>
 #include "fboss/fsdb/if/FsdbModel.h"
@@ -37,7 +39,7 @@ CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>::pruneDeletedPaths(
     const std::shared_ptr<thrift_cow::FsdbCowStateRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>::publishAndAddPaths(
-    SubscriptionStore&,
+    const std::vector<SubscriptionStore*>&,
     std::shared_ptr<thrift_cow::FsdbCowStateRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStateRoot>::doInitialSync(
@@ -58,7 +60,7 @@ CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::pruneDeletedPaths(
     const std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::publishAndAddPaths(
-    SubscriptionStore&,
+    const std::vector<SubscriptionStore*>&,
     std::shared_ptr<thrift_cow::FsdbHybridCowStateRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbHybridCowStateRoot>::doInitialSync(
@@ -79,7 +81,7 @@ CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>::pruneDeletedPaths(
     const std::shared_ptr<thrift_cow::FsdbCowStatsRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>::publishAndAddPaths(
-    SubscriptionStore&,
+    const std::vector<SubscriptionStore*>&,
     std::shared_ptr<thrift_cow::FsdbCowStatsRoot>&);
 extern template void
 CowSubscriptionManager<thrift_cow::FsdbCowStatsRoot>::doInitialSync(

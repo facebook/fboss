@@ -12,6 +12,8 @@
 #include <folly/Random.h>
 #include <folly/Utility.h>
 #include <folly/coro/AsyncGenerator.h>
+#include <thread>
+
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Collect.h>
 #include <folly/coro/GtestHelpers.h>
@@ -425,7 +427,7 @@ TYPED_TEST(SubscribableStorageTests, SetGetOptionalHybridStructRoundTrip) {
   // Must publish after set: NaivePeriodicSubscribableStorage's get() reads
   // from lastPublishedState_ by default (serveGetRequestsWithLastPublishedState
   // defaults to true), not from currentState_.
-  storage.publishCurrentState();
+  storage.refreshPublishedStateForReads();
 
   // Verify via direct path that updated struct is returned
   auto directResult = storage.get(this->root.optionalAnnotatedStruct());
@@ -1615,7 +1617,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
 
   // verify set API works as expected
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
-  storage.publishCurrentState();
+  storage.refreshPublishedStateForReads();
 
   auto struct99 = storage.get(this->root.structMap()[99]);
   EXPECT_EQ(*struct99->min(), 999);
@@ -1646,7 +1648,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
     // Therefore the end result is basically patching an empty but valid
     // root struct, and wipes out any existing field with default value.
     EXPECT_EQ(storage.patch(delta), std::nullopt);
-    storage.publishCurrentState();
+    storage.refreshPublishedStateForReads();
 
     // confirm the new value didn't get in
     // instead it wiped entire content previously set
@@ -1682,7 +1684,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
     // oper delta has the type of root->structMap->struct{min, max}
     // the patch is applied on root->structMap[99], which has the same type
     EXPECT_EQ(storage.patch(delta), std::nullopt);
-    storage.publishCurrentState();
+    storage.refreshPublishedStateForReads();
 
     // confirm the new value has been stamped to root->structMap[99]
     auto updatedMapEntry = storage.get(this->root.structMap()[99]);
@@ -1702,7 +1704,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
 
   // verify set API works as expected
   EXPECT_EQ(storage.set(this->root.structMap()[99], newStruct), std::nullopt);
-  storage.publishCurrentState();
+  storage.refreshPublishedStateForReads();
 
   auto struct99 = storage.get(this->root.structMap()[99]);
   EXPECT_EQ(*struct99->min(), 999);
@@ -1727,7 +1729,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
     // Therefore the end result is basically patching an empty but valid
     // root struct, and wipes out any existing field with default value.
     EXPECT_EQ(storage.patch(operState), std::nullopt);
-    storage.publishCurrentState();
+    storage.refreshPublishedStateForReads();
 
     // confirm the new value didn't get in
     // instead it wiped entire content previously set
@@ -1758,7 +1760,7 @@ TYPED_TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
     // tagged oper delta has the type of root->structMap->struct{min, max}
     // the patch is applied on root->structMap[99], which has the same type
     EXPECT_EQ(storage.patch(operState), std::nullopt);
-    storage.publishCurrentState();
+    storage.refreshPublishedStateForReads();
 
     // confirm the new value has been stamped to root->structMap[99]
     auto updatedMapEntry = storage.get(this->root.structMap()[99]);
@@ -1848,7 +1850,7 @@ TYPED_TEST(SubscribableStorageTests, ApplyPatch) {
 
   auto ret = storage.patch(std::move(patch));
   EXPECT_EQ(ret.has_value(), false);
-  storage.publishCurrentState();
+  storage.refreshPublishedStateForReads();
 
   memberStruct = storage.get(this->root.member());
   EXPECT_EQ(*memberStruct->min(), 999);
@@ -2408,4 +2410,536 @@ TYPED_TEST(
         msg.get_chunk().patchGroups()->count(2);
     ASSERT_EVENTUALLY_TRUE(hasKey2);
   });
+}
+
+namespace {
+
+// metricPrefix_ is held by const-reference; anchor a long-lived owner.
+const std::string& fsdbPrefix() {
+  static const std::string p = "fsdb";
+  return p;
+}
+
+using StorageParams = NaivePeriodicSubscribableStorageBase::StorageParams;
+
+// tick=20ms, default=100ms => 5 buckets (index 0 = 20ms ... index 4 = 100ms).
+StorageParams bucketParams() {
+  StorageParams p(
+      std::chrono::milliseconds(100),
+      std::chrono::seconds(5),
+      false,
+      fsdbPrefix());
+  p.setServeTickInterval(std::chrono::milliseconds(20));
+  return p;
+}
+
+// tick == default interval => a single bucket, i.e. legacy behavior.
+StorageParams singleBucketParams() {
+  return StorageParams(
+      std::chrono::milliseconds(50),
+      std::chrono::seconds(5),
+      false,
+      fsdbPrefix());
+}
+
+// Bucket baselines are protected implementation detail; a test-only subclass
+// keeps these off the production class.
+class BucketTestStorage : public TestSubscribableStorage {
+ public:
+  using TestSubscribableStorage::TestSubscribableStorage;
+
+  bool bucketBaselineHeld(size_t bucket) const {
+    return this->bucketPublishedState_[bucket].rlock()->has_value();
+  }
+
+  // One serve cycle for a single bucket, so a test controls exactly which
+  // buckets are served instead of waiting on the periodic loop.
+  void serveBucketOnce(size_t bucket) {
+    auto [oldRoot, newRoot, metadataServer] = this->publishCurrentState(bucket);
+    this->subscriptions_.serveSubscriptions(
+        oldRoot, newRoot, metadataServer, bucket);
+  }
+};
+
+} // namespace
+
+TEST(SubscribableStorageServeInterval, RejectsTooManyBuckets) {
+  StorageParams p(
+      std::chrono::milliseconds(10000),
+      std::chrono::seconds(5),
+      false,
+      fsdbPrefix());
+  EXPECT_DEATH(
+      p.setServeTickInterval(std::chrono::milliseconds(100)), "too many");
+}
+
+TEST(SubscribableStorageServeInterval, RoundsUpAndClampsToBuckets) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  EXPECT_EQ(storage.numServeBuckets(), 5u);
+
+  // Rounded up to a whole tick.
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(25))),
+      40u);
+  // Exact multiple is preserved.
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(40))),
+      40u);
+  // Below the tick clamps up to the floor.
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(1))),
+      20u);
+  // Above the default clamps down to it.
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(SubscriptionStorageParams(
+          std::nullopt, static_cast<uint32_t>(100000))),
+      100u);
+}
+
+TEST(SubscribableStorageServeInterval, AbsentIntervalMeansDefault) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  EXPECT_EQ(storage.resolveServeIntervalMs(std::nullopt), std::nullopt);
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(std::nullopt, std::nullopt)),
+      std::nullopt);
+}
+
+// An interval is only honored for stats path subscriptions, but requesting one
+// elsewhere must never fail the subscribe -- it is ignored.
+TEST(SubscribableStorageServeInterval, IgnoredRatherThanRejected) {
+  auto storage =
+      BucketTestStorage(initializeTestStruct(), singleBucketParams());
+  storage.setConvertToIDPaths(true);
+  thriftpath::RootThriftPath<TestStruct> root;
+  SubscriptionStorageParams fast(std::nullopt, static_cast<uint32_t>(20));
+
+  EXPECT_NO_THROW({
+    (void)storage.subscribe_patch(
+        SubscriptionIdentifier(SubscriberId("patch")), root, fast);
+  });
+  EXPECT_NO_THROW({
+    (void)storage.subscribe_delta(
+        SubscriptionIdentifier(SubscriberId("delta")),
+        root,
+        OperProtocol::COMPACT,
+        fast);
+  });
+  EXPECT_NO_THROW({
+    auto subId = SubscriptionIdentifier(SubscriberId("encoded"));
+    (void)storage.subscribe_encoded(
+        std::move(subId), root, OperProtocol::COMPACT, fast);
+  });
+}
+
+TEST(SubscribableStorageServeInterval, FastBucketServesUpdates) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(20));
+  auto streamReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+  auto generator = std::move(streamReader.generator_);
+
+  auto initial = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_EQ(initial.val.getType(), SubscriberMessage::Type::chunk);
+
+  EXPECT_EQ(storage.set(root.member().min(), 1), std::nullopt);
+  auto first = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_EQ(first.val.getType(), SubscriberMessage::Type::chunk);
+}
+
+TEST(SubscribableStorageServeInterval, DefaultSubscriberStillServed) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  auto streamReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("default")), root);
+  auto generator = std::move(streamReader.generator_);
+
+  auto initial = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_EQ(initial.val.getType(), SubscriberMessage::Type::chunk);
+
+  EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
+  auto element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  EXPECT_EQ(element.val.getType(), SubscriberMessage::Type::chunk);
+}
+
+// The shipped stats configuration: one subscriber at the tick cadence and one
+// at the default, coexisting on the same storage.
+TEST(SubscribableStorageServeInterval, FastAndDefaultSubscribersCoexist) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(20));
+  auto fastReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+  auto slowReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("slow")), root);
+  auto fastGen = std::move(fastReader.generator_);
+  auto slowGen = std::move(slowReader.generator_);
+
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(fastGen), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(slowGen), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+
+  // They landed in different buckets, and only those two are occupied.
+  const size_t defaultBucket = storage.numServeBuckets() - 1;
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_TRUE(storage.bucketBaselineHeld(0));
+    EXPECT_EVENTUALLY_TRUE(storage.bucketBaselineHeld(defaultBucket));
+  });
+  for (size_t bucket = 1; bucket < defaultBucket; ++bucket) {
+    EXPECT_FALSE(storage.bucketBaselineHeld(bucket));
+  }
+
+  EXPECT_EQ(storage.set(root.member().min(), 11), std::nullopt);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(fastGen), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(slowGen), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+}
+
+TEST(SubscribableStorageServeInterval, MultipleSubscribersShareABucket) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(20));
+  auto readerA = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fastA")), root, fastParams);
+  auto readerB = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fastB")), root, fastParams);
+  auto genA = std::move(readerA.generator_);
+  auto genB = std::move(readerB.generator_);
+
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(genA), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(genB), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+
+  // Same interval means one bucket, so a single publish feeds both.
+  WITH_RETRIES({ EXPECT_EVENTUALLY_TRUE(storage.bucketBaselineHeld(0)); });
+  for (size_t bucket = 1; bucket < storage.numServeBuckets(); ++bucket) {
+    EXPECT_FALSE(storage.bucketBaselineHeld(bucket));
+  }
+
+  EXPECT_EQ(storage.set(root.member().min(), 22), std::nullopt);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(genA), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+  EXPECT_EQ(
+      folly::coro::blockingWait(
+          folly::coro::timeout(consumeOne(genB), std::chrono::seconds(5)))
+          .val.getType(),
+      SubscriberMessage::Type::chunk);
+}
+
+// Every bucket occupied, two subscribers each: exercises the (bucket + 1) tick
+// divisor for every bucket, the tick where all of them coincide, and the
+// peak-memory shape of one retained baseline per bucket.
+TEST(SubscribableStorageServeInterval, AllBucketsOccupiedWithTwoSubscribers) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  const size_t numBuckets = storage.numServeBuckets();
+  ASSERT_EQ(numBuckets, 5u);
+
+  using Reader = SubscriptionStreamReader<
+      SubscriptionServeQueueElement<SubscriberMessage>>;
+  std::vector<Reader> readers;
+  readers.reserve(numBuckets * 2);
+  for (size_t bucket = 0; bucket < numBuckets; ++bucket) {
+    // bucketParams() ticks every 20ms, so bucket b wants (b + 1) * 20ms.
+    SubscriptionStorageParams params(
+        std::nullopt, static_cast<uint32_t>((bucket + 1) * 20));
+    for (int replica = 0; replica < 2; ++replica) {
+      readers.emplace_back(storage.subscribe_patch(
+          SubscriptionIdentifier(
+              SubscriberId(fmt::format("b{}s{}", bucket, replica))),
+          root,
+          params));
+    }
+  }
+
+  for (auto& reader : readers) {
+    EXPECT_EQ(
+        folly::coro::blockingWait(
+            folly::coro::timeout(consumeOne(reader), std::chrono::seconds(10)))
+            .val.getType(),
+        SubscriberMessage::Type::chunk);
+  }
+
+  for (size_t bucket = 0; bucket < numBuckets; ++bucket) {
+    WITH_RETRIES(
+        { EXPECT_EVENTUALLY_TRUE(storage.bucketBaselineHeld(bucket)); });
+  }
+
+  EXPECT_EQ(storage.set(root.member().min(), 33), std::nullopt);
+  for (auto& reader : readers) {
+    EXPECT_EQ(
+        folly::coro::blockingWait(
+            folly::coro::timeout(consumeOne(reader), std::chrono::seconds(10)))
+            .val.getType(),
+        SubscriberMessage::Type::chunk);
+  }
+}
+
+// The guarantee the whole feature rests on: serving a fast bucket must not
+// deliver to a slow bucket's subscriber. Asserts on bytes enqueued rather than
+// draining the streams, so there is no timing dependence either way.
+TEST(SubscribableStorageServeInterval, SlowBucketNotServedOnFastTick) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  const size_t fastBucket = 0;
+  const size_t slowBucket = storage.numServeBuckets() - 1;
+
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(20));
+  auto fastReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+  auto slowReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("slow")), root);
+
+  // Each bucket's first serve registers its pending subscription and enqueues
+  // initial sync.
+  storage.serveBucketOnce(fastBucket);
+  storage.serveBucketOnce(slowBucket);
+  const auto fastAfterSync = fastReader.streamInfo_->enqueuedDataSize.load();
+  const auto slowAfterSync = slowReader.streamInfo_->enqueuedDataSize.load();
+  EXPECT_GT(fastAfterSync, 0u);
+  EXPECT_GT(slowAfterSync, 0u);
+
+  EXPECT_EQ(storage.set(root.member().min(), 77), std::nullopt);
+  storage.serveBucketOnce(fastBucket);
+
+  EXPECT_GT(fastReader.streamInfo_->enqueuedDataSize.load(), fastAfterSync);
+  // The slow bucket was not served, so nothing may have reached its subscriber.
+  EXPECT_EQ(slowReader.streamInfo_->enqueuedDataSize.load(), slowAfterSync);
+
+  // ...and it does get the update once its own bucket is served.
+  storage.serveBucketOnce(slowBucket);
+  EXPECT_GT(slowReader.streamInfo_->enqueuedDataSize.load(), slowAfterSync);
+}
+
+TEST(SubscribableStorageServeInterval, GetSlotRefreshesWithNoSubscribers) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
+  WITH_RETRIES({ EXPECT_EVENTUALLY_TRUE(storage.publishedStateCurrent()); });
+  EXPECT_FALSE(storage.get(root.tx()).value());
+}
+
+// Regression: publish() is a global one-shot, so a single UNPUBLISHED walk used
+// to register newly-added paths with only ONE store, leaving every other
+// bucket's extended subscriptions unable to resolve keys that appeared after
+// they subscribed. One walk must feed all buckets.
+TEST(SubscribableStorageServeInterval, AddedPathsReachEveryBucket) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  const auto& extPath =
+      ext_path_builder::raw("mapOfStringToI32").regex("test.*").get();
+
+  // A fast-bucket subscriber publishes first on most ticks; a default-bucket
+  // extended subscriber must still see keys that appear afterwards.
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(20));
+  auto fastReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+  auto fastGen = std::move(fastReader.generator_);
+
+  auto extReader = storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId("slow_ext")), {{1, extPath}});
+  auto extGen = std::move(extReader.generator_);
+
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(fastGen), std::chrono::seconds(5)));
+
+  // A key that did not exist at subscribe time must still be delivered. The
+  // wildcard has nothing to serve until it resolves, so this is also its
+  // initial sync.
+  EXPECT_EQ(storage.set(root.mapOfStringToI32()["test1"], 42), std::nullopt);
+  WITH_RETRIES({
+    auto element = folly::coro::blockingWait(
+        folly::coro::timeout(consumeOne(extGen), std::chrono::seconds(5)));
+    auto msg = std::move(element.val);
+    const bool hasKey = msg.getType() == SubscriberMessage::Type::chunk &&
+        msg.get_chunk().patchGroups()->count(1);
+    ASSERT_EVENTUALLY_TRUE(hasKey);
+  });
+}
+
+// The freeze walk mutates published_ on shared COW nodes, so it must stay
+// mutually exclusive with concurrent publishes and rlock GET readers. Publish
+// rapidly across several buckets and assert we neither trip the
+// !isPublished() CHECK nor lose the final value.
+TEST(SubscribableStorageServeInterval, ConcurrentPublishDoesNotRace) {
+  StorageParams params(
+      std::chrono::milliseconds(20),
+      std::chrono::seconds(5),
+      false,
+      fsdbPrefix());
+  params.setServeTickInterval(std::chrono::milliseconds(10));
+  auto storage = BucketTestStorage(initializeTestStruct(), params);
+  storage.setConvertToIDPaths(true);
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  SubscriptionStorageParams fastParams(std::nullopt, static_cast<uint32_t>(10));
+  auto fastReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+  auto defaultReader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("default")), root);
+  auto fastGen = std::move(fastReader.generator_);
+  auto defaultGen = std::move(defaultReader.generator_);
+  storage.start();
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(fastGen), std::chrono::seconds(5)));
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(defaultGen), std::chrono::seconds(5)));
+
+  for (int i = 1; i <= 200; ++i) {
+    EXPECT_EQ(storage.set(root.member().min(), i), std::nullopt);
+    folly::coro::blockingWait(folly::coro::sleep(std::chrono::milliseconds(2)));
+  }
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_EQ(storage.get(root.member().min()).value(), 200); });
+}
+
+TEST(SubscribableStorageServeInterval, IdleBucketsDoNotPinStaleTrees) {
+  auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  // Only the default bucket is occupied; every faster bucket stays idle.
+  auto reader = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("default")), root);
+  auto generator = std::move(reader.generator_);
+  folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+
+  EXPECT_EQ(storage.set(root.member().min(), 42), std::nullopt);
+
+  const size_t defaultBucket = storage.numServeBuckets() - 1;
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(storage.bucketBaselineHeld(defaultBucket)); });
+  for (size_t bucket = 0; bucket < defaultBucket; ++bucket) {
+    EXPECT_FALSE(storage.bucketBaselineHeld(bucket));
+  }
+}
+
+// A client that re-subscribes in a loop must not accelerate the bucket it
+// lands in. Before this was fixed, a pending registration force-served the
+// whole bucket, so on a live switch one re-subscribing client pulled every
+// other subscriber in the default bucket off its cadence.
+TEST(SubscribableStorageServeInterval, PendingDoesNotAccelerateBucket) {
+  // Slower than bucketParams() so the window between cadence serves is wide
+  // enough to observe without racing it: tick 200ms, default bucket 1s.
+  StorageParams params(
+      std::chrono::milliseconds(1000),
+      std::chrono::seconds(5),
+      false,
+      fsdbPrefix());
+  params.setServeTickInterval(std::chrono::milliseconds(200));
+  auto storage = BucketTestStorage(initializeTestStruct(), params);
+  storage.setConvertToIDPaths(true);
+  storage.start();
+
+  thriftpath::RootThriftPath<TestStruct> root;
+  auto established = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("established")), root);
+
+  // Settle: wait for initial sync, then for the serve after it, so the next
+  // cadence tick is a full bucket interval away and the probe window below
+  // cannot collide with it.
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(established.streamInfo_->enqueuedDataSize.load(), 0u);
+  });
+  EXPECT_EQ(storage.set(root.member().min(), 1), std::nullopt);
+  auto afterSync = established.streamInfo_->enqueuedDataSize.load();
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(
+        established.streamInfo_->enqueuedDataSize.load(), afterSync);
+  });
+  const auto baseline = established.streamInfo_->enqueuedDataSize.load();
+
+  // Register a newcomer into the same bucket and give it several ticks. There
+  // is pending work and there is data to serve, so the only thing keeping the
+  // established subscriber quiet is that its bucket is not due.
+  EXPECT_EQ(storage.set(root.member().min(), 2), std::nullopt);
+  auto newcomer = storage.subscribe_patch(
+      SubscriptionIdentifier(SubscriberId("newcomer")), root);
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::milliseconds(400));
+
+  EXPECT_EQ(established.streamInfo_->enqueuedDataSize.load(), baseline);
+
+  // ...and both are served once the bucket's own tick comes round.
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(
+        established.streamInfo_->enqueuedDataSize.load(), baseline);
+    EXPECT_EVENTUALLY_GT(newcomer.streamInfo_->enqueuedDataSize.load(), 0u);
+  });
+}
+
+TEST(SubscribableStorageServeInterval, StopDoesNotCrash) {
+  {
+    auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
+    storage.setConvertToIDPaths(true);
+    storage.start();
+
+    thriftpath::RootThriftPath<TestStruct> root;
+    SubscriptionStorageParams fastParams(
+        std::nullopt, static_cast<uint32_t>(20));
+    auto reader = storage.subscribe_patch(
+        SubscriptionIdentifier(SubscriberId("fast")), root, fastParams);
+    auto generator = std::move(reader.generator_);
+    folly::coro::blockingWait(
+        folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+    EXPECT_EQ(storage.set(root.member().min(), 1), std::nullopt);
+  }
+  SUCCEED();
 }

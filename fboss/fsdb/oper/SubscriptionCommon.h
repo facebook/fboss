@@ -37,6 +37,10 @@ constexpr size_t serveBucketCount(uint32_t tickMs, uint32_t maxMs) {
   return tickMs == 0 ? 1 : maxMs / tickMs;
 }
 
+// Bounded to the configuration that has actually been validated; each occupied
+// bucket also retains its own tree baseline.
+inline constexpr size_t kMaxServeBuckets{5};
+
 // SubscriptionIdentifier: helper to facilitate referencing a
 // subscription by a unique identifier or alternate key.
 class SubscriptionIdentifier {

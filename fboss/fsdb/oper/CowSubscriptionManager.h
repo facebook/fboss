@@ -410,7 +410,7 @@ class CowSubscriptionManager
 
  public:
   void publishAndAddPaths(
-      SubscriptionStore& store,
+      const std::vector<SubscriptionStore*>& stores,
       std::shared_ptr<Root>& root) {
     // this helper recurses through all unpublished paths and ensures
     // that we tell SubscriptionPathStore of any new paths.
@@ -424,7 +424,7 @@ class CowSubscriptionManager
       }
     };
 
-    CowPublishAndAddTraverseHelper traverser(&store.lookup(), &store);
+    CowPublishAndAddTraverseHelper traverser(stores);
     thrift_cow::RootRecurseVisitor::visit(
         traverser,
         root,

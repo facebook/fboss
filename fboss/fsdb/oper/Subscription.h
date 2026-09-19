@@ -143,6 +143,10 @@ class BaseSubscription {
     return serveIntervalMs_;
   }
 
+  void setServeIntervalMs(std::optional<uint32_t> serveIntervalMs) {
+    serveIntervalMs_ = serveIntervalMs;
+  }
+
   uint32_t getQueueWatermark() const {
     return *queueWatermark_.rlock();
   }
@@ -300,7 +304,7 @@ class BaseSubscription {
   folly::EventBase* heartbeatEvb_;
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
-  const std::optional<uint32_t> serveIntervalMs_;
+  std::optional<uint32_t> serveIntervalMs_;
   folly::Synchronized<uint32_t> queueWatermark_{0};
   folly::Synchronized<uint32_t> chunksCoalesced_{0};
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
