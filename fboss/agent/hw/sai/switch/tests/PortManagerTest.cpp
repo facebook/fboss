@@ -898,7 +898,10 @@ TEST_F(PortManagerTest, programLlrOnAddPort) {
 }
 
 TEST_F(PortManagerTest, clearLlrOnChangePort) {
+  // LLR config only changes on an admin disabled port, so these ports are
+  // disabled throughout. StateUpdateValidator enforces that upstream.
   auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
   swPort->setLlrConfigName("llrProfile");
   swPort->setLlrConfig(makeLlrConfigNode());
   saiManagerTable->portManager().addPort(swPort);
@@ -908,6 +911,7 @@ TEST_F(PortManagerTest, clearLlrOnChangePort) {
 
   // A new port state with no LLR config clears the profile and disables modes.
   auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(swPort, newPort);
 
   auto handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
@@ -926,6 +930,7 @@ TEST_F(PortManagerTest, clearLlrOnChangePort) {
 
 TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
   auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
   swPort->setLlrConfigName("llrProfile");
   swPort->setLlrConfig(makeLlrConfigNode());
   saiManagerTable->portManager().addPort(swPort);
@@ -939,6 +944,7 @@ TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
   // Change to a different profile: the content key changes, so a new SAI
   // profile is created and bound and the old one is torn down.
   auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::DISABLED);
   newPort->setLlrConfigName("llrProfileAlt");
   newPort->setLlrConfig(makeAltLlrConfigNode());
   saiManagerTable->portManager().changePort(swPort, newPort);
@@ -979,12 +985,14 @@ TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
 
 TEST_F(PortManagerTest, reenableLlrOnChangePort) {
   auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
   swPort->setLlrConfigName("llrProfile");
   swPort->setLlrConfig(makeLlrConfigNode());
   saiManagerTable->portManager().addPort(swPort);
 
   // Disable: change to a port with no LLR config.
   auto clearedPort = makePort(p0);
+  clearedPort->setAdminState(cfg::PortState::DISABLED);
   saiManagerTable->portManager().changePort(swPort, clearedPort);
   ASSERT_EQ(
       saiManagerTable->portManager()
@@ -994,6 +1002,7 @@ TEST_F(PortManagerTest, reenableLlrOnChangePort) {
 
   // Re-enable: change back to a port carrying LLR config.
   auto reenabledPort = makePort(p0);
+  reenabledPort->setAdminState(cfg::PortState::DISABLED);
   reenabledPort->setLlrConfigName("llrProfile");
   reenabledPort->setLlrConfig(makeLlrConfigNode());
   saiManagerTable->portManager().changePort(clearedPort, reenabledPort);

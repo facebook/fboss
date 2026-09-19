@@ -30,6 +30,86 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 namespace {
+// A profile cannot be attached to an administratively enabled port
+// (CS00012478409). Where LLR is about to be programmed on a port that config
+// wants enabled, force admin state down in the attributes the port object is
+// written from, and return true so the caller re-enables it once the profile is
+// bound.
+//
+// The port is not enabled in between, so the ordering costs no traffic and the
+// link up that follows is what arms LLR. A port config wants disabled needs no
+// hold: the attributes already carry that admin state, so the port object write
+// puts it down ahead of programLlr() on its own.
+//
+// Either way programLlr() runs on a port hardware considers disabled, which is
+// the invariant it needs. StateUpdateValidator keeps it by rejecting an LLR
+// config change on a port that is enabled on both sides of the update, leaving
+// only the two cases above.
+bool holdAdminEnableForLlr(
+    bool programmingLlr,
+    const std::shared_ptr<Port>& swPort,
+    SaiPortTraits::CreateAttributes& attributes) {
+  if (!programmingLlr || !swPort->isEnabled()) {
+    return false;
+  }
+  std::get<std::optional<SaiPortTraits::Attributes::AdminState>>(attributes) =
+      SaiPortTraits::Attributes::AdminState{false};
+  return true;
+}
+
+// Whether programLlr() would write anything at all. Every decision taken on
+// its behalf has to agree with it: holding a port down for a write that never
+// happens is an admin state down/up cycle, and so a link flap, for nothing.
+bool llrSupported([[maybe_unused]] const SaiPlatform* platform) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  return platform->getAsic()->isSupported(
+      HwAsic::Feature::LINK_LAYER_RETRANSMISSION);
+#else
+  return false;
+#endif
+}
+
+// The LLR profile a port object is bound to. SAI_NULL_OBJECT_ID is what a port
+// unbound by an earlier programLlr() carries, and means the same to callers as
+// never having been programmed at all.
+std::optional<sai_object_id_t> boundLlrProfile(
+    [[maybe_unused]] const std::shared_ptr<SaiPort>& port) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  if (!port) {
+    return std::nullopt;
+  }
+  const auto& attr =
+      std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
+          port->attributes());
+  if (!attr.has_value() || attr->value() == SAI_NULL_OBJECT_ID) {
+    return std::nullopt;
+  }
+  return attr->value();
+#else
+  return std::nullopt;
+#endif
+}
+
+// The same, for a caller that also holds the port's handle. Two sources are
+// needed because neither covers both callers: addPortImpl has the attribute,
+// which attributesFromSaiStore carried over from the object reclaimed on warm
+// boot, but a handle it has only just constructed; changePortImpl has the
+// handle, but writes the port object from the SwitchState alone, which clears
+// the attribute before programLlr() gets to read it. The attribute wins where
+// both are set, being what was last written to hardware.
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+std::optional<sai_object_id_t> boundLlrProfile(
+    const SaiPortHandle* portHandle) {
+  if (auto fromPort = boundLlrProfile(portHandle->port)) {
+    return fromPort;
+  }
+  if (portHandle->llrProfile) {
+    return portHandle->llrProfile->adapterKey();
+  }
+  return std::nullopt;
+}
+#endif
+
 std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
     const SaiPlatform* platform,
     PortID portId) {
@@ -295,10 +375,22 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto handle = std::make_unique<SaiPortHandle>();
 
   auto& portStore = saiStore_->get<SaiPortTraits>();
+
+  const bool deferAdminEnable = holdAdminEnableForLlr(
+      llrSupported(platform_) &&
+          llrProfileBindingChanged(
+              boundLlrProfile(portStore.get(portKey)), swPort),
+      swPort,
+      attributes);
+
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
   programLlr(swPort, handle.get());
+  if (deferAdminEnable) {
+    // Through the store, so its cached admin state tracks hardware.
+    saiPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
+  }
 
   if (swPort->isEnabled()) {
     HwBasePortFb303Stats::QueueId2Name queueId2Name{};
@@ -393,6 +485,13 @@ void SaiPortManager::changePortImpl(
     changePortByRecreate(oldPort, newPort);
     return;
   }
+
+  // Decided before the port object is written, since that write is what would
+  // otherwise enable the port ahead of programLlr().
+  const bool programLlrForPort =
+      llrSupported(platform_) && llrConfigChanged(oldPort, newPort);
+  const bool deferAdminEnable =
+      holdAdminEnableForLlr(programLlrForPort, newPort, newAttributes);
 
   SaiPortTraits::AdapterHostKey portKey{
       getPortAdapterHostKeyFromAttr(newAttributes)};
@@ -494,12 +593,18 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
-  if (oldPort->getLlrConfig() != newPort->getLlrConfig() ||
-      oldPort->getLlrConfigName() != newPort->getLlrConfigName()) {
+  if (programLlrForPort) {
     programLlr(newPort, existingPort);
+    if (deferAdminEnable) {
+      // Through the store, so its cached admin state tracks hardware.
+      saiPort->setOptionalAttribute(
+          SaiPortTraits::Attributes::AdminState{true});
+    }
   } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
-    // The LLR TX trigger only takes effect once the link is up.
-    reissueLlrModeRemote(existingPort);
+    // The LLR TX trigger only takes effect once the link is up, which is why
+    // programLlr()'s own mode remote write is lost. This is the transition that
+    // arms it.
+    reissueLlrModeRemote(existingPort, newPort->getID());
   }
   changeClm(oldPort, newPort);
 }
@@ -1281,98 +1386,137 @@ static sai_int32_t cfgLlrFrameActionToSai(cfg::LlrFrameAction action) {
   }
   throw FbossError("Unknown cfg::LlrFrameAction: ", static_cast<int>(action));
 }
+
+static SaiPortLlrProfileTraits::CreateAttributes llrProfileAttributes(
+    const std::shared_ptr<LlrConfig>& cfg) {
+  return SaiPortLlrProfileTraits::CreateAttributes{
+      SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{
+          static_cast<sai_uint32_t>(cfg->getOutstandingFramesMax())},
+      SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{
+          static_cast<sai_uint32_t>(cfg->getOutstandingBytesMax())},
+      SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{
+          static_cast<sai_uint32_t>(cfg->getReplayTimerMax())},
+      SaiPortLlrProfileTraits::Attributes::ReplayCountMax{
+          static_cast<sai_uint8_t>(cfg->getReplayCountMax())},
+      SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{
+          static_cast<sai_uint32_t>(cfg->getPcsLostTimeout())},
+      SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{
+          static_cast<sai_uint32_t>(cfg->getDataAgeTimeout())},
+      SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
+          cfgLlrFrameActionToSai(cfg->getInitFrameAction())},
+      SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
+          cfgLlrFrameActionToSai(cfg->getFlushFrameAction())},
+      SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{
+          cfg->getReInitOnFlush()},
+      SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
+          static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
+}
 #endif
+
+// Whether the LLR profile bound to a port in hardware differs from the one its
+// config resolves to. This is the SwitchState-level llrConfigChanged() asked at
+// the SAI layer, for callers that have no old Port to compare against.
+//
+// It is the only thing that decides whether LLR is written: programLlr() skips
+// its writes when the binding already matches, and addPortImpl() holds the
+// port's admin enable only when it does not, since a profile cannot be attached
+// or detached on an enabled port (CS00012478409).
+//
+// Matching is the warm boot case, where addPortImpl replays against a store
+// holding the object reclaimed from hardware on a port that is up and
+// forwarding. An existing port object is not on its own evidence of a match:
+// the flexport VCO path arrives with one too, pre-created by
+// createPortWithBasicAttributes() administratively enabled and carrying no
+// profile.
+bool SaiPortManager::llrProfileBindingChanged(
+    [[maybe_unused]] std::optional<sai_object_id_t> boundProfile,
+    [[maybe_unused]] const std::shared_ptr<Port>& swPort) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+  // The OID config asks for, unset if it asks for no LLR. Resolving the profile
+  // by content key is what turns the config into an OID to compare against.
+  std::optional<sai_object_id_t> wanted;
+  auto llrConfig = swPort->getLlrConfig();
+  if (swPort->getLlrConfigName().has_value() && llrConfig.has_value()) {
+    SaiPortLlrProfileTraits::AdapterHostKey key =
+        llrProfileAttributes(llrConfig.value());
+    auto profile = saiStore_->get<SaiPortLlrProfileTraits>().get(key);
+    if (!profile) {
+      // Config wants a profile that has never been created, so whatever the
+      // port is bound to, it is not that one.
+      return true;
+    }
+    wanted = profile->adapterKey();
+  }
+  return boundProfile != wanted;
+#else
+  return false;
+#endif
+}
 
 // Program UEC Link Layer Retry (UE Spec 1.0.2 section 5.1) on a port from its
 // resolved LlrConfig. Creates a content-keyed SAI PORT_LLR_PROFILE (shared and
-// warm-boot reclaimed via SaiStore) and binds it to the port. When (re)enabling
-// or reconfiguring, modes are disabled first so the profile is configured while
-// LLR is not actively transmitting (SDK config-before-enable ordering).
+// warm-boot reclaimed via SaiStore) and binds it to the port. Modes are
+// disabled first so the profile is configured while LLR is not transmitting.
+//
+// The port must be administratively disabled on entry: a mode cannot be cleared
+// and a profile cannot be attached or detached on an enabled port
+// (CS00012478409). Both callers hold to that through holdAdminEnableForLlr(),
+// which forces admin state down in the attributes the port object is written
+// from and leaves the caller to enable it once this returns.
 void SaiPortManager::programLlr(
-    std::shared_ptr<Port> swPort,
-    SaiPortHandle* portHandle) {
+    [[maybe_unused]] std::shared_ptr<Port> swPort,
+    [[maybe_unused]] SaiPortHandle* portHandle) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
-  if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::LINK_LAYER_RETRANSMISSION)) {
+  if (!llrSupported(platform_)) {
     return;
   }
   auto llrConfig = swPort->getLlrConfig();
   const bool wantLlr =
       swPort->getLlrConfigName().has_value() && llrConfig.has_value();
-  // Nothing to program and nothing previously programmed: leave the port's LLR
-  // attributes untouched. Writing them (even to the disabled default) issues a
-  // set_port_attribute that returns NOT_SUPPORTED on SDK drops shipping
-  // the 1.18 headers without a runtime LLR implementation, which would crash
-  // normal (non-LLR) port bring-up.
-  if (!wantLlr && !portHandle->llrProfile) {
-    return;
-  }
 
   std::shared_ptr<SaiPortLlrProfile> profile;
   if (wantLlr) {
-    const auto& cfg = llrConfig.value();
-    SaiPortLlrProfileTraits::CreateAttributes attributes{
-        SaiPortLlrProfileTraits::Attributes::OutstandingFramesMax{
-            static_cast<sai_uint32_t>(cfg->getOutstandingFramesMax())},
-        SaiPortLlrProfileTraits::Attributes::OutstandingBytesMax{
-            static_cast<sai_uint32_t>(cfg->getOutstandingBytesMax())},
-        SaiPortLlrProfileTraits::Attributes::ReplayTimerMax{
-            static_cast<sai_uint32_t>(cfg->getReplayTimerMax())},
-        SaiPortLlrProfileTraits::Attributes::ReplayCountMax{
-            static_cast<sai_uint8_t>(cfg->getReplayCountMax())},
-        SaiPortLlrProfileTraits::Attributes::PcsLostTimeout{
-            static_cast<sai_uint32_t>(cfg->getPcsLostTimeout())},
-        SaiPortLlrProfileTraits::Attributes::DataAgeTimeout{
-            static_cast<sai_uint32_t>(cfg->getDataAgeTimeout())},
-        SaiPortLlrProfileTraits::Attributes::InitLlrFrameAction{
-            cfgLlrFrameActionToSai(cfg->getInitFrameAction())},
-        SaiPortLlrProfileTraits::Attributes::FlushLlrFrameAction{
-            cfgLlrFrameActionToSai(cfg->getFlushFrameAction())},
-        SaiPortLlrProfileTraits::Attributes::ReInitOnFlush{
-            cfg->getReInitOnFlush()},
-        SaiPortLlrProfileTraits::Attributes::CtlosTargetSpacing{
-            static_cast<sai_uint16_t>(cfg->getCtlosTargetSpacing())}};
+    auto attributes = llrProfileAttributes(llrConfig.value());
     auto& store = saiStore_->get<SaiPortLlrProfileTraits>();
     SaiPortLlrProfileTraits::AdapterHostKey key = attributes;
-    // Resolve the profile first. On warm boot this reclaims the object the
-    // store loaded from hardware rather than creating one, and claims its warm
-    // boot handle so it is not swept as unreferenced. The attributes match, so
-    // no SAI write is issued.
+    // Unconditional, and before the check below. On warm boot this reclaims the
+    // object the store loaded from hardware and claims its warm boot handle, so
+    // it is not swept as unreferenced -- which has to happen even on the path
+    // that writes nothing else.
     profile = store.setObject(key, attributes);
-
-    // If the port is already bound to exactly this profile, LLR is running with
-    // this config and there is nothing to do. That is the warm boot case: the
-    // ASIC kept forwarding, the session with the link partner is live, and the
-    // sequence below would tear it down and rebuild it -- LlrModeLocal{false}
-    // stops acknowledging the partner, and LlrModeRemote is a one-shot that
-    // re-fires LLR_INIT rather than a persistent enable (CS00012475411).
-    const auto& bound =
-        std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(
-            portHandle->port->attributes());
-    if (bound.has_value() && bound->value() == profile->adapterKey()) {
-      portHandle->llrProfile = std::move(profile);
-      return;
-    }
   }
 
-  // Disable both modes before (re)configuring, so the profile is bound while
-  // LLR is not actively transmitting (SDK config-before-enable ordering).
+  // The binding already matches, so there is nothing to write. Rebinding an
+  // unchanged profile would tear down a live session for nothing:
+  // LlrModeLocal{false} stops acknowledging the partner, and LlrModeRemote is a
+  // one-shot LLR_INIT rather than a persistent enable (CS00012475411). This
+  // also covers a port that wants no LLR and has none, where touching the LLR
+  // attributes at all would issue a set_port_attribute that returns
+  // NOT_SUPPORTED on SDK drops shipping the 1.18 headers without a runtime LLR
+  // implementation, crashing normal port bring-up.
+  if (!llrProfileBindingChanged(boundLlrProfile(portHandle), swPort)) {
+    portHandle->llrProfile = std::move(profile);
+    return;
+  }
+
+  // Clear both LLR modes so the profile is bound while LLR is idle.
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::LlrModeLocal{false});
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::LlrModeRemote{false});
 
   if (wantLlr) {
-    // Bind the port to the new profile before releasing the old handle: on a
-    // live reconfiguration (content change => new key) the assignment below
-    // drops the last reference to the old profile and removes it from HW, so
-    // the port must already reference the new profile to avoid pointing at a
-    // removed OID during the swap.
+    // Bind before releasing the old handle: the move below drops the last
+    // reference to the old profile and removes it from hardware, so the port
+    // must not still point at that OID.
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrProfile{profile->adapterKey()});
     portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
+    // This sets the mode bit but does not send an LLR_INIT: the port is down,
+    // and a mode remote write before link up is lost (CS00012475411).
+    // reissueLlrModeRemote() arms the trigger on the following link up.
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeRemote{true});
   } else {
@@ -1380,38 +1524,31 @@ void SaiPortManager::programLlr(
         SaiPortTraits::Attributes::LlrProfile{SAI_NULL_OBJECT_ID});
     portHandle->llrProfile.reset();
   }
-#else
-  (void)swPort;
-  (void)portHandle;
 #endif
 }
 
-// Re-assert LLR mode remote on a port that has just come up.
+// SAI_PORT_ATTR_LLR_MODE_REMOTE drives the MAC's SEND_TX_INIT trigger.
+// programLlr() asserts it before link up, where the trigger is lost: SAI
+// returns success and PC_LLR_CONTROL reads LLR_MODE_REMOTE=1, but
+// TX_LLR_INIT_OS stays 0 and no LLR_INIT is sent. Re-asserting after link up
+// arms it. Broadcom CS00012475411.
 //
-// SAI_PORT_ATTR_LLR_MODE_REMOTE is not a persistent enable: the SDK maps it
-// onto the MAC's one-shot, self-clearing SEND_TX_INIT trigger. programLlr()
-// asserts it at port creation, before link up, where bring-up consumes it and
-// no LLR_INIT is sent -- silently, as the field cannot be read back. Verified
-// on TU1: the same cycle leaves a link-down port at llr_active_tx = 0 and
-// brings a link-up port to 1.
-//
-// Raised with Broadcom as CS00012475411: whether the adapter host is expected
-// to re-apply mode remote on link up, or brcm-sai should, is unanswered, so
-// this works around it here.
-//
-// The false write is required: setOptionalAttribute elides a set whose value
-// already matches, and mode remote is already true in the store. Only remote
-// is cycled -- local is a persistent enable, and clearing it would stop this
-// port acknowledging the partner's frames.
+// The set goes through the port API, not the store: the store elides a set
+// matching its cached value, and mode remote is already true there from
+// programLlr(). Only remote is re-asserted: local is a persistent enable, and
+// clearing it stops this port acknowledging the partner's frames. Clearing is
+// unavailable in any case, since a port at link up is administratively enabled
+// (CS00012478409).
 void SaiPortManager::reissueLlrModeRemote(
-    [[maybe_unused]] SaiPortHandle* portHandle) {
+    [[maybe_unused]] SaiPortHandle* portHandle,
+    [[maybe_unused]] PortID portId) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   if (!portHandle->llrProfile) {
     return;
   }
-  portHandle->port->setOptionalAttribute(
-      SaiPortTraits::Attributes::LlrModeRemote{false});
-  portHandle->port->setOptionalAttribute(
+  XLOG(DBG2) << "Re-asserting LLR mode remote on port " << portId;
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portHandle->port->adapterKey(),
       SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
