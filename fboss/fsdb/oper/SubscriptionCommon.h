@@ -41,6 +41,26 @@ constexpr size_t serveBucketCount(uint32_t tickMs, uint32_t maxMs) {
 // bucket also retains its own tree baseline.
 inline constexpr size_t kMaxServeBuckets{5};
 
+// Resolve an operator-requested serve tick against a storage's default serve
+// interval. A non-positive request means "no sub-default intervals". The
+// request is bounded so the bucket count cannot exceed kMaxServeBuckets, and
+// must divide the default: bucket count is defaultMs / tick, so a non-divisor
+// would leave the slowest bucket faster than the default and serve every
+// subscriber ahead of the cadence the server reports back to it. A request
+// that does not divide is rejected in favour of the default interval.
+constexpr uint32_t resolveServeTickMs(int64_t requestedMs, uint32_t defaultMs) {
+  if (requestedMs <= 0 || defaultMs == 0) {
+    return defaultMs;
+  }
+  const uint64_t minTick = std::max<uint64_t>(
+      1,
+      (static_cast<uint64_t>(defaultMs) + kMaxServeBuckets - 1) /
+          kMaxServeBuckets);
+  const uint64_t bounded = std::clamp(
+      static_cast<uint64_t>(requestedMs), minTick, uint64_t{defaultMs});
+  return defaultMs % bounded == 0 ? static_cast<uint32_t>(bounded) : defaultMs;
+}
+
 // SubscriptionIdentifier: helper to facilitate referencing a
 // subscription by a unique identifier or alternate key.
 class SubscriptionIdentifier {

@@ -335,6 +335,45 @@ TEST(ServeInterval, RoundsUpAndClamps) {
   EXPECT_EQ(normalizeServeIntervalMs(2000, 0, kMax), kMax);
 }
 
+TEST(ServeInterval, ResolveServeTick) {
+  constexpr uint32_t kDefault = 10000;
+
+  // Non-positive means "no sub-default intervals": everyone at the default.
+  EXPECT_EQ(resolveServeTickMs(0, kDefault), kDefault);
+  EXPECT_EQ(resolveServeTickMs(-1, kDefault), kDefault);
+
+  // Ticks that divide the default are taken as requested.
+  EXPECT_EQ(resolveServeTickMs(2000, kDefault), 2000u);
+  EXPECT_EQ(resolveServeTickMs(2500, kDefault), 2500u);
+  EXPECT_EQ(resolveServeTickMs(5000, kDefault), 5000u);
+
+  // Below the floor: raised, so the bucket count cannot exceed the cap.
+  EXPECT_EQ(resolveServeTickMs(1, kDefault), 2000u);
+  EXPECT_EQ(resolveServeTickMs(1500, kDefault), 2000u);
+
+  // At or above the default: one bucket.
+  EXPECT_EQ(resolveServeTickMs(kDefault, kDefault), kDefault);
+  EXPECT_EQ(resolveServeTickMs(20000, kDefault), kDefault);
+
+  // A tick that does not divide the default is rejected outright: the slowest
+  // bucket would otherwise land ahead of the default cadence.
+  EXPECT_EQ(resolveServeTickMs(3000, kDefault), kDefault);
+  EXPECT_EQ(resolveServeTickMs(4000, kDefault), kDefault);
+  EXPECT_EQ(resolveServeTickMs(6000, kDefault), kDefault);
+  EXPECT_EQ(resolveServeTickMs(9000, kDefault), kDefault);
+
+  // The invariant the snapping exists to protect: whatever an operator asks
+  // for, the slowest bucket lands exactly on the default cadence and the
+  // bucket count stays within the cap.
+  for (int64_t requested = 1; requested <= 2 * kDefault; ++requested) {
+    const uint32_t tick = resolveServeTickMs(requested, kDefault);
+    ASSERT_GT(tick, 0u) << "requested " << requested;
+    const size_t buckets = serveBucketCount(tick, kDefault);
+    EXPECT_EQ(buckets * tick, kDefault) << "requested " << requested;
+    EXPECT_LE(buckets, kMaxServeBuckets) << "requested " << requested;
+  }
+}
+
 TEST(ServeInterval, BucketIndexing) {
   constexpr uint32_t kTick = 1000;
   constexpr uint32_t kMax = 10000;

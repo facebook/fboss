@@ -41,6 +41,13 @@ DEFINE_int32(
     10000,
     "Interval at which stats subscriptions are served");
 
+// 0 serves every subscriber at the default cadence; it never disables stats
+// serving.
+DEFINE_int32(
+    statsSubscriptionServeTick_ms,
+    0,
+    "Granularity of the stats serve loop; 0 serves everything at the default interval");
+
 // queue size for serving stats subscriptions is chosen
 // to accommodate pending updates generated over 1 min interval
 // (6 updates + 2 heartbeats).
@@ -115,6 +122,20 @@ using facebook::fboss::fsdb::OperSubRequestExtended;
 using facebook::fboss::fsdb::Path;
 using facebook::fboss::fsdb::PubRequest;
 using facebook::fboss::fsdb::SubRequest;
+
+// Both intervals are operator-settable, so resolve the pair into a usable tick
+// rather than let StorageParams' CHECKs abort a Tier-0 process on a bad gflag.
+std::chrono::milliseconds resolveStatsServeTick() {
+  const int32_t defaultMs = FLAGS_statsSubscriptionServe_ms;
+  const int32_t requested = FLAGS_statsSubscriptionServeTick_ms;
+  const uint32_t tick = facebook::fboss::fsdb::resolveServeTickMs(
+      requested, static_cast<uint32_t>(defaultMs));
+  XLOG_IF(WARNING, requested > 0 && static_cast<int32_t>(tick) != requested)
+      << "statsSubscriptionServeTick_ms " << requested << " is unusable against"
+      << " statsSubscriptionServe_ms " << defaultMs << "; serving at " << tick
+      << " instead";
+  return std::chrono::milliseconds(tick);
+}
 
 // Strip leading and trailing ':' from a SubscriberConfig key so wildcard
 // forms (":agent" prefix wildcard or "agent:" suffix wildcard) parse to
@@ -327,6 +348,7 @@ ServiceHandler::ServiceHandler(
               true /* serveGetRequestsWithLastPublishedState */,
               FLAGS_statsSubscriptionServeQueueSize,
               FLAGS_statsSubscriptionServeQueueSize)
+              .setServeTickInterval(resolveStatsServeTick())
               .setDeltaSubscriptionQueueFullMinSize(
                   FLAGS_deltaSubscriptionQueueFullMinSize)
               .setDeltaSubscriptionQueueMemoryLimit(
