@@ -866,7 +866,8 @@ TEST_F(PortApiTest, removeLlrProfile) {
 }
 
 TEST_F(PortApiTest, portLlrAttributes) {
-  auto portId = createPort(100000, {42}, true);
+  // Admin disabled, since a profile cannot be attached to an enabled port.
+  auto portId = createPort(100000, {42}, false);
   auto profileId = createLlrProfile(portApi.get());
 
   // Defaults on a freshly created port: LLR disabled, no profile, status OFF.
@@ -903,4 +904,5 @@ TEST_F(PortApiTest, portLlrAttributes) {
   EXPECT_EQ(port.llrModeRemote, true);
   EXPECT_EQ(port.llrProfile, static_cast<sai_object_id_t>(profileId));
 }
+
 #endif
