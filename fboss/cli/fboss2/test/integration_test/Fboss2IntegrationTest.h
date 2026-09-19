@@ -430,7 +430,7 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * Tests that create a VLAN must call this, otherwise the TUN interface the
    * agent created for it survives in the kernel across agent restarts.
    */
-  void deleteVlanIfPresent(int vlanId) const;
+  void deleteVlanIfPresent(int vlanId) const noexcept;
 
   /**
    * Ensure a VLAN + backing cfg::Interface exists in the staged config, then
