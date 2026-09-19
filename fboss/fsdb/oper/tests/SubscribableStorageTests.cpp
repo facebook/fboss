@@ -896,7 +896,7 @@ TYPED_TEST(SubscribableStorageTests, AddPatchSubscriptionPath) {
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
   msg = std::move(element.val);
   patchGroups = *msg.get_chunk().patchGroups();
-  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+  ASSERT_TRUE(patchGroups.contains(2));
   auto patches = patchGroups.at(2);
   EXPECT_EQ(patches.size(), 1);
   auto patch = patches.front();
@@ -914,7 +914,7 @@ TYPED_TEST(SubscribableStorageTests, AddPatchSubscriptionPath) {
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
   msg = std::move(element.val);
   patchGroups = *msg.get_chunk().patchGroups();
-  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+  ASSERT_TRUE(patchGroups.contains(2));
   patch = patchGroups.at(2).front();
   auto newVal = *patch.patch()->val_ref();
   deserialized = facebook::fboss::thrift_cow::
@@ -1588,7 +1588,7 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   EXPECT_EQ(streamedVal.size(), expected.size());
   for (const auto& taggedDelta : streamedVal) {
     auto rawPath = *taggedDelta.path()->path();
-    ASSERT_TRUE(expected.find(rawPath) != expected.end());
+    ASSERT_TRUE(expected.contains(rawPath));
 
     auto expectedValue = expected[rawPath];
     ASSERT_EQ(taggedDelta.delta()->changes()->size(), 1);
@@ -2298,7 +2298,7 @@ TYPED_TEST(SubscribableStorageTests, AddExtendedPatchSubscriptionPath) {
       folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
   msg = std::move(element.val);
   auto& patchGroups = *msg.get_chunk().patchGroups();
-  ASSERT_NE(patchGroups.find(2), patchGroups.end());
+  ASSERT_TRUE(patchGroups.contains(2));
 
   // negative: unknown identifier
   std::map<SubscriptionKey, ExtendedOperPath> unknownPaths;
