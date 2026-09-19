@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -152,6 +153,106 @@ TEST_F(SwSwitchTest, VerifyEcmpWidthChangeRejected) {
   // Changing the width on a running agent is rejected regardless of boot type.
   EXPECT_FALSE(sw->isValidStateUpdate(
       StateDelta(baseState, withEcmpWidth(baseState, 128))));
+}
+
+namespace {
+std::shared_ptr<LlrConfig> makeLlrConfig(
+    const std::string& name,
+    int32_t outstandingBytesMax = 105800) {
+  auto llr = std::make_shared<LlrConfig>(name);
+  llr->setOutstandingFramesMax(1654);
+  llr->setOutstandingBytesMax(outstandingBytesMax);
+  llr->setReplayTimerMax(5000);
+  llr->setReplayCountMax(2);
+  llr->setPcsLostTimeout(1000);
+  llr->setDataAgeTimeout(200000);
+  llr->setInitFrameAction(cfg::LlrFrameAction::BEST_EFFORT);
+  llr->setFlushFrameAction(cfg::LlrFrameAction::BLOCK);
+  llr->setReInitOnFlush(true);
+  llr->setCtlosTargetSpacing(2048);
+  return llr;
+}
+} // namespace
+
+TEST_F(SwSwitchTest, VerifyLlrConfigChangeRejected) {
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  const PortID kPort{1};
+  auto withAdminState = [kPort](
+                            const std::shared_ptr<SwitchState>& base,
+                            cfg::PortState adminState) {
+    auto state = base->clone();
+    state->getPorts()->getNodeIf(kPort)->modify(&state)->setAdminState(
+        adminState);
+    state->publish();
+    return state;
+  };
+  // description gives the port a field to change independently of LLR, so the
+  // port lands in the delta even when its LLR config is untouched.
+  auto withLlr = [kPort](
+                     const std::shared_ptr<SwitchState>& base,
+                     const std::string& name,
+                     const std::string& description,
+                     cfg::PortState adminState,
+                     int32_t outstandingBytesMax = 105800) {
+    auto state = base->clone();
+    auto port = state->getPorts()->getNodeIf(kPort)->modify(&state);
+    port->setLlrConfigName(name);
+    port->setLlrConfig(makeLlrConfig(name, outstandingBytesMax));
+    port->setDescription(description);
+    port->setAdminState(adminState);
+    state->publish();
+    return state;
+  };
+  constexpr auto kUp = cfg::PortState::ENABLED;
+  constexpr auto kDown = cfg::PortState::DISABLED;
+
+  auto enabledNoLlr = withAdminState(sw->getState(), kUp);
+  auto disabledNoLlr = withAdminState(sw->getState(), kDown);
+  auto enabledLlr = withLlr(enabledNoLlr, "llr_default", "a", kUp);
+  auto disabledLlr = withLlr(disabledNoLlr, "llr_default", "a", kDown);
+
+  // A rebuilt profile node holding identical config is not a change, so it is
+  // allowed even on an enabled port. updateLlrConfigs replaces every node in
+  // the map whenever any profile changes, so the port ends up pointing at a new
+  // node with the same contents.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_default", "b", kUp))));
+
+  // On a disabled port, binding a different profile and binding one where there
+  // was none are both allowed.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(disabledLlr, withLlr(disabledLlr, "llr_other", "a", kDown))));
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(disabledNoLlr, disabledLlr)));
+
+  // On an enabled port, binding a different profile is rejected.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kUp))));
+
+  // As is retuning the profile under the same name.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(
+      enabledLlr, withLlr(enabledLlr, "llr_default", "a", kUp, 64000))));
+
+  // As is binding a profile to a port that had none.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledNoLlr, enabledLlr)));
+
+  // Disabling a port as its LLR config changes is allowed, and lets an operator
+  // drain and retune a port in one config push. SaiPortManager takes the admin
+  // state from the new port, so the port object write puts it down before the
+  // profile is written.
+  EXPECT_TRUE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kDown))));
+
+  // Enabling a port as LLR is bound to it is allowed, and is how the first
+  // config on a cold boot arrives. SaiPortManager holds the enable until the
+  // profile is bound, so the profile write still lands on a disabled port.
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(
+      disabledNoLlr, withLlr(disabledNoLlr, "llr_default", "a", kUp))));
+
+  // Unbinding as the port is disabled is the same shape: an operator draining a
+  // port and dropping its LLR config together.
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(enabledLlr, disabledNoLlr)));
 }
 
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
