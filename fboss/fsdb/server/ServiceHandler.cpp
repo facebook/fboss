@@ -215,6 +215,25 @@ void updateMetadata(facebook::fboss::fsdb::OperMetadata& metadata) {
   }
 }
 
+template <typename Request>
+facebook::fboss::fsdb::SubscriptionStorageParams subscriptionParamsFromRequest(
+    const Request& request) {
+  facebook::fboss::fsdb::SubscriptionStorageParams params;
+  if (request.heartbeatInterval().has_value()) {
+    params.heartbeatInterval_ =
+        std::chrono::seconds(request.heartbeatInterval().value());
+  }
+  // Any positive value is accepted: the storage rounds it up to a whole tick
+  // and clamps it to the default interval. A subscription type that does not
+  // support intervals ignores it rather than failing the subscribe.
+  if (request.serveIntervalSec().has_value() &&
+      request.serveIntervalSec().value() > 0) {
+    params.serveIntervalMs_ =
+        static_cast<uint64_t>(request.serveIntervalSec().value()) * 1000;
+  }
+  return params;
+}
+
 } // namespace
 
 namespace facebook::fboss::fsdb {
@@ -1095,11 +1114,7 @@ ServiceHandler::makeStateStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats,
     SubscriptionIdentifier&& subId) {
-  SubscriptionStorageParams subscriptionParams;
-  if (request->heartbeatInterval().has_value()) {
-    subscriptionParams.heartbeatInterval_ =
-        std::chrono::seconds(request->heartbeatInterval().value());
-  }
+  auto subscriptionParams = subscriptionParamsFromRequest(*request);
 
   return isStats ? operStatsStorage_.subscribe_encoded(
                        std::move(subId),
@@ -1120,11 +1135,7 @@ ServiceHandler::makeExtendedStateStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats,
     SubscriptionIdentifier&& subId) {
-  SubscriptionStorageParams subscriptionParams;
-  if (request->heartbeatInterval().has_value()) {
-    subscriptionParams.heartbeatInterval_ =
-        std::chrono::seconds(request->heartbeatInterval().value());
-  }
+  auto subscriptionParams = subscriptionParamsFromRequest(*request);
 
   return isStats ? operStatsStorage_.subscribe_encoded_extended(
                        std::move(subId),
@@ -1143,11 +1154,7 @@ ServiceHandler::makePatchStreamGenerator(
     std::unique_ptr<SubRequest> request,
     bool isStats,
     SubscriptionIdentifier&& subId) {
-  SubscriptionStorageParams subscriptionParams;
-  if (request->heartbeatInterval().has_value()) {
-    subscriptionParams.heartbeatInterval_ =
-        std::chrono::seconds(request->heartbeatInterval().value());
-  }
+  auto subscriptionParams = subscriptionParamsFromRequest(*request);
 
   if (!request->paths()->empty()) {
     auto streamReader = isStats
@@ -1254,11 +1261,7 @@ ServiceHandler::makeDeltaStreamGenerator(
     std::unique_ptr<OperSubRequest> request,
     bool isStats,
     SubscriptionIdentifier&& subId) {
-  SubscriptionStorageParams subscriptionParams;
-  if (request->heartbeatInterval().has_value()) {
-    subscriptionParams.heartbeatInterval_ =
-        std::chrono::seconds(request->heartbeatInterval().value());
-  }
+  auto subscriptionParams = subscriptionParamsFromRequest(*request);
 
   auto streamReader = isStats ? operStatsStorage_.subscribe_delta(
                                     std::move(subId),
@@ -1281,11 +1284,7 @@ ServiceHandler::makeExtendedDeltaStreamGenerator(
     std::unique_ptr<OperSubRequestExtended> request,
     bool isStats,
     SubscriptionIdentifier&& subId) {
-  SubscriptionStorageParams subscriptionParams;
-  if (request->heartbeatInterval().has_value()) {
-    subscriptionParams.heartbeatInterval_ =
-        std::chrono::seconds(request->heartbeatInterval().value());
-  }
+  auto subscriptionParams = subscriptionParamsFromRequest(*request);
 
   auto streamReader = isStats
       ? operStatsStorage_.subscribe_delta_extended(

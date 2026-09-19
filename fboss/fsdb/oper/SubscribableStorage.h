@@ -22,13 +22,20 @@ namespace facebook::fboss::fsdb {
 // Used to pass client specific parameters per subscription
 struct SubscriptionStorageParams {
   explicit SubscriptionStorageParams(
-      std::optional<std::chrono::seconds> heartbeatInterval = std::nullopt) {
+      std::optional<std::chrono::seconds> heartbeatInterval = std::nullopt,
+      std::optional<uint64_t> serveIntervalMs = std::nullopt) {
     if (heartbeatInterval.has_value()) {
       heartbeatInterval_ = heartbeatInterval.value();
+    }
+    if (serveIntervalMs.has_value()) {
+      serveIntervalMs_ = serveIntervalMs.value();
     }
   }
 
   std::optional<std::chrono::seconds> heartbeatInterval_;
+  // Requested serve interval in ms, converted from the seconds the client sent.
+  // The storage rounds it up to a whole tick and clamps it to the default.
+  std::optional<uint64_t> serveIntervalMs_;
 };
 
 /*

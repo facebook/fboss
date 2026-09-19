@@ -137,6 +137,7 @@ void SubscriptionStore::unregisterSubscription(const std::string& name) {
       updateSubscriberStats(
           subscriberStats_, *rawPtr, updateSubscriberStatsDisconnectReason);
     }
+    adjustSubscriberCount(-1);
     // TODO: trim empty path stores
     initialSyncNeeded_.remove(rawPtr);
     lookup_.remove(rawPtr);
@@ -164,6 +165,7 @@ void SubscriptionStore::unregisterExtendedSubscription(
         idxIt->second.lock() == it->second) {
       extendedSubsByIdentifier_.erase(idxIt);
     }
+    adjustSubscriberCount(-1);
     initialSyncNeededExtended_.erase(it->second);
     // Drop pending added-path work for this subscription: its entry holds a
     // strong shared_ptr, so leaving it would pin the unregistered subscription
@@ -271,6 +273,7 @@ void SubscriptionStore::registerSubscription(
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, name + " already exixts");
   }
+  adjustSubscriberCount(1);
   initialSyncNeeded_.add(rawPtr, &pathStoreStats_);
 }
 
@@ -285,6 +288,7 @@ void SubscriptionStore::registerExtendedSubscription(
         FsdbErrorCode::ID_ALREADY_EXISTS, name + " already exixts");
   }
   extendedSubsByIdentifier_[subscription->subscriptionId()] = subscription;
+  adjustSubscriberCount(1);
   initialSyncNeededExtended_.insert(std::move(subscription));
 }
 

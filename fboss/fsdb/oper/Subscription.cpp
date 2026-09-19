@@ -42,12 +42,14 @@ BaseSubscription::BaseSubscription(
     OperProtocol protocol,
     std::optional<std::string> publisherRoot,
     folly::EventBase* heartbeatEvb,
-    std::chrono::milliseconds heartbeatInterval)
+    std::chrono::milliseconds heartbeatInterval,
+    std::optional<uint32_t> serveIntervalMs)
     : subId_(std::move(subId)),
       protocol_(protocol),
       publisherTreeRoot_(std::move(publisherRoot)),
       heartbeatEvb_(heartbeatEvb),
       heartbeatInterval_(heartbeatInterval),
+      serveIntervalMs_(serveIntervalMs),
       streamInfo_(std::make_shared<SubscriptionStreamInfo>()),
       numSubscriptionServesCoalescedCounter_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),

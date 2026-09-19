@@ -7,7 +7,35 @@
 
 #include <folly/hash/Hash.h>
 
+#include <algorithm>
+#include <cstdint>
+
 namespace facebook::fboss::fsdb {
+
+// Serve intervals are quantized to whole ticks: a requested interval is rounded
+// UP to the next tick multiple and clamped to the storage's default interval,
+// which bounds the bucket space at defaultIntervalMs / tickMs.
+// Widened so the caller's seconds-to-ms conversion cannot overflow; the clamp
+// to maxMs below is the only bound a request needs.
+constexpr uint32_t normalizeServeIntervalMs(
+    uint64_t requestedMs,
+    uint32_t tickMs,
+    uint32_t maxMs) {
+  if (tickMs == 0) {
+    return maxMs;
+  }
+  const uint64_t rounded = ((requestedMs + tickMs - 1) / tickMs) * tickMs;
+  return static_cast<uint32_t>(std::clamp<uint64_t>(rounded, tickMs, maxMs));
+}
+
+// Bucket 0 is served every tick; the last bucket is the default interval.
+constexpr size_t serveBucketIndex(uint32_t intervalMs, uint32_t tickMs) {
+  return tickMs == 0 ? 0 : (intervalMs / tickMs) - 1;
+}
+
+constexpr size_t serveBucketCount(uint32_t tickMs, uint32_t maxMs) {
+  return tickMs == 0 ? 1 : maxMs / tickMs;
+}
 
 // SubscriptionIdentifier: helper to facilitate referencing a
 // subscription by a unique identifier or alternate key.

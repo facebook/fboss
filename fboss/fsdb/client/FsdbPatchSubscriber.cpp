@@ -20,6 +20,10 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::createRequest()
     request.heartbeatInterval() =
         this->subscriptionOptions().heartbeatInterval_.value();
   }
+  if (this->subscriptionOptions().serveIntervalSec_.has_value()) {
+    request.serveIntervalSec() =
+        this->subscriptionOptions().serveIntervalSec_.value();
+  }
   // Merge the original subscribe paths with any paths appended post-subscribe
   // so a (re)connect re-subscribes the full set.
   PathElement merged = this->subscribePaths();
