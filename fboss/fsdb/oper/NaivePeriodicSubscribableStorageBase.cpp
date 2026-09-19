@@ -58,6 +58,8 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
       rss_(fmt::format("{}.{}", metricPrefixOwned_, kRss)),
       registeredSubs_(
           fmt::format("{}.{}", metricPrefixOwned_, kRegisteredSubs)),
+      registeredIntervalSubs_(
+          fmt::format("{}.{}", metricPrefixOwned_, kServeIntervalSubs)),
       nPathStores_(fmt::format("{}.{}", metricPrefixOwned_, kPathStoreNum)),
       nPathStoreAllocs_(
           fmt::format("{}.{}", metricPrefixOwned_, kPathStoreAllocs)),
@@ -84,6 +86,8 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
 
   fb303::ThreadCachedServiceData::get()->addStatExportType(
       registeredSubs_, fb303::AVG);
+  fb303::ThreadCachedServiceData::get()->addStatExportType(
+      registeredIntervalSubs_, fb303::AVG);
 
   fb303::ThreadCachedServiceData::get()->addStatExportType(
       nPathStores_, fb303::AVG);
@@ -91,11 +95,15 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
   fb303::ThreadCachedServiceData::get()->addStatExportType(
       nPathStoreAllocs_, fb303::AVG);
 
-  // elapsed time to serve each subscription
-  // histogram range [0, 1s], 10ms width (100 bins)
-  fb303::ThreadCachedServiceData::get()->addHistogram(serveSubMs_, 10, 0, 1000);
-  fb303::ThreadCachedServiceData::get()->exportHistogram(
-      serveSubMs_, 50, 95, 99);
+  // Ranged to 2x the tick so an overrunning serve lands in a real bin.
+  {
+    const int64_t maxMs =
+        std::max<int64_t>(2 * params_.serveTickInterval_.count(), 1000);
+    fb303::ThreadCachedServiceData::get()->addHistogram(
+        serveSubMs_, 20, 0, maxMs);
+    fb303::ThreadCachedServiceData::get()->exportHistogram(
+        serveSubMs_, 50, 95, 99);
+  }
 
   fb303::ThreadCachedServiceData::get()->addStatExportType(
       serveSubNum_, fb303::SUM);
@@ -309,13 +317,14 @@ void NaivePeriodicSubscribableStorageBase::exportServeMetrics(
   fb303::ThreadCachedServiceData::get()->addStatValue(
       rss_, memUsage, fb303::AVG);
 
-  int64_t n_registeredSubs = numSubscriptions();
   fb303::ThreadCachedServiceData::get()->addStatValue(
-      registeredSubs_, n_registeredSubs, fb303::AVG);
+      registeredSubs_, numSubscriptions(), fb303::AVG);
+  fb303::ThreadCachedServiceData::get()->addStatValue(
+      registeredIntervalSubs_, numIntervalSubscriptions(), fb303::AVG);
   fb303::ThreadCachedServiceData::get()->addStatValue(
       nPathStores_, numPathStores(), fb303::AVG);
   fb303::ThreadCachedServiceData::get()->addStatValue(
-      nPathStoreAllocs_, numPathStores(), fb303::AVG);
+      nPathStoreAllocs_, numPathStoreAllocs(), fb303::AVG);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - serveStartTime);

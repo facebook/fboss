@@ -26,6 +26,8 @@ inline constexpr std::string_view kServeSubMs{"storage.serve_sub_ms"};
 inline constexpr std::string_view kServeSubNum{"storage.serve_sub_num"};
 inline constexpr std::string_view kRss{"rss"};
 inline constexpr std::string_view kRegisteredSubs{"subscriptions.registered"};
+inline constexpr std::string_view kServeIntervalSubs{
+    "storage.serve.interval.subscriptions.registered"};
 inline constexpr std::string_view kPathStoreNum{"object.count.pathStores"};
 inline constexpr std::string_view kPathStoreAllocs{"object.allocs.pathStores"};
 inline constexpr std::string_view kPublishTimePrefix{"publish_time_ms"};
@@ -272,6 +274,9 @@ class NaivePeriodicSubscribableStorageBase {
   size_t numSubscriptions() const {
     return subMgr().numSubscriptions();
   }
+  size_t numIntervalSubscriptions() const {
+    return subMgr().numIntervalSubscriptions();
+  }
   std::vector<OperSubscriberInfo> getSubscriptions() const {
     return subMgr().getSubscriptions();
   }
@@ -371,6 +376,7 @@ class NaivePeriodicSubscribableStorageBase {
   // metric names
   const std::string rss_;
   const std::string registeredSubs_;
+  const std::string registeredIntervalSubs_;
   const std::string nPathStores_;
   const std::string nPathStoreAllocs_;
   const std::string serveSubMs_;

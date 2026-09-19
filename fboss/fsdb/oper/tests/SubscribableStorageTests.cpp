@@ -2613,6 +2613,11 @@ TEST(SubscribableStorageServeInterval, FastAndDefaultSubscribersCoexist) {
     EXPECT_FALSE(storage.bucketBaselineHeld(bucket));
   }
 
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(storage.numSubscriptions(), 2);
+    EXPECT_EVENTUALLY_EQ(storage.numIntervalSubscriptions(), 1);
+  });
+
   EXPECT_EQ(storage.set(root.member().min(), 11), std::nullopt);
   EXPECT_EQ(
       folly::coro::blockingWait(

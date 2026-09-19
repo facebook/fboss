@@ -98,6 +98,15 @@ class SubscriptionManagerBase {
     return total;
   }
 
+  // Excludes the last bucket, which is the default interval.
+  size_t numIntervalSubscriptions() const {
+    size_t total{0};
+    for (size_t b = 0; b + 1 < stores_.size(); ++b) {
+      total += stores_[b].rlock()->subscriptions().size();
+    }
+    return total;
+  }
+
   bool hasAny(size_t bucket) const {
     return storeForBucket(bucket).rlock()->hasAny();
   }
