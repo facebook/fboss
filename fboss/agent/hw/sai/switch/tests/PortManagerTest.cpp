@@ -928,6 +928,203 @@ TEST_F(PortManagerTest, clearLlrOnChangePort) {
       SAI_NULL_OBJECT_ID);
 }
 
+// A port that wants LLR is created administratively disabled so the profile can
+// be attached, then enabled. The fake rejects a profile attach on an enabled
+// port, so programming succeeding at all is what shows the port was down for
+// it; the assertions cover where it ends up.
+TEST_F(PortManagerTest, llrOnCreateLeavesPortAdminEnabled) {
+  auto swPort = makePort(p0);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = handle->port->adapterKey();
+
+  EXPECT_TRUE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeLocal{}),
+      true);
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}),
+      true);
+}
+
+// Enabling a port and binding LLR to it in one update is the shape the first
+// config on a cold boot takes. changePortImpl writes the port object from the
+// new port, so without holding the enable the profile attach would land on a
+// port the fake already considers enabled and be rejected.
+TEST_F(PortManagerTest, llrBindWhileEnablingPort) {
+  auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::ENABLED);
+  newPort->setLlrConfigName("llrProfile");
+  newPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = handle->port->adapterKey();
+  EXPECT_TRUE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::LlrModeLocal{}),
+      true);
+}
+
+// A port configured disabled stays disabled: the enable that follows LLR
+// programming applies the configured admin state rather than enabling
+// unconditionally, so a port an operator drained is not brought up.
+TEST_F(PortManagerTest, llrProgrammingLeavesDisabledPortDisabled) {
+  auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = saiManagerTable->portManager()
+                       .getPortHandle(swPort->getID())
+                       ->port->adapterKey();
+  ASSERT_FALSE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+
+  auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  newPort->setLlrConfigName("llrProfileAlt");
+  newPort->setLlrConfig(makeAltLlrConfigNode());
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  auto handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  EXPECT_FALSE(portApi.getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::AdminState{}));
+}
+
+// Retuning LLR on a port the same update disables, the shape an operator drain
+// and retune takes in one config push. No enable is held here: the attributes
+// carry the new port's admin state, so writing the port object is what takes it
+// down ahead of programLlr(). The fake rejects a profile rebind on an enabled
+// port, so the rebind landing at all is what shows that ordering.
+TEST_F(PortManagerTest, llrChangeWhileDisablingPort) {
+  auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::ENABLED);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  auto originalProfile = handle->llrProfile->adapterKey();
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = handle->port->adapterKey();
+  ASSERT_TRUE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+
+  auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  newPort->setLlrConfigName("llrProfileAlt");
+  newPort->setLlrConfig(makeAltLlrConfigNode());
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  EXPECT_NE(handle->llrProfile->adapterKey(), originalProfile);
+  EXPECT_FALSE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+  EXPECT_EQ(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::LlrProfile{}),
+      handle->llrProfile->adapterKey());
+}
+
+// The hold is keyed on whether programLlr() will write, not on whether the SAI
+// port object is new. changePortByRecreate reaches addPortImpl with an object
+// that already exists: on a VCO change it removes the ports in the port macro,
+// pre-creates them through createPortWithBasicAttributes -- administratively
+// enabled and carrying no LLR profile -- and then calls addPort.
+//
+// Reproduce that shape by dropping the handle and putting the object back into
+// the store enabled and unbound, then adding a port that wants LLR. The fake
+// rejects a profile attach on an enabled port, so the attach landing is what
+// shows the enable was held even though the object was already there.
+TEST_F(PortManagerTest, llrHoldsEnableWhenPortObjectExistsUnbound) {
+  auto basic = makePort(p0);
+  basic->setAdminState(cfg::PortState::ENABLED);
+  saiManagerTable->portManager().addPort(basic);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(basic->getID());
+  auto portKey = handle->port->adapterHostKey();
+  auto portAttrs = handle->port->attributes();
+  ASSERT_FALSE(
+      std::get<std::optional<SaiPortTraits::Attributes::LlrProfile>>(portAttrs)
+          .has_value());
+  saiManagerTable->portManager().removePort(basic);
+  auto preCreated = saiStore->get<SaiPortTraits>().setObject(
+      portKey, portAttrs, basic->getID());
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = preCreated->adapterKey();
+  ASSERT_TRUE(
+      portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::AdminState{}));
+
+  auto withLlr = makePort(p0);
+  withLlr->setAdminState(cfg::PortState::ENABLED);
+  withLlr->setLlrConfigName("llrProfile");
+  withLlr->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(withLlr);
+
+  handle = saiManagerTable->portManager().getPortHandle(withLlr->getID());
+  ASSERT_NE(handle->llrProfile, nullptr);
+  EXPECT_EQ(
+      portApi.getAttribute(
+          handle->port->adapterKey(), SaiPortTraits::Attributes::LlrProfile{}),
+      handle->llrProfile->adapterKey());
+  EXPECT_TRUE(portApi.getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::AdminState{}));
+}
+
+// LLR_MODE_REMOTE drives a one-shot trigger that is lost when asserted before
+// link up, so it is re-asserted on the link up that follows. The port is
+// enabled by then, which the fake permits for a mode set.
+TEST_F(PortManagerTest, llrModeRemoteReassertedOnLinkUp) {
+  auto swPort = makePort(p0);
+  swPort->setAdminState(cfg::PortState::DISABLED);
+  swPort->setLlrConfigName("llrProfile");
+  swPort->setLlrConfig(makeLlrConfigNode());
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto& portApi = saiApiTable->portApi();
+  auto portSaiId = saiManagerTable->portManager()
+                       .getPortHandle(swPort->getID())
+                       ->port->adapterKey();
+  // Clear the mode behind the store, standing in for the trigger being lost
+  // before link up. The port is disabled, so the fake permits the clear.
+  portApi.setAttribute(
+      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{false});
+  ASSERT_FALSE(portApi.getAttribute(
+      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}));
+
+  // LLR config is unchanged, so this update is the link coming up.
+  auto newPort = makePort(p0);
+  newPort->setAdminState(cfg::PortState::ENABLED);
+  newPort->setLlrConfigName("llrProfile");
+  newPort->setLlrConfig(makeLlrConfigNode());
+  newPort->setOperState(true);
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  EXPECT_TRUE(portApi.getAttribute(
+      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}));
+}
+
 TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
   auto swPort = makePort(p0);
   swPort->setAdminState(cfg::PortState::DISABLED);
