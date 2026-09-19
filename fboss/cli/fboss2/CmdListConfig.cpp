@@ -137,6 +137,9 @@
 #include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
+#include "fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h"
+#include "fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h"
+#include "fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
@@ -1140,6 +1143,19 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdDeleteVlan>,
        argRegistrar<CmdDeleteVlanTraits>},
 
+      {"delete",
+       "switch",
+       "Delete switch-level settings",
+       commandHandler<CmdDeleteSwitch>,
+       argTypeHandler<CmdDeleteSwitchTraits>,
+       {{"admin-distance",
+         "Remove the admin distance entry for a routing client: <client-id>",
+         commandHandler<CmdDeleteAdminDistance>,
+         argRegistrar<CmdDeleteAdminDistanceTraits>},
+        {"icmpv4-unavailable-src-addr",
+         "Remove the ICMPv4 unavailable source address (agent falls back to the RFC 7600 default)",
+         commandHandler<CmdDeleteIcmpV4UnavailableSrcAddr>,
+         argRegistrar<CmdDeleteIcmpV4UnavailableSrcAddrTraits>}}},
   };
   stable_sort(root.begin(), root.end());
   return root;
