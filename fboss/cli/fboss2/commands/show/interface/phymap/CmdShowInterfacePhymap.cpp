@@ -31,9 +31,13 @@ CmdShowInterfacePhymapTraits::RetType CmdShowInterfacePhymap::queryClient(
   auto client =
       utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
 
-  facebook::fboss::mka::MacsecPortPhyMap portsPhyMap;
+  std::vector<int32_t> macsecCapablePorts;
+  client->sync_getMacsecCapablePorts(macsecCapablePorts);
 
-  client->sync_macsecGetPhyPortInfo(portsPhyMap, queriedIfs);
+  facebook::fboss::mka::MacsecPortPhyMap portsPhyMap;
+  if (!macsecCapablePorts.empty()) {
+    client->sync_macsecGetPhyPortInfo(portsPhyMap, queriedIfs);
+  }
 
   return createModel(portsPhyMap);
 }
