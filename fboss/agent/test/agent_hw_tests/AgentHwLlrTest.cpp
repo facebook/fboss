@@ -33,6 +33,17 @@ class AgentHwLlrTest : public AgentHwTest {
 
   void verifyLlrProgrammed();
 
+  // The LLR binding as hardware holds it, read through the HwAgent process so
+  // this works in mono and multi-switch alike.
+  utility::PortLlrInfo getPortLlrInfo(PortID portId) {
+    auto switchId =
+        getAgentEnsemble()->scopeResolver().scope(portId).switchId();
+    auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
+    utility::PortLlrInfo llrInfo;
+    client->sync_getPortLlrInfo(llrInfo, portId);
+    return llrInfo;
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = AgentHwTest::initialConfig(ensemble);
@@ -155,16 +166,11 @@ void AgentHwLlrTest::verifyLlrProgrammed() {
                  << " txInit=" << *stats.llrTxInitCtlOs_()
                  << " rxInit=" << *stats.llrRxInitCtlOs_();
 
-      // Read the LLR binding back from hardware (via the HwAgent process, so
-      // this works in both mono and multi-switch). This confirms the SAI
-      // profile object still exists, is bound to the port, and carries the
-      // last-applied frame actions after the warm boot -- not just that the
-      // SwitchState intent survived.
-      auto switchId =
-          getAgentEnsemble()->scopeResolver().scope(portId).switchId();
-      auto client = getAgentEnsemble()->getHwAgentTestClient(switchId);
-      utility::PortLlrInfo llrInfo;
-      client->sync_getPortLlrInfo(llrInfo, portId);
+      // Read the LLR binding back from hardware. This confirms the SAI profile
+      // object still exists, is bound to the port, and carries the last-applied
+      // frame actions after the warm boot -- not just that the SwitchState
+      // intent survived.
+      auto llrInfo = getPortLlrInfo(portId);
       EXPECT_TRUE(*llrInfo.hasProfile());
       EXPECT_NE(*llrInfo.profileId(), 0);
       EXPECT_EQ(*llrInfo.initFrameAction(), initFrameAction());
@@ -188,6 +194,27 @@ class AgentHwLlrBlockInitTest : public AgentHwLlrTest {
 
 TEST_F(AgentHwLlrBlockInitTest, verifyLlrConfig) {
   verifyLlrProgrammed();
+}
+
+// An LLR config change is rejected on a running switch whose ports are enabled,
+// rather than being programmed by flapping them. The unit tests cover the
+// validator on a synthetic delta; this is the only coverage of a live switch
+// with LLR bound in hardware refusing the change.
+//
+// It runs after a warm boot because that is a switch that came up with its
+// ports enabled and LLR already running, which is the state the rejection
+// protects.
+TEST_F(AgentHwLlrTest, llrConfigChangeRejectedOnEnabledPorts) {
+  auto verifyPostWarmboot = [this]() {
+    auto retuned = initialConfig(*getAgentEnsemble());
+    (*retuned.llrConfigs())[kLlrConfigName].replayTimerMax() = 6000;
+    EXPECT_THROW(applyNewConfig(retuned), FbossError);
+
+    // applyNewConfig writes the config to disk before applying it, so put the
+    // accepted one back for anything that reloads from disk afterwards.
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  };
+  verifyAcrossWarmBoots([]() {}, []() {}, []() {}, verifyPostWarmboot);
 }
 
 } // namespace facebook::fboss
