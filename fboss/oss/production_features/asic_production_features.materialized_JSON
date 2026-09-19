@@ -674,7 +674,9 @@
         102,
         104,
         117,
-        123
+        123,
+        49,
+        111
     ],
     "tomahawkultra1": [
         2,
@@ -1464,7 +1466,9 @@
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
         "CABLE_LENGTH_MEASUREMENT",
-        "DROP_REASON_LIST_SUPPORT"
+        "DROP_REASON_LIST_SUPPORT",
+        "MIRROR_ON_DROP",
+        "MIRROR_ON_DROP_STATELESS"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1935,6 +1939,14 @@
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp",
           "note": "Stateless mirror-on-drop is supported on SAI Tomahawk5 from SDK 13.3 onwards (renamed from AgentMirrorOnDropXgs in D101748313)"
+        },
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "14.2.0.0_odp",
+          "note": "Stateless mirror-on-drop is supported on SAI Tomahawk6 from SDK 14.2 onwards"
         }
       ]
     },
