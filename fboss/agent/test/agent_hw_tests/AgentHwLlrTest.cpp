@@ -217,4 +217,48 @@ TEST_F(AgentHwLlrTest, llrConfigChangeRejectedOnEnabledPorts) {
   verifyAcrossWarmBoots([]() {}, []() {}, []() {}, verifyPostWarmboot);
 }
 
+// Binding LLR to a port in the same update that enables it. SaiPortManager
+// writes the port object from the new port before it programs LLR, so it has to
+// hold the enable until the profile is attached; otherwise the attach lands on
+// a port hardware already considers enabled, which native SDK 6.5.36 rejects
+// with SAI_STATUS_OBJECT_IN_USE. The agent aborts on that, so the test failing
+// at all is the assertion. 6.5.35 permits the write and would instead leave LLR
+// off.
+//
+// Reaching that state takes one update, since disabling a port and unbinding
+// its LLR config together is allowed.
+TEST_F(AgentHwLlrTest, bindLlrWhileEnablingPort) {
+  auto portId = masterLogicalInterfacePortIds()[0];
+  auto setup = [this, portId]() {
+    auto unbound = initialConfig(*getAgentEnsemble());
+    auto portCfg = utility::findCfgPort(unbound, portId);
+    portCfg->state() = cfg::PortState::DISABLED;
+    portCfg->llrConfigName().reset();
+    applyNewConfig(unbound);
+
+    // Without this the test passes whether or not the update above landed: the
+    // port would still be enabled and bound from the initial config, and the
+    // update under test would be a no-op.
+    auto mid = getProgrammedState()->getPorts()->getNodeIf(portId);
+    ASSERT_NE(mid, nullptr);
+    ASSERT_FALSE(mid->isEnabled());
+    ASSERT_FALSE(mid->getLlrConfig().has_value());
+
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  };
+  auto verify = [this, portId]() {
+    auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+    ASSERT_NE(port, nullptr);
+    EXPECT_TRUE(port->isEnabled());
+    ASSERT_TRUE(port->getLlrConfig().has_value());
+    EXPECT_EQ(*port->getLlrConfigName(), kLlrConfigName);
+
+    // Read the binding back from hardware rather than trusting SwitchState.
+    auto llrInfo = getPortLlrInfo(portId);
+    EXPECT_TRUE(*llrInfo.hasProfile());
+    EXPECT_NE(*llrInfo.profileId(), 0);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
