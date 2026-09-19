@@ -905,4 +905,34 @@ TEST_F(PortApiTest, portLlrAttributes) {
   EXPECT_EQ(port.llrProfile, static_cast<sai_object_id_t>(profileId));
 }
 
+// Clearing an LLR mode, and attaching or detaching a profile, are refused while
+// the port is administratively enabled (Broadcom CS00012478409). Setting a mode
+// is not: that is how the one-shot LLR_MODE_REMOTE trigger is armed on link up.
+TEST_F(PortApiTest, portLlrAttributesOnEnabledPort) {
+  auto portId = createPort(100000, {42}, false);
+  auto profileId = createLlrProfile(portApi.get());
+  portApi->setAttribute(
+      portId,
+      SaiPortTraits::Attributes::LlrProfile{
+          static_cast<sai_object_id_t>(profileId)});
+  portApi->setAttribute(portId, SaiPortTraits::Attributes::LlrModeLocal{true});
+  portApi->setAttribute(portId, SaiPortTraits::Attributes::AdminState{true});
+
+  EXPECT_THROW(
+      portApi->setAttribute(
+          portId, SaiPortTraits::Attributes::LlrModeLocal{false}),
+      SaiApiError);
+  auto otherProfileId = createLlrProfile(portApi.get());
+  EXPECT_THROW(
+      portApi->setAttribute(
+          portId,
+          SaiPortTraits::Attributes::LlrProfile{
+              static_cast<sai_object_id_t>(otherProfileId)}),
+      SaiApiError);
+
+  // Re-asserting a mode on an enabled port is allowed.
+  portApi->setAttribute(portId, SaiPortTraits::Attributes::LlrModeRemote{true});
+  SaiPortTraits::Attributes::LlrModeRemote modeRemoteBlank;
+  EXPECT_EQ(portApi->getAttribute(portId, modeRemoteBlank), true);
+}
 #endif
