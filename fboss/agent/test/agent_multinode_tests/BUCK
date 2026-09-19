@@ -83,6 +83,10 @@ _sai_agent_multinode_test_configs = [
             sai_impl,
         ),
         linker_flags = [],
+        # FIXME(arm-ci): SAI brcm-dnx vendor SDK is an x86-only prebuilt (no
+        # aarch64 variant); FBOSS switches are x86 hosts. Gate x86-only so arm CI
+        # skips these instead of failing to link the x86 vendor archive.
+        target_compatible_with = ["ovr_config//cpu:x86_64"],
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
