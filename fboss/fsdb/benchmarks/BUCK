@@ -102,3 +102,24 @@ cpp_benchmark(
         "gflags",
     ],
 )
+
+cpp_benchmark(
+    name = "subscribable_storage_memory_bench",
+    srcs = [
+        "SubscribableStorageMemoryBench.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/glog:glog",
+        "//fboss/fsdb/oper/instantiations:fsdb_naive_periodic_subscribable_storage",
+        "//fboss/thrift_cow/storage/tests:benchmark_helper",
+        "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/logging:log_level",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
