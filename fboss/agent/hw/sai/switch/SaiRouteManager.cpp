@@ -192,6 +192,19 @@ void SaiRouteManager::addOrUpdateRoute(
     packetAction = SAI_PACKET_ACTION_FORWARD;
     const auto nhops = getNextHops(state, fwd);
     /*
+     * A route carrying a backup next hop must be programmed as a protection
+     * group even when only one next hop survives resolution -- losing the
+     * primary is exactly when protection matters. As a plain next hop the
+     * standby semantics are dropped at the hardware boundary and traffic
+     * forwards over the backup as though it were the primary path.
+     *
+     * Role is a per next hop property that normalization preserves, so the
+     * group type can be decided from the unnormalized set and the more
+     * expensive getNormalizedNextHops() stays on the group path only.
+     */
+    const bool needsProtectionGroup =
+        isProtectionNextHopGroupType(getNextHopGroupType(nhops));
+    /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
      * and with the configured InterfaceID.
@@ -299,7 +312,7 @@ void SaiRouteManager::addOrUpdateRoute(
         XLOG(DBG3) << "Connected route: " << newRoute->str()
                    << " routerInterfaceId: " << routerInterfaceId;
       }
-    } else if (nhops.size() > 1) {
+    } else if (nhops.size() > 1 || needsProtectionGroup) {
       /*
        * A Route which has more than one NextHops will create or reference an
        * existing SaiNextHopGroup corresponding to ECMP over those next hops.
