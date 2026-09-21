@@ -977,6 +977,178 @@ class AgentDstIpV6WordAclCounterTest : public AgentAclCounterTest {
   }
 };
 
+namespace {
+constexpr auto kPortUserMetaAclTableName = "port-user-meta-acl-table";
+constexpr auto kPortUserMetaAclName = "port-user-meta-acl";
+constexpr auto kPortUserMetaAclCounterName = "port-user-meta-acl-stats";
+constexpr auto kPortUserMetaFallbackAclName = "port-user-meta-fallback-acl";
+constexpr auto kPortUserMetaFallbackCounterName =
+    "port-user-meta-fallback-stats";
+constexpr auto kPortLookupClass =
+    cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
+} // namespace
+
+class AgentPortUserMetaAclTest : public AgentHwTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::PORT_USER_METADATA,
+    };
+  }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_group = true;
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalInterfacePortIds(),
+        true /* interfaceHasSubnet */);
+  }
+
+  std::unique_ptr<TxPacket> makePacket() {
+    const auto vlanId = getVlanIDForTx();
+    const auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    const auto srcMac =
+        utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    return utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::1"),
+        folly::IPAddressV6("2620:0:1cfe:face:b00c::2"),
+        kTestSrcPort,
+        kTestDstPort,
+        0,
+        255);
+  }
+
+  void addAcls(cfg::SwitchConfig* config) const {
+    cfg::AclEntry metadataAcl;
+    metadataAcl.name() = kPortUserMetaAclName;
+    metadataAcl.actionType() = cfg::AclActionType::DENY;
+    metadataAcl.lookupClassPort() = kPortLookupClass;
+
+    cfg::AclEntry fallbackAcl;
+    fallbackAcl.name() = kPortUserMetaFallbackAclName;
+    fallbackAcl.actionType() = cfg::AclActionType::DENY;
+    fallbackAcl.ipType() = cfg::IpType::IP6;
+
+    utility::addAclTable(
+        config,
+        kPortUserMetaAclTableName,
+        1 /* priority */,
+        {cfg::AclTableActionType::PACKET_ACTION,
+         cfg::AclTableActionType::COUNTER},
+        {cfg::AclTableQualifier::LOOKUP_CLASS_PORT,
+         cfg::AclTableQualifier::IP_TYPE});
+    utility::addAclEntry(
+        config, metadataAcl, kPortUserMetaAclTableName, cfg::AclStage::INGRESS);
+    utility::addAclEntry(
+        config, fallbackAcl, kPortUserMetaAclTableName, cfg::AclStage::INGRESS);
+
+    utility::addAclStat(
+        config,
+        kPortUserMetaAclName,
+        kPortUserMetaAclCounterName,
+        {cfg::CounterType::PACKETS});
+    utility::addAclStat(
+        config,
+        kPortUserMetaFallbackAclName,
+        kPortUserMetaFallbackCounterName,
+        {cfg::CounterType::PACKETS});
+  }
+
+  uint64_t getCounter(const std::string& name) const {
+    return utility::getAclInOutPackets(getSw(), name);
+  }
+};
+
+// Verify port metadata selects its ACL, while traffic from an untagged port
+// falls through to the IPv6 fallback ACL.
+TEST_F(AgentPortUserMetaAclTest, MatchIngressPortMetadata) {
+  if (!getAgentEnsemble()->isSai()) {
+    GTEST_SKIP() << "Port user metadata is a SAI-only test";
+  }
+  const auto ports = masterLogicalInterfacePortIds();
+  if (ports.size() < 2) {
+    GTEST_SKIP() << "Need two interface ports";
+  }
+  const PortID metadataPort{ports[0]};
+  const PortID otherPort{ports[1]};
+
+  auto setup = [=, this]() {
+    XLOG(INFO) << "Configuring port " << metadataPort
+               << " with restricted user metadata and installing metadata "
+                  "and IPv6 fallback deny ACLs";
+    auto config = initialConfig(*getAgentEnsemble());
+    auto portCfg = utility::findCfgPort(config, metadataPort);
+    portCfg->userMetaData() = kPortLookupClass;
+    addAcls(&config);
+    applyNewConfig(config);
+  };
+
+  auto verify = [=, this]() {
+    const auto bootType =
+        getSw()->getBootType() == BootType::WARM_BOOT ? "warmboot" : "coldboot";
+    XLOG(INFO) << "Verifying port metadata ACL matching during " << bootType;
+    auto metadataBefore = getCounter(kPortUserMetaAclCounterName);
+    auto fallbackBefore = getCounter(kPortUserMetaFallbackCounterName);
+
+    XLOG(INFO) << "Sending a packet from metadata port " << metadataPort
+               << "; expect deny by the port metadata ACL. Counters before: "
+               << kPortUserMetaAclCounterName << "=" << metadataBefore << ", "
+               << kPortUserMetaFallbackCounterName << "=" << fallbackBefore;
+    ASSERT_TRUE(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
+            makePacket(), metadataPort));
+    WITH_RETRIES({
+      const auto metadataAfter = getCounter(kPortUserMetaAclCounterName);
+      const auto fallbackAfter = getCounter(kPortUserMetaFallbackCounterName);
+      EXPECT_EVENTUALLY_EQ(metadataBefore + 1, metadataAfter);
+      EXPECT_EVENTUALLY_EQ(fallbackBefore, fallbackAfter);
+    });
+    XLOG(INFO) << "Packet from metadata port was denied by the port metadata "
+                  "ACL. Counters after: "
+               << kPortUserMetaAclCounterName << "="
+               << getCounter(kPortUserMetaAclCounterName) << ", "
+               << kPortUserMetaFallbackCounterName << "="
+               << getCounter(kPortUserMetaFallbackCounterName);
+
+    metadataBefore = getCounter(kPortUserMetaAclCounterName);
+    fallbackBefore = getCounter(kPortUserMetaFallbackCounterName);
+
+    XLOG(INFO) << "Sending a packet from untagged port " << otherPort
+               << "; expect deny by the IPv6 fallback ACL. Counters before: "
+               << kPortUserMetaAclCounterName << "=" << metadataBefore << ", "
+               << kPortUserMetaFallbackCounterName << "=" << fallbackBefore;
+    ASSERT_TRUE(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(makePacket(), otherPort));
+    WITH_RETRIES({
+      const auto metadataAfter = getCounter(kPortUserMetaAclCounterName);
+      const auto fallbackAfter = getCounter(kPortUserMetaFallbackCounterName);
+      EXPECT_EVENTUALLY_EQ(metadataBefore, metadataAfter);
+      EXPECT_EVENTUALLY_EQ(fallbackBefore + 1, fallbackAfter);
+    });
+    XLOG(INFO) << "Packet from untagged port was denied by the IPv6 fallback "
+                  "ACL. Counters after: "
+               << kPortUserMetaAclCounterName << "="
+               << getCounter(kPortUserMetaAclCounterName) << ", "
+               << kPortUserMetaFallbackCounterName << "="
+               << getCounter(kPortUserMetaFallbackCounterName);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(
