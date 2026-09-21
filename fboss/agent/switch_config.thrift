@@ -1087,6 +1087,10 @@ struct QosMap {
   7: optional map<i16, i16> trafficClassToVoqId;
   //  dot1q priority code point to traffic class
   8: optional list<PcpQosMap> pcpMaps;
+  // Maps a traffic class to a CBFC virtual channel (UE Spec 1.0.2 section
+  // 5.2). Receiver-side classification: decides which VC's credit counters an
+  // arriving packet is charged against.
+  9: optional map<i16, i16> trafficClassToVcId;
 }
 
 struct QosRule {

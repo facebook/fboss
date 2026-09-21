@@ -3621,6 +3621,7 @@ class ChildThriftPath<::facebook::fboss::state::QosPolicyFields, ::facebook::fbo
     STRUCT_CHILD_GETTERS(pfcPriorityToPgId, 7);
     STRUCT_CHILD_GETTERS(trafficClassToVoqId, 8);
     STRUCT_CHILD_GETTERS(pcpMap, 9);
+    STRUCT_CHILD_GETTERS(trafficClassToVcId, 10);
 };
 
 
@@ -9579,6 +9580,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QosMap, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(pfcPriorityToPgId, 6);
     STRUCT_CHILD_GETTERS(trafficClassToVoqId, 7);
     STRUCT_CHILD_GETTERS(pcpMaps, 8);
+    STRUCT_CHILD_GETTERS(trafficClassToVcId, 9);
 };
 
 
