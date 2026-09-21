@@ -1,12 +1,16 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
@@ -130,6 +134,90 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     return folly::IPAddressV6(fmt::format("3001:db8:{:x}::", index + 1));
   }
 
+  // uSID packet aimed at the protected SID: [locator fdad:ffff:]
+  // [active uSID 1][next uSID f]. Function id 0xf is outside the configured
+  // 1..kNumLags, so once uSID 1 is shifted out the packet is not another
+  // local SID on this box.
+  folly::IPAddressV6 protectedSidPktDst() const {
+    return folly::IPAddressV6("fdad:ffff:1:f::");
+  }
+
+  PortID getEgressPort(const PortDescriptor& portDesc) const {
+    if (portDesc.isPhysicalPort()) {
+      return portDesc.phyPortID();
+    }
+    auto aggPort = getProgrammedState()->getAggregatePorts()->getNodeIf(
+        portDesc.aggPortID());
+    return aggPort->sortedSubports().front().portID;
+  }
+
+  PortID findInjectPort(const std::vector<PortID>& egressPorts) {
+    for (const auto& portMap :
+         std::as_const(*getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (port->isPortUp() &&
+            std::find(egressPorts.begin(), egressPorts.end(), port->getID()) ==
+                egressPorts.end()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides the mysid lag ports");
+  }
+
+  void sendPacketToProtectedSid(PortID injectPort) {
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto txPacket = utility::makeIpInIpTxPacket(
+        getSw(),
+        getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("100::1") /* outerSrc */,
+        protectedSidPktDst() /* outerDst */,
+        folly::IPAddressV6("2001:db8::1") /* innerSrc */,
+        folly::IPAddressV6("2001:db8::2") /* innerDst */,
+        8000 /* srcPort */,
+        8001 /* dstPort */,
+        0 /* outerTrafficClass */,
+        0 /* innerTrafficClass */,
+        64 /* hopLimit */,
+        64 /* innerHopLimit */);
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+  }
+
+  // With the primary adjacency up, FRR backups are programmed but must not
+  // carry traffic: the packet has to leave via the protected SID's own
+  // adjacency (AGG-1) and none of the backup lags.
+  void verifyForwardedViaPrimary() {
+    auto primaryPort = getEgressPort(lagPortDesc(0));
+    std::vector<PortID> lagPorts{primaryPort};
+    for (int i = 1; i < kNumLags; ++i) {
+      lagPorts.push_back(getEgressPort(lagPortDesc(i)));
+    }
+    auto injectPort = findInjectPort(lagPorts);
+
+    std::map<PortID, int64_t> bytesBefore;
+    for (const auto& port : lagPorts) {
+      bytesBefore[port] = *getLatestPortStats(port).outBytes_();
+    }
+
+    sendPacketToProtectedSid(injectPort);
+
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GT(
+          *getLatestPortStats(primaryPort).outBytes_(),
+          bytesBefore[primaryPort]);
+    });
+
+    for (int i = 1; i < kNumLags; ++i) {
+      auto backupPort = getEgressPort(lagPortDesc(i));
+      EXPECT_EQ(
+          *getLatestPortStats(backupPort).outBytes_(), bytesBefore[backupPort])
+          << "traffic egressed backup lag " << i << " on port " << backupPort;
+    }
+  }
+
   void programBackupRoutes() {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = getSw()->getRouteUpdater();
@@ -204,7 +292,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
 
 TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
   auto setup = [this]() { addSrv6BackupProtection(); };
-  auto verify = []() {};
+  auto verify = [this]() { verifyForwardedViaPrimary(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
