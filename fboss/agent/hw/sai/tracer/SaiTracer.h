@@ -317,6 +317,9 @@ class SaiTracer {
   sai_vendor_switch_api_t* vendorSwitchApi_;
   sai_switch_pipeline_api_t* switchPipelineApi_;
 #endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+  sai_virtual_channel_api_t* virtualChannelApi_;
+#endif
   sai_virtual_router_api_t* virtualRouterApi_;
   sai_vlan_api_t* vlanApi_;
   sai_wred_api_t* wredApi_;
@@ -539,6 +542,9 @@ class SaiTracer {
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_VENDOR_SWITCH), "vendorSwitch_"},
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE), "switchPipeline_"},
 #endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtualChannel_"},
+#endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
@@ -625,6 +631,9 @@ class SaiTracer {
           "vendor_switch_api->"},
       {static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE),
           "switch_pipeline_api->"},
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtual_channel_api->"},
 #endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},

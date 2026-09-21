@@ -57,6 +57,7 @@ FBOSS_STRONG_TYPE(sai_object_id_t, SystemPortSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, UdfSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, UdfGroupSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, UdfMatchSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, VirtualChannelSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VirtualRouterSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, VlanMemberSaiId);

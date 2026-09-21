@@ -187,6 +187,12 @@ const UdfApi& SaiApiTable::udfApi() const {
   return getApi<UdfApi>();
 }
 
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+const VirtualChannelApi& SaiApiTable::virtualChannelApi() const {
+  return getApi<VirtualChannelApi>();
+}
+#endif
+
 const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
   return getApi<VirtualRouterApi>();
 }

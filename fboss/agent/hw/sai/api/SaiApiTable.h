@@ -43,6 +43,7 @@
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/sai/api/VendorSwitchApi.h"
+#include "fboss/agent/hw/sai/api/VirtualChannelApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -128,6 +129,10 @@ class SaiApiTable {
 
   const UdfApi& udfApi() const;
 
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+  const VirtualChannelApi& virtualChannelApi() const;
+#endif
+
   const VirtualRouterApi& virtualRouterApi() const;
 
   const VlanApi& vlanApi() const;
@@ -207,6 +212,9 @@ class SaiApiTable {
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<SystemPortApi>,
       std::unique_ptr<UdfApi>,
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      std::unique_ptr<VirtualChannelApi>,
+#endif
       std::unique_ptr<VirtualRouterApi>,
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
