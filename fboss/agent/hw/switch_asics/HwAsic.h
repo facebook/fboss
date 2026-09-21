@@ -577,6 +577,7 @@ class HwAsic {
     // retransmission of LLR-eligible frames between link partners. Currently
     // supported only on Tomahawk Ultra.
     LINK_LAYER_RETRANSMISSION,
+    CBFC,
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,

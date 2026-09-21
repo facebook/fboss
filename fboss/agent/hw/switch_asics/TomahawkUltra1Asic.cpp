@@ -104,6 +104,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_TABLE_GROUP:
     // UEC Link Layer Retry (UE Spec 1.0.2 section 5.1); supported via SAI
     // PORT_LLR_PROFILE on Tomahawk Ultra.
+    case HwAsic::Feature::CBFC:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
       return true;
     case HwAsic::Feature::MPLS:
