@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
+#include "fboss/agent/hw/switch_asics/Qumran3DAsic.h"
 
 namespace facebook::fboss {
 
@@ -10,7 +10,7 @@ constexpr auto kCpuPortNumVoqs = 8;
 } // namespace
 
 std::vector<HwAsic::InternalSystemPortConfig>
-Qumran4DAsic::getInternalSystemPortConfig(
+Qumran3DAsic::getInternalSystemPortConfig(
     const CpuPortCoreAndPortIndex& cpuPortsCoreAndPortIdx) const {
   CHECK(getSwitchId()) << " Switch Id must be set before sys port info";
 
@@ -25,7 +25,7 @@ Qumran4DAsic::getInternalSystemPortConfig(
   return sysPortConfig;
 }
 
-bool Qumran4DAsic::isSupported(Feature feature) const {
+bool Qumran3DAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::PKTIO:
@@ -86,7 +86,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS:
     case HwAsic::Feature::ROUTE_METADATA:
-    case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
@@ -103,7 +102,10 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
-    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
+    // ECN is supported on Q3D (DNX3), unlike Q4D. The DNX3 SAI creates CRPS
+    // databases for ETPP ECN counters, whereas the Q4D (DNX4) path skips ECN
+    // stats init. This matches the Jericho3 sibling (also DNX3), which enables
+    // these features.
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
@@ -156,7 +158,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
-    // On Qumran4D ASIC we don't create any vlans but rather
+    // On Qumran3D ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -213,7 +215,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
-    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
@@ -222,7 +223,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     /*
-     * Qumran4D does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect
+     * Qumran3D does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect
      * is achieved by configuring to forward TTL0 packets by enabling
      * SAI_TTL0_PACKET_FORWARD_ENABLE.
      */
@@ -234,7 +235,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
-    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
     case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     // Disabling ANY_TRAP_DROP_COUNTER for the time being.
     // This will result in an early return in
@@ -242,7 +242,6 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     // failing with SAI 14.x
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
-    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
@@ -253,12 +252,10 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEVICE_WATERMARK_SUPPORT:
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
-    // TODO (Q4D/J4/R4): Vendor switch interrupt events are rejected by the Q4D
-    // SDK (INVALID PARAMETER) because there is no Q4D-specific vendor-switch
-    // interrupt event set yet (only J3/R3 exist in bcm_switch_vendor_events).
-    // Enable once Broadcom provides the Q4D vendor-switch event definitions.
+    // TODO (Q4D/J4/R4): Enable once SDK support is available
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::VENDOR_SWITCH_CONGESTION_MANAGEMENT_ERRORS:
+    case HwAsic::Feature::ASIC_RESET_NOTIFICATIONS:
     // TODO (Q4D/J4/R4): Following features are not currently supported
     // in SDK. Some of them are not applicable for Q4D. Will be updated
     // accordingly after BRCM confirmation. Rest of the features will be
@@ -279,7 +276,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::EGRESS_CELL_ERROR_STATS:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
-    // Qumran4D has no fabric ports
+    // Qumran3D has no fabric ports
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
@@ -291,10 +288,21 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
+    case HwAsic::Feature::ARS_CURRENT_PORT_LOAD:
+    case HwAsic::Feature::SAI_FEC_SYMBOL_ERRORS:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
-    case HwAsic::Feature::TAJO_RX_SERDES_PARAMETERS:
+    case HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    // Claiming this makes SaiPlatform::getSwitchAttributes set
+    // SAI_SWITCH_ATTR_NO_ACLS_FOR_TRAPS, which the Broadcom SAI only accepts on
+    // DNXAI devices: _brcm_sai_support_no_acls_for_traps is set solely in
+    // _brcm_sai_dnxai_features_init(). Q3D dispatches via DEV_IS_DNX3() to
+    // _brcm_sai_dnx3_features_init(), which leaves it FALSE, so
+    // _brcm_sai_switch_dnx_acl_traps_init() rejects the attribute with
+    // SAI_STATUS_ATTR_NOT_SUPPORTED_0 and fails sai_create_switch().
+    case HwAsic::Feature::NO_RX_REASON_TRAP:
+    case HwAsic::Feature::TAJO_RX_SERDES_PARAMETERS:
       return false;
   }
   return false;

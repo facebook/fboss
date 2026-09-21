@@ -258,6 +258,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PBR_ACL:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
+    case HwAsic::Feature::TAJO_RX_SERDES_PARAMETERS:
     case HwAsic::Feature::RX_PACKET_TYPE:
       return false;
   }
