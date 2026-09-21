@@ -23,6 +23,8 @@ namespace facebook::fboss {
 class AgentMySidAdjFrrRouteTest : public AgentHwTest {
  protected:
   static constexpr int kNumLags{4};
+  // Lag the protected SID's own adjacency is wired to; the rest are backups.
+  static constexpr int kPrimaryLag{0};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr auto kLocatorPrefix{"fdad:ffff::/32"};
   static constexpr auto kSrv6TunnelId{"srv6Tunnel0"};
@@ -184,36 +186,70 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
 
-  // With the primary adjacency up, FRR backups are programmed but must not
-  // carry traffic: the packet has to leave via the protected SID's own
-  // adjacency (AGG-1) and none of the backup lags.
-  void verifyForwardedViaPrimary() {
-    auto primaryPort = getEgressPort(lagPortDesc(0));
-    std::vector<PortID> lagPorts{primaryPort};
-    for (int i = 1; i < kNumLags; ++i) {
-      lagPorts.push_back(getEgressPort(lagPortDesc(i)));
+  std::vector<PortID> allLagPorts() const {
+    std::vector<PortID> ports;
+    ports.reserve(kNumLags);
+    for (int i = 0; i < kNumLags; ++i) {
+      ports.push_back(getEgressPort(lagPortDesc(i)));
     }
+    return ports;
+  }
+
+  std::vector<int> backupLags() const {
+    std::vector<int> lags;
+    for (int i = kPrimaryLag + 1; i < kNumLags; ++i) {
+      lags.push_back(i);
+    }
+    return lags;
+  }
+
+  // Sends one packet at the protected SID and asserts exactly one of
+  // `liveLags` carried it while every lag in `downLags` stayed flat.
+  void verifyForwardedViaOneOfLags(
+      const std::vector<int>& liveLags,
+      const std::vector<int>& downLags) {
+    auto lagPorts = allLagPorts();
     auto injectPort = findInjectPort(lagPorts);
 
-    std::map<PortID, int64_t> bytesBefore;
-    for (const auto& port : lagPorts) {
-      bytesBefore[port] = *getLatestPortStats(port).outBytes_();
+    std::vector<int64_t> bytesBefore(kNumLags);
+    for (int i = 0; i < kNumLags; ++i) {
+      bytesBefore[i] = *getLatestPortStats(lagPorts[i]).outBytes_();
     }
 
     sendPacketToProtectedSid(injectPort);
 
     WITH_RETRIES({
-      EXPECT_EVENTUALLY_GT(
-          *getLatestPortStats(primaryPort).outBytes_(),
-          bytesBefore[primaryPort]);
+      int carried = 0;
+      for (auto lag : liveLags) {
+        if (*getLatestPortStats(lagPorts[lag]).outBytes_() > bytesBefore[lag]) {
+          ++carried;
+        }
+      }
+      EXPECT_EVENTUALLY_EQ(carried, 1);
     });
 
-    for (int i = 1; i < kNumLags; ++i) {
-      auto backupPort = getEgressPort(lagPortDesc(i));
+    for (auto lag : downLags) {
       EXPECT_EQ(
-          *getLatestPortStats(backupPort).outBytes_(), bytesBefore[backupPort])
-          << "traffic egressed backup lag " << i << " on port " << backupPort;
+          *getLatestPortStats(lagPorts[lag]).outBytes_(), bytesBefore[lag])
+          << "traffic egressed lag " << lag << " on port " << lagPorts[lag]
+          << ", which should not be carrying";
     }
+  }
+
+  // With the primary adjacency up, FRR backups are programmed but must not
+  // carry traffic: the packet has to leave via the protected SID's own
+  // adjacency (AGG-1) and none of the backup lags.
+  void verifyForwardedViaPrimary() {
+    verifyForwardedViaOneOfLags({kPrimaryLag} /* liveLags */, backupLags());
+  }
+
+  // Link down only, leaving the neighbor in place: FRR switchover is driven by
+  // the hardware protection group off port state, so traffic has to move
+  // before the control plane has withdrawn anything.
+  void bringDownLagLink(int lag) {
+    auto port = getEgressPort(lagPortDesc(lag));
+    bringDownPort(port);
+    XLOG(DBG2) << "Brought down lag " << lag << " link (port " << port << ")";
   }
 
   void programBackupRoutes() {
@@ -260,7 +296,14 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
 
 TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
   auto setup = [this]() { addSrv6BackupProtection(); };
-  auto verify = [this]() { verifyForwardedViaPrimary(); };
+  auto verify = [this]() {
+    // Primary up: traffic takes the protected SID's own adjacency.
+    verifyForwardedViaPrimary();
+
+    // Fail the primary link and an FRR backup has to pick the traffic up.
+    bringDownLagLink(kPrimaryLag);
+    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
