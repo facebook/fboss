@@ -483,10 +483,14 @@ agent_benchmark_lib(
     name = "hw_flowlet_stats_collection_speed",
     srcs = ["HwFlowletStatsCollectionBenchmark.cpp"],
     deps = [
-        "//fboss/agent:platform_base",
+        "fbsource//third-party/googletest:gtest",
+        ":hw_stats_collection_benchmark_helper",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:scale_test_utils",
+        "//fboss/lib:common_utils",
         "//folly:network_address",
+        "//folly/logging:logging",
     ],
     extra_deps = [
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
