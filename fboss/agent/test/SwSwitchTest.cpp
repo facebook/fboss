@@ -178,26 +178,26 @@ TEST_F(SwSwitchTest, VerifyLlrConfigChangeRejected) {
   ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
       .WillByDefault(testing::Return(true));
 
-  const PortID kPort{1};
-  auto withAdminState = [kPort](
+  const PortID kTestPort{1};
+  auto withAdminState = [kTestPort](
                             const std::shared_ptr<SwitchState>& base,
                             cfg::PortState adminState) {
     auto state = base->clone();
-    state->getPorts()->getNodeIf(kPort)->modify(&state)->setAdminState(
+    state->getPorts()->getNodeIf(kTestPort)->modify(&state)->setAdminState(
         adminState);
     state->publish();
     return state;
   };
   // description gives the port a field to change independently of LLR, so the
   // port lands in the delta even when its LLR config is untouched.
-  auto withLlr = [kPort](
+  auto withLlr = [kTestPort](
                      const std::shared_ptr<SwitchState>& base,
                      const std::string& name,
                      const std::string& description,
                      cfg::PortState adminState,
                      int32_t outstandingBytesMax = 105800) {
     auto state = base->clone();
-    auto port = state->getPorts()->getNodeIf(kPort)->modify(&state);
+    auto port = state->getPorts()->getNodeIf(kTestPort)->modify(&state);
     port->setLlrConfigName(name);
     port->setLlrConfig(makeLlrConfig(name, outstandingBytesMax));
     port->setDescription(description);
