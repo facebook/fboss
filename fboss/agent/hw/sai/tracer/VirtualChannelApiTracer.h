@@ -15,6 +15,7 @@ namespace facebook::fboss {
 sai_virtual_channel_api_t* wrappedVirtualChannelApi();
 
 SET_ATTRIBUTE_FUNC_DECLARATION(VirtualChannel);
+SET_ATTRIBUTE_FUNC_DECLARATION(CbfcCreditProfile);
 
 } // namespace facebook::fboss
 

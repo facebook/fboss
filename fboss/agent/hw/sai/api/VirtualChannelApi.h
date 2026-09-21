@@ -76,6 +76,39 @@ SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderEnable);
 template <>
 struct SaiObjectHasStats<SaiVirtualChannelTraits> : public std::true_type {};
 
+/*
+ * brcm-sai 16.0_ea_odp rejects THRESHOLD_MODE, SHARED_DYNAMIC_TH and
+ * SHARED_STATIC_TH on presence rather than on value, so they cannot be
+ * modelled even as optionals. PoolId is MANDATORY_ON_CREATE and must be
+ * SAI_NULL_OBJECT_ID: CBFC_CREDIT_POOL is unsupported, so no pool object can
+ * exist to reference.
+ */
+struct SaiCbfcCreditProfileTraits {
+  static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_CHANNEL;
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE;
+  using SaiApiT = VirtualChannelApi;
+  struct Attributes {
+    using EnumType = sai_cbfc_credit_profile_attr_t;
+    using PoolId = SaiAttribute<
+        EnumType,
+        SAI_CBFC_CREDIT_PROFILE_ATTR_POOL_ID,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using ReservedCreditSize = SaiAttribute<
+        EnumType,
+        SAI_CBFC_CREDIT_PROFILE_ATTR_RESERVED_CREDIT_SIZE,
+        sai_uint64_t>;
+  };
+  using AdapterKey = CbfcCreditProfileSaiId;
+  using CreateAttributes =
+      std::tuple<Attributes::PoolId, Attributes::ReservedCreditSize>;
+  using AdapterHostKey = CreateAttributes;
+};
+
+SAI_ATTRIBUTE_NAME(CbfcCreditProfile, PoolId);
+SAI_ATTRIBUTE_NAME(CbfcCreditProfile, ReservedCreditSize);
+
 class VirtualChannelApi : public SaiApi<VirtualChannelApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_VIRTUAL_CHANNEL;
@@ -128,6 +161,27 @@ class VirtualChannelApi : public SaiApi<VirtualChannelApi> {
       uint32_t num_of_counters,
       const sai_stat_id_t* counter_ids) const {
     return api_->clear_virtual_channel_stats(key, num_of_counters, counter_ids);
+  }
+
+  sai_status_t _create(
+      CbfcCreditProfileSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_cbfc_credit_profile(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(CbfcCreditProfileSaiId id) const {
+    return api_->remove_cbfc_credit_profile(id);
+  }
+  sai_status_t _getAttribute(CbfcCreditProfileSaiId key, sai_attribute_t* attr)
+      const {
+    return api_->get_cbfc_credit_profile_attribute(key, 1, attr);
+  }
+  sai_status_t _setAttribute(
+      CbfcCreditProfileSaiId key,
+      const sai_attribute_t* attr) const {
+    return api_->set_cbfc_credit_profile_attribute(key, attr);
   }
 
   sai_virtual_channel_api_t* api_;

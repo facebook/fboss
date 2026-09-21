@@ -30,6 +30,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _VirtualChannelMap{
     SAI_ATTR_MAP(VirtualChannel, CbfcSenderEnable),
 };
 
+std::map<int32_t, std::pair<std::string, std::size_t>> _CbfcCreditProfileMap{
+    SAI_ATTR_MAP(CbfcCreditProfile, PoolId),
+    SAI_ATTR_MAP(CbfcCreditProfile, ReservedCreditSize),
+};
+
 } // namespace
 
 namespace facebook::fboss {
@@ -51,6 +56,23 @@ WRAP_GET_ATTR_FUNC(
     SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
     virtualChannel);
 
+WRAP_CREATE_FUNC(
+    cbfc_credit_profile,
+    SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE,
+    virtualChannel);
+WRAP_REMOVE_FUNC(
+    cbfc_credit_profile,
+    SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE,
+    virtualChannel);
+WRAP_SET_ATTR_FUNC(
+    cbfc_credit_profile,
+    SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE,
+    virtualChannel);
+WRAP_GET_ATTR_FUNC(
+    cbfc_credit_profile,
+    SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE,
+    virtualChannel);
+
 sai_virtual_channel_api_t* wrappedVirtualChannelApi() {
   static sai_virtual_channel_api_t virtualChannelWrappers;
 
@@ -61,10 +83,20 @@ sai_virtual_channel_api_t* wrappedVirtualChannelApi() {
   virtualChannelWrappers.get_virtual_channel_attribute =
       &wrap_get_virtual_channel_attribute;
 
+  virtualChannelWrappers.create_cbfc_credit_profile =
+      &wrap_create_cbfc_credit_profile;
+  virtualChannelWrappers.remove_cbfc_credit_profile =
+      &wrap_remove_cbfc_credit_profile;
+  virtualChannelWrappers.set_cbfc_credit_profile_attribute =
+      &wrap_set_cbfc_credit_profile_attribute;
+  virtualChannelWrappers.get_cbfc_credit_profile_attribute =
+      &wrap_get_cbfc_credit_profile_attribute;
+
   return &virtualChannelWrappers;
 }
 
 SET_SAI_ATTRIBUTES(VirtualChannel)
+SET_SAI_ATTRIBUTES(CbfcCreditProfile)
 
 } // namespace facebook::fboss
 

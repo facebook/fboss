@@ -544,6 +544,7 @@ class SaiTracer {
 #endif
 #if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
       {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtualChannel_"},
+      {SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, "cbfcCreditProfile_"},
 #endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
@@ -634,6 +635,7 @@ class SaiTracer {
 #endif
 #if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
       {SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, "virtual_channel_api->"},
+      {SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, "virtual_channel_api->"},
 #endif
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},

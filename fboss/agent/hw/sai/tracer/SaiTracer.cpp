@@ -2081,6 +2081,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
       setVirtualChannelAttributes(attr_list, attr_count, attrLines, rv);
       break;
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE:
+      setCbfcCreditProfileAttributes(attr_list, attr_count, attrLines, rv);
+      break;
 #endif
     case SAI_OBJECT_TYPE_VIRTUAL_ROUTER:
       setVirtualRouterAttributes(attr_list, attr_count, attrLines, rv);
@@ -2608,6 +2611,7 @@ void SaiTracer::initVarCounts() {
 #endif
 #if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, 0);
 #endif
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
