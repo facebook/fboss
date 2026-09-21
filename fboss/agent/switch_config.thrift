@@ -2246,6 +2246,10 @@ struct BufferPoolConfig {
 const i16 PORT_PG_VALUE_MAX = 7;
 const i16 PFC_PRIORITY_VALUE_MAX = 7;
 
+// max CBFC virtual channel index per port (UE Spec 1.0.2 section 5.2.3,
+// SAI_VIRTUAL_CHANNEL_ATTR_INDEX range 0-31)
+const i16 PORT_VC_VALUE_MAX = 31;
+
 // Defines PG (priority group) configuration for ports
 // This configuration defines the PG buffer settings for given port(s)
 struct PortPgConfig {
