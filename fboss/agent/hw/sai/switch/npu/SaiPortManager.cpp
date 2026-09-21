@@ -1164,6 +1164,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
         std::nullopt, // PFC Priority to Priority Group map
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+        std::nullopt, // TC to VC map
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
         std::nullopt,
 #endif
@@ -1307,6 +1310,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // TC to Priority Group map
       std::nullopt, // PFC Priority to Queue map
       std::nullopt, // PFC Priority to Priority Group map
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      std::nullopt, // TC to VC map
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       interFrameGap, // Inter Frame Gap
 #endif
