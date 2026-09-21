@@ -129,6 +129,17 @@ TEST_F(CmdConfigBgpNeighborTestFixture, bareCreate) {
   EXPECT_EQ(*peers()[1].local_addr(), "::");
 }
 
+TEST_F(CmdConfigBgpNeighborTestFixture, bareCreateExisting) {
+  run({"10.0.0.1", "remote-asn", "65000"});
+  // A bare re-create of an existing neighbor is a no-op: it must say so
+  // rather than claim a creation, and leave the neighbor untouched.
+  auto result = run({"10.0.0.1"});
+  EXPECT_THAT(result, HasSubstr("BGP neighbor 10.0.0.1 already exists"));
+  EXPECT_THAT(result, Not(HasSubstr("Successfully created")));
+  ASSERT_EQ(peers().size(), 1);
+  EXPECT_EQ(peers()[0].remote_as_4_byte().value_or(0), 65000);
+}
+
 TEST_F(CmdConfigBgpNeighborTestFixture, setRemoteAsn) {
   auto result = run({"10.0.0.1", "remote-asn", "65000"});
   EXPECT_THAT(result, HasSubstr("65000"));

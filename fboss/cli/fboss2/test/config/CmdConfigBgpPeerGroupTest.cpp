@@ -100,6 +100,17 @@ TEST_F(CmdConfigBgpPeerGroupTestFixture, bareCreate) {
   EXPECT_EQ(*groups()[1].name(), "LEAF");
 }
 
+TEST_F(CmdConfigBgpPeerGroupTestFixture, bareCreateExisting) {
+  run({"SPINE", "remote-asn", "65000"});
+  // A bare re-create of an existing group is a no-op: it must say so rather
+  // than claim a creation, and leave the group untouched.
+  auto result = run({"SPINE"});
+  EXPECT_THAT(result, HasSubstr("BGP peer-group SPINE already exists"));
+  EXPECT_THAT(result, Not(HasSubstr("Successfully created")));
+  ASSERT_EQ(groups().size(), 1);
+  EXPECT_EQ(groups()[0].remote_as_4_byte().value_or(0), 65000);
+}
+
 TEST_F(CmdConfigBgpPeerGroupTestFixture, setRemoteAsn) {
   auto result = run({"SPINE", "remote-asn", "65000"});
   EXPECT_THAT(result, HasSubstr("65000"));

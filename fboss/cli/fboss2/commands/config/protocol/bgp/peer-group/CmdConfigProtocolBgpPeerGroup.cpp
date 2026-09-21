@@ -601,6 +601,9 @@ CmdConfigProtocolBgpPeerGroup::queryClient(
   auto& cfg = session.getBgpConfig();
   auto& groups = cfg.peer_groups().ensure();
   auto existing = findPeerGroup(groups, args.groupName());
+  if (args.attr().empty() && existing != groups.end()) {
+    return fmt::format("BGP peer-group {} already exists", args.groupName());
+  }
 
   // Edit a copy: a rejected value (or a struct seeded for it) must leave the
   // in-memory config exactly as it was, since later lookups in the same

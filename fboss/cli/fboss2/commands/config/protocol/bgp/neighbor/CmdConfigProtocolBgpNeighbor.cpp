@@ -822,6 +822,9 @@ CmdConfigProtocolBgpNeighbor::queryClient(
   auto& cfg = session.getBgpConfig();
   auto& peers = *cfg.peers();
   auto existing = bgpcli::findBgpPeer(cfg, args.peerAddr());
+  if (args.attr().empty() && existing != peers.end()) {
+    return fmt::format("BGP neighbor {} already exists", args.peerAddr());
+  }
 
   // Edit a copy: a rejected value (or a struct seeded for it) must leave the
   // in-memory config exactly as it was, since later lookups in the same
