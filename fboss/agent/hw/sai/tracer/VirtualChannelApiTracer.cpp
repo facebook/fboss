@@ -25,6 +25,9 @@ namespace {
 std::map<int32_t, std::pair<std::string, std::size_t>> _VirtualChannelMap{
     SAI_ATTR_MAP(VirtualChannel, Port),
     SAI_ATTR_MAP(VirtualChannel, Index),
+    SAI_ATTR_MAP(VirtualChannel, CbfcSenderCreditProfile),
+    SAI_ATTR_MAP(VirtualChannel, CbfcReceiverEnable),
+    SAI_ATTR_MAP(VirtualChannel, CbfcSenderEnable),
 };
 
 } // namespace

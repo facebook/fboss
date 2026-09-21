@@ -33,14 +33,37 @@ struct SaiVirtualChannelTraits {
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_PORT, SaiObjectIdT>;
     using Index =
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_INDEX, sai_uint8_t>;
+    using CbfcSenderCreditProfile = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_CREDIT_PROFILE,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using CbfcReceiverEnable = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_CHANNEL_ATTR_CBFC_RECEIVER_ENABLE,
+        bool,
+        SaiBoolDefaultFalse>;
+    using CbfcSenderEnable = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_ENABLE,
+        bool,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = VirtualChannelSaiId;
   using AdapterHostKey = std::tuple<Attributes::Port, Attributes::Index>;
-  using CreateAttributes = AdapterHostKey;
+  using CreateAttributes = std::tuple<
+      Attributes::Port,
+      Attributes::Index,
+      std::optional<Attributes::CbfcSenderCreditProfile>,
+      std::optional<Attributes::CbfcReceiverEnable>,
+      std::optional<Attributes::CbfcSenderEnable>>;
 };
 
 SAI_ATTRIBUTE_NAME(VirtualChannel, Port);
 SAI_ATTRIBUTE_NAME(VirtualChannel, Index);
+SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderCreditProfile);
+SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverEnable);
+SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderEnable);
 
 class VirtualChannelApi : public SaiApi<VirtualChannelApi> {
  public:
