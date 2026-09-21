@@ -243,6 +243,32 @@ class GeneratePeerGroupCommandsTest(unittest.TestCase):
         commands = generate_peer_group_commands(peer_group)
         self.assertEqual(commands, [])
 
+    def test_name_only_emits_bare_create(self) -> None:
+        """A group with only its required name must still be created, or
+        neighbors referring to it would name a group that never existed."""
+        commands = generate_peer_group_commands({"name": "TEST"})
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_only_unrepresentable_fields_emits_bare_create(self) -> None:
+        """Warning comments are not executable commands, so a group whose
+        fields all lack a CLI equivalent still needs the bare create."""
+        commands = generate_peer_group_commands({"name": "TEST", "enabled": True})
+        self.assertEqual(
+            commands,
+            [
+                "# WARNING: peer-group TEST: field enabled has no CLI equivalent, "
+                "not converted",
+                self.PREFIX,
+            ],
+        )
+
+    def test_attribute_present_emits_no_bare_create(self) -> None:
+        """Setting an attribute creates the group implicitly."""
+        commands = generate_peer_group_commands(
+            {"name": "TEST", "remote_as_4_byte": 65000}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} remote-asn 65000"])
+
     def test_remote_asn(self) -> None:
         """remote_as_4_byte should generate correct command."""
         peer_group = {"name": "TEST-GROUP", "remote_as_4_byte": 65000}

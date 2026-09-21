@@ -408,6 +408,11 @@ def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
         _generate_scalar_commands(peer_group, prefix, _PEER_GROUP_SCALAR_FIELDS)
     )
     commands.extend(_generate_session_commands(peer_group, prefix))
+    # `name` is the only required PeerGroup field and bgpd accepts a group
+    # carrying nothing else, so a bare create is needed to bring it into
+    # existence; otherwise neighbors referring to it fail to load.
+    if all(command.startswith("#") for command in commands):
+        commands.append(prefix)
     return commands
 
 
