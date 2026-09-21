@@ -1,0 +1,32 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "galaxy_platform_mapping",
+    srcs = [
+        "GalaxyFCPlatformMappingCommon.cpp",
+        "GalaxyLCPlatformMappingCommon.cpp",
+        "facebook/GalaxyFCPlatformMapping.cpp",
+        "facebook/GalaxyLCPlatformMapping.cpp",
+    ],
+    headers = [
+        "GalaxyFCPlatformMapping.h",
+        "GalaxyLCPlatformMapping.h",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:utils",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+        "//neteng/netwhoami/lib/cpp:recover",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+    external_deps = [("boost", None, "boost_algorithm")],
+    exported_external_deps = [
+        ("boost", None, "boost_algorithm"),
+    ],
+)

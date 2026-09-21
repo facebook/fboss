@@ -1,0 +1,37 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+
+#include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+
+#include <iostream>
+
+namespace facebook::fboss {
+
+CmdConfigReloadTraits::RetType CmdConfigReload::queryClient(
+    const HostInfo& hostInfo) {
+  auto client =
+      utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+
+  client->sync_reloadConfig();
+  return "Config reloaded successfully";
+}
+
+void CmdConfigReload::printOutput(const RetType& logMsg) {
+  std::cout << logMsg << std::endl;
+}
+
+// Explicit template instantiation
+template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
+
+} // namespace facebook::fboss

@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","darwin","PASSED"
+"FanServiceHwTest.ODSCounters","darwin","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","darwin","PASSED"
+"FanServiceHwTest.FanStatusesThrift","darwin","PASSED"
+"FanServiceHwTest.FanControl","darwin","PASSED"

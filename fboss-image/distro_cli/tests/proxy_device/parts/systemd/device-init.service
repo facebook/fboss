@@ -1,0 +1,13 @@
+[Unit]
+Description=Device Container Initialization
+After=local-fs.target
+Before=wedge_agent.service fsdb.service qsfp_service.service platform_manager.service sensor_service.service fan_service.service
+ConditionPathExists=!/var/btrfs.img
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup_btrfs.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

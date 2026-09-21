@@ -1,0 +1,10 @@
+load("@fbcode_macros//build_defs:go_package.bzl", "go_package")
+
+oncall("fboss_agent_push")
+
+go_package(
+    name = "fsdb_cgo_client",
+    deps = [
+        "//fboss/fsdb/client/test:cgo_subscriber-go_serialized",
+    ],
+)

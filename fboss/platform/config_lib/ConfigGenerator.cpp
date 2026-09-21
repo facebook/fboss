@@ -1,0 +1,261 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <filesystem>
+#include <fstream>
+#include <stdexcept>
+#include <vector>
+
+#include <folly/FileUtil.h>
+#include <folly/init/Init.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
+#include "fboss/platform/bsp_tests/gen-cpp2/bsp_tests_config_types.h"
+#include "fboss/platform/config_lib/CrossConfigValidator.h"
+#include "fboss/platform/data_corral_service/ConfigValidator.h"
+#include "fboss/platform/data_corral_service/if/gen-cpp2/led_manager_config_types.h"
+#include "fboss/platform/fan_service/ConfigValidator.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
+#include "fboss/platform/fw_util/if/gen-cpp2/fw_util_config_types.h"
+#include "fboss/platform/platform_manager/ConfigValidator.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/reboot_cause_finder/ConfigValidator.h"
+#include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_types.h"
+#include "fboss/platform/rma-showtech/gen-cpp2/showtech_config_types.h"
+#include "fboss/platform/sensor_service/ConfigValidator.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
+#include "fboss/platform/weutil/ConfigValidator.h"
+#include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
+
+// The install_dir flag is a requirement that comes from using a custom buck
+// rule which passes in the install location of the header.
+DEFINE_string(install_dir, "", "output dir where generated header is placed");
+
+DEFINE_string(json_config_dir, "fboss/configs/platforms", "");
+
+namespace fs = std::filesystem;
+using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::data_corral_service;
+using namespace facebook::fboss::platform::platform_manager;
+using namespace facebook::fboss::platform::sensor_config;
+using namespace facebook::fboss::platform::fan_service;
+using namespace facebook::fboss::platform::weutil_config;
+using namespace facebook::fboss::platform::fw_util_config;
+using namespace facebook::fboss::platform::bsp_tests;
+using namespace facebook::fboss::platform::showtech_config;
+using namespace facebook::fboss::platform::reboot_cause_config;
+using namespace apache::thrift;
+
+namespace {
+std::any deserialize(
+    const std::string& jsonConfigStr,
+    const std::string& serviceName,
+    const std::string& platformName) {
+  try {
+    if (serviceName == "platform_manager") {
+      return SimpleJSONSerializer::deserialize<PlatformConfig>(jsonConfigStr);
+    } else if (serviceName == "sensor_service") {
+      return SimpleJSONSerializer::deserialize<SensorConfig>(jsonConfigStr);
+    } else if (serviceName == "fan_service") {
+      return SimpleJSONSerializer::deserialize<FanServiceConfig>(jsonConfigStr);
+    } else if (serviceName == "weutil") {
+      return SimpleJSONSerializer::deserialize<WeutilConfig>(jsonConfigStr);
+    } else if (serviceName == "fw_util") {
+      return SimpleJSONSerializer::deserialize<FwUtilConfig>(jsonConfigStr);
+    } else if (serviceName == "led_manager") {
+      return SimpleJSONSerializer::deserialize<LedManagerConfig>(jsonConfigStr);
+    } else if (serviceName == "bsp_tests") {
+      return SimpleJSONSerializer::deserialize<BspTestsConfig>(jsonConfigStr);
+    } else if (serviceName == "rma_showtech") {
+      return SimpleJSONSerializer::deserialize<ShowtechConfig>(jsonConfigStr);
+    } else if (serviceName == "reboot_cause_finder") {
+      return SimpleJSONSerializer::deserialize<RebootCauseConfig>(
+          jsonConfigStr);
+    }
+    LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
+  } catch (std::exception& ex) {
+    LOG(FATAL) << fmt::format(
+        "Failed to deserialize {} config for {} with error: {}",
+        serviceName,
+        platformName,
+        ex.what());
+  }
+}
+
+const auto kX86Services = std::set<std::string>{
+    "platform_manager",
+    "sensor_service",
+    "fan_service",
+    "weutil",
+    "fw_util",
+    "led_manager",
+    "bsp_tests",
+    "rma_showtech",
+    "reboot_cause_finder"};
+constexpr auto kHdrName = "GeneratedConfig.h";
+constexpr auto kHdrBegin = R"(#pragma once
+
+#include <string>
+#include <unordered_map>
+
+namespace facebook::fboss::platform::configs {
+)";
+constexpr auto kHdrEnd = R"(
+} // facebook::fboss::platform::configs
+)";
+
+std::vector<fs::path> getPlatformServiceConfigDirs() {
+  std::vector<fs::path> configDirs;
+  for (const auto& vendorDir : fs::directory_iterator(FLAGS_json_config_dir)) {
+    if (!vendorDir.is_directory()) {
+      continue;
+    }
+    for (const auto& platformDir : fs::directory_iterator(vendorDir)) {
+      if (!platformDir.is_directory()) {
+        continue;
+      }
+      auto platformStackDir = platformDir.path() / "platform_stack";
+      if (fs::is_directory(platformStackDir)) {
+        configDirs.push_back(std::move(platformStackDir));
+      }
+    }
+  }
+  return configDirs;
+}
+} // namespace
+
+// Returns configs in a two level map.
+// The key in the first level is the service name.
+// Each service in turn has a map of platform to config.
+std::map<std::string, std::map<std::string, std::string>> getConfigs() {
+  std::map<
+      std::string /* serviceName */,
+      std::map<std::string /* platformName */, std::string /* config */>>
+      configs{};
+
+  for (const auto& platformStackDir : getPlatformServiceConfigDirs()) {
+    std::string platformName = platformStackDir.parent_path().filename();
+    XLOG(INFO) << fmt::format(
+        "Processing platform {} in {}", platformName, platformStackDir.c_str());
+
+    std::unordered_map<std::string, std::any> deserializedConfigs;
+    for (const auto& jsonConfig : fs::directory_iterator(platformStackDir)) {
+      XLOG(INFO) << "Processing config " << jsonConfig.path();
+      std::string jsonConfigStr{};
+      if (!folly::readFile(jsonConfig.path().c_str(), jsonConfigStr)) {
+        XLOG(ERR) << "Could not read file " << jsonConfig.path();
+        continue;
+      }
+      std::string serviceName = jsonConfig.path().stem();
+      if (!kX86Services.contains(serviceName)) {
+        LOG(FATAL) << fmt::format("Unsupported service {}", serviceName);
+      }
+      deserializedConfigs[serviceName] =
+          deserialize(jsonConfigStr, serviceName, platformName);
+      configs[serviceName][platformName] = std::move(jsonConfigStr);
+    }
+
+    // Validate service configs.
+    std::optional<CrossConfigValidator> crossConfigValidator{std::nullopt};
+    if (deserializedConfigs.contains("platform_manager")) {
+      auto config = std::any_cast<PlatformConfig>(
+          deserializedConfigs.at("platform_manager"));
+      if (!platform_manager::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid platform_manager configuration");
+      }
+      crossConfigValidator = CrossConfigValidator(config);
+    }
+    if (deserializedConfigs.contains("sensor_service")) {
+      auto sensorConfig =
+          std::any_cast<SensorConfig>(deserializedConfigs.at("sensor_service"));
+      std::optional<PlatformConfig> platformConfig{std::nullopt};
+      if (!sensor_service::ConfigValidator().isValid(sensorConfig)) {
+        throw std::runtime_error("Invalid sensor_service configuration");
+      }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidSensorConfig(sensorConfig)) {
+        throw std::runtime_error(
+            "Invalid sensor_service configuration. Failed cross config validation.");
+      }
+    }
+    if (deserializedConfigs.contains("fan_service")) {
+      auto config = std::any_cast<FanServiceConfig>(
+          deserializedConfigs.at("fan_service"));
+      if (!fan_service::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid fan_service configuration");
+      }
+      std::optional<SensorConfig> sensorConfig = std::nullopt;
+      if (deserializedConfigs.contains("sensor_service")) {
+        sensorConfig = std::any_cast<SensorConfig>(
+            deserializedConfigs.at("sensor_service"));
+      }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidFanServiceConfig(
+              config, sensorConfig)) {
+        throw std::runtime_error(
+            "Invalid fan_service configuration. Failed cross config validation.");
+      }
+    }
+    if (deserializedConfigs.contains("led_manager")) {
+      auto config = std::any_cast<LedManagerConfig>(
+          deserializedConfigs.at("led_manager"));
+      if (!data_corral_service::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid led_manager configuration");
+      }
+    }
+    if (deserializedConfigs.contains("reboot_cause_finder")) {
+      auto config = std::any_cast<RebootCauseConfig>(
+          deserializedConfigs.at("reboot_cause_finder"));
+      if (!reboot_cause_finder::ConfigValidator().isValid(config)) {
+        throw std::runtime_error("Invalid reboot_cause_finder configuration");
+      }
+    }
+    if (deserializedConfigs.contains("weutil")) {
+      auto config =
+          std::any_cast<WeutilConfig>(deserializedConfigs.at("weutil"));
+      if (!weutil::ConfigValidator().isValid(config, platformName)) {
+        throw std::runtime_error("Invalid weutil configuration");
+      }
+      if (crossConfigValidator &&
+          !crossConfigValidator->isValidWeutilConfig(config, platformName)) {
+        throw std::runtime_error(
+            "Invalid weutil configuration. Failed cross config validation.");
+      }
+    }
+  } // end per platform iteration
+
+  return configs;
+}
+
+int main(int argc, char* argv[]) {
+  folly::Init init(&argc, &argv);
+  fs::path hdrPath = fs::path(FLAGS_install_dir) / kHdrName;
+
+  XLOG(INFO) << "Current working directory is: " << fs::current_path();
+  XLOG(INFO) << "Json config directory is: " << FLAGS_json_config_dir;
+  XLOG(INFO) << "Installation directory is: " << FLAGS_install_dir;
+  XLOG(INFO) << "Absolute path of generated file: " << fs::absolute(hdrPath);
+
+  std::ofstream stream(hdrPath);
+  auto sg = folly::makeGuard([&] { stream.close(); });
+
+  stream << kHdrBegin;
+
+  for (const auto& [serviceName, configsByPlatform] : getConfigs()) {
+    stream << fmt::format(
+                  "std::unordered_map<std::string, std::string> {}",
+                  serviceName)
+           << "{" << std::endl;
+    for (const auto& [platformName, config] : configsByPlatform) {
+      stream << fmt::format(
+                    "{{\"{}\", R\"EOFEOF({})EOFEOF\"}},",
+                    platformName.c_str(),
+                    config)
+             << std::endl;
+    }
+    stream << "};" << std::endl;
+  }
+
+  stream << kHdrEnd;
+  return 0;
+}

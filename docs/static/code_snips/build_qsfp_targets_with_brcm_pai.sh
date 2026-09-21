@@ -1,0 +1,36 @@
+#!/bin/bash
+# Navigate to the right directory
+cd /var/FBOSS/fboss || exit
+
+# Prepare BRCM_PAI SDK artifacts directory for linking
+mkdir -p /var/FBOSS/pai_impl
+mkdir -p /var/FBOSS/pai_impl/lib
+mkdir -p /var/FBOSS/pai_impl/include
+mkdir -p /var/FBOSS/pai_impl/include/epdm
+
+# Copy the three sdk artifacts to `lib` directory
+# You should see the following three precompiled artifacts as follow
+# ls /var/FBOSS/pai_impl/lib
+# libepdm.a  libpai.a  libphymodepil.a
+
+# Copy the header folders from PAI sdk to `include directory`
+# NOTE: Adjust the correct directory based on your setup
+cp -r /opt/sdk/PAI_4.0/inc/sai /var/FBOSS/pai_impl/include
+cp -r /opt/sdk/PAI_4.0/inc/pai_macsec /var/FBOSS/pai_impl/include
+# Vendor headers at the root of inc/ (brcm_pai_extensions.h and friends)
+cp /opt/sdk/PAI_4.0/inc/*.h /var/FBOSS/pai_impl/include/
+# Copy header from EPDM
+# NOTE: Adjust the correct directory based on your setup
+cp /opt/sdk/epdm_4_5_2/*.h /var/FBOSS/pai_impl/include/epdm/
+
+# Start the build with specific cmake-target `qsfp_targets`
+update-alternatives --set gcc /usr/local/llvm/bin/clang
+time ./fboss/oss/scripts/run-getdeps.py \
+  --phy-sai-impl SAI_BRCM_PAI_IMPL \
+  build \
+  --allow-system-packages \
+  --build-type MinSizeRel \
+  --extra-cmake-defines='{"CMAKE_CXX_STANDARD": "20", "RANGE_V3_TESTS": "OFF", "RANGE_V3_PERF": "OFF"}' \
+  --scratch-path /var/FBOSS/tmp_bld_dir \
+  --cmake-target qsfp_targets \
+  fboss

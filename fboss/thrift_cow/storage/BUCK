@@ -1,0 +1,52 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "storage",
+    headers = [
+        "Storage.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//folly:expected",
+    ],
+)
+
+cpp_library(
+    name = "cow_storage",
+    srcs = [
+        "CowStorage.cpp",
+    ],
+    headers = [
+        "CowStorage.h",
+    ],
+    exported_deps = [
+        ":storage",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "cow_storage_mgr",
+    headers = [
+        "CowStateUpdate.h",
+        "CowStorageMgr.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":cow_storage",
+        "//fb303:export_type",
+        "//fb303:thread_cached_service_data",
+        "//fb303/detail:quantile_stat_wrappers",
+        "//folly:fbstring",
+        "//folly:intrusive_list",
+        "//folly:synchronized",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/logging:logging",
+    ],
+)

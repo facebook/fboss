@@ -1,0 +1,9 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+
+oncall("fboss_agent_push")
+
+python_binary(
+    name = "conveyor_failure_analysis",
+    srcs = ["conveyor_failure_analysis.py"],
+    main_module = "fboss.scripts.conveyor_failure_analysis",
+)

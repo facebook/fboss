@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","morgan800cc","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","morgan800cc","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","morgan800cc","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","morgan800cc","PASSED"

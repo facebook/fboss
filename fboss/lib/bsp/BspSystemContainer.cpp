@@ -1,0 +1,148 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/lib/bsp/BspSystemContainer.h"
+#include "fboss/lib/bsp/BspPimContainer.h"
+#include "fboss/lib/bsp/BspPlatformMapping.h"
+#include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
+#include "fboss/lib/fpga/FpgaDevice.h"
+
+namespace facebook {
+namespace fboss {
+
+BspSystemContainer::BspSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice)
+    : fpgaDevice_(std::move(fpgaDevice)) {
+  fpgaDevice_->mmap();
+}
+
+BspSystemContainer::BspSystemContainer(
+    std::unique_ptr<BspPlatformMapping> bspMapping)
+    : bspMapping_(std::move(bspMapping)) {
+  initializePimContainers();
+}
+
+void BspSystemContainer::initializePimContainers() {
+  for (auto pimMapping : bspMapping_->getPimMappings()) {
+    pimContainers_.emplace(
+        pimMapping.first, std::make_unique<BspPimContainer>(pimMapping.second));
+  }
+}
+
+void BspSystemContainer::createBspLedContainers() {
+  for (auto& [pimID, pimContainer] : pimContainers_) {
+    pimContainer->createBspLedContainers();
+  }
+}
+
+const BspPimContainer* BspSystemContainer::getPimContainerFromPimID(
+    int pimID) const {
+  CHECK(pimContainers_.find(pimID) != pimContainers_.end());
+  return pimContainers_.at(pimID).get();
+}
+
+const BspPimContainer* BspSystemContainer::getPimContainerFromTcvrID(
+    int tcvrID) const {
+  CHECK(tcvrID >= 1 && tcvrID <= getNumTransceivers());
+  auto pimID = getPimIDFromTcvrID(tcvrID);
+  return getPimContainerFromPimID(pimID);
+}
+
+int BspSystemContainer::getNumTransceivers() const {
+  return bspMapping_->numTransceivers();
+}
+
+int BspSystemContainer::getPimIDFromTcvrID(int tcvrID) const {
+  return bspMapping_->getPimIDFromTcvrID(tcvrID);
+}
+
+int BspSystemContainer::getNumPims() const {
+  return bspMapping_->numPims();
+}
+
+void BspSystemContainer::initAllTransceivers() const {
+  for (auto pimContainerIt = pimContainers_.begin();
+       pimContainerIt != pimContainers_.end();
+       pimContainerIt++) {
+    pimContainerIt->second->initAllTransceivers();
+  }
+}
+
+void BspSystemContainer::clearAllTransceiverReset() const {
+  for (auto pimContainerIt = pimContainers_.begin();
+       pimContainerIt != pimContainers_.end();
+       pimContainerIt++) {
+    pimContainerIt->second->clearAllTransceiverReset();
+  }
+}
+
+void BspSystemContainer::initTransceiver(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->initTransceiver(tcvrID);
+}
+
+void BspSystemContainer::holdTransceiverReset(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->holdTransceiverReset(tcvrID);
+}
+
+void BspSystemContainer::releaseTransceiverReset(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->releaseTransceiverReset(tcvrID);
+}
+
+bool BspSystemContainer::isTcvrPresent(int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->isTcvrPresent(tcvrID);
+}
+
+void BspSystemContainer::tcvrRead(
+    unsigned int tcvrID,
+    const TransceiverAccessParameter& param,
+    uint8_t* buf) const {
+  return getPimContainerFromTcvrID(tcvrID)->tcvrRead(tcvrID, param, buf);
+}
+
+void BspSystemContainer::tcvrWrite(
+    unsigned int tcvrID,
+    const TransceiverAccessParameter& param,
+    const uint8_t* buf) const {
+  return getPimContainerFromTcvrID(tcvrID)->tcvrWrite(tcvrID, param, buf);
+}
+
+const I2cControllerStats BspSystemContainer::getI2cControllerStats(
+    int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
+}
+
+void BspSystemContainer::i2cTimeProfilingStart(unsigned int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->i2cTimeProfilingStart(tcvrID);
+}
+
+void BspSystemContainer::i2cTimeProfilingEnd(unsigned int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->i2cTimeProfilingEnd(tcvrID);
+}
+
+std::pair<uint64_t, uint64_t> BspSystemContainer::getI2cTimeProfileMsec(
+    unsigned int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->getI2cTimeProfileMsec(tcvrID);
+}
+
+std::map<uint32_t, std::pair<LedIO*, std::set<int>>>
+BspSystemContainer::getLedController(int tcvrID) const {
+  std::map<uint32_t, std::pair<LedIO*, std::set<int>>> ledControllers;
+
+  auto ledContainers =
+      getPimContainerFromTcvrID(tcvrID)->getLedContainer(tcvrID);
+  for (auto& ledContainer : ledContainers) {
+    ledControllers[ledContainer.first] = std::make_pair(
+        ledContainer.second.first->getLedController(),
+        ledContainer.second.second);
+  }
+  return ledControllers;
+}
+
+BspDeviceMdioController* BspSystemContainer::getMdioController(
+    int pimID,
+    int controllerID) const {
+  return getPimContainerFromPimID(pimID)
+      ->getPhyContainerFromMdioID(controllerID)
+      ->getMdioController();
+}
+
+} // namespace fboss
+} // namespace facebook

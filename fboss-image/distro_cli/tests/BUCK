@@ -1,0 +1,55 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+
+oncall("fboss_distro")
+
+python_library(
+    name = "device_test",
+    srcs = ["device_test.py"],
+    base_module = "distro_cli.tests",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/cmds:device",
+        "//fboss/github/fboss-image/distro_cli/lib:cli",
+        "//fboss/github/fboss-image/distro_cli/lib:device_update",
+        "//fboss/github/fboss-image/distro_cli/lib:distro_infra",
+        "//fboss/github/fboss-image/distro_cli/lib:exceptions",
+        "//fboss/github/fboss-image/distro_cli/lib:manifest",
+        "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+        "//fboss/github/fboss-image/distro_cli/tests:test_helpers",
+    ],
+)
+
+python_library(
+    name = "docker_test",
+    srcs = ["docker_test.py"],
+    base_module = "distro_cli.tests",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:constants",
+        "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+        "//fboss/github/fboss-image/distro_cli/tests:test_helpers",
+    ],
+)
+
+python_library(
+    name = "test_helpers",
+    srcs = ["test_helpers.py"],
+    base_module = "distro_cli.tests",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:artifact",
+        "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+    ],
+)
+
+python_unittest(
+    name = "device_integration_test",
+    srcs = ["device_integration_test.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":test_helpers",
+        "//fboss/github/fboss-image/distro_cli/lib:device_update",
+        "//fboss/github/fboss-image/distro_cli/lib:manifest",
+    ],
+)

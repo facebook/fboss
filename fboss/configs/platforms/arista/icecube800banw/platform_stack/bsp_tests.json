@@ -1,0 +1,364 @@
+{
+  "testData": {
+    "SMB.CPU_VCCIN_1V8_CPU": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.CPU_1V2_VDDQ_1V0_CPU": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.CPU_1V05_CPU_VNN_PCH": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS1V8_VDD0": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin",
+          "iout1",
+          "pin",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_POS1V2_VDDA": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin",
+          "iout1",
+          "pin",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_TH6_MCORE": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_PHYCORE_0_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_PHYCORE_2_3": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_PHYCORE_4_5": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_PHYCORE_6_7": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V72_TRVDD_01_23": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V72_TRVDD_45_67": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_TRVDD_0": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS0V75_TRVDD_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS1V5_RVDD_0": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin",
+          "iout1",
+          "pin",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_POS1V5_RVDD_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "iin",
+          "iout1",
+          "pin",
+          "pout1"
+        ]
+      }
+    },
+    "SMB.SMB_POS3V3_OPTICS0_1": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    },
+    "SMB.SMB_POS3V3_OPTICS2_3": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin1",
+          "vin2",
+          "vout1",
+          "vout2",
+          "temp1",
+          "temp2",
+          "temp3",
+          "temp4",
+          "iin1",
+          "iin2",
+          "iout1",
+          "iout2",
+          "pin1",
+          "pin2",
+          "pout1",
+          "pout2"
+        ]
+      }
+    }
+  }
+}

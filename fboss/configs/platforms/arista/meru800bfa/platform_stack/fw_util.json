@@ -1,0 +1,301 @@
+{
+  "fwConfigs": {
+    "bios": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "3000000:3FFFFFF image",
+            "programmer_type": "internal",
+            "flashromExtraArgs": [
+              "-i",
+              "image",
+              "--noverify-all"
+            ]
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "spi_layout": "3000000:3FFFFFF image",
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "-i",
+            "image",
+            "--noverify-all"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "spi_layout": "3000000:3FFFFFF image",
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "-i",
+            "image",
+            "--noverify-all"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "sysfs",
+        "path": "/sys/devices/virtual/dmi/id/bios_version"
+      },
+      "priority": 5
+    },
+    "scm_cpld": {
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmeru_cpu_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MERU_SCM_CPLD_INFO_ROM/fw_ver"
+      },
+      "priority": 4
+    },
+    "smb_cpld": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+            "value": 1
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmeru_switch_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/fw_ver"
+      },
+      "priority": 3
+    },
+    "smb_fpga0": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "0:3FFFFF image",
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SMB_SPI0_MASTER0_DEVICE1",
+            "flashromExtraArgs": [
+              "-i",
+              "image"
+            ],
+            "chip": [
+              "MX25U25635F",
+              "GD25LQ256D"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA0_INFO_ROM/fw_ver"
+      },
+      "priority": 2
+    },
+    "smb_fpga1": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "0:3FFFFF image",
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SMB_SPI1_MASTER0_DEVICE1",
+            "flashromExtraArgs": [
+              "-i",
+              "image"
+            ],
+            "chip": [
+              "MX25U25635F",
+              "GD25LQ256D"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA1_INFO_ROM/fw_ver"
+      },
+      "priority": 2
+    },
+    "smb_fpga2": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "0:3FFFFF image",
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SMB_SPI2_MASTER0_DEVICE1",
+            "flashromExtraArgs": [
+              "-i",
+              "image"
+            ],
+            "chip": [
+              "MX25U25635F",
+              "GD25LQ256D"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA2_INFO_ROM/fw_ver"
+      },
+      "priority": 2
+    },
+    "smb_fpga3": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "0:3FFFFF image",
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SMB_SPI3_MASTER0_DEVICE1",
+            "flashromExtraArgs": [
+              "-i",
+              "image"
+            ],
+            "chip": [
+              "MX25U25635F",
+              "GD25LQ256D"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/MERU800BFA_SMB_FPGA3_INFO_ROM/fw_ver"
+      },
+      "priority": 2
+    },
+    "fan_cpld0": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+            "value": 1
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
+            "value": 5
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmeru_fan_cpld",
+              "-v "
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/fw_ver"
+      },
+      "priority": 1
+    },
+    "fan_cpld1": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+            "value": 1
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
+            "value": 6
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmeru_fan_cpld",
+              "-v "
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/fw_ver"
+      },
+      "priority": 1
+    },
+    "fan_cpld2": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+            "value": 1
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
+            "value": 7
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fmeru_fan_cpld",
+              "-v "
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/fw_ver"
+      },
+      "priority": 1
+    }
+  }
+}

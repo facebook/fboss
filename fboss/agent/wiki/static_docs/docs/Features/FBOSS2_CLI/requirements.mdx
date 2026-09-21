@@ -1,0 +1,138 @@
+---
+id: Features_CLI_requirements
+title: FBOSS2 CLI Requirements v1.0
+---
+
+# Goals
+
+To build a device CLI to support day-to-day interaction with device and device agents in the FBOSS ecosystem, for debugging, configuration and runtime status, for the next 5-10 years.
+
+This document is to capture the requirements for this CLI.
+
+## Non-goals for this document
+
+* Any specific programming language choice.
+
+* Actual design and implementation.
+
+
+## Requirements
+
+* **Availability:**   * The CLI must be available locally to run for the single local device.
+
+   * The CLI must be available remotely to run for one or more devices.
+
+   * The CLI must be usable in a lab setup.
+
+   * The CLI must be usable without FB infra service (when Scuba, ServiceRouter etc. are down).
+
+
+* **Open Source:**   * The CLI must be open source’able.
+
+   * The CLI must be usable outside of FB environment.
+
+
+* **Performance:**   * FBOSS CLI must be fast for local as well as for remote commands.
+
+   * p90 commands must return within 0.5 seconds (fine-grain per command-category benchmarks are yet to be determined).
+
+   * CLI overhead must be < 0.1s per command run.
+
+
+* **Scope:**   * The CLI should be able to work with FBOSS software suite:      * wedge_agent, bgpd, openr, OpenBMC.
+
+
+
+* **Ease of use:**   * Uniform and consistent design of subcommands/command tree, and thus easy to discover. Having a consistent and predictable hierarchy:      * For all objects/agents,
+
+      * To perform show, delete, create, update operations,
+
+      * Not necessarily to adhere to the syntax of any existing CLIs.
+
+
+   * Usability features      * Must have:         * tab complete,
+
+         * Context-aware help (e.g. such as <command> -h, help <command>).
+
+
+      * Strong Desire:         * Output Coloring,
+
+         * Loading commands from file,
+
+         * For show command, output in CSV and JSON
+
+         * Support command alias unambiguous longest matching (e.g. sh fb r = show fboss route).
+
+         * Fully synced offline command manual for easy search.
+
+
+      * Wish:         * Native multi-page support,
+
+         * Interactive mode (e.g. ipython)
+
+
+
+
+* **Ease of development:**   * Must use widely supported language in FB infra
+
+   * CLI is split into a common infrastructure framework and subcommand specific implementation.
+
+   * The framework responsibilities is to reduce the boiler plate code for command implementation. It should include:      * Command line argument processing,
+
+      * Parallel query to multiple hosts,
+
+      * Common features such as tab complete, help, text rendering etc.,
+
+      * Support different backend mechanisms (thrift, RESTful, and others),
+
+      * Support using multiple endpoints for a single command,         * For Example, ‘show port status’ command can show information from Agent, QSFP Service, and other endpoints.
+
+
+      * Unit test framework to cover the core functionality as well as support command tests,
+
+
+   * Provide a framework for command extension (see **Extensibility**),
+
+   * Should provide tools/codegen to generate skeleton for command implementation and unit test.
+
+
+* **Extensibility:**   * Allow developers to easily add subcommands. Provide easy-to-follow guidelines (or ideally a bootstrap script to create command skeleton) and libraries (for coloring, error handling, thresholding, etcs) for command development.
+
+   * Allow developers to add more backend (e.g. thrift client) implementations (for onboarding more agents). Provide easy to follow guidelines (or examples) for them to follow.
+
+   * Enable developers to create unit tests for each command for quick iteration and sandcastle test on each diff, and protected against upstream changes.
+
+
+* **Testability:**   * Each diff for framework and commands should be associated with unit tests.
+
+   * Also e2e sanity test before rolling out a new version.
+
+
+* **Traceability:**   * Log command run (i.e. in Scuba, or configurable for non-FB infra).
+
+
+* **Command ACL:**   * Support hipster group for command ACL.
+
+
+* **Oncall Support:**   * Established oncall rotation,
+
+   * *rage* command to escalate issues to oncall.
+
+
+* **Integration:**   * Enable downstream to reuse the command implementation.
+
+   * Current use cases:      * QA/QC services (ie. cableguy, circuit checker, netgram/nowa workflows etcs.) runs a few fboss commands for auditing. Today it uses fcr cli as a library to do so. Fcr cli provides thrift structure for command output to make it easy for integration.
+
+      * This CLI will replace all FBOSS subcommands in the FCR cli.
+
+
+   * Future use cases:      * Enable collaboration by providing chatbot to run command in workplace (i.e. fboss fsw123 show bgp neighbors).
+
+      * Support run command from UI.
+
+
+
+* **Streaming Support:**   * If a subcommand output is large and takes a long time to return, at times, it is desirable to stream that output i.e. return the output in chunks as it becomes available. This improves the response time and thus the user experience.
+
+   * The first release of the CLI will not include streaming support. Most of the commands do not require streaming. To support streaming, the underlying thrift server needs to provide streaming/chunking APIs (e.g. OpenR provides a few streaming APIs). Although the first release will not include it, the streaming support could be subsequently added to the framework.
+

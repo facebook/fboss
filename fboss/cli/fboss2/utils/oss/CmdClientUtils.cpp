@@ -1,0 +1,95 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"
+#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+
+namespace facebook::fboss::utils {
+
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
+    const HostInfo& hostInfo) {
+  auto agentPort = CmdGlobalOptions::getInstance()->getAgentThriftPort();
+  return createPlaintextClient<facebook::fboss::FbossCtrlAsyncClient>(
+      hostInfo, agentPort);
+}
+
+std::unique_ptr<apache::thrift::Client<FbossCtrl>> createAgentClient(
+    const HostInfo& hostInfo,
+    int switchIndex) {
+  auto agentPort =
+      CmdGlobalOptions::getInstance()->getHwAgentThriftPort(switchIndex);
+  return createPlaintextClient<apache::thrift::Client<FbossCtrl>>(
+      hostInfo, agentPort);
+}
+
+std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createAgentClient(
+    const HostInfo& hostInfo,
+    const std::chrono::milliseconds& timeout) {
+  auto port = CmdGlobalOptions::getInstance()->getAgentThriftPort();
+
+  return createPlaintextClient<facebook::fboss::FbossCtrlAsyncClient>(
+      hostInfo, port);
+}
+
+std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createHwAgentClient(
+    const HostInfo& hostInfo,
+    int switchIndex) {
+  auto agentPort =
+      CmdGlobalOptions::getInstance()->getHwAgentThriftPort(switchIndex);
+  return createPlaintextClient<apache::thrift::Client<FbossHwCtrl>>(
+      hostInfo, agentPort);
+}
+
+std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
+    const HostInfo& hostInfo) {
+  auto qsfpServicePort = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
+  return createPlaintextClient<facebook::fboss::QsfpServiceAsyncClient>(
+      hostInfo, qsfpServicePort);
+}
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::led_service::LedService>>
+createLedClient(const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getQsfpThriftPort();
+  return createPlaintextClient<
+      apache::thrift::Client<facebook::fboss::led_service::LedService>>(
+      hostInfo, port);
+}
+
+std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+createFsdbClient(const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getFsdbThriftPort();
+  return createPlaintextClient<
+      apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(
+      hostInfo, port);
+}
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::platform::fan_service::FanService>>
+createFanServiceClient(const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getFanServiceThriftPort();
+  return createPlaintextClient<apache::thrift::Client<
+      facebook::fboss::platform::fan_service::FanService>>(hostInfo, port);
+}
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::neteng::fboss::bgp::thrift::TBgpService>>
+createBgpClient(const HostInfo& hostInfo) {
+  auto bgpPort = CmdGlobalOptions::getInstance()->getBgpThriftPort();
+  return createPlaintextClient<apache::thrift::Client<
+      facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo, bgpPort);
+}
+
+} // namespace facebook::fboss::utils

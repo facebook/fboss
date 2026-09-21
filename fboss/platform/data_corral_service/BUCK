@@ -1,0 +1,84 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "core",
+    srcs = [
+        "DataCorralServiceThriftHandler.cpp",
+    ],
+    headers = [
+        "DataCorralServiceThriftHandler.h",
+    ],
+    deps = [
+        "//fboss/lib:log_thrift_call",
+        "//fboss/platform/weutil:weutil_core",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/data_corral_service/if:data_corral_service-cpp2-services",
+    ],
+)
+
+cpp_library(
+    name = "led_management",
+    srcs = [
+        "FruPresenceExplorer.cpp",
+        "LedManager.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fb303:service_data",
+        "//fboss/lib:common_file_utils",
+        "//fboss/platform/helpers:structured_logger",
+        "//fboss/platform/platform_manager:utils",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/platform/data_corral_service/if:led_manager-cpp2-types",
+    ],
+)
+
+cpp_binary(
+    name = "data_corral_service",
+    srcs = [
+        "Main.cpp",
+    ],
+    deps = [
+        ":config_validator",
+        ":core",
+        ":led_management",
+        "//fb303:logging",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/helpers:structured_logger",
+        "//folly/executors:function_scheduler",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+custom_unittest(
+    name = "test_data_corral_service_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :data_corral_service)",
+    ],
+    type = "simple",
+)

@@ -1,0 +1,20 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "tahansb800bc_platform_mapping",
+    srcs = [
+        "Tahansb800bcPlatformMapping.cpp",
+    ],
+    headers = [
+        "Tahansb800bcPlatformMapping.h",
+        "Tahansb800bcProdPlatformMapping.h",
+        "Tahansb800bcTestPlatformMapping.h",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

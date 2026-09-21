@@ -1,0 +1,146 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_agent")
+
+python_library(
+    name = "icecube800bc",
+    srcs = ["icecube800bc.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk6",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_library(
+    name = "icecube800banw",
+    srcs = ["icecube800banw.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk6",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_library(
+    name = "asic_config",
+    srcs = ["asic_config.py"],
+    labels = ["autodeps2_generated"],
+    deps = ["//fboss/agent/hw/config:asic_config_v2-python-types"],
+)
+
+python_library(
+    name = "tomahawk6",
+    srcs = ["tomahawk6.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "fbsource//third-party/pypi/pyyaml:pyyaml",
+        ":bcmxgs",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+    ],
+)
+
+python_library(
+    name = "bcm",
+    srcs = ["bcm.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_config",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+    ],
+)
+
+python_library(
+    name = "bcmxgs",
+    srcs = ["bcmxgs.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":bcm",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
+    ],
+)
+
+python_binary(
+    name = "gen",
+    srcs = ["gen.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.asic_config_v2.gen",
+    deps = [
+        ":all_asic_config_params",
+        ":icecube800banw",
+        ":icecube800bc",
+        ":montblanc",
+        ":wedge800bact",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/if:fboss_common-python-types",
+        "//thrift/lib/python:types",
+    ],
+)
+
+python_library(
+    name = "montblanc",
+    srcs = ["montblanc.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk5",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_library(
+    name = "wedge800bact",
+    srcs = ["wedge800bact.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":tomahawk5",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/platform_mapping_v2:asic_vendor_config",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_library(
+    name = "tomahawk5",
+    srcs = ["tomahawk5.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "fbsource//third-party/pypi/pyyaml:pyyaml",
+        ":bcmxgs",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+    ],
+)
+
+python_binary(
+    name = "generate_agent_config_from_asic_config",
+    srcs = ["generate_agent_config_from_asic_config.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.asic_config_v2.generate_agent_config_from_asic_config",
+    deps = [],
+)
+
+python_library(
+    name = "all_asic_config_params",
+    srcs = ["all_asic_config_params.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/if:fboss_common-python-types",
+    ],
+)

@@ -1,0 +1,29 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "fan_service_sw_test",
+    srcs = [
+        "BspTests.cpp",
+        "ConfigValidatorTest.cpp",
+        "ControlLogicTests.cpp",
+        "FsdbSensorSubscriberTests.cpp",
+        "OvertempTests.cpp",
+        "PidLogicTests.cpp",
+        "SensorDataTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:fboss-error",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/fan_service:config_validator",
+        "//fboss/platform/fan_service:core",
+        "//fboss/platform/fan_service:pid_logic_library",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

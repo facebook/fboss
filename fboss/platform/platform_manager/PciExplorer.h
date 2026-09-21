@@ -1,0 +1,218 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <re2/re2.h>
+#include <optional>
+#include "fboss/platform/helpers/PlatformFsUtils.h"
+
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
+
+namespace facebook::fboss::platform::platform_manager {
+class PciSubDeviceRuntimeError : public std::runtime_error {
+ public:
+  explicit PciSubDeviceRuntimeError(
+      const std::string& msg,
+      const std::string& pmUnitScopedName)
+      : std::runtime_error(msg), pmUnitScopedName_(pmUnitScopedName) {}
+  std::string getPmUnitScopedName() {
+    return pmUnitScopedName_;
+  }
+
+ private:
+  std::string pmUnitScopedName_;
+};
+
+struct PciDevice {
+ public:
+  explicit PciDevice(
+      const PciDeviceConfig& pciDevConfig,
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
+  std::string sysfsPath() const;
+  std::string charDevPath() const;
+  std::string name() const;
+
+ private:
+  std::string name_{};
+  std::string vendorId_{};
+  std::string deviceId_{};
+  std::string subSystemVendorId_{};
+  std::string subSystemDeviceId_{};
+  std::string charDevPath_{};
+  std::string sysfsPath_{};
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+
+  void checkSysfsReadiness();
+  void bindDriver(const std::string& desiredDriver);
+  void checkCharDevReadiness();
+};
+
+class PciExplorer {
+ public:
+  explicit PciExplorer(
+      std::shared_ptr<PlatformFsUtils> platformFsUtils =
+          std::make_shared<PlatformFsUtils>());
+  // Create the I2C Adapter based on the given i2cAdapterConfig residing
+  // at the given PciDevice path. It returns the the kernel assigned i2c bus
+  // number(s) for the created adapter(s). Throw std::runtime_error on failure.
+  std::vector<uint16_t> createI2cAdapter(
+      const PciDevice& pciDevice,
+      const I2cAdapterConfig& i2cAdapterConfig,
+      uint32_t instanceId);
+
+  // Create the SPIMaster and SpiSlave(s) based on the given spiMasterConfig
+  // residing at the given PciDevice. Return a map from SpiSlave
+  // pmUnitScopedName to its charDev path. Throw std::runtime_error on failure.
+  std::map<
+      std::string /* spiDeviceConfig's pmUnitScopedName */,
+      std::string /* charDevPath */>
+  createSpiMaster(
+      const PciDevice& pciDevice,
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
+
+  // Create GPIO chip based on the given gpio's FpgaIpblockConfig residing
+  // at the given PciDevice.
+  // Return CharDevPath. Throw std::runtime_error on failure.
+  std::string createGpioChip(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  // Create the LED Controller based on the given ledCtrlConfig residing
+  // at the given PciDevice. Throw std::runtime_error on failure.
+  void createLedCtrl(
+      const PciDevice& pciDevice,
+      const LedCtrlConfig& ledCtrlConfig,
+      uint32_t instanceId);
+
+  // Create the Transceiver block based on the given xcvrCtrlConfig residing
+  // at the given PciDevice.
+  // Return the SysfsPath. Throw std::runtime_error on failure.
+  std::string createXcvrCtrl(
+      const PciDevice& pciDevPath,
+      const XcvrCtrlConfig& xcvrCtrlConfig,
+      uint32_t instanceId);
+
+  // Create the InfoRom block based on the given InfoRomConfig residing at the
+  // given PciDevice.
+  // Return the created InfoRom sysfs path. Throw std::runtime_error on failure.
+  std::string createInfoRom(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  // Create the Watchdog based on the given FpgaIpBlockConfig residing at the
+  // given PciDevice.
+  // Return the created Watchdog CharDevPath. Throw std::runtime_error on
+  // failure.
+  std::string createWatchdog(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  // Create the FanPwmCtrl based on the given FanPwmCtrlConfig residing at the
+  // given PciDevice.
+  // Return the created FanPwmCtrl SyfsPath. Throw std::runtime_error on
+  // failure.
+  std::string createFanPwmCtrl(
+      const PciDevice& pciDevice,
+      const FanPwmCtrlConfig& fanPwmCtrlConfig,
+      uint32_t instanceId);
+
+  // Create the mdio_bus based on the given FpgaIpBlockConfig residing
+  // at the given PciDevice path. Throw std::runtime_error on failure.
+  std::string createMdioBus(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& mdioBusConfig,
+      uint32_t instanceId);
+
+  std::string createRtmCtrl(
+      const PciDevice& pciDevice,
+      const RtmCtrlConfig& rtmCtrlConfig,
+      uint32_t instanceId);
+
+  // Create the generic device block based on the given FpgaIpBlockConfig
+  // residing at the given PciDevice. Returns the auxiliary device's sysfs
+  // path. Throws std::runtime_error on failure.
+  std::string createFpgaIpBlock(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  // Create the device based on the given fbiob_aux_data residing
+  // at the given PciDevice. Throw std::runtime_error on failure.
+  void create(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      const struct fbiob_aux_data& auxData);
+
+  std::string getGpioChipCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  std::string getMdioBusSysfsPath(
+      const PciDevice& /* pciDevice */,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  std::string getRtmCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+ private:
+  const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+
+  std::vector<uint16_t> getI2cAdapterBusNums(
+      const PciDevice& pciDevice,
+      const I2cAdapterConfig& i2cAdapterConfig,
+      uint32_t instanceId);
+  std::map<
+      std::string /* spiDeviceConfig's pmUnitScopedName */,
+      std::string /* charDevPath */>
+  getSpiDeviceCharDevPaths(
+      const PciDevice& pciDevice,
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
+  // Attempt a single pass of SPI device discovery. Returns std::nullopt
+  // if the sysfs tree is not yet ready (spi_master, bus nodes, or char
+  // devices missing), or the complete charDevPath map on success.
+  // Throws immediately on hard failures (config mismatch, driver bind).
+  std::optional<std::map<std::string, std::string>> tryDiscoverSpiDevices(
+      const PciDevice& pciDevice,
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
+  std::string getFpgaIpBlockSysfsPath(
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getWatchDogCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getFanPwmCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getXcvrCtrlSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getMdioBusCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  bool isPciSubDeviceReady(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  bool isPciSubDeviceDriverReady(const std::string& devPath);
+  std::optional<std::string> getPciSubDeviceIOBlockPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+};
+} // namespace facebook::fboss::platform::platform_manager

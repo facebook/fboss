@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","montblanc","PASSED"
+"FanServiceHwTest.ODSCounters","montblanc","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","montblanc","PASSED"
+"FanServiceHwTest.FanStatusesThrift","montblanc","PASSED"
+"FanServiceHwTest.FanControl","montblanc","PASSED"

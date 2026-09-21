@@ -1,0 +1,87 @@
+Background
+==========
+
+This text describes QoS behavior of Broadcom's Tomahawk ASIC.
+
+FBOSS does not use multiple colors today, however the Drop probability
+calculations described in this text are still applicable to the default Green
+color used by FBOSS.
+
+In future, we might use multiple colored profiles to approximate Olympic QoS on
+MH-NIC queue-per-host queues.
+
+QoS Color profiles
+==================
+
+Traffic egress to same queue could have different QoS profiles:
+
+- Configure multiple DSCP values to egress to same queue.
+  For example, QoS Map for DSCP 10 and 48 traffic to egress to queue 1.
+- Associate different 'colors' with different DSCP values.
+  For example, DSCP 10 has color RED and DSCP 48 has color GREEN.
+- Configure different drop thresholds/probabilities for RED and GREEN.
+
+
+For example, in the Olympic QoS model, DSCP 10 is Bronze (WRR with lowest
+weight) while DSCP 48 is Network Control (SP with highest priority).
+
+If DSCP 10 is colored RED with very high drop probability and DSCP 48 is
+colored GREEN with very low drop probability we can approximate Olympic QoS on
+queue-per-host queues.
+
+An example CINT for this configuration is here:
+fboss/agent/facebook/tools/cint_scripts/CintDscpQoSColorProfiles.c
+
+Min/Max Thresholds and Drop Probability
+=======================================
+
+- It is possible to configure min threshold, max threshold and drop probability with each colored profile.
+- If AVG_QSIZE < MIN_THRSHD, there is NO drop i.e. drop probability 0 regardless of set value.
+- If AVG_QSIZE > MAX_THRSHD, EVERYTHINNG is dropped i.e. drop probability is 100% regardless of set value.
+
+- if AVG_QSIZE is between [MIN_THRSHD, MAX_THRSHD], the packets are dopped with linear probability:
+  ((average queue size - MIN_THRSHD) / (MAX_THRSHD - MIN_THRSHD)) * configured drop_probability
+
+- The above formula gives 'ideal' drop probability. The hardware quantizes it.
+  See subsequent sections for details.
+
+
+Effective Drop Probability
+==========================
+
+- Example 1: MIN_THRSHD = 10, MAX_THRSHD = 40, MAX_DROP_RATE = 50
+    - AVG_QSIZE = 5 i.e. < MIN_THRSHD, no packet are dropped.
+    - AVG_QSIZE = 80 i.e. > MAX_THRSHD, all packets are dropped.
+    - AVG_QSIZE = 20 i.e. > MIN_THRSHD, but < MAX_THRSHD
+        - Drop probability = ((AVG_QSIZE – MIN_THRSHD) / (MAX_THRSHD – MIN_THRSHD)) * MAX_DROP_RATE = ((20 – 10) / (40 – 10)) * 50 = 16.67
+        - 16.67% Drop probability is 33.34% of 50 MAX_DROP_RATE. This falls in section #2 whose range is (25% to 37.5%). See Section to Drop rate table below.
+        - The effective drop probability for Section 2 is 30.25% MAX_DROP_RATE i.e. 30.25% of 50 = 15.125%
+        - In effect, for AVG_QSIZE of 20, the effective drop probability is 15.125% rounded off from 16.67%.
+
+* Example 2: MIN_THRSHD = 10, MAX_THRSHD = 40, MAX_DROP_RATE = 70
+    - AVG_QSIZE = 5 i.e. < MIN_THRSHD, no packet are dropped.
+    - AVG_QSIZE = 80 i.e. > MAX_THRSHD, all packets are dropped.
+    - AVG_QSIZE = 35 i.e. > MIN_THRSHD, but < MAX_THRSHD
+        - Drop probability = ((AVG_QSIZE – MIN_THRSHD) / (MAX_THRSHD – MIN_THRSHD)) * MAX_DROP_RATE = ((35 – 10) / (40 – 10)) * 70 = 58.33%
+        - 58.33% Drop probability is 83% of 70 MAX_DROP_RATE. This falls in section #6 whose range is (75% to 87.5%). See Section to Drop rate table below.
+        - The effective drop probability for Section 6 is 81.25% MAX_DROP_RATE i.e. 81.25% of 70 = 56.87%
+        - In effect, for AVG_QSIZE of 35, the effective drop probability is 56.87% rounded off from 58.33%.
+
+Drop Rate Table
+===============
+
+The implementation tries to do piecewise linear approach to ideal drop probability from
+above formula, in the region between MIN_THRSHD and MAX_THRSHD is divided into 8 sections,
+each section has a fix drop probability derived from MAX_DROP_RATE:
+
+
+| Section # | Drop Rate                                      |
+|-----------|------------------------------------------------|
+| 0         | 6.25% of MAX_DROP_RATE = ( 0% + 12.5%) / 2     |
+| 1         | 18.75% of MAX_DROP_RATE = (12.5% + 25.0%) / 2  |
+| 2         | 30.25% of MAX_DROP_RATE = (25.0% + 37.5%) / 2  |
+| 3         | 43.75% of MAX_DROP_RATE = (37.5% + 50.0%) / 2  |
+| 4         | 56.25% of MAX_DROP_RATE = (50.0% + 62.5%) / 2  |
+| 5         | 68.75% of MAX_DROP_RATE = (62.5% + 75.0%) / 2  |
+| 6         | 81.25% of MAX_DROP_RATE = (75.0% + 87.5%) / 2  |
+| 7         | 92.75% of MAX_DROP_RATE = (87.5% + 100.0%) / 2 |

@@ -1,0 +1,102 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "pkt_test",
+    srcs = [
+        "ArpHdrTest.cpp",
+        "DHCPv4PacketTest.cpp",
+        "EthFrameExtTest.cpp",
+        "EthFrameTest.cpp",
+        "EthHdrTest.cpp",
+        "ICMPExtHdrTest.cpp",
+        "ICMPHdrTest.cpp",
+        "ICMPPacketTest.cpp",
+        "IPPacketTest.cpp",
+        "IPv4HdrTest.cpp",
+        "IPv6HdrTest.cpp",
+        "LlcHdrTest.cpp",
+        "MPLSHdrTest.cpp",
+        "MPLSPacketTest.cpp",
+        "NDPOptionTest.cpp",
+        "NDPRouterAdvertisementTest.cpp",
+        "PTPHdrTest.cpp",
+        "PktFactoryTest.cpp",
+        "PktUtilTest.cpp",
+        "Srv6DecapTest.cpp",
+        "TCPHeaderExtTest.cpp",
+        "TCPHeaderTest.cpp",
+        "TCPPacketTest.cpp",
+        "UDPDatagramTest.cpp",
+        "UDPHdrTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:dhcpv4_options_of_interest",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:packet",
+        "//fboss/agent:stats",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/hw/mock:pkt",
+        "//fboss/agent/packet:ether_type",
+        "//fboss/agent/packet:ipproto",
+        "//fboss/agent/packet:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:utils",
+        "//folly:conv",
+        "//folly:memory",
+        "//folly:network_address",
+        "//folly:random",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "sflow_structs_test",
+    srcs = [
+        "SflowStructsExtTest.cpp",
+        "SflowStructsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent/packet:sflow_structs",
+        "//folly:network_address",
+        "//folly/container:array",
+    ],
+)
+
+cpp_unittest(
+    name = "dhcpv6_packet_test",
+    srcs = [
+        "DHCPv6PacketExtTest.cpp",
+        "DHCPv6PacketTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/packet:packet",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_unittest(
+    name = "sflow_packet_test",
+    srcs = [
+        "SflowPacketTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/packet:sflow_structs",
+        "//folly:network_address",
+    ],
+)

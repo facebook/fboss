@@ -1,0 +1,21 @@
+[Unit]
+Description=LED Service
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
+
+[Service]
+LimitNOFILE=10000000
+LimitCORE=32G
+
+SyslogIdentifier=led_service
+ExecStart=/etc/packages/neteng-fboss-led_service/current/led_service
+
+StandardOutput=journal
+Restart=always
+RestartSec=30
+
+# Place in unrestricted workload.slice
+Slice=workload.slice
+
+[Install]
+WantedBy=multi-user.target

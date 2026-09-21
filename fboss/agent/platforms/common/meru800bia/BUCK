@@ -1,0 +1,15 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "meru800bia_platform_mapping",
+    srcs = [
+        "Meru800biaPlatformMapping.cpp",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

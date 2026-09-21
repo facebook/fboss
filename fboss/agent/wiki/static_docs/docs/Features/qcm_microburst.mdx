@@ -1,0 +1,132 @@
+# Queue Congestion Manager Summary - WIP
+
+Queue Congestion Manager: Try to use fancy hardware features to track
+large flows, detect microbursts, and infer what traffic is causing drops
+in our network which is hard to infer from other tools.
+
+Leverage the Field Processor Exact Match (FPEM) table to track and count
+some number (max ~8k) of specific 5-tuple flows.  Use the on-chip ARM
+processor to run a few threads in parallel (see below) to learn new
+flows to track, expire old flows, and decide based on an 'interest'
+heuristic if a congestion is occuring.  On a congestion event, take a
+snap shot of the current MMU stats, tracked flows stats, port counter
+stats, and export them over the dataplane via the UDP IPFix protocol to
+an off-box collector.
+
+# How It Works
+
+## ARM Core and Firmware
+
+Tomahawk has two on-chip ARMv5 CPUs which we're currently not using.  Broadcom
+has provided us a binary blob of firmware that can be loaded onto the chip
+with the bcm_shell:
+
+```
+
+  [root@rsw1az.12.prn3 ~]# fboss_bcm_shell localhost
+  FBOSS:localhost:5909>mcsload
+  Usage (MCSLoad): Parameters: <uCnum> <file.hex>
+                  [InitMCS|ResetUC|StartUC|StartMSG]=true|false]
+                  Load the MCS memory area from <file.srec>.
+          uCnum = uC number to be loaded.
+          InitMCS = Init the MCS (not just one UC) (false)
+          ResetUC = Reset the uC (true)
+          StartUC = uC out of halt after load (true)
+          StartMSG = Start messaging (true)
+  FBOSS:localhost:5909>mcsload  0 /tmp/BCM56960_0_qcm.srec
+
+  FBOSS:localhost:5909>mcsstatus
+  uC 0 status: Ok
+  version:  4.3.11.0 EA4 Wed Jun 19 10:33:56 PDT 2019 QCM
+  uC 1 status: RESET
+
+```
+
+The current firmware code is implemented on top of a proprietary ARM
+kernel but Broadcom is in the process of moving to an open kernel and
+will share it with us once that's done.
+
+The firmware executes the following pseudocode in parallel threads:
+
+1. Flow learning - 'learn thread'
+
+```
+
+  Foreach packet punted to arm core CPU:
+     if there is free space in flow table, add to flow table
+     if there is not, decide if we want to evict the least interesting flow
+
+2. Flow aging and interest counting - 'scan thread'
+
+```
+
+  Foreach flow being tracked:
+     recompute its interest level
+     if its interest level exceeds _interest_threshold_, queue onto export thread
+     if it is inactive above the inactivity timeout, stop tracking it
+
+3. Control thread
+
+   Listen for new commands from the microserver (e.g., change of parameter) and adjust
+   threads accordingly.
+
+4. Export thread
+
+   Handle the marshalling of IPFix data and sending out the dataplane to the collector
+
+## FPEM Table
+
+## Interest Heuristic
+
+
+Foreach time period
+   foreach flow:
+1. Track the sum of all drops across all queues: *all_drops*
+2. Track the sum of all packet rx across all flows: *all_rx*
+3. Compute an 'interest' score as interest = *weight1* * *all_drops* + *weight2* * *all_rx*
+4. If the interest score is above an *interest_threshold*, declare congestion event
+5. *weight1*, *weight2*, and *interest_threshold* are configurable parameters via new SDK calls.
+
+## Flow Tracking
+
+
+
+Use flex-counters to track each flow table entry.  ARM core manages
+which flows are tracked, directly updated the underlying memory without
+the microserver CPU being involved.  FPEM table typically matches only
+half of the flow, e.g., source or dest, but can do a double-wide match
+to match both sides.
+
+
+# FBOSS Implementation Details
+
+1. Load Firmware into ARM core 0 at boot time.
+   * how to distribute firmware blob - with wedge_agent fbpkg or without?
+   * probably will call bcm_run_command() rather than reimplemting mcsload - thoughts?
+   * specify firmware and optional arm core id in switch_config.thrift
+   * think about building it into the wedge_agent binary
+2. Patch SDK 6.5.16 to support 'flow tracking' APIs and interest heuristics management
+3. Change BCM.conf to allocate memory for FPEM table : fpem_mem_entries: "0x2000  ; requires cold boot!
+4. Setup DMA channel between ASIC and ARM processor
+5. Create a VLAN for the ARM Core cpu port and add the port to the collector to the same VLAN
+    -- export thread only does L2 forwarding!!  Maybe send to CPU?  Risk bottleneck on PCI bus
+5. Install IFP rule to send all (?) packets that miss the FPEM to the ARM
+    1. Can optionally rate limit...
+    2. But, the ARM is in theory dedicated, so might be ok to overload (testing required!)
+6. Set parameters via switch_config.thrift:
+   1. interest_threshhold, \weight1, \weight2
+   2. IP address of collector
+   3. Number of flows to track.  This must be less than FPEM size but might have other limits
+7.  Very similar to mirror destination, need to hard code collector IP, port, mac address, etc.
+   1. Might be able to use loopback interface similar to mirroring .... if that works
+
+
+Feedback from team:
+
+0) intially all configs should be gflags
+1) Settle CPU port shared with vlan: does flooding go to microcontroller?  Really needed?
+  CS8834734 - yes it's needed, consider setting BCM_VLAN_UNKNOWN_UCAST_DROP to prevent flooding.
+  Even better, add to private vlan with dedicated router interface port.  Think about details.
+2) Find out if we can optionally disable the host memory ; how much DMA is needed?
+  Greg claims yes!
+

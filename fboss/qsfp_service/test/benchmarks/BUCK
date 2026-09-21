@@ -1,0 +1,14 @@
+load(
+    "//fboss/qsfp_service/test/benchmarks:bench_test.bzl",
+    "all_hw_bench_utils_libs",
+    "all_hw_qsfp_bench_test_binaries",
+    "all_qsfp_bench_test_libs",
+)
+
+oncall("fboss_optics_phy")
+
+all_hw_bench_utils_libs()
+
+all_qsfp_bench_test_libs()
+
+all_hw_qsfp_bench_test_binaries()

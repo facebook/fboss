@@ -1,0 +1,67 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "fw_util",
+    srcs = ["fw_util.cpp"],
+    deps = [
+        ":core",
+        "//fboss/platform/helpers:init_cli",
+        "//folly/logging:file_handler_factory",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)
+
+cpp_library(
+    name = "core",
+    srcs = [
+        "ConfigValidator.cpp",
+        "FwUtilFlashrom.cpp",
+        "FwUtilImpl.cpp",
+        "FwUtilOperations.cpp",
+        "FwUtilPostUpgrade.cpp",
+        "FwUtilPreUpgrade.cpp",
+        "FwUtilRead.cpp",
+        "FwUtilUpgrade.cpp",
+        "FwUtilVerify.cpp",
+        "FwUtilVersionHandler.cpp",
+        "fw_util_helpers.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//folly:file",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        "//fboss/platform/fw_util/if:fw_util_config-cpp2-types",
+        "//fboss/platform/helpers:platform_utils",
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
+)
+
+custom_unittest(
+    name = "test_fw_util_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :fw_util)",
+    ],
+    type = "simple",
+)

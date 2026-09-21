@@ -1,0 +1,28 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_optics_phy")
+
+thrift_library(
+    name = "cmis",
+    go_thrift_namespaces = {
+        "cmis.thrift": "neteng.fboss.cmis",
+    },
+    languages = [
+        "cpp2",
+        "py3-deprecated",
+        "go",
+        "rust",
+        "python",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_rust_options = [
+        "deprecated_default_enum_min_i32",
+        "serde",
+    ],
+    thrift_srcs = {"cmis.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)

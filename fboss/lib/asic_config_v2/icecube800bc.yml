@@ -1,0 +1,619 @@
+# $Copyright: Broadcom Ltd.$
+#
+# BCM78914 128x800g port configuration.
+#
+# configuration yaml file
+#   device:
+#       <unit>:
+#           <table>:
+#               ?
+#                   <key_fld_1>: <value>
+#                   <key_fld_2>: <value>
+#                   ...
+#                   <key_fld_n>: <value>
+#               :
+#                   <data_fld_1>: <value>
+#                   <data_fld_2>: <value>
+#                   ...
+#                   <data_fld_n>: <value>
+#
+---
+device:
+    0:
+        DEVICE_CONFIG:
+            AUTOLOAD_BOARD_SETTINGS: 1
+...
+
+---
+device:
+    0:
+        PC_PORT_PHYS_MAP:
+            # data path 0
+            ?
+                PORT_ID: 1
+            :
+                PC_PHYS_PORT_ID: 1
+            ?
+                PORT_ID: 2
+            :
+                PC_PHYS_PORT_ID: 5
+            ?
+                PORT_ID: 3
+            :
+                PC_PHYS_PORT_ID: 9
+            ?
+                PORT_ID: 4
+            :
+                PC_PHYS_PORT_ID: 13
+            # data path 1
+            ?
+                PORT_ID: 18
+            :
+                PC_PHYS_PORT_ID: 17
+            ?
+                PORT_ID: 19
+            :
+                PC_PHYS_PORT_ID: 21
+            ?
+                PORT_ID: 20
+            :
+                PC_PHYS_PORT_ID: 25
+            ?
+                PORT_ID: 21
+            :
+                PC_PHYS_PORT_ID: 29
+            # data path 2
+            ?
+                PORT_ID: 36
+            :
+                PC_PHYS_PORT_ID: 33
+            ?
+                PORT_ID: 37
+            :
+                PC_PHYS_PORT_ID: 37
+            ?
+                PORT_ID: 38
+            :
+                PC_PHYS_PORT_ID: 41
+            ?
+                PORT_ID: 39
+            :
+                PC_PHYS_PORT_ID: 45
+            # data path 3
+            ?
+                PORT_ID: 54
+            :
+                PC_PHYS_PORT_ID: 49
+            ?
+                PORT_ID: 55
+            :
+                PC_PHYS_PORT_ID: 53
+            ?
+                PORT_ID: 56
+            :
+                PC_PHYS_PORT_ID: 57
+            ?
+                PORT_ID: 57
+            :
+                PC_PHYS_PORT_ID: 61
+            # data path 4
+            ?
+                PORT_ID: 72
+            :
+                PC_PHYS_PORT_ID: 65
+            ?
+                PORT_ID: 73
+            :
+                PC_PHYS_PORT_ID: 69
+            ?
+                PORT_ID: 74
+            :
+                PC_PHYS_PORT_ID: 73
+            ?
+                PORT_ID: 75
+            :
+                PC_PHYS_PORT_ID: 77
+            # data path 5
+            ?
+                PORT_ID: 90
+            :
+                PC_PHYS_PORT_ID: 81
+            ?
+                PORT_ID: 91
+            :
+                PC_PHYS_PORT_ID: 85
+            ?
+                PORT_ID: 92
+            :
+                PC_PHYS_PORT_ID: 89
+            ?
+                PORT_ID: 93
+            :
+                PC_PHYS_PORT_ID: 93
+            # data path 6
+            ?
+                PORT_ID: 108
+            :
+                PC_PHYS_PORT_ID: 97
+            ?
+                PORT_ID: 109
+            :
+                PC_PHYS_PORT_ID: 101
+            ?
+                PORT_ID: 110
+            :
+                PC_PHYS_PORT_ID: 105
+            ?
+                PORT_ID: 111
+            :
+                PC_PHYS_PORT_ID: 109
+            # data path 7
+            ?
+                PORT_ID: 126
+            :
+                PC_PHYS_PORT_ID: 113
+            ?
+                PORT_ID: 127
+            :
+                PC_PHYS_PORT_ID: 117
+            ?
+                PORT_ID: 128
+            :
+                PC_PHYS_PORT_ID: 121
+            ?
+                PORT_ID: 129
+            :
+                PC_PHYS_PORT_ID: 125
+            # data path 8
+            ?
+                PORT_ID: 144
+            :
+                PC_PHYS_PORT_ID: 129
+            ?
+                PORT_ID: 145
+            :
+                PC_PHYS_PORT_ID: 133
+            ?
+                PORT_ID: 146
+            :
+                PC_PHYS_PORT_ID: 137
+            ?
+                PORT_ID: 147
+            :
+                PC_PHYS_PORT_ID: 141
+            # data path 9
+            ?
+                PORT_ID: 162
+            :
+                PC_PHYS_PORT_ID: 145
+            ?
+                PORT_ID: 163
+            :
+                PC_PHYS_PORT_ID: 149
+            ?
+                PORT_ID: 164
+            :
+                PC_PHYS_PORT_ID: 153
+            ?
+                PORT_ID: 165
+            :
+                PC_PHYS_PORT_ID: 157
+            # data path 10
+            ?
+                PORT_ID: 180
+            :
+                PC_PHYS_PORT_ID: 161
+            ?
+                PORT_ID: 181
+            :
+                PC_PHYS_PORT_ID: 165
+            ?
+                PORT_ID: 182
+            :
+                PC_PHYS_PORT_ID: 169
+            ?
+                PORT_ID: 183
+            :
+                PC_PHYS_PORT_ID: 173
+            # data path 11
+            ?
+                PORT_ID: 198
+            :
+                PC_PHYS_PORT_ID: 177
+            ?
+                PORT_ID: 199
+            :
+                PC_PHYS_PORT_ID: 181
+            ?
+                PORT_ID: 200
+            :
+                PC_PHYS_PORT_ID: 185
+            ?
+                PORT_ID: 201
+            :
+                PC_PHYS_PORT_ID: 189
+            # data path 12
+            ?
+                PORT_ID: 216
+            :
+                PC_PHYS_PORT_ID: 193
+            ?
+                PORT_ID: 217
+            :
+                PC_PHYS_PORT_ID: 197
+            ?
+                PORT_ID: 218
+            :
+                PC_PHYS_PORT_ID: 201
+            ?
+                PORT_ID: 219
+            :
+                PC_PHYS_PORT_ID: 205
+            # data path 13
+            ?
+                PORT_ID: 234
+            :
+                PC_PHYS_PORT_ID: 209
+            ?
+                PORT_ID: 235
+            :
+                PC_PHYS_PORT_ID: 213
+            ?
+                PORT_ID: 236
+            :
+                PC_PHYS_PORT_ID: 217
+            ?
+                PORT_ID: 237
+            :
+                PC_PHYS_PORT_ID: 221
+            # data path 14
+            ?
+                PORT_ID: 252
+            :
+                PC_PHYS_PORT_ID: 225
+            ?
+                PORT_ID: 253
+            :
+                PC_PHYS_PORT_ID: 229
+            ?
+                PORT_ID: 254
+            :
+                PC_PHYS_PORT_ID: 233
+            ?
+                PORT_ID: 255
+            :
+                PC_PHYS_PORT_ID: 237
+            # data path 15
+            ?
+                PORT_ID: 270
+            :
+                PC_PHYS_PORT_ID: 241
+            ?
+                PORT_ID: 271
+            :
+                PC_PHYS_PORT_ID: 245
+            ?
+                PORT_ID: 272
+            :
+                PC_PHYS_PORT_ID: 249
+            ?
+                PORT_ID: 273
+            :
+                PC_PHYS_PORT_ID: 253
+            # data path 16
+            ?
+                PORT_ID: 288
+            :
+                PC_PHYS_PORT_ID: 257
+            ?
+                PORT_ID: 289
+            :
+                PC_PHYS_PORT_ID: 261
+            ?
+                PORT_ID: 290
+            :
+                PC_PHYS_PORT_ID: 265
+            ?
+                PORT_ID: 291
+            :
+                PC_PHYS_PORT_ID: 269
+            # data path 17
+            ?
+                PORT_ID: 306
+            :
+                PC_PHYS_PORT_ID: 273
+            ?
+                PORT_ID: 307
+            :
+                PC_PHYS_PORT_ID: 277
+            ?
+                PORT_ID: 308
+            :
+                PC_PHYS_PORT_ID: 281
+            ?
+                PORT_ID: 309
+            :
+                PC_PHYS_PORT_ID: 285
+            # data path 18
+            ?
+                PORT_ID: 324
+            :
+                PC_PHYS_PORT_ID: 289
+            ?
+                PORT_ID: 325
+            :
+                PC_PHYS_PORT_ID: 293
+            ?
+                PORT_ID: 326
+            :
+                PC_PHYS_PORT_ID: 297
+            ?
+                PORT_ID: 327
+            :
+                PC_PHYS_PORT_ID: 301
+            # data path 19
+            ?
+                PORT_ID: 342
+            :
+                PC_PHYS_PORT_ID: 305
+            ?
+                PORT_ID: 343
+            :
+                PC_PHYS_PORT_ID: 309
+            ?
+                PORT_ID: 344
+            :
+                PC_PHYS_PORT_ID: 313
+            ?
+                PORT_ID: 345
+            :
+                PC_PHYS_PORT_ID: 317
+            # data path 20
+            ?
+                PORT_ID: 360
+            :
+                PC_PHYS_PORT_ID: 321
+            ?
+                PORT_ID: 361
+            :
+                PC_PHYS_PORT_ID: 325
+            ?
+                PORT_ID: 362
+            :
+                PC_PHYS_PORT_ID: 329
+            ?
+                PORT_ID: 363
+            :
+                PC_PHYS_PORT_ID: 333
+            # data path 21
+            ?
+                PORT_ID: 378
+            :
+                PC_PHYS_PORT_ID: 337
+            ?
+                PORT_ID: 379
+            :
+                PC_PHYS_PORT_ID: 341
+            ?
+                PORT_ID: 380
+            :
+                PC_PHYS_PORT_ID: 345
+            ?
+                PORT_ID: 381
+            :
+                PC_PHYS_PORT_ID: 349
+            # data path 22
+            ?
+                PORT_ID: 396
+            :
+                PC_PHYS_PORT_ID: 353
+            ?
+                PORT_ID: 397
+            :
+                PC_PHYS_PORT_ID: 357
+            ?
+                PORT_ID: 398
+            :
+                PC_PHYS_PORT_ID: 361
+            ?
+                PORT_ID: 399
+            :
+                PC_PHYS_PORT_ID: 365
+            # data path 23
+            ?
+                PORT_ID: 414
+            :
+                PC_PHYS_PORT_ID: 369
+            ?
+                PORT_ID: 415
+            :
+                PC_PHYS_PORT_ID: 373
+            ?
+                PORT_ID: 416
+            :
+                PC_PHYS_PORT_ID: 377
+            ?
+                PORT_ID: 417
+            :
+                PC_PHYS_PORT_ID: 381
+            # data path 24
+            ?
+                PORT_ID: 432
+            :
+                PC_PHYS_PORT_ID: 385
+            ?
+                PORT_ID: 433
+            :
+                PC_PHYS_PORT_ID: 389
+            ?
+                PORT_ID: 434
+            :
+                PC_PHYS_PORT_ID: 393
+            ?
+                PORT_ID: 435
+            :
+                PC_PHYS_PORT_ID: 397
+            # data path 25
+            ?
+                PORT_ID: 450
+            :
+                PC_PHYS_PORT_ID: 401
+            ?
+                PORT_ID: 451
+            :
+                PC_PHYS_PORT_ID: 405
+            ?
+                PORT_ID: 452
+            :
+                PC_PHYS_PORT_ID: 409
+            ?
+                PORT_ID: 453
+            :
+                PC_PHYS_PORT_ID: 413
+            # data path 26
+            ?
+                PORT_ID: 468
+            :
+                PC_PHYS_PORT_ID: 417
+            ?
+                PORT_ID: 469
+            :
+                PC_PHYS_PORT_ID: 421
+            ?
+                PORT_ID: 470
+            :
+                PC_PHYS_PORT_ID: 425
+            ?
+                PORT_ID: 471
+            :
+                PC_PHYS_PORT_ID: 429
+            # data path 27
+            ?
+                PORT_ID: 486
+            :
+                PC_PHYS_PORT_ID: 433
+            ?
+                PORT_ID: 487
+            :
+                PC_PHYS_PORT_ID: 437
+            ?
+                PORT_ID: 488
+            :
+                PC_PHYS_PORT_ID: 441
+            ?
+                PORT_ID: 489
+            :
+                PC_PHYS_PORT_ID: 445
+            # data path 28
+            ?
+                PORT_ID: 504
+            :
+                PC_PHYS_PORT_ID: 449
+            ?
+                PORT_ID: 505
+            :
+                PC_PHYS_PORT_ID: 453
+            ?
+                PORT_ID: 506
+            :
+                PC_PHYS_PORT_ID: 457
+            ?
+                PORT_ID: 507
+            :
+                PC_PHYS_PORT_ID: 461
+            # data path 29
+            ?
+                PORT_ID: 522
+            :
+                PC_PHYS_PORT_ID: 465
+            ?
+                PORT_ID: 523
+            :
+                PC_PHYS_PORT_ID: 469
+            ?
+                PORT_ID: 524
+            :
+                PC_PHYS_PORT_ID: 473
+            ?
+                PORT_ID: 525
+            :
+                PC_PHYS_PORT_ID: 477
+            # data path 30
+            ?
+                PORT_ID: 540
+            :
+                PC_PHYS_PORT_ID: 481
+            ?
+                PORT_ID: 541
+            :
+                PC_PHYS_PORT_ID: 485
+            ?
+                PORT_ID: 542
+            :
+                PC_PHYS_PORT_ID: 489
+            ?
+                PORT_ID: 543
+            :
+                PC_PHYS_PORT_ID: 493
+            # data path 31
+            ?
+                PORT_ID: 558
+            :
+                PC_PHYS_PORT_ID: 497
+            ?
+                PORT_ID: 559
+            :
+                PC_PHYS_PORT_ID: 501
+            ?
+                PORT_ID: 560
+            :
+                PC_PHYS_PORT_ID: 505
+            ?
+                PORT_ID: 561
+            :
+                PC_PHYS_PORT_ID: 509
+...
+---
+device:
+    0:
+        PC_PORT:
+            ?
+                PORT_ID: [[1, 4],
+                          [18, 21],
+                          [36, 39],
+                          [54, 57],
+                          [72, 75],
+                          [90, 93],
+                          [108, 111],
+                          [126, 129],
+                          [144, 147],
+                          [162, 165],
+                          [180, 183],
+                          [198, 201],
+                          [216, 219],
+                          [234, 237],
+                          [252, 255],
+                          [270, 273],
+                          [288, 291],
+                          [306, 309],
+                          [324, 327],
+                          [342, 345],
+                          [360, 363],
+                          [378, 381],
+                          [396, 399],
+                          [414, 417],
+                          [432, 435],
+                          [450, 453],
+                          [468, 471],
+                          [486, 489],
+                          [504, 507],
+                          [522, 525],
+                          [540, 543],
+                          [558, 561]]
+            :
+                ENABLE: 1
+                SPEED: 800000
+                NUM_LANES: 4
+                FEC_MODE: PC_FEC_RS544_2XN_IEEE
+                MAX_FRAME_SIZE: 9416
+...

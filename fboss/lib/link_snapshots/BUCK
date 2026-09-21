@@ -1,0 +1,49 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "ring_buffer",
+    srcs = [],
+    headers = [
+        "RingBuffer.h",
+        "RingBuffer-defs.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+    ],
+)
+
+cpp_library(
+    name = "async_filewriter_factory",
+    srcs = [
+        "AsyncFileWriterFactory.cpp",
+    ],
+    headers = ["AsyncFileWriterFactory.h"],
+    exported_deps = [
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+    external_deps = [("boost", None, "boost_filesystem")],
+    exported_external_deps = [
+        ("boost", None, "boost_filesystem"),
+    ],
+)
+
+cpp_library(
+    name = "snapshot_manager",
+    srcs = [
+        "SnapshotManager.cpp",
+    ],
+    headers = [
+        "SnapshotManager.h",
+    ],
+    deps = ["//fboss/lib:alert_logger"],
+    exported_deps = [
+        ":async_filewriter_factory",
+        ":ring_buffer",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

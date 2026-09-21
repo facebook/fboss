@@ -1,0 +1,15 @@
+load(
+    "//fboss/agent/hw/sai/benchmarks:benchmarks.bzl",
+    "sai_mono_agent_benchmark",
+    "sai_multi_switch_agent_benchmark",
+)
+
+oncall("fboss_agent_push")
+
+sai_mono_agent_benchmark(
+    name = "sai_bench_test",
+)
+
+sai_multi_switch_agent_benchmark(
+    name = "sai_bench_test_multi",
+)

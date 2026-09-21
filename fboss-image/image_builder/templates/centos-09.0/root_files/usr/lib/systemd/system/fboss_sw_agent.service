@@ -1,0 +1,28 @@
+# /usr/lib/systemd/system/fboss_sw_agent.service
+[Unit]
+Description=FBOSS SW Agent
+After=platform_manager.service
+After=qsfp_service.service
+After=rc-local.service
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+LimitNOFILE=10000000
+LimitCORE=32G
+MemoryMax=3.75G
+MemorySwapMax=0
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fboss_sw_agent --fsdb_client_ssl_preferred=false --thrift_ssl_policy=disabled'
+
+Restart=always
+
+StandardOutput=append:/var/facebook/logs/fboss/fboss_sw_agent.log
+StandardError=append:/var/facebook/logs/fboss/fboss_sw_agent.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,289 @@
+{
+  "fwConfigs": {
+    "BIOS": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "A00000:FFFFFF normal\n400000:9EFFFF fallback",
+            "programmer_type": "internal",
+            "flashromExtraArgs": [
+              "-i",
+              "normal",
+              "-i",
+              "fallback",
+              "--noverify-all"
+            ],
+            "chip": [
+              "MX25L12805D",
+              "N25Q128..3E"
+            ]
+          }
+        }
+      ],
+      "verify": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "-i",
+            "normal",
+            "-i",
+            "fallback",
+            "--noverify-all"
+          ],
+          "chip": [
+            "MX25L12805D",
+            "N25Q128..3E"
+          ]
+        }
+      },
+      "read": {
+        "commandType": "flashrom",
+        "flashromArgs": {
+          "programmer_type": "internal",
+          "flashromExtraArgs": [
+            "-i",
+            "normal",
+            "-i",
+            "fallback",
+            "--noverify-all"
+          ],
+          "chip": [
+            "MX25L12805D",
+            "N25Q128..3E"
+          ]
+        }
+      },
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version"
+      },
+      "priority": 1
+    },
+    "CPU_CPLD": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/scd_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr0_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr1_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/th3_jtag_sel",
+            "value": 0
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fcpu_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "cpu_cpld_ver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/devices/0000:ff:0b.3/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver"
+      },
+      "priority": 2
+    },
+    "SC_CPLD": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/scd_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr0_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr1_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/th3_jtag_sel",
+            "value": 0
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fsc_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "sc_cpld_ver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_ver | head -1`));sc_cpld_subver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_sub_ver | head -1`));echo $sc_cpld_ver'.'$sc_cpld_subver"
+      },
+      "priority": 7
+    },
+    "SC_SCD": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SCD_SPI_MASTER_DEVICE1",
+            "chip": [
+              "MX25L1605A/MX25L1606E/MX25L1608E",
+              "GD25Q16(B)",
+              "IS25LP016"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "sc_fpga_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_ver`));sc_fpga_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_sub_ver`));echo $sc_fpga_ver'.'$sc_fpga_subver"
+      },
+      "priority": 3
+    },
+    "SC_SAT_CPLD0": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/scd_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr0_jtag_sel",
+            "value": 1
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr1_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/th3_jtag_sel",
+            "value": 0
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fsc_sat_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "sat0_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_ver`));sat0_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_sub_ver`));echo $sat0_cpld_ver'.'$sat0_cpld_subver"
+      },
+      "priority": 4
+    },
+    "SC_SAT_CPLD1": {
+      "preUpgrade": [
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/scd_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr0_jtag_sel",
+            "value": 0
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/sr1_jtag_sel",
+            "value": 1
+          }
+        },
+        {
+          "commandType": "jtag",
+          "jtagArgs": {
+            "path": "/run/devmap/cplds/BLACKHAWK_CPLD/th3_jtag_sel",
+            "value": 0
+          }
+        }
+      ],
+      "upgrade": [
+        {
+          "commandType": "jam",
+          "jamArgs": {
+            "jamExtraArgs": [
+              "-aprogram",
+              "-fsc_sat_cpld",
+              "-v"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "sat1_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_ver`));sat1_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_sub_ver`));echo $sat1_cpld_ver'.'$sat1_cpld_subver"
+      },
+      "priority": 5
+    },
+    "FAN_CPLD": {
+      "version": {
+        "versionType": "full_command",
+        "getVersionCmd": "fanCpld_ver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_ver`));fanCpld_subver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_sub_ver`));echo $fanCpld_ver'.'$fanCpld_subver"
+      },
+      "priority": 6
+    }
+  }
+}

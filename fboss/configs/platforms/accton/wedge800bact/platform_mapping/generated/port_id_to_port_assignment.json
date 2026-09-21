@@ -1,0 +1,814 @@
+{
+  "portIdToPortAssignment": {
+    "1": {
+        "portName": "eth1/18/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "2": {
+        "portName": "eth1/18/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "3": {
+        "portName": "eth1/17/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "4": {
+        "portName": "eth1/17/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "5": {
+        "portName": "eth1/20/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "6": {
+        "portName": "eth1/20/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "7": {
+        "portName": "eth1/20/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "8": {
+        "portName": "eth1/20/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "9": {
+        "portName": "eth1/20/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "10": {
+        "portName": "eth1/20/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "11": {
+        "portName": "eth1/20/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "12": {
+        "portName": "eth1/20/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "13": {
+        "portName": "eth1/19/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "14": {
+        "portName": "eth1/19/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "15": {
+        "portName": "eth1/19/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "16": {
+        "portName": "eth1/19/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "17": {
+        "portName": "eth1/19/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "18": {
+        "portName": "eth1/19/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "19": {
+        "portName": "eth1/19/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "20": {
+        "portName": "eth1/19/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "22": {
+        "portName": "eth1/22/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "23": {
+        "portName": "eth1/22/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "24": {
+        "portName": "eth1/21/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "25": {
+        "portName": "eth1/21/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "26": {
+        "portName": "eth1/24/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "27": {
+        "portName": "eth1/24/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "28": {
+        "portName": "eth1/24/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "29": {
+        "portName": "eth1/24/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "30": {
+        "portName": "eth1/24/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "31": {
+        "portName": "eth1/24/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "33": {
+        "portName": "eth1/24/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "34": {
+        "portName": "eth1/24/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "35": {
+        "portName": "eth1/23/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "36": {
+        "portName": "eth1/23/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "37": {
+        "portName": "eth1/23/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "38": {
+        "portName": "eth1/23/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "39": {
+        "portName": "eth1/23/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "40": {
+        "portName": "eth1/23/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "41": {
+        "portName": "eth1/23/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "42": {
+        "portName": "eth1/23/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "44": {
+        "portName": "eth1/26/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "45": {
+        "portName": "eth1/26/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "46": {
+        "portName": "eth1/25/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "47": {
+        "portName": "eth1/25/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "48": {
+        "portName": "eth1/28/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "49": {
+        "portName": "eth1/28/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "50": {
+        "portName": "eth1/28/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "51": {
+        "portName": "eth1/28/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "52": {
+        "portName": "eth1/28/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "53": {
+        "portName": "eth1/28/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "55": {
+        "portName": "eth1/28/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "56": {
+        "portName": "eth1/28/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "57": {
+        "portName": "eth1/27/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "58": {
+        "portName": "eth1/27/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "59": {
+        "portName": "eth1/27/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "60": {
+        "portName": "eth1/27/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "61": {
+        "portName": "eth1/27/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "62": {
+        "portName": "eth1/27/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "63": {
+        "portName": "eth1/27/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "64": {
+        "portName": "eth1/27/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "66": {
+        "portName": "eth1/30/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "67": {
+        "portName": "eth1/30/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "68": {
+        "portName": "eth1/29/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "69": {
+        "portName": "eth1/29/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "70": {
+        "portName": "eth1/32/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "71": {
+        "portName": "eth1/32/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "72": {
+        "portName": "eth1/32/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "73": {
+        "portName": "eth1/32/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "74": {
+        "portName": "eth1/32/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "75": {
+        "portName": "eth1/32/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "77": {
+        "portName": "eth1/32/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "78": {
+        "portName": "eth1/32/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "79": {
+        "portName": "eth1/31/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "80": {
+        "portName": "eth1/31/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "81": {
+        "portName": "eth1/31/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "82": {
+        "portName": "eth1/31/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "83": {
+        "portName": "eth1/31/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "84": {
+        "portName": "eth1/31/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "85": {
+        "portName": "eth1/31/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "86": {
+        "portName": "eth1/31/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "264": {
+        "portName": "eth1/2/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "265": {
+        "portName": "eth1/2/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "266": {
+        "portName": "eth1/1/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "267": {
+        "portName": "eth1/1/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "268": {
+        "portName": "eth1/4/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "269": {
+        "portName": "eth1/4/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "270": {
+        "portName": "eth1/4/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "271": {
+        "portName": "eth1/4/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "272": {
+        "portName": "eth1/4/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "273": {
+        "portName": "eth1/4/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "275": {
+        "portName": "eth1/4/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "276": {
+        "portName": "eth1/4/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "277": {
+        "portName": "eth1/3/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "278": {
+        "portName": "eth1/3/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "279": {
+        "portName": "eth1/3/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "280": {
+        "portName": "eth1/3/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "281": {
+        "portName": "eth1/3/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "282": {
+        "portName": "eth1/3/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "283": {
+        "portName": "eth1/3/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "284": {
+        "portName": "eth1/3/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "286": {
+        "portName": "eth1/6/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "287": {
+        "portName": "eth1/6/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "288": {
+        "portName": "eth1/5/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "289": {
+        "portName": "eth1/5/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "290": {
+        "portName": "eth1/8/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "291": {
+        "portName": "eth1/8/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "292": {
+        "portName": "eth1/8/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "293": {
+        "portName": "eth1/8/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "294": {
+        "portName": "eth1/8/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "295": {
+        "portName": "eth1/8/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "297": {
+        "portName": "eth1/8/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "298": {
+        "portName": "eth1/8/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "299": {
+        "portName": "eth1/7/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "300": {
+        "portName": "eth1/7/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "301": {
+        "portName": "eth1/7/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "302": {
+        "portName": "eth1/7/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "303": {
+        "portName": "eth1/7/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "304": {
+        "portName": "eth1/7/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "305": {
+        "portName": "eth1/7/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "306": {
+        "portName": "eth1/7/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "308": {
+        "portName": "eth1/10/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "309": {
+        "portName": "eth1/10/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "310": {
+        "portName": "eth1/9/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "311": {
+        "portName": "eth1/9/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "312": {
+        "portName": "eth1/12/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "313": {
+        "portName": "eth1/12/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "314": {
+        "portName": "eth1/12/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "315": {
+        "portName": "eth1/12/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "316": {
+        "portName": "eth1/12/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "317": {
+        "portName": "eth1/12/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "319": {
+        "portName": "eth1/12/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "320": {
+        "portName": "eth1/12/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "321": {
+        "portName": "eth1/11/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "322": {
+        "portName": "eth1/11/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "323": {
+        "portName": "eth1/11/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "324": {
+        "portName": "eth1/11/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "325": {
+        "portName": "eth1/11/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "326": {
+        "portName": "eth1/11/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "327": {
+        "portName": "eth1/11/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "328": {
+        "portName": "eth1/11/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "330": {
+        "portName": "eth1/13/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "331": {
+        "portName": "eth1/13/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "332": {
+        "portName": "eth1/14/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "333": {
+        "portName": "eth1/14/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "334": {
+        "portName": "eth1/15/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "335": {
+        "portName": "eth1/15/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "336": {
+        "portName": "eth1/15/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "337": {
+        "portName": "eth1/15/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "338": {
+        "portName": "eth1/15/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "339": {
+        "portName": "eth1/15/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "341": {
+        "portName": "eth1/15/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "342": {
+        "portName": "eth1/15/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "343": {
+        "portName": "eth1/16/1",
+        "portType": 0,
+        "scope": 0
+    },
+    "344": {
+        "portName": "eth1/16/2",
+        "portType": 0,
+        "scope": 0
+    },
+    "345": {
+        "portName": "eth1/16/3",
+        "portType": 0,
+        "scope": 0
+    },
+    "346": {
+        "portName": "eth1/16/4",
+        "portType": 0,
+        "scope": 0
+    },
+    "347": {
+        "portName": "eth1/16/5",
+        "portType": 0,
+        "scope": 0
+    },
+    "348": {
+        "portName": "eth1/16/6",
+        "portType": 0,
+        "scope": 0
+    },
+    "349": {
+        "portName": "eth1/16/7",
+        "portType": 0,
+        "scope": 0
+    },
+    "350": {
+        "portName": "eth1/16/8",
+        "portType": 0,
+        "scope": 0
+    },
+    "351": {
+        "portName": "eth1/33/1",
+        "portType": 4,
+        "scope": 0
+    },
+    "352": {
+        "portName": "eth1/33/3",
+        "portType": 4,
+        "scope": 0
+    }
+  }
+}

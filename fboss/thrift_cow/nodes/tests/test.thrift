@@ -1,0 +1,148 @@
+namespace cpp2 facebook.fboss
+
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
+include "fboss/agent/switch_config.thrift"
+include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
+enum TestEnum {
+  FIRST = 1,
+  SECOND = 2,
+  THIRD = 3,
+}
+
+union TestUnion {
+  1: bool inlineBool;
+  2: i32 inlineInt;
+  3: string inlineString;
+  4: switch_config.L4PortRange inlineStruct;
+  7: list<i32> listOfPrimitives;
+  8: list<switch_config.L4PortRange> listOfStructs;
+  9: list<list<i32>> listOfListOfPrimitives;
+  10: list<list<switch_config.L4PortRange>> listOfListOfStructs;
+  11: map<i32, i32> mapOfI32ToI32;
+  12: map<TestEnum, i32> mapOfEnumToI32;
+  13: map<string, i32> mapOfStringToI32;
+  14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct;
+  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
+  16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
+  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
+  18: set<i32> setOfI32;
+  19: set<TestEnum> setOfEnum;
+  20: set<string> setOfString;
+}
+
+@fboss_common.AllowSkipThriftCow
+struct ChildStruct {
+  1: map<i32, bool> childMap;
+  2: map<string, i32> strMap;
+  3: map<string, switch_config.L4PortRange> structMap;
+  4: list<switch_config.L4PortRange> listOfStruct;
+  5: i32 leafI32;
+  6: optional TestEnum optionalEnum;
+  7: set<string> childSet;
+  8: optional TestUnion optionalUnion;
+}
+
+struct RecursiveStruct {
+  1: string name;
+  2: switch_config.L4PortRange simpleMember;
+  3: list<RecursiveStruct> children = [];
+}
+
+struct TestStruct {
+  1: bool inlineBool;
+  2: i32 inlineInt;
+  3: string inlineString;
+  4: switch_config.L4PortRange inlineStruct;
+  5: optional i32 optionalInt;
+  6: optional switch_config.L4PortRange optionalStruct;
+  @fboss_common.AllowSkipThriftCow
+  7: list<i32> listOfPrimitives;
+  8: list<switch_config.L4PortRange> listOfStructs;
+  9: list<list<i32>> listOfListOfPrimitives;
+  10: list<list<switch_config.L4PortRange>> listOfListOfStructs;
+  @fboss_common.AllowSkipThriftCow
+  11: map<i32, i32> mapOfI32ToI32;
+  @fboss_common.AllowSkipThriftCow
+  12: map<TestEnum, i32> mapOfEnumToI32;
+  @fboss_common.AllowSkipThriftCow
+  13: map<string, i32> mapOfStringToI32;
+  @fboss_common.AllowSkipThriftCow
+  14: map<i32, switch_config.L4PortRange> mapOfI32ToStruct;
+  @fboss_common.AllowSkipThriftCow
+  15: map<TestEnum, switch_config.L4PortRange> mapOfEnumToStruct;
+  16: map<string, switch_config.L4PortRange> mapOfStringToStruct;
+  @fboss_common.AllowSkipThriftCow
+  17: map<i32, list<switch_config.L4PortRange>> mapOfI32ToListOfStructs;
+  18: set<i32> setOfI32;
+  19: set<TestEnum> setOfEnum;
+  20: set<string> setOfString;
+  21: TestUnion inlineVariant;
+  22: optional string optionalString;
+  @cpp.Type{name = "uint64_t"}
+  23: i64 unsigned_int64;
+  24: map<string, TestStruct> mapA;
+  25: map<string, TestStruct> mapB;
+  26: map<i32, bool> cowMap;
+  @fboss_common.AllowSkipThriftCow
+  27: map<i32, bool> hybridMap;
+  @fboss_common.AllowSkipThriftCow
+  28: list<i32> hybridList;
+  @fboss_common.AllowSkipThriftCow
+  29: set<i32> hybridSet;
+  @fboss_common.AllowSkipThriftCow
+  30: TestUnion hybridUnion;
+  @fboss_common.AllowSkipThriftCow
+  31: ChildStruct hybridStruct;
+  // hybridMapOfI32ToStruct is crafted to cover deeper accesses inside HybridNode, with
+  // paths that terminate at primitive leaves, intermediate containers (list, map, struct)
+  // in UTs for various visitors: PathVisitor, RecurseVisitor, DeltaVisitor
+  @fboss_common.AllowSkipThriftCow
+  32: map<i32, ChildStruct> hybridMapOfI32ToStruct;
+  @fboss_common.AllowSkipThriftCow
+  33: map<i32, map<i32, i32>> hybridMapOfMap;
+  @fboss_common.AllowSkipThriftCow
+  34: map<i32, set<string>> mapOfI32ToSetOfString;
+  35: list<RecursiveStruct> recursiveMember;
+}
+
+// structs declared to mimic deeper Thrift path accesses
+struct ParentTestStruct {
+  1: TestStruct childStruct;
+  2: map<i32, map<string, TestStruct>> mapOfI32ToMapOfStruct;
+}
+
+struct RootTestStruct {
+  1: map<i32, map<string, ParentTestStruct>> mapOfI32ToMapOfStruct;
+  2: list<ParentTestStruct> listOfStruct;
+  3: ParentTestStruct inlineStruct;
+}
+
+// structs declared exclusively for testing Thrift annotations.
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"random_annotation": "1"}}
+struct TestStructForAnnotation1 {
+  1: TestStruct childStruct;
+}
+
+@thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+struct TestStruct2 {
+  @thrift.DeprecatedUnvalidatedAnnotations{items = {"deprecated": "1"}}
+  10: i32 deprecatedField;
+}
+
+@fboss_common.AllowSkipThriftCow
+struct TestStruct3 {
+  1: i32 inlineInt;
+}
+
+// structs declared for testing annotation on Struct
+struct AnotherRootStruct {
+  1: TestStruct2 childCowStruct;
+  2: TestStruct3 childHybridStruct;
+  3: map<i32, TestStruct3> mapOfHybridStruct;
+  4: list<TestStruct3> listOfHybridStruct;
+}

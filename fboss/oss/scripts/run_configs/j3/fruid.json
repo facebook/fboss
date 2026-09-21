@@ -1,0 +1,32 @@
+{
+  "Actions": [],
+  "Information": {
+    "Assembled At": "",
+    "BMC MAC Address Size": "",
+    "BMC MAC Base": "",
+    "EEPROM location on Fabric": "",
+    "META Reserved MAC Address Size": "",
+    "META Reserved MAC Base": "",
+    "Meta PCB Part Number": "",
+    "Meta PCBA Part Number": "",
+    "ODM/JDM PCBA Part Number": "",
+    "ODM/JDM PCBA Serial Number": "",
+    "PCB Manufacturer": "",
+    "Product Name": "MERU800BIA",
+    "Product Part Number": "",
+    "Product Production State": "4",
+    "Product Serial Number": "JPN2509P5XG",
+    "Product Sub-Version": "0",
+    "Product Version": "4",
+    "Switch ASIC MAC Address Size": "149",
+    "Switch ASIC MAC Base": "a8:8f:99:ce:f2:e1",
+    "System Assembly Part Number": "",
+    "System Manufacturer": "",
+    "System Manufacturing Date": "20250224",
+    "Version": "5",
+    "X86 CPU MAC Address Size": "",
+    "X86 CPU MAC Base": ""
+  },
+  "Resources": []
+}
+

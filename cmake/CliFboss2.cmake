@@ -1,0 +1,1231 @@
+# CMake to build libraries and binaries in fboss/cli/fboss2
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
+add_fbthrift_cpp_library(
+  cli_metadata
+  fboss/cli/fboss2/cli_metadata.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  cli_model
+  fboss/cli/fboss2/cli.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_acl_model
+  fboss/cli/fboss2/commands/show/acl/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_agent_model
+  fboss/cli/fboss2/commands/show/agent/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_arp_model
+  fboss/cli/fboss2/commands/show/arp/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_example_model
+  fboss/cli/fboss2/commands/show/example/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_flowlet_model
+  fboss/cli/fboss2/commands/show/flowlet/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_dsf_subcription_model
+  fboss/cli/fboss2/commands/show/dsf/subscription/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_dsfnodes_model
+  fboss/cli/fboss2/commands/show/dsfnodes/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_fabric_model
+  fboss/cli/fboss2/commands/show/fabric/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_fabric_reachability_model
+  fboss/cli/fboss2/commands/show/fabric/reachability/model.thrift
+  OPTIONS
+    json
+)
+
+
+add_fbthrift_cpp_library(
+  show_fabric_inputbalance_model
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_fabric_monitoring_model
+  fboss/cli/fboss2/commands/show/fabric/monitoring/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_hardware_model
+  fboss/cli/fboss2/commands/show/hardware/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_host_model
+  fboss/cli/fboss2/commands/show/host/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_lldp_model
+  fboss/cli/fboss2/commands/show/lldp/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_mirror_model
+  fboss/cli/fboss2/commands/show/mirror/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_mysid_model
+  fboss/cli/fboss2/commands/show/mysid/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_nexthopgroups_model
+  fboss/cli/fboss2/commands/show/nexthopgroups/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_ndp_model
+  fboss/cli/fboss2/commands/show/ndp/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_port_model
+  fboss/cli/fboss2/commands/show/port/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_product_model
+  fboss/cli/fboss2/commands/show/product/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_aggregateport_model
+  fboss/cli/fboss2/commands/show/aggregateport/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_systemport_model
+  fboss/cli/fboss2/commands/show/systemport/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_cpuport_model
+  fboss/cli/fboss2/commands/show/cpuport/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_fb303counters_model
+  fboss/cli/fboss2/commands/show/fb303counters/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_hwagent_status_model
+  fboss/cli/fboss2/commands/show/hwagent/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_transceiver_model
+  fboss/cli/fboss2/commands/show/transceiver/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    transceiver_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_teflow_model
+  fboss/cli/fboss2/commands/show/teflow/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    show_route_model
+)
+
+add_fbthrift_cpp_library(
+  show_interface_model
+  fboss/cli/fboss2/commands/show/interface/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_flaps
+  fboss/cli/fboss2/commands/show/interface/flaps/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_errors
+  fboss/cli/fboss2/commands/show/interface/errors/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters
+  fboss/cli/fboss2/commands/show/interface/counters/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_traffic
+  fboss/cli/fboss2/commands/show/interface/traffic/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters_mka
+  fboss/cli/fboss2/commands/show/interface/counters/mka/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    hardware_stats_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_status
+  fboss/cli/fboss2/commands/show/interface/status/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_phy
+  fboss/cli/fboss2/commands/show/interface/phy/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_phymap
+  fboss/cli/fboss2/commands/show/interface/phymap/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    mka_structs_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_capabilities
+  fboss/cli/fboss2/commands/show/interface/capabilities/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    switch_config_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_route_model
+  fboss/cli/fboss2/commands/show/route/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    ctrl_cpp2
+    nsf_policy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_mpls_route_model
+  fboss/cli/fboss2/commands/show/mpls/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    show_route_model
+)
+
+add_fbthrift_cpp_library(
+  show_mac_model
+  fboss/cli/fboss2/commands/show/mac/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_prbs_capabilities
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    prbs_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_prbs_stats
+  fboss/cli/fboss2/commands/show/interface/prbs/stats/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_prbs_state
+  fboss/cli/fboss2/commands/show/interface/prbs/state/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+    prbs_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_ber
+  fboss/cli/fboss2/commands/show/interface/counters/fec/ber/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_tail
+  fboss/cli/fboss2/commands/show/interface/counters/fec/tail/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_histogram
+  fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_fabric_topology_model
+  fboss/cli/fboss2/commands/show/fabric/topology/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_rif
+  fboss/cli/fboss2/commands/show/rif/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_uncorrectable
+  fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
+  show_interface_transceiver_performancemonitoring
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
+  feature_default_command_args_cpp2
+  fboss/configs/platforms/generic/forwarding_stacks/feature_default_command_args.thrift
+  OPTIONS
+    json
+)
+
+find_package(CLI11 CONFIG REQUIRED)
+
+add_library(fboss2_config_file_utils
+  fboss/cli/fboss2/utils/ConfigFileUtils.h
+  fboss/cli/fboss2/utils/ConfigFileUtils.cpp
+)
+
+target_link_libraries(fboss2_config_file_utils
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
+add_library(fboss2_config_gen_lib
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h
+  fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
+  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h
+  fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
+)
+
+target_link_libraries(fboss2_config_gen_lib
+  acl_config_utils
+  agent_config_cpp2
+  feature_default_command_args_cpp2
+  fboss_error
+  fboss2_config_file_utils
+  Folly::folly
+  platform_descriptor
+  split_platform_mapping_utils
+  switch_asics
+)
+
+add_library(fboss2_lib
+  fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
+  fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.cpp
+  fboss/cli/fboss2/commands/clear/CmdClearArp.h
+  fboss/cli/fboss2/commands/clear/CmdClearArp.cpp
+  fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
+  fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.cpp
+  fboss/cli/fboss2/commands/clear/CmdClearNdp.h
+  fboss/cli/fboss2/commands/clear/CmdClearNdp.cpp
+  fboss/cli/fboss2/commands/clear/CmdClearUtils.h
+  fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h
+  fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.cpp
+  fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
+  fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.cpp
+  fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.cpp
+  fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
+  fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.h
+  fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.cpp
+  fboss/cli/fboss2/CmdGlobalOptions.cpp
+  fboss/cli/fboss2/CmdHandler.cpp
+  fboss/cli/fboss2/CmdStreamHandler.h
+  fboss/cli/fboss2/CmdStreamHandler.cpp
+  fboss/cli/fboss2/CmdStreamHandlerImpl.cpp
+  fboss/cli/fboss2/CmdHandlerImplBgp.cpp
+  fboss/cli/fboss2/CmdArgsLists.cpp
+  fboss/cli/fboss2/CmdList.cpp
+  fboss/cli/fboss2/CmdLocalOptions.cpp
+  fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
+  fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
+  fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
+  fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
+  fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h
+  fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.cpp
+  fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
+  fboss/cli/fboss2/commands/set/interface/CmdSetInterface.cpp
+  fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
+  fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.cpp
+  fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
+  fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.cpp
+  fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.h
+  fboss/cli/fboss2/commands/set/interface/loopback/CmdSetInterfaceLoopback.cpp
+  fboss/cli/fboss2/commands/set/port/CmdSetPort.h
+  fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
+  fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h
+  fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.cpp
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.h
+  fboss/cli/fboss2/commands/set/sdk/CmdSetSdk.cpp
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.h
+  fboss/cli/fboss2/commands/set/sdk/reg_dump/CmdSetSdkRegDump.cpp
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.h
+  fboss/cli/fboss2/commands/set/transceiver/CmdSetTransceiver.cpp
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.h
+  fboss/cli/fboss2/commands/set/transceiver/loopback/CmdSetTransceiverLoopback.cpp
+  fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
+  fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.cpp
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentFirmware.cpp
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentBootType.cpp
+  fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
+  fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
+  fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
+  fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.cpp
+  fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
+  fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.cpp
+  fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
+  fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.cpp
+  fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
+  fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.cpp
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.h
+  fboss/cli/fboss2/commands/show/example/CmdShowExample.cpp
+  fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
+  fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.cpp
+  fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.cpp
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h
+  fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.cpp
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h
+  fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.cpp
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h
+  fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.cpp
+  fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
+  fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.cpp
+  fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbUtils.h
+  fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h
+  fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h
+  fboss/cli/fboss2/commands/show/host/CmdShowHost.h
+  fboss/cli/fboss2/commands/show/host/CmdShowHost.cpp
+  fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h
+  fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.cpp
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.h
+  fboss/cli/fboss2/commands/show/fb303counters/CmdShowFb303Counters.cpp
+  fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
+  fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.cpp
+  fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
+  fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.cpp
+  fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.h
+  fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.cpp
+  fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
+  fboss/cli/fboss2/commands/show/l2/CmdShowL2.cpp
+  fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
+  fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.cpp
+  fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
+  fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.cpp
+  fboss/cli/fboss2/commands/show/port/CmdShowPort.h
+  fboss/cli/fboss2/commands/show/port/CmdShowPort.cpp
+  fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.cpp
+  fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProduct.cpp
+  fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
+  fboss/cli/fboss2/commands/show/route/utils.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRoute.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRoute.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.h
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteCounters.cpp
+  fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.cpp
+  fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
+  fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.cpp
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.cpp
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.cpp
+  fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
+  fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.cpp
+  fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h
+  fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.cpp
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.h
+  fboss/cli/fboss2/commands/show/nexthopgroups/CmdShowNextHopGroups.cpp
+  fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
+  fboss/cli/fboss2/commands/show/interface/CmdShowInterface.cpp
+  fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
+  fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.cpp
+  fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
+  fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
+  fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.cpp
+  fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
+  fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.cpp
+  fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
+  fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/CmdShowInterfaceTransceiver.cpp
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.h
+  fboss/cli/fboss2/commands/show/interface/transceiver/performancemonitoring/CmdShowInterfaceTransceiverPerformanceMonitoring.cpp
+  fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
+  fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.cpp
+  fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
+  fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.cpp
+  fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h
+  fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp
+  fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
+  fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.cpp
+  fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
+  fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.cpp
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.cpp
+  fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
+  fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.cpp
+  fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.cpp
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
+  fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
+  fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
+  fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.cpp
+  fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
+  fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.cpp
+  fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h
+  fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.cpp
+  fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
+  fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.cpp
+  fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
+  fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.h
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEeprom.cpp
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.h
+  fboss/cli/fboss2/commands/show/transceiver/eeprom/CmdShowTransceiverEepromDump.cpp
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.h
+  fboss/cli/fboss2/commands/show/transceiver/loopback/CmdShowTransceiverLoopback.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.cpp
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.h
+  fboss/cli/fboss2/commands/show/bgp/CanonicalRibResolver.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h
+  fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.cpp
+  fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h
+  fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.cpp
+  fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h
+  fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.cpp
+  fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h
+  fboss/cli/fboss2/commands/show/bgp/nexthopinfo/CmdShowBgpNexthopInfo.cpp
+  fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.h
+  fboss/cli/fboss2/commands/show/bgp/profiler/CmdShowBgpProfiler.cpp
+  fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/policy/CmdShowBgpPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.h
+  fboss/cli/fboss2/commands/show/bgp/updategroup/CmdShowBgpUpdateGroup.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.cpp
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.cpp
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h
+  fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.cpp
+  fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.h
+  fboss/cli/fboss2/commands/show/bgp/shadowrib/CmdShowBgpShadowRib.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsAttrs.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsEntries.cpp
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stats/CmdShowBgpStatsPolicy.cpp
+  fboss/cli/fboss2/commands/show/bgp/summary/CmdShowBgpSummary.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.h
+  fboss/cli/fboss2/commands/show/bgp/summary/egress/CmdShowBgpSummaryEgress.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTable.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableCommunity.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableDetail.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableMoreSpecifics.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.h
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTablePrefix.cpp
+  fboss/cli/fboss2/commands/show/bgp/table/CmdShowBgpTableSummary.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/advertised/BgpNeighborsAdvertisedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPostPolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/neighbors/received/BgpNeighborsReceivedRejected.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSummary.h
+  fboss/cli/fboss2/commands/show/bgp/stream/CmdShowBgpStreamSubscriber.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPrePolicy.h
+  fboss/cli/fboss2/commands/show/bgp/stream/subscriber/CmdShowBgpStreamSubscriberPostPolicy.h
+  fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
+  fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.h
+  fboss/cli/fboss2/commands/start/port/CmdStartPort.cpp
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.h
+  fboss/cli/fboss2/commands/start/port/cable_length_measurement/CmdStartPortCableLengthMeasurement.cpp
+  fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
+  fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.cpp
+  fboss/cli/fboss2/CmdSubcommands.cpp
+  fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
+  fboss/cli/fboss2/oss/CmdList.cpp
+  fboss/cli/fboss2/oss/CmdShowUtils.cpp
+  fboss/cli/fboss2/utils/CmdUtils.cpp
+  fboss/cli/fboss2/utils/CLIParserUtils.cpp
+  fboss/cli/fboss2/utils/CmdClientUtils.cpp
+  fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
+  fboss/cli/fboss2/utils/PortMap.cpp
+  fboss/cli/fboss2/utils/Table.cpp
+  fboss/cli/fboss2/utils/HostInfo.h
+  fboss/cli/fboss2/utils/FilterOp.h
+  fboss/cli/fboss2/utils/AggregateOp.h
+  fboss/cli/fboss2/utils/AggregateUtils.h
+  fboss/cli/fboss2/utils/CmdClientUtilsCommon.h
+  fboss/cli/fboss2/utils/CmdUtilsCommon.h
+  fboss/cli/fboss2/utils/FilterUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.h
+  fboss/cli/fboss2/utils/LoopbackUtils.cpp
+  fboss/cli/fboss2/utils/PrbsUtils.cpp
+  fboss/cli/fboss2/utils/SafetyPromptUtils.h
+  fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdUtils.cpp
+  fboss/cli/fboss2/options/OutputFormat.h
+  fboss/cli/fboss2/options/SSLPolicy.h
+)
+
+target_link_libraries(fboss2_lib
+  CLI11::CLI11
+  fboss2_config_gen_lib
+  tabulate::tabulate
+  data_corral_service_cpp2
+  fb303_cpp2
+  ctrl_cpp2
+  fan_service_cpp2
+  hw_ctrl_cpp2
+  qsfp_cpp2
+  phy_cpp2
+  led_service_types_cpp2
+  hardware_stats_cpp2
+  mka_structs_cpp2
+  rackmon_cpp2
+  fsdb_cpp2
+  fsdb_oper_cpp2
+  fsdb_model_cpp2
+  fsdb_path_converter
+  thrift_visitors
+  Folly::folly
+  input_balance_util
+  cli_model
+  bgp_thrift_cpp2
+  bgp_summary_cpp2
+  bgp_table_summary_cpp2
+  bgp_config_cpp2
+  bgp_update_group_cpp2
+  bgp_attr_cpp2
+  show_acl_model
+  show_agent_model
+  show_aggregateport_model
+  show_arp_model
+  show_example_model
+  show_flowlet_model
+  show_dsf_subcription_model
+  show_dsfnodes_model
+  show_fabric_model
+  show_fabric_reachability_model
+  show_fabric_inputbalance_model
+  show_fabric_monitoring_model
+  show_hardware_model
+  show_host_model
+  show_lldp_model
+  show_mirror_model
+  show_mysid_model
+  show_nexthopgroups_model
+  show_ndp_model
+  show_port_model
+  show_product_model
+  show_transceiver_model
+  show_interface_model
+  show_interface_flaps
+  show_interface_errors
+  show_interface_counters
+  show_interface_counters_mka
+  show_interface_traffic
+  show_interface_status
+  show_interface_phy
+  show_interface_phymap
+  show_interface_capabilities
+  show_interface_prbs_capabilities
+  show_interface_prbs_state
+  show_interface_prbs_stats
+  show_route_model
+  show_mpls_route_model
+  show_mac_model
+  show_systemport_model
+  show_cpuport_model
+  show_teflow_model
+  show_fb303counters_model
+  show_hwagent_status_model
+  show_interface_counters_fec_ber
+  show_interface_counters_fec_histogram
+  show_interface_counters_fec_tail
+  show_fabric_topology_model
+  show_rif
+  show_interface_counters_fec_uncorrectable
+  show_interface_transceiver_performancemonitoring
+  thrift_service_client
+  ${RE2}
+)
+
+# CmdInitUtils sources are compiled directly into each binary rather than as a
+# separate library. In Buck, cmd-init-utils uses preferred_linkage = "static"
+# to defer kCommandTree() symbol resolution to the final binary. CMake can't
+# do this without also losing transitive include paths (e.g. generated thrift
+# headers needed by CmdGlobalOptions.h), so we inline the sources instead.
+add_executable(fboss2
+  fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdListImpl.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
+)
+
+target_link_libraries(fboss2
+  fboss2_lib
+  Folly::folly
+)
+
+install(TARGETS fboss2)
+
+# Config commands library for fboss2-dev
+add_library(fboss2_config_lib
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h
+  fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
+  fboss/cli/fboss2/commands/config/CmdConfigReload.h
+  fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.cpp
+  fboss/cli/fboss2/commands/config/switch/CmdConfigSwitch.h
+  fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.cpp
+  fboss/cli/fboss2/commands/config/switch/admin_distance/CmdConfigAdminDistance.h
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.cpp
+  fboss/cli/fboss2/commands/config/switch/hostname/CmdConfigHostname.h
+  fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/config/switch/icmpv4_unavailable_src_addr/CmdConfigIcmpV4UnavailableSrcAddr.h
+  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/acl/AclConfigUtils.h
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.cpp
+  fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/AclRuleAttrs.h
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.cpp
+  fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h
+  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.cpp
+  fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.h
+  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.cpp
+  fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.h
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.cpp
+  fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h
+  fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.cpp
+  fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h
+  fboss/cli/fboss2/commands/config/copp/CoppUtils.cpp
+  fboss/cli/fboss2/commands/config/copp/CoppUtils.h
+  fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.cpp
+  fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h
+  fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.cpp
+  fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.h
+  fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.cpp
+  fboss/cli/fboss2/commands/config/dhcp/reply_source_override/CmdConfigDhcpReplySourceOverride.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h
+  fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
+  fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
+  fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
+  fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.cpp
+  fboss/cli/fboss2/commands/config/interface/ipv6/ndp/CmdConfigInterfaceIpv6Ndp.h
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
+  fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.cpp
+  fboss/cli/fboss2/commands/config/interface/sflow/CmdConfigInterfaceSflow.h
+  fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
+  fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
+  fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.cpp
+  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h
+  fboss/cli/fboss2/commands/config/l2/CmdConfigL2.cpp
+  fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.cpp
+  fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h
+  fboss/cli/fboss2/commands/config/mac/CmdConfigMac.cpp
+  fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h
+  fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.cpp
+  fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h
+  fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
+  fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliValueParsers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDisableIpv4Afi.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDisableIpv4Afi.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupEgressPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupEgressPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupIngressPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupIngressPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupMaxRoutes.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupMaxRoutes.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupNextHopSelf.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupNextHopSelf.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupPeerTag.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupPeerTag.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRemoteAsn.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRemoteAsn.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRrClient.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRrClient.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimers.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersHoldTime.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersHoldTime.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersKeepalive.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersKeepalive.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersOutDelay.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersOutDelay.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelay.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelay.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupV4OverV6Nh.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupV4OverV6Nh.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningLimit.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningLimit.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningOnly.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningOnly.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeer.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeer.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerAdvertiseLbw.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerAdvertiseLbw.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDescription.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDescription.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDisableIpv4Afi.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDisableIpv4Afi.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerEgressPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerEgressPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerHoldTime.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerHoldTime.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerIngressPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerIngressPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLinkBandwidth.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLinkBandwidth.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLocalAddr.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLocalAddr.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerMaxRoutes.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerMaxRoutes.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop4.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop4.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop6.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop6.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHopSelf.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHopSelf.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerGroup.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerGroup.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerId.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerId.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRemoteAsn.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRemoteAsn.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRrClient.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRrClient.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimers.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersKeepalive.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersKeepalive.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerType.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerType.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h
+  fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
+  fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
+  fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
+  fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.h
+  fboss/cli/fboss2/commands/config/qos/CmdConfigQos.cpp
+  fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
+  fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
+  fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/QueueConfigUtils.h
+  fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.cpp
+  fboss/cli/fboss2/commands/config/qos/default_policy/CmdConfigQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.cpp
+  fboss/cli/fboss2/commands/config/qos/QosPolicyUtils.h
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
+  fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.cpp
+  fboss/cli/fboss2/commands/delete/qos/default_policy/CmdDeleteQosDefaultPolicy.h
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.cpp
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfig.h
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.cpp
+  fboss/cli/fboss2/commands/delete/qos/queue_config/CmdDeleteQosQueueConfigQueueId.h
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.cpp
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.cpp
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.cpp
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp
+  fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.cpp
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfig.h
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.cpp
+  fboss/cli/fboss2/commands/config/qos/queue_config/CmdConfigQosQueueConfigQueueId.h
+  fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
+  fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h
+  fboss/cli/fboss2/commands/config/protocol/static/route/StaticRouteUtils.h
+  fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h
+  fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
+  fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.cpp
+  fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.cpp
+  fboss/cli/fboss2/commands/config/srv6/CmdConfigSrv6.h
+  fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.cpp
+  fboss/cli/fboss2/commands/config/srv6/my_sid/CmdConfigSrv6MySid.h
+  fboss/cli/fboss2/commands/config/srv6/my_sid/entry/CmdConfigSrv6MySidEntry.cpp
+  fboss/cli/fboss2/commands/config/srv6/my_sid/entry/CmdConfigSrv6MySidEntry.h
+  fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.cpp
+  fboss/cli/fboss2/commands/config/srv6/utils/Srv6MySidCliUtils.h
+  fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.cpp
+  fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.cpp
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.cpp
+  fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
+  fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.cpp
+  fboss/cli/fboss2/commands/config/traffic_counter/CmdConfigTrafficCounter.h
+  fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.cpp
+  fboss/cli/fboss2/commands/config/tunnel/CmdConfigTunnel.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/CmdConfigTunnelIpInIp.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/TunnelIpInIpConfigUtils.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/TunnelIpInIpConfigUtils.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/decap/CmdConfigTunnelIpInIpDecap.h
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.cpp
+  fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/encap/CmdConfigTunnelIpInIpEncap.h
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.cpp
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.cpp
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlanDefault.h
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.cpp
+  fboss/cli/fboss2/commands/config/vlan/VlanManager.h
+  fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.cpp
+  fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.cpp
+  fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.cpp
+  fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.cpp
+  fboss/cli/fboss2/commands/delete/acl/CmdDeleteAcl.h
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.cpp
+  fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
+  fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.cpp
+  fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.h
+  fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h
+  fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.h
+  fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.cpp
+  fboss/cli/fboss2/commands/delete/dhcp/reply_source_override/CmdDeleteDhcpReplySourceOverride.h
+  fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
+  fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
+  fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp
+  fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h
+  fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.cpp
+  fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h
+  fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.cpp
+  fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h
+  fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.cpp
+  fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
+  fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
+  fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
+  fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.cpp
+  fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
+  fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.cpp
+  fboss/cli/fboss2/commands/delete/arp/CmdDeleteArp.h
+  fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.cpp
+  fboss/cli/fboss2/commands/delete/copp/CmdDeleteCopp.h
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.cpp
+  fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
+  fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
+  fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
+  fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
+  fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.cpp
+  fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h
+  fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.cpp
+  fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.cpp
+  fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h
+  fboss/cli/fboss2/session/ConfigSession.h
+  fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/session/FbossServiceUtil.h
+  fboss/cli/fboss2/session/FbossServiceUtil.cpp
+  fboss/cli/fboss2/session/Git.h
+  fboss/cli/fboss2/session/Git.cpp
+  fboss/cli/fboss2/session/SystemdInterface.h
+  fboss/cli/fboss2/session/SystemdInterface.cpp
+  fboss/cli/fboss2/utils/InterfaceList.cpp
+  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/CmdListConfig.cpp
+)
+
+target_link_libraries(fboss2_config_lib
+  cli_metadata
+  fboss2_lib
+  fboss2_config_file_utils
+  port_config_utils
+  agent_dir_util
+  common_file_utils
+  switch_config_cpp2
+  bgp_config_cpp2
+  switchinfo_utils
+  platform_mapping
+  Folly::folly
+)
+
+add_executable(fboss2-dev
+  fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/config/CmdListImpl.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
+)
+
+target_link_libraries(fboss2-dev
+  fboss2_config_lib
+  fboss2_lib
+  Folly::folly
+)
+
+install(TARGETS fboss2-dev)

@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_optics_phy")
+
+python_unittest(
+    name = "test",
+    srcs = ["test.py"],
+    labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+        "//fboss/qsfp_service/if:transceiver-python-types",
+    ],
+)
+
+python_unittest(
+    name = "verify_generated_files",
+    srcs = ["verify_generated_files.py"],
+    labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib/platform_mapping_v2:gen-library",
+        "//fboss/lib/platform_mapping_v2:read_files_utils",
+    ],
+)
+
+python_unittest(
+    name = "test_continuous_schedule",
+    srcs = ["test_continuous_schedule.py"],
+    labels = ["autodeps2_generated"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib/platform_mapping_v2/facebook:gen-library",
+    ],
+)

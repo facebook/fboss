@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "capture",
+    srcs = [
+        "PcapFile.cpp",
+        "PcapPkt.cpp",
+        "PcapQueue.cpp",
+        "PcapWriter.cpp",
+        "PktCapture.cpp",
+        "PktCaptureManager.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:utils",
+        "//folly:exception",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:packet",
+        "//fboss/agent:packet_observer",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:file",
+        "//folly:range",
+        "//folly/io:iobuf",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_container"),
+    ],
+)

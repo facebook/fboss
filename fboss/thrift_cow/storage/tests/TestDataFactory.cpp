@@ -1,0 +1,1967 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
+#include <fmt/format.h>
+#include <folly/IPAddress.h>
+
+#include "fboss/thrift_cow/nodes/Serializer.h"
+
+// Additional includes for AgentStats
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/lib/if/gen-cpp2/io_stats_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+
+// Include StateGenerator for remote system ports and interfaces
+#include "fboss/fsdb/benchmarks/StateGenerator.h"
+
+// Include builders for populating additional fields
+#include "fboss/thrift_cow/storage/tests/AgentStatsBuilders.h"
+#include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
+
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
+namespace facebook::fboss::test_data {
+
+namespace {
+
+// prefix_bin is thrift `binary`: raw network-order address bytes, not base64.
+// Mirrors BgpRibTestPublisher::toIpPrefix.
+std::string toPrefixBin(const folly::IPAddress& addr) {
+  return addr.isV4() ? addr.asV4().toBinary().str()
+                     : addr.asV6().toBinary().str();
+}
+
+// LOCAL_PREF from the captured FPF canonicalRib.
+constexpr int32_t kFpfLocalPref = 90;
+
+} // namespace
+
+TaggedOperState TestDataFactory::getStateUpdate(int version, bool minimal) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+  if (minimal) {
+    int key = 42;
+    auto data = buildMinimalTestData(version, key, basePath);
+    chunk.contents() = facebook::fboss::thrift_cow::serialize<
+        apache::thrift::type_class::structure>(protocol_, data);
+    CHECK_EQ(basePath.size(), 2);
+  } else {
+    auto data = buildTestData(version, basePath);
+    chunk.contents() = facebook::fboss::thrift_cow::serialize<
+        apache::thrift::type_class::structure>(protocol_, data);
+  }
+  state.state() = chunk;
+  state.path()->path() = basePath;
+  return state;
+}
+
+OtherStruct TestDataFactory::buildMinimalTestData(
+    int version,
+    int key,
+    std::vector<std::string>& path) {
+  OtherStruct val;
+
+  val.o() = key;
+  val.m()[fmt::format("m.key{}", key)] = 900 + version;
+
+  path.emplace_back("mapOfStructs");
+  path.emplace_back(fmt::format("key{}", key));
+
+  return val;
+}
+
+TestStruct TestDataFactory::buildTestData(
+    int version,
+    std::vector<std::string>& /* path */) {
+  TestStruct val;
+
+  val.tx() = (version % 2) ? false : true;
+  val.name() = "str";
+  val.optionalString() = "optionalStr";
+  val.enumeration() = TestEnum::FIRST;
+  val.enumSet() = {TestEnum::FIRST, TestEnum::SECOND};
+  val.integralSet() = {101, 102, 103};
+  val.listOfPrimitives() = {201, 202, 203};
+
+  auto makeOtherStruct = [](int idx, int mapSize) -> OtherStruct {
+    OtherStruct other;
+    other.o() = idx;
+    for (int i = 0; i < mapSize; i++) {
+      other.m()[fmt::format("m.key{}", i)] = 900 + i;
+    }
+    return other;
+  };
+
+  val.listofStructs()->emplace_back(makeOtherStruct(701, 2));
+  val.listofStructs()->emplace_back(makeOtherStruct(702, 2));
+
+  if (selector_ != Minimal) {
+    int outMapSize = scaleFactor_;
+    constexpr int kInnerMapSize = 8;
+    for (int i = 0; i < outMapSize; i++) {
+      val.mapOfStructs()[fmt::format("key{}", i)] =
+          makeOtherStruct(i, kInnerMapSize);
+    }
+  }
+
+  return val;
+}
+
+TaggedOperState FsdbStateDataFactory::getStateUpdate(
+    int version,
+    bool /* unused */) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+
+  auto fsdbRoot = buildFsdbOperStateRoot(version);
+
+  chunk.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(protocol_, fsdbRoot);
+
+  state.state() = std::move(chunk);
+  state.path()->path() = std::move(basePath);
+  return state;
+}
+
+fsdb::FsdbOperStateRoot FsdbStateDataFactory::buildFsdbOperStateRoot(
+    int version) {
+  fsdb::FsdbOperStateRoot root;
+
+  fsdb::AgentData agentData;
+  agentData.switchState() = buildSwitchState(version);
+
+  root.agent() = std::move(agentData);
+  root.bgp() = fsdb::BgpData{};
+  root.openr() = fsdb::OpenrData{};
+
+  return root;
+}
+
+SwitchState FsdbStateDataFactory::buildSwitchState(int version) {
+  SwitchState switchState;
+  SwitchStateScale scale = getRoleScale(selector_);
+
+  // Determine which SwitchState field to populate.
+  // Path format: /agent/switchState/<field>
+  // If no path filter or path doesn't reach switchState level, populate all.
+  std::string targetField;
+  if (pathFilter_.size() >= 3 && pathFilter_[0] == "agent" &&
+      pathFilter_[1] == "switchState") {
+    targetField = pathFilter_[2];
+  }
+
+  // Filter scale to zero out fields not matching the target path.
+  // populate* functions have early-return guards for zero counts/false bools.
+  if (!facebook::fboss::fsdb::test::filterSwitchStateScaleForPath(
+          scale, targetField)) {
+    LOG(FATAL) << "Unknown switchState field in --bm_fsdb_path: '"
+               << targetField << "'";
+  }
+
+  // fibsInfoMap and remote port/interface maps use internal scales,
+  // so check the filtered scale before calling them.
+  if (scale.fibV4Size > 0 || scale.fibV6Size > 0) {
+    auto fibsData = buildFibData(version);
+    std::string switchIdList = "Id:0";
+    state::FibInfoFields fibInfo;
+    fibInfo.fibsMap()[0] = std::move(fibsData);
+    switchState.fibsInfoMap()[switchIdList] = std::move(fibInfo);
+  }
+
+  if (scale.remoteSystemPortMapSize > 0 || scale.remoteInterfaceMapSize > 0) {
+    populateRemoteSystemPortsAndInterfaces(switchState);
+  }
+
+  facebook::fboss::fsdb::test::populatePorts(switchState, scale);
+  facebook::fboss::fsdb::test::populateVlans(switchState, scale);
+  facebook::fboss::fsdb::test::populateInterfaces(switchState, scale);
+  facebook::fboss::fsdb::test::populateTransceivers(switchState, scale);
+  facebook::fboss::fsdb::test::populateSystemPorts(switchState, scale);
+  facebook::fboss::fsdb::test::populateDsfNodes(switchState, scale);
+  facebook::fboss::fsdb::test::populateControlPlane(switchState, scale);
+  facebook::fboss::fsdb::test::populateSwitchSettings(switchState, scale);
+  facebook::fboss::fsdb::test::populateBufferPoolCfg(switchState, scale);
+  facebook::fboss::fsdb::test::populateMirrors(switchState, scale);
+  facebook::fboss::fsdb::test::populateQosPolicies(switchState, scale);
+  facebook::fboss::fsdb::test::populateLoadBalancers(switchState, scale);
+  facebook::fboss::fsdb::test::populateAclTableGroups(switchState, scale);
+  facebook::fboss::fsdb::test::populateAcls(switchState, scale);
+  facebook::fboss::fsdb::test::populateIpTunnels(switchState, scale);
+  facebook::fboss::fsdb::test::populateAggregatePorts(switchState, scale);
+  facebook::fboss::fsdb::test::populatePortFlowletCfg(switchState, scale);
+  facebook::fboss::fsdb::test::populateMirrorOnDropReports(switchState, scale);
+
+  return switchState;
+}
+
+FibContainerFields FsdbStateDataFactory::buildFibData(int version) {
+  FibContainerFields fibContainer;
+  SwitchStateScale scale = getRoleScale(selector_);
+
+  fibContainer.vrf() = 0; // Default VRF
+
+  // Generate V4 routes
+  for (int i = 0; i < scale.fibV4Size; i++) {
+    std::string prefix;
+    if (i == 0) {
+      prefix = "0.0.0.0/0";
+    } else {
+      // Generate /28 routes in 10.0.0.0/8 space
+      int octet4 = ((i % 32) << 3) + ((version % 4) << 1) + 1;
+      int octet3 = (i >> 5) % 256;
+      int octet2 = (i >> 13) % 256;
+      prefix = fmt::format("10.{}.{}.{}/28", octet2, octet3, octet4);
+    }
+
+    auto nexthops = createNextHops(scale.v4Nexthops, false);
+    auto routeFields = createRouteFields(prefix, nexthops);
+    fibContainer.fibV4()[prefix] = std::move(routeFields);
+  }
+
+  // Generate V6 routes
+  for (int i = 0; i < scale.fibV6Size; i++) {
+    std::string prefix;
+    if (i == 0) {
+      prefix = "::/0";
+    } else {
+      // Generate /64 routes in 2401:db00::/32 space
+      int hex3 = (i / 256) % 256;
+      int hex4 = i % 256;
+      prefix = fmt::format("2401:db00:{:x}:{:x}::/64", hex3, hex4);
+    }
+
+    auto nexthops = createNextHops(scale.v6Nexthops, true);
+    auto routeFields = createRouteFields(prefix, nexthops);
+    fibContainer.fibV6()[prefix] = std::move(routeFields);
+  }
+
+  return fibContainer;
+}
+
+RouteFields FsdbStateDataFactory::createRouteFields(
+    const std::string& prefix,
+    const std::vector<NextHopThrift>& nexthops) {
+  RouteFields route;
+
+  // Set route prefix
+  RoutePrefix routePrefix;
+  auto network = folly::IPAddress::createNetwork(prefix);
+
+  routePrefix.prefix() = createBinaryAddress(network.first);
+  routePrefix.mask() = network.second;
+  route.prefix() = std::move(routePrefix);
+
+  // Set flags (FIB_FLAG_RESOLVED)
+  route.flags() = 2;
+
+  // Create forwarding entry
+  RouteNextHopEntry fwd;
+  fwd.adminDistance() = AdminDistance::DIRECTLY_CONNECTED;
+  fwd.action() = RouteForwardAction::NEXTHOPS;
+  fwd.nexthops() = nexthops;
+  route.fwd() = fwd;
+
+  // Create multi-client nexthops structure
+  RouteNextHopsMulti nexthopsmulti;
+  nexthopsmulti.lowestAdminDistanceClientId() = ClientID::BGPD;
+  nexthopsmulti.client2NextHopEntry()[ClientID::BGPD] = fwd;
+  route.nexthopsmulti() = std::move(nexthopsmulti);
+
+  return route;
+}
+
+NextHopThrift FsdbStateDataFactory::createNextHop(
+    const std::string& address,
+    const std::string& ifName,
+    int32_t weight) {
+  NextHopThrift nh;
+
+  auto addr = createBinaryAddress(folly::IPAddress(address));
+  addr.ifName() = ifName;
+  nh.address() = std::move(addr);
+  nh.weight() = weight;
+
+  return nh;
+}
+
+std::vector<NextHopThrift> FsdbStateDataFactory::createNextHops(
+    int count,
+    bool isV6,
+    const std::string& baseIf) {
+  std::vector<NextHopThrift> nexthops;
+  nexthops.reserve(count);
+
+  for (int i = 0; i < count; i++) {
+    std::string address;
+    if (isV6) {
+      // Generate V6 nexthop addresses in fe80::/64 link-local space
+      address = fmt::format("fe80::{:x}", 1 + i);
+    } else {
+      // Generate V4 nexthop addresses in 192.168.0.0/16 space
+      int octet3 = (i / 256) % 256;
+      int octet4 = 1 + (i % 255); // Avoid .0 and .255
+      address = fmt::format("192.168.{}.{}", octet3, octet4);
+    }
+
+    std::string ifName = fmt::format("{}{}", baseIf, i);
+    nexthops.emplace_back(createNextHop(address, ifName, 1));
+  }
+
+  return nexthops;
+}
+
+BinaryAddress FsdbStateDataFactory::createBinaryAddress(
+    const folly::IPAddress& addr) {
+  BinaryAddress binaryAddr;
+
+  if (addr.isV4()) {
+    auto v4 = addr.asV4();
+    std::string addrStr = v4.str();
+    binaryAddr.addr() = addrStr;
+  } else {
+    auto v6 = addr.asV6();
+    std::string addrStr = v6.str();
+    binaryAddr.addr() = addrStr;
+  }
+
+  return binaryAddr;
+}
+
+void FsdbStateDataFactory::populateRemoteSystemPortsAndInterfaces(
+    SwitchState& switchState) {
+  SwitchStateScale scale = getRoleScale(selector_);
+  int numDsfNbrAddresses = 3;
+
+  // Only populate for RDSW and EDSW roles
+  if (scale.remoteSystemPortMapSize == 0) {
+    return;
+  }
+
+  std::string switchIdList = "Id:648";
+
+  // Create remote system port map
+  std::map<int64_t, state::SystemPortFields> remoteSystemPortMap;
+  for (int i = 0; i < scale.remoteSystemPortMapSize; i++) {
+    auto sysPortFields = facebook::fboss::fsdb::test::fillSystemPortMap(648, i);
+    remoteSystemPortMap.emplace(i, std::move(sysPortFields));
+  }
+
+  // Create remote interface map
+  std::map<int32_t, state::InterfaceFields> remoteInterfaceMap;
+  for (int i = 0; i < scale.remoteInterfaceMapSize; i++) {
+    auto interfaceFields =
+        facebook::fboss::fsdb::test::fillInterfaceMap(i, numDsfNbrAddresses);
+    remoteInterfaceMap.emplace(i, std::move(interfaceFields));
+  }
+
+  // Populate the maps in switchState
+  switchState.remoteSystemPortMaps()[switchIdList] =
+      std::move(remoteSystemPortMap);
+  switchState.remoteInterfaceMaps()[switchIdList] =
+      std::move(remoteInterfaceMap);
+}
+// Scale configurations for different deployment roles
+// Data compiled from nao5, zas, and prn sample data (using max across regions)
+SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
+  // Helper lambda to create SwitchStateScale with all fields
+  auto makeScale = [](int fibV4,
+                      int fibV6,
+                      int v4Nh,
+                      int v6Nh,
+                      int remSysPort,
+                      int remIntf,
+                      int portCnt,
+                      int vlanCnt,
+                      int xcvrCnt,
+                      int intfCnt,
+                      int sysPortCnt,
+                      int dsfNodeCnt,
+                      int aclCnt,
+                      int bufPoolCnt,
+                      int mirrorCnt,
+                      int qosCnt,
+                      int lbCnt,
+                      int tunnelCnt,
+                      int aggPortCnt,
+                      int flowletCnt,
+                      int modReportCnt,
+                      bool hasCP,
+                      bool hasSS,
+                      bool hasAclGrp) -> SwitchStateScale {
+    SwitchStateScale s;
+    s.fibV4Size = fibV4;
+    s.fibV6Size = fibV6;
+    s.v4Nexthops = v4Nh;
+    s.v6Nexthops = v6Nh;
+    s.remoteSystemPortMapSize = remSysPort;
+    s.remoteInterfaceMapSize = remIntf;
+    s.portCount = portCnt;
+    s.vlanCount = vlanCnt;
+    s.transceiverCount = xcvrCnt;
+    s.interfaceCount = intfCnt;
+    s.systemPortCount = sysPortCnt;
+    s.dsfNodeCount = dsfNodeCnt;
+    s.aclCount = aclCnt;
+    s.bufferPoolCfgCount = bufPoolCnt;
+    s.mirrorCount = mirrorCnt;
+    s.qosPolicyCount = qosCnt;
+    s.loadBalancerCount = lbCnt;
+    s.ipTunnelCount = tunnelCnt;
+    s.aggregatePortCount = aggPortCnt;
+    s.portFlowletCfgCount = flowletCnt;
+    s.mirrorOnDropReportCount = modReportCnt;
+    s.hasControlPlane = hasCP;
+    s.hasSwitchSettings = hasSS;
+    s.hasAclTableGroup = hasAclGrp;
+    return s;
+  };
+
+  static const std::map<RoleSelector, SwitchStateScale> roleScales = {
+      // RDSW - Rack DSF switch (nao5)
+      {RDSW,
+       makeScale(
+           1,
+           22000,
+           0,
+           2,
+           21750,
+           21750,
+           203,
+           0,
+           39,
+           43,
+           43,
+           1296,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           1,
+           true,
+           true,
+           true)},
+      // RSW - Rack switch
+      {RSW,
+       makeScale(
+           150,
+           2000,
+           8,
+           8,
+           0,
+           0,
+           48,
+           21,
+           33,
+           20,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // EDSW - Edge DSF switch (nao5)
+      {EDSW,
+       makeScale(
+           1,
+           22000,
+           0,
+           1,
+           21750,
+           21750,
+           183,
+           0,
+           37,
+           23,
+           23,
+           1296,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           1,
+           true,
+           true,
+           true)},
+      // FSW - Fabric switch
+      {FSW,
+       makeScale(
+           150,
+           1000,
+           50,
+           100,
+           0,
+           0,
+           128,
+           131,
+           96,
+           130,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           2,
+           1,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // FA - Fabric aggregator
+      {FA,
+       makeScale(
+           13000,
+           20000,
+           100,
+           100,
+           0,
+           0,
+           120,
+           122,
+           120,
+           121,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // SSW - Spine switch
+      {SSW,
+       makeScale(
+           875,
+           4200,
+           50,
+           64,
+           0,
+           0,
+           128,
+           130,
+           46,
+           129,
+           0,
+           0,
+           0,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // FDSW - Fabric DSF switch (nao5)
+      {FDSW,
+       makeScale(
+           1,
+           1000,
+           0,
+           2,
+           0,
+           0,
+           203,
+           0,
+           39,
+           43,
+           0,
+           0,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // SDSW - Spine DSF switch (nao5)
+      {SDSW,
+       makeScale(
+           1,
+           1000,
+           0,
+           2,
+           0,
+           0,
+           203,
+           0,
+           39,
+           43,
+           0,
+           0,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // XSW - Cross switch (zas)
+      {XSW,
+       makeScale(
+           150,
+           512,
+           40,
+           128,
+           0,
+           0,
+           128,
+           130,
+           118,
+           129,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // MA - Metro aggregator (zas)
+      {MA,
+       makeScale(
+           13000,
+           16000,
+           50,
+           50,
+           0,
+           0,
+           104,
+           106,
+           76,
+           105,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           8,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // RTSW - Regional transport switch (zas)
+      {RTSW,
+       makeScale(
+           1,
+           3500,
+           0,
+           32,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           23,
+           1,
+           2,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
+      // FTSW - Fabric transport switch (zas)
+      {FTSW,
+       makeScale(
+           1,
+           2000,
+           0,
+           32,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           17,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
+      // STSW - Spine transport switch (zas)
+      {STSW,
+       makeScale(
+           1,
+           2000,
+           0,
+           8,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           17,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
+      // RGSW - Regional gateway switch (small FE role)
+      // Numbers from prn3 cross-DC observation:
+      // ~/debug/fsdb/memory_bench/claude/prn3/aggregate.json (RGSW row)
+      // 48 ports, 19 vlans, 18 interfaces, 0 FIBs (RGSW prod fibsMap empty).
+      {RGSW,
+       makeScale(
+           0, // fibV4Size — RGSW prod fibsMap is empty
+           0, // fibV6Size
+           0, // v4Nexthops
+           0, // v6Nexthops
+           0, // remoteSystemPortMapSize
+           0, // remoteInterfaceMapSize
+           48, // portCount
+           19, // vlanCount
+           0, // transceiverCount
+           18, // interfaceCount
+           0, // systemPortCount
+           0, // dsfNodeCount
+           0, // aclCount
+           0, // bufferPoolCfgCount
+           0, // mirrorCount
+           0, // qosPolicyCount
+           0, // loadBalancerCount
+           0, // ipTunnelCount
+           0, // aggregatePortCount
+           0, // portFlowletCfgCount
+           0, // mirrorOnDropReportCount
+           true, // hasControlPlane
+           true, // hasSwitchSettings
+           true)}, // hasAclTableGroup
+      // Default fallback
+      {Minimal,
+       makeScale(
+           1,
+           1,
+           1,
+           1,
+           0,
+           0,
+           1,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           false,
+           false,
+           false)},
+      {MaxScale,
+       makeScale(
+           100,
+           100,
+           10,
+           10,
+           0,
+           0,
+           100,
+           50,
+           50,
+           50,
+           0,
+           0,
+           10,
+           1,
+           2,
+           3,
+           2,
+           1,
+           4,
+           1,
+           1,
+           true,
+           true,
+           true)},
+  };
+
+  auto it = roleScales.find(role);
+  if (it != roleScales.end()) {
+    return it->second;
+  }
+
+  return makeScale(
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      false,
+      false,
+      false);
+}
+
+// AgentStatsDataFactory Implementation
+TaggedOperState FsdbStatsDataFactory::getStateUpdate(
+    int /* unused */,
+    bool /* unused */) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+
+  auto fsdbRoot = buildFsdbOperStatsRoot();
+
+  chunk.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(protocol_, fsdbRoot);
+
+  state.state() = std::move(chunk);
+  state.path()->path() = std::move(basePath);
+  return state;
+}
+
+fsdb::FsdbOperStatsRoot FsdbStatsDataFactory::buildFsdbOperStatsRoot() {
+  fsdb::FsdbOperStatsRoot root;
+
+  // Build agent stats data
+  root.agent() = buildAgentStats();
+  return root;
+}
+
+AgentStats FsdbStatsDataFactory::buildAgentStats() {
+  AgentStats agentStats;
+  AgentStatsScale scale = getRoleScale(selector_);
+  int64_t baseTimestamp = 1755207740; // Pick a random timestamp
+
+  // Determine which AgentStats field to populate.
+  // Path format: /agent/<field>
+  // If no path filter or path doesn't reach agent level, populate all.
+  std::string targetField;
+  if (pathFilter_.size() >= 2 && pathFilter_[0] == "agent") {
+    targetField = pathFilter_[1];
+  }
+
+  // Filter scale to zero out fields not matching the target path.
+  // populate* functions have early-return guards for zero counts/false bools.
+  if (!facebook::fboss::fsdb::test::filterAgentStatsScaleForPath(
+          scale, targetField)) {
+    LOG(FATAL) << "Unknown AgentStats field in --bm_fsdb_path: '" << targetField
+               << "'";
+  }
+
+  for (int i = 0; i < scale.hwPortStatsCount; i++) {
+    std::string portName = fmt::format(
+        "eth{}/{}/{}", (i / 100) + 1, ((i / 10) % 10) + 1, (i % 10) + 1);
+    agentStats.hwPortStats()[portName] =
+        createHwPortStats(portName, baseTimestamp, i);
+  }
+
+  for (int i = 0; i < scale.phyStatsCount; i++) {
+    std::string portName = fmt::format(
+        "eth{}/{}/{}", (i / 100) + 1, ((i / 10) % 10) + 1, (i % 10) + 1);
+    agentStats.phyStats()[portName] = createPhyStats(baseTimestamp, i);
+  }
+
+  for (int i = 0; i < scale.sysPortStatsCount; i++) {
+    std::string portName = fmt::format(
+        "edsw{:03d}.n{:03d}.l{:03d}.nao{}:rcy{}/{}/{}",
+        (i / 100) + 1,
+        i % 10,
+        201,
+        (i % 4) + 1,
+        (i / 10) + 1,
+        (i / 5) + 1,
+        i + 447);
+    auto sysPortStatsData = createSysPortStats(portName, baseTimestamp, i);
+    agentStats.sysPortStats()[portName] = sysPortStatsData;
+  }
+
+  if (!agentStats.sysPortStats()->empty()) {
+    agentStats.sysPortStatsMap()[0] = *agentStats.sysPortStats();
+  }
+
+  facebook::fboss::fsdb::test::populateHwResourceStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateHwAsicErrorsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateCpuPortStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchDropStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchWatermarkStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateFabricReachabilityStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchPipelineStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateSysPortShelStateMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateAsicTemp(agentStats, scale);
+  facebook::fboss::fsdb::test::populateFlowletStats(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSimpleCounters(agentStats, scale);
+  facebook::fboss::fsdb::test::populateHwAgentStatus(agentStats, scale);
+  facebook::fboss::fsdb::test::populateFabricOverdrainPct(agentStats, scale);
+
+  return agentStats;
+}
+
+HwPortStats FsdbStatsDataFactory::createHwPortStats(
+    const std::string& portName,
+    int64_t baseTimestamp,
+    int hwPortNum) {
+  HwPortStats stats;
+
+  // Set production-like values
+  stats.inBytes_() = 2011249318588522LL + (hwPortNum % 1000000000);
+  stats.inUnicastPkts_() = 1682544273466LL + (hwPortNum % 1000000);
+  stats.inMulticastPkts_() = 142941 + (hwPortNum % 1000);
+  stats.inBroadcastPkts_() = 7096 + (hwPortNum % 100);
+  stats.inDiscards_() = 1 + (hwPortNum % 10);
+  stats.inErrors_() = 0;
+  stats.inPause_() = 0;
+  stats.inIpv4HdrErrors_() = -1;
+  stats.inIpv6HdrErrors_() = -1;
+  stats.inDstNullDiscards_() = 786020 + (hwPortNum % 10000);
+  stats.inDiscardsRaw_() = 786013 + (hwPortNum % 10000);
+
+  stats.outBytes_() = 2809469388326760LL + (hwPortNum % 1000000000);
+  stats.outUnicastPkts_() = 2162624624668LL + (hwPortNum % 1000000);
+  stats.outMulticastPkts_() = 142931 + (hwPortNum % 1000);
+  stats.outBroadcastPkts_() = 7204 + (hwPortNum % 100);
+  stats.outDiscards_() = 0;
+  stats.outErrors_() = 0;
+  stats.outPause_() = 0;
+  stats.outCongestionDiscardPkts_() = 0;
+  stats.wredDroppedPackets_() = 0;
+  stats.outEcnCounter_() = 0;
+
+  // Queue stats (8 queues)
+  for (int j = 0; j < 8; j++) {
+    stats.queueOutDiscardBytes_()[j] = 0;
+    stats.queueOutPackets_()[j] = ((hwPortNum * 8 + j) % 1000000000LL);
+    stats.queueOutDiscardPackets_()[j] = 0;
+    stats.queueWatermarkBytes_()[j] = 5000 + ((hwPortNum * 8 + j) % 10000);
+    stats.queueWredDroppedPackets_()[j] = 0;
+  }
+
+  // Set some non-zero queue bytes for specific queues
+  stats.queueOutBytes_()[0] = 7337314388357LL + (hwPortNum % 1000000);
+  stats.queueOutBytes_()[1] = 1086612699647978LL + (hwPortNum % 1000000);
+  stats.queueOutBytes_()[2] = 668062206253752LL + (hwPortNum % 1000000);
+  stats.queueOutBytes_()[3] = 993070474957000LL + (hwPortNum % 1000000);
+  stats.queueOutBytes_()[4] = 0;
+  stats.queueOutBytes_()[5] = 0;
+  stats.queueOutBytes_()[6] = 54389857992826LL + (hwPortNum % 1000000);
+  stats.queueOutBytes_()[7] = 123722831 + (hwPortNum % 1000000);
+
+  // FEC stats
+  stats.fecCorrectableErrors() = 1302397966 + (hwPortNum % 10000);
+  stats.fecUncorrectableErrors() = 12 + (hwPortNum % 100);
+  stats.fecCorrectedBits_() = 1227967806 + (hwPortNum % 10000);
+
+  // FEC codewords
+  for (int j = 0; j < 16; j++) {
+    stats.fecCodewords_()[j] =
+        (j == 10 || j == 13 || j == 15) ? ((hwPortNum + j) % 5) : 0;
+  }
+
+  // PFC stats
+  stats.inPfcCtrl_() = -1;
+  stats.outPfcCtrl_() = -1;
+  for (int j = 0; j < 8; j++) {
+    stats.inPfc_()[j] = 0;
+    stats.inPfcXon_()[j] = 0;
+    stats.outPfc_()[j] = 0;
+  }
+
+  // Set timestamp and port name
+  stats.timestamp_() = baseTimestamp + (hwPortNum % 100);
+  stats.portName_() = portName;
+  stats.inLabelMissDiscards_() = -1;
+  stats.inCongestionDiscards_() = 0;
+  stats.logicalPortId() = 193 + (hwPortNum % 1000);
+
+  return stats;
+}
+
+PhyStats FsdbStatsDataFactory::createPhyStats(
+    int64_t baseTimestamp,
+    int phyPortNum) {
+  PhyStats stats;
+
+  // Create line side stats
+  stats.line() = createPhySideStats(Side::LINE, phyPortNum);
+  stats.linkFlapCount() = phyPortNum % 10;
+  stats.ioStats() = createIOStats();
+  stats.timeCollected() = baseTimestamp + (phyPortNum % 100);
+
+  return stats;
+}
+
+PhySideStats FsdbStatsDataFactory::createPhySideStats(
+    Side side,
+    int portIndex) {
+  PhySideStats sideStats;
+  sideStats.side() = side;
+  sideStats.pcs() = createPcsStats(portIndex);
+  sideStats.pmd() = createPmdStats(portIndex);
+  return sideStats;
+}
+
+PcsStats FsdbStatsDataFactory::createPcsStats(int portIndex) {
+  PcsStats pcsStats;
+  pcsStats.rsFec() = createRsFecInfo(portIndex);
+  return pcsStats;
+}
+
+RsFecInfo FsdbStatsDataFactory::createRsFecInfo(int portIndex) {
+  RsFecInfo rsFec;
+  rsFec.correctedCodewords() = 10418410 + (portIndex % 100000);
+  rsFec.uncorrectedCodewords() = 0;
+  rsFec.correctedBits() = 9886733 + (portIndex % 100000);
+  rsFec.correctedSymbols() = 1977346 + (portIndex % 100000);
+  rsFec.preFECBer() = 8.9e-11;
+  rsFec.fecTail() = 0;
+  rsFec.maxSupportedFecTail() = 15;
+
+  for (int j = 0; j < 16; j++) {
+    rsFec.codewordStats()[j] = 0;
+  }
+
+  return rsFec;
+}
+
+PmdStats FsdbStatsDataFactory::createPmdStats(int portIndex) {
+  PmdStats pmdStats;
+
+  for (int j = 0; j < 4; j++) {
+    pmdStats.lanes()[j] = createLaneStats(j, portIndex);
+  }
+
+  return pmdStats;
+}
+
+LaneStats FsdbStatsDataFactory::createLaneStats(int16_t laneId, int portIndex) {
+  LaneStats laneStats;
+  laneStats.lane() = laneId;
+  laneStats.signalDetectChangedCount() = 1 + ((portIndex + laneId) % 3);
+  laneStats.cdrLockChangedCount() = 1;
+  return laneStats;
+}
+
+IOStats FsdbStatsDataFactory::createIOStats() {
+  IOStats ioStats;
+  ioStats.readDownTime() = 0;
+  ioStats.writeDownTime() = 0;
+  ioStats.numReadAttempted() = 0;
+  ioStats.numReadFailed() = 0;
+  ioStats.numWriteAttempted() = 0;
+  ioStats.numWriteFailed() = 0;
+  return ioStats;
+}
+
+HwSysPortStats FsdbStatsDataFactory::createSysPortStats(
+    const std::string& portName,
+    int64_t baseTimestamp,
+    int sysPortNum) {
+  HwSysPortStats stats;
+
+  // Set production-like values
+  stats.queueOutDiscardBytes_()[0] = 0;
+  stats.queueOutBytes_()[0] = 0;
+  stats.queueWatermarkBytes_()[0] = 0;
+  stats.queueCreditWatchdogDeletedPackets_()[0] = 0;
+  stats.queueLatencyWatermarkNsec_()[0] = 800000;
+
+  stats.queueOutDiscardBytes_()[1] = 0;
+  stats.queueOutBytes_()[1] = 162728800 + (sysPortNum % 1000000);
+  stats.queueWatermarkBytes_()[1] = 144 + (sysPortNum % 100);
+  stats.queueCreditWatchdogDeletedPackets_()[1] =
+      3386812 + (sysPortNum % 10000);
+  stats.queueLatencyWatermarkNsec_()[1] = 800000;
+
+  stats.timestamp_() = baseTimestamp + (sysPortNum % 100);
+  stats.portName_() = portName;
+
+  return stats;
+}
+
+AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
+  // Helper lambda to create AgentStatsScale with all fields
+  auto makeScale = [](int hwPort,
+                      int phy,
+                      int sysPort,
+                      int asicCnt,
+                      int shelStateCnt,
+                      int asicTempCnt,
+                      bool hwRes,
+                      bool hwAsicErr,
+                      bool cpuPort,
+                      bool dropSt,
+                      bool watermark,
+                      bool fabricReach,
+                      bool pipeline,
+                      bool fabricOverdrain,
+                      bool flowlet) -> AgentStatsScale {
+    AgentStatsScale s;
+    s.hwPortStatsCount = hwPort;
+    s.phyStatsCount = phy;
+    s.sysPortStatsCount = sysPort;
+    s.asicCount = asicCnt;
+    s.sysPortShelStateCount = shelStateCnt;
+    s.asicTempCount = asicTempCnt;
+    s.hasHwResourceStats = hwRes;
+    s.hasHwAsicErrors = hwAsicErr;
+    s.hasCpuPortStats = cpuPort;
+    s.hasSwitchDropStats = dropSt;
+    s.hasSwitchWatermarkStats = watermark;
+    s.hasFabricReachabilityStats = fabricReach;
+    s.hasSwitchPipelineStats = pipeline;
+    s.hasFabricOverdrainPct = fabricOverdrain;
+    s.hasFlowletStats = flowlet;
+    return s;
+  };
+
+  static const std::map<RoleSelector, AgentStatsScale> roleScales = {
+      // RDSW - Rack DSF switch
+      {RDSW,
+       makeScale(
+           203,
+           197,
+           21766,
+           1,
+           1181,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false)},
+      // EDSW - Edge DSF switch
+      {EDSW,
+       makeScale(
+           183,
+           177,
+           21766,
+           1,
+           1124,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false)},
+      // FDSW - Fabric DSF switch
+      {FDSW,
+       makeScale(
+           1024,
+           1024,
+           1,
+           2,
+           0,
+           156,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // SDSW - Spine DSF switch
+      {SDSW,
+       makeScale(
+           800,
+           800,
+           1,
+           2,
+           0,
+           156,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // FA - Fabric aggregator
+      {FA,
+       makeScale(
+           120,
+           120,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // RSW - Rack switch
+      {RSW,
+       makeScale(
+           48,
+           48,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // SSW - Spine switch
+      {SSW,
+       makeScale(
+           128,
+           128,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // RTSW - Regional transport switch
+      {RTSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // FTSW - Fabric transport switch
+      {FTSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // STSW - Spine transport switch
+      {STSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // XSW - Cross switch
+      {XSW,
+       makeScale(
+           118,
+           118,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // MA - Metro aggregator
+      {MA,
+       makeScale(
+           76,
+           76,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // FSW - Fabric switch
+      // Numbers from prn3 cross-DC observation: hwPortStatsCount=117 (avg of
+      // 116-118 across 5 prn3 FSW samples). Previously absent → fell through
+      // to Minimal default (1,1,1), under-counting FSW stats by ~250 KB/dev.
+      {FSW,
+       makeScale(
+           117, // hwPortStatsCount
+           117, // phyStatsCount
+           1, // sysPortStatsCount (cpu sysport)
+           1, // asicCount
+           0, // sysPortShelStateCount
+           0, // asicTempCount
+           true, // hasHwResourceStats
+           true, // hasHwAsicErrors
+           true, // hasCpuPortStats
+           true, // hasSwitchDropStats
+           true, // hasSwitchWatermarkStats
+           true, // hasFabricReachabilityStats
+           true, // hasSwitchPipelineStats
+           false, // hasFabricOverdrainPct
+           false)}, // hasFlowletStats
+      // RGSW - Regional gateway switch
+      // Numbers from prn3 cross-DC observation: 48 ports.
+      {RGSW,
+       makeScale(
+           48,
+           48,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // Default fallback
+      {Minimal,
+       makeScale(
+           1,
+           1,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      {MaxScale,
+       makeScale(
+           100,
+           100,
+           100,
+           2,
+           100,
+           50,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true)},
+  };
+
+  auto it = roleScales.find(role);
+  if (it != roleScales.end()) {
+    return it->second;
+  }
+
+  return makeScale(
+      1, 1, 1, 1, 0, 0, true, true, true, true, true, true, true, false, false);
+}
+
+// BgpRibMapDataGenerator implementation
+TaggedOperState BgpRibMapDataGenerator::getStateUpdate(
+    int version,
+    bool /* unused */) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+
+  auto fsdbRoot = buildFsdbOperStateRoot(version);
+
+  chunk.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(protocol_, fsdbRoot);
+
+  state.state() = std::move(chunk);
+  state.path()->path() = std::move(basePath);
+  return state;
+}
+
+fsdb::FsdbOperStateRoot BgpRibMapDataGenerator::buildFsdbOperStateRoot(
+    int version) {
+  fsdb::FsdbOperStateRoot root;
+
+  root.agent() = fsdb::AgentData{};
+  root.bgp() = buildBgpData(version);
+  root.openr() = fsdb::OpenrData{};
+
+  return root;
+}
+
+BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
+  static const std::map<RoleSelector, BgpRibMapScale> roleScales = {
+      // Role, ribV4EntryCount, ribV6EntryCount, bestPathsPerEntry,
+      // communitiesPerPath, asPathSegments, extCommunitiesPerPath
+      {RSW, {317, 754, 4, 13, 2, 0}},
+      {FSW, {555, 901, 24, 14, 1, 0}},
+      {FA, {8890, 14221, 10, 12, 1, 1}},
+      // Default fallback
+      {Minimal, {5, 5, 1, 5, 1, 0}},
+      {MaxScale, {10000, 15000, 10, 12, 2, 1}},
+  };
+
+  auto it = roleScales.find(role);
+  if (it == roleScales.end()) {
+    // default to Minimal
+    it = roleScales.find(Minimal);
+  }
+  return it->second;
+}
+
+BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
+    int prefixScale,
+    int paths) {
+  int v4 = prefixScale / 10; // ~10% V4
+  int v6 = prefixScale - v4; // ~90% V6
+  return BgpRibMapScale{
+      v4, // ribV4EntryCount
+      v6, // ribV6EntryCount
+      paths, // bestPathsPerEntry
+      13, // communitiesPerPath (matches production)
+      1, // asPathSegments (matches production)
+      0, // extCommunitiesPerPath (matches production)
+  };
+}
+
+BgpRibMapScale BgpRibMapDataGenerator::makeGtswScale(
+    bool isFPF,
+    int numPods,
+    int numPrefixesPerPod) {
+  BgpRibMapScale scale{};
+  scale.isFPF = isFPF;
+  scale.numPods = numPods;
+  scale.numPrefixesPerPod = numPrefixesPerPod;
+  // canonicalRib is all-V6 /64.
+  scale.ribV6EntryCount = numPods * numPrefixesPerPod;
+  scale.ribV4EntryCount = 0;
+  // Best-path-only view: one best path per entry.
+  scale.bestPathsPerEntry = 1;
+  // Counts come from a captured GTSW canonicalRib (gtsw001.l1001.c087.mwg2),
+  // not the injector's inputs: bgpd rewrites the attributes on import.
+  scale.communitiesPerPath = 13;
+  scale.asPathSegments = 1;
+  scale.extCommunitiesPerPath = 1;
+  return scale;
+}
+
+fsdb::BgpData BgpRibMapDataGenerator::buildBgpData(int version) {
+  fsdb::BgpData bgpData;
+  BgpRibMapScale scale =
+      overrideScale_.has_value() ? *overrideScale_ : getScale(selector_);
+
+  // FPF path: emit the compact, best-path-only canonicalRib that
+  // HostReachTracker subscribes to. ribMap is left unset.
+  if (scale.isFPF) {
+    bgpData.canonicalRib() = buildCanonicalRib(scale, version);
+    return bgpData;
+  }
+
+  std::map<std::string, TRibEntry> ribMap;
+
+  // Generate IPv4 RIB entries
+  for (int i = 0; i < scale.ribV4EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, false, version);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  // Generate IPv6 RIB entries
+  for (int i = 0; i < scale.ribV6EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, true, version);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  bgpData.ribMap() = std::move(ribMap);
+  return bgpData;
+}
+
+TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
+    const BgpRibMapScale& scale,
+    int index,
+    bool isV6,
+    int version) {
+  TRibEntry entry;
+
+  // Determine key set and AS path version
+  int keySet = version % 2;
+  // Switch between AS path versions for each key set
+  constexpr int kNumAsPathVersions = 16;
+  int asPathVersion = (version / 2) % kNumAsPathVersions;
+
+  auto prefix = createPrefix(index, isV6, keySet);
+  entry.prefix() = prefix;
+
+  // Generate paths map with "best" group
+  std::vector<neteng::fboss::bgp::thrift::TBgpPath> bestPaths;
+  for (int j = 0; j < scale.bestPathsPerEntry; j++) {
+    auto path = createBgpPath(
+        index,
+        j,
+        scale.communitiesPerPath,
+        scale.asPathSegments,
+        scale.extCommunitiesPerPath,
+        asPathVersion);
+    bestPaths.emplace_back(std::move(path));
+  }
+
+  std::map<std::string, std::vector<neteng::fboss::bgp::thrift::TBgpPath>>
+      pathsMap;
+  pathsMap["best"] = std::move(bestPaths);
+
+  // Set best_group
+  entry.best_group() = "best";
+
+  // Set best_next_hop (use first path's next_hop)
+  if (!pathsMap["best"].empty()) {
+    *entry.best_next_hop() = *pathsMap["best"][0].next_hop();
+    // best_path is a copy of the selected path (createBgpPath already flags
+    // path 0 with is_best_path), so a bgp/ribMap/<prefix>/best_path subscriber
+    // resolves without the full `paths` map.
+    entry.best_path() = pathsMap["best"][0];
+  }
+
+  entry.paths() = std::move(pathsMap);
+
+  return entry;
+}
+
+facebook::neteng::fboss::bgp_attr::TIpPrefix
+BgpRibMapDataGenerator::createPrefix(int index, bool isV6, int keySet) {
+  facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
+
+  if (isV6) {
+    // IPv6 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+    // Use different base addresses for different key sets
+    // keySet 0: 2401:db00::/32, keySet 1: 2401:dc00::/32
+    int baseOctet = (keySet == 0) ? 0xdb : 0xdc;
+    // Split the index across the two hextets free in a /64 under
+    // 2401:xx00::/32, using all 16 bits of each. The previous encoding varied
+    // only 8 bits per hextet ((index / 512) % 256, index % 256), so index N and
+    // N + 256 produced the same /64 -- 120K indices collapsed to 60096 distinct
+    // prefixes, silently shrinking the generated RIB.
+    const auto idx = static_cast<uint32_t>(index);
+    unsigned hex3 = (idx >> 16) & 0xffff;
+    unsigned hex4 = idx & 0xffff;
+    std::string prefixStr =
+        fmt::format("2401:{:x}00:{:x}:{:x}::/64", baseOctet, hex3, hex4);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    prefix.prefix_bin() = toPrefixBin(network.first);
+    prefix.num_bits() = 64;
+  } else {
+    // IPv4 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV4;
+    // Use different base addresses for different key sets
+    // keySet 0: 10.0.0.0/8, keySet 1: 172.16.0.0/12
+    int baseOctet1 = (keySet == 0) ? 10 : 172;
+    int octet2 = (index / 256) % 256;
+    int octet3 = index % 256;
+    // For keySet 1 (172.16.0.0/12), use 172 as first octet and add 16 as offset
+    if (keySet == 1) {
+      octet2 = 16 + (octet2 % 16); // Keep within 172.16.0.0/12 range
+    }
+    std::string prefixStr =
+        fmt::format("{}.{}.{}.0/24", baseOctet1, octet2, octet3);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    prefix.prefix_bin() = toPrefixBin(network.first);
+    prefix.num_bits() = 24;
+  }
+
+  return prefix;
+}
+
+neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
+    int entryIndex,
+    int pathIndex,
+    int numCommunities,
+    int numAsPathSegments,
+    int numExtCommunities,
+    int asPathVersion) {
+  neteng::fboss::bgp::thrift::TBgpPath path;
+
+  // Create next_hop
+  facebook::neteng::fboss::bgp_attr::TIpPrefix nextHop;
+  nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  std::string nextHopStr =
+      fmt::format("fe80::{:x}:{:x}", entryIndex % 65536, pathIndex % 65536);
+  nextHop.prefix_bin() = toPrefixBin(folly::IPAddress(nextHopStr));
+  nextHop.num_bits() = 128;
+  path.next_hop() = nextHop;
+
+  // Create AS path - ping-pong between 2 versions based on asPathVersion
+  facebook::neteng::fboss::bgp_attr::TAsPath asPath;
+  for (int i = 0; i < numAsPathSegments; i++) {
+    facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() =
+        facebook::neteng::fboss::bgp_attr::TAsPathSegType::AS_SEQUENCE;
+
+    // Add 2-3 ASNs per segment
+    int numAsns = 2 + (pathIndex % 2);
+    std::vector<int32_t> asns;
+    std::vector<int64_t> asns_4_byte;
+    for (int j = 0; j < numAsns; j++) {
+      // Alternate AS path based on asPathVersion
+      // Version 0: base ASN, Version 1: base ASN + 10000
+      int32_t baseAsn = 65000 + ((entryIndex + pathIndex + i + j) % 1000);
+      int32_t asn = baseAsn + (asPathVersion * 10000);
+      asns.push_back(asn);
+      asns_4_byte.push_back(asn);
+    }
+    segment.asns() = asns;
+    segment.asns_4_byte() = asns_4_byte;
+    asPath.push_back(segment);
+  }
+  path.as_path() = asPath;
+
+  // Create communities
+  std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
+  for (int i = 0; i < numCommunities; i++) {
+    facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
+    int32_t asn = 65400 + (i % 100);
+    int16_t value = 100 + ((entryIndex + pathIndex + i) % 200);
+    community.asn() = asn;
+    community.value() = value;
+    community.community() = (asn << 16) | value;
+    communities.push_back(community);
+  }
+  path.communities() = communities;
+
+  // Create extended communities
+  if (numExtCommunities > 0) {
+    std::vector<neteng::fboss::bgp::thrift::TBgpExtCommunity> extCommunities;
+    for (int i = 0; i < numExtCommunities; i++) {
+      neteng::fboss::bgp::thrift::TBgpExtCommunity extComm;
+      neteng::fboss::bgp::thrift::TBgpExtCommUnion extCommUnion;
+      neteng::fboss::bgp::thrift::TBgpTwoByteAsnExtComm twoByteAsn;
+      twoByteAsn.type() = 64;
+      twoByteAsn.sub_type() = 4;
+      twoByteAsn.asn() = 65000 + (i % 100);
+      twoByteAsn.value() = 1000000 + ((entryIndex + pathIndex) % 1000000);
+      extCommUnion.two_byte_asn() = twoByteAsn;
+      extComm.u() = extCommUnion;
+      extCommunities.push_back(extComm);
+    }
+    path.extCommunities() = extCommunities;
+  }
+
+  // Set other path attributes
+  path.cluster_list() = std::vector<int64_t>{}; // Empty for most paths
+  path.local_pref() = 100;
+  path.router_id() = 3232235777 + (entryIndex % 1000); // ~192.0.2.1 range
+  path.origin() = 0; // IGP
+  path.peer_id() = nextHop;
+  path.bestpath_filter_descr() = "";
+  path.last_modified_time() = 1700000000000000LL + (entryIndex * 1000);
+
+  // Mark first path as best
+  if (pathIndex == 0) {
+    path.is_best_path() = true;
+  }
+
+  return path;
+}
+
+std::string BgpRibMapDataGenerator::createPrefixKey(
+    const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix) {
+  const auto& bin = *prefix.prefix_bin();
+  auto addrResult = folly::IPAddress::tryFromBinary(
+      folly::ByteRange(
+          reinterpret_cast<const unsigned char*>(bin.data()), bin.size()));
+  if (addrResult.hasValue()) {
+    auto& addr = addrResult.value();
+    int numBits = *prefix.num_bits();
+    return addr.str() + "/" + std::to_string(numBits);
+  }
+  return "unknown_prefix";
+}
+
+facebook::neteng::fboss::bgp_attr::TIpPrefix
+BgpRibMapDataGenerator::createFpfPrefix(int index) {
+  facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
+  prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  // Mirror the DNE injector's prefix range: base 5000:dd::/64 stepped by
+  // 0:0:1::. Index is split across the 3rd and 4th hextets (both free in a /64)
+  // with the low bits in the 3rd, so prefixes match the injector for
+  // index < 65536 and stay distinct for any int beyond it.
+  const auto idx = static_cast<uint32_t>(index);
+  std::string prefixStr =
+      fmt::format("5000:dd:{:x}:{:x}::/64", idx & 0xffff, (idx >> 16) & 0xffff);
+  auto network = folly::IPAddress::createNetwork(prefixStr);
+  prefix.prefix_bin() = toPrefixBin(network.first);
+  prefix.num_bits() = 64;
+  return prefix;
+}
+
+neteng::fboss::bgp::thrift::TBgpAttrDict BgpRibMapDataGenerator::buildAttrDict(
+    const BgpRibMapScale& scale) {
+  neteng::fboss::bgp::thrift::TBgpAttrDict attrDict;
+
+  // One shared community list (index 0): every injected prefix carries the same
+  // list, so it dedups to one. Count matches the captured FPF canonicalRib.
+  std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
+  communities.reserve(scale.communitiesPerPath);
+  for (int i = 0; i < scale.communitiesPerPath; i++) {
+    facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
+    int32_t asn = 65400 + (i % 100);
+    int16_t value = 100 + (i % 200);
+    community.asn() = asn;
+    community.value() = value;
+    community.community() = (asn << 16) | value;
+    communities.push_back(community);
+  }
+  attrDict.community_lists()[0] = std::move(communities);
+
+  // One AS_PATH list per pod: a single AS_SEQUENCE holding the 2-hop path the
+  // captured state shows (upstream ASN prepended by the STSW, then the pod
+  // origin), in both the deprecated 2-byte `asns` list and `asns_4_byte`.
+  constexpr int64_t kFpfBaseAsn = 4203699001;
+  constexpr int64_t kFpfUpstreamAsn = 4203601901;
+  for (int k = 0; k < scale.numPods; k++) {
+    facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() =
+        facebook::neteng::fboss::bgp_attr::TAsPathSegType::AS_SEQUENCE;
+    const int64_t originAsn = kFpfBaseAsn + k;
+    segment.asns() = std::vector<int32_t>{
+        static_cast<int32_t>(kFpfUpstreamAsn), static_cast<int32_t>(originAsn)};
+    segment.asns_4_byte() = std::vector<int64_t>{kFpfUpstreamAsn, originAsn};
+    attrDict.as_path_lists()[k] =
+        std::vector<facebook::neteng::fboss::bgp_attr::TAsPathSeg>{
+            std::move(segment)};
+  }
+
+  // One shared ext-community list (index 0), so best_path.ext_communities_idx
+  // resolves.
+  for (int i = 0; i < scale.extCommunitiesPerPath; i++) {
+    neteng::fboss::bgp::thrift::TBgpExtCommunity extComm;
+    neteng::fboss::bgp::thrift::TBgpExtCommUnion extCommUnion;
+    neteng::fboss::bgp::thrift::TBgpTwoByteAsnExtComm twoByteAsn;
+    twoByteAsn.type() = 64;
+    twoByteAsn.sub_type() = 4;
+    twoByteAsn.asn() = 57325;
+    twoByteAsn.value() = 16777472;
+    extCommUnion.two_byte_asn() = twoByteAsn;
+    extComm.u() = extCommUnion;
+    attrDict.ext_community_lists()[0].push_back(std::move(extComm));
+  }
+
+  // cluster_lists left empty: the captured state has none.
+  return attrDict;
+}
+
+neteng::fboss::bgp::thrift::TBgpDedupedPath
+BgpRibMapDataGenerator::buildDedupedBestPath(
+    int index,
+    int podIdx,
+    const BgpRibMapScale& scale) {
+  neteng::fboss::bgp::thrift::TBgpDedupedPath path;
+
+  // Synthesize a next_hop (mirrors createBgpPath's next-hop encoding).
+  facebook::neteng::fboss::bgp_attr::TIpPrefix nextHop;
+  nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  std::string nextHopStr = fmt::format("fe80::{:x}", index % 65536);
+  nextHop.prefix_bin() = toPrefixBin(folly::IPAddress(nextHopStr));
+  nextHop.num_bits() = 128;
+  path.next_hop() = nextHop;
+
+  // Reference the shared attr_dict entries by index.
+  path.as_path_idx() = podIdx;
+  path.communities_idx() = 0;
+  if (scale.extCommunitiesPerPath > 0) {
+    path.ext_communities_idx() = 0;
+  }
+  path.origin() = 0; // IGP
+  path.local_pref() = kFpfLocalPref;
+  path.med() = 0;
+  path.atomic_aggregate() = false;
+
+  // topology_info is the only per-entry container child on best_path, so it
+  // dominates canonicalRib COW memory (~416 B/entry). Values match the captured
+  // state.
+  path.topology_info() = std::unordered_map<std::string, int64_t>{
+      {"spine_id", 1}, {"remote_rack_capacity", 1}, {"rack_id", 0}};
+
+  return path;
+}
+
+neteng::fboss::bgp::thrift::TCanonicalRibState
+BgpRibMapDataGenerator::buildCanonicalRib(
+    const BgpRibMapScale& scale,
+    int version) {
+  neteng::fboss::bgp::thrift::TCanonicalRibState canonicalRib;
+  canonicalRib.attr_dict() = buildAttrDict(scale);
+  // deduped_paths and peers left empty: best-path-only view.
+
+  for (int i = 0; i < scale.ribV6EntryCount; i++) {
+    int podIdx =
+        (scale.numPrefixesPerPod > 0) ? (i / scale.numPrefixesPerPod) : 0;
+    neteng::fboss::bgp::thrift::TRibEntryCanonical entry;
+    auto prefix = createFpfPrefix(i);
+    entry.prefix() = prefix;
+    // paths map left empty (best-path-only view).
+    entry.rib_version() = version;
+    entry.best_path() = buildDedupedBestPath(i, podIdx, scale);
+    std::string prefixKey = createPrefixKey(prefix);
+    canonicalRib.rib_entries()[prefixKey] = std::move(entry);
+  }
+
+  // Duplicate prefixes would silently shrink the map and invalidate the
+  // benchmark scale.
+  CHECK_EQ(canonicalRib.rib_entries()->size(), scale.ribV6EntryCount)
+      << "duplicate FPF prefixes for " << scale.numPods << " pods x "
+      << scale.numPrefixesPerPod << " prefixes/pod";
+  return canonicalRib;
+}
+
+} // namespace facebook::fboss::test_data

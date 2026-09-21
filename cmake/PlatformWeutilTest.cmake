@@ -1,0 +1,43 @@
+# Make to build libraries and binaries in fboss/platform/weutils
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
+add_executable(weutil_crc16_ccitt_test
+  fboss/platform/weutil/test/Crc16ccittTest.cpp
+)
+
+target_link_libraries(weutil_crc16_ccitt_test
+  weutil_crc16_ccitt_aug
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(weutil_crc16_ccitt_test)
+
+add_executable(weutil_fboss_eeprom_interface_test
+  fboss/platform/weutil/test/FbossEepromInterfaceTest.cpp
+)
+
+target_link_libraries(weutil_fboss_eeprom_interface_test
+  weutil_fboss_eeprom_interface
+  weutil_eeprom_contents_cpp2
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(weutil_fboss_eeprom_interface_test)
+
+add_executable(weutil_parser_utils_test
+  fboss/platform/weutil/test/ParserUtilsTest.cpp
+)
+
+target_link_libraries(weutil_parser_utils_test
+  weutil_fboss_eeprom_interface
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(weutil_parser_utils_test)

@@ -1,0 +1,92 @@
+# Minimal FBOSS Simulator Runtime Image
+# This image contains only the essential runtime components (~1.2 GB vs 34 GB)
+# Build artifacts are copied from tmp_build_dir (extracted by fboss-sim-docker-package.py)
+
+FROM quay.io/centos/centos:stream9
+
+# Install all runtime dependencies in a single layer
+# - epel-release: provides EPEL repository for jemalloc
+# - systemd: provides systemctl for service management
+# - iproute: provides /sbin/ip for network interface management (used by wedge_agent)
+# - procps-ng: provides pkill for process management (used by AgentPreStartExec)
+# - jemalloc: alternative malloc implementation that's more robust against corruption
+# - jq: JSON processor for config manipulation
+# - vim, git: development/debugging tools
+# - sudo: privilege escalation for runtime tooling/scripts
+RUN dnf install -y \
+    epel-release \
+    && dnf install -y \
+    systemd \
+    vim \
+    git \
+    iproute \
+    procps-ng \
+    jemalloc \
+    jq \
+    sudo \
+    && dnf clean all && rm -rf /var/cache/dnf
+
+# Create FBOSS directories
+RUN mkdir -p \
+    /opt/fboss/bin \
+    /opt/fboss/lib \
+    /opt/fboss/share \
+    /etc/coop \
+    /root/config \
+    /var/facebook/fboss \
+    /var/facebook/logs/fboss \
+    /dev/shm/fboss
+
+# Copy FBOSS production rootfs overlay (systemd services, helper scripts, configs)
+COPY fboss-image/image_builder/templates/centos-09.0/root_files/ /
+
+# Copy mono agent configuration (base config)
+COPY fboss-sim/docker/runtime/mono.conf /root/config/mono.conf
+
+# Generate split.conf from mono.conf by setting multi_switch to true
+# Using jq for robust JSON manipulation (handles formatting, validates syntax)
+RUN jq '.defaultCommandLineArgs.multi_switch = "true"' \
+    /root/config/mono.conf > /root/config/split.conf
+
+# Copy fruid.json (platform identification for virtual environment)
+COPY fboss-sim/docker/runtime/fruid.json /var/facebook/fboss/fruid.json
+
+# Copy agent mode switching script
+COPY fboss-sim/docker/runtime/switch-agent-mode.sh /usr/local/bin/switch-agent-mode.sh
+
+# Copy container setup script
+COPY fboss-sim/docker/runtime/setup-container.sh /tmp/setup-container.sh
+
+# Copy FBOSS runtime binaries and libraries from tmp_build_dir
+# The fboss-sim-docker-package.py script extracts fboss_bins.tar.zst to tmp_build_dir
+# Optimized layer ordering: rarely-changing content first, frequently-changing last
+
+# Layer 1: Shared libraries (rarely change)
+COPY tmp_build_dir/lib/ /opt/fboss/lib/
+
+# Register /opt/fboss/lib with the dynamic linker so binaries resolve their deps
+# without needing LD_LIBRARY_PATH to be set in the calling shell.
+RUN echo "/opt/fboss/lib" > /etc/ld.so.conf.d/fboss.conf && ldconfig
+
+# Layer 2: Share configs and platform data (rarely change)
+COPY tmp_build_dir/share/ /opt/fboss/share/
+
+# Layer 3: All FBOSS binaries (7 required binaries pre-filtered by fboss-sim-docker-package.py)
+# Includes: wedge_agent-sai_impl, fboss_sw_agent, fboss_hw_agent-sai_impl, fboss2, fboss2-dev, fboss2_integration_test, setup_fboss_env
+COPY tmp_build_dir/bin/ /opt/fboss/bin/
+
+# Run container setup script
+# This configures: symlinks, jemalloc, multi-switch mode, service masking, etc.
+RUN chmod +x /tmp/setup-container.sh && \
+    /tmp/setup-container.sh && \
+    rm /tmp/setup-container.sh
+
+ENV PATH="/opt/fboss/bin:/usr/local/bin:${PATH}" \
+    LD_LIBRARY_PATH="/opt/fboss/lib" \
+    FBOSS2_DEV_PATH="/opt/fboss/bin/fboss2-dev" \
+    MALLOC_ARENA_MAX=1 \
+    MALLOC_MMAP_THRESHOLD_=0 \
+    MALLOC_CHECK_=0
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

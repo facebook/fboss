@@ -1,0 +1,24 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "ladakh800bcls_platform_mapping",
+    srcs = [
+        "Ladakh800bclsPlatformMapping.cpp",
+    ],
+    headers = [
+        "Ladakh800bclsOsfpTrayPlatformMapping.h",
+        "Ladakh800bclsPlatformMapping.h",
+        "Ladakh800bclsProdPlatformMapping.h",
+        "Ladakh800bclsProdPostEvtPlatformMapping.h",
+        "Ladakh800bclsTestPlatformMapping.h",
+        "Ladakh800bclsTestPostEvtPlatformMapping.h",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/platforms:product-info",
+    ],
+)

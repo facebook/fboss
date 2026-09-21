@@ -1,0 +1,272 @@
+/*
+ *  Copyright (c) 2021-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
+
+#include "fboss/fsdb/common/Flags.h"
+#include "fboss/fsdb/if/FsdbModel.h"
+
+namespace {
+
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
+    stateRoot;
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStatsRoot>
+    statsRoot;
+
+} // anonymous namespace
+
+namespace facebook {
+namespace fboss {
+
+namespace qsfp_state_tags = apache::thrift::ident;
+namespace qsfp_stats_tags = apache::thrift::ident;
+
+std::vector<std::string> QsfpFsdbSyncManager::getStatePath() {
+  return stateRoot.qsfp_service().tokens();
+}
+
+std::vector<std::string> QsfpFsdbSyncManager::getStatsPath() {
+  return statsRoot.qsfp_service().tokens();
+}
+
+std::vector<std::string> QsfpFsdbSyncManager::getConfigPath() {
+  return stateRoot.qsfp_service().config().tokens();
+}
+
+QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_ = std::make_unique<fsdb::FsdbSyncManager<
+        state::QsfpServiceData,
+        true /* EnablePatchAPIs */>>(
+        "qsfp_service",
+        getStatePath(),
+        false /* isStats */,
+        fsdb::getFsdbStatePubType());
+  }
+  if (FLAGS_publish_stats_to_fsdb) {
+    statsSyncer_ = std::make_unique<fsdb::FsdbSyncManager<stats::QsfpStats>>(
+        "qsfp_service",
+        getStatsPath(),
+        true /* isStats */,
+        fsdb::PubSubType::PATH);
+  }
+}
+
+void QsfpFsdbSyncManager::start() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_->start();
+  }
+  if (FLAGS_publish_stats_to_fsdb) {
+    statsSyncer_->start();
+  }
+}
+
+void QsfpFsdbSyncManager::stop() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_->stop();
+  }
+  if (FLAGS_publish_stats_to_fsdb) {
+    statsSyncer_->stop();
+  }
+}
+
+void QsfpFsdbSyncManager::updateConfig(cfg::QsfpServiceConfig newConfig) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([newConfig = std::move(newConfig)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_state_tags::config>();
+    out->template ref<qsfp_state_tags::config>()->fromThrift(newConfig);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updateTcvrStates(std::map<int, TcvrState>&& states) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([states = std::move(states)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::tcvrStates>();
+    auto& tcvrStates = state->template ref<qsfp_state_tags::tcvrStates>();
+
+    // Delta update: update each entry individually
+    for (const auto& [tcvrId, tcvrState] : states) {
+      tcvrStates->modify(folly::to<std::string>(tcvrId));
+      tcvrStates->ref(tcvrId)->fromThrift(tcvrState);
+    }
+
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updateTcvrStats(std::map<int, TcvrStats>&& stats) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_stats_tags::tcvrStats>();
+    out->template ref<qsfp_stats_tags::tcvrStats>()->fromThrift(stats);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePimState(int pimId, PimState&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState(
+      [pimId, newState = std::move(newState)](const auto& in) {
+        auto out = in->clone();
+        out->template modify<qsfp_state_tags::state>();
+        auto& state = out->template ref<qsfp_state_tags::state>();
+        state->template modify<qsfp_state_tags::pimStates>();
+        auto& PimStates = state->template ref<qsfp_state_tags::pimStates>();
+        PimStates->modify(folly::to<std::string>(pimId));
+        PimStates->ref(pimId)->fromThrift(newState);
+        return out;
+      });
+}
+
+void QsfpFsdbSyncManager::updatePhyState(
+    std::string&& portName,
+    std::optional<phy::PhyState>&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([this,
+                             portName = std::move(portName),
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::phyStates>();
+    auto& phyStates = state->template ref<qsfp_state_tags::phyStates>();
+
+    if (newState.has_value()) {
+      phyStates->modify(portName);
+      phyStates->ref(portName)->fromThrift(newState.value());
+    } else {
+      phyStates->remove(portName);
+      if (phyStates->size() == 0) {
+        // Special case. If size is 0, we won't have any more stats update per
+        // port. But we still need to publish the empty stats.
+        auto pendingPhyStatsWLockedPtr = pendingPhyStats_.wlock();
+        pendingPhyStatsWLockedPtr->clear();
+        updatePhyStats(*pendingPhyStatsWLockedPtr);
+      }
+    }
+
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap& stats) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_stats_tags::phyStats>();
+    out->template ref<qsfp_stats_tags::phyStats>()->fromThrift(stats);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePhyStat(
+    std::string&& portName,
+    phy::PhyStats&& stat) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+  auto pendingPhyStatsWLockedPtr = pendingPhyStats_.wlock();
+  pendingPhyStatsWLockedPtr->emplace(portName, stat);
+
+  // If we have stats for all ports with state, publish all accumulated stats.
+  const auto& qsfpData = stateSyncer_->getState();
+  const auto& state = qsfpData->template cref<qsfp_state_tags::state>();
+  const auto& phyStates = state->template cref<qsfp_state_tags::phyStates>();
+
+  // No need to check keys if we have less keys. More keys is fine. Maybe some
+  // port got deleted.
+  if (pendingPhyStatsWLockedPtr->size() < phyStates->size()) {
+    return;
+  }
+
+  // Make sure we have stats for every port with a state
+  for (const auto& portState : std::as_const(*phyStates)) {
+    if (!pendingPhyStatsWLockedPtr->count(portState.first)) {
+      return;
+    }
+  }
+
+  // We have stats for all ports. Publish pending stats.
+  updatePhyStats(*pendingPhyStatsWLockedPtr);
+  // Clear the stats, we are ready to start over
+  pendingPhyStatsWLockedPtr->clear();
+}
+
+void QsfpFsdbSyncManager::updatePortStats(PortStatsMap stats) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_stats_tags::portStats>();
+    out->template ref<qsfp_stats_tags::portStats>()->fromThrift(stats);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePortStat(
+    std::string&& portName,
+    HwPortStats&& stat) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+  auto pendingPortStatsWLockedPtr = pendingPortStats_.wlock();
+  (*pendingPortStatsWLockedPtr)[portName] = stat;
+  updatePortStats(*pendingPortStatsWLockedPtr);
+}
+
+void QsfpFsdbSyncManager::updatePortState(
+    std::string&& portName,
+    portstate::PortState&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+  stateSyncer_->updateState([portName = std::move(portName),
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::portStates>();
+    auto& PortStates = state->template ref<qsfp_state_tags::portStates>();
+    // insert to list of port states in case its not there.
+    PortStates->modify(portName);
+    // update the value.
+    PortStates->ref(portName)->fromThrift(newState);
+    return out;
+  });
+}
+
+} // namespace fboss
+} // namespace facebook

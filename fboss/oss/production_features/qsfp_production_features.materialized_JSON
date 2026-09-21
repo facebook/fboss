@@ -1,0 +1,330 @@
+{
+  "platformConfigToFeatures": {
+    "darwin": [
+        
+    ],
+    "darwin_mix": [
+        
+    ],
+    "darwin_original": [
+        
+    ],
+    "elbert_2x16Q_6x8DD": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "elbert_5x16Q_3x8DD": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "elbert_8x16Q": [
+        2
+    ],
+    "fuji_5x16Q": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "fuji_8x16Q": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+    ],
+    "icecube800banw": [
+        7,
+        8
+    ],
+    "icecube800bc": [
+        7,
+        8
+    ],
+    "icetea800bc": [
+        7,
+        8
+    ],
+    "janga800bic": [
+        7,
+        8
+    ],
+    "ladakh800bcls": [
+        1,
+        4,
+        6,
+        8
+    ],
+    "leh800bcls": [
+        1,
+        4,
+        6,
+        8
+    ],
+    "meru400bfu": [
+        
+    ],
+    "meru400biu": [
+        
+    ],
+    "meru800bfa": [
+        7,
+        8
+    ],
+    "meru800bia": [
+        7,
+        8
+    ],
+    "meru800bia_c0": [
+        7,
+        8
+    ],
+    "minipack3ba": [
+        7,
+        8
+    ],
+    "minipack3bta": [
+        7,
+        8
+    ],
+    "minipack3n": [
+        7,
+        8
+    ],
+    "minipack_7x16Q_1x16O": [
+        1,
+        2,
+        4,
+        5
+    ],
+    "montblanc": [
+        7,
+        8
+    ],
+    "morgan800cc": [
+        7,
+        8
+    ],
+    "tahan800bc": [
+        7,
+        8
+    ],
+    "tahansb800bc": [
+        7,
+        8
+    ],
+    "tahansb800bc_fp_only": [
+        7,
+        8
+    ],
+    "wedge100s": [
+        
+    ],
+    "wedge400": [
+        
+    ],
+    "wedge400c": [
+        
+    ],
+    "wedge800bact": [
+        7,
+        8
+    ],
+    "wedge800bnhp": [
+        7,
+        8
+    ],
+    "wedge800cact": [
+        7,
+        8
+    ],
+    "wedge800cnhp": [
+        7,
+        8
+    ],
+    "yamp_8x16Q": [
+        1,
+        2,
+        4,
+        5,
+        6
+    ]
+  },
+  "platformConfigToFeatureNames": {
+    "darwin": [
+        
+    ],
+    "darwin_mix": [
+        
+    ],
+    "darwin_original": [
+        
+    ],
+    "elbert_2x16Q_6x8DD": [
+        "MACSEC",
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "elbert_5x16Q_3x8DD": [
+        "MACSEC",
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "elbert_8x16Q": [
+        "PIM"
+    ],
+    "fuji_5x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "fuji_8x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_NRZ_PROFILE",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ],
+    "icecube800banw": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "icecube800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "icetea800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "janga800bic": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "ladakh800bcls": [
+        "EXTERNAL_PHY",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE",
+        "BMC_LITE"
+    ],
+    "leh800bcls": [
+        "EXTERNAL_PHY",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE",
+        "BMC_LITE"
+    ],
+    "meru400bfu": [
+        
+    ],
+    "meru400biu": [
+        
+    ],
+    "meru800bfa": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "meru800bia": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "meru800bia_c0": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "minipack3ba": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "minipack3bta": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "minipack3n": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "minipack_7x16Q_1x16O": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE"
+    ],
+    "montblanc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "morgan800cc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahan800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "tahansb800bc_fp_only": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge100s": [
+        
+    ],
+    "wedge400": [
+        
+    ],
+    "wedge400c": [
+        
+    ],
+    "wedge800bact": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800bnhp": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800cact": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "wedge800cnhp": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "yamp_8x16Q": [
+        "EXTERNAL_PHY",
+        "PIM",
+        "XPHY_SYSTEM_PAM4_PROFILE",
+        "XPHY_LINE_NRZ_PROFILE",
+        "XPHY_LINE_PAM4_PROFILE"
+    ]
+  }
+}

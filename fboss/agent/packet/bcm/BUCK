@@ -1,0 +1,20 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "xgs_psamp_mod",
+    srcs = [
+        "XgsPsampMod.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/agent/packet:hdr_parse_error",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/packet:ipfix_header",
+        "//folly/io:iobuf",
+    ],
+)

@@ -1,0 +1,80 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "path_tests",
+    srcs = ["PathTests.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/agent:agent_config-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",  # @manual
+        "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_unittest(
+    name = "delta_visitor_tests",
+    srcs = [
+        "DeltaVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "path_visitor_tests",
+    srcs = [
+        "PathVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "name_to_path_visitor_tests",
+    srcs = [
+        "NameToPathVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly:demangle",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "thrift_leaf_visitor_tests",
+    srcs = [
+        "ThriftLeafVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)

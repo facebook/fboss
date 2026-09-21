@@ -1,0 +1,102 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_cow_root_path_visitor",
+    srcs = [
+        "FsdbCowStateRootPathVisitor.cpp",
+        "FsdbCowStatsRootPathVisitor.cpp",
+    ],
+    headers = [
+        "FsdbCowRootPathVisitor.h",
+    ],
+    exported_deps = [
+        ":fsdb_cow_root",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_root",
+    srcs = [
+        "FsdbStatCowRoot.cpp",
+        "FsdbStateCowRoot.cpp",
+    ],
+    headers = [
+        "FsdbCowRoot.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/thrift_cow/nodes:nodes",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_storage",
+    srcs = [
+        "FsdbCowStateStorage.cpp",
+        "FsdbCowStatsStorage.cpp",
+    ],
+    headers = ["FsdbCowStorage.h"],
+    exported_deps = [
+        ":fsdb_cow_root",
+        ":fsdb_cow_root_path_visitor",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_patch_applier_oper_state_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_path_visitor_oper_state_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_thrift_struct_oper_instantiations",
+        "//fboss/thrift_cow/storage:cow_storage",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_cow_subscription_manager",
+    srcs = [
+        "FsdbCowStateSubscriptionManagerPrune.cpp",
+        "FsdbCowStateSubscriptionManagerServe.cpp",
+        "FsdbCowStateSubscriptionManagerSync.cpp",
+        "FsdbCowStatsSubscriptionManagerPrune.cpp",
+        "FsdbCowStatsSubscriptionManagerServe.cpp",
+        "FsdbCowStatsSubscriptionManagerSync.cpp",
+    ],
+    headers = ["FsdbCowSubscriptionManager.h"],
+    exported_deps = [
+        ":fsdb_cow_root",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:subscription_manager",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_path_converter",
+    srcs = [
+        "FsdbStatePathConverter.cpp",
+        "FsdbStatsPathConverter.cpp",
+    ],
+    headers = ["FsdbPathConverter.h"],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:path_helpers",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_naive_periodic_subscribable_storage",
+    srcs = [
+        "FsdbNaivePeriodicSubscribableStateStorage.cpp",
+        "FsdbNaivePeriodicSubscribableStatsStorage.cpp",
+    ],
+    headers = ["FsdbNaivePeriodicSubscribableStorage.h"],
+    exported_deps = [
+        ":fsdb_cow_root",
+        ":fsdb_cow_storage",
+        ":fsdb_cow_subscription_manager",
+        ":fsdb_path_converter",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_state_sub_mgr_instantiations",
+        "//fboss/fsdb/oper/instantiations/templates:fsdb_thrift_struct_std_functions_instantiations",
+    ],
+)

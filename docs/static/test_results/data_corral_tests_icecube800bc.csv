@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","icecube800bc","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","icecube800bc","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","icecube800bc","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","icecube800bc","PASSED"

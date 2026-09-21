@@ -1,0 +1,77 @@
+cpp_include "fboss/fsdb/client/test/test_cgo_client.h";
+namespace "facebook::fboss::fsdb::test";
+output_cpp_namespace "facebook::fboss::fsdb::test::cgo";
+
+unique class FsdbTestCgoClient {
+  ctor(string clientId) noexcept;
+
+  // Server configuration
+  mut void setServer(string hostIp, i32 fsdbPort) throws;
+
+  mut void startInProcessServer() throws;
+
+  mut void stopInProcessServer() throws;
+
+  i32 getServerPort() throws;
+
+  // Path subscription (via FsdbPubSubManager)
+  mut void subscribeStatePath(vec<string> path) throws;
+
+  mut void unsubscribeStatePath() throws;
+
+  // Delta subscription (via FsdbPubSubManager)
+  mut void subscribeStateDelta(vec<string> path) throws;
+
+  mut void unsubscribeStateDelta() throws;
+
+  // Patch subscription (via FsdbSubManager / FsdbCowStateSubManager)
+  mut void subscribeStatePatch(vec<string> path) throws;
+
+  mut void unsubscribeStatePatch() throws;
+
+  // Unsubscribe all
+  mut void unsubscribeAll() throws;
+
+  // State observation (subscriptionType: 0=Path, 1=Delta, 2=Patch)
+  i32 getSubscriptionState(i32 subscriptionType) throws;
+
+  bool isInitialSyncComplete(i32 subscriptionType) throws;
+
+  // Update consumption
+  mut bool waitForUpdate(i64 timeoutMs) throws;
+
+  i64 getPathUpdateCount() throws;
+
+  i64 getDeltaUpdateCount() throws;
+
+  i64 getPatchUpdateCount() throws;
+
+  string getLastPathUpdateContent() throws;
+
+  string getLastDeltaUpdateContent() throws;
+
+  string getLastPatchUpdateContent() throws;
+
+  // Test data publishing (async with proper connection handling)
+  mut void connectPublisher() throws;
+
+  mut void disconnectPublisher() throws;
+
+  bool isPublisherConnected() throws;
+
+  mut bool waitForPublisherConnected(i64 timeoutMs) throws;
+
+  mut bool waitForPublisherReady(i64 timeoutMs) throws;
+
+  mut void publishTestState(vec<string> path, string jsonValue) throws;
+
+  // Typed data publishing with proper Thrift COW serialization
+  mut void publishAgentConfigCmdLineArgs(string key, string value) throws;
+
+  mut void publishAgentSwitchStatePortInfo(
+    i64 switchId,
+    i64 portId,
+    string portName,
+    i32 operState,
+  ) throws;
+}

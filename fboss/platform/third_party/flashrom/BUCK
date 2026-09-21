@@ -1,0 +1,23 @@
+load("@fbcode//registry:defs.bzl", "rpm")
+
+oncall("fboss_platform")
+
+rpm.builder(
+    name = "fb-fboss-flashrom",
+    configurations = [
+        rpm.configuration(
+            arch = "x86_64",
+        ),
+        rpm.configuration(
+            arch = "aarch64",
+        ),
+    ],
+    features = [
+        rpm.install(
+            src = "fbsource//third-party/tp2/flashrom/1.7.0:flashrom-bin",
+            dst = "/usr/bin/flashrom",
+            mode = 0o555,
+        ),
+    ],
+    summary = "flashrom binary built from third-party2",
+)

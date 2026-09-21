@@ -1,0 +1,23 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "meru800bfa_platform_mapping",
+    srcs = [
+        "Meru800bfaP1PlatformMapping.cpp",
+        "Meru800bfaPlatformMapping.cpp",
+    ],
+    headers = [
+        "Meru800bfaP2PlatformMapping.h",
+        "Meru800bfaProdPlatformMapping.h",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/lib/platforms:product-info",
+    ],
+)

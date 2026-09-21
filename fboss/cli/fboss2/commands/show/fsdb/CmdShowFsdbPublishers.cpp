@@ -1,0 +1,216 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
+#include <fmt/core.h>
+#include <folly/coro/BlockingWait.h>
+#include <unistd.h>
+#include "fboss/cli/fboss2/utils/Table.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+
+namespace facebook::fboss {
+
+namespace {
+
+// Timestamp semantics for the fields below come from
+// fboss/fsdb/server/ServiceHandler.cpp:
+// - connectedAt is epoch seconds (set via std::time(nullptr) at L469).
+// - initialSyncCompletedAt, lastUpdateReceivedAt, lastHeartbeatReceivedAt,
+//   lastUpdatePublishedAt are epoch ms (set via getCurrentTimeMs()).
+// Helpers are shared with CmdShowFsdbSubscribers via fsdb_cli_format in
+// CmdShowFsdbUtils.h.
+
+void printPublisherDetail(
+    const fsdb::OperPublisherInfo& publisher,
+    std::ostream& out) {
+  out << "" << std::endl;
+  out << fmt::format(
+             "Publisher Id:                   {}",
+             publisher.publisherId().value())
+      << std::endl;
+  out << fmt::format(
+             "Type:                           {}",
+             apache::thrift::util::enumNameSafe(
+                 folly::copy(publisher.type().value())))
+      << std::endl;
+  out << fmt::format(
+             "Path:                           {}",
+             folly::join("/", publisher.path().value().raw().value()))
+      << std::endl;
+  out << fmt::format(
+             "isStats:                        {}",
+             folly::copy(publisher.isStats().value()))
+      << std::endl;
+  out << fmt::format(
+             "isExpectedPath:                 {}",
+             folly::copy(publisher.isExpectedPath().value()))
+      << std::endl;
+  out << fmt::format(
+             "Connected At:                   {}",
+             publisher.connectedAt().has_value()
+                 ? fsdb_cli_format::epochSecondsAsLocalTime(
+                       publisher.connectedAt().value())
+                 : "--")
+      << std::endl;
+  out << fmt::format(
+             "Initial Sync Completed At:      {}",
+             publisher.initialSyncCompletedAt().has_value()
+                 ? fsdb_cli_format::epochMillisAsLocalTime(
+                       publisher.initialSyncCompletedAt().value())
+                 : "--")
+      << std::endl;
+  out << fmt::format(
+             "Last Update Received At:        {}",
+             publisher.lastUpdateReceivedAt().has_value()
+                 ? fsdb_cli_format::epochMillisAsLocalTime(
+                       publisher.lastUpdateReceivedAt().value())
+                 : "--")
+      << std::endl;
+  out << fmt::format(
+             "Last Heartbeat Received At:     {}",
+             publisher.lastHeartbeatReceivedAt().has_value()
+                 ? fsdb_cli_format::epochMillisAsLocalTime(
+                       publisher.lastHeartbeatReceivedAt().value())
+                 : "--")
+      << std::endl;
+  out << fmt::format(
+             "Last Update Published At:       {}",
+             publisher.lastUpdatePublishedAt().has_value()
+                 ? fsdb_cli_format::epochMillisAsLocalTime(
+                       publisher.lastUpdatePublishedAt().value())
+                 : "--")
+      << std::endl;
+  int64_t lastLiveAtMillis = std::max(
+      publisher.lastUpdatePublishedAt().has_value()
+          ? publisher.lastUpdatePublishedAt().value()
+          : int64_t{0},
+      publisher.lastHeartbeatReceivedAt().has_value()
+          ? publisher.lastHeartbeatReceivedAt().value()
+          : int64_t{0});
+  out << fmt::format(
+             "Staleness (last live at):       {}",
+             fsdb_cli_format::stalenessFromMillis(lastLiveAtMillis))
+      << std::endl;
+  out << fmt::format(
+             "Num Updates Received:           {}",
+             fsdb_cli_format::optFieldToString<int64_t>(
+                 publisher.numUpdatesReceived()))
+      << std::endl;
+  out << fmt::format(
+             "Received Data Size (bytes):     {}",
+             fsdb_cli_format::optFieldToString<int64_t>(
+                 publisher.receivedDataSize()))
+      << std::endl;
+}
+
+} // namespace
+
+std::string_view CmdShowFsdbPublisherTraits::description() {
+  return "Displays the publishers currently writing to FSDB: each publisher's ID, publish type (PATH/PATCH), the raw path, and whether it's stats (vs state). Use it to see who is producing FSDB data.";
+}
+
+CmdShowFsdbPublishers::RetType CmdShowFsdbPublishers::sampleModel() {
+  fsdb::PublisherIdToOperPublisherInfo result;
+
+  fsdb::OperPublisherInfo pub1;
+  pub1.publisherId() = "agent";
+  pub1.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path1;
+  path1.raw() = {"agent"};
+  pub1.path() = path1;
+  pub1.isStats() = true;
+  result["agent"].push_back(pub1);
+
+  fsdb::OperPublisherInfo pub2;
+  pub2.publisherId() = "agent";
+  pub2.type() = fsdb::PubSubType::PATCH;
+  fsdb::OperPath path2;
+  path2.raw() = {"agent"};
+  pub2.path() = path2;
+  pub2.isStats() = false;
+  result["agent"].push_back(pub2);
+
+  fsdb::OperPublisherInfo pub3;
+  pub3.publisherId() = "bgpd";
+  pub3.type() = fsdb::PubSubType::PATCH;
+  fsdb::OperPath path3;
+  path3.raw() = {"bgp"};
+  pub3.path() = path3;
+  pub3.isStats() = false;
+  result["bgpd"] = {pub3};
+
+  fsdb::OperPublisherInfo pub4;
+  pub4.publisherId() = "qsfp_service";
+  pub4.type() = fsdb::PubSubType::PATH;
+  fsdb::OperPath path4;
+  path4.raw() = {"qsfp_service"};
+  pub4.path() = path4;
+  pub4.isStats() = true;
+  result["qsfp_service"] = {pub4};
+
+  return result;
+}
+
+CmdShowFsdbPublishers::RetType CmdShowFsdbPublishers::queryClient(
+    const HostInfo& hostInfo,
+    const ObjectArgType& fsdbClientid) {
+  auto client = utils::createClient<
+      apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(hostInfo);
+
+  fsdb::PublisherIds publishers(fsdbClientid.begin(), fsdbClientid.end());
+
+  fsdb::PublisherIdToOperPublisherInfo pubInfos;
+  if (publishers.empty()) {
+    client->sync_getAllOperPublisherInfos(pubInfos);
+  } else {
+    client->sync_getOperPublisherInfos(pubInfos, publishers);
+  }
+  return pubInfos;
+}
+
+void CmdShowFsdbPublishers::printOutput(
+    const RetType& result,
+    std::ostream& out) {
+  if (CmdGlobalOptions::getInstance()->isDetailed()) {
+    for (const auto& publisherInfo : result) {
+      for (const auto& publisher : publisherInfo.second) {
+        printPublisherDetail(publisher, out);
+      }
+    }
+    return;
+  }
+
+  utils::Table table;
+  table.setHeader({"Publishers Id", "Type", "Raw Path", "isStats"});
+  for (const auto& publisherInfo : result) {
+    for (const auto& publisher : publisherInfo.second) {
+      std::string publisherId =
+          folly::to<std::string>(publisher.publisherId().value());
+      auto publisherType = apache::thrift::util::enumNameSafe(
+          folly::copy(publisher.type().value()));
+      std::string publisherPath =
+          folly::join("/", publisher.path().value().raw().value());
+      std::string publisherIsStats =
+          folly::to<std::string>(folly::copy(publisher.isStats().value()));
+
+      table.addRow(
+          {publisherId, publisherType, publisherPath, publisherIsStats});
+    }
+  }
+  out << table << std::endl;
+}
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFsdbPublishers, CmdShowFsdbPublisherTraits>::run();
+
+} // namespace facebook::fboss

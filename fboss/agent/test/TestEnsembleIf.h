@@ -1,0 +1,228 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/state/StateUpdateHelpers.h"
+
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+
+#include <set>
+#include <vector>
+
+namespace facebook::fboss {
+
+class SwitchState;
+class SwitchIdScopeResolver;
+class RouteUpdateWrapper;
+class LinkStateToggler;
+
+/*
+ * TestEnsembleInitInfo - Common structure for HwTest and AgentHwTest.
+ * This struct is used to pass initialization parameters to the test ensemble.
+ * Tests can override getTestEnsembleInitInfo() to provide custom values.
+ */
+struct TestEnsembleInitInfo {
+  std::optional<TransceiverInfo> overrideTransceiverInfo;
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
+  // Patched into every switchInfo entry of the on-disk config before SwSwitch
+  // is created, so the scope resolver sees a portIdRange/localSystemPortOffset
+  // consistent with a relocated (uniform_local_offset) port layout.
+  std::optional<cfg::Range64> overridePortIdRange;
+  std::optional<int32_t> overrideLocalSystemPortOffset;
+  bool failHwCallsOnWarmboot{false};
+  // Per-switch INTERFACE_PORT cap honored by AgentEnsemble::setupEnsemble.
+  // nullopt means no trimming.
+  std::optional<size_t> maxRequiredInterfacePorts;
+  // Per-switch FABRIC_PORT cap honored by AgentEnsemble::setupEnsemble.
+  // nullopt means no trimming.
+  std::optional<size_t> maxRequiredFabricPorts;
+};
+
+class TestEnsembleIf : public HwSwitchCallback {
+ public:
+  using StateUpdateFn = FunctionStateUpdate::StateUpdateFn;
+  ~TestEnsembleIf() override {}
+
+  // Per-switch cap on the number of ports of the given type returned by the
+  // masterLogicalPortIds(...) views. nullopt (the default) means no cap. Lets
+  // us trim the ports each test (and its initial config) uses dynamically
+  // instead of destructively trimming the master port list at init time.
+  virtual std::optional<size_t> getMaxRequiredPorts(
+      cfg::PortType /*portType*/) const {
+    return std::nullopt;
+  }
+
+  // All masterLogicalPortIds(...) overloads funnel through
+  // masterLogicalPortIdsImpl, which filters getAllMasterLogicalPortIds() by
+  // port type / switch and applies getMaxRequiredPorts() uniformly. These
+  // (capped) views are what tests and initial config consume.
+  std::vector<PortID> masterLogicalPortIds() const {
+    return masterLogicalPortIdsImpl(
+        {}, {SwitchID(FLAGS_switch_id_for_testing)});
+  }
+  std::vector<PortID> masterLogicalPortIds(SwitchID switchId) const {
+    return masterLogicalPortIdsImpl({}, {switchId});
+  }
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes) const {
+    return masterLogicalPortIdsImpl(
+        portTypes, {SwitchID(FLAGS_switch_id_for_testing)});
+  }
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIdsImpl({}, switchIds);
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds() const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
+  }
+  std::vector<PortID> masterLogicalFabricPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
+  }
+  std::vector<PortID> masterLogicalHyperPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds() const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+  }
+
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes,
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIdsImpl(portTypes, switchIds);
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchIds);
+  }
+  std::vector<PortID> masterLogicalFabricPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, switchIds);
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchIds);
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT},
+        switchIds);
+  }
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes,
+      SwitchID switchId) const {
+    return masterLogicalPortIdsImpl(portTypes, {switchId});
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, {switchId});
+  }
+  std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, {switchId});
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(
+      const SwitchID& switchId) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, {switchId});
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      SwitchID switchId) const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT},
+        {switchId});
+  }
+
+  size_t getMinPktsForLineRate(const PortID& port) {
+    auto portSpeed =
+        getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed();
+    return (portSpeed > cfg::PortSpeed::HUNDREDG ? 10000 : 100);
+  }
+
+  virtual std::optional<VlanID> getVlanIDForTx() const = 0;
+
+  virtual void applyNewState(
+      StateUpdateFn fn,
+      const std::string& name = "test-update",
+      bool rollbackOnHwOverflow = false) = 0;
+  virtual void applyInitialConfig(const cfg::SwitchConfig& config) = 0;
+  virtual std::shared_ptr<SwitchState> applyNewConfig(
+      const cfg::SwitchConfig& config) = 0;
+  virtual std::shared_ptr<SwitchState> getProgrammedState() const = 0;
+  virtual const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts()
+      const = 0;
+  virtual void switchRunStateChanged(SwitchRunState runState) = 0;
+  virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
+  virtual HwAsicTable* getHwAsicTable() = 0;
+  virtual const HwAsicTable* getHwAsicTable() const = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricConnectivity(
+      SwitchID switchId) const = 0;
+  virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
+  virtual void updateStats() = 0;
+  virtual void runDiagCommand(
+      const std::string& input,
+      std::string& output,
+      std::optional<SwitchID> switchId = std::nullopt) = 0;
+  virtual std::unique_ptr<RouteUpdateWrapper> getRouteUpdaterWrapper() = 0;
+  virtual void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
+  virtual std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports) = 0;
+  HwPortStats getLatestPortStats(PortID port) {
+    return getLatestPortStats(std::vector<PortID>({port}))[port];
+  }
+  virtual std::map<InterfaceID, HwRouterInterfaceStats> getLatestInterfaceStats(
+      const std::vector<InterfaceID>& interfaces) = 0;
+  HwRouterInterfaceStats getLatestInterfaceStats(InterfaceID intf) {
+    return getLatestInterfaceStats(std::vector<InterfaceID>({intf}))[intf];
+  }
+  virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
+      const std::vector<SystemPortID>& ports) = 0;
+  HwSysPortStats getLatestSysPortStats(SystemPortID port) {
+    return getLatestSysPortStats(std::vector<SystemPortID>({port}))[port];
+  }
+  virtual LinkStateToggler* getLinkToggler() = 0;
+  virtual bool isSai() const = 0;
+  virtual folly::MacAddress getLocalMac(SwitchID id) const = 0;
+  // When portDescriptor is set the packet is injected out that port; otherwise
+  // it is sent switched. For the switched case, switchId targets a specific NPU
+  // (defaults to the switch owning the first master logical port).
+  virtual void sendPacketAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortDescriptor> portDescriptor = std::nullopt,
+      std::optional<uint8_t> queueId = std::nullopt,
+      std::optional<SwitchID> switchId = std::nullopt) = 0;
+  // Send a packet switched, optionally targeted at a specific switch (NPU).
+  // Default ignores the switchId and is suitable for single-switch ensembles;
+  // multi-switch ensembles override this to route to the target NPU.
+  virtual void sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      const std::optional<SwitchID>& switchId = std::nullopt);
+  virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
+  virtual bool supportsAddRemovePort() const = 0;
+  virtual const PlatformMapping* getPlatformMapping() const = 0;
+  virtual cfg::SwitchConfig getCurrentConfig() const = 0;
+  std::vector<const HwAsic*> getL3Asics() const;
+  int getNumL3Asics() const;
+  std::vector<SystemPortID> masterLogicalSysPortIds() const;
+  virtual std::vector<FirmwareInfo> getAllFirmwareInfo(
+      SwitchID switchId) const = 0;
+  virtual bool needL2EntryForNeighbor() const = 0;
+
+ protected:
+  // Full, uncapped master logical port list across all switches -- the single
+  // raw source masterLogicalPortIdsImpl filters and caps. Internal plumbing:
+  // callers use the (capped) masterLogicalPortIds(...) views instead.
+  virtual std::vector<PortID> getAllMasterLogicalPortIds() const = 0;
+
+ private:
+  std::vector<PortID> masterLogicalPortIdsImpl(
+      const std::set<cfg::PortType>& portTypes,
+      const std::set<SwitchID>& switches) const;
+};
+
+} // namespace facebook::fboss

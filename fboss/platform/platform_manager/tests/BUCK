@@ -1,0 +1,193 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "cpld_manager_test",
+    srcs = [
+        "CpldManagerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:cpld_manager",
+        "//fboss/platform/platform_manager:fbcpld_ioctl_h",
+    ],
+)
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/platform_manager:config_validator",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "config_utils_test",
+    srcs = [
+        "ConfigUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/config_lib:mock_config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:config_utils",
+        "//folly/hash:hash",
+        "//folly/testing:test_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "i2c_explorer_test",
+    srcs = [
+        "I2cExplorerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/platform_manager:i2c_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_explorer_test",
+    srcs = [
+        "PlatformExplorerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/platform_manager:platform_explorer",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "utils_test",
+    srcs = [
+        "UtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:utils",
+    ],
+)
+
+cpp_unittest(
+    name = "data_store_test",
+    srcs = [
+        "DataStoreTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:data_store",
+    ],
+)
+
+cpp_unittest(
+    name = "device_path_resolver_test",
+    srcs = [
+        "DevicePathResolverTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/platform_manager:device_path_resolver",
+    ],
+)
+
+cpp_unittest(
+    name = "presence_checker_test",
+    srcs = [
+        "PresenceCheckerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/platform_manager:presence_checker",
+        "//fboss/platform/platform_manager:utils",
+    ],
+)
+
+cpp_unittest(
+    name = "exploration_errors_test",
+    srcs = [
+        "ExplorationErrorsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:exploration_errors",
+    ],
+)
+
+cpp_unittest(
+    name = "exploration_summary_test",
+    srcs = [
+        "ExplorationSummaryTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fb303:service_data",
+        "//fboss/platform/platform_manager:platform_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "pkg_manager_test",
+    srcs = [
+        "PkgManagerTest.cpp",
+        "SystemInterfaceTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/range-v3:range-v3",
+        "//fb303:service_data",
+        "//fboss/platform/platform_manager:pkg_manager",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "pci_explorer_test",
+    srcs = [
+        "PciExplorerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/platform_manager:pci_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_manager_handler_test",
+    srcs = [
+        "PlatformManagerHandlerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    supports_static_listing = False,
+    deps = [
+        "//fboss/platform/platform_manager:platform_manager_handler",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

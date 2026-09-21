@@ -1,0 +1,54 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_test_server",
+    srcs = [
+        "FsdbTestServer.cpp",
+        "facebook/FsdbTestServer.cpp",
+    ],
+    headers = [
+        "FsdbTestServer.h",
+    ],
+    deps = [
+        "//common/services/cpp:light",
+        "//common/strings:uuid",
+        "//fboss/fsdb/oper:path_helpers",
+        "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_service_utils",
+        "//thrift/lib/cpp2:server",
+        "//thrift/lib/cpp2/util:util",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/server:handler",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_test_subscriber",
+    headers = [
+        "FsdbTestSubscriber.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly:synchronized",
+    ],
+)
+
+cpp_benchmark(
+    name = "fsdb_utils_bench",
+    srcs = [
+        "FsdbUtilsBenchmark.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/fsdb/common:utils",
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+    ],
+)

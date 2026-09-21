@@ -1,0 +1,82 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/decap/CmdDeleteTunnelIpInIpDecap.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/cli/fboss2/commands/config/tunnel/ip_in_ip/TunnelIpInIpConfigUtils.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+
+namespace facebook::fboss {
+
+namespace {
+
+// Optional fields that can be reset on a decap tunnel.
+const std::unordered_set<std::string> kResettableAttrs = {
+    std::string(tunnel_utils::kAttrSource),
+    std::string(tunnel_utils::kAttrTtlMode),
+    std::string(tunnel_utils::kAttrDscpMode),
+    std::string(tunnel_utils::kAttrEcnMode),
+    std::string(tunnel_utils::kAttrTerminationType),
+};
+
+// Required fields — cannot be reset individually; delete the whole tunnel.
+const std::unordered_set<std::string> kRequiredAttrs = {
+    std::string(tunnel_utils::kAttrDestination),
+    std::string(tunnel_utils::kAttrUnderlayIntfId),
+};
+
+// Deterministic display order for error messages.
+const std::vector<std::string> kResettableAttrsDisplay = {
+    "source",
+    "ttl-mode",
+    "dscp-mode",
+    "ecn-mode",
+    "termination-type",
+};
+
+} // namespace
+
+TunnelIpInIpDecapDeleteArgs::TunnelIpInIpDecapDeleteArgs(
+    std::vector<std::string> v)
+    : tunnel_delete_utils::TunnelIpInIpDeleteArgsBase(
+          std::move(v),
+          kResettableAttrs,
+          kRequiredAttrs,
+          kResettableAttrsDisplay) {}
+
+CmdDeleteTunnelIpInIpDecapTraits::RetType
+CmdDeleteTunnelIpInIpDecap::queryClient(
+    const HostInfo& /* hostInfo */,
+    const ObjectArgType& deleteArgs) {
+  return tunnel_delete_utils::deleteTunnel(
+      TunnelType::IP_IN_IP_DECAP,
+      deleteArgs.getTunnelId(),
+      deleteArgs.getAttributes());
+}
+
+void CmdDeleteTunnelIpInIpDecap::printOutput(const RetType& logMsg) {
+  std::cout << logMsg << std::endl;
+}
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdDeleteTunnelIpInIpDecap, CmdDeleteTunnelIpInIpDecapTraits>::run();
+
+} // namespace facebook::fboss

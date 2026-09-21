@@ -1,0 +1,11 @@
+This directory contains files necessary to generate bootable images for FBOSS using the kiwi ng tool.
+
+`image_builder/templates` contains the template(s) that contain the information needed to build the image.
+
+`centos-09.0` contains the Kiwi-NG template files for building a CentOS-9.0 based FBOSS image. Of particular note
+is the `root_files` directory which contains the files that will be copied into the root filesystem of the image.
+
+`onie` contains the template files for building the ONIE installer with the FBOSS image.
+
+KIWI NG Documentation:
+    https://osinside.github.io/kiwi/overview.html

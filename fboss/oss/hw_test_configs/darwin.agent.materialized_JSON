@@ -1,0 +1,445 @@
+{
+  "defaultCommandLineArgs": {
+    "check_wb_handles": "true",
+    "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
+    "log_variable_name": "true",
+    "skip_transceiver_programming": "true"
+  },
+  "sw": {
+    "version": 0,
+    "ports": [
+      
+    ],
+    "vlans": [
+      
+    ],
+    "vlanPorts": [
+      
+    ],
+    "defaultVlan": 0,
+    "interfaces": [
+      
+    ],
+    "arpTimeoutSeconds": 60,
+    "arpRefreshSeconds": 20,
+    "arpAgerInterval": 5,
+    "proactiveArp": false,
+    "staticRoutesWithNhops": [
+      
+    ],
+    "staticRoutesToNull": [
+      
+    ],
+    "staticRoutesToCPU": [
+      
+    ],
+    "acls": [
+      
+    ],
+    "maxNeighborProbes": 300,
+    "staleEntryInterval": 10,
+    "aggregatePorts": [
+      
+    ],
+    "clientIdToAdminDistance": {
+      "0": 20,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "700": 255,
+      "786": 10
+    },
+    "sFlowCollectors": [
+      
+    ],
+    "cpuQueues": [
+      
+    ],
+    "loadBalancers": [
+      
+    ],
+    "mirrors": [
+      
+    ],
+    "trafficCounters": [
+      
+    ],
+    "qosPolicies": [
+      
+    ],
+    "defaultPortQueues": [
+      
+    ],
+    "staticMplsRoutesWithNhops": [
+      
+    ],
+    "staticMplsRoutesToNull": [
+      
+    ],
+    "staticMplsRoutesToCPU": [
+      
+    ],
+    "staticIp2MplsRoutes": [
+      
+    ],
+    "portQueueConfigs": {
+      
+    },
+    "switchSettings": {
+      "l2LearningMode": 0,
+      "qcmEnable": false,
+      "ptpTcEnable": false,
+      "l2AgeTimerSeconds": 300,
+      "maxRouteCounterIDs": 0,
+      "blockNeighbors": [
+        
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
+      ],
+      "switchIdToSwitchType_DEPRECATED": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 5,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 2047
+            },
+            "firmwareNameToFirmwareInfo": {
+              
+            }
+        }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ],
+      "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
+    "dsfNodes": {
+      
+    },
+    "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
+      
+    ]
+  },
+  "platform": {
+    "chip": {
+      "bcm": {
+        "config": {
+          "bcm_linkscan_interval": "25000",
+          "bcm_num_cos": "0xa",
+          "ccm_dma_enable": "0",
+          "ccmdma_intr_enable": "0",
+          "core_clock_frequency": "1325",
+          "custom_feature_mesh_topology_sync_mode": "1",
+          "device_clock_frequency": "1325",
+          "disable_pcie_firmware_check": "1",
+          "dport_map_port_1": "1",
+          "dport_map_port_100": "21",
+          "dport_map_port_104": "22",
+          "dport_map_port_108": "23",
+          "dport_map_port_112": "24",
+          "dport_map_port_120": "25",
+          "dport_map_port_124": "26",
+          "dport_map_port_128": "27",
+          "dport_map_port_13": "4",
+          "dport_map_port_132": "28",
+          "dport_map_port_140": "29",
+          "dport_map_port_144": "30",
+          "dport_map_port_148": "31",
+          "dport_map_port_152": "32",
+          "dport_map_port_20": "5",
+          "dport_map_port_24": "6",
+          "dport_map_port_28": "7",
+          "dport_map_port_32": "8",
+          "dport_map_port_40": "9",
+          "dport_map_port_44": "10",
+          "dport_map_port_48": "11",
+          "dport_map_port_5": "2",
+          "dport_map_port_52": "12",
+          "dport_map_port_60": "13",
+          "dport_map_port_64": "14",
+          "dport_map_port_68": "15",
+          "dport_map_port_72": "16",
+          "dport_map_port_80": "17",
+          "dport_map_port_84": "18",
+          "dport_map_port_88": "19",
+          "dport_map_port_9": "3",
+          "dport_map_port_92": "20",
+          "dpr_clock_frequency": "1000",
+          "host_as_route_disable": "1",
+          "ipv6_lpm_128b_enable": "1",
+          "l2xmsg_shadow_hit_bits": "0",
+          "l3_alpm_enable": "2",
+          "l3_alpm_ipv6_128b_bkt_rsvd": "1",
+          "l3_max_ecmp_mode": "1",
+          "load_firmware": "0x2",
+          "macro_flow_hash_shuffle_random_seed": "34345645",
+          "mem_cache_enable": "0",
+          "mmu_lossless": "0x0",
+          "num_ipv6_lpm_128b_entries": "768",
+          "parity_correction": "1",
+          "parity_enable": "1",
+          "pbmp_xport_xe.0": "0xfffffffffffffffffffffffffffffffffffffffe",
+          "pcie_host_intf_timeout_purge_enable": "0",
+          "pcie_hot_swap_timeout_usec": "300",
+          "phy_chain_rx_lane_map_physical{1.0}": "0x42537160",
+          "phy_chain_rx_lane_map_physical{105.0}": "0x57124603",
+          "phy_chain_rx_lane_map_physical{113.0}": "0x17243506",
+          "phy_chain_rx_lane_map_physical{121.0}": "0x46315720",
+          "phy_chain_rx_lane_map_physical{129.0}": "0x60534271",
+          "phy_chain_rx_lane_map_physical{137.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{145.0}": "0x27140536",
+          "phy_chain_rx_lane_map_physical{153.0}": "0x50271463",
+          "phy_chain_rx_lane_map_physical{161.0}": "0x31652074",
+          "phy_chain_rx_lane_map_physical{169.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{17.0}": "0x06173425",
+          "phy_chain_rx_lane_map_physical{177.0}": "0x26140537",
+          "phy_chain_rx_lane_map_physical{185.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{193.0}": "0x26140537",
+          "phy_chain_rx_lane_map_physical{201.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{209.0}": "0x27140536",
+          "phy_chain_rx_lane_map_physical{217.0}": "0x02641357",
+          "phy_chain_rx_lane_map_physical{225.0}": "0x60734251",
+          "phy_chain_rx_lane_map_physical{233.0}": "0x31462057",
+          "phy_chain_rx_lane_map_physical{241.0}": "0x60715342",
+          "phy_chain_rx_lane_map_physical{249.0}": "0x35216047",
+          "phy_chain_rx_lane_map_physical{25.0}": "0x02471356",
+          "phy_chain_rx_lane_map_physical{33.0}": "0x27160534",
+          "phy_chain_rx_lane_map_physical{41.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{49.0}": "0x26150437",
+          "phy_chain_rx_lane_map_physical{57.0}": "0x02461357",
+          "phy_chain_rx_lane_map_physical{65.0}": "0x27140536",
+          "phy_chain_rx_lane_map_physical{73.0}": "0x02471356",
+          "phy_chain_rx_lane_map_physical{81.0}": "0x27140536",
+          "phy_chain_rx_lane_map_physical{89.0}": "0x02471356",
+          "phy_chain_rx_lane_map_physical{9.0}": "0x60715342",
+          "phy_chain_rx_lane_map_physical{97.0}": "0x02461357",
+          "phy_chain_tx_lane_map_physical{1.0}": "0x30451627",
+          "phy_chain_tx_lane_map_physical{105.0}": "0x06142735",
+          "phy_chain_tx_lane_map_physical{113.0}": "0x56237014",
+          "phy_chain_tx_lane_map_physical{121.0}": "0x01426375",
+          "phy_chain_tx_lane_map_physical{129.0}": "0x12673450",
+          "phy_chain_tx_lane_map_physical{137.0}": "0x45062731",
+          "phy_chain_tx_lane_map_physical{145.0}": "0x56237014",
+          "phy_chain_tx_lane_map_physical{153.0}": "0x56012437",
+          "phy_chain_tx_lane_map_physical{161.0}": "0x76215430",
+          "phy_chain_tx_lane_map_physical{169.0}": "0x57362410",
+          "phy_chain_tx_lane_map_physical{17.0}": "0x51407362",
+          "phy_chain_tx_lane_map_physical{177.0}": "0x76215430",
+          "phy_chain_tx_lane_map_physical{185.0}": "0x57362410",
+          "phy_chain_tx_lane_map_physical{193.0}": "0x76215430",
+          "phy_chain_tx_lane_map_physical{201.0}": "0x57362410",
+          "phy_chain_tx_lane_map_physical{209.0}": "0x76215430",
+          "phy_chain_tx_lane_map_physical{217.0}": "0x57261430",
+          "phy_chain_tx_lane_map_physical{225.0}": "0x65217430",
+          "phy_chain_tx_lane_map_physical{233.0}": "0x45063721",
+          "phy_chain_tx_lane_map_physical{241.0}": "0x75216430",
+          "phy_chain_tx_lane_map_physical{249.0}": "0x64275130",
+          "phy_chain_tx_lane_map_physical{25.0}": "0x27160435",
+          "phy_chain_tx_lane_map_physical{33.0}": "0x65347021",
+          "phy_chain_tx_lane_map_physical{41.0}": "0x16072435",
+          "phy_chain_tx_lane_map_physical{49.0}": "0x75126430",
+          "phy_chain_tx_lane_map_physical{57.0}": "0x26071435",
+          "phy_chain_tx_lane_map_physical{65.0}": "0x75026431",
+          "phy_chain_tx_lane_map_physical{73.0}": "0x26071435",
+          "phy_chain_tx_lane_map_physical{81.0}": "0x75026431",
+          "phy_chain_tx_lane_map_physical{89.0}": "0x26071435",
+          "phy_chain_tx_lane_map_physical{9.0}": "0x74532610",
+          "phy_chain_tx_lane_map_physical{97.0}": "0x03746521",
+          "phy_enable": "0",
+          "phy_null": "1",
+          "port_fec": "2",
+          "port_flex_enable": "1",
+          "port_init_cl72": "0",
+          "portmap_1": "1:100:4",
+          "portmap_100": "161:100:4",
+          "portmap_104": "169:100:4",
+          "portmap_108": "177:100:4",
+          "portmap_112": "185:100:4",
+          "portmap_120": "193:100:4",
+          "portmap_124": "201:100:4",
+          "portmap_128": "209:100:4",
+          "portmap_13": "25:100:4",
+          "portmap_132": "217:100:4",
+          "portmap_140": "225:100:4",
+          "portmap_144": "233:100:4",
+          "portmap_148": "241:100:4",
+          "portmap_152": "249:100:4",
+          "portmap_20": "33:100:4",
+          "portmap_24": "41:100:4",
+          "portmap_28": "49:100:4",
+          "portmap_32": "57:100:4",
+          "portmap_40": "65:100:4",
+          "portmap_44": "73:100:4",
+          "portmap_48": "81:100:4",
+          "portmap_5": "9:100:4",
+          "portmap_52": "89:100:4",
+          "portmap_60": "97:100:4",
+          "portmap_64": "105:100:4",
+          "portmap_68": "113:100:4",
+          "portmap_72": "121:100:4",
+          "portmap_80": "129:100:4",
+          "portmap_84": "137:100:4",
+          "portmap_88": "145:100:4",
+          "portmap_9": "17:100:4",
+          "portmap_92": "153:100:4",
+          "qos_map_multi_get_mode": "1",
+          "sai_200g_4_rsfec_mode_def_544_2x": "1",
+          "sai_acl_qset_optimization": "0x1",
+          "sai_async_fdb_nbr_enable": "0x1",
+          "sai_common_hash_crc": "0x1",
+          "sai_dis_ctr_incr_on_port_ln_dn": "0",
+          "sai_disable_srcmacqedstmac_ctrl": "0x1",
+          "sai_ecmp_group_members_increment": "1",
+          "sai_ifp_enable_on_cpu_tx": "0x1",
+          "sai_l2_cpu_fdb_event_suppress": "1",
+          "sai_macro_flow_based_hash": "1",
+          "sai_mmu_qgroups_default": "1",
+          "sai_optimized_mmu": "0x1",
+          "sai_pfc_defaults_disable": "0x1",
+          "sai_pkt_rx_cfg_ppc": "16",
+          "sai_pkt_rx_custom_cfg": "1",
+          "sai_pkt_rx_pkt_size": "16512",
+          "sai_port_phy_time_sync_en": "1",
+          "sai_stats_support_mask": "0x2",
+          "sai_tunnel_global_sip_mask_enable": "1",
+          "sai_uncached_port_stats": "0x1",
+          "sai_vfp_smac_drop_filter_disable": "1",
+          "serdes_core_rx_polarity_flip_physical{105}": "0xD2",
+          "serdes_core_rx_polarity_flip_physical{113}": "0x66",
+          "serdes_core_rx_polarity_flip_physical{121}": "0xF0",
+          "serdes_core_rx_polarity_flip_physical{129}": "0x99",
+          "serdes_core_rx_polarity_flip_physical{137}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{145}": "0xCC",
+          "serdes_core_rx_polarity_flip_physical{153}": "0x99",
+          "serdes_core_rx_polarity_flip_physical{161}": "0xD2",
+          "serdes_core_rx_polarity_flip_physical{169}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{177}": "0x8D",
+          "serdes_core_rx_polarity_flip_physical{17}": "0x93",
+          "serdes_core_rx_polarity_flip_physical{185}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{193}": "0x8D",
+          "serdes_core_rx_polarity_flip_physical{1}": "0x96",
+          "serdes_core_rx_polarity_flip_physical{201}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{209}": "0xCC",
+          "serdes_core_rx_polarity_flip_physical{217}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{225}": "0x66",
+          "serdes_core_rx_polarity_flip_physical{233}": "0x0F",
+          "serdes_core_rx_polarity_flip_physical{241}": "0x69",
+          "serdes_core_rx_polarity_flip_physical{249}": "0x9A",
+          "serdes_core_rx_polarity_flip_physical{25}": "0xD3",
+          "serdes_core_rx_polarity_flip_physical{33}": "0xCC",
+          "serdes_core_rx_polarity_flip_physical{41}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{49}": "0x99",
+          "serdes_core_rx_polarity_flip_physical{57}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{65}": "0xCC",
+          "serdes_core_rx_polarity_flip_physical{73}": "0xD2",
+          "serdes_core_rx_polarity_flip_physical{81}": "0xCC",
+          "serdes_core_rx_polarity_flip_physical{89}": "0xD2",
+          "serdes_core_rx_polarity_flip_physical{97}": "0xC3",
+          "serdes_core_rx_polarity_flip_physical{9}": "0x69",
+          "serdes_core_tx_polarity_flip_physical{105}": "0xD8",
+          "serdes_core_tx_polarity_flip_physical{113}": "0xAC",
+          "serdes_core_tx_polarity_flip_physical{121}": "0x6C",
+          "serdes_core_tx_polarity_flip_physical{129}": "0xAC",
+          "serdes_core_tx_polarity_flip_physical{137}": "0x6C",
+          "serdes_core_tx_polarity_flip_physical{145}": "0xAC",
+          "serdes_core_tx_polarity_flip_physical{153}": "0xE9",
+          "serdes_core_tx_polarity_flip_physical{161}": "0xA9",
+          "serdes_core_tx_polarity_flip_physical{169}": "0xC9",
+          "serdes_core_tx_polarity_flip_physical{177}": "0xA9",
+          "serdes_core_tx_polarity_flip_physical{17}": "0x99",
+          "serdes_core_tx_polarity_flip_physical{185}": "0xC9",
+          "serdes_core_tx_polarity_flip_physical{193}": "0xA9",
+          "serdes_core_tx_polarity_flip_physical{1}": "0xAC",
+          "serdes_core_tx_polarity_flip_physical{201}": "0xC9",
+          "serdes_core_tx_polarity_flip_physical{209}": "0xA9",
+          "serdes_core_tx_polarity_flip_physical{217}": "0xE1",
+          "serdes_core_tx_polarity_flip_physical{225}": "0x69",
+          "serdes_core_tx_polarity_flip_physical{233}": "0x66",
+          "serdes_core_tx_polarity_flip_physical{241}": "0xE1",
+          "serdes_core_tx_polarity_flip_physical{249}": "0xC6",
+          "serdes_core_tx_polarity_flip_physical{25}": "0xC9",
+          "serdes_core_tx_polarity_flip_physical{33}": "0x4E",
+          "serdes_core_tx_polarity_flip_physical{41}": "0x39",
+          "serdes_core_tx_polarity_flip_physical{49}": "0xD1",
+          "serdes_core_tx_polarity_flip_physical{57}": "0xB1",
+          "serdes_core_tx_polarity_flip_physical{65}": "0xF0",
+          "serdes_core_tx_polarity_flip_physical{73}": "0xB1",
+          "serdes_core_tx_polarity_flip_physical{81}": "0xF0",
+          "serdes_core_tx_polarity_flip_physical{89}": "0xB1",
+          "serdes_core_tx_polarity_flip_physical{97}": "0x6E",
+          "serdes_core_tx_polarity_flip_physical{9}": "0xA9",
+          "stable_size": "0x6000000"
+        }
+      }
+    }
+  }
+}

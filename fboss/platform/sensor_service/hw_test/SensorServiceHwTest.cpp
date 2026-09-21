@@ -1,0 +1,294 @@
+/*
+ *  Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/platform/sensor_service/hw_test/SensorServiceHwTest.h"
+
+#include <folly/init/Init.h>
+#include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
+
+#include "fboss/lib/ThriftServiceUtils.h"
+#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/sensor_service/Utils.h"
+#include "fboss/platform/sensor_service/utilities/PowerConfigUtils.h"
+
+using namespace apache::thrift;
+
+namespace facebook::fboss::platform::sensor_service {
+
+SensorServiceHwTest::~SensorServiceHwTest() = default;
+
+void SensorServiceHwTest::SetUp() {
+  sensorConfig_ = Utils().getConfig();
+  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>(sensorConfig_);
+  sensorServiceHandler_ =
+      std::make_shared<SensorServiceThriftHandler>(sensorServiceImpl_);
+}
+
+SensorReadResponse SensorServiceHwTest::getSensors(
+    const std::vector<std::string>& sensors) {
+  // Caller invokes fetchSensorData() so the expected sensor set
+  // (built via allSensorNamesFromConfig / someSensorNamesFromConfig)
+  // and the response returned here are derived from the same fetch
+  // cycle. Otherwise a PSU/PEM presence change between two fetches
+  // could make the expected set and the actual response disagree.
+  SensorReadResponse response;
+  sensorServiceHandler_->getSensorValuesByNames(
+      response, std::make_unique<std::vector<std::string>>(sensors));
+  return response;
+}
+
+bool sensorReadOk(const std::string& sensorName) {
+  if (fb303::fbData->getCounter(
+          fmt::format(SensorServiceImpl::kReadFailure, sensorName)) == 0) {
+    return true;
+  }
+  return false;
+}
+
+std::vector<std::string> SensorServiceHwTest::allSensorNamesFromConfig() {
+  // Caller must invoke fetchSensorData() first. Read directly from the
+  // post-collection polledData_ — that's exactly the set the same-cycle
+  // Thrift response will contain (sensors for absent PSUs/PEMs are
+  // already excluded by fetchSensorData's skip-at-collection).
+  std::vector<std::string> sensors;
+  for (const auto& [name, _] : sensorServiceImpl_->getAllSensorData()) {
+    sensors.push_back(name);
+  }
+  return sensors;
+}
+
+std::vector<std::string> SensorServiceHwTest::someSensorNamesFromConfig() {
+  // Caller must invoke fetchSensorData() first. Sample one present
+  // sensor per PmUnitSensors slot so we exercise each slot at least once.
+  // Skip slots whose sensors weren't collected (absent PSU/PEM).
+  auto polledData = sensorServiceImpl_->getAllSensorData();
+  std::vector<std::string> sensors;
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    std::vector<PmSensor> presentSensors;
+    for (const auto& sensor :
+         sensorServiceImpl_->resolveSensors(pmUnitSensors)) {
+      if (polledData.contains(*sensor.name())) {
+        presentSensors.push_back(sensor);
+      }
+    }
+    if (presentSensors.empty()) {
+      continue;
+    }
+    sensors.push_back(
+        *presentSensors[folly::Random::rand32(presentSensors.size())].name());
+  }
+  return sensors;
+}
+
+TEST_F(SensorServiceHwTest, GetAllSensors) {
+  // Single fetch drives both the expected sensor set and the response so
+  // a PSU/PEM presence change between fetches cannot make them diverge.
+  sensorServiceImpl_->fetchSensorData();
+  std::vector<std::string> allSensorNames = allSensorNamesFromConfig();
+  auto res = getSensors(std::vector<std::string>{});
+  EXPECT_EQ(allSensorNames.size(), res.sensorData()->size());
+  for (const auto& sensorName : allSensorNames) {
+    auto it = std::find_if(
+        res.sensorData()->begin(),
+        res.sensorData()->end(),
+        [&](const auto& sensorData) {
+          return *sensorData.name() == sensorName;
+        });
+    EXPECT_NE(it, std::end(*res.sensorData()));
+    // only non-failed sensors will have value
+    if (sensorReadOk(sensorName)) {
+      EXPECT_TRUE(it->value().has_value());
+    }
+  }
+}
+
+TEST_F(SensorServiceHwTest, GetBogusSensor) {
+  sensorServiceImpl_->fetchSensorData();
+  EXPECT_EQ(getSensors({"bogusSensor_foo"}).sensorData()->size(), 0);
+}
+
+TEST_F(SensorServiceHwTest, GetSomeSensors) {
+  // Fetch #1: drives someSensorNames AND response1 from the same cycle.
+  sensorServiceImpl_->fetchSensorData();
+  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
+  auto response1 = getSensors(someSensorNames);
+  EXPECT_EQ(response1.sensorData()->size(), someSensorNames.size());
+  for (const auto& sensorData : *response1.sensorData()) {
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
+  }
+
+  // Burn a second
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Fetch #2: intentional, to verify timestamps progress. Reuse the
+  // someSensorNames built from fetch #1 since presence is assumed
+  // stable for the duration of the test.
+  sensorServiceImpl_->fetchSensorData();
+  auto response2 = getSensors(someSensorNames);
+  EXPECT_EQ(response2.sensorData()->size(), someSensorNames.size());
+  for (const auto& sensorData : *response2.sensorData()) {
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
+  }
+
+  // Response2 sensor collection time stamp should be later
+  EXPECT_GT(*response2.timeStamp(), *response1.timeStamp());
+
+  // Check individual sensor reads happen after the previous reads.
+  int total = 0;
+  int valid = 0;
+  for (const auto& sensorData : *response2.sensorData()) {
+    if (!sensorData.value().has_value()) {
+      continue;
+    }
+    auto it = std::find_if(
+        response1.sensorData()->begin(),
+        response1.sensorData()->end(),
+        [sensorName = *sensorData.name()](auto sensorData) {
+          return *sensorData.name() == sensorName;
+        });
+    if (*sensorData.timeStamp() > *it->timeStamp()) {
+      valid++;
+    }
+    total++;
+  }
+  EXPECT_GT(static_cast<float>(valid) / total, 0.9);
+}
+
+TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
+  // Single fetch drives both someSensorNames and the thrift response below.
+  sensorServiceImpl_->fetchSensorData();
+  std::vector<std::string> someSensorNames = someSensorNamesFromConfig();
+  apache::thrift::ScopedServerInterfaceThread server(
+      sensorServiceHandler_,
+      facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
+  auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();
+  SensorReadResponse response;
+  client->sync_getSensorValuesByNames(response, someSensorNames);
+  EXPECT_EQ(response.sensorData()->size(), someSensorNames.size());
+  for (const auto& sensorData : *response.sensorData()) {
+    if (sensorReadOk(*sensorData.name())) {
+      EXPECT_TRUE(sensorData.value().has_value());
+    }
+  }
+}
+
+TEST_F(SensorServiceHwTest, SensorFetchODSCheck) {
+  sensorServiceImpl_->fetchSensorData();
+  auto sensorMap = sensorServiceImpl_->getAllSensorData();
+  EXPECT_GT(fb303::fbData->getCounter(SensorServiceImpl::kReadTotal), 0);
+  for (const auto& [sensorName, sensorData] : sensorMap) {
+    if (!sensorData.value().has_value()) {
+      continue;
+    }
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        (int64_t)*sensorData.value());
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
+  }
+}
+
+// This will test all sensors. If any sensors failed or not responding,
+// this test will fail.
+TEST_F(SensorServiceHwTest, CheckAllSensors) {
+  sensorServiceImpl_->fetchSensorData();
+  EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kHasReadFailure), 0);
+  EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kTotalReadFailure), 0);
+  auto sensorMap = sensorServiceImpl_->getAllSensorData();
+  EXPECT_GT(fb303::fbData->getCounter(SensorServiceImpl::kReadTotal), 0);
+  for (const auto& [sensorName, sensorData] : sensorMap) {
+    auto hasValue = sensorData.value().has_value();
+    EXPECT_TRUE(hasValue) << "Sensor " << sensorName << " has no value";
+    if (!hasValue) {
+      // To avoid exception Below, we will not compare the value against
+      // fb303 counter.
+      continue;
+    }
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        (int64_t)*sensorData.value());
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
+  }
+}
+
+TEST_F(SensorServiceHwTest, MinPsuCountMatchesPowerType) {
+  // HSC/PWRBRK-only platforms are filtered out by ConfigValidator
+  // (D98824972 rejects non-zero min counts when no PSU/PEM slots
+  // exist), so this test focuses on the runtime contract that can't
+  // be checked at config time: the min count for the detected power
+  // type must be > 0 on PSU/PEM platforms.
+  if (!hasPsuOrPem(*sensorConfig_.powerConfig())) {
+    return;
+  }
+
+  sensorServiceImpl_->fetchSensorData();
+  const auto& powerConfig = *sensorConfig_.powerConfig();
+
+  auto inputPowerType = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue,
+          SensorServiceImpl::kInputPowerType));
+  ASSERT_NE(inputPowerType, SensorServiceImpl::kInputPowerTypeUnknown)
+      << "Power type was not determined; check INPUT_POWER_TYPE counter";
+
+  if (inputPowerType == SensorServiceImpl::kInputPowerTypeAC) {
+    EXPECT_GT(*powerConfig.minAcPsuCount(), 0)
+        << "AC power detected but minAcPsuCount is 0";
+  } else if (inputPowerType == SensorServiceImpl::kInputPowerTypeDC) {
+    EXPECT_GT(*powerConfig.minDcPsuCount(), 0)
+        << "DC power detected but minDcPsuCount is 0";
+  } else {
+    FAIL() << "Unexpected inputPowerType: " << inputPowerType;
+  }
+}
+
+TEST_F(SensorServiceHwTest, PowerAndInputVoltageAboveZero) {
+  sensorServiceImpl_->fetchSensorData();
+
+  const auto& powerConfig = *sensorConfig_.powerConfig();
+
+  if (!hasPsuOrPem(powerConfig)) {
+    GTEST_SKIP() << "No PSU/PEM slots on this platform";
+  }
+
+  auto totalPower = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue, SensorServiceImpl::kTotalPower));
+  EXPECT_GT(totalPower, 0)
+      << "Calculated TOTAL_POWER must be above zero for a platform with "
+         "present PSUs/PEMs";
+
+  auto maxInputVoltage = fb303::fbData->getCounter(
+      fmt::format(
+          SensorServiceImpl::kDerivedValue,
+          SensorServiceImpl::kMaxInputVoltage));
+  EXPECT_GT(maxInputVoltage, 0)
+      << "MAX_INPUT_VOLTAGE must be above zero for a platform with "
+         "present PSUs/PEMs";
+}
+
+} // namespace facebook::fboss::platform::sensor_service
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(&argc, &argv);
+  return RUN_ALL_TESTS();
+}

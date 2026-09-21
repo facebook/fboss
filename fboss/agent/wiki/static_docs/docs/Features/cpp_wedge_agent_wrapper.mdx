@@ -1,0 +1,107 @@
+## Summary
+
+This page describes a feature cpp_wedge_agent_wrapper which is intended to faciliate phasing out of python based wedge_agent_wrapper.par
+
+For more context on this exercise please refer [here](https://fb.workplace.com/groups/668135506568401/posts/25655300430758563).
+
+
+## Python Wedge Agent Wrapper Overview
+
+Wedge agent is managed by service unit wedge_agent.service. This service unit upon start up so far executed a python archive "wedge_agent_wrapper.par". This par does more than just launching wedge agent. It performs pre-execution environment setup as well as clean up after wedge agent termination.
+
+Here are some of the most commonly executed steps
+
+- Verifying coop directory exists
+- Setting up warm boot state directory for fboss agent
+- Setting up symbolic to link to startup_config based on drain state
+- Based on agent.conf, setting up symlinks to wedge_agent (or fboss_hw_agent) and installing kernel modules
+- Executing any pre-startup scripts
+- Based on boot type and device type, schedule a drain
+- Launching wedge_agent and waiting for its termination
+
+When service unit is stopped, this wrapper receives SIGTERM and initiates shutdown
+- send SIGTERM to wedge_agent
+- if wedge_agent exits with core, copy and clean the core for core_analyzer execution
+- use specific files to tune the time within which agent should exit gracefully before sending SIGABRT
+
+These functionallities are migrated now to AgentExecutor
+
+
+## How this feature works
+
+wedge_agent.service launches an agent executor currently. 
+
+If the cpp_wedge_agent_wrapper feature is not enabled, agent executor simply "exec" wedge_agent_wrapper.par. 
+
+However if cpp_wedge_agent_wrapper feature is enabled, then agent_executor will perform all the tasks expected to be done by python wrapper. Further, it "fork"s (and then in subprocess "exec"s appropriate binary).
+
+Let's look at processes on a box which doesn't have this feature enabled
+
+```
+wedge_agent_wra,221748 -tt /etc/packages/neteng-fboss-wedge_agent/1d48385fd01c2e255634ed7fad000497/wedge_agent_wrapper.par --config /etc/coop/agent/current
+  ├─wedge_agent,222215 --config /etc/coop/agent/current
+  └─wedge_agent_wra,221773 -ue /etc/packages/neteng-fboss-wedge_agent/current/wedge_agent_wrapper.par --config /etc/coop/agent/current
+```
+
+Here 221748 is unpack wedge_agent_wrapper.par 
+
+```
+root      221748       1  0 Jan25 ?        00:29:52 /tmp/par_unpack.wedge_agent_wrapper.runtime.0.c690b760b8ed328efeff35fcd9e5c25c/runtime/bin/wedge_agent_wrapper#native-main#platform-runtime#python#py_version_3_10 -tt /etc/packages/neteng-fboss-wedge_agent/1d48385fd01c2e255634ed7fad000497/wedge_agent_wrapper.par --config /etc/coop/agent/current
+```
+
+This then runs 
+```
+root      221773  221748  0 Jan25 ?        00:00:00 /bin/bash -ue /etc/packages/neteng-fboss-wedge_agent/current/wedge_agent_wrapper.par --config /etc/coop/agent/current
+```
+
+and then creates a subprocess of an actual agent
+```
+root      222215  221748 46 Jan25 ?        5-03:37:21 /etc/packages/neteng-fboss-wedge_agent/current/wedge_agent --config /etc/coop/agent/current
+```
+
+
+Where as with cpp_wedge_agent_wrapper feature enabled, the structure will look like this
+
+```
+agent_executor_runner
+   | 
+    - wedge_agent
+```
+
+On a setup with cpp_wedge_agent_wrapper and multi_switch binaries 
+```
+agent_executor_,2431139 --sw_agent
+  └─fboss_sw_agent,2431164 --config /dev/shm/fboss/agent_startup_config
+```
+
+Here the agent executor forked a process for fboss_sw_agent.
+
+## How to find if this feature is enabled
+
+Run this command on a device to find if this feature is enabled
+
+```
+test -f /etc/fboss/features/cpp_wedge_agent_wrapper/current/on; if [[ $? -eq 0 ]]; then echo enabled; else echo disabled; fi
+```
+
+If this feature is turned on agent.conf should also have corresponding config change
+
+```
+if [[ $(grep -i cpp_wedge_agent_wrapper /etc/coop/agent.conf | grep true | wc -l) == 1 ]]; then echo enabled; else echo disabled; fi
+```
+
+Both commands should produce "enabled" output
+
+## How to find if this feature is enabled
+
+Run this command 
+
+```
+if [[ $(ps -eaf | grep agent_executor_runner | grep -v grep  | wc -l) -ne 0 ]]; then echo active; else echo inactive; fi
+```
+
+This should produce an output "active"
+
+
+
+

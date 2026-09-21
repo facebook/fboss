@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","minipack3bta","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","minipack3bta","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","minipack3bta","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","minipack3bta","PASSED"

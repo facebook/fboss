@@ -1,0 +1,187 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "delta_value",
+    srcs = [
+        "DeltaValue.cpp",
+    ],
+    headers = [
+        "DeltaValue.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow:patch-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "subscription_common",
+    headers = [
+        "SubscriptionCommon.h",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//folly/hash:hash",
+    ],
+)
+
+cpp_library(
+    name = "subscription_manager",
+    srcs = [
+        "CowPublishAndAddTraverseHelper.cpp",
+        "Subscription.cpp",
+        "SubscriptionManager.cpp",
+        "SubscriptionMetadataServer.cpp",
+        "SubscriptionPathStore.cpp",
+        "SubscriptionStore.cpp",
+    ],
+    headers = [
+        "CowDeletePathTraverseHelper.h",
+        "CowInitialSyncTraverseHelper.h",
+        "CowPublishAndAddTraverseHelper.h",
+        "CowSubscriptionManager.h",
+        "CowSubscriptionTraverseHelper.h",
+        "Subscription.h",
+        "SubscriptionManager.h",
+        "SubscriptionMetadataServer.h",
+        "SubscriptionPathStore.h",
+        "SubscriptionServeQueue.h",
+        "SubscriptionStore.h",
+        "WildcardPatchCandidateTracker.h",
+    ],
+    deps = [
+        "//folly/coro:blocking_wait",
+        "//folly/coro:sleep",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":delta_value",
+        ":subscription_common",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/common:utils",
+        "//fboss/fsdb/if:fsdb-cpp2-types",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/server:fsdb_oper_metadata_tracker",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:cpp_attributes",
+        "//folly:demangle",
+        "//folly:fbstring",
+        "//folly:function",
+        "//folly:string",
+        "//folly:traits",
+        "//folly/container:f14_hash",
+        "//folly/coro:async_generator",
+        "//folly/coro:async_pipe",
+        "//folly/coro:async_scope",
+        "//folly/io/async:async_base",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+    external_deps = [("boost", None, "boost_uuid")],
+    exported_external_deps = [
+        "boost",
+    ],
+)
+
+cpp_library(
+    name = "subscribable_storage",
+    srcs = [
+        "NaivePeriodicSubscribableStorageBase.cpp",
+    ],
+    headers = [
+        "NaivePeriodicSubscribableStorage.h",
+        "NaivePeriodicSubscribableStorageBase.h",
+        "SubscribableStorage.h",
+        "SubscriptionServeQueue.h",
+    ],
+    deps = [
+        "//common/base:proc",
+        "//fb303:thread_cached_service_data",
+        "//fboss/fsdb/common:utils",
+        "//folly/coro:blocking_wait",
+        "//folly/system:thread_name",
+    ],
+    exported_deps = [
+        ":delta_value",
+        ":path_helpers",
+        ":subscription_common",
+        ":subscription_manager",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/server:fsdb_oper_metadata_tracker",
+        "//fboss/lib:thread_heartbeat",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/storage:cow_storage",
+        "//fboss/thrift_cow/storage:storage",
+        "//folly:expected",
+        "//folly:synchronized",
+        "//folly/coro:async_generator",
+        "//folly/coro:async_scope",
+        "//folly/coro:sleep",
+        "//folly/io/async:async_base",
+        "//folly/io/async:scoped_event_base_thread",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "path_helpers",
+    srcs = [
+        "PathConverter.cpp",
+        "PathValidator.cpp",
+    ],
+    headers = [
+        "PathConverter.h",
+        "PathValidator.h",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/fsdb/common:utils",
+        "//folly/json:dynamic",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_config-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_visitors:visitors",
+    ],
+)
+
+cpp_library(
+    name = "extended_path_builder",
+    srcs = [
+        "ExtendedPathBuilder.cpp",
+    ],
+    deps = ["//folly:conv"],
+    exported_deps = [
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//thrift/lib/cpp2/type:id",
+    ],
+)
+
+cpp_binary(
+    name = "test_client",
+    srcs = ["test_client.cpp"],
+    deps = [
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if:fsdb_model",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/init:init",
+        "//servicerouter/client/cpp2:cpp2",
+    ],
+)

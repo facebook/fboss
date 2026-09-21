@@ -1,0 +1,135 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "config_validator_test",
+    srcs = [
+        "ConfigValidatorTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    # Required for parameterized tests (TEST_P) - static listing doesn't support them
+    # See: https://fburl.com/parameterized-test-not-supported
+    supports_static_listing = False,
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_helpers_test",
+    srcs = [
+        "FwUtilHelpersTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/fw_util:core",
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_operations_test",
+    srcs = [
+        "FwUtilOperationsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_version_handler_test",
+    srcs = [
+        "FwUtilVersionHandlerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_verify_test",
+    srcs = [
+        "FwUtilVerifyTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_upgrade_test",
+    srcs = [
+        "FwUtilUpgradeTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_preupgrade_test",
+    srcs = [
+        "FwUtilPreUpgradeTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_postupgrade_test",
+    srcs = [
+        "FwUtilPostUpgradeTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_read_test",
+    srcs = [
+        "FwUtilReadTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_flashrom_test",
+    srcs = [
+        "FwUtilFlashromTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)
+
+cpp_unittest(
+    name = "fw_util_impl_test",
+    srcs = [
+        "FwUtilImplTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/fw_util:core",
+    ],
+)

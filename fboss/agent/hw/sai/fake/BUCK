@@ -1,0 +1,70 @@
+load("@fbcode_macros//build_defs:auto_headers.bzl", "AutoHeaders")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    # @autodeps-skip autodeps2 resolves the SAI api includes to the config-pinned
+    # sai_api-brcm-10.2.0.0_odp, which compiles the fake against the brcm SDK and
+    # breaks it. The fake is config-agnostic; its SAI headers come via
+    # sai_fake_extensions / sai_types / sai_version.
+    name = "fake_sai",
+    srcs = [
+        "FakeSai.cpp",
+        "FakeSaiAcl.cpp",
+        "FakeSaiArs.cpp",
+        "FakeSaiArsProfile.cpp",
+        "FakeSaiBridge.cpp",
+        "FakeSaiBuffer.cpp",
+        "FakeSaiCounter.cpp",
+        "FakeSaiDebugCounter.cpp",
+        "FakeSaiFdb.cpp",
+        "FakeSaiHash.cpp",
+        "FakeSaiHostif.cpp",
+        "FakeSaiInSegEntry.cpp",
+        "FakeSaiInSegEntryManager.cpp",
+        "FakeSaiLag.cpp",
+        "FakeSaiMacsec.cpp",
+        "FakeSaiMirror.cpp",
+        "FakeSaiMySidEntry.cpp",
+        "FakeSaiNeighbor.cpp",
+        "FakeSaiNextHop.cpp",
+        "FakeSaiNextHopGroup.cpp",
+        "FakeSaiObject.cpp",
+        "FakeSaiPort.cpp",
+        "FakeSaiQosMap.cpp",
+        "FakeSaiQueue.cpp",
+        "FakeSaiRoute.cpp",
+        "FakeSaiRouterInterface.cpp",
+        "FakeSaiSamplePacket.cpp",
+        "FakeSaiScheduler.cpp",
+        "FakeSaiSrv6.cpp",
+        "FakeSaiSwitch.cpp",
+        "FakeSaiSystemPort.cpp",
+        "FakeSaiTam.cpp",
+        "FakeSaiTunnel.cpp",
+        "FakeSaiUdf.cpp",
+        "FakeSaiVirtualRouter.cpp",
+        "FakeSaiVlan.cpp",
+        "FakeSaiWred.cpp",
+    ],
+    auto_headers = AutoHeaders.SOURCES,
+    headers = [
+        "FakeManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw/sai/api:address_util",
+        "//fboss/agent/hw/sai/api:sai_fake_extensions",
+        "//fboss/agent/hw/sai/api:sai_types",
+        "//fboss/agent/hw/sai/api:sai_version",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+    external_deps = ["boost"],
+    exported_external_deps = [
+        "boost",
+        "sai",
+    ],
+)

@@ -1,0 +1,9 @@
+[repositories]
+gh_facebook_fboss = .
+shim_DISABLED = shim
+
+[repository_aliases]
+root = gh_facebook_fboss
+
+[buildfile]
+name=BUCK

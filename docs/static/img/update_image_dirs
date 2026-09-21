@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+import argparse
+import glob
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+OPT_ARG_CLEAN = "--clean"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        OPT_ARG_CLEAN,
+        action="store_true",
+    )
+    return parser.parse_args()
+
+
+def clean_empty_image_directories():
+    """
+    Remove empty image directories.
+    """
+    img_path = Path.cwd()
+    to_delete = []
+    for root, dirs, files in os.walk(img_path):
+        if not files and not dirs:
+            to_delete.append(root)
+    for dir in reversed(to_delete):
+        os.removedirs(dir)
+        print(f"Removed empty directory: {dir}")
+
+
+def organize_images(docs_path):
+    """
+    Walk through the docs directory structure to create image directories and move images.
+
+    For each image found, find the .md file using it, then for /docs/category/file.md, create an empty
+    directory at img/category/file/. Move the images there, then update the file to reference it.
+    """
+    docs_path = Path(docs_path).resolve()
+    img_path = Path.cwd()
+
+    print(f"Walking through: {docs_path}")
+    print(f"Creating directories in: {img_path}")
+
+    images_found = 0
+    directories_created = 0
+
+    # Walk through the docs directory
+    for root, dirs, files in os.walk(docs_path):
+        image_extensions = {"png", "svg", "jpg", "jpeg"}
+        images = [f for f in files if f.lower().split(".")[-1] in image_extensions]
+        images_found += len(images)
+
+        for image in images:
+            # Find the md file using the image
+            md_files = glob.glob(f"{root}/*.md")
+            grep_cmd = ["grep", "-H", image]
+            grep_cmd.extend(md_files)
+            output = subprocess.check_output(grep_cmd).decode("utf-8").splitlines()
+
+            # Get relative path from docs_path
+            rel_path = os.path.relpath(root, docs_path)
+
+            for data in output:
+                file_path = data.split(":")[0]
+                filename = file_path.split("/")[-1]
+
+                # Create category directory if not at root
+                if rel_path != '.':
+                    category_dir = img_path / rel_path
+                    os.makedirs(category_dir, exist_ok=True)
+
+                    # Create file-specific directory (without .md extension)
+                    file_dir = category_dir / filename[:-3]
+                else:
+                    # Handle files at the root of docs
+                    file_dir = img_path / filename[:-3]
+
+                if not file_dir.exists():
+                    os.makedirs(file_dir, exist_ok=True)
+                    directories_created += 1
+                    print(f"Created directory: {file_dir.relative_to(img_path)}")
+
+                dest_img_path = f"/img/{file_dir.relative_to(img_path)}/{image}"
+                shutil.copy(f"{root}/{image}", f"{img_path}/{file_dir.relative_to(img_path)}")
+                # substitute: (.*image_name.*) -> (dest_img_path)
+                cmd = f"sed -i -E 's|\\(.*{image}.*\\)|\\({dest_img_path}\\)|g' {file_path}"
+                output = subprocess.check_output(cmd, shell=True).decode("utf-8").splitlines()
+
+            os.remove(f"{root}/{image}")
+
+    print("\nSummary:")
+    print(f"  Images found: {images_found}")
+    print(f"  Directories created: {directories_created}")
+
+
+def main(args):
+    docs_path = "../../docs"
+    if not os.path.isdir(docs_path):
+        print(f"Error: Could not find docs directory at {docs_path}")
+        print("Make sure you're running this script from the static/img/ directory")
+        sys.exit(1)
+
+    if args.clean:
+        clean_empty_image_directories()
+        print("Done! Empty image directories have been removed successfully.")
+        sys.exit(0)
+
+    organize_images(docs_path)
+    print("Done! Image directories have been created successfully.")
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

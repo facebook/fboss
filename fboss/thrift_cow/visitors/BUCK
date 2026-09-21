@@ -1,0 +1,82 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "results",
+    go_thrift_namespaces = {
+        "results.thrift": "facebook.fboss.thrift_cow.results",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py3-deprecated",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss.thrift_cow",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "results.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "common",
+    srcs = ["Common.cpp"],
+    headers = [
+        "Common.h",
+    ],
+    exported_deps = [
+        "//folly:conv",
+    ],
+)
+
+cpp_library(
+    name = "visitors",
+    srcs = [
+        "PatchApplier.cpp",
+        "PatchBuilder.cpp",
+        "PatchHelpers.cpp",
+    ],
+    headers = [
+        "DeltaVisitor.h",
+        "ExtendedPathMatcher.h",
+        "ExtendedPathVisitor.h",
+        "PatchApplier.h",
+        "PatchBuilder.h",
+        "PatchHelpers.h",
+        "PathVisitor.h",
+        "RecurseVisitor.h",
+        "ThriftTCType.h",
+        "TraverseHelper.h",
+        "VisitorUtils.h",
+    ],
+    deps = ["//thrift/lib/cpp2/protocol:protocol"],
+    exported_deps = [
+        "fbsource//third-party/glog:glog",
+        "fbsource//third-party/re2:re2",
+        ":common",
+        ":results-cpp2-types",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/nodes:node_utils",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//folly:conv",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//folly:traits",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2:thrift-core",
+        "//thrift/lib/cpp2:type_class",
+        "//thrift/lib/cpp2/op:get",
+        "//thrift/lib/cpp2/type:field",
+    ],
+    exported_external_deps = [
+        "boost",
+    ],
+)

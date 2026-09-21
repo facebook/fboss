@@ -1,0 +1,144 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/types.h"
+
+#include <boost/container/flat_map.hpp>
+#include <optional>
+#include <vector>
+
+namespace facebook::fboss {
+
+class SwitchState;
+
+USE_THRIFT_COW(ControlPlane);
+
+/*
+ * ControlPlane stores state about path settings of traffic to userver CPU
+ * on the switch.
+ */
+class ControlPlane
+    : public ThriftStructNode<ControlPlane, state::ControlPlaneFields> {
+ public:
+  using BaseT = ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
+  using BaseT::modify;
+  using PortQueues =
+      typename BaseT::Fields::template TypeFor<switch_state_tags::queues>;
+  using PacketRxReasonToQueue = typename BaseT::Fields::template TypeFor<
+      switch_state_tags::rxReasonToQueue>;
+
+  using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
+
+  ControlPlane() = default;
+
+  const auto& getQueues() const {
+    return cref<switch_state_tags::queues>();
+  }
+  void resetQueues(QueueConfig& queues) {
+    std::vector<PortQueueFields> queuesThrift{};
+    for (const auto& queue : queues) {
+      queuesThrift.push_back(queue->toThrift());
+    }
+    set<switch_state_tags::queues>(std::move(queuesThrift));
+  }
+
+  const auto& getVoqs() const {
+    return cref<switch_state_tags::voqs>();
+  }
+  void resetVoqs(QueueConfig& voqs) {
+    std::vector<PortQueueFields> voqsThrift{};
+    for (const auto& voq : voqs) {
+      voqsThrift.push_back(voq->toThrift());
+    }
+    set<switch_state_tags::voqs>(std::move(voqsThrift));
+  }
+
+  const auto& getRxReasonToQueue() const {
+    return cref<switch_state_tags::rxReasonToQueue>();
+  }
+  void resetRxReasonToQueue(RxReasonToQueue& rxReasonToQueue) {
+    set<switch_state_tags::rxReasonToQueue>(std::move(rxReasonToQueue));
+  }
+
+  const auto& getQosPolicy() const {
+    return cref<switch_state_tags::defaultQosPolicy>();
+  }
+  void resetQosPolicy(std::optional<std::string>& qosPolicy) {
+    if (qosPolicy) {
+      set<switch_state_tags::defaultQosPolicy>(*qosPolicy);
+    } else {
+      ref<switch_state_tags::defaultQosPolicy>().reset();
+    }
+  }
+
+  // THRIFT_COPY
+  const QueueConfig& getQueuesConfig() const {
+    const auto& queues = getQueues();
+    return queues->impl();
+  }
+
+  const QueueConfig& getVoqsConfig() const {
+    const auto& voqs = getVoqs();
+    return voqs->impl();
+  }
+
+  static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(
+      cfg::PacketRxReason reason,
+      uint16_t queueId);
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
+using MultiControlPlaneTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using MultiControlPlaneThriftType =
+    std::map<std::string, state::ControlPlaneFields>;
+
+class MultiControlPlane;
+
+using MultiControlPlaneTraits = ThriftMapNodeTraits<
+    MultiControlPlane,
+    MultiControlPlaneTypeClass,
+    MultiControlPlaneThriftType,
+    ControlPlane>;
+
+class HwSwitchMatcher;
+
+class MultiControlPlane
+    : public ThriftMapNode<MultiControlPlane, MultiControlPlaneTraits> {
+ public:
+  using Traits = MultiControlPlaneTraits;
+  using BaseT = ThriftMapNode<MultiControlPlane, MultiControlPlaneTraits>;
+  using BaseT::modify;
+
+  MultiControlPlane() = default;
+  virtual ~MultiControlPlane() = default;
+
+  std::shared_ptr<ControlPlane> getControlPlane() const;
+
+  MultiControlPlane* modify(std::shared_ptr<SwitchState>* state);
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+} // namespace facebook::fboss

@@ -1,0 +1,192 @@
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
+
+oncall("fboss_optics_phy")
+
+python_library(
+    name = "helpers",
+    srcs = ["helpers.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
+    ],
+)
+
+python_library(
+    name = "platform_mapping_v2",
+    srcs = ["platform_mapping_v2.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":helpers",
+        ":integrated_transceiver_mapping",
+        ":platform_mapping_config-python-types",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":read_files_utils",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
+    ],
+)
+
+thrift_library(
+    name = "platform_mapping_config",
+    go_thrift_namespaces = {
+        "platform_mapping_config.thrift": "neteng.fboss.platform_mapping_config",
+    },
+    languages = [
+        "py3-deprecated",
+        "python",
+        "cpp2",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "platform_mapping_config.thrift": [],
+    },
+    deps = [
+        "//fboss/agent:switch_config",
+        "//fboss/lib/phy:phy",
+        "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+python_library(
+    name = "static_mapping",
+    srcs = ["static_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
+    ],
+)
+
+python_library(
+    name = "read_files_utils",
+    srcs = ["read_files_utils.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":asic_vendor_config",
+        ":integrated_transceiver_mapping",
+        ":platform_mapping_config-python-types",
+        ":port_profile_mapping",
+        ":profile_settings",
+        ":si_settings",
+        ":static_mapping",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/if:fboss_common-python-types",
+        "//fboss/lib/phy:phy-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
+    ],
+)
+
+python_library(
+    name = "si_settings",
+    srcs = ["si_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
+    ],
+)
+
+python_library(
+    name = "profile_settings",
+    srcs = ["profile_settings.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":helpers",
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
+    ],
+)
+
+python_library(
+    name = "port_profile_mapping",
+    srcs = ["port_profile_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+    ],
+)
+
+python_library(
+    name = "asic_vendor_config",
+    srcs = ["asic_vendor_config.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+    ],
+)
+
+python_binary(
+    name = "gen",
+    srcs = ["gen.py"],
+    labels = ["autodeps2_generated"],
+    main_module = "fboss.lib.platform_mapping_v2.gen",
+    par_style = "xar",
+    deps = [
+        ":platform_mapping_v2",
+        ":read_files_utils",
+        "//fboss/agent:platform_config-python-types",
+        "//thrift/lib/python:types",
+    ],
+)
+
+# @ci-signal-ack
+ci_sandcastle(
+    name = "platform_mapping_v2_verify_and_configo_sync",
+    alias = "platform-mapping-v2-verify-and-configo-sync-citadel",
+    args = {
+        "skip_if_error_exists_on_base_revision": True,
+        "steps": [
+            {
+                "name": "Verify Colocated Generated Platform Mappings",
+                "shell": "buck2 test --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/test:verify_generated_files",
+            },
+            {
+                "name": "Run Configo Sync Command",
+                "shell": "buck2 run --flagfile fbcode//mode/opt fbcode//fboss/lib/platform_mapping_v2/facebook:gen -- --make-configerator-changes --add-fbcode-dependency",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    ci_srcs = [
+        "fbcode/fboss/configs/platforms/**/platform_mapping/**",
+        "fbcode/fboss/lib/platform_mapping_v2/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_optics_phy",
+    schedules = [
+        ci.diff,
+    ],
+)
+
+python_library(
+    name = "integrated_transceiver_mapping",
+    srcs = ["integrated_transceiver_mapping.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":platform_mapping_config-python-types",
+    ],
+)

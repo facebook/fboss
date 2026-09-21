@@ -1,0 +1,100 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss:THIRD-PARTY-VERSIONS.bzl", "SAI_BRCM_DNX_IMPLS", "to_versions")
+load("//fboss/agent/hw/sai/impl:impl.bzl", "get_link_group_map", "to_impl_bin_name", "to_impl_lib_name")
+load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "agent_multinode_test_src",
+    srcs = [
+        "AgentMultiNodeDsfTest.cpp",
+        "AgentMultiNodeDsfUtils.cpp",
+        "AgentMultiNodeFabricLinkMonitoringTest.cpp",
+        "AgentMultiNodeProcessRestartTest.cpp",
+        "AgentMultiNodeTest.cpp",
+        "AgentMultiNodeUtils.cpp",
+        "AgentMultiNodeVoqSwitchHyperPortTests.cpp",
+        "AgentMultiNodeVoqSwitchNeighborTests.cpp",
+        "AgentMultiNodeVoqSwitchNoTrafficDropsTests.cpp",
+        "AgentMultiNodeVoqSwitchTests.cpp",
+        "AgentMultiNodeVoqSwitchTrafficTests.cpp",
+        "DsfTopologyInfo.cpp",
+        "TopologyInfo.cpp",
+    ],
+    headers = [
+        "AgentMultiNodeDsfUtils.h",
+        "AgentMultiNodeTest.h",
+        "AgentMultiNodeUtils.h",
+        "AgentMultiNodeVoqSwitchNeighborTests.h",
+        "AgentMultiNodeVoqSwitchTrafficTests.h",
+        "DsfTopologyInfo.h",
+    ],
+    link_whole = True,
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "//common/network:util",
+        "//fboss/agent:asic_utils",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switchinfo_utils",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:utils",
+        "//fboss/agent/test/thrift_client_utils:thrift_client_utils",
+        "//fboss/agent/test/utils:config_utils",
+        "//fboss/agent/test/utils:load_balancer_test_utils",
+        "//fboss/lib:common_utils",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent/if:common-cpp2-types",
+        "//fboss/agent/if:hw_ctrl-cpp2-services",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:agent_hw_test",
+        "//folly:network_address",
+    ],
+)
+
+# (prefix, agent_ensemble) pairs for multinode test binaries
+# - sai_agent_multinode_test: multi-switch mode (uses multi_switch_agent_ensemble)
+# - sai_agent_multinode_test_mono: mono mode (uses mono_agent_ensemble) for topologies like DSF_HYPER_PORT
+#
+# NOTE: Multi-node tests are designed to run in multi-switch mode. The mono variant
+# (sai_agent_multinode_test_mono) is a TEMPORARY workaround for topologies that are
+# still being stabilized in mono mode (e.g., DSF_HYPER_PORT).
+# TODO: Remove the mono variant once all topologies are stable in multi-switch mode.
+_sai_agent_multinode_test_configs = [
+    ("sai_agent_multinode_test", "multi_switch_agent_ensemble"),
+    ("sai_agent_multinode_test_mono", "mono_agent_ensemble"),
+]
+
+[
+    cpp_binary(
+        name = to_impl_bin_name(sai_impl, prefix),
+        srcs = [
+            "SaiAgentMultiNodeMain.cpp",
+        ],
+        link_group_map = get_link_group_map(
+            to_impl_bin_name(sai_impl, prefix),
+            sai_impl,
+        ),
+        linker_flags = [],
+        versions = to_versions(sai_impl),
+        deps = [
+            "fbsource//third-party/googletest:gtest",
+            ":agent_multinode_test_src",
+            "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
+            "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
+            "//fboss/agent/test:{}".format(agent_ensemble),
+            "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
+            "//fboss/agent:setup_thrift_test",
+            "//fboss/agent/test:agent_hw_test",
+        ],
+    )
+    for (prefix, agent_ensemble) in _sai_agent_multinode_test_configs
+    for sai_impl in SAI_BRCM_DNX_IMPLS
+]

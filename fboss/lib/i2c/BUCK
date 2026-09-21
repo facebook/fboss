@@ -1,0 +1,57 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "i2c_controller_stats",
+    languages = [
+        "cpp2",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    thrift_srcs = {"i2c_controller_stats.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "platform_i2c_api",
+    srcs = [
+        "PCA9541.cpp",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/lib/usb:base-i2c-dependencies",
+    ],
+)
+
+cpp_library(
+    name = "i2c_ctrl",
+    srcs = [
+        "I2cDevIo.cpp",
+        "I2cRdWrIo.cpp",
+        "I2cSmbusIo.cpp",
+    ],
+    headers = [
+        "I2cController.h",
+        "I2cControllerWithEvb.h",
+        "I2cDevError.h",
+        "I2cDevImpl.h",
+        "I2cDevIo.h",
+        "I2cRdWrIo.h",
+        "I2cSmbusIo.h",
+    ],
+    deps = [
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":i2c_controller_stats-cpp2-types",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+        "//folly/system:thread_name",
+    ],
+)

@@ -1,0 +1,11 @@
+[connection]
+id=eth0
+type=ethernet
+interface-name=eth0
+autoconnect=true
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto

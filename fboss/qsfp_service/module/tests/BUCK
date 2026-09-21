@@ -1,0 +1,131 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "sff-test",
+    srcs = [
+        "SffTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
+        "//fboss/qsfp_service/module/tests:transceiver-tests-helper",
+        "//fboss/qsfp_service/test:transceiver_manager_test_helper",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "cmis-test",
+    srcs = [
+        "CmisTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        ":fake-transceiver-impl",
+        ":transceiver-tests-helper",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
+        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
+        "//fboss/qsfp_service/test:transceiver_manager_test_helper",
+        "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "qsfp-module-test",
+    srcs = [
+        "QsfpModuleTest.cpp",
+    ],
+    headers = [
+        "MockSffModule.h",
+        "MockTransceiverImpl.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module:firmware_upgrader",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/test:transceiver_manager_test_helper",
+        "//folly:memory",
+    ],
+)
+
+cpp_unittest(
+    name = "i2c-log-buffer-test",
+    srcs = [
+        "I2cLogBufferTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib/usb:transceiver_access_parameter",
+        "//fboss/qsfp_service/module:i2c_log_buffer",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
+        "//folly:random",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_library(
+    name = "mock-headers",
+    headers = [
+        "MockSffModule.h",
+        "MockTransceiverImpl.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//folly:memory",
+    ],
+)
+
+cpp_library(
+    name = "fake-transceiver-impl",
+    srcs = [
+        "FakeTransceiverImpl.cpp",
+    ],
+    headers = [
+        "FakeTransceiverImpl.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/lib/usb:i2-api",
+        "//fboss/qsfp_service/module:qsfp-module",
+    ],
+    exported_deps = [
+        "//fboss/qsfp_service:transceiver-manager",
+    ],
+)
+
+cpp_library(
+    name = "transceiver-tests-helper",
+    srcs = [
+        "TransceiverTestsHelper.cpp",
+    ],
+    headers = [
+        "TransceiverTestsHelper.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = ["fbsource//third-party/googletest:gtest"],
+    exported_deps = [
+        "//fboss/qsfp_service/module:qsfp-module",
+    ],
+)

@@ -1,0 +1,63 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
+load("//fboss/qsfp_service/platforms/wedge:platform.bzl", "all_platform_libs")
+
+oncall("fboss_optics_phy")
+
+# TODO(ccpowers): using this as a placeholder for now. Eventually all dependents
+# of :wedge-platform-default should link against a particular SAI SDK or link
+# without SAI
+cpp_library(
+    name = "wedge-platform-default",
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
+    ],
+)
+
+cpp_library(
+    name = "wedge-i2c-bus-lock",
+    srcs = [
+        "WedgeI2CBusLock.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "//fboss/lib/usb:usb-api",
+        "//fboss/qsfp_service:stats",
+    ],
+    exported_deps = [
+        "//fboss/lib/usb:base-i2c-dependencies",
+        "//fboss/lib/usb:i2-api",
+        "//folly:range",
+    ],
+)
+
+cpp_library(
+    name = "wedge-transceiver",
+    srcs = [
+        "WedgeQsfp.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/qsfp_service:stats",
+        "//fboss/qsfp_service/module:qsfp-module",
+        "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
+        "//folly:conv",
+        "//folly:random",
+        "//folly:scope_guard",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":wedge-i2c-bus-lock",  # @manual
+        "//fboss/lib:io_stats_recorder",
+        "//fboss/qsfp_service:transceiver-manager",
+        "//fboss/qsfp_service/module:firmware_upgrader",  # @manual
+        "//fboss/qsfp_service/module:i2c_log_buffer",
+        "//folly:range",  # @manual
+        "//folly/futures:core",
+        "//folly/io/async:async_base",
+    ],
+)
+
+all_platform_libs()

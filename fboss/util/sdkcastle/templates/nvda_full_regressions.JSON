@@ -1,0 +1,88 @@
+{
+  "testSdkVersion": "chenab/2605.37",
+  "runMode": "full-run",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/tmp/nvda_full_qual/",
+  "testSpecs": {
+    "agentTests": [
+      {
+        "testName": "NvdaSaiAgentTests",
+        "npuMode": "multi_switch",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "spectrum4": {
+              "asicTestName": "spectrum4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "spectrum4"
+              },
+              "numJobs": 12
+            }
+          }
+        }
+      }
+    ],
+    "agentScaleTests": [
+      {
+        "testName": "NvdaSaiAgentScaleTests",
+        "npuMode": "multi_switch",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "spectrum4": {
+              "asicTestName": "spectrum4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "spectrum4"
+              },
+              "buildMode": "opt",
+              "numJobs": 1
+            }
+          }
+        }
+      }
+    ],
+    "nWarmbootTests": [
+      {
+        "testName": "NvdaSaiNWarmbootTests",
+        "npuMode": "multi_switch",
+        "numIterations": "64",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "spectrum4": {
+              "asicTestName": "spectrum4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "spectrum4"
+              },
+              "regex": "AgentEmptyTest.CheckInit",
+              "numJobs": 1
+            }
+          }
+        }
+      }
+    ],
+    "benchmarkTests": [
+      {
+        "testName": "NvdaSaiBenchmarks",
+        "npuMode": "multi_switch",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "spectrum4": {
+              "asicTestName": "spectrum4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "spectrum4"
+              },
+              "numJobs": 1
+            }
+          }
+        }
+      }
+    ]
+  }
+}

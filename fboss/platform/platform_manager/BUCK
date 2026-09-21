@@ -1,0 +1,417 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "platform_manager_config",
+    languages = [
+        "cpp2",
+        "python",
+    ],
+    thrift_cpp2_options = ["json"],
+    thrift_srcs = {
+        "platform_manager_config.thrift": [],
+        "platform_manager_presence.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "platform_manager_snapshot",
+    languages = [
+        "cpp2",
+        "python",
+    ],
+    thrift_cpp2_options = ["json"],
+    thrift_srcs = {
+        "platform_manager_snapshot.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "platform_manager_validators",
+    languages = [
+        "cpp2",
+    ],
+    thrift_srcs = {
+        "platform_manager_validators.thrift": [],
+    },
+)
+
+thrift_library(
+    name = "platform_manager_service",
+    languages = [
+        "cpp2",
+        "python",
+    ],
+    thrift_cpp2_options = ["json"],
+    thrift_srcs = {"platform_manager_service.thrift": ["PlatformManagerService"]},
+    deps = [
+        ":platform_manager_config",
+        ":platform_manager_snapshot",
+        "//fboss/platform/weutil/if:eeprom_contents",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/range-v3:range-v3",
+        "fbsource//third-party/re2:re2",
+        ":cpld_manager",
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_validators-cpp2-types",
+        ":utils",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/op:get",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "i2c_explorer",
+    srcs = [
+        "I2cExplorer.cpp",
+    ],
+    deps = [
+        ":utils",
+        "//fboss/lib/i2c:i2c_ctrl",
+        "//folly:cpu_id",
+        "//folly:file_util",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "pci_explorer",
+    srcs = [
+        "PciExplorer.cpp",
+    ],
+    deps = [
+        ":i2c_explorer",
+        ":utils",
+        "//fb303:service_data",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":fbiob_ioctl_h",
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/helpers:platform_fs_utils",
+    ],
+)
+
+cpp_library(
+    name = "device_path_resolver",
+    srcs = ["DevicePathResolver.cpp"],
+    deps = [
+        ":pci_explorer",
+        ":utils",
+    ],
+    exported_deps = [
+        ":data_store",
+        ":i2c_explorer",
+        ":platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "presence_checker",
+    srcs = ["PresenceChecker.cpp"],
+    exported_deps = [
+        ":device_path_resolver",
+        ":utils",
+        "//fboss/platform/helpers:platform_fs_utils",
+    ],
+)
+
+cpp_library(
+    name = "system_interface",
+    srcs = [
+        "SystemInterface.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/range-v3:range-v3",
+        "//folly:conv",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)
+
+cpp_library(
+    name = "pkg_manager",
+    srcs = [
+        "PkgManager.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/range-v3:range-v3",
+        "fbsource//third-party/re2:re2",
+        "//fb303:service_data",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        ":system_interface",
+        "//fboss/platform/helpers:platform_fs_utils",
+    ],
+)
+
+cpp_library(
+    name = "exploration_errors",
+    srcs = [
+        "ExplorationErrors.cpp",
+    ],
+    headers = [
+        "ExplorationErrors.h",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        ":utils",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "platform_snapshot_builder",
+    srcs = [
+        "PlatformSnapshotBuilder.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":i2c_misc",
+        ":utils",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":data_store",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_snapshot-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "platform_explorer",
+    srcs = [
+        "ExplorationSummary.cpp",
+        "PlatformExplorer.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        ":cpld_manager",
+        ":fan_cpld_manager",
+        ":utils",
+        "//fb303:service_data",
+        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+        "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":data_store",
+        ":device_path_resolver",
+        ":exploration_errors",
+        ":i2c_explorer",
+        ":pci_explorer",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_service-cpp2-types",
+        ":presence_checker",
+        "//fboss/platform/helpers:platform_fs_utils",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "Utils.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/exprtk:exprtk",
+        "fbsource//third-party/re2:re2",
+        ":platform_manager_config-cpp2-types",
+        "//fboss/lib:gpiod_line",
+        "//folly/logging:logging",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
+    ],
+)
+
+cpp_library(
+    name = "config_utils",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    # Prevent other libraries from depending on this one. This is to prevent
+    # BIOS access from other binaries. Only platform_manager should read from
+    # BIOS to determine platform name and populate cache file.
+    visibility = [
+        "//fboss/platform/platform_hw_test:platform_hw_test",
+        "//fboss/platform/platform_manager:platform_manager",
+        "//fboss/platform/platform_manager/hw_test:platform_manager_hw_test",
+        "//fboss/platform/platform_manager/tests:config_utils_test",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":config_validator",
+        "//fboss/platform/helpers:init",
+        "//folly:string",
+        "//folly/hash:hash",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+    ],
+)
+
+cpp_library(
+    name = "i2c_misc",
+    headers = [
+        "I2cAddr.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
+    ],
+)
+
+cpp_library(
+    name = "data_store",
+    srcs = ["DataStore.cpp"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":utils",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/weutil:fboss_eeprom_lib",
+    ],
+)
+
+cpp_library(
+    name = "platform_manager_handler",
+    srcs = [
+        "PlatformManagerHandler.cpp",
+    ],
+    deps = [":platform_snapshot_builder"],
+    exported_deps = [
+        ":pkg_manager",
+        ":platform_explorer",
+        ":platform_manager_service-cpp2-services",
+    ],
+)
+
+cpp_binary(
+    name = "platform_manager",
+    srcs = [
+        "Main.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/systemd:libsystemd",
+        ":config_utils",
+        ":pkg_manager",
+        ":platform_explorer",
+        ":platform_manager_handler",
+        "//fb303:logging",
+        "//fb303:service_data",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
+    ],
+    external_deps = [("systemd", None, "systemd")],
+)
+
+cpp_library(
+    name = "fbcpld_ioctl_h",
+    headers = [
+        "uapi/fbcpld-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "fbiob_ioctl_h",
+    headers = [
+        "uapi/fbiob-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "cpld_manager",
+    srcs = ["CpldManager.cpp"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":utils",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fbfancpld_ioctl_h",
+    headers = [
+        "uapi/fbfancpld-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "fan_cpld_manager",
+    srcs = ["FanCpldManager.cpp"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbfancpld_ioctl_h",
+        ":utils",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+    ],
+)

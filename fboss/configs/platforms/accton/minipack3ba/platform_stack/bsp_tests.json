@@ -1,0 +1,10 @@
+{
+  "expectedErrors": {
+    "SMB.SMB_VRM3": {
+      "1": ""
+    },
+    "SMB.SMB_VRM2": {
+      "1": ""
+    }
+  }
+}

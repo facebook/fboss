@@ -1,0 +1,140 @@
+---
+id: Features_pktio-benchmarks-th3
+title: PKTIO Benchmark Comparison on TH3
+---
+
+This wiki contains the performance comparison of Rx/Tx slow path rate on TH3. The experiment helps us understand the amount of performance gain when PKTIO is enabled, and how that is different in native SDK and Sai.
+
+## Steps
+
+Native SDK tx slow path and rx slow path:
+```
+netcastle –team bcm_bench –basset-query fboss:wedge400/asic=tomahawk3 –regex runTxSlowPathBenchmark netcastle –team bcm_bench –basset-query fboss:wedge400/asic=tomahawk3 –regex RxSlowPathBenchmark
+```
+
+Sai tx slow path and rx slow path:
+```
+netcastle –team sai_bench –basset-query fboss:wedge400/asic=tomahawk3 –regex runTxSlowPathBenchmark netcastle –team sai_bench –basset-query fboss:wedge400/asic=tomahawk3 –regex RxSlowPathBenchmark
+```
+
+For native SDK, use command line argument `--use_pktio=false` to disable pktio. For sai, modify the config file to set `pktio_driver_type: 0`.
+
+## Results
+
+Native SDK
+
+
+<table>
+  <tbody>
+    <tr>
+      <td />
+      <td>
+        <p>
+W/O PKTIO
+        </p></td>
+      <td>
+        <p>
+With PKTIO
+        </p></td>
+      <td>
+        <p>
+Gain
+        </p></td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+Tx
+        </p></td>
+      <td>
+        <p>
+32K
+        </p></td>
+      <td>
+        <p>
+810K
+        </p></td>
+      <td>
+        <p>
+25x
+        </p></td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+Rx
+        </p></td>
+      <td>
+        <p>
+242K
+        </p></td>
+      <td>
+        <p>
+891K
+        </p></td>
+      <td>
+        <p>
+3.7x
+        </p></td>
+    </tr>
+  </tbody>
+</table>
+
+Sai
+
+
+<table>
+  <tbody>
+    <tr>
+      <td />
+      <td>
+        <p>
+W/O PKTIO
+        </p></td>
+      <td>
+        <p>
+With PKTIO
+        </p></td>
+      <td>
+        <p>
+Gain
+        </p></td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+Tx
+        </p></td>
+      <td>
+        <p>
+31K
+        </p></td>
+      <td>
+        <p>
+825K
+        </p></td>
+      <td>
+        <p>
+26x
+        </p></td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+Rx
+        </p></td>
+      <td>
+        <p>
+282K
+        </p></td>
+      <td>
+        <p>
+1.3M
+        </p></td>
+      <td>
+        <p>
+4.6x
+        </p></td>
+    </tr>
+  </tbody>
+</table>

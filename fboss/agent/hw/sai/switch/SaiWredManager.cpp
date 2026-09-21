@@ -1,0 +1,118 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/hw/sai/switch/SaiWredManager.h"
+
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/state/PortQueue.h"
+
+namespace facebook::fboss {
+
+#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
+constexpr auto kDefaultDropProbability = 100;
+#endif
+
+std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
+    const PortQueue& queue) {
+  if (!queue.getAqms() || queue.getAqms()->empty()) {
+    return nullptr;
+  }
+  auto attributes = profileCreateAttrs(queue);
+  auto& store = saiStore_->get<SaiWredTraits>();
+  SaiWredTraits::AdapterHostKey k = tupleProjection<
+      SaiWredTraits::CreateAttributes,
+      SaiWredTraits::AdapterHostKey>(attributes);
+  return store.setObject(k, attributes);
+}
+
+SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
+    const PortQueue& queue) const {
+  SaiWredTraits::CreateAttributes attrs;
+  using Attributes = SaiWredTraits::Attributes;
+  std::get<Attributes::GreenEnable>(attrs) = false;
+  std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_NONE;
+  auto& greenMin =
+      std::get<std::optional<Attributes::GreenMinThreshold>>(attrs);
+  auto& greenMax =
+      std::get<std::optional<Attributes::GreenMaxThreshold>>(attrs);
+  auto& greenDropProbability =
+      std::get<std::optional<Attributes::GreenDropProbability>>(attrs);
+  auto& ecnGreenMin =
+      std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs);
+  auto& ecnGreenMax =
+      std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
+#if !defined(CHENAB_SAI_SDK)
+  // TODO(nivinl): ECN mark probability setting is currently unsupported
+  // in Chenab, to be addressed in 01084075.
+  auto& ecnGreenMarkProbability =
+      std::get<std::optional<Attributes::EcnGreenMarkProbability>>(attrs);
+#endif
+#if defined(TAJO_SDK) || defined(CHENAB_SAI_SDK)
+  // TAJO SDK populates greenMin/Max value to ecnGreenMin/Max if nullptr, so use
+  // 0 here to avoid that
+  // Chenab SDK supports both early drop and ECN, setting up defaults for both
+  std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
+      std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
+#if defined(CHENAB_SAI_SDK)
+  // as per SAI spec, ecn green min/max must have ecn mark mode set, and these
+  // values are set to 0 even for wred, so set the mode to green here
+  std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
+#else
+  // ECN mark probability initialized unconditionally for TAJO
+  constexpr auto kDefaultMarkProbability = 100;
+  ecnGreenMarkProbability = kDefaultMarkProbability;
+#endif
+#elif !defined(BRCM_SAI_SDK_XGS_AND_DNX)
+  std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
+      std::make_tuple(
+          0, 0, kDefaultDropProbability, std::nullopt, std::nullopt);
+#endif
+  for (const auto& aqm : std::as_const(*queue.getAqms())) {
+    // THRIFT_COPY
+    auto thresholds = aqm->cref<switch_config_tags::detection>()
+                          ->cref<switch_config_tags::linear>()
+                          ->toThrift();
+    auto [minLen, maxLen] = std::make_pair(
+        *thresholds.minimumLength(), *thresholds.maximumLength());
+    auto probability = *thresholds.probability();
+    switch (aqm->cref<switch_config_tags::behavior>()->cref()) {
+      case cfg::QueueCongestionBehavior::EARLY_DROP:
+        std::get<Attributes::GreenEnable>(attrs) = true;
+        greenMin = minLen;
+        greenMax = maxLen;
+        greenDropProbability = probability;
+        break;
+      case cfg::QueueCongestionBehavior::ECN:
+        std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
+        ecnGreenMin = minLen;
+        ecnGreenMax = maxLen;
+#if !defined(CHENAB_SAI_SDK)
+        // TODO(nivinl): ECN mark probability setting is currently unsupported
+        // in Chenab, to be addressed in 01084075.
+        ecnGreenMarkProbability = probability;
+#endif
+        break;
+    }
+  }
+  return attrs;
+}
+
+void SaiWredManager::removeUnclaimedWredProfile() {
+  saiStore_->get<SaiWredTraits>().removeUnclaimedWarmbootHandlesIf(
+      [](const auto& wred) {
+        wred->release();
+        return true;
+      });
+}
+
+} // namespace facebook::fboss

@@ -1,0 +1,112 @@
+/**
+ * (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+ */
+
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: rgb(33, 175, 144);
+  --ifm-color-primary-darker: rgb(31, 165, 136);
+  --ifm-color-primary-darkest: rgb(26, 136, 112);
+  --ifm-color-primary-light: rgb(70, 203, 174);
+  --ifm-color-primary-lighter: rgb(102, 212, 189);
+  --ifm-color-primary-lightest: rgb(146, 224, 208);
+  --ifm-code-font-size: 95%;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+html[data-theme='dark'] .docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Test Case Component Styles */
+.test-case-container {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.5em 0;
+  position: relative;
+}
+
+.test-badge {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin-right: 10px;
+  min-width: 24px;
+  height: 24px;
+}
+
+.test-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  background-color: #4a6bff;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  transition: all 0.2s ease;
+  cursor: help;
+}
+
+.test-badge:hover .test-icon {
+  background-color: #3a5bef;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.test-name {
+  position: absolute;
+  left: 30px;
+  top: 0;
+  background-color: #f0f0ff;
+  border: 1px solid #d0d0ff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  color: #333;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.test-badge:hover .test-name {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.test-content {
+  flex: 1;
+}
+
+html[data-theme='dark'] .test-icon {
+  background-color: #5a6bff;
+}
+
+html[data-theme='dark'] .test-badge:hover .test-icon {
+  background-color: #4a5bef;
+}
+
+html[data-theme='dark'] .test-name {
+  background-color: #2a2a3a;
+  border-color: #3a3a4a;
+  color: #e0e0e0;
+}

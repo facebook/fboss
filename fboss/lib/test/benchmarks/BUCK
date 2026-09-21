@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "hw_benchmark_main",
+    srcs = [
+        "HwBenchmarkMain.cpp",
+    ],
+    deps = [
+        "//folly:benchmark",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+    ],
+    exported_deps = [],
+)

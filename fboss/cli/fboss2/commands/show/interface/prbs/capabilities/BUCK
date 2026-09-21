@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "model",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"model.thrift": []},
+    deps = [
+        "//fboss/lib/phy:phy",
+        "//fboss/lib/phy:prbs",
+    ],
+)

@@ -1,0 +1,64 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "test",
+    languages = [
+        "cpp2",
+    ],
+    no_plugin_deps = ["//thrift/annotation:all"],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"test.thrift": []},
+    deps = [
+        "//configerator/structs/neteng/fboss/thrift:common",
+        "//fboss/agent:switch_config",
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_unittest(
+    name = "thrift_hybrid_node_tests",
+    srcs = [
+        "ThriftHybridStructNodeTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    supports_static_listing = False,
+    deps = [
+        ":test-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "thrift_node_tests",
+    srcs = [
+        "ThriftHybridStructNodeTests.cpp",
+        "ThriftListNodeTests.cpp",
+        "ThriftMapNodeTests.cpp",
+        "ThriftSetNodeTests.cpp",
+        "ThriftStructNodeResolverTests.cpp",
+        "ThriftStructNodeTests.cpp",
+        "ThriftUnionNodeTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    supports_static_listing = False,
+    deps = [
+        ":test-cpp2-types",
+        "//fboss/agent/state:nodebase",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes:serializer",
+        "//fboss/thrift_cow/visitors/tests:visitor_test_utils",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "montblanc_platform_mapping",
+    srcs = [
+        "MontblancPlatformMapping.cpp",
+    ],
+    headers = [
+        "MontblancGtswYoloPlatformMapping.h",
+        "MontblancOddPort100GPlatformMapping.h",
+        "MontblancPlatformMapping.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent/platforms/common:platform_mapping",
+    ],
+)

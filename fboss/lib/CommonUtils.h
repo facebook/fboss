@@ -1,0 +1,315 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <optional>
+
+#include <folly/debugging/exception_tracer/ExceptionTracer.h>
+#include <folly/logging/xlog.h>
+
+#include <fb303/ThreadCachedServiceData.h>
+#include <fb303/ThreadLocalStats.h>
+#include "fboss/agent/FbossError.h"
+
+DECLARE_bool(cpp_wedge_agent_wrapper);
+
+// Exception not subclassing std::exception to avoid being caught by user code.
+// Used only in WITH_RETRIES toolkit
+namespace {
+struct _SoftAssertFail {};
+} // namespace
+
+namespace facebook::fboss {
+/*
+ * For tests prefer using WITH_RETRIES and ASSERT_EVENTUALLY_* over this
+ * utility to get better logging
+ */
+template <typename CONDITION_FN>
+void checkWithRetry(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    std::optional<std::string> conditionFailedLog = std::nullopt,
+    bool retryOnException = false) {
+  while (retries--) {
+    try {
+      if (condition()) {
+        return;
+      }
+    } catch (...) {
+      if (!retryOnException) {
+        throw;
+      }
+      // fall-through to sleep and retry
+    }
+
+    std::this_thread::sleep_for(msBetweenRetry);
+  }
+
+  constexpr auto kFailedConditionLog =
+      "Verify with retry failed, condition was never satisfied";
+  if (conditionFailedLog) {
+    throw FbossError(kFailedConditionLog, " : ", *conditionFailedLog);
+  } else {
+    throw FbossError(kFailedConditionLog);
+  }
+}
+
+template <typename CONDITION_FN>
+bool checkWithRetryErrorReturn(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    bool retryOnException = false) {
+  try {
+    checkWithRetry(
+        condition, retries, msBetweenRetry, std::nullopt, retryOnException);
+  } catch (const FbossError& e) {
+    XLOG(DBG2) << __func__ << " error: " << e.what();
+    return false;
+  }
+
+  return true;
+}
+
+template <typename CONDITION_FN>
+void checkAlwaysTrueWithRetry(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000),
+    std::optional<std::string> conditionFailedLog = std::nullopt) {
+  while (retries--) {
+    if (!condition()) {
+      constexpr auto kFailedConditionLog =
+          "Verify always true with retry failed, condition was not satisfied";
+      if (conditionFailedLog) {
+        throw FbossError(kFailedConditionLog, " : ", *conditionFailedLog);
+      } else {
+        throw FbossError(kFailedConditionLog);
+      }
+    }
+    std::this_thread::sleep_for(msBetweenRetry);
+  }
+}
+
+template <typename CONDITION_FN>
+bool checkAlwaysTrueWithRetryErrorReturn(
+    CONDITION_FN condition,
+    int retries = 10,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+        std::chrono::milliseconds(1000)) {
+  try {
+    checkAlwaysTrueWithRetry(condition, retries, msBetweenRetry);
+  } catch (const FbossError&) {
+    return false;
+  }
+
+  return true;
+}
+
+template <typename StatT>
+inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
+  auto counterVal = fb303::fbData->getCounterIfExists(
+      hasSumSuffix ? stat.name() + ".sum" : stat.name());
+  return counterVal ? *counterVal : 0;
+}
+
+/*
+ * Utility to be used when we need to do a check on some async work.
+ * This needs to be used in conjunction with ASSERT_EVENTUALLY to repeat
+ * a series of checks and fail only if any of the checks fail after retries.
+ * This solves the same problem as checkWithRetry, except we get much better
+ * logs in case of failures. As such this should always be preferred over
+ * checkWithRetry in tests.
+ * USAGES:
+ *
+ * WITH_RETRIES_N_TIMED(
+ *  30, std::chrono::milliseconds(1000),
+ *  {
+ *   auto someData = foo();
+ *   ASSERT_EVENTUALLY_TRUE(someData.bar());
+ *   ASSERT_EVENTUALLY_EQ(someData.bar().baz(), 0) << "baz is not zero!";
+ *  });
+ *
+ * WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(someBoolExpr()));
+ *
+ * The first example will run the code block up to 30 times and with 1s sleeps
+ * in between.
+ * ASSERT_EVENTUALLY: If a single ASSERT_EVENTUALLY fails, we'll loop back,
+ * sleep and retry. Important to note that we don't evaluate future checks if
+ * earlier ones fail, which means we can null check an object in an assert and
+ * then deference safely. After all retries, we will hard ASSERT all checks.
+ * EXPECT_EVENTUALLY: Unlike ASSERT_EVENTUALLY, during retries EXPECT_EVENTUALLY
+ * will continue execution in case of failure. After all retires we will hard
+ * EXPECT all checks
+
+ * Using ... to capture everything (the logic to test) and replace whatever has
+ * been passed with the single __VA_ARGS__. Without ..., if 'test' is a code
+ * block, the parser could separate that into multiple tokens and cause
+ * compilation errors
+ */
+#define WITH_RETRIES_N_TIMED(maxRetries, sleepTime, ...)                \
+  {                                                                     \
+    int WITH_RETRIES_tries = 0;                                         \
+    while (WITH_RETRIES_tries++ < maxRetries) {                         \
+      /* Do not sleep on first iteration */                             \
+      if (WITH_RETRIES_tries != 1) {                                    \
+        std::this_thread::sleep_for(sleepTime);                         \
+      }                                                                 \
+      /* Only switch to hard test on last retry */                      \
+      [[maybe_unused]] bool WITH_RETRIES_softTest =                     \
+          WITH_RETRIES_tries != maxRetries;                             \
+      bool WITH_RETRIES_pass = true;                                    \
+      /* _ASSERT_EVENTUALLY and _EXPECT_EVENTUALLY will read            \
+       * WITH_RETRIES_softTest to decide how to assert.                 \
+       * - soft expects will set WITH_RETRIES_pass in case of failures  \
+       * - soft asserts will throw _SoftAssertFail so we can loop again \
+       */                                                               \
+      try {                                                             \
+        __VA_ARGS__;                                                    \
+      } catch (const _SoftAssertFail&) {                                \
+        continue;                                                       \
+      }                                                                 \
+      /* If all tests pass, we can break out early */                   \
+      if (WITH_RETRIES_pass) {                                          \
+        break;                                                          \
+      }                                                                 \
+    }                                                                   \
+  }
+
+// Helper with default sleep time
+#define WITH_RETRIES_N(maxRetries, ...) \
+  WITH_RETRIES_N_TIMED(                 \
+      maxRetries, std::chrono::milliseconds(1000), __VA_ARGS__);
+
+// Helper with default retries and sleep time
+#define WITH_RETRIES(...) WITH_RETRIES_N(30, __VA_ARGS__);
+
+// Should ONLY be used inside WITH_RETIRES*. See helpers below
+#define _ASSERT_EVENTUALLY(softTest, hardTest)                         \
+  if (WITH_RETRIES_softTest) {                                         \
+    /* If single test fails, continue */                               \
+    if (!(softTest)) {                                                 \
+      throw _SoftAssertFail();                                         \
+    }                                                                  \
+  } else                                                               \
+    /* Skip braces and semi to allow logging with ASSERT(b) << msg; */ \
+    hardTest
+
+// Should ONLY be used inside WITH_RETIRES*. See helpers below
+#define _EXPECT_EVENTUALLY(softTest, hardTest)                         \
+  if (WITH_RETRIES_softTest) {                                         \
+    /* evaluate test but continue execution  */                        \
+    WITH_RETRIES_pass &= softTest;                                     \
+  } else                                                               \
+    /* Skip braces and semi to allow logging with ASSERT(b) << msg; */ \
+    hardTest
+
+/*
+ * Helpers to ONLY be used inside WITH_RETIRES*. See usage described in
+ * WITH_RETRIES_N_TIMED
+ */
+#define ASSERT_EVENTUALLY_TRUE(expr) \
+  _ASSERT_EVENTUALLY((bool)(expr), ASSERT_TRUE(expr))
+#define ASSERT_EVENTUALLY_FALSE(expr) \
+  _ASSERT_EVENTUALLY(!expr, ASSERT_FALSE(expr))
+#define ASSERT_EVENTUALLY_EQ(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 == expr2, ASSERT_EQ(expr1, expr2))
+#define ASSERT_EVENTUALLY_NE(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 != expr2, ASSERT_NE(expr1, expr2))
+#define ASSERT_EVENTUALLY_GT(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 > expr2, ASSERT_GT(expr1, expr2))
+#define ASSERT_EVENTUALLY_GE(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 >= expr2, ASSERT_GE(expr1, expr2))
+#define ASSERT_EVENTUALLY_LT(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 < expr2, ASSERT_LT(expr1, expr2))
+
+#define CO_ASSERT_EVENTUALLY_TRUE(expr) \
+  _ASSERT_EVENTUALLY((bool)(expr), CO_ASSERT_TRUE(expr))
+#define CO_ASSERT_EVENTUALLY_FALSE(expr) \
+  _ASSERT_EVENTUALLY(!expr, CO_ASSERT_FALSE(expr))
+#define CO_ASSERT_EVENTUALLY_EQ(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 == expr2, CO_ASSERT_EQ(expr1, expr2))
+
+#define EXPECT_EVENTUALLY_TRUE(expr) \
+  _EXPECT_EVENTUALLY((bool)(expr), EXPECT_TRUE(expr))
+#define EXPECT_EVENTUALLY_FALSE(expr) \
+  _EXPECT_EVENTUALLY(!expr, EXPECT_FALSE(expr))
+#define EXPECT_EVENTUALLY_EQ(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 == expr2, EXPECT_EQ(expr1, expr2))
+#define EXPECT_EVENTUALLY_NE(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 != expr2, EXPECT_NE(expr1, expr2))
+#define EXPECT_EVENTUALLY_GT(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 > expr2, EXPECT_GT(expr1, expr2))
+#define EXPECT_EVENTUALLY_GE(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 >= expr2, EXPECT_GE(expr1, expr2))
+#define EXPECT_EVENTUALLY_LT(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 < expr2, EXPECT_LT(expr1, expr2))
+#define EXPECT_EVENTUALLY_LE(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 <= expr2, EXPECT_LE(expr1, expr2))
+
+// Assert a predicate stays true throughout the given duration. Poll-evaluates
+// the predicate at sleepTime intervals; the macro itself records a gtest
+// failure via EXPECT_TRUE on the first false return and bails out, so the
+// predicate only needs to return bool. Inverse of WITH_RETRIES (which waits
+// for a condition to become true).
+//
+// USAGE:
+//
+// CHECK_HOLDS_FOR_DURATION(std::chrono::seconds(2), [&] {
+//   return counter.get() == expected;
+// });
+#define CHECK_HOLDS_FOR_DURATION_TIMED(duration, sleepTime, predicate)         \
+  {                                                                            \
+    auto CHECK_HOLDS_deadline = std::chrono::steady_clock::now() + (duration); \
+    while (true) {                                                             \
+      bool CHECK_HOLDS_ok = (predicate)();                                     \
+      EXPECT_TRUE(CHECK_HOLDS_ok)                                              \
+          << "CHECK_HOLDS_FOR_DURATION predicate returned false";              \
+      if (!CHECK_HOLDS_ok ||                                                   \
+          std::chrono::steady_clock::now() >= CHECK_HOLDS_deadline) {          \
+        break;                                                                 \
+      }                                                                        \
+      std::this_thread::sleep_for(sleepTime);                                  \
+    }                                                                          \
+  }
+
+// Helper with default 100ms poll interval
+#define CHECK_HOLDS_FOR_DURATION(duration, predicate) \
+  CHECK_HOLDS_FOR_DURATION_TIMED(                     \
+      duration, std::chrono::milliseconds(100), predicate)
+
+#ifndef IS_OSS
+// Folly::folly_exception_tracer* is not available in OSS.
+// Skip its compilation in OSS for now.
+// TODO: Need to check this with folly team and fix this
+// properly so that exception_tracer can be made available
+// in OSS also.
+template <typename Fn>
+void runWithExceptionTrace(Fn fn) {
+  try {
+    return fn();
+  } catch (std::exception& ex) {
+    XLOG(CRITICAL) << "Exception " << folly::exceptionStr(ex);
+    XLOG(CRITICAL) << "Trace:";
+    for (const auto& exInfo : folly::exception_tracer::getCurrentExceptions()) {
+      XLOG(CRITICAL) << "\n" << exInfo;
+    }
+    throw;
+  }
+}
+#endif
+
+void runAndRemoveScript(
+    const std::string& script,
+    const std::vector<std::string>& args = {});
+void runShellCommand(const std::string& command, bool throwOnError = true);
+void runCommand(const std::vector<std::string>& argv, bool throwOnError = true);
+void runCommandWithRetries(
+    const std::vector<std::string>& argv,
+    const std::chrono::milliseconds& ms = std::chrono::milliseconds(500));
+
+} // namespace facebook::fboss

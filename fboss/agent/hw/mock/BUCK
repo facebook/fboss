@@ -1,0 +1,58 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "mock",
+    srcs = [
+        "MockHwSwitch.cpp",
+        "MockPlatform.cpp",
+        "MockPlatformMapping.cpp",
+        "MockTestHandle.cpp",
+    ],
+    headers = [
+        "MockPlatformMapping.h",
+        "MockPlatformPort.h",
+    ],
+    deps = [
+        ":pkt",
+        "//fboss/agent:fboss-error",
+        "//fboss/lib/platforms:product-info",
+        "//folly:memory",
+        "//folly/json:dynamic",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:agent_features",
+        "//fboss/agent:constants",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:handler",
+        "//fboss/agent:hw_switch",
+        "//fboss/agent:platform_base",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+        "//fboss/agent/platforms/common/wedge100:wedge100_platform_mapping",
+        "//fboss/agent/state:state",
+        "//fboss/agent/test:hw_test_handle",
+        "//folly:network_address",
+        "//folly/io:iobuf",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_library(
+    name = "pkt",
+    srcs = [
+        "MockRxPacket.cpp",
+        "MockTxPacket.cpp",
+    ],
+    deps = [
+        "//fboss/agent/packet:packet",
+        "//folly/io:iobuf",
+    ],
+    exported_deps = [
+        "//fboss/agent:packet",
+        "//folly:range",
+    ],
+)

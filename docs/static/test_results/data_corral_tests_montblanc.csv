@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","montblanc","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","montblanc","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","montblanc","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","montblanc","PASSED"

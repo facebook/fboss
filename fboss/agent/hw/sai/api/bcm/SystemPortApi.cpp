@@ -1,0 +1,40 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
+#include "fboss/agent/hw/sai/api/SystemPortApi.h"
+
+extern "C" {
+#include <sai.h>
+
+#include <experimental/saiportextensions.h>
+}
+
+namespace facebook::fboss {
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeShelPktDstEnable::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  return SAI_SYSTEM_PORT_ATTR_SHEL_PKT_DEST_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributeTcRateLimitExclude::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  return SAI_SYSTEM_PORT_ATTR_TC_RATE_LIMIT_EXCLUDE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiSystemPortTraits::Attributes::AttributePushQueueEnable::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  return SAI_SYSTEM_PORT_ATTR_PUSH_QUEUE_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+} // namespace facebook::fboss

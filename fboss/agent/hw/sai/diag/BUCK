@@ -1,0 +1,22 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/agent/hw/sai/diag:diag.bzl", "all_diag_bins", "all_diag_libs", "all_repl_libs")
+
+oncall("fboss_agent_push")
+
+all_diag_libs()
+
+all_repl_libs()
+
+all_diag_bins()
+
+cpp_library(
+    name = "diag_lib",
+    headers = [
+        "DiagShell.h",
+        "DiagShellClient.h",
+        "PythonRepl.h",
+        "Repl.h",
+        "SaiRepl.h",
+    ],
+    labels = ["noautodeps"],
+)

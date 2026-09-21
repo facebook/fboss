@@ -1,0 +1,175 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/fsdb/tests/utils/FsdbTestServer.h"
+#include <fboss/fsdb/oper/PathConverter.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
+#include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
+#include <memory>
+#include "fboss/lib/CommonUtils.h"
+
+#include "fboss/lib/ThriftServiceUtils.h"
+
+namespace facebook::fboss::fsdb::test {
+
+// Platform-specific implementation is defined in facebook/FsdbTestServer.cpp or
+// oss/FsdbTestServer.cpp
+extern std::unique_ptr<FsdbTestServerImpl> createPlatformSpecificImpl(
+    std::shared_ptr<ServiceHandler> handler,
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads);
+
+std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
+    std::shared_ptr<ServiceHandler> handler,
+    uint16_t port) {
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  ThriftServiceUtils::setPreferredEventBaseBackend(*server);
+  server->setAllowPlaintextOnLoopback(true);
+  server->setPort(port);
+  server->setInterface(handler);
+  server->setSSLPolicy(apache::thrift::SSLPolicy::PERMITTED);
+  if (numIOWorkerThreads_.has_value()) {
+    server->setNumIOWorkerThreads(*numIOWorkerThreads_);
+  }
+  if (numCPUWorkerThreads_.has_value()) {
+    server->setNumCPUWorkerThreads(*numCPUWorkerThreads_);
+  }
+  return server;
+}
+
+void FsdbTestServerImpl::checkServerStart(uint16_t& fsdbPort) {
+  checkWithRetry([this, &fsdbPort]() {
+    fsdbPort = server_->getAddress().getPort();
+    if (fsdbPort == 0) {
+      return false;
+    }
+    return true;
+  });
+  CHECK_NE(fsdbPort, 0);
+  XLOG(INFO) << "Started thrift server on port " << fsdbPort;
+}
+
+std::shared_ptr<apache::thrift::Client<FsdbService>>
+FsdbTestServerImpl::getClient() {
+  // Create the client on the dedicated IO thread's EventBase.
+  // AsyncSocket must be constructed on the EventBase's thread, and the
+  // EventBase must be actively looped so that socket IO callbacks fire.
+  // Using the calling thread's EventBase deadlocks because blockingWait()
+  // does not drive it — Task<T> is a SemiAwaitable, so blockingWait
+  // creates an internal BlockingWaitExecutor that only drives its own
+  // queue, not the thread-local EventBase. The RPC response callback
+  // (registered on the EventBase) never fires, causing an indefinite hang.
+  apache::thrift::Client<FsdbService>* rawClient = nullptr;
+  auto* evb = clientEvbThread_->getEventBase();
+  evb->runImmediatelyOrRunInEventBaseThreadAndWait([&] {
+    auto channel = apache::thrift::RocketClientChannel::newChannel(
+        folly::AsyncSocket::newSocket(evb, server_->getAddress()));
+    rawClient = new apache::thrift::Client<FsdbService>(std::move(channel));
+  });
+  // Prevent use-after-free: capture the shared_ptr so the EventBase thread
+  // stays alive even if this FsdbTestServerImpl is destroyed first.
+  return std::shared_ptr<apache::thrift::Client<FsdbService>>(
+      rawClient,
+      [evbThread = clientEvbThread_](apache::thrift::Client<FsdbService>* p) {
+        evbThread->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+            [p] { delete p; });
+      });
+}
+
+FsdbTestServer::FsdbTestServer(
+    std::shared_ptr<FsdbConfig> config,
+    uint16_t port,
+    uint32_t stateSubscriptionServe_ms,
+    uint32_t statsSubscriptionServe_ms,
+    uint32_t subscriptionServeQueueSize,
+    uint32_t statsSubscriptionServeQueueSize,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads)
+    : config_(std::move(config)) {
+  auto queueSize = std::to_string(subscriptionServeQueueSize);
+  gflags::SetCommandLineOptionWithMode(
+      "subscriptionServeQueueSize",
+      queueSize.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+
+  auto statsQueueSize = std::to_string(statsSubscriptionServeQueueSize);
+  gflags::SetCommandLineOptionWithMode(
+      "statsSubscriptionServeQueueSize",
+      statsQueueSize.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+
+  auto stateServeInterval = std::to_string(stateSubscriptionServe_ms);
+  auto statsServeInterval = std::to_string(statsSubscriptionServe_ms);
+  gflags::SetCommandLineOptionWithMode(
+      "snapshotInterval", "1s", gflags::SET_FLAG_IF_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "stateSubscriptionServe_ms",
+      stateServeInterval.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "statsSubscriptionServe_ms",
+      statsServeInterval.c_str(),
+      gflags::SET_FLAG_IF_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
+
+  startTestServer(port, numIOWorkerThreads, numCPUWorkerThreads);
+}
+
+FsdbTestServer::~FsdbTestServer() {
+  stopTestServer();
+}
+
+std::shared_ptr<apache::thrift::Client<FsdbService>>
+FsdbTestServer::getClient() {
+  return impl_->getClient();
+}
+
+std::string FsdbTestServer::getPublisherId(int publisherIndex) const {
+  return folly::to<std::string>("testPublisher-", publisherIndex);
+}
+
+std::optional<FsdbOperTreeMetadata> FsdbTestServer::getPublisherRootMetadata(
+    const std::string& root,
+    bool isStats) const {
+  auto pub2Metdata = isStats ? serviceHandler().getStatsPublisherMetadata()
+                             : serviceHandler().getStatePublisherMetadata();
+  auto metadata = pub2Metdata.getPublisherRootMetadata(root);
+  if (metadata) {
+    return metadata;
+  }
+  std::string idRoot;
+  if (isStats) {
+    idRoot = PathConverter<FsdbOperStatsRoot>::pathToIdTokens({root}).at(0);
+  } else {
+    idRoot = PathConverter<FsdbOperStateRoot>::pathToIdTokens({root}).at(0);
+  }
+  return pub2Metdata.getPublisherRootMetadata(idRoot);
+}
+
+ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
+    const {
+  return serviceHandler().getActiveSubscriptions();
+}
+
+void FsdbTestServer::startTestServer(
+    uint16_t port,
+    std::optional<size_t> numIOWorkerThreads,
+    std::optional<size_t> numCPUWorkerThreads) {
+  ServiceHandler::Options options;
+  options.serveIdPathSubs = true;
+  handler_ = std::make_shared<ServiceHandler>(config_, options);
+
+  impl_ = createPlatformSpecificImpl(
+      handler_, port, numIOWorkerThreads, numCPUWorkerThreads);
+  impl_->startServer(fsdbPort_);
+}
+
+void FsdbTestServer::stopTestServer() {
+  if (impl_) {
+    impl_->stopServer();
+  }
+  impl_.reset();
+}
+
+} // namespace facebook::fboss::fsdb::test

@@ -1,0 +1,218 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    # @autodeps-skip PhysicalMemory.h is owned by both :physical_memory (impl) and
+    # :function_call_time_reporter (no impl); autodeps re-picks the latter. Keep :physical_memory.
+    name = "test-physical-memory",
+    srcs = [
+        "PhysicalMemoryTest.cpp",
+    ],
+    headers = [
+        "FakePhysicalMemory.h",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:physical_memory",
+    ],
+    external_deps = [],
+)
+
+cpp_unittest(
+    name = "test-radixtree",
+    srcs = [
+        "RadixTreeTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":py_radix_wrapper",
+        "//common/base:random",
+        "//fboss/lib:radix_tree",
+        "//folly:network_address",
+    ],
+)
+
+cpp_unittest(
+    name = "time_series_with_min_max",
+    srcs = [
+        "TimeSeriesWithMinMaxTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:time_series_with_min_max",
+    ],
+)
+
+cpp_benchmark(
+    name = "time_series_with_min_max-benchmark",
+    srcs = ["TimeSeriesWithMinMaxBenchmark.cpp"],
+    deps = [
+        "//common/init:init",
+        "//fboss/lib:time_series_with_min_max",
+        "//folly:benchmark",
+        "//folly:synchronized",
+    ],
+)
+
+cpp_benchmark(
+    name = "radixtree-benchmark",
+    srcs = ["RadixTreeBenchmark.cpp"],
+    deps = [
+        ":py_radix_wrapper",
+        "//common/base:random",
+        "//common/init:init",
+        "//fboss/lib:radix_tree",
+        "//folly:benchmark",
+        "//folly:network_address",
+    ],
+)
+
+cpp_binary(
+    name = "radixtree-profile",
+    srcs = ["RadixTreeProfile.cpp"],
+    deps = [
+        ":utils",
+        "//common/base:random",
+        "//common/init:init",
+        "//fboss/lib:radix_tree",
+        "//folly:network_address",
+    ],
+)
+
+cpp_unittest(
+    name = "pci_device_tests",
+    srcs = [
+        "PciDeviceTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/glog:glog",
+        "//fboss/lib:pci_device",
+        "//folly:singleton",
+    ],
+    external_deps = [
+        ("libpciaccess", None, "pciaccess"),
+    ],
+)
+
+cpp_unittest(
+    name = "ref_map_test",
+    srcs = [
+        "RefMapTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:ref_map",
+    ],
+)
+
+cpp_unittest(
+    name = "unique_ref_map_test",
+    srcs = [
+        "UniqueRefMapTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:unique_ref_map",
+    ],
+)
+
+cpp_unittest(
+    name = "tuple_utils_test",
+    srcs = [
+        "TupleUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:tuple_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "exponential_backoff_test",
+    srcs = [
+        "ExponentialBackoffTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/glog:glog",
+        "//fboss/lib:exponential_back_off",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_unittest(
+    name = "thrift_method_rate_limit_test",
+    srcs = [
+        "ThriftMethodRateLimitTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:thrift_method_rate_limit",
+        "//thrift/lib/cpp2/server:cpp2_conn_context",
+        "//thrift/lib/cpp2/server:preprocess_functions",
+        "//thrift/lib/cpp2/server:preprocess_result",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    headers = [
+        "Utils.h",
+    ],
+    exported_deps = [
+        "//common/network:address",
+    ],
+)
+
+cpp_library(
+    name = "py_radix_wrapper",
+    headers = [
+        "PyRadixWrapper.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/pypi/py-radix:radix",
+        ":utils",
+        "//common/logging:logging",
+        "//folly:network_address",
+    ],
+)
+
+cpp_unittest(
+    name = "thread_heartbeat_test",
+    srcs = [
+        "ThreadHeartbeatTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/lib:thread_heartbeat",
+        "//folly/system:thread_name",
+    ],
+)
+
+cpp_unittest(
+    name = "common_utils_tests",
+    srcs = [
+        "CommonFileUtilsTest.cpp",
+        "CommonPortUtilsTest.cpp",
+        "CommonThriftUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/glog:glog",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:common_port_utils",
+        "//fboss/lib:common_thrift_utils",
+        "//folly:singleton",
+        "//folly/logging:logging",
+        "//folly/testing:test_util",
+    ],
+)

@@ -1,0 +1,52 @@
+{
+    "RepoSyncHeader": [
+        "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
+        "This file is generated. Do not modify it manually!",
+        "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_qsfp_sdk_version",
+        "@generated SignedSource<<e907c30a8c9b317bb13b4472a0e58456>>"
+    ],
+    "MINIPACK": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "millenio\/5.5"
+        }
+    ],
+    "FUJI": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "barchetta2\/5.2"
+        }
+    ],
+    "ELBERT": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/0.7.2"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/1.2.8"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/0.9.0"
+        }
+    ],
+    "YAMP": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "credo\/0.7.2"
+        }
+    ],
+    "LADAKH800BCLS": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "brcm_pai\/4.1"
+        }
+    ],
+    "LEH800BCLS": [
+        {
+            "rolloutType": "PRODUCTION",
+            "version": "brcm_pai\/4.1"
+        }
+    ]
+}

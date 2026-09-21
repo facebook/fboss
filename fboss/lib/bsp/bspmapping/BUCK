@@ -1,0 +1,51 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup")
+
+oncall("fboss_optics_phy")
+
+# Exported so the NPI launcher readiness suite (CHK-061) can bundle the BSP
+# mapping CSVs into its binary via buck `resources` and read them at runtime
+# with parutil — the readiness server runs in a prod Tupperware container with
+# no fbcode source checkout on disk.
+buck_filegroup(
+    name = "bsp_mapping_csvs",
+    srcs = glob(["input/*.csv"]),
+    visibility = ["//rtp/npi/npi_launcher/..."],
+)
+
+cpp_binary(
+    name = "fboss-bspmapping-gen",
+    srcs = [
+        "Main.cpp",
+    ],
+    resources = glob([
+        "input/*.csv",
+    ]),
+    deps = [
+        ":parser",
+        "//folly:file_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "nlohmann_json",
+    ],
+)
+
+cpp_library(
+    name = "parser",
+    srcs = [
+        "Parser.cpp",
+    ],
+    headers = [
+        "Parser.h",
+    ],
+    deps = [
+        "//folly:file_util",
+        "//folly:string",
+    ],
+    exported_deps = [
+        "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//folly:range",
+    ],
+)

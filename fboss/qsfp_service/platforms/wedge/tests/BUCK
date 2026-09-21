@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "WedgeManagerTest",
+    srcs = [
+        "WedgeManagerTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/test:transceiver_manager_test_helper",
+    ],
+)
+
+cpp_library(
+    # @autodeps-skip Pinned to a single SAI impl (credo-0.7.2) via the # @manual
+    # wedge-platform dep; autodeps otherwise also adds wedge-platform-brcm_pai-3.15,
+    # linking two SAI SDKs and causing SAI_API_VERSION redefinition.
+    name = "mock-wedge-manager",
+    headers = [
+        "MockWedgeManager.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
+        "//fboss/lib/usb/tests:mock-transceiver-i2capi",
+        "//fboss/qsfp_service/module/tests:mock-headers",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
+        "//fboss/qsfp_service/test:mock_manager_constructor_args",
+    ],
+)

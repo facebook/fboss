@@ -1,0 +1,133 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <thrift/lib/cpp2/reflection/testing.h>
+#include "fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h"
+#include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/interface/flaps/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
+
+using namespace ::testing;
+
+namespace facebook::fboss {
+
+/*
+ * Set up test data
+ */
+
+std::map<std::string, std::int64_t> createQueriedData() {
+  std::map<std::string, std::int64_t> fb303_counters;
+  fb303_counters["eth1/1/1.link_state.flap.sum.60"] = 0;
+  fb303_counters["eth1/1/1.link_state.flap.sum.600"] = 0;
+  fb303_counters["eth1/1/1.link_state.flap.sum.3600"] = 0;
+  fb303_counters["eth1/1/1.link_state.flap.sum"] = 0;
+  fb303_counters["eth1/1/1.link_fault.sum"] = 0;
+
+  fb303_counters["eth2/1/1.link_state.flap.sum.60"] = 1;
+  fb303_counters["eth2/1/1.link_state.flap.sum.600"] = 2;
+  fb303_counters["eth2/1/1.link_state.flap.sum.3600"] = 3;
+  fb303_counters["eth2/1/1.link_state.flap.sum"] = 6;
+  // Exceeds the flap count: debounce suppressed some of the instability.
+  fb303_counters["eth2/1/1.link_fault.sum"] = 9;
+
+  fb303_counters["eth3/1/1.link_state.flap.sum.60"] = 1000;
+  fb303_counters["eth3/1/1.link_state.flap.sum.600"] = 10000;
+  fb303_counters["eth3/1/1.link_state.flap.sum.3600"] = 100000;
+  fb303_counters["eth3/1/1.link_state.flap.sum"] = 111000;
+  fb303_counters["eth3/1/1.link_fault.sum"] = 111222;
+
+  return fb303_counters;
+}
+
+std::vector<std::string> createDistinctInterfaceNames() {
+  std::vector<std::string> ifNames = {"eth1/1/1", "eth2/1/1", "eth3/1/1"};
+  return ifNames;
+}
+
+class CmdShowInterfaceFlapsTestFixture : public CmdHandlerTestBase {
+ public:
+  std::map<std::string, std::int64_t> queriedData;
+  std::vector<std::string> ifNames;
+  std::vector<std::string> queriedPorts;
+
+  void SetUp() override {
+    CmdHandlerTestBase::SetUp();
+    queriedData = createQueriedData();
+    ifNames = createDistinctInterfaceNames();
+  }
+};
+
+TEST_F(CmdShowInterfaceFlapsTestFixture, queryClient) {
+  setupMockedAgentServer();
+
+  /* This unit test is a special case because the thrift spec for
+  getRegexCounters uses "thread = eb".  This requires a pretty ugly mock
+  definition and call to work */
+  std::map<std::string, std::int64_t> response = queriedData;
+  EXPECT_CALL(getMockAgent(), async_eb_getRegexCounters(_, _))
+      .WillOnce(Invoke([&response](auto callback, Unused) {
+        callback->result(std::move(response));
+      }));
+  auto results = CmdShowInterfaceFlaps().queryClient(localhost(), queriedPorts);
+
+  /* queryClient returns the output from createModel so this is a bit of a
+  duplicate test as the one below but still worth checking */
+  auto model = createModel(ifNames, queriedData, queriedPorts);
+  EXPECT_THRIFT_EQ(model, results);
+}
+
+TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
+  auto model = createModel(ifNames, queriedData, queriedPorts);
+  auto flapsEntries = model.flap_counters().value();
+
+  EXPECT_EQ(flapsEntries.size(), 3);
+
+  EXPECT_EQ(flapsEntries[0].interfaceName().value(), "eth1/1/1");
+  EXPECT_EQ(flapsEntries[0].oneMinute().value(), 0);
+  EXPECT_EQ(flapsEntries[0].tenMinute().value(), 0);
+  EXPECT_EQ(flapsEntries[0].oneHour().value(), 0);
+  EXPECT_EQ(flapsEntries[0].totalFlaps().value(), 0);
+  EXPECT_EQ(flapsEntries[0].totalLinkFaults().value(), 0);
+
+  EXPECT_EQ(flapsEntries[1].interfaceName().value(), "eth2/1/1");
+  EXPECT_EQ(flapsEntries[1].oneMinute().value(), 1);
+  EXPECT_EQ(flapsEntries[1].tenMinute().value(), 2);
+  EXPECT_EQ(flapsEntries[1].oneHour().value(), 3);
+  EXPECT_EQ(flapsEntries[1].totalFlaps().value(), 6);
+  EXPECT_EQ(flapsEntries[1].totalLinkFaults().value(), 9);
+
+  EXPECT_EQ(flapsEntries[2].interfaceName().value(), "eth3/1/1");
+  EXPECT_EQ(flapsEntries[2].oneMinute().value(), 1000);
+  EXPECT_EQ(flapsEntries[2].tenMinute().value(), 10000);
+  EXPECT_EQ(flapsEntries[2].oneHour().value(), 100000);
+  EXPECT_EQ(flapsEntries[2].totalFlaps().value(), 111000);
+  EXPECT_EQ(flapsEntries[2].totalLinkFaults().value(), 111222);
+}
+
+TEST_F(CmdShowInterfaceFlapsTestFixture, printOutput) {
+  auto cmd = CmdShowInterfaceFlaps();
+  auto model = createModel(ifNames, queriedData, queriedPorts);
+
+  std::stringstream ss;
+  cmd.printOutput(model, ss);
+
+  std::string output = ss.str();
+  std::string expectOutput =
+      " Interface Name  1 Min  10 Min  60 Min  Total (since last reboot)  Total Link Faults \n"
+      "--------------------------------------------------------------------------------------------\n"
+      " eth1/1/1        0      0       0       0                          0                 \n"
+      " eth2/1/1        1      2       3       6                          9                 \n"
+      " eth3/1/1        1000   10000   100000  111000                     111222            \n\n";
+
+  EXPECT_EQ(output, expectOutput);
+}
+
+// CLI reference wiki hooks: a human description and a non-empty sample model.
+// Property checks only (no golden text).
+TEST_F(CmdShowInterfaceFlapsTestFixture, wikiDocHooks) {
+  EXPECT_FALSE(CmdShowInterfaceFlapsTraits::description().empty());
+  EXPECT_FALSE(CmdShowInterfaceFlaps::sampleModel().flap_counters()->empty());
+}
+} // namespace facebook::fboss

@@ -1,0 +1,108 @@
+{
+    "config" : {
+        "common_config" : {
+            "soc_family.BCM8892X": "BCM8892X",
+            "custom_feature_ser_event_generate": "1",
+            "custom_feature_lane_swap_disable.BCM8892X": "0",
+            "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
+            "appl_param_module_id.BCM8892X": "100",
+            "fabric_pipe_map.BCM8892X": "0",
+            "fe_mc_id_range.BCM8892X": "128K",
+            "core_clock_speed_khz.BCM8892X": "1350000",
+            "serdes_fabric_clk_freq_out.BCM8892X": "bypass",
+            "appl_enable_intr_init.BCM8892X": "1",
+            "polled_irq_mode.BCM8892X": "0",
+            "polled_irq_delay.BCM8892X": "1000",
+            "load_firmware.BCM8892X": "0x102",
+            "port_init_speed.BCM8892X": "106250",
+            "fabric_connectivity_based_on_integrity.BCM8892X": "0",
+            "fabric_distributed_system_enable": "1",
+            "custom_feature_fabric_cgm_ddc_th_tune.BCM8892X": "1",
+            "schan_intr_enable.BCM8892X": "0",
+            "schan_timeout_usec.BCM8892X": "300000",
+            "tdma_intr_enable.BCM8892X": "0",
+            "tdma_timeout_usec.BCM8892X": "5000000",
+            "tslam_intr_enable.BCM8892X": "0",
+            "tslam_timeout_usec.BCM8892X": "5000000",
+            "miim_intr_enable.BCM8892X": "0",
+            "miim_timeout_usec.BCM8892X": "300000",
+            "rate_int_mdio_divisor.BCM8892X": "50",
+            "mdio_output_delay_int.BCM8892X": "25",
+            "rate_ext_mdio_divisor.BCM8892X": "14",
+            "mdio_output_delay_ext.BCM8892X": "14",
+            "warmboot_support.BCM8892X": "on",
+            "sw_state_max_size.BCM8892X": "1500000",
+            "stable_location.BCM8892X": "4",
+            "stable_size.BCM8892X": "1600000",
+            "mem_cache_enable_parity.BCM8892X": "1",
+            "ucode_port_1.BCM88295": "CGE8:core_0.1",
+            "ucode_port_5.BCM88295": "IGNORE",
+            "ucode_port_6.BCM88295": "IGNORE",
+            "ucode_port_7.BCM88295": "IGNORE",
+            "bcm_stat_interval.BCM8892X_ADAPTER": "0",
+            "polled_irq_mode.BCM8892X_ADAPTER": "1",
+            "polled_irq_delay.BCM8892X_ADAPTER": "400000",
+            "fabric_wrong_connectivity_protection_en": "1"
+        },
+        "prod_config_only" : {
+
+        },
+        "hw_test_config_only" : {
+
+        },
+        "link_test_config_only" : {
+
+        },
+        "benchmark_config_only" : {
+
+        },
+        "port_map_config" : {
+
+        },
+        "multistage_config" : {
+            "NONE" : {
+                "fabric_num_pipes.BCM8892X": "1",
+                "system_contains_multiple_pipe_device.BCM8892X": "0",
+                "fabric_load_balancing_mode": "NORMAL_LOAD_BALANCE"
+            },
+            "FE13" : {
+                "fabric_device_mode": "MULTI_STAGE_FE13",
+                "fabric_num_pipes": "2",
+                "fabric_num_pipes.BCM8892X": "2",
+                "fabric_pipe_map": "0",
+                "fabric_pipe_map_lr_uc":"1",
+                "system_contains_multiple_pipe_device": "1",
+                "system_contains_multiple_pipe_device.BCM8892X": "1",
+                "fabric_load_balancing_mode": "BALANCED_INPUT",
+                "fabric_balanced_input_randomization_mode": "MODID_SEED",
+                "fabric_link_isolation_mode": "LOCAL",
+                "fabric_device_isolation_mode": "LOCAL",
+                "custom_feature_fabric_cgm_credit_based_llfc_th_tune": "0"
+            },
+            "FE13_BEEP" : {
+                "fabric_device_mode": "MULTI_STAGE_FE13",
+                "fabric_num_pipes": "2",
+                "fabric_num_pipes.BCM8892X": "2",
+                "fabric_pipe_map": "0",
+                "fabric_pipe_map_lr_uc":"1",
+                "system_contains_multiple_pipe_device": "1",
+                "system_contains_multiple_pipe_device.BCM8892X": "1",
+                "fabric_load_balancing_mode": "BALANCED_INPUT",
+                "fabric_balanced_input_randomization_mode": "MODID_SEED",
+                "fabric_link_isolation_mode": "LOCAL",
+                "fabric_device_isolation_mode": "LOCAL",
+                "custom_feature_fabric_cgm_credit_based_llfc_th_tune": "0",
+                "fabric_single_pipe_over_dual_pipe": "1"
+            },
+            "FE2" : {
+                "fabric_device_mode": "MULTI_STAGE_FE2",
+                "system_contains_multiple_pipe_device": "1",
+                "system_contains_multiple_pipe_device.BCM8892X": "1",
+                "fabric_link_isolation_mode": "LOCAL",
+                "fabric_device_isolation_mode": "LOCAL",
+                "fabric_load_balancing_mode": "BALANCED_INPUT",
+                "custom_feature_fabric_cgm_credit_based_llfc_th_tune": "0"
+            }
+        }
+    }
+}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Enable local_rpm_repo
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/createrepo /usr/local/share/local_rpm_repo
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

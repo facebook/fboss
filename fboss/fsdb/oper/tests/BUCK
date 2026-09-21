@@ -1,0 +1,201 @@
+load("@fbcode_macros//build_defs:cpp_benchmark.bzl", "cpp_benchmark")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "test_helpers",
+    headers = ["TestHelpers.h"],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "subscription_tests",
+    srcs = ["SubscriptionTests.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/oper:subscription_manager",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:timeout",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+)
+
+cpp_unittest(
+    name = "subscribable_storage_tests",
+    srcs = [
+        "FsdbNsdbPipelineTests.cpp",
+        "SubscribableStorageTests.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    network_access = network_access_utils.none(),
+    supports_static_listing = False,
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":test_helpers",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/lib:common_utils",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:random",
+        "//folly:utility",
+        "//folly/coro:async_generator",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:collect",
+        "//folly/coro:gtest_helpers",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_unittest(
+    name = "dynamic_wildcard_patch_subscription_tests",
+    srcs = [
+        "DynamicWildcardPatchSubscriptionTest.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    network_access = network_access_utils.none(),
+    supports_static_listing = False,
+    deps = [
+        ":test_helpers",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper:subscription_manager",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/lib:common_utils",
+        "//folly/coro:async_generator",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_unittest(
+    name = "path_builder_tests",
+    srcs = ["ExtendedPathBuilderTests.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/fsdb/oper:extended_path_builder",
+    ],
+)
+
+cpp_unittest(
+    name = "path_helper_tests",
+    srcs = [
+        "PathConverterTests.cpp",
+        "PathValidatorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:path_helpers",
+        "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_unittest(
+    name = "subscription_path_store_tests",
+    srcs = [
+        "SubscriptionPathStoreTests.cpp",
+    ],
+    compiler_flags = ["-ftemplate-backtrace-limit=0"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:subscription_manager",
+        "//folly/json:dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "wildcard_patch_candidate_tracker_tests",
+    srcs = [
+        "WildcardPatchCandidateTrackerTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/fsdb/oper:subscription_manager",
+        "//folly/io/async:scoped_event_base_thread",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "subscribable_storage_bench_helper",
+    srcs = [
+        "SubscribableStorageBenchHelper.cpp",
+    ],
+    headers = [
+        "SubscribableStorageBenchHelper.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/thrift_cow/storage/tests:benchmark_helper",
+        "//folly/coro:async_scope",
+        "//folly/executors:cpu_thread_pool_executor",
+        "//folly/synchronization:baton",
+    ],
+    exported_deps = [
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly:benchmark",
+        "//folly:function",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/coro:timeout",
+    ],
+)
+
+cpp_benchmark(
+    name = "subscribable_storage_bench",
+    srcs = [
+        "SubscribableStorageBench.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":subscribable_storage_bench_helper",
+        ":test_helpers",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/fsdb/oper:subscribable_storage",
+        "//fboss/fsdb/oper:subscription_manager",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",
+        "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-types",
+        "//fboss/thrift_cow/storage/tests:benchmark_helper",
+        "//fboss/thrift_cow/storage/tests:data_factory",
+        "//folly:benchmark",
+        "//folly/coro:async_scope",
+        "//folly/coro:blocking_wait",
+        "//folly/coro:task",
+        "//folly/executors:cpu_thread_pool_executor",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/synchronization:baton",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)

@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"cold_boot.LedServiceTest.visualForceAllLeds","morgan800cc","PASSED"
+"cold_boot.LedServiceTest.testTcvrLos","morgan800cc","PASSED"
+"cold_boot.LedServiceTest.checkLedColorChange","morgan800cc","PASSED"
+"cold_boot.LedServiceTest.checkLedBlinking","morgan800cc","PASSED"
+"cold_boot.LedServiceTest.checkForceLed","morgan800cc","PASSED"

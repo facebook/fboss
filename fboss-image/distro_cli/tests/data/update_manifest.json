@@ -1,0 +1,14 @@
+{
+    "distribution_formats": {
+        "onie": "fboss-onie.bin"
+    },
+    "kernel": {
+        "download": "https://example.com/kernel.tar"
+    },
+    "fboss-forwarding-stack": {
+        "download": "file:///opt/fboss/fboss-forwarding-stack.tar"
+    },
+    "fboss-platform-stack": {
+        "execute": "/opt/fboss/build-platform-stack.sh"
+    }
+}

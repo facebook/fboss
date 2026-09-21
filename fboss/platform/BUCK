@@ -1,0 +1,39 @@
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_genrule")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+fbpkg.builder(
+    name = "fboss.platform.stack",
+    architectures = ["x86_64"],
+    expire_days = 28,
+    override_log_paths = ["fboss/platform"],
+    path_actions = {
+        "data_corral_service": "//fboss/platform/data_corral_service:data_corral_service",
+        "data_corral_service.service": "facebook/data_corral_service.service",
+        "fan_service": "//fboss/platform/fan_service:fan_service",
+        "fan_service.service": "facebook/fan_service.service",
+        "fw_util": "//fboss/platform/fw_util:fw_util",
+        "platform_manager": "//fboss/platform/platform_manager:platform_manager",
+        "platform_manager.service": "facebook/platform_manager.service",
+        "rackmon": "//fboss/platform/rackmon:rackmon",
+        "rackmon.service": "facebook/rackmon.service",
+        "rma-showtech": "//fboss/platform/rma-showtech:rma-showtech",
+        "sensor_service": "//fboss/platform/sensor_service:sensor_service",
+        "sensor_service.service": "facebook/sensor_service.service",
+        "sensor_service_client": "//fboss/platform/sensor_service:sensor_service_client",
+        "weutil": "//fboss/platform/weutil:weutil",
+    },
+    split_debuginfo = True,
+)
+
+buck_genrule(
+    name = "all_bsp_metadata",
+    srcs = ["//fboss/configs:platform_manager_configs"],
+    out = "all_bsp_metadata.json",
+    cmd = (
+        "find -L $SRCS -type f -print0 | sort -z | xargs -0 cat | jq -s '"
+        + "[.[] | {key: (.platformName | ascii_downcase), value: {platformName, bspKmodsRpmName, bspKmodsRpmVersion}}] | from_entries"
+        + "' > $OUT"
+    ),
+)

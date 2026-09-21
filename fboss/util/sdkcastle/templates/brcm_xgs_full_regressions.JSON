@@ -1,0 +1,328 @@
+{
+  "testSdkVersion": "brcm-sai/10.2.0.0_odp",
+  "runMode": "full-run",
+  "buildMode": "opt-asan",
+  "testRunnerMode": "meta-internal",
+  "testOutDirPath": "~/mylogs/sdkcastle_logs",
+  "testSpecs": {
+    "hwTests": [
+      {
+        "testName": "tomahawkHwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 3
+            }
+          }
+        }
+      },
+      {
+        "testName": "tomahawk3HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 3
+            }
+          }
+        }
+      },
+      {
+        "testName": "tomahawk4HwTests",
+        "commonTestSpec": {
+          "testTeam": "sai_test",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 3
+            }
+          }
+        }
+      }
+    ],
+    "agentTests": [
+      {
+        "testName": "tomahawkAgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawkAgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      },
+      {
+        "testName": "tomahawk3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk3AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      },
+      {
+        "testName": "tomahawk4AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk4AgentTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 8
+            }
+          }
+        },
+        "npuMode": "multi_switch"
+      }
+    ],
+    "agentScaleTests": [
+      {
+        "testName": "tomahawkAgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk3AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk4AgentScaleTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_scale_test",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      }
+    ],
+    "benchmarkTests": [
+      {
+        "testName": "tomahawkBenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk3BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      },
+      {
+        "testName": "tomahawk4BenchmarkTests",
+        "commonTestSpec": {
+          "testTeam": "sai_bench",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 2
+            }
+          }
+        },
+        "npuMode": "mono"
+      }
+    ],
+    "nWarmbootTests": [
+      {
+        "testName": "tomahawknWarmbootTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk": {
+              "asicTestName": "th",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk"
+              },
+              "numJobs": 1,
+              "regex": "AgentEmptyTest.CheckInit"
+            }
+          }
+        },
+        "npuMode": "mono",
+        "numIterations": "128"
+      },
+      {
+        "testName": "tomahawk3nWarmbootTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk3": {
+              "asicTestName": "th3",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk3"
+              },
+              "numJobs": 1,
+              "regex": "AgentEmptyTest.CheckInit"
+            }
+          }
+        },
+        "npuMode": "mono",
+        "numIterations": "128"
+      },
+      {
+        "testName": "tomahawk4nWarmbootTests",
+        "commonTestSpec": {
+          "testTeam": "sai_agent_test",
+          "asicTestOptions": {
+            "tomahawk4": {
+              "asicTestName": "th4",
+              "bassetQuery": {
+                "devicePool": "fboss.autotest",
+                "asic": "tomahawk4"
+              },
+              "numJobs": 1,
+              "regex": "AgentEmptyTest.CheckInit"
+            }
+          }
+        },
+        "npuMode": "mono",
+        "numIterations": "128"
+      }
+    ]
+  }
+}

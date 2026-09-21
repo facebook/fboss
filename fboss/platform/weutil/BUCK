@@ -1,0 +1,147 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "weutil_core",
+    srcs = [
+        "Weutil.cpp",
+        "WeutilDarwin.cpp",
+        "WeutilImpl.cpp",
+        "prefdl/Prefdl.cpp",
+    ],
+    headers = [
+        "WeutilInterface.h",
+    ],
+    deps = [
+        ":config_utils_lib",
+        ":eeprom_content_validator",
+        ":fboss_eeprom_lib",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/helpers:platform_utils",
+        "//folly:conv",
+        "//folly:format",
+        "//folly:scope_guard",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "fboss_eeprom_lib",
+    srcs = [
+        "FbossEepromInterface.cpp",
+        "ParserUtils.cpp",
+    ],
+    headers = [
+        "FbossEepromInterface.h",
+        "ParserUtils.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":crc16_ccitt_aug",
+        "//folly:string",
+    ],
+    exported_deps = [
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/platform/weutil/if:weutil_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "config_utils_lib",
+    srcs = [
+        "ConfigUtils.cpp",
+    ],
+    headers = [
+        "ConfigUtils.h",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/config_lib:config_lib",
+        "//folly:format",
+        "//folly:string",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "eeprom_content_validator",
+    srcs = [
+        "ContentValidator.cpp",
+    ],
+    deps = ["fbsource//third-party/fmt:fmt"],
+    exported_deps = [],
+)
+
+cpp_library(
+    name = "crc16_ccitt_aug",
+    srcs = [
+        "Crc16CcittAug.cpp",
+    ],
+    headers = [
+        "Crc16CcittAug.h",
+    ],
+)
+
+cpp_library(
+    name = "ioctl_smbus_eeprom_reader",
+    srcs = [
+        "IoctlSmbusEepromReader.cpp",
+    ],
+    headers = [
+        "IoctlSmbusEepromReader.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly:string",
+    ],
+    exported_deps = [],
+)
+
+cpp_binary(
+    name = "weutil",
+    srcs = [
+        "main.cpp",
+    ],
+    deps = [
+        ":config_utils_lib",
+        ":weutil_core",
+        "//fboss/platform/helpers:init_cli",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+)
+
+custom_unittest(
+    name = "test_weutil_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :weutil)",
+    ],
+    type = "simple",
+)

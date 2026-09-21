@@ -1,0 +1,35 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "qsfp_util_test",
+    srcs = [
+        "QsfpUtilTest.cpp",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    network_access = network_access_utils.none(),
+    deps = [
+        "//common/init:init",
+        "//fboss/util:wedge_qsfp_util_module",
+        "//folly:singleton",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "credo_macsec_util_test",
+    srcs = [
+        "CredoMacsecUtilTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//common/init:init",
+        "//fboss/util:credo_macsec_util_module",
+        "//folly:file_util",
+        "//folly:singleton",
+        "//folly/testing:test_util",
+    ],
+)

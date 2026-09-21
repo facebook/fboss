@@ -1,0 +1,5 @@
+load("//fboss/agent/hw/sai/store:store.bzl", "sai_store_lib")
+
+oncall("fboss_agent_push")
+
+sai_store_lib()

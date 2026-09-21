@@ -1,0 +1,12 @@
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_filegroup")
+
+oncall("fboss_agent_push")
+
+# Filegroup containing all materialized JSON config files for link tests.
+# These configs are used by PortMapTest and other tests that need to validate
+# against real platform configurations.
+buck_filegroup(
+    name = "link_test_configs",
+    srcs = glob(["*.materialized_JSON"]),
+    visibility = ["PUBLIC"],
+)

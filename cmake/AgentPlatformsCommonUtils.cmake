@@ -1,0 +1,34 @@
+# CMake to build libraries and binaries in fboss/agent/platforms/common/utils
+
+# In general, libraries and binaries in fboss/foo/bar are built by
+# cmake/FooBar.cmake
+
+add_library(wedge_led_utils
+  fboss/agent/platforms/common/utils/GalaxyLedUtils.cpp
+  fboss/agent/platforms/common/utils/MinipackLedUtils.cpp
+  fboss/agent/platforms/common/utils/Wedge100LedUtils.cpp
+  fboss/agent/platforms/common/utils/oss/Wedge100LedUtils.cpp
+  fboss/agent/platforms/common/utils/Wedge400LedUtils.cpp
+)
+
+target_link_libraries(wedge_led_utils
+  fboss_error
+  ctrl_cpp2
+  fboss_types
+  transceiver_cpp2
+  facebook_fpga
+  wedge_i2c
+  wedge_transceiver
+  transceiver_cpp2
+  Folly::folly
+)
+
+add_library(bcm_yaml_config
+  fboss/agent/platforms/common/utils/BcmYamlConfig.cpp
+)
+
+target_link_libraries(bcm_yaml_config
+  platform_mapping
+  ${YAML-CPP}
+  ${YAML}
+)

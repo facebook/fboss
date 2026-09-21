@@ -1,0 +1,84 @@
+{
+  "platformName": "SAMPLE_PLATFORM",
+  "pmUnitSensorsList": [
+    {
+      "slotPath": "/SMB_SLOT@0",
+      "pmUnitName": "SMB",
+      "sensors": [
+        {
+          "name": "INLET_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/SMB_INLET_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 85
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "OUTLET_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/SMB_OUTLET_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 70
+          },
+          "compute": "@/1000.0"
+        },
+        {
+          "name": "ASIC_SENSOR",
+          "sysfsPath": "/run/devmap/sensors/ASIC_SENSOR/temp1_input",
+          "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 80
+          },
+          "compute": "@/1000.0"
+        }
+      ]
+    },
+    {
+      "slotPath": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU_2GH",
+      "sensors": [
+        {
+          "name": "PSU1_PIN",
+          "sysfsPath": "/run/devmap/sensors/PSU1_2GH_SENSOR/power1_input",
+          "type": 0,
+          "thresholds": {
+            "upperCriticalVal": 1000
+          },
+          "compute": "@/1000000"
+        },
+        {
+          "name": "PSU1_VIN",
+          "sysfsPath": "/run/devmap/sensors/PSU1_2GH_SENSOR/in1_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 300
+          },
+          "compute": "@/1000.0"
+        }
+      ]
+    }
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "ASIC_SENSOR"
+      ]
+    }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU1_PIN",
+        "slotPath": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN"
+    ],
+    "minAcPsuCount": 1,
+    "minDcPsuCount": 1
+  }
+}

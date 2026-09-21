@@ -1,0 +1,111 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_oss")
+
+# CLI E2E test binary - End-to-end tests for CLI commands
+#
+# These tests run against a live FBOSS agent and execute actual CLI commands.
+# Unlike unit tests, they require the agent to be running with valid config.
+#
+# CLI tests are platform/SAI independent - they test the CLI binary which
+# communicates with the agent via Thrift, regardless of the underlying
+# hardware abstraction layer.
+#
+# Unlike the Python-based CLI tests, these C++ tests directly invoke the CLI
+# library code rather than spawning a subprocess.
+# bazelify: extra_dep = //neteng/fboss/bgp/if:bgp_thrift
+cpp_binary(
+    name = "fboss2_integration_test",
+    srcs = [
+        "ConfigAclRuleTest.cpp",
+        "ConfigAclTest.cpp",
+        "ConfigAdminDistanceTest.cpp",
+        "ConfigArpTest.cpp",
+        "ConfigBgpGlobalTest.cpp",
+        "ConfigBgpSessionTest.cpp",
+        "ConfigConcurrentSessionsTest.cpp",
+        "ConfigCoppTest.cpp",
+        "ConfigDhcpSourceOverrideTest.cpp",
+        "ConfigHostnameTest.cpp",
+        "ConfigIcmpV4UnavailableSrcAddrTest.cpp",
+        "ConfigInterfaceDescriptionTest.cpp",
+        "ConfigInterfaceFlowControlTest.cpp",
+        "ConfigInterfaceIpv6NdpTest.cpp",
+        "ConfigInterfaceLldpExpectedValueTest.cpp",
+        "ConfigInterfaceLookupClassTest.cpp",
+        "ConfigInterfaceLoopbackModeTest.cpp",
+        "ConfigInterfaceMtuTest.cpp",
+        "ConfigInterfaceProfileTest.cpp",
+        "ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
+        "ConfigInterfaceTypeTest.cpp",
+        "ConfigIpRouteTest.cpp",
+        "ConfigL2LearningModeTest.cpp",
+        "ConfigLoadBalancingTest.cpp",
+        "ConfigMacTest.cpp",
+        "ConfigPfcTest.cpp",
+        "ConfigPortQueueConfigTest.cpp",
+        "ConfigPtpTest.cpp",
+        "ConfigQosDefaultPolicyTest.cpp",
+        "ConfigQosDefaultQueueConfigTest.cpp",
+        "ConfigQosPolicyMapTest.cpp",
+        "ConfigSessionClearTest.cpp",
+        "ConfigSflowRateTest.cpp",
+        "ConfigSflowSampleDestTest.cpp",
+        "ConfigTrafficCounterTest.cpp",
+        "ConfigVlanCreateTest.cpp",
+        "ConfigVlanDefaultTest.cpp",
+        "ConfigVlanPortTaggingModeTest.cpp",
+        "ConfigVlanStaticMacTest.cpp",
+        "ConfigVlanSwitchportAccessTest.cpp",
+        "DeleteArpTest.cpp",
+        "DeleteCoppTest.cpp",
+        "DeleteDhcpSourceOverrideTest.cpp",
+        "DeleteInterfaceIpv6NdpTest.cpp",
+        "DeleteInterfaceTest.cpp",
+        "DeleteQosPolicyTest.cpp",
+        "DeleteVlanTest.cpp",
+        "Fboss2IntegrationTest.cpp",
+        "ShowRouteFilterTest.cpp",
+        "TunnelIpInIpTest.cpp",
+        "//fboss/cli/fboss2:cmd-list-config-impl",
+    ],
+    headers = [
+        "ConfigBgpTestBase.h",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:platform_config-cpp2-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-clients",
+        "//fboss/agent/if:ctrl-cpp2-services",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/cli/fboss2:cmd-common-utils",
+        "//fboss/cli/fboss2:cmd-global-options",
+        "//fboss/cli/fboss2:cmd-init-utils",
+        "//fboss/cli/fboss2:cmd-list-header",
+        "//fboss/cli/fboss2:cmd-local-options",
+        "//fboss/cli/fboss2:cmd-subcommands",
+        "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
+        "//fboss/cli/fboss2:fboss2-lib",  # @manual
+        "//fboss/lib/config:fboss_config_utils",
+        "//folly:dynamic",
+        "//folly:file_util",
+        "//folly:network_address",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/init:init",
+        "//folly/json:dynamic",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    external_deps = [
+        "CLI11",
+    ],
+)

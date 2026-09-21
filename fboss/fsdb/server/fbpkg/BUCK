@@ -1,0 +1,20 @@
+load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
+
+oncall("fboss_agent_push")
+
+fboss_fbpkg_builder(
+    name = "neteng.fboss.fsdb",
+    architectures = [
+        "aarch64",
+        "x86_64",
+    ],
+    buck_modes = [
+        "opt",
+        "opt-asan",
+    ],
+    parallel_arch_builds = True,
+    path_actions = {
+        "fsdb": "//fboss/fsdb/server:fsdb",
+        "fsdb.service": "//neteng/fboss/fsdb:fsdb.service",
+    },
+)

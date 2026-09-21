@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+defaults:
+  run:
+    working-directory: ./docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+
+jobs:
+  build:
+    name: Build Docusaurus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: yarn install
+      - name: Build website
+        run: yarn build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

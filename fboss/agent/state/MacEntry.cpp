@@ -1,0 +1,38 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/state/MacEntry.h"
+#include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/StateUtils.h"
+
+#include <sstream>
+
+namespace facebook::fboss {
+
+std::string MacEntry::str() const {
+  std::ostringstream os;
+
+  auto classIDStr = getClassID().has_value()
+      ? folly::to<std::string>(static_cast<int>(getClassID().value()))
+      : "None";
+
+  os << "MacEntry:: MAC: " << getMac().toString() << " " << getPort().str()
+     << " classID: " << classIDStr << " " << " type: "
+     << (getType() == MacEntryType::STATIC_ENTRY ? "static" : "dynamic");
+
+  if (auto configuredField = get<switch_state_tags::configured>()) {
+    os << " configured: " << (configuredField->cref() ? "true" : "false");
+  }
+
+  return os.str();
+}
+
+template struct ThriftStructNode<MacEntry, state::MacEntryFields>;
+
+} // namespace facebook::fboss

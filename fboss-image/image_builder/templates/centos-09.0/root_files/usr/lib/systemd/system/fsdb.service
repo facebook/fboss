@@ -1,0 +1,28 @@
+# /usr/lib/systemd/system/fsdb.service
+[Unit]
+Description=FBOSS FSDB Service
+After=rc-local.service
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+LimitNOFILE=10000000
+LimitCORE=32G
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fsdb'
+
+Restart=always
+RestartSec=3
+TimeoutStartSec=180s
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fsdb
+
+[Install]
+WantedBy=multi-user.target

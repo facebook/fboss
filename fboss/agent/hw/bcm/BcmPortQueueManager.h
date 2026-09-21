@@ -1,0 +1,75 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "fboss/agent/hw/bcm/BcmCosQueueManager.h"
+
+namespace facebook::fboss {
+
+class BcmSwitch;
+
+class BcmPortQueueManager : public BcmCosQueueManager {
+ public:
+  BcmPortQueueManager(
+      BcmSwitch* hw,
+      const std::string& portName,
+      bcm_gport_t portGport)
+      : BcmCosQueueManager(hw, portName, portGport) {}
+
+  ~BcmPortQueueManager() override = default;
+  BcmPortQueueManager(const BcmPortQueueManager&) = delete;
+  BcmPortQueueManager& operator=(const BcmPortQueueManager&) = delete;
+  BcmPortQueueManager(BcmPortQueueManager&&) = delete;
+  BcmPortQueueManager& operator=(BcmPortQueueManager&&) = delete;
+
+  int getNumQueues(cfg::StreamType streamType) const override;
+
+  bcm_gport_t getQueueGPort(cfg::StreamType streamType, bcm_cos_queue_t cosQ)
+      const override;
+
+  BcmPortQueueConfig getCurrentQueueSettings() const override;
+
+  void program(const PortQueue& queue) override;
+
+  const std::vector<BcmCosQueueCounterType>& getQueueCounterTypes()
+      const override;
+
+  static int CosQToBcmInternalPriority(bcm_cos_queue_t cosQ);
+  static bcm_cos_queue_t bcmInternalPriorityToCosQ(int prio);
+
+ private:
+  const PortQueue& getDefaultQueueSettings(
+      cfg::StreamType streamType) const override;
+
+  std::unique_ptr<PortQueue> getCurrentQueueSettings(
+      cfg::StreamType streamType,
+      bcm_cos_queue_t cosQ) const override;
+
+  void getAqms(bcm_gport_t gport, bcm_cos_queue_t cosQ, PortQueue* queue) const;
+
+  void
+  programAqms(bcm_gport_t gport, bcm_cos_queue_t cosQ, const PortQueue& queue);
+
+  // if detection is null, the aqm for such behavior will be reset to default
+  void programAqm(
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosQ,
+      cfg::QueueCongestionBehavior behavior,
+      std::optional<cfg::QueueCongestionDetection> detection);
+
+  std::pair<bcm_gport_t, bcm_cos_queue_t> getQueueStatIDPair(
+      bcm_cos_queue_t cosQ,
+      cfg::StreamType streamType) override;
+
+  void
+  programTrafficClass(bcm_gport_t queueGport, bcm_cos_queue_t cosQ, int prio);
+};
+
+} // namespace facebook::fboss

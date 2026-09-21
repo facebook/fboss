@@ -1,0 +1,14 @@
+# FBOSS_STRONG_TYPE (fboss/agent/types.h) wraps BOOST_STRONG_TYPEDEF, which gives
+# the type a user-provided copy ctor. clang-tidy's performance-* checks then treat
+# it as expensive to copy, even though it holds a single integer.
+#
+# CheckOptions replace the parent value rather than merging it, so the
+# fbcode/.clang-tidy pointer patterns are repeated below.
+---
+InheritParentConfig: true
+CheckOptions:
+- key: performance-unnecessary-value-param.AllowedTypes
+  value: '[Pp]ointer$;[Pp]tr$;[Rr]ef(erence)?$;^::facebook::fboss::[A-Za-z0-9_]*I[Dd]$;^::facebook::fboss::(BcmAclStatHandle|BcmQosPolicyHandle|DSCP|EXP|PCP|PfcPriority|PhyAddr|StatTimestamp|SwitchIndex|TrafficClass|PreprocessingControl|SeedControl|IPv4NonTcpUdpFieldSelectionControl|IPv6NonTcpUdpFieldSelectionControl|IPv4TcpUdpFieldSelectionControl|IPv6TcpUdpFieldSelectionControl|IPv4TcpUdpPortsEqualFieldSelectionControl|IPv6TcpUdpPortsEqualFieldSelectionControl|TerminatedMPLSFieldSelectionControl|NonTerminatedMPLSFieldSelectionControl|FirstOutputFunctionControl|SecondOutputFunctionControl)$'
+- key: performance-unnecessary-copy-initialization.AllowedTypes
+  value: '[Pp]ointer$;[Pp]tr$;[Rr]ef(erence)?$;^::facebook::fboss::[A-Za-z0-9_]*I[Dd]$;^::facebook::fboss::(BcmAclStatHandle|BcmQosPolicyHandle|DSCP|EXP|PCP|PfcPriority|PhyAddr|StatTimestamp|SwitchIndex|TrafficClass|PreprocessingControl|SeedControl|IPv4NonTcpUdpFieldSelectionControl|IPv6NonTcpUdpFieldSelectionControl|IPv4TcpUdpFieldSelectionControl|IPv6TcpUdpFieldSelectionControl|IPv4TcpUdpPortsEqualFieldSelectionControl|IPv6TcpUdpPortsEqualFieldSelectionControl|TerminatedMPLSFieldSelectionControl|NonTerminatedMPLSFieldSelectionControl|FirstOutputFunctionControl|SecondOutputFunctionControl)$'
+...

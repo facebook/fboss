@@ -1,0 +1,68 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#pragma once
+
+#include <string>
+#include <vector>
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
+#include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/TunnelIpInIpDeleteUtils.h"
+
+namespace facebook::fboss {
+
+/*
+ * TunnelIpInIpDecapDeleteArgs captures the tunnel ID and an optional list of
+ * attribute names to reset on an IP-in-IP *decap* tunnel.
+ *
+ * Usage:
+ *   delete tunnel ip-in-ip decap <tunnel-id>                 - delete tunnel
+ *   delete tunnel ip-in-ip decap <tunnel-id> <attr> [<attr>] - reset attrs
+ *
+ * Resettable attributes: source, ttl-mode, dscp-mode, ecn-mode,
+ * termination-type. (Resetting source on a p2p-terminated tunnel requires
+ * resetting termination-type in the same command.)
+ */
+class TunnelIpInIpDecapDeleteArgs
+    : public tunnel_delete_utils::TunnelIpInIpDeleteArgsBase {
+ public:
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ TunnelIpInIpDecapDeleteArgs(std::vector<std::string> v);
+};
+
+struct CmdDeleteTunnelIpInIpDecapTraits : public WriteCommandTraits {
+  using ParentCmd = CmdDeleteTunnelIpInIp;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "tunnel_delete_args",
+        args,
+        "<tunnel-id> [<attr> ...] — with no attrs, deletes the entire tunnel; "
+        "otherwise resets the listed attrs. Resettable attrs: source, "
+        "ttl-mode, dscp-mode, ecn-mode, termination-type");
+  }
+  using ObjectArgType = TunnelIpInIpDecapDeleteArgs;
+  using RetType = std::string;
+};
+
+class CmdDeleteTunnelIpInIpDecap : public CmdHandler<
+                                       CmdDeleteTunnelIpInIpDecap,
+                                       CmdDeleteTunnelIpInIpDecapTraits> {
+ public:
+  using ObjectArgType = CmdDeleteTunnelIpInIpDecapTraits::ObjectArgType;
+  using RetType = CmdDeleteTunnelIpInIpDecapTraits::RetType;
+
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& deleteArgs);
+
+  void printOutput(const RetType& logMsg);
+};
+
+} // namespace facebook::fboss

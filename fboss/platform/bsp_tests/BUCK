@@ -1,0 +1,166 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+load("//fbpkg:fbpkg.bzl", "fbpkg")
+
+oncall("fboss_platform")
+
+thrift_library(
+    name = "fbiob_device_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "fbiob_device_config.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "bsp_tests_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bsp_tests_config.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)
+
+thrift_library(
+    name = "bsp_tests_runtime_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {
+        "bsp_tests_runtime_config.thrift": [],
+    },
+    deps = [
+        ":bsp_tests_config",
+        ":fbiob_device_config",
+        "//fboss/platform/platform_manager:platform_manager_config",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "utils",
+    srcs = [
+        "utils/CdevUtils.cpp",
+        "utils/GpioUtils.cpp",
+        "utils/HwmonUtils.cpp",
+        "utils/I2CUtils.cpp",
+        "utils/KmodUtils.cpp",
+        "utils/WatchdogUtils.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
+        ":bsp_test_environment",
+        ":fbiob_device_config-cpp2-types",
+        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/platform_manager:fan_cpld_manager",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
+        "//fboss/platform/platform_manager:i2c_explorer",
+        "//fboss/platform/platform_manager:i2c_misc",
+        "//fboss/platform/platform_manager:pci_explorer",
+        "//fboss/platform/platform_manager:system_interface",
+        "//folly:file_util",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":bsp_tests_runtime_config-cpp2-types",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+    ],
+)
+
+cpp_binary(
+    name = "bsp_tests",
+    srcs = [
+        "BspTest.cpp",
+        "BspTestRunner.cpp",
+        "CdevTests.cpp",
+        "GpioTests.cpp",
+        "HwmonTests.cpp",
+        "I2CTests.cpp",
+        "KmodTests.cpp",
+        "LedTests.cpp",
+        "WatchdogTests.cpp",
+        "XcvrTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/re2:re2",
+        ":bsp_test_environment",
+        ":bsp_tests_config-cpp2-types",
+        ":utils",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/platform_manager:fbiob_ioctl_h",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly:format",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_unittest(
+    name = "runtime_config_builder_test",
+    srcs = [
+        "RuntimeConfigBuilderTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":bsp_test_environment",
+        "//fboss/platform/config_lib:config_lib",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_library(
+    name = "bsp_test_environment",
+    srcs = [
+        "BspTestEnvironment.cpp",
+        "RuntimeConfigBuilder.cpp",
+    ],
+    deps = [
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:utils",
+        "//folly:file_util",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":bsp_tests_config-cpp2-types",
+        ":bsp_tests_runtime_config-cpp2-types",
+        ":fbiob_device_config-cpp2-types",
+        "//fboss/platform/platform_manager:pkg_manager",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+fbpkg.builder(
+    name = "fboss_bsp_tests",
+    architectures = ["x86_64"],
+    path_actions = {
+        "bsp_tests": ":bsp_tests",
+    },
+    split_debuginfo = True,
+)

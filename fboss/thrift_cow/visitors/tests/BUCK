@@ -1,0 +1,137 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "visitor_test_utils",
+    srcs = [
+        "VisitorTestUtils.cpp",
+    ],
+    headers = [
+        "VisitorTestUtils.h",
+    ],
+    deps = [
+        "//folly/json:dynamic",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+    exported_deps = [
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_unittest(
+    name = "path_visitor_tests",
+    srcs = [
+        "PathVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "extpath_visitor_tests",
+    srcs = [
+        "ExtendedPathVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/fsdb/oper:extended_path_builder",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "extpath_matcher_tests",
+    srcs = [
+        "ExtendedPathMatcherTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/thrift_cow/visitors:visitors",
+    ],
+)
+
+cpp_unittest(
+    name = "delta_visitor_tests",
+    srcs = [
+        "DeltaVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_unittest(
+    name = "recurse_visitor_tests",
+    srcs = [
+        "RecurseVisitorTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = ["-DENABLE_DYNAMIC_APIS"],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":visitor_test_utils",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly:string",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)
+
+cpp_unittest(
+    name = "patch_visitor_tests",
+    srcs = [
+        "PatchApplierTests.cpp",
+        "PatchBuildApplyTests.cpp",
+        "PatchBuilderTests.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    preprocessor_flags = [
+        "-DENABLE_DYNAMIC_APIS",
+    ],
+    deps = [
+        ":visitor_test_utils",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/thrift_cow:patch-cpp2-types",
+        "//fboss/thrift_cow/nodes:nodes",
+        "//fboss/thrift_cow/nodes/tests:test-cpp2-types",
+        "//fboss/thrift_cow/visitors:visitors",
+        "//folly/json:dynamic",
+    ],
+)

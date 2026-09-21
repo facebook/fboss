@@ -1,0 +1,19 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "fan_service_integration_test",
+    srcs = [
+        "FanSensorFsdbIntegrationTests.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fb303:service_data",
+        "//fboss/lib:common_utils",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/fan_service:core",
+        "//fboss/platform/helpers:init",
+        "//folly:subprocess",
+    ],
+)

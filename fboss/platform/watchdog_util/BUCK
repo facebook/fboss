@@ -1,0 +1,62 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "watchdog_util_core",
+    srcs = [
+        "ConfigResolver.cpp",
+        "DevmemReader.cpp",
+        "I2cReader.cpp",
+        "Readers/AristaFanCpldWdReader.cpp",
+        "Readers/AristaScdWdReader.cpp",
+        "Readers/CiscoFpgaWdReader.cpp",
+        "Readers/FbFanCpldWdReader.cpp",
+        "WatchdogUtil.cpp",
+    ],
+    headers = [
+        "ConfigResolver.h",
+        "DevmemReader.h",
+        "I2cReader.h",
+        "Readers/AristaFanCpldWdReader.h",
+        "Readers/AristaScdWdReader.h",
+        "Readers/CiscoFpgaWdReader.h",
+        "Readers/FbFanCpldWdReader.h",
+        "WatchdogInfo.h",
+        "WatchdogReader.h",
+        "WatchdogUtil.h",
+    ],
+    deps = [
+        "fbsource//third-party/re2:re2",
+        "//fboss/platform/config_lib:config_lib",
+        "//folly:dynamic",
+        "//folly:file_util",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_deps = [
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+    ],
+    exported_external_deps = [
+        ("glibc", None, "rt"),
+    ],
+)
+
+cpp_binary(
+    name = "watchdog_util",
+    srcs = [
+        "main.cpp",
+    ],
+    deps = [
+        ":watchdog_util_core",
+        "//fboss/platform/helpers:init_cli",
+        "//folly/logging:init",
+        "//folly/logging:logging",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)

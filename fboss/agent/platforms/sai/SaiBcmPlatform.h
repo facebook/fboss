@@ -1,0 +1,65 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#pragma once
+
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
+
+#include <folly/Range.h>
+
+namespace facebook::fboss {
+
+class SaiBcmPlatform : public SaiPlatform {
+ public:
+  using SaiPlatform::SaiPlatform;
+  std::string getHwConfig() override;
+  std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
+
+  std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
+    // TODO: implement this
+    return {};
+  }
+  std::optional<sai_port_interface_type_t> getInterfaceType(
+      TransmitterTechnology transmitterTech,
+      cfg::PortSpeed speed) const override;
+  // TODO: Move this method to software SDK info instead of platform info.
+  bool isSerdesApiSupported() const override {
+    return true;
+  }
+  bool supportInterfaceType() const override {
+    return true;
+  }
+  const char* getHwConfigValue(const std::string& key) const;
+  virtual bool supportsDynamicBcmConfig() const {
+    return false;
+  }
+  virtual bool needPortVcoChange(
+      cfg::PortSpeed oldSpeed,
+      phy::FecMode oldFec,
+      cfg::PortSpeed newSpeed,
+      phy::FecMode newFec) const;
+  virtual phy::VCOFrequency getPortVcoFrequency(
+      cfg::PortSpeed speed,
+      phy::FecMode fec) const;
+
+ protected:
+  void initWedgeLED(int led, folly::ByteRange range);
+
+ private:
+  // SOC (name, value) properties that --bcm_sdk_log_file injects so the SDK
+  // runs the given diag/SOC command file at init. Empty when the flag is unset.
+  // Validates the path (throws on a missing file) and logs the injected file
+  // once. Single source of truth shared by all getHwConfig() config paths.
+  std::vector<std::pair<std::string, std::string>>
+  getBcmSdkLogFileSocProperties() const;
+
+  std::unordered_map<std::string, std::string> hwConfig_;
+};
+
+} // namespace facebook::fboss

@@ -1,0 +1,128 @@
+{
+  "permissions": [
+    {
+      "action": "BaseService",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FacebookService",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "NeighborListenerClient",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "PacketStream",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "SaiCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "BcmCtrl",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "MACHINE",
+            "id_data": "localhost"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.getLldpNeighbors",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "SERVICE_IDENTITY",
+            "id_data": "neteng_network_health"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
+    }
+  ],
+  "point_of_contact": {
+    "id_type": "ONCALL",
+    "id_data": "fboss_agent"
+  }
+}

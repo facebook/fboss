@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","tahan800bc","PASSED"
+"FanServiceHwTest.ODSCounters","tahan800bc","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","tahan800bc","PASSED"
+"FanServiceHwTest.FanStatusesThrift","tahan800bc","PASSED"
+"FanServiceHwTest.FanControl","tahan800bc","PASSED"

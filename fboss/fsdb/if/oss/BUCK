@@ -1,0 +1,161 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+load("@fbcode_macros//build_defs:native_rules.bzl", "buck_sh_binary")
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+load("@fbcode_macros//build_defs/lib:copy_rule.bzl", "copy_rule")
+load("@fbsource//tools/target_determinator/macros:ci.bzl", "ci")
+load("@fbsource//tools/target_determinator/macros:ci_sandcastle.bzl", "ci_sandcastle")
+load("//fboss/thriftpath_plugin/facebook:thriftpath_plugin.bzl", "thrift_plugin_thriftpath")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "fsdb_model",
+    cpp2_deps = [],
+    go_thrift_namespaces = {
+        "fsdb_model.thrift": "facebook.fboss.fsdb",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py3-deprecated",
+        "python",
+    ],
+    plugins = [
+        thrift_plugin_thriftpath(),
+    ],
+    py3_namespace = "neteng.fboss",
+    py_asyncio_base_module = "neteng.fboss.asyncio",
+    thrift_cpp2_options = "reflection,json",
+    thrift_srcs = {
+        "fsdb_model.thrift": [],
+    },
+    deps = [
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy",
+        "//fboss/agent:agent_config",
+        "//fboss/agent:agent_info",
+        "//fboss/agent:agent_stats",
+        "//fboss/agent:switch_reachability",
+        "//fboss/agent:switch_state",
+        "//fboss/fsdb/if:fsdb_common",
+        "//fboss/fsdb/if/te_srv6_agent:stats",
+        "//fboss/lib/phy:phy",
+        "//fboss/platform/sensor_service:sensor_service_stats",
+        "//fboss/qsfp_service/if:state",
+        "//fboss/qsfp_service/if:stats",
+        "//neteng/fboss/bgp/if:bgp_route_types",
+        "//neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp:bgp_config_oss",
+        "//thrift/annotation:thrift",
+    ],
+)
+
+cpp_library(
+    name = "fsdb_model_thriftpath",
+    headers = ["fsdb_model_thriftpath.h"],
+    exported_deps = [
+        ":fsdb_model-cpp2-types",
+        "//configerator/structs/neteng/bgp_policy/thrift:rib_policy-cpp2-types",
+        "//fboss/agent:agent_config-cpp2-types",
+        "//fboss/agent:agent_info-cpp2-types",
+        "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_reachability-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/fsdb/if/te_srv6_agent:stats-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/platform/sensor_service:sensor_service_stats-cpp2-types",
+        "//fboss/qsfp_service/if:state-cpp2-types",
+        "//fboss/qsfp_service/if:stats-cpp2-types",
+        "//fboss/thriftpath_plugin:path",
+        "//folly:unit",
+        "//neteng/fboss/bgp/if:bgp_route_types-cpp2-types",
+        "//neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp:bgp_config_oss-cpp2-types",
+    ],
+)
+
+THRIFTPATH_HEADER_TARGET = "//fboss/fsdb/if/oss:fsdb_model-cpp2-thriftpath-fsdb_model.thrift__gen-cpp2-thriftpath/fsdb_model.h"
+
+# copy the generated file to a more sane path
+copy_rule(
+    name = "fsdb_model_thriftpath.h",
+    src = "$(location {})".format(THRIFTPATH_HEADER_TARGET),
+    visibility = ["//fboss/fsdb/if/oss:sync_model_thriftpath"],
+)
+
+buck_sh_binary(
+    name = "sync_model_thriftpath",
+    main = "sync_model_thriftpath.sh",
+    resources = [
+        ":fsdb_model_thriftpath.h",
+    ],
+)
+
+# Unit test to verfiy oss version of thriftpath matches closed source version
+# This is done through sync_model_thriftpath above. If FSDB model changes
+# this test will fail, requiring a resync by running :sync_model_thriftpath
+# and committing generated files
+custom_unittest(
+    name = "verify_oss_thriftpath",
+    command = [
+        "$(exe //fboss/fsdb/if/oss:sync_model_thriftpath)",
+        "verify",
+    ],
+    type = "simple",
+    deps = [
+        "//fboss/fsdb/if/oss:sync_model_thriftpath",
+    ],
+)
+
+# Land-blocking diff signal: runs verify_oss_thriftpath whenever any thrift file
+# in the fsdb_model dependency closure changes. Uses explicit ci_srcs glob
+# patterns since ci_deps with thrift_library targets does not resolve transitive
+# thrift includes to source files for Citadel triggering.
+# Modeled after neteng/fboss/bgp/tools/oss:verify_oss_thrift_signal.
+# @ci-signal-ack
+ci_sandcastle(
+    name = "verify_oss_thriftpath_signal",
+    alias = "fsdb-verify-oss-thriftpath-citadel",
+    args = {
+        "skip_if_error_exists_on_base_revision": True,
+        "steps": [
+            {
+                "name": "Verify FSDB OSS thriftpath header is in sync with thrift model",
+                "shell": "buck2 test --flagfile fbcode//mode/opt fbcode//fboss/fsdb/if/oss:verify_oss_thriftpath",
+            },
+        ],
+    },
+    capabilities = {
+        "tenant": "default-tenant",
+        "type": "fbcode",
+        "vcs": "full-fbsource",
+    },
+    ci_srcs = [
+        # The FSDB model thrift, header, and sync script
+        "fbcode/fboss/fsdb/if/oss/**",
+        "fbcode/fboss/fsdb/if/fsdb_common.thrift",
+        "fbcode/fboss/fsdb/if/te_srv6_agent/**",
+        # Agent thrift files included by fsdb_model.thrift
+        "fbcode/fboss/agent/if/agent_config.thrift",
+        "fbcode/fboss/agent/if/agent_info.thrift",
+        "fbcode/fboss/agent/if/agent_stats.thrift",
+        "fbcode/fboss/agent/if/switch_state.thrift",
+        "fbcode/fboss/agent/if/switch_reachability.thrift",
+        # PHY thrift, included for iPhyStates
+        "fbcode/fboss/lib/phy/phy.thrift",
+        # QSFP thrift files
+        "fbcode/fboss/qsfp_service/if/qsfp_state.thrift",
+        "fbcode/fboss/qsfp_service/if/qsfp_stats.thrift",
+        # Sensor service
+        "fbcode/fboss/platform/sensor_service/sensor_service_stats.thrift",
+        # BGP thrift files (the original source of breakage)
+        "fbcode/neteng/fboss/bgp/if/**",
+        # BGP config thrift
+        "fbcode/neteng/fboss/bgp/public_tld/configerator/structs/**",
+        "fbcode/configerator/structs/neteng/bgp_policy/thrift/**",
+    ],
+    command = "SandcastleUniversalCommand",
+    oncall = "fboss_agent_push",
+    schedules = [
+        ci.diff,
+    ],
+)

@@ -1,0 +1,44 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
+
+oncall("fboss_platform")
+
+cpp_unittest(
+    name = "platform_name_lib_test",
+    srcs = [
+        "PlatformNameLibTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fb303:service_data",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/helpers:mock_platform_utils",
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_fs_utils_test",
+    srcs = [
+        "PlatformFsUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_utils_test",
+    srcs = [
+        "PlatformUtilsTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/helpers:platform_utils",
+    ],
+)

@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","minipack3bta","PASSED"
+"FanServiceHwTest.ODSCounters","minipack3bta","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","minipack3bta","PASSED"
+"FanServiceHwTest.FanStatusesThrift","minipack3bta","PASSED"
+"FanServiceHwTest.FanControl","minipack3bta","PASSED"

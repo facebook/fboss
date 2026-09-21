@@ -1,0 +1,37 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+oncall("fboss_agent_push")
+
+thrift_library(
+    name = "patch",
+    go_thrift_namespaces = {
+        "patch.thrift": "facebook.fboss.thrift_cow",
+    },
+    languages = [
+        "cpp2",
+        "go",
+        "py3-deprecated",
+        "py-deprecated-asyncio",
+        "rust",
+        "python",
+        "py-deprecated",
+    ],
+    no_plugin_deps = [
+        "//thrift/annotation:all",
+        "//thrift/annotation:cpp",
+        "//thrift/annotation:hack",
+        "//thrift/annotation:java",
+        "//thrift/annotation:python",
+    ],
+    py3_namespace = "neteng.fboss.thrift_cow",
+    py_asyncio_base_module = "neteng.fboss.asyncio.thrift_cow",
+    py_base_module = "neteng.fboss.thrift_cow",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {
+        "patch.thrift": [],
+    },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
+)

@@ -1,0 +1,141 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:custom_unittest.bzl", "custom_unittest")
+
+oncall("fboss_platform")
+
+cpp_binary(
+    name = "fan_service",
+    srcs = [
+        "Main.cpp",
+    ],
+    headers = [
+        "DataFetcher.h",
+    ],
+    deps = [
+        ":config_validator",
+        ":core",
+        "//fb303:logging",
+        "//fboss/agent/if:asic_temp-cpp2-types",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/helpers:structured_logger",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//folly/executors:function_scheduler",
+        "//folly/io/async:async_base",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
+    name = "config_validator",
+    srcs = [
+        "ConfigValidator.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/range-v3:range-v3",
+        ":fan_service_config_types",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "fan_service_config_types",
+    headers = [
+        "FanServiceConfigTypes.h",
+    ],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "pid_logic_library",
+    srcs = [
+        "PidLogic.cpp",
+    ],
+    deps = ["//folly/logging:logging"],
+    exported_deps = [
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "core",
+    srcs = [
+        "Bsp.cpp",
+        "ControlLogic.cpp",
+        "FanServiceHandler.cpp",
+        "FsdbSensorSubscriber.cpp",
+        "OvertempCondition.cpp",
+        "SensorData.cpp",
+        "facebook/DataFetcher.cpp",
+        "facebook/FsdbSensorSubscriber.cpp",
+    ],
+    headers = [
+        "Bsp.h",
+        "ControlLogic.h",
+        "DataFetcher.h",
+        "FanServiceHandler.h",
+        "FsdbSensorSubscriber.h",
+        "OvertempCondition.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fan_service_config_types",
+        ":pid_logic_library",
+        "//common/fbwhoami:fb_who_am_i",
+        "//common/services/cpp:facebook_identity_verifier",
+        "//common/services/cpp:tls_constants",
+        "//common/time:time",
+        "//configerator/structs/infrasec/if:acl-cpp2-types",
+        "//fboss/agent:fboss-error",
+        "//fboss/agent/if:asic_temp-cpp2-clients",
+        "//fboss/agent/if:asic_temp-cpp2-types",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/common:flags",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib:common_file_utils",
+        "//fboss/lib:gpiod_line",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-services",
+        "//fboss/platform/fan_service/if:fan_service-cpp2-types",
+        "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-clients",
+        "//fboss/platform/sensor_service/if:sensor_service-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/lib:qsfp-service-client",
+        "//folly:scope_guard",
+        "//folly:string",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_ssl_socket",
+        "//folly/io/async:ssl_options",
+        "//folly/logging:logging",
+        "//folly/system:thread_name",
+        "//infrasec/authorization:base_identity_util",
+        "//security/ca/lib:cert_path_picker",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+    exported_external_deps = [
+        ("libgpiod", None, "gpiod"),
+    ],
+)
+
+custom_unittest(
+    name = "test_fan_service_version",
+    command = [
+        "fboss/lib/test/test_version.sh",
+        "$(exe :fan_service)",
+    ],
+    type = "simple",
+)

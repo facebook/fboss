@@ -1,0 +1,27 @@
+load("//folly/docs:defs.bzl", "copy", "html")
+
+#
+# Actual listing of source files
+#
+
+oncall("fboss_agent_push")
+
+html(
+    src = "Overview.md",
+    support = ["img/primary_classes.svg"],
+)
+
+html(
+    src = "SwitchState.md",
+    support = [
+        "img/state_tree.svg",
+        "img/state_tree_modified.svg",
+    ],
+)
+
+html(
+    src = "ConcurrencyModel.md",
+    support = ["img/fboss_conc_model.jpg"],
+)
+
+copy(path = "style.css")

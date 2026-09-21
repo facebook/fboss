@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","janga800bic","PASSED"
+"FanServiceHwTest.ODSCounters","janga800bic","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","janga800bic","PASSED"
+"FanServiceHwTest.FanStatusesThrift","janga800bic","PASSED"
+"FanServiceHwTest.FanControl","janga800bic","PASSED"

@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","darwin","PASSED"
+"FwUtilHwTest.listFirmwareNames","darwin","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","darwin","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","darwin","PASSED"

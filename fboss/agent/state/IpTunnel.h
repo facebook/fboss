@@ -1,0 +1,104 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+
+#include <optional>
+
+namespace facebook::fboss {
+
+USE_THRIFT_COW(IpTunnel);
+
+class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
+ public:
+  using Base = ThriftStructNode<IpTunnel, state::IpTunnelFields>;
+  explicit IpTunnel(const std::string& id) {
+    set<switch_state_tags::ipTunnelId>(id);
+  }
+  std::string getID() const {
+    return get<switch_state_tags::ipTunnelId>()->cref();
+  }
+  TunnelType getType() const {
+    return static_cast<TunnelType>(get<switch_state_tags::type>()->cref());
+  }
+  void setType(TunnelType type) {
+    set<switch_state_tags::type>(static_cast<int>(type));
+  }
+  InterfaceID getUnderlayIntfId() const {
+    return InterfaceID(get<switch_state_tags::underlayIntfId>()->cref());
+  }
+  void setUnderlayIntfId(InterfaceID id) {
+    set<switch_state_tags::underlayIntfId>(static_cast<int>(id));
+  }
+  cfg::TunnelMode getTTLMode() const {
+    const auto& mode = cref<switch_state_tags::ttlMode>();
+    CHECK(mode);
+    return static_cast<cfg::TunnelMode>(mode->cref());
+  }
+  void setTTLMode(cfg::TunnelMode mode) {
+    setMode<switch_state_tags::ttlMode>(mode);
+  }
+  cfg::TunnelMode getDscpMode() const {
+    const auto& mode = cref<switch_state_tags::dscpMode>();
+    CHECK(mode);
+    return static_cast<cfg::TunnelMode>(mode->cref());
+  }
+  void setDscpMode(cfg::TunnelMode mode) {
+    setMode<switch_state_tags::dscpMode>(mode);
+  }
+  cfg::TunnelMode getEcnMode() const {
+    const auto& mode = cref<switch_state_tags::ecnMode>();
+    CHECK(mode);
+    return static_cast<cfg::TunnelMode>(mode->cref());
+  }
+  void setEcnMode(cfg::TunnelMode mode) {
+    setMode<switch_state_tags::ecnMode>(mode);
+  }
+  cfg::TunnelTerminationType getTunnelTermType() const {
+    return static_cast<cfg::TunnelTerminationType>(
+        get<switch_state_tags::tunnelTermType>()->cref());
+  }
+  void setTunnelTermType(cfg::TunnelTerminationType type) {
+    set<switch_state_tags::tunnelTermType>(static_cast<int>(type));
+  }
+  folly::IPAddress getDstIP() const {
+    return folly::IPAddress(get<switch_state_tags::dstIp>()->cref());
+  }
+  void setDstIP(folly::IPAddress ip) {
+    set<switch_state_tags::dstIp>(ip.str());
+  }
+  folly::IPAddress getSrcIP() const {
+    return folly::IPAddress(get<switch_state_tags::srcIp>()->cref());
+  }
+  void setSrcIP(folly::IPAddress ip) {
+    set<switch_state_tags::srcIp>(ip.str());
+  }
+  folly::IPAddress getDstIPMask() const {
+    return folly::IPAddress(get<switch_state_tags::dstIpMask>()->cref());
+  }
+  void setDstIPMask(folly::IPAddress ip) {
+    set<switch_state_tags::dstIpMask>(ip.str());
+  }
+  folly::IPAddress getSrcIPMask() const {
+    return folly::IPAddress(get<switch_state_tags::srcIpMask>()->cref());
+  }
+  void setSrcIPMask(folly::IPAddress ip) {
+    set<switch_state_tags::srcIpMask>(ip.str());
+  }
+
+  template <typename Tag>
+  void setMode(cfg::TunnelMode mode) {
+    set<Tag>(static_cast<int>(mode));
+  }
+
+ private:
+  // Inherit the constructors required for clone()
+  using Base::Base;
+  friend class CloneAllocator;
+};
+} // namespace facebook::fboss

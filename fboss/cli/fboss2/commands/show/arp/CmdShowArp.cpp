@@ -1,0 +1,168 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "CmdShowArp.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
+#include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fmt/format.h>
+#include <folly/Conv.h>
+#include <folly/IPAddress.h>
+#include <folly/Range.h>
+#include <iostream>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
+
+namespace facebook::fboss {
+
+using ObjectArgType = CmdShowArpTraits::ObjectArgType;
+using RetType = CmdShowArpTraits::RetType;
+
+RetType CmdShowArp::queryClient(const HostInfo& hostInfo) {
+  std::vector<facebook::fboss::ArpEntryThrift> entries;
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+  client->sync_getArpTable(entries);
+  client->sync_getAllPortInfo(portEntries);
+  try {
+    client->sync_getDsfNodes(dsfNodes);
+  } catch (const std::exception&) {
+    // getDsfNodes is not supported on non-DSF switches (e.g. wedge400)
+  }
+  return createModel(entries, portEntries, dsfNodes);
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+CmdShowArp::getAcceptedFilterValues() {
+  return {{"state", {"REACHABLE", "UNREACHABLE"}}};
+}
+
+void CmdShowArp::printOutput(const RetType& model, std::ostream& out) {
+  constexpr auto fmtString =
+      "{:<22}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}{:<45}\n";
+
+  out << fmt::format(
+      fmtString,
+      "IP Address",
+      "MAC Address",
+      "Interface",
+      "VLAN",
+      "State",
+      "TTL",
+      "CLASSID",
+      "Voq Switch");
+
+  for (const auto& entry : model.arpEntries().value()) {
+    out << fmt::format(
+        fmtString,
+        entry.ip().value(),
+        entry.mac().value(),
+        entry.ifName().value(),
+        entry.vlan().value(),
+        entry.state().value(),
+        folly::copy(entry.ttl().value()),
+        folly::copy(entry.classID().value()),
+        entry.switchName().value());
+  }
+  out << std::endl;
+}
+
+RetType CmdShowArp::createModel(
+    std::vector<facebook::fboss::ArpEntryThrift>& arpEntries,
+    std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
+    const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  RetType model;
+
+  for (const auto& entry : arpEntries) {
+    cli::ArpEntry arpDetails;
+    auto vlan = entry.vlanName().value();
+    if (folly::copy(entry.vlanID().value()) != ctrl_constants::NO_VLAN()) {
+      vlan += folly::to<std::string>(
+          " (", folly::copy(entry.vlanID().value()), ")");
+    }
+
+    auto ip = folly::IPAddress::fromBinary(
+        folly::ByteRange(
+            folly::StringPiece(entry.ip().value().addr().value())));
+    arpDetails.ip() = ip.str();
+    arpDetails.mac() = entry.mac().value();
+    arpDetails.port() = folly::copy(entry.port().value());
+    arpDetails.vlan() = vlan;
+    arpDetails.state() = entry.state().value();
+    arpDetails.ttl() = folly::copy(entry.ttl().value());
+    arpDetails.classID() = folly::copy(entry.classID().value());
+    if (*entry.isLocal()) {
+      arpDetails.ifName() =
+          portEntries[folly::copy(entry.port().value())].name().value();
+    } else {
+      arpDetails.ifName() =
+          folly::to<std::string>(folly::copy(entry.port().value()));
+    }
+    arpDetails.switchName() = "--";
+    if (entry.switchId().has_value()) {
+      auto ditr = dsfNodes.find(*entry.switchId());
+      arpDetails.switchName() = ditr != dsfNodes.end()
+          ? folly::to<std::string>(
+                *ditr->second.name(), " (", *entry.switchId(), ")")
+          : folly::to<std::string>(*entry.switchId());
+    }
+
+    model.arpEntries()->push_back(arpDetails);
+  }
+  return model;
+}
+
+std::string_view CmdShowArpTraits::description() {
+  return "Displays the switch's ARP table: each resolved IPv4 neighbor, the "
+         "interface or port it was learned on, its VLAN, and reachability "
+         "state. Use it to confirm L3 next-hops are present before debugging "
+         "routing.";
+}
+
+RetType CmdShowArp::sampleModel() {
+  RetType model;
+
+  cli::ArpEntry entry1;
+  entry1.ip() = "10.0.0.1";
+  entry1.mac() = "02:90:fb:5e:00:01";
+  entry1.ifName() = "eth1/1/1";
+  entry1.vlan() = "downlinks (2000)";
+  entry1.state() = "REACHABLE";
+  entry1.ttl() = 45013;
+  entry1.classID() = 0;
+  entry1.switchName() = "--";
+
+  cli::ArpEntry entry2;
+  entry2.ip() = "10.0.0.2";
+  entry2.mac() = "02:90:fb:5e:00:02";
+  entry2.ifName() = "eth2/1/1";
+  entry2.vlan() = "uplink_1 (4001)";
+  entry2.state() = "REACHABLE";
+  entry2.ttl() = 21045;
+  entry2.classID() = 0;
+  entry2.switchName() = "--";
+
+  model.arpEntries() = {entry1, entry2};
+  return model;
+}
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
+
+} // namespace facebook::fboss

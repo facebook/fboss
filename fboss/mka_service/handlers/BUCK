@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "macsec_handler",
+    headers = [
+        "MacsecHandler.h",
+    ],
+    exported_deps = [
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//fboss/lib/phy:phy-cpp2-types",
+        "//fboss/mka_service/if:mka_structs-cpp2-types",
+    ],
+)

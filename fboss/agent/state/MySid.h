@@ -1,0 +1,169 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <common/network/if/gen-cpp2/Address_types.h>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/types.h"
+
+namespace facebook::fboss {
+
+USE_THRIFT_COW(MySid);
+
+class MySid : public ThriftStructNode<MySid, state::MySidFields> {
+ public:
+  using Base = ThriftStructNode<MySid, state::MySidFields>;
+
+  std::string getID() const {
+    auto prefix = safe_cref<switch_state_tags::mySid>();
+    auto thriftPrefix = prefix->toThrift();
+    auto ip = network::toIPAddress(*thriftPrefix.prefixAddress());
+    auto len = *thriftPrefix.prefixLength();
+    return folly::IPAddress::networkToString(
+        std::make_pair(ip, static_cast<uint8_t>(len)));
+  }
+
+  MySidType getType() const {
+    return get<switch_state_tags::type>()->cref();
+  }
+
+  void setType(MySidType type) {
+    set<switch_state_tags::type>(type);
+  }
+
+  folly::CIDRNetwork getMySid() const {
+    auto thriftPrefix = get<switch_state_tags::mySid>()->toThrift();
+    auto ip = network::toIPAddress(*thriftPrefix.prefixAddress());
+    auto len = *thriftPrefix.prefixLength();
+    return std::make_pair(ip, static_cast<uint8_t>(len));
+  }
+
+  std::optional<NextHopSetID> getResolvedNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::resolvedNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setResolvedNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::resolvedNextHopsId>(static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::resolvedNextHopsId>().reset();
+    }
+  }
+
+  std::optional<NextHopSetID> getUnresolveNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::unresolveNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setUnresolveNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::unresolveNextHopsId>(static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::unresolveNextHopsId>().reset();
+    }
+  }
+
+  bool resolved() const {
+    return getType() == MySidType::DECAPSULATE_AND_LOOKUP ||
+        getResolvedNextHopsId().has_value();
+  }
+
+  std::optional<int32_t> getAdjacencyInterfaceId() const {
+    if (auto id = safe_cref<switch_state_tags::adjacencyInterfaceId>()) {
+      return id->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setAdjacencyInterfaceId(std::optional<int32_t> id) {
+    if (id) {
+      set<switch_state_tags::adjacencyInterfaceId>(*id);
+    } else {
+      ref<switch_state_tags::adjacencyInterfaceId>().reset();
+    }
+  }
+
+  ClientID getClientId() const {
+    return cref<switch_state_tags::clientId>()->cref();
+  }
+
+  void setClientId(ClientID clientId) {
+    set<switch_state_tags::clientId>(clientId);
+  }
+
+  std::optional<bool> getIsV6() const {
+    if (auto val = safe_cref<switch_state_tags::isV6>()) {
+      return val->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setIsV6(std::optional<bool> isV6) {
+    if (isV6) {
+      set<switch_state_tags::isV6>(*isV6);
+    } else {
+      ref<switch_state_tags::isV6>().reset();
+    }
+  }
+
+  std::optional<std::string> getNamedNextHopGroup() const {
+    if (auto val = safe_cref<switch_state_tags::namedNextHopGroup>()) {
+      return val->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setNamedNextHopGroup(const std::optional<std::string>& name) {
+    if (name) {
+      set<switch_state_tags::namedNextHopGroup>(*name);
+    } else {
+      ref<switch_state_tags::namedNextHopGroup>().reset();
+    }
+  }
+
+  std::optional<NextHopSetID> getBackupResolvedNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::backupResolvedNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setBackupResolvedNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::backupResolvedNextHopsId>(
+          static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::backupResolvedNextHopsId>().reset();
+    }
+  }
+
+  std::optional<NextHopSetID> getBackupUnresolveNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::backupUnresolveNextHopsId>()) {
+      return NextHopSetID(id->cref());
+    }
+    return std::nullopt;
+  }
+
+  void setBackupUnresolveNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::backupUnresolveNextHopsId>(
+          static_cast<int64_t>(*id));
+    } else {
+      ref<switch_state_tags::backupUnresolveNextHopsId>().reset();
+    }
+  }
+
+ private:
+  // Inherit the constructors required for clone()
+  using Base::Base;
+  friend class CloneAllocator;
+};
+
+} // namespace facebook::fboss
