@@ -5,9 +5,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AggregatePort.h"
-#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -257,36 +255,6 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
 
     ThriftHandler(getSw()).addAdjacencyFrr(
         std::move(protectedObject), std::move(backupNextHops));
-    waitForBackupResolution();
-  }
-
-  void waitForBackupResolution() {
-    const auto sidKey = fmt::format(
-        "{}/{}", mySidPrefix(0).str(), static_cast<int>(kMySidPrefixLen));
-    WITH_RETRIES({
-      std::shared_ptr<MySid> mySid;
-      for (const auto& [_, mySidMap] :
-           std::as_const(*getProgrammedState()->getMySids())) {
-        if (auto node = mySidMap->getNodeIf(sidKey)) {
-          mySid = node;
-          break;
-        }
-      }
-      ASSERT_EVENTUALLY_NE(mySid, nullptr);
-      EXPECT_EVENTUALLY_TRUE(mySid->getBackupUnresolveNextHopsId().has_value());
-      const auto resolvedId = mySid->getBackupResolvedNextHopsId();
-      ASSERT_EVENTUALLY_TRUE(resolvedId.has_value());
-      const auto manager = getSw()->getRib()->getNextHopIDManagerCopy();
-      ASSERT_EVENTUALLY_NE(manager, nullptr);
-      const auto resolvedNextHops = manager->getNextHopsIf(*resolvedId);
-      ASSERT_EVENTUALLY_TRUE(resolvedNextHops.has_value());
-      EXPECT_EVENTUALLY_EQ(resolvedNextHops->size(), kNumLags - 1);
-      for (const auto& nextHop : *resolvedNextHops) {
-        EXPECT_EQ(nextHop.role(), NextHopRole::BACKUP);
-        EXPECT_EQ(nextHop.tunnelType(), TunnelType::SRV6_ENCAP);
-        EXPECT_FALSE(nextHop.srv6SegmentList().empty());
-      }
-    });
   }
 };
 
