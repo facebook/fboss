@@ -57,6 +57,14 @@ struct SaiVirtualChannelTraits {
       std::optional<Attributes::CbfcSenderCreditProfile>,
       std::optional<Attributes::CbfcReceiverEnable>,
       std::optional<Attributes::CbfcSenderEnable>>;
+
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
+  static constexpr std::array<sai_stat_id_t, 4> CounterIdsToRead = {
+      SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_CONSUMED,
+      SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_FREED,
+      SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED,
+      SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED,
+  };
 };
 
 SAI_ATTRIBUTE_NAME(VirtualChannel, Port);
@@ -64,6 +72,9 @@ SAI_ATTRIBUTE_NAME(VirtualChannel, Index);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderCreditProfile);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverEnable);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderEnable);
+
+template <>
+struct SaiObjectHasStats<SaiVirtualChannelTraits> : public std::true_type {};
 
 class VirtualChannelApi : public SaiApi<VirtualChannelApi> {
  public:
@@ -97,6 +108,26 @@ class VirtualChannelApi : public SaiApi<VirtualChannelApi> {
       VirtualChannelSaiId key,
       const sai_attribute_t* attr) const {
     return api_->set_virtual_channel_attribute(key, attr);
+  }
+
+  sai_status_t _getStats(
+      VirtualChannelSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return mode == SAI_STATS_MODE_READ
+        ? api_->get_virtual_channel_stats(
+              key, num_of_counters, counter_ids, counters)
+        : api_->get_virtual_channel_stats_ext(
+              key, num_of_counters, counter_ids, mode, counters);
+  }
+
+  sai_status_t _clearStats(
+      VirtualChannelSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_virtual_channel_stats(key, num_of_counters, counter_ids);
   }
 
   sai_virtual_channel_api_t* api_;
