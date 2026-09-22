@@ -3366,6 +3366,12 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{mapping});
         break;
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      case SAI_QOS_MAP_TYPE_TC_TO_VC:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosTcToVcMap{mapping});
+        break;
+#endif
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
         /*
          * On certain platforms, applying TC to QUEUE mapping on front panel
@@ -3423,6 +3429,11 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
     if (qosMapHandle->tcToPgMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId);
     }
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+    if (qosMapHandle->tcToVcMap) {
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_VC, nullObjId);
+    }
+#endif
     if (qosMapHandle->pfcPriorityToQueueMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
     }
@@ -3460,6 +3471,12 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
         SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
         qosMapHandle->tcToPgMap->adapterKey());
   }
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+  if (qosMapHandle->tcToVcMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_VC, qosMapHandle->tcToVcMap->adapterKey());
+  }
+#endif
   if (qosMapHandle->pfcPriorityToQueueMap) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
