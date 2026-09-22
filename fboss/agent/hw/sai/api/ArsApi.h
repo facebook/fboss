@@ -96,6 +96,15 @@ struct SaiArsTraits {
         sai_uint32_t,
         AttributeMaxAltMembersPerGroup,
         StdNullOptDefault<sai_uint32_t>>;
+    struct AttributeMaxPrimaryMembersPerGroup {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    // Slots of the group available to primary members. Gated the same way as
+    // MaxAltMembersPerGroup.
+    using MaxPrimaryMembersPerGroup = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeMaxPrimaryMembersPerGroup,
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -109,7 +118,8 @@ struct SaiArsTraits {
       std::optional<Attributes::NextHopGroupType>,
       std::optional<Attributes::SourcePortPrune>,
       std::optional<Attributes::EcmpMemberCount>,
-      std::optional<Attributes::MaxAltMembersPerGroup>>;
+      std::optional<Attributes::MaxAltMembersPerGroup>,
+      std::optional<Attributes::MaxPrimaryMembersPerGroup>>;
 #if defined(CHENAB_SAI_SDK)
   using AdapterHostKey = std::tuple<Attributes::Mode>;
 #else
@@ -148,6 +158,7 @@ SAI_ATTRIBUTE_NAME(Ars, NextHopGroupType)
 SAI_ATTRIBUTE_NAME(Ars, SourcePortPrune)
 SAI_ATTRIBUTE_NAME(Ars, EcmpMemberCount)
 SAI_ATTRIBUTE_NAME(Ars, MaxAltMembersPerGroup)
+SAI_ATTRIBUTE_NAME(Ars, MaxPrimaryMembersPerGroup)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {

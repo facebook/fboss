@@ -24,6 +24,11 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxPrimaryMembersPerGroup::operator()() {
+  return std::nullopt;
+}
 #endif
 
 } // namespace facebook::fboss

@@ -30,7 +30,9 @@ class ArsApiTest : public ::testing::Test {
       std::optional<sai_uint32_t> idleTime = std::nullopt,
       std::optional<sai_uint32_t> maxFlows = std::nullopt,
       std::optional<sai_uint32_t> ecmpMemberCount = std::nullopt,
-      std::optional<sai_uint32_t> maxAltMembersPerGroup = std::nullopt) const {
+      std::optional<sai_uint32_t> maxAltMembersPerGroup = std::nullopt,
+      std::optional<sai_uint32_t> maxPrimaryMembersPerGroup =
+          std::nullopt) const {
     std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
         ecmpMemberCountAttr = std::nullopt;
     if (ecmpMemberCount) {
@@ -44,6 +46,13 @@ class ArsApiTest : public ::testing::Test {
           SaiArsTraits::Attributes::MaxAltMembersPerGroup{
               *maxAltMembersPerGroup};
     }
+    std::optional<SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup>
+        maxPrimaryMembersPerGroupAttr = std::nullopt;
+    if (maxPrimaryMembersPerGroup) {
+      maxPrimaryMembersPerGroupAttr =
+          SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup{
+              *maxPrimaryMembersPerGroup};
+    }
     return SaiArsTraits::CreateAttributes{
         SaiArsTraits::Attributes::Mode{mode},
         SaiArsTraits::Attributes::IdleTime{idleTime.value_or(kIdleTime())},
@@ -55,7 +64,8 @@ class ArsApiTest : public ::testing::Test {
         std::nullopt, // NextHopGroupType
         std::nullopt, // SourcePortPrune
         ecmpMemberCountAttr,
-        maxAltMembersPerGroupAttr};
+        maxAltMembersPerGroupAttr,
+        maxPrimaryMembersPerGroupAttr};
   }
 
   ArsSaiId createArs() const {
@@ -92,6 +102,10 @@ class ArsApiTest : public ::testing::Test {
 
   sai_uint32_t kMaxAltMembersPerGroup() const {
     return 8;
+  }
+
+  sai_uint32_t kMaxPrimaryMembersPerGroup() const {
+    return 248;
   }
 
   std::shared_ptr<FakeSai> fs;
@@ -133,6 +147,24 @@ TEST_F(ArsApiTest, createArsWithMaxAltMembersPerGroup) {
       arsApi->getAttribute(
           arsId, SaiArsTraits::Attributes::MaxAltMembersPerGroup{}),
       kMaxAltMembersPerGroup());
+}
+
+// MaxPrimaryMembersPerGroup covers the rest of the group width.
+TEST_F(ArsApiTest, createArsWithMaxPrimaryMembersPerGroup) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount(),
+          kMaxAltMembersPerGroup(),
+          kMaxPrimaryMembersPerGroup()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(
+          arsId, SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup{}),
+      kMaxPrimaryMembersPerGroup());
 }
 
 // Mode, IdleTime and MaxFlows are part of SaiArsTraits::AdapterHostKey, so
