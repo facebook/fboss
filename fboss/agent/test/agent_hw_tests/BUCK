@@ -156,6 +156,7 @@ cpp_library(
     name = "agent_qos_test_src",
     srcs = [
         "Agent2QueueToOlympicQoSTests.cpp",
+        "AgentDeviceBufferGuaranteeTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
         "AgentEgressQueueScalingFactorTests.cpp",
         "AgentNetworkAIQosSchedulerTests.cpp",

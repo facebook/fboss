@@ -15,6 +15,7 @@ configure_file(
 # QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
 add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDeviceBufferGuaranteeTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
