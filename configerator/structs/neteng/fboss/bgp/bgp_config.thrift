@@ -692,6 +692,13 @@ struct BgpSettingConfig {
    * immediately; a link-up is held until the interface is stable.
    */
   21: optional bool enable_netlink_dampening;
+
+  /**
+   * Maximum number of concurrent thrift stream subscribers (MP-BGP monitors).
+   * Takes effect only when the "stream_subscriber_limit" feature string is
+   * also present in `features`.
+   */
+  22: optional i32 stream_subscriber_limit;
 }
 
 /**
