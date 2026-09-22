@@ -841,7 +841,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<sai_port_media_type_t> propagationDelayMediaType;
 #if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_14_2)
-  if (platform_->getAsic()->isSupported(
+  // Setting an attribute whose id does not resolve on this SDK is a FATAL in
+  // SaiAttribute, so never populate it ahead of the id check.
+  if (SaiPortTraits::Attributes::AttributeCablePropagationDelayMediaType{}() &&
+      platform_->getAsic()->isSupported(
           HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
       managerTable_->switchManager().isMeasureCableLengthEnabled()) {
     if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
