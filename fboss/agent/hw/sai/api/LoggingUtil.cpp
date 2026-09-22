@@ -149,6 +149,10 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     case SAI_API_ARS_PROFILE:
       return "ars_profile";
 #endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+    case SAI_API_VIRTUAL_CHANNEL:
+      return "virtual-channel";
+#endif
     default:
       if (apiType >= SAI_API_MAX) {
         throw FbossError("api type invalid: ", apiType);
@@ -257,6 +261,12 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
     case SAI_OBJECT_TYPE_PORT_LLR_PROFILE:
       return "port-llr-profile";
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+    case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
+      return "virtual-channel";
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE:
+      return "cbfc-credit-profile";
 #endif
     case SAI_OBJECT_TYPE_COUNTER:
       return "counter";
