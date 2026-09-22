@@ -27,7 +27,7 @@
       },
       "priority": 3
     },
-    "cpu_cpld": {
+    "scm_cpld": {
       "upgrade": [
         {
           "commandType": "jam",
