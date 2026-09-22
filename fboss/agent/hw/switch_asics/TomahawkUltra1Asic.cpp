@@ -106,6 +106,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     // PORT_LLR_PROFILE on Tomahawk Ultra.
     case HwAsic::Feature::CBFC:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
     case HwAsic::Feature::MPLS:
     case HwAsic::Feature::MPLS_ECMP:
@@ -232,7 +233,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
