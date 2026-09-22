@@ -63,7 +63,9 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
     std::optional<SaiArsTraits::Attributes::NextHopGroupType> nextHopGroupType,
     std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune,
     const std::optional<SaiArsTraits::Attributes::EcmpMemberCount>&
-        ecmpMemberCount) const {
+        ecmpMemberCount,
+    const std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>&
+        maxAltMembersPerGroup) const {
   std::optional<SaiArsTraits::Attributes::IdleTime> idleTimeAttr = std::nullopt;
   if (idleTime) {
     idleTimeAttr = SaiArsTraits::Attributes::IdleTime{*idleTime};
@@ -81,7 +83,8 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
       alternatePathBias,
       nextHopGroupType,
       sourcePortPrune,
-      ecmpMemberCount};
+      ecmpMemberCount,
+      maxAltMembersPerGroup};
 }
 
 void SaiArsManager::setArsObject(

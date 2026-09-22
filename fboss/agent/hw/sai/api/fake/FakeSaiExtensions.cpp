@@ -1192,6 +1192,11 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
   return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
+  return SAI_ARS_ATTR_MAX_ALT_MEMEBERS_PER_GROUP;
+}
 #endif
 
 } // namespace facebook::fboss

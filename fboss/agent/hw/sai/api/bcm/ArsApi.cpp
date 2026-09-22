@@ -35,6 +35,15 @@ SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
   return std::nullopt;
 #endif
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_15_4) && defined(BRCM_SAI_SDK_XGS)
+  return SAI_ARS_ATTR_MAX_ALT_MEMEBERS_PER_GROUP;
+#else
+  return std::nullopt;
+#endif
+}
 #endif
 
 } // namespace facebook::fboss

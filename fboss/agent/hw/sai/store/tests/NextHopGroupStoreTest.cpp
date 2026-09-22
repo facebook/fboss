@@ -55,6 +55,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
          std::nullopt,
          std::nullopt,
          std::nullopt,
+         std::nullopt,
          std::nullopt},
         0);
   }

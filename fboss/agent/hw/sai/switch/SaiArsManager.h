@@ -75,7 +75,9 @@ class SaiArsManager {
       std::optional<SaiArsTraits::Attributes::SourcePortPrune> sourcePortPrune =
           std::nullopt,
       const std::optional<SaiArsTraits::Attributes::EcmpMemberCount>&
-          ecmpMemberCount = std::nullopt) const;
+          ecmpMemberCount = std::nullopt,
+      const std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>&
+          maxAltMembersPerGroup = std::nullopt) const;
 
   void setArsObject(
       SaiArsHandle* handle,

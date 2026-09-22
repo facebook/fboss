@@ -29,12 +29,20 @@ class ArsApiTest : public ::testing::Test {
       sai_int32_t mode = SAI_ARS_MODE_FLOWLET_QUALITY,
       std::optional<sai_uint32_t> idleTime = std::nullopt,
       std::optional<sai_uint32_t> maxFlows = std::nullopt,
-      std::optional<sai_uint32_t> ecmpMemberCount = std::nullopt) const {
+      std::optional<sai_uint32_t> ecmpMemberCount = std::nullopt,
+      std::optional<sai_uint32_t> maxAltMembersPerGroup = std::nullopt) const {
     std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
         ecmpMemberCountAttr = std::nullopt;
     if (ecmpMemberCount) {
       ecmpMemberCountAttr =
           SaiArsTraits::Attributes::EcmpMemberCount{*ecmpMemberCount};
+    }
+    std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>
+        maxAltMembersPerGroupAttr = std::nullopt;
+    if (maxAltMembersPerGroup) {
+      maxAltMembersPerGroupAttr =
+          SaiArsTraits::Attributes::MaxAltMembersPerGroup{
+              *maxAltMembersPerGroup};
     }
     return SaiArsTraits::CreateAttributes{
         SaiArsTraits::Attributes::Mode{mode},
@@ -46,7 +54,8 @@ class ArsApiTest : public ::testing::Test {
         SaiArsTraits::Attributes::AlternatePathBias{kAlternatePathBias()},
         std::nullopt, // NextHopGroupType
         std::nullopt, // SourcePortPrune
-        ecmpMemberCountAttr};
+        ecmpMemberCountAttr,
+        maxAltMembersPerGroupAttr};
   }
 
   ArsSaiId createArs() const {
@@ -81,6 +90,10 @@ class ArsApiTest : public ::testing::Test {
     return 256;
   }
 
+  sai_uint32_t kMaxAltMembersPerGroup() const {
+    return 8;
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<ArsApi> arsApi;
 };
@@ -103,6 +116,23 @@ TEST_F(ArsApiTest, createArsWithEcmpMemberCount) {
   EXPECT_EQ(
       arsApi->getAttribute(arsId, SaiArsTraits::Attributes::EcmpMemberCount{}),
       kEcmpMemberCount());
+}
+
+// MaxAltMembersPerGroup reserves part of the group for alternate members.
+TEST_F(ArsApiTest, createArsWithMaxAltMembersPerGroup) {
+  auto arsId = arsApi->create<SaiArsTraits>(
+      getArsAttributes(
+          SAI_ARS_MODE_FLOWLET_QUALITY,
+          std::nullopt,
+          std::nullopt,
+          kEcmpMemberCount(),
+          kMaxAltMembersPerGroup()),
+      0);
+  checkArs(arsId);
+  EXPECT_EQ(
+      arsApi->getAttribute(
+          arsId, SaiArsTraits::Attributes::MaxAltMembersPerGroup{}),
+      kMaxAltMembersPerGroup());
 }
 
 // Mode, IdleTime and MaxFlows are part of SaiArsTraits::AdapterHostKey, so

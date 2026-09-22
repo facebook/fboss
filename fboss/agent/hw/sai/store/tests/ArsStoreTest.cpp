@@ -58,7 +58,8 @@ class ArsStoreTest : public SaiStoreTest {
         SaiArsTraits::Attributes::AlternatePathBias{alternatePathBias},
         std::nullopt, // NextHopGroupType
         std::nullopt, // SourcePortPrune
-        std::nullopt}; // EcmpMemberCount
+        std::nullopt, // EcmpMemberCount
+        std::nullopt}; // MaxAltMembersPerGroup
   }
 };
 
@@ -174,7 +175,8 @@ TEST_F(ArsStoreTest, arsCreateCtor) {
       SaiArsTraits::Attributes::AlternatePathBias{75},
       std::nullopt, // NextHopGroupType
       std::nullopt, // SourcePortPrune
-      std::nullopt}; // EcmpMemberCount
+      std::nullopt, // EcmpMemberCount
+      std::nullopt}; // MaxAltMembersPerGroup
   auto hostKey = getAdapterHostKey(c);
   auto obj = createObj<SaiArsTraits>(hostKey, c, 0);
   EXPECT_EQ(GET_OPT_ATTR(Ars, IdleTime, obj.attributes()), 40000);
