@@ -719,6 +719,10 @@ class SaiStore {
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       SaiObjectStore<SaiPortLlrProfileTraits>,
 #endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      SaiObjectStore<SaiVirtualChannelTraits>,
+      SaiObjectStore<SaiCbfcCreditProfileTraits>,
+#endif
       SaiObjectStore<SaiWredTraits>,
       SaiObjectStore<SaiTamTraits>,
       SaiObjectStore<SaiTamReportTraits>,
