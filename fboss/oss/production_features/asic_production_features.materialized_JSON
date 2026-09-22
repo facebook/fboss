@@ -50,7 +50,10 @@
         38,
         39,
         40,
-        79
+        79,
+        9,
+        14,
+        55
     ],
     "chenab2": [
         2,
@@ -102,7 +105,10 @@
         38,
         39,
         40,
-        79
+        79,
+        9,
+        14,
+        55
     ],
     "ebro": [
         2,
@@ -149,7 +155,8 @@
         68,
         110,
         124,
-        125
+        125,
+        129
     ],
     "g202x": [
         2,
@@ -842,7 +849,10 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "LAG",
+        "LAG_LOAD_BALANCER",
+        "LAG_MIRRORING"
     ],
     "chenab2": [
         "CPU_RX_TX",
@@ -894,7 +904,10 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "LAG",
+        "LAG_LOAD_BALANCER",
+        "LAG_MIRRORING"
     ],
     "ebro": [
         "CPU_RX_TX",
@@ -941,7 +954,8 @@
         "MPLS",
         "IP_IN_IP_ENCAP",
         "EMPTY_ACL_MATCHER",
-        "PORT_BOUND_INGRESS_ACL"
+        "PORT_BOUND_INGRESS_ACL",
+        "BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS"
     ],
     "g202x": [
         "CPU_RX_TX",
