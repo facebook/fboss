@@ -32,6 +32,7 @@ sai_status_t create_ars_fn(
   std::optional<sai_uint32_t> ecmp_member_count;
   std::optional<sai_uint32_t> max_alt_members_per_group;
   std::optional<sai_uint32_t> max_primary_members_per_group;
+  std::optional<sai_uint32_t> common_members_threshold_count;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_ATTR_MODE:
@@ -67,6 +68,9 @@ sai_status_t create_ars_fn(
       case SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP:
         max_primary_members_per_group = attr_list[i].value.u32;
         break;
+      case SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT:
+        common_members_threshold_count = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -82,7 +86,8 @@ sai_status_t create_ars_fn(
       source_port_prune,
       ecmp_member_count,
       max_alt_members_per_group,
-      max_primary_members_per_group);
+      max_primary_members_per_group,
+      common_members_threshold_count);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -131,6 +136,9 @@ sai_status_t set_ars_attribute_fn(
       break;
     case SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP:
       ars.max_primary_members_per_group = attr->value.u32;
+      break;
+    case SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT:
+      ars.common_members_threshold_count = attr->value.u32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -197,6 +205,9 @@ sai_status_t get_ars_attribute_fn(
         break;
       case SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP:
         attr_list[i].value.u32 = ars.max_primary_members_per_group.value_or(0);
+        break;
+      case SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT:
+        attr_list[i].value.u32 = ars.common_members_threshold_count.value_or(0);
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

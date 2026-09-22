@@ -79,7 +79,10 @@ class SaiArsManager {
       const std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>&
           maxAltMembersPerGroup = std::nullopt,
       const std::optional<SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup>&
-          maxPrimaryMembersPerGroup = std::nullopt) const;
+          maxPrimaryMembersPerGroup = std::nullopt,
+      const std::optional<
+          SaiArsTraits::Attributes::CommonMembersThresholdCount>&
+          commonMembersThresholdCount = std::nullopt) const;
 
   void setArsObject(
       SaiArsHandle* handle,

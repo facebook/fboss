@@ -105,6 +105,16 @@ struct SaiArsTraits {
         sai_uint32_t,
         AttributeMaxPrimaryMembersPerGroup,
         StdNullOptDefault<sai_uint32_t>>;
+    struct AttributeCommonMembersThresholdCount {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    // How many members shared by every virtual group in the super group there
+    // have to be before the adapter starts promoting them to alternate
+    // members.
+    using CommonMembersThresholdCount = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeCommonMembersThresholdCount,
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = ArsSaiId;
@@ -119,7 +129,8 @@ struct SaiArsTraits {
       std::optional<Attributes::SourcePortPrune>,
       std::optional<Attributes::EcmpMemberCount>,
       std::optional<Attributes::MaxAltMembersPerGroup>,
-      std::optional<Attributes::MaxPrimaryMembersPerGroup>>;
+      std::optional<Attributes::MaxPrimaryMembersPerGroup>,
+      std::optional<Attributes::CommonMembersThresholdCount>>;
 #if defined(CHENAB_SAI_SDK)
   using AdapterHostKey = std::tuple<Attributes::Mode>;
 #else
@@ -159,6 +170,7 @@ SAI_ATTRIBUTE_NAME(Ars, SourcePortPrune)
 SAI_ATTRIBUTE_NAME(Ars, EcmpMemberCount)
 SAI_ATTRIBUTE_NAME(Ars, MaxAltMembersPerGroup)
 SAI_ATTRIBUTE_NAME(Ars, MaxPrimaryMembersPerGroup)
+SAI_ATTRIBUTE_NAME(Ars, CommonMembersThresholdCount)
 
 inline SaiArsTraits::AdapterHostKey getAdapterHostKey(
     const SaiArsTraits::CreateAttributes& createAttributes) {

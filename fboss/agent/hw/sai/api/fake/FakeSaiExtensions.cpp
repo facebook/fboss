@@ -1202,6 +1202,11 @@ std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeMaxPrimaryMembersPerGroup::operator()() {
   return SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeCommonMembersThresholdCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT;
+}
 #endif
 
 } // namespace facebook::fboss

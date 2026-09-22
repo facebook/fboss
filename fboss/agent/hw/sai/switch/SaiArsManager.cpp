@@ -67,7 +67,9 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
     const std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>&
         maxAltMembersPerGroup,
     const std::optional<SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup>&
-        maxPrimaryMembersPerGroup) const {
+        maxPrimaryMembersPerGroup,
+    const std::optional<SaiArsTraits::Attributes::CommonMembersThresholdCount>&
+        commonMembersThresholdCount) const {
   std::optional<SaiArsTraits::Attributes::IdleTime> idleTimeAttr = std::nullopt;
   if (idleTime) {
     idleTimeAttr = SaiArsTraits::Attributes::IdleTime{*idleTime};
@@ -87,7 +89,8 @@ SaiArsTraits::CreateAttributes SaiArsManager::makeArsAttributes(
       sourcePortPrune,
       ecmpMemberCount,
       maxAltMembersPerGroup,
-      maxPrimaryMembersPerGroup};
+      maxPrimaryMembersPerGroup,
+      commonMembersThresholdCount};
 }
 
 void SaiArsManager::setArsObject(
