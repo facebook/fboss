@@ -25,6 +25,14 @@ struct VlanInfo {
   2: bool priorityTagged;
 }
 
+struct PortVcFields {
+  1: i16 id;
+  2: optional string name;
+  3: bool senderEnable = false;
+  4: bool receiverEnable = false;
+  5: optional i64 reservedCreditSize;
+}
+
 struct PortPgFields {
   1: i16 id;
   2: i32 minLimitBytes;
@@ -196,6 +204,9 @@ struct PortFields {
   74: optional string ingressAclTableName;
   // Lookup class assigned to packets arriving on this port.
   75: optional switch_config.AclLookupClassPort userMetaData;
+  76: optional string cbfcConfigName;
+  77: optional list<PortVcFields> virtualChannels;
+  78: optional i64 cbfcSenderCreditLimit;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

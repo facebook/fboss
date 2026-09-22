@@ -364,6 +364,36 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::pgConfigs>(pgConfigs);
   }
 
+  auto getVirtualChannels() const {
+    return safe_cref<switch_state_tags::virtualChannels>();
+  }
+
+  void setVirtualChannels(std::vector<state::PortVcFields> virtualChannels) {
+    set<switch_state_tags::virtualChannels>(std::move(virtualChannels));
+  }
+
+  std::optional<std::string> getCbfcConfigName() const {
+    if (auto name = cref<switch_state_tags::cbfcConfigName>()) {
+      return name->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcConfigName(const std::string& name) {
+    set<switch_state_tags::cbfcConfigName>(name);
+  }
+
+  std::optional<int64_t> getCbfcSenderCreditLimit() const {
+    if (auto limit = cref<switch_state_tags::cbfcSenderCreditLimit>()) {
+      return limit->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderCreditLimit(int64_t limit) {
+    set<switch_state_tags::cbfcSenderCreditLimit>(limit);
+  }
+
   VlanID getIngressVlan() const {
     return VlanID(cref<switch_config_tags::ingressVlan>()->cref());
   }
