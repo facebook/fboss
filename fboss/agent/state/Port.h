@@ -379,8 +379,12 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return std::nullopt;
   }
 
-  void setCbfcConfigName(const std::string& name) {
-    set<switch_state_tags::cbfcConfigName>(name);
+  void setCbfcConfigName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::cbfcConfigName>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcConfigName>(name.value());
   }
 
   std::optional<int64_t> getCbfcSenderCreditLimit() const {
@@ -390,8 +394,12 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return std::nullopt;
   }
 
-  void setCbfcSenderCreditLimit(int64_t limit) {
-    set<switch_state_tags::cbfcSenderCreditLimit>(limit);
+  void setCbfcSenderCreditLimit(const std::optional<int64_t>& limit) {
+    if (!limit) {
+      ref<switch_state_tags::cbfcSenderCreditLimit>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderCreditLimit>(limit.value());
   }
 
   VlanID getIngressVlan() const {

@@ -42,6 +42,7 @@ cpp_unittest(
         "PortPgConfigTests.cpp",
         "PortQueueTests.cpp",
         "PortTests.cpp",
+        "PortVcConfigTests.cpp",
         "QcmConfigTests.cpp",
         "QosPolicyTests.cpp",
         "RouteNextHopEntryTests.cpp",
