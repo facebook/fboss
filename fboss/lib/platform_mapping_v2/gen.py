@@ -89,6 +89,7 @@ OSS_MULTI_NPU_SUPPORTED_PLATFORMS: dict[bool, list[str]] = {
         "m5120csc",
         "wedge800bnhp",
         "wedge800cact",
+        "wedge800cnhp",
         "blackwolf800banw",
         "j4sim",
         "icecube800banw",
@@ -116,7 +117,7 @@ _RAW_PLATFORM_MAPPING_FAMILIES: dict[str, tuple[str, ...]] = {
     "montblanc": ("montblanc", "montblanc_odd_ports_8x100G", "montblanc_gtsw_yolo"),
     "tahansb800bc": ("tahansb800bc", "tahansb800bc_test_fixture"),
     "wedge800bact": ("wedge800bact", "wedge800bnhp"),
-    "wedge800cact": ("wedge800cact",),
+    "wedge800cact": ("wedge800cact", "wedge800cnhp"),
 }
 
 
@@ -225,10 +226,7 @@ def get_command_line_args() -> tuple[str, Optional[str], str, bool]:
 
 
 def generate_platform_mappings(
-    input_dir: str,
-    output_dir: Optional[str],
-    platform_name: str,
-    is_multi_npu: bool,
+    input_dir: str, output_dir: Optional[str], platform_name: str, is_multi_npu: bool
 ) -> None:
     print(f"Finding vendor data in {input_dir}...", file=sys.stderr)
     input_dir = os.path.expanduser(input_dir)
@@ -256,10 +254,7 @@ def generate_platform_mappings_from_vendor_data(
         vendor_data_map, platform_name
     )
     output_dir = get_platform_mapping_output_dir(
-        vendor_data_map,
-        platform_name,
-        output_dir,
-        platform_descriptor_data,
+        vendor_data_map, platform_name, output_dir, platform_descriptor_data
     )
     output_file = os.path.join(output_dir, "platform_mapping.json")
 
