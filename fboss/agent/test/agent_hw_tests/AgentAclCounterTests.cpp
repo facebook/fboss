@@ -984,6 +984,13 @@ constexpr auto kPortUserMetaAclCounterName = "port-user-meta-acl-stats";
 constexpr auto kPortUserMetaFallbackAclName = "port-user-meta-fallback-acl";
 constexpr auto kPortUserMetaFallbackCounterName =
     "port-user-meta-fallback-stats";
+constexpr auto kPortUserMetaWarmbootAclTableName = "port-user-meta-wb-table";
+constexpr auto kPortUserMetaPermitAclName = "port-user-meta-permit-53";
+constexpr auto kPortUserMetaPermitCounterName = "port-meta-permit-53-stats";
+constexpr auto kPortUserMetaDefaultDenyAclName = "port-user-meta-default-deny";
+constexpr auto kPortUserMetaDefaultDenyCounterName = "port-meta-deny-stats";
+constexpr uint16_t kPortUserMetaPermittedL4DstPort = 53;
+constexpr uint16_t kPortUserMetaDeniedL4DstPort = 54;
 constexpr auto kPortLookupClass =
     cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED;
 } // namespace
@@ -1012,7 +1019,7 @@ class AgentPortUserMetaAclTest : public AgentHwTest {
         true /* interfaceHasSubnet */);
   }
 
-  std::unique_ptr<TxPacket> makePacket() {
+  std::unique_ptr<TxPacket> makePacket(uint16_t l4DstPort = kTestDstPort) {
     const auto vlanId = getVlanIDForTx();
     const auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
@@ -1026,9 +1033,51 @@ class AgentPortUserMetaAclTest : public AgentHwTest {
         folly::IPAddressV6("2620:0:1cfe:face:b00c::1"),
         folly::IPAddressV6("2620:0:1cfe:face:b00c::2"),
         kTestSrcPort,
-        kTestDstPort,
+        l4DstPort,
         0,
         255);
+  }
+
+  void addWarmbootAclTable(cfg::SwitchConfig* config) const {
+    utility::addAclTable(
+        config,
+        kPortUserMetaWarmbootAclTableName,
+        1 /* priority */,
+        {cfg::AclTableActionType::PACKET_ACTION,
+         cfg::AclTableActionType::COUNTER},
+        {cfg::AclTableQualifier::LOOKUP_CLASS_PORT,
+         cfg::AclTableQualifier::L4_DST_PORT});
+
+    cfg::AclEntry permitAcl;
+    permitAcl.name() = kPortUserMetaPermitAclName;
+    permitAcl.actionType() = cfg::AclActionType::PERMIT;
+    permitAcl.lookupClassPort() = kPortLookupClass;
+    permitAcl.l4DstPort() = kPortUserMetaPermittedL4DstPort;
+    utility::addAclEntry(
+        config,
+        permitAcl,
+        kPortUserMetaWarmbootAclTableName,
+        cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        config,
+        kPortUserMetaPermitAclName,
+        kPortUserMetaPermitCounterName,
+        {cfg::CounterType::PACKETS});
+
+    cfg::AclEntry defaultDenyAcl;
+    defaultDenyAcl.name() = kPortUserMetaDefaultDenyAclName;
+    defaultDenyAcl.actionType() = cfg::AclActionType::DENY;
+    defaultDenyAcl.lookupClassPort() = kPortLookupClass;
+    utility::addAclEntry(
+        config,
+        defaultDenyAcl,
+        kPortUserMetaWarmbootAclTableName,
+        cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        config,
+        kPortUserMetaDefaultDenyAclName,
+        kPortUserMetaDefaultDenyCounterName,
+        {cfg::CounterType::PACKETS});
   }
 
   void addAcls(cfg::SwitchConfig* config) const {
@@ -1070,6 +1119,180 @@ class AgentPortUserMetaAclTest : public AgentHwTest {
   uint64_t getCounter(const std::string& name) const {
     return utility::getAclInOutPackets(getSw(), name);
   }
+
+  void sendPacketToPort(PortID port, uint16_t l4DstPort) {
+    ASSERT_TRUE(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
+            makePacket(l4DstPort), port));
+  }
+};
+
+class AgentPortUserMetaMultiAclTableTest : public AgentPortUserMetaAclTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::L3_FORWARDING,
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::PORT_USER_METADATA,
+    };
+  }
+
+ protected:
+  void SetUp() override {
+    AgentPortUserMetaAclTest::SetUp();
+    if (IsSkipped()) {
+      return;
+    }
+    helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), RouterID(0));
+  }
+
+  void setupRoute() {
+    XLOG(INFO) << "Programming the IPv6 route used to verify forwarded packets";
+    applyNewState([this](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 1);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, 1);
+  }
+
+  PortID routedEgressPort() const {
+    return helper_->ecmpPortDescriptorAt(0).phyPortID();
+  }
+
+  void verifyForwarded(PortID ingressPort, uint16_t l4DstPort) {
+    const auto egressPort = routedEgressPort();
+    const auto egressPacketsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    XLOG(INFO) << "Sending UDP packet: ingressPort=" << ingressPort
+               << ", l4DstPort=" << l4DstPort
+               << ", expected=PERMITTED, egressPort=" << egressPort
+               << ", egressPacketsBefore=" << egressPacketsBefore;
+    sendPacketToPort(ingressPort, l4DstPort);
+    uint64_t egressPacketsAfter{0};
+    WITH_RETRIES({
+      egressPacketsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      EXPECT_EVENTUALLY_GT(egressPacketsAfter, egressPacketsBefore);
+    });
+    XLOG(INFO) << "Packet result=PERMITTED: ingressPort=" << ingressPort
+               << ", l4DstPort=" << l4DstPort
+               << ", egressPackets=" << egressPacketsBefore << " -> "
+               << egressPacketsAfter;
+  }
+
+  void verifyForwardedWithoutPolicyMatch(
+      PortID ingressPort,
+      uint16_t l4DstPort) {
+    const auto permitCounterBefore = getCounter(kPortUserMetaPermitCounterName);
+    const auto denyCounterBefore =
+        getCounter(kPortUserMetaDefaultDenyCounterName);
+    const auto egressPort = routedEgressPort();
+    const auto egressPacketsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    XLOG(INFO) << "Sending UDP packet from untagged port: ingressPort="
+               << ingressPort << ", l4DstPort=" << l4DstPort
+               << ", expected=PERMITTED without policy match. Counters before: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterBefore
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterBefore
+               << ", egressPackets=" << egressPacketsBefore;
+    sendPacketToPort(ingressPort, l4DstPort);
+    uint64_t permitCounterAfter{0};
+    uint64_t denyCounterAfter{0};
+    uint64_t egressPacketsAfter{0};
+    WITH_RETRIES({
+      egressPacketsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      permitCounterAfter = getCounter(kPortUserMetaPermitCounterName);
+      denyCounterAfter = getCounter(kPortUserMetaDefaultDenyCounterName);
+      EXPECT_EVENTUALLY_GT(egressPacketsAfter, egressPacketsBefore);
+      EXPECT_EVENTUALLY_EQ(permitCounterBefore, permitCounterAfter);
+      EXPECT_EVENTUALLY_EQ(denyCounterBefore, denyCounterAfter);
+    });
+    XLOG(INFO) << "Packet result=PERMITTED without policy match. Counters "
+                  "after: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterAfter
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterAfter << ", egressPackets=" << egressPacketsAfter;
+  }
+
+  void verifyRestrictedPortPermit(PortID ingressPort) {
+    const auto permitCounterBefore = getCounter(kPortUserMetaPermitCounterName);
+    const auto denyCounterBefore =
+        getCounter(kPortUserMetaDefaultDenyCounterName);
+    const auto egressPort = routedEgressPort();
+    const auto egressPacketsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    XLOG(INFO) << "Sending UDP/" << kPortUserMetaPermittedL4DstPort
+               << " packet from restricted port " << ingressPort
+               << "; expected=PERMITTED. Counters before: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterBefore
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterBefore
+               << ", egressPackets=" << egressPacketsBefore;
+    sendPacketToPort(ingressPort, kPortUserMetaPermittedL4DstPort);
+    uint64_t permitCounterAfter{0};
+    uint64_t denyCounterAfter{0};
+    uint64_t egressPacketsAfter{0};
+    WITH_RETRIES({
+      permitCounterAfter = getCounter(kPortUserMetaPermitCounterName);
+      denyCounterAfter = getCounter(kPortUserMetaDefaultDenyCounterName);
+      egressPacketsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      EXPECT_EVENTUALLY_GT(egressPacketsAfter, egressPacketsBefore);
+      EXPECT_EVENTUALLY_GE(permitCounterAfter, permitCounterBefore + 1);
+      EXPECT_EVENTUALLY_LE(permitCounterAfter, permitCounterBefore + 2);
+      EXPECT_EVENTUALLY_EQ(denyCounterBefore, denyCounterAfter);
+    });
+    XLOG(INFO) << "Packet result=PERMITTED by the UDP/53 ACL. Counters after: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterAfter
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterAfter << ", egressPackets=" << egressPacketsAfter;
+  }
+
+  void verifyRestrictedPortDrop(PortID ingressPort) {
+    const auto permitCounterBefore = getCounter(kPortUserMetaPermitCounterName);
+    const auto denyCounterBefore =
+        getCounter(kPortUserMetaDefaultDenyCounterName);
+    const auto egressPort = routedEgressPort();
+    const auto egressPacketsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    XLOG(INFO) << "Sending UDP/" << kPortUserMetaDeniedL4DstPort
+               << " packet from restricted port " << ingressPort
+               << "; expected=DENIED. Counters before: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterBefore
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterBefore
+               << ", egressPackets=" << egressPacketsBefore;
+    sendPacketToPort(ingressPort, kPortUserMetaDeniedL4DstPort);
+    uint64_t permitCounterAfter{0};
+    uint64_t denyCounterAfter{0};
+    uint64_t egressPacketsAfter{0};
+    WITH_RETRIES({
+      permitCounterAfter = getCounter(kPortUserMetaPermitCounterName);
+      denyCounterAfter = getCounter(kPortUserMetaDefaultDenyCounterName);
+      egressPacketsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      EXPECT_EVENTUALLY_EQ(egressPacketsAfter, egressPacketsBefore);
+      EXPECT_EVENTUALLY_EQ(permitCounterBefore, permitCounterAfter);
+      EXPECT_EVENTUALLY_GE(denyCounterAfter, denyCounterBefore + 1);
+      EXPECT_EVENTUALLY_LE(denyCounterAfter, denyCounterBefore + 2);
+    });
+    XLOG(INFO) << "Packet result=DENIED by the restricted-port fallback ACL. "
+                  "Counters after: "
+               << kPortUserMetaPermitCounterName << "=" << permitCounterAfter
+               << ", " << kPortUserMetaDefaultDenyCounterName << "="
+               << denyCounterAfter << ", egressPackets=" << egressPacketsAfter;
+  }
+
+ private:
+  std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
 // Verify port metadata selects its ACL, while traffic from an untagged port
@@ -1147,6 +1370,61 @@ TEST_F(AgentPortUserMetaAclTest, MatchIngressPortMetadata) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+// After warm boot, verify a second ACL table permits UDP/53 on a restricted
+// port, drops its other traffic, and leaves an untagged port unrestricted.
+TEST_F(
+    AgentPortUserMetaMultiAclTableTest,
+    AddPortMetadataAclTableAfterWarmboot) {
+  if (!getAgentEnsemble()->isSai()) {
+    GTEST_SKIP() << "Port user metadata is a SAI-only test";
+  }
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  const auto ports = masterLogicalInterfacePortIds();
+  if (ports.size() < 3) {
+    GTEST_SKIP() << "Need one routed egress port and two ingress ports";
+  }
+  const PortID restrictedPort{ports[1]};
+  const PortID unchangedPort{ports[2]};
+
+  auto setup = [this]() {
+    XLOG(INFO) << "Coldboot setup: install only the default ACL table";
+    setupRoute();
+  };
+
+  auto verify = [=, this]() {
+    XLOG(INFO) << "Coldboot verification: all four packets must be permitted";
+    verifyForwarded(restrictedPort, kPortUserMetaPermittedL4DstPort);
+    verifyForwarded(restrictedPort, kPortUserMetaDeniedL4DstPort);
+    verifyForwarded(unchangedPort, kPortUserMetaPermittedL4DstPort);
+    verifyForwarded(unchangedPort, kPortUserMetaDeniedL4DstPort);
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    XLOG(INFO) << "Warmboot setup: mark port " << restrictedPort
+               << " restricted and add the port metadata ACL table";
+    auto config = initialConfig(*getAgentEnsemble());
+    auto portCfg = utility::findCfgPort(config, restrictedPort);
+    portCfg->userMetaData() = kPortLookupClass;
+    addWarmbootAclTable(&config);
+    applyNewConfig(config);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    XLOG(INFO) << "Warmboot verification: restricted UDP/53 is permitted, "
+                  "restricted UDP/54 is denied, and untagged traffic is "
+                  "permitted";
+    verifyRestrictedPortDrop(restrictedPort);
+    verifyForwardedWithoutPolicyMatch(
+        unchangedPort, kPortUserMetaPermittedL4DstPort);
+    verifyForwardedWithoutPolicyMatch(
+        unchangedPort, kPortUserMetaDeniedL4DstPort);
+    verifyRestrictedPortPermit(restrictedPort);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
