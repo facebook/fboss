@@ -558,3 +558,83 @@ TEST_F(ConfigQosPolicyMapTest, IdentityMappingsAcrossAllMapTypes) {
 
   XLOG(INFO) << "TEST PASSED";
 }
+
+TEST_F(ConfigQosPolicyMapTest, MplsExpFromTrafficClassToExp) {
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "ConfigQosPolicyMapTest::MplsExpFromTrafficClassToExp";
+  XLOG(INFO) << "========================================";
+
+  // Egress rewrite only:
+  //   config qos policy <p> map traffic-class <tc> mpls-exp <v>
+  // sets ExpQosMap.fromTrafficClassToExp, an optional byte. Unlike the
+  // ingress list this is a scalar, so re-issuing the command for the same
+  // traffic class must replace the value rather than accumulate. No ingress
+  // command is issued here, so fromExpToTrafficClass must stay empty on
+  // every entry.
+
+  XLOG(INFO) << "[Step 1] Configuring egress traffic-class -> MPLS EXP maps";
+  configureMap("traffic-class", 0, "mpls-exp", 0);
+  configureMap("traffic-class", 1, "mpls-exp", 1);
+  configureMap("traffic-class", 7, "mpls-exp", 5);
+  // Re-issue for TC 7 with a different value: the scalar must be replaced,
+  // leaving 6 rather than 5.
+  configureMap("traffic-class", 7, "mpls-exp", 6);
+
+  XLOG(INFO) << "[Step 2] Committing config...";
+  commitConfig();
+
+  XLOG(INFO) << "[Step 3] Verifying egress maps in running config...";
+  auto config = getRunningConfig();
+  const auto* policy = findQosPolicy(config, testPolicyName_);
+  ASSERT_NE(policy, nullptr)
+      << "Test policy '" << testPolicyName_ << "' not found in running config"
+      << " -- was the config committed?";
+  ASSERT_TRUE(policy->count("qosMap")) << "qosMap not found in test policy";
+  const auto& qosMap = (*policy)["qosMap"];
+  ASSERT_TRUE(qosMap.count("expMaps")) << "expMaps not found in qosMap";
+  const auto& expMaps = qosMap["expMaps"];
+  ASSERT_TRUE(expMaps.isArray()) << "expMaps is not an array";
+  ASSERT_EQ(expMaps.size(), 3) << "Expected 3 expMap entries";
+
+  // Assert the entry for a traffic class carries the given EXP value, and
+  // that the ingress list was left empty. ADD_FAILURE rather than ASSERT_*
+  // because a failing ASSERT inside a lambda returns only from the lambda,
+  // which would let the rest of the checks run on bad state.
+  auto expectEgressOnly = [&expMaps](int16_t trafficClass, int8_t expectedExp) {
+    const folly::dynamic* entry = nullptr;
+    for (const auto& e : expMaps) {
+      if (e.isObject() && e.count("internalTrafficClass") &&
+          e["internalTrafficClass"].asInt() == trafficClass) {
+        entry = &e;
+        break;
+      }
+    }
+    if (entry == nullptr) {
+      ADD_FAILURE() << "expMap entry for TC " << trafficClass << " not found";
+      return;
+    }
+    if (!entry->count("fromTrafficClassToExp")) {
+      ADD_FAILURE() << "fromTrafficClassToExp missing for TC " << trafficClass;
+      return;
+    }
+    EXPECT_EQ((*entry)["fromTrafficClassToExp"].asInt(), expectedExp)
+        << "Wrong egress EXP value for TC " << trafficClass
+        << " -- a repeated command must overwrite, not accumulate";
+    // An egress-only run must not classify anything, so the ingress list is
+    // either absent or present-but-empty.
+    if (entry->count("fromExpToTrafficClass")) {
+      EXPECT_TRUE((*entry)["fromExpToTrafficClass"].empty())
+          << "fromExpToTrafficClass unexpectedly populated for TC "
+          << trafficClass
+          << " -- an egress-only command must not write the ingress list";
+    }
+  };
+
+  expectEgressOnly(0, 0);
+  expectEgressOnly(1, 1);
+  // TC 7 was configured twice; the later value must win.
+  expectEgressOnly(7, 6);
+  XLOG(INFO) << "  All egress expMap entries verified";
+
+  XLOG(INFO) << "TEST PASSED";
+}
