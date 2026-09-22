@@ -638,3 +638,93 @@ TEST_F(ConfigQosPolicyMapTest, MplsExpFromTrafficClassToExp) {
 
   XLOG(INFO) << "TEST PASSED";
 }
+
+TEST_F(ConfigQosPolicyMapTest, DscpFromTrafficClassToDscp) {
+  XLOG(INFO) << "========================================";
+  XLOG(INFO) << "ConfigQosPolicyMapTest::DscpFromTrafficClassToDscp";
+  XLOG(INFO) << "========================================";
+
+  // Egress rewrite only:
+  //   config qos policy <p> map traffic-class <tc> dscp <v>
+  // sets DscpQosMap.fromTrafficClassToDscp, an optional byte. Two things
+  // separate this from the MPLS EXP egress field: DSCP is a 6-bit field
+  // (RFC 2474) so values run 0..63 rather than 0..7, and the value is a
+  // scalar, so re-issuing the command for one traffic class must replace the
+  // value rather than accumulate. No ingress command is issued here, so
+  // fromDscpToTrafficClass must stay empty on every entry.
+
+  XLOG(INFO) << "[Step 1] Configuring egress traffic-class -> DSCP maps";
+  // Real DSCP codepoints, chosen to exercise the range above 7 that a
+  // 3-bit field could not hold: AF11 (10), EF (46), and the maximum (63).
+  configureMap("traffic-class", 0, "dscp", 0);
+  configureMap("traffic-class", 1, "dscp", 10);
+  configureMap("traffic-class", 2, "dscp", 46);
+  configureMap("traffic-class", 7, "dscp", 63);
+  // Re-issue for TC 7 with a different codepoint: the scalar must be
+  // replaced, leaving 48 rather than 63.
+  configureMap("traffic-class", 7, "dscp", 48);
+
+  XLOG(INFO) << "[Step 2] Committing config...";
+  commitConfig();
+
+  XLOG(INFO) << "[Step 3] Verifying egress DSCP maps in running config...";
+  auto config = getRunningConfig();
+  const auto* policy = findQosPolicy(config, testPolicyName_);
+  ASSERT_NE(policy, nullptr)
+      << "Test policy '" << testPolicyName_ << "' not found in running config"
+      << " -- was the config committed?";
+  ASSERT_TRUE(policy->count("qosMap")) << "qosMap not found in test policy";
+  const auto& qosMap = (*policy)["qosMap"];
+  ASSERT_TRUE(qosMap.count("dscpMaps")) << "dscpMaps not found in qosMap";
+  const auto& dscpMaps = qosMap["dscpMaps"];
+  ASSERT_TRUE(dscpMaps.isArray()) << "dscpMaps is not an array";
+  // Four distinct traffic classes were named; the repeat for TC 7 must reuse
+  // its entry rather than add a fifth.
+  ASSERT_EQ(dscpMaps.size(), 4) << "Expected 4 dscpMap entries";
+
+  // Assert the entry for a traffic class carries the given DSCP value, and
+  // that the ingress list was left empty. ADD_FAILURE rather than ASSERT_*
+  // because a failing ASSERT inside a lambda returns only from the lambda,
+  // which would let the rest of the checks run on bad state.
+  auto expectEgressOnly = [&dscpMaps](
+                              int16_t trafficClass, int8_t expectedDscp) {
+    const folly::dynamic* entry = nullptr;
+    for (const auto& e : dscpMaps) {
+      if (e.isObject() && e.count("internalTrafficClass") &&
+          e["internalTrafficClass"].asInt() == trafficClass) {
+        entry = &e;
+        break;
+      }
+    }
+    if (entry == nullptr) {
+      ADD_FAILURE() << "dscpMap entry for TC " << trafficClass << " not found";
+      return;
+    }
+    if (!entry->count("fromTrafficClassToDscp")) {
+      ADD_FAILURE() << "fromTrafficClassToDscp missing for TC " << trafficClass;
+      return;
+    }
+    EXPECT_EQ((*entry)["fromTrafficClassToDscp"].asInt(), expectedDscp)
+        << "Wrong egress DSCP value for TC " << trafficClass
+        << " -- a repeated command must overwrite, not accumulate";
+    // An egress-only run must not classify anything, so the ingress list is
+    // either absent or present-but-empty.
+    if (entry->count("fromDscpToTrafficClass")) {
+      EXPECT_TRUE((*entry)["fromDscpToTrafficClass"].empty())
+          << "fromDscpToTrafficClass unexpectedly populated for TC "
+          << trafficClass
+          << " -- an egress-only command must not write the ingress list";
+    }
+  };
+
+  expectEgressOnly(0, 0);
+  // Codepoints above 7 prove the full 6-bit DSCP range survives the round
+  // trip; an EXP-sized field would truncate these.
+  expectEgressOnly(1, 10);
+  expectEgressOnly(2, 46);
+  // TC 7 was configured twice; the later codepoint must win.
+  expectEgressOnly(7, 48);
+  XLOG(INFO) << "  All egress dscpMap entries verified";
+
+  XLOG(INFO) << "TEST PASSED";
+}
