@@ -186,8 +186,10 @@ cpp_library(
         "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:pfc_test_utils",
+        "//fboss/agent/test/utils:port_test_utils",
         "//fboss/agent/test/utils:queue_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
+        "//folly:string",
     ],
     exported_deps = [
         "//fboss/agent:packet",

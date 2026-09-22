@@ -30,6 +30,7 @@ add_library(agent_qos_test_src
 target_link_libraries(agent_qos_test_src
   agent_hw_test
   aqm_test_utils
+  port_test_utils
   config_factory
   copp_test_utils
   ecmp_helper

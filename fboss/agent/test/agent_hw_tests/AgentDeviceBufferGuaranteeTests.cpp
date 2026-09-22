@@ -4,8 +4,11 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+
+#include <folly/String.h>
 
 /*
  * S416694: heavy congestion on a few ports consumed the entire device buffer,
@@ -25,6 +28,10 @@
 namespace facebook::fboss {
 
 namespace {
+
+constexpr uint64_t kMaxUsableBufferSizeBytes = 64 * 1024 * 1024;
+
+constexpr uint64_t kMaxHealthyDeviceWatermarkBytes = 55 * 1024 * 1024;
 
 constexpr uint64_t kCongestionAchievedThresholdBytes = 50 * 1024 * 1024;
 
@@ -67,7 +74,8 @@ class AgentDeviceBufferGuaranteeTest : public AgentHwTest {
     return {
         ProductionFeature::L3_QOS,
         ProductionFeature::OLYMPIC_QOS,
-        ProductionFeature::ECN};
+        ProductionFeature::ECN,
+        ProductionFeature::BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS};
   }
 
   // Opt out of the 8 port default: eight senders cannot drive utilization far
@@ -232,5 +240,78 @@ class AgentDeviceBufferGuaranteeTest : public AgentHwTest {
     }
   }
 };
+
+TEST_F(
+    AgentDeviceBufferGuaranteeTest,
+    VerifyDeviceBufferCappedUnderCongestion) {
+  auto loopPort =
+      getAgentEnsemble()->masterLogicalInterfacePortIds()[kNumCongestedPorts];
+
+  auto setup = [this, loopPort]() {
+    resolveCongestedPorts(congestionTargets());
+    utility::setupEcmpDataplaneLoopOnPorts(getAgentEnsemble(), {loopPort});
+  };
+
+  auto verify = [this, loopPort]() {
+    const auto targets = congestionTargets();
+    auto portName = [this](PortID port) {
+      return getProgrammedState()->getPorts()->getNodeIf(port)->getName();
+    };
+    std::vector<std::string> congestedNames;
+    congestedNames.reserve(targets.congested.size());
+    for (const auto& port : targets.congested) {
+      congestedNames.push_back(portName(port));
+    }
+
+    // Bring the loop port to line rate
+    const auto macs = txMacs();
+    auto seedPackets = getAgentEnsemble()->getMinPktsForLineRate(loopPort);
+    auto loopIp =
+        utility::getOneRemoteHostIpPerInterfacePort(getAgentEnsemble())[0];
+    for (size_t pkt = 0; pkt < seedPackets; pkt++) {
+      sendUdpPkt(macs, loopIp, loopPort);
+    }
+    utility::waitForLineRateOnPorts(getAgentEnsemble(), {loopPort});
+
+    // Disable transmit on target ports, so queue builds up.
+    for (const auto& port : targets.congested) {
+      utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), port, false);
+    }
+    // Fill the device buffer from every sender at once.
+    const auto deviceWatermark = injectCongestingTraffic(targets);
+    XLOG(DBG0) << "DeviceBuffer congestion: congested=["
+               << folly::join(",", congestedNames)
+               << "] (tx disabled), senders=" << targets.injection.size()
+               << ", deviceWatermark=" << deviceWatermark
+               << " bytes, max usable size=" << kMaxUsableBufferSizeBytes
+               << " bytes";
+
+    // Utilization has reached the max and stays there.
+    EXPECT_GT(deviceWatermark, kCongestionAchievedThresholdBytes);
+    EXPECT_LT(deviceWatermark, kMaxHealthyDeviceWatermarkBytes);
+
+    // Verify that line rate traffic on an uncongested port is not dropped.
+    constexpr int kCleanReadsRequired = 4;
+    const auto discardsBefore = *getLatestPortStats(loopPort).outDiscards_();
+    int cleanReads = 0;
+    uint64_t discards{0};
+    WITH_RETRIES({
+      discards = *getLatestPortStats(loopPort).outDiscards_();
+      EXPECT_EQ(discards, discardsBefore);
+      EXPECT_EVENTUALLY_EQ(cleanReads++, kCleanReadsRequired);
+    });
+    XLOG(DBG0) << "DeviceBuffer loop port " << portName(loopPort)
+               << " discardsBefore=" << discardsBefore
+               << ", discardsAfter=" << discards
+               << ", delta=" << discards - discardsBefore;
+
+    // Uncongest the device
+    for (const auto& port : targets.congested) {
+      utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), port, true);
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss

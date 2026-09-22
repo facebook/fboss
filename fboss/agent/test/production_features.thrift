@@ -139,6 +139,7 @@ enum ProductionFeature {
   ACL_DENY_DATA_AND_CONTROL_PLANE = 126,
   PORT_USER_METADATA = 127,
   MYSID_ADJACENCY_FRR = 128,
+  BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS = 129,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
