@@ -554,7 +554,12 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
-    auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
+    // The fixture's snooper ACL matches kV6RouteDstIp/128 and sets TC to 0.
+    // Use another destination in the same routed /64 to preserve QoS.
+    const folly::IPAddressV6 kQueueMappingDstIp{"2800:2::2"};
+
+    auto sendPacket = [this, &intfMac, kQueueMappingDstIp](
+                          int dscp, bool frontPanel, PortID port) {
       // Outer DSCP determines queue classification.
       // Inner TC is 0 — overwritten by UNIFORM decap.
       auto txPacket = utility::makeIpInIpTxPacket(
@@ -565,7 +570,7 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
           folly::IPAddressV6("1::1"),
           this->kMySidAddr,
           folly::IPAddressV6("1::10"),
-          this->kV6RouteDstIp,
+          kQueueMappingDstIp,
           8000,
           8001,
           dscp << 2,
