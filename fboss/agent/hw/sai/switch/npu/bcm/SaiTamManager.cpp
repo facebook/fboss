@@ -445,8 +445,16 @@ void SaiTamManager::addXgsMirrorOnDropReport(
   auto action = createTamAction(reportObj->adapterKey());
   auto transport = createTamTransport(
       report, SAI_TAM_TRANSPORT_TYPE_PORT, folly::MacAddress(destMac));
+  // 0 means "do not truncate". It still has to be passed explicitly
+  // TruncateSize is part of SaiTamCollectorTraits::AdapterHostKey and warm boot
+  // re-derives that key from HW GETs. 16.0 implements it and returns 0
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+  const std::optional<uint16_t> truncateSize{0};
+#else
+  const std::optional<uint16_t> truncateSize{std::nullopt};
+#endif
   auto collector =
-      createTamCollector(report, transport->adapterKey(), std::nullopt);
+      createTamCollector(report, transport->adapterKey(), truncateSize);
 
   // Create SamplePacket if samplingRate is configured
   std::shared_ptr<SaiSamplePacket> samplePacket = nullptr;
