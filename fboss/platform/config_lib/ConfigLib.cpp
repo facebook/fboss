@@ -35,6 +35,7 @@ const std::unordered_map<std::string, std::string> kConfigAliases = {
     {"meru800biac", "meru800bia"},
     {"minipack3bta", "minipack3ba"},
     {"m4052acti", "minipack3ba"},
+    {"m4052actm", "minipack3bam"},
 };
 
 std::string toLower(std::string str) {
