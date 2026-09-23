@@ -68,6 +68,7 @@ update_docker() {
     kiwi-systemdeps-image-validation \
     syslinux \
     btrfs-progs \
+    mtools \
     glibc-static
 
   # The python3-kiwi RPM installs for the system Python 3.9, but python3 may
@@ -76,6 +77,70 @@ update_docker() {
   # Install kiwi to the system site-packages visible under -s.
   KIWI_SITE_PKG=$(python3 -s -c "import site; print(site.getsitepackages()[0])")
   python3 -m pip install kiwi --target "${KIWI_SITE_PKG}"
+}
+
+# Remove shim's fallback bootloader from the install ISO's ESP: it registers an
+# NVRAM boot entry for whichever ESP it runs from. The installed system's ESP
+# keeps it, so this applies to the ISO only.
+strip_shim_fallback_from_iso() {
+  local iso="$1"
+  local esp_start esp_offset img d csv boot_listing
+
+  # Appended partition: GPT type GUID, or MBR type 0xef on a plain isohybrid.
+  esp_start=$(sfdisk -d "${iso}" 2>/dev/null |
+    awk -F'[=,]' '
+      /C12A7328-F81F-11D2-BA4B-00A0C93EC93B/ || /type=[[:space:]]*ef[[:space:]]*$/ {
+        gsub(/[^0-9]/, "", $2); if ($2 != "") { print $2; exit }
+      }')
+
+  if [ -z "${esp_start}" ]; then
+    echo "ERROR: no EFI system partition found in ${iso}" >&2
+    sfdisk -d "${iso}" >&2 || true
+    return 1
+  fi
+
+  esp_offset=$((esp_start * 512))
+  img="${iso}@@${esp_offset}"
+  export MTOOLS_SKIP_CHECK=1
+
+  dprint "Stripping shim fallback from ${iso##*/} (ESP at byte ${esp_offset})..."
+
+  # mdel exits non-zero on an absent file, which is not a failure here.
+  mdel -i "${img}" ::/EFI/BOOT/fbx64.efi 2>/dev/null || true
+  mdel -i "${img}" ::/EFI/BOOT/fallback.efi 2>/dev/null || true
+  # mdir -b lists one level, so walk ::/EFI's subdirectories to reach the CSVs.
+  for d in $(mdir -b -i "${img}" ::/EFI 2>/dev/null); do
+    for csv in $(mdir -b -i "${img}" "${d}" 2>/dev/null | grep -i '\.csv$'); do
+      mdel -i "${img}" "${csv}" 2>/dev/null || true
+    done
+  done
+
+  # A failed delete is indistinguishable from an absent file, so verify.
+  if ! boot_listing=$(mdir -b -i "${img}" ::/EFI/BOOT 2>&1); then
+    echo "ERROR: cannot read ESP in ${iso}: ${boot_listing}" >&2
+    return 1
+  fi
+
+  # The loader is always present; its absence means the offset is wrong.
+  if ! printf '%s\n' "${boot_listing}" | grep -qi 'BOOTX64\.EFI'; then
+    echo "ERROR: no BOOTX64.EFI in ${iso} ESP; wrong offset or unreadable FAT" >&2
+    printf '%s\n' "${boot_listing}" >&2
+    return 1
+  fi
+
+  if printf '%s\n' "${boot_listing}" | grep -qi -e 'fbx64\.efi' -e 'fallback\.efi'; then
+    echo "ERROR: shim fallback still present in ${iso}" >&2
+    printf '%s\n' "${boot_listing}" >&2
+    return 1
+  fi
+
+  # Inert on its own: only the fallback binary reads it.
+  for d in $(mdir -b -i "${img}" ::/EFI 2>/dev/null); do
+    if mdir -b -i "${img}" "${d}" 2>/dev/null | grep -qi '\.csv$'; then
+      echo "WARNING: ${iso} still carries a BOOT*.CSV" >&2
+      break
+    fi
+  done
 }
 
 build_zstd() {
@@ -330,6 +395,10 @@ if [ -n "${BUILD_PXE}" ]; then
       --description ${DESCRIPTION_DIR} \
       --target-dir ${TARGET_DIR}/btrfs |&
       stdbuf -oL tee -a ${LOG_FILE} | stdbuf -oL awk '{print "PXE/USB Installer| " $0}'
+    INSTALL_ISO=${TARGET_DIR}/btrfs/FBOSS-Distro-Image.x86_64-1.0.install.iso
+    if [ -f "${INSTALL_ISO}" ]; then
+      strip_shim_fallback_from_iso "${INSTALL_ISO}"
+    fi
     mv ${TARGET_DIR}/btrfs/FBOSS-Distro-Image.x86_64-1.0.install.* ${TARGET_DIR}
   ) &
   PXE_PID=$!
