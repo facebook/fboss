@@ -20,21 +20,9 @@
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 DECLARE_string(platform_descriptor_config_path);
+DECLARE_bool(hwrev_state1_substate1_respin0);
 
 namespace facebook::fboss {
-
-// Chassis EEPROM version fields (Meta EEPROM v6 Types 8/9/10), read from the
-// platform_manager-published /run/devmap/eeproms/CHASSIS_EEPROM symlink.
-struct ChassisEepromVersion {
-  int16_t productionState;
-  int16_t productionSubState;
-  int16_t respinVariantIndicator;
-};
-
-// Returns the chassis EEPROM version, read once and cached for the process
-// lifetime. nullopt when the symlink is absent or the EEPROM does not parse;
-// callers must treat that as "no version" and fall back to their default.
-std::optional<ChassisEepromVersion> getChassisEepromVersion();
 
 class PlatformDescriptorRegistry {
  public:

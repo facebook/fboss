@@ -26,7 +26,6 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
-#include "fboss/platform/weutil/FbossEepromInterface.h"
 
 DEFINE_string(
     platform_descriptor_config_path,
@@ -34,6 +33,13 @@ DEFINE_string(
     "Path to a platform descriptor config root. Directories containing "
     "platform_descriptor.json are discovered recursively and must also contain "
     "platform_mapping.json.");
+
+// Defined beside the registry rather than in AgentFeatures so every registry
+// user registers it (qsfp_service does not link the agent flag library).
+DEFINE_bool(
+    hwrev_state1_substate1_respin0,
+    false,
+    "Chassis hardware revision: production state 1, sub-state 1, re-spin 0");
 
 namespace fs = std::filesystem;
 
@@ -44,49 +50,6 @@ constexpr auto kPlatformDescriptorFileName = "platform_descriptor.json";
 constexpr auto kPlatformMappingFileName = "platform_mapping.json";
 constexpr auto kRawPlatformMappingFileName = "raw_platform_mapping.json";
 constexpr auto kAsicConfigFileName = "asic_config.yaml";
-constexpr auto kChassisEepromPath = "/run/devmap/eeproms/CHASSIS_EEPROM";
-
-std::optional<int16_t> parseVersionField(const std::string& value) {
-  if (value.empty()) {
-    return std::nullopt;
-  }
-  int16_t parsed{};
-  try {
-    parsed = folly::to<int16_t>(value);
-  } catch (const std::exception&) {
-    return std::nullopt;
-  }
-  return parsed;
-}
-
-bool matchesPmUnitVersions(
-    const PlatformDescriptor& descriptor,
-    const std::optional<ChassisEepromVersion>& version) {
-  const auto& matches = descriptor.pmUnitVersions();
-  if (!matches.has_value() || matches->empty()) {
-    return true;
-  }
-  if (!version.has_value()) {
-    return false;
-  }
-  for (const auto& match : *matches) {
-    bool matched = (!match.productionState().has_value() ||
-                    *match.productionState() == version->productionState) &&
-        (!match.productionSubState().has_value() ||
-         *match.productionSubState() == version->productionSubState) &&
-        (!match.respinVariantIndicator().has_value() ||
-         *match.respinVariantIndicator() == version->respinVariantIndicator);
-    if (matched) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasVersionSelector(const PlatformDescriptor& descriptor) {
-  return descriptor.pmUnitVersions().has_value() &&
-      !descriptor.pmUnitVersions()->empty();
-}
 
 std::string normalize(std::string_view value) {
   return boost::algorithm::to_lower_copy(std::string(value));
@@ -215,41 +178,6 @@ fs::path getRequiredPlatformFile(
 
 } // namespace
 
-static std::optional<ChassisEepromVersion> readChassisEepromVersion() {
-  const auto& path = kChassisEepromPath;
-  if (!fs::exists(path)) {
-    XLOG(WARN) << "Chassis EEPROM " << path
-               << " not found; version-selected platform descriptors will "
-               << "not match and the default descriptor will be used";
-    return std::nullopt;
-  }
-  try {
-    platform::FbossEepromInterface eeprom(path, 0);
-    auto productionState = parseVersionField(eeprom.getProductionState());
-    auto productionSubState = parseVersionField(eeprom.getProductionSubState());
-    auto respinVariantIndicator = parseVersionField(eeprom.getVariantVersion());
-    if (!productionState || !productionSubState || !respinVariantIndicator) {
-      XLOG(WARN) << "Chassis EEPROM at " << path
-                 << " is missing version fields; version-selected platform "
-                 << "descriptors will not match";
-      return std::nullopt;
-    }
-    return ChassisEepromVersion{
-        *productionState, *productionSubState, *respinVariantIndicator};
-  } catch (const std::exception& ex) {
-    XLOG(WARN) << "Unable to parse chassis EEPROM at " << path << ": "
-               << ex.what()
-               << "; version-selected platform descriptors will not match";
-    return std::nullopt;
-  }
-}
-
-std::optional<ChassisEepromVersion> getChassisEepromVersion() {
-  static const std::optional<ChassisEepromVersion> version =
-      readChassisEepromVersion();
-  return version;
-}
-
 PlatformDescriptorRegistry::PlatformDescriptorRegistry(
     std::vector<PlatformDescriptorEntry> descriptorEntries)
     : descriptorEntries_(std::move(descriptorEntries)) {}
@@ -278,12 +206,8 @@ PlatformDescriptorRegistry::getDescriptorEntry(PlatformType type) const {
     }
     const auto& variantAttributes =
         entry.descriptor.variantAttributes().value();
-    bool isVariant =
-        !variantAttributes.empty() || hasVersionSelector(entry.descriptor);
-    if (isVariant) {
-      if ((variantAttributes.empty() ||
-           matchesVariantAttributes(entry.descriptor)) &&
-          matchesPmUnitVersions(entry.descriptor, getChassisEepromVersion())) {
+    if (!variantAttributes.empty()) {
+      if (matchesVariantAttributes(entry.descriptor)) {
         return &entry;
       }
       continue;
