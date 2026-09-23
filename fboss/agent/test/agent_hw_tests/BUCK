@@ -11,6 +11,7 @@ load(
     "SAI_LEABA_IMPLS",
     "SAI_NVIDIA_IMPLS",
     "get_link_group_map",
+    # @oss-disable[end= ]: "sai_impl_target_compatible_with",
     "to_impl_bin_name",
     "to_impl_lib_name",
 )
@@ -568,6 +569,7 @@ cpp_binary(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -609,6 +611,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             ":agent_hw_test_src",
@@ -649,6 +652,7 @@ _sai_scale_test_configs = [
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -686,6 +690,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
