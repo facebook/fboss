@@ -1,6 +1,7 @@
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+# @oss-disable[end= ]: load("//fboss/agent/hw/sai/impl:impl.bzl", "sai_impl_target_compatible_with")
 
 oncall("fboss_agent_push")
 
@@ -34,6 +35,7 @@ cpp_library(
         srcs = [
             "BcmSoakTests.cpp",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
