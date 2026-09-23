@@ -66,6 +66,18 @@ class ThriftServerTest : public ::testing::Test {
     sw_->setConfig(std::make_unique<AgentConfig>(std::move(agentConfig)));
   }
 
+  void TearDown() override {
+    // Stream/sink teardown runs completion callbacks on server threads that
+    // reach back into SwSwitch, so the clients and the server have to be gone
+    // before handle_ destroys it.
+    multiSwitchClient_.reset();
+    fbossCtlClient_.reset();
+    evbThread1_.reset();
+    evbThread2_.reset();
+    swSwitchTestServer_.reset();
+    mockMultiSwitchHandler_.reset();
+  }
+
   void setupServerAndClients() {
     XLOG(DBG2) << "Initializing thrift server";
 
