@@ -47,7 +47,8 @@ enum class CmisPages : int {
   PAGE34 = 0x34,
   PAGE35 = 0x35,
   PAGE38 = 0x38,
-  PAGE45 = 0x45
+  PAGE45 = 0x45,
+  PAGEC0 = 0xC0,
 };
 
 enum VdmConfigType {

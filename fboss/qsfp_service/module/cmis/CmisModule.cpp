@@ -423,6 +423,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
     {CmisField::HOST_LANE_PROV_AD, {CmisPages::PAGE45, 129, 1}},
+    // Page C0h, Byte 131 - Host Lane Ethernet Control
+    {CmisField::HOST_LANE_ETH_CTRL, {CmisPages::PAGEC0, 131, 1}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {

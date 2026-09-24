@@ -366,4 +366,6 @@ enum CmisField {
   HOST_MODE_MISMATCH = 473,
   // Page 14h, Byte 131: per-media-lane mode mismatch, one bit per lane
   MEDIA_MODE_MISMATCH = 474,
+  // Page C0, Byte 131: Host Lane Ethernet Control (ZR modules)
+  HOST_LANE_ETH_CTRL = 475,
 }
