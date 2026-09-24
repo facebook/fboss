@@ -262,6 +262,12 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
       if (utility::findCfgPortIf(config, portId) == config.ports()->end()) {
         continue;
       }
+      // Skip ports that do not have a profile for the target speed.
+      // e.g. management ports may only support 10G/25G.
+      if (!platformMapping->getProfileIDBySpeedIf(portId, uplinkPortSpeed)
+               .has_value()) {
+        continue;
+      }
       utility::updatePortSpeed(
           platformMapping,
           supportsAddRemovePort,
