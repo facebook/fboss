@@ -1111,12 +1111,16 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.cpp
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.cpp
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.cpp
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
