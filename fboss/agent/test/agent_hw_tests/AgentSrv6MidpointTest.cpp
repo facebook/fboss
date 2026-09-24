@@ -42,11 +42,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   // Input outer dst: the SID being processed at this midpoint node.
   // uSID format: [locator fdad:ffff:][active uSID 1:][next uSIDs e002::]
-  const folly::IPAddressV6 kPktOuterDst{"fdad:ffff:1:2::"};
+  const folly::IPAddressV6 kPktOuterDst{"fdad:ffff:1:aa::"};
 
   // After the active uSID 1 is processed and shifted out,
   // the rewritten outer dst forwarded to the next hop.
-  const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:2::"};
+  const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:aa::"};
 
   // Active uSID 3 sits in the same locator block but has no entry in
   // mySidConfig (function 1 is the only one configured), so nothing in
