@@ -52,6 +52,14 @@ class ConfigFileManager {
   };
 
   class Snapshot {
+   public:
+    Snapshot(Snapshot&&) noexcept = default;
+    Snapshot& operator=(Snapshot&&) noexcept = default;
+    Snapshot(const Snapshot&) = delete;
+    Snapshot& operator=(const Snapshot&) = delete;
+
+    std::optional<std::string_view> desiredContent() const;
+
    private:
     friend class ConfigFileManager;
 
@@ -72,10 +80,15 @@ class ConfigFileManager {
 
   Snapshot capture() const;
 
-  // Installs content and returns only the paths changed by the operation.
+  bool needsApply(
+      const Snapshot& snapshot,
+      std::optional<std::string_view> content) const;
+
+  // Installs content, or removes both managed paths when content is absent.
+  // Returns only the paths changed by the operation.
   std::vector<std::string> apply(
       const Snapshot& snapshot,
-      std::string_view content) const;
+      std::optional<std::string_view> content) const;
 
   // Attempts both restorations even if one fails. Each returned string
   // describes a path that could not be restored.

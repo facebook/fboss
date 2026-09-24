@@ -54,7 +54,7 @@ std::pair<std::string, std::string> getRevisionContent(
     const std::string& validationPath,
     Git& git) {
   if (revision == "current") {
-    return {readFileOrEmpty(domain.systemPath), "current live config"};
+    return {readFileOrEmpty(domain.currentPath), "current live config"};
   }
   std::string resolvedSha = git.resolveRef(revision);
   // Verify the revision is real before treating a missing domain path as empty.
@@ -199,7 +199,7 @@ CmdConfigSessionDiffTraits::RetType CmdConfigSessionDiff::queryClient(
     }
     return diffStagedDomains([&](const ConfigDomain& d) {
       return std::make_pair(
-          readFileOrEmpty(d.systemPath), std::string("current live config"));
+          readFileOrEmpty(d.currentPath), std::string("current live config"));
     });
   }
 

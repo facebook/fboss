@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
@@ -153,21 +154,17 @@ class ConfigSession {
   };
 
   // Describes one config "domain" managed by a session. The agent config and
-  // the BGP config are two such domains: both are staged in ~/.fboss2, promoted
-  // to a git-tracked file under /etc/coop, exposed to their daemon via a stable
-  // symlink, and applied via a service action. commit(), rollback() and `config
-  // session diff` iterate configDomains() so the two are handled uniformly; the
-  // per-domain differences (paths, service, how a rollback applies) live here
-  // rather than as branches in each routine.
+  // the BGP config are two such domains: both are staged in ~/.fboss2, written
+  // to a desired file under /etc/coop, exposed through the path used by their
+  // service, and applied via a service action. commit(), rollback() and `config
+  // session diff` iterate configDomains() so the two are handled uniformly.
   struct ConfigDomain {
     cli::ServiceType service; // AGENT / BGP -- feeds applyServiceActions()
     std::string name; // "Agent" / "BGP" (diff section headers, logs)
     std::string sessionPath; // staged edits (~/.fboss2/...)
     std::string gitRelPath; // path within the /etc/coop git repo
-    std::string promotedPath; // absolute git-tracked file that is written
-    std::string systemPath; // live file to read for diff (agent: the symlink)
-    std::string symlinkPath; // daemon-facing stable path (a symlink)
-    std::string symlinkTarget; // relative target of symlinkPath
+    std::string desiredPath; // CLI-owned, git-tracked config
+    std::string currentPath; // config path currently used by the service
     // Minimum action used when a rollback changes this domain: HITLESS reloads
     // the agent; SERVICE_RESTART restarts bgpd. rollback() promotes this to the
     // highest level recorded by the commits being undone (see
@@ -368,23 +365,6 @@ class ConfigSession {
   // BGP domains go through identical logic (see ConfigDomain /
   // configDomains()). readStagedContent() is declared public above.
 
-  // Currently-promoted (git-tracked) content, or "" if the file does not exist.
-  // Throws if the file exists but cannot be read (so a silent read failure
-  // never masquerades as "no config", which a later restore would write back
-  // empty).
-  std::string readPromotedContent(const ConfigDomain& domain) const;
-  // Promote staged content to the domain's git-tracked file and refresh its
-  // daemon-facing symlink, appending both to commitFiles for the git commit.
-  void promoteDomain(
-      const ConfigDomain& domain,
-      const std::string& content,
-      std::vector<std::string>& commitFiles) const;
-  // Restore a domain's promoted file to prior content (or remove it if it did
-  // not previously exist). Used by the commit/rollback failure paths.
-  void restorePromotedDomain(
-      const ConfigDomain& domain,
-      const std::string& oldContent,
-      bool existed) const;
   // Remove a domain's staged session file and drop its in-memory cache so the
   // next access re-seeds from disk. Called after a successful commit.
   void clearStagedDomain(const ConfigDomain& domain);
@@ -396,8 +376,8 @@ class ConfigSession {
   // back to a byte comparison when either side is empty or fails to parse.
   bool domainContentEqual(
       const ConfigDomain& domain,
-      const std::string& a,
-      const std::string& b) const;
+      std::string_view a,
+      std::string_view b) const;
 
   // git relative path of the bgpd config tracked in the /etc/coop repo.
   static constexpr auto kBgpGitRelPath = "bgpcpp/bgpcpp.conf";

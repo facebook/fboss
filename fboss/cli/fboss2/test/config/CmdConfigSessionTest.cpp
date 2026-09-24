@@ -220,6 +220,34 @@ TEST_F(ConfigSessionTestFixture, sessionCommit) {
   }
 }
 
+TEST_F(
+    ConfigSessionTestFixture,
+    commitRepairsMissingCurrentPathWithoutConfigChange) {
+  const fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  const fs::path coopDir = getTestEtcDir() / "coop";
+  const fs::path current = coopDir / "agent.conf";
+  const fs::path desired = coopDir / "cli/agent.conf";
+
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  TestableConfigSession session(sessionDir.string(), coopDir.string());
+  session.getAgentConfig();
+  session.setCommandLine("config interface eth1/1/1 speed 100G");
+  session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  ASSERT_TRUE(fs::remove(current));
+
+  const auto result = session.commit(localhost());
+  EXPECT_FALSE(result.commitSha.empty());
+  EXPECT_TRUE(fs::is_symlink(current));
+  EXPECT_EQ(
+      fs::read_symlink(current),
+      desired.lexically_relative(current.parent_path()));
+  EXPECT_EQ(readFile(current), readFile(desired));
+  EXPECT_NO_THROW(
+      session.getGit().fileAtRevision(result.commitSha, "agent.conf"));
+}
+
 // Ensure commit() works on a newly initialized session
 // This verifies that initializeSession() creates the metadata file
 TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
@@ -328,10 +356,18 @@ TEST_F(ConfigSessionTestFixture, sessionPersistsAcrossCommands) {
 TEST_F(ConfigSessionTestFixture, configRollbackOnFailure) {
   fs::path sessionDir = getTestHomeDir() / ".fboss2";
   fs::path sessionConfig = sessionDir / "agent.conf";
-  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+  fs::path coopDir = getTestEtcDir() / "coop";
+  fs::path cliConfigPath = coopDir / "cli" / "agent.conf";
+  fs::path systemConfigPath = coopDir / "agent.conf";
+  fs::path originalCurrent = coopDir / "agent" / "current";
 
   // Save the original config content
   std::string originalContent = readFile(cliConfigPath);
+  fs::create_directories(originalCurrent.parent_path());
+  createTestConfig(originalCurrent, originalContent);
+  ASSERT_TRUE(fs::remove(systemConfigPath));
+  const auto originalTarget = fs::path("agent/current");
+  fs::create_symlink(originalTarget, systemConfigPath);
 
   // Setup mock agent server to fail reloadConfig on first call (the commit),
   // but succeed on second call (the rollback reload)
@@ -357,9 +393,39 @@ TEST_F(ConfigSessionTestFixture, configRollbackOnFailure) {
   // Verify config was rolled back to original content
   std::string currentContent = readFile(cliConfigPath);
   EXPECT_EQ(currentContent, originalContent);
+  EXPECT_TRUE(fs::is_symlink(systemConfigPath));
+  EXPECT_EQ(fs::read_symlink(systemConfigPath), originalTarget);
+  EXPECT_EQ(readFile(systemConfigPath), originalContent);
 
   // Verify session config still exists (not removed on failed commit)
   EXPECT_TRUE(fs::exists(sessionConfig));
+}
+
+TEST_F(ConfigSessionTestFixture, configSaveRejectsUnwritableDestination) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "root bypasses directory permission bits";
+  }
+
+  const fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  const fs::path coopDir = getTestEtcDir() / "coop";
+  const fs::path cliDir = coopDir / "cli";
+  TestableConfigSession session(sessionDir.string(), coopDir.string());
+  auto& config = session.getAgentConfig();
+  (*config.sw()->ports())[0].description() = "Must not be staged";
+  fs::permissions(
+      cliDir,
+      fs::perms::owner_read | fs::perms::owner_exec,
+      fs::perm_options::replace);
+
+  EXPECT_THROW(
+      session.saveConfig(
+          cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS),
+      std::system_error);
+  EXPECT_THAT(
+      readFile(session.getSessionConfigPath()),
+      ::testing::Not(::testing::HasSubstr("Must not be staged")));
+
+  fs::permissions(cliDir, fs::perms::owner_all, fs::perm_options::replace);
 }
 
 TEST_F(ConfigSessionTestFixture, concurrentCommits) {
@@ -1706,9 +1772,12 @@ TEST_F(ConfigSessionTestFixture, bgpOnlySessionResumesAcrossInvocations) {
 // rolling back to the baseline (after exactly one real commit) fails.
 TEST_F(ConfigSessionTestFixture, noArgRollbackReachesBaseline) {
   fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  const fs::path coopDir = getTestEtcDir() / "coop";
+  const fs::path bgpCurrent = coopDir / "bgpcpp.conf";
+  const fs::path bgpDesired = coopDir / "bgpcpp/bgpcpp.conf";
   auto makeSession = [&]() {
     auto s = std::make_unique<TestableConfigSession>(
-        sessionDir.string(), (getTestEtcDir() / "coop").string());
+        sessionDir.string(), coopDir.string());
     s->setMockSystemdFactory([] {
       return std::make_unique<::testing::NiceMock<MockSystemdInterface>>();
     });
@@ -1722,6 +1791,8 @@ TEST_F(ConfigSessionTestFixture, noArgRollbackReachesBaseline) {
     s->saveBgpConfig();
     ASSERT_FALSE(s->commit(localhost()).commitSha.empty());
   }
+  ASSERT_TRUE(fs::is_symlink(bgpCurrent));
+  ASSERT_TRUE(fs::exists(bgpDesired));
   // Exactly one real commit sits on top of the baseline; no-arg rollback must
   // still reach the baseline (it appears in metadata history now).
   {
@@ -1730,6 +1801,8 @@ TEST_F(ConfigSessionTestFixture, noArgRollbackReachesBaseline) {
     EXPECT_NO_THROW(rb = s->rollback(localhost()));
     EXPECT_FALSE(rb.empty());
   }
+  EXPECT_FALSE(fs::is_symlink(bgpCurrent));
+  EXPECT_FALSE(fs::exists(bgpDesired));
 }
 
 // Rolling back a commit that required an agent warmboot (e.g. a VLAN

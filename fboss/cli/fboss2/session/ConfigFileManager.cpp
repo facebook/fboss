@@ -45,6 +45,14 @@ ConfigFileManager::Snapshot::Snapshot(
     std::optional<FileState> current)
     : desired_(std::move(desired)), current_(std::move(current)) {}
 
+std::optional<std::string_view> ConfigFileManager::Snapshot::desiredContent()
+    const {
+  if (desired_.type == FileType::MISSING) {
+    return std::nullopt;
+  }
+  return desired_.data;
+}
+
 ConfigFileManager::ConfigFileManager(Paths paths) : paths_(std::move(paths)) {
   const auto systemConfigDir =
       fs::path(paths_.systemConfigDir).lexically_normal();
@@ -127,14 +135,66 @@ ConfigFileManager::Snapshot ConfigFileManager::capture() const {
   return Snapshot(std::move(desired), captureFile(paths_.current));
 }
 
+bool ConfigFileManager::needsApply(
+    const Snapshot& snapshot,
+    std::optional<std::string_view> content) const {
+  if (!content) {
+    return snapshot.desired_.type != FileType::MISSING ||
+        (snapshot.current_ && snapshot.current_->type != FileType::MISSING);
+  }
+  if (snapshot.desired_.type == FileType::MISSING ||
+      snapshot.desired_.data != *content) {
+    return true;
+  }
+  if (!snapshot.current_) {
+    return false;
+  }
+
+  const auto& current = *snapshot.current_;
+  if (current.type == FileType::MISSING ||
+      (current.type == FileType::REGULAR && current.data != *content)) {
+    return true;
+  }
+  if (current.type != FileType::SYMLINK) {
+    return false;
+  }
+  fs::path target(current.data);
+  if (!target.is_absolute()) {
+    target = fs::path(paths_.current).parent_path() / target;
+  }
+  return !samePath(target, paths_.desired);
+}
+
 std::vector<std::string> ConfigFileManager::apply(
     const Snapshot& snapshot,
-    std::string_view content) const {
+    std::optional<std::string_view> content) const {
   validateWritable();
   std::vector<std::string> changed;
+
+  if (!content) {
+    const auto remove = [&changed](
+                            const std::string& path, const FileState& state) {
+      if (state.type == FileType::MISSING) {
+        return;
+      }
+      std::error_code error;
+      fs::remove(path, error);
+      if (error) {
+        throw std::runtime_error(
+            fmt::format("Failed to remove {}: {}", path, error.message()));
+      }
+      changed.push_back(path);
+    };
+    remove(paths_.desired, snapshot.desired_);
+    if (snapshot.current_) {
+      remove(paths_.current, *snapshot.current_);
+    }
+    return changed;
+  }
+
   if (snapshot.desired_.type == FileType::MISSING ||
-      snapshot.desired_.data != content) {
-    writeRegular(paths_.desired, content);
+      snapshot.desired_.data != *content) {
+    writeRegular(paths_.desired, *content);
     changed.push_back(paths_.desired);
   }
 
@@ -147,8 +207,8 @@ std::vector<std::string> ConfigFileManager::apply(
       fs::path(paths_.desired)
           .lexically_relative(fs::path(paths_.current).parent_path())
           .string();
-  if (current.type == FileType::REGULAR && current.data != content) {
-    writeRegular(paths_.current, content);
+  if (current.type == FileType::REGULAR && current.data != *content) {
+    writeRegular(paths_.current, *content);
     changed.push_back(paths_.current);
   } else if (current.type == FileType::MISSING) {
     writeSymlink(paths_.current, desiredTarget);
