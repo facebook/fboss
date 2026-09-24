@@ -9,10 +9,11 @@ such as Claude Code, Codex, MetaCode, or other tools that understand
 skill-style task guidance. They are written to be useful in both open-source
 checkouts and Meta-internal environments.
 
-The open-source skill set focuses on five workflows:
+The open-source skill set focuses on six workflows:
 
 - Debugging FBOSS AgentHwTest failures.
 - Debugging QSFP HW test failures from logs.
+- Adding support for a new transceiver.
 - Applying FBOSS coding standards while changing code.
 - Reviewing FBOSS diffs with FBOSS-specific review guidance.
 - Building, customizing, and provisioning FBOSS Distro images.
@@ -26,6 +27,7 @@ fboss/skills/
   debug-agent-hw-test/
   debug-qsfp-hw-test/
   fboss-distro-image/
+  fboss-transceiver-npi/
   fboss-code-standards/
   fboss-review/
 ```
@@ -54,6 +56,7 @@ skill by name:
 Use debug-agent-hw-test to debug AgentAclTest.AclNexthopTest on my switch.
 Use debug-qsfp-hw-test to find why warm_boot.HwStateMachineTest.CheckPortsProgrammed failed in this log.
 Use fboss-distro-image to explain and build fboss-image/from_source.json.
+Use fboss-transceiver-npi to add support for an Innolight 2x800G-DR4 optic.
 Use fboss-code-standards while changing the route updater.
 Use fboss-review to review this pull request.
 ```
@@ -95,6 +98,27 @@ and you have its log as pasted text, a file, or a CI run link. It covers:
 
 The skill reports root cause plus evidence only. It does not suggest code
 fixes or file known-bad entries.
+
+### `fboss-transceiver-npi`
+
+Use this skill to add support for a new transceiver. In an open-source
+checkout it covers the code change that teaches `qsfp_service` about a new
+media type:
+
+- Assigning a `MediaInterfaceCode` from the SFF-8024 reference tables.
+- Adding the enum entries to `fboss/qsfp_service/if/transceiver.thrift`.
+- Adding the matching entry to `TransceiverPropertiesDefault.h`, including
+  lane maps, speed combinations, and speed-change transitions.
+- Building and running the two tests that cover those files,
+  `transceiver_properties_manager_test` and `cmis_test`.
+
+`TransceiverPropertiesDefault.h` is keyed by media type rather than by vendor,
+so a new vendor part for an already-supported media type usually needs no code
+change at all — the skill checks for that first.
+
+Two further phases — placing firmware images and registering automated-test
+nodes — depend on infrastructure that has no open-source counterpart, and are
+available only where the corresponding `facebook/` overrides are present.
 
 ### `fboss-code-standards`
 
