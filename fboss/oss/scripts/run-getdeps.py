@@ -1187,6 +1187,10 @@ def _prefetch_gnu_mirrors(args, getdeps_path):
 
 
 def main():
+    # When piped (e.g. to tee), this script and the getdeps.py subprocess
+    # block-buffer, so their output lands after the build output it preceded.
+    sys.stdout.reconfigure(line_buffering=True)
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     args = parse_args()
     print_info("Starting run-getdeps.py")
     getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
