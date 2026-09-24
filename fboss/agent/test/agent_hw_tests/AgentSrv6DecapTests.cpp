@@ -105,11 +105,16 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
     auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
+    // Only TH5/TH6 punt the copy on the user defined trap alone. Cisco ASICs
+    // doesn't change the TC
+    const bool cpuQueueOnly =
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
     utility::addTrapPacketAcl(
         asic,
         &cfg,
         std::set<folly::CIDRNetwork>{{kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}},
-        /*cpuQueueOnly=*/true);
+        cpuQueueOnly);
     utility::addOlympicQueueConfig(
         &cfg,
         ensemble.getL3Asics(),
