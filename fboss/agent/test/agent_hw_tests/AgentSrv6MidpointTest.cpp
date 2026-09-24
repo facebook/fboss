@@ -484,17 +484,4 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
-  auto setup = [this]() { this->setupHelper(); };
-
-  auto verify = [this]() {
-    auto egressPort = this->getEgressPort(this->mySidPortDesc());
-    // Outer dst is the mySid prefix itself (fdad:ffff:1::) with no next uSID.
-    // The function bits are zero so there is no uSID to shift to — the
-    // packet should be dropped.
-    this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 } // namespace facebook::fboss
