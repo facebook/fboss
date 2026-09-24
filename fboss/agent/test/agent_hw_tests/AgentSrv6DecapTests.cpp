@@ -25,6 +25,8 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+DECLARE_bool(sai_user_defined_trap);
+
 namespace facebook::fboss {
 
 struct PhysicalPortSrv6Decap {
@@ -71,6 +73,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_nexthop_id_manager = true;
     FLAGS_resolve_nexthops_from_id = true;
+    // Punt decapped packets to CPU through a user defined trap so the trap ACL
+    // does not rewrite the forwarded packet's TC (see initialConfig).
+    FLAGS_sai_user_defined_trap = true;
   }
 
   cfg::SwitchConfig initialConfig(
@@ -103,8 +108,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
     utility::addTrapPacketAcl(
         asic,
         &cfg,
-        std::set<folly::CIDRNetwork>{
-            {kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}});
+        std::set<folly::CIDRNetwork>{{kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}},
+        /*cpuQueueOnly=*/true);
     utility::addOlympicQueueConfig(
         &cfg,
         ensemble.getL3Asics(),
