@@ -12,13 +12,13 @@ build environment without modifying the upstream getdeps.py script.
 
 import argparse
 import glob
+import hashlib
 import os
 import re
 import shutil
 import subprocess
 import sys
 import sysconfig
-import tempfile
 from pathlib import Path
 
 from sdk_versions import (
@@ -523,9 +523,24 @@ def _find_dir_with_file(root, filename):
     return None
 
 
-def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
-    """Stage a flat NPU SDK into a temp prefix and prepend it to
-    CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
+def _sdk_fingerprint(*dirs):
+    """Short hash of the relative path, size and mtime of every file under ``dirs``."""
+    h = hashlib.sha256()
+    for d in dirs:
+        for root, subdirs, files in os.walk(d):
+            subdirs.sort()
+            for name in sorted(files):
+                path = os.path.join(root, name)
+                st = os.stat(path)
+                h.update(
+                    f"{os.path.relpath(path, d)}\0{st.st_size}\0{st.st_mtime_ns}\n".encode()
+                )
+    return h.hexdigest()[:12]
+
+
+def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
+    """Stage a flat NPU SDK into <scratch_path>/installed/sai_impl_staging-<hash>
+    and prepend it to CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
     --npu-libsai-impl-tarball flows.
 
     ``libsai_impl_dir`` holds libsai_impl.a (and any sibling libs /
@@ -534,8 +549,19 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
     <brcm_sai_extensions.h> resolve) and as experimental/ off the staging root
     (so <experimental/...>-prefixed includes resolve, since SAI_IMPL_DIR puts the
     staging root on the include path).
+
+    The staging path lands in every compile command's include flags, so it is
+    keyed on the SDK's contents: an unchanged SDK keeps its path and builds stay
+    incremental, while a changed one gets a new path and forces a full rebuild.
+    Relying on mtimes alone is not enough because tar preserves the archive's
+    timestamps, which can be older than existing build outputs.
     """
-    staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
+    staging_root = os.path.abspath(os.path.join(scratch_path, "installed"))
+    fingerprint = _sdk_fingerprint(libsai_impl_dir, experiments_dir)
+    staging_dir = os.path.join(staging_root, f"sai_impl_staging-{fingerprint}")
+    for old in glob.glob(os.path.join(staging_root, "sai_impl_staging-*")):
+        shutil.rmtree(old)
+    os.makedirs(staging_dir)
     abs_lib = os.path.abspath(libsai_impl_dir)
     abs_exp = os.path.abspath(experiments_dir)
     os.symlink(abs_lib, os.path.join(staging_dir, "lib"))
@@ -552,13 +578,15 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
     )
 
 
-def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
+def _conditionally_prepare_sdk_artifacts(
+    libsai_impl_path, experiments_path, scratch_path
+):
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
     Both paths must be provided together. ``libsai_impl_path`` is a directory
     that contains libsai_impl.a (and may contain sai_dependencies.txt or
     additional SDK libs). When present, the artifacts are staged into a
-    temporary directory with the lib/, include/ and experimental/ structure
+    stable scratch directory with the lib/, include/ and experimental/ structure
     that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
@@ -602,7 +630,7 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         )
         sys.exit(1)
 
-    _stage_npu_sdk(libsai_impl_path, experiments_path)
+    _stage_npu_sdk(libsai_impl_path, experiments_path, scratch_path)
 
 
 def _get_scratch_path(getdeps_args):
@@ -679,7 +707,7 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
         )
         sys.exit(1)
 
-    _stage_npu_sdk(libsai_dir, experiments_dir)
+    _stage_npu_sdk(libsai_dir, experiments_dir, scratch_path)
 
 
 def _validate_pai_sdk_dir(sdk_dir):
@@ -1019,7 +1047,9 @@ def _prepare_pass(
             )
         else:
             _conditionally_prepare_sdk_artifacts(
-                args.npu_libsai_impl_path, args.npu_experiments_path
+                args.npu_libsai_impl_path,
+                args.npu_experiments_path,
+                _get_scratch_path(args.getdeps_args),
             )
     elif impl == PASS_IMPL_PHY:
         # Stage a user-provided PAI SDK so CMake's hard-coded /var/FBOSS/pai_impl
