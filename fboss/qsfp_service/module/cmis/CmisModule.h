@@ -856,6 +856,23 @@ class CmisModule : public QsfpModule {
    * keyed off the part number. */
   int getDiagSelLatchWaitUsec() const;
 
+  /* Read-modify-write the bits of a one-byte CmisField selected by mask: those
+   * bits take their new state from value, the rest are preserved.
+   * Value is expected to be already positioned within the byte, not shifted in
+   * here, so only its masked bits are consulted. Returns the byte written.
+   *
+   * The write is unconditional -- some registers act on the write itself, so
+   * skipping it when the byte is unchanged would drop the side effect.
+   *
+   * Throws if the field is wider than one byte, which would otherwise overrun
+   * the single-byte read buffer. */
+  uint8_t readModifyWriteCmisField(
+      CmisField field,
+      uint8_t mask,
+      uint8_t value,
+      bool skipBankAndPageChange = false,
+      std::optional<uint8_t> bank = std::nullopt);
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;

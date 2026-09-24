@@ -823,6 +823,29 @@ void CmisModule::writeCmisField(
       CAST_TO_INT(field));
 }
 
+uint8_t CmisModule::readModifyWriteCmisField(
+    CmisField field,
+    uint8_t mask,
+    uint8_t value,
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (dataLength != 1) {
+    throw FbossError(
+        fmt::format(
+            "Read-modify-write of field {} needs a one byte field, got {:d} bytes",
+            apache::thrift::util::enumNameSafe(field),
+            dataLength));
+  }
+
+  uint8_t data;
+  readCmisField(field, &data, skipBankAndPageChange, bank);
+  data = (data & ~mask) | (value & mask);
+  writeCmisField(field, &data, skipBankAndPageChange, bank);
+  return data;
+}
+
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
   int dataOffset;
   int dataLength;
