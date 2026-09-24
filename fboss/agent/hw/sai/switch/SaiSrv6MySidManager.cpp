@@ -7,6 +7,7 @@
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -34,7 +35,6 @@ namespace {
 SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     const MySid& mySid,
     const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
-    std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr,
     SaiManagerTable* managerTable) {
   sai_int32_t endpointBehavior;
   std::optional<SaiMySidEntryTraits::Attributes::Vrf> vrId;
@@ -93,8 +93,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE,
       nextHopId,
       vrId,
-      packetAction,
-      tunnelIdAttr};
+      packetAction};
 }
 } // namespace
 
@@ -271,23 +270,27 @@ void SaiSrv6MySidManager::addMySidEntry(
   }
 
   std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
-  std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   if (mySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
     const auto* decapTunnelHandle =
         managerTable_->srv6TunnelManager().getDecapTunnelHandle();
     if (decapTunnelHandle && decapTunnelHandle->tunnel) {
       decapTunnel = decapTunnelHandle->tunnel;
-      tunnelIdAttr =
-          SaiMySidEntryTraits::Attributes::TunnelId{decapTunnel->adapterKey()};
     }
   }
 #endif
 
-  auto createAttributes = getMySidCreateAttributes(
-      *mySid, nexthopHandle, tunnelIdAttr, managerTable_);
+  auto createAttributes =
+      getMySidCreateAttributes(*mySid, nexthopHandle, managerTable_);
   auto& store = saiStore_->get<SaiMySidEntryTraits>();
   auto mySidEntry = store.setObject(adapterHostKey, createAttributes);
+  if (decapTunnel) {
+    // TunnelId is not part of CreateAttributes so warm-boot reload does not
+    // query it for MySID behaviors where the attribute is not applicable.
+    SaiApiTable::getInstance()->srv6Api().setAttribute(
+        mySidEntry->adapterKey(),
+        SaiMySidEntryTraits::Attributes::TunnelId{decapTunnel->adapterKey()});
+  }
 
   auto handle = std::make_unique<SaiMySidEntryHandle>();
   if (nexthopHandle) {
