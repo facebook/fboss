@@ -129,6 +129,44 @@ TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyRaInterval) {
 }
 
 // ---------------------------------------------------------------------------
+// Test: set ra-lifetime and verify routerLifetime via running config. A second
+// set overwrites the first, and 0 ("not a default router") is accepted. The
+// RA interval is a separate field and must not change.
+// ---------------------------------------------------------------------------
+
+TEST_F(ConfigInterfaceIpv6NdpTest, SetAndVerifyRaLifetime) {
+  XLOG(INFO) << "[Step 1] Finding an interface to test...";
+  std::string ifName = getRandomInterfacePortName();
+  int intfID = getInterfaceIdForPort(ifName);
+  XLOG(INFO) << "  Using interface: " << ifName;
+
+  // routerAdvertisementSeconds defaults to 0 when the ndp block is absent.
+  auto ndpBefore = getNdpConfig(getRunningConfig(), intfID);
+  const int64_t raIntervalBefore = ndpBefore.count("routerAdvertisementSeconds")
+      ? ndpBefore["routerAdvertisementSeconds"].asInt()
+      : 0;
+
+  // Neither value is the schema default (1800).
+  for (const int lifetime : {1234, 0}) {
+    XLOG(INFO) << "[Step 2] Setting ra-lifetime to " << lifetime << "...";
+    setNdpAttr(ifName, "ra-lifetime", std::to_string(lifetime));
+
+    XLOG(INFO) << "[Step 3] Verifying running config via thrift...";
+    expectNdpField(
+        intfID,
+        "routerLifetime",
+        [&](const folly::dynamic& v) { return v.asInt() == lifetime; },
+        fmt::format("== {}", lifetime));
+    expectNdpField(
+        intfID,
+        "routerAdvertisementSeconds",
+        [&](const folly::dynamic& v) { return v.asInt() == raIntervalBefore; },
+        fmt::format("unchanged at {}", raIntervalBefore));
+  }
+  XLOG(INFO) << "TEST PASSED";
+}
+
+// ---------------------------------------------------------------------------
 // Test: set hop-limit and verify via running config
 // ---------------------------------------------------------------------------
 
