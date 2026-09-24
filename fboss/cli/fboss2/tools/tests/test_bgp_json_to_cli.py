@@ -21,11 +21,14 @@ from typing import Any
 from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     escape_shell_arg,
     format_bandwidth,
+    generate_as_path_list_commands,
     generate_commands,
+    generate_community_list_commands,
     generate_exec_commands,
     generate_global_commands,
     generate_peer_commands,
     generate_peer_group_commands,
+    generate_policy_commands,
     json_to_cli,
 )
 
@@ -985,6 +988,202 @@ def peer_config(peer: dict) -> dict:
     return {"peers": [peer]}
 
 
+class GenerateAsPathListCommandsTest(unittest.TestCase):
+    """Tests for generate_as_path_list_commands (as-path-list grammar)."""
+
+    PREFIX = "config protocol bgp policy as-path-list ASPL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_as_path_list_commands({"as_paths": ["^1_"]}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        """A list with nothing to set still comes back by name."""
+        self.assertEqual(
+            generate_as_path_list_commands({"name": "ASPL"}), [self.PREFIX]
+        )
+
+    def test_description(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "description": "spine as paths"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'spine as paths'"])
+
+    def test_empty_description_not_emitted(self) -> None:
+        """bgpd's running config carries the "" default; nothing to replay."""
+        commands = generate_as_path_list_commands({"name": "ASPL", "description": ""})
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_regex_per_as_path(self) -> None:
+        """Each as_paths pattern is one quoted `regex` line, in order."""
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "as_paths": ["^65000_", "_65001$"]}
+        )
+        self.assertEqual(
+            commands,
+            [f"{self.PREFIX} regex '^65000_'", f"{self.PREFIX} regex '_65001$'"],
+        )
+
+    def test_boolean_operator_and(self) -> None:
+        for raw in (1, "AND"):
+            commands = generate_as_path_list_commands(
+                {"name": "ASPL", "boolean_operator": raw}
+            )
+            self.assertEqual(commands, [f"{self.PREFIX} boolean-operator AND"], raw)
+
+    def test_boolean_operator_or_is_default(self) -> None:
+        """OR is the thrift default and the CLI's; nothing to emit."""
+        for raw in (2, "OR"):
+            commands = generate_as_path_list_commands(
+                {"name": "ASPL", "boolean_operator": raw}
+            )
+            self.assertEqual(commands, [self.PREFIX], raw)
+
+    def test_boolean_operator_not_warns(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "boolean_operator": 3}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
+
+    def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
+        commands = generate_as_path_list_commands(
+            {
+                "name": "ASPL",
+                "as_path_list_names": ["OTHER"],
+                "as_path_list": [{"sequence_number": 10}],
+            }
+        )
+        self.assertEqual(len(commands), 2)
+        self.assertIn("as_path_list_names", commands[0])
+        self.assertIn("as_path_list entries", commands[1])
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_injection_in_regex_neutralized(self) -> None:
+        commands = generate_as_path_list_commands(
+            {"name": "ASPL", "as_paths": ["$(reboot)"]}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} regex '$(reboot)'"])
+
+    def test_policy_block_orders_lists_first(self) -> None:
+        config = {"policies": {"aspath_lists": [{"name": "A"}, {"name": "B"}]}}
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy as-path-list B",
+            ],
+        )
+
+    def test_no_policies_key(self) -> None:
+        self.assertEqual(generate_policy_commands({}), [])
+
+
+class GenerateCommunityListCommandsTest(unittest.TestCase):
+    """Tests for generate_community_list_commands (community-list grammar)."""
+
+    PREFIX = "config protocol bgp policy community-list CL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_community_list_commands({"exact_match": True}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL"}), [self.PREFIX]
+        )
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "description": "transit communities",
+                "boolean_operator": 1,
+                "exact_match": True,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description 'transit communities'",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} exact-match true",
+            ],
+        )
+
+    def test_community_per_value(self) -> None:
+        """Each communities value is one quoted `community` line, in order."""
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["65000:100", "^65000:.*$"]}
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} community {escape_shell_arg('65000:100')}",
+                f"{self.PREFIX} community {escape_shell_arg('^65000:.*$')}",
+            ],
+        )
+
+    def test_injection_in_community_neutralized(self) -> None:
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["$(reboot)"]}
+        )
+        self.assertEqual(
+            commands, [f"{self.PREFIX} community {escape_shell_arg('$(reboot)')}"]
+        )
+
+    def test_boolean_operator_or_omitted_not_warns(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "boolean_operator": "OR"}),
+            [self.PREFIX],
+        )
+        commands = generate_community_list_commands(
+            {"name": "CL", "boolean_operator": 3}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
+
+    def test_exact_match_false_preserved(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "exact_match": False}),
+            [f"{self.PREFIX} exact-match false"],
+        )
+
+    def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "community_list_names": ["X"],
+                "members": [{"community": {"name": "CM1", "value": "65000:1"}}],
+            }
+        )
+        self.assertEqual(len(commands), 2)
+        self.assertIn("community_list_names", commands[0])
+        self.assertIn("members entries", commands[1])
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_lists_after_as_path_lists(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+            ],
+        )
+
+
 class GenerateScriptCommandsTest(unittest.TestCase):
     """Tests for generate_exec_commands."""
 
@@ -995,6 +1194,15 @@ class GenerateScriptCommandsTest(unittest.TestCase):
         self.assertIn("#!/bin/bash", result)
         # Check for set -e with any comment
         self.assertTrue(any("set -e" in cmd for cmd in result))
+
+    def test_exec_commands_pass_warnings_through(self) -> None:
+        """Warning comments are never prefixed with the binary."""
+        result = generate_exec_commands(
+            ["config protocol bgp global hold-time 90", "# WARNING: x"], "fboss2"
+        )
+        self.assertIn("fboss2 config protocol bgp global hold-time 90", result)
+        self.assertIn("# WARNING: x", result)
+        self.assertNotIn("fboss2 # WARNING: x", result)
 
     def test_exec_commands_prepends_binary(self) -> None:
         """Exec commands should prepend binary to each command."""
@@ -1019,6 +1227,37 @@ class GenerateScriptCommandsTest(unittest.TestCase):
             peer_config({"peer_addr": "2001:db8::1", "enabled": True})
         )
         self.assertTrue(commands[0].startswith("# WARNING: neighbor 2001:db8::1"))
+
+
+class GenerateCommandsOrderTest(unittest.TestCase):
+    """generate_commands is the single generator sequence for --raw and the
+    script: global, then policy objects, then the peer-groups and peers that
+    reference them."""
+
+    def test_policies_between_global_and_peer_groups(self) -> None:
+        config = {
+            "router_id": "10.0.0.1",
+            "policies": {"aspath_lists": [{"name": "ASPL", "as_paths": ["^1_"]}]},
+            "peer_groups": [{"name": "PG", "remote_as_4_byte": 65000}],
+            "peers": [{"peer_addr": "10.0.0.2", "peer_group_name": "PG"}],
+        }
+        commands = generate_commands(config)
+        idx = {
+            "global": next(i for i, c in enumerate(commands) if "global" in c),
+            "policy": next(i for i, c in enumerate(commands) if "as-path-list" in c),
+            "peer_group": next(
+                i for i, c in enumerate(commands) if "peer-group PG" in c
+            ),
+            "peer": next(i for i, c in enumerate(commands) if "neighbor" in c),
+        }
+        self.assertLess(idx["global"], idx["policy"])
+        self.assertLess(idx["policy"], idx["peer_group"])
+        self.assertLess(idx["peer_group"], idx["peer"])
+
+    def test_script_wraps_same_sequence(self) -> None:
+        config = {"policies": {"aspath_lists": [{"name": "ASPL"}]}}
+        script = json_to_cli(config, binary="fboss2")
+        self.assertIn("fboss2 config protocol bgp policy as-path-list ASPL", script)
 
 
 class JsonToCliIntegrationTest(unittest.TestCase):
