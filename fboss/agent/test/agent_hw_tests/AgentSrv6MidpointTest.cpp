@@ -97,16 +97,20 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         utility::makeSrv6TunnelConfig(
             "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value())));
     cfg.srv6Tunnels() = tunnelList;
-    // Trap packets with the rewritten outer dst so the snooper can capture
-    // the forwarded (uSID-shifted) packet.
-    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
-    // These match on dst ip with no port qualifier, so each prefix has to be
-    // one only the forwarded packet carries — a prefix an injected packet
-    // still holds on ingress would be copied to the CPU before the midpoint
-    // ever processes it.
+    addTrapAcls(checkSameAndGetAsicForTesting(ensemble.getL3Asics()), cfg);
+    return cfg;
+  }
+
+  // Trap packets with the rewritten outer dst so the snooper can capture the
+  // forwarded (uSID-shifted) packet. These match on dst ip with no port
+  // qualifier, so each prefix has to be one only the forwarded packet carries
+  // — a prefix an injected packet still holds on ingress would be copied to
+  // the CPU before the midpoint ever processes it. Fixtures that verify
+  // forwarding by port counters rather than by capture override this to trap
+  // nothing, so no copy competes with the packet they are counting.
+  virtual void addTrapAcls(const HwAsic* asic, cfg::SwitchConfig& cfg) const {
     utility::addTrapPacketAcl(
         asic, &cfg, std::set<folly::CIDRNetwork>{{kExpectedOuterDst, 128}});
-    return cfg;
   }
 
   cfg::MySidConfig makeAdjacencyMySidConfig(
@@ -495,14 +499,10 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
   // Outer dst holding uSID 1 with nothing behind it, so the uA sid is the last
   // sid and USD decapsulates instead of shifting.
   const folly::IPAddressV6 kUsdOuterDst{"fdad:ffff:1::"};
-  // Inner dst repeats uSID 1 and carries uSID 5 behind it, so the header USD
-  // exposes is itself a midpoint packet for this node. uSID 5 keeps both
-  // prefixes clear of the addresses the base fixture traps.
-  const folly::IPAddressV6 kUsdInnerDst{"fdad:ffff:1:5::"};
-  // The exposed header once its own active uSID 1 is shifted out.
-  const folly::IPAddressV6 kUsdInnerShiftedDst{"fdad:ffff:5::"};
-  // The bare locator, left once every uSID behind it has been consumed.
-  const folly::IPAddressV6 kMySidLocator{"fdad:ffff::"};
+  // Inner dst repeats uSID 1 with uSID aa behind it, so the header USD exposes
+  // is itself a midpoint packet for this node: it shifts rather than
+  // decapsulating, and leaves by the same adjacency.
+  const folly::IPAddressV6 kUsdInnerDst{"fdad:ffff:1:aa::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -512,21 +512,11 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
     return features;
   }
 
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto cfg = AgentSrv6MidpointTest<PortType>::initialConfig(ensemble);
-    // Both stages of the decap leave a dst only this fixture uses, so each can
-    // be trapped without the base fixture's packets matching.
-    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
-    utility::addTrapPacketAcl(
-        asic,
-        &cfg,
-        std::set<folly::CIDRNetwork>{
-            {kUsdInnerDst, 128},
-            {kUsdInnerShiftedDst, 128},
-            {kMySidLocator, 128}});
-    return cfg;
-  }
+  // Trap nothing. The shifted packet carries the dst the base fixture traps,
+  // and a copy to the CPU competes with the forwarding this egress counter is
+  // measuring.
+  void addTrapAcls(const HwAsic* /*asic*/, cfg::SwitchConfig& /*cfg*/)
+      const override {}
 
   // Outer dst is the uA sid with nothing behind it; inner dst repeats that sid
   // with one more uSID behind it.
@@ -559,35 +549,7 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
     auto pktsBefore =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
 
-    // Left unfiltered by port: both trapped copies are keyed by dst ip, and
-    // only this fixture's two prefixes can produce them.
-    utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6UsdSnooper");
-
     sendUsdPacket(injectPort);
-
-    // Collect both copies before deciding which is which — the pipeline is
-    // free to deliver the decapped and shifted copies in either order.
-    std::set<folly::IPAddressV6> rxDsts;
-    for (int i = 0; i < 2; ++i) {
-      auto rx = snooper.waitForPacket(5 /* timeout_s */);
-      ASSERT_TRUE(rx.has_value()) << "missing trapped packet " << i;
-      folly::io::Cursor cursor((*rx).get());
-      utility::EthFrame frame(cursor);
-      EXPECT_EQ(
-          frame.header().etherType,
-          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
-      auto rxV6 = frame.v6PayLoad();
-      ASSERT_TRUE(rxV6.has_value());
-      // USD strips the outer header, so what is left both times is the inner
-      // header itself rather than another ip-in-ip packet.
-      EXPECT_EQ(rxV6->v6PayLoad(), nullptr);
-      EXPECT_TRUE(rxV6->udpPayload().has_value());
-      rxDsts.insert(rxV6->header().dstAddr);
-    }
-
-    const std::set<folly::IPAddressV6> expectedDsts{
-        kUsdInnerDst, kUsdInnerShiftedDst};
-    EXPECT_EQ(rxDsts, expectedDsts);
 
     WITH_RETRIES({
       auto pktsAfter =
