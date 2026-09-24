@@ -98,13 +98,6 @@ void ensureDirectoryExists(const std::string& dirPath) {
   }
 }
 
-ConfigFileManager makeConfigFileManager(
-    const std::string& systemConfigDir,
-    const ConfigSession::ConfigDomain& domain) {
-  return ConfigFileManager(
-      {systemConfigDir, domain.desiredPath, domain.currentPath});
-}
-
 // Maximum number of conflicts to report before truncating with "and more"
 constexpr size_t kMaxConflicts = 10;
 
@@ -260,6 +253,7 @@ ConfigSession::ConfigSession(SessionInit init) {
 
   sessionConfigDir_ = homeDir + "/.fboss2";
   systemConfigDir_ = coopDir;
+  readOnly_ = init == SessionInit::ReadOnly;
   git_ = std::make_unique<Git>(coopDir);
   initializeSession(init);
 }
@@ -270,6 +264,7 @@ ConfigSession::ConfigSession(
     SessionInit init)
     : sessionConfigDir_(std::move(sessionConfigDir)),
       systemConfigDir_(std::move(systemConfigDir)),
+      readOnly_(init == SessionInit::ReadOnly),
       username_(getUsername()),
       git_(std::make_unique<Git>(systemConfigDir_)) {
   initializeSession(init);
@@ -284,6 +279,7 @@ ConfigSession::ConfigSession(
       systemConfigDir_(std::move(systemConfigDir)),
       username_(getUsername()),
       git_(std::make_unique<Git>(systemConfigDir_)) {
+  fbossServiceUtilHasAgentState_ = true;
   // Don't call initializeSession() - this constructor is for testing only
   // and tests don't need git initialization or config file copying
 }
@@ -499,7 +495,6 @@ std::vector<ConfigSession::ConfigDomain> ConfigSession::configDomains() const {
           getSessionConfigPath(), // ~/.fboss2/agent.conf
           kAgentGitRelPath, // cli/agent.conf
           getCliConfigPath(), // /etc/coop/cli/agent.conf (desired)
-          getSystemConfigPath(), // /etc/coop/agent.conf (current)
           // Rollback floor: reload the agent, unless a commit being undone
           // recorded a higher level (see rolledBackActionLevels()).
           cli::ConfigActionLevel::HITLESS,
@@ -510,10 +505,31 @@ std::vector<ConfigSession::ConfigDomain> ConfigSession::configDomains() const {
           getBgpSessionConfigPath(), // ~/.fboss2/bgp_config.json
           kBgpGitRelPath, // bgpcpp/bgpcpp.conf
           getBgpSystemConfigPath(), // /etc/coop/bgpcpp/bgpcpp.conf (desired)
-          getBgpSystemConfigLinkPath(), // /etc/coop/bgpcpp.conf (current)
           cli::ConfigActionLevel::SERVICE_RESTART, // rollback restarts bgpd
       },
   };
+}
+
+ConfigSession::ConfigDomain ConfigSession::getConfigDomain(
+    cli::ServiceType service) const {
+  for (const auto& domain : configDomains()) {
+    if (domain.service == service) {
+      return domain;
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "No config domain for service {}",
+          apache::thrift::util::enumNameSafe(service)));
+}
+
+ConfigFileManager ConfigSession::fileManagerFor(
+    const ConfigDomain& domain) const {
+  return ConfigFileManager({
+      systemConfigDir_,
+      domain.desiredPath,
+      getCurrentConfigPath(domain.service),
+  });
 }
 
 std::optional<std::string> ConfigSession::readStagedContent(
@@ -606,7 +622,7 @@ bool ConfigSession::hasActiveSession() const {
 
 cfg::AgentConfig& ConfigSession::getAgentConfig() {
   if (!agentConfig_) {
-    loadConfig();
+    loadConfig(cli::ServiceType::AGENT);
   }
   return *agentConfig_;
 }
@@ -621,7 +637,7 @@ const cfg::AgentConfig& ConfigSession::getAgentConfig() const {
 
 utils::PortMap& ConfigSession::getPortMap() {
   if (!agentConfig_) {
-    loadConfig();
+    loadConfig(cli::ServiceType::AGENT);
   }
   return *portMap_;
 }
@@ -636,7 +652,7 @@ const utils::PortMap& ConfigSession::getPortMap() const {
 
 void ConfigSession::rebuildPortMap() {
   if (!agentConfig_) {
-    loadConfig();
+    loadConfig(cli::ServiceType::AGENT);
   }
   portMap_ = std::make_unique<utils::PortMap>(*agentConfig_);
 }
@@ -644,14 +660,9 @@ void ConfigSession::rebuildPortMap() {
 void ConfigSession::saveConfig(
     cli::ServiceType service,
     cli::ConfigActionLevel actionLevel) {
-  for (const auto& domain : configDomains()) {
-    if (domain.service != service) {
-      continue;
-    }
-    ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
-    makeConfigFileManager(systemConfigDir_, domain).validateWritable();
-    break;
-  }
+  const auto domain = getConfigDomain(service);
+  ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
+  fileManagerFor(domain).validateWritable();
 
   // Serialize whichever typed config this service owns and stage it to that
   // domain's session file. The round-trip through serialize -> parse ->
@@ -674,7 +685,7 @@ void ConfigSession::saveConfig(
     }
     case cli::ServiceType::BGP: {
       if (!bgpConfig_) {
-        loadBgpConfig();
+        loadConfig(cli::ServiceType::BGP);
       }
       auto json = apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           *bgpConfig_);
@@ -737,67 +748,13 @@ std::string ConfigSession::getBgpSystemConfigPath() const {
   return getBgpSystemConfigDir() + "/bgpcpp.conf";
 }
 
-std::string ConfigSession::getBgpSystemConfigLinkPath() const {
-  return systemConfigDir_ + "/bgpcpp.conf";
-}
-
 bool ConfigSession::bgpSessionExists() const {
   return fs::exists(getBgpSessionConfigPath());
 }
 
-void ConfigSession::loadBgpConfig() {
-  if (bgpConfig_) {
-    return;
-  }
-
-  // Prefer staged edits; otherwise seed from the running bgpd config; else
-  // schema defaults. A read failure on a file that exists is logged (not
-  // silently treated as "no config") so a permission/IO error doesn't
-  // masquerade as a fresh session.
-  // The running config is read through the daemon's own --config path, which
-  // is a symlink to the promoted file once a commit has happened and the
-  // plain file the bgp++ RPM installs before that. Seeding from it (rather
-  // than from the promoted path directly) is what keeps a first BGP edit on a
-  // freshly imaged box from starting at schema defaults and having the commit
-  // discard the running config, leaving bgpd to crash-loop on an unset
-  // router_id. The promoted path is a backstop for a missing symlink.
-  std::string content;
-  std::string sessionPath = getBgpSessionConfigPath();
-  std::string linkPath = getBgpSystemConfigLinkPath();
-  std::string systemPath = getBgpSystemConfigPath();
-  if (fs::exists(sessionPath)) {
-    if (!folly::readFile(sessionPath.c_str(), content)) {
-      LOG(WARNING) << "Failed to read staged BGP config " << sessionPath
-                   << "; starting from defaults";
-    }
-  } else if (fs::exists(linkPath)) {
-    if (!folly::readFile(linkPath.c_str(), content)) {
-      LOG(WARNING) << "Failed to read system BGP config " << linkPath
-                   << "; starting from defaults";
-    }
-  } else if (fs::exists(systemPath)) {
-    if (!folly::readFile(systemPath.c_str(), content)) {
-      LOG(WARNING) << "Failed to read promoted BGP config " << systemPath
-                   << "; starting from defaults";
-    }
-  }
-
-  bgpConfig_ = std::make_unique<bgp::thrift::BgpConfig>();
-  if (!content.empty()) {
-    try {
-      apache::thrift::SimpleJSONSerializer::deserialize<bgp::thrift::BgpConfig>(
-          content, *bgpConfig_);
-    } catch (const std::exception& ex) {
-      LOG(WARNING) << "Failed to parse BGP config, starting from defaults: "
-                   << ex.what();
-      *bgpConfig_ = bgp::thrift::BgpConfig();
-    }
-  }
-}
-
 bgp::thrift::BgpConfig& ConfigSession::getBgpConfig() {
   if (!bgpConfig_) {
-    loadBgpConfig();
+    loadConfig(cli::ServiceType::BGP);
   }
   return *bgpConfig_;
 }
@@ -965,36 +922,52 @@ const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
 }
 
-void ConfigSession::ensureFbossServiceUtil(const HostInfo& hostInfo) {
-  if (!fbossServiceUtil_) {
-    MultiSwitchRunState runState;
-    try {
-      runState = utils::getMultiSwitchRunState(hostInfo);
-    } catch (const std::exception& e) {
-      throw std::runtime_error(
-          fmt::format(
-              "Failed to query agent run state from {}. "
-              "Is the agent running? Error: {}",
-              hostInfo.getName(),
-              e.what()));
-    }
-
-    std::vector<int> switchIndexes;
-    for (const auto& [idx, _] : *runState.hwIndexToRunState()) {
-      switchIndexes.push_back(idx);
-    }
-    std::sort(switchIndexes.begin(), switchIndexes.end());
-
-    fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
-        std::move(switchIndexes), *runState.multiSwitchEnabled());
+void ConfigSession::ensureFbossServiceUtil(
+    const HostInfo& hostInfo,
+    bool needsAgentState) {
+  if (fbossServiceUtil_ &&
+      (!needsAgentState || fbossServiceUtilHasAgentState_)) {
+    return;
   }
+  if (!needsAgentState) {
+    fbossServiceUtil_ =
+        std::make_unique<FbossServiceUtil>(std::vector<int>{}, false);
+    return;
+  }
+
+  MultiSwitchRunState runState;
+  try {
+    runState = utils::getMultiSwitchRunState(hostInfo);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+        fmt::format(
+            "Failed to query agent run state from {}. "
+            "Is the agent running? Error: {}",
+            hostInfo.getName(),
+            e.what()));
+  }
+
+  std::vector<int> switchIndexes;
+  for (const auto& [idx, _] : *runState.hwIndexToRunState()) {
+    switchIndexes.push_back(idx);
+  }
+  std::sort(switchIndexes.begin(), switchIndexes.end());
+
+  fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+      std::move(switchIndexes), *runState.multiSwitchEnabled());
+  fbossServiceUtilHasAgentState_ = true;
 }
 
 std::map<cli::ServiceType, std::vector<std::string>>
 ConfigSession::applyServiceActions(
     const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
     const HostInfo& hostInfo) {
-  ensureFbossServiceUtil(hostInfo);
+  if (actions.empty()) {
+    return {};
+  }
+
+  ensureFbossServiceUtil(hostInfo, actions.contains(cli::ServiceType::AGENT));
+
   std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
@@ -1012,65 +985,132 @@ ConfigSession::applyServiceActions(
   return serviceNames;
 }
 
-void ConfigSession::loadConfig() {
-  // If session file doesn't exist (e.g., after a commit), re-initialize
-  // the session by copying from system config.
-  if (!sessionExists()) {
-    // Force materialization even if constructed ReadOnly.
-    initializeSession(SessionInit::CreateIfAbsent);
-  }
+void ConfigSession::loadConfig(cli::ServiceType service) {
+  const auto domain = getConfigDomain(service);
 
   std::string configJson;
-  std::string sessionConfigPath = getSessionConfigPath();
-  if (!folly::readFile(sessionConfigPath.c_str(), configJson)) {
-    throw std::runtime_error(
-        fmt::format("Failed to read config file: {}", sessionConfigPath));
+  if (fs::exists(domain.sessionPath)) {
+    if (!folly::readFile(domain.sessionPath.c_str(), configJson)) {
+      if (service == cli::ServiceType::AGENT) {
+        throw std::runtime_error(
+            fmt::format("Failed to read config file: {}", domain.sessionPath));
+      }
+      LOG(WARNING) << "Failed to read staged BGP config " << domain.sessionPath
+                   << "; starting from defaults";
+    }
+  } else {
+    if (!readOnly_) {
+      ensureDirectoryExists(
+          fs::path(domain.desiredPath).parent_path().string());
+    }
+    const auto manager = fileManagerFor(domain);
+    if (!readOnly_) {
+      manager.validateWritable();
+    }
+
+    switch (service) {
+      case cli::ServiceType::AGENT:
+        if (!folly::readFile(manager.currentPath().c_str(), configJson)) {
+          throw std::runtime_error(
+              fmt::format(
+                  "Failed to read config file: {}", manager.currentPath()));
+        }
+        break;
+      case cli::ServiceType::BGP:
+        if (fs::exists(manager.currentPath())) {
+          if (!folly::readFile(manager.currentPath().c_str(), configJson)) {
+            LOG(WARNING) << "Failed to read system BGP config "
+                         << manager.currentPath() << "; starting from defaults";
+          }
+        } else if (
+            fs::exists(domain.desiredPath) &&
+            !folly::readFile(domain.desiredPath.c_str(), configJson)) {
+          LOG(WARNING) << "Failed to read desired BGP config "
+                       << domain.desiredPath << "; starting from defaults";
+        }
+        if (configJson.empty()) {
+          configJson = "{}";
+        }
+        break;
+    }
+
+    if (service == cli::ServiceType::AGENT && configJson.empty()) {
+      throw std::runtime_error(
+          fmt::format("Config file is empty: {}", manager.currentPath()));
+    }
+    if (!readOnly_) {
+      ensureDomainBaseline(domain, configJson);
+      if (service == cli::ServiceType::AGENT) {
+        ensureDirectoryExists(sessionConfigDir_);
+        folly::writeFileAtomic(
+            domain.sessionPath, configJson, 0644, folly::SyncType::WITH_SYNC);
+      }
+      saveMetadata();
+    }
   }
 
-  agentConfig_ = std::make_unique<cfg::AgentConfig>();
-  apache::thrift::SimpleJSONSerializer::deserialize<cfg::AgentConfig>(
-      configJson, *agentConfig_);
-
-  // Handle the legacy case where config might be a bare SwitchConfig
-  if (*agentConfig_->sw() == cfg::SwitchConfig()) {
-    apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
-        configJson, *agentConfig_->sw());
+  switch (service) {
+    case cli::ServiceType::AGENT:
+      if (configJson.empty()) {
+        throw std::runtime_error(
+            fmt::format("Config file is empty: {}", domain.sessionPath));
+      }
+      agentConfig_ = std::make_unique<cfg::AgentConfig>();
+      apache::thrift::SimpleJSONSerializer::deserialize<cfg::AgentConfig>(
+          configJson, *agentConfig_);
+      if (*agentConfig_->sw() == cfg::SwitchConfig()) {
+        apache::thrift::SimpleJSONSerializer::deserialize<cfg::SwitchConfig>(
+            configJson, *agentConfig_->sw());
+      }
+      portMap_ = std::make_unique<utils::PortMap>(*agentConfig_);
+      break;
+    case cli::ServiceType::BGP:
+      bgpConfig_ = std::make_unique<bgp::thrift::BgpConfig>();
+      if (!configJson.empty()) {
+        try {
+          apache::thrift::SimpleJSONSerializer::deserialize<
+              bgp::thrift::BgpConfig>(configJson, *bgpConfig_);
+        } catch (const std::exception& ex) {
+          LOG(WARNING) << "Failed to parse BGP config, starting from defaults: "
+                       << ex.what();
+          *bgpConfig_ = bgp::thrift::BgpConfig();
+        }
+      }
+      break;
   }
-  portMap_ = std::make_unique<utils::PortMap>(*agentConfig_);
 }
 
 void ConfigSession::initializeSession(SessionInit init) {
-  // Bootstraps /etc/coop, not ~/.fboss2, so this runs regardless of `init`.
+  // Repository setup is service-independent; current paths remain lazy.
   initializeGit();
   // Resume an existing session if EITHER an agent (agent.conf) or a BGP
   // (bgp_config.json) session is staged. Keying only on the agent session file
   // would misdetect a BGP-only session as fresh and clear its recorded
   // restart (SERVICE_RESTART) action on the next (separate-process) CLI
   // invocation, silently dropping the staged change at commit time.
-  if (!hasActiveSession()) {
+  if (hasActiveSession()) {
+    if (fs::exists(getMetadataPath())) {
+      loadMetadata();
+    }
+  } else {
     // Starting a new session - reset all state to ensure we don't carry over
     // stale data from a previous session (e.g., if the singleton persisted
     // in memory but the session files were deleted).
     commands_.clear();
     requiredActions_.clear();
+    currentConfigPaths_.clear();
     agentConfig_.reset();
+    bgpConfig_.reset();
 
     if (init == SessionInit::ReadOnly) {
       return; // leave ~/.fboss2 alone
     }
 
-    // Ensure the session config directory exists
+    // Create only shared metadata. A service's staged config is materialized
+    // when a config command first loads that service.
     ensureDirectoryExists(sessionConfigDir_);
-    copySystemConfigToSession();
-    // Capture the current git HEAD as the base for this session.
-    // This is used to detect if someone else committed changes while this
-    // session was in progress.
     base_ = git_->getHead();
-    // Create initial metadata file for new sessions
     saveMetadata();
-  } else {
-    // Load metadata from disk (survives across CLI invocations)
-    loadMetadata();
   }
 }
 
@@ -1081,39 +1121,12 @@ void ConfigSession::initializeGit() {
     git_->init();
   }
 
-  // Always ensure an initial commit exists so base_ is never empty.
-  // Replicates the exact structure that commit() produces:
-  //   cli/agent.conf  — the actual config content
-  //   agent.conf      — a symlink to cli/agent.conf
+  // Always ensure an initial commit exists so base_ is never empty. Existing
+  // desired configs can be included without contacting either service.
   // This prevents two concurrent users from both seeing base_="" and silently
-  // overwriting each other's commits, and ensures rebase() can always call
-  // git show <base>:cli/agent.conf without hitting exit 128.
+  // overwriting each other's commits.
   if (!git_->hasCommits()) {
-    std::string systemConfigPath = getSystemConfigPath();
-    std::string cliConfigPath = getCliConfigPath();
-
     ensureDirectoryExists(getCliConfigDir());
-
-    // Populate cli/agent.conf if it doesn't exist yet.
-    // If agent.conf is currently a plain file (pre-symlink state), copy from
-    // it so we don't lose the running config.  We copy rather than rename
-    // because /etc/coop/agent.conf must remain in place (the running system
-    // reads it, and commit() will later replace it with a symlink).
-    // Fall back to an empty JSON object so the file is always valid JSON.
-    if (!fs::exists(cliConfigPath)) {
-      std::error_code ec;
-      bool systemIsRegularFile =
-          fs::is_regular_file(fs::path(systemConfigPath), ec) && !ec;
-      std::string seedContent = "{}";
-      if (systemIsRegularFile) {
-        folly::readFile(systemConfigPath.c_str(), seedContent);
-        if (seedContent.empty()) {
-          seedContent = "{}";
-        }
-      }
-      folly::writeFileAtomic(
-          cliConfigPath, seedContent, 0644, folly::SyncType::WITH_SYNC);
-    }
 
     // Seed an empty metadata file and include it in the initial commit so the
     // baseline shows up in `git log -- cli/cli_metadata.json`. No-arg
@@ -1126,32 +1139,11 @@ void ConfigSession::initializeGit() {
           initialMetadataPath, "{}", 0644, folly::SyncType::WITH_SYNC);
     }
 
-    // Seed the running bgpd config into the baseline commit too. Without it,
-    // the first revision has no BGP snapshot, so a rollback to it would read
-    // the empty target as "BGP never existed" and DELETE the running
-    // bgpcpp.conf.
-    //
-    // Mirroring the agent above: if the promoted path doesn't exist yet but
-    // the daemon's config path resolves to a readable file (the bgp++ RPM
-    // ships it as a plain file), populate the promoted path from it. Copy
-    // rather than rename — bgpd reads /etc/coop/bgpcpp.conf right now, and
-    // commit() is what later replaces it with a symlink to the promoted copy.
-    std::vector<std::string> initialFiles = {
-        cliConfigPath, initialMetadataPath};
-    std::string bgpSystemPath = getBgpSystemConfigPath();
-    std::string bgpLinkPath = getBgpSystemConfigLinkPath();
-    if (!fs::exists(bgpSystemPath) && fs::exists(bgpLinkPath)) {
-      // fs::exists follows symlinks, so a dangling one is correctly skipped.
-      std::string bgpSeedContent;
-      if (folly::readFile(bgpLinkPath.c_str(), bgpSeedContent) &&
-          !bgpSeedContent.empty()) {
-        ensureDirectoryExists(getBgpSystemConfigDir());
-        folly::writeFileAtomic(
-            bgpSystemPath, bgpSeedContent, 0644, folly::SyncType::WITH_SYNC);
+    std::vector<std::string> initialFiles = {initialMetadataPath};
+    for (const auto& domain : configDomains()) {
+      if (fs::exists(domain.desiredPath)) {
+        initialFiles.push_back(domain.desiredPath);
       }
-    }
-    if (fs::exists(bgpSystemPath)) {
-      initialFiles.push_back(bgpSystemPath);
     }
 
     try {
@@ -1166,20 +1158,49 @@ void ConfigSession::initializeGit() {
   }
 }
 
-void ConfigSession::copySystemConfigToSession() const {
-  // Read system config and write atomically to session config
-  // This ensures that readers never see a partially written file - they either
-  // see the old file or the new file, never a mix.
-  // WITH_SYNC ensures data is flushed to disk before the atomic rename.
-  std::string configData;
-  std::string systemConfigPath = getSystemConfigPath();
-  if (!folly::readFile(systemConfigPath.c_str(), configData)) {
+void ConfigSession::ensureDomainBaseline(
+    const ConfigDomain& domain,
+    const std::string& currentContent) {
+  const auto head = git_->getHead();
+  if (!fileAtRevisionOrEmpty(head, domain.gitRelPath).empty()) {
+    return;
+  }
+  if (hasActiveSession() && !base_.empty() && head != base_) {
     throw std::runtime_error(
-        fmt::format("Failed to read config from {}", systemConfigPath));
+        "Cannot initialize another config domain because the system "
+        "configuration changed after this session started. Rebase the "
+        "session before editing this service.");
   }
 
+  ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
   folly::writeFileAtomic(
-      getSessionConfigPath(), configData, 0644, folly::SyncType::WITH_SYNC);
+      domain.desiredPath, currentContent, 0644, folly::SyncType::WITH_SYNC);
+
+  saveMetadata();
+  std::string metadataContent;
+  if (!folly::readFile(getMetadataPath().c_str(), metadataContent)) {
+    throw std::runtime_error("Failed to read session metadata");
+  }
+  folly::writeFileAtomic(
+      getSystemMetadataPath(),
+      metadataContent,
+      0664,
+      folly::SyncType::WITH_SYNC);
+
+  try {
+    base_ = git_->commit(
+        {domain.desiredPath, getSystemMetadataPath()},
+        fmt::format("Initial {} config", domain.name),
+        username_,
+        "");
+  } catch (const std::exception&) {
+    const auto currentHead = git_->getHead();
+    if (fileAtRevisionOrEmpty(currentHead, domain.gitRelPath).empty()) {
+      throw;
+    }
+    base_ = currentHead;
+  }
+  saveMetadata();
 }
 
 ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
@@ -1192,6 +1213,34 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   // git repo and its initial commit exist before we commit into it. Idempotent
   // for agent sessions, which initialized git when the session started.
   initializeGit();
+
+  // Some service-specific editors stage their file without loading the typed
+  // config through ConfigSession. Establish the pre-edit baseline here before
+  // the first commit for that domain.
+  for (const auto& domain : configDomains()) {
+    if (!fs::exists(domain.sessionPath) ||
+        !fileAtRevisionOrEmpty(git_->getHead(), domain.gitRelPath).empty()) {
+      continue;
+    }
+    ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
+    const auto manager = fileManagerFor(domain);
+    manager.validateWritable();
+    std::string currentContent;
+    if (!folly::readFile(manager.currentPath().c_str(), currentContent) ||
+        currentContent.empty()) {
+      if (domain.service == cli::ServiceType::AGENT ||
+          !folly::readFile(domain.desiredPath.c_str(), currentContent) ||
+          currentContent.empty()) {
+        if (domain.service == cli::ServiceType::AGENT) {
+          throw std::runtime_error(
+              fmt::format(
+                  "Failed to read config file: {}", manager.currentPath()));
+        }
+        currentContent = "{}";
+      }
+    }
+    ensureDomainBaseline(domain, currentContent);
+  }
 
   // Check if someone else committed changes while this session was in progress
   std::string currentHead = git_->getHead();
@@ -1234,7 +1283,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
     }
     stagedDomains.push_back(domain);
     ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
-    auto manager = makeConfigFileManager(systemConfigDir_, domain);
+    auto manager = fileManagerFor(domain);
     manager.validateWritable();
     auto snapshot = manager.capture();
     const auto desired = snapshot.desiredContent();
@@ -1254,6 +1303,9 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   if (pending.empty()) {
     return CommitResult{"", {}, {}};
   }
+
+  // Path discovery may have added metadata while examining staged domains.
+  saveMetadata();
 
   // Write the metadata file alongside the config revision (required for
   // rollback). Use folly::writeFileAtomic rather than fs::copy_file so we only
@@ -1447,7 +1499,7 @@ void ConfigSession::rebase() {
   // Reload in-memory state for whichever domains were rebased (null == reload
   // on next access).
   if (agentMerged) {
-    loadConfig();
+    loadConfig(cli::ServiceType::AGENT);
   }
   if (bgpMerged) {
     bgpConfig_.reset();
@@ -1537,8 +1589,6 @@ std::string ConfigSession::rollback(
     std::string target;
     ConfigFileManager manager;
     ConfigFileManager::Snapshot snapshot;
-    bool changed;
-    bool desiredMatches;
     bool applyStarted{false};
   };
   std::vector<DomainRollback> doms;
@@ -1546,27 +1596,22 @@ std::string ConfigSession::rollback(
     // fileAtRevisionOrEmpty: a path absent at the revision (e.g. bgpcpp.conf
     // before BGP existed) is treated as empty content -> remove on rollback.
     std::string target = fileAtRevisionOrEmpty(resolvedSha, domain.gitRelPath);
-    ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
-    auto manager = makeConfigFileManager(systemConfigDir_, domain);
-    auto snapshot = manager.capture();
-    const auto desired = snapshot.desiredContent();
-    const bool desiredMatches =
-        desired && domainContentEqual(domain, target, *desired);
-    const auto content = target.empty()
-        ? std::nullopt
-        : std::make_optional<std::string_view>(
-              desiredMatches ? *desired : std::string_view(target));
-    bool changed = manager.needsApply(snapshot, content);
-    if (changed) {
-      manager.validateWritable();
+    std::string desired;
+    if (fs::exists(domain.desiredPath) &&
+        !folly::readFile(domain.desiredPath.c_str(), desired)) {
+      throw std::runtime_error(
+          fmt::format("Failed to read config from {}", domain.desiredPath));
     }
+    if (domainContentEqual(domain, target, desired)) {
+      continue;
+    }
+
+    ensureDirectoryExists(fs::path(domain.desiredPath).parent_path().string());
+    auto manager = fileManagerFor(domain);
+    auto snapshot = manager.capture();
+    manager.validateWritable();
     doms.push_back(
-        {domain,
-         std::move(target),
-         std::move(manager),
-         std::move(snapshot),
-         changed,
-         desiredMatches});
+        {domain, std::move(target), std::move(manager), std::move(snapshot)});
   }
 
   // Reload/restart only the services whose config changed. Each starts at its
@@ -1578,9 +1623,6 @@ std::string ConfigSession::rollback(
   auto recordedLevels = rolledBackActionLevels(resolvedSha);
   std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
   for (const auto& dr : doms) {
-    if (!dr.changed) {
-      continue;
-    }
     auto level = dr.domain.rollbackActionLevel;
     auto it = recordedLevels.find(dr.domain.service);
     if (it != recordedLevels.end() &&
@@ -1602,6 +1644,10 @@ std::string ConfigSession::rollback(
         facebook::thrift::dynamic_format::PORTABLE,
         facebook::thrift::format_adherence::LENIENT);
     metadata.action() = actions;
+    auto& currentConfigPaths = metadata.currentConfigPaths().ensure();
+    for (const auto& [service, path] : currentConfigPaths_) {
+      currentConfigPaths[service] = path;
+    }
     targetMetadataData = folly::toPrettyJson(
         facebook::thrift::to_dynamic(
             metadata, facebook::thrift::dynamic_format::PORTABLE));
@@ -1623,16 +1669,11 @@ std::string ConfigSession::rollback(
     folly::writeFileAtomic(
         metadataPath, targetMetadataData, 0644, folly::SyncType::WITH_SYNC);
     for (auto& dr : doms) {
-      if (!dr.changed) {
-        continue;
-      }
       dr.applyStarted = true;
       reapplyServiceActions = true;
-      const auto desired = dr.snapshot.desiredContent();
       const auto target = dr.target.empty()
           ? std::nullopt
-          : std::make_optional<std::string_view>(
-                dr.desiredMatches ? *desired : std::string_view(dr.target));
+          : std::make_optional<std::string_view>(dr.target);
       auto changedPaths = dr.manager.apply(dr.snapshot, target);
       rollbackFiles.insert(
           rollbackFiles.end(), changedPaths.begin(), changedPaths.end());

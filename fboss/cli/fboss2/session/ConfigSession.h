@@ -32,6 +32,8 @@ class AgentConfig;
 
 namespace facebook::fboss {
 
+class ConfigFileManager;
+
 /**
  * ConfigSession manages configuration editing sessions for the fboss2 CLI.
  *
@@ -60,7 +62,7 @@ namespace facebook::fboss {
  *   1. User runs: fboss2 config session commit
  *   2. ConfigSession::commit() is called, which:
  *      a. Atomically writes the session config to /etc/coop/cli/agent.conf
- *      b. Ensure /etc/coop/agent.conf is a symlink to /etc/coop/cli/agent.conf
+ *      b. Updates the config path reported by the affected service
  *      c. Creates a Git commit with the updated agent.conf and metadata
  *      d. Calls reloadConfig() on wedge_agent (or restarts it for
  *         AGENT_RESTART changes)
@@ -78,7 +80,7 @@ namespace facebook::fboss {
  *
  * CONFIGURATION FILES:
  * - Session file: ~/.fboss2/agent.conf (per-user, temporary edits)
- * - System config: /etc/coop/agent.conf (symlink to real config, Git-versioned)
+ * - Current config: discovered lazily from each service's `config` option
  * - CLI config: /etc/coop/cli/agent.conf (actual config file, Git-versioned)
  * - Metadata: /etc/coop/cli/cli_metadata.json (commit metadata, Git-versioned)
  *
@@ -102,9 +104,8 @@ class ConfigSession {
 
   virtual ~ConfigSession();
 
-  // Get or create the current config session.
-  // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf,
-  // unless init == ReadOnly.
+  // Get or create the current config session. Service configuration is not
+  // loaded until a command first accesses that service.
   static ConfigSession& getInstance(
       SessionInit init = SessionInit::CreateIfAbsent);
 
@@ -133,7 +134,7 @@ class ConfigSession {
   // Get the path to the session config file (~/.fboss2/agent.conf)
   std::string getSessionConfigPath() const;
 
-  // Get the path to the system config file (/etc/coop/agent.conf symlink)
+  // Get the legacy default agent config path under the system config directory.
   std::string getSystemConfigPath() const;
 
   // Get the validated COOP config path reported by a running service.
@@ -157,18 +158,15 @@ class ConfigSession {
     std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   };
 
-  // Describes one config "domain" managed by a session. The agent config and
-  // the BGP config are two such domains: both are staged in ~/.fboss2, written
-  // to a desired file under /etc/coop, exposed through the path used by their
-  // service, and applied via a service action. commit(), rollback() and `config
-  // session diff` iterate configDomains() so the two are handled uniformly.
+  // Describes one config "domain" managed by a session. The service's current
+  // path is intentionally absent: it is resolved only after an operation has
+  // determined that this domain is needed.
   struct ConfigDomain {
     cli::ServiceType service; // AGENT / BGP -- feeds applyServiceActions()
     std::string name; // "Agent" / "BGP" (diff section headers, logs)
     std::string sessionPath; // staged edits (~/.fboss2/...)
     std::string gitRelPath; // path within the /etc/coop git repo
     std::string desiredPath; // CLI-owned, git-tracked config
-    std::string currentPath; // config path currently used by the service
     // Minimum action used when a rollback changes this domain: HITLESS reloads
     // the agent; SERVICE_RESTART restarts bgpd. rollback() promotes this to the
     // highest level recorded by the commits being undone (see
@@ -257,8 +255,8 @@ class ConfigSession {
   // no notion of "global" vs "peer" vs "peer-group".
 
   // Typed, mutable view of the entire BGP config. Lazily seeded from the staged
-  // ~/.fboss2/bgp_config.json, else the running /etc/coop/bgpcpp/bgpcpp.conf,
-  // else schema defaults. Mirrors getAgentConfig().
+  // ~/.fboss2/bgp_config.json, else the path reported by bgpd, else schema
+  // defaults. Mirrors getAgentConfig().
   bgp::thrift::BgpConfig& getBgpConfig();
   const bgp::thrift::BgpConfig& getBgpConfig() const;
 
@@ -270,7 +268,7 @@ class ConfigSession {
 
   // ~/.fboss2/bgp_config.json (staged BGP edits)
   std::string getBgpSessionConfigPath() const;
-  // /etc/coop/bgpcpp/bgpcpp.conf (config read by the bgpd daemon)
+  // /etc/coop/bgpcpp/bgpcpp.conf (CLI-owned, Git-versioned desired config)
   std::string getBgpSystemConfigPath() const;
   // Whether a BGP session is staged (~/.fboss2/bgp_config.json exists)
   bool bgpSessionExists() const;
@@ -341,6 +339,7 @@ class ConfigSession {
  private:
   std::string sessionConfigDir_; // Typically ~/.fboss2
   std::string systemConfigDir_; // Typically /etc/coop
+  bool readOnly_{false};
   mutable std::map<cli::ServiceType, std::string> currentConfigPaths_;
   std::string username_;
 
@@ -348,26 +347,17 @@ class ConfigSession {
   std::unique_ptr<Git> git_;
 
   // Lazy-initialized configuration and port map. agentConfig_ is null until
-  // loadConfig() populates it (null == "not loaded"), which is why it is a
-  // pointer -- that also keeps the heavy generated type out of this header.
+  // loadConfig(AGENT) populates it (null == "not loaded"), which is why it is
+  // a pointer -- that also keeps the heavy generated type out of this header.
   std::unique_ptr<cfg::AgentConfig> agentConfig_;
   std::unique_ptr<utils::PortMap> portMap_;
 
   // Typed view of the entire BGP config, mirroring agentConfig_: null until
-  // loadBgpConfig() populates it.
+  // loadConfig(BGP) populates it.
   std::unique_ptr<bgp::thrift::BgpConfig> bgpConfig_;
 
   // /etc/coop/bgpcpp (directory holding the bgpd daemon's config)
   std::string getBgpSystemConfigDir() const;
-  // /etc/coop/bgpcpp.conf — the stable path the bgpd daemon is configured to
-  // read (--config). commit() keeps it as a symlink into the CLI-managed
-  // bgpcpp/ subdir (kBgpGitRelPath), mirroring how agent.conf symlinks to
-  // cli/agent.conf, so the daemon needs no per-device --config override.
-  std::string getBgpSystemConfigLinkPath() const;
-  // Lazily seed bgpConfig_ from disk (staged file, else running config, else
-  // defaults). Mirrors loadConfig() for the agent.
-  void loadBgpConfig();
-
   // ==================== Per-domain primitives ====================
   // Shared building blocks used by commit()/rollback() so both the agent and
   // BGP domains go through identical logic (see ConfigDomain /
@@ -433,15 +423,23 @@ class ConfigSession {
   void loadMetadata();
   void saveMetadata();
 
-  // Lazily initialize fbossServiceUtil_ by querying the running agent's
-  // multi-switch state via Thrift, rather than reading the config file.
-  virtual void ensureFbossServiceUtil(const HostInfo& hostInfo);
+  // Agent actions require the running agent's multi-switch state; actions for
+  // other services do not.
+  virtual void ensureFbossServiceUtil(
+      const HostInfo& hostInfo,
+      bool needsAgentState);
 
-  // Initialize the session. With CreateIfAbsent, creates the session config
-  // file if it doesn't exist; with ReadOnly, leaves ~/.fboss2 untouched.
+  // Initialize shared session state without loading either service config.
   void initializeSession(SessionInit init);
-  void copySystemConfigToSession() const;
-  void loadConfig();
+  // Load one service's typed config, resolving its current path only when no
+  // staged config exists.
+  void loadConfig(cli::ServiceType service);
+
+  ConfigDomain getConfigDomain(cli::ServiceType service) const;
+  ConfigFileManager fileManagerFor(const ConfigDomain& domain) const;
+  void ensureDomainBaseline(
+      const ConfigDomain& domain,
+      const std::string& currentContent);
 
   std::string validateCurrentConfigPath(
       cli::ServiceType service,
@@ -451,6 +449,8 @@ class ConfigSession {
 
   // Initialize the Git repository if needed
   void initializeGit();
+
+  bool fbossServiceUtilHasAgentState_{false};
 };
 
 } // namespace facebook::fboss
