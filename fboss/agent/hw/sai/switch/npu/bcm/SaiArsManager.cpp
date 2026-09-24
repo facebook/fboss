@@ -140,6 +140,8 @@ void SaiArsManager::addArs(
         maxPrimaryMembers = std::nullopt;
     std::optional<SaiArsTraits::Attributes::CommonMembersThresholdCount>
         commonMembersThreshold = std::nullopt;
+    auto virtualAlternatePathCost = alternatePathCostForArs;
+    auto virtualAlternatePathBias = alternatePathBiasForArs;
 #if defined(BRCM_SAI_SDK_GTE_15_4)
     virtualArsQualityThreshold =
         SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
@@ -170,6 +172,19 @@ void SaiArsManager::addArs(
         }
       }
     }
+    // The adapter only programs the DGM parameters from a virtual group, so
+    // this is the one object where the alternate path cost and bias reach
+    // hardware. Everywhere else they stay 0 to keep the adapter host key
+    // matching what the adapter reports back. Config sets the two fields
+    // independently, so apply them only as a pair, the way the alternate
+    // member object above does: cost without bias, or the reverse, is half a
+    // DGM policy rather than a weaker one.
+    if (cost.has_value() && bias.has_value()) {
+      virtualAlternatePathCost = SaiArsTraits::Attributes::AlternatePathCost{
+          static_cast<sai_uint32_t>(*cost)};
+      virtualAlternatePathBias = SaiArsTraits::Attributes::AlternatePathBias{
+          static_cast<sai_uint32_t>(*bias)};
+    }
 #endif
     setArsObject(
         virtualArsGroupHandle_.get(),
@@ -178,8 +193,8 @@ void SaiArsManager::addArs(
             idleTime,
             maxFlows,
             virtualArsQualityThreshold,
-            alternatePathCostForArs,
-            alternatePathBiasForArs,
+            virtualAlternatePathCost,
+            virtualAlternatePathBias,
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
             std::nullopt,
