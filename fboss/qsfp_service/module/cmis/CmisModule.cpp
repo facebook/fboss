@@ -4086,6 +4086,9 @@ void CmisModule::programTunableModule(
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
 
+  // Workaround to set PCS to AM Transparent: T289920421
+  setPcsToAmTransparent();
+
   switch (centerFreq->getType()) {
     case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
       frequencyMhz = centerFreq->frequencyMhz().value();

@@ -792,6 +792,16 @@ class CmisModule : public QsfpModule {
   void disableTxRxSquelchForTunableOptics();
 
   /*
+   * Temporary fix for ZR in 1x800G mode: T289920421
+   * Set Protocol Sel to AM Transparent Mode. This is a temporary
+   * workaround for ZR modules where the PCS alignment marker
+   * mode, when in termination mode, could cause misalignment and the
+   * port does not come up. (only PCS errors are seen, no FEC errors).
+   * This will be removed from the code once we get a FW fix.
+   */
+  void setPcsToAmTransparent();
+
+  /*
    * Check if the module advertises Rx Consequent Action support.
    * Reads Page 45h (Host Lane Provisioning Advertisement),
    * Byte 129, Bit 1 (rxConsActImpl).
