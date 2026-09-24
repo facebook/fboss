@@ -93,11 +93,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   }
 
   return SaiMySidEntryTraits::CreateAttributes{
-      endpointBehavior,
-      endpointBehaviorFlavor,
-      nextHopId,
-      vrId,
-      packetAction};
+      endpointBehavior, endpointBehaviorFlavor, nextHopId, vrId, packetAction};
 }
 } // namespace
 
