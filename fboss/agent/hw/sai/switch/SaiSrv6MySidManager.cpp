@@ -37,10 +37,14 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
     SaiManagerTable* managerTable) {
   sai_int32_t endpointBehavior;
+  sai_int32_t endpointBehaviorFlavor =
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE;
   std::optional<SaiMySidEntryTraits::Attributes::Vrf> vrId;
   switch (mySid.getType()) {
     case MySidType::ADJACENCY_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UA;
+      endpointBehaviorFlavor =
+          SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USD;
       break;
     case MySidType::NODE_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UN;
@@ -90,7 +94,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
 
   return SaiMySidEntryTraits::CreateAttributes{
       endpointBehavior,
-      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE,
+      endpointBehaviorFlavor,
       nextHopId,
       vrId,
       packetAction};
