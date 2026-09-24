@@ -18,6 +18,7 @@
 #include <glog/logging.h>
 #include <pwd.h>
 #include <sys/types.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <unistd.h>
@@ -360,6 +361,126 @@ std::string ConfigSession::getSessionConfigPath() const {
 
 std::string ConfigSession::getSystemConfigPath() const {
   return systemConfigDir_ + "/agent.conf";
+}
+
+std::string ConfigSession::getCurrentConfigPath(
+    cli::ServiceType service) const {
+  auto path = currentConfigPaths_.find(service);
+  if (path != currentConfigPaths_.end()) {
+    return path->second;
+  }
+
+  std::string queriedPath;
+  try {
+    queriedPath = queryLocalServiceConfigPath(service);
+    if (queriedPath.empty()) {
+      throw std::runtime_error("service returned an empty config path");
+    }
+  } catch (const std::exception& ex) {
+    auto committedPath = readCommittedCurrentConfigPath(service);
+    if (!committedPath) {
+      throw std::runtime_error(
+          fmt::format(
+              "Failed to query service {}'s --config path and no "
+              "previously validated path is recorded: {}",
+              apache::thrift::util::enumNameSafe(service),
+              ex.what()));
+    }
+    path = currentConfigPaths_.emplace(service, *committedPath).first;
+    LOG(WARNING) << "Failed to query service "
+                 << apache::thrift::util::enumNameSafe(service)
+                 << "'s --config path; using the previously validated path "
+                 << path->second << ": " << ex.what();
+    return path->second;
+  }
+
+  path = currentConfigPaths_
+             .emplace(service, validateCurrentConfigPath(service, queriedPath))
+             .first;
+  return path->second;
+}
+
+std::string ConfigSession::queryLocalServiceConfigPath(
+    cli::ServiceType service) const {
+  HostInfo localhost("localhost");
+  std::string configPath;
+  switch (service) {
+    case cli::ServiceType::AGENT: {
+      auto client =
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(localhost);
+      client->sync_getOption(configPath, "config");
+      return configPath;
+    }
+    case cli::ServiceType::BGP: {
+      auto client = utils::createBgpClient(localhost);
+      client->sync_getOption(configPath, "config");
+      return configPath;
+    }
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "Unsupported service type: {}",
+          apache::thrift::util::enumNameSafe(service)));
+}
+
+std::string ConfigSession::validateCurrentConfigPath(
+    cli::ServiceType service,
+    const std::string& path) const {
+  std::string desiredPath;
+  switch (service) {
+    case cli::ServiceType::AGENT:
+      desiredPath = getCliConfigPath();
+      break;
+    case cli::ServiceType::BGP:
+      desiredPath = getBgpSystemConfigPath();
+      break;
+    default:
+      throw std::runtime_error(
+          fmt::format(
+              "Unsupported service type: {}",
+              apache::thrift::util::enumNameSafe(service)));
+  }
+  return ConfigFileManager({systemConfigDir_, desiredPath, path}).currentPath();
+}
+
+std::optional<std::string> ConfigSession::readCommittedCurrentConfigPath(
+    cli::ServiceType service) const {
+  std::string content;
+  const auto metadataPath = getSystemMetadataPath();
+  if (!folly::readFile(metadataPath.c_str(), content)) {
+    return std::nullopt;
+  }
+
+  cli::ConfigSessionMetadata metadata;
+  try {
+    facebook::thrift::from_dynamic(
+        metadata,
+        folly::parseJson(content),
+        facebook::thrift::dynamic_format::PORTABLE,
+        facebook::thrift::format_adherence::LENIENT);
+  } catch (const std::exception& ex) {
+    LOG(WARNING) << "Failed to parse committed config session metadata from "
+                 << metadataPath << ": " << ex.what();
+    return std::nullopt;
+  }
+
+  const auto& paths = metadata.currentConfigPaths();
+  if (!paths) {
+    return std::nullopt;
+  }
+  const auto path = paths->find(service);
+  if (path == paths->end()) {
+    return std::nullopt;
+  }
+  try {
+    return validateCurrentConfigPath(service, path->second);
+  } catch (const std::exception& ex) {
+    LOG(WARNING) << "Ignoring invalid committed config path " << path->second
+                 << " for service "
+                 << apache::thrift::util::enumNameSafe(service) << ": "
+                 << ex.what();
+  }
+  return std::nullopt;
 }
 
 std::string ConfigSession::getCliConfigDir() const {
@@ -744,6 +865,19 @@ void ConfigSession::loadMetadata() {
     requiredActions_ = *metadata.action();
     commands_ = *metadata.commands();
     base_ = *metadata.base();
+    if (metadata.currentConfigPaths()) {
+      for (const auto& [service, path] : *metadata.currentConfigPaths()) {
+        try {
+          currentConfigPaths_[service] =
+              validateCurrentConfigPath(service, path);
+        } catch (const std::exception& ex) {
+          LOG(WARNING) << "Ignoring invalid config path " << path
+                       << " for service "
+                       << apache::thrift::util::enumNameSafe(service) << ": "
+                       << ex.what();
+        }
+      }
+    }
   } catch (const std::exception& ex) {
     // If JSON parsing fails, keep defaults
     LOG(WARNING) << "Failed to parse metadata file: " << ex.what();
@@ -761,6 +895,14 @@ void ConfigSession::saveMetadata() {
   metadata.action() = requiredActions_;
   metadata.commands() = commands_;
   metadata.base() = base_;
+  for (const auto service : {cli::ServiceType::AGENT, cli::ServiceType::BGP}) {
+    if (!currentConfigPaths_.contains(service)) {
+      if (auto path = readCommittedCurrentConfigPath(service)) {
+        currentConfigPaths_[service] = *path;
+      }
+    }
+  }
+  metadata.currentConfigPaths() = currentConfigPaths_;
 
   folly::dynamic json = facebook::thrift::to_dynamic(
       metadata, facebook::thrift::dynamic_format::PORTABLE);

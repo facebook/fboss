@@ -136,6 +136,10 @@ class ConfigSession {
   // Get the path to the system config file (/etc/coop/agent.conf symlink)
   std::string getSystemConfigPath() const;
 
+  // Get the validated COOP config path reported by a running service.
+  // Discovery is lazy and falls back to the last committed path for recovery.
+  std::string getCurrentConfigPath(cli::ServiceType service) const;
+
   // Get the path to the CLI config directory (/etc/coop/cli)
   std::string getCliConfigDir() const;
 
@@ -319,6 +323,9 @@ class ConfigSession {
   // Virtual to allow tests to override with mock command lines.
   virtual std::string readCommandLineFromProc() const;
 
+  virtual std::string queryLocalServiceConfigPath(
+      cli::ServiceType service) const;
+
   // Apply actions (restart or reload) to all services based on their action
   // levels. For the restart levels, restarts the service. For HITLESS, reloads
   // the config.
@@ -334,6 +341,7 @@ class ConfigSession {
  private:
   std::string sessionConfigDir_; // Typically ~/.fboss2
   std::string systemConfigDir_; // Typically /etc/coop
+  mutable std::map<cli::ServiceType, std::string> currentConfigPaths_;
   std::string username_;
 
   // Git instance for version control operations
@@ -434,6 +442,12 @@ class ConfigSession {
   void initializeSession(SessionInit init);
   void copySystemConfigToSession() const;
   void loadConfig();
+
+  std::string validateCurrentConfigPath(
+      cli::ServiceType service,
+      const std::string& path) const;
+  std::optional<std::string> readCommittedCurrentConfigPath(
+      cli::ServiceType service) const;
 
   // Initialize the Git repository if needed
   void initializeGit();

@@ -24,6 +24,9 @@ namespace facebook::fboss {
 // This allows tests to inject custom paths and control the singleton instance
 class TestableConfigSession : public ConfigSession {
  public:
+  using ConfigPathResolver =
+      std::function<std::string(cli::ServiceType service)>;
+
   TestableConfigSession(
       std::string sessionConfigDir,
       std::string systemConfigDir,
@@ -61,6 +64,10 @@ class TestableConfigSession : public ConfigSession {
     mockSystemdFactory_ = std::move(factory);
   }
 
+  void setConfigPathResolver(ConfigPathResolver resolver) {
+    configPathResolver_ = std::move(resolver);
+  }
+
   void ensureFbossServiceUtil(const HostInfo& /*hostInfo*/) override {
     if (!fbossServiceUtil_) {
       if (mockSystemdFactory_) {
@@ -86,7 +93,16 @@ class TestableConfigSession : public ConfigSession {
     return commandLine_;
   }
 
+  std::string queryLocalServiceConfigPath(
+      cli::ServiceType service) const override {
+    if (configPathResolver_) {
+      return configPathResolver_(service);
+    }
+    return ConfigSession::queryLocalServiceConfigPath(service);
+  }
+
  private:
+  ConfigPathResolver configPathResolver_;
   std::string commandLine_;
   bool multiSwitchOverride_{false};
   std::vector<int> switchIndexesOverride_{0};

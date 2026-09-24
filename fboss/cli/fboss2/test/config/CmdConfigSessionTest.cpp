@@ -4,6 +4,7 @@
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/test/config/CmdConfigTestBase.h"
 
+#include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
@@ -94,6 +95,95 @@ TEST_F(ConfigSessionTestFixture, sessionInitialization) {
   std::string systemContent = readFile(cliConfigPath);
   std::string sessionContent = readFile(sessionConfig);
   EXPECT_EQ(systemContent, sessionContent);
+}
+
+TEST_F(
+    ConfigSessionTestFixture,
+    discoversCachesAndPersistsCurrentConfigPathLazily) {
+  const fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  const fs::path coopDir = getTestEtcDir() / "coop";
+  const fs::path externalDir = getTestEtcDir() / "runtime";
+  const fs::path externalConfig = externalDir / "agent_config";
+  fs::create_directories(externalDir);
+  fs::create_symlink(getSystemConfigPath(), externalConfig);
+
+  int agentQueries = 0;
+  int bgpQueries = 0;
+  TestableConfigSession session(
+      sessionDir.string(),
+      coopDir.string(),
+      ConfigSession::SessionInit::ReadOnly);
+  session.setConfigPathResolver([&](cli::ServiceType service) {
+    if (service == cli::ServiceType::AGENT) {
+      ++agentQueries;
+      return externalConfig.string();
+    }
+    ++bgpQueries;
+    throw std::runtime_error("BGP should not be queried");
+  });
+
+  EXPECT_EQ(
+      session.getCurrentConfigPath(cli::ServiceType::AGENT),
+      getSystemConfigPath().string());
+  EXPECT_EQ(
+      session.getCurrentConfigPath(cli::ServiceType::AGENT),
+      getSystemConfigPath().string());
+  EXPECT_EQ(agentQueries, 1);
+  EXPECT_EQ(bgpQueries, 0);
+
+  session.setCommandLine("config interface eth1/1/1 speed 100G");
+  session.recordServiceAction(
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+  const auto metadata =
+      folly::parseJson(readFile(sessionDir / "cli_metadata.json"));
+  EXPECT_EQ(
+      metadata["currentConfigPaths"]["AGENT"].asString(),
+      getSystemConfigPath().string());
+}
+
+TEST_F(ConfigSessionTestFixture, fallsBackToCommittedCurrentConfigPath) {
+  const fs::path coopDir = getTestEtcDir() / "coop";
+  const fs::path currentPath = coopDir / "agent/current";
+  createTestConfig(
+      getCliConfigDir() / "cli_metadata.json",
+      fmt::format(
+          R"({{"currentConfigPaths":{{"AGENT":"{}"}}}})",
+          currentPath.string()));
+
+  TestableConfigSession session(
+      (getTestHomeDir() / ".fboss2").string(),
+      coopDir.string(),
+      ConfigSession::SessionInit::ReadOnly);
+  session.setConfigPathResolver([](cli::ServiceType) -> std::string {
+    throw std::runtime_error("service unavailable");
+  });
+
+  EXPECT_EQ(
+      session.getCurrentConfigPath(cli::ServiceType::AGENT),
+      currentPath.string());
+}
+
+TEST_F(ConfigSessionTestFixture, acceptsLegacyMetadataWithoutConfigPaths) {
+  const fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::create_directories(sessionDir);
+  createTestConfig(sessionDir / "agent.conf", readFile(getSystemConfigPath()));
+  createTestConfig(
+      sessionDir / "cli_metadata.json",
+      R"({"action":{"BGP":"SERVICE_RESTART"},"commands":[],"base":"legacy"})");
+
+  TestableConfigSession session(
+      sessionDir.string(),
+      (getTestEtcDir() / "coop").string(),
+      ConfigSession::SessionInit::ReadOnly);
+  session.setConfigPathResolver(
+      [&](cli::ServiceType) { return getSystemConfigPath().string(); });
+
+  EXPECT_EQ(
+      session.getRequiredAction(cli::ServiceType::BGP),
+      cli::ConfigActionLevel::SERVICE_RESTART);
+  EXPECT_EQ(
+      session.getCurrentConfigPath(cli::ServiceType::AGENT),
+      getSystemConfigPath().string());
 }
 
 TEST_F(ConfigSessionTestFixture, sessionConfigModified) {
