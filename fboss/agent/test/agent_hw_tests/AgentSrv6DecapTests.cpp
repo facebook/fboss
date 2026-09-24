@@ -523,7 +523,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
             std::optional<uint8_t>(64),
             0,
             std::vector<uint8_t>(7000, 0xff));
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
@@ -545,7 +545,16 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
 // classification at ingress. In UNIFORM mode, outer DSCP is also copied
 // to the inner (forwarded) packet.
 TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
-  auto setup = [this]() { this->setupHelper(); };
+  auto setup = [this]() {
+    this->setupHelper();
+    // Exclude kV6RouteDstIp from trap ACLs for this test case because
+    // the Trap COPY action overrides packet QoS TC in the hardware pipeline.
+    auto config = this->getAgentEnsemble()->getCurrentConfig();
+    auto aclName = folly::to<std::string>("trap-", this->kV6RouteDstIp.str());
+    utility::delAcl(&config, aclName);
+    utility::delCPUMatcher(&config, aclName);
+    this->applyNewConfig(config);
+  };
 
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
@@ -575,7 +584,7 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
       if (frontPanel) {
         this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
       } else {
-        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        this->sendPacketSwitchedAsync(std::move(txPacket));
       }
     };
 
