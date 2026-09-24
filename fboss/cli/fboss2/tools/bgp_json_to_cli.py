@@ -418,6 +418,652 @@ def generate_peer_group_commands(peer_group: dict[str, Any]) -> list[str]:
     return commands
 
 
+# Emitted verbatim (never prefixed with the binary) for JSON the CLI cannot
+# express, so a replayed script neither fails nor silently drops the field.
+_WARNING_PREFIX = "# WARNING:"
+
+
+def _warning(text: str) -> str:
+    return f"{_WARNING_PREFIX} {text}"
+
+
+_BOOLEAN_OPERATOR_NAMES = {1: "AND", 2: "OR", 3: "NOT"}
+
+
+def _boolean_operator_name(raw: Any) -> str:
+    """routing_policy.BooleanOperator as its name, from the int or the name."""
+    if isinstance(raw, str):
+        return raw
+    return _BOOLEAN_OPERATOR_NAMES.get(int(raw), str(raw))
+
+
+def generate_as_path_list_commands(as_path_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy as-path-list` commands for one list.
+
+    bgpd matches on `as_paths` (one `regex` line each) and `boolean_operator`
+    (emitted only when it differs from the OR default). `as_path_list_names`
+    and the `as_path_list` entries are never read by bgpd and have no CLI
+    spelling here, so they surface as warnings rather than vanishing.
+    """
+    name = as_path_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy as-path-list {escape_shell_arg(name)}"
+    commands = []
+    if as_path_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(as_path_list['description'])}"
+        )
+    for regex in as_path_list.get("as_paths") or []:
+        commands.append(f"{prefix} regex {escape_shell_arg(regex)}")
+    if "boolean_operator" in as_path_list:
+        operator = _boolean_operator_name(as_path_list["boolean_operator"])
+        if operator == "NOT":
+            commands.append(
+                _warning(
+                    f"as-path-list {name}: boolean_operator NOT is not "
+                    "accepted by the CLI (bgpd treats it as AND); not emitted"
+                )
+            )
+        elif operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if as_path_list.get("as_path_list_names"):
+        commands.append(
+            _warning(
+                f"as-path-list {name}: as_path_list_names is not read by bgpd "
+                "and has no CLI equivalent; not emitted"
+            )
+        )
+    if as_path_list.get("as_path_list"):
+        commands.append(
+            _warning(
+                f"as-path-list {name}: as_path_list entries are not read by "
+                "bgpd (bgpd matches as_paths); not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) list by name.
+        commands.append(prefix)
+    return commands
+
+
+def generate_community_list_commands(community_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy community-list` commands for one list.
+
+    bgpd matches on `communities` (one `community` line each), `boolean_operator`
+    (emitted only when it differs from the OR default) and `exact_match`.
+    `community_list_names` and the `members` entries are never read by bgpd and
+    have no CLI spelling here, so they surface as warnings rather than vanishing.
+    """
+    name = community_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy community-list {escape_shell_arg(name)}"
+    commands = []
+    if community_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(community_list['description'])}"
+        )
+    for community in community_list.get("communities") or []:
+        commands.append(f"{prefix} community {escape_shell_arg(community)}")
+    if "boolean_operator" in community_list:
+        operator = _boolean_operator_name(community_list["boolean_operator"])
+        if operator == "NOT":
+            commands.append(
+                _warning(
+                    f"community-list {name}: boolean_operator NOT is not "
+                    "accepted by the CLI (bgpd treats it as AND); not emitted"
+                )
+            )
+        elif operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if "exact_match" in community_list:
+        commands.append(
+            f"{prefix} exact-match {_shell_bool(community_list['exact_match'])}"
+        )
+    if community_list.get("community_list_names"):
+        commands.append(
+            _warning(
+                f"community-list {name}: community_list_names is not read by "
+                "bgpd and has no CLI equivalent; not emitted"
+            )
+        )
+    if community_list.get("members"):
+        commands.append(
+            _warning(
+                f"community-list {name}: members entries are not read by bgpd "
+                "(bgpd matches communities); not emitted"
+            )
+        )
+    if not commands:
+        # Nothing to set: still recreate the (empty) community-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_COMPARISON_OPERATOR_NAMES = {
+    1: "EQ",
+    2: "GE",
+    3: "LE",
+    4: "NE",
+    5: "GT",
+    6: "LT",
+    7: "RG",
+}
+_IP_VERSION_KEYWORDS = {4: "v4", 6: "v6"}
+
+
+def _comparison_operator_name(raw: Any) -> str:
+    if isinstance(raw, str):
+        return raw
+    return _COMPARISON_OPERATOR_NAMES.get(int(raw), str(raw))
+
+
+def _prefix_list_warnings(name: str, prefix_list: dict[str, Any]) -> list[str]:
+    """Warnings for PrefixList fields that have no CLI spelling."""
+    warnings = []
+    if prefix_list.get("prefix_list_names"):
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: prefix_list_names has no CLI equivalent; "
+                "not emitted"
+            )
+        )
+    if "ip_version" in prefix_list:
+        warnings.append(
+            _warning(
+                f"prefix-list {name}: ip_version has no CLI equivalent (the CLI "
+                "writes `version`); not emitted"
+            )
+        )
+    return warnings
+
+
+def generate_prefix_list_commands(prefix_list: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy prefix-list` commands for one list.
+
+    `ip-version` is the CLI spelling of the `version` field (4/6). The
+    `prefix_list_names` references and the `ip_version` enum field have no
+    CLI spelling and surface as warnings.
+    """
+    name = prefix_list.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy prefix-list {escape_shell_arg(name)}"
+    commands = []
+    if prefix_list.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(prefix_list['description'])}"
+        )
+    if "boolean_operator" in prefix_list:
+        operator = _boolean_operator_name(prefix_list["boolean_operator"])
+        if operator != "OR":
+            commands.append(f"{prefix} boolean-operator {escape_shell_arg(operator)}")
+    if "compare_operator" in prefix_list:
+        operator = _comparison_operator_name(prefix_list["compare_operator"])
+        if operator == "RG":
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: compare_operator RG is not accepted at "
+                    "the list level; not emitted"
+                )
+            )
+        else:
+            commands.append(f"{prefix} compare-operator {escape_shell_arg(operator)}")
+    if "version" in prefix_list:
+        keyword = _IP_VERSION_KEYWORDS.get(prefix_list["version"])
+        if keyword is None:
+            commands.append(
+                _warning(
+                    f"prefix-list {name}: version {prefix_list['version']} is "
+                    "neither 4 nor 6; not emitted"
+                )
+            )
+        else:
+            commands.append(f"{prefix} ip-version {keyword}")
+    commands.extend(_prefix_list_warnings(name, prefix_list))
+    for entry in prefix_list.get("prefixes") or []:
+        commands.extend(generate_prefix_list_entry_commands(name, entry))
+    if not commands:
+        # Nothing to set: still recreate the (empty) prefix-list by name.
+        commands.append(prefix)
+    return commands
+
+
+_MATCH_LOGIC_NAMES = {0: "EQUAL", 1: "NOT_EQUAL"}
+
+
+def _prefix_list_entry_scalar_commands(prefix: str, entry: dict[str, Any]) -> list[str]:
+    """The single-valued entry attributes, in the CLI's attribute order."""
+    commands = []
+    if entry.get("base_prefix"):
+        commands.append(
+            f"{prefix} base-prefix {escape_shell_arg(entry['base_prefix'])}"
+        )
+    if entry.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(entry['description'])}"
+        )
+    if "match_logic" in entry:
+        raw = entry["match_logic"]
+        logic = (
+            raw if isinstance(raw, str) else _MATCH_LOGIC_NAMES.get(int(raw), str(raw))
+        )
+        if logic != "EQUAL":
+            commands.append(f"{prefix} match-logic {escape_shell_arg(logic)}")
+    if "max_allowed_golden_prefix_subnet_count" in entry:
+        commands.append(
+            f"{prefix} max-allowed-subnet-count "
+            f"{escape_shell_arg(entry['max_allowed_golden_prefix_subnet_count'])}"
+        )
+    return commands
+
+
+def _prefix_list_entry_range_commands(
+    prefix: str, label: str, entry: dict[str, Any]
+) -> list[str]:
+    """`prefix-len-range` lines for the single range the CLI can express."""
+    ranges = entry.get("prefix_len_ranges") or []
+    if not ranges:
+        return []
+    first = ranges[0]
+    commands = []
+    if "compare_operator" in first:
+        commands.append(
+            f"{prefix} prefix-len-range compare-operator "
+            f"{escape_shell_arg(_comparison_operator_name(first['compare_operator']))}"
+        )
+    if "value" in first:
+        commands.append(
+            f"{prefix} prefix-len-range value {escape_shell_arg(first['value'])}"
+        )
+    if len(ranges) > 1:
+        commands.append(
+            _warning(
+                f"{label}: only the first of {len(ranges)} prefix_len_ranges is "
+                "expressible; the rest are not emitted"
+            )
+        )
+    return commands
+
+
+def generate_prefix_list_entry_commands(
+    list_name: str, entry: dict[str, Any]
+) -> list[str]:
+    """Generate `... prefix-list <name> entry <seq-num>` commands for one entry.
+
+    The CLI keys entries by seq_num and supports a single prefix_len_range;
+    anything beyond that surfaces as a warning.
+    """
+    if "seq_num" not in entry:
+        return [
+            _warning(
+                f"prefix-list {list_name}: entry '{entry.get('base_prefix', '')}' "
+                "has no seq_num and cannot be addressed by the CLI; not emitted"
+            )
+        ]
+    label = f"prefix-list {list_name} entry {entry['seq_num']}"
+    prefix = (
+        f"config protocol bgp policy prefix-list {escape_shell_arg(list_name)} "
+        f"entry {escape_shell_arg(entry['seq_num'])}"
+    )
+    commands = _prefix_list_entry_scalar_commands(prefix, entry)
+    commands.extend(_prefix_list_entry_range_commands(prefix, label, entry))
+    if entry.get("regex"):
+        commands.append(f"{prefix} regex {escape_shell_arg(entry['regex'])}")
+    for community in sorted(entry.get("communities") or []):
+        commands.append(f"{prefix} communities {escape_shell_arg(community)}")
+    if "ip_version" in entry:
+        commands.append(
+            _warning(f"{label}: ip_version has no CLI equivalent; not emitted")
+        )
+    if not commands:
+        commands.append(prefix)
+    return commands
+
+
+_FLOW_CONTROL_ACTION_NAMES = {
+    1: "ACCEPT",
+    2: "DENY",
+    3: "NEXT_TERM",
+    4: "NEXT_POLICY",
+    5: "LOG_AND_NEXT_TERM",
+    6: "LOG_AND_ACCEPT",
+    7: "LOG_AND_DENY",
+}
+
+
+def _flow_control_action_name(raw: Any) -> str:
+    if isinstance(raw, str):
+        return raw
+    return _FLOW_CONTROL_ACTION_NAMES.get(int(raw), str(raw))
+
+
+def generate_routing_policy_commands(policy: dict[str, Any]) -> list[str]:
+    """Generate `config protocol bgp policy routing-policy` commands for one
+    policy statement. The policy-level `result` has no CLI spelling (only a
+    term's action result does) and surfaces as a warning when not the DENY
+    default."""
+    name = policy.get("name", "")
+    if not name:
+        return []
+
+    prefix = f"config protocol bgp policy routing-policy {escape_shell_arg(name)}"
+    commands = []
+    if policy.get("description"):
+        commands.append(
+            f"{prefix} description {escape_shell_arg(policy['description'])}"
+        )
+    if "result" in policy and _flow_control_action_name(policy["result"]) != "DENY":
+        commands.append(
+            _warning(
+                f"routing-policy {name}: policy-level result "
+                f"{_flow_control_action_name(policy['result'])} has no CLI "
+                "equivalent; not emitted"
+            )
+        )
+    for term in policy.get("policy_entries") or []:
+        commands.extend(generate_routing_policy_term_commands(name, term))
+    if not commands:
+        # Nothing to set: still recreate the (empty) routing-policy by name.
+        commands.append(prefix)
+    return commands
+
+
+def generate_routing_policy_term_commands(
+    policy_name: str, term: dict[str, Any]
+) -> list[str]:
+    """Generate `... routing-policy <name> term <seq-num>` commands for one
+    term. The CLI keys terms by sequence_number."""
+    if "sequence_number" not in term:
+        return [
+            _warning(
+                f"routing-policy {policy_name}: term '{term.get('name', '')}' has "
+                "no sequence_number and cannot be addressed by the CLI; not emitted"
+            )
+        ]
+    prefix = (
+        f"config protocol bgp policy routing-policy {escape_shell_arg(policy_name)} "
+        f"term {escape_shell_arg(term['sequence_number'])}"
+    )
+    commands = []
+    if term.get("description"):
+        commands.append(f"{prefix} description {escape_shell_arg(term['description'])}")
+    # Nested term generators (action, match) hook in here.
+    commands.extend(generate_routing_policy_term_action_commands(prefix, term))
+    commands.extend(generate_routing_policy_term_match_commands(prefix, term))
+    if not commands:
+        commands.append(prefix)
+    return commands
+
+
+_POLICY_ACTION_TYPE_NAMES = {
+    1: "AS_PATH_PREPEND",
+    2: "COMMUNITY_LIST",
+    3: "SET_LOCAL_PREF",
+    4: "ORIGIN",
+    5: "PERMIT",
+    6: "DENY",
+    7: "CONTINUE",
+    8: "NEXT_HOP",
+    9: "AS_PATH",
+    10: "MED",
+    11: "GOTO",
+    12: "LBW_EXT_COMMUNITY",
+    13: "AS_PATH_TO_AS_SET",
+    14: "EXT_COMMUNITY_LIST",
+    15: "WEIGHT",
+    16: "ADD_BACKUP_ADDR",
+}
+_ORIGIN_NAMES = {1: "IGP", 2: "EGP", 3: "INCOMPLETE"}
+_COMMUNITY_ACTION_TYPE_NAMES = {1: "ADD", 2: "SET", 3: "REMOVE"}
+_MED_ACTION_TYPE_NAMES = {1: "SET", 2: "UPDATE", 3: "IGP"}
+# term_miss_action -> `action result` keyword; other flow-control values have
+# no CLI spelling.
+_TERM_RESULT_KEYWORDS = {"ACCEPT": "ACCEPT", "DENY": "REJECT", "NEXT_TERM": "CONTINUE"}
+
+
+def _enum_name(raw: Any, names: dict[int, str]) -> str:
+    if isinstance(raw, str):
+        return raw
+    return names.get(int(raw), str(raw))
+
+
+def _action_as_path_prepend(
+    prefix: str, _label: str, action: dict[str, Any]
+) -> str | None:
+    prepend = action.get("set_as_path_prepend") or {}
+    if "asn" not in prepend:
+        return None
+    repeat = max(int(prepend.get("repeat_times", 1)), 1)
+    asns = " ".join([escape_shell_arg(prepend["asn"])] * repeat)
+    return f"{prefix} as-path prepend {asns}"
+
+
+def _action_community(prefix: str, label: str, action: dict[str, Any]) -> str | None:
+    community_action = action.get("community_action") or {}
+    communities = community_action.get("communities") or []
+    action_type = _enum_name(
+        community_action.get("action_type", 0), _COMMUNITY_ACTION_TYPE_NAMES
+    )
+    if len(communities) == 1 and action_type in ("ADD", "SET"):
+        additive = " additive" if action_type == "ADD" else ""
+        return f"{prefix} community {escape_shell_arg(communities[0])}{additive}"
+    return _warning(
+        f"{label}: community action ({action_type}, {len(communities)} "
+        "communities) is not expressible as a single `community <value> "
+        "[additive]`; not emitted"
+    )
+
+
+def _action_local_pref(prefix: str, _label: str, action: dict[str, Any]) -> str | None:
+    local_pref = (action.get("set_local_pref") or {}).get("local_pref")
+    return (
+        None
+        if local_pref is None
+        else f"{prefix} local-pref {escape_shell_arg(local_pref)}"
+    )
+
+
+def _action_origin(prefix: str, _label: str, action: dict[str, Any]) -> str | None:
+    if "set_origin" not in action:
+        return None
+    return f"{prefix} origin {escape_shell_arg(_enum_name(action['set_origin'], _ORIGIN_NAMES))}"
+
+
+def _action_next_hop(prefix: str, label: str, action: dict[str, Any]) -> str | None:
+    nexthop = action.get("set_nexthop") or {}
+    if nexthop.get("set_self"):
+        return _warning(f"{label}: next-hop self is not supported by bgpd; not emitted")
+    address = (nexthop.get("next_hop") or {}).get("next_hop_prefix")
+    return None if not address else f"{prefix} next-hop {escape_shell_arg(address)}"
+
+
+def _action_med(prefix: str, label: str, action: dict[str, Any]) -> str | None:
+    med = action.get("med_action") or {}
+    med_type = _enum_name(med.get("med_action_type", 0), _MED_ACTION_TYPE_NAMES)
+    if med_type == "SET" and "med_value" in med:
+        return f"{prefix} med {escape_shell_arg(med['med_value'])}"
+    return _warning(f"{label}: med action {med_type} is not expressible; not emitted")
+
+
+def _action_weight(prefix: str, _label: str, action: dict[str, Any]) -> str | None:
+    weight = (action.get("weight_action") or {}).get("weight_value")
+    return None if weight is None else f"{prefix} weight {escape_shell_arg(weight)}"
+
+
+# BgpPolicyActionType name -> emitter of one `action set` line (or a warning);
+# None means the payload the CLI needs is absent.
+_ACTION_SET_EMITTERS = {
+    "AS_PATH_PREPEND": _action_as_path_prepend,
+    "COMMUNITY_LIST": _action_community,
+    "SET_LOCAL_PREF": _action_local_pref,
+    "ORIGIN": _action_origin,
+    "NEXT_HOP": _action_next_hop,
+    "MED": _action_med,
+    "WEIGHT": _action_weight,
+}
+
+
+def _generate_action_set_command(
+    term_prefix: str, label: str, action: dict[str, Any]
+) -> list[str]:
+    """One `action set ...` line for a BgpPolicyAction, or a warning."""
+    kind = _enum_name(action.get("type", 0), _POLICY_ACTION_TYPE_NAMES)
+    emitter = _ACTION_SET_EMITTERS.get(kind)
+    line = emitter(f"{term_prefix} action set", label, action) if emitter else None
+    if line is None:
+        return [
+            _warning(
+                f"{label}: action {kind} is not expressible by the CLI; not emitted"
+            )
+        ]
+    return [line]
+
+
+def generate_routing_policy_term_action_commands(
+    term_prefix: str, term: dict[str, Any]
+) -> list[str]:
+    """Generate the `action result` / `action set` commands of one term."""
+    label = term_prefix.removeprefix("config protocol bgp policy ")
+    commands = []
+    if "term_miss_action" in term:
+        result = _flow_control_action_name(term["term_miss_action"])
+        if result in _TERM_RESULT_KEYWORDS:
+            if result != "NEXT_TERM":  # the thrift and CLI default
+                commands.append(
+                    f"{term_prefix} action result {_TERM_RESULT_KEYWORDS[result]}"
+                )
+        else:
+            commands.append(
+                _warning(
+                    f"{label}: term_miss_action {result} has no CLI equivalent; not emitted"
+                )
+            )
+    for action in term.get("policy_action_entries") or []:
+        commands.extend(_generate_action_set_command(term_prefix, label, action))
+    return commands
+
+
+_ATOMIC_MATCH_TYPE_NAMES = {
+    1: "AS_PATH_LEN",
+    2: "AS_PATH",
+    3: "COMMUNITY_LIST",
+    4: "ORIGIN",
+    5: "PREFIX_LIST",
+    6: "NEXT_HOP",
+    7: "NEIGHBOR_LIST",
+    8: "ROUTE_TYPE",
+    9: "COMMUNITY_COUNT",
+    10: "INTERFACE",
+    11: "LOCAL_PREFERENCE",
+    12: "METRIC",
+    13: "TAG_LIST",
+    14: "MED",
+    15: "FAMILY",
+    16: "LEVEL",
+    17: "ROUTE_FILTER",
+    18: "PROTOCOL",
+    19: "AS_PATH_LEN_WITH_CONFED",
+    20: "ALWAYS",
+    21: "WEIGHT",
+}
+
+
+def _generate_list_reference_match(
+    term_prefix: str, label: str, keyword: str, names: list[str]
+) -> list[str]:
+    """`match from <keyword> <name>` for the single by-name reference the CLI
+    stores; extra names surface as a warning."""
+    if not names:
+        return [_warning(f"{label}: {keyword} match names no list; not emitted")]
+    commands = [f"{term_prefix} match from {keyword} {escape_shell_arg(names[0])}"]
+    if len(names) > 1:
+        commands.append(
+            _warning(
+                f"{label}: {keyword} match names {len(names)} lists but the CLI "
+                "stores one; only the first is emitted"
+            )
+        )
+    return commands
+
+
+def generate_routing_policy_term_match_commands(
+    term_prefix: str, term: dict[str, Any]
+) -> list[str]:
+    """Generate the `match from ...` commands of one term from
+    policy_match_entries (the field bgpd reads; policy_matches is not)."""
+    label = term_prefix.removeprefix("config protocol bgp policy ")
+    commands = []
+    if term.get("policy_matches"):
+        commands.append(
+            _warning(f"{label}: policy_matches is not read by bgpd; not emitted")
+        )
+    match = term.get("policy_match_entries")
+    if not match:
+        return commands
+    if "match_logic_type" in match:
+        logic = _boolean_operator_name(match["match_logic_type"])
+        if logic != "AND":
+            commands.append(
+                _warning(
+                    f"{label}: match_logic_type {logic} has no CLI equivalent "
+                    "(matches compose under AND); not emitted"
+                )
+            )
+    for entry in match.get("match_entries") or []:
+        kind = _enum_name(entry.get("type", 0), _ATOMIC_MATCH_TYPE_NAMES)
+        if kind == "AS_PATH":
+            names = (entry.get("as_path_filters") or {}).get("as_path_list_names") or []
+            commands.extend(
+                _generate_list_reference_match(
+                    term_prefix, label, "as-path-list", names
+                )
+            )
+        elif kind == "ORIGIN":
+            if "origin" in entry:
+                origin = _enum_name(entry["origin"], _ORIGIN_NAMES)
+                commands.append(
+                    f"{term_prefix} match from origin {escape_shell_arg(origin)}"
+                )
+        elif kind == "PREFIX_LIST":
+            names = (entry.get("prefix_filters") or {}).get("prefix_list_names") or []
+            commands.extend(
+                _generate_list_reference_match(term_prefix, label, "prefix-list", names)
+            )
+        else:
+            commands.append(
+                _warning(
+                    f"{label}: match type {kind} is not expressible by the CLI; not emitted"
+                )
+            )
+    return commands
+
+
+def generate_policy_commands(config: dict[str, Any]) -> list[str]:
+    """Generate the `config protocol bgp policy ...` commands.
+
+    Lists come before the routing-policies that reference them, and the whole
+    block precedes the peer-group/peer commands that name a policy, so a
+    replayed script never stages a dangling reference.
+    """
+    policies = config.get("policies", {})
+    commands = []
+    for as_path_list in policies.get("aspath_lists", []):
+        commands.extend(generate_as_path_list_commands(as_path_list))
+    for community_list in policies.get("community_lists", []):
+        commands.extend(generate_community_list_commands(community_list))
+    for prefix_list in policies.get("prefix_lists", []):
+        commands.extend(generate_prefix_list_commands(prefix_list))
+    # Routing-policies last: they reference the lists above by name.
+    for policy in policies.get("bgp_policy_statements", []):
+        commands.extend(generate_routing_policy_commands(policy))
+    return commands
+
+
 def generate_exec_commands(commands: list[str], binary: str = "fboss2") -> list[str]:
     """Generate executable commands with custom binary."""
     exec_commands = [
@@ -447,6 +1093,8 @@ def generate_commands(config: dict[str, Any]) -> list[str]:
     for fields that have no CLI equivalent)."""
     commands = []
     commands.extend(generate_global_commands(config))
+    # Policy objects before the peer-group/peer lines that reference them.
+    commands.extend(generate_policy_commands(config))
     for peer_group in config.get("peer_groups", []):
         commands.extend(generate_peer_group_commands(peer_group))
     for peer in config.get("peers", []):
