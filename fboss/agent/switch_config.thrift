@@ -2653,6 +2653,13 @@ struct FlowletSwitchingConfig {
   21: optional i16 standbyInactivityIntervalUsecs;
   // flow set table size for standby DLB groups
   22: optional i16 standbyFlowletTableSize;
+  // slots of maxArsVirtualGroupWidth reserved for alternate members. The rest
+  // are primary members, which caps how wide a next hop group backed by the
+  // virtual group can be programmed
+  23: optional i32 arsVirtualGroupAlternateMembers;
+  // how many members shared by every virtual group in the super group there
+  // have to be before the adapter starts promoting them to alternate members
+  24: optional i32 arsVirtualGroupCommonMembersThreshold;
 }
 
 /*
