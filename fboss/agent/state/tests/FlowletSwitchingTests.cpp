@@ -413,3 +413,64 @@ TEST(FlowletSwitching, standbyFieldsWithoutSwitchingModeRejected) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+TEST(FlowletSwitching, arsVirtualGroupAlternateMembersApplied) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.maxArsVirtualGroupWidth() = 256;
+  flowletCfg.arsVirtualGroupAlternateMembers() = 8;
+  flowletCfg.arsVirtualGroupCommonMembersThreshold() = 4;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto flowletConfig = stateV1->getFlowletSwitchingConfig();
+  EXPECT_EQ(flowletConfig->getArsVirtualGroupAlternateMembers(), 8);
+  EXPECT_EQ(flowletConfig->getArsVirtualGroupCommonMembersThreshold(), 4);
+}
+
+TEST(FlowletSwitching, arsVirtualGroupAlternateMembersWithoutWidthRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.arsVirtualGroupAlternateMembers() = 8;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+// Reserving the whole width for alternates would leave no primary member able
+// to forward.
+TEST(FlowletSwitching, arsVirtualGroupAlternateMembersFillingWidthRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.maxArsVirtualGroupWidth() = 256;
+  flowletCfg.arsVirtualGroupAlternateMembers() = 256;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(FlowletSwitching, arsVirtualGroupCommonMembersThresholdAloneRejected) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::FlowletSwitchingConfig flowletCfg;
+  flowletCfg.maxArsVirtualGroupWidth() = 256;
+  flowletCfg.arsVirtualGroupCommonMembersThreshold() = 4;
+  config.flowletSwitchingConfig() = flowletCfg;
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}

@@ -5470,6 +5470,35 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setMaxArsVirtualGroups(
         *config.maxArsVirtualGroups());
   }
+  if (config.arsVirtualGroupAlternateMembers()) {
+    if (!config.maxArsVirtualGroupWidth()) {
+      throw FbossError(
+          "arsVirtualGroupAlternateMembers requires maxArsVirtualGroupWidth "
+          "to be set");
+    }
+    auto alternateMembers = *config.arsVirtualGroupAlternateMembers();
+    // Alternate slots come out of the virtual group width, so reserving all of
+    // them would leave no primary member able to forward.
+    if (alternateMembers <= 0 ||
+        alternateMembers >= *config.maxArsVirtualGroupWidth()) {
+      throw FbossError(
+          "arsVirtualGroupAlternateMembers ",
+          alternateMembers,
+          " must be greater than 0 and less than maxArsVirtualGroupWidth ",
+          *config.maxArsVirtualGroupWidth());
+    }
+    newFlowletSwitchingConfig->setArsVirtualGroupAlternateMembers(
+        alternateMembers);
+  }
+  if (config.arsVirtualGroupCommonMembersThreshold()) {
+    if (!config.arsVirtualGroupAlternateMembers()) {
+      throw FbossError(
+          "arsVirtualGroupCommonMembersThreshold requires "
+          "arsVirtualGroupAlternateMembers to be set");
+    }
+    newFlowletSwitchingConfig->setArsVirtualGroupCommonMembersThreshold(
+        *config.arsVirtualGroupCommonMembersThreshold());
+  }
   if (config.standbySwitchingMode()) {
     // Distinct switching modes keep the standby and primary ARS objects from
     // collapsing into a single SaiStore entry.

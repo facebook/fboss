@@ -134,6 +134,12 @@ void SaiArsManager::addArs(
         virtualArsQualityThreshold = std::nullopt;
     std::optional<SaiArsTraits::Attributes::EcmpMemberCount> ecmpMemberCount =
         std::nullopt;
+    std::optional<SaiArsTraits::Attributes::MaxAltMembersPerGroup>
+        maxAltMembers = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup>
+        maxPrimaryMembers = std::nullopt;
+    std::optional<SaiArsTraits::Attributes::CommonMembersThresholdCount>
+        commonMembersThreshold = std::nullopt;
 #if defined(BRCM_SAI_SDK_GTE_15_4)
     virtualArsQualityThreshold =
         SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
@@ -145,8 +151,24 @@ void SaiArsManager::addArs(
     }
     if (auto width = flowletSwitchConfig->getMaxArsVirtualGroupWidth();
         width && *width > 0) {
-      ecmpMemberCount = SaiArsTraits::Attributes::EcmpMemberCount{
-          static_cast<sai_uint32_t>(*width)};
+      auto total = static_cast<sai_uint32_t>(*width);
+      ecmpMemberCount = SaiArsTraits::Attributes::EcmpMemberCount{total};
+      if (auto alternateMembers =
+              flowletSwitchConfig->getArsVirtualGroupAlternateMembers()) {
+        // ThriftConfigApplier bounds this to (0, maxArsVirtualGroupWidth), so
+        // the primary count below cannot underflow or reach zero.
+        auto alternates = static_cast<sai_uint32_t>(*alternateMembers);
+        maxAltMembers =
+            SaiArsTraits::Attributes::MaxAltMembersPerGroup{alternates};
+        maxPrimaryMembers = SaiArsTraits::Attributes::MaxPrimaryMembersPerGroup{
+            total - alternates};
+        if (auto threshold = flowletSwitchConfig
+                                 ->getArsVirtualGroupCommonMembersThreshold()) {
+          commonMembersThreshold =
+              SaiArsTraits::Attributes::CommonMembersThresholdCount{
+                  static_cast<sai_uint32_t>(*threshold)};
+        }
+      }
     }
 #endif
     setArsObject(
@@ -161,7 +183,10 @@ void SaiArsManager::addArs(
             SaiArsTraits::Attributes::NextHopGroupType{
                 SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL},
             std::nullopt,
-            ecmpMemberCount));
+            ecmpMemberCount,
+            maxAltMembers,
+            maxPrimaryMembers,
+            commonMembersThreshold));
   } else if (virtualArsGroupHandle_->ars) {
     // Config no longer asks for virtual groups, so drop the one we created.
     virtualArsGroupHandle_->ars.reset();
