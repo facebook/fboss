@@ -1658,6 +1658,12 @@ void SaiPortManager::programSerdes(
   // attributes need to be programmed on other vendors
   bool skipSerdesProgramming = linkTrainingEnabled;
 
+  // TODO: Remove the flag fallback once precoding is populated in all port
+  // configs.
+  const auto txPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
+  const auto rxPrecodingEnabled =
+      FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
   SaiPortSerdesTraits::CreateAttributes serdesAttributes =
       serdesAttributesFromSwPinConfigs(
           saiPort->adapterKey(),
@@ -1665,7 +1671,9 @@ void SaiPortManager::programSerdes(
           serdes,
           swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
           swPort->getSerdesCustomCollection(),
-          skipSerdesProgramming);
+          skipSerdesProgramming,
+          txPrecodingEnabled,
+          rxPrecodingEnabled);
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1749,75 +1757,6 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  // Set RX Reach if ASIC supports and platform mapping has a rxReach
-  // setting
-#if defined(BRCM_SAI_SDK_GTE_13_0)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
-    std::vector<phy::RxReach> rxReachVals;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto rxReachOpt = rx->rxReach()) {
-          rxReachVals.push_back(rxReachOpt.value());
-        }
-      }
-    }
-    // RX reach is handled by link training
-    if (!rxReachVals.empty() && !linkTrainingEnabled &&
-        (FLAGS_montblanc_precoding ||
-         swPort->getRxPrecoding().value_or(false))) {
-      SaiPortSerdesTraits::Attributes::RxReach rxReach;
-      rxReach = getSaiRxReach(rxReachVals);
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxReach);
-    }
-  }
-#endif
-#if defined(BRCM_SAI_SDK_GTE_13_0) || SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
-    SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
-    for (const auto& pinConfig : swPort->getPinConfigs()) {
-      if (auto rx = pinConfig.rx()) {
-        if (auto precoding = rx->precoding()) {
-          rxPrecoding.push_back(precoding.value());
-        }
-      }
-      if (auto tx = pinConfig.tx()) {
-        if (auto precoding = tx->precoding()) {
-          txPrecoding.push_back(precoding.value());
-        }
-      }
-    }
-    // TODO: Remove the flag fallback once precoding is populated in all port
-    // configs.
-    const auto txPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getTxPrecoding().value_or(false);
-    const auto rxPrecodingEnabled =
-        FLAGS_montblanc_precoding || swPort->getRxPrecoding().value_or(false);
-    if (!rxPrecoding.empty() && rxPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::RxPrecodingAttr rxPrecodingAttr{
-          rxPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), rxPrecodingAttr);
-    }
-    if (!txPrecoding.empty() && txPrecodingEnabled) {
-      SaiPortSerdesTraits::Attributes::TxPrecodingAttr txPrecodingAttr{
-          txPrecoding};
-      SaiApiTable::getInstance()->portApi().setAttribute(
-          portHandle->serdes->adapterKey(), txPrecodingAttr);
-    }
-  }
-#else
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_SERDES_PRECODING)) {
-    XLOG_EVERY_MS(WARNING, 10000)
-        << "Port " << swPort->getID()
-        << ": SAI_SERDES_PRECODING is supported by the ASIC but no precoding "
-           "attribute is available on this SDK, skipping";
-  }
-#endif
-
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
@@ -1844,15 +1783,13 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::shared_ptr<SaiPortSerdes>& serdes,
     bool zeroPreemphasis,
     const std::optional<std::string>& customCollection,
-    bool skipSerdesProgramming) {
+    bool skipSerdesProgramming,
+    [[maybe_unused]] bool txPrecodingEnabled,
+    [[maybe_unused]] bool rxPrecodingEnabled) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
       static_cast<sai_object_id_t>(portSaiId);
-  if (skipSerdesProgramming) {
-    // PortId is mandatory to create the serdes object
-    return attrs;
-  }
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
@@ -1920,11 +1857,33 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLengthBitmap;
   SaiPortSerdesTraits::Attributes::RxFfeLmsDynamicGatingEn::ValueType
       rxFfeLmsDynamicGatingEn;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  std::vector<phy::RxReach> rxReach;
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  SaiPortSerdesTraits::Attributes::TxPrecodingAttr::ValueType txPrecoding;
+  SaiPortSerdesTraits::Attributes::RxPrecodingAttr::ValueType rxPrecoding;
+#endif
 
   // Now use pinConfigs from SW port as the source of truth
   [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+    if (auto tx = pinConfig.tx(); tx && tx->precoding()) {
+      txPrecoding.push_back(tx->precoding().value());
+    }
+    if (auto rx = pinConfig.rx(); rx && rx->precoding()) {
+      rxPrecoding.push_back(rx->precoding().value());
+    }
+#endif
+    if (skipSerdesProgramming) {
+      continue;
+    }
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
@@ -2001,6 +1960,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
     if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      if (auto reach = rx->rxReach()) {
+        rxReach.push_back(reach.value());
+      }
+#endif
       if (auto ctlCode = rx->ctlCode()) {
         rxCtleCode.push_back(*ctlCode);
       }
@@ -2093,10 +2057,42 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     }
   };
 
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    if (txPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::TxPrecodingAttr{},
+          txPrecoding);
+    }
+    if (rxPrecodingEnabled) {
+      setTxRxAttr(
+          attrs,
+          SaiPortSerdesTraits::Attributes::RxPrecodingAttr{},
+          rxPrecoding);
+    }
+  }
+#endif
+  if (skipSerdesProgramming) {
+    return attrs;
+  }
+
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
   setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::IDriver{}, txIDriver);
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (rxPrecodingEnabled &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    setTxRxAttr(
+        attrs,
+        SaiPortSerdesTraits::Attributes::RxReach{},
+        getSaiRxReach(rxReach));
+  }
+#endif
 
   if (FLAGS_sai_configure_six_tap &&
       platform_->getAsic()->isSupported(

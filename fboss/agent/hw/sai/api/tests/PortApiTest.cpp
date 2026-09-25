@@ -176,6 +176,15 @@ class PortApiTest : public ::testing::Test {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
         std::nullopt, // CustomCollection
 #endif
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+        std::nullopt, // RxReach
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+        std::nullopt, // TxPrecoding
+        std::nullopt, // RxPrecoding
+#endif
     };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }
@@ -556,6 +565,22 @@ TEST_F(PortApiTest, serdesApi) {
   EXPECT_EQ(rxAcCouplingByPass, std::vector<sai_int32_t>{7});
   EXPECT_EQ(rxAfeAdaptiveEnable, std::vector<sai_int32_t>{8});
   EXPECT_EQ(txFirPre3, std::vector<sai_uint32_t>{9});
+}
+
+TEST_F(PortApiTest, optionalSerdesListAttributesHaveDefaults) {
+  EXPECT_TRUE(SaiPortSerdesTraits::Attributes::RxReach::defaultValue().empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::TransmitPrecodingState::defaultValue()
+          .empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::ReceivePrecodingState::defaultValue()
+          .empty());
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::TxPrecoding::defaultValue().empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::RxPrecoding::defaultValue().empty());
+#endif
 }
 
 // The precoding vendor extensions are programmed after serdes create, the way

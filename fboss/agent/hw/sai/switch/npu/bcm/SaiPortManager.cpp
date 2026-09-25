@@ -86,6 +86,22 @@ bool SaiPortManager::checkPortSerdesAttributes(
           SaiPortSerdesTraits::Attributes::TxFirPost1{},
           fromSwPort,
           fromStore)) &&
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::RxReach{}, fromSwPort, fromStore)) &&
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::TxPrecodingAttr{},
+          fromSwPort,
+          fromStore)) &&
+      (checkSerdesAttribute(
+          SaiPortSerdesTraits::Attributes::RxPrecodingAttr{},
+          fromSwPort,
+          fromStore)) &&
+#endif
       (!iDriver.has_value() ||
        iDriver ==
            std::get<std::optional<std::decay_t<

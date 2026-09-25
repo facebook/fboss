@@ -1374,5 +1374,92 @@ TEST_F(PortManagerTest, programPrecodingWhenMontblancFlagEnabled) {
   EXPECT_EQ(fakeSerdes.txPrecoding, std::vector<int32_t>{1});
   EXPECT_EQ(fakeSerdes.rxPrecoding, std::vector<int32_t>{2});
 }
+
+TEST_F(PortManagerTest, preservePrecodingWhenSkippingSerdesProgramming) {
+  auto swPort = makePort(p0);
+  auto pinConfigs = swPort->getPinConfigs();
+  for (auto& pinConfig : pinConfigs) {
+    pinConfig.rx()->precoding() = 2;
+    pinConfig.tx()->precoding() = 1;
+  }
+
+  saiManagerTable->portManager().addPort(swPort);
+  const auto* handle =
+      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  const auto getAttrs = [&](bool txPrecodingEnabled, bool rxPrecodingEnabled) {
+    return saiManagerTable->portManager().serdesAttributesFromSwPinConfigs(
+        handle->port->adapterKey(),
+        pinConfigs,
+        handle->serdes,
+        false,
+        std::nullopt,
+        true,
+        txPrecodingEnabled,
+        rxPrecodingEnabled);
+  };
+
+  const auto disabledAttrs = getAttrs(false, false);
+  EXPECT_FALSE(
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxPrecodingAttr>>(
+          disabledAttrs)
+          .has_value());
+  EXPECT_FALSE(
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::RxPrecodingAttr>>(
+          disabledAttrs)
+          .has_value());
+
+  const auto attrs = getAttrs(true, true);
+  const auto& txPrecoding =
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::TxPrecodingAttr>>(
+          attrs);
+  const auto& rxPrecoding =
+      std::get<std::optional<SaiPortSerdesTraits::Attributes::RxPrecodingAttr>>(
+          attrs);
+  ASSERT_TRUE(txPrecoding.has_value());
+  ASSERT_TRUE(rxPrecoding.has_value());
+  EXPECT_EQ(txPrecoding->value(), std::vector<int32_t>{1});
+  EXPECT_EQ(rxPrecoding->value(), std::vector<int32_t>{2});
+}
+
+TEST_F(PortManagerTest, programPrecodingWhenEnabledAfterPortCreation) {
+  gflags::FlagSaver flagSaver;
+  FLAGS_montblanc_precoding = false;
+
+  auto swPort = makePort(p0);
+  auto pinConfigs = swPort->getPinConfigs();
+  for (auto& pinConfig : pinConfigs) {
+    pinConfig.rx()->precoding() = 2;
+    pinConfig.tx()->precoding() = 1;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+    pinConfig.rx()->rxReach() = phy::RxReach::RX_EXTENDED_REACH;
+#endif
+  }
+  swPort->resetPinConfigs(pinConfigs);
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  const auto& initialFakeSerdes = FakeSai::getInstance()->portSerdesManager.get(
+      handle->serdes->adapterKey());
+  EXPECT_TRUE(initialFakeSerdes.txPrecoding.empty());
+  EXPECT_TRUE(initialFakeSerdes.rxPrecoding.empty());
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  EXPECT_TRUE(initialFakeSerdes.rxReach.empty());
+#endif
+
+  auto newPort = swPort->clone();
+  newPort->setTxPrecoding(true);
+  newPort->setRxPrecoding(true);
+  saiManagerTable->portManager().changePort(swPort, newPort);
+
+  handle = saiManagerTable->portManager().getPortHandle(newPort->getID());
+  const auto& fakeSerdes = FakeSai::getInstance()->portSerdesManager.get(
+      handle->serdes->adapterKey());
+  EXPECT_EQ(fakeSerdes.txPrecoding, std::vector<int32_t>{1});
+  EXPECT_EQ(fakeSerdes.rxPrecoding, std::vector<int32_t>{2});
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  EXPECT_EQ(
+      fakeSerdes.rxReach, std::vector<int32_t>{SAI_PORT_SERDES_REACH_MODE_ER});
+#endif
+}
 #endif
 } // namespace facebook::fboss
