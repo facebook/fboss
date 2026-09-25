@@ -22,6 +22,7 @@ from fboss_test_runner.constants import (
     SUB_CMD_SAI_AGENT,
     SUB_CMD_SAI_AGENT_SCALE,
     SUB_CMD_SAI_INVARIANT_AGENT,
+    SUB_CMD_SERVICES,
 )
 from fboss_test_runner.log_capture import (
     derive_test_type,
@@ -48,6 +49,7 @@ from fboss_test_runner.runners.sai_invariant_agent_test_runner import (
     SaiInvariantAgentTestRunner,
 )
 from fboss_test_runner.runners.sai_test_runner import SaiTestRunner
+from fboss_test_runner.runners.service_lifecycle_runner import ServiceLifecycleRunner
 from fboss_test_runner.runners.test_runner import TestRunner
 from setup import setup_fboss_env
 
@@ -101,6 +103,12 @@ def _build_parser() -> ArgumentParser:
         Fboss2IntegrationTestRunner,
     )
     _register_runner(SUB_CMD_BENCHMARK, "run benchmark tests", BenchmarkTestRunner)
+
+    services_parser = subparsers.add_parser(
+        SUB_CMD_SERVICES, help="start or stop FBOSS services without running tests"
+    )
+    services_parser.set_defaults(log_bundle=False)
+    ServiceLifecycleRunner().add_subcommands(services_parser)
     return ap
 
 
@@ -111,12 +119,12 @@ def _parse_args(argv: list[str] | None = None) -> Namespace:
     """
     args = _build_parser().parse_args(argv)
 
-    if args.filter and args.filter_file:
+    if getattr(args, "filter", None) and getattr(args, "filter_file", None):
         raise ValueError(
             f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
         )
 
-    if args.profile and not args.filter_file:
+    if getattr(args, "profile", None) and not getattr(args, "filter_file", None):
         raise ValueError(
             f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
@@ -125,6 +133,8 @@ def _parse_args(argv: list[str] | None = None) -> Namespace:
 
 
 def _runner_action(args: Namespace):
+    if runner_action := getattr(args, "runner_action", None):
+        return runner_action
     return args.runner.list_tests if args.list_tests else args.runner.run_test
 
 
