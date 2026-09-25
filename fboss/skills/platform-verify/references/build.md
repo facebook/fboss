@@ -4,6 +4,10 @@ Platform services build inside the FBOSS container. Full setup is in the build
 documentation at https://facebook.github.io/fboss/; the runnable snippets live
 in `docs/static/code_snips/`.
 
+For the build system itself (container setup, `run-getdeps.py` flags, build
+targets, troubleshooting), the `build-fboss-oss-local` skill is the canonical
+reference. This file covers what platform verification needs on top.
+
 ## Target
 
 The whole platform stack builds from one cmake target:

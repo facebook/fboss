@@ -17,6 +17,7 @@ The open-source skill set focuses on six workflows:
 - Applying FBOSS coding standards while changing code.
 - Reviewing FBOSS diffs with FBOSS-specific review guidance.
 - Building, customizing, and provisioning FBOSS Distro images.
+- Building FBOSS from source locally with getdeps and CMake.
 
 ## Directory Layout
 
@@ -24,6 +25,7 @@ In an open-source FBOSS checkout, the exported skills are expected under:
 
 ```text
 fboss/skills/
+  build-fboss-oss-local/
   debug-agent-hw-test/
   debug-qsfp-hw-test/
   fboss-distro-image/
@@ -59,6 +61,7 @@ Use fboss-distro-image to explain and build fboss-image/from_source.json.
 Use fboss-transceiver-npi to add support for an Innolight 2x800G-DR4 optic.
 Use fboss-code-standards while changing the route updater.
 Use fboss-review to review this pull request.
+Use build-fboss-oss-local to do a fake-SAI build of this checkout.
 ```
 
 Each skill has a `SKILL.md` entry point. The entry point tells the agent which
@@ -169,6 +172,19 @@ It covers:
 - Build and provisioning failure diagnosis.
 
 The workflow is self-contained for open-source checkouts.
+
+### `build-fboss-oss-local`
+
+Use this skill to build FBOSS from source on your own machine, to diagnose a
+failed build, or to answer questions about how the open-source build works. It
+covers:
+
+- The build container and the `run-getdeps.py` wrapper around getdeps.
+- A first build with fake SAI, which needs no vendor SDK or hardware.
+- Supplying a vendor NPU or PHY SAI SDK.
+- Build targets, packaging, and the tests that run without hardware.
+- Failures ordered by the error message you see.
+- Why the build is shaped the way it is, and what it cannot do.
 
 ## Typical Usage
 
