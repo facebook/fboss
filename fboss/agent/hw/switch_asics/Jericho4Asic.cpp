@@ -294,6 +294,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
+    case HwAsic::Feature::TAJO_RX_SERDES_PARAMETERS:
       return false;
   }
   return false;
