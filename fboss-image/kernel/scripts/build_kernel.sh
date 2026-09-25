@@ -26,6 +26,7 @@ CONTAINER_DIST_DIR="$KERNEL_ROOT/dist"
 CONTAINER_SPECS_DIR="$KERNEL_ROOT/specs"
 CONTAINER_CONFIGS_DIR="$KERNEL_ROOT/configs"
 CONTAINER_SCRIPTS_DIR="$KERNEL_ROOT/scripts"
+CONTAINER_PATCHES_DIR="$KERNEL_ROOT/patches"
 
 # Install kernel build dependencies
 bash "$CONTAINER_SCRIPTS_DIR/setup_kernel_build_deps.sh"
@@ -67,6 +68,11 @@ python3 "$CONTAINER_SCRIPTS_DIR/generate_config_overrides.py" \
   "$CONTAINER_CONFIGS_DIR/fboss-local-overrides.yaml" \
   "$KERNEL_VERSION" \
   "$BUILD_DIR/SOURCES/fboss-local-overrides.config"
+
+# Copy kernel patches into SOURCES so rpmbuild can find them
+if [ -d "$CONTAINER_PATCHES_DIR" ]; then
+  cp "$CONTAINER_PATCHES_DIR"/*.patch "$BUILD_DIR/SOURCES/" || true
+fi
 
 rpmbuild -ba "$CONTAINER_SPECS_DIR/kernel.spec" \
   --define "_topdir $BUILD_DIR" \
