@@ -92,6 +92,7 @@ option(SAI_TAJO_IMPL "Build SAI api with tajo extensions" OFF)
 if ($ENV{SAI_TAJO_IMPL})
   message(STATUS "ENV SAI_TAJO_IMPL is set")
   set (SAI_TAJO_IMPL ON)
+  add_definitions (-DTAJO_SDK)
 endif()
 
 option(SAI_BRCM_IMPL "Build SAI api with BRCM-SAI extensions" OFF)
