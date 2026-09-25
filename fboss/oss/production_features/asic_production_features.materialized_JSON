@@ -733,7 +733,8 @@
         49,
         96,
         97,
-        118
+        118,
+        130
     ],
     "yuba": [
         2,
@@ -1526,7 +1527,8 @@
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
         "ECN_PROBABILISTIC_MARKING",
-        "LINK_LAYER_RETRANSMISSION"
+        "LINK_LAYER_RETRANSMISSION",
+        "CREDIT_BASED_FLOW_CONTROL"
     ],
     "yuba": [
         "CPU_RX_TX",
