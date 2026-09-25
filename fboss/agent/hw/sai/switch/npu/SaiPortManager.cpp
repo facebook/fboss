@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -387,6 +388,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
   programLlr(swPort, handle.get());
+  managerTable_->virtualChannelManager().programVirtualChannels(
+      swPort, saiPort->adapterKey());
   if (deferAdminEnable) {
     // Through the store, so its cached admin state tracks hardware.
     saiPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
@@ -593,6 +596,8 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  managerTable_->virtualChannelManager().programVirtualChannels(
+      newPort, saiPort->adapterKey());
   if (programLlrForPort) {
     programLlr(newPort, existingPort);
     if (deferAdminEnable) {

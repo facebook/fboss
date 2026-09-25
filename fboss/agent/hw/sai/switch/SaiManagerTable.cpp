@@ -48,6 +48,7 @@
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVendorSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
@@ -95,6 +96,8 @@ void SaiManagerTable::createSaiTableManagers(
       saiStore, this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
   macsecManager_ = std::make_unique<SaiMacsecManager>(saiStore, this);
+  virtualChannelManager_ =
+      std::make_unique<SaiVirtualChannelManager>(saiStore, platform);
   virtualRouterManager_ =
       std::make_unique<SaiVirtualRouterManager>(saiStore, this, platform);
   vlanManager_ = std::make_unique<SaiVlanManager>(saiStore, this, platform);
@@ -244,6 +247,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   }
 #endif
   tamManager_.reset();
+
+  // Virtual channels carry the port OID as a create-only attribute, so they
+  // must be gone before the port is.
+  virtualChannelManager_.reset();
 
   // ports may be referenced in acls, reset ports after acls
   systemPortManager_.reset();
@@ -458,6 +465,13 @@ SaiSwitchManager& SaiManagerTable::switchManager() {
 }
 const SaiSwitchManager& SaiManagerTable::switchManager() const {
   return *switchManager_;
+}
+
+SaiVirtualChannelManager& SaiManagerTable::virtualChannelManager() {
+  return *virtualChannelManager_;
+}
+const SaiVirtualChannelManager& SaiManagerTable::virtualChannelManager() const {
+  return *virtualChannelManager_;
 }
 
 SaiVirtualRouterManager& SaiManagerTable::virtualRouterManager() {

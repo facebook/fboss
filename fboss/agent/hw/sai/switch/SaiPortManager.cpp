@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -1902,6 +1903,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   removeSamplePacket(swPort);
   removePfcBuffers(swPort);
   removePfc(swPort);
+  managerTable_->virtualChannelManager().removeVirtualChannels(swId);
   clearQosPolicy(swId);
 
   concurrentIndices_->portSaiId2PortInfo.erase(itr->second->port->adapterKey());

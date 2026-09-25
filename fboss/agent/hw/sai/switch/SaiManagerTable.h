@@ -57,6 +57,7 @@ class SaiSrv6SidListManager;
 class SaiSrv6MySidManager;
 class SaiSrv6TunnelManager;
 class SaiUdfManager;
+class SaiVirtualChannelManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
 class SaiVendorSwitchManager;
@@ -159,6 +160,8 @@ class SaiManagerTable {
   SaiSwitchManager& switchManager();
   const SaiSwitchManager& switchManager() const;
 
+  SaiVirtualChannelManager& virtualChannelManager();
+  const SaiVirtualChannelManager& virtualChannelManager() const;
   SaiVirtualRouterManager& virtualRouterManager();
   const SaiVirtualRouterManager& virtualRouterManager() const;
 
@@ -224,6 +227,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiSamplePacketManager> samplePacketManager_;
   std::unique_ptr<SaiSchedulerManager> schedulerManager_;
   std::unique_ptr<SaiSwitchManager> switchManager_;
+  std::unique_ptr<SaiVirtualChannelManager> virtualChannelManager_;
   std::unique_ptr<SaiVirtualRouterManager> virtualRouterManager_;
   std::unique_ptr<SaiVlanManager> vlanManager_;
   std::unique_ptr<SaiInSegEntryManager> inSegEntryManager_;
