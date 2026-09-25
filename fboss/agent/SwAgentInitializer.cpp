@@ -268,6 +268,13 @@ int SwAgentInitializer::initAgent(
 
   swHandler->setSSLPolicy(server_->getSSLPolicy());
 
+  // Register before start() so an all-HwSwitches-disconnected teardown can be
+  // scheduled on the event base. skipWarmBootStateSave=true: this is a cold
+  // shutdown whose cold-boot-once markers are already written.
+  sw_->registerGracefulShutdownHandler(eventBase_, [this]() {
+    handleExitSignal(true /* gracefulExit */, true /* skipWarmBootStateSave */);
+  });
+
   // At this point, we are guaranteed no other agent process will initialize
   // the ASIC because such a process would have crashed attempting to bind to
   // the Thrift port 5909
@@ -314,6 +321,6 @@ int SwAgentInitializer::initAgent(
     serverStarted_ = false;
   }
   serverStopCV_.notify_one();
-  return 0;
+  return exitStatus_.load();
 }
 } // namespace facebook::fboss
