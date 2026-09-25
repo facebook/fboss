@@ -138,11 +138,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         "enable trunk ports");
   }
 
-  utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper() {
+  virtual utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper()
+      const {
     return utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
-        this->getProgrammedState(),
-        this->getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
   // The PortDescriptor the uA mysid is wired to. Tests must resolve their
@@ -517,6 +516,14 @@ class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
   // measuring.
   void addTrapAcls(const HwAsic* /*asic*/, cfg::SwitchConfig& /*cfg*/)
       const override {}
+
+  utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper()
+      const override {
+    return utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState()));
+  }
 
   // Outer dst is the uA sid with nothing behind it; inner dst repeats that sid
   // with one more uSID behind it.
