@@ -1153,6 +1153,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
+  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp

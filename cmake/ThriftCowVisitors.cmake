@@ -33,6 +33,7 @@ add_library(
   thrift_cow_visitors
   fboss/thrift_cow/visitors/DeltaVisitor.h
   fboss/thrift_cow/visitors/ExtendedPathVisitor.h
+  fboss/thrift_cow/visitors/ExtendedPathVisitor.h
   fboss/thrift_cow/visitors/PathVisitor.h
   fboss/thrift_cow/visitors/RecurseVisitor.h
   fboss/thrift_cow/visitors/VisitorUtils.h
