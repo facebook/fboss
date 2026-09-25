@@ -49,6 +49,21 @@ python_library(
     labels = ["autodeps2_generated"],
 )
 
+python_library(
+    name = "compile_mem_lib",
+    srcs = ["compile_mem.py"],
+    # Tests import this as a top-level module, like npu_sdk_utils_lib.
+    # @lint-ignore BUCKLINT no_base_module_usage_python
+    base_module = "",
+    labels = ["autodeps2_generated"],
+)
+
+python_binary(
+    name = "check_compile_mem",
+    main_module = "compile_mem",
+    deps = [":compile_mem_lib"],
+)
+
 python_binary(
     name = "getdeps_fallback_mirror",
     main_module = "fboss.oss.scripts.getdeps_fallback_mirror",

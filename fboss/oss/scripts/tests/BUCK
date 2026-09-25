@@ -38,3 +38,12 @@ python_unittest(
         "//fboss/oss/scripts:npu_sdk_utils_lib",
     ],
 )
+
+python_unittest(
+    name = "test_compile_mem",
+    srcs = ["test_compile_mem.py"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/oss/scripts:compile_mem_lib",
+    ],
+)

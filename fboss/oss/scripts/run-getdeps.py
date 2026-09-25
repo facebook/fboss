@@ -63,6 +63,9 @@ ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
 ARG_USE_GCC = "--use-gcc"
+ARG_CHECK_COMPILE_MEM = "--check-compile-mem"
+ARG_COMPILE_MEM_PEAKS_DIR = "--compile-mem-peaks-dir"
+ARG_COMPILE_MEM_BUDGETS = "--compile-mem-budgets"
 
 SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
@@ -239,6 +242,24 @@ def parse_args():
         required=False,
         action="store_true",
         help="Stay on GCC instead of auto-switching to Clang.",
+    )
+    parser.add_argument(
+        ARG_CHECK_COMPILE_MEM,
+        required=False,
+        action="store_true",
+        help="After a successful build, check <tu>.peak.txt files against the "
+        "compile-mem budgets. A breach fails the build (exit 2). Without peak "
+        "files the check warns and passes.",
+    )
+    parser.add_argument(
+        ARG_COMPILE_MEM_PEAKS_DIR,
+        required=False,
+        help="Dir of <tu>.peak.txt files (default: <scratch>/compile_mem_peaks).",
+    )
+    parser.add_argument(
+        ARG_COMPILE_MEM_BUDGETS,
+        required=False,
+        help="Budgets file (default: compile_mem_budgets.json beside this script).",
     )
     return parser.parse_args()
 
@@ -1186,6 +1207,36 @@ def _prefetch_gnu_mirrors(args, getdeps_path):
         print_error(f"Mirror prefetch failed ({ex}); continuing with getdeps")
 
 
+def _check_compile_mem_budgets(args):
+    """Check tracked-TU peak files against compile_mem_budgets.json.
+
+    Warns and passes when no peak files exist: measuring is opt-in (peakmem
+    harness), so a plain build must stay green.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    checker = os.path.join(script_dir, "compile_mem.py")
+    budgets = args.compile_mem_budgets or os.path.join(
+        script_dir, "compile_mem_budgets.json"
+    )
+    peaks_dir = args.compile_mem_peaks_dir or os.path.join(
+        _get_scratch_path(args.getdeps_args), "compile_mem_peaks"
+    )
+    if not glob.glob(os.path.join(peaks_dir, "*.peak.txt")):
+        print_info(
+            "compile-mem check: no peak files in "
+            + peaks_dir
+            + "; skipping (measure tracked TUs with the peakmem harness)"
+        )
+        return 0
+    rc = subprocess.run(
+        [sys.executable, checker, "--budgets", budgets, "--peaks-dir", peaks_dir],
+        check=False,
+    ).returncode
+    # A signal-killed checker returns a negative code, which sys.exit() would
+    # wrap into an unrelated-looking status (-9 becomes 247).
+    return rc if rc >= 0 else 2
+
+
 def main():
     # When piped (e.g. to tee), this script and the getdeps.py subprocess
     # block-buffer, so their output lands after the build output it preceded.
@@ -1231,6 +1282,17 @@ def main():
                 f"{result.returncode}."
             )
             sys.exit(result.returncode)
+
+    if args.check_compile_mem:
+        rc = _check_compile_mem_budgets(args)
+        if rc != 0:
+            # The checker prints BUDGET VIOLATION, BUDGET ERROR, or a
+            # traceback depending on what failed; point at its output.
+            print_error(
+                f"compile-mem budget check failed with exit code {rc}; "
+                "see checker output above."
+            )
+            sys.exit(rc)
 
 
 if __name__ == "__main__":
