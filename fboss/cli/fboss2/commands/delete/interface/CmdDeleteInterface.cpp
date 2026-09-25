@@ -22,8 +22,11 @@
 #include <unordered_set>
 #include <vector>
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
@@ -55,6 +58,164 @@ const std::unordered_set<std::string> kKnownDeleteAttributes = [] {
 const std::string kValidDeleteAttrs = fmt::format(
     "description, loopback-mode, lookup-class, mtu, queue-config, {}, ip-address, ipv6-address",
     folly::join(", ", lldpAttrNames()));
+
+std::string portLabel(const cfg::Port& port) {
+  return port.name().has_value() ? *port.name()
+                                 : std::to_string(*port.logicalID());
+}
+
+// Enabled ports that are members of `vlanId` (per vlanPorts).
+std::vector<std::string> enabledMemberPorts(
+    const cfg::SwitchConfig& swConfig,
+    int32_t vlanId,
+    const std::set<PortID>& portsBeingDeleted) {
+  std::set<int32_t> memberPorts;
+  for (const auto& vlanPort : *swConfig.vlanPorts()) {
+    if (*vlanPort.vlanID() == vlanId) {
+      memberPorts.insert(*vlanPort.logicalPort());
+    }
+  }
+
+  std::vector<std::string> names;
+  for (const auto& port : *swConfig.ports()) {
+    // A port deleted in the same command does not count.
+    if (portsBeingDeleted.count(PortID(*port.logicalID())) > 0) {
+      continue;
+    }
+    if (memberPorts.count(*port.logicalID()) > 0 &&
+        *port.state() == cfg::PortState::ENABLED) {
+      names.push_back(portLabel(port));
+    }
+  }
+  return names;
+}
+
+// Ports whose untagged ingress VLAN (Port.ingressVlan) is `vlanId`.
+std::vector<std::string> ingressVlanPorts(
+    const cfg::SwitchConfig& swConfig,
+    int32_t vlanId,
+    const std::set<PortID>& portsBeingDeleted) {
+  std::vector<std::string> names;
+  for (const auto& port : *swConfig.ports()) {
+    if (portsBeingDeleted.count(PortID(*port.logicalID())) > 0) {
+      continue;
+    }
+    if (*port.ingressVlan() == vlanId) {
+      names.push_back(portLabel(port));
+    }
+  }
+  return names;
+}
+
+// Throws if deleting `intf` would leave a config the agent rejects.
+void checkDeletable(
+    const cfg::SwitchConfig& swConfig,
+    const cfg::Interface& intf,
+    const std::set<PortID>& portsBeingDeleted) {
+  const auto id = *intf.intfID();
+
+  if (*intf.type() == cfg::InterfaceType::PORT) {
+    // The agent CHECK-fails on a port with no interface
+    // (Port::getInterfaceID()), so this may only go together with its port.
+    const bool portGoesToo = intf.portID().has_value() &&
+        portsBeingDeleted.count(PortID(*intf.portID())) > 0;
+    if (!portGoesToo) {
+      throw FbossError(
+          "Cannot delete interface ",
+          id,
+          ": it is the port router interface for port ",
+          intf.portID().has_value() ? std::to_string(*intf.portID())
+                                    : "<unset>",
+          ". Deleting it would leave that port without an interface, which "
+          "the agent cannot run with. Delete it together with its port.");
+    }
+    return;
+  }
+
+  const auto vlanId = *intf.vlanID();
+  // The agent rejects a VLAN with no interface while a member port is
+  // enabled ("VLAN <id> has no interface, even when corresp port <port> is
+  // enabled").
+  auto enabledPorts = enabledMemberPorts(swConfig, vlanId, portsBeingDeleted);
+  if (!enabledPorts.empty()) {
+    throw FbossError(
+        "Cannot delete interface ",
+        id,
+        ": it is the only interface for VLAN ",
+        vlanId,
+        ", which still has enabled member port(s): ",
+        folly::join(", ", enabledPorts),
+        ". Disable or unbind those ports, or delete the whole VLAN with "
+        "'delete vlan ",
+        vlanId,
+        "'.");
+  }
+  // A non-default VLAN is removed with its interface (see deleteInterfaces),
+  // so, as for 'delete vlan', no port may still use it as its ingress VLAN.
+  if (vlanId != *swConfig.defaultVlan()) {
+    auto ingressPorts = ingressVlanPorts(swConfig, vlanId, portsBeingDeleted);
+    if (!ingressPorts.empty()) {
+      throw FbossError(
+          "Cannot delete interface ",
+          id,
+          ": it is the only interface for VLAN ",
+          vlanId,
+          ", which would be removed with it but is the ingress VLAN for "
+          "port(s): ",
+          folly::join(", ", ingressPorts),
+          ". Move the port(s) to another VLAN first, or delete the whole "
+          "VLAN with 'delete vlan ",
+          vlanId,
+          "'.");
+    }
+  }
+}
+
+// Deletes the given interfaces, checking all of them first so a refused
+// delete changes nothing. A non-default VLAN left without an interface is
+// deleted too, as 'delete vlan' would; the default VLAN is kept and its
+// intfID cleared. Returns the IDs of the VLANs deleted.
+std::set<int32_t> deleteInterfaces(
+    cfg::SwitchConfig& swConfig,
+    const std::set<InterfaceID>& intfIds,
+    const std::set<PortID>& portsBeingDeleted) {
+  auto& interfaces = *swConfig.interfaces();
+
+  std::set<int32_t> vlansToCascade;
+  for (const auto& intfId : intfIds) {
+    const auto id = static_cast<int32_t>(intfId);
+    auto it = std::find_if(
+        interfaces.cbegin(), interfaces.cend(), [id](const cfg::Interface& i) {
+          return *i.intfID() == id;
+        });
+    if (it == interfaces.cend()) {
+      continue;
+    }
+    checkDeletable(swConfig, *it, portsBeingDeleted);
+    if (*it->type() == cfg::InterfaceType::VLAN &&
+        *it->vlanID() != *swConfig.defaultVlan() &&
+        VlanManager::findVlan(swConfig, VlanID(*it->vlanID())) != nullptr) {
+      vlansToCascade.insert(*it->vlanID());
+    }
+  }
+
+  for (auto& vlan : *swConfig.vlans()) {
+    if (*vlan.id() == *swConfig.defaultVlan() && vlan.intfID().has_value() &&
+        intfIds.count(InterfaceID(*vlan.intfID())) > 0) {
+      vlan.intfID().reset();
+    }
+  }
+
+  // deleteVlan() also deletes each VLAN's interface; erase the rest.
+  for (const auto vlanId : vlansToCascade) {
+    VlanManager::deleteVlan(swConfig, VlanID(vlanId));
+  }
+  std::erase_if(interfaces, [&intfIds](const cfg::Interface& intf) {
+    return intfIds.count(InterfaceID(*intf.intfID())) > 0;
+  });
+
+  return vlansToCascade;
+}
 
 } // namespace
 
@@ -89,7 +250,7 @@ InterfaceDeleteConfig::InterfaceDeleteConfig(const std::vector<std::string>& v)
     }
   }
 
-  // Resolve port names to InterfaceList (throws if any port is not found).
+  // Resolve names to InterfaceList (throws if any is not found).
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
@@ -103,32 +264,51 @@ CmdDeleteInterfaceTraits::RetType CmdDeleteInterface::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  // No attributes => delete the whole port(s) from the config.
+  // No attributes => delete the whole port(s) / interface(s) from the config.
   if (attributes.empty()) {
     auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
     std::set<PortID> portsToDelete;
+    std::set<InterfaceID> interfacesToDelete;
     std::vector<std::string> deletedNames;
     for (const utils::Intf& intf : interfaces) {
-      const cfg::Port* port = intf.getPort();
-      if (!port) {
+      if (const cfg::Port* port = intf.getPort()) {
+        portsToDelete.insert(PortID(*port->logicalID()));
+      } else if (const cfg::Interface* iface = intf.getInterface()) {
+        // A name resolving to an interface but no port is a portless L3
+        // interface (VLAN SVI, loopback).
+        interfacesToDelete.insert(InterfaceID(*iface->intfID()));
+      } else {
         continue;
       }
-      portsToDelete.insert(PortID(*port->logicalID()));
       deletedNames.push_back(intf.name());
     }
-    if (portsToDelete.empty()) {
+    if (portsToDelete.empty() && interfacesToDelete.empty()) {
       throw std::invalid_argument(
-          "No port found for the specified interface(s)");
+          "No port or interface found for the specified name(s)");
     }
-    utility::removePortsFromConfig(
-        swConfig,
-        portsToDelete,
-        utility::PortRemovalMode::Erase,
-        /*pruneEmptyVlansAndInterfaces=*/true);
-    // Removing a port is a HITLESS change: the agent's reloadConfig() applies
-    // the port-set delta live, matching how 'config interface <port> profile'
-    // adds/removes ports. No agent warmboot is needed.
+    // Interfaces first, so a refusal happens before any port is removed.
+    std::set<int32_t> cascadedVlans;
+    if (!interfacesToDelete.empty()) {
+      cascadedVlans =
+          deleteInterfaces(swConfig, interfacesToDelete, portsToDelete);
+    }
+    if (!portsToDelete.empty()) {
+      utility::removePortsFromConfig(
+          swConfig,
+          portsToDelete,
+          utility::PortRemovalMode::Erase,
+          /*pruneEmptyVlansAndInterfaces=*/true);
+    }
+    // HITLESS: the agent's reloadConfig() applies the delta live, as it does
+    // for 'config interface <port> profile' and 'delete vlan'.
     ConfigSession::getInstance().saveConfig();
+    if (!cascadedVlans.empty()) {
+      return fmt::format(
+          "Deleted interface(s): {} (also removed VLAN(s) {} left without "
+          "an interface)",
+          folly::join(", ", deletedNames),
+          folly::join(", ", cascadedVlans));
+    }
     return fmt::format(
         "Deleted interface(s): {}", folly::join(", ", deletedNames));
   }

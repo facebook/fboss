@@ -15,6 +15,7 @@
  */
 
 #include <folly/Conv.h>
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <optional>
@@ -410,4 +411,57 @@ TEST_F(DeleteInterfaceTest, DeleteWholePortRemovesCreatedSubport) {
   EXPECT_EQ(restored.profileId, cand->controllingProfile)
       << "controlling port should be restored to its original profile";
   XLOG(INFO) << "TEST PASSED";
+}
+
+// ---------------------------------------------------------------------------
+// Test: delete a portless L3 interface by its interface ID
+//
+// Programs a VLAN + SVI, deletes the SVI by bare interface ID, and checks the
+// VLAN goes with it and the agent accepts the result. Refusal paths are
+// unit-tested in CmdDeleteWholeL3InterfaceTestFixture.
+// ---------------------------------------------------------------------------
+
+TEST_F(DeleteInterfaceTest, DeleteL3InterfaceByIdCascadesVlan) {
+  const int vlanId = pickUnusedVlanId();
+  ASSERT_NE(vlanId, 0) << "No VLAN ID free in [" << kTestVlanMin << ", "
+                       << kTestVlanMax << "] on this switch";
+  SCOPE_EXIT {
+    deleteVlanIfPresent(vlanId);
+  };
+
+  XLOG(INFO) << "[Step 1] Program VLAN " << vlanId << " + SVI and commit";
+  const int intfId = ensureUnderlayIntfId(vlanId);
+  commitConfig();
+
+  XLOG(INFO) << "[Step 2] Delete interface " << intfId << " and commit";
+  auto result = runCli({"delete", "interface", std::to_string(intfId)});
+  ASSERT_EQ(result.exitCode, 0)
+      << "stdout=" << result.stdout << " stderr=" << result.stderr;
+  commitConfig();
+
+  XLOG(INFO) << "[Step 3] Check the interface and VLAN " << vlanId
+             << " are gone";
+  auto gone = [vlanId](const folly::dynamic& c) {
+    if (!c.isObject() || !c.count("sw")) {
+      return false;
+    }
+    const auto& sw = c["sw"];
+    if (sw.count("vlans")) {
+      for (const auto& v : sw["vlans"]) {
+        if (v.count("id") && v["id"].asInt() == vlanId) {
+          return false;
+        }
+      }
+    }
+    if (sw.count("interfaces")) {
+      for (const auto& i : sw["interfaces"]) {
+        if (i.count("vlanID") && i["vlanID"].asInt() == vlanId) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+  EXPECT_TRUE(gone(waitForRunningConfig(gone)))
+      << "VLAN " << vlanId << " or its SVI is still in the running config";
 }

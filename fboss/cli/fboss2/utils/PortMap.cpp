@@ -261,4 +261,13 @@ PortMap::getInterface(InterfaceID interfaceId) const {
   return nullptr;
 }
 
+cfg::Interface* FOLLY_NULLABLE
+PortMap::getInterfaceForVlan(VlanID vlanId) const {
+  auto it = vlanIdToInterfaceId_.find(vlanId);
+  if (it != vlanIdToInterfaceId_.end()) {
+    return getInterface(it->second);
+  }
+  return nullptr;
+}
+
 } // namespace facebook::fboss::utils

@@ -11,15 +11,40 @@
 #include "fboss/cli/fboss2/utils/InterfaceList.h"
 #include <folly/Conv.h>
 #include <folly/String.h>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss::utils {
+
+namespace {
+
+constexpr std::string_view kVlanNamePrefix = "vlan";
+
+// Parses a "vlan<digits>" SVI name (lowercase prefix, e.g. "vlan2001") into
+// its VLAN ID. Returns nullopt for any other shape, including an ID outside
+// the 802.1Q range: VlanID is uint16_t, so vlan65537 would otherwise wrap to
+// VLAN 1 and resolve to the wrong SVI.
+std::optional<VlanID> parseVlanName(const std::string& name) {
+  if (name.size() <= kVlanNamePrefix.size() ||
+      name.compare(0, kVlanNamePrefix.size(), kVlanNamePrefix) != 0) {
+    return std::nullopt;
+  }
+  auto id = folly::tryTo<int32_t>(name.substr(kVlanNamePrefix.size()));
+  if (!id.hasValue() || *id < kVlanIdMin || *id > kVlanIdMax) {
+    return std::nullopt;
+  }
+  return VlanID(*id);
+}
+
+} // namespace
 
 InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
     : names_(std::move(names)) {
@@ -46,13 +71,20 @@ InterfaceList::InterfaceList(std::vector<std::string> names, bool allowMissing)
       }
     } else {
       // If not found as a port, try as an interface name, then as an
-      // interface ID.
+      // interface ID, then as a "vlan<id>" SVI name.
       cfg::Interface* interface = portMap.getInterfaceByName(name);
       if (!interface) {
         // A purely-numeric name may be an interface ID.
         auto parsedInterfaceId = folly::tryTo<int32_t>(name);
         if (parsedInterfaceId.hasValue() && *parsedInterfaceId >= 0) {
           interface = portMap.getInterface(InterfaceID(*parsedInterfaceId));
+        }
+      }
+      if (!interface) {
+        // "vlan2001" names the SVI of VLAN 2001: the interface whose vlanID
+        // matches, regardless of the interface's own (often unset) name.
+        if (auto vlanId = parseVlanName(name)) {
+          interface = portMap.getInterfaceForVlan(*vlanId);
         }
       }
       if (interface) {
