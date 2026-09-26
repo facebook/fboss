@@ -2,6 +2,8 @@
 [Unit]
 Description=FBOSS LED Service
 After=platform_manager.service
+After=fsdb.service
+After=qsfp_service.service
 After=rc-local.service
 Wants=fboss_init.service
 After=fboss_init.service
