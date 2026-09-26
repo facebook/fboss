@@ -907,7 +907,7 @@ bcm_device:
 device:
   0:
     TM_LL_THD_CONFIG:
-      THRESHOLD_MODE: LOSSLESS
+      THRESHOLD_MODE: LOSSY_AND_LOSSLESS
       LLR: 1
 ...
 ---
