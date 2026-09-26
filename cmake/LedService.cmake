@@ -131,6 +131,7 @@ target_link_libraries(led_manager_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  fsdb_model
 )
 
 add_library(led_core_lib
