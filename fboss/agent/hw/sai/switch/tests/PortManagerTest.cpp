@@ -200,6 +200,7 @@ class PortManagerTest : public ManagerTestBase {
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
     };
     return portApi.create<SaiPortTraits>(a, 0);

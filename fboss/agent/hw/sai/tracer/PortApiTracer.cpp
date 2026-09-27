@@ -56,6 +56,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PrbsRxState),
 #endif
     SAI_ATTR_MAP(Port, IngressAcl),
+    SAI_ATTR_MAP(Port, IsolationGroup),
     SAI_ATTR_MAP(Port, IngressMacSecAcl),
     SAI_ATTR_MAP(Port, EgressMacSecAcl),
     SAI_ATTR_MAP(Port, PtpMode),

@@ -1227,6 +1227,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
     };
   }
@@ -1377,6 +1378,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcPauseDurationOverride
 #endif
       ingressAcl,
+      std::nullopt, // IsolationGroup
       metadata,
   };
 }

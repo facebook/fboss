@@ -367,6 +367,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       std::nullopt, // PfcPauseDurationOverride
       std::nullopt, // Ingress ACL
+      std::nullopt, // IsolationGroup
       std::nullopt, // Metadata
   };
 }

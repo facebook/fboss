@@ -260,6 +260,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    // Packets ingressing this port are not forwarded to the members of this
+    // isolation group. Nullable; SAI_NULL_OBJECT_ID means no isolation.
+    using IsolationGroup = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ISOLATION_GROUP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -861,6 +868,7 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::PfcPauseDurationOverride>,
       std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::IsolationGroup>,
       std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -1005,6 +1013,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
 SAI_ATTRIBUTE_NAME(Port, IngressAcl)
+SAI_ATTRIBUTE_NAME(Port, IsolationGroup)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
