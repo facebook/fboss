@@ -217,6 +217,20 @@ TEST_F(AgentHwLlrTest, llrConfigChangeRejectedOnEnabledPorts) {
   verifyAcrossWarmBoots([]() {}, []() {}, []() {}, verifyPostWarmboot);
 }
 
+// Coldboot config with the first interface port disabled and unbound.
+class AgentHwLlrUnboundPortTest : public AgentHwLlrTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentHwLlrTest::initialConfig(ensemble);
+    auto portCfg =
+        utility::findCfgPort(cfg, ensemble.masterLogicalInterfacePortIds()[0]);
+    portCfg->state() = cfg::PortState::DISABLED;
+    portCfg->llrConfigName().reset();
+    return cfg;
+  }
+};
+
 // Binding LLR to a port in the same update that enables it. SaiPortManager
 // writes the port object from the new port before it programs LLR, so it has to
 // hold the enable until the profile is attached; otherwise the attach lands on
@@ -224,27 +238,17 @@ TEST_F(AgentHwLlrTest, llrConfigChangeRejectedOnEnabledPorts) {
 // with SAI_STATUS_OBJECT_IN_USE. The agent aborts on that, so the test failing
 // at all is the assertion. 6.5.35 permits the write and would instead leave LLR
 // off.
-//
-// Reaching that state takes one update, since disabling a port and unbinding
-// its LLR config together is allowed.
-TEST_F(AgentHwLlrTest, bindLlrWhileEnablingPort) {
+TEST_F(AgentHwLlrUnboundPortTest, bindLlrWhileEnablingPort) {
   auto portId = masterLogicalInterfacePortIds()[0];
   auto setup = [this, portId]() {
-    auto unbound = initialConfig(*getAgentEnsemble());
-    auto portCfg = utility::findCfgPort(unbound, portId);
-    portCfg->state() = cfg::PortState::DISABLED;
-    portCfg->llrConfigName().reset();
-    applyNewConfig(unbound);
-
-    // Without this the test passes whether or not the update above landed: the
-    // port would still be enabled and bound from the initial config, and the
-    // update under test would be a no-op.
+    // Guard against a vacuous pass: if the port came up bound, the update
+    // below would be a no-op.
     auto mid = getProgrammedState()->getPorts()->getNodeIf(portId);
     ASSERT_NE(mid, nullptr);
     ASSERT_FALSE(mid->isEnabled());
     ASSERT_FALSE(mid->getLlrConfig().has_value());
 
-    applyNewConfig(initialConfig(*getAgentEnsemble()));
+    applyNewConfig(AgentHwLlrTest::initialConfig(*getAgentEnsemble()));
   };
   auto verify = [this, portId]() {
     auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
