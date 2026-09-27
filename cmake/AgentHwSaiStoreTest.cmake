@@ -16,6 +16,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/HashStoreTest.cpp
     fboss/agent/hw/sai/store/tests/HostifTrapStoreTest.cpp
     fboss/agent/hw/sai/store/tests/InSegStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/IsolationGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/LagStoreTest.cpp
     fboss/agent/hw/sai/store/tests/MirrorStoreTest.cpp
     fboss/agent/hw/sai/store/tests/NeighborStoreTest.cpp

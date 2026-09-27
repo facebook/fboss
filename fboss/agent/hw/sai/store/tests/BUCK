@@ -103,6 +103,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "isolation_group_store_test",
+    srcs = [
+        "IsolationGroupStoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "lag_store_test",
     srcs = [
         "LagStoreTest.cpp",
