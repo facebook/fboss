@@ -43,9 +43,8 @@ namespace {
 // puts it down ahead of programLlr() on its own.
 //
 // Either way programLlr() runs on a port hardware considers disabled, which is
-// the invariant it needs. StateUpdateValidator keeps it by rejecting an LLR
-// config change on a port that is enabled on both sides of the update, leaving
-// only the two cases above.
+// the invariant it needs. StateUpdateValidator keeps it by allowing only the
+// first bind on a port that is still down, leaving only the two cases above.
 bool holdAdminEnableForLlr(
     bool programmingLlr,
     const std::shared_ptr<Port>& swPort,
