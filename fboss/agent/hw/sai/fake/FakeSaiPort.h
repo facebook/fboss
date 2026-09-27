@@ -79,6 +79,7 @@ struct FakePort {
   sai_prbs_rx_state_t prbsRxState{SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS, 1};
 #endif
   sai_object_id_t ingressAcl{SAI_NULL_OBJECT_ID};
+  sai_object_id_t isolationGroup{SAI_NULL_OBJECT_ID};
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
