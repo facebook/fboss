@@ -92,6 +92,80 @@ sai_status_t set_isolation_group_attribute_fn(
   }
 }
 
+sai_status_t create_isolation_group_member_fn(
+    sai_object_id_t* isolation_group_member_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  std::optional<sai_object_id_t> isolationGroupId;
+  std::optional<sai_object_id_t> isolationObject;
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ISOLATION_GROUP_MEMBER_ATTR_ISOLATION_GROUP_ID:
+        isolationGroupId = attr_list[i].value.oid;
+        break;
+      case SAI_ISOLATION_GROUP_MEMBER_ATTR_ISOLATION_OBJECT:
+        isolationObject = attr_list[i].value.oid;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  // Both attributes are MANDATORY_ON_CREATE.
+  if (!isolationGroupId || !isolationObject) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *isolation_group_member_id = fs->isolationGroupManager.createMember(
+      isolationGroupId.value(), isolationGroupId.value());
+  auto& member =
+      fs->isolationGroupManager.getMember(*isolation_group_member_id);
+  member.isolationObject = isolationObject.value();
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_isolation_group_member_fn(
+    sai_object_id_t isolation_group_member_id) {
+  auto fs = FakeSai::getInstance();
+  fs->isolationGroupManager.removeMember(isolation_group_member_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_isolation_group_member_attribute_fn(
+    sai_object_id_t isolation_group_member_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  const auto& member =
+      fs->isolationGroupManager.getMember(isolation_group_member_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_ISOLATION_GROUP_MEMBER_ATTR_ISOLATION_GROUP_ID:
+        attr[i].value.oid = member.isolationGroupId;
+        break;
+      case SAI_ISOLATION_GROUP_MEMBER_ATTR_ISOLATION_OBJECT:
+        attr[i].value.oid = member.isolationObject;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_isolation_group_member_attribute_fn(
+    sai_object_id_t /* isolation_group_member_id */,
+    const sai_attribute_t* attr) {
+  if (!attr) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  switch (attr->id) {
+    // Both member attributes are CREATE_ONLY.
+    default:
+      return SAI_STATUS_NOT_SUPPORTED;
+  }
+}
+
 namespace facebook::fboss {
 
 static sai_isolation_group_api_t _isolation_group_api;
@@ -104,6 +178,14 @@ void populate_isolation_group_api(
       &set_isolation_group_attribute_fn;
   _isolation_group_api.get_isolation_group_attribute =
       &get_isolation_group_attribute_fn;
+  _isolation_group_api.create_isolation_group_member =
+      &create_isolation_group_member_fn;
+  _isolation_group_api.remove_isolation_group_member =
+      &remove_isolation_group_member_fn;
+  _isolation_group_api.get_isolation_group_member_attribute =
+      &get_isolation_group_member_attribute_fn;
+  _isolation_group_api.set_isolation_group_member_attribute =
+      &set_isolation_group_member_attribute_fn;
   *isolation_group_api = &_isolation_group_api;
 }
 

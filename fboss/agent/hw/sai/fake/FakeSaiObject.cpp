@@ -105,6 +105,12 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        *count += g.second.fm().map().size();
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_QOS_MAP:
       *count = fs->qosMapManager.map().size();
       break;
@@ -391,6 +397,14 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_ISOLATION_GROUP: {
       for (const auto& g : fs->isolationGroupManager.map()) {
         object_list[i++].key.object_id = g.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        for (const auto& member : g.second.fm().map()) {
+          object_list[i++].key.object_id = member.second.id;
+        }
       }
       break;
     }
