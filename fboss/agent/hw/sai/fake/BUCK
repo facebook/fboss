@@ -23,6 +23,7 @@ cpp_library(
         "FakeSaiHostif.cpp",
         "FakeSaiInSegEntry.cpp",
         "FakeSaiInSegEntryManager.cpp",
+        "FakeSaiIsolationGroup.cpp",
         "FakeSaiLag.cpp",
         "FakeSaiMacsec.cpp",
         "FakeSaiMirror.cpp",

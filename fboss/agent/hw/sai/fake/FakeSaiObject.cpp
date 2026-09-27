@@ -84,6 +84,9 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP:
+      *count = fs->isolationGroupManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_BRIDGE:
       *count = fs->bridgeManager.map().size();
       break;
@@ -382,6 +385,12 @@ sai_status_t sai_get_object_key(
         for (const auto& vlanManager : v.second.fm().map()) {
           object_list[i++].key.object_id = vlanManager.second.id;
         }
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP: {
+      for (const auto& g : fs->isolationGroupManager.map()) {
+        object_list[i++].key.object_id = g.second.id;
       }
       break;
     }
