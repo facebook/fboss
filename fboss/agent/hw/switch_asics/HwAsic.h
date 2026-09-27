@@ -593,6 +593,9 @@ class HwAsic {
     // SDK reports the type of a received packet, so the application does
     // not have to classify the packet itself to identify specific types.
     RX_PACKET_TYPE,
+    // Port isolation groups: traffic ingressing a port is not forwarded to the
+    // members of the isolation group bound to it
+    ISOLATION_GROUP,
   };
 
   enum class AsicMode {
