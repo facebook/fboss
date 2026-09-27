@@ -228,6 +228,10 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "vlan";
     case SAI_OBJECT_TYPE_VLAN_MEMBER:
       return "vlan-member";
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP:
+      return "isolation-group";
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER:
+      return "isolation-group-member";
     case SAI_OBJECT_TYPE_NEXT_HOP_GROUP_MEMBER:
       return "nhop-group-member";
     case SAI_OBJECT_TYPE_BRIDGE:
