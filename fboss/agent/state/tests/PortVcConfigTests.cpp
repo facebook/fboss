@@ -166,6 +166,35 @@ TEST(PortVcConfig, NegativeSenderCreditLimit) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
+TEST(PortVcConfig, SenderCreditLimitAboveMax) {
+  auto cbfcConfig = makeCbfcConfig();
+  // One past PORT_CBFC_SENDER_CREDIT_LIMIT_MAX. Anything at or above 2^32 also
+  // wraps to 0 in the cast to sai_uint32_t, silently disabling the limit.
+  cbfcConfig.senderCreditLimit() =
+      cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX() + 1;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(PortVcConfig, SenderCreditLimitAtMax) {
+  auto cbfcConfig = makeCbfcConfig();
+  cbfcConfig.senderCreditLimit() =
+      cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX();
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(
+      stateV1->getPorts()->getNodeIf(PortID(1))->getCbfcSenderCreditLimit(),
+      cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX());
+}
+
 TEST(PortVcConfig, ChangeIsNotTreatedAsUnchanged) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
