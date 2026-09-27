@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/api/FirmwareApi.h"
 #include "fboss/agent/hw/sai/api/HashApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
+#include "fboss/agent/hw/sai/api/IsolationGroupApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/MacsecApi.h"
 #include "fboss/agent/hw/sai/api/MirrorApi.h"
@@ -98,6 +99,8 @@ class SaiApiTable {
   const HashApi& hashApi() const;
 
   const HostifApi& hostifApi() const;
+
+  const IsolationGroupApi& isolationGroupApi() const;
 
   const MirrorApi& mirrorApi() const;
 
@@ -197,6 +200,7 @@ class SaiApiTable {
 #endif
       std::unique_ptr<HashApi>,
       std::unique_ptr<HostifApi>,
+      std::unique_ptr<IsolationGroupApi>,
       std::unique_ptr<NextHopApi>,
       std::unique_ptr<NextHopGroupApi>,
       std::unique_ptr<MirrorApi>,
