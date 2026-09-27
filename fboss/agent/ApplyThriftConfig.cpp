@@ -3159,8 +3159,14 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       virtualChannels.push_back(std::move(vcFields));
     }
     if (auto limit = it->second.senderCreditLimit()) {
-      if (*limit < 0) {
-        throw FbossError("Invalid senderCreditLimit ", *limit);
+      if (*limit < 0 ||
+          *limit > cfg::switch_config_constants::
+                       PORT_CBFC_SENDER_CREDIT_LIMIT_MAX()) {
+        throw FbossError(
+            "Invalid senderCreditLimit ",
+            *limit,
+            ", must be 0..",
+            cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX());
       }
       cbfcSenderCreditLimit = *limit;
     }
