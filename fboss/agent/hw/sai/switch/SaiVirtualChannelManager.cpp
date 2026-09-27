@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 
+#include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -43,6 +44,24 @@ void SaiVirtualChannelManager::programVirtualChannels(
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::CBFC)) {
     return;
   }
+
+  // Reconciled unconditionally, and ahead of the virtualChannels guard below:
+  // 0 is the SDK's "no port credit limit", so an unset config value has to be
+  // written rather than skipped. Skipping it leaves the last value programmed
+  // forever -- on a port that drops only its limit, and on a port that drops
+  // CBFC entirely and returns early below -- which a later config re-enabling
+  // CBFC without a limit would then silently inherit.
+  //
+  // Set through the port api rather than the port's CreateAttributes.
+  // brcm-sai 16.0_ea_odp rejects a GET of this attribute, and SaiStore reads
+  // back every attribute in that tuple for every port at init, so including it
+  // there aborts the HW agent on boot even with no CBFC configured. That same
+  // failed GET is why nothing can read this back to verify it.
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portSaiId,
+      SaiPortTraits::Attributes::CbfcSenderCreditLimit{
+          static_cast<sai_uint32_t>(
+              swPort->getCbfcSenderCreditLimit().value_or(0))});
 
   using Attributes = SaiVirtualChannelTraits::Attributes;
 
