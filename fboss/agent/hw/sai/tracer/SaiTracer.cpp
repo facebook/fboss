@@ -26,6 +26,7 @@
 #include "fboss/agent/hw/sai/tracer/FirmwareApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HashApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/HostifApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/IsolationGroupApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MacsecApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/MirrorApiTracer.h"
@@ -437,6 +438,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_virtual_router_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedVirtualRouterApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "virtual_router_api");
+      break;
+    case SAI_API_ISOLATION_GROUP:
+      SaiTracer::getInstance()->isolationGroupApi_ =
+          static_cast<sai_isolation_group_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedIsolationGroupApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "isolation_group_api");
       break;
     case SAI_API_VLAN:
       SaiTracer::getInstance()->vlanApi_ =
@@ -2094,6 +2101,12 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_VLAN_MEMBER:
       setVlanMemberAttributes(attr_list, attr_count, attrLines, rv);
       break;
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP:
+      setIsolationGroupAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER:
+      setIsolationGroupMemberAttributes(attr_list, attr_count, attrLines, rv);
+      break;
     case SAI_OBJECT_TYPE_WRED:
       setWredAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2616,6 +2629,8 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_ROUTER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ISOLATION_GROUP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_WRED, 0);
 }
 

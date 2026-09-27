@@ -288,6 +288,7 @@ class SaiTracer {
 #endif
   sai_hash_api_t* hashApi_;
   sai_hostif_api_t* hostifApi_;
+  sai_isolation_group_api_t* isolationGroupApi_;
   sai_lag_api_t* lagApi_;
   sai_neighbor_api_t* neighborApi_;
   sai_next_hop_api_t* nextHopApi_;
@@ -549,6 +550,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP, "isolationGroup_"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER, "isolationGroupMember_"},
       {SAI_OBJECT_TYPE_WRED, "wred_"},
       {SAI_OBJECT_TYPE_SYSTEM_PORT, "systemPort_"}};
 
@@ -640,6 +643,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtual_router_api->"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_api->"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlan_api->"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP, "isolation_group_api->"},
+      {SAI_OBJECT_TYPE_ISOLATION_GROUP_MEMBER, "isolation_group_api->"},
       {SAI_OBJECT_TYPE_WRED, "wred_api->"}};
   // clang-format on
 
