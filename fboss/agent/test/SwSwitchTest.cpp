@@ -220,39 +220,37 @@ TEST_F(SwSwitchTest, VerifyLlrConfigChangeRejected) {
   EXPECT_TRUE(sw->isValidStateUpdate(
       StateDelta(enabledLlr, withLlr(enabledLlr, "llr_default", "b", kUp))));
 
-  // On a disabled port, binding a different profile and binding one where there
-  // was none are both allowed.
-  EXPECT_TRUE(sw->isValidStateUpdate(
-      StateDelta(disabledLlr, withLlr(disabledLlr, "llr_other", "a", kDown))));
+  // The one legal transition is the first bind on a port that is still down,
+  // which is how the coldboot config arrives. The port may stay down...
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(disabledNoLlr, disabledLlr)));
 
-  // On an enabled port, binding a different profile is rejected.
-  EXPECT_FALSE(sw->isValidStateUpdate(
-      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kUp))));
-
-  // As is retuning the profile under the same name.
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(
-      enabledLlr, withLlr(enabledLlr, "llr_default", "a", kUp, 64000))));
-
-  // As is binding a profile to a port that had none.
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledNoLlr, enabledLlr)));
-
-  // Disabling a port as its LLR config changes is allowed, and lets an operator
-  // drain and retune a port in one config push. SaiPortManager takes the admin
-  // state from the new port, so the port object write puts it down before the
-  // profile is written.
-  EXPECT_TRUE(sw->isValidStateUpdate(
-      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kDown))));
-
-  // Enabling a port as LLR is bound to it is allowed, and is how the first
-  // config on a cold boot arrives. SaiPortManager holds the enable until the
-  // profile is bound, so the profile write still lands on a disabled port.
+  // ...or come up in the same update, since SaiPortManager holds the enable
+  // until the profile is attached.
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(
       disabledNoLlr, withLlr(disabledNoLlr, "llr_default", "a", kUp))));
 
-  // Unbinding as the port is disabled is the same shape: an operator draining a
-  // port and dropping its LLR config together.
-  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(enabledLlr, disabledNoLlr)));
+  // Binding onto a port that is already up is rejected: the attach would land
+  // on a port hardware considers enabled.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledNoLlr, enabledLlr)));
+
+  // Once a port carries a profile, nothing may change it. Not a different
+  // profile, not a retune under the same name...
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kUp))));
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(
+      enabledLlr, withLlr(enabledLlr, "llr_default", "a", kUp, 64000))));
+
+  // ...and not unbinding it.
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(enabledLlr, disabledNoLlr)));
+
+  // Draining the port in the same update does not make any of those legal. The
+  // SDK refuses the rebind with the port admin disabled and both LLR modes
+  // cleared beforehand (CS00012478409), so there is nothing to gain by allowing
+  // it and finding out from hardware.
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(enabledLlr, withLlr(enabledLlr, "llr_other", "a", kDown))));
+  EXPECT_FALSE(sw->isValidStateUpdate(
+      StateDelta(disabledLlr, withLlr(disabledLlr, "llr_other", "a", kDown))));
 }
 
 TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {

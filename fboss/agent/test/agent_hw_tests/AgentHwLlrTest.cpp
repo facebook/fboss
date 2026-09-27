@@ -210,6 +210,14 @@ TEST_F(AgentHwLlrTest, llrConfigChangeRejectedOnEnabledPorts) {
     (*retuned.llrConfigs())[kLlrConfigName].replayTimerMax() = 6000;
     EXPECT_THROW(applyNewConfig(retuned), FbossError);
 
+    // Draining the ports in the same update does not make it legal. The SDK
+    // refuses the rebind with the port admin disabled and both LLR modes
+    // cleared beforehand (CS00012478409).
+    for (const auto& portId : masterLogicalInterfacePortIds()) {
+      utility::findCfgPort(retuned, portId)->state() = cfg::PortState::DISABLED;
+    }
+    EXPECT_THROW(applyNewConfig(retuned), FbossError);
+
     // applyNewConfig writes the config to disk before applying it, so put the
     // accepted one back for anything that reloads from disk afterwards.
     applyNewConfig(initialConfig(*getAgentEnsemble()));
