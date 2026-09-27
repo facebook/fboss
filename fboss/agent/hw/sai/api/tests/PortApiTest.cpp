@@ -962,3 +962,26 @@ TEST_F(PortApiTest, portLlrAttributesOnEnabledPort) {
   EXPECT_EQ(portApi->getAttribute(portId, modeRemoteBlank), true);
 }
 #endif
+
+TEST_F(PortApiTest, setGetIsolationGroup) {
+  auto portIds = createFivePorts();
+  constexpr sai_object_id_t kIsolationGroupId{42};
+  using IsolationGroup = SaiPortTraits::Attributes::IsolationGroup;
+
+  // getAttribute fills in the attribute it is handed, so every read uses a
+  // fresh one -- reusing the attribute being set would clobber its value.
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+
+  portApi->setAttribute(portIds[0], IsolationGroup{kIsolationGroupId});
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), kIsolationGroupId);
+  // Binding one port must not bind any other.
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[1], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+
+  // Unbinding is an explicit write of the null oid.
+  portApi->setAttribute(portIds[0], IsolationGroup{SAI_NULL_OBJECT_ID});
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+}
