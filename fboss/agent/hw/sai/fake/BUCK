@@ -44,6 +44,7 @@ cpp_library(
         "FakeSaiTam.cpp",
         "FakeSaiTunnel.cpp",
         "FakeSaiUdf.cpp",
+        "FakeSaiVirtualChannel.cpp",
         "FakeSaiVirtualRouter.cpp",
         "FakeSaiVlan.cpp",
         "FakeSaiWred.cpp",

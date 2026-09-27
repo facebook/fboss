@@ -39,6 +39,7 @@ add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSaiSrv6.cpp
     fboss/agent/hw/sai/fake/FakeSaiTunnel.cpp
     fboss/agent/hw/sai/fake/FakeSaiUdf.cpp
+    fboss/agent/hw/sai/fake/FakeSaiVirtualChannel.cpp
     fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.cpp
     fboss/agent/hw/sai/fake/FakeSaiVlan.cpp
     fboss/agent/hw/sai/fake/FakeSaiWred.cpp

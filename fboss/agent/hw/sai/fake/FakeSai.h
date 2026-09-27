@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiTunnel.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiUdf.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiVirtualChannel.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualRouter.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiVlan.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiWred.h"
@@ -98,6 +99,10 @@ struct FakeSai {
   FakeUdfMatchManager udfMatchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
+#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
+  FakeVirtualChannelManager virtualChannelManager;
+  FakeCbfcCreditProfileManager cbfcCreditProfileManager;
+#endif
   FakeWredManager wredManager;
   FakeTamManager tamManager;
   FakeTamEventManager tamEventManager;
