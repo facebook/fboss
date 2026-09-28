@@ -301,6 +301,38 @@ void SaiSrv6MySidManager::addMySidEntry(
   handles_.emplace(adapterHostKey, std::move(handle));
 }
 
+std::optional<SaiMySidEntryHandle::NextHopHandle>
+SaiSrv6MySidManager::getNextHopHandleForUpdate(
+    const MySid& mySid,
+    const std::shared_ptr<SwitchState>& state) {
+  std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
+  const auto resolvedNextHopsId = mySid.getResolvedNextHopsId();
+  const auto backupResolvedNextHopsId = mySid.getBackupResolvedNextHopsId();
+  if (resolvedNextHopsId || backupResolvedNextHopsId) {
+    std::vector<NextHop> nhops;
+    for (const auto& nextHopsId :
+         {resolvedNextHopsId, backupResolvedNextHopsId}) {
+      if (nextHopsId) {
+        const auto resolvedNextHops =
+            getNextHops(state, static_cast<int64_t>(*nextHopsId));
+        nhops.insert(
+            nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
+      }
+    }
+    if (nhops.empty()) {
+      throw FbossError("Resolved nhops Id set, but no next hops found");
+    }
+    RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+    const auto nextHopGroupType = getNextHopGroupType(nhopSet);
+    if (nhops.size() > 1 || isProtectionNextHopGroupType(nextHopGroupType)) {
+      nexthopHandle =
+          managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
+              SaiNextHopGroupKey(nhopSet, std::nullopt, nextHopGroupType));
+    }
+  }
+  return nexthopHandle;
+}
+
 void SaiSrv6MySidManager::removeMySidEntry(
     const std::shared_ptr<MySid>& mySid,
     const std::shared_ptr<SwitchState>& /*state*/) {
@@ -316,6 +348,38 @@ void SaiSrv6MySidManager::changeMySidEntry(
     const std::shared_ptr<MySid>& oldMySid,
     const std::shared_ptr<MySid>& newMySid,
     const std::shared_ptr<SwitchState>& state) {
+  const auto oldKey = getMySidAdapterHostKey(*oldMySid, managerTable_);
+  const auto newKey = getMySidAdapterHostKey(*newMySid, managerTable_);
+
+  // A Binding MySID NHG update changes only the next-hop object referenced by
+  // the existing entry. Create the replacement NHG first and update the SAI
+  // entry in place so the SID lookup remains programmed throughout the swap.
+  if (oldKey == newKey && oldMySid->getType() == MySidType::BINDING_MICRO_SID &&
+      newMySid->getType() == MySidType::BINDING_MICRO_SID) {
+    auto itr = handles_.find(oldKey);
+    if (itr == handles_.end()) {
+      throw FbossError("MySid entry does not exist for ", oldMySid->getID());
+    }
+
+    auto oldGroupHandle = std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
+        &itr->second->nexthopHandle);
+    auto newNexthopHandle = getNextHopHandleForUpdate(*newMySid, state);
+    auto newGroupHandle = newNexthopHandle
+        ? std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
+              &newNexthopHandle.value())
+        : nullptr;
+    if (oldGroupHandle && newGroupHandle && *oldGroupHandle &&
+        *newGroupHandle &&
+        (*oldGroupHandle)->adapterKey() != SAI_NULL_OBJECT_ID &&
+        (*newGroupHandle)->adapterKey() != SAI_NULL_OBJECT_ID) {
+      itr->second->mySidEntry->setAttribute(
+          SaiMySidEntryTraits::Attributes::NextHopId{
+              (*newGroupHandle)->adapterKey()});
+      itr->second->nexthopHandle = std::move(newNexthopHandle.value());
+      return;
+    }
+  }
+
   removeMySidEntry(oldMySid, state);
   addMySidEntry(newMySid, state);
 }
