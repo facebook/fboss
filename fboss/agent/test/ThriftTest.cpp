@@ -13,6 +13,7 @@
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
@@ -4061,6 +4062,71 @@ TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsDroppedByDefault) {
   const std::map<std::string, int32_t> expected{
       {"2401:db00:2110:3001::2", 0}, {"2401:db00:2110:3001::3", 0}};
   EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, combinedGroupWeightsFollowGroupUpdates) {
+  ThriftHandler handler(sw_);
+
+  constexpr auto kNhop1 = "2401:db00:2110:3001::2";
+  constexpr auto kNhop2 = "2401:db00:2110:3001::3";
+  constexpr auto kNhop3 = "2401:db00:2110:3055::2";
+  constexpr auto kPrefix = "2401::100/128";
+  constexpr auto kPrefixAddr = "2401::100";
+
+  // Every add below passes combineDuplicatedNextHops, so the only thing that
+  // varies across the three steps is whether a next hop is repeated. Both
+  // this and the route add below come back with the FIB already updated:
+  // the RIB call blocks on its own thread and the rib-to-switch-state
+  // function it runs blocks on the state update, so no waiting is needed.
+  auto setGroupNextHops = [&handler](const std::vector<std::string>& ips) {
+    auto groups = std::make_unique<std::vector<NextHopGroup>>();
+    groups->push_back(makeGroup("group1", ips));
+    handler.addOrUpdateNamedNextHopGroups(std::move(groups), true);
+  };
+
+  auto resolvedWeights = [this, kPrefixAddr]() {
+    auto state = sw_->getState();
+    auto route = findRoute<folly::IPAddressV6>(
+        RouterID(0), {folly::IPAddress(kPrefixAddr), 128}, state);
+    CHECK(route) << "route " << kPrefixAddr << " not in the FIB";
+    std::map<std::string, NextHopWeight> weights;
+    for (const auto& nhop : getNextHops(state, route->getForwardInfo())) {
+      weights[nhop.addr().str()] = nhop.weight();
+    }
+    return weights;
+  };
+
+  // Nothing repeated, so there is nothing to combine and the group stays a
+  // plain ECMP group.
+  setGroupNextHops({kNhop1, kNhop2, kNhop3});
+  addUnicastRouteWithNamedNextHopGroup(handler, kPrefix, "group1");
+
+  // Nothing was combined, so every next hop stays at ECMP_WEIGHT in both the
+  // group and the resolved route.
+  const std::map<std::string, int32_t> unweightedGroup{
+      {kNhop1, 0}, {kNhop2, 0}, {kNhop3, 0}};
+  const std::map<std::string, NextHopWeight> unweightedResolved{
+      {kNhop1, ECMP_WEIGHT}, {kNhop2, ECMP_WEIGHT}, {kNhop3, ECMP_WEIGHT}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), unweightedGroup);
+  EXPECT_EQ(resolvedWeights(), unweightedResolved);
+
+  // Repeat one next hop. It takes the pair's weight and, because the set can
+  // no longer carry any ECMP_WEIGHT member without resolution downgrading the
+  // whole thing, the other two are given an explicit share of 1. Group and
+  // resolved route agree once everything is weighted.
+  setGroupNextHops({kNhop1, kNhop1, kNhop2, kNhop3});
+
+  const std::map<std::string, int32_t> weightedGroup{
+      {kNhop1, 2}, {kNhop2, 1}, {kNhop3, 1}};
+  const std::map<std::string, NextHopWeight> weightedResolved{
+      {kNhop1, 2}, {kNhop2, 1}, {kNhop3, 1}};
+  EXPECT_EQ(readGroupWeights(handler, "group1"), weightedGroup);
+  EXPECT_EQ(resolvedWeights(), weightedResolved);
+
+  // Drop the repeat again and both views go back to plain ECMP.
+  setGroupNextHops({kNhop1, kNhop2, kNhop3});
+  EXPECT_EQ(readGroupWeights(handler, "group1"), unweightedGroup);
+  EXPECT_EQ(resolvedWeights(), unweightedResolved);
 }
 
 namespace {
