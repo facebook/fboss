@@ -19,6 +19,7 @@
 
 #include <folly/FileUtil.h>
 #include <folly/json/json.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
@@ -26,7 +27,9 @@
 #include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
@@ -381,6 +384,55 @@ cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
               ->second.asicType();
 }
 
+void addDefaultProfilePortGraph(
+    cfg::SwitchConfig& switchConfig,
+    const PlatformMapping& platformMapping,
+    const HwAsic& asic) {
+  const auto& platformPorts = platformMapping.getPlatformPorts();
+
+  const auto portGroups = utility::getSubsidiaryPortIDs(platformPorts);
+  std::map<PortID, std::vector<PortID>> interfacePortGroups;
+  std::set<PortID> controllingPorts;
+  for (const auto& group : portGroups) {
+    const auto& portEntryMapping =
+        platformMapping.getPlatformPort(group.first).mapping();
+    if (*portEntryMapping->portType() != cfg::PortType::INTERFACE_PORT) {
+      XLOG(WARN) << "Skipping unsupported port " << group.first << " ('"
+                 << *portEntryMapping->name() << "') with type "
+                 << apache::thrift::util::enumNameSafe(
+                        *portEntryMapping->portType())
+                 << " during default profile config generation";
+      continue;
+    }
+    interfacePortGroups.emplace(group.first, group.second);
+    controllingPorts.insert(group.first);
+  }
+  // A standalone default config intentionally programs only controlling
+  // ports, so safe profiles may subsume unrequired subsidiary ports.
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = asic.getAsicType(),
+      .supportsAddRemovePort = true,
+      .requiredPorts = std::move(controllingPorts),
+  };
+  const auto portProfiles =
+      utility::getSafeProfileIDs(platformMapping, interfacePortGroups, options);
+
+  auto vlanID = utility::kInterfaceVlanIdMin;
+  for (const auto& [portID, profileID] : portProfiles) {
+    utility::addInterfacePortToConfig(
+        switchConfig, &platformMapping, portID, profileID, VlanID(vlanID++));
+    auto& port = switchConfig.ports()->back();
+    port.state() = cfg::PortState::ENABLED;
+  }
+
+  auto defaultVlan =
+      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  defaultVlan.name() = "default";
+  defaultVlan.routable() = false;
+  switchConfig.vlans()->push_back(std::move(defaultVlan));
+  switchConfig.defaultVlan() = utility::kDefaultVlanId4094;
+}
+
 } // namespace
 
 cfg::AsicConfigType parseAsicConfigType(std::string_view configType) {
@@ -537,6 +589,9 @@ cfg::SwitchConfig generateSwitchConfig(
   cfg::SwitchConfig switchConfig;
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
+  if (inputs.profile == kDefaultProfileName) {
+    addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
+  }
   return switchConfig;
 }
 

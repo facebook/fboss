@@ -33,6 +33,7 @@
 #include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
+#include "fboss/lib/config/agent/PortConfigUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace {
@@ -47,6 +48,8 @@ constexpr std::string_view kKeyValueConfig =
     "{\"foo\":\"bar\",\"answer\":\"42\"}\n";
 constexpr std::string_view kPortName = "eth1/1/1";
 constexpr auto kPortProfile = cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC;
+constexpr auto kWidePortProfile =
+    cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
 
 void writeTestFile(const fs::path& path, std::string_view contents) {
   fs::create_directories(path.parent_path());
@@ -58,12 +61,13 @@ void writeTestFile(const fs::path& path, std::string_view contents) {
 void writePortAssignments(
     const fs::path& path,
     int32_t portId,
-    std::string_view portName) {
+    std::string_view portName,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT) {
   writeTestFile(
       path,
       "{\"portIdToPortAssignment\":{\"" + std::to_string(portId) +
-          "\":{\"portName\":\"" + std::string(portName) +
-          "\",\"portType\":0,\"scope\":0}}}\n");
+          "\":{\"portName\":\"" + std::string(portName) + "\",\"portType\":" +
+          std::to_string(static_cast<int>(portType)) + ",\"scope\":0}}}\n");
 }
 
 void writePlatformDescriptor(const fs::path& path, int16_t numSwitchAsics) {
@@ -99,6 +103,50 @@ void writeRawPlatformMapping(const fs::path& path, std::string_view portName) {
   (*mapping.rawPlatformPorts())[std::string(portName)] = std::move(port);
   writeTestFile(
       path,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(mapping));
+}
+
+void writeTwoPortGroupMapping(const fs::path& mappingDirectory) {
+  writeTestFile(
+      mappingDirectory / "port_id_to_port_assignment.json",
+      R"({"portIdToPortAssignment":{"1":{"portName":"eth1/1/1","portType":0,"scope":0},"2":{"portName":"eth1/1/2","portType":0,"scope":0}}})");
+
+  cfg::PlatformPortEntry controllingPort;
+  controllingPort.mapping()->id() = 0;
+  controllingPort.mapping()->name() = kPortName;
+  controllingPort.mapping()->controllingPort() = 0;
+  controllingPort.mapping()->pins() = {};
+  controllingPort.mapping()->controllingPortName() = kPortName;
+  controllingPort.supportedProfiles()[kPortProfile] = cfg::PlatformPortConfig{};
+  controllingPort.supportedProfiles()[kWidePortProfile].subsumedPortNames() = {
+      "eth1/1/2"};
+
+  cfg::PlatformPortEntry subsidiaryPort;
+  subsidiaryPort.mapping()->id() = 0;
+  subsidiaryPort.mapping()->name() = "eth1/1/2";
+  subsidiaryPort.mapping()->controllingPort() = 0;
+  subsidiaryPort.mapping()->pins() = {};
+  subsidiaryPort.mapping()->controllingPortName() = kPortName;
+  subsidiaryPort.supportedProfiles()[kPortProfile] = cfg::PlatformPortConfig{};
+
+  cfg::PlatformPortProfileConfigEntry narrowProfile;
+  narrowProfile.factor()->profileID() = kPortProfile;
+  narrowProfile.profile()->speed() = cfg::PortSpeed::HUNDREDG;
+  cfg::PlatformPortProfileConfigEntry wideProfile;
+  wideProfile.factor()->profileID() = kWidePortProfile;
+  wideProfile.profile()->speed() = cfg::PortSpeed::FOURHUNDREDG;
+
+  cfg::PlatformMapping mapping;
+  mapping.ports() = {};
+  mapping.chips() = {};
+  mapping.platformSupportedProfiles() = {
+      std::move(narrowProfile), std::move(wideProfile)};
+  mapping.rawPlatformPorts() = {};
+  (*mapping.rawPlatformPorts())[std::string(kPortName)] =
+      std::move(controllingPort);
+  (*mapping.rawPlatformPorts())["eth1/1/2"] = std::move(subsidiaryPort);
+  writeTestFile(
+      mappingDirectory / "raw_platform_mapping.json",
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(mapping));
 }
 
@@ -499,6 +547,75 @@ TEST(AgentConfigGenTest, GeneratesDefaultAclTableGroup) {
   EXPECT_TRUE(switchConfig.vlans()->empty());
   EXPECT_TRUE(switchConfig.vlanPorts()->empty());
   EXPECT_TRUE(switchConfig.interfaces()->empty());
+}
+
+TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  writeTwoPortGroupMapping(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / kPlatform);
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  const auto switchConfig = generateSwitchConfig(inputs);
+
+  auto expectedPort = utility::createInterfacePortConfig(
+      *inputs.platformMapping,
+      PortID(1),
+      kWidePortProfile,
+      VlanID(utility::kInterfaceVlanIdMin));
+  expectedPort.state() = cfg::PortState::ENABLED;
+  expectedPort.loopbackMode() = cfg::PortLoopbackMode::NONE;
+  expectedPort.maxFrameSize() =
+      cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  const std::vector<cfg::Port> expectedPorts{expectedPort};
+  EXPECT_EQ(*switchConfig.ports(), expectedPorts);
+
+  const std::vector<cfg::VlanPort> expectedVlanPorts{
+      utility::createVlanPortConfig(
+          PortID(1), VlanID(utility::kInterfaceVlanIdMin))};
+  EXPECT_EQ(*switchConfig.vlanPorts(), expectedVlanPorts);
+
+  const std::vector<cfg::Interface> expectedInterfaces{
+      utility::createVlanInterfaceConfig(
+          InterfaceID(utility::kInterfaceVlanIdMin),
+          VlanID(utility::kInterfaceVlanIdMin))};
+  EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
+
+  auto expectedDefaultVlan =
+      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  expectedDefaultVlan.name() = "default";
+  expectedDefaultVlan.routable() = false;
+  const std::vector<cfg::Vlan> expectedVlans{
+      utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
+      expectedDefaultVlan};
+  EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
+  EXPECT_EQ(*switchConfig.defaultVlan(), utility::kDefaultVlanId4094);
+}
+
+TEST(AgentConfigGenTest, SkipsNonInterfacePortForDefaultProfile) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  const auto assignmentPath = fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / kPlatform /
+      "port_id_to_port_assignment.json";
+  writePortAssignments(
+      assignmentPath, 1, kPortName, cfg::PortType::FABRIC_PORT);
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  const auto switchConfig = generateSwitchConfig(inputs);
+
+  EXPECT_TRUE(switchConfig.ports()->empty());
+  EXPECT_TRUE(switchConfig.vlanPorts()->empty());
+  EXPECT_TRUE(switchConfig.interfaces()->empty());
+  auto expectedDefaultVlan =
+      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  expectedDefaultVlan.name() = "default";
+  expectedDefaultVlan.routable() = false;
+  const std::vector<cfg::Vlan> expectedVlans{expectedDefaultVlan};
+  EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 
 TEST(AgentConfigGenTest, ResolvesVariantDescriptorAndRejectsMultiAsicPlatform) {

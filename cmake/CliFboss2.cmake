@@ -437,11 +437,13 @@ target_link_libraries(fboss2_config_gen_lib
   acl_config_utils
   agent_config_cpp2
   feature_default_command_args_cpp2
+  fboss_config_utils
   fboss_error
   fboss2_config_file_utils
   Folly::folly
   platform_descriptor
   platform_mapping
+  port_config_utils
   ${YAML-CPP}
   ${YAML}
   split_platform_mapping_utils
