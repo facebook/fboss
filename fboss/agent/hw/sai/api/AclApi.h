@@ -199,6 +199,11 @@ struct SaiAclTableTraits {
     using FieldIpType =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ACL_IP_TYPE, bool>;
     using FieldTtl = SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_TTL, bool>;
+    using FieldMplsLabel0Ttl = SaiAttribute<
+        EnumType,
+        SAI_ACL_TABLE_ATTR_FIELD_MPLS_LABEL0_TTL,
+        bool,
+        StdNullOptDefault<bool>>;
     using FieldFdbDstUserMeta = SaiAttribute<
         EnumType,
         SAI_ACL_TABLE_ATTR_FIELD_FDB_DST_USER_META,
@@ -295,6 +300,7 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
+      std::optional<Attributes::FieldMplsLabel0Ttl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
@@ -352,6 +358,7 @@ SAI_ATTRIBUTE_NAME(AclTable, FieldTc);
 SAI_ATTRIBUTE_NAME(AclTable, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclTable, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclTable, FieldTtl);
+SAI_ATTRIBUTE_NAME(AclTable, FieldMplsLabel0Ttl);
 SAI_ATTRIBUTE_NAME(AclTable, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclTable, FieldNeighborDstUserMeta);
@@ -496,6 +503,11 @@ struct SaiAclEntryTraits {
         AclEntryFieldU32>;
     using FieldTtl =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_FIELD_TTL, AclEntryFieldU8>;
+    using FieldMplsLabel0Ttl = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_FIELD_MPLS_LABEL0_TTL,
+        AclEntryFieldU8,
+        StdNullOptDefault<AclEntryFieldU8>>;
     using FieldFdbDstUserMeta = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_FDB_DST_USER_META,
@@ -688,6 +700,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldDstMac>,
       std::optional<Attributes::FieldIpType>,
       std::optional<Attributes::FieldTtl>,
+      std::optional<Attributes::FieldMplsLabel0Ttl>,
       std::optional<Attributes::FieldFdbDstUserMeta>,
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
@@ -769,6 +782,7 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldTc);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstMac);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldIpType);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldTtl);
+SAI_ATTRIBUTE_NAME(AclEntry, FieldMplsLabel0Ttl);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldFdbDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);

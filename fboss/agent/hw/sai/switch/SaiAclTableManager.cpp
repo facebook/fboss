@@ -1843,6 +1843,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstMac,
       fieldIpType,
       fieldTtl,
+      std::nullopt, // fieldMplsLabel0Ttl
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,

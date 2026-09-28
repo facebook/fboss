@@ -260,6 +260,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
+      std::nullopt, // FieldMplsLabel0Ttl
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
