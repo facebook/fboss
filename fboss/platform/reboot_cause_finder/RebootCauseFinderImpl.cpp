@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/dynamic.h>
@@ -31,6 +32,10 @@ namespace {
 
 constexpr auto kHistoryDir = "/var/facebook/fboss/reboot_history";
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
+
+// These three are properties of the kernel, systemd and kdump, identical on
+// every platform, so they are constants rather than per-platform config.
+constexpr auto kProcStatPath = "/proc/stat";
 
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
@@ -173,11 +178,47 @@ std::optional<std::time_t> parseProviderDate(const std::string& s) {
 } // namespace
 
 // Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
-RebootCauseFinderImpl::RebootCauseFinderImpl(
-    const reboot_cause_config::RebootCauseConfig& config)
-    : config_(config) {}
-
 namespace detail {
+
+std::optional<int64_t> readBootTimeSec(const std::string& procStatPath) {
+  std::string contents;
+  if (!folly::readFile(procStatPath.c_str(), contents)) {
+    XLOG(ERR) << fmt::format("Failed to read '{}'", procStatPath);
+    return std::nullopt;
+  }
+
+  std::vector<folly::StringPiece> lines;
+  folly::split('\n', contents, lines);
+
+  int64_t btime = 0;
+  bool found = false;
+  for (const auto& line : lines) {
+    if (folly::StringPiece(line).startsWith("btime ") &&
+        folly::tryTo<int64_t>(folly::trimWhitespace(line.subpiece(6)))
+            .hasValue()) {
+      btime = *folly::tryTo<int64_t>(folly::trimWhitespace(line.subpiece(6)));
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    XLOG(ERR) << fmt::format("No usable btime line in '{}'", procStatPath);
+    return std::nullopt;
+  }
+
+  // btime is wall clock minus uptime, so a badly skewed clock can put it in
+  // the future. The window would then be nonsense.
+  const auto now = static_cast<int64_t>(
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+  if (btime > now) {
+    XLOG(ERR) << fmt::format(
+        "btime {} is in the future (now {}); skipping log-derived causes",
+        btime,
+        now);
+    return std::nullopt;
+  }
+  return btime;
+}
 
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
@@ -235,6 +276,10 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 
 } // namespace detail
 
+RebootCauseFinderImpl::RebootCauseFinderImpl(
+    const reboot_cause_config::RebootCauseConfig& config)
+    : config_(config) {}
+
 void RebootCauseFinderImpl::clearProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
   if (!folly::writeFile(
@@ -286,8 +331,17 @@ void RebootCauseFinderImpl::determineRebootCause() {
         return *a.priority() < *b.priority();
       });
 
+  // A panic names the failure and a manual reboot names the actor; the CPLD
+  // reports only the mechanism (some generic warm-reset bit) for both. So
+  // these outrank every hardware provider and are collected first. They are
+  // not config providers: their paths and patterns come from systemd and
+  // kdump and are the same on every platform.
   std::vector<reboot_cause_config::RebootCauseProviderAttempt> attempts;
+  int64_t bootTimeMs = 0;
   std::optional<reboot_cause_config::DeterminedCause> determined;
+  if (const auto btime = detail::readBootTimeSec(kProcStatPath)) {
+    bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
+  }
 
   for (const auto& providerConfig : providerConfigs) {
     XLOG(INFO) << fmt::format("Reading provider '{}'", *providerConfig.name());
@@ -318,6 +372,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
     record.determinedCause() = *determined;
   }
   record.bootId() = bootId;
+  record.bootTimeMs() = bootTimeMs;
   record.providersAttempted() = attempts;
 
   // Writing the record is what arms the guard, so it has to succeed before

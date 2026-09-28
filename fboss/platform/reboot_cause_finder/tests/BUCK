@@ -10,6 +10,7 @@ cpp_unittest(
     ],
     network_access = network_access_utils.none(),
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/reboot_cause_finder:reboot_cause_finder_lib",
         "//folly:dynamic",
         "//folly:file_util",

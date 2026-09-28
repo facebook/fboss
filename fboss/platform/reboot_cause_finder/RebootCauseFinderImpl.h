@@ -10,7 +10,9 @@
 
 namespace facebook::fboss::platform::reboot_cause_finder {
 
-// Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
+// Causes derived from files the kernel, systemd and kdump write, rather than
+// from a per-platform hardware provider. Paths are parameters so tests can
+// point them at a temp dir; production call sites pass the real constants.
 namespace detail {
 
 // Reads and decodes one hardware provider's sysfs file. Uses no member state,
@@ -19,6 +21,10 @@ namespace detail {
 // could not be read or could not be parsed.
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& config);
+
+// Boot start in epoch seconds. std::nullopt when it cannot be established or
+// is in the future, which disables both readers below.
+std::optional<int64_t> readBootTimeSec(const std::string& procStatPath);
 
 } // namespace detail
 

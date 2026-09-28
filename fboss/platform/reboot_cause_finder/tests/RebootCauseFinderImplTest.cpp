@@ -2,10 +2,12 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+#include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <string>
-#include <vector>
 
+#include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
@@ -15,6 +17,11 @@ using namespace facebook::fboss::platform::reboot_cause_finder;
 namespace rcc = facebook::fboss::platform::reboot_cause_config;
 
 namespace {
+
+int64_t nowSec() {
+  return static_cast<int64_t>(
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+}
 
 class RebootCauseFinderImplTest : public ::testing::Test {
  protected:
@@ -32,8 +39,61 @@ class RebootCauseFinderImplTest : public ::testing::Test {
     std::filesystem::remove_all(tmpDir_, ec);
   }
 
+  std::string writeProcStat(const std::string& contents) {
+    const auto path = (tmpDir_ / "stat").string();
+    EXPECT_TRUE(folly::writeFile(contents, path.c_str()));
+    return path;
+  }
+
   std::filesystem::path tmpDir_;
 };
+
+// ---------------------------------------------------------------- boot time
+
+TEST_F(RebootCauseFinderImplTest, BootTimeParsedFromProcStat) {
+  const auto path =
+      writeProcStat("cpu  1 2 3 4\nintr 0\nbtime 1781204485\nprocesses 99\n");
+  EXPECT_EQ(detail::readBootTimeSec(path), 1781204485);
+}
+
+TEST_F(RebootCauseFinderImplTest, BootTimeAbsentWhenFileMissing) {
+  EXPECT_FALSE(
+      detail::readBootTimeSec((tmpDir_ / "does_not_exist").string())
+          .has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, BootTimeAbsentWhenNoBtimeLine) {
+  const auto path = writeProcStat("cpu  1 2 3 4\nintr 0\nprocesses 99\n");
+  EXPECT_FALSE(detail::readBootTimeSec(path).has_value());
+}
+
+// A clock skewed into the future would make the window meaningless, so both
+// log-derived readers must be disabled rather than fed a bogus anchor.
+TEST_F(RebootCauseFinderImplTest, BootTimeInFutureIsRejected) {
+  const auto path = writeProcStat(fmt::format("btime {}\n", nowSec() + 86400));
+  EXPECT_FALSE(detail::readBootTimeSec(path).has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, BootTimeExactlyNowIsAccepted) {
+  const auto now = nowSec();
+  const auto path = writeProcStat(fmt::format("btime {}\n", now));
+  EXPECT_TRUE(detail::readBootTimeSec(path).has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, BootTimeOneSecondInFutureIsRejected) {
+  const auto path = writeProcStat(fmt::format("btime {}\n", nowSec() + 60));
+  EXPECT_FALSE(detail::readBootTimeSec(path).has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, MalformedBtimeLineIsRejected) {
+  EXPECT_FALSE(
+      detail::readBootTimeSec(writeProcStat("btime notanumber\n")).has_value());
+  EXPECT_FALSE(detail::readBootTimeSec(writeProcStat("btime\n")).has_value());
+  EXPECT_FALSE(
+      detail::readBootTimeSec(writeProcStat("xbtime 12345\n")).has_value());
+}
+
+// ------------------------------------------------ precedence and year bound
 
 facebook::fboss::platform::reboot_cause_config::RebootCause causeAt(
     const std::string& description,
@@ -59,6 +119,9 @@ attemptWith(
   return a;
 }
 
+// A panic and a later operator reboot can both land inside one window. The
+// reboot is then the cause; the panic belongs to the boot before it. Ordering
+// must come from the timestamps, not from which reader ran first.
 // ------------------------------------------------- record honesty contract
 
 // determinedCause must be unset, not a placeholder, when nothing was found.
