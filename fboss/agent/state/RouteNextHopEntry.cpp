@@ -77,6 +77,7 @@ std::vector<NextHopThrift> combineDuplicateNextHops(
   std::vector<CombinedNextHop> combined;
   combined.reserve(nhs.size());
   std::map<NextHop, size_t> keyToIndex;
+  bool anyCombined = false;
 
   for (auto const& nh : nhs) {
     auto [it, inserted] = keyToIndex.emplace(
@@ -88,25 +89,31 @@ std::vector<NextHopThrift> combineDuplicateNextHops(
     auto& seen = combined.at(it->second);
     seen.weight += weightShare(nh);
     ++seen.occurrences;
+    anyCombined = true;
   }
 
   constexpr int64_t kMaxWeight = std::numeric_limits<int32_t>::max();
   std::vector<NextHopThrift> deduped;
   deduped.reserve(combined.size());
   for (auto& entry : combined) {
-    // A next hop listed once is left alone, so it keeps ECMP_WEIGHT.
-    if (entry.occurrences > 1) {
-      if (entry.weight > kMaxWeight) {
-        throw FbossError(
-            "Combined weight ",
-            entry.weight,
-            " over ",
-            entry.occurrences,
-            " duplicate next hops to ",
-            network::toIPAddress(*entry.nextHop.address()).str(),
-            " exceeds max weight ",
-            kMaxWeight);
-      }
+    if (entry.occurrences > 1 && entry.weight > kMaxWeight) {
+      throw FbossError(
+          "Combined weight ",
+          entry.weight,
+          " over ",
+          entry.occurrences,
+          " duplicate next hops to ",
+          network::toIPAddress(*entry.nextHop.address()).str(),
+          " exceeds max weight ",
+          kMaxWeight);
+    }
+    // Weights only survive route resolution if every next hop carries one:
+    // RouteUpdater downgrades the whole set to plain ECMP as soon as one
+    // member is left at ECMP_WEIGHT. So once anything has been combined the
+    // next hops listed once get an explicit share too (weightShare floors
+    // them at 1). With nothing combined the set is left exactly as it came
+    // in, so passing the flag on an all-distinct group still gives ECMP.
+    if (anyCombined) {
       entry.nextHop.weight() = static_cast<int32_t>(entry.weight);
     }
     deduped.push_back(std::move(entry.nextHop));

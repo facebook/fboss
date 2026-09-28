@@ -3899,7 +3899,12 @@ void addUnicastRouteWithNamedNextHopGroup(
   auto route = std::make_unique<UnicastRoute>();
   route->dest()->ip() = toBinaryAddress(network.first);
   route->dest()->prefixLength() = network.second;
-  route->namedRouteDestination()->nextHopGroup() = nhgName;
+  // Assign the whole NamedRouteDestination: namedRouteDestination is an
+  // optional field, so reaching through operator-> writes the value without
+  // ever marking it set, and the route reaches the RIB with no named group.
+  NamedRouteDestination namedDest;
+  namedDest.nextHopGroup() = nhgName;
+  route->namedRouteDestination() = namedDest;
   route->adminDistance() = AdminDistance::EBGP;
   handler.addUnicastRoute(
       static_cast<int16_t>(ClientID::BGPD), std::move(route));
@@ -3975,10 +3980,11 @@ TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsCombinedWhenRequested) {
        "2401:db00:2110:3001::3"}));
   handler.addOrUpdateNamedNextHopGroups(std::move(groups), true);
 
-  // The repeated next hop becomes one weighted next hop; the one listed once
-  // keeps ECMP_WEIGHT.
+  // The repeated next hop becomes one weighted next hop. Since something was
+  // combined, the one listed once is given an explicit share of 1 rather than
+  // ECMP_WEIGHT, so the weights survive route resolution.
   const std::map<std::string, int32_t> expected{
-      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 0}};
+      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 1}};
   EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
 }
 
@@ -3994,7 +4000,7 @@ TEST_F(NamedNextHopGroupThriftTest, addNamedNextHopGroupsCombinesDuplicates) {
   handler.addNamedNextHopGroups(std::move(groups), true);
 
   const std::map<std::string, int32_t> expected{
-      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 0}};
+      {"2401:db00:2110:3001::2", 2}, {"2401:db00:2110:3001::3", 1}};
   EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
 }
 
