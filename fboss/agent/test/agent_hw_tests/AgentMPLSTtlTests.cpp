@@ -26,6 +26,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -42,6 +43,9 @@ constexpr uint8_t kExpiredTtlMask = 0xFF;
 // One above the match, so a mask wider than 0xFF would wrongly catch it.
 constexpr uint8_t kNearExpiredTtl = 2;
 constexpr uint8_t kForwardingTtl = 64;
+// An ingress ACL traps before the MPLS TTL decrement, so the CPU receives the
+// frame with the label TTL it arrived with rather than a decremented one.
+constexpr uint8_t kTrappedTtl = kExpiredTtl;
 
 const facebook::fboss::Label kTopLabel{1101};
 const facebook::fboss::LabelForwardingAction::Label kSwapLabel{1201};
@@ -231,6 +235,9 @@ TEST_F(AgentMplsTtlAclTest, VerifyMplsTtlAclCounter) {
     auto cpuBefore = utility::getQueueOutPacketsWithRetry(
         getSw(), switchId, utility::kCoppLowPriQueueId, 0 /* retryTimes */, 0);
 
+    utility::SwSwitchPacketSnooper snooper(getSw(), "mpls-ttl-acl-trap");
+    snooper.ignoreUnclaimedRxPkts();
+
     auto packetSize = sendMplsPacket(kExpiredTtl);
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(1, getAclPacketCounter() - pktsBefore);
@@ -256,6 +263,26 @@ TEST_F(AgentMplsTtlAclTest, VerifyMplsTtlAclCounter) {
           cpuBefore + 1);
       EXPECT_EVENTUALLY_EQ(1, cpuAfter - cpuBefore);
     });
+
+    // The frame delivered to the CPU is the one that was injected, label stack
+    // intact. An ingress ACL traps ahead of the MPLS TTL decrement, so the TTL
+    // is unchanged rather than decremented.
+    auto pktBuf = snooper.waitForPacket(10 /* timeout_s */);
+    ASSERT_TRUE(pktBuf.has_value());
+    ASSERT_TRUE(*pktBuf);
+    folly::io::Cursor cursor((*pktBuf).get());
+    utility::EthFrame frame(cursor);
+    // EthFrame::mplsPayLoad() returns the payload by value, so hold it in a
+    // local. Binding a reference straight through the temporary leaves the
+    // label stack dangling and reads freed memory.
+    auto mplsPayLoad = frame.mplsPayLoad();
+    ASSERT_TRUE(mplsPayLoad.has_value());
+    const auto& stack = mplsPayLoad->header().stack();
+    ASSERT_FALSE(stack.empty());
+    EXPECT_EQ(
+        static_cast<uint32_t>(kTopLabel.value()), stack[0].getLabelValue());
+    EXPECT_EQ(
+        static_cast<int>(kTrappedTtl), static_cast<int>(stack[0].timeToLive));
 
     // Label TTLs that have not expired must not match.
     for (auto ttl : {kNearExpiredTtl, kForwardingTtl}) {
