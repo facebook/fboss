@@ -41,6 +41,7 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/platform/reboot_cause_finder/if:reboot_cause_config-cpp2-types",
+        "//folly:range",
     ],
     external_deps = ["gflags"],
     exported_external_deps = [

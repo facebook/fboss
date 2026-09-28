@@ -3,6 +3,7 @@
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
@@ -55,6 +56,15 @@ constexpr auto kProcStatPath = "/proc/stat";
 constexpr auto kProcessedDirName = "processed";
 
 constexpr auto kKernelPanicProvider = "KernelPanic";
+constexpr auto kManualRebootProvider = "ManualReboot";
+
+// systemd-logind writes this on the normal shutdown path.
+constexpr auto kManualRebootPattern = "System is rebooting";
+
+// Programs which perform reboot.
+constexpr std::array<folly::StringPiece, 2> kManualRebootPrograms{
+    "systemd-logind",
+    "systemd"};
 
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
@@ -199,6 +209,17 @@ std::optional<std::time_t> parseProviderDate(const std::string& s) {
 // Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
 namespace detail {
 
+const std::vector<std::string>& manualRebootLogPaths() {
+  static const std::vector<std::string> kPaths = {
+      "/var/log/messages",
+      "/var/log/secure",
+  };
+  return kPaths;
+}
+
+// Boot start in epoch seconds. std::nullopt when it cannot be established,
+// which disables the log-derived causes: guessing a boot time would let an
+// event from the wrong boot be reported as this boot's cause.
 std::optional<int64_t> readBootTimeSec(const std::string& procStatPath) {
   std::string contents;
   if (!folly::readFile(procStatPath.c_str(), contents)) {
@@ -373,6 +394,42 @@ reboot_cause_config::RebootCauseProviderAttempt readKernelPanic(
       std::move(causes));
 }
 
+// Syslog carries no year. Try the boot's year, then the one before: a reboot
+// logged 23:55 on Dec 31 is read by a finder that booted on Jan 1.
+std::optional<std::time_t> parseSyslogTimestamp(
+    const std::string& line,
+    int64_t btimeSec) {
+  // Most lines in a live log were written after boot. For those the prior
+  // year is always <= btime, so without an age bound they would resolve to
+  // an instant a year old rather than being rejected. Live logs rotate
+  // daily, so nothing legitimately this old is in one.
+  constexpr int64_t kMaxAgeSec = 180 * 24 * 60 * 60;
+
+  std::tm tm{};
+  if (strptime(line.c_str(), "%b %d %H:%M:%S", &tm) == nullptr) {
+    return std::nullopt;
+  }
+
+  std::tm btimeTm{};
+  const auto btimeT = static_cast<std::time_t>(btimeSec);
+  localtime_r(&btimeT, &btimeTm);
+
+  for (int year : {btimeTm.tm_year, btimeTm.tm_year - 1}) {
+    std::tm candidate = tm;
+    candidate.tm_year = year;
+    candidate.tm_isdst = -1;
+    const auto when = std::mktime(&candidate);
+    if (when == -1) {
+      continue;
+    }
+    const auto delta = btimeSec - static_cast<int64_t>(when);
+    if (delta >= 0 && delta <= kMaxAgeSec) {
+      return when;
+    }
+  }
+  return std::nullopt;
+}
+
 // Nearest to boot start wins, across every cause in the given attempts.
 // Returns the provider alongside the cause, because a cause on its own does
 // not say which provider found it.
@@ -391,6 +448,114 @@ std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
     }
   }
   return best;
+}
+
+// A syslog line is "<mon> <day> <hh:mm:ss> <host> <program>[<pid>]: <msg>".
+// Everything from <msg> on is untrusted: sshd records each remote command
+// verbatim into these same files, so a line quoting the phrase is
+// indistinguishable from the announcement unless the program field is
+// checked. Grepping for the phrase is exactly what an operator investigating
+// a reboot does, and that grep lands in the window it would then poison.
+bool isManualRebootLine(folly::StringPiece line) {
+  size_t i = 0;
+  const auto skipSpaces = [&] {
+    while (i < line.size() && line[i] == ' ') {
+      ++i;
+    }
+  };
+  // Four fields precede the program: month, day, time, host. The day is
+  // space padded to two columns ("Sep  4"), so runs of spaces collapse.
+  for (int field = 0; field < 4; ++field) {
+    skipSpaces();
+    if (i >= line.size()) {
+      return false;
+    }
+    while (i < line.size() && line[i] != ' ') {
+      ++i;
+    }
+  }
+  skipSpaces();
+
+  const size_t programStart = i;
+  while (i < line.size() && line[i] != ':' && line[i] != ' ') {
+    ++i;
+  }
+  if (i >= line.size() || line[i] != ':') {
+    return false;
+  }
+  auto program = line.subpiece(programStart, i - programStart);
+  ++i;
+
+  if (const auto bracket = program.find('[');
+      bracket != folly::StringPiece::npos) {
+    program = program.subpiece(0, bracket);
+  }
+  if (std::find(
+          kManualRebootPrograms.begin(),
+          kManualRebootPrograms.end(),
+          program) == kManualRebootPrograms.end()) {
+    return false;
+  }
+
+  skipSpaces();
+  return line.subpiece(i).startsWith(kManualRebootPattern);
+}
+
+reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
+    const std::vector<std::string>& logPaths,
+    int64_t btimeSec,
+    int64_t windowSec) {
+  auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
+  std::vector<reboot_cause_config::RebootCause> causes;
+  std::optional<std::time_t> best;
+
+  for (const auto& logPath : logPaths) {
+    // An absent path is normal: which file systemd-logind lands in depends on
+    // the image's rsyslog routing. A path that exists but will not read is a
+    // failure, and folly::readFile reports both the same way, so presence is
+    // checked separately.
+    std::error_code ec;
+    const bool present = std::filesystem::exists(logPath, ec);
+    if (ec) {
+      XLOG(ERR) << fmt::format(
+          "Failed to stat '{}': {}", logPath, ec.message());
+      status = reboot_cause_config::RebootCauseProviderStatus::READ_FAILED;
+      continue;
+    }
+    if (!present) {
+      continue;
+    }
+
+    std::string contents;
+    if (!folly::readFile(logPath.c_str(), contents)) {
+      XLOG(ERR) << fmt::format("Failed to read '{}'", logPath);
+      status = reboot_cause_config::RebootCauseProviderStatus::READ_FAILED;
+      continue;
+    }
+
+    std::vector<folly::StringPiece> lines;
+    folly::split('\n', contents, lines);
+
+    for (const auto& line : lines) {
+      if (!isManualRebootLine(line)) {
+        continue;
+      }
+      const auto when = parseSyslogTimestamp(line.str(), btimeSec);
+      if (when && inBootWindow(*when, btimeSec, windowSec) &&
+          (!best || *when > *best)) {
+        best = when;
+      }
+    }
+  }
+
+  if (best) {
+    causes.push_back(makeCause("Manual x86 Reboot", *best));
+  }
+  return makeAttempt(
+      kManualRebootProvider,
+      status,
+      folly::join(", ", logPaths),
+      std::move(causes));
 }
 
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
@@ -512,6 +677,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
   std::vector<reboot_cause_config::RebootCauseProviderAttempt> attempts;
   int64_t bootTimeMs = 0;
   std::optional<reboot_cause_config::DeterminedCause> determined;
+
   const auto btime = detail::readBootTimeSec(kProcStatPath);
   if (btime) {
     bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
@@ -521,17 +687,25 @@ void RebootCauseFinderImpl::determineRebootCause() {
     software.push_back(
         detail::readKernelPanic(
             detail::kernelPanicCrashDirs(), *btime, window));
+    software.push_back(
+        detail::readManualReboot(
+            detail::manualRebootLogPaths(), *btime, window));
 
+    // Nearest to boot start wins, not whichever reader ran first. A panic and
+    // a later operator reboot can both fall inside one window; the reboot is
+    // then the cause and the panic belongs to the boot before it.
     determined = detail::selectNearestToBoot(software);
     attempts.insert(attempts.end(), software.begin(), software.end());
   } else {
-    // Without boot start there is no window, so the provider cannot be
-    // evaluated. Say so rather than letting its absence read as "looked and
-    // found nothing".
-    attempts.push_back(makeAttempt(
-        kKernelPanicProvider,
-        reboot_cause_config::RebootCauseProviderStatus::SKIPPED,
-        "boot time unavailable"));
+    // Without boot start there is no window, so neither implicit provider can
+    // be evaluated. Say so rather than letting their absence read as "looked
+    // and found nothing".
+    for (const auto* name : {kKernelPanicProvider, kManualRebootProvider}) {
+      attempts.push_back(makeAttempt(
+          name,
+          reboot_cause_config::RebootCauseProviderStatus::SKIPPED,
+          "boot time unavailable"));
+    }
   }
 
   for (const auto& providerConfig : providerConfigs) {

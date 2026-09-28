@@ -2,6 +2,7 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -24,6 +25,16 @@ constexpr int64_t kWindow = 1800;
 int64_t nowSec() {
   return static_cast<int64_t>(
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+}
+
+// Render an epoch instant the way syslog does: local time, no year.
+std::string syslogStamp(int64_t epochSec) {
+  const auto t = static_cast<std::time_t>(epochSec);
+  std::tm tm{};
+  localtime_r(&t, &tm);
+  char buf[64];
+  std::strftime(buf, sizeof(buf), "%b %e %H:%M:%S", &tm);
+  return buf;
 }
 
 // Render an epoch instant the way kdump names a crash directory.
@@ -78,6 +89,12 @@ class RebootCauseFinderImplTest : public ::testing::Test {
   void TearDown() override {
     std::error_code ec;
     std::filesystem::remove_all(tmpDir_, ec);
+  }
+
+  std::string writeSecureLog(const std::string& contents) {
+    const auto path = (tmpDir_ / "secure").string();
+    EXPECT_TRUE(folly::writeFile(contents, path.c_str()));
+    return path;
   }
 
   std::string makeCrashDir(const std::vector<std::string>& entryNames) {
@@ -203,6 +220,115 @@ TEST_F(RebootCauseFinderImplTest, UnparseableCrashDirEntryIsSkipped) {
   EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
 }
 
+// ------------------------------------------------------------ manual reboot
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootInsideWindowIsReported) {
+  const auto btime = nowSec();
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime - 60)));
+
+  const auto causes =
+      *detail::readManualReboot({path}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].description(), "Manual x86 Reboot");
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootOlderThanWindowIsIgnored) {
+  const auto btime = nowSec();
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime - kWindow - 60)));
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
+// The line is written before the machine goes down, so a line at or after
+// btime is a reboot being requested now -- the cause of the *next* boot.
+TEST_F(RebootCauseFinderImplTest, ManualRebootAfterBootStartIsIgnored) {
+  const auto btime = nowSec() - 300;
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime + 60)));
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootExactlyAtBootStartIsIgnored) {
+  const auto btime = nowSec() - 300;
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime)));
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootNearestBootStartWins) {
+  const auto btime = nowSec();
+  const auto near = btime - 30;
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw systemd-logind[1]: System is rebooting.\n"
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime - 900),
+          syslogStamp(near)));
+
+  const auto causes =
+      *detail::readManualReboot({path}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(near) * 1000);
+}
+
+TEST_F(RebootCauseFinderImplTest, NonMatchingLinesAreIgnored) {
+  const auto btime = nowSec();
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw sshd: Accepted publickey for netops\n"
+          "{} sw sudo: netops : TTY=pts/0 ; COMMAND=/bin/ls\n",
+          syslogStamp(btime - 60),
+          syslogStamp(btime - 50)));
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, MissingSecureLogIsNotAnError) {
+  EXPECT_TRUE(
+      detail::readManualReboot(
+          {(tmpDir_ / "no_such_file").string()}, nowSec(), kWindow)
+          .causes()
+          ->empty());
+}
+
+// Syslog carries no year. Anchoring on btime rather than on the current time
+// is what keeps a December line correct when it is read in January.
+TEST_F(
+    RebootCauseFinderImplTest,
+    DecemberLineReadInJanuaryResolvesToPriorYear) {
+  // btime: 2027-01-01 00:10:00 local. Event: Dec 31 23:55:00, 15 min earlier.
+  std::tm bootTm{};
+  bootTm.tm_year = 127; // 2027
+  bootTm.tm_mon = 0;
+  bootTm.tm_mday = 1;
+  bootTm.tm_hour = 0;
+  bootTm.tm_min = 10;
+  bootTm.tm_isdst = -1;
+  const auto btime = static_cast<int64_t>(std::mktime(&bootTm));
+  ASSERT_NE(btime, -1);
+
+  const auto path = writeSecureLog(
+      "Dec 31 23:55:00 sw systemd-logind[1]: System is rebooting.\n");
+
+  const auto causes =
+      *detail::readManualReboot({path}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  // Must land 15 minutes before boot, not ~a year after it.
+  EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 900) * 1000);
+}
+
 // --------------------------------------------- golden inputs from the real
 // producers. These are literal strings, not round-tripped through the same
 // strftime the implementation parses with, so a shared wrong assumption about
@@ -314,17 +440,84 @@ TEST_F(RebootCauseFinderImplTest, CrashDirNameZoneSuffixesAccepted) {
 }
 
 // Real systemd-logind line, space-padded single-digit day.
+TEST_F(RebootCauseFinderImplTest, GoldenSyslogLineSpacePaddedDay) {
+  std::tm tm{};
+  tm.tm_year = 126;
+  tm.tm_mon = 8;
+  tm.tm_mday = 3;
+  tm.tm_hour = 1;
+  tm.tm_min = 2;
+  tm.tm_sec = 13;
+  tm.tm_isdst = -1;
+  const auto eventT = std::mktime(&tm);
+  ASSERT_NE(eventT, -1);
+  const auto btime = static_cast<int64_t>(eventT) + 120;
+
+  const auto path = writeSecureLog(
+      "Sep  3 01:02:03 sw systemd-logind[1234]: The system will reboot now!\n"
+      "Sep  3 01:02:13 sw systemd-logind[1234]: System is rebooting.\n");
+
+  const auto causes =
+      *detail::readManualReboot({path}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(eventT) * 1000);
+}
+
+// On NetOS the line lands in /var/log/messages, not /var/log/secure. Reading
+// only secure was a real false negative on minipack3n.
+TEST_F(RebootCauseFinderImplTest, ManualRebootFoundInSecondLogPath) {
+  const auto btime = nowSec();
+  const auto messages = (tmpDir_ / "messages").string();
+  ASSERT_TRUE(
+      folly::writeFile(
+          fmt::format(
+              "{} sw systemd-logind[1]: System is rebooting.\n",
+              syslogStamp(btime - 60)),
+          messages.c_str()));
+  const auto secure = writeSecureLog("Sep  3 01:02:03 sw sudo: nothing here\n");
+
+  const auto causes =
+      *detail::readManualReboot({secure, messages}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+}
+
+// A line after btime must fail outright, not resolve to the prior year. The
+// prior-year candidate is always <= btime, so without a plausibility bound it
+// silently returns a timestamp roughly a year old.
+TEST_F(RebootCauseFinderImplTest, PostBootLineDoesNotResolveToPriorYear) {
+  std::tm tm{};
+  tm.tm_year = 126;
+  tm.tm_mon = 5;
+  tm.tm_mday = 15;
+  tm.tm_hour = 12;
+  tm.tm_min = 0;
+  tm.tm_sec = 0;
+  tm.tm_isdst = -1;
+  const auto btime = static_cast<int64_t>(std::mktime(&tm));
+
+  // Line one hour AFTER btime.
+  const auto path = writeSecureLog(
+      "Jun 15 13:00:00 sw systemd-logind[1]: System is rebooting.\n");
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
 // ------------------------------------------- absent source vs unreadable one
 
 // The whole point of RebootCauseProviderStatus is to tell "read cleanly and
 // found nothing" apart from "could not read the source". An absent source is
 // the former: most switches have never panicked, and no image uses every log
-// path.
+// path. Both readers must leave status OK for it.
 TEST_F(RebootCauseFinderImplTest, AbsentSourcesAreNotAReadFailure) {
   const auto panic =
       detail::readKernelPanic({(tmpDir_ / "nope").string()}, nowSec(), kWindow);
   EXPECT_TRUE(panic.causes()->empty());
   EXPECT_EQ(*panic.status(), rcc::RebootCauseProviderStatus::OK);
+
+  const auto manual = detail::readManualReboot(
+      {(tmpDir_ / "nope").string()}, nowSec(), kWindow);
+  EXPECT_TRUE(manual.causes()->empty());
+  EXPECT_EQ(*manual.status(), rcc::RebootCauseProviderStatus::OK);
 }
 
 // A crash "dir" that is really a regular file exists but cannot be iterated.
@@ -340,6 +533,35 @@ TEST_F(RebootCauseFinderImplTest, UnreadableCrashDirIsReadFailure) {
 }
 
 // Likewise a log "file" that is really a directory: present, but EISDIR.
+TEST_F(RebootCauseFinderImplTest, UnreadableLogPathIsReadFailure) {
+  const auto notAFile = (tmpDir_ / "secure_is_a_dir").string();
+  std::filesystem::create_directories(notAFile);
+
+  const auto attempt = detail::readManualReboot({notAFile}, nowSec(), kWindow);
+  EXPECT_TRUE(attempt.causes()->empty());
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+}
+
+// A path that cannot even be stat'ed is distinct from one that stats fine but
+// will not open. A symlink loop gives ELOOP from exists() itself, and unlike
+// chmod it behaves the same when the test runs as root.
+TEST_F(RebootCauseFinderImplTest, UnstatableLogPathIsReadFailure) {
+  const auto a = tmpDir_ / "loop_a";
+  const auto b = tmpDir_ / "loop_b";
+  std::error_code ec;
+  std::filesystem::create_symlink(b, a, ec);
+  ASSERT_FALSE(ec);
+  std::filesystem::create_symlink(a, b, ec);
+  ASSERT_FALSE(ec);
+
+  const auto attempt =
+      detail::readManualReboot({a.string()}, nowSec(), kWindow);
+  EXPECT_TRUE(attempt.causes()->empty());
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+}
+
+// One bad source must not discard a cause found in a good one: the attempt is
+// both READ_FAILED and carries the cause.
 TEST_F(RebootCauseFinderImplTest, FailedSourceStillReportsCauseFromGoodOne) {
   const auto btime = nowSec();
   const auto good = makeCrashDir({crashDirName(btime - 60)});
@@ -422,6 +644,89 @@ TEST_F(RebootCauseFinderImplTest, NearestPanicWinsAcrossCrashDirs) {
 TEST_F(RebootCauseFinderImplTest, CrashDirsCoverBothLocations) {
   const std::vector<std::string> expected{"/var/crash", "/var/crash/processed"};
   EXPECT_EQ(detail::kernelPanicCrashDirs(), expected);
+}
+
+// ------------------------------------------------- who wrote the syslog line
+
+// sshd records every remote command verbatim into the same files this reader
+// searches, so anyone grepping for the phrase plants a line containing it.
+// Both fixtures below are real lines captured from /var/log/secure on
+// fboss329039409.snc1 after a probe ran `grep -c "System is rebooting"` over
+// ssh. They sit inside the window, so only the program check rejects them.
+TEST_F(RebootCauseFinderImplTest, SshdEchoOfThePhraseIsNotAReboot) {
+  const auto btime = nowSec();
+  const auto stamp = syslogStamp(btime - 60);
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw sshd[1627813]: Exec Request for user root with command "
+          "BT=$(awk \"/^btime/{{print \\$2}}\" /proc/stat); "
+          "echo \"RB=$(grep -c \"System is rebooting\" /var/log/messages)\"\n"
+          "{} sw sshd[1627813]: sshd_auth_msg: {{\"user\": \"root\", "
+          "\"command\": \"grep -c \\\"System is rebooting\\\" "
+          "/var/log/messages\"}}\n",
+          stamp,
+          stamp));
+
+  EXPECT_TRUE(
+      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+}
+
+// The same file can hold both. The announcement must still be found.
+TEST_F(RebootCauseFinderImplTest, AnnouncementFoundAlongsideSshdEcho) {
+  const auto btime = nowSec();
+  const auto path = writeSecureLog(
+      fmt::format(
+          "{} sw sshd[99]: Exec Request for user root with command "
+          "grep -c \"System is rebooting\" /var/log/messages\n"
+          "{} sw systemd-logind[1]: System is rebooting.\n",
+          syslogStamp(btime - 120),
+          syslogStamp(btime - 60)));
+
+  const auto causes =
+      *detail::readManualReboot({path}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 60) * 1000);
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootLineAcceptsTrustedEmitters) {
+  EXPECT_TRUE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw systemd-logind[1234]: System is rebooting."));
+  EXPECT_TRUE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw systemd-logind: System is rebooting."));
+  EXPECT_TRUE(
+      detail::isManualRebootLine(
+          "Sep 13 01:02:13 sw systemd[1]: System is rebooting."));
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootLineRejectsOtherEmitters) {
+  EXPECT_FALSE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw sshd[99]: System is rebooting."));
+  EXPECT_FALSE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw sudo[99]: System is rebooting."));
+  // A program whose name merely ends in the trusted one.
+  EXPECT_FALSE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw not-systemd[1]: System is rebooting."));
+}
+
+// The phrase has to begin the message, so a line quoting it mid-sentence
+// under a trusted program name still does not count.
+TEST_F(
+    RebootCauseFinderImplTest,
+    ManualRebootLineRequiresPhraseAtMessageStart) {
+  EXPECT_FALSE(
+      detail::isManualRebootLine(
+          "Sep  3 01:02:13 sw systemd[1]: checking whether System is rebooting."));
+}
+
+TEST_F(RebootCauseFinderImplTest, ManualRebootLineRejectsMalformedLines) {
+  EXPECT_FALSE(detail::isManualRebootLine(""));
+  EXPECT_FALSE(detail::isManualRebootLine("System is rebooting."));
+  EXPECT_FALSE(detail::isManualRebootLine("Sep  3 01:02:13 sw systemd[1]"));
 }
 
 // ----------------------------------------------------------- exact boundaries
@@ -515,6 +820,14 @@ TEST_F(RebootCauseFinderImplTest, NearestToBootPicksPanicWhenItIsNearer) {
 
 // Reading only /var/log/secure missed a real graceful reboot on minipack3n,
 // where systemd-logind logs to /var/log/messages. Lock both paths in.
+TEST_F(RebootCauseFinderImplTest, ManualRebootSearchesMessagesAndSecure) {
+  const auto& paths = detail::manualRebootLogPaths();
+  EXPECT_NE(
+      std::find(paths.begin(), paths.end(), "/var/log/messages"), paths.end());
+  EXPECT_NE(
+      std::find(paths.begin(), paths.end(), "/var/log/secure"), paths.end());
+}
+
 TEST_F(RebootCauseFinderImplTest, NearestToBootEmptyListYieldsNothing) {
   EXPECT_FALSE(detail::selectNearestToBoot({}).has_value());
 }
@@ -523,6 +836,35 @@ TEST_F(RebootCauseFinderImplTest, NearestToBootEmptyListYieldsNothing) {
 // bound a post-boot line resolves to a timestamp about a year old instead of
 // failing. Asserted directly on the parser, since the window check downstream
 // would mask it.
+TEST_F(RebootCauseFinderImplTest, SyslogPostBootLineYieldsNullopt) {
+  std::tm tm{};
+  tm.tm_year = 126;
+  tm.tm_mon = 5;
+  tm.tm_mday = 15;
+  tm.tm_hour = 12;
+  tm.tm_isdst = -1;
+  const auto btime = static_cast<int64_t>(std::mktime(&tm));
+
+  EXPECT_FALSE(
+      detail::parseSyslogTimestamp("Jun 15 13:00:00 sw x: y", btime)
+          .has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, SyslogDecemberLineReadInJanuaryResolves) {
+  std::tm tm{};
+  tm.tm_year = 127;
+  tm.tm_mon = 0;
+  tm.tm_mday = 1;
+  tm.tm_min = 10;
+  tm.tm_isdst = -1;
+  const auto btime = static_cast<int64_t>(std::mktime(&tm));
+
+  const auto when =
+      detail::parseSyslogTimestamp("Dec 31 23:55:00 sw x: y", btime);
+  ASSERT_TRUE(when.has_value());
+  EXPECT_EQ(static_cast<int64_t>(*when), btime - 900);
+}
+
 // ------------------------------------------------- record honesty contract
 
 // determinedCause must be unset, not a placeholder, when nothing was found.

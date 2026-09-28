@@ -31,7 +31,8 @@ int main(int argc, char** argv) {
       return 1;
     }
     XLOG(INFO) << "No reboot_cause_finder config for this platform; "
-                  "continuing with no hardware providers. "
+                  "continuing with no hardware providers. Kernel panic and "
+                  "manual reboot detection still apply. "
                << ex.what();
   }
 

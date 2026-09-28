@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <folly/Range.h>
 #include <optional>
 #include <string>
 #include <vector>
@@ -39,8 +40,28 @@ reboot_cause_config::RebootCauseProviderAttempt readKernelPanic(
 // Directories searched for a crash dump; a dump can be in either.
 const std::vector<std::string>& kernelPanicCrashDirs();
 
+reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
+    const std::vector<std::string>& logPaths,
+    int64_t btimeSec,
+    int64_t windowSec);
+
 // std::nullopt when the name is not a timestamp this code understands.
 std::optional<std::time_t> parseCrashDirName(const std::string& name);
+
+// Resolves a syslog stamp's missing year against btime. std::nullopt when no
+// plausible year puts the line at or before btime.
+std::optional<std::time_t> parseSyslogTimestamp(
+    const std::string& line,
+    int64_t btimeSec);
+
+// Log files searched for the systemd-logind reboot line, in no
+// particular order.
+const std::vector<std::string>& manualRebootLogPaths();
+
+// Whether a syslog line is systemd-logind announcing a reboot. False for a
+// line that merely contains the phrase, such as sshd's verbatim record of a
+// remote command that grepped for it.
+bool isManualRebootLine(folly::StringPiece line);
 
 // The cause nearest to boot start across every attempt, paired with the
 // provider that reported it. std::nullopt when no attempt reported anything.
