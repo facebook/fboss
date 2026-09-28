@@ -200,8 +200,9 @@ TEST(FbossServiceUtilTest, RestartService_ServiceFailsToStart) {
 }
 
 // ============================================================
-// Test: waitForConfigured() polls the given host until the agent is configured.
-TEST(FbossServiceUtilTest, WaitForConfigured_PollsUntilAgentConfigured) {
+// Test: waitForAgentConfigured() polls the given host until the agent is
+// configured.
+TEST(FbossServiceUtilTest, WaitForAgentConfigured_PollsUntilConfigured) {
   MockFbossServiceUtil util;
   HostInfo hostInfo("dut1", "dut1-oob", folly::IPAddress("10.0.0.1"));
 
@@ -211,30 +212,12 @@ TEST(FbossServiceUtilTest, WaitForConfigured_PollsUntilAgentConfigured) {
       .WillOnce(Return(false))
       .WillOnce(Return(true));
 
-  util.waitForConfigured(
-      cli::ServiceType::AGENT,
-      hostInfo,
-      /*maxWaitSeconds=*/5,
-      /*pollIntervalMs=*/10);
+  util.waitForAgentConfigured(
+      hostInfo, /*maxWaitSeconds=*/5, /*pollIntervalMs=*/10);
 }
 
-// Test: waitForConfigured() is a no-op for bgpd.
-TEST(FbossServiceUtilTest, WaitForConfigured_Bgp_IsNoOp) {
-  MockFbossServiceUtil util;
-  HostInfo hostInfo(
-      "localhost", "localhost-oob", folly::IPAddress("127.0.0.1"));
-
-  EXPECT_CALL(util, isAgentConfigured(_)).Times(0);
-
-  EXPECT_NO_THROW(util.waitForConfigured(
-      cli::ServiceType::BGP,
-      hostInfo,
-      /*maxWaitSeconds=*/1,
-      /*pollIntervalMs=*/10));
-}
-
-// Test: waitForConfigured() throws if the agent never becomes configured.
-TEST(FbossServiceUtilTest, WaitForConfigured_ThrowsOnTimeout) {
+// Test: waitForAgentConfigured() throws if the agent never becomes configured.
+TEST(FbossServiceUtilTest, WaitForAgentConfigured_ThrowsOnTimeout) {
   MockFbossServiceUtil util;
   HostInfo hostInfo(
       "localhost", "localhost-oob", folly::IPAddress("127.0.0.1"));
@@ -242,11 +225,8 @@ TEST(FbossServiceUtilTest, WaitForConfigured_ThrowsOnTimeout) {
   EXPECT_CALL(util, isAgentConfigured(_)).WillRepeatedly(Return(false));
 
   EXPECT_THROW(
-      util.waitForConfigured(
-          cli::ServiceType::AGENT,
-          hostInfo,
-          /*maxWaitSeconds=*/1,
-          /*pollIntervalMs=*/10),
+      util.waitForAgentConfigured(
+          hostInfo, /*maxWaitSeconds=*/1, /*pollIntervalMs=*/10),
       std::runtime_error);
 }
 

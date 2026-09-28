@@ -48,15 +48,13 @@ class FbossServiceUtil {
       cli::ServiceType service,
       cli::ConfigActionLevel level);
 
-  // Waits until the service can take config commands; systemd reports it
-  // active well before that. No-op for bgpd. Throws on timeout.
-  void waitForConfigured(
-      cli::ServiceType service,
+  // Waits until the agent at hostInfo can take config commands; systemd
+  // reports it active well before that. Throws on timeout.
+  void waitForAgentConfigured(
       const HostInfo& hostInfo,
       int maxWaitSeconds = 300,
       int pollIntervalMs = 1000);
 
-  // Asks the agent at hostInfo whether it is configured.
   virtual bool isAgentConfigured(const HostInfo& hostInfo);
 
   // Reload config for a service without restart (for HITLESS changes).

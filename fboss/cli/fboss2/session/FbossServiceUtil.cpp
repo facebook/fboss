@@ -12,7 +12,6 @@
 
 #include <fmt/format.h>
 #include <folly/String.h>
-#include <folly/logging/xlog.h>
 #include <glog/logging.h>
 #include <chrono>
 #include <stdexcept>
@@ -195,39 +194,28 @@ bool FbossServiceUtil::isAgentConfigured(const HostInfo& hostInfo) {
     auto runState = client->sync_getSwitchRunState();
     return runState >= SwitchRunState::CONFIGURED &&
         runState != SwitchRunState::EXITING;
-  } catch (const std::exception& ex) {
+  } catch (const std::exception&) {
     // Expected while the agent is still starting up.
-    XLOG(DBG2) << "Agent not configured yet (" << ex.what() << "), will retry";
     return false;
   }
 }
 
-void FbossServiceUtil::waitForConfigured(
-    cli::ServiceType service,
+void FbossServiceUtil::waitForAgentConfigured(
     const HostInfo& hostInfo,
     int maxWaitSeconds,
     int pollIntervalMs) {
-  switch (service) {
-    case cli::ServiceType::AGENT: {
-      int waitedMs = 0;
-      while (waitedMs < maxWaitSeconds * 1000) {
-        if (isAgentConfigured(hostInfo)) {
-          LOG(INFO) << "Agent is configured and serving";
-          return;
-        }
-        // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
-        std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
-        waitedMs += pollIntervalMs;
-      }
-      throw std::runtime_error(
-          fmt::format(
-              "Agent did not become configured within {} seconds",
-              maxWaitSeconds));
-    }
-    case cli::ServiceType::BGP:
-      // bgpd has no run state to poll.
+  int waitedMs = 0;
+  while (waitedMs < maxWaitSeconds * 1000) {
+    if (isAgentConfigured(hostInfo)) {
       return;
+    }
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
+    waitedMs += pollIntervalMs;
   }
+  throw std::runtime_error(
+      fmt::format(
+          "Agent did not become configured within {} seconds", maxWaitSeconds));
 }
 
 std::vector<std::string> FbossServiceUtil::restartService(
