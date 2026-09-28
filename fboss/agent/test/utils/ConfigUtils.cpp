@@ -14,6 +14,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
@@ -818,6 +819,34 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
   return config;
 }
 
+std::string getConnectionHandle(int64_t switchId, cfg::AsicType asicType) {
+  const auto switchInfoFromConfig = getSwitchInfoFromConfig();
+  const auto switchInfo = switchInfoFromConfig.find(switchId);
+  if (switchInfo != switchInfoFromConfig.end() &&
+      switchInfo->second.connectionHandle().has_value() &&
+      !switchInfo->second.connectionHandle()->empty()) {
+    return *switchInfo->second.connectionHandle();
+  }
+
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+      return "0c:00";
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return "15:00";
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return "68:00";
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_P200:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+      return "/dev/uio0";
+    default:
+      return "";
+  }
+}
+
 cfg::SwitchConfig genPortVlanCfg(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
@@ -842,36 +871,17 @@ cfg::SwitchConfig genPortVlanCfg(
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
-    auto asicType = asic->getAsicType();
     int64_t switchId{0};
-    std::string connectionHandle;
     if (asic->getSwitchId().has_value()) {
       switchId = *asic->getSwitchId();
     }
+    const auto connectionHandle =
+        getConnectionHandle(switchId, asic->getAsicType());
     cfg::Range64 portIdRange;
     portIdRange.minimum() =
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
     portIdRange.maximum() = cfg::switch_config_constants::
         DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
-
-    // TODO: Instead of using hard codings for connection handle and
-    // src mac, get the configs from AgentConfig
-    if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
-      connectionHandle = "0c:00";
-    } else if (
-        asicType == cfg::AsicType::ASIC_TYPE_RAMON3 ||
-        asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
-        asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) {
-      connectionHandle = "15:00";
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-      connectionHandle = "68:00";
-    } else if (
-        asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asicType == cfg::AsicType::ASIC_TYPE_P200 ||
-        asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
-        asicType == cfg::AsicType::ASIC_TYPE_G202X) {
-      connectionHandle = "/dev/uio0";
-    }
 
     if (platformType.has_value() &&
         (platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS ||

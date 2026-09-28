@@ -25,6 +25,14 @@ struct VlanInfo {
   2: bool priorityTagged;
 }
 
+struct PortVcFields {
+  1: i16 id;
+  2: optional string name;
+  3: bool senderEnable = false;
+  4: bool receiverEnable = false;
+  5: optional i64 reservedCreditSize;
+}
+
 struct PortPgFields {
   1: i16 id;
   2: i32 minLimitBytes;
@@ -196,6 +204,9 @@ struct PortFields {
   74: optional string ingressAclTableName;
   // Lookup class assigned to packets arriving on this port.
   75: optional switch_config.AclLookupClassPort userMetaData;
+  76: optional string cbfcConfigName;
+  77: optional list<PortVcFields> virtualChannels;
+  78: optional i64 cbfcSenderCreditLimit;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -292,6 +303,7 @@ struct AclEntryFields {
   36: optional i64 dstIpV6Word3;
   37: optional i64 dstIpV6Word2;
   38: optional switch_config.AclLookupClassPort lookupClassPort;
+  39: optional AclTtl mplsLabel0Ttl;
 }
 
 struct NamedNextHopGroupAndID {
@@ -719,6 +731,7 @@ struct QosPolicyFields {
   7: optional map<i16, i16> pfcPriorityToPgId;
   8: optional map<i16, i16> trafficClassToVoqId;
   9: optional TrafficClassToQosAttributeMap pcpMap;
+  10: optional map<i16, i16> trafficClassToVcId;
 }
 
 struct SocketAddress {

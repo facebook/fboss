@@ -824,6 +824,10 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         addQualifier(aclEntry.lookupClassPort().has_value(), qualifier);
         break;
 
+      case cfg::AclTableQualifier::MPLS_LABEL0_TTL:
+        addQualifier(aclEntry.mplsLabel0Ttl().has_value(), qualifier);
+        break;
+
       case cfg::AclTableQualifier::ETHER_TYPE:
         addQualifier(aclEntry.etherType().has_value(), qualifier);
         break;

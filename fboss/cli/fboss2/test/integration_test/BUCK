@@ -13,15 +13,23 @@ oncall("fboss_oss")
 #
 # Unlike the Python-based CLI tests, these C++ tests directly invoke the CLI
 # library code rather than spawning a subprocess.
+# bazelify: extra_dep = //neteng/fboss/bgp/if:bgp_thrift
 cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
+        "AgentMemoryReclamationTest.cpp",
         "ConfigAclRuleTest.cpp",
         "ConfigAclTest.cpp",
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
+        "ConfigBgpGlobalTest.cpp",
+        "ConfigBgpNeighborTest.cpp",
+        "ConfigBgpPeerGroupTest.cpp",
+        "ConfigBgpPolicyAsPathListTest.cpp",
+        "ConfigBgpSessionTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
         "ConfigCoppTest.cpp",
+        "ConfigCoppTrafficPolicyTest.cpp",
         "ConfigDhcpSourceOverrideTest.cpp",
         "ConfigHostnameTest.cpp",
         "ConfigIcmpV4UnavailableSrcAddrTest.cpp",
@@ -33,7 +41,6 @@ cpp_binary(
         "ConfigInterfaceLoopbackModeTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
-        "ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "ConfigInterfaceTypeTest.cpp",
         "ConfigIpRouteTest.cpp",
         "ConfigL2LearningModeTest.cpp",
@@ -59,6 +66,7 @@ cpp_binary(
         "DeleteDhcpSourceOverrideTest.cpp",
         "DeleteInterfaceIpv6NdpTest.cpp",
         "DeleteInterfaceTest.cpp",
+        "DeleteLoadBalancingTest.cpp",
         "DeleteQosPolicyTest.cpp",
         "DeleteVlanTest.cpp",
         "Fboss2IntegrationTest.cpp",
@@ -66,10 +74,16 @@ cpp_binary(
         "TunnelIpInIpTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
+    headers = [
+        "ConfigBgpTestBase.h",
+        "LoadBalancingTestUtils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
+        "//fboss/agent:address_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:platform_config-cpp2-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -86,8 +100,11 @@ cpp_binary(
         "//fboss/cli/fboss2:fboss2-config-lib",  # @manual
         "//fboss/cli/fboss2:fboss2-lib",  # @manual
         "//fboss/lib/config:fboss_config_utils",
+        "//folly:conv",
         "//folly:dynamic",
+        "//folly:file_util",
         "//folly:network_address",
+        "//folly:portability",
         "//folly:scope_guard",
         "//folly:string",
         "//folly:subprocess",
@@ -95,7 +112,11 @@ cpp_binary(
         "//folly/json:dynamic",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//neteng/fboss/bgp/public_tld/configerator/structs/neteng/fboss/bgp:bgp_config_oss-cpp2-types",
+        "//thrift/lib/cpp/transport:transport-core",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = [
         "CLI11",

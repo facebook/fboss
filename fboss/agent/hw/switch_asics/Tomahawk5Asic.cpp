@@ -154,6 +154,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::FABRIC_PORTS:
 
@@ -245,11 +246,13 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
     case HwAsic::Feature::PBR_ACL:
+    case HwAsic::Feature::CBFC:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::ISOLATION_GROUP:
       return false;
   }
   return false;

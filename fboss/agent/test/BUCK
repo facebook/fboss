@@ -1083,6 +1083,7 @@ cpp_binary(
         "AgentWrapperTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:agent_command_executor",
         "//fboss/agent:agent_dir_util",

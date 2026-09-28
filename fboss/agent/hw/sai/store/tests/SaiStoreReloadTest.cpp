@@ -93,6 +93,7 @@ class SaiStoreReloadTest : public SaiStoreTest {
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
     };
   }

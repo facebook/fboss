@@ -46,6 +46,53 @@ class ParseArgsValidationTest(unittest.TestCase):
         args = _parse_args(["sai", "--results-json", "/tmp/results.json"])
         self.assertEqual(args.results_json, "/tmp/results.json")
 
+    def test_services_start_parses_required_configs(self):
+        args = _parse_args(
+            [
+                "services",
+                "start",
+                "agent",
+                "qsfp",
+                "fsdb",
+                "--agent-config",
+                "/tmp/agent.conf",
+                "--qsfp-config",
+                "/tmp/qsfp.conf",
+                "--num-npus",
+                "2",
+            ]
+        )
+        self.assertEqual(args.service_action, "start")
+        self.assertEqual(args.services, ["agent", "qsfp", "fsdb"])
+        self.assertEqual(args.agent_config, "/tmp/agent.conf")
+        self.assertEqual(args.num_npus, 2)
+        self.assertEqual(_runner_action(args).__name__, "start")
+
+    def test_services_default_to_all(self):
+        args = _parse_args(
+            [
+                "services",
+                "start",
+                "--agent-config",
+                "/tmp/agent.conf",
+                "--qsfp-config",
+                "/tmp/qsfp.conf",
+            ]
+        )
+        self.assertEqual(args.services, [])
+
+    def test_services_start_parses_fsdb_without_other_configs(self):
+        args = _parse_args(["services", "start", "fsdb"])
+        self.assertIsNone(args.agent_config)
+        self.assertIsNone(args.qsfp_config)
+
+    def test_services_stop_does_not_require_configs(self):
+        args = _parse_args(["services", "stop"])
+        self.assertEqual(args.service_action, "stop")
+        self.assertEqual(args.num_npus, 1)
+        self.assertEqual(args.services, [])
+        self.assertEqual(_runner_action(args).__name__, "stop")
+
 
 class FbossRootTest(unittest.TestCase):
     def test_uses_sourced_package_root(self):

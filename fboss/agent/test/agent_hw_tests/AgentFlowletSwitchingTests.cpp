@@ -418,6 +418,118 @@ TEST_F(AgentFlowletSourcePortPruneTest, VerifyArsSourcePortPruneDisabled) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// One of the cases that increments the ARS fail counter is a packet whose
+// group has no member left to forward it out of. This drives that case:
+//   1. program an ARS group with two members, both neighbors on the same port
+//   2. ingress the traffic on that port, routed out of that same group
+//   3. split horizon prunes both members, leaving nothing to forward on
+//
+// Two members rather than one because a single next hop route is programmed as
+// a plain next hop and not a group, so it would carry no ARS object to count
+// against.
+class AgentFlowletArsDlbFailPacketsTest
+    : public AgentFlowletArsSourcePortPruneEnabledTest {
+ protected:
+  static constexpr int kIngressPortIdx = 0;
+  static constexpr int kFailPacketCount = 1;
+
+  void setCmdLineFlagOverrides() const override {
+    AgentFlowletArsSourcePortPruneEnabledTest::setCmdLineFlagOverrides();
+    FLAGS_flowletStatsEnable = true;
+  }
+
+  // A second neighbor sharing the first one's port and interface. The
+  // interface address and every next hop the helper builds differ only in the
+  // last byte, so moving the byte above it lands outside all of them without
+  // having to reason about which last byte values are taken.
+  utility::EcmpNextHop<folly::IPAddressV6> secondNhopOnPort(
+      const PortDescriptor& portDesc) const {
+    auto first = helper_->nhop(portDesc);
+    auto bytes = first.ip.toByteArray();
+    bytes[bytes.size() - 2] += 1;
+    auto mac = folly::MacAddress::fromHBO(first.mac.u64HBO() + 1);
+    return utility::EcmpNextHop<folly::IPAddressV6>(
+        folly::IPAddressV6(bytes), portDesc, mac, first.intf);
+  }
+
+  static int64_t dlbFailPackets(const multiswitch::HwSwitchStats& stats) {
+    return stats.flowletStats()->l3EcmpDlbFailPackets().value();
+  }
+};
+
+TEST_F(AgentFlowletArsDlbFailPacketsTest, VerifyArsDlbFailPackets) {
+  auto setup = [&]() {
+    ASSERT_FALSE(getTestPorts().empty());
+    generateApplyConfig(AclType::FLOWLET);
+
+    PortDescriptor ingressDesc(getTestPorts()[kIngressPortIdx]);
+    auto nhop = helper_->nhop(ingressDesc);
+    auto secondNhop = secondNhopOnPort(ingressDesc);
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHop(
+          helper_->resolveNextHop(in, nhop), secondNhop);
+    });
+
+    RouteNextHopSet nhops{
+        UnresolvedNextHop(nhop.ip, ECMP_WEIGHT),
+        UnresolvedNextHop(secondNhop.ip, ECMP_WEIGHT)};
+    auto updater = getSw()->getRouteUpdater();
+    updater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6(kRoceDstIp),
+        128,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    updater.program();
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& [_, switchSetting] :
+           std::as_const(*out->getSwitchSettings())) {
+        auto newSwitchSettings = switchSetting->modify(&out);
+        newSwitchSettings->setForceEcmpDynamicMemberUp(true);
+      }
+      return out;
+    });
+  };
+
+  auto verify = [&]() {
+    ASSERT_FALSE(getTestPorts().empty());
+    auto ingressPort = getTestPorts()[kIngressPortIdx];
+    auto switchId = getSw()->getScopeResolver()->scope(ingressPort).switchId();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+
+    int64_t failPacketsBefore = 0;
+    WITH_RETRIES({
+      auto switchStats = getSw()->getHwSwitchStatsExpensive();
+      ASSERT_EVENTUALLY_TRUE(
+          switchStats.find(switchIndex) != switchStats.end());
+      failPacketsBefore = dlbFailPackets(switchStats.at(switchIndex));
+    });
+
+    sendRoceTraffic(
+        ingressPort,
+        utility::kUdfRoceOpcodeWriteImmediate,
+        std::nullopt,
+        kFailPacketCount,
+        utility::kUdfL4DstPort,
+        0);
+
+    WITH_RETRIES({
+      auto failPacketsAfter =
+          dlbFailPackets(getSw()->getHwSwitchStatsExpensive(switchIndex));
+      XLOG(DBG2) << "DLB fail packets: " << failPacketsBefore << " -> "
+                 << failPacketsAfter;
+      EXPECT_EVENTUALLY_EQ(
+          failPacketsAfter, failPacketsBefore + kFailPacketCount);
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentFlowletAclPriorityTest : public AgentFlowletSwitchingTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()

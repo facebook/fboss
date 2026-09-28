@@ -37,6 +37,9 @@ cfg::AgentConfig assembleAgentConfig(
     cfg::SwitchConfig sw,
     cfg::PlatformConfig platform);
 
+// Parses a loadable ASIC config type accepted by --asic-config-type.
+cfg::AsicConfigType parseAsicConfigType(std::string_view configType);
+
 // Combines the ASIC configuration and deployment-specific port assignments
 // into the platform section of an AgentConfig.
 cfg::PlatformConfig assemblePlatformConfig(
@@ -79,11 +82,15 @@ cfg::SwitchConfig generateSwitchConfig(
     std::string_view platform);
 
 // Loads the selected ASIC configuration and port assignments into the platform
-// section of an AgentConfig.
+// section of an AgentConfig. An explicit file uses the profile metadata's type
+// unless asicConfigType is also provided, in which case ASIC metadata is not
+// required.
 cfg::PlatformConfig generatePlatformConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile);
+    std::string_view profile,
+    const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
 
 // Generates a new agent.conf and returns its path. The output is written to a
 // unique temporary directory by default and never overwrites an existing file.
@@ -91,6 +98,8 @@ std::filesystem::path generateAgentConfig(
     std::string_view platform,
     std::string_view profile,
     const std::filesystem::path& fbossRoot,
-    const std::optional<std::filesystem::path>& outputDirectory = std::nullopt);
+    const std::optional<std::filesystem::path>& outputDirectory = std::nullopt,
+    const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
 
 } // namespace facebook::fboss::configgen

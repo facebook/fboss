@@ -127,6 +127,10 @@ const HostifApi& SaiApiTable::hostifApi() const {
   return getApi<HostifApi>();
 }
 
+const IsolationGroupApi& SaiApiTable::isolationGroupApi() const {
+  return getApi<IsolationGroupApi>();
+}
+
 const MirrorApi& SaiApiTable::mirrorApi() const {
   return getApi<MirrorApi>();
 }
@@ -186,6 +190,12 @@ const SystemPortApi& SaiApiTable::systemPortApi() const {
 const UdfApi& SaiApiTable::udfApi() const {
   return getApi<UdfApi>();
 }
+
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+const VirtualChannelApi& SaiApiTable::virtualChannelApi() const {
+  return getApi<VirtualChannelApi>();
+}
+#endif
 
 const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
   return getApi<VirtualRouterApi>();

@@ -1054,6 +1054,15 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultSwitchAsicSupportedApis()
   static auto apis = SaiApiTable::getInstance()->getFullApiList();
   // Macsec is not currently supported in the broadcom sai sdk
   apis.erase(facebook::fboss::MacsecApi::ApiType);
+  /*
+   * Only query the isolation group api where the asic is declared to support
+   * isolation groups. Querying an api the adapter does not implement fails
+   * SaiApiTable::queryApis, and that takes agent init down entirely -- not just
+   * isolation group functionality -- so the default has to be to leave it out.
+   */
+  if (!getAsic()->isSupported(HwAsic::Feature::ISOLATION_GROUP)) {
+    apis.erase(facebook::fboss::IsolationGroupApi::ApiType);
+  }
   return apis;
 }
 const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {

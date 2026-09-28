@@ -55,6 +55,8 @@ using SaiNextHopGroupMemberInfo = std::pair<
 sai_next_hop_group_type_t getNextHopGroupType(
     const RouteNextHopEntry::NextHopSet& nextHops);
 
+bool isProtectionNextHopGroupType(sai_next_hop_group_type_t nextHopGroupType);
+
 struct SaiNextHopGroupKey {
   SaiNextHopGroupKey(
       RouteNextHopEntry::NextHopSet nextHops,

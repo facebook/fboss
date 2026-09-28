@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
+#include "fboss/agent/hw/sai/api/IsolationGroupApi.h"
 #include "fboss/agent/hw/sai/api/LagApi.h"
 #include "fboss/agent/hw/sai/api/LoggingUtil.h"
 #include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
@@ -52,6 +53,12 @@ struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 };
+
+// Keyed by the FBOSS isolation group name, which the adapter knows nothing
+// about, so it must be serialized into warm boot state.
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiIsolationGroupTraits>
+    : std::false_type {};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
@@ -687,6 +694,8 @@ class SaiStore {
       SaiObjectStore<SaiUdfMatchTraits>,
       SaiObjectStore<SaiVlanTraits>,
       SaiObjectStore<SaiVlanMemberTraits>,
+      SaiObjectStore<SaiIsolationGroupTraits>,
+      SaiObjectStore<SaiIsolationGroupMemberTraits>,
       SaiObjectStore<SaiRouteTraits>,
       SaiObjectStore<SaiVlanRouterInterfaceTraits>,
       SaiObjectStore<SaiMplsRouterInterfaceTraits>,
@@ -718,6 +727,10 @@ class SaiStore {
       SaiObjectStore<SaiPortConnectorTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
       SaiObjectStore<SaiPortLlrProfileTraits>,
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      SaiObjectStore<SaiVirtualChannelTraits>,
+      SaiObjectStore<SaiCbfcCreditProfileTraits>,
 #endif
       SaiObjectStore<SaiWredTraits>,
       SaiObjectStore<SaiTamTraits>,

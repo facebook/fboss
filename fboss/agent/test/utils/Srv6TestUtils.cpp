@@ -91,23 +91,27 @@ void verifySrv6EcnMarking(
     EXPECT_EVENTUALLY_GT(afterEcnCounter, beforeEcnCounter);
   });
 
-  // Verify trapped packet has ECN CE marking
+  // Congestion CE-marks only a subset of the flooded packets, and the earliest
+  // trapped copies predate the queue buildup, so drain every trapped copy
+  // rather than inspecting however many a retry loop happens to reach.
   bool foundEcnMarked = false;
-  WITH_RETRIES({
+  constexpr int kMaxEcnPktsToInspect = 2000;
+  for (int i = 0; i < kMaxEcnPktsToInspect && !foundEcnMarked; ++i) {
     auto frameRx = snooper.waitForPacket(1);
-    if (frameRx.has_value()) {
-      folly::io::Cursor cursor((*frameRx).get());
-      EthFrame frame(cursor);
-      auto v6Payload = frame.v6PayLoad();
-      if (v6Payload.has_value()) {
-        auto v6Hdr = v6Payload->header();
-        if (isEcnMarkedPacket(v6Hdr.dstAddr, v6Hdr.trafficClass & 0x3)) {
-          foundEcnMarked = true;
-        }
+    if (!frameRx.has_value()) {
+      break;
+    }
+    folly::io::Cursor cursor((*frameRx).get());
+    EthFrame frame(cursor);
+    auto v6Payload = frame.v6PayLoad();
+    if (v6Payload.has_value()) {
+      auto v6Hdr = v6Payload->header();
+      if (isEcnMarkedPacket(v6Hdr.dstAddr, v6Hdr.trafficClass & 0x3)) {
+        foundEcnMarked = true;
       }
     }
-    EXPECT_EVENTUALLY_TRUE(foundEcnMarked);
-  });
+  }
+  EXPECT_TRUE(foundEcnMarked);
 }
 
 std::string portNameForConfig(const cfg::SwitchConfig& cfg, PortID portId) {

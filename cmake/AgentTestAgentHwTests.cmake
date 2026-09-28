@@ -15,6 +15,7 @@ configure_file(
 # QoS test library - tests related to QoS scheduling, DSCP mapping, watermarks
 add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDeviceBufferGuaranteeTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
@@ -29,6 +30,7 @@ add_library(agent_qos_test_src
 target_link_libraries(agent_qos_test_src
   agent_hw_test
   aqm_test_utils
+  port_test_utils
   config_factory
   copp_test_utils
   ecmp_helper
@@ -158,9 +160,11 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentHwMirrorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMySidAdjFrrRouteTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSDataplaneTestUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSHeadEndTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSMidpointTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMPLSTtlTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNSFScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNeighborTests.cpp
@@ -217,7 +221,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketStreamHandlerTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentAclTableGroupTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src

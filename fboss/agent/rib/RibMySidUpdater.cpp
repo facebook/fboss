@@ -42,7 +42,15 @@ void RibMySidUpdater::resolveOneMySid(std::shared_ptr<MySid>& mySid) {
   if (unresolvedId.has_value()) {
     updateResolvedNextHopSetId(
         mySid,
-        resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)));
+        resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)),
+        NextHopRole::PRIMARY);
+  }
+  auto backupUnresolvedId = mySid->getBackupUnresolveNextHopsId();
+  if (backupUnresolvedId.has_value()) {
+    updateResolvedNextHopSetId(
+        mySid,
+        resolveNextHopSet(nextHopIDManager_->getNextHops(*backupUnresolvedId)),
+        NextHopRole::BACKUP);
   }
   mySid->publish();
 }
@@ -93,7 +101,8 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
           nh.srv6SegmentList(),
           nh.tunnelType(),
           nh.tunnelId(),
-          nh.cost()));
+          nh.cost(),
+          nh.role()));
     } else {
       std::vector<ResolvedNextHop> nhops;
       nhops.reserve(fwdNhops.size());
@@ -109,7 +118,8 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
             nh.srv6SegmentList(),
             nh.tunnelType(),
             nh.tunnelId(),
-            nh.cost());
+            nh.cost(),
+            nh.role());
       }
       resolved.insert(nhops.begin(), nhops.end());
     }
@@ -132,19 +142,18 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
 
 void RibMySidUpdater::updateResolvedNextHopSetId(
     std::shared_ptr<MySid>& mySidPtr,
-    const RouteNextHopSet& resolvedNhops) {
-  const auto oldId = mySidPtr->getResolvedNextHopsId();
+    const RouteNextHopSet& resolvedNhops,
+    NextHopRole role) {
+  const auto oldId = role == NextHopRole::BACKUP
+      ? mySidPtr->getBackupResolvedNextHopsId()
+      : mySidPtr->getResolvedNextHopsId();
 
   std::optional<NextHopSetID> newId;
   if (!resolvedNhops.empty()) {
-    if (oldId.has_value()) {
-      newId = nextHopIDManager_->updateRouteNextHopSetID(*oldId, resolvedNhops)
-                  .allocation.nextHopIdSetIter->second.id;
-    } else {
-      newId = nextHopIDManager_->getOrAllocRouteNextHopSetID(resolvedNhops)
-                  .nextHopIdSetIter->second.id;
-    }
-  } else if (oldId.has_value()) {
+    newId = nextHopIDManager_->getOrAllocRouteNextHopSetID(resolvedNhops)
+                .nextHopIdSetIter->second.id;
+  }
+  if (oldId.has_value()) {
     nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldId);
   }
 
@@ -153,7 +162,11 @@ void RibMySidUpdater::updateResolvedNextHopSetId(
   }
 
   mySidPtr = mySidPtr->clone();
-  mySidPtr->setResolvedNextHopsId(newId);
+  if (role == NextHopRole::BACKUP) {
+    mySidPtr->setBackupResolvedNextHopsId(newId);
+  } else {
+    mySidPtr->setResolvedNextHopsId(newId);
+  }
 }
 
 } // namespace facebook::fboss

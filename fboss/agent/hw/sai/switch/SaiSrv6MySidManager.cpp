@@ -2,9 +2,12 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
 
+#include <vector>
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -32,13 +35,16 @@ namespace {
 SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     const MySid& mySid,
     const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
-    std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr,
     SaiManagerTable* managerTable) {
   sai_int32_t endpointBehavior;
+  sai_int32_t endpointBehaviorFlavor =
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE;
   std::optional<SaiMySidEntryTraits::Attributes::Vrf> vrId;
   switch (mySid.getType()) {
     case MySidType::ADJACENCY_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UA;
+      endpointBehaviorFlavor =
+          SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USD;
       break;
     case MySidType::NODE_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UN;
@@ -87,12 +93,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   }
 
   return SaiMySidEntryTraits::CreateAttributes{
-      endpointBehavior,
-      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_NONE,
-      nextHopId,
-      vrId,
-      packetAction,
-      tunnelIdAttr};
+      endpointBehavior, endpointBehaviorFlavor, nextHopId, vrId, packetAction};
 }
 } // namespace
 
@@ -196,17 +197,34 @@ void SaiSrv6MySidManager::addMySidEntry(
 
   std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
 
-  auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
-  if (resolvedNextHopsId) {
-    auto nhops = getNextHops(state, static_cast<int64_t>(*resolvedNextHopsId));
-    if (nhops.size() > 1) {
-      RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+  const auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
+  const auto backupResolvedNextHopsId = mySid->getBackupResolvedNextHopsId();
+  if (resolvedNextHopsId || backupResolvedNextHopsId) {
+    std::vector<NextHop> nhops;
+    for (const auto& nextHopsId :
+         {resolvedNextHopsId, backupResolvedNextHopsId}) {
+      if (nextHopsId) {
+        const auto resolvedNextHops =
+            getNextHops(state, static_cast<int64_t>(*nextHopsId));
+        nhops.insert(
+            nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
+      }
+    }
+    if (nhops.empty()) {
+      throw FbossError("Resolved nhops Id set, but no next hops found");
+    }
+    RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+    const auto nextHopGroupType = getNextHopGroupType(nhopSet);
+    // A lone next hop is normally programmed directly, but not when it is a
+    // backup: the protection group is what carries standby semantics into
+    // hardware. Collapsing a single backup to a plain next hop would forward
+    // over it as if it were the primary path.
+    if (nhops.size() > 1 || isProtectionNextHopGroupType(nextHopGroupType)) {
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(
-                  nhopSet, std::nullopt, getNextHopGroupType(nhopSet)));
+              SaiNextHopGroupKey(nhopSet, std::nullopt, nextHopGroupType));
       nexthopHandle = nextHopGroupHandle;
-    } else if (nhops.size() == 1) {
+    } else {
       auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
       std::shared_ptr<SaiSrv6SidListHandle> sidListHandle;
       if (!resolvedNh.srv6SegmentList().empty()) {
@@ -248,29 +266,31 @@ void SaiSrv6MySidManager::addMySidEntry(
         throw FbossError(
             "Expected IP or SRv6 next hop for MySid entry ", mySid->getID());
       }
-    } else {
-      throw FbossError("Resolved nhops Id set, but no next hops found");
     }
   }
 
   std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
-  std::optional<SaiMySidEntryTraits::Attributes::TunnelId> tunnelIdAttr;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   if (mySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
     const auto* decapTunnelHandle =
         managerTable_->srv6TunnelManager().getDecapTunnelHandle();
     if (decapTunnelHandle && decapTunnelHandle->tunnel) {
       decapTunnel = decapTunnelHandle->tunnel;
-      tunnelIdAttr =
-          SaiMySidEntryTraits::Attributes::TunnelId{decapTunnel->adapterKey()};
     }
   }
 #endif
 
-  auto createAttributes = getMySidCreateAttributes(
-      *mySid, nexthopHandle, tunnelIdAttr, managerTable_);
+  auto createAttributes =
+      getMySidCreateAttributes(*mySid, nexthopHandle, managerTable_);
   auto& store = saiStore_->get<SaiMySidEntryTraits>();
   auto mySidEntry = store.setObject(adapterHostKey, createAttributes);
+  if (decapTunnel) {
+    // TunnelId is not part of CreateAttributes so warm-boot reload does not
+    // query it for MySID behaviors where the attribute is not applicable.
+    SaiApiTable::getInstance()->srv6Api().setAttribute(
+        mySidEntry->adapterKey(),
+        SaiMySidEntryTraits::Attributes::TunnelId{decapTunnel->adapterKey()});
+  }
 
   auto handle = std::make_unique<SaiMySidEntryHandle>();
   if (nexthopHandle) {

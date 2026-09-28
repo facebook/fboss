@@ -89,6 +89,22 @@ class RouteManagerTest : public ManagerTestBase {
     return route;
   }
 
+  // Protected route whose primary has been pruned by resolution, leaving only
+  // backup next hops.
+  std::shared_ptr<Route<folly::IPAddressV4>> makeBackupOnlyRoute(
+      const folly::CIDRNetwork& destination,
+      const RouteNextHopEntry::NextHopSet& backupNextHops) {
+    RouteNextHopEntry entry(backupNextHops, AdminDistance::STATIC_ROUTE);
+    RouteFields<folly::IPAddressV4>::Prefix prefix(
+        destination.first.asV4(), destination.second);
+    auto route = std::make_shared<Route<folly::IPAddressV4>>(
+        RouteV4::makeThrift(prefix));
+    route->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
+    route->setResolved(entry);
+    return route;
+  }
+
   SaiRouteHandle* programRoute(
       const std::shared_ptr<Route<folly::IPAddressV4>>& route) {
     saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
@@ -216,6 +232,49 @@ TEST_F(
       NextHopGroupSaiId(childGroupId.value()),
       SaiNextHopGroupTraits::Attributes::Type{});
   EXPECT_EQ(childGroupType, SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+}
+
+TEST_F(RouteManagerTest, backupOnlyRouteCreatesProtectionGroup) {
+  // Losing the primary is exactly when protection matters, so a route left
+  // with a single backup next hop must still be a protection group. Branching
+  // on next hop count alone would program it as a plain next hop and forward
+  // over the backup as though it were the primary path.
+  RouteNextHopEntry::NextHopSet backupNextHops{
+      makeResolvedNextHop(testInterfaces.at(1), NextHopRole::BACKUP),
+  };
+  auto route = makeBackupOnlyRoute(d1, backupNextHops);
+  auto routeHandle = programRoute(route);
+  ASSERT_NE(routeHandle, nullptr);
+
+  auto groupHandle = routeHandle->nextHopGroupHandle();
+  ASSERT_NE(groupHandle, nullptr);
+  ASSERT_NE(groupHandle->nextHopGroup, nullptr);
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+  EXPECT_EQ(
+      nextHopGroupApi.getAttribute(
+          groupHandle->nextHopGroup->adapterKey(),
+          SaiNextHopGroupTraits::Attributes::Type{}),
+      SAI_NEXT_HOP_GROUP_TYPE_PROTECTION);
+
+  auto childGroupId = getChildGroupId(groupHandle);
+  ASSERT_TRUE(childGroupId.has_value());
+  EXPECT_EQ(
+      nextHopGroupApi.getAttribute(
+          NextHopGroupSaiId(childGroupId.value()),
+          SaiNextHopGroupTraits::Attributes::Type{}),
+      SAI_NEXT_HOP_GROUP_TYPE_HW_PROTECTION);
+}
+
+TEST_F(RouteManagerTest, singlePrimaryRouteDoesNotCreateProtectionGroup) {
+  // The counterpart guard: an ordinary single next hop route must keep taking
+  // the plain next hop path rather than being promoted to a group.
+  TestRoute singleNextHopRoute;
+  singleNextHopRoute.destination = d2;
+  singleNextHopRoute.nextHopInterfaces.push_back(testInterfaces.at(0));
+  auto route = makeRoute(singleNextHopRoute);
+  auto routeHandle = programRoute(route);
+  ASSERT_NE(routeHandle, nullptr);
+  EXPECT_EQ(routeHandle->nextHopGroupHandle(), nullptr);
 }
 
 TEST_F(RouteManagerTest, protectionRoutesWithSameBackupsShareChildGroup) {

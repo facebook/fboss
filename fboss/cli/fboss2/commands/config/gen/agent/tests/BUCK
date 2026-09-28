@@ -12,6 +12,7 @@ cpp_unittest(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-error",
         "//fboss/cli/fboss2:cli-parser-utils",
+        "//fboss/cli/fboss2:cmd-local-options",
         "//fboss/cli/fboss2:cmd-subcommands",
         "//fboss/cli/fboss2:fboss2-config-gen-lib",
         "//fboss/cli/fboss2:fboss2-lib",
@@ -21,4 +22,16 @@ cpp_unittest(
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     external_deps = ["CLI11"],
+)
+
+cpp_unittest(
+    name = "agent_config_parity_test",
+    srcs = ["AgentConfigParityTest.cpp"],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/cli/fboss2:fboss2-config-gen-lib",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
 )

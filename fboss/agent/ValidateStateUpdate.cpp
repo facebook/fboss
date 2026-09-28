@@ -11,6 +11,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -88,6 +89,42 @@ bool StateUpdateValidator::isEcmpWidthUpdateValid(
                     << "); a coldboot is required to change ECMP width";
           isValid = false;
         }
+      });
+  return isValid;
+}
+
+bool StateUpdateValidator::isLlrConfigUpdateValid(
+    const StateDelta& delta) const {
+  bool isValid = true;
+  // An LLR profile cannot be retuned or unbound under a running agent. Draining
+  // the port first does not help: the SDK refuses the rebind even with the port
+  // admin disabled and both LLR modes cleared beforehand (CS00012478409).
+  //
+  // The rule enforced here is not "coldboot only": a StateDelta carries no boot
+  // type, and no validator in this file reads one. It is the first bind on a
+  // port that is still down, which is the shape a coldboot takes, since ports
+  // exist carrying cfg::PortState::DISABLED before config is applied. A runtime
+  // update of that same shape is therefore accepted too. That is safe -- the
+  // port is down on the old side and SaiPortManager holds the enable until the
+  // profile is attached -- but it does mean a first bind can land without a
+  // coldboot.
+  //
+  // Everything else needs a coldboot: retuning a bound profile, unbinding one,
+  // or binding onto a port that is already up, where the attach would land on
+  // a port hardware considers enabled.
+  forEachChanged(
+      delta.getPortsDelta(),
+      [&isValid](
+          const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
+        if (!llrConfigChanged(oldPort, newPort) ||
+            (!oldPort->getLlrConfigName().has_value() &&
+             !oldPort->isEnabled())) {
+          return;
+        }
+        XLOG(ERR) << "LLR config on port " << newPort->getID()
+                  << " cannot change on a running agent; a coldboot is required"
+                  << " to change LLR config";
+        isValid = false;
       });
   return isValid;
 }
@@ -310,6 +347,11 @@ bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
     SwitchStats* stats) {
   if (!isEcmpWidthUpdateValid(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
+  }
+
+  if (!isLlrConfigUpdateValid(delta)) {
     XLOG(ERR) << "State update is not valid.";
     return false;
   }

@@ -683,6 +683,31 @@ TEST_F(AgentAdjFrrRouteTest, routeWithPrimaryAndBackupNhops) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// A route whose whole forwarding set is one backup next hop -- the shape a
+// protected route collapses to once resolution drops its primary. Such a route
+// is programmed as a protection group rather than a plain next hop, so the
+// group is created with a single member in its backup half. Widths above one
+// are covered by the balance tests below; this pins the narrowest case, where
+// the group has the least room to hide a programming error.
+TEST_F(AgentAdjFrrRouteTest, routeWithSingleBackupNhopOnly) {
+  constexpr size_t kNumBackups = 1;
+  auto setup = [this]() {
+    setupRouteWithPrimaryAndBackupNhops(
+        false /* includePrimaryNextHop */, kNumBackups);
+  };
+
+  auto verify = [this]() {
+    constexpr int kPacketCount = 10000;
+    CHECK_GE(phyLoopbackPortIds_.size(), kNumRequiredPhyLoopbackPorts);
+    const std::vector<PortID> backupPorts{phyLoopbackPortIds_.at(1)};
+    const auto injectionPort = phyLoopbackPortIds_.at(kNumRouteNextHops);
+    sendTrafficAndVerifyOutPackets(
+        injectionPort, backupPorts, kPacketCount, "Single backup next hop");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 // Pruning on. Both FRR halves are named together: the parent arms the
 // same-src-dst port check and the backup provides the tertiary path, and
 // ApplyThriftConfig rejects a config that enables only one.

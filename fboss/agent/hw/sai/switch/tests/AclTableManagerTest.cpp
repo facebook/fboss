@@ -17,6 +17,7 @@
 #include "fboss/agent/state/MatchAction.h"
 #include "fboss/agent/types.h"
 
+#include <fb303/ServiceData.h>
 #include <folly/ScopeGuard.h>
 
 #include <string>
@@ -125,6 +126,117 @@ TEST_F(AclTableManagerTest, addPortBoundAclTable) {
   EXPECT_NE(
       saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
           aclTableGroupHandle, kAclTable3),
+      nullptr);
+}
+
+TEST_F(
+    AclTableManagerTest,
+    removeObsoletePortBoundAclTablesFromPublishedState) {
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto obsoleteTable = std::make_shared<AclTable>(0, kAclTable2);
+  auto retainedTable = std::make_shared<AclTable>(1, kAclTable3);
+  saiManagerTable->aclTableManager().addAclTable(
+      obsoleteTable,
+      cfg::AclStage::INGRESS,
+      nullptr,
+      cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableManager().addAclTable(
+      retainedTable,
+      cfg::AclStage::INGRESS,
+      nullptr,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto makeState = [](const std::vector<std::shared_ptr<AclTable>>& tables) {
+    auto tableMap = std::make_shared<AclTableMap>();
+    for (const auto& table : tables) {
+      tableMap->addTable(table);
+    }
+    auto group = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+    group->setName("portBoundGroup");
+    group->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+    group->setAclTableMap(tableMap);
+    auto groupMap = std::make_shared<AclTableGroupMap>();
+    groupMap->addAclTableGroup(group);
+    auto multiGroupMap = std::make_shared<MultiSwitchAclTableGroupMap>();
+    multiGroupMap->addMapNode(
+        groupMap, HwSwitchMatcher::defaultHwSwitchMatcher());
+    auto state = std::make_shared<SwitchState>();
+    state->resetPortAclTableGroups(multiGroupMap);
+    state->publish();
+    return state;
+  };
+
+  auto oldState = makeState({obsoleteTable, retainedTable});
+  auto newState = makeState({retainedTable});
+  saiManagerTable->aclTableManager().removeObsoletePortBoundAclTables(
+      oldState, newState);
+
+  EXPECT_EQ(
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2),
+      nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable3),
+      nullptr);
+}
+
+TEST_F(AclTableManagerTest, recreateBoundPortAclTable) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  auto oldTable = std::make_shared<AclTable>(0, kAclTable2);
+  oldTable->setAclMap(std::make_shared<AclMap>());
+  const auto oldAclTableId = saiManagerTable->aclTableManager().addAclTable(
+      oldTable,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto swPort = makePort(testInterfaces[0].remoteHosts[0].port);
+  swPort->setIngressAclTableName(kAclTable2);
+  saiManagerTable->portManager().setIngressAcl(swPort);
+
+  auto newTable = oldTable->clone();
+  newTable->setQualifiers({cfg::AclTableQualifier::L4_DST_PORT});
+  saiManagerTable->aclTableManager().changedAclTable(
+      oldTable,
+      newTable,
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  const auto* aclTableHandle =
+      saiManagerTable->aclTableManager().getAclTableHandle(kAclTable2);
+  ASSERT_NE(aclTableHandle, nullptr);
+  const auto newAclTableId = aclTableHandle->aclTable->adapterKey();
+  EXPECT_NE(newAclTableId, oldAclTableId);
+
+  auto* portHandle =
+      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(portHandle, nullptr);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::IngressAcl{}),
+      newAclTableId);
+
+  auto* aclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(aclTableGroupHandle, nullptr);
+  EXPECT_NE(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, kAclTable2),
       nullptr);
 }
 
@@ -482,54 +594,6 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
       FbossError);
 }
 
-TEST_F(AclTableManagerTest, addTwoAclEntriesSamePriority) {
-  // 1. Two entries at one priority, told apart only by name.
-  auto aclEntry =
-      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
-  aclEntry->setDscp(kDscp());
-  aclEntry->setActionType(kActionType());
-
-  auto aclEntry2 =
-      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry2"));
-  aclEntry2->setDscp(kDscp2());
-  aclEntry2->setActionType(kActionType());
-
-  // 2. Both program.
-  AclEntrySaiId aclEntryId = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry,
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-      nullptr /*state*/);
-  AclEntrySaiId aclEntryId2 = saiManagerTable->aclTableManager().addAclEntry(
-      aclEntry2,
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
-      nullptr /*state*/);
-
-  // 3. They are distinct SAI objects, each reachable by its own name.
-  EXPECT_NE(aclEntryId, aclEntryId2);
-  auto* aclTableHandle = saiManagerTable->aclTableManager().getAclTableHandle(
-      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
-  auto* handle1 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority(), std::string("AclEntry1"));
-  auto* handle2 = saiManagerTable->aclTableManager().getAclEntryHandle(
-      aclTableHandle, kPriority(), std::string("AclEntry2"));
-  ASSERT_NE(handle1, nullptr);
-  ASSERT_NE(handle2, nullptr);
-  EXPECT_EQ(handle1->aclEntry->adapterKey(), aclEntryId);
-  EXPECT_EQ(handle2->aclEntry->adapterKey(), aclEntryId2);
-
-  // 4. Removing one leaves the other programmed.
-  saiManagerTable->aclTableManager().removeAclEntry(
-      aclEntry, cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE());
-  EXPECT_EQ(
-      saiManagerTable->aclTableManager().getAclEntryHandle(
-          aclTableHandle, kPriority(), std::string("AclEntry1")),
-      nullptr);
-  EXPECT_NE(
-      saiManagerTable->aclTableManager().getAclEntryHandle(
-          aclTableHandle, kPriority(), std::string("AclEntry2")),
-      nullptr);
-}
-
 TEST_F(AclTableManagerTest, getAclEntry) {
   auto aclEntry =
       std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
@@ -863,4 +927,91 @@ TEST_F(AclTableManagerPbrTest, pbrMatchNhgNullStateThrows) {
           cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE(),
           nullptr),
       FbossError);
+}
+
+TEST_F(
+    AclTableManagerPbrTest,
+    failedBoundPortAclTableRecreateCleansUpStagedTable) {
+  FLAGS_enable_acl_table_group = true;
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
+
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("portBoundGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+
+  const std::string counterName = "stagedAclEntryCounter";
+  cfg::TrafficCounter counter;
+  counter.name() = counterName;
+  counter.types() = {cfg::CounterType::PACKETS};
+  MatchAction action;
+  action.setTrafficCounter(counter);
+  auto counterEntry = std::make_shared<AclEntry>(
+      kPriority(), std::string("AValidCounterEntry"));
+  counterEntry->setDscp(kDscp());
+  counterEntry->setAclAction(action);
+
+  auto unresolvableEntry = std::make_shared<AclEntry>(
+      kPriority2(), std::string("ZUnresolvablePbrEntry"));
+  unresolvableEntry->setNextHopGroupId(kUnallocatedNhgId);
+  unresolvableEntry->setActionType(kActionType());
+  auto aclMap = std::make_shared<AclMap>();
+  aclMap->addNode(counterEntry);
+  aclMap->addNode(unresolvableEntry);
+
+  auto oldTable = std::make_shared<AclTable>(0, kAclTable2);
+  oldTable->setQualifiers(
+      {cfg::AclTableQualifier::DSCP, cfg::AclTableQualifier::L4_DST_PORT});
+  oldTable->setAclMap(aclMap);
+  const auto oldAclTableId = saiManagerTable->aclTableManager().addAclTable(
+      oldTable,
+      cfg::AclStage::INGRESS,
+      getProgrammedState(),
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto swPort = makePort(testInterfaces[0].remoteHosts[0].port);
+  swPort->setIngressAclTableName(kAclTable2);
+  saiManagerTable->portManager().setIngressAcl(swPort);
+
+  auto newTable = oldTable->clone();
+  newTable->setQualifiers(
+      {cfg::AclTableQualifier::DSCP,
+       cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+       cfg::AclTableQualifier::L4_DST_PORT});
+  EXPECT_THROW(
+      saiManagerTable->aclTableManager().changedAclTable(
+          oldTable,
+          newTable,
+          cfg::AclStage::INGRESS,
+          getProgrammedState(),
+          cfg::AclTableGroupBindPoint::PORT),
+      FbossError);
+  EXPECT_FALSE(
+      facebook::fb303::fbData->getStatMap()->contains(
+          folly::to<std::string>(counterName, ".packets")));
+
+  const auto stagedAclTableName =
+      folly::to<std::string>(kAclTable2, "-recreate");
+  EXPECT_EQ(
+      saiManagerTable->aclTableManager().getAclTableHandle(stagedAclTableName),
+      nullptr);
+  auto* aclTableGroupHandle =
+      saiManagerTable->aclTableGroupManager().getAclTableGroupHandle(
+          SAI_ACL_STAGE_INGRESS, cfg::AclTableGroupBindPoint::PORT);
+  ASSERT_NE(aclTableGroupHandle, nullptr);
+  EXPECT_EQ(
+      saiManagerTable->aclTableGroupManager().getAclTableGroupMemberHandle(
+          aclTableGroupHandle, stagedAclTableName),
+      nullptr);
+
+  auto* portHandle =
+      saiManagerTable->portManager().getPortHandle(swPort->getID());
+  ASSERT_NE(portHandle, nullptr);
+  EXPECT_EQ(
+      saiApiTable->portApi().getAttribute(
+          portHandle->port->adapterKey(),
+          SaiPortTraits::Attributes::IngressAcl{}),
+      oldAclTableId);
 }

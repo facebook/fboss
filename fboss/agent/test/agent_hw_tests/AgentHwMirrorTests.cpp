@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
@@ -177,9 +178,8 @@ class AgentHwMirrorTest : public AgentHwTest {
   void programMirrorRoute(
       utility::EcmpSetupAnyNPorts<AddrT>& ecmpHelper,
       const folly::IPAddress& dip,
-      PortID mirrorToPort) {
-    auto nhopPorts = boost::container::flat_set<PortDescriptor>{
-        PortDescriptor(mirrorToPort)};
+      const PortDescriptor& mirrorToPort) {
+    auto nhopPorts = boost::container::flat_set<PortDescriptor>{mirrorToPort};
     auto wrapper = getSw()->getRouteUpdater();
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       ecmpHelper.programRoutes(
@@ -198,6 +198,12 @@ class AgentHwMirrorTest : public AgentHwTest {
   }
 
   void resolveMirror(const std::string& mirrorName, PortID mirrorToPort) {
+    resolveMirror(mirrorName, PortDescriptor(mirrorToPort));
+  }
+
+  void resolveMirror(
+      const std::string& mirrorName,
+      const PortDescriptor& mirrorToPort) {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
@@ -205,9 +211,7 @@ class AgentHwMirrorTest : public AgentHwTest {
         getEcmpPortTypes());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
-          in,
-          boost::container::flat_set<PortDescriptor>{
-              PortDescriptor(mirrorToPort)});
+          in, boost::container::flat_set<PortDescriptor>{mirrorToPort});
     });
     auto mirror =
         this->getProgrammedState()->getMirrors()->getNodeIf(mirrorName);
@@ -235,7 +239,9 @@ class AgentHwMirrorTest : public AgentHwTest {
         auto mirror = iter.second;
         if (mirror->getDestinationIp().has_value()) {
           programMirrorRoute(
-              ecmpHelper, mirror->getDestinationIp().value(), mirrorToPort);
+              ecmpHelper,
+              mirror->getDestinationIp().value(),
+              PortDescriptor(mirrorToPort));
         }
       }
     }
@@ -294,6 +300,16 @@ TYPED_TEST_SUITE(AgentHwSflowMirrorTest, TestTypes);
 template <typename AddrT>
 class AgentHwMirrorTrunkTest : public AgentHwMirrorTest<AddrT> {
  protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::oneAggregatePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        {utility::AggregatePortInfo(
+            AggregatePortID(1),
+            {ensemble.masterLogicalInterfacePortIds()[0]})});
+  }
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
@@ -1258,14 +1274,15 @@ TYPED_TEST(AgentHwMirrorTrunkTest, ResolvedErspanMirrorOnTrunk) {
   auto setup = [=, this]() {
     auto cfg = this->initialConfig(*this->getAgentEnsemble());
 
-    utility::addAggPort(1, {this->masterLogicalInterfacePortIds()[0]}, &cfg);
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto state = this->applyNewConfig(cfg);
     this->applyNewState([=](const std::shared_ptr<SwitchState>&) {
       return utility::enableTrunkPorts(state);
     });
 
-    this->resolveMirror(kErspan, this->masterLogicalInterfacePortIds()[0]);
+    // Egress the mirror over the LAG: the member port carries no RIF, so
+    // next-hop resolution must target the aggregate.
+    this->resolveMirror(kErspan, PortDescriptor(AggregatePortID(1)));
   };
   auto verify = [=, this]() {
     auto client = this->getClient();

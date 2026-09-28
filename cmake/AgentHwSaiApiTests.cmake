@@ -18,6 +18,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/FdbApiTest.cpp
     fboss/agent/hw/sai/api/tests/HashApiTest.cpp
     fboss/agent/hw/sai/api/tests/HostifApiTest.cpp
+    fboss/agent/hw/sai/api/tests/IsolationGroupApiTest.cpp
     fboss/agent/hw/sai/api/tests/LagApiTest.cpp
     fboss/agent/hw/sai/api/tests/LoggingUtilTest.cpp
     fboss/agent/hw/sai/api/tests/MacsecApiTest.cpp

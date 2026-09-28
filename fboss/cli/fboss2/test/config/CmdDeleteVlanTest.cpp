@@ -28,7 +28,7 @@ namespace facebook::fboss {
 
 // Seed covers every deleteVlan branch:
 //   100 - barebone VLAN + its paired interface (fboss100, no IPs): deletable,
-//         and trunk port 3 is a member of it alongside the default VLAN
+//         and port 3 is a member of it alongside the default VLAN
 //   200 - untagged ingress VLAN for port eth1/1/1
 //   300 - switchport member only (VlanPort logicalPort 2): deletable, the
 //         membership row is cascaded away
@@ -149,7 +149,7 @@ TEST_F(CmdDeleteVlanTestFixture, deleteUnreferencedRemovesVlanAndBareboneIntf) {
   EXPECT_TRUE(std::none_of(macs.begin(), macs.end(), [](const auto& e) {
     return *e.vlanID() == 100;
   }));
-  // Trunk port 3's membership row for this VLAN goes with it, but its row for
+  // Port 3's membership row for this VLAN goes with it, but its row for
   // the default VLAN is untouched — the cascade is scoped to the deleted VLAN.
   const auto& vlanPorts = *swConfig().vlanPorts();
   EXPECT_TRUE(

@@ -64,6 +64,7 @@ add_library(led_manager_lib
   fboss/led_service/MontblancLedManager.cpp
   fboss/led_service/Icecube800banwLedManager.cpp
   fboss/led_service/Icecube800bcLedManager.cpp
+  fboss/led_service/M4052ACTMLedManager.cpp
   fboss/led_service/M4062nhpLedManager.cpp
   fboss/led_service/Icetea800bcLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
@@ -130,6 +131,7 @@ target_link_libraries(led_manager_lib
   fsdb_stream_client
   fsdb_pub_sub
   fsdb_flags
+  fsdb_model
 )
 
 add_library(led_core_lib

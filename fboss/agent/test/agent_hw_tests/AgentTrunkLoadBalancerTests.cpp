@@ -111,6 +111,42 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
         "enable trunk ports");
   }
 
+  // On ASICs with directly-bound aggregate-port RIFs the SDK rejects
+  // lag-member create while a PORT RIF is still bound to the member, and a
+  // single config delta programs member creates before the RIF rebind. Tear
+  // the RIFs down from the live config in a separate apply first, so that
+  // the subsequent setup() creates members on RIF-less ports, mirroring
+  // boot-time programming. No-op on all other ASICs.
+  void unlinkPortsForLagIfNeeded() {
+    if (!isSupportedOnAllAsics(
+            HwAsic::Feature::AGGREGATE_PORT_ROUTER_INTERFACE)) {
+      return;
+    }
+    auto unlinked = getSw()->getConfig();
+    unlinked.interfaces() = {};
+    unlinked.aggregatePorts() = {};
+    unlinked.srv6Tunnels() = {};
+    // With no interfaces left, the config validator requires every port to
+    // be admin-disabled ("VLAN has no interface, even when corresp port is
+    // enabled"). Re-enable happens in setup()'s full config apply.
+    for (auto& portCfg : *unlinked.ports()) {
+      if (*portCfg.state() == cfg::PortState::ENABLED) {
+        portCfg.state() = cfg::PortState::DISABLED;
+      }
+    }
+    applyNewConfig(unlinked);
+  }
+
+  template <typename SETUP_FN, typename VERIFY_FN>
+  void verifyAcrossWarmBootsImpl(SETUP_FN setup, VERIFY_FN verify) {
+    verifyAcrossWarmBoots(
+        [=, this]() {
+          unlinkPortsForLagIfNeeded();
+          setup();
+        },
+        verify);
+  }
+
   template <typename ECMP_HELPER>
   void programRoutes(const ECMP_HELPER& ecmpHelper, const AggPortInfo aggInfo) {
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
@@ -466,7 +502,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
             deviation);
       }
     };
-    verifyAcrossWarmBoots(setup, verify);
+    verifyAcrossWarmBootsImpl(setup, verify);
   }
 };
 
@@ -584,7 +620,7 @@ class AgentSrv6UcmpTrunkLoadBalancerTest
           25 /* deviation */,
           kSrv6TrunkUcmpWeights());
     };
-    verifyAcrossWarmBoots(setup, verify);
+    verifyAcrossWarmBootsImpl(setup, verify);
   }
 };
 
@@ -835,7 +871,7 @@ TEST_F(AgentSrv6TrunkLoadBalancerTest, Srv6TrunkEcmpLoadBalance) {
         kSrv6AggInfo,
         25 /* deviation */);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBootsImpl(setup, verify);
 }
 
 TEST_F(AgentSrv6UcmpTrunkLoadBalancerTest, Srv6TrunkUcmpLoadBalanceCpuTraffic) {
@@ -856,7 +892,7 @@ TEST_F(
     pumpIPv6FlowLabelTrafficAndVerifyLoadBalanced(
         false /* loopThroughFrontPanel */, k4X3WideAggs, 25 /* deviation */);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBootsImpl(setup, verify);
 }
 
 TEST_F(
@@ -867,7 +903,7 @@ TEST_F(
     pumpIPv6FlowLabelTrafficAndVerifyLoadBalanced(
         true /* loopThroughFrontPanel */, k4X3WideAggs, 25 /* deviation */);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBootsImpl(setup, verify);
 }
 
 // Regression test for S698336: the agent crashed when a config change altered
@@ -956,7 +992,7 @@ TEST_F(AgentTrunkLoadBalancerTest, TrunkV6HashFieldsChangedViaConfigChange) {
     applyLoadBalancers(trunkWithoutFlowLabel());
     verifyTrunkFlowLabel(false);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBootsImpl(setup, verify);
 }
 
 } // namespace facebook::fboss

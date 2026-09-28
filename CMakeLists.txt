@@ -149,8 +149,8 @@ if (NOT $ENV{SAI_VERSION} EQUAL "")
   message(STATUS "ENV SAI_VERSION is set")
   set (SAI_VERSION $ENV{SAI_VERSION})
 else()
-  message(STATUS "ENV SAI_VERSION is not set, using default:1.18.1")
-  set (SAI_VERSION "1.18.1")
+  message(STATUS "ENV SAI_VERSION is not set, using default:1.19.0")
+  set (SAI_VERSION "1.19.0")
 endif()
 
 option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
@@ -291,7 +291,7 @@ find_package(Glog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIRS})
 find_package(folly CONFIG REQUIRED)
 include_directories(${FOLLY_INCLUDE_DIR})
-find_package(Boost REQUIRED COMPONENTS container filesystem)
+find_package(Boost REQUIRED COMPONENTS container filesystem regex)
 include_directories(${Boost_INCLUDE_DIR})
 find_package(fb303 CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
@@ -1749,3 +1749,34 @@ endif()
 
 # FBOSS Image Builder distro_cli tests
 include(cmake/FbossImageDistroCliTests.cmake)
+
+# Match fbcode's default allocator for non-sanitized binaries. Apply this after
+# all target definitions so only final executables, rather than every shared
+# library, acquire the allocator dependency. The generated object defines
+# jemalloc startup defaults supported by distro builds; MALLOC_CONF can still
+# override individual options at process launch.
+if (NOT WITH_ASAN)
+  find_library(FBOSS_JEMALLOC_LIBRARY NAMES jemalloc)
+  if (NOT FBOSS_JEMALLOC_LIBRARY)
+    message(FATAL_ERROR "jemalloc is required for non-ASAN FBOSS builds")
+  endif()
+
+  add_library(fboss_jemalloc_config OBJECT
+    fboss/oss/JemallocConfig.cpp
+  )
+
+  get_property(FBOSS_BUILD_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+  foreach(FBOSS_BUILD_TARGET ${FBOSS_BUILD_TARGETS})
+    get_target_property(FBOSS_BUILD_TARGET_TYPE ${FBOSS_BUILD_TARGET} TYPE)
+    if (FBOSS_BUILD_TARGET_TYPE STREQUAL "EXECUTABLE")
+      target_sources(
+        ${FBOSS_BUILD_TARGET}
+        PRIVATE $<TARGET_OBJECTS:fboss_jemalloc_config>
+      )
+      target_link_libraries(
+        ${FBOSS_BUILD_TARGET}
+        ${FBOSS_JEMALLOC_LIBRARY}
+      )
+    endif()
+  endforeach()
+endif()

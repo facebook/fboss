@@ -8,6 +8,7 @@ cpp_unittest(
     srcs = [
         "Jericho3AsicTests.cpp",
         "MonitoredObjectFeatureTests.cpp",
+        "SaiSdkVersionTests.cpp",
     ],
     network_access = network_access_utils.none(),
     deps = [

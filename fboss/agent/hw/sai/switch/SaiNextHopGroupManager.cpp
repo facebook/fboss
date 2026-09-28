@@ -76,15 +76,6 @@ bool isEcmpModeARS(std::optional<cfg::SwitchingMode> switchingMode) {
        switchingMode.value() == cfg::SwitchingMode::FLOWLET_QUALITY));
 }
 
-bool isProtectionNextHopGroupType(
-    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
-#else
-  return false;
-#endif
-}
-
 bool isHwProtectionNextHopGroupType(
     [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
@@ -189,6 +180,15 @@ splitHorizonEnableFor(
 #endif
 }
 } // namespace
+
+bool isProtectionNextHopGroupType(
+    [[maybe_unused]] sai_next_hop_group_type_t nextHopGroupType) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+  return nextHopGroupType == SAI_NEXT_HOP_GROUP_TYPE_PROTECTION;
+#else
+  return false;
+#endif
+}
 
 sai_next_hop_group_type_t getNextHopGroupType(
     const RouteNextHopEntry::NextHopSet& nextHops) {

@@ -139,3 +139,44 @@ class PackageTest(unittest.TestCase):
 
             with self.assertRaisesRegex(RuntimeError, "must be read-only"):
                 package._build_target("forwarding-stack", build_dir)
+
+    def test_finds_unsuffixed_project_dir(self) -> None:
+        """getdeps installs first-party projects without a build-config hash."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            (build_dir / "installed" / "bgp" / "sbin").mkdir(parents=True)
+
+            self.assertEqual(
+                package._find_installed_project_dir(build_dir, "bgp"),
+                build_dir / "installed" / "bgp",
+            )
+
+    def test_libs_come_from_the_variant_tree(self) -> None:
+        """libfolly.so ships from folly-python; installed/folly holds no .so."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            installed = build_dir / "installed"
+            (installed / "folly").mkdir(parents=True)
+            (installed / "folly-python" / "lib").mkdir(parents=True)
+            (installed / "folly-python" / "lib" / "libfolly.so.0.58.0").touch()
+
+            libs = package._find_getdeps_libs(build_dir, ["folly"])
+            self.assertEqual(list(libs.values()), ["lib/libfolly.so.0.58.0"])
+
+    def test_falls_back_to_the_hashed_dir(self) -> None:
+        """Third-party projects only ever appear with the hash suffix."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            hashed = build_dir / "installed" / "boost-uWVzwhvt2_BurxQtUxbB8EM2b8"
+            hashed.mkdir(parents=True)
+
+            self.assertEqual(
+                package._find_installed_pkg_dir(build_dir, "boost"), hashed
+            )
+
+    def test_returns_none_when_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = pathlib.Path(temp_dir)
+            (build_dir / "installed").mkdir()
+
+            self.assertIsNone(package._find_installed_project_dir(build_dir, "bgp"))

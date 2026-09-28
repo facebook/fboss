@@ -68,6 +68,9 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isRxConsActHoldOffTmrImplSupported;
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
+  using CmisModule::portDatapathStates_;
+  using CmisModule::readModifyWriteCmisField;
+  using CmisModule::triggerModuleReset;
 
  private:
   uint8_t moduleStateChangedReadTimes_{0};
@@ -1821,6 +1824,64 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+// A module reset (firmware upgrade, remediation) puts the optic back at its
+// defaults, but the datapath timers in portDatapathStates_ live on the module
+// object and used to survive it. A timer left set by a datapath init that was
+// still in flight when the reset happened then reads as "DP_INIT in prog"
+// forever, and customizeTransceiverLocked skips both programTunableModule and
+// the AppSel write on every subsequent attempt -- leaving the optic on its
+// default frequency and AppSel while programming still reports success.
+// triggerModuleReset calls resetDatapathProgrammingStateLocked to drop it.
+TEST_F(CmisTest, resetDatapathProgrammingStateClearsInFlightDatapathState) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::EIGHTHUNDREDG;
+  portState.numHostLanes = 8;
+
+  cfg::OpticalChannelConfig optChanConfig;
+  cfg::FrequencyConfig freqConfig;
+  freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  cfg::CenterFrequencyConfig centerFreq;
+  centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+  freqConfig.centerFrequencyConfig() = centerFreq;
+  optChanConfig.frequencyConfig() = freqConfig;
+  optChanConfig.txPower0P01Dbm() = 0;
+  optChanConfig.appSelCode() = 1;
+  portState.opticalChannelConfig = optChanConfig;
+  programTcvrState.ports.emplace(portState.portName, portState);
+
+  xcvr->programTransceiver(programTcvrState, false);
+  ASSERT_FALSE(xcvr->portDatapathStates_.empty());
+
+  // Stand in for a reset landing mid datapath init: the start timer is set and
+  // nothing will ever clear it, because the optic is about to be reset out
+  // from under us.
+  auto& initTimers = xcvr->portDatapathStates_[portState.portName].initTimers;
+  initTimers.progStartTimer = std::chrono::steady_clock::now();
+  ASSERT_NE(initTimers.progStartTimer.time_since_epoch().count(), 0);
+
+  // Drive the real entry point rather than the helper, so this covers the
+  // wiring as well: every module reset goes through triggerModuleReset.
+  xcvr->triggerModuleReset();
+
+  // With the map cleared, the next programming attempt default-constructs the
+  // state and sees progStartTimer == 0, so it takes the branch that actually
+  // programs the laser frequency and AppSel.
+  EXPECT_TRUE(xcvr->portDatapathStates_.empty());
+  EXPECT_EQ(
+      xcvr->portDatapathStates_[portState.portName]
+          .initTimers.progStartTimer.time_since_epoch()
+          .count(),
+      0);
+}
+
 // Verify TX and RX squelch disable behavior for tunable optics (ZR modules).
 // Squelch is only disabled when the module advertises rxConsActImpl
 // (Page 45h, Byte 129, Bit 1). When not advertised, squelch remains enabled.
@@ -3461,5 +3522,85 @@ TEST_F(CmisTest, cmisInvalidDatapathTransceiverInfoTest) {
   std::set<TransceiverErrorState> expectedErrorStates = {
       TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE};
   EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
+}
+
+namespace {
+// Seed/read a byte straight in the fake EEPROM, selecting the page first the
+// way the module itself does. Lets these tests set up and check a register
+// without going through the private readCmisField/writeCmisField helpers.
+void pokeEeprom(
+    FakeTransceiverImpl* impl,
+    uint8_t page,
+    int byteOffset,
+    uint8_t value) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  impl->writeTransceiver(param, &value, 0, 0);
+}
+
+uint8_t peekEeprom(FakeTransceiverImpl* impl, uint8_t page, int byteOffset) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  uint8_t value = 0;
+  impl->readTransceiver(param, &value, 0);
+  return value;
+}
+
+// VDM FreezeRequest (Page 2Fh byte 144) is a convenient one-byte register to
+// exercise the read-modify-write helper against.
+constexpr uint8_t kRmwPage = 0x2f;
+constexpr int kRmwByte = 144;
+} // namespace
+
+TEST_F(CmisTest, readModifyWriteCmisFieldSetsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x0f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x80),
+      0x8f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x8f);
+}
+
+TEST_F(CmisTest, readModifyWriteCmisFieldClearsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x8f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x00),
+      0x0f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x0f);
+}
+
+// value is expected to be already positioned within the byte, so bits of it
+// outside the mask must not leak into the register.
+TEST_F(CmisTest, readModifyWriteCmisFieldIgnoresValueBitsOutsideMask) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x00);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0xff),
+      0x80);
+}
+
+// The helper reads into a single stack byte, so a wider field would overrun it.
+// It has to reject that rather than corrupt the stack.
+TEST_F(CmisTest, readModifyWriteCmisFieldRejectsMultiByteField) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  // PART_NUMBER is 16 bytes wide.
+  EXPECT_THROW(
+      xcvr->readModifyWriteCmisField(CmisField::PART_NUMBER, 0xff, 0x00),
+      FbossError);
 }
 } // namespace facebook::fboss

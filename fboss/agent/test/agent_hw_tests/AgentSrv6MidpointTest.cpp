@@ -42,11 +42,17 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   // Input outer dst: the SID being processed at this midpoint node.
   // uSID format: [locator fdad:ffff:][active uSID 1:][next uSIDs e002::]
-  const folly::IPAddressV6 kPktOuterDst{"fdad:ffff:1:2::"};
+  const folly::IPAddressV6 kPktOuterDst{"fdad:ffff:1:aa::"};
 
   // After the active uSID 1 is processed and shifted out,
   // the rewritten outer dst forwarded to the next hop.
-  const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:2::"};
+  const folly::IPAddressV6 kExpectedOuterDst{"fdad:ffff:aa::"};
+
+  // Active uSID 3 sits in the same locator block but has no entry in
+  // mySidConfig (function 1 is the only one configured), so nothing in
+  // hardware claims it. Function 3 also keeps it clear of kExpectedOuterDst
+  // (fdad:ffff:2::), which the trap ACL owns.
+  const folly::IPAddressV6 kUnconfiguredSidOuterDst{"fdad:ffff:3:4::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -65,17 +71,22 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     constexpr auto kNumNextHops = 4;
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    auto masterLogicalPorts = ensemble.masterLogicalPortIds();
+    cfg::SwitchConfig cfg;
     if constexpr (kIsTrunk) {
+      std::vector<utility::AggregatePortInfo> aggPorts;
+      aggPorts.reserve(kNumNextHops);
       for (int i = 0; i < kNumNextHops; ++i) {
-        utility::addAggPort(
-            i + 1,
-            {static_cast<int32_t>(ensemble.masterLogicalPortIds()[i])},
-            &cfg);
+        aggPorts.push_back({AggregatePortID(i + 1), {masterLogicalPorts[i]}});
       }
+      cfg = utility::oneAggregatePortPerInterfaceConfig(
+          ensemble.getSw(),
+          masterLogicalPorts,
+          aggPorts,
+          true /*interfaceHasSubnet*/);
+    } else {
+      cfg = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(), masterLogicalPorts, true /*interfaceHasSubnet*/);
     }
     cfg.loadBalancers() =
         utility::getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
@@ -86,14 +97,20 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         utility::makeSrv6TunnelConfig(
             "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value())));
     cfg.srv6Tunnels() = tunnelList;
-    // Trap packets with the rewritten outer dst so the snooper can capture
-    // the forwarded (uSID-shifted) packet.
-    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
-    utility::addTrapPacketAcl(
-        asic,
-        &cfg,
-        std::set<folly::CIDRNetwork>{{folly::IPAddress("fdad:ffff:2::"), 128}});
+    addTrapAcls(checkSameAndGetAsicForTesting(ensemble.getL3Asics()), cfg);
     return cfg;
+  }
+
+  // Trap packets with the rewritten outer dst so the snooper can capture the
+  // forwarded (uSID-shifted) packet. These match on dst ip with no port
+  // qualifier, so each prefix has to be one only the forwarded packet carries
+  // — a prefix an injected packet still holds on ingress would be copied to
+  // the CPU before the midpoint ever processes it. Fixtures that verify
+  // forwarding by port counters rather than by capture override this to trap
+  // nothing, so no copy competes with the packet they are counting.
+  virtual void addTrapAcls(const HwAsic* asic, cfg::SwitchConfig& cfg) const {
+    utility::addTrapPacketAcl(
+        asic, &cfg, std::set<folly::CIDRNetwork>{{kExpectedOuterDst, 128}});
   }
 
   cfg::MySidConfig makeAdjacencyMySidConfig(
@@ -121,11 +138,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         "enable trunk ports");
   }
 
-  utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper() {
+  virtual utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper()
+      const {
     return utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
-        this->getProgrammedState(),
-        this->getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
+        this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
   // The PortDescriptor the uA mysid is wired to. Tests must resolve their
@@ -380,6 +396,53 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       verifyMidpointDrop(injectPort, egressPort, isV4, injectPort, outerDst);
     }
   }
+
+  // A SID in the locator block that no mysid entry claims is dropped, but not
+  // as a mysid discard: inSrv6MySidDiscards is backed by
+  // SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP, which fires only while processing
+  // a *configured* local SID, and MySidConfigUtils programs just the
+  // per-function /48s with nothing covering the block. Such a packet misses
+  // the route table instead, so it lands in inDstNullDiscards.
+  void
+  verifyUnconfiguredSidDrop(PortID injectPort, PortID egressPort, bool isV4) {
+    XLOG(DBG2) << "verifyUnconfiguredSidDrop: inner=" << (isV4 ? "v4" : "v6")
+               << " outerDst=" << kUnconfiguredSidOuterDst.str();
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+    auto egressStatsBefore = this->getLatestPortStats(egressPort);
+    auto srv6DiscardsBefore =
+        portStatsBefore.inSrv6MySidDiscards_().value_or(0);
+
+    sendMidpointPacket(
+        false /* ecnMarked */, isV4, injectPort, kUnconfiguredSidOuterDst);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      auto egressStatsAfter = this->getLatestPortStats(egressPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDstNullDiscards_(),
+          *portStatsBefore.inDstNullDiscards_());
+    });
+
+    // Packet should not be forwarded out the egress port.
+    EXPECT_EQ(
+        *this->getLatestPortStats(egressPort).outBytes_(),
+        *egressStatsBefore.outBytes_());
+    // Only once the drop has been counted is it meaningful to say the mysid
+    // counter did not move with it. Checked after the loop rather than as an
+    // EXPECT_EVENTUALLY_EQ inside it: these counters are monotonic, so an
+    // increment would never retry away, and the loop would burn its whole
+    // timeout before failing.
+    EXPECT_EQ(
+        this->getLatestPortStats(injectPort).inSrv6MySidDiscards_().value_or(0),
+        srv6DiscardsBefore);
+  }
+
+  void verifyUnconfiguredSidDropFrontPanel(PortID egressPort) {
+    auto injectPort = findInjectPort(egressPort);
+    for (bool isV4 : {false, true}) {
+      verifyUnconfiguredSidDrop(injectPort, egressPort, isV4);
+    }
+  }
 };
 
 TYPED_TEST_SUITE(AgentSrv6MidpointTest, Srv6MidpointPortTypes);
@@ -417,20 +480,102 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
   auto verify = [this]() {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
     this->verifyMidpointDropFrontPanel(egressPort);
+    // Same locator block, but a function id the config never programmed.
+    // It drops too, yet only the unresolved entry above is a mysid discard —
+    // so the mysid counter distinguishes the two, rather than catching
+    // anything aimed at the block.
+    this->verifyUnconfiguredSidDropFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
+// A uA sid that is the last sid in the header decapsulates (USD) rather than
+// shifting, which is the FRR-flavored endpoint behavior rather than plain
+// midpoint forwarding.
+template <typename PortType>
+class AgentSrv6MidpointUsdTest : public AgentSrv6MidpointTest<PortType> {
+ protected:
+  // Outer dst holding uSID 1 with nothing behind it, so the uA sid is the last
+  // sid and USD decapsulates instead of shifting.
+  const folly::IPAddressV6 kUsdOuterDst{"fdad:ffff:1::"};
+  // Inner dst repeats uSID 1 with uSID aa behind it, so the header USD exposes
+  // is itself a midpoint packet for this node: it shifts rather than
+  // decapsulating, and leaves by the same adjacency.
+  const folly::IPAddressV6 kUsdInnerDst{"fdad:ffff:1:aa::"};
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features =
+        AgentSrv6MidpointTest<PortType>::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::MYSID_ADJACENCY_FRR);
+    return features;
+  }
+
+  // Trap nothing. The shifted packet carries the dst the base fixture traps,
+  // and a copy to the CPU competes with the forwarding this egress counter is
+  // measuring.
+  void addTrapAcls(const HwAsic* /*asic*/, cfg::SwitchConfig& /*cfg*/)
+      const override {}
+
+  utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper()
+      const override {
+    return utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState()));
+  }
+
+  // Outer dst is the uA sid with nothing behind it; inner dst repeats that sid
+  // with one more uSID behind it.
+  void sendUsdPacket(PortID injectPort) {
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+    auto txPacket = utility::makeIpInIpTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("100::1") /* outerSrc */,
+        kUsdOuterDst /* outerDst */,
+        folly::IPAddressV6("2001:db8::1") /* innerSrc */,
+        kUsdInnerDst /* innerDst */,
+        8000 /* srcPort */,
+        8001 /* dstPort */,
+        0 /* outerTrafficClass */,
+        0 /* innerTrafficClass */,
+        24 /* outerHopLimit */,
+        64 /* innerHopLimit */);
+    this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+  }
+
+  // The header USD exposes is addressed to this same node, so it is processed
+  // a second time and this time does shift, putting two packets on the uA next
+  // hop for one injected packet.
+  void verifyUsdDecapThenShift(PortID egressPort) {
+    auto injectPort = this->findInjectPort(egressPort);
+    auto pktsBefore =
+        *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+
+    sendUsdPacket(injectPort);
+
+    WITH_RETRIES({
+      auto pktsAfter =
+          *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+      EXPECT_EVENTUALLY_EQ(pktsAfter - pktsBefore, 2);
+    });
+  }
+};
+
+TYPED_TEST_SUITE(AgentSrv6MidpointUsdTest, Srv6MidpointPortTypes);
+
+TYPED_TEST(AgentSrv6MidpointUsdTest, uASidAsLastSidDecaps) {
   auto setup = [this]() { this->setupHelper(); };
 
   auto verify = [this]() {
     auto egressPort = this->getEgressPort(this->mySidPortDesc());
-    // Outer dst is the mySid prefix itself (fdad:ffff:1::) with no next uSID.
-    // The function bits are zero so there is no uSID to shift to — the
-    // packet should be dropped.
-    this->verifyMidpointDropFrontPanel(egressPort, this->kMySidPrefix);
+    this->verifyUsdDecapThenShift(egressPort);
   };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 

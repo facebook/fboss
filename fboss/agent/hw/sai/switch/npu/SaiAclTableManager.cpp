@@ -260,6 +260,16 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
       qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::TTL),
+      // Leave unset rather than false when unused: SDKs that do not
+      // implement this qualifier reject the whole table create on an
+      // unknown attribute, which would break every ACL table, not just
+      // MPLS ones.
+      (platform_->getAsic()->isSupported(
+           HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL) &&
+       qualifierExistsFn(cfg::AclTableQualifier::MPLS_LABEL0_TTL))
+          ? std::optional<
+                SaiAclTableTraits::Attributes::FieldMplsLabel0Ttl>{true}
+          : std::nullopt, // FieldMplsLabel0Ttl
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),

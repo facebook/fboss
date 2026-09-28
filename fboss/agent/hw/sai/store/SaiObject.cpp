@@ -368,6 +368,19 @@ SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(
   return json.asString();
 }
 
+template <>
+folly::dynamic
+SaiObject<SaiIsolationGroupTraits>::adapterHostKeyToFollyDynamic() {
+  return adapterHostKey_;
+}
+
+template <>
+typename SaiIsolationGroupTraits::AdapterHostKey
+SaiObject<SaiIsolationGroupTraits>::follyDynamicToAdapterHostKey(
+    const folly::dynamic& json) {
+  return json.asString();
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
 folly::dynamic SaiObject<SaiSrv6SidListTraits>::adapterHostKeyToFollyDynamic() {

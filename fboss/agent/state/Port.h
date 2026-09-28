@@ -364,6 +364,44 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::pgConfigs>(pgConfigs);
   }
 
+  auto getVirtualChannels() const {
+    return safe_cref<switch_state_tags::virtualChannels>();
+  }
+
+  void setVirtualChannels(std::vector<state::PortVcFields> virtualChannels) {
+    set<switch_state_tags::virtualChannels>(std::move(virtualChannels));
+  }
+
+  std::optional<std::string> getCbfcConfigName() const {
+    if (auto name = cref<switch_state_tags::cbfcConfigName>()) {
+      return name->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcConfigName(const std::optional<std::string>& name) {
+    if (!name) {
+      ref<switch_state_tags::cbfcConfigName>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcConfigName>(name.value());
+  }
+
+  std::optional<int64_t> getCbfcSenderCreditLimit() const {
+    if (auto limit = cref<switch_state_tags::cbfcSenderCreditLimit>()) {
+      return limit->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCbfcSenderCreditLimit(const std::optional<int64_t>& limit) {
+    if (!limit) {
+      ref<switch_state_tags::cbfcSenderCreditLimit>().reset();
+      return;
+    }
+    set<switch_state_tags::cbfcSenderCreditLimit>(limit.value());
+  }
+
   VlanID getIngressVlan() const {
     return VlanID(cref<switch_config_tags::ingressVlan>()->cref());
   }
@@ -1050,5 +1088,16 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   using BaseT::BaseT;
   friend class CloneAllocator;
 };
+
+/*
+ * Whether the two ports resolve to different LLR config. The profile is
+ * compared by content, not by node identity: ThriftConfigApplier rebuilds every
+ * node in the LlrConfig map whenever any profile changes, so a port whose own
+ * profile is untouched can still end up pointing at a new node holding
+ * identical config.
+ */
+bool llrConfigChanged(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort);
 
 } // namespace facebook::fboss

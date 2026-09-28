@@ -101,7 +101,20 @@ std::string_view getGeneratedFileExtension(cfg::AsicConfigType configType) {
 GeneratedAsicConfigFile resolveGeneratedAsicConfig(
     const fs::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile) {
+    std::string_view profile,
+    const std::optional<fs::path>& asicConfigFile = std::nullopt,
+    const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt) {
+  if (asicConfigType && !asicConfigFile) {
+    throw FbossError("ASIC config type requires an ASIC config file override");
+  }
+  if (asicConfigFile && asicConfigType) {
+    if (!fs::is_regular_file(*asicConfigFile)) {
+      throw FbossError(
+          "ASIC config override does not exist: ", asicConfigFile->string());
+    }
+    return {.path = *asicConfigFile, .configType = *asicConfigType};
+  }
+
   const auto platformDirectory =
       findPlatformConfigDirectory(fbossRoot, platform);
   const auto asicConfigDirectory =
@@ -161,18 +174,24 @@ GeneratedAsicConfigFile resolveGeneratedAsicConfig(
         metadataPath.string());
   }
 
-  auto fileName = platformName;
-  if (!profileName.empty()) {
-    fileName += "_" + profileName;
+  fs::path selectedPath;
+  if (asicConfigFile) {
+    selectedPath = *asicConfigFile;
+  } else {
+    auto fileName = platformName;
+    if (!profileName.empty()) {
+      fileName += "_" + profileName;
+    }
+    fileName += getGeneratedFileExtension(configType);
+    selectedPath = asicConfigDirectory / "generated" / fileName;
   }
-  fileName += getGeneratedFileExtension(configType);
-
-  const auto generatedPath = asicConfigDirectory / "generated" / fileName;
-  if (!fs::is_regular_file(generatedPath)) {
+  if (!fs::is_regular_file(selectedPath)) {
     throw FbossError(
-        "Generated ASIC config does not exist: ", generatedPath.string());
+        asicConfigFile ? "ASIC config override does not exist: "
+                       : "Generated ASIC config does not exist: ",
+        selectedPath.string());
   }
-  return {.path = generatedPath, .configType = configType};
+  return {.path = std::move(selectedPath), .configType = configType};
 }
 
 std::map<std::string, std::string> loadKeyValueConfig(
@@ -366,6 +385,22 @@ cfg::AsicType getAsicType(const cfg::SwitchConfig& switchConfig) {
 
 } // namespace
 
+cfg::AsicConfigType parseAsicConfigType(std::string_view configType) {
+  if (configType == "key_value") {
+    return cfg::AsicConfigType::KEY_VALUE_CONFIG;
+  }
+  if (configType == "json") {
+    return cfg::AsicConfigType::JSON_CONFIG;
+  }
+  if (configType == "yaml") {
+    return cfg::AsicConfigType::YAML_CONFIG;
+  }
+  throw FbossError(
+      "Unsupported ASIC config type '",
+      configType,
+      "'; expected key_value, json, or yaml");
+}
+
 cfg::AgentConfig assembleAgentConfig(
     std::map<std::string, std::string> defaultCommandLineArgs,
     cfg::SwitchConfig sw,
@@ -472,9 +507,12 @@ cfg::SwitchConfig generateSwitchConfig(
 cfg::PlatformConfig generatePlatformConfig(
     const fs::path& fbossRoot,
     std::string_view platform,
-    std::string_view profile) {
+    std::string_view profile,
+    const std::optional<fs::path>& asicConfigFile,
+    const std::optional<cfg::AsicConfigType>& asicConfigType) {
   return assemblePlatformConfig(
-      loadAsicConfig(resolveGeneratedAsicConfig(fbossRoot, platform, profile)),
+      loadAsicConfig(resolveGeneratedAsicConfig(
+          fbossRoot, platform, profile, asicConfigFile, asicConfigType)),
       readPortIdToPortAssignment(
           findPortIdToPortAssignmentConfig(fbossRoot, platform).string()));
 }
@@ -483,7 +521,9 @@ fs::path generateAgentConfig(
     std::string_view platform,
     std::string_view profile,
     const fs::path& fbossRoot,
-    const std::optional<fs::path>& outputDirectory) {
+    const std::optional<fs::path>& outputDirectory,
+    const std::optional<fs::path>& asicConfigFile,
+    const std::optional<cfg::AsicConfigType>& asicConfigType) {
   auto switchConfig = generateSwitchConfig(fbossRoot, platform);
   auto defaultCommandLineArgs = generateFeatureDefaultCommandArgs(
       fbossRoot,
@@ -494,7 +534,8 @@ fs::path generateAgentConfig(
   auto config = assembleAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),
-      generatePlatformConfig(fbossRoot, platform, profile));
+      generatePlatformConfig(
+          fbossRoot, platform, profile, asicConfigFile, asicConfigType));
   auto directory = utils::prepareOutputDirectory(outputDirectory);
   auto outputPath = directory / kAgentConfigFileName;
   utils::writeFileWithoutOverwrite(

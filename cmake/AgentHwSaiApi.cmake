@@ -55,6 +55,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/FirmwareApi.h
   fboss/agent/hw/sai/api/HashApi.h
   fboss/agent/hw/sai/api/HostifApi.h
+  fboss/agent/hw/sai/api/IsolationGroupApi.h
   fboss/agent/hw/sai/api/LagApi.h
   fboss/agent/hw/sai/api/MirrorApi.h
   fboss/agent/hw/sai/api/MplsApi.h

@@ -423,6 +423,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
     // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
     {CmisField::HOST_LANE_PROV_AD, {CmisPages::PAGE45, 129, 1}},
+    // Page C0h, Byte 131 - Host Lane Ethernet Control
+    {CmisField::HOST_LANE_ETH_CTRL, {CmisPages::PAGEC0, 131, 1}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -821,6 +823,29 @@ void CmisModule::writeCmisField(
       data,
       POST_I2C_WRITE_DELAY_US,
       CAST_TO_INT(field));
+}
+
+uint8_t CmisModule::readModifyWriteCmisField(
+    CmisField field,
+    uint8_t mask,
+    uint8_t value,
+    bool skipBankAndPageChange,
+    std::optional<uint8_t> bank) {
+  int dataLength, dataPage, dataOffset;
+  getQsfpFieldAddress(field, dataPage, dataOffset, dataLength);
+  if (dataLength != 1) {
+    throw FbossError(
+        fmt::format(
+            "Read-modify-write of field {} needs a one byte field, got {:d} bytes",
+            apache::thrift::util::enumNameSafe(field),
+            dataLength));
+  }
+
+  uint8_t data;
+  readCmisField(field, &data, skipBankAndPageChange, bank);
+  data = (data & ~mask) | (value & mask);
+  writeCmisField(field, &data, skipBankAndPageChange, bank);
+  return data;
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {
@@ -4061,6 +4086,9 @@ void CmisModule::programTunableModule(
   // Disable TX and RX squelch on all lanes
   disableTxRxSquelchForTunableOptics();
 
+  // Workaround to set PCS to AM Transparent: T289920421
+  setPcsToAmTransparent();
+
   switch (centerFreq->getType()) {
     case cfg::CenterFrequencyConfig::Type::frequencyMhz: {
       frequencyMhz = centerFreq->frequencyMhz().value();
@@ -5390,6 +5418,16 @@ bool CmisModule::isDatapathUpdated(
 
 void CmisModule::resetDataPath(const std::string& portName) {
   resetDataPathWithFunc(portName);
+}
+
+void CmisModule::resetDatapathProgrammingStateLocked() {
+  if (portDatapathStates_.empty()) {
+    return;
+  }
+  QSFP_LOG(INFO, this) << fmt::format(
+      "Discarding datapath programming state for {} port(s) after module reset",
+      portDatapathStates_.size());
+  portDatapathStates_.clear();
 }
 
 bool CmisModule::dataPathProgram(

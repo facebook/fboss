@@ -11,6 +11,7 @@ load(
     "SAI_LEABA_IMPLS",
     "SAI_NVIDIA_IMPLS",
     "get_link_group_map",
+    # @oss-disable[end= ]: "sai_impl_target_compatible_with",
     "to_impl_bin_name",
     "to_impl_lib_name",
 )
@@ -156,6 +157,7 @@ cpp_library(
     name = "agent_qos_test_src",
     srcs = [
         "Agent2QueueToOlympicQoSTests.cpp",
+        "AgentDeviceBufferGuaranteeTests.cpp",
         "AgentDscpQueueMappingTests.cpp",
         "AgentEgressQueueScalingFactorTests.cpp",
         "AgentNetworkAIQosSchedulerTests.cpp",
@@ -185,8 +187,10 @@ cpp_library(
         "//fboss/agent/test/utils:network_ai_qos_utils",
         "//fboss/agent/test/utils:olympic_qos_utils",
         "//fboss/agent/test/utils:pfc_test_utils",
+        "//fboss/agent/test/utils:port_test_utils",
         "//fboss/agent/test/utils:queue_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
+        "//folly:string",
     ],
     exported_deps = [
         "//fboss/agent:packet",
@@ -264,6 +268,7 @@ cpp_library(
         "AgentMPLSHeadEndTests.cpp",
         "AgentMPLSMidpointTests.cpp",
         "AgentMPLSTests.cpp",
+        "AgentMPLSTtlTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
@@ -276,6 +281,7 @@ cpp_library(
         "AgentMirrorOnDropXgsImpl.cpp",
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
+        "AgentMySidAdjFrrRouteTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentOverflowTestBase.cpp",
         "AgentPacketSendTests.cpp",
@@ -564,6 +570,7 @@ cpp_binary(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -605,6 +612,7 @@ _sai_agent_hw_test_prefix = "sai_agent_hw_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             ":agent_hw_test_src",
@@ -645,6 +653,7 @@ _sai_scale_test_configs = [
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",
@@ -682,6 +691,7 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
         versions = to_versions(sai_impl),
         deps = [
             "fbsource//third-party/googletest:gtest",

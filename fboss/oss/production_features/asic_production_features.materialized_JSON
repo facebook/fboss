@@ -149,7 +149,8 @@
         68,
         110,
         124,
-        125
+        125,
+        129
     ],
     "g202x": [
         2,
@@ -674,7 +675,9 @@
         102,
         104,
         117,
-        123
+        123,
+        49,
+        111
     ],
     "tomahawkultra1": [
         2,
@@ -730,7 +733,8 @@
         49,
         96,
         97,
-        118
+        118,
+        130
     ],
     "yuba": [
         2,
@@ -939,7 +943,8 @@
         "MPLS",
         "IP_IN_IP_ENCAP",
         "EMPTY_ACL_MATCHER",
-        "PORT_BOUND_INGRESS_ACL"
+        "PORT_BOUND_INGRESS_ACL",
+        "BUFFER_MIN_GUARANTEE_WITH_DELAY_DROPS"
     ],
     "g202x": [
         "CPU_RX_TX",
@@ -1464,7 +1469,9 @@
         "SRV6_DECAP",
         "SRV6_MIDPOINT",
         "CABLE_LENGTH_MEASUREMENT",
-        "DROP_REASON_LIST_SUPPORT"
+        "DROP_REASON_LIST_SUPPORT",
+        "MIRROR_ON_DROP",
+        "MIRROR_ON_DROP_STATELESS"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -1520,7 +1527,8 @@
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
         "ECN_PROBABILISTIC_MARKING",
-        "LINK_LAYER_RETRANSMISSION"
+        "LINK_LAYER_RETRANSMISSION",
+        "CREDIT_BASED_FLOW_CONTROL"
     ],
     "yuba": [
         "CPU_RX_TX",
@@ -1935,6 +1943,14 @@
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp",
           "note": "Stateless mirror-on-drop is supported on SAI Tomahawk5 from SDK 13.3 onwards (renamed from AgentMirrorOnDropXgs in D101748313)"
+        },
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "14.2.0.0_odp",
+          "note": "Stateless mirror-on-drop is supported on SAI Tomahawk6 from SDK 14.2 onwards"
         }
       ]
     },

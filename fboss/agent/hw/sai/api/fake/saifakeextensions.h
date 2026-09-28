@@ -206,6 +206,7 @@ typedef enum _sai_ars_extensions_attr_t {
   SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE = SAI_ARS_ATTR_CUSTOM_RANGE_START,
   SAI_ARS_ATTR_EXTENSION_SOURCE_PORT_PRUNE,
   SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT,
+  SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT,
 } sai_ars_extensions_attr_t;
 
 typedef enum _sai_ars_next_hop_group_type_t {
@@ -217,7 +218,6 @@ typedef enum _sai_acl_entry_extensions_attr_t {
   SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL =
       SAI_ACL_ENTRY_ATTR_CUSTOM_RANGE_START,
   SAI_ACL_ENTRY_ATTR_FIELD_ROUTE_DST,
-  SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED,
 } sai_acl_entry_extensions_attr_t;
 
 #define SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL \

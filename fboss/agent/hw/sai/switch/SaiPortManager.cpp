@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -1786,6 +1787,21 @@ void SaiPortManager::changeIngressAcl(
   setIngressAcl(newPort);
 }
 
+void SaiPortManager::replaceIngressAcl(
+    AclTableSaiId oldAclTableId,
+    AclTableSaiId newAclTableId) {
+  for (const auto& [_, portHandle] : handles_) {
+    const auto ingressAcl =
+        std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+            portHandle->port->attributes());
+    if (!ingressAcl || ingressAcl->value() != oldAclTableId) {
+      continue;
+    }
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressAcl{newAclTableId});
+  }
+}
+
 void SaiPortManager::resetCableLength(PortID portId) {
   auto portStatItr = portStats_.find(portId);
   if (portStatItr == portStats_.end()) {
@@ -1887,6 +1903,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   removeSamplePacket(swPort);
   removePfcBuffers(swPort);
   removePfc(swPort);
+  managerTable_->virtualChannelManager().removeVirtualChannels(swId);
   clearQosPolicy(swId);
 
   concurrentIndices_->portSaiId2PortInfo.erase(itr->second->port->adapterKey());
@@ -2766,10 +2783,9 @@ const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
 
 bool SaiPortManager::isLinkDebounceRetriggerCounterSupported(
     [[maybe_unused]] const HwAsic* asic) {
-#if defined(TAJO_SDK_VERSION_25_5_4210) ||                                 \
-    defined(TAJO_SDK_VERSION_26_2_4210) ||                                 \
-    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211) && \
-     !defined(TAJO_SDK_VERSION_26_7_5211))
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200))
   return asic->isSupported(HwAsic::Feature::PORT_DEBOUNCE);
 #else
   return false;
@@ -2988,10 +3004,9 @@ void SaiPortManager::updateStats(
     curPortStats.logicalPortId() = *logicalPortId;
   }
 
-#if defined(TAJO_SDK_VERSION_25_5_4210) ||                                 \
-    defined(TAJO_SDK_VERSION_26_2_4210) ||                                 \
-    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_VERSION_26_5_5211) && \
-     !defined(TAJO_SDK_VERSION_26_7_5211))
+#if defined(TAJO_SDK_VERSION_25_5_4210) || \
+    defined(TAJO_SDK_VERSION_26_2_4210) || \
+    (defined(TAJO_SDK_GTE_26_5) && !defined(TAJO_SDK_P200))
   if (isLinkDebounceRetriggerCounterSupported(platform_->getAsic())) {
     auto& portApi = SaiApiTable::getInstance()->portApi();
     auto adapterKey = handle->port->adapterKey();
@@ -3353,6 +3368,12 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcAndColorToDot1pMap{mapping});
         break;
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+      case SAI_QOS_MAP_TYPE_TC_TO_VC:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosTcToVcMap{mapping});
+        break;
+#endif
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
         /*
          * On certain platforms, applying TC to QUEUE mapping on front panel
@@ -3410,6 +3431,11 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
     if (qosMapHandle->tcToPgMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId);
     }
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+    if (qosMapHandle->tcToVcMap) {
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_VC, nullObjId);
+    }
+#endif
     if (qosMapHandle->pfcPriorityToQueueMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
     }
@@ -3447,6 +3473,12 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
         SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
         qosMapHandle->tcToPgMap->adapterKey());
   }
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+  if (qosMapHandle->tcToVcMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_TC_TO_VC, qosMapHandle->tcToVcMap->adapterKey());
+  }
+#endif
   if (qosMapHandle->pfcPriorityToQueueMap) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
@@ -4591,7 +4623,10 @@ void SaiPortManager::changeZeroPreemphasis(
         newPort->getPinConfigs(),
         portHandle->serdes,
         newPort->getZeroPreemphasis(),
-        newPort->getSerdesCustomCollection());
+        newPort->getSerdesCustomCollection(),
+        false,
+        FLAGS_montblanc_precoding || newPort->getTxPrecoding().value_or(false),
+        FLAGS_montblanc_precoding || newPort->getRxPrecoding().value_or(false));
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {

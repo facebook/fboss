@@ -56,6 +56,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, PrbsRxState),
 #endif
     SAI_ATTR_MAP(Port, IngressAcl),
+    SAI_ATTR_MAP(Port, IsolationGroup),
     SAI_ATTR_MAP(Port, IngressMacSecAcl),
     SAI_ATTR_MAP(Port, EgressMacSecAcl),
     SAI_ATTR_MAP(Port, PtpMode),
@@ -70,6 +71,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, IngressPriorityGroupList),
     SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),
     SAI_ATTR_MAP(Port, QosTcToPriorityGroupMap),
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+    SAI_ATTR_MAP(Port, QosTcToVcMap),
+    SAI_ATTR_MAP(Port, CbfcSenderCreditLimit),
+#endif
     SAI_ATTR_MAP(Port, QosPfcPriorityToQueueMap),
     SAI_ATTR_MAP(Port, QosPfcPriorityToPriorityGroupMap),
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)

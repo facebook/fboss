@@ -38,6 +38,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     bzip2 bzip2-devel cmake double-conversion double-conversion-devel gperf \
     libcurl-devel libcurl-minimal libdwarf libdwarf-devel libevent-devel \
     libffi libffi-devel libnghttp2 libnghttp2-devel libnl3 libnl3-devel \
+    jemalloc jemalloc-devel \
     libsodium-devel libsodium-static libunwind libunwind-devel libusb libusb-devel \
     libzstd libzstd-devel lz4-devel ncurses-devel ninja-build \
     openssl openssl-devel openssl-libs \

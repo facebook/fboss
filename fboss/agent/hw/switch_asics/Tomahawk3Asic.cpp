@@ -107,6 +107,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
       return true;
+    case HwAsic::Feature::ISOLATION_GROUP:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
@@ -129,6 +130,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::FABRIC_PORTS:
 
@@ -241,6 +243,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_CUSTOM_DROP_BITMAP_SUPPORT:
     case HwAsic::Feature::SWITCH_DROP_REASON_LIST_SUPPORT:
     case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
+    case HwAsic::Feature::CBFC:
     case HwAsic::Feature::LINK_LAYER_RETRANSMISSION:
     case HwAsic::Feature::PORT_DEBOUNCE:
     case HwAsic::Feature::ACL_DST_IPV6_WORD_QUALIFIERS:

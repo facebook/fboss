@@ -8,8 +8,11 @@
  *
  */
 
+#include "fboss/cli/fboss2/commands/config/gen/agent/CmdConfigGenAgent.h"
+#include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h"
 #include "fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h"
 
+#include <cstdint>
 #include <filesystem>
 #include <map>
 #include <optional>
@@ -25,6 +28,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/cli/fboss2/CmdList.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
@@ -200,6 +204,38 @@ std::string readFile(const fs::path& path) {
     throw std::runtime_error("Unable to read test file " + path.string());
   }
   return contents;
+}
+
+std::string serializeAgentConfig(
+    std::string_view yamlConfig,
+    bool includeSdkVersion = false,
+    std::optional<std::string_view> testArgument = std::nullopt,
+    std::optional<int16_t> switchIndex = std::nullopt) {
+  cfg::AsicConfigEntry common;
+  common.set_yamlConfig(std::string(yamlConfig));
+  cfg::AsicConfig asicConfig;
+  asicConfig.common() = std::move(common);
+  cfg::ChipConfig chipConfig;
+  chipConfig.set_asicConfig(std::move(asicConfig));
+
+  cfg::AgentConfig config;
+  config.platform()->chip() = std::move(chipConfig);
+  if (testArgument) {
+    config.defaultCommandLineArgs()["test_argument"] = *testArgument;
+  }
+  if (includeSdkVersion) {
+    cfg::SdkVersion sdkVersion;
+    sdkVersion.asicSdk() = "sdk";
+    sdkVersion.saiSdk() = "sai";
+    config.sw()->sdkVersion() = std::move(sdkVersion);
+  }
+  if (switchIndex) {
+    cfg::SwitchInfo switchInfo;
+    switchInfo.switchIndex() = *switchIndex;
+    config.sw()->switchSettings()->switchIdToSwitchInfo()[0] =
+        std::move(switchInfo);
+  }
+  return apache::thrift::SimpleJSONSerializer::serialize<std::string>(config);
 }
 
 std::map<std::string, std::string> expectedHwTestCommandLineArgs() {
@@ -474,6 +510,84 @@ TEST(AgentConfigGenTest, GeneratesPlatformConfig) {
   EXPECT_FALSE(platformConfig.platformSettings());
 }
 
+TEST(AgentConfigGenTest, UsesExplicitAsicConfigFile) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
+  const auto generatedConfig = platformDirectory / "asic_config" / "generated" /
+      "test_platform_hw_test.yml";
+  fs::remove(generatedConfig);
+  const auto overrideConfig =
+      fs::path(temporaryDirectory.path().string()) / "vendor_config.yml";
+  constexpr std::string_view kVendorAsicYaml = "ASIC_CONFIG: vendor\n";
+  writeTestFile(overrideConfig, kVendorAsicYaml);
+
+  const auto platformConfig =
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile, overrideConfig);
+
+  EXPECT_EQ(
+      platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
+      kVendorAsicYaml);
+}
+
+TEST(AgentConfigGenTest, UsesExplicitAsicConfigTypeWithoutMetadata) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  const auto platformDirectory = createTestPlatform(fbossRoot, "test_vendor");
+  fs::remove(platformDirectory / "asic_config" / "asic_config.json");
+  const auto overrideConfig =
+      fs::path(temporaryDirectory.path().string()) / "vendor_config.yml";
+  constexpr std::string_view kVendorAsicYaml = "ASIC_CONFIG: vendor\n";
+  writeTestFile(overrideConfig, kVendorAsicYaml);
+
+  const auto platformConfig = generatePlatformConfig(
+      fbossRoot,
+      kPlatform,
+      kProfile,
+      overrideConfig,
+      cfg::AsicConfigType::YAML_CONFIG);
+
+  EXPECT_EQ(
+      platformConfig.chip()->get_asicConfig().common()->get_yamlConfig(),
+      kVendorAsicYaml);
+}
+
+TEST(AgentConfigGenTest, RejectsExplicitAsicConfigTypeWithoutFile) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+
+  EXPECT_THROW(
+      generatePlatformConfig(
+          fbossRoot,
+          kPlatform,
+          kProfile,
+          std::nullopt,
+          cfg::AsicConfigType::YAML_CONFIG),
+      FbossError);
+}
+
+TEST(AgentConfigGenTest, ParsesExplicitAsicConfigType) {
+  EXPECT_EQ(
+      parseAsicConfigType("key_value"), cfg::AsicConfigType::KEY_VALUE_CONFIG);
+  EXPECT_EQ(parseAsicConfigType("json"), cfg::AsicConfigType::JSON_CONFIG);
+  EXPECT_EQ(parseAsicConfigType("yaml"), cfg::AsicConfigType::YAML_CONFIG);
+  EXPECT_THROW(parseAsicConfigType("NONE"), FbossError);
+  EXPECT_THROW(parseAsicConfigType("YAML_CONFIG"), FbossError);
+}
+
+TEST(AgentConfigGenTest, RejectsMissingExplicitAsicConfigFile) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  const auto missingConfig =
+      fs::path(temporaryDirectory.path().string()) / "missing.yml";
+
+  EXPECT_THROW(
+      generatePlatformConfig(fbossRoot, kPlatform, kProfile, missingConfig),
+      FbossError);
+}
+
 TEST(AgentConfigGenTest, PrefersColocatedPortAssignments) {
   folly::test::TemporaryDirectory temporaryDirectory;
   const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
@@ -559,6 +673,96 @@ TEST(AgentConfigGenTest, SerializesAndWritesAgentConfig) {
   EXPECT_TRUE(config.thriftApiToRateLimitInQps()->empty());
 }
 
+TEST(AgentConfigComparisonTest, ReportsByteMatch) {
+  const auto config = serializeAgentConfig("first: 1\nsecond: 2\n");
+
+  const auto result = compareAgentConfigContents(config, config);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::BYTE_MATCH);
+  EXPECT_EQ(result.ignoredPaths, std::vector<std::string>{"sw.sdkVersion"});
+  EXPECT_TRUE(result.semanticDifferences.empty());
+}
+
+TEST(AgentConfigComparisonTest, IgnoresYamlMapOrder) {
+  const auto generated = serializeAgentConfig("first: 1\nsecond: 2\n");
+  const auto reference = serializeAgentConfig("second: 2\nfirst: 1\n");
+
+  const auto result = compareAgentConfigContents(generated, reference);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::SEMANTIC_MATCH);
+  EXPECT_EQ(
+      result.semanticDifferences,
+      std::vector<std::string>{
+          ".platform.chip.asicConfig.common.yamlConfig: YAML formatting or map ordering"});
+}
+
+TEST(AgentConfigComparisonTest, ReportsSemanticContentMismatch) {
+  const auto generated = serializeAgentConfig("value: generated\n");
+  const auto reference = serializeAgentConfig("value: reference\n");
+
+  const auto result = compareAgentConfigContents(generated, reference);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::CONTENT_MISMATCH);
+  EXPECT_NE(result.normalizedGenerated, result.normalizedReference);
+  EXPECT_EQ(
+      result.differingPaths,
+      std::vector<std::string>{".platform.chip.asicConfig.common.yamlConfig"});
+}
+
+TEST(AgentConfigComparisonTest, FormatsMapKeysAsJqExpressions) {
+  const auto generated =
+      serializeAgentConfig("value: same\n", false, std::nullopt, 0);
+  const auto reference =
+      serializeAgentConfig("value: same\n", false, std::nullopt, 1);
+
+  const auto result = compareAgentConfigContents(generated, reference);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::CONTENT_MISMATCH);
+  EXPECT_EQ(
+      result.differingPaths,
+      std::vector<std::string>{
+          ".sw.switchSettings.switchIdToSwitchInfo[\"0\"].switchIndex"});
+}
+
+TEST(AgentConfigComparisonTest, AppliesUniversalIgnoredPaths) {
+  const auto generated = serializeAgentConfig("value: same\n");
+  const auto reference = serializeAgentConfig("value: same\n", true);
+
+  const auto result = compareAgentConfigContents(generated, reference);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::SEMANTIC_MATCH);
+  EXPECT_EQ(result.ignoredPaths, std::vector<std::string>{"sw.sdkVersion"});
+  EXPECT_EQ(
+      result.semanticDifferences,
+      std::vector<std::string>{".sw.sdkVersion: ignored by comparison policy"});
+}
+
+TEST(AgentConfigComparisonTest, AppliesAdditionalIgnoredPaths) {
+  const auto generated =
+      serializeAgentConfig("value: same\n", false, "generated");
+  const auto reference =
+      serializeAgentConfig("value: same\n", false, "reference");
+  AgentConfigComparisonOptions options;
+  options.ignoredPaths = {"defaultCommandLineArgs.test_argument"};
+
+  const auto result = compareAgentConfigContents(generated, reference, options);
+
+  EXPECT_EQ(result.status, AgentConfigComparisonStatus::SEMANTIC_MATCH);
+  const std::vector<std::string> expectedIgnoredPaths{
+      "defaultCommandLineArgs.test_argument", "sw.sdkVersion"};
+  EXPECT_EQ(result.ignoredPaths, expectedIgnoredPaths);
+}
+
+TEST(AgentConfigComparisonTest, RejectsUnknownIgnoredPath) {
+  const auto config = serializeAgentConfig("value: same\n");
+  AgentConfigComparisonOptions options;
+  options.ignoredPaths = {"sw.notAField"};
+
+  EXPECT_THROW(
+      compareAgentConfigContents(config, config, options),
+      std::invalid_argument);
+}
+
 TEST(AgentConfigGenTest, UsesUniqueDefaultOutputDirectory) {
   folly::test::TemporaryDirectory sourceDirectory;
   const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
@@ -635,6 +839,68 @@ TEST(CmdConfigGenAgentTest, RegistersAgentCommand) {
   auto* gen = utils::getSubcommandIf(*config, "gen");
   ASSERT_NE(gen, nullptr);
   EXPECT_NE(utils::getSubcommandIf(*gen, "agent"), nullptr);
+}
+
+TEST(CmdConfigGenAgentTest, ReportsContentMismatchAsLocalError) {
+  folly::test::TemporaryDirectory sourceDirectory;
+  folly::test::TemporaryDirectory referenceDirectory;
+  folly::test::TemporaryDirectory outputDirectory;
+  const auto fbossRoot = fs::path(sourceDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+
+  const auto referencePath = generateAgentConfig(
+      kPlatform,
+      kProfile,
+      fbossRoot,
+      fs::path(referenceDirectory.path().string()));
+  cfg::AgentConfig referenceConfig;
+  apache::thrift::SimpleJSONSerializer::deserialize(
+      readFile(referencePath), referenceConfig);
+  cfg::AsicConfigEntry wrongCommon;
+  wrongCommon.set_yamlConfig("wrong: config\n");
+  cfg::AsicConfig wrongAsicConfig;
+  wrongAsicConfig.common() = std::move(wrongCommon);
+  referenceConfig.platform()->chip()->set_asicConfig(
+      std::move(wrongAsicConfig));
+  writeTestFile(
+      referencePath,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+          referenceConfig));
+
+  auto localOptions = CmdLocalOptions::getInstance();
+  localOptions->clear();
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentPlatform,
+      std::string(kPlatform));
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentProfile,
+      std::string(kProfile));
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentFbossRoot,
+      fbossRoot.string());
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentReferenceConfigFile,
+      referencePath.string());
+  localOptions->setLocalOption(
+      std::string(kConfigGenAgentCommand),
+      kConfigGenAgentOutputDirectory,
+      outputDirectory.path().string());
+
+  testing::internal::CaptureStderr();
+  EXPECT_THROW(CmdConfigGenAgent().run(), std::runtime_error);
+  const auto error = testing::internal::GetCapturedStderr();
+  localOptions->clear();
+
+  EXPECT_NE(error.find("Result: CONTENT_MISMATCH"), std::string::npos);
+  EXPECT_NE(
+      error.find(".platform.chip.asicConfig.common.yamlConfig"),
+      std::string::npos);
+  EXPECT_EQ(error.find("Thrift call failed"), std::string::npos);
+  EXPECT_EQ(error.find("localhost"), std::string::npos);
 }
 
 } // namespace

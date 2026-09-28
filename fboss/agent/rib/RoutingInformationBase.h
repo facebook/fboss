@@ -79,6 +79,11 @@ struct MySidWithNextHops {
   std::optional<std::string> nextHopGroupName;
 };
 
+struct MySidFrrProtectionUpdate {
+  folly::CIDRNetwork mySidPrefix;
+  RouteNextHopSet nextHops;
+};
+
 // (prefix-key for the MySid, IP of the removed neighbor). Used by the
 // observer-driven neighbor-removal path: RIB clears unresolveNextHopsId
 // + resolvedNextHopsId iff the materialized unresolved next-hop set
@@ -181,6 +186,13 @@ class RibRouteTables {
       const std::vector<MySidWithNextHops>& toAdd,
       const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
       const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
+  void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+      const std::vector<folly::CIDRNetwork>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
@@ -504,6 +516,14 @@ class RoutingInformationBase {
         cookie,
         true /* async */);
   }
+
+  void updateMySidFrrProtection(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidFrrProtectionUpdate>& toAddOrUpdate,
+      const std::vector<folly::CIDRNetwork>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),

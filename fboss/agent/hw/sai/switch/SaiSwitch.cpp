@@ -1709,9 +1709,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
             delta.newState()->getPortAclTableGroups().get());
     processAclTableGroups(aclTableGroupsDelta);
     processAclTableGroups(portAclTableGroupsDelta);
-    // TODO: Require a port-bound ACL table to be deprecated and unbound from
-    // all ports before removing it. Until then, referenced tables are assumed
-    // to remain programmed, allowing a port to atomically replace table OIDs.
+    // Program replacement tables and rebind ports before removing old tables,
+    // so ports never reference a removed SAI object during one state update.
     processChangedDelta(
         delta.getPortsDelta(),
         managerTable_->portManager(),
@@ -1722,6 +1721,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         managerTable_->portManager(),
         lockPolicy,
         &SaiPortManager::setIngressAcl);
+    {
+      [[maybe_unused]] const auto& lock = lockPolicy.lock();
+      managerTable_->aclTableManager().removeObsoletePortBoundAclTables(
+          delta.oldState(), delta.newState());
+    }
   } else {
     std::set<cfg::AclTableQualifier> oldRequiredQualifiers{};
     std::set<cfg::AclTableQualifier> newRequiredQualifiers{};
@@ -5477,16 +5481,37 @@ void SaiSwitch::processAclTableGroupDelta(
       throw FbossError(
           "multiple ACL tables configured, but platform only support one ACL table");
     }
-    processDelta(
-        aclTablesDelta,
-        managerTable_->aclTableManager(),
-        lockPolicy,
-        &SaiAclTableManager::changedAclTable,
-        &SaiAclTableManager::addAclTable,
-        &SaiAclTableManager::removeAclTable,
-        aclStage,
-        delta.newState(),
-        bindPoint);
+    if (bindPoint == cfg::AclTableGroupBindPoint::PORT) {
+      // Defer port-bound table removals until after ports are rebound, so no
+      // port can reference a removed SAI ACL table.
+      processChangedDelta(
+          aclTablesDelta,
+          managerTable_->aclTableManager(),
+          lockPolicy,
+          &SaiAclTableManager::changedAclTable,
+          aclStage,
+          delta.newState(),
+          bindPoint);
+      processAddedDelta(
+          aclTablesDelta,
+          managerTable_->aclTableManager(),
+          lockPolicy,
+          &SaiAclTableManager::addAclTable,
+          aclStage,
+          delta.newState(),
+          bindPoint);
+    } else {
+      processDelta(
+          aclTablesDelta,
+          managerTable_->aclTableManager(),
+          lockPolicy,
+          &SaiAclTableManager::changedAclTable,
+          &SaiAclTableManager::addAclTable,
+          &SaiAclTableManager::removeAclTable,
+          aclStage,
+          delta.newState(),
+          bindPoint);
+    }
 
     if (aclTablesDelta.getNew()) {
       // Process delta for the entries of each table in the new state

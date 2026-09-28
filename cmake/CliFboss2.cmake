@@ -427,6 +427,8 @@ add_library(fboss2_config_gen_lib
   fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.cpp
   fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h
   fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.cpp
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.h
+  fboss/cli/fboss2/commands/config/gen/agent/AgentConfigComparisonUtils.cpp
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.h
   fboss/cli/fboss2/commands/config/gen/agent/AgentConfigGenUtils.cpp
 )
@@ -439,9 +441,12 @@ target_link_libraries(fboss2_config_gen_lib
   fboss2_config_file_utils
   Folly::folly
   platform_descriptor
+  ${YAML-CPP}
+  ${YAML}
   split_platform_mapping_utils
   switch_asics
 )
+
 
 add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
@@ -756,6 +761,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/SafetyPromptUtils.h
   fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
@@ -899,6 +906,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h
   fboss/cli/fboss2/commands/config/copp/CoppUtils.cpp
   fboss/cli/fboss2/commands/config/copp/CoppUtils.h
+  fboss/cli/fboss2/commands/config/data_plane/CmdConfigDataPlane.cpp
+  fboss/cli/fboss2/commands/config/data_plane/CmdConfigDataPlane.h
+  fboss/cli/fboss2/commands/config/data_plane/traffic_policy/CmdConfigDataPlaneTrafficPolicy.cpp
+  fboss/cli/fboss2/commands/config/data_plane/traffic_policy/CmdConfigDataPlaneTrafficPolicy.h
+  fboss/cli/fboss2/commands/config/TrafficPolicyUtils.cpp
+  fboss/cli/fboss2/commands/config/TrafficPolicyUtils.h
   fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.cpp
   fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h
   fboss/cli/fboss2/commands/config/dhcp/relay_source_override/CmdConfigDhcpRelaySourceOverride.cpp
@@ -926,12 +939,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.cpp
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
@@ -944,122 +951,24 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliAttrHandlers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpCliValueParsers.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/BgpPeerAddr.h
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h
   fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h
   fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalClusterId.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalClusterId.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalConfedAsn.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalConfedAsn.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalHoldTime.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalHoldTime.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalLocalAsn.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalLocalAsn.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalNetwork6Add.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalNetwork6Add.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalRouterId.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalRouterId.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitMaxGoldenVips.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitOverloadProtectionMode.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitPrefixLimit.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobalSwitchLimitTotalPathLimit.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupConfedPeer.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDescription.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDisableIpv4Afi.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupDisableIpv4Afi.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupEgressPolicy.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupEgressPolicy.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupIngressPolicy.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupIngressPolicy.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupMaxRoutes.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupMaxRoutes.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupNextHopSelf.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupNextHopSelf.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupPeerTag.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupPeerTag.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRemoteAsn.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRemoteAsn.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRrClient.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupRrClient.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimers.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimers.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersHoldTime.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersHoldTime.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersKeepalive.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersKeepalive.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersOutDelay.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersOutDelay.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelay.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimersWithdrawUnprogDelay.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupV4OverV6Nh.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupV4OverV6Nh.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningLimit.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningLimit.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningOnly.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupWarningOnly.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeer.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeer.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerAdvertiseLbw.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerAdvertiseLbw.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDescription.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDescription.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDisableIpv4Afi.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerDisableIpv4Afi.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerEgressPolicy.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerEgressPolicy.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerHoldTime.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerHoldTime.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerIngressPolicy.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerIngressPolicy.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLinkBandwidth.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLinkBandwidth.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLocalAddr.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerLocalAddr.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerMaxRoutes.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerMaxRoutes.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop4.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop4.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop6.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHop6.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHopSelf.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerNextHopSelf.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPassive.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerGroup.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerGroup.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerId.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerPeerId.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRemoteAsn.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRemoteAsn.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRrClient.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerRrClient.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimers.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimers.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersKeepalive.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersKeepalive.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersWithdrawUnprogDelay.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerType.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerType.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.cpp
-  fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
   fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
@@ -1161,6 +1070,20 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/acl/rule/CmdDeleteAclRule.h
   fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.cpp
   fboss/cli/fboss2/commands/delete/acl/table/CmdDeleteAclTable.h
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/CmdDeleteCoppTrafficPolicy.cpp
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/CmdDeleteCoppTrafficPolicy.h
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/CmdDeleteCoppTrafficPolicyMatch.cpp
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/CmdDeleteCoppTrafficPolicyMatch.h
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/action/CmdDeleteCoppTrafficPolicyMatchAction.cpp
+  fboss/cli/fboss2/commands/delete/copp/traffic_policy/match/action/CmdDeleteCoppTrafficPolicyMatchAction.h
+  fboss/cli/fboss2/commands/delete/data_plane/CmdDeleteDataPlane.cpp
+  fboss/cli/fboss2/commands/delete/data_plane/CmdDeleteDataPlane.h
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/CmdDeleteDataPlaneTrafficPolicy.cpp
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/CmdDeleteDataPlaneTrafficPolicy.h
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/CmdDeleteDataPlaneTrafficPolicyMatch.cpp
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/CmdDeleteDataPlaneTrafficPolicyMatch.h
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/action/CmdDeleteDataPlaneTrafficPolicyMatchAction.cpp
+  fboss/cli/fboss2/commands/delete/data_plane/traffic_policy/match/action/CmdDeleteDataPlaneTrafficPolicyMatchAction.h
   fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.cpp
   fboss/cli/fboss2/commands/delete/dhcp/CmdDeleteDhcp.h
   fboss/cli/fboss2/commands/delete/dhcp/relay_source_override/CmdDeleteDhcpRelaySourceOverride.cpp
@@ -1175,7 +1098,19 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.cpp
   fboss/cli/fboss2/commands/delete/interface/sflow/CmdDeleteInterfaceSflow.h
+  fboss/cli/fboss2/commands/delete/load_balancing/CmdDeleteLoadBalancing.cpp
+  fboss/cli/fboss2/commands/delete/load_balancing/CmdDeleteLoadBalancing.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
@@ -1189,14 +1124,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
   fboss/cli/fboss2/commands/delete/mirror/CmdDeleteMirror.cpp
   fboss/cli/fboss2/commands/delete/mirror/CmdDeleteMirror.h
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.cpp
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.cpp
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.cpp
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
@@ -1211,6 +1150,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h
   fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.cpp
   fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h
+  fboss/cli/fboss2/session/ConfigFileManager.cpp
+  fboss/cli/fboss2/session/ConfigFileManager.h
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/FbossServiceUtil.h
@@ -1235,6 +1176,7 @@ target_link_libraries(fboss2_config_lib
   bgp_config_cpp2
   switchinfo_utils
   platform_mapping
+  Boost::regex
   Folly::folly
 )
 

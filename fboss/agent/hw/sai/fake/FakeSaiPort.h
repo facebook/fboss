@@ -79,6 +79,7 @@ struct FakePort {
   sai_prbs_rx_state_t prbsRxState{SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS, 1};
 #endif
   sai_object_id_t ingressAcl{SAI_NULL_OBJECT_ID};
+  sai_object_id_t isolationGroup{SAI_NULL_OBJECT_ID};
   sai_object_id_t ingressMacsecAcl{SAI_NULL_OBJECT_ID};
   sai_object_id_t egressMacsecAcl{SAI_NULL_OBJECT_ID};
   uint16_t systemPortId{0};
@@ -241,8 +242,10 @@ using FakePortSerdesManager = FakeManager<sai_object_id_t, FakePortSerdes>;
 using FakePortConnectorManager =
     FakeManager<sai_object_id_t, FakePortConnector>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
+// Base the ids at 1: id 0 is SAI_NULL_OBJECT_ID, which a port carries to mean
+// "no profile bound", so a real profile must never share it.
 using FakePortLlrProfileManager =
-    FakeManager<sai_object_id_t, FakePortLlrProfile>;
+    FakeManager<sai_object_id_t, FakePortLlrProfile, 1>;
 #endif
 
 void populate_port_api(sai_port_api_t** port_api);

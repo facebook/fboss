@@ -1179,11 +1179,6 @@ SaiAclEntryTraits::Attributes::AttributeFieldRouteDestination::operator()() {
 }
 
 std::optional<sai_attr_id_t>
-SaiAclEntryTraits::Attributes::AttributeLabelExtendedWrapper::operator()() {
-  return SAI_ACL_ENTRY_ATTR_EXT_LABEL_EXTENDED;
-}
-
-std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
   return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }
@@ -1196,6 +1191,21 @@ SaiArsTraits::Attributes::AttributeSourcePortPrune::operator()() {
 std::optional<sai_attr_id_t>
 SaiArsTraits::Attributes::AttributeEcmpMemberCount::operator()() {
   return SAI_ARS_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxAltMembersPerGroup::operator()() {
+  return SAI_ARS_ATTR_MAX_ALT_MEMEBERS_PER_GROUP;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeMaxPrimaryMembersPerGroup::operator()() {
+  return SAI_ARS_ATTR_MAX_PRIMARY_MEMEBERS_PER_GROUP;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeCommonMembersThresholdCount::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_COMMON_MEMBERS_THRESHOLD_COUNT;
 }
 #endif
 
