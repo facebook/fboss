@@ -9,7 +9,10 @@
  */
 #pragma once
 
+#include <map>
+#include <optional>
 #include <set>
+#include <vector>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"
@@ -47,6 +50,26 @@ auto constexpr kUplinkBaseVlanId = 4000;
 // range (loopback 10/11, sidelink 3000-3024, uplink 3100/4001+, default 4094).
 auto constexpr kInterfaceVlanIdMin = kBaseVlanId + 1;
 auto constexpr kInterfaceVlanIdMax = 2999;
+
+struct SafeProfileSelectionOptions {
+  cfg::AsicType asicType{cfg::AsicType::ASIC_TYPE_FAKE};
+  // When true, ports outside requiredPorts may be omitted or subsumed.
+  bool supportsAddRemovePort{false};
+  bool dualStageRdsw3q2q{false};
+  // Ports which must coexist in the resulting configuration. When unset,
+  // every port in each supplied group is required.
+  std::optional<std::set<PortID>> requiredPorts;
+};
+
+using PortProfileMap = std::map<PortID, cfg::PortProfileID>;
+
+// Selects one compatible profile per controlling-port group and returns that
+// profile for every port which must be present in the resulting config.
+PortProfileMap getSafeProfileIDs(
+    const PlatformMapping& platformMapping,
+    const std::map<PortID, std::vector<PortID>>&
+        controllingPortToSubsidiaryPorts,
+    const SafeProfileSelectionOptions& options);
 
 // Bare port body. Speed derived from PlatformMapping (nullopt ->
 // cfg::PortSpeed::DEFAULT). Sets name/portType/scope (from

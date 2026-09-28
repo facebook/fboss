@@ -26,6 +26,12 @@ constexpr auto kProfileSpeed = cfg::PortSpeed::HUNDREDG;
 const PortID kPortId{1};
 constexpr auto kPortName = "eth1/1/1";
 
+constexpr auto kWideProfile = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+constexpr auto kPreferred400GProfile =
+    cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+constexpr auto k800GProfile =
+    cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL;
+
 cfg::PlatformPortEntry makeEntry(int32_t id, const std::string& name) {
   cfg::PlatformPortEntry entry;
   entry.mapping()->id() = id;
@@ -51,7 +57,154 @@ PlatformMapping makeMapping() {
 
   return PlatformMapping(thriftMapping);
 }
+
+void addProfile(
+    cfg::PlatformMapping& mapping,
+    cfg::PortProfileID profileID,
+    cfg::PortSpeed speed) {
+  cfg::PlatformPortProfileConfigEntry profileEntry;
+  profileEntry.factor()->profileID() = profileID;
+  profileEntry.profile()->speed() = speed;
+  mapping.platformSupportedProfiles()->push_back(profileEntry);
+}
+
+cfg::PlatformPortEntry makePortGroupEntry(
+    int32_t id,
+    int32_t controllingPort,
+    const std::map<cfg::PortProfileID, std::vector<int32_t>>& profiles) {
+  auto entry = makeEntry(id, "eth1/" + std::to_string(id) + "/1");
+  entry.mapping()->controllingPort() = controllingPort;
+  entry.supportedProfiles()->clear();
+  for (const auto& [profileID, subsumedPorts] : profiles) {
+    cfg::PlatformPortConfig profile;
+    if (!subsumedPorts.empty()) {
+      profile.subsumedPorts() = subsumedPorts;
+    }
+    entry.supportedProfiles()[profileID] = std::move(profile);
+  }
+  return entry;
+}
+
+PlatformMapping makeTwoPortGroupMapping(bool includeSafeProfile) {
+  cfg::PlatformMapping mapping;
+  std::map<cfg::PortProfileID, std::vector<int32_t>> controllingProfiles{
+      {kWideProfile, {2}}};
+  if (includeSafeProfile) {
+    controllingProfiles.emplace(kProfile, std::vector<int32_t>{});
+  }
+  mapping.ports()[1] = makePortGroupEntry(1, 1, controllingProfiles);
+  mapping.ports()[2] = makePortGroupEntry(
+      2,
+      1,
+      includeSafeProfile
+          ? std::map<cfg::PortProfileID, std::vector<int32_t>>{{kProfile, {}}}
+          : std::map<cfg::PortProfileID, std::vector<int32_t>>{});
+  addProfile(mapping, kProfile, cfg::PortSpeed::HUNDREDG);
+  addProfile(mapping, kWideProfile, cfg::PortSpeed::FOURHUNDREDG);
+  return PlatformMapping(mapping);
+}
+
+PlatformMapping makeSpecialPolicyMapping() {
+  cfg::PlatformMapping mapping;
+  mapping.ports()[1] = makePortGroupEntry(
+      1,
+      1,
+      {
+          {kProfile, {}},
+          {kPreferred400GProfile, {}},
+          {k800GProfile, {}},
+      });
+  addProfile(mapping, kProfile, cfg::PortSpeed::HUNDREDG);
+  addProfile(mapping, kPreferred400GProfile, cfg::PortSpeed::FOURHUNDREDG);
+  addProfile(mapping, k800GProfile, cfg::PortSpeed::EIGHTHUNDREDG);
+  return PlatformMapping(mapping);
+}
 } // namespace
+
+TEST(PortConfigUtilsTest, safeProfilesKeepEveryPortOnFixedPortPlatforms) {
+  const auto mapping = makeTwoPortGroupMapping(true);
+  const std::map<PortID, std::vector<PortID>> groups{
+      {PortID(1), {PortID(1), PortID(2)}}};
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+      .supportsAddRemovePort = false,
+  };
+
+  const utility::PortProfileMap expected{
+      {PortID(1), kProfile}, {PortID(2), kProfile}};
+  EXPECT_EQ(utility::getSafeProfileIDs(mapping, groups, options), expected);
+}
+
+TEST(PortConfigUtilsTest, safeProfilesMaySubsumeUnrequiredPorts) {
+  const auto mapping = makeTwoPortGroupMapping(true);
+  const std::map<PortID, std::vector<PortID>> groups{
+      {PortID(1), {PortID(1), PortID(2)}}};
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+      .supportsAddRemovePort = true,
+      .requiredPorts = std::set<PortID>{PortID(1)},
+  };
+
+  const utility::PortProfileMap expected{{PortID(1), kWideProfile}};
+  EXPECT_EQ(utility::getSafeProfileIDs(mapping, groups, options), expected);
+}
+
+TEST(PortConfigUtilsTest, safeProfilesPreserveAsicSpecificPolicy) {
+  const auto mapping = makeSpecialPolicyMapping();
+  const std::map<PortID, std::vector<PortID>> groups{{PortID(1), {PortID(1)}}};
+  const utility::SafeProfileSelectionOptions jerichoOptions{
+      .asicType = cfg::AsicType::ASIC_TYPE_JERICHO3,
+      .dualStageRdsw3q2q = true,
+  };
+  const utility::SafeProfileSelectionOptions chenabOptions{
+      .asicType = cfg::AsicType::ASIC_TYPE_CHENAB,
+  };
+
+  const utility::PortProfileMap expected{{PortID(1), kPreferred400GProfile}};
+  EXPECT_EQ(
+      utility::getSafeProfileIDs(mapping, groups, jerichoOptions), expected);
+  EXPECT_EQ(
+      utility::getSafeProfileIDs(mapping, groups, chenabOptions), expected);
+}
+
+TEST(PortConfigUtilsTest, safeProfilesRejectConflictingPortGroup) {
+  const auto mapping = makeTwoPortGroupMapping(false);
+  const std::map<PortID, std::vector<PortID>> groups{
+      {PortID(1), {PortID(1), PortID(2)}}};
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+  };
+
+  try {
+    utility::getSafeProfileIDs(mapping, groups, options);
+    FAIL() << "Expected safe profile selection to fail";
+  } catch (const FbossError& error) {
+    EXPECT_NE(
+        std::string(error.what())
+            .find("Can't find safe profiles for ports: 1, 2"),
+        std::string::npos);
+  }
+}
+
+TEST(PortConfigUtilsTest, safeProfilesRejectUnresolvedProfileSpeed) {
+  const auto mapping = makeMapping();
+  const std::map<PortID, std::vector<PortID>> groups{{kPortId, {kPortId}}};
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
+  };
+
+  try {
+    utility::getSafeProfileIDs(mapping, groups, options);
+    FAIL() << "Expected safe profile selection to fail";
+  } catch (const FbossError& error) {
+    EXPECT_NE(
+        std::string(error.what()).find("Can't resolve speed for profile"),
+        std::string::npos);
+    EXPECT_NE(
+        std::string(error.what()).find("controlling-port group 1"),
+        std::string::npos);
+  }
+}
 
 TEST(PortConfigUtilsTest, createDefaultPortConfigSetsAllFields) {
   auto mapping = makeMapping();

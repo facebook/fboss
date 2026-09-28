@@ -24,7 +24,6 @@
 #include "fboss/lib/config/agent/AclConfigUtils.h"
 
 #include <fmt/format.h>
-#include <folly/Format.h>
 #include "folly/testing/TestUtil.h"
 
 DEFINE_bool(nodeZ, false, "Setup test config as node Z");
@@ -215,131 +214,18 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
         controllingPortToSubsidaryPorts,
     bool supportsAddRemovePort,
     std::optional<std::vector<PortID>> masterLogicalPortIds) {
-  std::unordered_map<PortID, cfg::PortProfileID> portToProfileIDs;
-  const auto& plarformEntries = platformMapping->getPlatformPorts();
-  for (const auto& group : controllingPortToSubsidaryPorts) {
-    const auto& ports = group.second;
-    // Find the safe profile to satisfy all the ports in the group
-    std::set<cfg::PortProfileID> safeProfiles;
-    for (const auto& portID : ports) {
-      for (const auto& profile :
-           *plarformEntries.at(portID).supportedProfiles()) {
-        if (auto subsumedPorts = profile.second.subsumedPorts();
-            subsumedPorts && !subsumedPorts->empty()) {
-          // Certain PortProfiles with higher speeds are safe, as long as
-          // subsumedPorts doesn't overlap with portSet, or subsumed ports not
-          // in masterLogicalPorts and platform supports add and remove ports
-          if (std::none_of(
-                  subsumedPorts->begin(),
-                  subsumedPorts->end(),
-                  [&](auto subsumedPort) {
-                    return std::find(
-                               ports.begin(),
-                               ports.end(),
-                               PortID(subsumedPort)) != ports.end() &&
-                        (!supportsAddRemovePort ||
-                         !masterLogicalPortIds.has_value() ||
-                         std::find(
-                             masterLogicalPortIds->begin(),
-                             masterLogicalPortIds->end(),
-                             PortID(subsumedPort)) !=
-                             masterLogicalPortIds->end());
-                  })) {
-            safeProfiles.insert(profile.first);
-          }
-        } else {
-          // no subsumed ports for this profile, safe
-          safeProfiles.insert(profile.first);
-        }
-      }
-    }
-    if (safeProfiles.empty()) {
-      std::string portSetStr;
-      for (auto portID : ports) {
-        portSetStr = folly::to<std::string>(portSetStr, portID, ", ");
-      }
-      throw FbossError("Can't find safe profiles for ports:", portSetStr);
-    }
-
-    auto asicType = asic->getAsicType();
-
-    auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
-    if ((asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
-         asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) &&
-        FLAGS_dual_stage_rdsw_3q_2q) {
-      // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
-      // speed to be 400G, since that's what we have in chip config
-      // and J3 does not support dynamic port speed change yet.
-      auto portId = group.first;
-      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
-      if (platPortItr == platformMapping->getPlatformPorts().end()) {
-        throw FbossError("Can't find platform port for:", portId);
-      }
-      switch (*platPortItr->second.mapping()->portType()) {
-        case cfg::PortType::INTERFACE_PORT:
-          bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
-          break;
-        case cfg::PortType::FABRIC_PORT:
-        case cfg::PortType::MANAGEMENT_PORT:
-        case cfg::PortType::RECYCLE_PORT:
-        case cfg::PortType::EVENTOR_PORT:
-        case cfg::PortType::CPU_PORT:
-        case cfg::PortType::HYPER_PORT:
-        case cfg::PortType::HYPER_PORT_MEMBER:
-          break;
-      }
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // Pick both profile and speed to be 400G for interface ports, since
-      // that's what is expected in production and chenab does not support
-      // dynamic port profile change, as it may lead to recreation of ports
-      // by delete and add. the usecase of recreating ports by delete and add
-      // is not supported in chenab. Minipack3n has max port speed of 400G only
-      auto portId = group.first;
-      auto platPortItr = platformMapping->getPlatformPorts().find(portId);
-      if (platPortItr == platformMapping->getPlatformPorts().end()) {
-        throw FbossError("Can't find platform port for:", portId);
-      }
-      if (*platPortItr->second.mapping()->portType() ==
-          cfg::PortType::INTERFACE_PORT) {
-        bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
-        bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
-      }
-    }
-    // If bestSpeed is default - pick the largest speed from the safe profiles
-    auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
-    auto pickBestProfile = bestProfile == cfg::PortProfileID::PROFILE_DEFAULT;
-    if (pickBestProfile) {
-      for (auto profileID : safeProfiles) {
-        auto speed = getSpeed(profileID);
-        if (pickMaxSpeed) {
-          if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
-            bestSpeed = speed;
-            bestProfile = profileID;
-          }
-        } else if (speed == bestSpeed) {
-          bestProfile = profileID;
-        }
-      }
-    } else {
-      if (getSpeed(bestProfile) != bestSpeed) {
-        throw FbossError(
-            "Invalid profile:", bestProfile, " for speed ", bestSpeed);
-      }
-    }
-
-    for (auto portID : ports) {
-      if (supportsAddRemovePort && masterLogicalPortIds.has_value() &&
-          std::find(
-              masterLogicalPortIds->begin(),
-              masterLogicalPortIds->end(),
-              portID) == masterLogicalPortIds->end()) {
-        continue;
-      }
-      portToProfileIDs.emplace(portID, bestProfile);
-    }
+  SafeProfileSelectionOptions options{
+      .asicType = asic->getAsicType(),
+      .supportsAddRemovePort = supportsAddRemovePort,
+      .dualStageRdsw3q2q = FLAGS_dual_stage_rdsw_3q_2q,
+  };
+  if (masterLogicalPortIds) {
+    options.requiredPorts.emplace(
+        masterLogicalPortIds->begin(), masterLogicalPortIds->end());
   }
-  return portToProfileIDs;
+  const auto safeProfiles = utility::getSafeProfileIDs(
+      *platformMapping, controllingPortToSubsidaryPorts, options);
+  return {safeProfiles.begin(), safeProfiles.end()};
 }
 
 std::vector<cfg::Port>::iterator findCfgPort(

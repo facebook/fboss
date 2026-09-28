@@ -17,6 +17,167 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 namespace facebook::fboss::utility {
+namespace {
+
+std::optional<cfg::PortSpeed> getProfileSpeed(
+    const PlatformMapping& platformMapping,
+    cfg::PortProfileID profileID,
+    const std::vector<PortID>& ports) {
+  for (const auto& portID : ports) {
+    const auto& supportedProfiles =
+        *platformMapping.getPlatformPort(portID).supportedProfiles();
+    if (supportedProfiles.find(profileID) == supportedProfiles.end()) {
+      continue;
+    }
+    if (const auto profileConfig = platformMapping.getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profileID, portID))) {
+      return *profileConfig->speed();
+    }
+  }
+  return std::nullopt;
+}
+
+bool isRequiredPort(
+    PortID portID,
+    const std::optional<std::set<PortID>>& requiredPorts) {
+  return !requiredPorts || requiredPorts->find(portID) != requiredPorts->end();
+}
+
+} // namespace
+
+PortProfileMap getSafeProfileIDs(
+    const PlatformMapping& platformMapping,
+    const std::map<PortID, std::vector<PortID>>&
+        controllingPortToSubsidiaryPorts,
+    const SafeProfileSelectionOptions& options) {
+  // For each controlling-port group, this function:
+  // 1. Collects profiles that do not subsume another required port.
+  // 2. Applies any ASIC-specific fixed speed or profile requirement.
+  // 3. Otherwise selects the fastest safe profile.
+  // 4. Assigns that profile to every port which must remain in the config.
+  PortProfileMap portToProfileIDs;
+  const auto& platformEntries = platformMapping.getPlatformPorts();
+  for (const auto& [controllingPort, ports] :
+       controllingPortToSubsidiaryPorts) {
+    // Find the safe profiles that can satisfy all required ports in the group.
+    std::set<cfg::PortProfileID> safeProfiles;
+    for (const auto& portID : ports) {
+      const auto portEntry = platformEntries.find(portID);
+      if (portEntry == platformEntries.end()) {
+        throw FbossError("Port ", portID, " does not exist in PlatformMapping");
+      }
+      for (const auto& [profileID, profile] :
+           *portEntry->second.supportedProfiles()) {
+        auto subsumedPorts = profile.subsumedPorts();
+        // A higher-speed profile is safe when its subsumed ports do not
+        // overlap the group, or when the platform supports adding/removing
+        // ports and none of the subsumed ports are required.
+        const auto conflictsWithRequiredPort = subsumedPorts &&
+            std::any_of(subsumedPorts->begin(),
+                        subsumedPorts->end(),
+                        [&](const auto subsumedPort) {
+                          const auto port = PortID(subsumedPort);
+                          return std::find(ports.begin(), ports.end(), port) !=
+                              ports.end() &&
+                              (!options.supportsAddRemovePort ||
+                               isRequiredPort(port, options.requiredPorts));
+                        });
+        if (!conflictsWithRequiredPort) {
+          // Profiles without subsumed ports are inherently safe; profiles
+          // with subsumed ports reach here only when no required port overlaps.
+          safeProfiles.insert(profileID);
+        }
+      }
+    }
+
+    if (safeProfiles.empty()) {
+      std::string portSet;
+      for (const auto& portID : ports) {
+        if (!portSet.empty()) {
+          portSet += ", ";
+        }
+        portSet += std::to_string(static_cast<int32_t>(portID));
+      }
+      throw FbossError("Can't find safe profiles for ports: ", portSet);
+    }
+
+    auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
+    const auto controllingPortEntry = platformEntries.find(controllingPort);
+    if (controllingPortEntry == platformEntries.end()) {
+      throw FbossError(
+          "Controlling port ",
+          controllingPort,
+          " does not exist in PlatformMapping");
+    }
+    const auto portType = *controllingPortEntry->second.mapping()->portType();
+    if ((options.asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+         options.asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) &&
+        options.dualStageRdsw3q2q &&
+        portType == cfg::PortType::INTERFACE_PORT) {
+      // The dual-stage RDSW 3Q2Q chip config uses 400G NIF ports, and Jericho3
+      // does not yet support changing port speed dynamically.
+      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+    } else if (
+        options.asicType == cfg::AsicType::ASIC_TYPE_CHENAB &&
+        portType == cfg::PortType::INTERFACE_PORT) {
+      // Chenab production configs use this 400G profile. Changing profiles
+      // may recreate ports through delete/add, which Chenab does not support.
+      // Minipack3N also has a maximum port speed of 400G.
+      bestSpeed = cfg::PortSpeed::FOURHUNDREDG;
+      bestProfile = cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL;
+    }
+
+    // Without a fixed speed requirement, select the fastest safe profile.
+    const auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
+    if (bestProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
+      for (const auto profileID : safeProfiles) {
+        const auto speed = getProfileSpeed(platformMapping, profileID, ports);
+        if (!speed) {
+          throw FbossError(
+              "Can't resolve speed for profile ",
+              profileID,
+              " in controlling-port group ",
+              controllingPort);
+        }
+        if ((pickMaxSpeed &&
+             static_cast<int>(bestSpeed) < static_cast<int>(*speed)) ||
+            (!pickMaxSpeed && *speed == bestSpeed)) {
+          bestSpeed = *speed;
+          bestProfile = profileID;
+        }
+      }
+    } else if (
+        safeProfiles.find(bestProfile) == safeProfiles.end() ||
+        getProfileSpeed(platformMapping, bestProfile, ports) != bestSpeed) {
+      throw FbossError(
+          "Profile ",
+          bestProfile,
+          " is not a safe profile at speed ",
+          bestSpeed,
+          " for controlling-port group ",
+          controllingPort);
+    }
+    if (bestProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
+      throw FbossError(
+          "Can't find a safe profile at speed ",
+          bestSpeed,
+          " for controlling-port group ",
+          controllingPort);
+    }
+
+    // Add/remove platforms may omit ports outside the required port set.
+    for (const auto& portID : ports) {
+      if (options.supportsAddRemovePort && options.requiredPorts &&
+          !isRequiredPort(portID, options.requiredPorts)) {
+        continue;
+      }
+      portToProfileIDs.emplace(portID, bestProfile);
+    }
+  }
+  return portToProfileIDs;
+}
+
 cfg::Port createDefaultPortConfig(
     const PlatformMapping* platformMapping,
     PortID id,
