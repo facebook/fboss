@@ -1396,6 +1396,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpSettingConfig, ::facebook::fbo
     STRUCT_CHILD_GETTERS(enable_stream_subscriber_backpressure, 20);
     STRUCT_CHILD_GETTERS(enable_netlink_dampening, 21);
     STRUCT_CHILD_GETTERS(stream_subscriber_limit, 22);
+    STRUCT_CHILD_GETTERS(enable_route_refresh, 23);
 };
 
 

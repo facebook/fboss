@@ -694,6 +694,7 @@ struct TBgpLocalConfig {
   7: i64 local_confed_as_4_byte; // unsigned int32
 
   8: bool enable_update_group;
+  9: optional bool enable_route_refresh;
 }
 
 /**

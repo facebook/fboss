@@ -699,6 +699,14 @@ struct BgpSettingConfig {
    * also present in `features`.
    */
   22: optional i32 stream_subscriber_limit;
+
+  /**
+   * Globally enable RFC 2918 Route Refresh capability advertisement. When
+   * enabled, peers inherit an enabled default unless a peer or peer-group
+   * explicitly disables route_refresh. Default (unset or false): Route
+   * Refresh is disabled for every peer.
+   */
+  23: optional bool enable_route_refresh;
 }
 
 /**
