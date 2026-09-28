@@ -5034,6 +5034,7 @@ class ChildThriftPath<::facebook::fboss::state::AclEntryFields, ::facebook::fbos
     STRUCT_CHILD_GETTERS(dstIpV6Word3, 36);
     STRUCT_CHILD_GETTERS(dstIpV6Word2, 37);
     STRUCT_CHILD_GETTERS(lookupClassPort, 38);
+    STRUCT_CHILD_GETTERS(mplsLabel0Ttl, 39);
 };
 
 
@@ -7976,6 +7977,7 @@ class ChildThriftPath<::facebook::fboss::cfg::AclEntry, ::facebook::fboss::fsdb:
     STRUCT_CHILD_GETTERS(dstIpV6Word3, 37);
     STRUCT_CHILD_GETTERS(dstIpV6Word2, 38);
     STRUCT_CHILD_GETTERS(lookupClassPort, 39);
+    STRUCT_CHILD_GETTERS(mplsLabel0Ttl, 40);
 };
 
 

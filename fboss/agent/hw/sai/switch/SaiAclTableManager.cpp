@@ -478,6 +478,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::ARP:
     case cfg::EtherType::LACP:
     case cfg::EtherType::AIFM:
+    case cfg::EtherType::MPLS:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases
@@ -2440,6 +2441,9 @@ bool SaiAclTableManager::isQualifierSupported(
       return hasField(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldTtl>>(
               attributes));
+    case cfg::AclTableQualifier::MPLS_LABEL0_TTL:
+      // The SAI attribute backing this qualifier arrives later in this stack.
+      return false;
     case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
       return hasField(
           std::get<std::optional<

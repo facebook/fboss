@@ -265,6 +265,7 @@ enum EtherType {
   ARP = 0x0806,
   LACP = 0x8809,
   AIFM = 0x88B6,
+  MPLS = 0x8847,
 }
 
 struct Ttl {
@@ -705,6 +706,13 @@ struct AclEntry {
 
   /* Match lookup class assigned to the packet's ingress port. */
   39: optional AclLookupClassPort lookupClassPort;
+
+  /*
+   * Match the TTL of the outermost MPLS label. Distinct from ttl, which
+   * matches the IP header TTL. Pair with etherType MPLS to scope the match to
+   * MPLS traffic.
+   */
+  40: optional Ttl mplsLabel0Ttl;
 }
 
 enum AclTableActionType {
@@ -755,6 +763,7 @@ enum AclTableQualifier {
   DST_IPV6_WORD3 = 30,
   DST_IPV6_WORD2 = 31,
   LOOKUP_CLASS_PORT = 32,
+  MPLS_LABEL0_TTL = 33,
 }
 
 enum AclTableGroupBindPoint {

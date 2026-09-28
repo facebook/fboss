@@ -291,6 +291,18 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::ttl>(ttl.toThrift());
   }
 
+  // THRIFT_COPY
+  std::optional<AclTtl> getMplsLabel0Ttl() const {
+    if (auto ttl = cref<switch_state_tags::mplsLabel0Ttl>()) {
+      return AclTtl::fromThrift(ttl->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setMplsLabel0Ttl(const AclTtl& ttl) {
+    set<switch_state_tags::mplsLabel0Ttl>(ttl.toThrift());
+  }
+
   std::optional<cfg::EtherType> getEtherType() const {
     if (auto etherType = cref<switch_state_tags::etherType>()) {
       return etherType->cref();
@@ -507,7 +519,7 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
         getRoceMask() || getUdfTable() || getTrafficClass() ||
         getNextHopGroupId() || getDstIpV6Word3() || getDstIpV6Word2() ||
-        getLookupClassPort();
+        getLookupClassPort() || getMplsLabel0Ttl();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

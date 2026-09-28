@@ -4894,6 +4894,10 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto ttl = config->ttl()) {
     newAcl->setTtl(AclTtl(*ttl->value(), *ttl->mask()));
   }
+  if (auto mplsLabel0Ttl = config->mplsLabel0Ttl()) {
+    newAcl->setMplsLabel0Ttl(
+        AclTtl(*mplsLabel0Ttl->value(), *mplsLabel0Ttl->mask()));
+  }
   if (auto lookupClassL2 = config->lookupClassL2()) {
     newAcl->setLookupClassL2(*lookupClassL2);
   }
