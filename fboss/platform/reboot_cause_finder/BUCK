@@ -33,7 +33,9 @@ cpp_library(
         "fbsource//third-party/fmt:fmt",
         "//folly:dynamic",
         "//folly:file_util",
+        "//folly:string",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
     exported_deps = [

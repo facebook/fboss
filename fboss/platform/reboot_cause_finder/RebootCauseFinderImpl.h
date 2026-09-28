@@ -3,11 +3,24 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "fboss/platform/reboot_cause_finder/if/gen-cpp2/reboot_cause_config_types.h"
 
 namespace facebook::fboss::platform::reboot_cause_finder {
+
+// Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
+namespace detail {
+
+// Reads and decodes one hardware provider's sysfs file. Uses no member state,
+// so it is a free function and can be tested directly. The returned attempt's
+// status distinguishes a clean read that found nothing from a source that
+// could not be read or could not be parsed.
+reboot_cause_config::RebootCauseProviderAttempt readProvider(
+    const reboot_cause_config::RebootCauseProviderConfig& config);
+
+} // namespace detail
 
 class RebootCauseFinderImpl {
  public:
@@ -22,16 +35,8 @@ class RebootCauseFinderImpl {
  private:
   const reboot_cause_config::RebootCauseConfig config_;
 
-  std::vector<reboot_cause_config::RebootCause> readProvider(
-      const reboot_cause_config::RebootCauseProviderConfig& config);
-
   void clearProvider(
       const reboot_cause_config::RebootCauseProviderConfig& config);
-
-  // Return the determined cause: the highest-priority provider's candidate
-  // cause, or an "Unknown" cause when no provider reported anything.
-  reboot_cause_config::RebootCause determineCause(
-      const std::optional<reboot_cause_config::RebootCause>& primaryCause);
 
   // Persist the record as a pretty-printed JSON file under the history dir.
   // The filename carries the boot id, so a successful write is also what arms

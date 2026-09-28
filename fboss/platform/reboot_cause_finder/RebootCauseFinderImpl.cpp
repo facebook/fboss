@@ -8,13 +8,16 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 DEFINE_bool(
@@ -105,6 +108,34 @@ bool shouldClearProviders(bool recorded) {
   return true;
 }
 
+reboot_cause_config::RebootCauseProviderAttempt makeAttempt(
+    const std::string& name,
+    reboot_cause_config::RebootCauseProviderStatus status,
+    const std::string& detail,
+    std::vector<reboot_cause_config::RebootCause> causes = {}) {
+  reboot_cause_config::RebootCauseProviderAttempt attempt;
+  attempt.name() = name;
+  attempt.status() = status;
+  attempt.detail() = detail;
+  attempt.causes() = std::move(causes);
+  return attempt;
+}
+
+std::string summariseAttempts(
+    const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
+        attempts) {
+  std::vector<std::string> parts;
+  parts.reserve(attempts.size());
+  for (const auto& a : attempts) {
+    parts.push_back(
+        fmt::format(
+            "{}={}",
+            *a.name(),
+            apache::thrift::util::enumNameSafe(*a.status())));
+  }
+  return folly::join(", ", parts);
+}
+
 int64_t toEpochMs(std::time_t t) {
   return static_cast<int64_t>(t) * 1000;
 }
@@ -141,13 +172,16 @@ std::optional<std::time_t> parseProviderDate(const std::string& s) {
 
 } // namespace
 
+// Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
 RebootCauseFinderImpl::RebootCauseFinderImpl(
     const reboot_cause_config::RebootCauseConfig& config)
     : config_(config) {}
 
-std::vector<reboot_cause_config::RebootCause>
-RebootCauseFinderImpl::readProvider(
+namespace detail {
+
+reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
+  auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
   std::vector<reboot_cause_config::RebootCause> causes;
 
   std::string contents;
@@ -156,14 +190,18 @@ RebootCauseFinderImpl::readProvider(
         "Failed to read reboot causes from provider '{}' at path '{}'",
         *providerConfig.name(),
         *providerConfig.sysfsReadPath());
-    return causes;
+    status = reboot_cause_config::RebootCauseProviderStatus::READ_FAILED;
+    return makeAttempt(
+        *providerConfig.name(),
+        status,
+        *providerConfig.sysfsReadPath(),
+        std::move(causes));
   }
 
   try {
     auto json = folly::parseJson(contents);
     for (const auto& causeJson : json["causes"]) {
       reboot_cause_config::RebootCause cause;
-      cause.providerName() = *providerConfig.name();
       cause.description() = causeJson["description"].asString();
 
       auto dateStr = causeJson["date"].asString();
@@ -185,10 +223,17 @@ RebootCauseFinderImpl::readProvider(
         "Failed to parse reboot causes from provider '{}': {}",
         *providerConfig.name(),
         ex.what());
+    status = reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED;
   }
 
-  return causes;
+  return makeAttempt(
+      *providerConfig.name(),
+      status,
+      *providerConfig.sysfsReadPath(),
+      std::move(causes));
 }
+
+} // namespace detail
 
 void RebootCauseFinderImpl::clearProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
@@ -198,23 +243,6 @@ void RebootCauseFinderImpl::clearProvider(
         "Failed to clear reboot causes at '{}'",
         *providerConfig.sysfsClearPath());
   }
-}
-
-reboot_cause_config::RebootCause RebootCauseFinderImpl::determineCause(
-    const std::optional<reboot_cause_config::RebootCause>& primaryCause) {
-  if (primaryCause.has_value()) {
-    return *primaryCause;
-  }
-
-  // No provider reported a cause.
-  auto now =
-      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  reboot_cause_config::RebootCause unknown;
-  unknown.providerName() = "None";
-  unknown.description() = "Unknown";
-  unknown.occurredAtMs() = toEpochMs(now);
-  unknown.occurredAtPacific() = pacificString(now);
-  return unknown;
 }
 
 void RebootCauseFinderImpl::determineRebootCause() {
@@ -227,8 +255,9 @@ void RebootCauseFinderImpl::determineRebootCause() {
   if (bootId.empty()) {
     XLOG(ERR) << fmt::format(
         "Failed to read boot id from '{}'. Doing nothing: without it a fresh "
-        "boot is indistinguishable from a restart, and clearing the providers "
-        "would risk discarding a real boot's causes.",
+        "boot is indistinguishable from a re-run of this binary within the "
+        "same boot, and clearing the providers would risk discarding a real "
+        "boot's causes.",
         kProcBootIdPath);
     return;
   }
@@ -257,20 +286,22 @@ void RebootCauseFinderImpl::determineRebootCause() {
         return *a.priority() < *b.priority();
       });
 
-  std::vector<reboot_cause_config::RebootCause> allCauses;
-  std::optional<reboot_cause_config::RebootCause> primaryCause;
+  std::vector<reboot_cause_config::RebootCauseProviderAttempt> attempts;
+  std::optional<reboot_cause_config::DeterminedCause> determined;
+
   for (const auto& providerConfig : providerConfigs) {
     XLOG(INFO) << fmt::format("Reading provider '{}'", *providerConfig.name());
-    auto causes = readProvider(providerConfig);
-    // Providers are read in priority order, so the first provider that reports
-    // a cause is the highest-priority one; its first cause is the candidate.
-    if (!primaryCause.has_value() && !causes.empty()) {
-      primaryCause = causes.front();
+    auto attempt = detail::readProvider(providerConfig);
+    // Providers are sorted by priority, so the first one to report anything
+    // is the highest-priority hardware answer. It only applies when neither
+    // implicit provider found a cause.
+    if (!determined.has_value() && !attempt.causes()->empty()) {
+      reboot_cause_config::DeterminedCause d;
+      d.providerName() = *providerConfig.name();
+      d.cause() = attempt.causes()->front();
+      determined = d;
     }
-    allCauses.insert(
-        allCauses.end(),
-        std::make_move_iterator(causes.begin()),
-        std::make_move_iterator(causes.end()));
+    attempts.push_back(std::move(attempt));
   }
 
   reboot_cause_config::RebootCauseRecord record;
@@ -280,9 +311,14 @@ void RebootCauseFinderImpl::determineRebootCause() {
                               .count();
   record.detectedAtPacific() =
       pacificString(std::chrono::system_clock::to_time_t(now));
-  record.determinedCause() = determineCause(primaryCause);
-  record.allCauses() = allCauses;
+  // Left unset when nothing was found. A placeholder cause would have to
+  // carry a placeholder timestamp, and that timestamp necessarily postdates
+  // the boot it claims to explain.
+  if (determined.has_value()) {
+    record.determinedCause() = *determined;
+  }
   record.bootId() = bootId;
+  record.providersAttempted() = attempts;
 
   // Writing the record is what arms the guard, so it has to succeed before
   // anything destructive happens. If it failed, the providers stay latched and
@@ -297,10 +333,16 @@ void RebootCauseFinderImpl::determineRebootCause() {
     }
   }
 
-  XLOG(INFO) << fmt::format(
-      "Determined reboot cause: '{}' [Provider: {}]",
-      *record.determinedCause()->description(),
-      *record.determinedCause()->providerName());
+  if (record.determinedCause().has_value()) {
+    XLOG(INFO) << fmt::format(
+        "Determined reboot cause: '{}' [Provider: {}]",
+        *record.determinedCause()->cause()->description(),
+        *record.determinedCause()->providerName());
+  } else {
+    XLOG(INFO) << fmt::format(
+        "No reboot cause determined. Providers attempted: {}",
+        summariseAttempts(attempts));
+  }
 }
 
 bool RebootCauseFinderImpl::persistResult(

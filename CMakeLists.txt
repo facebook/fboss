@@ -1569,6 +1569,7 @@ add_dependencies(fboss_platform_services
   fixmyfboss
   # Unit Tests
   platform_config_lib_config_lib_test
+  reboot_cause_finder_impl_test
   platform_manager_device_path_resolver_test
   platform_manager_platform_explorer_test
   platform_data_corral_sw_test
