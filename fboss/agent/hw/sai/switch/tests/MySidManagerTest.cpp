@@ -732,6 +732,60 @@ class MySidBindingSidTest : public MySidManagerWithNextHopIdTest {
   }
 };
 
+TEST_F(MySidBindingSidTest, changeResolvedNextHopGroupInPlace) {
+  const auto nhop0 = makeNextHop(testInterfaces.at(0));
+  const auto nhop1 = makeNextHop(testInterfaces.at(1));
+  const auto nhop2 = makeNextHop(testInterfaces.at(2));
+  const auto nhop3 = makeNextHop(testInterfaces.at(3));
+
+  resolveArp(
+      testInterfaces.at(0).id,
+      testInterfaces.at(0).remoteHosts.at(0));
+  resolveArp(
+      testInterfaces.at(1).id,
+      testInterfaces.at(1).remoteHosts.at(0));
+  resolveArp(
+      testInterfaces.at(2).id,
+      testInterfaces.at(2).remoteHosts.at(0));
+  resolveArp(
+      testInterfaces.at(3).id,
+      testInterfaces.at(3).remoteHosts.at(0));
+
+  const RouteNextHopSet oldNhopSet{nhop0, nhop1};
+  const RouteNextHopSet newNhopSet{nhop2, nhop3};
+  const auto oldAllocResult =
+      nextHopIDManager_->getOrAllocRouteNextHopSetID(oldNhopSet);
+  const auto newAllocResult =
+      nextHopIDManager_->getOrAllocRouteNextHopSetID(newNhopSet);
+  auto state = makeStateWithNextHopIdMaps();
+
+  auto oldMySid = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  oldMySid->setResolvedNextHopsId(
+      oldAllocResult.nextHopIdSetIter->second.id);
+  saiManagerTable->srv6MySidManager().addMySidEntry(oldMySid, state);
+
+  auto key = getMySidAdapterHostKey(*oldMySid, saiManagerTable);
+  auto oldSaiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(oldSaiEntry, nullptr);
+  auto oldNextHopId = saiApiTable->srv6Api().getAttribute(
+      key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  ASSERT_NE(oldNextHopId, SAI_NULL_OBJECT_ID);
+
+  auto newMySid = makeMySid("fc00:100::1", 48, MySidType::BINDING_MICRO_SID);
+  newMySid->setResolvedNextHopsId(
+      newAllocResult.nextHopIdSetIter->second.id);
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      oldMySid, newMySid, state);
+
+  auto newSaiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(newSaiEntry, nullptr);
+  EXPECT_EQ(newSaiEntry, oldSaiEntry);
+  auto newNextHopId = saiApiTable->srv6Api().getAttribute(
+      key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_NE(newNextHopId, SAI_NULL_OBJECT_ID);
+  EXPECT_NE(newNextHopId, oldNextHopId);
+}
+
 TEST_F(MySidBindingSidTest, addWithResolvedSrv6NextHopGroup) {
   addSrv6Tunnel();
 

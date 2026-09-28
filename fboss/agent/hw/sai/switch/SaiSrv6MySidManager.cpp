@@ -187,18 +187,13 @@ SaiSrv6MySidManager::getMySidObject(
   return saiStore_->get<SaiMySidEntryTraits>().get(key);
 }
 
-void SaiSrv6MySidManager::addMySidEntry(
-    const std::shared_ptr<MySid>& mySid,
+std::optional<SaiMySidEntryHandle::NextHopHandle>
+SaiSrv6MySidManager::getNextHopHandle(
+    const MySid& mySid,
     const std::shared_ptr<SwitchState>& state) {
-  auto adapterHostKey = getMySidAdapterHostKey(*mySid, managerTable_);
-  if (handles_.contains(adapterHostKey)) {
-    throw FbossError("MySid entry already exists for ", mySid->getID());
-  }
-
   std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
-
-  const auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
-  const auto backupResolvedNextHopsId = mySid->getBackupResolvedNextHopsId();
+  const auto resolvedNextHopsId = mySid.getResolvedNextHopsId();
+  const auto backupResolvedNextHopsId = mySid.getBackupResolvedNextHopsId();
   if (resolvedNextHopsId || backupResolvedNextHopsId) {
     std::vector<NextHop> nhops;
     for (const auto& nextHopsId :
@@ -243,6 +238,7 @@ void SaiSrv6MySidManager::addMySidEntry(
       auto managedSaiNextHop =
           managerTable_->nextHopManager().addManagedSaiNextHop(
               resolvedNh, std::move(sidListHandle));
+      auto adapterHostKey = getMySidAdapterHostKey(mySid, managerTable_);
       if (auto* ipNextHop = std::get_if<std::shared_ptr<ManagedIpNextHop>>(
               &managedSaiNextHop)) {
         auto managedMySidNextHop =
@@ -264,10 +260,22 @@ void SaiSrv6MySidManager::addMySidEntry(
         nexthopHandle = managedMySidNextHop;
       } else {
         throw FbossError(
-            "Expected IP or SRv6 next hop for MySid entry ", mySid->getID());
+            "Expected IP or SRv6 next hop for MySid entry ", mySid.getID());
       }
     }
   }
+  return nexthopHandle;
+}
+
+void SaiSrv6MySidManager::addMySidEntry(
+    const std::shared_ptr<MySid>& mySid,
+    const std::shared_ptr<SwitchState>& state) {
+  auto adapterHostKey = getMySidAdapterHostKey(*mySid, managerTable_);
+  if (handles_.contains(adapterHostKey)) {
+    throw FbossError("MySid entry already exists for ", mySid->getID());
+  }
+
+  auto nexthopHandle = getNextHopHandle(*mySid, state);
 
   std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -316,6 +324,38 @@ void SaiSrv6MySidManager::changeMySidEntry(
     const std::shared_ptr<MySid>& oldMySid,
     const std::shared_ptr<MySid>& newMySid,
     const std::shared_ptr<SwitchState>& state) {
+  const auto oldKey = getMySidAdapterHostKey(*oldMySid, managerTable_);
+  const auto newKey = getMySidAdapterHostKey(*newMySid, managerTable_);
+
+  // A Binding MySID NHG update changes only the next-hop object referenced by
+  // the existing entry. Create the replacement NHG first and update the SAI
+  // entry in place so the SID lookup remains programmed throughout the swap.
+  if (oldKey == newKey && oldMySid->getType() == MySidType::BINDING_MICRO_SID &&
+      newMySid->getType() == MySidType::BINDING_MICRO_SID) {
+    auto itr = handles_.find(oldKey);
+    if (itr == handles_.end()) {
+      throw FbossError("MySid entry does not exist for ", oldMySid->getID());
+    }
+
+    auto oldGroupHandle = std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
+        &itr->second->nexthopHandle);
+    auto newNexthopHandle = getNextHopHandle(*newMySid, state);
+    auto newGroupHandle = newNexthopHandle
+        ? std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
+              &newNexthopHandle.value())
+        : nullptr;
+    if (oldGroupHandle && newGroupHandle && *oldGroupHandle &&
+        *newGroupHandle &&
+        (*oldGroupHandle)->adapterKey() != SAI_NULL_OBJECT_ID &&
+        (*newGroupHandle)->adapterKey() != SAI_NULL_OBJECT_ID) {
+      itr->second->mySidEntry->setAttribute(
+          SaiMySidEntryTraits::Attributes::NextHopId{
+              (*newGroupHandle)->adapterKey()});
+      itr->second->nexthopHandle = std::move(newNexthopHandle.value());
+      return;
+    }
+  }
+
   removeMySidEntry(oldMySid, state);
   addMySidEntry(newMySid, state);
 }
