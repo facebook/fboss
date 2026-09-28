@@ -1222,6 +1222,22 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getTtl().value().getMask()))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldMplsLabel0Ttl>
+      fieldMplsLabel0Ttl{std::nullopt};
+  if (addedAclEntry->getMplsLabel0Ttl()) {
+    if (!platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL)) {
+      throw FbossError(
+          "MPLS label0 TTL ACL qualifier is not supported on this SDK, acl: ",
+          addedAclEntry->getID());
+    }
+    fieldMplsLabel0Ttl =
+        SaiAclEntryTraits::Attributes::FieldMplsLabel0Ttl{AclEntryFieldU8(
+            std::make_pair(
+                addedAclEntry->getMplsLabel0Ttl().value().getValue(),
+                addedAclEntry->getMplsLabel0Ttl().value().getMask()))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldRouteDstUserMeta>
       fieldRouteDstUserMeta{std::nullopt};
   if (addedAclEntry->getLookupClassRoute()) {
@@ -1737,10 +1753,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
        fieldDscp.has_value() || fieldTc.has_value() ||
        fieldDstMac.has_value() || fieldIpType.has_value() ||
-       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldPortUserMeta.has_value() ||
-       fieldOuterVlanId.has_value() ||
+       fieldTtl.has_value() || fieldMplsLabel0Ttl.has_value() ||
+       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
+       fieldPortUserMeta.has_value() || fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1843,7 +1859,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldDstMac,
       fieldIpType,
       fieldTtl,
-      std::nullopt, // fieldMplsLabel0Ttl
+      fieldMplsLabel0Ttl,
       fieldFdbDstUserMeta,
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
@@ -2443,8 +2459,10 @@ bool SaiAclTableManager::isQualifierSupported(
           std::get<std::optional<SaiAclTableTraits::Attributes::FieldTtl>>(
               attributes));
     case cfg::AclTableQualifier::MPLS_LABEL0_TTL:
-      // The SAI attribute backing this qualifier arrives later in this stack.
-      return false;
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldMplsLabel0Ttl>>(
+              attributes));
     case cfg::AclTableQualifier::LOOKUP_CLASS_L2:
       return hasField(
           std::get<std::optional<
