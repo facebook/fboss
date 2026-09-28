@@ -441,6 +441,7 @@ target_link_libraries(fboss2_config_gen_lib
   fboss2_config_file_utils
   Folly::folly
   platform_descriptor
+  platform_mapping
   ${YAML-CPP}
   ${YAML}
   split_platform_mapping_utils

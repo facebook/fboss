@@ -12,15 +12,27 @@
 #include <cstdint>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/platforms/gen-cpp2/platform_descriptor_types.h"
 
 namespace facebook::fboss::configgen {
+
+struct ResolvedAgentConfigInputs {
+  std::string profile;
+  // PlatformMapping inputs
+  PlatformDescriptor platformDescriptor;
+  std::map<int32_t, cfg::PortAssignment> portAssignments;
+  std::unique_ptr<PlatformMapping> platformMapping;
+  // Asic config inputs
+  cfg::ChipConfig chipConfig;
+};
 
 /*
  * Agent config generation is kept separate from the fboss2 command adapter so
@@ -54,9 +66,8 @@ std::filesystem::path findGeneratedAsicConfig(
     std::string_view platform,
     std::string_view profile);
 
-// Resolves the generated port-assignment artifact for a platform. The
-// colocated platform config layout is preferred, with the legacy centralized
-// platform-mapping directory supported during migration.
+// Resolves the generated port-assignment artifact selected with the platform
+// descriptor. Colocated and legacy centralized layouts are both supported.
 std::filesystem::path findPortIdToPortAssignmentConfig(
     const std::filesystem::path& fbossRoot,
     std::string_view platform);
@@ -70,27 +81,27 @@ findPlatformDescriptorConfigWithDescriptor(
     const std::filesystem::path& fbossRoot,
     std::string_view platform);
 
-// Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
-// rejected until their switch IDs and indexes can be supplied explicitly.
-cfg::SwitchSettings generateSwitchSettings(
-    const PlatformDescriptor& platformDescriptor);
-
-// Loads the selected platform descriptor and constructs the switch section of
-// an AgentConfig from it.
-cfg::SwitchConfig generateSwitchConfig(
-    const std::filesystem::path& fbossRoot,
-    std::string_view platform);
-
-// Loads the selected ASIC configuration and port assignments into the platform
-// section of an AgentConfig. An explicit file uses the profile metadata's type
-// unless asicConfigType is also provided, in which case ASIC metadata is not
-// required.
-cfg::PlatformConfig generatePlatformConfig(
+// Resolves and loads one coherent set of inputs for agent config generation.
+// An omitted profile is normalized to "default". Raw mapping and port
+// assignment artifacts are loaded from the selected descriptor's directory.
+ResolvedAgentConfigInputs resolveAgentConfigInputs(
     const std::filesystem::path& fbossRoot,
     std::string_view platform,
     std::string_view profile,
     const std::optional<std::filesystem::path>& asicConfigFile = std::nullopt,
     const std::optional<cfg::AsicConfigType>& asicConfigType = std::nullopt);
+
+// Generates SwitchSettings for a single NPU platform. Multi-ASIC platforms are
+// rejected until their switch IDs and indexes can be supplied explicitly.
+cfg::SwitchSettings generateSwitchSettings(
+    const PlatformDescriptor& platformDescriptor);
+
+// Constructs the switch section of an AgentConfig from resolved inputs.
+cfg::SwitchConfig generateSwitchConfig(const ResolvedAgentConfigInputs& inputs);
+
+// Constructs the platform section of an AgentConfig from resolved inputs.
+cfg::PlatformConfig generatePlatformConfig(
+    const ResolvedAgentConfigInputs& inputs);
 
 // Generates a new agent.conf and returns its path. The output is written to a
 // unique temporary directory by default and never overwrites an existing file.
