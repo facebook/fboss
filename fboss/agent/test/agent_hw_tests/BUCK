@@ -268,6 +268,7 @@ cpp_library(
         "AgentMPLSHeadEndTests.cpp",
         "AgentMPLSMidpointTests.cpp",
         "AgentMPLSTests.cpp",
+        "AgentMPLSTtlTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
         "AgentMemoryUsageTests.cpp",
