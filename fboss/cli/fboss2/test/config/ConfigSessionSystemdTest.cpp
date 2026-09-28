@@ -211,7 +211,7 @@ TEST(FbossServiceUtilTest, WaitForConfigured_PollsUntilAgentConfigured) {
       .WillOnce(Return(false))
       .WillOnce(Return(true));
 
-  util.FbossServiceUtil::waitForConfigured(
+  util.waitForConfigured(
       cli::ServiceType::AGENT,
       hostInfo,
       /*maxWaitSeconds=*/5,
@@ -226,7 +226,7 @@ TEST(FbossServiceUtilTest, WaitForConfigured_Bgp_IsNoOp) {
 
   EXPECT_CALL(util, isAgentConfigured(_)).Times(0);
 
-  EXPECT_NO_THROW(util.FbossServiceUtil::waitForConfigured(
+  EXPECT_NO_THROW(util.waitForConfigured(
       cli::ServiceType::BGP,
       hostInfo,
       /*maxWaitSeconds=*/1,
@@ -242,7 +242,7 @@ TEST(FbossServiceUtilTest, WaitForConfigured_ThrowsOnTimeout) {
   EXPECT_CALL(util, isAgentConfigured(_)).WillRepeatedly(Return(false));
 
   EXPECT_THROW(
-      util.FbossServiceUtil::waitForConfigured(
+      util.waitForConfigured(
           cli::ServiceType::AGENT,
           hostInfo,
           /*maxWaitSeconds=*/1,
@@ -269,12 +269,9 @@ TEST(
   EXPECT_CALL(
       *mockPtr,
       restartService(
-          cli::ServiceType::AGENT,
-          cli::ServiceType::AGENT,
-          cli::ConfigActionLevel::SERVICE_RESTART))
+          cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART))
       .WillOnce(::testing::Return(std::vector<std::string>{"wedge_agent"}));
-  EXPECT_CALL(*mockPtr, waitForConfigured(cli::ServiceType::AGENT, _, _, _))
-      .Times(1);
+  EXPECT_CALL(*mockPtr, isAgentConfigured(_)).WillOnce(Return(true));
 
   TestableConfigSession session(
       "/tmp/test_session", "/tmp/test_system", std::move(mock));
@@ -306,8 +303,7 @@ TEST(
       .WillOnce(
           ::testing::Return(
               std::vector<std::string>{"fboss_hw_agent@0", "fboss_sw_agent"}));
-  EXPECT_CALL(*mockPtr, waitForConfigured(cli::ServiceType::AGENT, _, _, _))
-      .Times(1);
+  EXPECT_CALL(*mockPtr, isAgentConfigured(_)).WillOnce(Return(true));
 
   TestableConfigSession session(
       "/tmp/test_session", "/tmp/test_system", std::move(mock));
@@ -335,7 +331,7 @@ TEST(
 
   EXPECT_CALL(*mockPtr, reloadConfig(cli::ServiceType::AGENT, ::testing::_))
       .WillOnce(::testing::Return(std::vector<std::string>{"wedge_agent"}));
-  EXPECT_CALL(*mockPtr, waitForConfigured(_, _, _, _)).Times(0);
+  EXPECT_CALL(*mockPtr, isAgentConfigured(_)).Times(0);
 
   TestableConfigSession session(
       "/tmp/test_session", "/tmp/test_system", std::move(mock));

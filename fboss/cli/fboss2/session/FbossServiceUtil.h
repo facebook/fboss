@@ -50,7 +50,7 @@ class FbossServiceUtil {
 
   // Waits until the service can take config commands; systemd reports it
   // active well before that. No-op for bgpd. Throws on timeout.
-  virtual void waitForConfigured(
+  void waitForConfigured(
       cli::ServiceType service,
       const HostInfo& hostInfo,
       int maxWaitSeconds = 300,

@@ -29,7 +29,6 @@ constexpr std::string_view kWedgeAgent = "wedge_agent";
 constexpr std::string_view kSwAgent = "fboss_sw_agent";
 constexpr std::string_view kHwAgentPrefix = "fboss_hw_agent@";
 constexpr std::string_view kBgpd = "bgpd";
-
 } // namespace
 
 namespace facebook::fboss {
@@ -209,28 +208,26 @@ void FbossServiceUtil::waitForConfigured(
     int maxWaitSeconds,
     int pollIntervalMs) {
   switch (service) {
-    case cli::ServiceType::AGENT:
-      break;
+    case cli::ServiceType::AGENT: {
+      int waitedMs = 0;
+      while (waitedMs < maxWaitSeconds * 1000) {
+        if (isAgentConfigured(hostInfo)) {
+          LOG(INFO) << "Agent is configured and serving";
+          return;
+        }
+        // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+        std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
+        waitedMs += pollIntervalMs;
+      }
+      throw std::runtime_error(
+          fmt::format(
+              "Agent did not become configured within {} seconds",
+              maxWaitSeconds));
+    }
     case cli::ServiceType::BGP:
       // bgpd has no run state to poll.
       return;
   }
-
-  int waitedMs = 0;
-
-  while (waitedMs < maxWaitSeconds * 1000) {
-    if (isAgentConfigured(hostInfo)) {
-      LOG(INFO) << "Agent is configured and serving";
-      return;
-    }
-    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
-    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
-    waitedMs += pollIntervalMs;
-  }
-
-  throw std::runtime_error(
-      fmt::format(
-          "Agent did not become configured within {} seconds", maxWaitSeconds));
 }
 
 std::vector<std::string> FbossServiceUtil::restartService(
