@@ -24,7 +24,8 @@
     {"download": "file:///tmp/fboss-image-staging/agent_fboss_bins.tar.zst"},
     {"download": "file:///tmp/fboss-image-staging/fsdb_fboss_bins.tar.zst"},
     {"download": "file:///tmp/fboss-image-staging/qsfp_fboss_bins.tar.zst"},
-    {"download": "file:///tmp/fboss-image-staging/fboss2_fboss_bins.tar.zst"}
+    {"download": "file:///tmp/fboss-image-staging/fboss2_fboss_bins.tar.zst"},
+    {"download": "file:///tmp/fboss-image-staging/led_fboss_bins.tar.zst"}
   ],
   "image_build_hooks": {
   }
