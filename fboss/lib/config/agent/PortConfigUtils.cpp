@@ -12,12 +12,15 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <utility>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
 namespace facebook::fboss::utility {
 namespace {
+
+constexpr int32_t kDefaultInterfaceMtu = 9000;
 
 std::optional<cfg::PortSpeed> getProfileSpeed(
     const PlatformMapping& platformMapping,
@@ -203,6 +206,53 @@ cfg::Port createDefaultPortConfig(
   return port;
 }
 
+cfg::Port createInterfacePortConfig(
+    const PlatformMapping& platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID ingressVlan) {
+  auto port = createDefaultPortConfig(
+      &platformMapping, id, profileID, static_cast<int32_t>(ingressVlan));
+  if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError("Port ", id, " is not an interface port");
+  }
+  port.routable() = true;
+  port.parserType() = cfg::ParserType::L3;
+  return port;
+}
+
+cfg::Vlan createVlanConfig(VlanID id) {
+  cfg::Vlan vlan;
+  vlan.id() = static_cast<int32_t>(id);
+  vlan.name() = "vlan" + std::to_string(static_cast<int32_t>(id));
+  vlan.routable() = true;
+  vlan.recordStats() = true;
+  return vlan;
+}
+
+cfg::VlanPort createVlanPortConfig(PortID portID, VlanID vlanID) {
+  cfg::VlanPort vlanPort;
+  vlanPort.vlanID() = static_cast<int32_t>(vlanID);
+  vlanPort.logicalPort() = static_cast<int32_t>(portID);
+  vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+  vlanPort.emitTags() = false;
+  return vlanPort;
+}
+
+cfg::Interface createVlanInterfaceConfig(
+    InterfaceID interfaceID,
+    VlanID vlanID) {
+  cfg::Interface intf;
+  intf.name() = std::to_string(static_cast<int32_t>(interfaceID));
+  intf.intfID() = static_cast<int32_t>(interfaceID);
+  intf.vlanID() = static_cast<int32_t>(vlanID);
+  intf.type() = cfg::InterfaceType::VLAN;
+  intf.routerID() = 0;
+  intf.scope() = cfg::Scope::LOCAL;
+  intf.mtu() = kDefaultInterfaceMtu;
+  return intf;
+}
+
 int32_t allocateFreeVlanId(
     const cfg::SwitchConfig& config,
     int32_t minId,
@@ -223,38 +273,62 @@ int32_t allocateFreeVlanId(
       "No free vlan id available in range [", minId, ", ", maxId, "]");
 }
 
+void addInterfacePortToConfig(
+    cfg::SwitchConfig& config,
+    const PlatformMapping* platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID vlanID) {
+  if (!platformMapping) {
+    throw FbossError("Platform mapping must not be null");
+  }
+  const auto numericPortID = static_cast<int32_t>(id);
+  const auto numericVlanID = static_cast<int32_t>(vlanID);
+  if (numericVlanID == 0) {
+    throw FbossError("VLAN ID 0 is reserved");
+  }
+  if (std::any_of(
+          config.ports()->begin(),
+          config.ports()->end(),
+          [numericPortID](const auto& port) {
+            return *port.logicalID() == numericPortID;
+          })) {
+    throw FbossError("Port ", id, " already exists in config");
+  }
+  if (std::any_of(
+          config.vlans()->begin(),
+          config.vlans()->end(),
+          [numericVlanID](const auto& vlan) {
+            return *vlan.id() == numericVlanID;
+          }) ||
+      std::any_of(
+          config.interfaces()->begin(),
+          config.interfaces()->end(),
+          [numericVlanID](const auto& intf) {
+            return *intf.intfID() == numericVlanID;
+          })) {
+    throw FbossError("VLAN/interface ID ", vlanID, " already exists in config");
+  }
+
+  auto port =
+      createInterfacePortConfig(*platformMapping, id, profileID, vlanID);
+  auto vlan = createVlanConfig(vlanID);
+  auto vlanPort = createVlanPortConfig(id, vlanID);
+  auto intf = createVlanInterfaceConfig(InterfaceID(numericVlanID), vlanID);
+
+  config.ports()->push_back(std::move(port));
+  config.vlans()->push_back(std::move(vlan));
+  config.vlanPorts()->push_back(std::move(vlanPort));
+  config.interfaces()->push_back(std::move(intf));
+}
+
 int32_t addInterfacePortToConfig(
     cfg::SwitchConfig& config,
     const PlatformMapping* platformMapping,
     PortID id,
     cfg::PortProfileID profileID) {
   const int32_t n = allocateFreeVlanId(config);
-
-  auto port = createDefaultPortConfig(platformMapping, id, profileID, n);
-  port.routable() = true;
-  config.ports()->push_back(port);
-
-  cfg::Vlan vlan;
-  vlan.id() = n;
-  vlan.name() = "vlan" + std::to_string(n);
-  vlan.routable() = true;
-  vlan.recordStats() = true;
-  config.vlans()->push_back(vlan);
-
-  cfg::VlanPort vlanPort;
-  vlanPort.vlanID() = n;
-  vlanPort.logicalPort() = static_cast<int32_t>(id);
-  vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-  vlanPort.emitTags() = false;
-  config.vlanPorts()->push_back(vlanPort);
-
-  cfg::Interface intf;
-  intf.intfID() = n;
-  intf.vlanID() = n;
-  intf.type() = cfg::InterfaceType::VLAN;
-  intf.routerID() = 0;
-  intf.scope() = cfg::Scope::LOCAL;
-  config.interfaces()->push_back(intf);
+  addInterfacePortToConfig(config, platformMapping, id, profileID, VlanID(n));
 
   return n;
 }

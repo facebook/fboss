@@ -81,6 +81,19 @@ cfg::Port createDefaultPortConfig(
     cfg::PortProfileID profileID,
     int32_t ingressVlan);
 
+// Basic building blocks for a routed NPU interface port. Callers may adjust
+// policy-specific fields before inserting the returned objects into a config.
+cfg::Port createInterfacePortConfig(
+    const PlatformMapping& platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID ingressVlan);
+cfg::Vlan createVlanConfig(VlanID id);
+cfg::VlanPort createVlanPortConfig(PortID portID, VlanID vlanID);
+cfg::Interface createVlanInterfaceConfig(
+    InterfaceID interfaceID,
+    VlanID vlanID);
+
 // Lowest-free vlan id in [minId, maxId] not used by any vlan id or any
 // interface intfID in config. Throws FbossError if none free.
 int32_t allocateFreeVlanId(
@@ -88,10 +101,16 @@ int32_t allocateFreeVlanId(
     int32_t minId = kInterfaceVlanIdMin,
     int32_t maxId = kInterfaceVlanIdMax);
 
-// Append a VLAN-style interface port into an EXISTING config: allocates N via
-// allocateFreeVlanId, then appends Port(routable=true, ingressVlan=N,
-// state=DISABLED) + Vlan(N) + VlanPort(N->id) + Interface(intfID=N, vlanID=N,
-// type=VLAN). Returns N.
+// Append a VLAN-style interface port into an existing config, using vlanID for
+// both the VLAN and interface ID.
+void addInterfacePortToConfig(
+    cfg::SwitchConfig& config,
+    const PlatformMapping* platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID vlanID);
+
+// As above, but allocate the lowest free VLAN/interface ID and return it.
 int32_t addInterfacePortToConfig(
     cfg::SwitchConfig& config,
     const PlatformMapping* platformMapping,

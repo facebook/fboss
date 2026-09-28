@@ -591,38 +591,43 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           cfg::Scope scope,
                           std::optional<int32_t> port = std::nullopt) {
     auto i = config.interfaces()->size();
-    config.interfaces()->emplace_back();
-    config.interfaces()[i].name() = folly::to<std::string>(intfId);
-    *config.interfaces()[i].intfID() = intfId;
-    *config.interfaces()[i].vlanID() = vlanId;
-    *config.interfaces()[i].routerID() = 0;
-    *config.interfaces()[i].type() = type;
-    *config.interfaces()[i].scope() = scope;
+    auto intf = type == cfg::InterfaceType::VLAN
+        ? createVlanInterfaceConfig(InterfaceID(intfId), VlanID(vlanId))
+        : cfg::Interface{};
+    if (type != cfg::InterfaceType::VLAN) {
+      intf.name() = folly::to<std::string>(intfId);
+      intf.intfID() = intfId;
+      intf.vlanID() = vlanId;
+      intf.routerID() = 0;
+      intf.type() = type;
+      intf.scope() = scope;
+      intf.mtu() = 9000;
+    }
     if (setMac) {
-      config.interfaces()[i].mac() = getLocalCpuMacStr();
+      intf.mac() = getLocalCpuMacStr();
     }
     if (type == cfg::InterfaceType::PORT) {
       CHECK(port.has_value());
-      config.interfaces()[i].portID() = *port;
+      intf.portID() = *port;
     }
-    config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
       if (subnets) {
-        config.interfaces()[i].ipAddresses() = *subnets;
+        intf.ipAddresses() = *subnets;
       } else {
         auto ipDecimal = i + 1;
         auto v4Mask = 24;
         auto v6Mask = 64;
         bool isV4 = true;
-        config.interfaces()[i].ipAddresses()->resize(2);
-        config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
+        intf.ipAddresses()->resize(2);
+        intf.ipAddresses()[0] = FLAGS_nodeZ
             ? genInterfaceAddress(ipDecimal, isV4, 2, v4Mask)
             : genInterfaceAddress(ipDecimal, isV4, 1, v4Mask);
-        config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
+        intf.ipAddresses()[1] = FLAGS_nodeZ
             ? genInterfaceAddress(ipDecimal, !isV4, 1, v6Mask)
             : genInterfaceAddress(ipDecimal, !isV4, 0, v6Mask);
       }
     }
+    config.interfaces()->push_back(std::move(intf));
   };
   if (cfg::InterfaceType::VLAN == intfType) {
     for (auto i = 0; i < vlans.size(); ++i) {
@@ -862,13 +867,26 @@ cfg::SwitchConfig genPortVlanCfg(
 
   // Port config
   auto kPortMTU = 9412;
-  for (auto portID : ports) {
+  for (const auto& portID : ports) {
     auto portCfg = findCfgPort(config, portID);
     auto iter = lbModeMap.find(folly::copy(portCfg->portType().value()));
     if (iter == lbModeMap.end()) {
       throw FbossError(
           "Unable to find the desired loopback mode for port type: ",
           folly::copy(portCfg->portType().value()));
+    }
+    if (switchType == cfg::SwitchType::NPU &&
+        *portCfg->portType() == cfg::PortType::INTERFACE_PORT) {
+      auto intfPort = createInterfacePortConfig(
+          *platformMapping,
+          portID,
+          *portCfg->profileID(),
+          port2vlan.at(portID));
+      intfPort.speed() = *portCfg->speed();
+      intfPort.state() = cfg::PortState::ENABLED;
+      intfPort.loopbackMode() = iter->second;
+      *portCfg = std::move(intfPort);
+      continue;
     }
     portCfg->loopbackMode() = iter->second;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
@@ -900,12 +918,8 @@ cfg::SwitchConfig genPortVlanCfg(
 
   if (switchType == cfg::SwitchType::NPU) {
     // Vlan config
-    for (auto vlanID : vlans) {
-      cfg::Vlan vlan;
-      vlan.id() = vlanID;
-      vlan.name() = "vlan" + std::to_string(vlanID);
-      vlan.routable() = true;
-      config.vlans()->push_back(vlan);
+    for (const auto& vlanID : vlans) {
+      config.vlans()->push_back(createVlanConfig(vlanID));
     }
 
     // TODO(daiweix): Determine whether and how P200 should configure a
@@ -914,36 +928,25 @@ cfg::SwitchConfig genPortVlanCfg(
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
-    cfg::Vlan defaultVlan;
-    defaultVlan.id() = defaultVlanId;
-    defaultVlan.name() = fmt::format("vlan{}", defaultVlanId);
+    auto defaultVlan = createVlanConfig(VlanID(defaultVlanId));
     defaultVlan.intfID() = 10;
-    defaultVlan.routable() = true;
     config.vlans()->push_back(defaultVlan);
     config.defaultVlan() = defaultVlanId;
 
     // Vlan port config
-    for (auto vlanPortPair : port2vlan) {
-      cfg::VlanPort vlanPort;
-      vlanPort.logicalPort() = vlanPortPair.first;
-      vlanPort.vlanID() = vlanPortPair.second;
-      vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-      vlanPort.emitTags() = false;
-      config.vlanPorts()->push_back(vlanPort);
+    for (const auto& vlanPortPair : port2vlan) {
+      config.vlanPorts()->push_back(
+          createVlanPortConfig(vlanPortPair.first, vlanPortPair.second));
     }
     if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       /*
        * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
        * requires vlan rif in default vlan.
        */
-      cfg::Interface intf1;
-      intf1.intfID() = *defaultVlan.intfID();
+      auto intf1 = createVlanInterfaceConfig(
+          InterfaceID(*defaultVlan.intfID()), VlanID(kDefaultVlanId1));
       intf1.name() = "default_vlan_rif";
-      intf1.vlanID() = kDefaultVlanId1;
       intf1.mac() = getLocalCpuMacStr();
-      intf1.type() = cfg::InterfaceType::VLAN;
-      intf1.routerID() = 0;
-      intf1.mtu() = 9000;
       intf1.isVirtual() = true;
       auto ipDecimal = config.interfaces()->size() + 1;
       intf1.ipAddresses()->emplace_back(

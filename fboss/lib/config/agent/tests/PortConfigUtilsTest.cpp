@@ -32,12 +32,15 @@ constexpr auto kPreferred400GProfile =
 constexpr auto k800GProfile =
     cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL;
 
-cfg::PlatformPortEntry makeEntry(int32_t id, const std::string& name) {
+cfg::PlatformPortEntry makeEntry(
+    int32_t id,
+    const std::string& name,
+    cfg::PortType portType = cfg::PortType::INTERFACE_PORT) {
   cfg::PlatformPortEntry entry;
   entry.mapping()->id() = id;
   entry.mapping()->name() = name;
   entry.mapping()->controllingPort() = id;
-  entry.mapping()->portType() = cfg::PortType::INTERFACE_PORT;
+  entry.mapping()->portType() = portType;
   entry.mapping()->scope() = cfg::Scope::LOCAL;
   entry.supportedProfiles()[kProfile] = cfg::PlatformPortConfig{};
   entry.supportedProfiles()[kProfileNoConfig] = cfg::PlatformPortConfig{};
@@ -237,6 +240,59 @@ TEST(PortConfigUtilsTest, createDefaultPortConfigRejectsNullMapping) {
       FbossError);
 }
 
+TEST(PortConfigUtilsTest, createInterfacePortConfigSetsRoutedDefaults) {
+  const auto mapping = makeMapping();
+
+  const auto port = utility::createInterfacePortConfig(
+      mapping, kPortId, kProfile, VlanID(2001));
+
+  EXPECT_EQ(*port.logicalID(), static_cast<int32_t>(kPortId));
+  EXPECT_EQ(*port.profileID(), kProfile);
+  EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
+  EXPECT_EQ(*port.ingressVlan(), 2001);
+  EXPECT_TRUE(*port.routable());
+  EXPECT_EQ(*port.parserType(), cfg::ParserType::L3);
+}
+
+TEST(PortConfigUtilsTest, createInterfacePortConfigRejectsOtherPortTypes) {
+  cfg::PlatformMapping thriftMapping;
+  thriftMapping.ports()[kPortId] =
+      makeEntry(kPortId, kPortName, cfg::PortType::FABRIC_PORT);
+  addProfile(thriftMapping, kProfile, kProfileSpeed);
+  const PlatformMapping mapping(thriftMapping);
+
+  EXPECT_THROW(
+      utility::createInterfacePortConfig(
+          mapping, kPortId, kProfile, VlanID(2001)),
+      FbossError);
+}
+
+TEST(PortConfigUtilsTest, createInterfacePortComponentsSetsBasicFields) {
+  const auto vlan = utility::createVlanConfig(VlanID(2001));
+  EXPECT_EQ(*vlan.id(), 2001);
+  EXPECT_EQ(*vlan.name(), "vlan2001");
+  EXPECT_TRUE(*vlan.routable());
+  EXPECT_TRUE(*vlan.recordStats());
+
+  const auto vlanPort = utility::createVlanPortConfig(kPortId, VlanID(2001));
+  EXPECT_EQ(*vlanPort.logicalPort(), static_cast<int32_t>(kPortId));
+  EXPECT_EQ(*vlanPort.vlanID(), 2001);
+  EXPECT_EQ(*vlanPort.spanningTreeState(), cfg::SpanningTreeState::FORWARDING);
+  EXPECT_FALSE(*vlanPort.emitTags());
+
+  const auto intf =
+      utility::createVlanInterfaceConfig(InterfaceID(2001), VlanID(2001));
+  EXPECT_EQ(*intf.name(), "2001");
+  EXPECT_EQ(*intf.intfID(), 2001);
+  EXPECT_EQ(*intf.vlanID(), 2001);
+  EXPECT_EQ(*intf.type(), cfg::InterfaceType::VLAN);
+  EXPECT_EQ(*intf.routerID(), 0);
+  EXPECT_EQ(*intf.scope(), cfg::Scope::LOCAL);
+  EXPECT_EQ(*intf.mtu(), 9000);
+  EXPECT_FALSE(intf.mac().has_value());
+  EXPECT_TRUE(intf.ipAddresses()->empty());
+}
+
 TEST(PortConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {
   cfg::SwitchConfig config;
   cfg::Vlan vlan2001;
@@ -285,6 +341,7 @@ TEST(PortConfigUtilsTest, addInterfacePortToConfigAppendsAllEntities) {
   ASSERT_EQ(config.ports()->size(), 1);
   const auto& port = config.ports()->at(0);
   EXPECT_TRUE(*port.routable());
+  EXPECT_EQ(*port.parserType(), cfg::ParserType::L3);
   EXPECT_EQ(*port.ingressVlan(), n);
   EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
   EXPECT_EQ(PortID(*port.logicalID()), kPortId);
@@ -309,8 +366,38 @@ TEST(PortConfigUtilsTest, addInterfacePortToConfigAppendsAllEntities) {
   EXPECT_EQ(*intf.type(), cfg::InterfaceType::VLAN);
   EXPECT_EQ(*intf.routerID(), 0);
   EXPECT_EQ(*intf.scope(), cfg::Scope::LOCAL);
+  EXPECT_EQ(*intf.name(), std::to_string(n));
+  EXPECT_EQ(*intf.mtu(), 9000);
   EXPECT_FALSE(intf.mac().has_value());
   EXPECT_TRUE(intf.ipAddresses()->empty());
+}
+
+TEST(PortConfigUtilsTest, addInterfacePortToConfigUsesExplicitVlanId) {
+  const auto mapping = makeMapping();
+  cfg::SwitchConfig config;
+
+  utility::addInterfacePortToConfig(
+      config, &mapping, kPortId, kProfile, VlanID(2500));
+
+  ASSERT_EQ(config.ports()->size(), 1);
+  EXPECT_EQ(*config.ports()->at(0).ingressVlan(), 2500);
+  ASSERT_EQ(config.vlans()->size(), 1);
+  EXPECT_EQ(*config.vlans()->at(0).id(), 2500);
+  ASSERT_EQ(config.vlanPorts()->size(), 1);
+  EXPECT_EQ(*config.vlanPorts()->at(0).vlanID(), 2500);
+  ASSERT_EQ(config.interfaces()->size(), 1);
+  EXPECT_EQ(*config.interfaces()->at(0).intfID(), 2500);
+}
+
+TEST(PortConfigUtilsTest, addInterfacePortToConfigRejectsReservedVlan) {
+  const auto mapping = makeMapping();
+  cfg::SwitchConfig config;
+
+  EXPECT_THROW(
+      utility::addInterfacePortToConfig(
+          config, &mapping, kPortId, kProfile, VlanID(0)),
+      FbossError);
+  EXPECT_EQ(config, cfg::SwitchConfig());
 }
 
 namespace {
