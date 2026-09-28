@@ -9,6 +9,21 @@ mkdir -p "$LOCAL_RPM_REPO_DIR"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# kiwi's oem-dump blocksize check (OSInside/kiwi#3022) reads the target's
+# PHYSICAL block size, but target_blocksize is documented as the LOGICAL size.
+# On 512e NVMe (512 logical / 4096 physical) the stock check aborts the PXE
+# install via report_and_quit -> reboot -f.
+# Reported as OSInside/kiwi#3050; delete this once that fix ships.
+KIWI_DUMP=/usr/lib/dracut/modules.d/55kiwi-dump/kiwi-dump-image.sh
+KIWI_BS_OLD='target_blocksize="/sys/block/${target_node}/queue/physical_block_size"'
+KIWI_BS_NEW='target_blocksize="/sys/block/${target_node}/queue/logical_block_size"'
+if grep -qF "$KIWI_BS_OLD" "$KIWI_DUMP"; then
+  sed -i "s|$KIWI_BS_OLD|$KIWI_BS_NEW|" "$KIWI_DUMP"
+  echo "Patched kiwi oem-dump blocksize check: physical -> logical"
+else
+  echo "kiwi oem-dump blocksize check not in expected form; leaving upstream behaviour"
+fi
+
 echo "Creating FBOSS log directories..."
 mkdir -p /var/facebook/logs/fboss/sdk
 mkdir -p /var/facebook/logs/fboss/archive
