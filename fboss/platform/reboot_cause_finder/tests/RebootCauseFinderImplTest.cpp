@@ -206,6 +206,25 @@ TEST_F(RebootCauseFinderImplTest, PanicSelectedByNameNotMtime) {
       *causes[0].occurredAtMs(), static_cast<int64_t>(inWindowByName) * 1000);
 }
 
+// A dump is always a directory. A file whose name merely starts with a
+// timestamp -- a tarball bundling several dumps, say -- need not denote that
+// instant at all, so it must not be read as a panic.
+TEST_F(RebootCauseFinderImplTest, TimestampNamedFileIsNotAPanic) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({});
+  const auto stray =
+      (std::filesystem::path(dir) / (crashDirName(btime - 60) + ".tar"))
+          .string();
+  ASSERT_TRUE(folly::writeFile(std::string("x"), stray.c_str()));
+  const auto bare =
+      (std::filesystem::path(dir) / crashDirName(btime - 60)).string();
+  ASSERT_TRUE(folly::writeFile(std::string("x"), bare.c_str()));
+
+  const auto attempt = detail::readKernelPanic({dir}, btime, kWindow);
+  EXPECT_TRUE(attempt.causes()->empty());
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+}
+
 TEST_F(RebootCauseFinderImplTest, MissingCrashDirIsNotAnError) {
   EXPECT_TRUE(
       detail::readKernelPanic(
@@ -421,8 +440,9 @@ TEST_F(RebootCauseFinderImplTest, CrashDirNameGarbageRejected) {
   EXPECT_FALSE(detail::parseCrashDirName("").has_value());
 }
 
-// The contract: a timestamp, optionally one strftime %Z abbreviation, and
-// nothing else.
+// The %Z text is accepted and ignored, in every form a producer emits. The
+// remainder is deliberately not validated -- see the diff summary -- so this
+// pins what parses, not what is rejected.
 TEST_F(RebootCauseFinderImplTest, CrashDirNameZoneSuffixesAccepted) {
   for (const auto* name : {
            "2026-09-24T16:32:00", // no zone at all
@@ -865,88 +885,142 @@ TEST_F(RebootCauseFinderImplTest, SyslogDecemberLineReadInJanuaryResolves) {
   EXPECT_EQ(static_cast<int64_t>(*when), btime - 900);
 }
 
-// ------------------------------------------------- record honesty contract
+// ------------------------------------------------ determineRebootCause
 
-// determinedCause must be unset, not a placeholder, when nothing was found.
-// A placeholder has to carry a placeholder timestamp, and that timestamp
-// necessarily postdates the boot it claims to explain.
-TEST_F(RebootCauseFinderImplTest, DeterminedCauseUnsetWhenNothingFound) {
-  facebook::fboss::platform::reboot_cause_config::RebootCauseRecord record;
-  EXPECT_FALSE(record.determinedCause().has_value());
+// Drives the whole of determineRebootCause() against a temp tree, which is
+// where the "never fabricate a cause" rule actually lives. Asserting on the
+// persisted record rather than on hand-built thrift structs means these fail
+// if the arbitration changes, not only if the serializer does.
+class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
+ protected:
+  void SetUp() override {
+    RebootCauseFinderImplTest::SetUp();
+    historyDir_ = (tmpDir_ / "history").string();
+    procStat_ = (tmpDir_ / "stat").string();
+    bootIdPath_ = (tmpDir_ / "boot_id").string();
+    crashDir_ = (tmpDir_ / "crash").string();
+    logPath_ = (tmpDir_ / "messages").string();
+    std::filesystem::create_directories(crashDir_);
+    btime_ = nowSec();
+    ASSERT_TRUE(
+        folly::writeFile(
+            fmt::format("cpu 1 2 3\nbtime {}\n", btime_), procStat_.c_str()));
+    ASSERT_TRUE(
+        folly::writeFile(
+            std::string("11111111-2222-3333-4444-555555555555\n"),
+            bootIdPath_.c_str()));
+  }
 
-  const auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  // Unset optionals are omitted by SimpleJSON, so absence is self-describing
-  // rather than requiring consumers to string-match a sentinel.
-  EXPECT_EQ(json.count("determinedCause"), 0);
+  RebootCauseFinderImpl::Paths paths() const {
+    return RebootCauseFinderImpl::Paths{
+        historyDir_, procStat_, bootIdPath_, {crashDir_}, {logPath_}};
+  }
+
+  // The single record determineRebootCause() persisted, as parsed JSON.
+  folly::dynamic readRecord() const {
+    std::vector<std::string> files;
+    for (const auto& e : std::filesystem::directory_iterator(historyDir_)) {
+      files.push_back(e.path().string());
+    }
+    EXPECT_EQ(files.size(), 1);
+    std::string contents;
+    EXPECT_TRUE(folly::readFile(files.front().c_str(), contents));
+    return folly::parseJson(contents);
+  }
+
+  rcc::RebootCauseConfig configWithProvider(const std::string& readPath) {
+    rcc::RebootCauseProviderConfig pc;
+    pc.name() = "TEST_CPLD";
+    pc.priority() = 1;
+    pc.sysfsReadPath() = readPath;
+    pc.sysfsClearPath() = readPath + ".clear";
+    rcc::RebootCauseConfig c;
+    c.rebootCauseProviderConfigs() = {pc};
+    return c;
+  }
+
+  int64_t btime_{};
+  std::string historyDir_, procStat_, bootIdPath_, crashDir_, logPath_;
+};
+
+// The headline rule: nothing found means nothing claimed.
+TEST_F(DetermineRebootCauseTest, NoProviderReportsAnythingSoNoCauseIsClaimed) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+
+  const auto rec = readRecord();
+  EXPECT_EQ(rec.count("determinedCause"), 0);
+  EXPECT_EQ(rec["bootTimeMs"].asInt(), btime_ * 1000);
+  ASSERT_EQ(rec["providersAttempted"].size(), 2);
+  for (const auto& a : rec["providersAttempted"]) {
+    EXPECT_EQ(a["status"].asInt(), 0) << "absent source is OK, not a failure";
+    EXPECT_EQ(a["causes"].size(), 0);
+  }
 }
 
-TEST_F(RebootCauseFinderImplTest, DeterminedCauseSerialisedWhenFound) {
-  facebook::fboss::platform::reboot_cause_config::RebootCauseRecord record;
-  facebook::fboss::platform::reboot_cause_config::DeterminedCause d;
-  d.providerName() = "ManualReboot";
-  d.cause() = causeAt("Manual x86 Reboot", 1790195926);
-  record.determinedCause() = d;
+TEST_F(DetermineRebootCauseTest, PanicInWindowBecomesTheDeterminedCause) {
+  std::filesystem::create_directories(
+      std::filesystem::path(crashDir_) / crashDirName(btime_ - 60));
 
-  const auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  ASSERT_EQ(json.count("determinedCause"), 1);
-  EXPECT_EQ(json["determinedCause"]["providerName"].asString(), "ManualReboot");
-}
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
 
-// A record must distinguish "read cleanly, nothing to report" from "the
-// source was unreadable". Both produce an empty allCauses.
-TEST_F(RebootCauseFinderImplTest, ProviderAttemptStatusesRoundTrip) {
-  using facebook::fboss::platform::reboot_cause_config::
-      RebootCauseProviderStatus;
-  facebook::fboss::platform::reboot_cause_config::RebootCauseRecord record;
-
-  facebook::fboss::platform::reboot_cause_config::RebootCauseProviderAttempt a;
-  a.name() = "MERU_SCM_CPLD";
-  a.status() = RebootCauseProviderStatus::READ_FAILED;
-  a.detail() = "/run/devmap/fpgas/MERU_SCM_CPLD/reboot_causes";
-
-  facebook::fboss::platform::reboot_cause_config::RebootCauseProviderAttempt b;
-  b.name() = "KernelPanic";
-  b.status() = RebootCauseProviderStatus::SKIPPED;
-  b.detail() = "boot time unavailable";
-
-  record.providersAttempted() = {a, b};
-
-  const auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  ASSERT_EQ(json["providersAttempted"].size(), 2);
-  EXPECT_EQ(json["providersAttempted"][0]["name"].asString(), "MERU_SCM_CPLD");
-  EXPECT_NE(
-      json["providersAttempted"][0]["status"],
-      json["providersAttempted"][1]["status"]);
-}
-
-TEST_F(RebootCauseFinderImplTest, BootTimeMsIsRecorded) {
-  facebook::fboss::platform::reboot_cause_config::RebootCauseRecord record;
-  record.bootTimeMs() = 1789535835000;
-  const auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  EXPECT_EQ(json["bootTimeMs"].asInt(), 1789535835000);
-}
-
-// A cause does not name its provider. Which provider found it is given by
-// the attempt it sits in, and by DeterminedCause for the winner.
-TEST_F(RebootCauseFinderImplTest, CausesAreNestedUnderTheirProvider) {
-  facebook::fboss::platform::reboot_cause_config::RebootCauseRecord record;
-  record.providersAttempted() = {
-      attemptWith("KernelPanic", {causeAt("Kernel Panic", 1790195900)}),
-      attemptWith("ManualReboot", {})};
-
-  const auto json = folly::parseJson(
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(record));
-  ASSERT_EQ(json["providersAttempted"].size(), 2);
-  EXPECT_EQ(json["providersAttempted"][0]["causes"].size(), 1);
-  EXPECT_EQ(json["providersAttempted"][1]["causes"].size(), 0);
-  // No per-cause providerName, and no flat allCauses list.
+  const auto rec = readRecord();
+  ASSERT_EQ(rec.count("determinedCause"), 1);
+  EXPECT_EQ(rec["determinedCause"]["providerName"].asString(), "KernelPanic");
   EXPECT_EQ(
-      json["providersAttempted"][0]["causes"][0].count("providerName"), 0);
-  EXPECT_EQ(json.count("allCauses"), 0);
+      rec["determinedCause"]["cause"]["description"].asString(),
+      "Kernel Panic");
+}
+
+// A provider that cannot be read is recorded as READ_FAILED and claims
+// nothing, rather than being indistinguishable from one that found nothing.
+TEST_F(DetermineRebootCauseTest, UnreadableProviderIsRecordedNotClaimed) {
+  RebootCauseFinderImpl(
+      configWithProvider((tmpDir_ / "absent").string()), paths())
+      .determineRebootCause();
+
+  const auto rec = readRecord();
+  EXPECT_EQ(rec.count("determinedCause"), 0);
+  ASSERT_EQ(rec["providersAttempted"].size(), 3);
+  const auto& hw = rec["providersAttempted"][2];
+  EXPECT_EQ(hw["name"].asString(), "TEST_CPLD");
+  EXPECT_EQ(hw["status"].asInt(), 1);
+}
+
+// A provider file that parses partway must not have its half-read cause
+// promoted: the attempt is PARSE_FAILED, so it reports nothing at all.
+TEST_F(DetermineRebootCauseTest, PartiallyParsedProviderKeepsWholeCauses) {
+  const auto path = (tmpDir_ / "causes").string();
+  ASSERT_TRUE(
+      folly::writeFile(
+          std::string(
+              R"({"causes":[{"description":"Power loss","date":)"
+              R"("09-24-2026 16:32:00"},{"no_description":1}]})"),
+          path.c_str()));
+
+  RebootCauseFinderImpl(configWithProvider(path), paths())
+      .determineRebootCause();
+
+  const auto rec = readRecord();
+  const auto& hw = rec["providersAttempted"][2];
+  EXPECT_EQ(hw["status"].asInt(), 2) << "PARSE_FAILED";
+  ASSERT_EQ(hw["causes"].size(), 1) << "the whole cause must be kept";
+  EXPECT_EQ(hw["causes"][0]["description"].asString(), "Power loss");
+  ASSERT_EQ(rec.count("determinedCause"), 1) << "a whole cause must promote";
+  EXPECT_EQ(
+      rec["determinedCause"]["cause"]["description"].asString(), "Power loss");
+}
+
+// The guard is the record itself: a second run in the same boot is a no-op.
+TEST_F(DetermineRebootCauseTest, SecondRunInTheSameBootDoesNothing) {
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  const auto first = readRecord()["detectedAtMs"].asInt();
+
+  RebootCauseFinderImpl(rcc::RebootCauseConfig{}, paths())
+      .determineRebootCause();
+  EXPECT_EQ(readRecord()["detectedAtMs"].asInt(), first);
 }
 
 // ------------------------------------------------------- hardware providers

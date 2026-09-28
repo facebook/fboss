@@ -72,9 +72,9 @@ constexpr std::array<folly::StringPiece, 2> kManualRebootPrograms{
 // host's on both classic and NetOS Native.
 // Empty when unreadable. The guard cannot be established without it, so the
 // caller does nothing rather than risk a destructive clear.
-std::string readBootId() {
+std::string readBootId(const std::string& bootIdPath) {
   std::string contents;
-  if (!folly::readFile(kProcBootIdPath, contents)) {
+  if (!folly::readFile(bootIdPath.c_str(), contents)) {
     return {};
   }
   return folly::trimWhitespace(contents).str();
@@ -94,15 +94,17 @@ std::string recordFilenameSuffix(const std::string& bootId) {
 // as holding no record: the first says we cannot tell whether this boot was
 // handled, the second says it was not. Collapsing them would let an unreadable
 // dir look like a fresh boot and re-clear providers on every run.
-std::optional<bool> recordExistsForBoot(const std::string& bootId) {
+std::optional<bool> recordExistsForBoot(
+    const std::string& historyDir,
+    const std::string& bootId) {
   std::error_code ec;
-  std::filesystem::directory_iterator it(kHistoryDir, ec);
+  std::filesystem::directory_iterator it(historyDir, ec);
   if (ec == std::errc::no_such_file_or_directory) {
     return false;
   }
   if (ec) {
     XLOG(ERR) << fmt::format(
-        "Failed to read history dir '{}': {}", kHistoryDir, ec.message());
+        "Failed to read history dir '{}': {}", historyDir, ec.message());
     return std::nullopt;
   }
 
@@ -119,7 +121,7 @@ std::optional<bool> recordExistsForBoot(const std::string& bootId) {
     if (ec) {
       XLOG(ERR) << fmt::format(
           "Failed while scanning history dir '{}': {}",
-          kHistoryDir,
+          historyDir,
           ec.message());
       return std::nullopt;
     }
@@ -339,21 +341,30 @@ bool scanCrashDir(
 
   const std::filesystem::directory_iterator end;
   while (it != end) {
-    const auto name = it->path().filename().string();
-    const auto when =
-        name == kProcessedDirName ? std::nullopt : parseCrashDirName(name);
-    if (when) {
-      if (inBootWindow(*when, btimeSec, windowSec) &&
-          (!best || *when > *best)) {
-        best = *when;
-        bestName = name;
+    // directory_iterator yields files and symlinks too. A dump is always a
+    // directory, and a file whose name merely starts with a timestamp (a
+    // tarball of several dumps, say) need not denote that instant at all.
+    // The error_code overload is the non-throwing one; it returns false if
+    // the type cannot be determined, which is the answer we want anyway.
+    std::error_code dirEc;
+    if (it->is_directory(dirEc)) {
+      const auto name = it->path().filename().string();
+      const auto when =
+          name == kProcessedDirName ? std::nullopt : parseCrashDirName(name);
+      if (when) {
+        if (inBootWindow(*when, btimeSec, windowSec) &&
+            (!best || *when > *best)) {
+          best = *when;
+          bestName = name;
+        }
+      } else if (name != kProcessedDirName) {
+        // A name we cannot read is a panic we cannot report, so say so rather
+        // than skipping in silence.
+        XLOG(ERR) << fmt::format(
+            "Unrecognised crash dir name '{}' in '{}'", name, crashDir);
       }
-    } else if (name != kProcessedDirName) {
-      // A name we cannot read is a panic we cannot report, so say so rather
-      // than skipping in silence.
-      XLOG(ERR) << fmt::format(
-          "Unrecognised crash dir name '{}' in '{}'", name, crashDir);
     }
+
     it.increment(ec);
     if (ec) {
       XLOG(ERR) << fmt::format(
@@ -602,6 +613,10 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
         "Failed to parse reboot causes from provider '{}': {}",
         *providerConfig.name(),
         ex.what());
+    // Causes already in the vector are whole -- a cause is pushed only once
+    // every field is set -- so the throw truncates the list rather than
+    // corrupting a member of it. They are kept, and PARSE_FAILED records
+    // that more may have followed.
     status = reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED;
   }
 
@@ -614,9 +629,19 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 
 } // namespace detail
 
+RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
+  return Paths{
+      kHistoryDir,
+      kProcStatPath,
+      kProcBootIdPath,
+      detail::kernelPanicCrashDirs(),
+      detail::manualRebootLogPaths()};
+}
+
 RebootCauseFinderImpl::RebootCauseFinderImpl(
-    const reboot_cause_config::RebootCauseConfig& config)
-    : config_(config) {}
+    const reboot_cause_config::RebootCauseConfig& config,
+    Paths paths)
+    : config_(config), paths_(std::move(paths)) {}
 
 void RebootCauseFinderImpl::clearProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
@@ -634,17 +659,17 @@ void RebootCauseFinderImpl::determineRebootCause() {
   // record a reboot that never happened and, worse, clear the providers that
   // still hold the real boot's causes. Only the first run of a boot is
   // meaningful.
-  const auto bootId = readBootId();
+  const auto bootId = readBootId(paths_.bootId);
   if (bootId.empty()) {
     XLOG(ERR) << fmt::format(
         "Failed to read boot id from '{}'. Doing nothing: without it a fresh "
         "boot is indistinguishable from a re-run of this binary within the "
         "same boot, and clearing the providers would risk discarding a real "
         "boot's causes.",
-        kProcBootIdPath);
+        paths_.bootId);
     return;
   }
-  const auto alreadyHandled = recordExistsForBoot(bootId);
+  const auto alreadyHandled = recordExistsForBoot(paths_.historyDir, bootId);
   if (!alreadyHandled.has_value()) {
     XLOG(ERR) << "Doing nothing: cannot tell whether this boot was already "
                  "handled, so clearing the providers would risk discarding a "
@@ -678,18 +703,16 @@ void RebootCauseFinderImpl::determineRebootCause() {
   int64_t bootTimeMs = 0;
   std::optional<reboot_cause_config::DeterminedCause> determined;
 
-  const auto btime = detail::readBootTimeSec(kProcStatPath);
+  const auto btime = detail::readBootTimeSec(paths_.procStat);
   if (btime) {
     bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
     const int64_t window = FLAGS_max_downtime_sec;
 
     std::vector<reboot_cause_config::RebootCauseProviderAttempt> software;
     software.push_back(
-        detail::readKernelPanic(
-            detail::kernelPanicCrashDirs(), *btime, window));
+        detail::readKernelPanic(paths_.crashDirs, *btime, window));
     software.push_back(
-        detail::readManualReboot(
-            detail::manualRebootLogPaths(), *btime, window));
+        detail::readManualReboot(paths_.logPaths, *btime, window));
 
     // Nearest to boot start wins, not whichever reader ran first. A panic and
     // a later operator reboot can both fall inside one window; the reboot is
@@ -768,10 +791,12 @@ void RebootCauseFinderImpl::determineRebootCause() {
 bool RebootCauseFinderImpl::persistResult(
     const reboot_cause_config::RebootCauseRecord& record) {
   std::error_code ec;
-  std::filesystem::create_directories(kHistoryDir, ec);
+  std::filesystem::create_directories(paths_.historyDir, ec);
   if (ec) {
     XLOG(ERR) << fmt::format(
-        "Failed to create history dir '{}': {}", kHistoryDir, ec.message());
+        "Failed to create history dir '{}': {}",
+        paths_.historyDir,
+        ec.message());
     return false;
   }
 
@@ -779,7 +804,7 @@ bool RebootCauseFinderImpl::persistResult(
   // only there to keep the directory readable.
   auto filePath = fmt::format(
       "{}/reboot-cause-{}{}",
-      kHistoryDir,
+      paths_.historyDir,
       filenameStamp(
           std::chrono::system_clock::to_time_t(
               std::chrono::system_clock::now())),

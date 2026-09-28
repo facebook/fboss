@@ -73,8 +73,21 @@ std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
 
 class RebootCauseFinderImpl {
  public:
+  // Everything the finder reads or writes outside the config. Defaults are
+  // the real locations; tests point them at a temp dir so the whole of
+  // determineRebootCause() can be exercised without touching the host.
+  struct Paths {
+    std::string historyDir;
+    std::string procStat;
+    std::string bootId;
+    std::vector<std::string> crashDirs;
+    std::vector<std::string> logPaths;
+  };
+  static Paths defaultPaths();
+
   explicit RebootCauseFinderImpl(
-      const reboot_cause_config::RebootCauseConfig& config);
+      const reboot_cause_config::RebootCauseConfig& config,
+      Paths paths = defaultPaths());
 
   // Read all providers, determine the reboot cause, persist the record, and
   // optionally clear providers (when --clear_reboot_causes is set).
@@ -83,6 +96,7 @@ class RebootCauseFinderImpl {
 
  private:
   const reboot_cause_config::RebootCauseConfig config_;
+  const Paths paths_;
 
   void clearProvider(
       const reboot_cause_config::RebootCauseProviderConfig& config);
