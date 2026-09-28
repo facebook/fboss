@@ -885,6 +885,26 @@ class HwAsic {
     return sdkVersion_;
   }
 
+  /*
+   * True if the configured SAI SDK is at least minVersion, e.g.
+   * saiSdkAtLeast("16.0_ea_odp"). Both sides are parsed the same way, so the
+   * caller states the minimum it needs and the early access / GA distinction
+   * follows from the version named rather than from a separate argument:
+   *
+   *   saiSdkAtLeast("15.4.0.0_odp")  15.4_ea_odp is below the bar
+   *   saiSdkAtLeast("16.0_ea_odp")   16.0_ea_odp meets it
+   *
+   * Ordering is (major, minor, GA), so an early access drop sorts below its
+   * own line's GA. Only those three are compared: trailing patch and build
+   * fields are not ordered across vendors - tajo's 5210/5211 are variant
+   * codes, not successive versions - so they are deliberately ignored.
+   *
+   * Fails closed if either side cannot be parsed. This does not use the
+   * shared getAsicSdkVersion(), which assigns components by dot count and so
+   * misreads single-dot early access strings like "16.0_ea_odp".
+   */
+  bool saiSdkAtLeast(folly::StringPiece minVersion) const;
+
   virtual RecyclePortInfo getRecyclePortInfo(
       InterfaceNodeRole /* intfRole */) const;
   virtual std::vector<InternalSystemPortConfig> getInternalSystemPortConfig(

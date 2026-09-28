@@ -2,56 +2,7 @@
 
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 
-#include <folly/Conv.h>
-#include <folly/Range.h>
-
-#include <cctype>
-#include <optional>
-#include <tuple>
-
 namespace facebook::fboss {
-
-namespace {
-// Some hostif trap features are only supported from BRCM-SAI 15.4 GA onwards.
-// An early access drop of the same line predates its GA and does not qualify.
-constexpr int kMinSaiSdkMajor = 15;
-constexpr int kMinSaiSdkMinor = 4;
-
-std::optional<int> leadingInt(folly::StringPiece s) noexcept {
-  size_t n = 0;
-  while (n < s.size() && std::isdigit(static_cast<unsigned char>(s[n]))) {
-    ++n;
-  }
-  if (n == 0) {
-    return std::nullopt;
-  }
-  const auto parsed = folly::tryTo<int>(s.subpiece(0, n));
-  return parsed.hasValue() ? std::optional<int>(*parsed) : std::nullopt;
-}
-
-bool mplsTtl1TrapSupported(
-    const std::optional<cfg::SdkVersion>& sdkVersion) noexcept {
-  if (!sdkVersion.has_value() || !sdkVersion->saiSdk().has_value()) {
-    return false;
-  }
-  const folly::StringPiece version{sdkVersion->saiSdk().value()};
-  const auto dot = version.find('.');
-  if (dot == folly::StringPiece::npos) {
-    return false;
-  }
-  const auto major = leadingInt(version.subpiece(0, dot));
-  const auto minorField = version.subpiece(dot + 1);
-  const auto minor = leadingInt(minorField);
-  if (!major.has_value() || !minor.has_value()) {
-    return false;
-  }
-  if (*major != kMinSaiSdkMajor || *minor != kMinSaiSdkMinor) {
-    return std::tie(*major, *minor) >
-        std::tie(kMinSaiSdkMajor, kMinSaiSdkMinor);
-  }
-  return minorField.find("_ea") == folly::StringPiece::npos;
-}
-} // namespace
 
 bool Tomahawk6Asic::isSupported(Feature feature) const {
   switch (feature) {
@@ -178,7 +129,9 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return true;
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
-      return mplsTtl1TrapSupported(getSdkVersion());
+      // The hostif trap is only implemented from 15.4 GA onwards; the 15.4
+      // early access drop predates it.
+      return saiSdkAtLeast("15.4.0.0_odp");
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:

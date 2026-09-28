@@ -8,7 +8,11 @@
  *
  */
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include <folly/Conv.h>
+#include <folly/Range.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <cctype>
+#include <tuple>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
 #include "fboss/agent/hw/switch_asics/Chenab2Asic.h"
@@ -40,6 +44,53 @@ namespace {
 constexpr auto kDefaultACLGroupID = 128;
 constexpr auto kDefaultTeFlowGroupID = 1;
 constexpr auto kDefaultDropEgressID = 100000;
+
+std::optional<int> leadingInt(folly::StringPiece s) noexcept {
+  size_t n = 0;
+  while (n < s.size() && std::isdigit(static_cast<unsigned char>(s[n]))) {
+    ++n;
+  }
+  if (n == 0) {
+    return std::nullopt;
+  }
+  const auto parsed = folly::tryTo<int>(s.subpiece(0, n));
+  return parsed.hasValue() ? std::optional<int>(*parsed) : std::nullopt;
+}
+
+struct SaiSdkOrdering {
+  int major;
+  int minor;
+  // An early access drop precedes its line's GA, so order EA below GA.
+  bool generallyAvailable;
+
+  auto key() const {
+    return std::tie(major, minor, generallyAvailable);
+  }
+};
+
+std::optional<SaiSdkOrdering> parseSaiSdk(folly::StringPiece version) noexcept {
+  const auto dot = version.find('.');
+  if (dot == folly::StringPiece::npos) {
+    return std::nullopt;
+  }
+  const auto major = leadingInt(version.subpiece(0, dot));
+  const auto minorField = version.subpiece(dot + 1);
+  const auto minor = leadingInt(minorField);
+  if (!major.has_value() || !minor.has_value()) {
+    return std::nullopt;
+  }
+  return SaiSdkOrdering{
+      *major, *minor, minorField.find("_ea") == folly::StringPiece::npos};
+}
+
+std::optional<SaiSdkOrdering> parseSaiSdk(
+    const std::optional<facebook::fboss::cfg::SdkVersion>&
+        sdkVersion) noexcept {
+  if (!sdkVersion.has_value() || !sdkVersion->saiSdk().has_value()) {
+    return std::nullopt;
+  }
+  return parseSaiSdk(folly::StringPiece{sdkVersion->saiSdk().value()});
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -253,6 +304,15 @@ HwAsic::RecyclePortInfo HwAsic::getRecyclePortInfo(
 
 uint32_t HwAsic::getMaxSwitchId() const {
   throw FbossError("Max switchId unimplemented for: ", getAsicTypeStr());
+}
+
+bool HwAsic::saiSdkAtLeast(folly::StringPiece minVersion) const {
+  const auto configured = parseSaiSdk(getSdkVersion());
+  const auto minimum = parseSaiSdk(minVersion);
+  if (!configured.has_value() || !minimum.has_value()) {
+    return false;
+  }
+  return configured->key() >= minimum->key();
 }
 
 cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {
