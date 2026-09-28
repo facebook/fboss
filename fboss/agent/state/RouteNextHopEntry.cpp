@@ -107,12 +107,11 @@ std::vector<NextHopThrift> combineDuplicateNextHops(
           " exceeds max weight ",
           kMaxWeight);
     }
-    // Weights only survive route resolution if every next hop carries one:
-    // RouteUpdater downgrades the whole set to plain ECMP as soon as one
-    // member is left at ECMP_WEIGHT. So once anything has been combined the
-    // next hops listed once get an explicit share too (weightShare floors
-    // them at 1). With nothing combined the set is left exactly as it came
-    // in, so passing the flag on an all-distinct group still gives ECMP.
+    // Once anything has been combined, give every member its effective share
+    // so the resulting set explicitly represents the requested split. For
+    // example, one duplicated next hop and two distinct next hops become
+    // {2, 1, 1}. With nothing combined the set is left exactly as it came in,
+    // so passing the flag on an all-distinct group still gives ECMP.
     if (anyCombined) {
       entry.nextHop.weight() = static_cast<int32_t>(entry.weight);
     }

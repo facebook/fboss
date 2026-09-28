@@ -317,10 +317,9 @@ namespace util {
  * destination are collapsed into one whose weight is the sum of theirs, rather
  * than the set silently keeping a single arbitrary one. Once anything has been
  * collapsed the next hops appearing once are given an explicit weight of 1
- * (or their own weight, if they carried one), because route resolution
- * downgrades the whole set to plain ECMP if any member is left at
- * ECMP_WEIGHT. An all-distinct group has nothing to collapse and so stays
- * ECMP, verbatim.
+ * (or their own weight, if they carried one), so the resulting set explicitly
+ * represents the requested split. An all-distinct group has nothing to
+ * collapse and so stays ECMP, verbatim.
  * Throws FbossError if a combined weight overflows the thrift i32 weight.
  */
 RouteNextHopSet toRouteNextHopSet(
