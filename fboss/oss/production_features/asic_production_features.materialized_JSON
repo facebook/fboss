@@ -395,7 +395,8 @@
         67,
         69,
         72,
-        86
+        86,
+        4
     ],
     "tomahawk3": [
         2,
@@ -1190,7 +1191,8 @@
         "UNTRUNCATED_SFLOW",
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
-        "CLASS_ID_FOR_NEIGHBOR"
+        "CLASS_ID_FOR_NEIGHBOR",
+        "ACL_PORT_IN_DISCARDS_COUNTER"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
