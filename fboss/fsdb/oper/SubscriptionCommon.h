@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <string_view>
 
 namespace facebook::fboss::fsdb {
 
@@ -26,6 +27,29 @@ constexpr uint32_t normalizeServeIntervalMs(
   }
   const uint64_t rounded = ((requestedMs + tickMs - 1) / tickMs) * tickMs;
   return static_cast<uint32_t>(std::clamp<uint64_t>(rounded, tickMs, maxMs));
+}
+
+// Which rule moved a request off the value the client asked for. Separate from
+// normalizeServeIntervalMs so the operator-facing wording is testable without
+// capturing logs.
+constexpr std::string_view describeServeIntervalClamp(
+    uint64_t requestedMs,
+    uint32_t tickMs,
+    uint32_t maxMs) {
+  // Over-max is checked first: with the tick unconfigured every request
+  // resolves to the default, but a request above the default was clamped for
+  // its own reason and saying "not configured" would send the operator after
+  // the wrong thing.
+  if (requestedMs > maxMs) {
+    return "clamped to the default interval";
+  }
+  if (tickMs == 0 || tickMs == maxMs) {
+    return "serve tick not configured";
+  }
+  if (requestedMs < tickMs) {
+    return "raised to the serve tick floor";
+  }
+  return "rounded up to a whole tick";
 }
 
 // Bucket 0 is served every tick; the last bucket is the default interval.

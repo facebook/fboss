@@ -302,7 +302,8 @@ class NaivePeriodicSubscribableStorageBase {
   // requests fall back to the default interval rather than failing the
   // subscribe.
   std::optional<uint32_t> resolveServeIntervalMs(
-      const std::optional<SubscriptionStorageParams>& subscriptionParams) const;
+      const std::optional<SubscriptionStorageParams>& subscriptionParams,
+      const SubscriptionIdentifier& subscriber) const;
 
  protected:
   std::chrono::milliseconds serveTickInterval() const {

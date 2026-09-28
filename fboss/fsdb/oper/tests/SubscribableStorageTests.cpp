@@ -2473,6 +2473,11 @@ TEST(SubscribableStorageServeInterval, RejectsTooManyBuckets) {
       p.setServeTickInterval(std::chrono::milliseconds(100)), "too many");
 }
 
+const SubscriptionIdentifier& intervalTestSub() {
+  static const SubscriptionIdentifier kSub{SubscriberId("interval_test")};
+  return kSub;
+}
+
 TEST(SubscribableStorageServeInterval, RoundsUpAndClampsToBuckets) {
   auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
   EXPECT_EQ(storage.numServeBuckets(), 5u);
@@ -2480,32 +2485,71 @@ TEST(SubscribableStorageServeInterval, RoundsUpAndClampsToBuckets) {
   // Rounded up to a whole tick.
   EXPECT_EQ(
       storage.resolveServeIntervalMs(
-          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(25))),
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(25)),
+          intervalTestSub()),
       40u);
   // Exact multiple is preserved.
   EXPECT_EQ(
       storage.resolveServeIntervalMs(
-          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(40))),
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(40)),
+          intervalTestSub()),
       40u);
   // Below the tick clamps up to the floor.
   EXPECT_EQ(
       storage.resolveServeIntervalMs(
-          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(1))),
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(1)),
+          intervalTestSub()),
       20u);
   // Above the default clamps down to it.
   EXPECT_EQ(
-      storage.resolveServeIntervalMs(SubscriptionStorageParams(
-          std::nullopt, static_cast<uint32_t>(100000))),
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(
+              std::nullopt, static_cast<uint32_t>(100000)),
+          intervalTestSub()),
       100u);
 }
 
 TEST(SubscribableStorageServeInterval, AbsentIntervalMeansDefault) {
   auto storage = BucketTestStorage(initializeTestStruct(), bucketParams());
-  EXPECT_EQ(storage.resolveServeIntervalMs(std::nullopt), std::nullopt);
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(std::nullopt, intervalTestSub()),
+      std::nullopt);
   EXPECT_EQ(
       storage.resolveServeIntervalMs(
-          SubscriptionStorageParams(std::nullopt, std::nullopt)),
+          SubscriptionStorageParams(std::nullopt, std::nullopt),
+          intervalTestSub()),
       std::nullopt);
+}
+
+TEST(SubscribableStorageServeInterval, TickDisabledGrantsDefault) {
+  auto storage =
+      BucketTestStorage(initializeTestStruct(), singleBucketParams());
+  EXPECT_EQ(storage.numServeBuckets(), 1u);
+  EXPECT_EQ(
+      storage.resolveServeIntervalMs(
+          SubscriptionStorageParams(std::nullopt, static_cast<uint32_t>(20)),
+          intervalTestSub()),
+      50u);
+}
+
+TEST(SubscribableStorageServeInterval, ClampReasonNamesTheRuleThatFired) {
+  EXPECT_EQ(
+      describeServeIntervalClamp(20, 100, 100), "serve tick not configured");
+  EXPECT_EQ(
+      describeServeIntervalClamp(100000, 20, 100),
+      "clamped to the default interval");
+  EXPECT_EQ(
+      describeServeIntervalClamp(1, 20, 100), "raised to the serve tick floor");
+  EXPECT_EQ(
+      describeServeIntervalClamp(25, 20, 100), "rounded up to a whole tick");
+  // Single-bucket is the shipped configuration, and a request above the
+  // default is clamped there for a reason the tick has nothing to do with.
+  EXPECT_EQ(
+      describeServeIntervalClamp(20000, 10000, 10000),
+      "clamped to the default interval");
+  EXPECT_EQ(
+      describeServeIntervalClamp(2000, 10000, 10000),
+      "serve tick not configured");
 }
 
 // An interval is only honored for stats path subscriptions, but requesting one

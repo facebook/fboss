@@ -116,15 +116,29 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
 
 std::optional<uint32_t>
 NaivePeriodicSubscribableStorageBase::resolveServeIntervalMs(
-    const std::optional<SubscriptionStorageParams>& subscriptionParams) const {
+    const std::optional<SubscriptionStorageParams>& subscriptionParams,
+    const SubscriptionIdentifier& subscriber) const {
   if (!subscriptionParams ||
       !subscriptionParams->serveIntervalMs_.has_value()) {
     return std::nullopt;
   }
-  return normalizeServeIntervalMs(
-      *subscriptionParams->serveIntervalMs_,
-      static_cast<uint32_t>(params_.serveTickInterval_.count()),
-      static_cast<uint32_t>(params_.subscriptionServeInterval_.count()));
+  const auto requestedMs = *subscriptionParams->serveIntervalMs_;
+  const auto tickMs = static_cast<uint32_t>(params_.serveTickInterval_.count());
+  const auto defaultMs =
+      static_cast<uint32_t>(params_.subscriptionServeInterval_.count());
+  const auto grantedMs =
+      normalizeServeIntervalMs(requestedMs, tickMs, defaultMs);
+  if (grantedMs != requestedMs) {
+    // Requests are never rejected, so without this a client asking for a
+    // cadence the server cannot honour just quietly runs at another one.
+    XLOG_EVERY_MS(WARN, 5000)
+        << "FSDB[" << metricPrefixOwned_ << "] subscriber "
+        << subscriber.subscriberId() << " requested a " << requestedMs
+        << "ms serve interval, granted " << grantedMs << "ms ("
+        << describeServeIntervalClamp(requestedMs, tickMs, defaultMs)
+        << "; tick=" << tickMs << "ms default=" << defaultMs << "ms)";
+  }
+  return grantedMs;
 }
 
 FsdbOperTreeMetadataTracker NaivePeriodicSubscribableStorageBase::getMetadata()
@@ -480,7 +494,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
       subscriptionParams->heartbeatInterval_.has_value()) {
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = PathSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -508,7 +522,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
       subscriptionParams->heartbeatInterval_.has_value()) {
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = DeltaSubscription::create(
       std::move(subscriber),
       path.begin(),
@@ -540,7 +554,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto publisherRoot = getPublisherRoot(paths);
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = ExtendedPathSubscription::create(
       std::move(subscriber),
       std::move(paths),
@@ -568,7 +582,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto publisherRoot = getPublisherRoot(paths);
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = ExtendedDeltaSubscription::create(
       std::move(subscriber),
       std::move(paths),
@@ -602,7 +616,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(rawPaths);
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
       std::move(subscriber),
       std::move(rawPaths),
@@ -636,7 +650,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_extended_impl(
     heartbeatInterval = subscriptionParams->heartbeatInterval_.value();
   }
   auto root = getPublisherRoot(paths);
-  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams);
+  auto serveIntervalMs = resolveServeIntervalMs(subscriptionParams, subscriber);
   auto [gen, subscription] = ExtendedPatchSubscription::create(
       std::move(subscriber),
       std::move(paths),
