@@ -677,7 +677,8 @@
         117,
         123,
         49,
-        111
+        111,
+        131
     ],
     "tomahawkultra1": [
         2,
@@ -1471,7 +1472,8 @@
         "CABLE_LENGTH_MEASUREMENT",
         "DROP_REASON_LIST_SUPPORT",
         "MIRROR_ON_DROP",
-        "MIRROR_ON_DROP_STATELESS"
+        "MIRROR_ON_DROP_STATELESS",
+        "MPLS_TTL_ACL"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",
@@ -2025,6 +2027,19 @@
           "sdk": 1,
           "minSdkVersion": "13.3.0.0_odp",
           "note": "SPLIT_HORIZON_ENABLE is an ext attribute from 13.3 onward"
+        }
+      ]
+    },
+    {
+      "feature": 131,
+      "supportedFrom": [
+        {
+          "asics": [
+            "tomahawk6"
+          ],
+          "sdk": 1,
+          "minSdkVersion": "16.0",
+          "note": "MPLS label0 TTL ACL qualifier is supported from the BRCM-SAI 16.0 early access drop onward; 15.4 is GA and is not patched for it"
         }
       ]
     }
