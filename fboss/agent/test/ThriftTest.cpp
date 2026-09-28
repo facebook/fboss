@@ -3892,10 +3892,29 @@ void addUnicastRouteWithNextHops(
       static_cast<int16_t>(ClientID::BGPD), std::move(route));
 }
 
+// Unlike addUnicastRouteWithNextHops, this carries whole NextHopThrifts, so
+// the route keeps per-next-hop attributes such as ifName and the SID list.
+void addUnicastRouteWithNextHopThrifts(
+    ThriftHandler& handler,
+    const std::string& prefix,
+    const std::vector<NextHopThrift>& nhops,
+    ClientID client = ClientID::BGPD,
+    AdminDistance adminDistance = AdminDistance::EBGP) {
+  auto network = IPAddress::createNetwork(prefix);
+  auto route = std::make_unique<UnicastRoute>();
+  route->dest()->ip() = toBinaryAddress(network.first);
+  route->dest()->prefixLength() = network.second;
+  route->nextHops() = nhops;
+  route->adminDistance() = adminDistance;
+  handler.addUnicastRoute(static_cast<int16_t>(client), std::move(route));
+}
+
 void addUnicastRouteWithNamedNextHopGroup(
     ThriftHandler& handler,
     const std::string& prefix,
-    const std::string& nhgName) {
+    const std::string& nhgName,
+    ClientID client = ClientID::BGPD,
+    AdminDistance adminDistance = AdminDistance::EBGP) {
   auto network = IPAddress::createNetwork(prefix);
   auto route = std::make_unique<UnicastRoute>();
   route->dest()->ip() = toBinaryAddress(network.first);
@@ -3906,9 +3925,29 @@ void addUnicastRouteWithNamedNextHopGroup(
   NamedRouteDestination namedDest;
   namedDest.nextHopGroup() = nhgName;
   route->namedRouteDestination() = namedDest;
-  route->adminDistance() = AdminDistance::EBGP;
-  handler.addUnicastRoute(
-      static_cast<int16_t>(ClientID::BGPD), std::move(route));
+  route->adminDistance() = adminDistance;
+  handler.addUnicastRoute(static_cast<int16_t>(client), std::move(route));
+}
+
+// Plain link-local next hop on an interface that exists in testConfigA.
+NextHopThrift makeLinkLocalNextHopThrift(const std::string& ip) {
+  auto nhop = makeNextHopThrift(ip);
+  nhop.address()->ifName() = "fboss1";
+  return nhop;
+}
+
+// Link-local next hop carrying an SRv6 SID list, on an interface that exists
+// in testConfigA. Repeating one of these verbatim is what combining collapses
+// into a single weighted next hop.
+NextHopThrift makeLinkLocalSrv6NextHopThrift(
+    const std::string& ip,
+    const std::string& sid) {
+  auto nhop = makeNextHopThrift(ip);
+  nhop.address()->ifName() = "fboss1";
+  nhop.srv6SegmentList() = {toBinaryAddress(folly::IPAddress(sid))};
+  nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+  nhop.tunnelId() = "tunnel1";
+  return nhop;
 }
 
 } // unnamed namespace
@@ -4062,6 +4101,99 @@ TEST_F(NamedNextHopGroupThriftTest, duplicateNextHopsDroppedByDefault) {
   const std::map<std::string, int32_t> expected{
       {"2401:db00:2110:3001::2", 0}, {"2401:db00:2110:3001::3", 0}};
   EXPECT_EQ(readGroupWeights(handler, "group1"), expected);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, teAgentRouteOverridesOpenrWithWeights) {
+  ThriftHandler handler(sw_);
+
+  constexpr auto kPrefix = "fdad:ffff::4/128";
+  constexpr auto kPrefixAddr = "fdad:ffff::4";
+
+  // Both clients program the same prefix over the same three link-local next
+  // hop addresses. OpenR's carry no SID list; the TE agent's are SRv6 next
+  // hops reached through a named group that repeats one of them and is added
+  // with combineDuplicatedNextHops.
+  const auto openrNhop1 = makeLinkLocalNextHopThrift("fe80:face:b00c::1");
+  const auto openrNhop2 = makeLinkLocalNextHopThrift("fe80:face:b00c::2");
+  const auto openrNhop3 = makeLinkLocalNextHopThrift("fe80:face:b00c::3");
+
+  const auto nhop1 =
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::1", "2001:db8::1");
+  const auto nhop2 =
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::2", "2001:db8::2");
+  const auto nhop3 =
+      makeLinkLocalSrv6NextHopThrift("fe80:face:b00c::3", "2001:db8::3");
+
+  // Resolved next hops straight off the FIB, as weight and SID list keyed by
+  // address. Going through getIpRouteDetails instead would report every
+  // ECMP_WEIGHT next hop as 1 and hide the difference between the two clients.
+  auto resolvedNextHops = [this, kPrefixAddr]() {
+    auto state = sw_->getState();
+    auto route = findRoute<folly::IPAddressV6>(
+        RouterID(0), {folly::IPAddress(kPrefixAddr), 128}, state);
+    CHECK(route) << "route " << kPrefixAddr << " not in the FIB";
+    std::map<std::string, NextHopWeight> weights;
+    std::map<std::string, std::vector<std::string>> sids;
+    for (const auto& nhop : getNextHops(state, route->getForwardInfo())) {
+      const auto addr = nhop.addr().str();
+      weights[addr] = nhop.weight();
+      for (const auto& sid : nhop.srv6SegmentList()) {
+        sids[addr].push_back(sid.str());
+      }
+    }
+    return std::make_pair(weights, sids);
+  };
+
+  // OpenR gets there first, carrying its next hops on the route itself. With
+  // no named group there is nothing to combine, so the route is plain ECMP,
+  // and its next hops carry no SID list.
+  addUnicastRouteWithNextHopThrifts(
+      handler,
+      kPrefix,
+      {openrNhop1, openrNhop2, openrNhop3},
+      ClientID::OPENR,
+      AdminDistance::OPENR);
+
+  auto [openrWeights, openrSids] = resolvedNextHops();
+  const std::map<std::string, NextHopWeight> expectedOpenrWeights{
+      {"fe80:face:b00c::1", ECMP_WEIGHT},
+      {"fe80:face:b00c::2", ECMP_WEIGHT},
+      {"fe80:face:b00c::3", ECMP_WEIGHT}};
+  EXPECT_EQ(openrWeights, expectedOpenrWeights);
+  EXPECT_TRUE(openrSids.empty());
+
+  // The TE agent then programs the same prefix through a combined group.
+  // AdminDistance::TE_AGENT (2) beats OPENR (10), so its entry becomes the
+  // route's best entry and the combined weights take effect. The comparison
+  // in RouteNextHopsMulti is strictly less-than, so this only displaces OpenR
+  // because the distance is genuinely lower, not because it arrived later.
+  NextHopGroup teAgentGroup;
+  teAgentGroup.name() = "te_agent_group";
+  teAgentGroup.nexthops() = {nhop1, nhop1, nhop2, nhop3};
+  auto teAgentGroups = std::make_unique<std::vector<NextHopGroup>>();
+  teAgentGroups->push_back(std::move(teAgentGroup));
+  handler.addOrUpdateNamedNextHopGroups(
+      std::move(teAgentGroups), /*combineDuplicatedNextHops=*/true);
+
+  addUnicastRouteWithNamedNextHopGroup(
+      handler,
+      kPrefix,
+      "te_agent_group",
+      ClientID::TE_AGENT,
+      AdminDistance::TE_AGENT);
+
+  auto [teAgentWeights, teAgentSids] = resolvedNextHops();
+  const std::map<std::string, NextHopWeight> expectedTeAgentWeights{
+      {"fe80:face:b00c::1", 2},
+      {"fe80:face:b00c::2", 1},
+      {"fe80:face:b00c::3", 1}};
+  // Same next hop addresses as OpenR's, but now each carries its SID list.
+  const std::map<std::string, std::vector<std::string>> expectedTeAgentSids{
+      {"fe80:face:b00c::1", {"2001:db8::1"}},
+      {"fe80:face:b00c::2", {"2001:db8::2"}},
+      {"fe80:face:b00c::3", {"2001:db8::3"}}};
+  EXPECT_EQ(teAgentWeights, expectedTeAgentWeights);
+  EXPECT_EQ(teAgentSids, expectedTeAgentSids);
 }
 
 TEST_F(NamedNextHopGroupThriftTest, combinedGroupWeightsFollowGroupUpdates) {
