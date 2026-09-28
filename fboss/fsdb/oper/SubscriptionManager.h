@@ -241,19 +241,13 @@ class SubscriptionManager : public SubscriptionManagerBase {
     static_cast<Impl*>(this)->publishAndAddPaths(raw, root);
   }
 
+  // Bucket is explicit: a defaulted "all buckets" mode would fan one bucket's
+  // baseline out to every other bucket's subscribers.
   void serveSubscriptions(
       const std::shared_ptr<Root>& oldRoot,
       const std::shared_ptr<Root>& newRoot,
       const SubscriptionMetadataServer& metadataServer,
-      std::optional<size_t> bucketFilter = std::nullopt) {
-    if (!bucketFilter.has_value()) {
-      for (size_t bucket = 0; bucket < stores_.size(); ++bucket) {
-        serveSubscriptions(
-            oldRoot, newRoot, metadataServer, std::make_optional(bucket));
-      }
-      return;
-    }
-    const auto bucket = *bucketFilter;
+      size_t bucket) {
     auto impl = static_cast<Impl*>(this);
     auto store = this->storeForBucket(bucket).wlock();
 

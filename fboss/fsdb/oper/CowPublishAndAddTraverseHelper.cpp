@@ -8,7 +8,7 @@ CowPublishAndAddTraverseHelper::CowPublishAndAddTraverseHelper(
     const std::vector<SubscriptionStore*>& stores) {
   targets_.reserve(stores.size());
   for (auto* store : stores) {
-    Target target;
+    SubscriptionStoreTarget target;
     target.store = store;
     target.pathStores.emplace_back(&store->lookup());
     targets_.emplace_back(std::move(target));

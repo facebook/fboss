@@ -26,7 +26,7 @@ struct CowPublishAndAddTraverseHelper
   // node->publish() is a global one-shot, so a second UNPUBLISHED walk would
   // short-circuit at the root and register nothing. One walk therefore has to
   // feed every bucket's store, each with its own path-store stack.
-  struct Target {
+  struct SubscriptionStoreTarget {
     SubscriptionStore* store{nullptr};
     std::vector<SubscriptionPathStore*> pathStores;
   };
@@ -41,7 +41,7 @@ struct CowPublishAndAddTraverseHelper
   void onPopImpl(std::string&& /* popped */, thrift_cow::ThriftTCType /* tc */);
 
  private:
-  std::vector<Target> targets_;
+  std::vector<SubscriptionStoreTarget> targets_;
 };
 
 } // namespace facebook::fboss::fsdb
