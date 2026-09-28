@@ -260,6 +260,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INGRESS_ACL,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    // Packets ingressing this port are not forwarded to the members of this
+    // isolation group. Nullable; SAI_NULL_OBJECT_ID means no isolation.
+    using IsolationGroup = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ISOLATION_GROUP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using IngressMacSecAcl = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_MACSEC_ACL,
@@ -333,6 +340,19 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_TC_TO_VC_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    // CBFC S_P_CL, the cap on credits the sender may hold across all of the
+    // port's virtual channels. Range 0..2^20-1.
+    //
+    // Deliberately NOT in CreateAttributes. brcm-sai 16.0_ea_odp rejects a GET
+    // of this attribute with INVALID PARAMETER, and SaiStore::reload() reads
+    // back every attribute in the tuple for every port at init -- so including
+    // it aborts the HW agent on boot, on every port, even with no CBFC
+    // configured. Set it directly through the port api instead.
+    using CbfcSenderCreditLimit = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
 #endif
     using QosPfcPriorityToQueueMap = SaiAttribute<
         EnumType,
@@ -848,6 +868,7 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::PfcPauseDurationOverride>,
       std::optional<Attributes::IngressAcl>,
+      std::optional<Attributes::IsolationGroup>,
       std::optional<Attributes::Metadata>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -992,6 +1013,7 @@ SAI_ATTRIBUTE_NAME(Port, PrbsConfig)
 SAI_ATTRIBUTE_NAME(Port, PrbsRxState)
 #endif
 SAI_ATTRIBUTE_NAME(Port, IngressAcl)
+SAI_ATTRIBUTE_NAME(Port, IsolationGroup)
 SAI_ATTRIBUTE_NAME(Port, IngressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
@@ -1009,6 +1031,7 @@ SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 #if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
+SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
 #endif
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)
@@ -1146,11 +1169,13 @@ struct SaiPortSerdesTraits {
     using TxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_PRECODING,
-        std::vector<sai_int32_t>>;
+        std::vector<sai_int32_t>,
+        SaiS32ListDefault>;
     using RxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_RX_PRECODING,
-        std::vector<sai_int32_t>>;
+        std::vector<sai_int32_t>,
+        SaiS32ListDefault>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     using CustomCollection = SaiAttribute<
@@ -1247,15 +1272,18 @@ struct SaiPortSerdesTraits {
     };
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeRxReachWrapper>;
+        AttributeRxReachWrapper,
+        SaiS32ListDefault>;
     // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
     // These vendor extensions work from 13.3
     using TransmitPrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeTransmitPrecodingStateWrapper>;
+        AttributeTransmitPrecodingStateWrapper,
+        SaiS32ListDefault>;
     using ReceivePrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeReceivePrecodingStateWrapper>;
+        AttributeReceivePrecodingStateWrapper,
+        SaiS32ListDefault>;
 // Alias to vendor extension attributes on bcm SAI
 #if defined(BRCM_SAI_SDK_GTE_13_0)
     using TxPrecodingAttr = TransmitPrecodingState;
@@ -1582,6 +1610,17 @@ struct SaiPortSerdesTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       ,
       std::optional<Attributes::CustomCollection>
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+      ,
+      std::optional<Attributes::RxReach>
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+      ,
+      std::optional<Attributes::TxPrecodingAttr>,
+      std::optional<Attributes::RxPrecodingAttr>
 #endif
       >;
 };

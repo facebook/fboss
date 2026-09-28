@@ -32,9 +32,6 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
-#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h"
-#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h"
-#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
@@ -45,6 +42,8 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/global/CmdConfigProtocolBgpGlobal.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h"
+#include "fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h"
@@ -110,6 +109,8 @@
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/CmdDeleteProtocolBgp.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
 #include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 #include "fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h"
@@ -122,6 +123,9 @@
 #include "fboss/cli/fboss2/commands/delete/srv6/CmdDeleteSrv6.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/CmdDeleteSrv6MySid.h"
 #include "fboss/cli/fboss2/commands/delete/srv6/my_sid/entry/CmdDeleteSrv6MySidEntry.h"
+#include "fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h"
+#include "fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h"
+#include "fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h"
 #include "fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.h"
 #include "fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/CmdDeleteTunnelIpInIp.h"
@@ -300,40 +304,18 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigInterfaceSwitchport>,
                argRegistrar<CmdConfigInterfaceSwitchportTraits>,
                {{
-                    "access",
-                    "Configure access mode settings",
-                    commandHandler<CmdConfigInterfaceSwitchportAccess>,
-                    argRegistrar<CmdConfigInterfaceSwitchportAccessTraits>,
-                    {{
-                        "vlan",
-                        "Set access VLAN (ingressVlan) for the interface",
-                        commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
-                        argRegistrar<
-                            CmdConfigInterfaceSwitchportAccessVlanTraits>,
-                    }},
-                },
-                {
-                    "trunk",
-                    "Configure trunk mode settings",
-                    commandHandler<CmdConfigInterfaceSwitchportTrunk>,
-                    argRegistrar<CmdConfigInterfaceSwitchportTrunkTraits>,
-                    {{
-                        "allowed",
-                        "Configure allowed VLANs for trunk",
-                        commandHandler<
-                            CmdConfigInterfaceSwitchportTrunkAllowed>,
-                        argRegistrar<
-                            CmdConfigInterfaceSwitchportTrunkAllowedTraits>,
-                        {{
-                            "vlan",
-                            "Add or remove VLANs from trunk allowed list",
-                            commandHandler<
-                                CmdConfigInterfaceSwitchportTrunkAllowedVlan>,
-                            argRegistrar<
-                                CmdConfigInterfaceSwitchportTrunkAllowedVlanTraits>,
-                        }},
-                    }},
-                }},
+                   "access",
+                   "Configure access mode settings",
+                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                   argRegistrar<CmdConfigInterfaceSwitchportAccessTraits>,
+                   {{
+                       "vlan",
+                       "Set access VLAN (ingressVlan) for the interface",
+                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                       argRegistrar<
+                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                   }},
+               }},
            }},
       },
 
@@ -436,6 +418,22 @@ const CommandTree& kConfigCommandTree() {
                           "lists the attributes",
                           commandHandler<CmdConfigProtocolBgpNeighbor>,
                           argRegistrar<CmdConfigProtocolBgpNeighborTraits>,
+                      },
+                      {
+                          "policy",
+                          "Configure BGP policy objects",
+                          commandHandler<CmdConfigProtocolBgpPolicy>,
+                          argRegistrar<CmdConfigProtocolBgpPolicyTraits>,
+                          {{
+                              "as-path-list",
+                              "Configure BGP AS-path list: <name> "
+                              "[<attribute> <value> ...] (description, "
+                              "regex, boolean-operator)",
+                              commandHandler<
+                                  CmdConfigProtocolBgpPolicyAsPathList>,
+                              argRegistrar<
+                                  CmdConfigProtocolBgpPolicyAsPathListTraits>,
+                          }},
                       },
                   },
               },
@@ -784,6 +782,20 @@ const CommandTree& kConfigCommandTree() {
                     "Delete a BGP peer-group: <name>",
                     commandHandler<CmdDeleteProtocolBgpPeerGroup>,
                     argRegistrar<CmdDeleteProtocolBgpPeerGroupTraits>,
+                },
+                {
+                    "policy",
+                    "Delete BGP policy objects",
+                    commandHandler<CmdDeleteProtocolBgpPolicy>,
+                    argTypeHandler<CmdDeleteProtocolBgpPolicyTraits>,
+                    {{
+                        "as-path-list",
+                        "Delete a BGP AS-path list, or one of its regexes: "
+                        "<name> [regex <regex>]",
+                        commandHandler<CmdDeleteProtocolBgpPolicyAsPathList>,
+                        argRegistrar<
+                            CmdDeleteProtocolBgpPolicyAsPathListTraits>,
+                    }},
                 }},
            },
            {
@@ -1011,6 +1023,19 @@ const CommandTree& kConfigCommandTree() {
        commandHandler<CmdDeleteVlan>,
        argRegistrar<CmdDeleteVlanTraits>},
 
+      {"delete",
+       "switch",
+       "Delete switch-level settings",
+       commandHandler<CmdDeleteSwitch>,
+       argTypeHandler<CmdDeleteSwitchTraits>,
+       {{"admin-distance",
+         "Remove the admin distance entry for a routing client: <client-id>",
+         commandHandler<CmdDeleteAdminDistance>,
+         argRegistrar<CmdDeleteAdminDistanceTraits>},
+        {"icmpv4-unavailable-src-addr",
+         "Remove the ICMPv4 unavailable source address (agent falls back to the RFC 7600 default)",
+         commandHandler<CmdDeleteIcmpV4UnavailableSrcAddr>,
+         argRegistrar<CmdDeleteIcmpV4UnavailableSrcAddrTraits>}}},
   };
   stable_sort(root.begin(), root.end());
   return root;

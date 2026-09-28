@@ -108,6 +108,7 @@ std::
       true, // fieldDstMac
       std::nullopt, // ipType
       std::nullopt, // ttl
+      std::nullopt, // mplsLabel0Ttl
       std::nullopt, // fieldFdbDstUserMeta
       std::nullopt, // route meta
       std::nullopt, // neighbor meta

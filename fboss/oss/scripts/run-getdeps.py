@@ -12,13 +12,13 @@ build environment without modifying the upstream getdeps.py script.
 
 import argparse
 import glob
+import hashlib
 import os
 import re
 import shutil
 import subprocess
 import sys
 import sysconfig
-import tempfile
 from pathlib import Path
 
 from sdk_versions import (
@@ -63,6 +63,9 @@ ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
 ARG_USE_GCC = "--use-gcc"
+ARG_CHECK_COMPILE_MEM = "--check-compile-mem"
+ARG_COMPILE_MEM_PEAKS_DIR = "--compile-mem-peaks-dir"
+ARG_COMPILE_MEM_BUDGETS = "--compile-mem-budgets"
 
 SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
@@ -239,6 +242,24 @@ def parse_args():
         required=False,
         action="store_true",
         help="Stay on GCC instead of auto-switching to Clang.",
+    )
+    parser.add_argument(
+        ARG_CHECK_COMPILE_MEM,
+        required=False,
+        action="store_true",
+        help="After a successful build, check <tu>.peak.txt files against the "
+        "compile-mem budgets. A breach fails the build (exit 2). Without peak "
+        "files the check warns and passes.",
+    )
+    parser.add_argument(
+        ARG_COMPILE_MEM_PEAKS_DIR,
+        required=False,
+        help="Dir of <tu>.peak.txt files (default: <scratch>/compile_mem_peaks).",
+    )
+    parser.add_argument(
+        ARG_COMPILE_MEM_BUDGETS,
+        required=False,
+        help="Budgets file (default: compile_mem_budgets.json beside this script).",
     )
     return parser.parse_args()
 
@@ -523,9 +544,24 @@ def _find_dir_with_file(root, filename):
     return None
 
 
-def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
-    """Stage a flat NPU SDK into a temp prefix and prepend it to
-    CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
+def _sdk_fingerprint(*dirs):
+    """Short hash of the relative path, size and mtime of every file under ``dirs``."""
+    h = hashlib.sha256()
+    for d in dirs:
+        for root, subdirs, files in os.walk(d):
+            subdirs.sort()
+            for name in sorted(files):
+                path = os.path.join(root, name)
+                st = os.stat(path)
+                h.update(
+                    f"{os.path.relpath(path, d)}\0{st.st_size}\0{st.st_mtime_ns}\n".encode()
+                )
+    return h.hexdigest()[:12]
+
+
+def _stage_npu_sdk(libsai_impl_dir, experiments_dir, scratch_path):
+    """Stage a flat NPU SDK into <scratch_path>/installed/sai_impl_staging-<hash>
+    and prepend it to CMAKE_PREFIX_PATH. Shared by the --npu-libsai-impl-path and
     --npu-libsai-impl-tarball flows.
 
     ``libsai_impl_dir`` holds libsai_impl.a (and any sibling libs /
@@ -534,8 +570,19 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
     <brcm_sai_extensions.h> resolve) and as experimental/ off the staging root
     (so <experimental/...>-prefixed includes resolve, since SAI_IMPL_DIR puts the
     staging root on the include path).
+
+    The staging path lands in every compile command's include flags, so it is
+    keyed on the SDK's contents: an unchanged SDK keeps its path and builds stay
+    incremental, while a changed one gets a new path and forces a full rebuild.
+    Relying on mtimes alone is not enough because tar preserves the archive's
+    timestamps, which can be older than existing build outputs.
     """
-    staging_dir = tempfile.mkdtemp(prefix="fboss_sdk_")
+    staging_root = os.path.abspath(os.path.join(scratch_path, "installed"))
+    fingerprint = _sdk_fingerprint(libsai_impl_dir, experiments_dir)
+    staging_dir = os.path.join(staging_root, f"sai_impl_staging-{fingerprint}")
+    for old in glob.glob(os.path.join(staging_root, "sai_impl_staging-*")):
+        shutil.rmtree(old)
+    os.makedirs(staging_dir)
     abs_lib = os.path.abspath(libsai_impl_dir)
     abs_exp = os.path.abspath(experiments_dir)
     os.symlink(abs_lib, os.path.join(staging_dir, "lib"))
@@ -552,13 +599,15 @@ def _stage_npu_sdk(libsai_impl_dir, experiments_dir):
     )
 
 
-def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
+def _conditionally_prepare_sdk_artifacts(
+    libsai_impl_path, experiments_path, scratch_path
+):
     """Validate SDK artifact paths, stage them, and prepend to CMAKE_PREFIX_PATH.
 
     Both paths must be provided together. ``libsai_impl_path`` is a directory
     that contains libsai_impl.a (and may contain sai_dependencies.txt or
     additional SDK libs). When present, the artifacts are staged into a
-    temporary directory with the lib/, include/ and experimental/ structure
+    stable scratch directory with the lib/, include/ and experimental/ structure
     that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
@@ -602,7 +651,7 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         )
         sys.exit(1)
 
-    _stage_npu_sdk(libsai_impl_path, experiments_path)
+    _stage_npu_sdk(libsai_impl_path, experiments_path, scratch_path)
 
 
 def _get_scratch_path(getdeps_args):
@@ -679,7 +728,7 @@ def _prepare_sdk_from_tarball(tarball_path, scratch_path):
         )
         sys.exit(1)
 
-    _stage_npu_sdk(libsai_dir, experiments_dir)
+    _stage_npu_sdk(libsai_dir, experiments_dir, scratch_path)
 
 
 def _validate_pai_sdk_dir(sdk_dir):
@@ -1019,7 +1068,9 @@ def _prepare_pass(
             )
         else:
             _conditionally_prepare_sdk_artifacts(
-                args.npu_libsai_impl_path, args.npu_experiments_path
+                args.npu_libsai_impl_path,
+                args.npu_experiments_path,
+                _get_scratch_path(args.getdeps_args),
             )
     elif impl == PASS_IMPL_PHY:
         # Stage a user-provided PAI SDK so CMake's hard-coded /var/FBOSS/pai_impl
@@ -1156,7 +1207,41 @@ def _prefetch_gnu_mirrors(args, getdeps_path):
         print_error(f"Mirror prefetch failed ({ex}); continuing with getdeps")
 
 
+def _check_compile_mem_budgets(args):
+    """Check tracked-TU peak files against compile_mem_budgets.json.
+
+    Warns and passes when no peak files exist: measuring is opt-in (peakmem
+    harness), so a plain build must stay green.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    checker = os.path.join(script_dir, "compile_mem.py")
+    budgets = args.compile_mem_budgets or os.path.join(
+        script_dir, "compile_mem_budgets.json"
+    )
+    peaks_dir = args.compile_mem_peaks_dir or os.path.join(
+        _get_scratch_path(args.getdeps_args), "compile_mem_peaks"
+    )
+    if not glob.glob(os.path.join(peaks_dir, "*.peak.txt")):
+        print_info(
+            "compile-mem check: no peak files in "
+            + peaks_dir
+            + "; skipping (measure tracked TUs with the peakmem harness)"
+        )
+        return 0
+    rc = subprocess.run(
+        [sys.executable, checker, "--budgets", budgets, "--peaks-dir", peaks_dir],
+        check=False,
+    ).returncode
+    # A signal-killed checker returns a negative code, which sys.exit() would
+    # wrap into an unrelated-looking status (-9 becomes 247).
+    return rc if rc >= 0 else 2
+
+
 def main():
+    # When piped (e.g. to tee), this script and the getdeps.py subprocess
+    # block-buffer, so their output lands after the build output it preceded.
+    sys.stdout.reconfigure(line_buffering=True)
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     args = parse_args()
     print_info("Starting run-getdeps.py")
     getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
@@ -1197,6 +1282,17 @@ def main():
                 f"{result.returncode}."
             )
             sys.exit(result.returncode)
+
+    if args.check_compile_mem:
+        rc = _check_compile_mem_budgets(args)
+        if rc != 0:
+            # The checker prints BUDGET VIOLATION, BUDGET ERROR, or a
+            # traceback depending on what failed; point at its output.
+            print_error(
+                f"compile-mem budget check failed with exit code {rc}; "
+                "see checker output above."
+            )
+            sys.exit(rc)
 
 
 if __name__ == "__main__":

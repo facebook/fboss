@@ -69,6 +69,7 @@ class MockCmisModule : public CmisModule {
   using CmisModule::isRxConsActImplSupported;
   using CmisModule::isTunableOptics;
   using CmisModule::portDatapathStates_;
+  using CmisModule::readModifyWriteCmisField;
   using CmisModule::triggerModuleReset;
 
  private:
@@ -3521,5 +3522,85 @@ TEST_F(CmisTest, cmisInvalidDatapathTransceiverInfoTest) {
   std::set<TransceiverErrorState> expectedErrorStates = {
       TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE};
   EXPECT_EQ(info.tcvrState()->errorStates(), expectedErrorStates);
+}
+
+namespace {
+// Seed/read a byte straight in the fake EEPROM, selecting the page first the
+// way the module itself does. Lets these tests set up and check a register
+// without going through the private readCmisField/writeCmisField helpers.
+void pokeEeprom(
+    FakeTransceiverImpl* impl,
+    uint8_t page,
+    int byteOffset,
+    uint8_t value) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  impl->writeTransceiver(param, &value, 0, 0);
+}
+
+uint8_t peekEeprom(FakeTransceiverImpl* impl, uint8_t page, int byteOffset) {
+  TransceiverAccessParameter pageParam(
+      TransceiverAccessParameter::ADDR_QSFP, 127, 1);
+  impl->writeTransceiver(pageParam, &page, 0, 0);
+  TransceiverAccessParameter param(
+      TransceiverAccessParameter::ADDR_QSFP, byteOffset, 1);
+  uint8_t value = 0;
+  impl->readTransceiver(param, &value, 0);
+  return value;
+}
+
+// VDM FreezeRequest (Page 2Fh byte 144) is a convenient one-byte register to
+// exercise the read-modify-write helper against.
+constexpr uint8_t kRmwPage = 0x2f;
+constexpr int kRmwByte = 144;
+} // namespace
+
+TEST_F(CmisTest, readModifyWriteCmisFieldSetsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x0f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x80),
+      0x8f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x8f);
+}
+
+TEST_F(CmisTest, readModifyWriteCmisFieldClearsMaskedBits) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x8f);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0x00),
+      0x0f);
+  EXPECT_EQ(peekEeprom(lastQsfpImpl(), kRmwPage, kRmwByte), 0x0f);
+}
+
+// value is expected to be already positioned within the byte, so bits of it
+// outside the mask must not leak into the register.
+TEST_F(CmisTest, readModifyWriteCmisFieldIgnoresValueBitsOutsideMask) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+  pokeEeprom(lastQsfpImpl(), kRmwPage, kRmwByte, 0x00);
+
+  EXPECT_EQ(
+      xcvr->readModifyWriteCmisField(CmisField::VDM_LATCH_REQUEST, 0x80, 0xff),
+      0x80);
+}
+
+// The helper reads into a single stack byte, so a wider field would overrun it.
+// It has to reject that rather than corrupt the stack.
+TEST_F(CmisTest, readModifyWriteCmisFieldRejectsMultiByteField) {
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      TransceiverID(1), TransceiverModuleIdentifier::OSFP);
+
+  // PART_NUMBER is 16 bytes wide.
+  EXPECT_THROW(
+      xcvr->readModifyWriteCmisField(CmisField::PART_NUMBER, 0xff, 0x00),
+      FbossError);
 }
 } // namespace facebook::fboss

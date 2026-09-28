@@ -45,6 +45,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiUdfManager.cpp
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
+  fboss/agent/hw/sai/switch/SaiVirtualChannelManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
 )
 

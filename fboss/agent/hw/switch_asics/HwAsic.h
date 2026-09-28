@@ -321,6 +321,17 @@ class HwAsic {
     // SAI_PACKET_ACTION_TRAP.
     SAI_MPLS_TTL_1_TRAP,
 
+    // Set to true if the SAI implementation supports matching on the TTL of
+    // the outermost MPLS label in an ACL. For SAI, this maps to
+    // SAI_ACL_TABLE_ATTR_FIELD_MPLS_LABEL0_TTL and the corresponding
+    // SAI_ACL_ENTRY_ATTR_FIELD_MPLS_LABEL0_TTL.
+    //
+    // The SAI enumerators have existed since spec 1.6.3, so this gates the
+    // implementation rather than the symbol: an SDK that does not implement
+    // the qualifier fails sai_acl_table_create() with
+    // SAI_STATUS_INVALID_ATTR_VALUE instead of ignoring it.
+    SAI_ACL_MPLS_LABEL0_TTL,
+
     // Set to true if the SAI implementation supports counting packets dropped
     // due to MPLS label lookup failure. Creates a SAI debug counter with drop
     // reason SAI_IN_DROP_REASON_MPLS_MISS, exposed as a per-port stat via
@@ -593,6 +604,9 @@ class HwAsic {
     // SDK reports the type of a received packet, so the application does
     // not have to classify the packet itself to identify specific types.
     RX_PACKET_TYPE,
+    // Port isolation groups: traffic ingressing a port is not forwarded to the
+    // members of the isolation group bound to it
+    ISOLATION_GROUP,
   };
 
   enum class AsicMode {
@@ -881,6 +895,26 @@ class HwAsic {
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
+
+  /*
+   * True if the configured SAI SDK is at least minVersion, e.g.
+   * saiSdkAtLeast("16.0_ea_odp"). Both sides are parsed the same way, so the
+   * caller states the minimum it needs and the early access / GA distinction
+   * follows from the version named rather than from a separate argument:
+   *
+   *   saiSdkAtLeast("15.4.0.0_odp")  15.4_ea_odp is below the bar
+   *   saiSdkAtLeast("16.0_ea_odp")   16.0_ea_odp meets it
+   *
+   * Ordering is (major, minor, GA), so an early access drop sorts below its
+   * own line's GA. Only those three are compared: trailing patch and build
+   * fields are not ordered across vendors - tajo's 5210/5211 are variant
+   * codes, not successive versions - so they are deliberately ignored.
+   *
+   * Fails closed if either side cannot be parsed. This does not use the
+   * shared getAsicSdkVersion(), which assigns components by dot count and so
+   * misreads single-dot early access strings like "16.0_ea_odp".
+   */
+  bool saiSdkAtLeast(folly::StringPiece minVersion) const;
 
   virtual RecyclePortInfo getRecyclePortInfo(
       InterfaceNodeRole /* intfRole */) const;

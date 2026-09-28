@@ -761,6 +761,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.h
   fboss/cli/fboss2/utils/LoopbackUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.cpp
+  fboss/cli/fboss2/utils/LookupClassUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/SafetyPromptUtils.h
   fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
@@ -937,12 +939,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.cpp
-  fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.cpp
   fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
   fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
@@ -968,6 +964,11 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/protocol/bgp/neighbor/CmdConfigProtocolBgpNeighbor.h
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/CmdConfigProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/BgpAsPathListCliUtils.h
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/config/protocol/bgp/policy/as-path-list/CmdConfigProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.cpp
   fboss/cli/fboss2/commands/config/ptp/CmdConfigPtp.h
   fboss/cli/fboss2/commands/config/ptp/transparent_clock/CmdConfigPtpTransparentClock.cpp
@@ -1106,6 +1107,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/protocol/bgp/neighbor/CmdDeleteProtocolBgpNeighbor.h
   fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.cpp
   fboss/cli/fboss2/commands/delete/protocol/bgp/peer-group/CmdDeleteProtocolBgpPeerGroup.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/CmdDeleteProtocolBgpPolicy.h
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.cpp
+  fboss/cli/fboss2/commands/delete/protocol/bgp/policy/as-path-list/CmdDeleteProtocolBgpPolicyAsPathList.h
   fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
   fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
@@ -1119,14 +1124,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/copp/queue/CmdDeleteCoppQueue.h
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.cpp
   fboss/cli/fboss2/commands/delete/copp/reason/CmdDeleteCoppReason.h
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.cpp
-  fboss/cli/fboss2/commands/delete/qos/CmdDeleteQos.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicy.h
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.cpp
   fboss/cli/fboss2/commands/delete/qos/policy/CmdDeleteQosPolicyMap.h
   fboss/cli/fboss2/commands/delete/sflow_collector/CmdDeleteSflowCollector.cpp
   fboss/cli/fboss2/commands/delete/sflow_collector/CmdDeleteSflowCollector.h
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.cpp
+  fboss/cli/fboss2/commands/delete/switch/CmdDeleteSwitch.h
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.cpp
+  fboss/cli/fboss2/commands/delete/switch/admin_distance/CmdDeleteAdminDistance.h
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.cpp
+  fboss/cli/fboss2/commands/delete/switch/icmpv4_unavailable_src_addr/CmdDeleteIcmpV4UnavailableSrcAddr.h
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.cpp
   fboss/cli/fboss2/commands/delete/traffic_counter/CmdDeleteTrafficCounter.h
   fboss/cli/fboss2/commands/delete/tunnel/CmdDeleteTunnel.cpp
@@ -1141,6 +1150,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/delete/tunnel/ip_in_ip/encap/CmdDeleteTunnelIpInIpEncap.h
   fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.cpp
   fboss/cli/fboss2/commands/delete/vlan/CmdDeleteVlan.h
+  fboss/cli/fboss2/session/ConfigFileManager.cpp
+  fboss/cli/fboss2/session/ConfigFileManager.h
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/FbossServiceUtil.h
@@ -1165,6 +1176,7 @@ target_link_libraries(fboss2_config_lib
   bgp_config_cpp2
   switchinfo_utils
   platform_mapping
+  Boost::regex
   Folly::folly
 )
 

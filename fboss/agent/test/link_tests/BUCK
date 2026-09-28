@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+# @oss-disable[end= ]: load("//fboss/agent/hw/sai/impl:impl.bzl", "sai_impl_target_compatible_with")
 load(
     "//fboss/agent/test/link_tests:link_tests.bzl",
     "all_sai_link_test_binaries",
@@ -321,6 +322,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -349,6 +351,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -378,6 +381,7 @@ cpp_library(
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",

@@ -87,6 +87,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "isolation_group_api_test",
+    srcs = [
+        "IsolationGroupApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "lag_api_test",
     srcs = [
         "LagApiTest.cpp",

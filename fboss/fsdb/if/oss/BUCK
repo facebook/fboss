@@ -106,11 +106,10 @@ custom_unittest(
     ],
 )
 
-# Land-blocking diff signal: runs verify_oss_thriftpath whenever any thrift file
-# in the fsdb_model dependency closure changes. Uses explicit ci_srcs glob
-# patterns since ci_deps with thrift_library targets does not resolve transitive
-# thrift includes to source files for Citadel triggering.
-# Modeled after neteng/fboss/bgp/tools/oss:verify_oss_thrift_signal.
+# Runs verify_oss_thriftpath whenever any thrift file in the fsdb_model
+# dependency closure changes. Uses explicit ci_srcs glob patterns since ci_deps
+# with thrift_library targets does not resolve transitive thrift includes to
+# source files for Citadel triggering.
 # @ci-signal-ack
 ci_sandcastle(
     name = "verify_oss_thriftpath_signal",
@@ -125,7 +124,9 @@ ci_sandcastle(
         ],
     },
     capabilities = {
-        "tenant": "default-tenant",
+        # default-tenant has no guaranteed quota, and CI force-downgrades
+        # unfunded diff-time workflows to non-land-blocking.
+        "tenant": "fboss-oss",
         "type": "fbcode",
         "vcs": "full-fbsource",
     },
@@ -157,5 +158,6 @@ ci_sandcastle(
     oncall = "fboss_agent_push",
     schedules = [
         ci.diff,
+        ci.land,
     ],
 )

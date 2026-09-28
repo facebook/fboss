@@ -9,13 +9,15 @@ such as Claude Code, Codex, MetaCode, or other tools that understand
 skill-style task guidance. They are written to be useful in both open-source
 checkouts and Meta-internal environments.
 
-The open-source skill set focuses on five workflows:
+The open-source skill set focuses on six workflows:
 
 - Debugging FBOSS AgentHwTest failures.
 - Debugging QSFP HW test failures from logs.
+- Adding support for a new transceiver.
 - Applying FBOSS coding standards while changing code.
 - Reviewing FBOSS diffs with FBOSS-specific review guidance.
 - Building, customizing, and provisioning FBOSS Distro images.
+- Building FBOSS from source locally with getdeps and CMake.
 
 ## Directory Layout
 
@@ -23,9 +25,12 @@ In an open-source FBOSS checkout, the exported skills are expected under:
 
 ```text
 fboss/skills/
+  build-fboss-oss-local/
   debug-agent-hw-test/
+  debug-link-test/
   debug-qsfp-hw-test/
   fboss-distro-image/
+  fboss-transceiver-npi/
   fboss-code-standards/
   fboss-review/
 ```
@@ -53,9 +58,12 @@ skill by name:
 ```text
 Use debug-agent-hw-test to debug AgentAclTest.AclNexthopTest on my switch.
 Use debug-qsfp-hw-test to find why warm_boot.HwStateMachineTest.CheckPortsProgrammed failed in this log.
+Use debug-link-test to find why cold_boot.AgentEnsembleEmptyLinkTest.CheckInit failed in this link test log.
 Use fboss-distro-image to explain and build fboss-image/from_source.json.
+Use fboss-transceiver-npi to add support for an Innolight 2x800G-DR4 optic.
 Use fboss-code-standards while changing the route updater.
 Use fboss-review to review this pull request.
+Use build-fboss-oss-local to do a fake-SAI build of this checkout.
 ```
 
 Each skill has a `SKILL.md` entry point. The entry point tells the agent which
@@ -81,6 +89,46 @@ The skill is intentionally environment-neutral. The open-source references use
 standard `ssh`/`scp` style examples. Meta environments may provide their own
 device-access and build-system overrides.
 
+### `debug-link-test`
+
+Use this skill when an FBOSS link test failed and you have its log, the
+runner's result record, or a CI run link. It covers:
+
+- Finding the verdict and classifying the failure: SetUp link-up /
+  transceiver-state / port-state gates, test-body assertions, fatal CHECKs,
+  SAI init failures, and aborts (self-abort vs timeout watchdog) with the
+  meaningful stack frames.
+- Decoding the per-port IPHY / XPHY / transceiver dump printed for ports that
+  never came up.
+- Deciding when the link test log is not enough and root-causing the optics
+  side from the qsfp_service log for the same window (module capability,
+  I2C, programming, remediation, firmware).
+
+The skill reports root cause plus evidence only. It does not suggest code
+fixes or file known-bad entries.
+
+How to use it (two modes):
+
+- **Hand it the logs.** Give the link test log and, when you have them, the
+  qsfp_service log for the same run, the hw agent logs (multi-switch), and the
+  per-test result record. It analyzes only what you give it and fetches
+  nothing. If the answer needs a log you didn't provide, it tells you exactly
+  which log, time window, and transceivers would settle it.
+
+  ```text
+  Use debug-link-test on /tmp/link_test.log and /tmp/qsfp_service.log.
+  ```
+
+- **Let it fetch.** In checkouts that include the environment-specific
+  `facebook/` files, give it a CI link, a result record, or a failing test name.
+  It finds the failure, downloads the link test log, and pulls the matching
+  qsfp_service log for the failure window (from the runner's upload or from the
+  switch), checking that the log really covers the failure time.
+
+  ```text
+  Use debug-link-test to find why cold_boot.AgentEnsembleEmptyLinkTest.CheckInit failed on montblanc today.
+  ```
+
 ### `debug-qsfp-hw-test`
 
 Use this skill when a QSFP HW test (`qsfp_hw_test-<impl>-<version>`) failed
@@ -95,6 +143,27 @@ and you have its log as pasted text, a file, or a CI run link. It covers:
 
 The skill reports root cause plus evidence only. It does not suggest code
 fixes or file known-bad entries.
+
+### `fboss-transceiver-npi`
+
+Use this skill to add support for a new transceiver. In an open-source
+checkout it covers the code change that teaches `qsfp_service` about a new
+media type:
+
+- Assigning a `MediaInterfaceCode` from the SFF-8024 reference tables.
+- Adding the enum entries to `fboss/qsfp_service/if/transceiver.thrift`.
+- Adding the matching entry to `TransceiverPropertiesDefault.h`, including
+  lane maps, speed combinations, and speed-change transitions.
+- Building and running the two tests that cover those files,
+  `transceiver_properties_manager_test` and `cmis_test`.
+
+`TransceiverPropertiesDefault.h` is keyed by media type rather than by vendor,
+so a new vendor part for an already-supported media type usually needs no code
+change at all — the skill checks for that first.
+
+Two further phases — placing firmware images and registering automated-test
+nodes — depend on infrastructure that has no open-source counterpart, and are
+available only where the corresponding `facebook/` overrides are present.
 
 ### `fboss-code-standards`
 
@@ -145,6 +214,19 @@ It covers:
 - Build and provisioning failure diagnosis.
 
 The workflow is self-contained for open-source checkouts.
+
+### `build-fboss-oss-local`
+
+Use this skill to build FBOSS from source on your own machine, to diagnose a
+failed build, or to answer questions about how the open-source build works. It
+covers:
+
+- The build container and the `run-getdeps.py` wrapper around getdeps.
+- A first build with fake SAI, which needs no vendor SDK or hardware.
+- Supplying a vendor NPU or PHY SAI SDK.
+- Build targets, packaging, and the tests that run without hardware.
+- Failures ordered by the error message you see.
+- Why the build is shaped the way it is, and what it cannot do.
 
 ## Typical Usage
 

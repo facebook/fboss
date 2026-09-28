@@ -18,6 +18,7 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigBgpGlobalTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigBgpNeighborTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigBgpPeerGroupTest.cpp
+  fboss/cli/fboss2/test/integration_test/ConfigBgpPolicyAsPathListTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigBgpSessionTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigConcurrentSessionsTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigHostnameTest.cpp
@@ -47,7 +48,6 @@ add_executable(fboss2_integration_test
   fboss/cli/fboss2/test/integration_test/ConfigSessionClearTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigTrafficCounterTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanCreateTest.cpp
-  fboss/cli/fboss2/test/integration_test/ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanDefaultTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/integration_test/ConfigVlanStaticMacTest.cpp

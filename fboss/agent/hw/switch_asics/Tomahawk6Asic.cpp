@@ -128,6 +128,14 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return true;
+    case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
+      // The hostif trap is only implemented from 15.4 GA onwards; the 15.4
+      // early access drop predates it.
+      return saiSdkAtLeast("15.4.0.0_odp");
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
+      // Implemented from the 16.0 early access drop onwards. 15.4 is GA and
+      // is not being patched for it.
+      return saiSdkAtLeast("16.0_ea_odp");
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
@@ -154,7 +162,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
-    case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::FABRIC_PORTS:
 
@@ -250,6 +257,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::ISOLATION_GROUP:
       return false;
   }
   return false;

@@ -3102,6 +3102,84 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           " exist but not the portPgConfig map");
     }
   }
+  // CBFC virtual channels. Independent of PFC: a port may run both, so this
+  // is resolved from Port.cbfcConfigName rather than from PortPfc.
+  std::vector<state::PortVcFields> virtualChannels;
+  std::optional<int64_t> cbfcSenderCreditLimit;
+  std::optional<std::string> newCbfcConfigName;
+  if (auto cbfcConfigName = portConf->cbfcConfigName()) {
+    newCbfcConfigName = *cbfcConfigName;
+    auto cbfcConfigs = cfg_->cbfcConfigs();
+    if (!cbfcConfigs) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config name ",
+          *cbfcConfigName,
+          " set but there is no cbfcConfigs map");
+    }
+    auto it = cbfcConfigs->find(*cbfcConfigName);
+    if (it == cbfcConfigs->end()) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config name ",
+          *cbfcConfigName,
+          " does not exist in cbfcConfigs map");
+    }
+    std::set<int16_t> seenVcIds;
+    for (const auto& vc : *it->second.virtualChannels()) {
+      auto vcId = *vc.id();
+      if (vcId < 0 ||
+          vcId > cfg::switch_config_constants::PORT_VC_VALUE_MAX()) {
+        throw FbossError(
+            "Invalid vc id ",
+            vcId,
+            ". Valid range is 0 to: ",
+            cfg::switch_config_constants::PORT_VC_VALUE_MAX());
+      }
+      if (!seenVcIds.insert(vcId).second) {
+        throw FbossError(
+            "Duplicate vc id ", vcId, " in cbfc config ", *cbfcConfigName);
+      }
+      if (auto reserved = vc.reservedCreditSize(); reserved && *reserved < 0) {
+        throw FbossError(
+            "Invalid reservedCreditSize ", *reserved, " for vc id ", vcId);
+      }
+      state::PortVcFields vcFields;
+      vcFields.id() = vcId;
+      if (auto name = vc.name()) {
+        vcFields.name() = *name;
+      }
+      vcFields.senderEnable() = *vc.senderEnable();
+      vcFields.receiverEnable() = *vc.receiverEnable();
+      if (auto reserved = vc.reservedCreditSize()) {
+        vcFields.reservedCreditSize() = *reserved;
+      }
+      virtualChannels.push_back(std::move(vcFields));
+    }
+    if (auto limit = it->second.senderCreditLimit()) {
+      if (*limit < 0 ||
+          *limit > cfg::switch_config_constants::
+                       PORT_CBFC_SENDER_CREDIT_LIMIT_MAX()) {
+        throw FbossError(
+            "Invalid senderCreditLimit ",
+            *limit,
+            ", must be 0..",
+            cfg::switch_config_constants::PORT_CBFC_SENDER_CREDIT_LIMIT_MAX());
+      }
+      cbfcSenderCreditLimit = *limit;
+    }
+  }
+
+  bool virtualChannelsUnchanged = [&]() {
+    auto origVcs = orig->getVirtualChannels();
+    if (!origVcs) {
+      return virtualChannels.empty();
+    }
+    return origVcs->toThrift() == virtualChannels;
+  }();
+
   portPgConfigUnchanged = isPgConfigUnchanged(portPgCfgs, orig);
   /*
    * The list of lookup classes would be different when first enabling the
@@ -3351,7 +3429,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getPortUpHoldoffTimeMs().has_value() &&
       newUserMetaData == orig->getUserMetaData() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId() &&
-      interfaceIDsUnchanged) {
+      newCbfcConfigName == orig->getCbfcConfigName() &&
+      cbfcSenderCreditLimit == orig->getCbfcSenderCreditLimit() &&
+      virtualChannelsUnchanged && interfaceIDsUnchanged) {
     return nullptr;
   }
 
@@ -3397,6 +3477,9 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPfc(newPfc);
   newPort->setPfcPriorities(newPfcPriorities);
   newPort->resetPgConfigs(portPgCfgs);
+  newPort->setVirtualChannels(virtualChannels);
+  newPort->setCbfcConfigName(newCbfcConfigName);
+  newPort->setCbfcSenderCreditLimit(cbfcSenderCreditLimit);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setSerdesCustomCollection(newSerdesCustomCollection);
@@ -4811,6 +4894,10 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto ttl = config->ttl()) {
     newAcl->setTtl(AclTtl(*ttl->value(), *ttl->mask()));
   }
+  if (auto mplsLabel0Ttl = config->mplsLabel0Ttl()) {
+    newAcl->setMplsLabel0Ttl(
+        AclTtl(*mplsLabel0Ttl->value(), *mplsLabel0Ttl->mask()));
+  }
   if (auto lookupClassL2 = config->lookupClassL2()) {
     newAcl->setLookupClassL2(*lookupClassL2);
   }
@@ -5392,6 +5479,35 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
   if (config.maxArsVirtualGroups()) {
     newFlowletSwitchingConfig->setMaxArsVirtualGroups(
         *config.maxArsVirtualGroups());
+  }
+  if (config.arsVirtualGroupAlternateMembers()) {
+    if (!config.maxArsVirtualGroupWidth()) {
+      throw FbossError(
+          "arsVirtualGroupAlternateMembers requires maxArsVirtualGroupWidth "
+          "to be set");
+    }
+    auto alternateMembers = *config.arsVirtualGroupAlternateMembers();
+    // Alternate slots come out of the virtual group width, so reserving all of
+    // them would leave no primary member able to forward.
+    if (alternateMembers <= 0 ||
+        alternateMembers >= *config.maxArsVirtualGroupWidth()) {
+      throw FbossError(
+          "arsVirtualGroupAlternateMembers ",
+          alternateMembers,
+          " must be greater than 0 and less than maxArsVirtualGroupWidth ",
+          *config.maxArsVirtualGroupWidth());
+    }
+    newFlowletSwitchingConfig->setArsVirtualGroupAlternateMembers(
+        alternateMembers);
+  }
+  if (config.arsVirtualGroupCommonMembersThreshold()) {
+    if (!config.arsVirtualGroupAlternateMembers()) {
+      throw FbossError(
+          "arsVirtualGroupCommonMembersThreshold requires "
+          "arsVirtualGroupAlternateMembers to be set");
+    }
+    newFlowletSwitchingConfig->setArsVirtualGroupCommonMembersThreshold(
+        *config.arsVirtualGroupCommonMembersThreshold());
   }
   if (config.standbySwitchingMode()) {
     // Distinct switching modes keep the standby and primary ARS objects from

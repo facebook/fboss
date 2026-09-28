@@ -183,28 +183,6 @@ class VlanIdValue : public BaseObjectArgType<int32_t> {
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID;
 };
 
-// Custom type for trunk VLAN action (add/remove VLANs from trunk port)
-class TrunkVlanAction : public BaseObjectArgType<int32_t> {
- public:
-  /* implicit */ TrunkVlanAction( // NOLINT(google-explicit-constructor)
-      const std::vector<std::string>& v);
-
-  bool isAdd() const {
-    return isAdd_;
-  }
-
-  bool isRemove() const {
-    return !isAdd_;
-  }
-
-  const std::vector<int32_t>& getVlanIds() const {
-    return data_;
-  }
-
- private:
-  bool isAdd_{true};
-};
-
 class VipInjectorID : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ VipInjectorID( // NOLINT(google-explicit-constructor)

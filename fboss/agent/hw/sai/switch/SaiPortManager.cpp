@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
@@ -1902,6 +1903,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   removeSamplePacket(swPort);
   removePfcBuffers(swPort);
   removePfc(swPort);
+  managerTable_->virtualChannelManager().removeVirtualChannels(swId);
   clearQosPolicy(swId);
 
   concurrentIndices_->portSaiId2PortInfo.erase(itr->second->port->adapterKey());
@@ -4621,7 +4623,10 @@ void SaiPortManager::changeZeroPreemphasis(
         newPort->getPinConfigs(),
         portHandle->serdes,
         newPort->getZeroPreemphasis(),
-        newPort->getSerdesCustomCollection());
+        newPort->getSerdesCustomCollection(),
+        false,
+        FLAGS_montblanc_precoding || newPort->getTxPrecoding().value_or(false),
+        FLAGS_montblanc_precoding || newPort->getRxPrecoding().value_or(false));
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {

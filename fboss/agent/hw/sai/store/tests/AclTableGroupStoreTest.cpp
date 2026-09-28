@@ -68,6 +68,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // dstMac
             true, // ipType
             true, // ttl
+            true, // mpls label0 ttl
             true, // fdb meta
             true, // route meta
             true, // neighbor meta

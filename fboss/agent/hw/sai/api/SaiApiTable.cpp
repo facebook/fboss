@@ -127,6 +127,10 @@ const HostifApi& SaiApiTable::hostifApi() const {
   return getApi<HostifApi>();
 }
 
+const IsolationGroupApi& SaiApiTable::isolationGroupApi() const {
+  return getApi<IsolationGroupApi>();
+}
+
 const MirrorApi& SaiApiTable::mirrorApi() const {
   return getApi<MirrorApi>();
 }

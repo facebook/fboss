@@ -105,6 +105,7 @@ class PortApiTest : public ::testing::Test {
 #endif
         std::nullopt, // PfcPauseDurationOverride
         std::nullopt, // Ingress ACL
+        std::nullopt, // IsolationGroup
         std::nullopt, // Metadata
     };
     return portApi->create<SaiPortTraits>(a, 0);
@@ -175,6 +176,15 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // RxFfeLmsDynamicGatingEn
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
         std::nullopt, // CustomCollection
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+        std::nullopt, // RxReach
+#endif
+#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
+    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
+     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
+        std::nullopt, // TxPrecoding
+        std::nullopt, // RxPrecoding
 #endif
     };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
@@ -558,6 +568,22 @@ TEST_F(PortApiTest, serdesApi) {
   EXPECT_EQ(txFirPre3, std::vector<sai_uint32_t>{9});
 }
 
+TEST_F(PortApiTest, optionalSerdesListAttributesHaveDefaults) {
+  EXPECT_TRUE(SaiPortSerdesTraits::Attributes::RxReach::defaultValue().empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::TransmitPrecodingState::defaultValue()
+          .empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::ReceivePrecodingState::defaultValue()
+          .empty());
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::TxPrecoding::defaultValue().empty());
+  EXPECT_TRUE(
+      SaiPortSerdesTraits::Attributes::RxPrecoding::defaultValue().empty());
+#endif
+}
+
 // The precoding vendor extensions are programmed after serdes create, the way
 // SaiPortManager does it
 TEST_F(PortApiTest, serdesPrecodingState) {
@@ -936,3 +962,26 @@ TEST_F(PortApiTest, portLlrAttributesOnEnabledPort) {
   EXPECT_EQ(portApi->getAttribute(portId, modeRemoteBlank), true);
 }
 #endif
+
+TEST_F(PortApiTest, setGetIsolationGroup) {
+  auto portIds = createFivePorts();
+  constexpr sai_object_id_t kIsolationGroupId{42};
+  using IsolationGroup = SaiPortTraits::Attributes::IsolationGroup;
+
+  // getAttribute fills in the attribute it is handed, so every read uses a
+  // fresh one -- reusing the attribute being set would clobber its value.
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+
+  portApi->setAttribute(portIds[0], IsolationGroup{kIsolationGroupId});
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), kIsolationGroupId);
+  // Binding one port must not bind any other.
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[1], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+
+  // Unbinding is an explicit write of the null oid.
+  portApi->setAttribute(portIds[0], IsolationGroup{SAI_NULL_OBJECT_ID});
+  EXPECT_EQ(
+      portApi->getAttribute(portIds[0], IsolationGroup{}), SAI_NULL_OBJECT_ID);
+}

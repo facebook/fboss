@@ -152,6 +152,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
@@ -295,6 +296,7 @@ bool Qumran4DAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SLL_HLL_DISCARD_COUNTERS:
     case HwAsic::Feature::NEXT_HOP_GROUP_MEMBER_MONITORED_OBJECT:
     case HwAsic::Feature::RX_PACKET_TYPE:
+    case HwAsic::Feature::ISOLATION_GROUP:
       return false;
   }
   return false;

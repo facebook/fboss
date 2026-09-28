@@ -65,6 +65,17 @@ std::unordered_map<int32_t, std::string> buildAggPortIdToNameMap(
   return aggPortIdToName;
 }
 
+// A link local address is ambiguous without the interface it was learned on,
+// so scope it the way the kernel tooling does.
+std::string getNextHopIpStr(const network::thrift::BinaryAddress& addr) {
+  auto ip = network::toIPAddress(addr);
+  auto ifNamePtr = apache::thrift::get_pointer(addr.ifName());
+  if (ifNamePtr != nullptr && ip.isV6() && ip.asV6().isLinkLocal()) {
+    return fmt::format("{}@{}", ip.str(), *ifNamePtr);
+  }
+  return ip.str();
+}
+
 // Helper function to get port name from port descriptor
 std::string getPortNameFromDescriptor(
     const cfg::PortDescriptor& portDesc,
@@ -171,7 +182,7 @@ CmdShowMySid::RetType CmdShowMySid::createModel(
           entryModel.nextHops()->push_back(
               fmt::format(
                   "{}{}",
-                  network::toIPAddress(nh.address().value()).str(),
+                  getNextHopIpStr(nh.address().value()),
                   getSrv6SidListStr(nh)));
         }
         break;
@@ -221,9 +232,11 @@ CmdShowMySid::RetType CmdShowMySid::createModel(
         entryModel.resolvedNextHops()->push_back(
             fmt::format("{} via {}{}", nhIp, portName, sidListStr));
       } else {
-        // Port not found, just show IP
+        // No egress port to show, so scope a link local address to its
+        // interface instead.
         entryModel.resolvedNextHops()->push_back(
-            fmt::format("{}{}", nhIp, sidListStr));
+            fmt::format(
+                "{}{}", getNextHopIpStr(nh.address().value()), sidListStr));
       }
     }
 
@@ -282,7 +295,7 @@ CmdShowMySid::RetType CmdShowMySid::sampleModel() {
   entryBinding.prefix() = "fdad:ffff:0003::/48";
   entryBinding.type() = "BINDING_MICRO_SID";
   entryBinding.nextHops() = std::vector<std::string>{
-      "fe80::200:11ff:fe22:3303 SRv6 SID List [fdad:ffff:7fff::]"};
+      "fe80::200:11ff:fe22:3303@fboss2007 SRv6 SID List [fdad:ffff:7fff::]"};
   entryBinding.resolvedNextHops() = std::vector<std::string>{
       "fe80::200:11ff:fe22:3303 via Port-Channel915, fboss2007 SRv6 SID List [fdad:ffff:7fff::]"};
   model.mySidEntries()->push_back(entryBinding);

@@ -69,6 +69,7 @@ cpp_library(
         "FirmwareApi.h",
         "HashApi.h",
         "HostifApi.h",
+        "IsolationGroupApi.h",
         "LagApi.h",
         "LoggingUtil.h",
         "MacsecApi.h",

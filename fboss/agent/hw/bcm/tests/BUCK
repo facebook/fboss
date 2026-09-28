@@ -3,6 +3,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 load("@fbsource//tools/build_defs/testinfra:network_access_utils.bzl", "network_access_utils")
 load("//fboss:THIRD-PARTY-VERSIONS.bzl", "BCM_SDKS", "to_impl_suffix", "to_versions")
+# @oss-disable[end= ]: load("//fboss/agent/hw/sai/impl:impl.bzl", "sai_impl_target_compatible_with")
 
 oncall("fboss_agent_push")
 
@@ -11,6 +12,7 @@ cpp_library(
     srcs = [
         "BcmUnitTestUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
 )
 
 cpp_library(
@@ -21,6 +23,7 @@ cpp_library(
     headers = [
         "facebook/BcmTestHandler.h",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = ["//fboss/agent/hw/bcm:bcm"],
     exported_deps = [
         "//common/fb303/cpp:fb303",
@@ -36,6 +39,7 @@ cpp_library(
     srcs = [
         "PhyCapabilities.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = ["//fboss/agent/hw/test:phy_capabilities"],
     exported_deps = [],
 )
@@ -49,6 +53,7 @@ cpp_library(
         "facebook/BcmSwitchEnsemble.cpp",
     ],
     link_whole = True,
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [":bcm_test-6.5.26"],
     exported_deps = [
         ":bcm_test_handler",
@@ -77,6 +82,7 @@ cpp_library(
     srcs = [
         "BcmLinkStateToggler.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         ":bcm_switch_ensemble",
         "//fboss/agent/hw/bcm:bcm",
@@ -93,6 +99,7 @@ cpp_library(
     srcs = [
         "HwTestPacketTrapEntry.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
@@ -110,6 +117,7 @@ cpp_library(
     srcs = [
         "dataplane_tests/BcmQosUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent/hw/bcm:bcm",
@@ -128,6 +136,7 @@ cpp_library(
         "BcmTrunkUtils.cpp",
         "HwTestTrunkUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":bcm_switch_ensemble",
@@ -144,6 +153,7 @@ cpp_library(
     srcs = [
         "HwTestEcmpUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_test_ecmp_utils",
@@ -156,6 +166,7 @@ cpp_library(
     srcs = [
         "HwTestPtpTcUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_test_ptp_tc_utils",
@@ -169,6 +180,7 @@ cpp_library(
         "HwTestAclUtils.cpp",
         "HwTestUdfUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent/hw/bcm:bcm",
@@ -192,6 +204,7 @@ cpp_library(
         "BcmPortUtils.cpp",
         "HwTestPortUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":bcm_switch_ensemble",
@@ -211,6 +224,7 @@ cpp_library(
         "HwTestCoppUtils.cpp",
     ],
     link_whole = True,
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_copp_utils",
@@ -223,6 +237,7 @@ cpp_library(
     srcs = [
         "HwTestAclUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent/hw/bcm:bcm",
@@ -237,6 +252,7 @@ cpp_library(
     srcs = [
         "HwTestTeFlowUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "fbsource//third-party/googletest:gtest",
         "//fboss/agent:switch_config-cpp2-types",
@@ -252,6 +268,7 @@ cpp_library(
     srcs = [
         "HwTestAqmUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/hw/test:hw_test_aqm_utils",
@@ -269,6 +286,7 @@ cpp_unittest(
         "BcmAddressFBConvertorsTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcmaddress_fb_convertors",
         "//folly:network_address",
@@ -285,6 +303,7 @@ cpp_unittest(
         "BcmHostKeyTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcm",
         "//fboss/agent/test:label_forwarding_utils",
@@ -297,6 +316,7 @@ cpp_unittest(
         srcs = [
             "facebook/BcmReplayTests.cpp",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -321,6 +341,7 @@ cpp_library(
     srcs = [
         "HwTestPfcUtils.cpp",
     ],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     undefined_symbols = True,
     deps = [
         "fbsource//third-party/googletest:gtest",
@@ -429,6 +450,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
             "--export-dynamic",
             "--unresolved-symbols=ignore-all",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -476,6 +498,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
             "facebook/BcmTestHandler.h",
         ],
         supports_static_listing = False,
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -528,6 +551,7 @@ cpp_unittest(
         "BcmCosQueueFBConvertorsTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
@@ -542,6 +566,7 @@ cpp_unittest(
         "BcmUnitTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -560,6 +585,7 @@ cpp_unittest(
         "BcmLabelSwitchingUtilsTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "//fboss/agent/hw/bcm:bcm_mpls_utils",
     ],
@@ -572,6 +598,7 @@ cpp_unittest(
         "BcmFieldProcessorFBConvertorsTests.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
@@ -588,6 +615,7 @@ cpp_unittest(
         "GPort.cpp",
     ],
     network_access = network_access_utils.none(),
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [
         "fbsource//third-party/glog:glog",
     ],
@@ -602,6 +630,7 @@ cpp_unittest(
         srcs = [
             "BcmMultiNodeTest.cpp",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -631,6 +660,7 @@ cpp_unittest(
         srcs = [
             "BcmMultiNodeTest.cpp",
         ],
+        # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
         versions = to_versions(sdk),
         deps = [
             "fbsource//third-party/glog:glog",
@@ -675,6 +705,7 @@ cpp_library(
         "HwTestVoqSwitchUtilsThriftHandler.cpp",
     ],
     headers = [],
+    # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     undefined_symbols = "True",  # The sai/bcm implementations will define some functions
     deps = [":bcm_test-6.5.26"],
     exported_deps = [

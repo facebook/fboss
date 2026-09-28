@@ -1326,10 +1326,13 @@ TEST(RouteNextHopEntry, CombineDuplicateWeightsLeavesDistinctEcmpGroupAlone) {
       expected);
 }
 
-TEST(RouteNextHopEntry, CombineDuplicateWeightsOnlyRewritesDuplicated) {
+TEST(RouteNextHopEntry, CombineDuplicateWeightsGivesSinglesAnExplicitShare) {
+  // Once anything is combined the next hop listed once is given an explicit
+  // share rather than being left at ECMP_WEIGHT, otherwise route resolution
+  // downgrades the whole set back to plain ECMP.
   const RouteNextHopSet expected{
       UnresolvedNextHop(nextHopAddr2, 2),
-      UnresolvedNextHop(nextHopAddr3, ECMP_WEIGHT)};
+      UnresolvedNextHop(nextHopAddr3, UCMP_DEFAULT_WEIGHT)};
 
   EXPECT_EQ(
       combineDuplicates(
@@ -1453,7 +1456,16 @@ TEST(RouteNextHopEntry, ReplicateWeightedNexthopsUndoesCombine) {
       makeNextHopThrift(nextHopAddr2, ECMP_WEIGHT),
       makeNextHopThrift(nextHopAddr3, ECMP_WEIGHT)};
 
-  EXPECT_EQ(replicateWeighted(combineDuplicates(nhts)), toAddrAndWeights(nhts));
+  // The duplicated next hop expands back into its two copies. The one listed
+  // once comes back at UCMP_DEFAULT_WEIGHT rather than ECMP_WEIGHT, since
+  // combining now gives singles an explicit share, so the round trip is no
+  // longer weight-for-weight identical to the input.
+  const std::vector<AddrAndWeight> expected{
+      {nextHopAddr3.str(), UCMP_DEFAULT_WEIGHT},
+      {nextHopAddr2.str(), ECMP_WEIGHT},
+      {nextHopAddr2.str(), ECMP_WEIGHT}};
+
+  EXPECT_EQ(replicateWeighted(combineDuplicates(nhts)), expected);
 }
 
 TEST(RouteNextHopEntry, WeightedNexthopsNotReplicatedByDefault) {

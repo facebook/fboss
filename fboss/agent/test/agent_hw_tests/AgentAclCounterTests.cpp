@@ -1427,6 +1427,66 @@ TEST_F(
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
+// Removing user metadata has to clear the tag in hardware, not just in switch
+// state. The ACL table stays in place, so traffic that its restricted-class
+// deny used to drop must be forwarded again, without matching either ACL.
+TEST_F(AgentPortUserMetaMultiAclTableTest, RemovePortMetadataAfterWarmboot) {
+  if (!getAgentEnsemble()->isSai()) {
+    GTEST_SKIP() << "Port user metadata is a SAI-only test";
+  }
+  ASSERT_TRUE(isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+  const auto ports = masterLogicalInterfacePortIds();
+  if (ports.size() < 3) {
+    GTEST_SKIP() << "Need one routed egress port and two ingress ports";
+  }
+  const PortID restrictedPort{ports[1]};
+  const PortID unchangedPort{ports[2]};
+
+  auto setup = [=, this]() {
+    XLOG(INFO) << "Coldboot setup: mark port " << restrictedPort
+               << " restricted and install the port metadata ACL table";
+    setupRoute();
+    auto config = initialConfig(*getAgentEnsemble());
+    auto portCfg = utility::findCfgPort(config, restrictedPort);
+    portCfg->userMetaData() = kPortLookupClass;
+    addWarmbootAclTable(&config);
+    applyNewConfig(config);
+  };
+
+  auto verify = [=, this]() {
+    XLOG(INFO) << "Coldboot verification: the restricted port is policed";
+    verifyRestrictedPortDrop(restrictedPort);
+    verifyRestrictedPortPermit(restrictedPort);
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    XLOG(INFO) << "Warmboot setup: drop user metadata from port "
+               << restrictedPort << ", keeping the ACL table in place";
+    auto config = initialConfig(*getAgentEnsemble());
+    addWarmbootAclTable(&config);
+    applyNewConfig(config);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    XLOG(INFO) << "Warmboot verification: port " << restrictedPort
+               << " is no longer classified, so the deny that used to drop its "
+                  "UDP/54 traffic no longer matches";
+    EXPECT_FALSE(
+        getProgrammedState()
+            ->getPorts()
+            ->getNode(restrictedPort)
+            ->getUserMetaData()
+            .has_value());
+    verifyForwardedWithoutPolicyMatch(
+        restrictedPort, kPortUserMetaDeniedL4DstPort);
+    verifyForwardedWithoutPolicyMatch(
+        unchangedPort, kPortUserMetaDeniedL4DstPort);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHit) {
   this->counterBumpOnHitHelper(

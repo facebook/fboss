@@ -4,6 +4,10 @@ Platform services build with CMake inside the FBOSS container. See the build
 documentation at https://facebook.github.io/fboss/ for container setup; the
 runnable snippets are in `docs/static/code_snips/`.
 
+For the build system itself (container setup, `run-getdeps.py` flags, build
+targets, troubleshooting), the `build-fboss-oss-local` skill is the canonical
+reference. This file covers the platform-services specifics.
+
 ## Build everything
 
 `fboss_platform_services` is an aggregate target covering all services, the CLI

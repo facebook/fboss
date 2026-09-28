@@ -367,6 +367,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #endif
       std::nullopt, // PfcPauseDurationOverride
       std::nullopt, // Ingress ACL
+      std::nullopt, // IsolationGroup
       std::nullopt, // Metadata
   };
 }
@@ -497,7 +498,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
     bool /* zeroPreemphasis */,
     const std::optional<std::string>& customCollection,
-    bool /* skipSerdesProgramming */) {
+    bool /* skipSerdesProgramming */,
+    bool /* txPrecodingEnabled */,
+    bool /* rxPrecodingEnabled */) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
