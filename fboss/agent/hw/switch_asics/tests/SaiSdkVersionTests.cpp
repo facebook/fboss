@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/hw/switch_asics/P200Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 
 #include <gtest/gtest.h>
@@ -72,6 +74,36 @@ TEST(SaiSdkVersionTest, unparseableVersionsFailClosed) {
   EXPECT_FALSE(asicWithSaiSdk("_ea_odp").saiSdkAtLeast("16.0_ea_odp"));
   EXPECT_FALSE(asicWithSaiSdk("16.0_ea_odp").saiSdkAtLeast("bogus"));
   EXPECT_FALSE(Tomahawk6Asic(0, npuSwitchInfo()).saiSdkAtLeast("16.0_ea_odp"));
+}
+
+// 15.4 is GA and is not being patched for the qualifier, so unlike the TTL
+// trap the bar is 16.0 and the early access drop at that boundary qualifies.
+TEST(SaiSdkVersionTest, aclMplsLabel0TtlFollowsEaBoundary) {
+  EXPECT_FALSE(asicWithSaiSdk("14.2.0.0_odp")
+                   .isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+  EXPECT_FALSE(asicWithSaiSdk("15.4_ea_odp")
+                   .isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+  EXPECT_FALSE(asicWithSaiSdk("15.4.0.0_odp")
+                   .isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+  EXPECT_TRUE(asicWithSaiSdk("16.0_ea_odp")
+                  .isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+  EXPECT_TRUE(asicWithSaiSdk("16.0.0.0_odp")
+                  .isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+  EXPECT_FALSE(asicWithSaiSdk("sai").isSupported(
+      HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+}
+
+// Neither ASIC implements the qualifier. Both sit next to
+// SAI_MPLS_TTL_1_TRAP, which they do support, so a case appended there would
+// silently inherit a true verdict.
+TEST(SaiSdkVersionTest, aclMplsLabel0TtlOffOnAsicsThatNeighbourTheTtlTrap) {
+  EbroAsic ebro{0, npuSwitchInfo(), saiSdk("26.7.5211")};
+  EXPECT_TRUE(ebro.isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP));
+  EXPECT_FALSE(ebro.isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
+
+  P200Asic p200{0, npuSwitchInfo(), saiSdk("26.7.5211")};
+  EXPECT_TRUE(p200.isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP));
+  EXPECT_FALSE(p200.isSupported(HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL));
 }
 
 // The placeholder netcastle overwrites. If substitution ever regresses, the

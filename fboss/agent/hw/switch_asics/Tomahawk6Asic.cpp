@@ -132,6 +132,10 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
       // The hostif trap is only implemented from 15.4 GA onwards; the 15.4
       // early access drop predates it.
       return saiSdkAtLeast("15.4.0.0_odp");
+    case HwAsic::Feature::SAI_ACL_MPLS_LABEL0_TTL:
+      // Implemented from the 16.0 early access drop onwards. 15.4 is GA and
+      // is not being patched for it.
+      return saiSdkAtLeast("16.0_ea_odp");
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:

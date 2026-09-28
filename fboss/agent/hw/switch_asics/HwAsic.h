@@ -321,6 +321,17 @@ class HwAsic {
     // SAI_PACKET_ACTION_TRAP.
     SAI_MPLS_TTL_1_TRAP,
 
+    // Set to true if the SAI implementation supports matching on the TTL of
+    // the outermost MPLS label in an ACL. For SAI, this maps to
+    // SAI_ACL_TABLE_ATTR_FIELD_MPLS_LABEL0_TTL and the corresponding
+    // SAI_ACL_ENTRY_ATTR_FIELD_MPLS_LABEL0_TTL.
+    //
+    // The SAI enumerators have existed since spec 1.6.3, so this gates the
+    // implementation rather than the symbol: an SDK that does not implement
+    // the qualifier fails sai_acl_table_create() with
+    // SAI_STATUS_INVALID_ATTR_VALUE instead of ignoring it.
+    SAI_ACL_MPLS_LABEL0_TTL,
+
     // Set to true if the SAI implementation supports counting packets dropped
     // due to MPLS label lookup failure. Creates a SAI debug counter with drop
     // reason SAI_IN_DROP_REASON_MPLS_MISS, exposed as a per-port stat via
