@@ -37,6 +37,9 @@
     },
     {
       "download": "${ARTIFACT_BASE}/fboss2/fboss_bins.tar.zst"
+    },
+    {
+      "download": "${ARTIFACT_BASE}/led/fboss_bins.tar.zst"
     }
   ],
   "image_build_hooks": {}

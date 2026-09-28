@@ -27,7 +27,8 @@
     {"download": "${ARTIFACT_BASE}/agent/brcm/14.2.0.0_odp/fboss_bins.tar.zst"},
     {"download": "${ARTIFACT_BASE}/fsdb/fboss_bins.tar.zst"},
     {"download": "${ARTIFACT_BASE}/qsfp/fboss_bins.tar.zst"},
-    {"download": "${ARTIFACT_BASE}/fboss2/fboss_bins.tar.zst"}
+    {"download": "${ARTIFACT_BASE}/fboss2/fboss_bins.tar.zst"},
+    {"download": "${ARTIFACT_BASE}/led/fboss_bins.tar.zst"}
   ],
   "image_build_hooks": {}
 }
