@@ -17,9 +17,20 @@
 #include <vector>
 
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/SystemdInterface.h"
 
 namespace facebook::fboss {
+
+// Real service orchestration against a mock systemd; there is no agent to
+// poll, so it always reports configured.
+class NoAgentServiceUtil : public FbossServiceUtil {
+ public:
+  using FbossServiceUtil::FbossServiceUtil;
+  bool isAgentConfigured(const HostInfo& /*hostInfo*/) override {
+    return true;
+  }
+};
 
 // Test-only derived class that exposes the protected constructor and methods
 // This allows tests to inject custom paths and control the singleton instance
@@ -73,7 +84,7 @@ class TestableConfigSession : public ConfigSession {
       bool /*needsAgentState*/) override {
     if (!fbossServiceUtil_) {
       if (mockSystemdFactory_) {
-        fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+        fbossServiceUtil_ = std::make_unique<NoAgentServiceUtil>(
             switchIndexesOverride_,
             multiSwitchOverride_,
             mockSystemdFactory_());

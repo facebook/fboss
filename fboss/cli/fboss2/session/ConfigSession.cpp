@@ -975,6 +975,9 @@ ConfigSession::applyServiceActions(
       case cli::ConfigActionLevel::SERVICE_RESTART:
         serviceNames[service] =
             fbossServiceUtil_->restartService(service, level);
+        if (service == cli::ServiceType::AGENT) {
+          fbossServiceUtil_->waitForAgentConfigured(hostInfo);
+        }
         break;
       case cli::ConfigActionLevel::HITLESS:
         serviceNames[service] =

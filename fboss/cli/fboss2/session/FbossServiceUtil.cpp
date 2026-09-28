@@ -13,7 +13,9 @@
 #include <fmt/format.h>
 #include <folly/String.h>
 #include <glog/logging.h>
+#include <chrono>
 #include <stdexcept>
+#include <thread>
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/session/SystemdInterface.h"
@@ -182,6 +184,38 @@ std::string FbossServiceUtil::restartTypeName(
       return "reload";
   }
   return "restart";
+}
+
+// Same check as SwSwitch::isFullyConfigured().
+bool FbossServiceUtil::isAgentConfigured(const HostInfo& hostInfo) {
+  try {
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    auto runState = client->sync_getSwitchRunState();
+    return runState >= SwitchRunState::CONFIGURED &&
+        runState != SwitchRunState::EXITING;
+  } catch (const std::exception&) {
+    // Expected while the agent is still starting up.
+    return false;
+  }
+}
+
+void FbossServiceUtil::waitForAgentConfigured(
+    const HostInfo& hostInfo,
+    int maxWaitSeconds,
+    int pollIntervalMs) {
+  int waitedMs = 0;
+  while (waitedMs < maxWaitSeconds * 1000) {
+    if (isAgentConfigured(hostInfo)) {
+      return;
+    }
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
+    waitedMs += pollIntervalMs;
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "Agent did not become configured within {} seconds", maxWaitSeconds));
 }
 
 std::vector<std::string> FbossServiceUtil::restartService(

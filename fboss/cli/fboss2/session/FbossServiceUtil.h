@@ -48,6 +48,15 @@ class FbossServiceUtil {
       cli::ServiceType service,
       cli::ConfigActionLevel level);
 
+  // Waits until the agent at hostInfo can take config commands; systemd
+  // reports it active well before that. Throws on timeout.
+  void waitForAgentConfigured(
+      const HostInfo& hostInfo,
+      int maxWaitSeconds = 300,
+      int pollIntervalMs = 1000);
+
+  virtual bool isAgentConfigured(const HostInfo& hostInfo);
+
   // Reload config for a service without restart (for HITLESS changes).
   // Calls sync_reloadConfig() on the primary service (sw_agent in split mode,
   // wedge_agent in monolithic mode).
