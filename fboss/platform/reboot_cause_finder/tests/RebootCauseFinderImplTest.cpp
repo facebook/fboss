@@ -3,6 +3,7 @@
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <filesystem>
 #include <string>
@@ -18,10 +19,50 @@ namespace rcc = facebook::fboss::platform::reboot_cause_config;
 
 namespace {
 
+constexpr int64_t kWindow = 1800;
+
 int64_t nowSec() {
   return static_cast<int64_t>(
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
 }
+
+// Render an epoch instant the way kdump names a crash directory.
+std::string crashDirName(int64_t epochSec) {
+  const auto t = static_cast<std::time_t>(epochSec);
+  std::tm tm{};
+  localtime_r(&t, &tm);
+  char buf[64];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%Z", &tm);
+  return buf;
+}
+
+// Sets TZ for the duration of a test. The parsers resolve local time, so a
+// test asserting an absolute epoch has to say which zone it means rather
+// than inheriting one from the build environment.
+class ScopedTz {
+ public:
+  explicit ScopedTz(const char* tz) : had_(::getenv("TZ") != nullptr) {
+    if (had_) {
+      saved_ = ::getenv("TZ");
+    }
+    ::setenv("TZ", tz, 1);
+    ::tzset();
+  }
+  ~ScopedTz() {
+    if (had_) {
+      ::setenv("TZ", saved_.c_str(), 1);
+    } else {
+      ::unsetenv("TZ");
+    }
+    ::tzset();
+  }
+  ScopedTz(const ScopedTz&) = delete;
+  ScopedTz& operator=(const ScopedTz&) = delete;
+
+ private:
+  bool had_;
+  std::string saved_;
+};
 
 class RebootCauseFinderImplTest : public ::testing::Test {
  protected:
@@ -37,6 +78,15 @@ class RebootCauseFinderImplTest : public ::testing::Test {
   void TearDown() override {
     std::error_code ec;
     std::filesystem::remove_all(tmpDir_, ec);
+  }
+
+  std::string makeCrashDir(const std::vector<std::string>& entryNames) {
+    const auto dir = tmpDir_ / "crash";
+    std::filesystem::create_directories(dir);
+    for (const auto& name : entryNames) {
+      std::filesystem::create_directories(dir / name);
+    }
+    return dir.string();
   }
 
   std::string writeProcStat(const std::string& contents) {
@@ -72,6 +122,320 @@ TEST_F(RebootCauseFinderImplTest, BootTimeAbsentWhenNoBtimeLine) {
 TEST_F(RebootCauseFinderImplTest, BootTimeInFutureIsRejected) {
   const auto path = writeProcStat(fmt::format("btime {}\n", nowSec() + 86400));
   EXPECT_FALSE(detail::readBootTimeSec(path).has_value());
+}
+
+// ------------------------------------------------------------- kernel panic
+
+TEST_F(RebootCauseFinderImplTest, PanicInsideWindowIsReported) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({crashDirName(btime - 60)});
+
+  const auto causes = *detail::readKernelPanic({dir}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].description(), "Kernel Panic");
+  // The crash dir name is per-instance data, not part of the cause name.
+  ASSERT_TRUE(causes[0].rawValue().has_value());
+  EXPECT_EQ(*causes[0].rawValue(), crashDirName(btime - 60));
+}
+
+TEST_F(RebootCauseFinderImplTest, PanicOlderThanWindowIsIgnored) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({crashDirName(btime - kWindow - 60)});
+  EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
+}
+
+// A dump timestamped at or after btime belongs to the boot we are running in,
+// so it cannot be the cause of that boot.
+TEST_F(RebootCauseFinderImplTest, PanicAtOrAfterBootStartIsIgnored) {
+  const auto btime = nowSec();
+  const auto dir =
+      makeCrashDir({crashDirName(btime), crashDirName(btime + 60)});
+  EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, PanicNearestBootStartWins) {
+  const auto btime = nowSec();
+  const auto near = btime - 30;
+  const auto dir =
+      makeCrashDir({crashDirName(btime - 900), crashDirName(near)});
+
+  const auto causes = *detail::readKernelPanic({dir}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(near) * 1000);
+}
+
+// kdump writes the dump during the crash kernel or in post-boot processing,
+// so the directory mtime can land after btime while the panic preceded it.
+// Selection must use the name, never the mtime.
+TEST_F(RebootCauseFinderImplTest, PanicSelectedByNameNotMtime) {
+  const auto btime = nowSec();
+  const auto inWindowByName = btime - 60;
+  const auto outOfWindowByName = btime + 600;
+  const auto dir = makeCrashDir(
+      {crashDirName(inWindowByName), crashDirName(outOfWindowByName)});
+
+  // Invert the mtimes relative to the names. Selecting on mtime would pick the
+  // out-of-window entry and drop the in-window one.
+  std::filesystem::last_write_time(
+      std::filesystem::path(dir) / crashDirName(inWindowByName),
+      std::filesystem::file_time_type::clock::now() + std::chrono::hours(1));
+  std::filesystem::last_write_time(
+      std::filesystem::path(dir) / crashDirName(outOfWindowByName),
+      std::filesystem::file_time_type::clock::now() - std::chrono::hours(1));
+
+  const auto causes = *detail::readKernelPanic({dir}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(
+      *causes[0].occurredAtMs(), static_cast<int64_t>(inWindowByName) * 1000);
+}
+
+TEST_F(RebootCauseFinderImplTest, MissingCrashDirIsNotAnError) {
+  EXPECT_TRUE(
+      detail::readKernelPanic(
+          {(tmpDir_ / "no_such_dir").string()}, nowSec(), kWindow)
+          .causes()
+          ->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, UnparseableCrashDirEntryIsSkipped) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({"not-a-timestamp", "README"});
+  EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
+}
+
+// --------------------------------------------- golden inputs from the real
+// producers. These are literal strings, not round-tripped through the same
+// strftime the implementation parses with, so a shared wrong assumption about
+// the format cannot cancel out. TZ is pinned by the BUCK target.
+
+TEST_F(RebootCauseFinderImplTest, GoldenCrashDirNameWithDaylightZone) {
+  // 2026-09-11 16:46:31 PDT == 1789170391 (cross-checked against the record
+  // written on fboss332654848.ash7 in P2500823427). The epoch is absolute,
+  // so the zone is part of the assertion.
+  const ScopedTz tz("America/Los_Angeles");
+  const auto when = detail::parseCrashDirName("2026-09-11T16:46:31PDT");
+  ASSERT_TRUE(when.has_value());
+  EXPECT_EQ(static_cast<int64_t>(*when), 1789170391);
+}
+
+TEST_F(RebootCauseFinderImplTest, GoldenCrashDirNameWithStandardZone) {
+  // A winter, standard-time producer string. The expectation below builds the
+  // same instant by hand with tm_isdst = 0, which is only true in a zone whose
+  // January is standard time.
+  const ScopedTz tz("America/Los_Angeles");
+  const auto when = detail::parseCrashDirName("2026-01-15T01:15:29PST");
+  ASSERT_TRUE(when.has_value());
+  std::tm tm{};
+  tm.tm_year = 126;
+  tm.tm_mon = 0;
+  tm.tm_mday = 15;
+  tm.tm_hour = 1;
+  tm.tm_min = 15;
+  tm.tm_sec = 29;
+  tm.tm_isdst = 0;
+  EXPECT_EQ(*when, std::mktime(&tm));
+}
+
+// The name is produced by localtime() on this host and read back by
+// mktime() on the same host, so the round trip is exact. The zone text is
+// not interpreted: two names differing only in that text denote the same
+// wall clock and resolve identically.
+TEST_F(RebootCauseFinderImplTest, ZoneTextIsNotInterpreted) {
+  const auto pdt = detail::parseCrashDirName("2026-11-01T01:30:00PDT");
+  const auto pst = detail::parseCrashDirName("2026-11-01T01:30:00PST");
+  ASSERT_TRUE(pdt.has_value());
+  ASSERT_TRUE(pst.has_value());
+  EXPECT_EQ(*pdt, *pst);
+}
+
+// Round trip against the producer: render an instant the way kdump does,
+// parse it back, and require the original instant.
+TEST_F(RebootCauseFinderImplTest, RoundTripsAgainstStrftime) {
+  for (const int64_t t : {1789170391L, 1800000000L, nowSec()}) {
+    const auto tt = static_cast<std::time_t>(t);
+    std::tm tm{};
+    localtime_r(&tt, &tm);
+    char buf[64];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%Z", &tm);
+    const auto parsed = detail::parseCrashDirName(buf);
+    ASSERT_TRUE(parsed.has_value()) << buf;
+    EXPECT_EQ(static_cast<int64_t>(*parsed), t) << buf;
+  }
+}
+
+// The round trip must hold in any zone, not just the pinned one. Europe is
+// the case that matters: CEST and BST are *summer* times whose abbreviation
+// ends in "ST", so any attempt to infer daylight from the suffix misdates
+// every summer instant there by an hour. Pinning TZ hides that, so this test
+// changes it deliberately.
+TEST_F(RebootCauseFinderImplTest, RoundTripsInZonesWhereSuffixMisleads) {
+  for (const char* tz : {"Europe/Berlin", "Europe/London", "Asia/Tokyo"}) {
+    const ScopedTz scoped(tz);
+    const auto tt = static_cast<std::time_t>(1789170391); // a summer instant
+    std::tm tm{};
+    localtime_r(&tt, &tm);
+    char buf[64];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S%Z", &tm);
+    const auto parsed = detail::parseCrashDirName(buf);
+    EXPECT_TRUE(parsed.has_value()) << tz << " " << buf;
+    if (parsed) {
+      EXPECT_EQ(static_cast<int64_t>(*parsed), 1789170391) << tz << " " << buf;
+    }
+  }
+}
+
+// The hyphen-separated form, with no zone.
+TEST_F(RebootCauseFinderImplTest, GoldenCrashDirNameKdumpHyphenForm) {
+  EXPECT_TRUE(detail::parseCrashDirName("2026-09-11-16:46:31").has_value());
+}
+
+TEST_F(RebootCauseFinderImplTest, CrashDirNameGarbageRejected) {
+  EXPECT_FALSE(detail::parseCrashDirName("README").has_value());
+  EXPECT_FALSE(detail::parseCrashDirName("not-a-timestamp").has_value());
+  EXPECT_FALSE(detail::parseCrashDirName("").has_value());
+}
+
+// The contract: a timestamp, optionally one strftime %Z abbreviation, and
+// nothing else.
+TEST_F(RebootCauseFinderImplTest, CrashDirNameZoneSuffixesAccepted) {
+  for (const auto* name : {
+           "2026-09-24T16:32:00", // no zone at all
+           "2026-09-24T16:32:00PDT",
+           "2026-09-24T16:32:00PST",
+           "2026-09-24T16:32:00UTC", // lost to a DT/ST-only rule
+           "2026-09-24T16:32:00GMT",
+           "2026-09-24T16:32:00CEST", // four letters
+           "2026-09-24T16:32:00AEDT",
+           "2026-09-24T16:32:00+06", // zones with no abbreviation
+           "2026-09-24T16:32:00+0530",
+       }) {
+    EXPECT_TRUE(detail::parseCrashDirName(name).has_value()) << name;
+  }
+}
+
+// Real systemd-logind line, space-padded single-digit day.
+// ------------------------------------------- absent source vs unreadable one
+
+// The whole point of RebootCauseProviderStatus is to tell "read cleanly and
+// found nothing" apart from "could not read the source". An absent source is
+// the former: most switches have never panicked, and no image uses every log
+// path.
+TEST_F(RebootCauseFinderImplTest, AbsentSourcesAreNotAReadFailure) {
+  const auto panic =
+      detail::readKernelPanic({(tmpDir_ / "nope").string()}, nowSec(), kWindow);
+  EXPECT_TRUE(panic.causes()->empty());
+  EXPECT_EQ(*panic.status(), rcc::RebootCauseProviderStatus::OK);
+}
+
+// A crash "dir" that is really a regular file exists but cannot be iterated.
+// Using ENOTDIR rather than chmod keeps the test honest when it runs as root,
+// where a 0000 mode is still readable.
+TEST_F(RebootCauseFinderImplTest, UnreadableCrashDirIsReadFailure) {
+  const auto notADir = (tmpDir_ / "crash_is_a_file").string();
+  ASSERT_TRUE(folly::writeFile(std::string("x"), notADir.c_str()));
+
+  const auto attempt = detail::readKernelPanic({notADir}, nowSec(), kWindow);
+  EXPECT_TRUE(attempt.causes()->empty());
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+}
+
+// Likewise a log "file" that is really a directory: present, but EISDIR.
+TEST_F(RebootCauseFinderImplTest, FailedSourceStillReportsCauseFromGoodOne) {
+  const auto btime = nowSec();
+  const auto good = makeCrashDir({crashDirName(btime - 60)});
+  const auto bad = (tmpDir_ / "crash_is_a_file").string();
+  ASSERT_TRUE(folly::writeFile(std::string("x"), bad.c_str()));
+
+  const auto attempt = detail::readKernelPanic({bad, good}, btime, kWindow);
+  ASSERT_EQ(attempt.causes()->size(), 1);
+  EXPECT_EQ(*attempt.causes()->front().rawValue(), crashDirName(btime - 60));
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+}
+
+// ------------------------------------------------- where the dump lives
+
+// A dump can sit in either directory, so searching only one loses it.
+TEST_F(RebootCauseFinderImplTest, PanicFoundInUnprocessedCrashDir) {
+  const auto btime = nowSec();
+  const auto raw = (tmpDir_ / "crash").string();
+  std::filesystem::create_directories(
+      std::filesystem::path(raw) / crashDirName(btime - 60));
+  const auto processed = (tmpDir_ / "crash" / "processed").string();
+  std::filesystem::create_directories(processed);
+
+  const auto causes =
+      *detail::readKernelPanic({raw, processed}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].rawValue(), crashDirName(btime - 60));
+}
+
+// A dump in the processed directory is still found. Scanning the parent
+// also turns up the processed dir itself; kProcessedDirName keeps that from
+// logging a spurious parse error, which is log noise only and so is not
+// asserted here.
+TEST_F(RebootCauseFinderImplTest, PanicFoundInProcessedCrashDir) {
+  const auto btime = nowSec();
+  const auto raw = (tmpDir_ / "crash").string();
+  const auto processed = (tmpDir_ / "crash" / "processed").string();
+  std::filesystem::create_directories(
+      std::filesystem::path(processed) / crashDirName(btime - 60));
+
+  const auto causes =
+      *detail::readKernelPanic({raw, processed}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].rawValue(), crashDirName(btime - 60));
+}
+
+// A dump caught mid-move exists in both places; it is one panic, not two,
+// and the reported instant must not depend on scan order.
+TEST_F(RebootCauseFinderImplTest, SameDumpInBothDirsReportedOnce) {
+  const auto btime = nowSec();
+  const auto raw = (tmpDir_ / "crash").string();
+  const auto processed = (tmpDir_ / "crash" / "processed").string();
+  std::filesystem::create_directories(
+      std::filesystem::path(raw) / crashDirName(btime - 60));
+  std::filesystem::create_directories(
+      std::filesystem::path(processed) / crashDirName(btime - 60));
+
+  const auto causes =
+      *detail::readKernelPanic({raw, processed}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 60) * 1000);
+}
+
+// Nearest-to-btime must win across directories, not just within one.
+TEST_F(RebootCauseFinderImplTest, NearestPanicWinsAcrossCrashDirs) {
+  const auto btime = nowSec();
+  const auto raw = (tmpDir_ / "crash").string();
+  const auto processed = (tmpDir_ / "crash" / "processed").string();
+  std::filesystem::create_directories(
+      std::filesystem::path(raw) / crashDirName(btime - 30));
+  std::filesystem::create_directories(
+      std::filesystem::path(processed) / crashDirName(btime - 900));
+
+  const auto causes =
+      *detail::readKernelPanic({raw, processed}, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 30) * 1000);
+}
+
+TEST_F(RebootCauseFinderImplTest, CrashDirsCoverBothLocations) {
+  const std::vector<std::string> expected{"/var/crash", "/var/crash/processed"};
+  EXPECT_EQ(detail::kernelPanicCrashDirs(), expected);
+}
+
+// ----------------------------------------------------------- exact boundaries
+
+TEST_F(RebootCauseFinderImplTest, PanicExactlyAtWindowLowerBoundIsIncluded) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({crashDirName(btime - kWindow)});
+  EXPECT_EQ(detail::readKernelPanic({dir}, btime, kWindow).causes()->size(), 1);
+}
+
+TEST_F(RebootCauseFinderImplTest, PanicOneSecondBeforeWindowIsExcluded) {
+  const auto btime = nowSec();
+  const auto dir = makeCrashDir({crashDirName(btime - kWindow - 1)});
+  EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
 }
 
 TEST_F(RebootCauseFinderImplTest, BootTimeExactlyNowIsAccepted) {
@@ -122,6 +486,43 @@ attemptWith(
 // A panic and a later operator reboot can both land inside one window. The
 // reboot is then the cause; the panic belongs to the boot before it. Ordering
 // must come from the timestamps, not from which reader ran first.
+TEST_F(RebootCauseFinderImplTest, NearestToBootWinsRegardlessOfListOrder) {
+  const int64_t btime = 1789170391;
+  const auto panic = causeAt("Kernel Panic", btime - 900);
+  const auto manual = causeAt("Manual x86 Reboot", btime - 30);
+
+  auto panicFirst = detail::selectNearestToBoot(
+      {attemptWith("KernelPanic", {panic}),
+       attemptWith("ManualReboot", {manual})});
+  ASSERT_TRUE(panicFirst.has_value());
+  EXPECT_EQ(*panicFirst->providerName(), "ManualReboot");
+
+  auto manualFirst = detail::selectNearestToBoot(
+      {attemptWith("ManualReboot", {manual}),
+       attemptWith("KernelPanic", {panic})});
+  ASSERT_TRUE(manualFirst.has_value());
+  EXPECT_EQ(*manualFirst->providerName(), "ManualReboot");
+}
+
+TEST_F(RebootCauseFinderImplTest, NearestToBootPicksPanicWhenItIsNearer) {
+  const int64_t btime = 1789170391;
+  auto best = detail::selectNearestToBoot(
+      {attemptWith("ManualReboot", {causeAt("Manual x86 Reboot", btime - 900)}),
+       attemptWith("KernelPanic", {causeAt("Kernel Panic", btime - 30)})});
+  ASSERT_TRUE(best.has_value());
+  EXPECT_EQ(*best->providerName(), "KernelPanic");
+}
+
+// Reading only /var/log/secure missed a real graceful reboot on minipack3n,
+// where systemd-logind logs to /var/log/messages. Lock both paths in.
+TEST_F(RebootCauseFinderImplTest, NearestToBootEmptyListYieldsNothing) {
+  EXPECT_FALSE(detail::selectNearestToBoot({}).has_value());
+}
+
+// The prior-year candidate is always <= btime, so without a plausibility
+// bound a post-boot line resolves to a timestamp about a year old instead of
+// failing. Asserted directly on the parser, since the window check downstream
+// would mask it.
 // ------------------------------------------------- record honesty contract
 
 // determinedCause must be unset, not a placeholder, when nothing was found.

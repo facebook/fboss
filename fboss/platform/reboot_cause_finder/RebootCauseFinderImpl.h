@@ -26,6 +26,28 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 // is in the future, which disables both readers below.
 std::optional<int64_t> readBootTimeSec(const std::string& procStatPath);
 
+// Causes inside [btimeSec - windowSec, btimeSec). At most one each; the match
+// nearest btimeSec wins. Empty when the source is absent.
+// The returned attempt's status is READ_FAILED when a source is present but
+// unreadable, and OK when it is simply absent -- most switches have never
+// panicked and no image uses every log path.
+reboot_cause_config::RebootCauseProviderAttempt readKernelPanic(
+    const std::vector<std::string>& crashDirs,
+    int64_t btimeSec,
+    int64_t windowSec);
+
+// Directories searched for a crash dump; a dump can be in either.
+const std::vector<std::string>& kernelPanicCrashDirs();
+
+// std::nullopt when the name is not a timestamp this code understands.
+std::optional<std::time_t> parseCrashDirName(const std::string& name);
+
+// The cause nearest to boot start across every attempt, paired with the
+// provider that reported it. std::nullopt when no attempt reported anything.
+std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
+    const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
+        attempts);
+
 } // namespace detail
 
 class RebootCauseFinderImpl {

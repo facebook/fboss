@@ -26,6 +26,20 @@ DEFINE_bool(
     false,
     "Clear reboot causes from all providers after reading");
 
+// Measured on minipack3n fboss332669634.ash7: a BMC power cycle at 19:51:57
+// reached btime at 20:17:51, a gap of 1554s, nearly all of it POST plus a PXE
+// attempt timing out before falling back to local disk. 1800 would have left
+// four minutes of margin. Too large only risks admitting an older event, which
+// nearest-to-btime selection already handles; too small silently misses the
+// cause.
+DEFINE_int32(
+    max_downtime_sec,
+    3600,
+    "How far before boot start to look for a kernel panic or a manual reboot. "
+    "Must cover shutdown, POST and bootloader, not the power-off duration: a "
+    "long outage leaves no log line at all and is reported by the hardware "
+    "providers instead.");
+
 namespace facebook::fboss::platform::reboot_cause_finder {
 
 namespace {
@@ -36,6 +50,11 @@ constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
 // These three are properties of the kernel, systemd and kdump, identical on
 // every platform, so they are constants rather than per-platform config.
 constexpr auto kProcStatPath = "/proc/stat";
+// Scanning /var/crash turns up the processed subdir itself. It is scanned in
+// its own right, so it is not a dump name that failed to parse.
+constexpr auto kProcessedDirName = "processed";
+
+constexpr auto kKernelPanicProvider = "KernelPanic";
 
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
@@ -220,6 +239,160 @@ std::optional<int64_t> readBootTimeSec(const std::string& procStatPath) {
   return btime;
 }
 
+reboot_cause_config::RebootCause makeCause(
+    const std::string& description,
+    std::time_t occurredAt) {
+  reboot_cause_config::RebootCause cause;
+  cause.description() = description;
+  cause.occurredAtMs() = toEpochMs(occurredAt);
+  cause.occurredAtPacific() = pacificString(occurredAt);
+  return cause;
+}
+
+// Only events inside [btime - window, btime) can have caused this boot.
+// Anything at or after btime belongs to the boot we are running in, and
+// anything older belongs to an earlier boot.
+bool inBootWindow(std::time_t when, int64_t btimeSec, int64_t windowSec) {
+  const auto t = static_cast<int64_t>(when);
+  return t < btimeSec && t >= btimeSec - windowSec;
+}
+
+// Crash dirs are named "%Y-%m-%dT%H:%M:%S%Z" or "%Y-%m-%d-%H:%M:%S".
+// Any %Z is ignored; see below.
+std::optional<std::time_t> parseCrashDirName(const std::string& name) {
+  std::tm tm{};
+  if (strptime(name.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) == nullptr) {
+    tm = {};
+    if (strptime(name.c_str(), "%Y-%m-%d-%H:%M:%S", &tm) == nullptr) {
+      return std::nullopt;
+    }
+  }
+
+  // The producer wrote this name with localtime() on this host, so mktime()
+  // on the same host is the exact inverse -- the zone text carries no
+  // information mktime does not already have. tm{} zero-inits tm_isdst to 0,
+  // which would assert "not daylight", so it must be set to -1 explicitly.
+  //
+  // The one case this cannot resolve is the hour repeated at the DST
+  // fall-back, where mktime picks one of the two candidates.
+  tm.tm_isdst = -1;
+
+  const auto when = std::mktime(&tm);
+  if (when == -1) {
+    return std::nullopt;
+  }
+  return when;
+}
+
+// the dump is written by the crash kernel or by post-boot processing, so it
+// can fall after btime even though the panic preceded it.
+// A dump can be in either directory, so both are searched.
+const std::vector<std::string>& kernelPanicCrashDirs() {
+  static const std::vector<std::string> kDirs = {
+      "/var/crash",
+      "/var/crash/processed",
+  };
+  return kDirs;
+}
+
+// Folds the nearest-to-btime match in one directory into best/bestName.
+// Returns false only when the directory is present but could not be read; an
+// absent directory is the normal case on a switch that has never panicked and
+// must not be reported as a failure.
+bool scanCrashDir(
+    const std::string& crashDir,
+    int64_t btimeSec,
+    int64_t windowSec,
+    std::optional<std::time_t>& best,
+    std::string& bestName) {
+  std::error_code ec;
+  std::filesystem::directory_iterator it(crashDir, ec);
+  if (ec == std::errc::no_such_file_or_directory) {
+    return true;
+  }
+  if (ec) {
+    XLOG(ERR) << fmt::format(
+        "Failed to open crash dir '{}': {}", crashDir, ec.message());
+    return false;
+  }
+
+  const std::filesystem::directory_iterator end;
+  while (it != end) {
+    const auto name = it->path().filename().string();
+    const auto when =
+        name == kProcessedDirName ? std::nullopt : parseCrashDirName(name);
+    if (when) {
+      if (inBootWindow(*when, btimeSec, windowSec) &&
+          (!best || *when > *best)) {
+        best = *when;
+        bestName = name;
+      }
+    } else if (name != kProcessedDirName) {
+      // A name we cannot read is a panic we cannot report, so say so rather
+      // than skipping in silence.
+      XLOG(ERR) << fmt::format(
+          "Unrecognised crash dir name '{}' in '{}'", name, crashDir);
+    }
+    it.increment(ec);
+    if (ec) {
+      XLOG(ERR) << fmt::format(
+          "Failed while scanning crash dir '{}': {}", crashDir, ec.message());
+      return false;
+    }
+  }
+  return true;
+}
+
+reboot_cause_config::RebootCauseProviderAttempt readKernelPanic(
+    const std::vector<std::string>& crashDirs,
+    int64_t btimeSec,
+    int64_t windowSec) {
+  auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
+  std::optional<std::time_t> best;
+  std::string bestName;
+  for (const auto& crashDir : crashDirs) {
+    // Keep scanning the remaining dirs: a cause found elsewhere is still
+    // worth reporting, but the attempt is no longer a clean read.
+    if (!scanCrashDir(crashDir, btimeSec, windowSec, best, bestName)) {
+      status = reboot_cause_config::RebootCauseProviderStatus::READ_FAILED;
+    }
+  }
+
+  std::vector<reboot_cause_config::RebootCause> causes;
+  if (best) {
+    // The description is a stable name so consumers can group on it; the
+    // crash dir varies per instance and belongs in rawValue.
+    auto cause = makeCause("Kernel Panic", *best);
+    cause.rawValue() = bestName;
+    causes.push_back(std::move(cause));
+  }
+  return makeAttempt(
+      kKernelPanicProvider,
+      status,
+      folly::join(", ", crashDirs),
+      std::move(causes));
+}
+
+// Nearest to boot start wins, across every cause in the given attempts.
+// Returns the provider alongside the cause, because a cause on its own does
+// not say which provider found it.
+std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
+    const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
+        attempts) {
+  std::optional<reboot_cause_config::DeterminedCause> best;
+  for (const auto& attempt : attempts) {
+    for (const auto& cause : *attempt.causes()) {
+      if (!best || *cause.occurredAtMs() > *best->cause()->occurredAtMs()) {
+        reboot_cause_config::DeterminedCause determined;
+        determined.providerName() = *attempt.name();
+        determined.cause() = cause;
+        best = determined;
+      }
+    }
+  }
+  return best;
+}
+
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
   auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
@@ -339,8 +512,26 @@ void RebootCauseFinderImpl::determineRebootCause() {
   std::vector<reboot_cause_config::RebootCauseProviderAttempt> attempts;
   int64_t bootTimeMs = 0;
   std::optional<reboot_cause_config::DeterminedCause> determined;
-  if (const auto btime = detail::readBootTimeSec(kProcStatPath)) {
+  const auto btime = detail::readBootTimeSec(kProcStatPath);
+  if (btime) {
     bootTimeMs = toEpochMs(static_cast<std::time_t>(*btime));
+    const int64_t window = FLAGS_max_downtime_sec;
+
+    std::vector<reboot_cause_config::RebootCauseProviderAttempt> software;
+    software.push_back(
+        detail::readKernelPanic(
+            detail::kernelPanicCrashDirs(), *btime, window));
+
+    determined = detail::selectNearestToBoot(software);
+    attempts.insert(attempts.end(), software.begin(), software.end());
+  } else {
+    // Without boot start there is no window, so the provider cannot be
+    // evaluated. Say so rather than letting its absence read as "looked and
+    // found nothing".
+    attempts.push_back(makeAttempt(
+        kKernelPanicProvider,
+        reboot_cause_config::RebootCauseProviderStatus::SKIPPED,
+        "boot time unavailable"));
   }
 
   for (const auto& providerConfig : providerConfigs) {
