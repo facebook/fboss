@@ -353,6 +353,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+    // Egress classification: which virtual channel a queue drains into, and
+    // so whose credit the sender must hold before transmitting from it.
+    using QosQueueToVcMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
 #endif
     using QosPfcPriorityToQueueMap = SaiAttribute<
         EnumType,
@@ -810,6 +817,7 @@ struct SaiPortTraits {
       std::optional<Attributes::QosPfcPriorityToPriorityGroupMap>,
 #if defined(SAI_CBFC_SUPPORTED)
       std::optional<Attributes::QosTcToVcMap>,
+      std::optional<Attributes::QosQueueToVcMap>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::optional<Attributes::InterFrameGap>,
@@ -1032,6 +1040,7 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 #if defined(SAI_CBFC_SUPPORTED)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
+SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
 #endif
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)

@@ -72,6 +72,7 @@ sai_status_t create_port_fn(
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
   std::optional<sai_object_id_t> qosTcToVcMap;
   std::optional<sai_uint32_t> cbfcSenderCreditLimit;
+  std::optional<sai_object_id_t> qosQueueToVcMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
   std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
@@ -255,6 +256,9 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
         cbfcSenderCreditLimit = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+        qosQueueToVcMap = attr_list[i].value.oid;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
@@ -448,6 +452,9 @@ sai_status_t create_port_fn(
   }
   if (cbfcSenderCreditLimit.has_value()) {
     port.cbfcSenderCreditLimit = cbfcSenderCreditLimit.value();
+  }
+  if (qosQueueToVcMap.has_value()) {
+    port.qosQueueToVcMap = qosQueueToVcMap.value();
   }
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
@@ -837,6 +844,9 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
       port.cbfcSenderCreditLimit = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+      port.qosQueueToVcMap = attr->value.oid;
       break;
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
@@ -1241,6 +1251,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
         attr[i].value.u32 = port.cbfcSenderCreditLimit;
+        break;
+      case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
+        attr[i].value.oid = port.qosQueueToVcMap;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;
