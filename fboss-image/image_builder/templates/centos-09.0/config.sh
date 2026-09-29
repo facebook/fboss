@@ -9,6 +9,95 @@ mkdir -p "$LOCAL_RPM_REPO_DIR"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# kiwi's first-boot filesystem resize sorts on the lsblk column "START", which
+# doesn't exist with CentOS 9 Stream's util-linux 2.37.4. Sorting silently
+# no-ops and falls back to kernel, which does not order consistently. Sometimes
+# the EFI partition is selected for resizing instead of the btrfs root and the
+# rootfs is never resized.
+#
+# Resolve by partition NUMBER from sysfs instead, with the upstream lookup as
+# a fallback.
+KIWI_PARTLIB=/usr/lib/dracut/modules.d/59kiwi-lib/kiwi-partitions-lib.sh
+KIWI_GPNN_NEW=$(mktemp)
+cat >"$KIWI_GPNN_NEW" <<'EOF'
+function get_partition_node_name {
+    local disk=$1
+    local partid=$2
+    local index=1
+    local disk_node
+    local part_sysfs
+    local partnode
+    local sysfs_seen=0
+    udev_pending
+    # BUGFIX: resolve by partition number, not by position in the listing
+    disk_node=$(readlink -f "${disk}")
+    disk_node=${disk_node##*/}
+    for part_sysfs in /sys/block/"${disk_node}"/*/partition; do
+        [ -r "${part_sysfs}" ] || continue
+        sysfs_seen=1
+        [ "$(cat "${part_sysfs}")" = "${partid}" ] || continue
+        partnode=${part_sysfs%/partition}
+        partnode=/dev/${partnode##*/}
+        if [ -b "${partnode}" ];then
+            echo "${partnode}"
+            return 0
+        fi
+    done
+    # Where sysfs described this disk its answer is authoritative, including
+    # "no such partition"; falling through on a gap in the numbering would let
+    # the positional lookup return a neighbouring partition.
+    if [ "${sysfs_seen}" = "1" ];then
+        return 1
+    fi
+    # Upstream positional lookup, for whole-disk devices sysfs does not
+    # enumerate this way (device mapper, fake raid)
+    for partnode in $(
+        { lsblk -p -l -o NAME,TYPE,START -x START "${disk}" 2>/dev/null ||\
+        lsblk -p -l -o NAME,TYPE "${disk}"; } |\
+        grep -E "part|md$" | cut -f1 -d ' '
+    );do
+        if [ "${index}" = "${partid}" ];then
+            echo "${partnode}"
+            return 0
+        fi
+        index=$((index + 1))
+    done
+    return 1
+}
+EOF
+
+if [ ! -f "$KIWI_PARTLIB" ]; then
+  echo "WARNING: $KIWI_PARTLIB not found; leaving upstream get_partition_node_name"
+elif grep -q 'BUGFIX: resolve by partition number' "$KIWI_PARTLIB"; then
+  echo "kiwi get_partition_node_name already patched"
+elif ! grep -q '^function get_partition_node_name {$' "$KIWI_PARTLIB"; then
+  echo "WARNING: get_partition_node_name not in expected form; leaving upstream behaviour"
+else
+  KIWI_PARTLIB_TMP=$(mktemp)
+  awk -v newfn="$KIWI_GPNN_NEW" '
+    $0 == "function get_partition_node_name {" {
+      while ((getline line < newfn) > 0) print line
+      close(newfn)
+      skip = 1
+      next
+    }
+    skip && $0 == "}" { skip = 0; next }
+    skip { next }
+    { print }
+  ' "$KIWI_PARTLIB" >"$KIWI_PARTLIB_TMP"
+
+  # A botched splice breaks the initrd and the box does not boot, so validate
+  # before it goes anywhere near the image.
+  if ! bash -n "$KIWI_PARTLIB_TMP"; then
+    echo "ERROR: patched $KIWI_PARTLIB does not parse"
+    exit 1
+  fi
+  cat "$KIWI_PARTLIB_TMP" >"$KIWI_PARTLIB"
+  rm -f "$KIWI_PARTLIB_TMP"
+  echo "Patched kiwi get_partition_node_name: positional -> by partition number"
+fi
+rm -f "$KIWI_GPNN_NEW"
+
 echo "Creating FBOSS log directories..."
 mkdir -p /var/facebook/logs/fboss/sdk
 mkdir -p /var/facebook/logs/fboss/archive
