@@ -2958,6 +2958,12 @@
         },
         {
           "test_name_regex": "AgentNeighborResolutionOverFlowTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletArsPrimaryMemberTest.VerifyEcmp$"
+        },
+        {
+          "test_name_regex": "AgentFlowletArsAlternateMemberTest.VerifyEcmp$"
         }
     ],
     "brcm/15.4.0.0_odp/15.4.0.0_odp/tomahawk/multi_switch": [
