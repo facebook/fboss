@@ -28,6 +28,8 @@ constexpr size_t kChurnRequiredInterfacePorts = 7;
 // window rather than revisiting half of them.
 constexpr int kVerifyEveryIterations = 11;
 
+constexpr size_t kChurnRulesPerIteration = 5;
+
 } // namespace
 
 template <typename BaseT>
@@ -90,6 +92,10 @@ class AgentAccessPolicyStressTest : public BaseT {
             "spot check port index {} class {}",
             ingressPortIdx,
             apache::thrift::util::enumNameSafe(lookupClass)));
+    // Re-adding an entry gives it a fresh counter that fb303 restarts at zero,
+    // so a probe sent before the first collection reads the drop as its own
+    // negative delta.
+    this->waitForStableAclCounters(omitRules);
     const utility::AccessPolicyProbe* permit = nullptr;
     const utility::AccessPolicyProbe* deny = nullptr;
     for (const auto& probe : utility::accessPolicyProbes()) {
@@ -159,6 +165,55 @@ class AgentAccessPolicyStressTest : public BaseT {
     };
     this->verifyAcrossWarmBoots(setup, verify);
   }
+
+  static std::set<std::string> churnOmitRules(int iteration) {
+    const auto& rules = utility::accessPolicyRules();
+    std::set<std::string> omitRules;
+    for (size_t i = 0; i < kChurnRulesPerIteration; ++i) {
+      auto index = (iteration * kChurnRulesPerIteration + i) % rules.size();
+      omitRules.insert(rules[index].name);
+    }
+    return omitRules;
+  }
+
+  void applyAclEntries(const std::set<std::string>& omitRules) {
+    CHECK(!baseConfig_.ports()->empty())
+        << "runAclEntryChurnTest must capture baseConfig_ first";
+    auto config = baseConfig_;
+    this->addAccessPolicy(
+        config,
+        this->getL3Asics(),
+        this->masterLogicalInterfacePortIds(),
+        omitRules);
+    this->applyNewConfig(config);
+  }
+
+  void runAclEntryChurnTest() {
+    auto setup = [this]() { this->programRouteToEgressPort(); };
+    auto verify = [this]() {
+      // Captured once: rebuilding every iteration from the running config
+      // would accumulate the previous iteration's entries.
+      baseConfig_ = this->getAgentEnsemble()->getCurrentConfig();
+      utility::removeAccessPolicy(baseConfig_, this->shape());
+
+      auto before = this->waitForAclResourceFree();
+      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      for (int i = 1; i <= FLAGS_access_policy_stress_iterations; ++i) {
+        auto omitRules = churnOmitRules(i);
+        this->applyAclEntries(omitRules);
+        if (i % kVerifyEveryIterations == 0) {
+          this->spotCheck(kRestrictedPortIdx, kRestricted, omitRules);
+        }
+      }
+      this->applyAclEntries({});
+      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->expectNoAclResourceLeak(before);
+    };
+    this->verifyAcrossWarmBoots(setup, verify);
+  }
+
+ private:
+  cfg::SwitchConfig baseConfig_;
 };
 
 using AgentAccessPolicyClassIdStressTest =
@@ -172,6 +227,14 @@ TEST_F(AgentAccessPolicyClassIdStressTest, PortClassChurn) {
 
 TEST_F(AgentAccessPolicyPortBoundStressTest, PortClassChurn) {
   runPortClassChurnTest();
+}
+
+TEST_F(AgentAccessPolicyClassIdStressTest, AclEntryChurn) {
+  runAclEntryChurnTest();
+}
+
+TEST_F(AgentAccessPolicyPortBoundStressTest, AclEntryChurn) {
+  runAclEntryChurnTest();
 }
 
 } // namespace facebook::fboss
