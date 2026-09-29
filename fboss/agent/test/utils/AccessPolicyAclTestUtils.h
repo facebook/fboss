@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
 #include <set>
 #include <string>
@@ -20,6 +21,13 @@ enum class AccessPolicyShape { ClassId, PortBound };
 
 std::optional<AccessPolicyShape> accessPolicyShape(
     const std::vector<const HwAsic*>& asics);
+
+// Named after the configerator sources: V0 is access_policy_rules.cinc, V1 is
+// access_policy_rules_v1.cinc.
+enum class AccessPolicyVersion { V0 };
+
+inline constexpr std::array<AccessPolicyVersion, 1> kAccessPolicyVersions{
+    AccessPolicyVersion::V0};
 
 std::string kAccessPolicyClassIdTable();
 std::string kAccessPolicyRestrictedTable();
@@ -41,7 +49,8 @@ struct AccessPolicyRule {
   std::string counterName;
 };
 
-const std::vector<AccessPolicyRule>& accessPolicyRules();
+const std::vector<AccessPolicyRule>& accessPolicyRules(
+    AccessPolicyVersion version = AccessPolicyVersion::V0);
 
 // Unset fields are filled with values no rule matches, so the probe reaches the
 // rule it targets and falls through to the class default once that rule is
@@ -58,7 +67,8 @@ struct AccessPolicyProbe {
   std::optional<cfg::EtherType> etherType;
 };
 
-const std::vector<AccessPolicyProbe>& accessPolicyProbes();
+const std::vector<AccessPolicyProbe>& accessPolicyProbes(
+    AccessPolicyVersion version = AccessPolicyVersion::V0);
 
 // A packet shape AclTable1 or an ASIC rx reason traps to the CPU. Some of those
 // traps fire ahead of the ingress ACL stage, where a deny never sees them.
@@ -105,7 +115,8 @@ const std::vector<std::string>& accessPolicyRepresentativeRules();
 std::optional<AccessPolicyRule> accessPolicyMatch(
     const AccessPolicyProbe& probe,
     cfg::AclLookupClassPort lookupClass,
-    const std::set<std::string>& omitRules = {});
+    const std::set<std::string>& omitRules = {},
+    AccessPolicyVersion version = AccessPolicyVersion::V0);
 
 void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
@@ -116,8 +127,11 @@ void addAccessPolicyAcls(
     const std::vector<const HwAsic*>& asics,
     AccessPolicyShape shape,
     const std::set<std::string>& omitRules,
-    cfg::AclActionType denyAction);
+    cfg::AclActionType denyAction,
+    AccessPolicyVersion version = AccessPolicyVersion::V0);
 
+// Drops the tables and the stats of every version, so the caller need not know
+// which one is programmed.
 void removeAccessPolicy(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
 void bindAccessPolicyPort(

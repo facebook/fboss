@@ -49,10 +49,19 @@ constexpr int kAccessPolicyClassIdTablePriority = 30;
 // from the candidate rather than hardcoding, so adding a rule cannot silently
 // collide.
 int32_t unmatchedL4Port(int32_t candidate) {
-  const auto& rules = accessPolicyRules();
-  while (std::any_of(rules.begin(), rules.end(), [candidate](const auto& rule) {
-    return rule.l4DstPort == candidate || rule.l4SrcPort == candidate;
-  })) {
+  auto claimed = [](int32_t port) {
+    return std::any_of(
+        kAccessPolicyVersions.begin(),
+        kAccessPolicyVersions.end(),
+        [port](auto version) {
+          const auto& rules = accessPolicyRules(version);
+          return std::any_of(
+              rules.begin(), rules.end(), [port](const auto& rule) {
+                return rule.l4DstPort == port || rule.l4SrcPort == port;
+              });
+        });
+  };
+  while (claimed(candidate)) {
     ++candidate;
   }
   return candidate;
@@ -298,9 +307,10 @@ bool ruleMatchesProbe(
   return true;
 }
 
-std::vector<AccessPolicyProbe> buildAccessPolicyProbes() {
+std::vector<AccessPolicyProbe> buildAccessPolicyProbes(
+    AccessPolicyVersion version) {
   std::vector<AccessPolicyProbe> probes;
-  for (const auto& rule : accessPolicyRules()) {
+  for (const auto& rule : accessPolicyRules(version)) {
     if (rule.etherType.has_value()) {
       continue;
     }
@@ -325,7 +335,7 @@ std::vector<AccessPolicyProbe> buildAccessPolicyProbes() {
     if (rule.dstIp.has_value()) {
       probe.dstIp = folly::IPAddress::createNetwork(*rule.dstIp).first.str();
     }
-    auto match = accessPolicyMatch(probe, rule.lookupClass);
+    auto match = accessPolicyMatch(probe, rule.lookupClass, {}, version);
     CHECK(match.has_value() && match->name == rule.name)
         << "probe for " << rule.name << " is matched by "
         << (match.has_value() ? std::string_view(match->name)
@@ -450,15 +460,27 @@ std::optional<AccessPolicyShape> accessPolicyShape(
   }
 }
 
-const std::vector<AccessPolicyRule>& accessPolicyRules() {
-  static const std::vector<AccessPolicyRule> rules = buildAccessPolicyRules();
-  return rules;
+const std::vector<AccessPolicyRule>& accessPolicyRules(
+    AccessPolicyVersion version) {
+  static const std::vector<AccessPolicyRule> v0Rules = buildAccessPolicyRules();
+  switch (version) {
+    case AccessPolicyVersion::V0:
+      return v0Rules;
+  }
+  throw FbossError(
+      "Unhandled access policy version ", static_cast<int>(version));
 }
 
-const std::vector<AccessPolicyProbe>& accessPolicyProbes() {
-  static const std::vector<AccessPolicyProbe> probes =
-      buildAccessPolicyProbes();
-  return probes;
+const std::vector<AccessPolicyProbe>& accessPolicyProbes(
+    AccessPolicyVersion version) {
+  static const std::vector<AccessPolicyProbe> v0Probes =
+      buildAccessPolicyProbes(AccessPolicyVersion::V0);
+  switch (version) {
+    case AccessPolicyVersion::V0:
+      return v0Probes;
+  }
+  throw FbossError(
+      "Unhandled access policy version ", static_cast<int>(version));
 }
 
 const std::vector<ControlPlaneProbe>& controlPlaneProbes() {
@@ -496,8 +518,9 @@ const std::vector<std::string>& accessPolicyRepresentativeRules() {
 std::optional<AccessPolicyRule> accessPolicyMatch(
     const AccessPolicyProbe& probe,
     cfg::AclLookupClassPort lookupClass,
-    const std::set<std::string>& omitRules) {
-  for (const auto& rule : accessPolicyRules()) {
+    const std::set<std::string>& omitRules,
+    AccessPolicyVersion version) {
+  for (const auto& rule : accessPolicyRules(version)) {
     if (rule.lookupClass != lookupClass || omitRules.count(rule.name)) {
       continue;
     }
@@ -558,17 +581,19 @@ void addAccessPolicyAcls(
     const std::vector<const HwAsic*>& asics,
     AccessPolicyShape shape,
     const std::set<std::string>& omitRules,
-    cfg::AclActionType denyAction) {
+    cfg::AclActionType denyAction,
+    AccessPolicyVersion version) {
+  const auto& rules = accessPolicyRules(version);
   for (const auto& name : omitRules) {
     CHECK(
         std::any_of(
-            accessPolicyRules().begin(),
-            accessPolicyRules().end(),
+            rules.begin(),
+            rules.end(),
             [&name](const auto& rule) { return rule.name == name; }))
         << "omitted rule " << name << " names no access policy rule";
   }
   auto counterTypes = utility::getAclCounterTypes(asics);
-  for (const auto& rule : accessPolicyRules()) {
+  for (const auto& rule : rules) {
     if (omitRules.count(rule.name)) {
       continue;
     }
@@ -587,8 +612,10 @@ void addAccessPolicyAcls(
 }
 
 void removeAccessPolicy(cfg::SwitchConfig& config, AccessPolicyShape shape) {
-  for (const auto& rule : accessPolicyRules()) {
-    utility::delAclStat(&config, rule.name, rule.counterName);
+  for (auto version : kAccessPolicyVersions) {
+    for (const auto& rule : accessPolicyRules(version)) {
+      utility::delAclStat(&config, rule.name, rule.counterName);
+    }
   }
   auto groups = config.aclTableGroups();
   if (shape == AccessPolicyShape::ClassId) {
