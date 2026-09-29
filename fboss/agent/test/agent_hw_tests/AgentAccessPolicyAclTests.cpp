@@ -53,6 +53,9 @@ folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
   return utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 }
 
+// DSCP 48, shifted into the IPv6 traffic class byte.
+constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
+
 } // namespace
 
 class AgentAccessPolicyAclTest : public AgentHwTest {
@@ -302,6 +305,41 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         v6Addrs[0],
         toL4Port(probe.policyMatch.l4SrcPort),
         toL4Port(probe.policyMatch.l4DstPort)};
+  }
+
+  ControlPlanePacketAndDst udpV6Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp,
+      uint8_t trafficClass,
+      uint8_t hopLimit) {
+    return ControlPlanePacketAndDst{
+        utility::makeUDPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIp(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort,
+            trafficClass,
+            hopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
+  ControlPlanePacketAndDst makeControlPlanePacket(
+      const utility::ControlPlaneProbe& probe,
+      PortID ingressPort) {
+    auto ctx = probeContext(probe, ingressPort);
+    switch (probe.packet) {
+      case utility::ControlPlanePacket::Ip2Me:
+        return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::Ip2MeNetworkControl:
+        return udpV6Probe(
+            ctx, ctx.myIpV6, kNetworkControlTrafficClass, kHopLimit);
+    }
+    throw FbossError(
+        "Unhandled control plane packet ", static_cast<int>(probe.packet));
   }
 
   std::map<std::string, uint64_t> aclCounters(
