@@ -229,6 +229,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "virtual_channel_store_test",
+    srcs = [
+        "VirtualChannelStoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "udf_store_test",
     srcs = [
         "UdfStoreTest.cpp",
