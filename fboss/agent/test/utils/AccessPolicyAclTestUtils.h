@@ -72,6 +72,10 @@ enum class ControlPlanePacket {
   Lldp,
   LldpCustomerBridge,
   Lacp,
+  DhcpV4ToServer,
+  DhcpV4ToClient,
+  DhcpV6ToServer,
+  DhcpV6ToClient,
   Ip2Me,
   Ip2MeNetworkControl,
 };

@@ -73,6 +73,7 @@ constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
 
 const folly::IPAddressV6 kAllRoutersMcast{"ff02::2"};
 const folly::IPAddressV6 kAllNodesMcast{"ff02::1"};
+const folly::IPAddressV6 kDhcpV6AllRoutersMcast{"ff02::1:2"};
 
 // One second settle per round; stop early once no new punts arrive.
 constexpr int kControlPlanePuntSettleRounds = 3;
@@ -368,6 +369,22 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         folly::IPAddress(dstIp)};
   }
 
+  ControlPlanePacketAndDst udpV4Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV4& dstIp) {
+    return ControlPlanePacketAndDst{
+        utility::makeUDPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIpV4(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort),
+        folly::IPAddress(dstIp)};
+  }
+
   ControlPlanePacketAndDst arpProbe(const ProbeContext& ctx, ARP_OPER oper) {
     return ControlPlanePacketAndDst{
         utility::makeARPTxPacket(
@@ -460,6 +477,14 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
                 ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
                 std::vector<uint8_t>(64, 0x00)),
             std::nullopt};
+      case utility::ControlPlanePacket::DhcpV4ToServer:
+      case utility::ControlPlanePacket::DhcpV4ToClient:
+        return udpV4Probe(ctx, ctx.myIpV4);
+      case utility::ControlPlanePacket::DhcpV6ToServer:
+        return udpV6Probe(
+            ctx, kDhcpV6AllRoutersMcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::DhcpV6ToClient:
+        return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2Me:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2MeNetworkControl:

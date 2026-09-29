@@ -23,6 +23,13 @@ constexpr auto kTcp = static_cast<int16_t>(IP_PROTO::IP_PROTO_TCP);
 constexpr auto kUdp = static_cast<int16_t>(IP_PROTO::IP_PROTO_UDP);
 constexpr auto kIcmpV6 = static_cast<int16_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
 constexpr int16_t kTcpSyn = 2;
+// Mirrors DHCPv4Handler::kBootP{S,C}Port and
+// DHCPv6Packet::DHCP6_{SERVERAGENT,CLIENT}_UDPPORT, which live in targets too
+// heavy to pull into this util.
+constexpr int32_t kDhcpV4ServerPort = 67;
+constexpr int32_t kDhcpV4ClientPort = 68;
+constexpr int32_t kDhcpV6ServerPort = 547;
+constexpr int32_t kDhcpV6ClientPort = 546;
 
 // A SAI ACL counter label is char[32]. SaiAclTableManager::addAclCounter throws
 // an uncaught FbossError on a longer name, which aborts the hw agent.
@@ -363,6 +370,18 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
       ControlPlanePacket::LldpCustomerBridge,
       nonIp(cfg::EtherType::LLDP));
   add("lacp", ControlPlanePacket::Lacp, nonIp(cfg::EtherType::LACP));
+  add("dhcpv4-to-server",
+      ControlPlanePacket::DhcpV4ToServer,
+      udp(kDhcpV4ServerPort));
+  add("dhcpv4-to-client",
+      ControlPlanePacket::DhcpV4ToClient,
+      udp(kDhcpV4ClientPort));
+  add("dhcpv6-to-server",
+      ControlPlanePacket::DhcpV6ToServer,
+      udp(kDhcpV6ServerPort));
+  add("dhcpv6-to-client",
+      ControlPlanePacket::DhcpV6ToClient,
+      udp(kDhcpV6ClientPort));
   add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,
