@@ -707,6 +707,9 @@ struct BgpSettingConfig {
    * Refresh is disabled for every peer.
    */
   23: optional bool enable_route_refresh;
+
+  /** Record the latest platform-normalized FIB request for each RIB entry. */
+  24: optional bool enable_fib_out_tracking;
 }
 
 /**
