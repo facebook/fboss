@@ -525,6 +525,7 @@ class TestAgentCrashDowngrade:
             patch.object(runner, "_end_run"),
             patch(f"{self._MOD}.find_unclean_unit_exits", return_value=exits) as e,
             patch(f"{self._MOD}.list_core_dumps", return_value=set()) as c,
+            patch(f"{self._MOD}.describe_core_dump"),
         ):
             all_results = runner._run_tests(["HwT.t"], conf, args)
         # the journal is read once per test; cores are listed before and after
@@ -556,11 +557,13 @@ class TestCrashDetection:
 
     _OLD_CORE = "/var/lib/systemd/coredump/core.fboss_sw_agent.0.x.9.9.zst"
 
-    def _reason(self, runner, exits, cores):
+    def _reason(self, runner, exits, cores, summaries=None):
         """Run one guarded test and return the crash reason handed to
-        _apply_agent_crash, or None if it was not called."""
+        _apply_agent_crash, or None if it was not called. `summaries` maps a
+        core path to what `describe_core_dump` says about it."""
         outcome = RunOutcome("", [GtestResult("cold_boot.HwT.t", GtestStatus.OK, 1)])
         listings = iter([{self._OLD_CORE}, {self._OLD_CORE, *cores}])
+        summaries = summaries or {}
         with (
             patch(f"{self._MOD}.time.time", return_value=1.0),
             patch.object(runner, "_run_test", return_value=outcome),
@@ -569,6 +572,10 @@ class TestCrashDetection:
             patch(
                 f"{self._MOD}.list_core_dumps", side_effect=lambda: next(listings)
             ) as c,
+            patch(
+                f"{self._MOD}.describe_core_dump",
+                side_effect=lambda core: summaries.get(core, f"core {core}"),
+            ),
         ):
             assert (
                 runner._run_test_guarded("c", "cold_boot.", "HwT.t", False) is outcome
@@ -580,6 +587,10 @@ class TestCrashDetection:
             return None
         apply.assert_called_once()
         assert apply.call_args[0][:3] == (outcome, "cold_boot.", "HwT.t")
+        # the core paths ride along for the banner, never in the reason
+        assert apply.call_args[0][4] == sorted(
+            core for core in cores if "sai_test-sai_im" not in core
+        )
         return apply.call_args[0][3]
 
     def test_unit_crash_is_reported(self, runner):
@@ -590,13 +601,25 @@ class TestCrashDetection:
         )
         assert reason == "qsfp_service.service main process dumped core (status=6/ABRT)"
 
-    def test_foreign_core_is_reported(self, runner):
-        cores = [
-            "/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst",
-            "/var/lib/systemd/coredump/core.qsfp_service.0.x.3.4.zst",
-        ]
-        assert self._reason(runner, [], cores) == "new core dump(s): " + ", ".join(
-            cores
+    def test_foreign_cores_are_described_not_listed(self, runner):
+        """The reason is what result databases index and classify failures
+        on, and they cap it at a few hundred characters: a core path would
+        crowd out the crash. Each core contributes its stack summary; the
+        paths go to the banner."""
+        hw = "/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"
+        qsfp = "/var/lib/systemd/coredump/core.qsfp_service.0.x.3.4.zst"
+        reason = self._reason(
+            runner,
+            [],
+            [hw, qsfp],
+            {
+                hw: "fboss_hw_agent@0.service SIGABRT in SaiStore::check < SaiSwitch::init",
+                qsfp: "qsfp_service.service SIGSEGV in TransceiverManager::refresh",
+            },
+        )
+        assert reason == (
+            "fboss_hw_agent@0.service SIGABRT in SaiStore::check < SaiSwitch::init; "
+            "qsfp_service.service SIGSEGV in TransceiverManager::refresh"
         )
 
     def test_own_core_is_ignored(self, runner):
@@ -616,15 +639,23 @@ class TestCrashDetection:
                 is None
             )
 
-    def test_unit_crash_and_core_are_both_named(self, runner):
+    def test_core_summary_replaces_the_units_exit_line(self, runner):
+        """PID 1's "main process dumped core" line and the core summary
+        describe the same death; only the summary says why. A unit that
+        died without leaving a core keeps its journal line."""
+        hw = "/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"
         reason = self._reason(
             runner,
-            ["fboss_hw_agent@0.service main process dumped core (status=11/SEGV)"],
-            ["/var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"],
+            [
+                "fboss_hw_agent@0.service main process dumped core (status=11/SEGV)",
+                "fboss_sw_agent.service main process exited (status=1/FAILURE)",
+            ],
+            [hw],
+            {hw: "fboss_hw_agent@0.service SIGSEGV in SaiPortManager::addPort"},
         )
         assert reason == (
-            "fboss_hw_agent@0.service main process dumped core (status=11/SEGV); "
-            "new core dump(s): /var/lib/systemd/coredump/core.fboss_hw_agent-.0.x.1.2.zst"
+            "fboss_sw_agent.service main process exited (status=1/FAILURE); "
+            "fboss_hw_agent@0.service SIGSEGV in SaiPortManager::addPort"
         )
 
     def test_healthy_window_is_not_a_crash(self, runner):

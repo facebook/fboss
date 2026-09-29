@@ -47,6 +47,7 @@ from fboss_test_runner.constants import (
 )
 from fboss_test_runner.crash_detection import (
     core_is_from,
+    describe_core_dump,
     find_unclean_unit_exits,
     list_core_dumps,
 )
@@ -664,16 +665,29 @@ class TestRunner(abc.ABC):
             for core in list_core_dumps() - cores_before
             if not core_is_from(core, own_binary)
         )
-        if cores:
-            reasons.append(f"new core dump(s): {', '.join(cores)}")
+        core_reasons = [describe_core_dump(core) for core in cores]
+        # A core summary names the unit and the crash; the journal's
+        # "<unit> main process dumped core" line for the same unit only
+        # repeats the first half, so drop it to stay within the reason cap.
+        reasons = [
+            r
+            for r in reasons
+            if not any(c.startswith(r.split()[0]) for c in core_reasons)
+        ]
+        reasons.extend(core_reasons)
         if reasons:
             self._apply_agent_crash(
-                run_outcome, test_prefix, test_to_run, "; ".join(reasons)
+                run_outcome, test_prefix, test_to_run, "; ".join(reasons), cores
             )
         return run_outcome
 
     def _apply_agent_crash(
-        self, run_outcome: RunOutcome, test_prefix: str, test_to_run: str, reason: str
+        self,
+        run_outcome: RunOutcome,
+        test_prefix: str,
+        test_to_run: str,
+        reason: str,
+        cores: list[str] | None = None,
     ) -> None:
         """Downgrade a test to FAILED because a unit crashed while it ran.
 
@@ -682,11 +696,14 @@ class TestRunner(abc.ABC):
         in-memory results are rewritten. A SKIPPED test is downgraded too: a
         crash in its window is a real failure regardless of what it did. The
         binary's own output is kept -- it is the only transcript of the run
-        -- with the verdict appended.
+        -- with the verdict appended. Core paths go to the banner only: the
+        failure reason is what result databases classify failures on, and
+        they cap it at a few hundred characters.
         """
+        core_note = f" (core dump(s): {', '.join(cores)})" if cores else ""
         banner = (
             f"########## CRASH detected during {test_prefix}{test_to_run}: "
-            f"{reason} -- marking test FAILED"
+            f"{reason}{core_note} -- marking test FAILED"
         )
         print(banner, flush=True)
         for result in run_outcome.results:
