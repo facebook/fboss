@@ -95,12 +95,17 @@ class AgentAccessPolicyStressTest : public BaseT {
     // Re-adding an entry gives it a fresh counter that fb303 restarts at zero,
     // so a probe sent before the first collection reads the drop as its own
     // negative delta.
-    this->waitForStableAclCounters(omitRules);
+    this->waitForStableAclCounters(omitRules, this->coldBootRuleSet());
     const utility::AccessPolicyProbe* permit = nullptr;
     const utility::AccessPolicyProbe* deny = nullptr;
-    for (const auto& probe : utility::accessPolicyProbes()) {
+    for (const auto& probe :
+         utility::accessPolicyProbes(this->coldBootRuleSet())) {
       auto outcome = BaseT::probeOutcome(
-          probe, lookupClass, true /*accessPolicyProgrammed*/, omitRules);
+          probe,
+          lookupClass,
+          true /*accessPolicyProgrammed*/,
+          omitRules,
+          this->coldBootRuleSet());
       auto& slot = outcome.permit ? permit : deny;
       if (!slot) {
         slot = &probe;
@@ -113,7 +118,8 @@ class AgentAccessPolicyStressTest : public BaseT {
             ingressPort,
             lookupClass,
             true /*accessPolicyProgrammed*/,
-            omitRules);
+            omitRules,
+            this->coldBootRuleSet());
       }
     }
   }
@@ -150,7 +156,8 @@ class AgentAccessPolicyStressTest : public BaseT {
     auto verify = [this]() {
       this->applyClassAssignment(0);
       auto before = this->waitForAclResourceFree();
-      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->verifyAccessPolicy(
+          true /*accessPolicyProgrammed*/, {}, this->coldBootRuleSet());
       int checkpoint = 0;
       for (int i = 1; i <= FLAGS_access_policy_stress_iterations; ++i) {
         this->applyClassAssignment(i);
@@ -160,7 +167,8 @@ class AgentAccessPolicyStressTest : public BaseT {
         }
       }
       this->applyClassAssignment(0);
-      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->verifyAccessPolicy(
+          true /*accessPolicyProgrammed*/, {}, this->coldBootRuleSet());
       this->expectNoAclResourceLeak(before);
     };
     this->verifyAcrossWarmBoots(setup, verify);
@@ -184,7 +192,8 @@ class AgentAccessPolicyStressTest : public BaseT {
         config,
         this->getL3Asics(),
         this->masterLogicalInterfacePortIds(),
-        omitRules);
+        omitRules,
+        this->coldBootRuleSet());
     this->applyNewConfig(config);
   }
 
@@ -197,7 +206,8 @@ class AgentAccessPolicyStressTest : public BaseT {
       utility::removeAccessPolicy(baseConfig_, this->shape());
 
       auto before = this->waitForAclResourceFree();
-      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->verifyAccessPolicy(
+          true /*accessPolicyProgrammed*/, {}, this->coldBootRuleSet());
       for (int i = 1; i <= FLAGS_access_policy_stress_iterations; ++i) {
         auto omitRules = churnOmitRules(i);
         this->applyAclEntries(omitRules);
@@ -206,7 +216,8 @@ class AgentAccessPolicyStressTest : public BaseT {
         }
       }
       this->applyAclEntries({});
-      this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->verifyAccessPolicy(
+          true /*accessPolicyProgrammed*/, {}, this->coldBootRuleSet());
       this->expectNoAclResourceLeak(before);
     };
     this->verifyAcrossWarmBoots(setup, verify);

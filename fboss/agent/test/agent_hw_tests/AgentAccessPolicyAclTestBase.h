@@ -126,7 +126,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
           config,
           ensemble.getL3Asics(),
           ensemble.masterLogicalInterfacePortIds(),
-          coldBootOmitRules());
+          coldBootOmitRules(),
+          coldBootRuleSet());
     }
     return config;
   }
@@ -147,6 +148,14 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return {};
   }
 
+  virtual utility::AccessPolicyVersion coldBootRuleSet() const {
+    return utility::AccessPolicyVersion::V0;
+  }
+
+  virtual utility::AccessPolicyVersion warmBootRuleSet() const {
+    return utility::AccessPolicyVersion::V0;
+  }
+
   // Takes the asics rather than reading them off the ensemble: this runs from
   // initialConfig(), before the fixture has one.
   virtual cfg::AclActionType denyActionType(
@@ -157,7 +166,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
   void runAccessPolicyTest() {
     auto setup = [this]() { programRouteToEgressPort(); };
     auto verify = [this]() {
-      verifyAccessPolicy(coldBootWithAccessPolicy(), coldBootOmitRules());
+      verifyAccessPolicy(
+          coldBootWithAccessPolicy(), coldBootOmitRules(), coldBootRuleSet());
     };
     auto setupPostWarmboot = [this]() {
       if (!warmBootConfigDiffers()) {
@@ -172,7 +182,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
             config,
             getL3Asics(),
             masterLogicalInterfacePortIds(),
-            warmBootOmitRules());
+            warmBootOmitRules(),
+            warmBootRuleSet());
       }
       applyNewConfig(config);
     };
@@ -180,21 +191,25 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       if (!warmBootConfigDiffers()) {
         return;
       }
-      verifyAccessPolicy(warmBootWithAccessPolicy(), warmBootOmitRules());
+      verifyAccessPolicy(
+          warmBootWithAccessPolicy(), warmBootOmitRules(), warmBootRuleSet());
     };
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
 
   void runControlPlaneTest() {
     auto setup = [this]() { programRouteToEgressPort(); };
-    auto verify = [this]() { verifyControlPlane(coldBootWithAccessPolicy()); };
+    auto verify = [this]() {
+      verifyControlPlane(coldBootWithAccessPolicy(), coldBootRuleSet());
+    };
     verifyAcrossWarmBoots(setup, verify);
   }
 
  protected:
   bool warmBootConfigDiffers() const {
     return coldBootWithAccessPolicy() != warmBootWithAccessPolicy() ||
-        coldBootOmitRules() != warmBootOmitRules();
+        coldBootOmitRules() != warmBootOmitRules() ||
+        coldBootRuleSet() != warmBootRuleSet();
   }
 
   utility::AccessPolicyShape shape() const {
@@ -207,12 +222,13 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       cfg::SwitchConfig& config,
       const std::vector<const HwAsic*>& asics,
       const std::vector<PortID>& portIds,
-      const std::set<std::string>& omitRules) const {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) const {
     auto policyShape = utility::accessPolicyShape(asics);
     CHECK(policyShape.has_value());
     utility::addAccessPolicyTables(config, *policyShape);
     utility::addAccessPolicyAcls(
-        config, asics, *policyShape, omitRules, denyActionType(asics));
+        config, asics, *policyShape, omitRules, denyActionType(asics), version);
     utility::bindAccessPolicyPort(
         config, *policyShape, portIds[kRestrictedPortIdx], kRestricted);
     utility::bindAccessPolicyPort(
@@ -536,9 +552,10 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
   }
 
   std::map<std::string, uint64_t> aclCounters(
-      const std::set<std::string>& omitRules) {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
     std::vector<std::string> counterNames;
-    for (const auto& rule : utility::accessPolicyRules()) {
+    for (const auto& rule : utility::accessPolicyRules(version)) {
       if (!omitRules.count(rule.name)) {
         counterNames.push_back(rule.counterName);
       }
@@ -555,9 +572,10 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       const utility::AccessPolicyProbe& probe,
       cfg::AclLookupClassPort lookupClass,
       bool accessPolicyProgrammed,
-      const std::set<std::string>& omitRules) {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
     auto match = accessPolicyProgrammed
-        ? utility::accessPolicyMatch(probe, lookupClass, omitRules)
+        ? utility::accessPolicyMatch(probe, lookupClass, omitRules, version)
         : std::nullopt;
     return {
         match,
@@ -569,9 +587,10 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       PortID ingressPort,
       cfg::AclLookupClassPort lookupClass,
       bool accessPolicyProgrammed,
-      const std::set<std::string>& omitRules) {
-    auto outcome =
-        probeOutcome(probe, lookupClass, accessPolicyProgrammed, omitRules);
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto outcome = probeOutcome(
+        probe, lookupClass, accessPolicyProgrammed, omitRules, version);
     SCOPED_TRACE(
         fmt::format(
             "probe {} expects {}",
@@ -588,7 +607,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         lookupClass,
         outcome.permit,
         accessPolicyProgrammed,
-        omitRules);
+        omitRules,
+        version);
   }
 
   // Permit and drop stay in separate batches: the egress count is one number,
@@ -601,7 +621,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       cfg::AclLookupClassPort lookupClass,
       bool expectPermit,
       bool accessPolicyProgrammed,
-      const std::set<std::string>& omitRules) {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
     if (probes.empty()) {
       return;
     }
@@ -615,7 +636,7 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
 
     auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
     auto countersBefore = accessPolicyProgrammed
-        ? aclCounters(omitRules)
+        ? aclCounters(omitRules, version)
         : std::map<std::string, uint64_t>();
     auto egressPktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
@@ -635,8 +656,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       matched = (egressPktsAfter - egressPktsBefore == expectedEgress);
       EXPECT_EVENTUALLY_EQ(egressPktsAfter - egressPktsBefore, expectedEgress);
       if (accessPolicyProgrammed) {
-        auto countersAfter = aclCounters(omitRules);
-        for (const auto& rule : utility::accessPolicyRules()) {
+        auto countersAfter = aclCounters(omitRules, version);
+        for (const auto& rule : utility::accessPolicyRules(version)) {
           auto before = countersBefore.find(rule.counterName);
           if (before == countersBefore.end()) {
             continue;
@@ -661,7 +682,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
             ingressPort,
             lookupClass,
             accessPolicyProgrammed,
-            omitRules);
+            omitRules,
+            version);
       }
     }
   }
@@ -670,13 +692,14 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       int ingressPortIdx,
       cfg::AclLookupClassPort lookupClass,
       bool accessPolicyProgrammed,
-      const std::set<std::string>& omitRules) {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
     auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
     std::vector<const utility::AccessPolicyProbe*> permitProbes, dropProbes;
     std::map<std::string, uint64_t> permitCounters, dropCounters;
-    for (const auto& probe : utility::accessPolicyProbes()) {
-      auto [match, permit] =
-          probeOutcome(probe, lookupClass, accessPolicyProgrammed, omitRules);
+    for (const auto& probe : utility::accessPolicyProbes(version)) {
+      auto [match, permit] = probeOutcome(
+          probe, lookupClass, accessPolicyProgrammed, omitRules, version);
       (permit ? permitProbes : dropProbes).push_back(&probe);
       if (match.has_value()) {
         // Omitting a rule drops its probe onto a later one, so two probes can
@@ -691,7 +714,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         lookupClass,
         true /*expectPermit*/,
         accessPolicyProgrammed,
-        omitRules);
+        omitRules,
+        version);
     verifyBatch(
         dropProbes,
         dropCounters,
@@ -699,17 +723,20 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         lookupClass,
         false /*expectPermit*/,
         accessPolicyProgrammed,
-        omitRules);
+        omitRules,
+        version);
   }
 
   // A warm boot restores the SAI counters at their pre-reboot values and fb303
   // only picks them up on its first collection; without waiting, the first
   // probe reads that jump as its own traffic.
-  void waitForStableAclCounters(const std::set<std::string>& omitRules) {
-    auto previous = aclCounters(omitRules);
+  void waitForStableAclCounters(
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
+    auto previous = aclCounters(omitRules, version);
     WITH_RETRIES({
       getNextUpdatedPortStats(masterLogicalInterfacePortIds()[kEgressPortIdx]);
-      auto current = aclCounters(omitRules);
+      auto current = aclCounters(omitRules, version);
       auto stable = current == previous;
       previous = current;
       EXPECT_EVENTUALLY_TRUE(stable);
@@ -765,7 +792,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       int ingressPortIdx,
       cfg::AclLookupClassPort lookupClass,
       bool accessPolicyProgrammed,
-      const std::map<std::string, bool>& baselinePunted) {
+      const std::map<std::string, bool>& baselinePunted,
+      utility::AccessPolicyVersion version) {
     auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
     auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
     auto className = apache::thrift::util::enumNameSafe(lookupClass);
@@ -780,9 +808,9 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         policyProbe.dstIp = packets.back().dstIp->str();
       }
       matches.push_back(
-          accessPolicyProgrammed
-              ? utility::accessPolicyMatch(policyProbe, lookupClass)
-              : std::nullopt);
+          accessPolicyProgrammed ? utility::accessPolicyMatch(
+                                       policyProbe, lookupClass, {}, version)
+                                 : std::nullopt);
     }
     auto punted = sendControlPlaneProbes(ingressPort, packets);
 
@@ -827,11 +855,17 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return punted;
   }
 
-  void verifyControlPlane(bool accessPolicyProgrammed) {
+  void verifyControlPlane(
+      bool accessPolicyProgrammed,
+      utility::AccessPolicyVersion version) {
     // The unconstrained port has no policy bound, so what it punts is the
     // baseline: a trap the platform lacks must not read as a policy drop.
     auto baseline = verifyControlPlaneClass(
-        kUnconstrainedPortIdx, kUnconstrained, accessPolicyProgrammed, {});
+        kUnconstrainedPortIdx,
+        kUnconstrained,
+        accessPolicyProgrammed,
+        {},
+        version);
     // Differencing against a baseline only says anything if the baseline is
     // the one this platform should produce, so name any probe that disagrees
     // and stop rather than let the rest of the test pass vacuously.
@@ -850,22 +884,32 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       return;
     }
     verifyControlPlaneClass(
-        kRestrictedPortIdx, kRestricted, accessPolicyProgrammed, baseline);
+        kRestrictedPortIdx,
+        kRestricted,
+        accessPolicyProgrammed,
+        baseline,
+        version);
   }
 
   void verifyAccessPolicy(
       bool accessPolicyProgrammed,
-      const std::set<std::string>& omitRules) {
+      const std::set<std::string>& omitRules,
+      utility::AccessPolicyVersion version) {
     if (accessPolicyProgrammed) {
-      waitForStableAclCounters(omitRules);
+      waitForStableAclCounters(omitRules, version);
     }
     verifyClass(
-        kRestrictedPortIdx, kRestricted, accessPolicyProgrammed, omitRules);
+        kRestrictedPortIdx,
+        kRestricted,
+        accessPolicyProgrammed,
+        omitRules,
+        version);
     verifyClass(
         kUnconstrainedPortIdx,
         kUnconstrained,
         accessPolicyProgrammed,
-        omitRules);
+        omitRules,
+        version);
   }
 };
 
