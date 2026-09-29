@@ -10,6 +10,8 @@ from unittest.mock import Mock
 
 import pytest
 
+# Expose npu_sdk_utils as a top-level module, matching the /opt/fboss/bin layout.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from fboss_test_runner.runners.test_runner import TestRunner
