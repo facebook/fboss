@@ -91,7 +91,6 @@ class ConfigPfcTest : public Fboss2IntegrationTest {
         session.saveConfig(
             cli::ServiceType::AGENT, cli::ConfigActionLevel::SERVICE_RESTART);
         commitConfig();
-        waitForAgentReady();
         XLOG(INFO) << "TearDown: config snapshot restored";
       } catch (const std::exception& e) {
         // Surface the failure: leftover PFC state crashes a later suite's

@@ -32,7 +32,6 @@ class ConfigInterfaceMtuTest : public Fboss2IntegrationTest {
         {"config", "interface", interfaceName, "mtu", std::to_string(mtu)});
     ASSERT_EQ(result.exitCode, 0) << "Failed to set MTU: " << result.stderr;
     commitConfig();
-    waitForAgentReady();
   }
 };
 
