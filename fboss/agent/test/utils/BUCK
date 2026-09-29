@@ -66,6 +66,23 @@ cpp_library(
 )
 
 cpp_library(
+    name = "access_policy_acl_test_utils",
+    srcs = ["AccessPolicyAclTestUtils.cpp"],
+    headers = ["AccessPolicyAclTestUtils.h"],
+    deps = [
+        "//fboss/agent:asic_utils",
+        "//fboss/agent:fboss-error",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
+    ],
+    exported_deps = [
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/hw/switch_asics:switch_asics",
+    ],
+)
+
+cpp_library(
     name = "copp_test_utils",
     srcs = ["CoppTestUtils.cpp"],
     headers = ["CoppTestUtils.h"],
