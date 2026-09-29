@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>
 #include <folly/IPAddressV6.h>
+#include <folly/String.h>
 #include <folly/io/Cursor.h>
 #include <limits>
 #include <thread>
@@ -574,6 +575,72 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       }
       seen = nowSeen;
     }
+    return punted;
+  }
+
+  std::map<std::string, bool> verifyControlPlaneClass(
+      int ingressPortIdx,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::map<std::string, bool>& baselinePunted) {
+    auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
+    auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
+    auto className = apache::thrift::util::enumNameSafe(lookupClass);
+    auto egressBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+
+    std::vector<ControlPlanePacketAndDst> packets;
+    std::vector<std::optional<utility::AccessPolicyRule>> matches;
+    for (const auto& probe : utility::controlPlaneProbes()) {
+      packets.push_back(makeControlPlanePacket(probe, ingressPort));
+      auto policyProbe = probe.policyMatch;
+      if (packets.back().dstIp.has_value()) {
+        policyProbe.dstIp = packets.back().dstIp->str();
+      }
+      matches.push_back(
+          accessPolicyProgrammed
+              ? utility::accessPolicyMatch(policyProbe, lookupClass)
+              : std::nullopt);
+    }
+    auto punted = sendControlPlaneProbes(ingressPort, packets);
+
+    std::vector<std::string> report;
+    for (size_t i = 0; i < utility::controlPlaneProbes().size(); ++i) {
+      const auto& probe = utility::controlPlaneProbes()[i];
+      const auto& match = matches[i];
+      auto denied =
+          match.has_value() && match->action == cfg::AclActionType::DENY;
+      auto reachedCpu = punted[probe.name];
+
+      auto baseline = baselinePunted.find(probe.name);
+      auto trapped = baseline != baselinePunted.end() && baseline->second;
+      report.push_back(
+          fmt::format(
+              "{:34} {:36} {:6} {:8} {}",
+              probe.name,
+              match.has_value() ? match->name : "no rule",
+              denied ? "DENY" : "PERMIT",
+              reachedCpu ? "PUNTED" : "no punt",
+              baseline != baselinePunted.end() && !trapped
+                  ? "(not trapped at baseline)"
+                  : ""));
+      // Whether a deny stops a punt is recorded, not asserted; it varies by
+      // ASIC. Suppressing a packet the policy permits is always wrong.
+      if (!denied && trapped) {
+        EXPECT_TRUE(reachedCpu)
+            << "permitted control plane packet " << probe.name
+            << " did not reach the CPU on class " << className;
+      }
+    }
+
+    XLOG(INFO) << "Control plane punt report for class " << className << ":\n"
+               << folly::join("\n", report);
+
+    // Two ticks: the first may land before the last probe was counted.
+    getNextUpdatedPortStats(egressPort);
+    EXPECT_EQ(
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts_() - egressBefore,
+        0)
+        << "control plane packets were forwarded on class " << className;
     return punted;
   }
 
