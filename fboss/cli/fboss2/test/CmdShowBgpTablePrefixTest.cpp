@@ -326,6 +326,7 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutputIncludesFibOutWhenPresent) {
   auto fibOutEntry = makeFibOutEntryForPrefixTest(kPrefixToQuery, kNextHop);
   fibOutEntry.fib_out()->admin_distance() = 20;
   fibOutEntry.fib_out()->class_id() = 9;
+  fibOutEntry.fib_out()->nexthop_set_ref_count() = 3;
   queriedEntry_.front().fib_out() = std::move(*fibOutEntry.fib_out());
   TRibEntryWithHost data;
   data.tRibEntries() = queriedEntry_;
@@ -339,7 +340,7 @@ TEST_F(CmdShowBgpTablePrefixTestFixture, PrintOutputIncludesFibOutWhenPresent) {
   EXPECT_THAT(
       output.str(),
       HasSubstr(
-          "  FIB-out: PROGRAM | Admin Distance: 20 | Class ID: 9\n"
+          "  FIB-out: PROGRAM | Route References: 3 | Admin Distance: 20 | Class ID: 9\n"
           "    8.0.0.1 | Weight: 17 | Role: PRIMARY"));
   EXPECT_THAT(output.str(), Not(HasSubstr(" | Pending: true")));
 }

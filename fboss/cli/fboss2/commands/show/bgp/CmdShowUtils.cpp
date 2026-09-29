@@ -362,6 +362,10 @@ void printFibOut(std::ostream& out, const TRibEntry& entry) {
   const auto& fibOut = *entry.fib_out();
   out << fmt::format(
       "  FIB-out: {}", apache::thrift::util::enumNameSafe(*fibOut.operation()));
+  if (fibOut.nexthop_set_ref_count().has_value()) {
+    out << fmt::format(
+        " | Route References: {}", *fibOut.nexthop_set_ref_count());
+  }
   if (fibOut.admin_distance().has_value()) {
     out << fmt::format(" | Admin Distance: {}", *fibOut.admin_distance());
   }
@@ -523,6 +527,7 @@ TFibOutTable sampleFibOutTable() {
     nextHop.role() = TFibOutNextHopRole::PRIMARY;
     defaultRoute.next_hops()->emplace_back(std::move(nextHop));
   }
+  defaultRoute.nexthop_set_ref_count() = 1;
   TFibOutEntry defaultEntry;
   defaultEntry.prefix() = sampleIpPrefix("0.0.0.0/0");
   defaultEntry.fib_out() = std::move(defaultRoute);
@@ -535,6 +540,7 @@ TFibOutTable sampleFibOutTable() {
   v6Route.operation() = TFibOutOperation::PROGRAM;
   v6Route.next_hops() = {std::move(v6NextHop)};
   v6Route.admin_distance() = 20;
+  v6Route.nexthop_set_ref_count() = 1;
   TFibOutEntry v6Entry;
   v6Entry.prefix() = sampleIpPrefix("2001:db8:1c00::/40");
   v6Entry.fib_out() = std::move(v6Route);

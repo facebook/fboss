@@ -11428,6 +11428,7 @@ class ChildThriftPath<::facebook::neteng::fboss::bgp::thrift::TFibOutRoute, ::fa
     STRUCT_CHILD_GETTERS(next_hops, 2);
     STRUCT_CHILD_GETTERS(admin_distance, 3);
     STRUCT_CHILD_GETTERS(class_id, 4);
+    STRUCT_CHILD_GETTERS(nexthop_set_ref_count, 5);
 };
 
 

@@ -1775,6 +1775,9 @@ service TBgpService extends fb303.FacebookService {
    */
   TRibSummary getRibSummary(1: bgp_attr.TBgpAfi afi);
 
+  /** Get canonical nexthop sets in current BGP FIB-out state. */
+  bgp_route_types.TFibNexthopDatabase getFibNexthopDatabase();
+
   /**
    * Dump the current BGP RIB in canonical (deduplicated) form -- the same
    * content as getRibEntries(), encoded as a single TCanonicalRibState (shared

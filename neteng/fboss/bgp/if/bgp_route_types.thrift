@@ -183,6 +183,8 @@ struct TFibOutRoute {
   2: list<TFibOutNextHop> next_hops;
   3: optional i32 admin_distance;
   4: optional i32 class_id;
+  /** Number of live FIB-out routes that share this complete nexthop set. */
+  5: optional i64 nexthop_set_ref_count;
 }
 
 /** Compact FIB-out state for one RIB prefix. */
@@ -206,6 +208,20 @@ struct TFibOutTable {
 struct TFibOutPrefixRequest {
   /** Exact IPv4 or IPv6 prefix to query. */
   1: string prefix;
+}
+
+/** One canonical complete nexthop set referenced by current FIB-out state. */
+struct TFibNexthopSet {
+  /** All normalized members that define this canonical set. */
+  1: list<TFibOutNextHop> next_hops;
+  /** Number of live FIB-out routes that share this complete set. */
+  2: i64 ref_count;
+}
+
+/** Knob state and contents of the BGP FIB nexthop database. */
+struct TFibNexthopDatabase {
+  1: bool enabled;
+  2: list<TFibNexthopSet> nexthop_sets;
 }
 
 /**
