@@ -76,6 +76,7 @@ cpp_library(
         "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/packet:ipproto",
+        "//folly:network_address",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],

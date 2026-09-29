@@ -43,6 +43,34 @@ struct AccessPolicyRule {
 
 const std::vector<AccessPolicyRule>& accessPolicyRules();
 
+// Unset fields are filled with values no rule matches, so the probe reaches the
+// rule it targets and falls through to the class default once that rule is
+// gone.
+struct AccessPolicyProbe {
+  std::string name;
+  std::optional<int16_t> proto;
+  std::optional<int32_t> l4DstPort;
+  std::optional<int32_t> l4SrcPort;
+  std::optional<int16_t> tcpFlagsBitMap;
+  std::optional<std::string> dstIp;
+  // Left unset by the rule derived probes below, which are all IPv6. A caller
+  // building a non IP frame sets it so an ether type rule can match.
+  std::optional<cfg::EtherType> etherType;
+};
+
+const std::vector<AccessPolicyProbe>& accessPolicyProbes();
+
+// One rule per distinct match shape, for tests that need a warm boot cycle per
+// parameter and cannot afford one per rule.
+const std::vector<std::string>& accessPolicyRepresentativeRules();
+
+// First matching rule of the class, or nullopt when none matches, which is what
+// an unconstrained port sees.
+std::optional<AccessPolicyRule> accessPolicyMatch(
+    const AccessPolicyProbe& probe,
+    cfg::AclLookupClassPort lookupClass,
+    const std::set<std::string>& omitRules = {});
+
 void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
 void addAccessPolicyAcls(

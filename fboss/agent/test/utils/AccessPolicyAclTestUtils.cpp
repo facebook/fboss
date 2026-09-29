@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <fmt/core.h>
+#include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -29,6 +30,30 @@ constexpr size_t kMaxAclNameLen = 31;
 
 // ACCESS_POLICY_RESTRICT_ACL_TABLE_PRIORITY in access_policy_acl.cinc.
 constexpr int32_t kRestrictedTablePriority = 1;
+
+// A probe for a rule with no port qualifier still has to carry some port, and
+// one a rule does qualify on would hand the probe to that rule instead. Search
+// from the candidate rather than hardcoding, so adding a rule cannot silently
+// collide.
+int32_t unmatchedL4Port(int32_t candidate) {
+  const auto& rules = accessPolicyRules();
+  while (std::any_of(rules.begin(), rules.end(), [candidate](const auto& rule) {
+    return rule.l4DstPort == candidate || rule.l4SrcPort == candidate;
+  })) {
+    ++candidate;
+  }
+  return candidate;
+}
+
+int32_t unmatchedL4DstPort() {
+  static const int32_t port = unmatchedL4Port(9999);
+  return port;
+}
+
+int32_t unmatchedL4SrcPort() {
+  static const int32_t port = unmatchedL4Port(4321);
+  return port;
+}
 
 // ACCESS_POLICY_RESTRICT_ACL_QUALIFIERS in
 // configerator/source/neteng/fboss/coop/templates/access_policy_acl.cinc.
@@ -221,6 +246,80 @@ cfg::AclEntry makeAclEntry(
   return entry;
 }
 
+bool ruleMatchesProbe(
+    const AccessPolicyRule& rule,
+    const AccessPolicyProbe& probe) {
+  if (rule.etherType.has_value() && rule.etherType != probe.etherType) {
+    return false;
+  }
+  if (rule.proto.has_value() && rule.proto != probe.proto) {
+    return false;
+  }
+  if (rule.l4DstPort.has_value() && rule.l4DstPort != probe.l4DstPort) {
+    return false;
+  }
+  if (rule.l4SrcPort.has_value() && rule.l4SrcPort != probe.l4SrcPort) {
+    return false;
+  }
+  // Unlike the other qualifiers, hardware matches TCP flags under a mask: the
+  // rule's bits have to be set in the packet, and the rest are don't care.
+  if (rule.tcpFlagsBitMap.has_value() &&
+      (probe.tcpFlagsBitMap.value_or(0) & *rule.tcpFlagsBitMap) !=
+          *rule.tcpFlagsBitMap) {
+    return false;
+  }
+  if (rule.dstIp.has_value()) {
+    if (!probe.dstIp.has_value()) {
+      return false;
+    }
+    auto [prefix, length] = folly::IPAddress::createNetwork(*rule.dstIp);
+    folly::IPAddress dstIp(*probe.dstIp);
+    // inSubnet() throws on a family mismatch; a v4 probe simply misses a v6
+    // prefix.
+    if (dstIp.family() != prefix.family() || !dstIp.inSubnet(prefix, length)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::vector<AccessPolicyProbe> buildAccessPolicyProbes() {
+  std::vector<AccessPolicyProbe> probes;
+  for (const auto& rule : accessPolicyRules()) {
+    if (rule.etherType.has_value()) {
+      continue;
+    }
+    AccessPolicyProbe probe;
+    probe.name = rule.name;
+    // UDP is the protocol no protocol-qualified rule ahead of these matches.
+    probe.proto = rule.proto.value_or(kUdp);
+    if (probe.proto == kTcp || probe.proto == kUdp) {
+      probe.l4DstPort = rule.l4DstPort.value_or(unmatchedL4DstPort());
+      probe.l4SrcPort = rule.l4SrcPort.value_or(unmatchedL4SrcPort());
+    }
+    if (rule.tcpFlagsBitMap.has_value()) {
+      probe.tcpFlagsBitMap = rule.tcpFlagsBitMap;
+    } else if (
+        probe.proto == kTcp &&
+        (rule.l4DstPort.has_value() || rule.l4SrcPort.has_value())) {
+      // SYN makes removing the rule drop the probe on restrict-deny-tcp-syn;
+      // without it restrict-permit-tcp keeps it permitted and the removal is
+      // invisible.
+      probe.tcpFlagsBitMap = kTcpSyn;
+    }
+    if (rule.dstIp.has_value()) {
+      probe.dstIp = folly::IPAddress::createNetwork(*rule.dstIp).first.str();
+    }
+    auto match = accessPolicyMatch(probe, rule.lookupClass);
+    CHECK(match.has_value() && match->name == rule.name)
+        << "probe for " << rule.name << " is matched by "
+        << (match.has_value() ? std::string_view(match->name)
+                              : std::string_view("no rule"));
+    probes.push_back(std::move(probe));
+  }
+  return probes;
+}
+
 } // namespace
 
 std::string kAccessPolicyClassIdTable() {
@@ -253,6 +352,53 @@ std::optional<AccessPolicyShape> accessPolicyShape(
 const std::vector<AccessPolicyRule>& accessPolicyRules() {
   static const std::vector<AccessPolicyRule> rules = buildAccessPolicyRules();
   return rules;
+}
+
+const std::vector<AccessPolicyProbe>& accessPolicyProbes() {
+  static const std::vector<AccessPolicyProbe> probes =
+      buildAccessPolicyProbes();
+  return probes;
+}
+
+const std::vector<std::string>& accessPolicyRepresentativeRules() {
+  static const std::vector<std::string> names = [] {
+    std::vector<std::string> representatives{
+        "restrict-permit-icmpv6",
+        "restrict-permit-dhcp-547",
+        "restrict-permit-53",
+        "restrict-permit-tcp-s3-11",
+        "restrict-permit-s0-vip-prefix",
+        "restrict-permit-8080-s1-1",
+        "restrict-permit-tcp-ssh-response",
+        "restrict-permit-udp-rtc-response",
+        "restrict-deny-tcp-syn",
+        "restrict-permit-tcp"};
+    for (const auto& name : representatives) {
+      CHECK(
+          std::any_of(
+              accessPolicyRules().begin(),
+              accessPolicyRules().end(),
+              [&name](const auto& rule) { return rule.name == name; }))
+          << "representative " << name << " names no access policy rule";
+    }
+    return representatives;
+  }();
+  return names;
+}
+
+std::optional<AccessPolicyRule> accessPolicyMatch(
+    const AccessPolicyProbe& probe,
+    cfg::AclLookupClassPort lookupClass,
+    const std::set<std::string>& omitRules) {
+  for (const auto& rule : accessPolicyRules()) {
+    if (rule.lookupClass != lookupClass || omitRules.count(rule.name)) {
+      continue;
+    }
+    if (ruleMatchesProbe(rule, probe)) {
+      return rule;
+    }
+  }
+  return std::nullopt;
 }
 
 cfg::AclTable* findAccessPolicyAclTable(
