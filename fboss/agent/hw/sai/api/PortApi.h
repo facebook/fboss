@@ -1169,13 +1169,11 @@ struct SaiPortSerdesTraits {
     using TxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_TX_PRECODING,
-        std::vector<sai_int32_t>,
-        SaiS32ListDefault>;
+        std::vector<sai_int32_t>>;
     using RxPrecoding = SaiAttribute<
         EnumType,
         SAI_PORT_SERDES_ATTR_RX_PRECODING,
-        std::vector<sai_int32_t>,
-        SaiS32ListDefault>;
+        std::vector<sai_int32_t>>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
     using CustomCollection = SaiAttribute<
@@ -1272,18 +1270,15 @@ struct SaiPortSerdesTraits {
     };
     using RxReach = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeRxReachWrapper,
-        SaiS32ListDefault>;
+        AttributeRxReachWrapper>;
     // Standard TxPrecoding/RxPrecoding attributes are supported on 14.0+
     // These vendor extensions work from 13.3
     using TransmitPrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeTransmitPrecodingStateWrapper,
-        SaiS32ListDefault>;
+        AttributeTransmitPrecodingStateWrapper>;
     using ReceivePrecodingState = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
-        AttributeReceivePrecodingStateWrapper,
-        SaiS32ListDefault>;
+        AttributeReceivePrecodingStateWrapper>;
 // Alias to vendor extension attributes on bcm SAI
 #if defined(BRCM_SAI_SDK_GTE_13_0)
     using TxPrecodingAttr = TransmitPrecodingState;
@@ -1610,17 +1605,6 @@ struct SaiPortSerdesTraits {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       ,
       std::optional<Attributes::CustomCollection>
-#endif
-#if defined(BRCM_SAI_SDK_GTE_13_0)
-      ,
-      std::optional<Attributes::RxReach>
-#endif
-#if defined(BRCM_SAI_SDK_GTE_13_0) ||            \
-    (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) && \
-     !defined(BRCM_SAI_SDK_XGS_AND_DNX))
-      ,
-      std::optional<Attributes::TxPrecodingAttr>,
-      std::optional<Attributes::RxPrecodingAttr>
 #endif
       >;
 };

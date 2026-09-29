@@ -184,9 +184,7 @@ class SaiPortManager {
       const std::shared_ptr<SaiPortSerdes>& serdes,
       bool zeroPreemphasis = false,
       const std::optional<std::string>& customCollection = std::nullopt,
-      bool skipSerdesProgramming = false,
-      bool txPrecodingEnabled = false,
-      bool rxPrecodingEnabled = false);
+      bool skipSerdesProgramming = false);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);

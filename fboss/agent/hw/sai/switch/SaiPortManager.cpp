@@ -4623,10 +4623,7 @@ void SaiPortManager::changeZeroPreemphasis(
         newPort->getPinConfigs(),
         portHandle->serdes,
         newPort->getZeroPreemphasis(),
-        newPort->getSerdesCustomCollection(),
-        false,
-        FLAGS_montblanc_precoding || newPort->getTxPrecoding().value_or(false),
-        FLAGS_montblanc_precoding || newPort->getRxPrecoding().value_or(false));
+        newPort->getSerdesCustomCollection());
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
