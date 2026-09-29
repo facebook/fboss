@@ -4,6 +4,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/io/Cursor.h>
 #include <limits>
+#include <thread>
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/TxPacket.h"
@@ -19,6 +20,7 @@
 #include "fboss/agent/test/utils/AccessPolicyAclTestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_acl_table_group);
@@ -55,6 +57,9 @@ folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
 
 // DSCP 48, shifted into the IPv6 traffic class byte.
 constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
+
+// One second settle per round; stop early once no new punts arrive.
+constexpr int kControlPlanePuntSettleRounds = 3;
 
 } // namespace
 
@@ -523,6 +528,53 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       previous = current;
       EXPECT_EVENTUALLY_TRUE(stable);
     });
+  }
+
+  // Sends every probe, then settles once. A snooper per probe claims only its
+  // own frame; a packet can be punted by more than one mechanism at once, so
+  // unclaimed frames are not a failure. Waiting per probe instead would cost
+  // the full settle for each one that is never punted.
+  std::map<std::string, bool> sendControlPlaneProbes(
+      PortID ingressPort,
+      std::vector<ControlPlanePacketAndDst>& packets) {
+    const auto& probes = utility::controlPlaneProbes();
+    CHECK_EQ(packets.size(), probes.size());
+    std::vector<std::unique_ptr<utility::SwSwitchPacketSnooper>> snoopers;
+    for (size_t i = 0; i < probes.size(); ++i) {
+      snoopers.push_back(
+          std::make_unique<utility::SwSwitchPacketSnooper>(
+              getSw(),
+              fmt::format("control-plane-{}", probes[i].name),
+              std::nullopt /*port*/,
+              utility::makeEthFrame(
+                  *packets[i].pkt, true /*skipTtlDecrement*/)));
+      snoopers.back()->ignoreUnclaimedRxPkts();
+    }
+    for (size_t i = 0; i < probes.size(); ++i) {
+      EXPECT_TRUE(
+          getSw()->sendPacketOutOfPortAsync(
+              std::move(packets[i].pkt), ingressPort))
+          << "failed to send control plane probe " << probes[i].name;
+    }
+
+    // Keep settling while punts are still arriving, so a probe that is merely
+    // slow is not recorded as one the platform does not trap.
+    std::map<std::string, bool> punted;
+    size_t seen = 0;
+    for (int round = 0; round < kControlPlanePuntSettleRounds; ++round) {
+      /* sleep override */
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      size_t nowSeen = 0;
+      for (size_t i = 0; i < probes.size(); ++i) {
+        punted[probes[i].name] = snoopers[i]->receivedPacket();
+        nowSeen += punted[probes[i].name] ? 1 : 0;
+      }
+      if (round > 0 && nowSeen == seen) {
+        break;
+      }
+      seen = nowSeen;
+    }
+    return punted;
   }
 
   void verifyAccessPolicy(
