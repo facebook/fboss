@@ -342,9 +342,11 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
 
     auto expectedEgress =
         expectPermit ? static_cast<int64_t>(probes.size()) : 0;
+    bool matched = false;
     WITH_RETRIES({
       auto egressPktsAfter =
           *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      matched = (egressPktsAfter - egressPktsBefore == expectedEgress);
       EXPECT_EVENTUALLY_EQ(egressPktsAfter - egressPktsBefore, expectedEgress);
       if (accessPolicyProgrammed) {
         auto countersAfter = aclCounters(omitRules);
@@ -356,13 +358,26 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
           auto expected = expectedCounters.find(rule.counterName);
           uint64_t expectedDelta =
               expected == expectedCounters.end() ? 0 : expected->second;
-          EXPECT_EVENTUALLY_EQ(
-              countersAfter.at(rule.counterName) - before->second,
-              expectedDelta)
-              << "acl " << rule.name;
+          auto delta = countersAfter.at(rule.counterName) - before->second;
+          matched &= (delta == expectedDelta);
+          EXPECT_EVENTUALLY_EQ(delta, expectedDelta) << "acl " << rule.name;
         }
       }
     });
+
+    // Error signal only. The batch has already failed, and it names the rule
+    // whose counter is wrong rather than the probe, so re-send each probe on
+    // its own to get a log that names the offending one.
+    if (!matched && probes.size() > 1) {
+      for (const auto* probe : probes) {
+        verifyProbe(
+            *probe,
+            ingressPort,
+            lookupClass,
+            accessPolicyProgrammed,
+            omitRules);
+      }
+    }
   }
 
   void verifyClass(
@@ -371,10 +386,34 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       bool accessPolicyProgrammed,
       const std::set<std::string>& omitRules) {
     auto ingressPort = masterLogicalInterfacePortIds()[ingressPortIdx];
+    std::vector<const utility::AccessPolicyProbe*> permitProbes, dropProbes;
+    std::map<std::string, uint64_t> permitCounters, dropCounters;
     for (const auto& probe : utility::accessPolicyProbes()) {
-      verifyProbe(
-          probe, ingressPort, lookupClass, accessPolicyProgrammed, omitRules);
+      auto [match, permit] =
+          probeOutcome(probe, lookupClass, accessPolicyProgrammed, omitRules);
+      (permit ? permitProbes : dropProbes).push_back(&probe);
+      if (match.has_value()) {
+        // Omitting a rule drops its probe onto a later one, so two probes can
+        // share a counter.
+        ++(permit ? permitCounters : dropCounters)[match->counterName];
+      }
     }
+    verifyBatch(
+        permitProbes,
+        permitCounters,
+        ingressPort,
+        lookupClass,
+        true /*expectPermit*/,
+        accessPolicyProgrammed,
+        omitRules);
+    verifyBatch(
+        dropProbes,
+        dropCounters,
+        ingressPort,
+        lookupClass,
+        false /*expectPermit*/,
+        accessPolicyProgrammed,
+        omitRules);
   }
 
   // A warm boot restores the SAI counters at their pre-reboot values and fb303
