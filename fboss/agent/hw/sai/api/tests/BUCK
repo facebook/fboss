@@ -260,6 +260,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "virtual_channel_api_test",
+    srcs = [
+        "VirtualChannelApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "adapterkey_serializer_test",
     srcs = [
         "AdapterKeySerializerTest.cpp",
