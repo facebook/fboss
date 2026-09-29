@@ -982,7 +982,8 @@ void TransceiverManager::triggerTransceiverEventsForAgentConfigChangeEvent(
     }
   }
   waitForAllBlockingStateUpdateDone(results);
-  XLOG(INFO) << "triggerAgentConfigChangeEvent has " << numResetToDiscovered
+  XLOG(INFO) << "triggerTransceiverEventsForAgentConfigChangeEvent has "
+             << numResetToDiscovered
              << " transceivers state machines set back to discovered, "
              << numResetToNotPresent << " set back to not_present";
   configAppliedInfo_ = newConfigAppliedInfo;
@@ -3580,7 +3581,8 @@ void TransceiverManager::setPortLoopbackStateTransceiver(
   if (!tcvrId.has_value()) {
     throw FbossError(
         fmt::format(
-            "setInterfaceTxRx: Transceiver not found for port {}", portName));
+            "setPortLoopbackStateTransceiver: Transceiver not found for port {}",
+            portName));
   }
 
   auto lockedTransceivers = transceivers_.rlock();
