@@ -226,10 +226,12 @@ const std::string& tableForShape(AccessPolicyShape shape) {
 
 cfg::AclEntry makeAclEntry(
     AccessPolicyShape shape,
-    const AccessPolicyRule& rule) {
+    const AccessPolicyRule& rule,
+    cfg::AclActionType denyAction) {
   cfg::AclEntry entry;
   entry.name() = rule.name;
-  entry.actionType() = rule.action;
+  entry.actionType() =
+      rule.action == cfg::AclActionType::DENY ? denyAction : rule.action;
   if (shape == AccessPolicyShape::ClassId) {
     entry.lookupClassPort() = rule.lookupClass;
   }
@@ -550,7 +552,8 @@ void addAccessPolicyAcls(
     cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     AccessPolicyShape shape,
-    const std::set<std::string>& omitRules) {
+    const std::set<std::string>& omitRules,
+    cfg::AclActionType denyAction) {
   for (const auto& name : omitRules) {
     CHECK(
         std::any_of(
@@ -564,7 +567,7 @@ void addAccessPolicyAcls(
     if (omitRules.count(rule.name)) {
       continue;
     }
-    auto entry = makeAclEntry(shape, rule);
+    auto entry = makeAclEntry(shape, rule, denyAction);
     auto* table = findAccessPolicyAclTable(config, tableForShape(shape));
     if (!utility::aclEntrySupported(table, entry)) {
       throw FbossError(

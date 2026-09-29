@@ -150,6 +150,13 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return {};
   }
 
+  // Takes the asics rather than reading them off the ensemble: this runs from
+  // initialConfig(), before the fixture has one.
+  virtual cfg::AclActionType denyActionType(
+      const std::vector<const HwAsic*>& /*asics*/) const {
+    return cfg::AclActionType::DENY;
+  }
+
   void runAccessPolicyTest() {
     auto setup = [this]() { programRouteToEgressPort(); };
     auto verify = [this]() {
@@ -207,7 +214,8 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     auto policyShape = utility::accessPolicyShape(asics);
     CHECK(policyShape.has_value());
     utility::addAccessPolicyTables(config, *policyShape);
-    utility::addAccessPolicyAcls(config, asics, *policyShape, omitRules);
+    utility::addAccessPolicyAcls(
+        config, asics, *policyShape, omitRules, denyActionType(asics));
     utility::bindAccessPolicyPort(
         config, *policyShape, portIds[kRestrictedPortIdx], kRestricted);
     utility::bindAccessPolicyPort(
@@ -949,6 +957,17 @@ using AgentAccessPolicyClassIdControlPlaneTest =
     AgentAccessPolicyControlPlaneTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundControlPlaneTest =
     AgentAccessPolicyControlPlaneTest<AgentAccessPolicyPortBoundAclTest>;
+// Only Broadcom implements SAI_PACKET_ACTION_DENY; on Leaba the ACL entry fails
+// to create, which is fatal to the agent. The class id shape is gated to
+// tomahawk3 by ACCESS_POLICY_CLASS_ID_ACL, so this cannot reach a Leaba ASIC.
+class AgentAccessPolicyClassIdControlPlaneStrongDenyTest
+    : public AgentAccessPolicyClassIdControlPlaneTest {
+ protected:
+  cfg::AclActionType denyActionType(
+      const std::vector<const HwAsic*>& /*asics*/) const override {
+    return cfg::AclActionType::DENY_DATA_AND_CONTROL_PLANE;
+  }
+};
 using AgentAccessPolicyClassIdAclEntryDeletedTest =
     AgentAccessPolicyAclEntryDeletedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclEntryDeletedTest =
@@ -967,6 +986,10 @@ TEST_F(AgentAccessPolicyClassIdControlPlaneTest, ControlPlanePunt) {
 }
 
 TEST_F(AgentAccessPolicyPortBoundControlPlaneTest, ControlPlanePunt) {
+  runControlPlaneTest();
+}
+
+TEST_F(AgentAccessPolicyClassIdControlPlaneStrongDenyTest, ControlPlanePunt) {
   runControlPlaneTest();
 }
 

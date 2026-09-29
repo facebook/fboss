@@ -109,11 +109,14 @@ std::optional<AccessPolicyRule> accessPolicyMatch(
 
 void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
+// denyAction replaces the action on every rule the rule set denies, leaving the
+// permits alone.
 void addAccessPolicyAcls(
     cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     AccessPolicyShape shape,
-    const std::set<std::string>& omitRules = {});
+    const std::set<std::string>& omitRules,
+    cfg::AclActionType denyAction);
 
 void removeAccessPolicy(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
