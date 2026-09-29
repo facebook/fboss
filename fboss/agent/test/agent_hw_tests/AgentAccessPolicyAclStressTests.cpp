@@ -4,6 +4,7 @@
 
 #include <array>
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclTestBase.h"
 
 // Sized to keep the slower of these tests inside a 10 minute budget.
@@ -34,6 +35,49 @@ class AgentAccessPolicyStressTest : public BaseT {
  protected:
   std::optional<size_t> maxRequiredInterfacePorts() const override {
     return kChurnRequiredInterfacePorts;
+  }
+
+  struct AclResourceFree {
+    int32_t entries{0};
+    int32_t counters{0};
+    bool valid{false};
+  };
+
+  AclResourceFree aclResourceFree() {
+    AclResourceFree free{.valid = true};
+    auto allStats = this->getAllHwSwitchStats();
+    if (allStats.empty()) {
+      return {};
+    }
+    for (const auto& [_, stats] : allStats) {
+      const auto& resources = *stats.hwResourceStats();
+      // STAT_UNINITIALIZED is what a platform that does not report these
+      // reads back, and comparing it against itself would pass vacuously.
+      if (*resources.hw_table_stats_stale() ||
+          *resources.acl_entries_free() ==
+              hardware_stats_constants::STAT_UNINITIALIZED() ||
+          *resources.acl_counters_free() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+        return {};
+      }
+      free.entries += *resources.acl_entries_free();
+      free.counters += *resources.acl_counters_free();
+    }
+    return free;
+  }
+
+  void expectNoAclResourceLeak(const AclResourceFree& before) {
+    ASSERT_TRUE(before.valid) << "platform did not report acl resource stats";
+    AclResourceFree after;
+    WITH_RETRIES({
+      after = aclResourceFree();
+      EXPECT_EVENTUALLY_TRUE(after.valid);
+      EXPECT_EVENTUALLY_EQ(after.entries, before.entries);
+      EXPECT_EVENTUALLY_EQ(after.counters, before.counters);
+    });
+    XLOG(INFO) << "acl free entries " << before.entries << " -> "
+               << after.entries << ", counters " << before.counters << " -> "
+               << after.counters;
   }
 
   void spotCheck(
@@ -86,10 +130,20 @@ class AgentAccessPolicyStressTest : public BaseT {
     this->applyNewConfig(config);
   }
 
+  AclResourceFree waitForAclResourceFree() {
+    AclResourceFree free;
+    WITH_RETRIES({
+      free = aclResourceFree();
+      EXPECT_EVENTUALLY_TRUE(free.valid);
+    });
+    return free;
+  }
+
   void runPortClassChurnTest() {
     auto setup = [this]() { this->programRouteToEgressPort(); };
     auto verify = [this]() {
       this->applyClassAssignment(0);
+      auto before = this->waitForAclResourceFree();
       this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
       int checkpoint = 0;
       for (int i = 1; i <= FLAGS_access_policy_stress_iterations; ++i) {
@@ -101,6 +155,7 @@ class AgentAccessPolicyStressTest : public BaseT {
       }
       this->applyClassAssignment(0);
       this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      this->expectNoAclResourceLeak(before);
     };
     this->verifyAcrossWarmBoots(setup, verify);
   }

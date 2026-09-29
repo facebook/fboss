@@ -499,6 +499,7 @@ cpp_library(
     deps = [
         "//fboss/agent:ecmp_resource_manager",
         "//fboss/agent:fboss-error",
+        "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/test:production_features-cpp2-types",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test/utils:acl_scale_test_utils",
