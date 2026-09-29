@@ -69,6 +69,9 @@ enum class ControlPlanePacket {
   NdpNeighborAdvertisement,
   NdpRouterSolicitation,
   NdpRouterAdvertisement,
+  Lldp,
+  LldpCustomerBridge,
+  Lacp,
   Ip2Me,
   Ip2MeNetworkControl,
 };

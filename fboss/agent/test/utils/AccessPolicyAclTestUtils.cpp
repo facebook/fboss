@@ -358,6 +358,11 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
   add("ndp-router-advertise",
       ControlPlanePacket::NdpRouterAdvertisement,
       icmpV6);
+  add("lldp", ControlPlanePacket::Lldp, nonIp(cfg::EtherType::LLDP));
+  add("lldp-customer-bridge",
+      ControlPlanePacket::LldpCustomerBridge,
+      nonIp(cfg::EtherType::LLDP));
+  add("lacp", ControlPlanePacket::Lacp, nonIp(cfg::EtherType::LACP));
   add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,

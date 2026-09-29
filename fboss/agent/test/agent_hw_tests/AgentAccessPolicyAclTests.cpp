@@ -8,8 +8,12 @@
 #include <thread>
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/LacpTypes.h"
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
@@ -18,10 +22,12 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AccessPolicyAclTestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_acl_table_group);
@@ -80,6 +86,10 @@ const std::set<std::string>& untrappedBaselineProbes(
       "ndp-router-solicit", "ndp-router-advertise"};
   return shape == utility::AccessPolicyShape::PortBound ? kPortBound : kNone;
 }
+
+constexpr auto kLldpHostname = "rsw1dx.21.frc3";
+constexpr auto kLldpPortName = "eth1/1/1";
+constexpr auto kLldpPortDesc = "fsw001.p023.f01.frc3:eth4/9/1";
 
 } // namespace
 
@@ -416,6 +426,40 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
             ctx,
             kAllNodesMcast,
             ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
+      case utility::ControlPlanePacket::Lldp:
+        return {
+            utility::makeLLDPPacket(
+                getSw(),
+                ctx.srcMac,
+                ctx.vlanId,
+                kLldpHostname,
+                kLldpPortName,
+                kLldpPortDesc,
+                LldpManager::TTL_TLV_VALUE,
+                LldpManager::SYSTEM_CAPABILITY_ROUTER),
+            std::nullopt};
+      case utility::ControlPlanePacket::LldpCustomerBridge:
+        return {
+            LldpManager::createLldpPktCustomBridge(
+                utility::makeAllocator(getSw()),
+                ctx.srcMac,
+                ctx.vlanId,
+                kLldpHostname,
+                kLldpPortName,
+                kLldpPortDesc,
+                LldpManager::TTL_TLV_VALUE,
+                LldpManager::SYSTEM_CAPABILITY_ROUTER),
+            std::nullopt};
+      case utility::ControlPlanePacket::Lacp:
+        return {
+            utility::makeEthTxPacket(
+                getSw(),
+                ctx.vlanId,
+                ctx.srcMac,
+                LACPDU::kSlowProtocolsDstMac(),
+                ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
+                std::vector<uint8_t>(64, 0x00)),
+            std::nullopt};
       case utility::ControlPlanePacket::Ip2Me:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2MeNetworkControl:
