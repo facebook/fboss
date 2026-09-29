@@ -145,6 +145,12 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
 
+  void runControlPlaneTest() {
+    auto setup = [this]() { programRouteToEgressPort(); };
+    auto verify = [this]() { verifyControlPlane(coldBootWithAccessPolicy()); };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
  private:
   bool warmBootConfigDiffers() const {
     return coldBootWithAccessPolicy() != warmBootWithAccessPolicy() ||
@@ -644,6 +650,29 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return punted;
   }
 
+  void verifyControlPlane(bool accessPolicyProgrammed) {
+    // The unconstrained port has no policy bound, so what it punts is the
+    // baseline: a trap the platform lacks must not read as a policy drop.
+    auto baseline = verifyControlPlaneClass(
+        kUnconstrainedPortIdx, kUnconstrained, accessPolicyProgrammed, {});
+    // Differencing against a baseline only says anything if the baseline is
+    // complete, so name any probe the platform failed to trap and stop rather
+    // than let the rest of the test pass vacuously.
+    bool baselineComplete = true;
+    for (const auto& [name, punted] : baseline) {
+      if (!punted) {
+        baselineComplete = false;
+        ADD_FAILURE() << "control plane probe " << name
+                      << " never reached the CPU on an unconstrained port";
+      }
+    }
+    if (!baselineComplete) {
+      return;
+    }
+    verifyControlPlaneClass(
+        kRestrictedPortIdx, kRestricted, accessPolicyProgrammed, baseline);
+  }
+
   void verifyAccessPolicy(
       bool accessPolicyProgrammed,
       const std::set<std::string>& omitRules) {
@@ -679,6 +708,24 @@ class AgentAccessPolicyPortBoundAclTest : public AgentAccessPolicyAclTest {
     return {
         ProductionFeature::PORT_BOUND_INGRESS_ACL,
         ProductionFeature::L3_FORWARDING};
+  }
+};
+
+// AclTable1 holds the CPU policing entries, which the forwarding tests above
+// must not see.
+template <typename BaseT>
+class AgentAccessPolicyControlPlaneTest : public BaseT {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return this->addCoppConfig(ensemble, BaseT::initialConfig(ensemble));
+  }
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    auto features = BaseT::getProductionFeaturesVerified();
+    features.push_back(ProductionFeature::COPP);
+    return features;
   }
 };
 
@@ -718,6 +765,10 @@ using AgentAccessPolicyClassIdAclEntryAddedTest =
     AgentAccessPolicyAclEntryAddedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclEntryAddedTest =
     AgentAccessPolicyAclEntryAddedTest<AgentAccessPolicyPortBoundAclTest>;
+using AgentAccessPolicyClassIdControlPlaneTest =
+    AgentAccessPolicyControlPlaneTest<AgentAccessPolicyClassIdAclTest>;
+using AgentAccessPolicyPortBoundControlPlaneTest =
+    AgentAccessPolicyControlPlaneTest<AgentAccessPolicyPortBoundAclTest>;
 using AgentAccessPolicyClassIdAclEntryDeletedTest =
     AgentAccessPolicyAclEntryDeletedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclEntryDeletedTest =
@@ -729,6 +780,14 @@ TEST_F(AgentAccessPolicyClassIdAclTest, AccessPolicyAcl) {
 
 TEST_F(AgentAccessPolicyPortBoundAclTest, AccessPolicyAcl) {
   runAccessPolicyTest();
+}
+
+TEST_F(AgentAccessPolicyClassIdControlPlaneTest, ControlPlanePunt) {
+  runControlPlaneTest();
+}
+
+TEST_F(AgentAccessPolicyPortBoundControlPlaneTest, ControlPlanePunt) {
+  runControlPlaneTest();
 }
 
 TEST_F(AgentAccessPolicyClassIdAclAddedTest, AccessPolicyAclAddedOnWarmboot) {
