@@ -246,9 +246,11 @@ std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
 void ProdInvariantTest::verifyAcl() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto switchConfig = getSw()->getConfig();
-  auto defaultAclTableGroup = utility::getAclTableGroup(switchConfig);
-  auto switchId =
-      getSw()->getScopeResolver()->scope(*defaultAclTableGroup).switchId();
+  // Each invocation of this test targets a single NPU, identified by
+  // FLAGS_switch_id_for_testing; netcastle runs the test once per NPU. ACL
+  // table groups are scoped to every L3 switch, so resolving a single switch
+  // ID from that scope would throw on a multi-NPU platform.
+  const SwitchID switchId(FLAGS_switch_id_for_testing);
   auto client = ensemble->getHwAgentTestClient(switchId);
 
   WITH_RETRIES(
@@ -260,8 +262,6 @@ void ProdInvariantTest::verifyAcl() {
     }
 
     EXPECT_FALSE(aclTableGroup.aclTables()->empty());
-    switchId = getSw()->getScopeResolver()->scope(aclTableGroup).switchId();
-    client = ensemble->getHwAgentTestClient(switchId);
     for (const auto& aclTable : *aclTableGroup.aclTables()) {
       WITH_RETRIES({
         EXPECT_EVENTUALLY_TRUE(
@@ -906,9 +906,10 @@ class ProdInvariantSuswTest : public ProdInvariantTest {
   // priority CPU queue, so an exact-delta check on it is not meaningful here.
   // Verify only the mid priority (IP2Me) queue.
   void verifyCopp() {
-    AgentEnsemble* ensemble = getAgentEnsemble();
-    const auto ports = getAllPlatformPorts(ensemble->getPlatformPorts());
-    const auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
+    // Target the NPU under test; netcastle runs this test once per NPU.
+    // Resolving a switch ID from every platform port would span both NPUs and
+    // throw on a multi-NPU platform.
+    const SwitchID switchId(FLAGS_switch_id_for_testing);
     const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     const auto state = getSw()->getState();
     const auto srcPort = getDownlinkPort();
@@ -949,9 +950,8 @@ class ProdInvariantSuswTest : public ProdInvariantTest {
     if (!FLAGS_ndp_static_neighbor) {
       return;
     }
-    AgentEnsemble* ensemble = getAgentEnsemble();
-    const auto ports = getAllPlatformPorts(ensemble->getPlatformPorts());
-    const auto switchId = getSw()->getScopeResolver()->scope(ports).switchId();
+    // Target the NPU under test, matching verifyCopp().
+    const SwitchID switchId(FLAGS_switch_id_for_testing);
     const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
     const auto hiPriQueueId = utility::getCoppHighPriQueueId(asic);
     const auto before =
