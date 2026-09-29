@@ -677,6 +677,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpOriginatedRoutes.cpp
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.h
   fboss/cli/fboss2/commands/show/bgp/CmdShowBgpInitializationEvents.cpp
+  fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.h
+  fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.cpp
   fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h
   fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.cpp
   fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h

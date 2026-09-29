@@ -7,6 +7,7 @@
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowVersionBgp.h"
 #include "fboss/cli/fboss2/commands/show/bgp/changelist/CmdShowBgpChangelist.h"
 #include "fboss/cli/fboss2/commands/show/bgp/config/CmdShowConfigRunningBgp.h"
+#include "fboss/cli/fboss2/commands/show/bgp/fibnexthops/CmdShowBgpFibNexthops.h"
 #include "fboss/cli/fboss2/commands/show/bgp/health/CmdShowBgpHealth.h"
 #include "fboss/cli/fboss2/commands/show/bgp/holdtimers/CmdShowBgpHoldTimers.h"
 #include "fboss/cli/fboss2/commands/show/bgp/neighbors/CmdShowBgpNeighbors.h"
@@ -57,6 +58,11 @@ const CommandTree& kBaseAdditionalCommandTree() {
          "Show BGP changelist",
          commandHandler<CmdShowBgpChangelist>,
          argTypeHandler<CmdShowBgpChangelistTraits>},
+
+        {"fib-nexthops",
+         "Show unique nexthop sets in submitted BGP FIB-out state",
+         commandHandler<CmdShowBgpFibNexthops>,
+         argTypeHandler<CmdShowBgpFibNexthopsTraits>},
 
         {"config",
          "Show BGP configuration",
