@@ -214,6 +214,7 @@ cpp_library(
     # :golden_dataAndroid, which is wrong for this non-Android host test. Keep :golden_data.
     name = "agent_hw_test_src",
     srcs = [
+        "AgentAccessPolicyAclTests.cpp",
         "AgentAclCounterTests.cpp",
         "AgentAclInDiscardCounterTests.cpp",
         "AgentAclPriorityTests.cpp",
@@ -385,6 +386,7 @@ cpp_library(
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:route_scale_gen",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test/utils:access_policy_acl_test_utils",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:aqm_test_utils",
         "//fboss/agent/test/utils:asic_test_utils",
