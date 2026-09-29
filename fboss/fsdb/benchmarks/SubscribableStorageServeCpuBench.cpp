@@ -33,6 +33,14 @@
 #include <fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h>
 #include <fboss/thrift_cow/storage/tests/TestDataFactory.h>
 
+DEFINE_string(
+    bm_role,
+    "MaxScale",
+    "Device role whose agent-stats scale to build. One of the roles in "
+    "FsdbStatsDataFactory::getRoleScale: Minimal, MaxScale, RTSW, FTSW, STSW, "
+    "RSW, FSW, SSW, XSW, MA, FA, RDSW, FDSW, SDSW, EDSW, RGSW. Raise "
+    "--unit_ms with the role: a serve that outlasts the tick measures "
+    "saturation, not per-serve cost.");
 DEFINE_int32(updates, 200, "Number of stats publishes per case");
 DEFINE_int32(trials, 3, "Repetitions per case; reported CPU is the mean");
 DEFINE_int32(pool_size, 30, "Number of distinct pre-generated roots to cycle");
@@ -54,8 +62,31 @@ using StorageT = FsdbNaivePeriodicSubscribableStatsStorage;
 using PatchReader =
     SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>;
 
+test_data::RoleSelector roleFromFlag() {
+  static const std::map<std::string, test_data::RoleSelector> kRoles{
+      {"Minimal", test_data::RoleSelector::Minimal},
+      {"MaxScale", test_data::RoleSelector::MaxScale},
+      {"RTSW", test_data::RoleSelector::RTSW},
+      {"FTSW", test_data::RoleSelector::FTSW},
+      {"STSW", test_data::RoleSelector::STSW},
+      {"RSW", test_data::RoleSelector::RSW},
+      {"FSW", test_data::RoleSelector::FSW},
+      {"SSW", test_data::RoleSelector::SSW},
+      {"XSW", test_data::RoleSelector::XSW},
+      {"MA", test_data::RoleSelector::MA},
+      {"FA", test_data::RoleSelector::FA},
+      {"RDSW", test_data::RoleSelector::RDSW},
+      {"FDSW", test_data::RoleSelector::FDSW},
+      {"SDSW", test_data::RoleSelector::SDSW},
+      {"EDSW", test_data::RoleSelector::EDSW},
+      {"RGSW", test_data::RoleSelector::RGSW}};
+  auto it = kRoles.find(FLAGS_bm_role);
+  CHECK(it != kRoles.end()) << "unknown --bm_role: " << FLAGS_bm_role;
+  return it->second;
+}
+
 FsdbOperStatsRoot makeRoot(int update) {
-  test_data::FsdbStatsDataFactory dataGen(test_data::RoleSelector::MaxScale);
+  test_data::FsdbStatsDataFactory dataGen(roleFromFlag());
   auto seed = dataGen.getStateUpdate(update, false);
   auto root = facebook::fboss::thrift_cow::
       deserialize<apache::thrift::type_class::structure, FsdbOperStatsRoot>(
@@ -104,6 +135,24 @@ PatchReader addPatchSub(
       subParams);
 }
 
+// agent/hwPortStats/<any>/inDiscards_ -- a wildcard the publisher touches on
+// every update, so it resolves against the whole port map each publish.
+PatchReader addWildcardSub(StorageT& storage, std::string subId) {
+  ExtendedOperPath path;
+  OperPathElem agent;
+  agent.raw() = "agent";
+  OperPathElem portStats;
+  portStats.raw() = "hwPortStats";
+  OperPathElem anyPort;
+  anyPort.any() = true;
+  OperPathElem counter;
+  counter.raw() = "inDiscards_";
+  path.path() = {agent, portStats, anyPort, counter};
+  return storage.subscribe_patch_extended(
+      SubscriptionIdentifier(SubscriberId(std::move(subId))),
+      {{0, std::move(path)}});
+}
+
 double processCpuSeconds() {
   struct rusage ru{};
   getrusage(RUSAGE_SELF, &ru);
@@ -124,7 +173,10 @@ struct Case {
   // measured window carries the interval lane alone. Requesting a slower
   // interval cannot achieve this: normalizeServeIntervalMs clamps every request
   // to the default interval, so no subscriber can be slower than the default.
-  bool dropSlowAfterSync;
+  bool dropSlowAfterSync{false};
+  // publishAndAddPaths registers into every bucket's store on each publish, so
+  // a wildcard in the default bucket may be charged to the fast lane's ticks.
+  bool slowWildcardSub{false};
 };
 
 double runCase(const Case& c, const std::vector<FsdbOperStatsRoot>& pool) {
@@ -132,6 +184,10 @@ double runCase(const Case& c, const std::vector<FsdbOperStatsRoot>& pool) {
   storage->start();
   std::optional<PatchReader> slowSub =
       addPatchSub(*storage, std::nullopt, "agent_full", {"agent"});
+  std::optional<PatchReader> wildcardSub;
+  if (c.slowWildcardSub) {
+    wildcardSub = addWildcardSub(*storage, "agent_indiscards_wildcard");
+  }
   std::vector<PatchReader> fastSubs;
   fastSubs.reserve(c.fastBuckets.size());
   for (auto bucket : c.fastBuckets) {
@@ -222,13 +278,50 @@ int main(int argc, char** argv) {
   const std::vector<size_t> kFastOnly{0};
   const std::vector<size_t> kAllFast{0, 1, 2, 3};
   const std::vector<Case> cases = {
-      {"tick disabled (as landed)", false, {}, kNarrow, false},
-      {"default only", true, {}, kNarrow, false},
-      {"interval sub, narrow path", true, kFastOnly, kNarrow, false},
-      {"interval sub, WIDE path", true, kFastOnly, kWide, false},
-      {"initial-sync only slow + narrow fast", true, kFastOnly, kNarrow, true},
-      {"all buckets occupied, narrow", true, kAllFast, kNarrow, false},
-      {"all buckets occupied, WIDE", true, kAllFast, kWide, false},
+      // Baseline every ratio below is measured against.
+      {.name = "tick disabled (as landed)",
+       .enableTick = false,
+       .fastPath = kNarrow},
+      // Cost of the tick loop alone, before any fast subscriber exists.
+      {.name = "default only", .enableTick = true, .fastPath = kNarrow},
+      // A fast subscriber on one scalar: nearly all of it is extra publishes.
+      {.name = "interval sub, narrow path",
+       .enableTick = true,
+       .fastBuckets = kFastOnly,
+       .fastPath = kNarrow},
+      // Same subscriber on the whole tree; the gap above it is the serve cost.
+      {.name = "interval sub, WIDE path",
+       .enableTick = true,
+       .fastBuckets = kFastOnly,
+       .fastPath = kWide},
+      // Default subscriber dropped post-sync, leaving the interval lane alone.
+      {.name = "initial-sync only slow + narrow fast",
+       .enableTick = true,
+       .fastBuckets = kFastOnly,
+       .fastPath = kNarrow,
+       .dropSlowAfterSync = true},
+      // Every bucket busy, so they collide on shared multiples of the tick.
+      {.name = "all buckets occupied, narrow",
+       .enableTick = true,
+       .fastBuckets = kAllFast,
+       .fastPath = kNarrow},
+      // Worst case the feature admits; size capacity against this one.
+      {.name = "all buckets occupied, WIDE",
+       .enableTick = true,
+       .fastBuckets = kAllFast,
+       .fastPath = kWide},
+      // What a wildcard costs on its own, with no fast lane to charge it to.
+      {.name = "wildcard slow, no fast",
+       .enableTick = true,
+       .fastPath = kNarrow,
+       .slowWildcardSub = true},
+      // Against "interval sub, narrow path": is the wildcard billed to the
+      // fast lane's ticks?
+      {.name = "wildcard slow + narrow fast",
+       .enableTick = true,
+       .fastBuckets = kFastOnly,
+       .fastPath = kNarrow,
+       .slowWildcardSub = true},
   };
 
   std::printf(
