@@ -230,7 +230,30 @@ PortID ProdInvariantTest::getDownlinkPort() {
         "port's PFC portPgConfigName, so a config generated without PFC "
         "yields none.");
   }
-  return downlinks[0];
+  // The lists are derived from the config, which spans every NPU. Each run
+  // targets a single NPU, so pick a downlink belonging to it.
+  auto switchPorts = portsForSwitchUnderTest(downlinks);
+  if (switchPorts.empty()) {
+    throw FbossError(
+        "No downlink ports on switch ",
+        FLAGS_switch_id_for_testing,
+        " (config has ",
+        downlinks.size(),
+        " downlinks across all NPUs)");
+  }
+  return switchPorts[0];
+}
+
+std::vector<PortID> ProdInvariantTest::portsForSwitchUnderTest(
+    const std::vector<PortID>& ports) const {
+  const SwitchID switchId(FLAGS_switch_id_for_testing);
+  std::vector<PortID> filtered;
+  for (const auto& portId : ports) {
+    if (getSw()->getScopeResolver()->scope(portId).has(switchId)) {
+      filtered.push_back(portId);
+    }
+  }
+  return filtered;
 }
 
 std::vector<PortID> ProdInvariantTest::getEcmpPortIds() {
@@ -334,6 +357,16 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
        it != uplinkDownlinkPorts.second.end();
        ++it) {
     portIds.push_back(*it);
+  }
+  // The config spans every NPU, but each run targets one. Stats are tracked
+  // per switch index, so asking for another NPU's ports lets getLatestPortStats
+  // return as soon as that NPU reports, before this one's stats are in.
+  portIds = portsForSwitchUnderTest(portIds);
+  if (portIds.empty()) {
+    throw FbossError(
+        "No uplink or downlink ports on switch ",
+        FLAGS_switch_id_for_testing,
+        "; cannot verify DSCP to queue mapping");
   }
 
   auto getPortStatsFn = [&]() -> std::map<PortID, HwPortStats> {

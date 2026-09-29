@@ -48,6 +48,10 @@ class ProdInvariantTest : public ProdAgentTests {
  protected:
   std::optional<bool> useProdConfig_ = std::nullopt;
   PortID getDownlinkPort();
+  // Config-derived port lists span every NPU; each run targets the one named
+  // by FLAGS_switch_id_for_testing. Narrow a port list to that switch.
+  std::vector<PortID> portsForSwitchUnderTest(
+      const std::vector<PortID>& ports) const;
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
   std::vector<PortID> getEcmpPortIds();
