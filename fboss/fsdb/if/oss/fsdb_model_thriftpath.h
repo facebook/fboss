@@ -8607,6 +8607,7 @@ class ChildThriftPath<::facebook::bgp::thrift::BgpConfig, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(bgp_setting_config, 36);
     STRUCT_CHILD_GETTERS(thrift_server_config, 37);
     STRUCT_CHILD_GETTERS(net_service_config, 38);
+    STRUCT_CHILD_GETTERS(cluster_id, 39);
 };
 
 
