@@ -72,6 +72,7 @@ cpp_library(
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":acl_test_utils",
+        ":config_utils",
         "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/packet:ipproto",

@@ -51,6 +51,14 @@ void addAccessPolicyAcls(
     AccessPolicyShape shape,
     const std::set<std::string>& omitRules = {});
 
+void removeAccessPolicy(cfg::SwitchConfig& config, AccessPolicyShape shape);
+
+void bindAccessPolicyPort(
+    cfg::SwitchConfig& config,
+    AccessPolicyShape shape,
+    PortID portId,
+    cfg::AclLookupClassPort lookupClass);
+
 cfg::AclTable* findAccessPolicyAclTable(
     cfg::SwitchConfig& config,
     const std::string& name);

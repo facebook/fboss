@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -328,6 +329,55 @@ void addAccessPolicyAcls(
     }
     table->aclEntries()->push_back(entry);
     utility::addAclStat(&config, rule.name, rule.counterName, counterTypes);
+  }
+}
+
+void removeAccessPolicy(cfg::SwitchConfig& config, AccessPolicyShape shape) {
+  for (const auto& rule : accessPolicyRules()) {
+    utility::delAclStat(&config, rule.name, rule.counterName);
+  }
+  auto groups = config.aclTableGroups();
+  if (shape == AccessPolicyShape::ClassId) {
+    if (groups) {
+      for (auto& group : *groups) {
+        auto& tables = *group.aclTables();
+        std::erase_if(tables, [](const cfg::AclTable& table) {
+          return *table.name() == kAccessPolicyClassIdTable();
+        });
+      }
+    }
+    for (auto& port : *config.ports()) {
+      port.userMetaData().reset();
+    }
+    return;
+  }
+  if (groups) {
+    std::erase_if(*groups, [](const cfg::AclTableGroup& group) {
+      return *group.name() == kAccessPolicyTableGroup();
+    });
+  }
+  for (auto& port : *config.ports()) {
+    port.ingressAclTableName().reset();
+  }
+}
+
+void bindAccessPolicyPort(
+    cfg::SwitchConfig& config,
+    AccessPolicyShape shape,
+    PortID portId,
+    cfg::AclLookupClassPort lookupClass) {
+  auto port = utility::findCfgPort(config, portId);
+  if (shape == AccessPolicyShape::ClassId) {
+    port->userMetaData() = lookupClass;
+    return;
+  }
+  if (lookupClass == cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED) {
+    port->ingressAclTableName() = kAccessPolicyRestrictedTable();
+  } else if (lookupClass == cfg::AclLookupClassPort::CLASS_PORT_UNCONSTRAINED) {
+    port->ingressAclTableName().reset();
+  } else {
+    throw FbossError(
+        "Unhandled access policy lookup class ", static_cast<int>(lookupClass));
   }
 }
 
