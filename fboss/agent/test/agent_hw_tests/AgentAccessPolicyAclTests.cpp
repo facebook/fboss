@@ -286,16 +286,46 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       const std::set<std::string>& omitRules) {
     auto outcome =
         probeOutcome(probe, lookupClass, accessPolicyProgrammed, omitRules);
-    const auto& match = outcome.match;
-    auto expectPermit = outcome.permit;
     SCOPED_TRACE(
         fmt::format(
-            "probe {} on port {} class {}: expect {} on {}",
+            "probe {} expects {}",
             probe.name,
+            outcome.match.has_value() ? outcome.match->name : "no rule"));
+    std::map<std::string, uint64_t> expectedCounters;
+    if (outcome.match.has_value()) {
+      expectedCounters[outcome.match->counterName] = 1;
+    }
+    verifyBatch(
+        {&probe},
+        expectedCounters,
+        ingressPort,
+        lookupClass,
+        outcome.permit,
+        accessPolicyProgrammed,
+        omitRules);
+  }
+
+  // Permit and drop stay in separate batches: the egress count is one number,
+  // so mixing them lets a rule that wrongly permits cancel one that wrongly
+  // drops.
+  void verifyBatch(
+      const std::vector<const utility::AccessPolicyProbe*>& probes,
+      const std::map<std::string, uint64_t>& expectedCounters,
+      PortID ingressPort,
+      cfg::AclLookupClassPort lookupClass,
+      bool expectPermit,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules) {
+    if (probes.empty()) {
+      return;
+    }
+    SCOPED_TRACE(
+        fmt::format(
+            "{} probes on port {} class {}: expect {}",
+            probes.size(),
             static_cast<int>(ingressPort),
             apache::thrift::util::enumNameSafe(lookupClass),
-            expectPermit ? "PERMIT" : "DROP",
-            match.has_value() ? match->name : "no rule"));
+            expectPermit ? "PERMIT" : "DROP"));
 
     auto egressPort = masterLogicalInterfacePortIds()[kEgressPortIdx];
     auto countersBefore = accessPolicyProgrammed
@@ -304,27 +334,33 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     auto egressPktsBefore =
         *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
 
-    ASSERT_TRUE(
-        getSw()->sendPacketOutOfPortAsync(makeProbePacket(probe), ingressPort));
+    for (const auto* probe : probes) {
+      ASSERT_TRUE(
+          getSw()->sendPacketOutOfPortAsync(
+              makeProbePacket(*probe), ingressPort));
+    }
 
+    auto expectedEgress =
+        expectPermit ? static_cast<int64_t>(probes.size()) : 0;
     WITH_RETRIES({
       auto egressPktsAfter =
           *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
-      EXPECT_EVENTUALLY_EQ(
-          egressPktsAfter - egressPktsBefore, expectPermit ? 1 : 0);
-      auto countersAfter = accessPolicyProgrammed
-          ? aclCounters(omitRules)
-          : std::map<std::string, uint64_t>();
-      for (const auto& rule : utility::accessPolicyRules()) {
-        auto before = countersBefore.find(rule.counterName);
-        if (before == countersBefore.end()) {
-          continue;
+      EXPECT_EVENTUALLY_EQ(egressPktsAfter - egressPktsBefore, expectedEgress);
+      if (accessPolicyProgrammed) {
+        auto countersAfter = aclCounters(omitRules);
+        for (const auto& rule : utility::accessPolicyRules()) {
+          auto before = countersBefore.find(rule.counterName);
+          if (before == countersBefore.end()) {
+            continue;
+          }
+          auto expected = expectedCounters.find(rule.counterName);
+          uint64_t expectedDelta =
+              expected == expectedCounters.end() ? 0 : expected->second;
+          EXPECT_EVENTUALLY_EQ(
+              countersAfter.at(rule.counterName) - before->second,
+              expectedDelta)
+              << "acl " << rule.name;
         }
-        uint64_t expected =
-            match.has_value() && match->name == rule.name ? 1 : 0;
-        EXPECT_EVENTUALLY_EQ(
-            countersAfter.at(rule.counterName) - before->second, expected)
-            << "acl " << rule.name;
       }
     });
   }
