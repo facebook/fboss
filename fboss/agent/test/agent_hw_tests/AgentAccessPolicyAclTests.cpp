@@ -54,6 +54,13 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_enable_acl_table_group = true;
+    // The base fixture collects these every stats tick, and a tick that
+    // overruns a second costs every getNextUpdatedPortStats() an extra
+    // second. This test reads none of them. Values are the HwSwitch.cpp
+    // defaults the base fixture overrode.
+    FLAGS_update_watermark_stats_interval_s = 60;
+    FLAGS_update_voq_stats_interval_s = 60;
+    FLAGS_update_cable_length_stats_s = 600;
   }
 
   std::optional<size_t> maxRequiredInterfacePorts() const override {
