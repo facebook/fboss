@@ -2,6 +2,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/reflection/testing.h>
 
 #include <sstream>
 
