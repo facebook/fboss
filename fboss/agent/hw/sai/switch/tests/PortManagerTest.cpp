@@ -393,6 +393,38 @@ TEST_F(PortManagerTest, unbindIngressAclAfterChangePort) {
       SAI_NULL_OBJECT_ID);
 }
 
+TEST_F(PortManagerTest, resetIngressAcl) {
+  const std::string ingressAclTableName{"PortIngressAclTable"};
+  auto aclTableGroup = std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
+  aclTableGroup->setName("PortIngressAclGroup");
+  aclTableGroup->setBindPoint(cfg::AclTableGroupBindPoint::PORT);
+  saiManagerTable->aclTableGroupManager().addAclTableGroup(aclTableGroup);
+  saiManagerTable->aclTableManager().addAclTable(
+      std::make_shared<AclTable>(0, ingressAclTableName),
+      cfg::AclStage::INGRESS,
+      nullptr /*state*/,
+      cfg::AclTableGroupBindPoint::PORT);
+
+  auto boundPort = makePort(p0);
+  boundPort->setIngressAclTableName(ingressAclTableName);
+  saiManagerTable->portManager().addPort(boundPort);
+  saiManagerTable->portManager().setIngressAcl(boundPort);
+  auto unboundPort = makePort(p1);
+  saiManagerTable->portManager().addPort(unboundPort);
+
+  saiManagerTable->portManager().resetIngressAcl();
+
+  for (const auto& portId : {boundPort->getID(), unboundPort->getID()}) {
+    auto* handle = saiManagerTable->portManager().getPortHandle(portId);
+    ASSERT_NE(handle, nullptr);
+    EXPECT_EQ(
+        saiApiTable->portApi().getAttribute(
+            handle->port->adapterKey(),
+            SaiPortTraits::Attributes::IngressAcl{}),
+        SAI_NULL_OBJECT_ID);
+  }
+}
+
 TEST_F(PortManagerTest, addTwoPorts) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);

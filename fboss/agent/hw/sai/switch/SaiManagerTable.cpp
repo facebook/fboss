@@ -203,6 +203,9 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
     switchManager_->resetIngressAcl();
     switchManager_->resetEgressAcl();
   }
+  // A port bound to an ACL table holds a reference to it, so unbind before
+  // the tables below are removed.
+  portManager_->resetIngressAcl();
 
   // Reset ACL Table group before Acl Table, since ACL Table group members
   // refer to ACL Table and those references to ACL Table must be released

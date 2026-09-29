@@ -1802,6 +1802,24 @@ void SaiPortManager::replaceIngressAcl(
   }
 }
 
+void SaiPortManager::resetIngressAcl() {
+  // Runs from the SaiManagerTable destructor, where the pure virtual
+  // HwAsic::isSupported cannot be called; test the programmed attribute
+  // instead.
+  for (const auto& [_, portHandle] : handles_) {
+    const auto ingressAcl =
+        std::get<std::optional<SaiPortTraits::Attributes::IngressAcl>>(
+            portHandle->port->attributes());
+    if (!ingressAcl || ingressAcl->value() == SAI_NULL_OBJECT_ID) {
+      continue;
+    }
+    XLOG(DBG2) << "Reset ingress ACL " << ingressAcl->value() << " on port "
+               << portHandle->port->adapterKey();
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});
+  }
+}
+
 void SaiPortManager::resetCableLength(PortID portId) {
   auto portStatItr = portStats_.find(portId);
   if (portStatItr == portStats_.end()) {

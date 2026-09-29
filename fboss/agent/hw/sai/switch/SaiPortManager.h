@@ -162,6 +162,7 @@ class SaiPortManager {
   void replaceIngressAcl(
       AclTableSaiId oldAclTableId,
       AclTableSaiId newAclTableId);
+  void resetIngressAcl();
 
   bool createOnlyAttributeChanged(
       const std::shared_ptr<Port>& oldPort,
