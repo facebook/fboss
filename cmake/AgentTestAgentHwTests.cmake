@@ -330,6 +330,7 @@ target_link_libraries(multi_switch_agent_hw_test
 )
 
 add_library(agent_scale_test_src
+  fboss/agent/test/agent_hw_tests/AgentAccessPolicyAclStressTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
 )
@@ -342,6 +343,7 @@ target_link_libraries(agent_scale_test_src
   agent_hw_test_src
   ecmp_helper
   production_features_cpp2
+  access_policy_acl_test_utils
   acl_test_utils
   asic_test_utils
   scale_test_utils
