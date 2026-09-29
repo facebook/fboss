@@ -23,12 +23,13 @@ std::optional<AccessPolicyShape> accessPolicyShape(
     const std::vector<const HwAsic*>& asics);
 
 // Named after the configerator sources: V0 is access_policy_rules.cinc, V1 is
-// access_policy_rules_v1.cinc.
-enum class AccessPolicyVersion { V0, V1 };
+// access_policy_rules_v1.cinc, V2 is access_policy_rules_v2.cinc.
+enum class AccessPolicyVersion { V0, V1, V2 };
 
-inline constexpr std::array<AccessPolicyVersion, 2> kAccessPolicyVersions{
+inline constexpr std::array<AccessPolicyVersion, 3> kAccessPolicyVersions{
     AccessPolicyVersion::V0,
-    AccessPolicyVersion::V1};
+    AccessPolicyVersion::V1,
+    AccessPolicyVersion::V2};
 
 std::string kAccessPolicyClassIdTable();
 std::string kAccessPolicyRestrictedTable();

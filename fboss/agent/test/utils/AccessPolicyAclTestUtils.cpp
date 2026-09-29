@@ -329,8 +329,6 @@ std::vector<AccessPolicyRule> buildAccessPolicyRulesV1() {
        .action = cfg::AclActionType::DENY,
        .l4DstPort = 6});
 
-  // Ahead of the SYN deny, so this expected polling lands on its own counter
-  // rather than the generic one.
   add(
       {.name = "restrict-deny-tcp-s26-1",
        .action = cfg::AclActionType::DENY,
@@ -354,6 +352,178 @@ std::vector<AccessPolicyRule> buildAccessPolicyRulesV1() {
        .action = cfg::AclActionType::DENY,
        .proto = kUdp,
        .l4SrcPort = 37012});
+  add(
+      {.name = "restrict-deny-ipv6-encap",
+       .action = cfg::AclActionType::DENY,
+       .proto = kIpv6Encap});
+
+  add({.name = "restrict-deny", .action = cfg::AclActionType::DENY});
+
+  return rules;
+}
+
+// access_policy_rules_v2.cinc, anonymised as above, reusing each service's
+// s<N>.
+std::vector<AccessPolicyRule> buildAccessPolicyRulesV2() {
+  std::vector<AccessPolicyRule> rules;
+  auto add = [&rules](AccessPolicyRule rule) {
+    rule.counterName = fmt::format("ap2-{:03d}", rules.size());
+    CHECK_LE(rule.counterName.size(), kMaxAclNameLen);
+    rules.push_back(std::move(rule));
+  };
+  auto addTcpDstPorts = [&add](
+                            const std::string& prefix,
+                            const std::vector<int32_t>& l4DstPorts) {
+    for (size_t i = 0; i < l4DstPorts.size(); ++i) {
+      add(
+          {.name = fmt::format("{}-{}", prefix, i + 1),
+           .proto = kTcp,
+           .l4DstPort = l4DstPorts[i]});
+    }
+  };
+  auto addTls443DstIps = [&add](
+                             const std::string& namePattern,
+                             const std::string& dstIpPattern,
+                             int count) {
+    for (int i = 1; i <= count; ++i) {
+      add(
+          {.name = fmt::format(fmt::runtime(namePattern), i),
+           .proto = kTcp,
+           .l4DstPort = 443,
+           .dstIp = fmt::format(fmt::runtime(dstIpPattern), i)});
+    }
+  };
+  auto addUdpSrcPortDstIps = [&add](
+                                 const std::string& namePattern,
+                                 const std::string& dstIpPattern,
+                                 int32_t l4SrcPort,
+                                 int first,
+                                 int last,
+                                 int stride) {
+    for (int i = first; i <= last; ++i) {
+      add(
+          {.name = fmt::format(fmt::runtime(namePattern), i),
+           .proto = kUdp,
+           .l4SrcPort = l4SrcPort,
+           .dstIp = fmt::format(fmt::runtime(dstIpPattern), i * stride)});
+    }
+  };
+
+  add({.name = "restrict-permit-icmpv6", .proto = kIcmpV6});
+  add({.name = "restrict-permit-lldp", .etherType = cfg::EtherType::LLDP});
+  for (auto l4DstPort : {67, 68, 546, 547}) {
+    add(
+        {.name = fmt::format("restrict-permit-dhcp-{}", l4DstPort),
+         .proto = kUdp,
+         .l4DstPort = l4DstPort});
+  }
+  add(
+      {.name = "restrict-permit-53-1",
+       .l4DstPort = 53,
+       .dstIp = "2001:db8:d000:1::5/128"});
+  add(
+      {.name = "restrict-permit-53-2",
+       .l4DstPort = 53,
+       .dstIp = "2001:db8:d000:2::5/128"});
+  add({.name = "restrict-permit-udp-123", .proto = kUdp, .l4DstPort = 123});
+
+  for (const auto& [suffix, dstIp] :
+       std::vector<std::pair<std::string, std::string>>{
+           {"1", "2001:db8:f000:1000::/94"},
+           {"2", "2001:db8:f000:1100:1:2:3000:0/112"},
+           {"3", "2001:db8:f000:1100:4:5:6000:0/112"},
+           {"4", "2001:db8:f000:1200::/98"}}) {
+    add(
+        {.name = fmt::format("restrict-deny-tcp-s28-{}", suffix),
+         .action = cfg::AclActionType::DENY,
+         .proto = kTcp,
+         .tcpFlagsBitMap = kTcpSyn,
+         .dstIp = dstIp});
+  }
+
+  add({.name = "restrict-permit-vm-iso-vip", .dstIp = "2001:db8:9a00::/40"});
+  addTls443DstIps("restrict-permit-s0-tmp{:02d}", "2001:db8:a0{:02x}::/56", 36);
+  addTls443DstIps("restrict-permit-s22-{:02d}", "2001:db8:b0{:02x}::/56", 40);
+  addTls443DstIps("restrict-permit-s23-{}", "2001:db8:c100:{:x}::2/128", 3);
+  addTls443DstIps("restrict-permit-s24-{}", "2001:db8:c200:{:x}::3/128", 3);
+  addTls443DstIps("restrict-permit-s25-{}", "2001:db8:c300:{:x}::4/128", 4);
+  add({.name = "restrict-permit-s19", .l4DstPort = 8082});
+  add({.name = "restrict-permit-tcp-s20", .proto = kTcp, .l4DstPort = 31337});
+  addTcpDstPorts("restrict-permit-tcp-s29", {1361, 1362, 1363, 1364, 1365});
+  add({.name = "restrict-permit-udp-s30", .proto = kUdp, .l4DstPort = 1362});
+  add({.name = "restrict-permit-tcp-s2-2", .proto = kTcp, .l4DstPort = 1031});
+  addTcpDstPorts("restrict-permit-tcp-s3", {2401, 2402, 2403, 2404, 2405});
+  add({.name = "restrict-permit-tcp-s21", .proto = kTcp, .l4DstPort = 11307});
+  addTcpDstPorts("restrict-permit-tcp-s4", {1277, 1278, 1279});
+  add({.name = "restrict-permit-tcp-s31", .proto = kTcp, .l4DstPort = 12346});
+  add({.name = "restrict-permit-tcp-s7-3", .proto = kTcp, .l4DstPort = 4332});
+  add(
+      {.name = "restrict-permit-tcp-s12-tls",
+       .proto = kTcp,
+       .l4DstPort = 1458,
+       .dstIp = "2001:db8:d000:4::7/128"});
+  add({.name = "restrict-permit-tcp-s13-2", .proto = kTcp, .l4DstPort = 12478});
+  add({.name = "restrict-permit-tcp-s14", .proto = kTcp, .l4DstPort = 12124});
+  add({.name = "restrict-permit-tcp-s18", .proto = kTcp, .l4DstPort = 3201});
+
+  addUdpSrcPortDstIps(
+      "restrict-permit-udp-rtc-{:02d}",
+      "2001:db8:e0{:02x}::/56",
+      3483,
+      1,
+      11,
+      1);
+
+  add(
+      {.name = "restrict-deny-6",
+       .action = cfg::AclActionType::DENY,
+       .l4DstPort = 6});
+  // Ahead of the SYN deny, so this expected polling lands on its own counter
+  // rather than the generic one.
+  add(
+      {.name = "restrict-deny-tcp-s26-1",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .l4DstPort = 34411});
+  add(
+      {.name = "restrict-deny-tcp-s26-2",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .l4DstPort = 34412});
+
+  add(
+      {.name = "restrict-deny-tcp-syn",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .tcpFlagsBitMap = kTcpSyn});
+  add({.name = "restrict-permit-tcp-return", .proto = kTcp});
+
+  // Two prefix lengths, as the deployed set has.
+  addUdpSrcPortDstIps(
+      "restrict-permit-udp-s32-{:02d}",
+      "2001:db8:1000:{:04x}::/57",
+      31338,
+      1,
+      38,
+      0x80);
+  addUdpSrcPortDstIps(
+      "restrict-permit-udp-s32-{:02d}",
+      "2001:db8:1001:{:04x}::/61",
+      31338,
+      39,
+      54,
+      0x8);
+
+  add(
+      {.name = "restrict-deny-udp-s27",
+       .action = cfg::AclActionType::DENY,
+       .proto = kUdp,
+       .l4SrcPort = 37012});
+  add(
+      {.name = "restrict-deny-udp-s33",
+       .action = cfg::AclActionType::DENY,
+       .proto = kUdp,
+       .l4DstPort = 37012});
   add(
       {.name = "restrict-deny-ipv6-encap",
        .action = cfg::AclActionType::DENY,
@@ -602,11 +772,15 @@ const std::vector<AccessPolicyRule>& accessPolicyRules(
   static const std::vector<AccessPolicyRule> v0Rules = buildAccessPolicyRules();
   static const std::vector<AccessPolicyRule> v1Rules =
       buildAccessPolicyRulesV1();
+  static const std::vector<AccessPolicyRule> v2Rules =
+      buildAccessPolicyRulesV2();
   switch (version) {
     case AccessPolicyVersion::V0:
       return v0Rules;
     case AccessPolicyVersion::V1:
       return v1Rules;
+    case AccessPolicyVersion::V2:
+      return v2Rules;
   }
   throw FbossError(
       "Unhandled access policy version ", static_cast<int>(version));
@@ -618,11 +792,15 @@ const std::vector<AccessPolicyProbe>& accessPolicyProbes(
       buildAccessPolicyProbes(AccessPolicyVersion::V0);
   static const std::vector<AccessPolicyProbe> v1Probes =
       buildAccessPolicyProbes(AccessPolicyVersion::V1);
+  static const std::vector<AccessPolicyProbe> v2Probes =
+      buildAccessPolicyProbes(AccessPolicyVersion::V2);
   switch (version) {
     case AccessPolicyVersion::V0:
       return v0Probes;
     case AccessPolicyVersion::V1:
       return v1Probes;
+    case AccessPolicyVersion::V2:
+      return v2Probes;
   }
   throw FbossError(
       "Unhandled access policy version ", static_cast<int>(version));
