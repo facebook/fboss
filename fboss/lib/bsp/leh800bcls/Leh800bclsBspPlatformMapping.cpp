@@ -18,37 +18,6 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         "1": {
           "tcvrId": 1,
           "accessControl": {
-            "controllerId": "2",
-            "type": 1,
-            "reset": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_reset_2",
-              "mask": 1,
-              "gpioOffset": 0,
-              "resetHoldHi": 1
-            },
-            "presence": {
-              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_present_2",
-              "mask": 1,
-              "gpioOffset": 0,
-              "presentHoldHi": 0
-            },
-            "gpioChip": ""
-          },
-          "io": {
-            "controllerId": "2",
-            "type": 1,
-            "devicePath": "/run/devmap/xcvrs/xcvr_io_2"
-          },
-          "tcvrLaneToLedId": {
-            "1": 2,
-            "2": 2,
-            "3": 2,
-            "4": 2
-          }
-        },
-        "2": {
-          "tcvrId": 2,
-          "accessControl": {
             "controllerId": "1",
             "type": 1,
             "reset": {
@@ -75,6 +44,37 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
             "2": 1,
             "3": 1,
             "4": 1
+          }
+        },
+        "2": {
+          "tcvrId": 2,
+          "accessControl": {
+            "controllerId": "2",
+            "type": 1,
+            "reset": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_reset_2",
+              "mask": 1,
+              "gpioOffset": 0,
+              "resetHoldHi": 1
+            },
+            "presence": {
+              "sysfsPath": "/run/devmap/xcvrs/xcvr_ctrl_2/xcvr_present_2",
+              "mask": 1,
+              "gpioOffset": 0,
+              "presentHoldHi": 0
+            },
+            "gpioChip": ""
+          },
+          "io": {
+            "controllerId": "2",
+            "type": 1,
+            "devicePath": "/run/devmap/xcvrs/xcvr_io_2"
+          },
+          "tcvrLaneToLedId": {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2
           }
         }
       },
@@ -1151,13 +1151,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
           "id": 1,
           "bluePath": "/sys/class/leds/port1_led1:blue:status",
           "yellowPath": "/sys/class/leds/port1_led1:amber:status",
-          "transceiverId": 2
+          "transceiverId": 1
         },
         "2": {
           "id": 2,
           "bluePath": "/sys/class/leds/port2_led1:blue:status",
           "yellowPath": "/sys/class/leds/port2_led1:amber:status",
-          "transceiverId": 1
+          "transceiverId": 2
         }
       }
     }
