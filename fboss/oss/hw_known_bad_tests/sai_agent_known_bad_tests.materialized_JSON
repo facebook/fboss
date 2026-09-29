@@ -16153,6 +16153,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot.AgentFlowletSourcePortPruneTest.VerifyArsSourcePortPruneDisabled$"
         },
         {
+          "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.warm_boot.AgentFlowletSwitchingEnhancedScaleTest.VerifyAlternateArsEcmpObjects$"
+        },
+        {
           "test_name_regex": "roundtrip.(preprod_2_trunk_2_preprod|trunk_2_preprod_2_trunk).warm_boot.AgentAdjFrrRoutePruneEnabledTest.sourcePortGetsPruned$"
         },
         {
