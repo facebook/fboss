@@ -4878,6 +4878,17 @@
           ]
         }
     ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwFlowletStatsCollectionAtScale": [
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwFlowletStatsCollectionAtScale",
+              "upper_bound": 10028000000000000
+            }
+          ]
+        }
+    ],
     "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwHgridUUScaleRouteAddBenchmark": [
         {
           "test_config_regex": ".*/gibraltar.*",
