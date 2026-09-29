@@ -2032,7 +2032,7 @@ void ThriftHandler::setPortLoopbackMode(
   auto newLoopbackMode = toLoopbackMode(mode);
 
   if (port->getLoopbackMode() == newLoopbackMode) {
-    XLOG(DBG2) << "setPortState: port already set to lb mode : "
+    XLOG(DBG2) << "setPortLoopbackMode: port already set to lb mode : "
                << static_cast<int>(newLoopbackMode);
     return;
   }
