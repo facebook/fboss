@@ -9790,6 +9790,7 @@ class ChildThriftPath<::facebook::fboss::cfg::QosMap, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(trafficClassToVoqId, 7);
     STRUCT_CHILD_GETTERS(pcpMaps, 8);
     STRUCT_CHILD_GETTERS(trafficClassToVcId, 9);
+    STRUCT_CHILD_GETTERS(queueToVcId, 10);
 };
 
 

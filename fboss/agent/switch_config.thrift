@@ -1097,6 +1097,11 @@ struct QosMap {
   // 5.2). Receiver-side classification: decides which VC's credit counters an
   // arriving packet is charged against.
   9: optional map<i16, i16> trafficClassToVcId;
+  // Maps an egress queue to a CBFC virtual channel (UE Spec 1.0.2 section
+  // 5.2). Sender-side classification: decides whose credit must be held before
+  // transmitting from that queue, and which queues are best-effort and so skip
+  // the credit check entirely.
+  10: optional map<i16, i16> queueToVcId;
 }
 
 struct QosRule {
