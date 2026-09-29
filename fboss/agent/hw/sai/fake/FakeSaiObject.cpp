@@ -163,6 +163,12 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_WRED:
       *count = fs->wredManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
+      *count = static_cast<uint32_t>(fs->virtualChannelManager.map().size());
+      break;
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE:
+      *count = static_cast<uint32_t>(fs->cbfcCreditProfileManager.map().size());
+      break;
     case SAI_OBJECT_TYPE_TAM_COLLECTOR:
       *count = fs->tamCollectorManager.map().size();
       break;
@@ -538,6 +544,18 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_WRED: {
       for (const auto& wred : fs->wredManager.map()) {
         object_list[i++].key.object_id = wred.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL: {
+      for (const auto& virtualChannel : fs->virtualChannelManager.map()) {
+        object_list[i++].key.object_id = virtualChannel.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE: {
+      for (const auto& profile : fs->cbfcCreditProfileManager.map()) {
+        object_list[i++].key.object_id = profile.second.id;
       }
       break;
     }
