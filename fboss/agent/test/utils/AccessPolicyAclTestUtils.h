@@ -24,10 +24,11 @@ std::optional<AccessPolicyShape> accessPolicyShape(
 
 // Named after the configerator sources: V0 is access_policy_rules.cinc, V1 is
 // access_policy_rules_v1.cinc.
-enum class AccessPolicyVersion { V0 };
+enum class AccessPolicyVersion { V0, V1 };
 
-inline constexpr std::array<AccessPolicyVersion, 1> kAccessPolicyVersions{
-    AccessPolicyVersion::V0};
+inline constexpr std::array<AccessPolicyVersion, 2> kAccessPolicyVersions{
+    AccessPolicyVersion::V0,
+    AccessPolicyVersion::V1};
 
 std::string kAccessPolicyClassIdTable();
 std::string kAccessPolicyRestrictedTable();

@@ -22,6 +22,7 @@ namespace {
 constexpr auto kTcp = static_cast<int16_t>(IP_PROTO::IP_PROTO_TCP);
 constexpr auto kUdp = static_cast<int16_t>(IP_PROTO::IP_PROTO_UDP);
 constexpr auto kIcmpV6 = static_cast<int16_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+constexpr auto kIpv6Encap = static_cast<int16_t>(IP_PROTO::IP_PROTO_IPV6);
 constexpr int16_t kTcpSyn = 2;
 constexpr int32_t kBgpL4Port = 179;
 // Mirrors DHCPv4Handler::kBootP{S,C}Port and
@@ -232,6 +233,137 @@ std::vector<AccessPolicyRule> buildAccessPolicyRules() {
   return rules;
 }
 
+// access_policy_rules_v1.cinc, anonymised as above. A service keeps the s<N> it
+// already has, so a rule that survives the upgrade keeps its name and the warm
+// boot delta stays honest.
+std::vector<AccessPolicyRule> buildAccessPolicyRulesV1() {
+  std::vector<AccessPolicyRule> rules;
+  auto add = [&rules](AccessPolicyRule rule) {
+    rule.counterName = fmt::format("ap1-{:03d}", rules.size());
+    CHECK_LE(rule.counterName.size(), kMaxAclNameLen);
+    rules.push_back(std::move(rule));
+  };
+  auto addTcpDstPorts = [&add](
+                            const std::string& prefix,
+                            const std::vector<int32_t>& l4DstPorts) {
+    for (size_t i = 0; i < l4DstPorts.size(); ++i) {
+      add(
+          {.name = fmt::format("{}-{}", prefix, i + 1),
+           .proto = kTcp,
+           .l4DstPort = l4DstPorts[i]});
+    }
+  };
+  auto addTls443DstIps = [&add](
+                             const std::string& namePattern,
+                             const std::string& dstIpPattern,
+                             int count) {
+    for (int i = 1; i <= count; ++i) {
+      add(
+          {.name = fmt::format(fmt::runtime(namePattern), i),
+           .proto = kTcp,
+           .l4DstPort = 443,
+           .dstIp = fmt::format(fmt::runtime(dstIpPattern), i)});
+    }
+  };
+
+  add({.name = "restrict-permit-icmpv6", .proto = kIcmpV6});
+  add({.name = "restrict-permit-lldp", .etherType = cfg::EtherType::LLDP});
+  for (auto l4DstPort : {67, 68, 546, 547}) {
+    add(
+        {.name = fmt::format("restrict-permit-dhcp-{}", l4DstPort),
+         .proto = kUdp,
+         .l4DstPort = l4DstPort});
+  }
+
+  add(
+      {.name = "restrict-permit-53-1",
+       .l4DstPort = 53,
+       .dstIp = "2001:db8:d000:1::5/128"});
+  add(
+      {.name = "restrict-permit-53-2",
+       .l4DstPort = 53,
+       .dstIp = "2001:db8:d000:2::5/128"});
+  add({.name = "restrict-permit-udp-123", .proto = kUdp, .l4DstPort = 123});
+  addTls443DstIps("restrict-permit-s0-tmp{:02d}", "2001:db8:a0{:02x}::/56", 36);
+  addTls443DstIps("restrict-permit-s22-{:02d}", "2001:db8:b0{:02x}::/56", 40);
+  addTls443DstIps("restrict-permit-s5-{:02d}", "2001:db8:c000:{:x}::1/128", 37);
+  addTls443DstIps("restrict-permit-s23-{}", "2001:db8:c100:{:x}::2/128", 3);
+  addTls443DstIps("restrict-permit-s24-{}", "2001:db8:c200:{:x}::3/128", 3);
+  addTls443DstIps("restrict-permit-s25-{}", "2001:db8:c300:{:x}::4/128", 4);
+  add({.name = "restrict-permit-vm-iso-vip", .dstIp = "2001:db8:9a00::/40"});
+  add({.name = "restrict-permit-s19", .l4DstPort = 32483});
+  add({.name = "restrict-permit-tcp-s20", .proto = kTcp, .l4DstPort = 45655});
+
+  // Surviving members keep the index they had, so a removal does not renumber
+  // the rules around it.
+  add({.name = "restrict-permit-tcp-s2-2", .proto = kTcp, .l4DstPort = 42312});
+  add({.name = "restrict-permit-tcp-s2-3", .proto = kTcp, .l4DstPort = 42313});
+  addTcpDstPorts(
+      "restrict-permit-tcp-s3",
+      {2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044});
+  add({.name = "restrict-permit-tcp-s21", .proto = kTcp, .l4DstPort = 30315});
+  addTcpDstPorts("restrict-permit-tcp-s4-v1", {19844, 19845});
+  add({.name = "restrict-permit-tcp-s4-2", .proto = kTcp, .l4DstPort = 39636});
+  add({.name = "restrict-permit-tcp-s4-3", .proto = kTcp, .l4DstPort = 23575});
+  add({.name = "restrict-permit-tcp-s4-4", .proto = kTcp, .l4DstPort = 58445});
+  add({.name = "restrict-permit-tcp-s7-3", .proto = kTcp, .l4DstPort = 23452});
+  add(
+      {.name = "restrict-permit-tcp-s12-tls",
+       .proto = kTcp,
+       .l4DstPort = 26205,
+       .dstIp = "2001:db8:d000:4::7/128"});
+  add({.name = "restrict-permit-tcp-s13-2", .proto = kTcp, .l4DstPort = 24971});
+  add({.name = "restrict-permit-tcp-s14", .proto = kTcp, .l4DstPort = 44795});
+  add({.name = "restrict-permit-tcp-s18", .proto = kTcp, .l4DstPort = 44824});
+
+  for (int i = 1; i <= 11; ++i) {
+    add(
+        {.name = fmt::format("restrict-permit-udp-rtc-{:02d}", i),
+         .proto = kUdp,
+         .l4SrcPort = 4614,
+         .dstIp = fmt::format("2001:db8:e0{:02x}::/56", i)});
+  }
+
+  add(
+      {.name = "restrict-deny-6",
+       .action = cfg::AclActionType::DENY,
+       .l4DstPort = 6});
+
+  // Ahead of the SYN deny, so this expected polling lands on its own counter
+  // rather than the generic one.
+  add(
+      {.name = "restrict-deny-tcp-s26-1",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .l4DstPort = 34411});
+  add(
+      {.name = "restrict-deny-tcp-s26-2",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .l4DstPort = 34412});
+
+  add(
+      {.name = "restrict-deny-tcp-syn",
+       .action = cfg::AclActionType::DENY,
+       .proto = kTcp,
+       .tcpFlagsBitMap = kTcpSyn});
+  add({.name = "restrict-permit-tcp-return", .proto = kTcp});
+
+  add(
+      {.name = "restrict-deny-udp-s27",
+       .action = cfg::AclActionType::DENY,
+       .proto = kUdp,
+       .l4SrcPort = 37012});
+  add(
+      {.name = "restrict-deny-ipv6-encap",
+       .action = cfg::AclActionType::DENY,
+       .proto = kIpv6Encap});
+
+  add({.name = "restrict-deny", .action = cfg::AclActionType::DENY});
+
+  return rules;
+}
+
 const std::string& tableForShape(AccessPolicyShape shape) {
   static const std::string kClassId = kAccessPolicyClassIdTable();
   static const std::string kRestrictedName = kAccessPolicyRestrictedTable();
@@ -311,7 +443,12 @@ std::vector<AccessPolicyProbe> buildAccessPolicyProbes(
     AccessPolicyVersion version) {
   std::vector<AccessPolicyProbe> probes;
   for (const auto& rule : accessPolicyRules(version)) {
-    if (rule.etherType.has_value()) {
+    // makeProbePacket() emits TCP, UDP and ICMPv6 frames only. A rule matching
+    // anything else is still programmed, and verifyBatch holds its counter at
+    // zero; it just has no probe of its own.
+    if (rule.etherType.has_value() ||
+        (rule.proto.has_value() && *rule.proto != kTcp && *rule.proto != kUdp &&
+         *rule.proto != kIcmpV6)) {
       continue;
     }
     AccessPolicyProbe probe;
@@ -463,9 +600,13 @@ std::optional<AccessPolicyShape> accessPolicyShape(
 const std::vector<AccessPolicyRule>& accessPolicyRules(
     AccessPolicyVersion version) {
   static const std::vector<AccessPolicyRule> v0Rules = buildAccessPolicyRules();
+  static const std::vector<AccessPolicyRule> v1Rules =
+      buildAccessPolicyRulesV1();
   switch (version) {
     case AccessPolicyVersion::V0:
       return v0Rules;
+    case AccessPolicyVersion::V1:
+      return v1Rules;
   }
   throw FbossError(
       "Unhandled access policy version ", static_cast<int>(version));
@@ -475,9 +616,13 @@ const std::vector<AccessPolicyProbe>& accessPolicyProbes(
     AccessPolicyVersion version) {
   static const std::vector<AccessPolicyProbe> v0Probes =
       buildAccessPolicyProbes(AccessPolicyVersion::V0);
+  static const std::vector<AccessPolicyProbe> v1Probes =
+      buildAccessPolicyProbes(AccessPolicyVersion::V1);
   switch (version) {
     case AccessPolicyVersion::V0:
       return v0Probes;
+    case AccessPolicyVersion::V1:
+      return v1Probes;
   }
   throw FbossError(
       "Unhandled access policy version ", static_cast<int>(version));
