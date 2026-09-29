@@ -258,17 +258,36 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return utility::getAclInOutPacketsMap(getSw(), counterNames);
   }
 
-  void verifyProbe(
+  // A probe's expected outcome: which rule claims it, and whether that lets it
+  // through. Shared so the batch and the single probe path cannot disagree.
+  struct ProbeOutcome {
+    std::optional<utility::AccessPolicyRule> match;
+    bool permit{true};
+  };
+
+  static ProbeOutcome probeOutcome(
       const utility::AccessPolicyProbe& probe,
-      PortID ingressPort,
       cfg::AclLookupClassPort lookupClass,
       bool accessPolicyProgrammed,
       const std::set<std::string>& omitRules) {
     auto match = accessPolicyProgrammed
         ? utility::accessPolicyMatch(probe, lookupClass, omitRules)
         : std::nullopt;
-    auto expectPermit =
-        !match.has_value() || match->action == cfg::AclActionType::PERMIT;
+    return {
+        match,
+        !match.has_value() || match->action == cfg::AclActionType::PERMIT};
+  }
+
+  void verifyProbe(
+      const utility::AccessPolicyProbe& probe,
+      PortID ingressPort,
+      cfg::AclLookupClassPort lookupClass,
+      bool accessPolicyProgrammed,
+      const std::set<std::string>& omitRules) {
+    auto outcome =
+        probeOutcome(probe, lookupClass, accessPolicyProgrammed, omitRules);
+    const auto& match = outcome.match;
+    auto expectPermit = outcome.permit;
     SCOPED_TRACE(
         fmt::format(
             "probe {} on port {} class {}: expect {} on {}",
