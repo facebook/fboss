@@ -1317,6 +1317,143 @@ TEST(Route, resolveEcmpRouteDividesParentWeightAmongWeightedChildren) {
   };
   EXPECT_EQ(weightsOf(r1), expectedWeights);
 }
+// A next hop at ECMP_WEIGHT states no weighting of its own, so it should not
+// flatten a weighting the route it resolves through was programmed with.
+// Without inheritance the recursive route comes out plain ECMP and the split
+// the intermediate route expressed is silently lost.
+TEST(Route, resolveEcmpRouteInheritsWeightsOfRecursiveNextHops) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  RouteNextHopSet intfNhop1;
+  intfNhop1.emplace(ResolvedNextHop(
+      IPAddress("fc00:1::1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
+  RouteNextHopSet intfNhop2;
+  intfNhop2.emplace(ResolvedNextHop(
+      IPAddress("fc00:2::1"), InterfaceID(2), UCMP_DEFAULT_WEIGHT));
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr, kEcmpWidth);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("fc00:1::"), 64},
+           RouteNextHopEntry(intfNhop1, AdminDistance::DIRECTLY_CONNECTED)},
+          {{IPAddress("fc00:2::"), 64},
+           RouteNextHopEntry(intfNhop2, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  // Intermediate route splits 3:1 across its two next hops. Neither is at
+  // ECMP_WEIGHT, so it resolves down the weighted path.
+  RouteNextHopSet intermediateNhops;
+  intermediateNhops.emplace(UnresolvedNextHop(IPAddress("fc00:1::10"), 3));
+  intermediateNhops.emplace(UnresolvedNextHop(IPAddress("fc00:2::10"), 1));
+
+  RouteV6::Prefix intermediate{IPAddressV6("fc00:10::"), 32};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{intermediate.network(), intermediate.mask()},
+           RouteNextHopEntry(intermediateNhops, kDistance)},
+      },
+      {},
+      false);
+
+  const std::map<folly::IPAddress, NextHopWeight> expectedWeights{
+      {IPAddress("fc00:1::10"), 3},
+      {IPAddress("fc00:2::10"), 1},
+  };
+
+  auto weightsOf = [&nhopIds, &v6Routes](const RouteV6::Prefix& prefix) {
+    auto it = v6Routes.exactMatch(prefix.network(), prefix.mask());
+    EXPECT_NE(v6Routes.end(), it);
+    auto route = it->value();
+    EXPECT_TRUE(route->isResolved());
+    std::map<folly::IPAddress, NextHopWeight> weights;
+    for (const auto& nh :
+         getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo())) {
+      weights[nh.addr()] = nh.weight();
+    }
+    return weights;
+  };
+
+  EXPECT_EQ(weightsOf(intermediate), expectedWeights);
+
+  // The recursive route's own next hop is at ECMP_WEIGHT, so the split above
+  // is carried through rather than collapsed.
+  RouteNextHopSet finalNhops;
+  finalNhops.emplace(UnresolvedNextHop(IPAddress("fc00:10::10"), ECMP_WEIGHT));
+
+  RouteV6::Prefix r1{IPAddressV6("2800:2::"), 64};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(finalNhops, kDistance)},
+      },
+      {},
+      false);
+
+  EXPECT_EQ(weightsOf(r1), expectedWeights);
+}
+
+// With neither the next hop being resolved nor the one it resolves onto
+// stating a weight, the result stays unweighted. Resolution floors
+// ECMP_WEIGHT at one share, so a plain ECMP child arrives here weighted 1;
+// counting that as a weighting would rewrite the next hops of every
+// recursively resolved ECMP route from ECMP_WEIGHT to 1. Hardware programs
+// the two the same, since normalizeNextHops applies that floor again above
+// the SAI and BCM layers, but NextHop::operator< orders on weight, so the
+// rewrite would change next hop group identity for routes that carry no
+// weighting at all.
+TEST(Route, resolveEcmpRouteRemainsUnweightedIfParentAndChildUnweighted) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  RouteNextHopSet intfNhop;
+  intfNhop.emplace(ResolvedNextHop(
+      IPAddress("fc00:1::1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT));
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds, nullptr, kEcmpWidth);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      ClientID::INTERFACE_ROUTE,
+      {
+          {{IPAddress("fc00:1::"), 64},
+           RouteNextHopEntry(intfNhop, AdminDistance::DIRECTLY_CONNECTED)},
+      },
+      {},
+      false);
+
+  // Resolving fc00:1::10 through the connected route above mints a resolved
+  // next hop at UCMP_DEFAULT_WEIGHT, which is the value that must not read as
+  // a weighting. One level is enough to show it: an un-thresholded inheritance
+  // turns this route's next hop into a one-share UCMP one, and from there
+  // every route recursing onto it inherits the same.
+  RouteNextHopSet nhops;
+  nhops.emplace(UnresolvedNextHop(IPAddress("fc00:1::10"), ECMP_WEIGHT));
+
+  RouteV6::Prefix r1{IPAddressV6("fc00:10::"), 32};
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(nhops, kDistance)},
+      },
+      {},
+      false);
+
+  auto it = v6Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v6Routes.end(), it);
+  auto route = it->value();
+  EXPECT_TRUE(route->isResolved());
+
+  auto resolvedNhops =
+      getResolvedNextHopsFromRib(&nhopIds, route->getForwardInfo());
+  ASSERT_EQ(resolvedNhops.size(), 1);
+  EXPECT_EQ(resolvedNhops.begin()->weight(), ECMP_WEIGHT);
+}
+
 // Intermediate route's next hops carry cost, but the final (immediate) route's
 // next hop has no cost. The final resolved next hops should have no cost
 // because getFwdInfoFromNhop uses the caller's cost, not the intermediate's.

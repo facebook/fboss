@@ -675,51 +675,6 @@ bool hasUcmpNextHop(const NextHopForwardInfos& nhToFwds) {
 }
 
 /*
- * In the case that no next hop of the route is weighted, go through the next
- * hop set of each resolved next hop and bring its next hop set in with
- * weight 0. The route states no split of its own, so there is nothing to
- * scale the recursively resolved next hops by.
- */
-template <typename AddressT>
-RouteNextHopSet mergeForwardInfosEcmp(
-    const NextHopForwardInfos& nhToFwds,
-    const std::shared_ptr<Route<AddressT>>& route) {
-  RouteNextHopSet fwd;
-  for (const auto& nhToFwd : nhToFwds) {
-    const NextHop& nh = nhToFwd.first;
-    const RouteNextHopSet& fw = nhToFwd.second;
-    if (nh.weight()) {
-      XLOG(WARNING) << "While resolving " << route->str()
-                    << " defaulting resolution of weighted next hop " << nh
-                    << " to ECMP because another next hop has weight 0";
-    }
-    for (const auto& fnh : fw) {
-      if (fnh.weight()) {
-        XLOG(DBG4)
-            << "While resolving " << route->str()
-            << " defaulting weighted recursively resolved next hop " << fnh
-            << " to ECMP because the next hop being resolved has weight 0: "
-            << nh;
-      }
-      fwd.emplace(ResolvedNextHop(
-          fnh.addr(),
-          fnh.intf(),
-          ECMP_WEIGHT,
-          fnh.labelForwardingAction(),
-          fnh.disableTTLDecrement(),
-          fnh.topologyInfo(),
-          std::nullopt, /* adjustedWeight */
-          fnh.srv6SegmentList(),
-          fnh.tunnelType(),
-          fnh.tunnelId(),
-          fnh.cost(),
-          fnh.role()));
-    }
-  }
-  return fwd;
-}
-
-/*
  * for each recursively resolved next hop set, combine the next hops into
  * a map from (IP,InterfaceID)->weight, normalizing weights to the scale of
  * the LCM of the total weights of each resolved next hop set. The odd map
@@ -790,13 +745,72 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
 }
 
 /*
+ * Resolution for a route that states no weighting across its own next hops.
+ *
+ * Stating none is not the same as stating an even one. If the routes it
+ * resolves onto are weighted, the route has expressed no preference that
+ * would override them, so their weighting is kept and scaled against the
+ * other resolved sets by the same arithmetic a weighted route uses. Only
+ * when nothing below is weighted either does the route resolve to plain
+ * ECMP.
+ */
+template <typename AddressT>
+RouteNextHopSet mergeForwardInfosEcmp(
+    const NextHopForwardInfos& nhToFwds,
+    const std::shared_ptr<Route<AddressT>>& route) {
+  // A resolved next hop at a single share is not stating a weighting:
+  // resolving through a connected route mints one at UCMP_DEFAULT_WEIGHT
+  // whether or not anyone asked for a split.
+  auto carriesAWeighting = [](const auto& nhToFwd) {
+    return std::any_of(
+        nhToFwd.second.begin(), nhToFwd.second.end(), [](const NextHop& fnh) {
+          return fnh.weight() > UCMP_DEFAULT_WEIGHT;
+        });
+  };
+
+  if (std::none_of(nhToFwds.begin(), nhToFwds.end(), carriesAWeighting)) {
+    // Keep ECMP_WEIGHT rather than emitting a uniform one share each. Both
+    // program the same split, but next hop group identity orders on weight,
+    // so rewriting it would churn dedup for routes that carry no weighting
+    // at any level. Every weight here is equal, so the set collapses next
+    // hops that resolved onto a shared destination without any help.
+    RouteNextHopSet fwd;
+    for (const auto& nhToFwd : nhToFwds) {
+      for (const auto& fnh : nhToFwd.second) {
+        fwd.emplace(ResolvedNextHop(
+            fnh.addr(),
+            fnh.intf(),
+            ECMP_WEIGHT,
+            fnh.labelForwardingAction(),
+            fnh.disableTTLDecrement(),
+            fnh.topologyInfo(),
+            std::nullopt, /* adjustedWeight */
+            fnh.srv6SegmentList(),
+            fnh.tunnelType(),
+            fnh.tunnelId(),
+            fnh.cost(),
+            fnh.role()));
+      }
+    }
+    return fwd;
+  }
+
+  XLOG(DBG4) << "While resolving " << route->str()
+             << " keeping the weighting of the recursively resolved next hops,"
+             << " since the route states none of its own";
+  return optimizeWeights(combineWeights(nhToFwds));
+}
+
+/*
  * Take the resolved forwarding info (NextHopSet containing ResolvedNextHops)
  * from each recursively resolved next hop and merge them together.
  *
  * There are two cases:
- * 1) None of this route's next hops is weighted. The route states no split
- *    of its own, so there is nothing to scale the recursively resolved next
- *    hops by and everything is brought in at ECMP_WEIGHT.
+ * 1) None of this route's next hops is weighted. If a recursively resolved
+ *    set carries a weighting, combineWeights() preserves its internal ratio
+ *    while giving each top-level next hop an equal aggregate share. If no
+ *    recursively resolved set is weighted either, everything is brought in
+ *    at ECMP_WEIGHT.
  * 2) At least one of this route's next hops is weighted. In this case, we run
  *    through algorithm to normalize all the weights for the next hops resolved
  *    for each next hop (combineWeights) then minimize the weights
@@ -805,10 +819,10 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
  *    the current route's weights and in the recursively resolved route's
  *    weights.
  *
- * NOTE: case 1) will propagate recursively, so a route none of whose next
- *       hops is weighted resolves to ECMP across everything below it.
- *       A weighted route no longer loses its weighting because one of its
- *       own next hops is at ECMP_WEIGHT, nor because a route it resolves
+ * NOTE: A route with no weighting of its own does not overwrite explicit
+ *       weighting below it; only an entirely unweighted resolution tree stays
+ *       ECMP. A weighted route no longer loses its weighting because one of
+ *       its own next hops is at ECMP_WEIGHT, nor because a route it resolves
  *       onto is unweighted: ECMP_WEIGHT counts as a single share in case 2),
  *       so neither the LCM nor the GCD is driven to zero by it.
  *
@@ -826,7 +840,7 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
  * In resolving R1, resolveOne and getFwdInfoFromNhop will mutually recursively
  * get to a point where we have resolved R2 and R3 to having next hops I1 with
  * weight 5, I2 with weight 4, and I3 with weight 3 and I4 with weight 2
- * respectively: {R2x3:{I1x5, I2x4}, R3x2:{I3x2, I4x2}}
+ * respectively: {R2x3:{I1x5, I2x4}, R3x2:{I3x3, I4x2}}
  * We need to preserve the following ratios in the final result:
  * I1/I2=5/4; I3/I4=3/2; (I1+I2)/(I3+I4)=3/2
  * To do this, we normalize the weights by finding the LCM of the total
