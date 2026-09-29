@@ -70,8 +70,10 @@ cpp_library(
     srcs = ["AccessPolicyAclTestUtils.cpp"],
     headers = ["AccessPolicyAclTestUtils.h"],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-error",
+        "//fboss/agent/packet:ipproto",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],

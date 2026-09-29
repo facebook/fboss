@@ -25,6 +25,24 @@ std::string kAccessPolicyClassIdTable();
 std::string kAccessPolicyRestrictedTable();
 std::string kAccessPolicyTableGroup();
 
+struct AccessPolicyRule {
+  std::string name;
+  cfg::AclActionType action{cfg::AclActionType::PERMIT};
+  cfg::AclLookupClassPort lookupClass{
+      cfg::AclLookupClassPort::CLASS_PORT_RESTRICTED};
+  std::optional<int16_t> proto;
+  std::optional<int32_t> l4DstPort;
+  std::optional<int32_t> l4SrcPort;
+  std::optional<int16_t> tcpFlagsBitMap;
+  std::optional<std::string> dstIp;
+  std::optional<cfg::EtherType> etherType;
+  // Production names run to 46 characters, past the 31 a SAI ACL counter label
+  // holds, so counters get a short generated name instead.
+  std::string counterName;
+};
+
+const std::vector<AccessPolicyRule>& accessPolicyRules();
+
 cfg::AclTable* findAccessPolicyAclTable(
     cfg::SwitchConfig& config,
     const std::string& name);
