@@ -13,6 +13,7 @@ class ConfigValidator {
       const std::vector<sensor_config::PmUnitSensors>& pmUnitSensorsList);
   bool isValidPmSensors(const std::vector<sensor_config::PmSensor>& pmSensor);
   bool isValidPmSensor(const sensor_config::PmSensor& pmSensor);
+  bool isValidLoadLineConfig(const sensor_config::SensorConfig& sensorConfig);
   bool isValidPlatformName(const sensor_config::SensorConfig& sensorConfig);
   bool isValidTemperatureSensorThresholds(
       const sensor_config::SensorConfig& sensorConfig);
