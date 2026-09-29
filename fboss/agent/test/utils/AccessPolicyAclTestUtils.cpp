@@ -23,6 +23,7 @@ constexpr auto kTcp = static_cast<int16_t>(IP_PROTO::IP_PROTO_TCP);
 constexpr auto kUdp = static_cast<int16_t>(IP_PROTO::IP_PROTO_UDP);
 constexpr auto kIcmpV6 = static_cast<int16_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
 constexpr int16_t kTcpSyn = 2;
+constexpr int32_t kBgpL4Port = 179;
 // Mirrors DHCPv4Handler::kBootP{S,C}Port and
 // DHCPv6Packet::DHCP6_{SERVERAGENT,CLIENT}_UDPPORT, which live in targets too
 // heavy to pull into this util.
@@ -348,6 +349,13 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
     probe.l4SrcPort = unmatchedL4SrcPort();
     return probe;
   };
+  auto tcp = [](int32_t l4DstPort, int32_t l4SrcPort) {
+    AccessPolicyProbe probe;
+    probe.proto = kTcp;
+    probe.l4DstPort = l4DstPort;
+    probe.l4SrcPort = l4SrcPort;
+    return probe;
+  };
   AccessPolicyProbe icmpV6;
   icmpV6.proto = kIcmpV6;
 
@@ -382,6 +390,12 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
   add("dhcpv6-to-client",
       ControlPlanePacket::DhcpV6ToClient,
       udp(kDhcpV6ClientPort));
+  add("bgp-dst-port",
+      ControlPlanePacket::BgpDstPort,
+      tcp(kBgpL4Port, unmatchedL4SrcPort()));
+  add("bgp-src-port",
+      ControlPlanePacket::BgpSrcPort,
+      tcp(unmatchedL4DstPort(), kBgpL4Port));
   add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,

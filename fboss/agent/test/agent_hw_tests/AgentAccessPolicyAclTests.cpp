@@ -369,6 +369,24 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         folly::IPAddress(dstIp)};
   }
 
+  ControlPlanePacketAndDst tcpV6Probe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp) {
+    return ControlPlanePacketAndDst{
+        utility::makeTCPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            ctx.intfMac,
+            kSrcIp(),
+            dstIp,
+            ctx.l4SrcPort,
+            ctx.l4DstPort,
+            0 /*trafficClass*/,
+            kHopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
   ControlPlanePacketAndDst udpV4Probe(
       const ProbeContext& ctx,
       const folly::IPAddressV4& dstIp) {
@@ -485,6 +503,9 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
             ctx, kDhcpV6AllRoutersMcast, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::DhcpV6ToClient:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::BgpDstPort:
+      case utility::ControlPlanePacket::BgpSrcPort:
+        return tcpV6Probe(ctx, ctx.myIpV6);
       case utility::ControlPlanePacket::Ip2Me:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2MeNetworkControl:

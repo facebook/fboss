@@ -76,6 +76,8 @@ enum class ControlPlanePacket {
   DhcpV4ToClient,
   DhcpV6ToServer,
   DhcpV6ToClient,
+  BgpDstPort,
+  BgpSrcPort,
   Ip2Me,
   Ip2MeNetworkControl,
 };
