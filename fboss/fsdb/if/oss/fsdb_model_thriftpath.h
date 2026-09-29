@@ -3660,6 +3660,7 @@ class ChildThriftPath<::facebook::fboss::state::QosPolicyFields, ::facebook::fbo
     STRUCT_CHILD_GETTERS(trafficClassToVoqId, 8);
     STRUCT_CHILD_GETTERS(pcpMap, 9);
     STRUCT_CHILD_GETTERS(trafficClassToVcId, 10);
+    STRUCT_CHILD_GETTERS(queueToVcId, 11);
 };
 
 

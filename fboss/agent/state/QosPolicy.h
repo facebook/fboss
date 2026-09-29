@@ -170,6 +170,10 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
     return cref<switch_state_tags::trafficClassToVcId>();
   }
 
+  const auto& getQueueToVcId() {
+    return cref<switch_state_tags::queueToVcId>();
+  }
+
   const auto& getTrafficClassToVoqId() {
     return cref<switch_state_tags::trafficClassToVoqId>();
   }

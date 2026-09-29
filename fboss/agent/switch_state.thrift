@@ -731,6 +731,7 @@ struct QosPolicyFields {
   8: optional map<i16, i16> trafficClassToVoqId;
   9: optional TrafficClassToQosAttributeMap pcpMap;
   10: optional map<i16, i16> trafficClassToVcId;
+  11: optional map<i16, i16> queueToVcId;
 }
 
 struct SocketAddress {
