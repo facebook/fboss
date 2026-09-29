@@ -127,6 +127,40 @@ struct OpticalChannelConfig {
   4: i32 rxConsActHoldOffTimerMs = 0;
 }
 
+enum TransceiverDspType {
+  MARVELL_SPICA_5NM = 1,
+  MARVELL_SPICA_PLUS = 2,
+  BRCM_GEMERA = 3,
+  BRCM_PORTOFINO = 4,
+  MARVELL_SPICA_GEN2 = 5,
+  // LPO (linear pluggable optics) modules have no DSP at all. Kept as an
+  // explicit type rather than omitting the module, so an LPO part resolves
+  // to a known zero delay instead of falling through as "unknown".
+  NO_DSP_LPO = 6,
+}
+
+struct TransceiverDspDelayInfo {
+  1: i32 txDelayNs;
+  2: i32 rxDelayNs;
+  3: i32 txErrorNs;
+  4: i32 rxErrorNs;
+}
+
+struct TransceiverDelayConstants {
+  // DSP type to delay values
+  1: map<TransceiverDspType, TransceiverDspDelayInfo> dspDelayMap;
+  // Transceiver MPN to DSP type
+  2: map<string, TransceiverDspType> mpnToDspMap;
+}
+
+// Static per transceiver data that qsfp_service cannot read off the module.
+// Everything in here is keyed by part number, so the configerator to OSS sync
+// job strips the whole field. Add internal only transceiver data here rather
+// than as a new top level field, so it stays out of OSS by default.
+struct TransceiverProperties {
+  1: optional TransceiverDelayConstants delayConstants;
+}
+
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
@@ -163,4 +197,7 @@ struct QsfpServiceConfig {
   // Map of thrift API name to Rate limit in thrift API queries per second.
   // Methods not present in the map are not rate limited.
   10: map<string, double> thriftApiToRateLimitInQps = {};
+
+  // Absent in OSS, where the sync job strips it. Consumers must handle that.
+  11: optional TransceiverProperties transceiverProperties;
 }
