@@ -23,6 +23,9 @@ constexpr std::array<cfg::AclLookupClassPort, 2> kChurnClasses{
     kRestricted,
     kUnconstrained};
 constexpr size_t kChurnRequiredInterfacePorts = 7;
+// Coprime with the ACL churn stride so the spot checks sweep every omit
+// window rather than revisiting half of them.
+constexpr int kVerifyEveryIterations = 11;
 
 } // namespace
 
@@ -31,6 +34,38 @@ class AgentAccessPolicyStressTest : public BaseT {
  protected:
   std::optional<size_t> maxRequiredInterfacePorts() const override {
     return kChurnRequiredInterfacePorts;
+  }
+
+  void spotCheck(
+      int ingressPortIdx,
+      cfg::AclLookupClassPort lookupClass,
+      const std::set<std::string>& omitRules) {
+    auto ingressPort = this->masterLogicalInterfacePortIds()[ingressPortIdx];
+    SCOPED_TRACE(
+        fmt::format(
+            "spot check port index {} class {}",
+            ingressPortIdx,
+            apache::thrift::util::enumNameSafe(lookupClass)));
+    const utility::AccessPolicyProbe* permit = nullptr;
+    const utility::AccessPolicyProbe* deny = nullptr;
+    for (const auto& probe : utility::accessPolicyProbes()) {
+      auto outcome = BaseT::probeOutcome(
+          probe, lookupClass, true /*accessPolicyProgrammed*/, omitRules);
+      auto& slot = outcome.permit ? permit : deny;
+      if (!slot) {
+        slot = &probe;
+      }
+    }
+    for (const auto* probe : {permit, deny}) {
+      if (probe) {
+        this->verifyProbe(
+            *probe,
+            ingressPort,
+            lookupClass,
+            true /*accessPolicyProgrammed*/,
+            omitRules);
+      }
+    }
   }
 
   static cfg::AclLookupClassPort churnClass(size_t portSlot, int iteration) {
@@ -56,8 +91,13 @@ class AgentAccessPolicyStressTest : public BaseT {
     auto verify = [this]() {
       this->applyClassAssignment(0);
       this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
+      int checkpoint = 0;
       for (int i = 1; i <= FLAGS_access_policy_stress_iterations; ++i) {
         this->applyClassAssignment(i);
+        if (i % kVerifyEveryIterations == 0) {
+          auto slot = checkpoint++ % kChurnPortIdxs.size();
+          this->spotCheck(kChurnPortIdxs[slot], churnClass(slot, i), {});
+        }
       }
       this->applyClassAssignment(0);
       this->verifyAccessPolicy(true /*accessPolicyProgrammed*/, {});
