@@ -59,6 +59,17 @@ class AgentAccessPolicyAclDowngradedTest : public BaseT {
 };
 
 template <typename BaseT>
+class AgentAccessPolicyAclV1ToV2UpgradedTest : public BaseT {
+ protected:
+  utility::AccessPolicyVersion coldBootRuleSet() const override {
+    return utility::AccessPolicyVersion::V1;
+  }
+  utility::AccessPolicyVersion warmBootRuleSet() const override {
+    return utility::AccessPolicyVersion::V2;
+  }
+};
+
+template <typename BaseT>
 class AgentAccessPolicyAclRemovedTest : public BaseT {
  protected:
   bool warmBootWithAccessPolicy() const override {
@@ -102,6 +113,10 @@ using AgentAccessPolicyClassIdAclDowngradedTest =
     AgentAccessPolicyAclDowngradedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclDowngradedTest =
     AgentAccessPolicyAclDowngradedTest<AgentAccessPolicyPortBoundAclTest>;
+using AgentAccessPolicyClassIdAclV1ToV2UpgradedTest =
+    AgentAccessPolicyAclV1ToV2UpgradedTest<AgentAccessPolicyClassIdAclTest>;
+using AgentAccessPolicyPortBoundAclV1ToV2UpgradedTest =
+    AgentAccessPolicyAclV1ToV2UpgradedTest<AgentAccessPolicyPortBoundAclTest>;
 using AgentAccessPolicyClassIdAclRemovedTest =
     AgentAccessPolicyAclRemovedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclRemovedTest =
@@ -191,6 +206,18 @@ TEST_F(
 TEST_F(
     AgentAccessPolicyPortBoundAclDowngradedTest,
     AccessPolicyAclDowngradedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_F(
+    AgentAccessPolicyClassIdAclV1ToV2UpgradedTest,
+    AccessPolicyAclV1ToV2UpgradedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_F(
+    AgentAccessPolicyPortBoundAclV1ToV2UpgradedTest,
+    AccessPolicyAclV1ToV2UpgradedOnWarmboot) {
   runAccessPolicyTest();
 }
 
