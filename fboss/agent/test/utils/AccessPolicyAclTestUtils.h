@@ -45,6 +45,12 @@ const std::vector<AccessPolicyRule>& accessPolicyRules();
 
 void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape);
 
+void addAccessPolicyAcls(
+    cfg::SwitchConfig& config,
+    const std::vector<const HwAsic*>& asics,
+    AccessPolicyShape shape,
+    const std::set<std::string>& omitRules = {});
+
 cfg::AclTable* findAccessPolicyAclTable(
     cfg::SwitchConfig& config,
     const std::string& name);

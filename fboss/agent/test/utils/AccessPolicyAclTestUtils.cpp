@@ -2,6 +2,8 @@
 
 #include "fboss/agent/test/utils/AccessPolicyAclTestUtils.h"
 
+#include <algorithm>
+
 #include <fmt/core.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -182,6 +184,42 @@ std::vector<AccessPolicyRule> buildAccessPolicyRules() {
   return rules;
 }
 
+const std::string& tableForShape(AccessPolicyShape shape) {
+  static const std::string kClassId = kAccessPolicyClassIdTable();
+  static const std::string kRestrictedName = kAccessPolicyRestrictedTable();
+  return shape == AccessPolicyShape::ClassId ? kClassId : kRestrictedName;
+}
+
+cfg::AclEntry makeAclEntry(
+    AccessPolicyShape shape,
+    const AccessPolicyRule& rule) {
+  cfg::AclEntry entry;
+  entry.name() = rule.name;
+  entry.actionType() = rule.action;
+  if (shape == AccessPolicyShape::ClassId) {
+    entry.lookupClassPort() = rule.lookupClass;
+  }
+  if (rule.proto.has_value()) {
+    entry.proto() = *rule.proto;
+  }
+  if (rule.l4DstPort.has_value()) {
+    entry.l4DstPort() = *rule.l4DstPort;
+  }
+  if (rule.l4SrcPort.has_value()) {
+    entry.l4SrcPort() = *rule.l4SrcPort;
+  }
+  if (rule.tcpFlagsBitMap.has_value()) {
+    entry.tcpFlagsBitMap() = *rule.tcpFlagsBitMap;
+  }
+  if (rule.dstIp.has_value()) {
+    entry.dstIp() = *rule.dstIp;
+  }
+  if (rule.etherType.has_value()) {
+    entry.etherType() = *rule.etherType;
+  }
+  return entry;
+}
+
 } // namespace
 
 std::string kAccessPolicyClassIdTable() {
@@ -259,6 +297,38 @@ void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape) {
     config.aclTableGroups() = {};
   }
   config.aclTableGroups()->push_back(std::move(group));
+}
+
+void addAccessPolicyAcls(
+    cfg::SwitchConfig& config,
+    const std::vector<const HwAsic*>& asics,
+    AccessPolicyShape shape,
+    const std::set<std::string>& omitRules) {
+  for (const auto& name : omitRules) {
+    CHECK(
+        std::any_of(
+            accessPolicyRules().begin(),
+            accessPolicyRules().end(),
+            [&name](const auto& rule) { return rule.name == name; }))
+        << "omitted rule " << name << " names no access policy rule";
+  }
+  auto counterTypes = utility::getAclCounterTypes(asics);
+  for (const auto& rule : accessPolicyRules()) {
+    if (omitRules.count(rule.name)) {
+      continue;
+    }
+    auto entry = makeAclEntry(shape, rule);
+    auto* table = findAccessPolicyAclTable(config, tableForShape(shape));
+    if (!utility::aclEntrySupported(table, entry)) {
+      throw FbossError(
+          "ACL entry ",
+          rule.name,
+          " is not supported by table ",
+          *table->name());
+    }
+    table->aclEntries()->push_back(entry);
+    utility::addAclStat(&config, rule.name, rule.counterName, counterTypes);
+  }
 }
 
 } // namespace facebook::fboss::utility
