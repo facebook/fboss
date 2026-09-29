@@ -556,8 +556,6 @@ enum AclLookupClass {
   // will be replaced by DST_CLASS_L3_LOCAL_1 and DST_CLASS_L3_LOCAL_2
   DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
   DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
-
-  ARS_ALTERNATE_MEMBERS_CLASS = 32,
 }
 
 enum AclLookupClassPort {
@@ -902,7 +900,6 @@ struct MatchAction {
   11: optional UserDefinedTrapAction userDefinedTrap;
   12: optional FlowletAction flowletAction;
   13: optional SetEcmpHashAction ecmpHashAction;
-  14: optional bool enableAlternateArsMembers;
 }
 
 struct MatchToAction {

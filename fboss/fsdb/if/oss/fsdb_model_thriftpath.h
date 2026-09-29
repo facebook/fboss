@@ -2780,7 +2780,6 @@ class ChildThriftPath<::facebook::fboss::cfg::MatchAction, ::facebook::fboss::fs
     STRUCT_CHILD_GETTERS(userDefinedTrap, 11);
     STRUCT_CHILD_GETTERS(flowletAction, 12);
     STRUCT_CHILD_GETTERS(ecmpHashAction, 13);
-    STRUCT_CHILD_GETTERS(enableAlternateArsMembers, 14);
 };
 
 
@@ -9005,7 +9004,6 @@ class ChildThriftPath<::facebook::fboss::state::MatchAction, ::facebook::fboss::
     STRUCT_CHILD_GETTERS(userDefinedTrap, 10);
     STRUCT_CHILD_GETTERS(flowletAction, 11);
     STRUCT_CHILD_GETTERS(ecmpHashAction, 12);
-    STRUCT_CHILD_GETTERS(enableAlternateArsMembers, 13);
     STRUCT_CHILD_GETTERS(redirectNextHopGroupId, 14);
 };
 

@@ -41,12 +41,8 @@ class AgentArsBase : public AgentHwTest {
   std::optional<size_t> maxRequiredInterfacePorts() const override {
     return kMaxEcmpWidthForTest;
   }
-  std::string getAclName(
-      AclType aclType,
-      bool enableArsAlternateMembers = false) const;
-  std::string getCounterName(
-      AclType aclType,
-      bool enableAlternateArsMembers = false) const;
+  std::string getAclName(AclType aclType) const;
+  std::string getCounterName(AclType aclType) const;
   void setup(int ecmpWidth = 1);
   void addSamplingConfig(cfg::SwitchConfig& config);
   void addAclTableConfig(

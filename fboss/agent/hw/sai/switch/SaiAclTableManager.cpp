@@ -1666,20 +1666,6 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             break;
         }
       }
-#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-      if (matchAction.getEnableAlternateArsMembers().has_value()) {
-        auto alternateMemberArsHandlePtr =
-            managerTable_->arsManager().getAlternateMemberArsHandle();
-        if (alternateMemberArsHandlePtr->ars) {
-          aclActionSetArsObject =
-              SaiAclEntryTraits::Attributes::ActionSetArsObject{
-                  AclEntryActionSaiObjectIdT(
-                      alternateMemberArsHandlePtr->ars->adapterKey())};
-        }
-        aclActionL3SwitchCancel =
-            SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
-      }
-#endif
     }
 #endif
 

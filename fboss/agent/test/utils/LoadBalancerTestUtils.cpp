@@ -222,8 +222,7 @@ void addFlowletAcl(
     bool isSai,
     const std::string& aclName,
     const std::string& aclCounterName,
-    bool udfFlowlet,
-    bool enableAlternateArsMembers) {
+    bool udfFlowlet) {
   cfg::AclEntry acl;
   acl.name() = aclName;
   acl.actionType() = cfg::AclActionType::PERMIT;
@@ -252,9 +251,6 @@ void addFlowletAcl(
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = aclCounterName;
-  if (enableAlternateArsMembers) {
-    matchAction.enableAlternateArsMembers() = true;
-  }
   std::vector<cfg::CounterType> counterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   auto counter = cfg::TrafficCounter();

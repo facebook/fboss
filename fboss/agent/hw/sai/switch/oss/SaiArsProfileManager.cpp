@@ -76,18 +76,6 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
             platform_->getAsic()->getArsBaseIndex().value())
       : std::nullopt;
 
-  std::optional<
-      SaiArsProfileTraits::Attributes::ArsAlternateMembersRouteMetaData>
-      arsAlternateMembersRouteMetaData = static_cast<sai_uint32_t>(
-          cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS);
-
-  std::optional<SaiArsProfileTraits::Attributes::ArsRouteMetaDataMask>
-      arsRouteMetaDataMask = static_cast<sai_uint32_t>(
-          cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS);
-
-  std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
-      arsPrimaryMembersRouteMetaData = 0;
-
 #if defined(BRCM_SAI_SDK_GTE_14_0)
   std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>
       ecmpMemberCount = flowletSwitchConfig->getMaxArsVirtualGroupWidth()
@@ -123,10 +111,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
       ,
       arsMaxGroups,
-      arsBaseIndex,
-      arsAlternateMembersRouteMetaData,
-      arsRouteMetaDataMask,
-      arsPrimaryMembersRouteMetaData
+      arsBaseIndex
 #if defined(BRCM_SAI_SDK_GTE_14_0)
       ,
       ecmpMemberCount

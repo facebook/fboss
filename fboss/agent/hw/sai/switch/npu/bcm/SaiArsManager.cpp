@@ -80,33 +80,6 @@ void SaiArsManager::addArs(
           toSourcePortPruneAttribute(splitHorizonEnabled),
           ecmpMemberCountForArs));
 
-  auto cost = flowletSwitchConfig->getAlternatePathCost();
-  auto bias = flowletSwitchConfig->getAlternatePathBias();
-  if (cost.has_value() && bias.has_value()) {
-    std::optional<SaiArsTraits::Attributes::PrimaryPathQualityThreshold>
-        primaryPathQualityThreshold = std::nullopt;
-    if (auto threshold =
-            flowletSwitchConfig->getPrimaryPathQualityThreshold()) {
-      primaryPathQualityThreshold =
-          SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
-              static_cast<sai_uint32_t>(*threshold)};
-    }
-    setArsObject(
-        alternateMemberArsHandle_.get(),
-        makeArsAttributes(
-            switchingMode,
-            idleTime,
-            maxFlows,
-            primaryPathQualityThreshold,
-            SaiArsTraits::Attributes::AlternatePathCost{
-                static_cast<sai_uint32_t>(*cost)},
-            SaiArsTraits::Attributes::AlternatePathBias{
-                static_cast<sai_uint32_t>(*bias)},
-            nextHopGroupType,
-            std::nullopt,
-            ecmpMemberCountForArs));
-  }
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   auto standbySwitchingMode = flowletSwitchConfig->getStandbySwitchingMode();
   if (standbySwitchingMode.has_value()) {
@@ -143,6 +116,8 @@ void SaiArsManager::addArs(
     auto virtualAlternatePathCost = alternatePathCostForArs;
     auto virtualAlternatePathBias = alternatePathBiasForArs;
 #if defined(BRCM_SAI_SDK_GTE_15_4)
+    auto cost = flowletSwitchConfig->getAlternatePathCost();
+    auto bias = flowletSwitchConfig->getAlternatePathBias();
     virtualArsQualityThreshold =
         SaiArsTraits::Attributes::PrimaryPathQualityThreshold{0};
     if (auto threshold =
@@ -176,9 +151,8 @@ void SaiArsManager::addArs(
     // this is the one object where the alternate path cost and bias reach
     // hardware. Everywhere else they stay 0 to keep the adapter host key
     // matching what the adapter reports back. Config sets the two fields
-    // independently, so apply them only as a pair, the way the alternate
-    // member object above does: cost without bias, or the reverse, is half a
-    // DGM policy rather than a weaker one.
+    // independently, so apply them only as a pair: cost without bias, or the
+    // reverse, is half a DGM policy rather than a weaker one.
     if (cost.has_value() && bias.has_value()) {
       virtualAlternatePathCost = SaiArsTraits::Attributes::AlternatePathCost{
           static_cast<sai_uint32_t>(*cost)};

@@ -901,7 +901,7 @@ const CommandTree& kConfigCommandTree() {
                   argRegistrar<CmdDeleteDataPlaneTrafficPolicyMatchTraits>,
                   {{
                       "action",
-                      "Delete a dataplane action (send-to-queue, set-dscp, set-tc, mirror-ingress, mirror-egress, counter, trap-to-cpu, copy-to-cpu, redirect, user-defined-trap, flowlet, ecmp-hash, alternate-ars-members) from the matcher",
+                      "Delete a dataplane action (send-to-queue, set-dscp, set-tc, mirror-ingress, mirror-egress, counter, trap-to-cpu, copy-to-cpu, redirect, user-defined-trap, flowlet, ecmp-hash) from the matcher",
                       commandHandler<
                           CmdDeleteDataPlaneTrafficPolicyMatchAction>,
                       argRegistrar<
