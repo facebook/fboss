@@ -63,26 +63,9 @@ using PatchReader =
     SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>;
 
 test_data::RoleSelector roleFromFlag() {
-  static const std::map<std::string, test_data::RoleSelector> kRoles{
-      {"Minimal", test_data::RoleSelector::Minimal},
-      {"MaxScale", test_data::RoleSelector::MaxScale},
-      {"RTSW", test_data::RoleSelector::RTSW},
-      {"FTSW", test_data::RoleSelector::FTSW},
-      {"STSW", test_data::RoleSelector::STSW},
-      {"RSW", test_data::RoleSelector::RSW},
-      {"FSW", test_data::RoleSelector::FSW},
-      {"SSW", test_data::RoleSelector::SSW},
-      {"XSW", test_data::RoleSelector::XSW},
-      {"MA", test_data::RoleSelector::MA},
-      {"FA", test_data::RoleSelector::FA},
-      {"RDSW", test_data::RoleSelector::RDSW},
-      {"FDSW", test_data::RoleSelector::FDSW},
-      {"SDSW", test_data::RoleSelector::SDSW},
-      {"EDSW", test_data::RoleSelector::EDSW},
-      {"RGSW", test_data::RoleSelector::RGSW}};
-  auto it = kRoles.find(FLAGS_bm_role);
-  CHECK(it != kRoles.end()) << "unknown --bm_role: " << FLAGS_bm_role;
-  return it->second;
+  auto role = test_data::statsRoleFromString(FLAGS_bm_role);
+  CHECK(role.has_value()) << "unknown --bm_role: " << FLAGS_bm_role;
+  return *role;
 }
 
 FsdbOperStatsRoot makeRoot(int update) {
