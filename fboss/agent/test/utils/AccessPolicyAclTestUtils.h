@@ -60,6 +60,23 @@ struct AccessPolicyProbe {
 
 const std::vector<AccessPolicyProbe>& accessPolicyProbes();
 
+// A packet shape AclTable1 or an ASIC rx reason traps to the CPU. Some of those
+// traps fire ahead of the ingress ACL stage, where a deny never sees them.
+enum class ControlPlanePacket {
+  Ip2Me,
+  Ip2MeNetworkControl,
+};
+
+struct ControlPlaneProbe {
+  std::string name;
+  ControlPlanePacket packet;
+  // What the access policy tables can qualify on. dstIp is left for the caller
+  // to fill in, since the switch's own addresses are only known at run time.
+  AccessPolicyProbe policyMatch;
+};
+
+const std::vector<ControlPlaneProbe>& controlPlaneProbes();
+
 // One rule per distinct match shape, for tests that need a warm boot cycle per
 // parameter and cannot afford one per rule.
 const std::vector<std::string>& accessPolicyRepresentativeRules();

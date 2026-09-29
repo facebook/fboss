@@ -320,6 +320,31 @@ std::vector<AccessPolicyProbe> buildAccessPolicyProbes() {
   return probes;
 }
 
+std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
+  std::vector<ControlPlaneProbe> probes;
+  auto add = [&probes](
+                 const std::string& name,
+                 ControlPlanePacket packet,
+                 AccessPolicyProbe policyMatch) {
+    policyMatch.name = name;
+    probes.push_back({name, packet, std::move(policyMatch)});
+  };
+  auto udp = [](int32_t l4DstPort) {
+    AccessPolicyProbe probe;
+    probe.proto = kUdp;
+    probe.l4DstPort = l4DstPort;
+    probe.l4SrcPort = unmatchedL4SrcPort();
+    return probe;
+  };
+
+  add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
+  add("ip2me-network-control",
+      ControlPlanePacket::Ip2MeNetworkControl,
+      udp(unmatchedL4DstPort()));
+
+  return probes;
+}
+
 } // namespace
 
 std::string kAccessPolicyClassIdTable() {
@@ -357,6 +382,12 @@ const std::vector<AccessPolicyRule>& accessPolicyRules() {
 const std::vector<AccessPolicyProbe>& accessPolicyProbes() {
   static const std::vector<AccessPolicyProbe> probes =
       buildAccessPolicyProbes();
+  return probes;
+}
+
+const std::vector<ControlPlaneProbe>& controlPlaneProbes() {
+  static const std::vector<ControlPlaneProbe> probes =
+      buildControlPlaneProbes();
   return probes;
 }
 
