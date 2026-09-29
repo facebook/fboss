@@ -7,10 +7,12 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -254,6 +256,52 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
           bodyCursor->push(body.data(), body.size());
         });
     return pkt;
+  }
+
+  struct ControlPlanePacketAndDst {
+    std::unique_ptr<TxPacket> pkt;
+    std::optional<folly::IPAddress> dstIp;
+  };
+
+  // Everything the control plane builders need from the ingress port. Each port
+  // is its own interface on its own VLAN and the switch retags on ingress, so
+  // building with any other interface's VLAN makes the punted copy come back
+  // unrecognisable to the snooper.
+  struct ProbeContext {
+    std::optional<VlanID> vlanId;
+    folly::MacAddress srcMac;
+    folly::MacAddress intfMac;
+    folly::IPAddressV4 myIpV4;
+    folly::IPAddressV6 myIpV6;
+    uint16_t l4SrcPort{0};
+    uint16_t l4DstPort{0};
+  };
+
+  ProbeContext probeContext(
+      const utility::ControlPlaneProbe& probe,
+      PortID ingressPort) {
+    auto state = getProgrammedState();
+    auto intfId = getInterfaceIDForPort(ingressPort, state);
+    auto intf = state->getInterfaces()->getNode(intfId);
+    auto v6Addrs = utility::getIntfAddrsV6(state, intfId);
+    auto v4Addrs = utility::getIntfAddrsV4(state, intfId);
+    CHECK(!v6Addrs.empty() && !v4Addrs.empty())
+        << "interface " << intfId << " needs both a v4 and a v6 address";
+    auto toL4Port = [&probe](std::optional<int32_t> port) {
+      auto value = port.value_or(0);
+      CHECK_GE(value, 0);
+      CHECK_LE(value, std::numeric_limits<uint16_t>::max())
+          << "probe " << probe.name << " L4 port does not fit 16 bits";
+      return static_cast<uint16_t>(value);
+    };
+    return ProbeContext{
+        getSw()->getVlanIDForTx(intfId),
+        probeSrcMac(intf->getMac()),
+        intf->getMac(),
+        v4Addrs[0],
+        v6Addrs[0],
+        toL4Port(probe.policyMatch.l4SrcPort),
+        toL4Port(probe.policyMatch.l4DstPort)};
   }
 
   std::map<std::string, uint64_t> aclCounters(
