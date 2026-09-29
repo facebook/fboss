@@ -649,17 +649,6 @@ void AgentArsBase::addAclAndStat(
     } break;
     case AclType::FLOWLET: {
       utility::addFlowletAcl(*config, isSai, aclName, counterName, false);
-      if (FLAGS_enable_th5_ars_scale_mode) {
-        auto alternateMemberAclName = getAclName(aclType, true);
-        auto alternateCounterName = getCounterName(aclType, true);
-        utility::addFlowletAcl(
-            *config,
-            isSai,
-            alternateMemberAclName,
-            alternateCounterName,
-            false,
-            true);
-      }
     } break;
     case AclType::FLOWLET_WITH_UDF_ACK:
       config->udfConfig() =

@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
-#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -302,7 +301,7 @@ TomahawkUltra1Asic::desiredLoopbackModes() const {
 }
 
 std::optional<uint32_t> TomahawkUltra1Asic::getMaxArsGroups() const {
-  return FLAGS_enable_th5_ars_scale_mode ? 256 : 128;
+  return 128;
 }
 
 std::optional<uint32_t> TomahawkUltra1Asic::getArsBaseIndex() const {

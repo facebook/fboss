@@ -752,23 +752,6 @@ void SaiRouteManager::checkMetadata(SaiRouteTraits::RouteEntry entry) {
     return;
   }
 
-  // Read ARS metadata from SDK and set it back to sync all layers
-  // This is needed because metadata is an optional SAI attribute
-  if (FLAGS_enable_th5_ars_scale_mode) {
-    auto& api = SaiApiTable::getInstance()->routeApi();
-    auto sdkMetadata = api.getAttribute(
-        route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
-    if (sdkMetadata ==
-            static_cast<sai_uint32_t>(
-                cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS) ||
-        sdkMetadata == 0) {
-      // Set it back to sync all layers
-      api.setAttribute(
-          route->adapterKey(),
-          SaiRouteTraits::Attributes::Metadata{sdkMetadata});
-    }
-  }
-
   auto attributes = route->attributes();
   auto metadata =
       std::get<std::optional<SaiRouteTraits::Attributes::Metadata>>(attributes);

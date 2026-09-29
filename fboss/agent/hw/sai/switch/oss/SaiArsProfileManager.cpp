@@ -65,10 +65,6 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups{
       std::nullopt};
 
-  if (FLAGS_enable_th5_ars_scale_mode) {
-    arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
-        platform_->getAsic()->getMaxArsGroups());
-  }
   if (flowletSwitchConfig->getMaxArsVirtualGroups().has_value()) {
     arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
         flowletSwitchConfig->getMaxArsVirtualGroups().value());

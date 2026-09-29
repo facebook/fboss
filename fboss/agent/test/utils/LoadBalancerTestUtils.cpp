@@ -234,11 +234,6 @@ void addFlowletAcl(
       checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     acl.etherType() = cfg::EtherType::IPv6;
   }
-  if (FLAGS_enable_th5_ars_scale_mode) {
-    acl.lookupClassRoute() = enableAlternateArsMembers
-        ? cfg::AclLookupClass::ARS_ALTERNATE_MEMBERS_CLASS
-        : cfg::AclLookupClass(0);
-  }
   if (udfFlowlet) {
     if (isSai) {
       utility::addUdfTableToAcl(
@@ -279,11 +274,6 @@ void addFlowletConfigs(
   cfg::FlowletSwitchingConfig flowletCfg =
       utility::getDefaultFlowletSwitchingConfig(
           isSai, switchingMode, backupSwitchingMode, supportsFuturePortLoad);
-  if (FLAGS_enable_th5_ars_scale_mode) {
-    flowletCfg.primaryPathQualityThreshold() = 7;
-    flowletCfg.alternatePathCost() = 0;
-    flowletCfg.alternatePathBias() = 7;
-  }
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;

@@ -456,8 +456,6 @@ DEFINE_uint32(
     64,
     "Max ecmp width. Also implies ucmp normalization factor");
 
-DEFINE_bool(enable_th5_ars_scale_mode, false, "Enable ARS scale mode");
-
 DEFINE_bool(
     check_wb_handles,
     false,
