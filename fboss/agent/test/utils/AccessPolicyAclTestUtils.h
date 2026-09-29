@@ -43,6 +43,8 @@ struct AccessPolicyRule {
 
 const std::vector<AccessPolicyRule>& accessPolicyRules();
 
+void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape);
+
 cfg::AclTable* findAccessPolicyAclTable(
     cfg::SwitchConfig& config,
     const std::string& name);

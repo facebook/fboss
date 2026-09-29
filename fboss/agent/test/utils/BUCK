@@ -71,6 +71,7 @@ cpp_library(
     headers = ["AccessPolicyAclTestUtils.h"],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        ":acl_test_utils",
         "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-error",
         "//fboss/agent/packet:ipproto",

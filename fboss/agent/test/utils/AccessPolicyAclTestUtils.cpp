@@ -9,6 +9,7 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/packet/IPProto.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -22,6 +23,50 @@ constexpr int16_t kTcpSyn = 2;
 // A SAI ACL counter label is char[32]. SaiAclTableManager::addAclCounter throws
 // an uncaught FbossError on a longer name, which aborts the hw agent.
 constexpr size_t kMaxAclNameLen = 31;
+
+// ACCESS_POLICY_RESTRICT_ACL_TABLE_PRIORITY in access_policy_acl.cinc.
+constexpr int32_t kRestrictedTablePriority = 1;
+
+// ACCESS_POLICY_RESTRICT_ACL_QUALIFIERS in
+// configerator/source/neteng/fboss/coop/templates/access_policy_acl.cinc.
+std::vector<cfg::AclTableQualifier> restrictedTableQualifiers() {
+  return {
+      cfg::AclTableQualifier::L4_SRC_PORT,
+      cfg::AclTableQualifier::L4_DST_PORT,
+      cfg::AclTableQualifier::IP_PROTOCOL_NUMBER,
+      cfg::AclTableQualifier::ICMPV4_TYPE,
+      cfg::AclTableQualifier::ICMPV4_CODE,
+      cfg::AclTableQualifier::ICMPV6_TYPE,
+      cfg::AclTableQualifier::ICMPV6_CODE,
+      cfg::AclTableQualifier::TCP_FLAGS,
+      cfg::AclTableQualifier::ETHER_TYPE,
+      cfg::AclTableQualifier::DST_IPV6,
+      cfg::AclTableQualifier::DST_IPV4};
+}
+
+std::vector<cfg::AclTableQualifier> classIdTableQualifiers() {
+  auto qualifiers = restrictedTableQualifiers();
+  qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_PORT);
+  return qualifiers;
+}
+
+std::vector<cfg::AclTableActionType> accessPolicyActionTypes() {
+  // Production leaves actionTypes empty; the tests need the per entry counters.
+  return {
+      cfg::AclTableActionType::PACKET_ACTION, cfg::AclTableActionType::COUNTER};
+}
+
+cfg::AclTable makeAclTable(
+    const std::string& name,
+    int32_t priority,
+    std::vector<cfg::AclTableQualifier> qualifiers) {
+  cfg::AclTable table;
+  table.name() = name;
+  table.priority() = priority;
+  table.actionTypes() = accessPolicyActionTypes();
+  table.qualifiers() = std::move(qualifiers);
+  return table;
+}
 
 // The rule set the Safety team ships, in configerator order. ACL match is
 // first hit, so the order is part of the contract.
@@ -183,6 +228,37 @@ cfg::AclTable* findAccessPolicyAclTable(
     }
   }
   throw FbossError("No ACL table named ", name);
+}
+
+void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape) {
+  if (shape == AccessPolicyShape::ClassId) {
+    // Joins the switch bound group the base config already created, next to
+    // AclTable1, the way coop does. Creating a group here instead would put
+    // the table somewhere production never puts it; addAclTable throws if the
+    // caller has not made that group.
+    utility::addAclTable(
+        &config,
+        kAccessPolicyClassIdTable(),
+        0 /*priority*/,
+        accessPolicyActionTypes(),
+        classIdTableQualifiers());
+    return;
+  }
+  // A second INGRESS group, alongside the switch bound one, is the shape coop
+  // programs: this one binds to ports. utility::addAclTableGroup would replace
+  // the group already at the stage rather than add to it.
+  cfg::AclTableGroup group;
+  group.name() = kAccessPolicyTableGroup();
+  group.stage() = cfg::AclStage::INGRESS;
+  group.bindPoint() = cfg::AclTableGroupBindPoint::PORT;
+  group.aclTables() = {makeAclTable(
+      kAccessPolicyRestrictedTable(),
+      kRestrictedTablePriority,
+      restrictedTableQualifiers())};
+  if (!config.aclTableGroups()) {
+    config.aclTableGroups() = {};
+  }
+  config.aclTableGroups()->push_back(std::move(group));
 }
 
 } // namespace facebook::fboss::utility

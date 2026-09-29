@@ -29,6 +29,7 @@ add_library(access_policy_acl_test_utils
 )
 
 target_link_libraries(access_policy_acl_test_utils
+  acl_test_utils
   asic_utils
   fboss_error
   switch_asics
