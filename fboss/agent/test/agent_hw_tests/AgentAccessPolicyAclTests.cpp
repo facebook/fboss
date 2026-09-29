@@ -47,6 +47,10 @@ folly::IPAddressV6 kDstIp() {
   return folly::IPAddressV6("2001:db8:1::1");
 }
 
+folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
+  return utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+}
+
 } // namespace
 
 class AgentAccessPolicyAclTest : public AgentHwTest {
@@ -173,7 +177,7 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       const utility::AccessPolicyProbe& probe) {
     auto vlanId = getVlanIDForTx();
     auto intfMac = getMacForFirstInterfaceWithPorts(getProgrammedState());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    auto srcMac = probeSrcMac(intfMac);
     auto dstIp =
         probe.dstIp.has_value() ? folly::IPAddressV6(*probe.dstIp) : kDstIp();
     CHECK(probe.proto.has_value()) << "probe " << probe.name << " has no proto";
@@ -206,7 +210,13 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
           std::nullopt /*payload*/,
           tcpFlags(probe));
     }
-    return makeIcmpV6ProbePacket(vlanId, srcMac, intfMac, dstIp);
+    return makeIcmpV6Packet(
+        vlanId,
+        srcMac,
+        intfMac,
+        dstIp,
+        ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST,
+        kHopLimit);
   }
 
   static uint8_t tcpFlags(const utility::AccessPolicyProbe& probe) {
@@ -216,21 +226,20 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     return static_cast<uint8_t>(flags);
   }
 
-  std::unique_ptr<TxPacket> makeIcmpV6ProbePacket(
+  std::unique_ptr<TxPacket> makeIcmpV6Packet(
       std::optional<VlanID> vlanId,
       folly::MacAddress srcMac,
       folly::MacAddress dstMac,
-      const folly::IPAddressV6& dstIp) {
+      const folly::IPAddressV6& dstIp,
+      ICMPv6Type icmpType,
+      uint8_t hopLimit) {
     std::vector<uint8_t> body(56, 0xff);
     IPv6Hdr ipHdr(kSrcIp(), dstIp);
     ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
     ipHdr.payloadLength = ICMPHdr::SIZE + body.size();
-    ipHdr.hopLimit = kHopLimit;
+    ipHdr.hopLimit = hopLimit;
 
-    ICMPHdr icmpHdr(
-        static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_ECHO_REQUEST),
-        static_cast<uint8_t>(ICMPv6Code::ICMPV6_CODE_ECHO_REQUEST),
-        0 /*csum*/);
+    ICMPHdr icmpHdr(static_cast<uint8_t>(icmpType), 0 /*code*/, 0 /*csum*/);
     auto pkt = getSw()->allocatePacket(icmpHdr.computeTotalLengthV6(
         body.size(), vlanId.has_value() /*taggedPkt*/));
     folly::io::RWPrivateCursor cursor(pkt->buf());
