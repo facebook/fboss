@@ -86,6 +86,10 @@ using AgentAccessPolicyClassIdAclUpgradedTest =
     AgentAccessPolicyAclUpgradedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclUpgradedTest =
     AgentAccessPolicyAclUpgradedTest<AgentAccessPolicyPortBoundAclTest>;
+using AgentAccessPolicyClassIdAclV1AddedTest = AgentAccessPolicyAclAddedTest<
+    AgentAccessPolicyAclUpgradedTest<AgentAccessPolicyClassIdAclTest>>;
+using AgentAccessPolicyPortBoundAclV1AddedTest = AgentAccessPolicyAclAddedTest<
+    AgentAccessPolicyAclUpgradedTest<AgentAccessPolicyPortBoundAclTest>>;
 using AgentAccessPolicyClassIdAclRemovedTest =
     AgentAccessPolicyAclRemovedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclRemovedTest =
@@ -151,6 +155,18 @@ TEST_F(
 TEST_F(
     AgentAccessPolicyPortBoundAclUpgradedTest,
     AccessPolicyAclUpgradedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_F(
+    AgentAccessPolicyClassIdAclV1AddedTest,
+    AccessPolicyAclV1AddedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_F(
+    AgentAccessPolicyPortBoundAclV1AddedTest,
+    AccessPolicyAclV1AddedOnWarmboot) {
   runAccessPolicyTest();
 }
 
