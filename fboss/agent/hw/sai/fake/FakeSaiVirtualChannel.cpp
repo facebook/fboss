@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiVirtualChannel.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
-
 using facebook::fboss::FakeSai;
 
 sai_status_t create_virtual_channel_fn(
@@ -309,5 +307,3 @@ void populate_virtual_channel_api(
 }
 
 } // namespace facebook::fboss
-
-#endif

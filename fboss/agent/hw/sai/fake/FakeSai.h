@@ -101,10 +101,8 @@ struct FakeSai {
   FakeUdfMatchManager udfMatchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
-#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
   FakeVirtualChannelManager virtualChannelManager;
   FakeCbfcCreditProfileManager cbfcCreditProfileManager;
-#endif
   FakeWredManager wredManager;
   FakeTamManager tamManager;
   FakeTamEventManager tamEventManager;

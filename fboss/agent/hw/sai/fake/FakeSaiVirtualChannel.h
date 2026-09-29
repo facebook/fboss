@@ -15,8 +15,6 @@ extern "C" {
 #include <sai.h>
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 19, 0)
-
 namespace facebook::fboss {
 
 class FakeVirtualChannel {
@@ -92,5 +90,3 @@ void populate_virtual_channel_api(
     sai_virtual_channel_api_t** virtual_channel_api);
 
 } // namespace facebook::fboss
-
-#endif
