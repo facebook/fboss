@@ -71,7 +71,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, IngressPriorityGroupList),
     SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),
     SAI_ATTR_MAP(Port, QosTcToPriorityGroupMap),
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     SAI_ATTR_MAP(Port, QosTcToVcMap),
     SAI_ATTR_MAP(Port, CbfcSenderCreditLimit),
 #endif

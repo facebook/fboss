@@ -132,7 +132,7 @@ class SaiApiTable {
 
   const UdfApi& udfApi() const;
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   const VirtualChannelApi& virtualChannelApi() const;
 #endif
 
@@ -216,7 +216,7 @@ class SaiApiTable {
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<SystemPortApi>,
       std::unique_ptr<UdfApi>,
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
       std::unique_ptr<VirtualChannelApi>,
 #endif
       std::unique_ptr<VirtualRouterApi>,

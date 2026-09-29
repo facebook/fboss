@@ -70,6 +70,8 @@ sai_status_t create_port_fn(
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
+  std::optional<sai_object_id_t> qosTcToVcMap;
+  std::optional<sai_uint32_t> cbfcSenderCreditLimit;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
   std::optional<sai_object_id_t> qosPfcPriorityToPriorityGroupMap;
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
@@ -247,6 +249,12 @@ sai_status_t create_port_fn(
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
         qosTcToPriorityGroupMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+        qosTcToVcMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+        cbfcSenderCreditLimit = attr_list[i].value.u32;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
@@ -434,6 +442,12 @@ sai_status_t create_port_fn(
   }
   if (qosTcToPriorityGroupMap.has_value()) {
     port.qosTcToPriorityGroupMap = qosTcToPriorityGroupMap.value();
+  }
+  if (qosTcToVcMap.has_value()) {
+    port.qosTcToVcMap = qosTcToVcMap.value();
+  }
+  if (cbfcSenderCreditLimit.has_value()) {
+    port.cbfcSenderCreditLimit = cbfcSenderCreditLimit.value();
   }
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
@@ -817,6 +831,12 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
       port.qosTcToPriorityGroupMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+      port.qosTcToVcMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+      port.cbfcSenderCreditLimit = attr->value.u32;
       break;
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
@@ -1215,6 +1235,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
         attr[i].value.oid = port.qosTcToPriorityGroupMap;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_VC_MAP:
+        attr[i].value.oid = port.qosTcToVcMap;
+        break;
+      case SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT:
+        attr[i].value.u32 = port.cbfcSenderCreditLimit;
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;

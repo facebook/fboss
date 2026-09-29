@@ -425,7 +425,7 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedUdfApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "udf_api");
       break;
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_API_VIRTUAL_CHANNEL:
       SaiTracer::getInstance()->virtualChannelApi_ =
           static_cast<sai_virtual_channel_api_t*>(*api_method_table);
@@ -2084,7 +2084,7 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_UDF_GROUP:
       setUdfGroupAttributes(attr_list, attr_count, attrLines, rv);
       break;
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
       setVirtualChannelAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2622,7 +2622,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(
       static_cast<sai_object_type_t>(SAI_OBJECT_TYPE_SWITCH_PIPELINE), 0);
 #endif
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   varCounts_.emplace(SAI_OBJECT_TYPE_VIRTUAL_CHANNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE, 0);
 #endif

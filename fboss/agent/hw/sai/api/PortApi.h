@@ -334,7 +334,7 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     using QosTcToVcMap = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_QOS_TC_TO_VC_MAP,
@@ -808,7 +808,7 @@ struct SaiPortTraits {
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
       std::optional<Attributes::QosPfcPriorityToPriorityGroupMap>,
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
       std::optional<Attributes::QosTcToVcMap>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
@@ -1029,7 +1029,7 @@ SAI_ATTRIBUTE_NAME(Port, PortErrStatus)
 SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
 #endif

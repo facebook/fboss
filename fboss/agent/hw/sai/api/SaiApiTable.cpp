@@ -191,7 +191,7 @@ const UdfApi& SaiApiTable::udfApi() const {
   return getApi<UdfApi>();
 }
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 const VirtualChannelApi& SaiApiTable::virtualChannelApi() const {
   return getApi<VirtualChannelApi>();
 }

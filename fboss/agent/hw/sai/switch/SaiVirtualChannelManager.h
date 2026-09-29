@@ -27,7 +27,7 @@ class Port;
 class SaiPlatform;
 class SaiStore;
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 using SaiVirtualChannel = SaiObject<SaiVirtualChannelTraits>;
 using SaiCbfcCreditProfile = SaiObject<SaiCbfcCreditProfileTraits>;
@@ -61,7 +61,7 @@ class SaiVirtualChannelManager {
   void removeVirtualChannels(PortID portId);
 
  private:
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   std::shared_ptr<SaiCbfcCreditProfile> getOrCreateCreditProfile(
       int64_t reservedCreditSize);
 

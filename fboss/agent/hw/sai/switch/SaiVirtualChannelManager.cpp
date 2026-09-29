@@ -23,7 +23,7 @@ SaiVirtualChannelManager::SaiVirtualChannelManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), platform_(platform) {}
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 std::shared_ptr<SaiCbfcCreditProfile>
 SaiVirtualChannelManager::getOrCreateCreditProfile(int64_t reservedCreditSize) {
@@ -40,7 +40,7 @@ SaiVirtualChannelManager::getOrCreateCreditProfile(int64_t reservedCreditSize) {
 void SaiVirtualChannelManager::programVirtualChannels(
     [[maybe_unused]] const std::shared_ptr<Port>& swPort,
     [[maybe_unused]] PortSaiId portSaiId) {
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::CBFC)) {
     return;
   }
@@ -111,7 +111,7 @@ void SaiVirtualChannelManager::programVirtualChannels(
 
 void SaiVirtualChannelManager::removeVirtualChannels(
     [[maybe_unused]] PortID portId) {
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   handles_.erase(portId);
 #endif
 }

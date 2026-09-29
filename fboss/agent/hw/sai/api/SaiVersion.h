@@ -136,6 +136,22 @@
 #define BRCM_SAI_SDK_XGS_GTE_16_0
 #endif
 
+// CBFC (saivirtualchannel.h, the CBFC port attributes, the VC qos map types)
+// is upstream as of SAI 1.19.0. brcm-sai 16.0_ea_odp carries the same
+// declarations via its cbfc.patch while still reporting 1.18.1, so neither
+// check alone covers both. Broadcom is rebasing that drop onto the 1.19 tag,
+// after which the first clause can go.
+// Compared on SAI_VER_MAJOR/MINOR rather than SAI_API_VERSION: those are plain
+// -D values supplied by both the Buck config and the OSS cmake, whereas
+// SAI_VERSION is only defined above under #ifndef IS_OSS, so using it here
+// breaks the OSS build.
+#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#define SAI_CBFC_SUPPORTED
+#elif defined(SAI_VER_MAJOR) && defined(SAI_VER_MINOR) && \
+    (SAI_VER_MAJOR > 1 || (SAI_VER_MAJOR == 1 && SAI_VER_MINOR >= 19))
+#define SAI_CBFC_SUPPORTED
+#endif
+
 #if defined(BRCM_SAI_SDK_XGS_GTE_16_0) || defined(SAI_VERSION_15_0_EA_ODP) || \
     defined(SAI_VERSION_15_4_EA_ODP) || defined(SAI_VERSION_15_4_0_0_ODP)
 #define BRCM_SAI_SDK_XGS_GTE_15_0

@@ -183,7 +183,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
   return store.setObject(k, c);
 }
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToVcQosMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
   const auto& newTcToVcMap = qosPolicy->getTrafficClassToVcId();
@@ -305,7 +305,7 @@ void SaiQosMapManager::setQosMaps(
       handle->tcToPcpMap = setTcToPcpQosMap(newQosPolicy);
     }
   }
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CBFC) &&
       newQosPolicy->getTrafficClassToVcId()) {
     handle->tcToVcMap = setTcToVcQosMap(newQosPolicy);

@@ -149,7 +149,7 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     case SAI_API_ARS_PROFILE:
       return "ars_profile";
 #endif
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_API_VIRTUAL_CHANNEL:
       return "virtual-channel";
 #endif
@@ -266,7 +266,7 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
     case SAI_OBJECT_TYPE_PORT_LLR_PROFILE:
       return "port-llr-profile";
 #endif
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
     case SAI_OBJECT_TYPE_VIRTUAL_CHANNEL:
       return "virtual-channel";
     case SAI_OBJECT_TYPE_CBFC_CREDIT_PROFILE:

@@ -16,7 +16,7 @@
 #include "fboss/agent/hw/sai/api/VirtualChannelApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
-#if defined(BRCM_SAI_SDK_XGS_GTE_16_0)
+#if defined(SAI_CBFC_SUPPORTED)
 
 using folly::to;
 
