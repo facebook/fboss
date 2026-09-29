@@ -11,6 +11,8 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
+#include <utility>
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/bgp/CmdShowUtils.h"
@@ -23,6 +25,27 @@
 
 namespace facebook::fboss {
 using namespace neteng::fboss::bgp::thrift;
+
+/**
+ * Query FIB-out for one prefix when the target supports the new RPC.
+ *
+ * An older target is equivalent to tracking being unavailable, so callers
+ * retain the ordinary prefix output. Other RPC failures propagate.
+ */
+template <typename Client>
+std::optional<TFibOutTable> queryFibOutPrefixIfSupported(
+    Client& client,
+    const std::string& prefix) {
+  return runMethodWithLegacyFallback(
+      [&]() -> std::optional<TFibOutTable> {
+        TFibOutTable table;
+        TFibOutPrefixRequest request;
+        request.prefix() = prefix;
+        client.sync_getFibOutPrefix(table, request);
+        return table;
+      },
+      []() -> std::optional<TFibOutTable> { return std::nullopt; });
+}
 
 struct CmdShowBgpTablePrefixTraits : public ReadCommandTraits {
   using ParentCmd = CmdShowBgpTable;
@@ -65,6 +88,9 @@ class CmdShowBgpTablePrefix
     CHECK(match != entries.end())
         << "shared RIB sample no longer holds the default route";
     entries = {*match};
+    auto fibOut = sampleFibOutTable();
+    CHECK_EQ(fibOut.entries()->size(), 2);
+    entries.front().fib_out() = std::move(*fibOut.entries()->front().fib_out());
     return data;
   }
 

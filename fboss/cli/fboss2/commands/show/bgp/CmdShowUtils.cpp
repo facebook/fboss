@@ -348,6 +348,54 @@ TBgpCommunity sampleCommunity(uint16_t asn, uint16_t value) {
   return community;
 }
 
+std::string formatBgpIpAddress(const TIpPrefix& prefix) {
+  const auto address = IPAddress::tryFromBinary(
+      folly::ByteRange(folly::StringPiece(*prefix.prefix_bin())));
+  return address.hasValue() ? address->str() : "<invalid>";
+}
+
+void printFibOut(std::ostream& out, const TRibEntry& entry) {
+  if (!entry.fib_out().has_value()) {
+    return;
+  }
+
+  const auto& fibOut = *entry.fib_out();
+  out << fmt::format(
+      "  FIB-out: {}", apache::thrift::util::enumNameSafe(*fibOut.operation()));
+  if (fibOut.admin_distance().has_value()) {
+    out << fmt::format(" | Admin Distance: {}", *fibOut.admin_distance());
+  }
+  if (fibOut.class_id().has_value()) {
+    out << fmt::format(" | Class ID: {}", *fibOut.class_id());
+  }
+  out << '\n';
+
+  for (const auto& nextHop : *fibOut.next_hops()) {
+    out << fmt::format(
+        "    {} | Weight: {} | Role: {}",
+        formatBgpIpAddress(*nextHop.next_hop()),
+        *nextHop.weight(),
+        apache::thrift::util::enumNameSafe(*nextHop.role()));
+    if (nextHop.is_connected().has_value()) {
+      out << fmt::format(
+          " | Connected: {}", *nextHop.is_connected() ? "true" : "false");
+    }
+    if (nextHop.interface_name().has_value()) {
+      out << fmt::format(" | Interface: {}", *nextHop.interface_name());
+    }
+    if (nextHop.topology_info().has_value()) {
+      std::vector<std::pair<std::string, int64_t>> topology(
+          nextHop.topology_info()->begin(), nextHop.topology_info()->end());
+      std::sort(topology.begin(), topology.end());
+      out << " | Topology:";
+      for (const auto& [name, value] : topology) {
+        out << fmt::format(" {}={}", name, value);
+      }
+    }
+    out << '\n';
+  }
+}
+
 namespace {
 
 struct SamplePathSpec {
@@ -442,7 +490,6 @@ TRibEntryWithHost sampleRibEntriesWithHost() {
             .routerAddress = "192.0.2.103",
             .isBestPath = false,
             .bestPathFilterDescription = ""})}}};
-
   TRibEntry v6Prefix;
   v6Prefix.prefix() = sampleIpPrefix("2001:db8:1c00::/40");
   v6Prefix.best_group() = "best";
@@ -457,13 +504,45 @@ TRibEntryWithHost sampleRibEntriesWithHost() {
             .routerAddress = "192.0.2.101",
             .isBestPath = true,
             .bestPathFilterDescription = ""})}}};
-
   TRibEntryWithHost data;
   data.tRibEntries() = {defaultRoute, v6Prefix};
   data.host() = "rsw001.p001.f01.abc1";
   data.oobName() = "rsw001.p001.f01.abc1.oob";
   data.ip() = "192.0.2.1";
   return data;
+}
+
+TFibOutTable sampleFibOutTable() {
+  TFibOutRoute defaultRoute;
+  defaultRoute.operation() = TFibOutOperation::PROGRAM;
+  defaultRoute.admin_distance() = 20;
+  for (const auto& address : {"192.0.2.11", "192.0.2.12"}) {
+    TFibOutNextHop nextHop;
+    nextHop.next_hop() = sampleIpPrefix(address);
+    nextHop.weight() = 0;
+    nextHop.role() = TFibOutNextHopRole::PRIMARY;
+    defaultRoute.next_hops()->emplace_back(std::move(nextHop));
+  }
+  TFibOutEntry defaultEntry;
+  defaultEntry.prefix() = sampleIpPrefix("0.0.0.0/0");
+  defaultEntry.fib_out() = std::move(defaultRoute);
+
+  TFibOutNextHop v6NextHop;
+  v6NextHop.next_hop() = sampleIpPrefix("2001:db8:e11e:1062::4e");
+  v6NextHop.weight() = 0;
+  v6NextHop.role() = TFibOutNextHopRole::PRIMARY;
+  TFibOutRoute v6Route;
+  v6Route.operation() = TFibOutOperation::PROGRAM;
+  v6Route.next_hops() = {std::move(v6NextHop)};
+  v6Route.admin_distance() = 20;
+  TFibOutEntry v6Entry;
+  v6Entry.prefix() = sampleIpPrefix("2001:db8:1c00::/40");
+  v6Entry.fib_out() = std::move(v6Route);
+
+  TFibOutTable table;
+  table.enabled() = true;
+  table.entries() = {std::move(defaultEntry), std::move(v6Entry)};
+  return table;
 }
 
 NetworkPathWithHost sampleNetworkPaths(

@@ -212,6 +212,15 @@ TBgpCommunity sampleCommunity(const SampleCommunity& community);
  */
 TRibEntryWithHost sampleRibEntriesWithHost();
 
+/** Format a wire-format BGP address without aborting on malformed data. */
+std::string formatBgpIpAddress(const TIpPrefix& prefix);
+
+/** Print submitted FIB-out state attached to one exact RIB entry. */
+void printFibOut(std::ostream& out, const TRibEntry& entry);
+
+/** Return synthetic FIB-out data for CLI documentation and tests. */
+TFibOutTable sampleFibOutTable();
+
 // Which side of a peering the canned paths represent. Advertised routes have
 // not been installed anywhere, so they carry no last-modified time; received
 // ones do.

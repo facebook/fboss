@@ -1756,6 +1756,18 @@ service TBgpService extends fb303.FacebookService {
   list<bgp_route_types.TRibEntry> getRibEntries(1: bgp_attr.TBgpAfi afi);
 
   /**
+   * Get compact FIB-out state for one exact prefix.
+   *
+   * The response omits BGP paths and other RIB attributes. Exact-prefix
+   * lookup bounds RIB event-base work independently of total RIB size.
+   *
+   * @param request - Exact-prefix query parameters
+   */
+  bgp_route_types.TFibOutTable getFibOutPrefix(
+    1: bgp_route_types.TFibOutPrefixRequest request,
+  );
+
+  /**
    * Get a compact summary of the BGP RIB (total prefixes + per-prefix-length
    * histogram) for one address family, without dumping the full table.
    *
