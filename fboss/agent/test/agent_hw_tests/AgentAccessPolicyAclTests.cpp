@@ -367,11 +367,31 @@ class AgentAccessPolicyPortBoundAclTest : public AgentAccessPolicyAclTest {
   }
 };
 
+template <typename BaseT>
+class AgentAccessPolicyAclAddedTest : public BaseT {
+ protected:
+  bool coldBootWithAccessPolicy() const override {
+    return false;
+  }
+};
+
+using AgentAccessPolicyClassIdAclAddedTest =
+    AgentAccessPolicyAclAddedTest<AgentAccessPolicyClassIdAclTest>;
+using AgentAccessPolicyPortBoundAclAddedTest =
+    AgentAccessPolicyAclAddedTest<AgentAccessPolicyPortBoundAclTest>;
 TEST_F(AgentAccessPolicyClassIdAclTest, AccessPolicyAcl) {
   runAccessPolicyTest();
 }
 
 TEST_F(AgentAccessPolicyPortBoundAclTest, AccessPolicyAcl) {
+  runAccessPolicyTest();
+}
+
+TEST_F(AgentAccessPolicyClassIdAclAddedTest, AccessPolicyAclAddedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_F(AgentAccessPolicyPortBoundAclAddedTest, AccessPolicyAclAddedOnWarmboot) {
   runAccessPolicyTest();
 }
 
