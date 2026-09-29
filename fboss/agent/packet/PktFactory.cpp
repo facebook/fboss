@@ -748,7 +748,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint8_t tcpFlags) {
   if (!payload) {
     payload = kDefaultPayload;
   }
@@ -763,6 +764,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
   ipHdr.hopLimit = hopLimit;
   // TCPHeader
   TCPHeader tcpHdr(srcPort, dstPort);
+  tcpHdr.flags = tcpFlags;
 
   return makeTCPTxPacket(allocatePacket, ethHdr, ipHdr, tcpHdr, payloadBytes);
 }
@@ -778,7 +780,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint16_t dstPort,
     uint8_t dscp,
     uint8_t ttl,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint8_t tcpFlags) {
   if (!payload) {
     payload = kDefaultPayload;
   }
@@ -796,6 +799,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
   ipHdr.computeChecksum();
   // TCPHeader
   TCPHeader tcpHdr(srcPort, dstPort);
+  tcpHdr.flags = tcpFlags;
 
   return makeTCPTxPacket(allocatePacket, ethHdr, ipHdr, tcpHdr, payloadBytes);
 }
@@ -811,7 +815,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint16_t dstPort,
     uint8_t trafficClass,
     uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
+    std::optional<std::vector<uint8_t>> payload,
+    uint8_t tcpFlags) {
   CHECK_EQ(srcIp.isV6(), dstIp.isV6());
   if (srcIp.isV6()) {
     return makeTCPTxPacket(
@@ -825,7 +830,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
         dstPort,
         trafficClass,
         hopLimit,
-        payload);
+        payload,
+        tcpFlags);
   }
   return makeTCPTxPacket(
       allocatePacket,
@@ -838,7 +844,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
       dstPort,
       trafficClass,
       hopLimit,
-      payload);
+      payload,
+      tcpFlags);
 }
 
 std::unique_ptr<TxPacket> makeTCPTxPacket(

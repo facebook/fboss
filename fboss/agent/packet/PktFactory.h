@@ -188,7 +188,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    uint8_t tcpFlags = 0);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const AllocatePktFn& allocatePkt,
@@ -202,7 +203,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint8_t dscp = 0,
     uint8_t ttl = 255,
     std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    uint8_t tcpFlags = 0);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const AllocatePktFn& allocatePkt,
@@ -216,7 +218,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
+        std::optional<std::vector<uint8_t>>(),
+    uint8_t tcpFlags = 0);
 
 std::unique_ptr<TxPacket> makeTCPTxPacket(
     const AllocatePktFn& allocatePktSwitch,
@@ -462,7 +465,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     uint8_t trafficClass = 0,
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>()) {
+        std::optional<std::vector<uint8_t>>(),
+    uint8_t tcpFlags = 0) {
   return makeTCPTxPacket(
       makeAllocator(switchT),
       vlan,
@@ -474,7 +478,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
       dstPort,
       trafficClass,
       hopLimit,
-      payload);
+      payload,
+      tcpFlags);
 }
 
 template <typename SwitchT>
