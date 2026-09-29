@@ -52,6 +52,10 @@ folly::IPAddressV6 kDstIp() {
   return folly::IPAddressV6("2001:db8:1::1");
 }
 
+folly::IPAddressV4 kSrcIpV4() {
+  return folly::IPAddressV4("10.0.0.2");
+}
+
 folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
   return utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 }
@@ -339,11 +343,29 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         folly::IPAddress(dstIp)};
   }
 
+  ControlPlanePacketAndDst arpProbe(const ProbeContext& ctx, ARP_OPER oper) {
+    return ControlPlanePacketAndDst{
+        utility::makeARPTxPacket(
+            getSw(),
+            ctx.vlanId,
+            ctx.srcMac,
+            oper == ARP_OPER::ARP_OPER_REQUEST ? folly::MacAddress::BROADCAST
+                                               : ctx.intfMac,
+            kSrcIpV4(),
+            ctx.myIpV4,
+            oper),
+        std::nullopt};
+  }
+
   ControlPlanePacketAndDst makeControlPlanePacket(
       const utility::ControlPlaneProbe& probe,
       PortID ingressPort) {
     auto ctx = probeContext(probe, ingressPort);
     switch (probe.packet) {
+      case utility::ControlPlanePacket::ArpRequest:
+        return arpProbe(ctx, ARP_OPER::ARP_OPER_REQUEST);
+      case utility::ControlPlanePacket::ArpReply:
+        return arpProbe(ctx, ARP_OPER::ARP_OPER_REPLY);
       case utility::ControlPlanePacket::Ip2Me:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2MeNetworkControl:

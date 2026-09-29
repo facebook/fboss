@@ -63,6 +63,8 @@ const std::vector<AccessPolicyProbe>& accessPolicyProbes();
 // A packet shape AclTable1 or an ASIC rx reason traps to the CPU. Some of those
 // traps fire ahead of the ingress ACL stage, where a deny never sees them.
 enum class ControlPlanePacket {
+  ArpRequest,
+  ArpReply,
   Ip2Me,
   Ip2MeNetworkControl,
 };

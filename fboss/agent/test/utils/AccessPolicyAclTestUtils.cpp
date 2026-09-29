@@ -329,6 +329,11 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
     policyMatch.name = name;
     probes.push_back({name, packet, std::move(policyMatch)});
   };
+  auto nonIp = [](cfg::EtherType etherType) {
+    AccessPolicyProbe probe;
+    probe.etherType = etherType;
+    return probe;
+  };
   auto udp = [](int32_t l4DstPort) {
     AccessPolicyProbe probe;
     probe.proto = kUdp;
@@ -337,6 +342,10 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
     return probe;
   };
 
+  add("arp-request",
+      ControlPlanePacket::ArpRequest,
+      nonIp(cfg::EtherType::ARP));
+  add("arp-reply", ControlPlanePacket::ArpReply, nonIp(cfg::EtherType::ARP));
   add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,
