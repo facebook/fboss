@@ -141,7 +141,7 @@ void QsfpServiceHandler::triggerAllOpticsFwUpgrade(
 void QsfpServiceHandler::triggerOpticsFwUpgrade(
     std::map<std::string, FirmwareUpgradeData>& ports,
     std::unique_ptr<std::vector<std::string>> interfaces) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, interfaces);
   ports = tcvrManager_->triggerOpticsFwUpgrade(*interfaces);
 }
 
@@ -237,13 +237,13 @@ void QsfpServiceHandler::resetTransceiver(
 void QsfpServiceHandler::pauseRemediation(
     int32_t timeout,
     std::unique_ptr<std::vector<std::string>> portList) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, timeout, portList);
   tcvrManager_->setPauseRemediation(timeout, std::move(portList));
 }
 
 void QsfpServiceHandler::unpauseRemediation(
     std::unique_ptr<std::vector<std::string>> portList) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portList);
   tcvrManager_->setPauseRemediation(0, std::move(portList));
 }
 
@@ -332,7 +332,7 @@ QsfpServiceRunState QsfpServiceHandler::getQsfpServiceRunState() {
 void QsfpServiceHandler::programXphyPort(
     int32_t portId,
     cfg::PortProfileID portProfileId) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portId);
   if (FLAGS_port_manager_mode) {
     portManager_->programXphyPort(PortID(portId), portProfileId);
   } else {
@@ -367,7 +367,7 @@ void QsfpServiceHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr);
   if (FLAGS_port_manager_mode) {
     portManager_->setInterfacePrbs(*portNameStr, component, *state);
   } else {
@@ -424,7 +424,7 @@ void QsfpServiceHandler::getAllInterfacePrbsStats(
 void QsfpServiceHandler::clearInterfacePrbsStats(
     std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr);
   if (FLAGS_port_manager_mode) {
     portManager_->clearInterfacePrbsStats(*portNameStr, component);
   } else {
@@ -435,7 +435,7 @@ void QsfpServiceHandler::clearInterfacePrbsStats(
 void QsfpServiceHandler::bulkClearInterfacePrbsStats(
     std::unique_ptr<std::vector<std::string>> interfaces,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, interfaces);
   if (FLAGS_port_manager_mode) {
     portManager_->bulkClearInterfacePrbsStats(std::move(interfaces), component);
   } else {
@@ -445,7 +445,7 @@ void QsfpServiceHandler::bulkClearInterfacePrbsStats(
 
 void QsfpServiceHandler::dumpTransceiverI2cLog(
     std::unique_ptr<std::string> portNameStr) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr);
   auto ret = tcvrManager_->dumpTransceiverI2cLog(*portNameStr);
   // if the header of the log has size 0, logging is not enabled.
   if (ret.first == 0) {
@@ -458,7 +458,7 @@ void QsfpServiceHandler::setPortPrbs(
     int32_t portId,
     phy::PortComponent component,
     std::unique_ptr<phy::PortPrbsState> state) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portId);
   if (FLAGS_port_manager_mode) {
     portManager_->setPortPrbs(PortID(portId), component, *state);
   } else {
@@ -481,7 +481,7 @@ void QsfpServiceHandler::getPortPrbsStats(
 void QsfpServiceHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portId);
   if (FLAGS_port_manager_mode) {
     portManager_->clearPortPrbsStats(PortID(portId), component);
   } else {
@@ -522,7 +522,7 @@ void QsfpServiceHandler::listHwObjects(
 }
 
 bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, fileName);
   // Confine the SDK debug dump to a service-owned directory. This rejects
   // empty/absolute/parent-traversing inputs and reduces the request to a
   // basename so a caller cannot overwrite arbitrary root-owned files.
@@ -551,7 +551,7 @@ void QsfpServiceHandler::setPortLoopbackState(
     std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     bool setLoopback) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr, setLoopback);
   if (FLAGS_port_manager_mode) {
     portManager_->setPortLoopbackState(*portNameStr, component, setLoopback);
   } else {
@@ -563,7 +563,7 @@ void QsfpServiceHandler::setPortAdminState(
     std::unique_ptr<std::string> portNameStr,
     phy::PortComponent component,
     bool setAdminUp) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr, setAdminUp);
   if (FLAGS_port_manager_mode) {
     portManager_->setPortAdminState(*portNameStr, component, setAdminUp);
   } else {
@@ -587,7 +587,8 @@ void QsfpServiceHandler::saiPhyRegisterAccess(
     int devId,
     int regOffset,
     int data) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(
+      INFO, portNameStr, opRead, phyAddr, devId, regOffset, data);
   if (FLAGS_port_manager_mode) {
     out = portManager_->saiPhyRegisterAccess(
         *portNameStr, opRead, phyAddr, devId, regOffset, data);
@@ -606,7 +607,8 @@ void QsfpServiceHandler::saiPhySerdesRegisterAccess(
     int serdesLane,
     int64_t regOffset,
     int64_t data) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(
+      INFO, portNameStr, opRead, mdioAddr, serdesLane, regOffset, data);
   if (FLAGS_port_manager_mode) {
     out = portManager_->saiPhySerdesRegisterAccess(
         *portNameStr, opRead, mdioAddr, side, serdesLane, regOffset, data);
@@ -940,7 +942,7 @@ QsfpServiceHandler::co_getPhyInfo(std::unique_ptr<std::string> portNameStr) {
 
 folly::coro::Task<bool> QsfpServiceHandler::co_deleteAllSc(
     std::unique_ptr<std::string> portNameStr) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portNameStr);
   validateHandler();
   co_return macsecHandler_->deleteAllSc(*portNameStr);
 }
@@ -949,7 +951,7 @@ folly::coro::Task<bool> QsfpServiceHandler::co_setupMacsecState(
     std::unique_ptr<std::vector<std::string>> portList,
     bool macsecDesired,
     bool dropUnencrypted) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, portList, macsecDesired, dropUnencrypted);
   validateHandler();
   co_return macsecHandler_->setupMacsecState(
       *portList, macsecDesired, dropUnencrypted);
