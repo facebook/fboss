@@ -65,6 +65,10 @@ const std::vector<AccessPolicyProbe>& accessPolicyProbes();
 enum class ControlPlanePacket {
   ArpRequest,
   ArpReply,
+  NdpNeighborSolicitation,
+  NdpNeighborAdvertisement,
+  NdpRouterSolicitation,
+  NdpRouterAdvertisement,
   Ip2Me,
   Ip2MeNetworkControl,
 };

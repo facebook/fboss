@@ -341,11 +341,23 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
     probe.l4SrcPort = unmatchedL4SrcPort();
     return probe;
   };
+  AccessPolicyProbe icmpV6;
+  icmpV6.proto = kIcmpV6;
 
   add("arp-request",
       ControlPlanePacket::ArpRequest,
       nonIp(cfg::EtherType::ARP));
   add("arp-reply", ControlPlanePacket::ArpReply, nonIp(cfg::EtherType::ARP));
+  add("ndp-neighbor-solicit",
+      ControlPlanePacket::NdpNeighborSolicitation,
+      icmpV6);
+  add("ndp-neighbor-advertise",
+      ControlPlanePacket::NdpNeighborAdvertisement,
+      icmpV6);
+  add("ndp-router-solicit", ControlPlanePacket::NdpRouterSolicitation, icmpV6);
+  add("ndp-router-advertise",
+      ControlPlanePacket::NdpRouterAdvertisement,
+      icmpV6);
   add("ip2me", ControlPlanePacket::Ip2Me, udp(unmatchedL4DstPort()));
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,

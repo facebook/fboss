@@ -44,6 +44,8 @@ constexpr size_t kRequiredInterfacePorts = kEgressPortIdx + 1;
 // packet count be compared exactly.
 constexpr uint8_t kHopLimit = 2;
 
+constexpr uint8_t kNdpHopLimit = 255;
+
 folly::IPAddressV6 kSrcIp() {
   return folly::IPAddressV6("2001:db8:2::1");
 }
@@ -63,8 +65,21 @@ folly::MacAddress probeSrcMac(folly::MacAddress intfMac) {
 // DSCP 48, shifted into the IPv6 traffic class byte.
 constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
 
+const folly::IPAddressV6 kAllRoutersMcast{"ff02::2"};
+const folly::IPAddressV6 kAllNodesMcast{"ff02::1"};
+
 // One second settle per round; stop early once no new punts arrive.
 constexpr int kControlPlanePuntSettleRounds = 3;
+
+// Probes the platform has no rx reason for, so they never reach the CPU even
+// on a port with no policy bound. Ebro traps neither router discovery shape.
+const std::set<std::string>& untrappedBaselineProbes(
+    utility::AccessPolicyShape shape) {
+  static const std::set<std::string> kNone;
+  static const std::set<std::string> kPortBound{
+      "ndp-router-solicit", "ndp-router-advertise"};
+  return shape == utility::AccessPolicyShape::PortBound ? kPortBound : kNone;
+}
 
 } // namespace
 
@@ -357,6 +372,16 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         std::nullopt};
   }
 
+  ControlPlanePacketAndDst ndpMcastProbe(
+      const ProbeContext& ctx,
+      const folly::IPAddressV6& dstIp,
+      ICMPv6Type icmpType) {
+    return ControlPlanePacketAndDst{
+        makeIcmpV6Packet(
+            ctx.vlanId, ctx.srcMac, ctx.intfMac, dstIp, icmpType, kNdpHopLimit),
+        folly::IPAddress(dstIp)};
+  }
+
   ControlPlanePacketAndDst makeControlPlanePacket(
       const utility::ControlPlaneProbe& probe,
       PortID ingressPort) {
@@ -366,6 +391,31 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
         return arpProbe(ctx, ARP_OPER::ARP_OPER_REQUEST);
       case utility::ControlPlanePacket::ArpReply:
         return arpProbe(ctx, ARP_OPER::ARP_OPER_REPLY);
+      case utility::ControlPlanePacket::NdpNeighborSolicitation:
+        return {
+            utility::makeNeighborSolicitation(
+                getSw(), ctx.vlanId, ctx.srcMac, kSrcIp(), ctx.myIpV6),
+            folly::IPAddress(ctx.myIpV6.getSolicitedNodeAddress())};
+      case utility::ControlPlanePacket::NdpNeighborAdvertisement:
+        return {
+            utility::makeNeighborAdvertisement(
+                getSw(),
+                ctx.vlanId,
+                ctx.srcMac,
+                ctx.intfMac,
+                kSrcIp(),
+                ctx.myIpV6),
+            folly::IPAddress(ctx.myIpV6)};
+      case utility::ControlPlanePacket::NdpRouterSolicitation:
+        return ndpMcastProbe(
+            ctx,
+            kAllRoutersMcast,
+            ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_SOLICITATION);
+      case utility::ControlPlanePacket::NdpRouterAdvertisement:
+        return ndpMcastProbe(
+            ctx,
+            kAllNodesMcast,
+            ICMPv6Type::ICMPV6_TYPE_NDP_ROUTER_ADVERTISEMENT);
       case utility::ControlPlanePacket::Ip2Me:
         return udpV6Probe(ctx, ctx.myIpV6, 0 /*trafficClass*/, kHopLimit);
       case utility::ControlPlanePacket::Ip2MeNetworkControl:
@@ -678,14 +728,17 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
     auto baseline = verifyControlPlaneClass(
         kUnconstrainedPortIdx, kUnconstrained, accessPolicyProgrammed, {});
     // Differencing against a baseline only says anything if the baseline is
-    // complete, so name any probe the platform failed to trap and stop rather
-    // than let the rest of the test pass vacuously.
+    // the one this platform should produce, so name any probe that disagrees
+    // and stop rather than let the rest of the test pass vacuously.
+    const auto& untrapped = untrappedBaselineProbes(shape());
     bool baselineComplete = true;
     for (const auto& [name, punted] : baseline) {
-      if (!punted) {
+      if (punted != (untrapped.count(name) == 0)) {
         baselineComplete = false;
-        ADD_FAILURE() << "control plane probe " << name
-                      << " never reached the CPU on an unconstrained port";
+        ADD_FAILURE() << "control plane probe " << name << " was "
+                      << (punted ? "trapped" : "not trapped")
+                      << " on an unconstrained port, which this platform is "
+                         "not expected to do";
       }
     }
     if (!baselineComplete) {
