@@ -39,6 +39,11 @@ constexpr size_t kMaxAclNameLen = 31;
 // ACCESS_POLICY_RESTRICT_ACL_TABLE_PRIORITY in access_policy_acl.cinc.
 constexpr int32_t kRestrictedTablePriority = 1;
 
+// AclTable1 configures priority 0, which SaiAclTableManager floors to 23. This
+// table shares the default group with it, so anything at or below 23 leaves the
+// two in an undefined order.
+constexpr int kAccessPolicyClassIdTablePriority = 30;
+
 // A probe for a rule with no port qualifier still has to carry some port, and
 // one a rule does qualify on would hand the probe to that rule instead. Search
 // from the candidate rather than hardcoding, so adding a rule cannot silently
@@ -526,7 +531,7 @@ void addAccessPolicyTables(cfg::SwitchConfig& config, AccessPolicyShape shape) {
     utility::addAclTable(
         &config,
         kAccessPolicyClassIdTable(),
-        0 /*priority*/,
+        kAccessPolicyClassIdTablePriority,
         accessPolicyActionTypes(),
         classIdTableQualifiers());
     return;
