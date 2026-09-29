@@ -23,7 +23,7 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyCopp();
   void verifySafeDiagCommands();
   void verifyLoadBalancing(int numPackets = 10000);
-  void verifyDscpToQueueMapping();
+  virtual void verifyDscpToQueueMapping();
   void verifyQueuePerHostMapping(bool dscpMarkingTest);
   std::vector<PortDescriptor> ecmpPorts_{};
   bool checkBaseConfigPortsEmpty();

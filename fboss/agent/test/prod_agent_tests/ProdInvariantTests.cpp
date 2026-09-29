@@ -1000,6 +1000,24 @@ class ProdInvariantSuswTest : public ProdInvariantTest {
     });
     XLOG(DBG2) << "Verify ndp_static_neighbor high priority CPU punts Done";
   }
+
+  // Ladakh and its follow-on variant Leh carry no DSCP -> queue mapping: their
+  // prod qosMap has expMaps/pcpMaps/trafficClassToQueueId but an empty
+  // dscpMaps, and no qosRules. The base implementation builds its expectations
+  // with getOlympicQosMaps(), which reads only qosMap.dscpMaps, so it yields an
+  // empty map and verifyQueueMappings() reports that as a plain false with no
+  // indication of why. Skip on those platforms only - the other SUSWs are L3
+  // and do have a DSCP -> queue mapping to verify.
+  void verifyDscpToQueueMapping() override {
+    const auto platformType = getSw()->getPlatformType();
+    if (platformType == PlatformType::PLATFORM_LADAKH800BCLS ||
+        platformType == PlatformType::PLATFORM_LEH800BCLS) {
+      XLOG(DBG2) << "Skipping DSCP to queue mapping verification: this "
+                 << "platform carries no DSCP -> queue mapping in its config";
+      return;
+    }
+    ProdInvariantTest::verifyDscpToQueueMapping();
+  }
 };
 
 TEST_F(ProdInvariantSuswTest, verifyInvariants) {
