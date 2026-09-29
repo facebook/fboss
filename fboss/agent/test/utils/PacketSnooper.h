@@ -58,6 +58,8 @@ class PacketSnooper : public PacketObserverIf {
   }
   // Wait until timeout (seconds), If timeout = 0, wait forever.
   std::optional<utility::EthFrame> waitForPacket(uint32_t timeout_s = 0);
+  // Whether a matching packet has arrived, without waiting for one.
+  bool receivedPacket();
   void ignoreUnclaimedRxPkts() {
     ignoreUnclaimedRxPkts_ = true;
   }
