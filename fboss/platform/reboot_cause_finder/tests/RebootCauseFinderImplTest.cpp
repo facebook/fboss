@@ -239,9 +239,9 @@ TEST_F(RebootCauseFinderImplTest, UnparseableCrashDirEntryIsSkipped) {
   EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
 }
 
-// ------------------------------------------------------------ manual reboot
+// ------------------------------------------------------ x86 reboot command
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootInsideWindowIsReported) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandInsideWindowIsReported) {
   const auto btime = nowSec();
   const auto path = writeSecureLog(
       fmt::format(
@@ -249,44 +249,44 @@ TEST_F(RebootCauseFinderImplTest, ManualRebootInsideWindowIsReported) {
           syslogStamp(btime - 60)));
 
   const auto causes =
-      *detail::readManualReboot({path}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({path}, btime, kWindow).causes();
   ASSERT_EQ(causes.size(), 1);
-  EXPECT_EQ(*causes[0].description(), "Manual x86 Reboot");
+  EXPECT_EQ(*causes[0].description(), "X86 Reboot Command");
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootOlderThanWindowIsIgnored) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandOlderThanWindowIsIgnored) {
   const auto btime = nowSec();
   const auto path = writeSecureLog(
       fmt::format(
           "{} sw systemd-logind[1]: System is rebooting.\n",
           syslogStamp(btime - kWindow - 60)));
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
 // The line is written before the machine goes down, so a line at or after
 // btime is a reboot being requested now -- the cause of the *next* boot.
-TEST_F(RebootCauseFinderImplTest, ManualRebootAfterBootStartIsIgnored) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandAfterBootStartIsIgnored) {
   const auto btime = nowSec() - 300;
   const auto path = writeSecureLog(
       fmt::format(
           "{} sw systemd-logind[1]: System is rebooting.\n",
           syslogStamp(btime + 60)));
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootExactlyAtBootStartIsIgnored) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandExactlyAtBootStartIsIgnored) {
   const auto btime = nowSec() - 300;
   const auto path = writeSecureLog(
       fmt::format(
           "{} sw systemd-logind[1]: System is rebooting.\n",
           syslogStamp(btime)));
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootNearestBootStartWins) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandNearestBootStartWins) {
   const auto btime = nowSec();
   const auto near = btime - 30;
   const auto path = writeSecureLog(
@@ -297,7 +297,7 @@ TEST_F(RebootCauseFinderImplTest, ManualRebootNearestBootStartWins) {
           syslogStamp(near)));
 
   const auto causes =
-      *detail::readManualReboot({path}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({path}, btime, kWindow).causes();
   ASSERT_EQ(causes.size(), 1);
   EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(near) * 1000);
 }
@@ -311,12 +311,12 @@ TEST_F(RebootCauseFinderImplTest, NonMatchingLinesAreIgnored) {
           syslogStamp(btime - 60),
           syslogStamp(btime - 50)));
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
 TEST_F(RebootCauseFinderImplTest, MissingSecureLogIsNotAnError) {
   EXPECT_TRUE(
-      detail::readManualReboot(
+      detail::readX86RebootCommand(
           {(tmpDir_ / "no_such_file").string()}, nowSec(), kWindow)
           .causes()
           ->empty());
@@ -342,7 +342,7 @@ TEST_F(
       "Dec 31 23:55:00 sw systemd-logind[1]: System is rebooting.\n");
 
   const auto causes =
-      *detail::readManualReboot({path}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({path}, btime, kWindow).causes();
   ASSERT_EQ(causes.size(), 1);
   // Must land 15 minutes before boot, not ~a year after it.
   EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 900) * 1000);
@@ -478,14 +478,14 @@ TEST_F(RebootCauseFinderImplTest, GoldenSyslogLineSpacePaddedDay) {
       "Sep  3 01:02:13 sw systemd-logind[1234]: System is rebooting.\n");
 
   const auto causes =
-      *detail::readManualReboot({path}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({path}, btime, kWindow).causes();
   ASSERT_EQ(causes.size(), 1);
   EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(eventT) * 1000);
 }
 
 // On NetOS the line lands in /var/log/messages, not /var/log/secure. Reading
 // only secure was a real false negative on minipack3n.
-TEST_F(RebootCauseFinderImplTest, ManualRebootFoundInSecondLogPath) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandFoundInSecondLogPath) {
   const auto btime = nowSec();
   const auto messages = (tmpDir_ / "messages").string();
   ASSERT_TRUE(
@@ -497,7 +497,8 @@ TEST_F(RebootCauseFinderImplTest, ManualRebootFoundInSecondLogPath) {
   const auto secure = writeSecureLog("Sep  3 01:02:03 sw sudo: nothing here\n");
 
   const auto causes =
-      *detail::readManualReboot({secure, messages}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({secure, messages}, btime, kWindow)
+           .causes();
   ASSERT_EQ(causes.size(), 1);
 }
 
@@ -519,7 +520,7 @@ TEST_F(RebootCauseFinderImplTest, PostBootLineDoesNotResolveToPriorYear) {
   const auto path = writeSecureLog(
       "Jun 15 13:00:00 sw systemd-logind[1]: System is rebooting.\n");
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
 // ------------------------------------------- absent source vs unreadable one
@@ -534,10 +535,10 @@ TEST_F(RebootCauseFinderImplTest, AbsentSourcesAreNotAReadFailure) {
   EXPECT_TRUE(panic.causes()->empty());
   EXPECT_EQ(*panic.status(), rcc::RebootCauseProviderStatus::OK);
 
-  const auto manual = detail::readManualReboot(
+  const auto attempt = detail::readX86RebootCommand(
       {(tmpDir_ / "nope").string()}, nowSec(), kWindow);
-  EXPECT_TRUE(manual.causes()->empty());
-  EXPECT_EQ(*manual.status(), rcc::RebootCauseProviderStatus::OK);
+  EXPECT_TRUE(attempt.causes()->empty());
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
 }
 
 // A crash "dir" that is really a regular file exists but cannot be iterated.
@@ -557,7 +558,8 @@ TEST_F(RebootCauseFinderImplTest, UnreadableLogPathIsReadFailure) {
   const auto notAFile = (tmpDir_ / "secure_is_a_dir").string();
   std::filesystem::create_directories(notAFile);
 
-  const auto attempt = detail::readManualReboot({notAFile}, nowSec(), kWindow);
+  const auto attempt =
+      detail::readX86RebootCommand({notAFile}, nowSec(), kWindow);
   EXPECT_TRUE(attempt.causes()->empty());
   EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
 }
@@ -575,7 +577,7 @@ TEST_F(RebootCauseFinderImplTest, UnstatableLogPathIsReadFailure) {
   ASSERT_FALSE(ec);
 
   const auto attempt =
-      detail::readManualReboot({a.string()}, nowSec(), kWindow);
+      detail::readX86RebootCommand({a.string()}, nowSec(), kWindow);
   EXPECT_TRUE(attempt.causes()->empty());
   EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
 }
@@ -688,7 +690,7 @@ TEST_F(RebootCauseFinderImplTest, SshdEchoOfThePhraseIsNotAReboot) {
           stamp));
 
   EXPECT_TRUE(
-      detail::readManualReboot({path}, btime, kWindow).causes()->empty());
+      detail::readX86RebootCommand({path}, btime, kWindow).causes()->empty());
 }
 
 // The same file can hold both. The announcement must still be found.
@@ -703,33 +705,33 @@ TEST_F(RebootCauseFinderImplTest, AnnouncementFoundAlongsideSshdEcho) {
           syslogStamp(btime - 60)));
 
   const auto causes =
-      *detail::readManualReboot({path}, btime, kWindow).causes();
+      *detail::readX86RebootCommand({path}, btime, kWindow).causes();
   ASSERT_EQ(causes.size(), 1);
   EXPECT_EQ(*causes[0].occurredAtMs(), (btime - 60) * 1000);
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootLineAcceptsTrustedEmitters) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandLineAcceptsTrustedEmitters) {
   EXPECT_TRUE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw systemd-logind[1234]: System is rebooting."));
   EXPECT_TRUE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw systemd-logind: System is rebooting."));
   EXPECT_TRUE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep 13 01:02:13 sw systemd[1]: System is rebooting."));
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootLineRejectsOtherEmitters) {
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandLineRejectsOtherEmitters) {
   EXPECT_FALSE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw sshd[99]: System is rebooting."));
   EXPECT_FALSE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw sudo[99]: System is rebooting."));
   // A program whose name merely ends in the trusted one.
   EXPECT_FALSE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw not-systemd[1]: System is rebooting."));
 }
 
@@ -737,16 +739,16 @@ TEST_F(RebootCauseFinderImplTest, ManualRebootLineRejectsOtherEmitters) {
 // under a trusted program name still does not count.
 TEST_F(
     RebootCauseFinderImplTest,
-    ManualRebootLineRequiresPhraseAtMessageStart) {
+    X86RebootCommandLineRequiresPhraseAtMessageStart) {
   EXPECT_FALSE(
-      detail::isManualRebootLine(
+      detail::isX86RebootCommandLine(
           "Sep  3 01:02:13 sw systemd[1]: checking whether System is rebooting."));
 }
 
-TEST_F(RebootCauseFinderImplTest, ManualRebootLineRejectsMalformedLines) {
-  EXPECT_FALSE(detail::isManualRebootLine(""));
-  EXPECT_FALSE(detail::isManualRebootLine("System is rebooting."));
-  EXPECT_FALSE(detail::isManualRebootLine("Sep  3 01:02:13 sw systemd[1]"));
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandLineRejectsMalformedLines) {
+  EXPECT_FALSE(detail::isX86RebootCommandLine(""));
+  EXPECT_FALSE(detail::isX86RebootCommandLine("System is rebooting."));
+  EXPECT_FALSE(detail::isX86RebootCommandLine("Sep  3 01:02:13 sw systemd[1]"));
 }
 
 // ----------------------------------------------------------- exact boundaries
@@ -814,25 +816,26 @@ attemptWith(
 TEST_F(RebootCauseFinderImplTest, NearestToBootWinsRegardlessOfListOrder) {
   const int64_t btime = 1789170391;
   const auto panic = causeAt("Kernel Panic", btime - 900);
-  const auto manual = causeAt("Manual x86 Reboot", btime - 30);
+  const auto rebootCmd = causeAt("X86 Reboot Command", btime - 30);
 
   auto panicFirst = detail::selectNearestToBoot(
       {attemptWith("KernelPanic", {panic}),
-       attemptWith("ManualReboot", {manual})});
+       attemptWith("X86RebootCommand", {rebootCmd})});
   ASSERT_TRUE(panicFirst.has_value());
-  EXPECT_EQ(*panicFirst->providerName(), "ManualReboot");
+  EXPECT_EQ(*panicFirst->providerName(), "X86RebootCommand");
 
-  auto manualFirst = detail::selectNearestToBoot(
-      {attemptWith("ManualReboot", {manual}),
+  auto rebootCmdFirst = detail::selectNearestToBoot(
+      {attemptWith("X86RebootCommand", {rebootCmd}),
        attemptWith("KernelPanic", {panic})});
-  ASSERT_TRUE(manualFirst.has_value());
-  EXPECT_EQ(*manualFirst->providerName(), "ManualReboot");
+  ASSERT_TRUE(rebootCmdFirst.has_value());
+  EXPECT_EQ(*rebootCmdFirst->providerName(), "X86RebootCommand");
 }
 
 TEST_F(RebootCauseFinderImplTest, NearestToBootPicksPanicWhenItIsNearer) {
   const int64_t btime = 1789170391;
   auto best = detail::selectNearestToBoot(
-      {attemptWith("ManualReboot", {causeAt("Manual x86 Reboot", btime - 900)}),
+      {attemptWith(
+           "X86RebootCommand", {causeAt("X86 Reboot Command", btime - 900)}),
        attemptWith("KernelPanic", {causeAt("Kernel Panic", btime - 30)})});
   ASSERT_TRUE(best.has_value());
   EXPECT_EQ(*best->providerName(), "KernelPanic");
@@ -840,8 +843,8 @@ TEST_F(RebootCauseFinderImplTest, NearestToBootPicksPanicWhenItIsNearer) {
 
 // Reading only /var/log/secure missed a real graceful reboot on minipack3n,
 // where systemd-logind logs to /var/log/messages. Lock both paths in.
-TEST_F(RebootCauseFinderImplTest, ManualRebootSearchesMessagesAndSecure) {
-  const auto& paths = detail::manualRebootLogPaths();
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandSearchesMessagesAndSecure) {
+  const auto& paths = detail::x86RebootCommandLogPaths();
   EXPECT_NE(
       std::find(paths.begin(), paths.end(), "/var/log/messages"), paths.end());
   EXPECT_NE(

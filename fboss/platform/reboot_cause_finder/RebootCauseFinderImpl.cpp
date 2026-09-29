@@ -36,7 +36,8 @@ DEFINE_bool(
 DEFINE_int32(
     max_downtime_sec,
     3600,
-    "How far before boot start to look for a kernel panic or a manual reboot. "
+    "How far before boot start to look for a kernel panic or an x86 reboot "
+    "command. "
     "Must cover shutdown, POST and bootloader, not the power-off duration: a "
     "long outage leaves no log line at all and is reported by the hardware "
     "providers instead.");
@@ -56,13 +57,13 @@ constexpr auto kProcStatPath = "/proc/stat";
 constexpr auto kProcessedDirName = "processed";
 
 constexpr auto kKernelPanicProvider = "KernelPanic";
-constexpr auto kManualRebootProvider = "ManualReboot";
+constexpr auto kX86RebootCommandProvider = "X86RebootCommand";
 
 // systemd-logind writes this on the normal shutdown path.
-constexpr auto kManualRebootPattern = "System is rebooting";
+constexpr auto kX86RebootCommandPattern = "System is rebooting";
 
 // Programs which perform reboot.
-constexpr std::array<folly::StringPiece, 2> kManualRebootPrograms{
+constexpr std::array<folly::StringPiece, 2> kX86RebootCommandPrograms{
     "systemd-logind",
     "systemd"};
 
@@ -211,7 +212,7 @@ std::optional<std::time_t> parseProviderDate(const std::string& s) {
 // Exposed for unit tests; see tests/RebootCauseFinderImplTest.cpp.
 namespace detail {
 
-const std::vector<std::string>& manualRebootLogPaths() {
+const std::vector<std::string>& x86RebootCommandLogPaths() {
   static const std::vector<std::string> kPaths = {
       "/var/log/messages",
       "/var/log/secure",
@@ -467,7 +468,7 @@ std::optional<reboot_cause_config::DeterminedCause> selectNearestToBoot(
 // indistinguishable from the announcement unless the program field is
 // checked. Grepping for the phrase is exactly what an operator investigating
 // a reboot does, and that grep lands in the window it would then poison.
-bool isManualRebootLine(folly::StringPiece line) {
+bool isX86RebootCommandLine(folly::StringPiece line) {
   size_t i = 0;
   const auto skipSpaces = [&] {
     while (i < line.size() && line[i] == ' ') {
@@ -502,17 +503,17 @@ bool isManualRebootLine(folly::StringPiece line) {
     program = program.subpiece(0, bracket);
   }
   if (std::find(
-          kManualRebootPrograms.begin(),
-          kManualRebootPrograms.end(),
-          program) == kManualRebootPrograms.end()) {
+          kX86RebootCommandPrograms.begin(),
+          kX86RebootCommandPrograms.end(),
+          program) == kX86RebootCommandPrograms.end()) {
     return false;
   }
 
   skipSpaces();
-  return line.subpiece(i).startsWith(kManualRebootPattern);
+  return line.subpiece(i).startsWith(kX86RebootCommandPattern);
 }
 
-reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
+reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
     const std::vector<std::string>& logPaths,
     int64_t btimeSec,
     int64_t windowSec) {
@@ -548,7 +549,7 @@ reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
     folly::split('\n', contents, lines);
 
     for (const auto& line : lines) {
-      if (!isManualRebootLine(line)) {
+      if (!isX86RebootCommandLine(line)) {
         continue;
       }
       const auto when = parseSyslogTimestamp(line.str(), btimeSec);
@@ -560,10 +561,10 @@ reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
   }
 
   if (best) {
-    causes.push_back(makeCause("Manual x86 Reboot", *best));
+    causes.push_back(makeCause("X86 Reboot Command", *best));
   }
   return makeAttempt(
-      kManualRebootProvider,
+      kX86RebootCommandProvider,
       status,
       folly::join(", ", logPaths),
       std::move(causes));
@@ -635,7 +636,7 @@ RebootCauseFinderImpl::Paths RebootCauseFinderImpl::defaultPaths() {
       kProcStatPath,
       kProcBootIdPath,
       detail::kernelPanicCrashDirs(),
-      detail::manualRebootLogPaths()};
+      detail::x86RebootCommandLogPaths()};
 }
 
 RebootCauseFinderImpl::RebootCauseFinderImpl(
@@ -694,7 +695,8 @@ void RebootCauseFinderImpl::determineRebootCause() {
         return *a.priority() < *b.priority();
       });
 
-  // A panic names the failure and a manual reboot names the actor; the CPLD
+  // A panic names the failure and an x86 reboot command names the actor; the
+  // CPLD
   // reports only the mechanism (some generic warm-reset bit) for both. So
   // these outrank every hardware provider and are collected first. They are
   // not config providers: their paths and patterns come from systemd and
@@ -712,7 +714,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
     software.push_back(
         detail::readKernelPanic(paths_.crashDirs, *btime, window));
     software.push_back(
-        detail::readManualReboot(paths_.logPaths, *btime, window));
+        detail::readX86RebootCommand(paths_.logPaths, *btime, window));
 
     // Nearest to boot start wins, not whichever reader ran first. A panic and
     // a later operator reboot can both fall inside one window; the reboot is
@@ -723,7 +725,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
     // Without boot start there is no window, so neither implicit provider can
     // be evaluated. Say so rather than letting their absence read as "looked
     // and found nothing".
-    for (const auto* name : {kKernelPanicProvider, kManualRebootProvider}) {
+    for (const auto* name : {kKernelPanicProvider, kX86RebootCommandProvider}) {
       attempts.push_back(makeAttempt(
           name,
           reboot_cause_config::RebootCauseProviderStatus::SKIPPED,

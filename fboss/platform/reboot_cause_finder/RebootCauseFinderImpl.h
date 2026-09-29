@@ -40,7 +40,7 @@ reboot_cause_config::RebootCauseProviderAttempt readKernelPanic(
 // Directories searched for a crash dump; a dump can be in either.
 const std::vector<std::string>& kernelPanicCrashDirs();
 
-reboot_cause_config::RebootCauseProviderAttempt readManualReboot(
+reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
     const std::vector<std::string>& logPaths,
     int64_t btimeSec,
     int64_t windowSec);
@@ -56,12 +56,12 @@ std::optional<std::time_t> parseSyslogTimestamp(
 
 // Log files searched for the systemd-logind reboot line, in no
 // particular order.
-const std::vector<std::string>& manualRebootLogPaths();
+const std::vector<std::string>& x86RebootCommandLogPaths();
 
 // Whether a syslog line is systemd-logind announcing a reboot. False for a
 // line that merely contains the phrase, such as sshd's verbatim record of a
 // remote command that grepped for it.
-bool isManualRebootLine(folly::StringPiece line);
+bool isX86RebootCommandLine(folly::StringPiece line);
 
 // The cause nearest to boot start across every attempt, paired with the
 // provider that reported it. std::nullopt when no attempt reported anything.
