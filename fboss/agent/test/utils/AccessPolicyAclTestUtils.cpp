@@ -400,6 +400,16 @@ std::vector<ControlPlaneProbe> buildControlPlaneProbes() {
   add("ip2me-network-control",
       ControlPlanePacket::Ip2MeNetworkControl,
       udp(unmatchedL4DstPort()));
+  add("link-local-mcast",
+      ControlPlanePacket::LinkLocalMcast,
+      udp(unmatchedL4DstPort()));
+  add("link-local-mcast-network-control",
+      ControlPlanePacket::LinkLocalMcastNetworkControl,
+      udp(unmatchedL4DstPort()));
+  add("link-local-ucast",
+      ControlPlanePacket::LinkLocalUcast,
+      udp(unmatchedL4DstPort()));
+  add("ttl1", ControlPlanePacket::Ttl1, udp(unmatchedL4DstPort()));
 
   return probes;
 }

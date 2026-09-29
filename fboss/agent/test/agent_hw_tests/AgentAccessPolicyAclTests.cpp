@@ -74,17 +74,23 @@ constexpr uint8_t kNetworkControlTrafficClass = 48 << 2;
 const folly::IPAddressV6 kAllRoutersMcast{"ff02::2"};
 const folly::IPAddressV6 kAllNodesMcast{"ff02::1"};
 const folly::IPAddressV6 kDhcpV6AllRoutersMcast{"ff02::1:2"};
+const folly::IPAddressV6 kLinkLocalMcast{"ff02::5"};
+const folly::IPAddressV6 kLinkLocalUcast{"fe80::2"};
 
 // One second settle per round; stop early once no new punts arrive.
 constexpr int kControlPlanePuntSettleRounds = 3;
 
 // Probes the platform has no rx reason for, so they never reach the CPU even
-// on a port with no policy bound. Ebro traps neither router discovery shape.
+// on a port with no policy bound. Ebro traps neither router discovery shape
+// nor either link local multicast shape.
 const std::set<std::string>& untrappedBaselineProbes(
     utility::AccessPolicyShape shape) {
   static const std::set<std::string> kNone;
   static const std::set<std::string> kPortBound{
-      "ndp-router-solicit", "ndp-router-advertise"};
+      "ndp-router-solicit",
+      "ndp-router-advertise",
+      "link-local-mcast",
+      "link-local-mcast-network-control"};
   return shape == utility::AccessPolicyShape::PortBound ? kPortBound : kNone;
 }
 
@@ -511,6 +517,15 @@ class AgentAccessPolicyAclTest : public AgentHwTest {
       case utility::ControlPlanePacket::Ip2MeNetworkControl:
         return udpV6Probe(
             ctx, ctx.myIpV6, kNetworkControlTrafficClass, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalMcast:
+        return udpV6Probe(ctx, kLinkLocalMcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalMcastNetworkControl:
+        return udpV6Probe(
+            ctx, kLinkLocalMcast, kNetworkControlTrafficClass, kHopLimit);
+      case utility::ControlPlanePacket::LinkLocalUcast:
+        return udpV6Probe(ctx, kLinkLocalUcast, 0 /*trafficClass*/, kHopLimit);
+      case utility::ControlPlanePacket::Ttl1:
+        return udpV6Probe(ctx, kDstIp(), 0 /*trafficClass*/, 1 /*hopLimit*/);
     }
     throw FbossError(
         "Unhandled control plane packet ", static_cast<int>(probe.packet));

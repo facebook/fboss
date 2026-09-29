@@ -80,6 +80,10 @@ enum class ControlPlanePacket {
   BgpSrcPort,
   Ip2Me,
   Ip2MeNetworkControl,
+  LinkLocalMcast,
+  LinkLocalMcastNetworkControl,
+  LinkLocalUcast,
+  Ttl1,
 };
 
 struct ControlPlaneProbe {
