@@ -3011,39 +3011,36 @@ void SaiPortManager::updateStats(
     auto& portApi = SaiApiTable::getInstance()->portApi();
     auto adapterKey = handle->port->adapterKey();
     const auto& portAttrs = handle->port->attributes();
-    // Some ASICs clear the retrigger counters on read. Accumulate those so
-    // HwPortStats always reports a monotonic count, as we do for FEC errors.
-    auto retriggerCountClearOnRead =
+    auto asicClearsRetriggerCountOnRead =
         platform_->getAsic()->isPortDebounceRetriggerCountClearOnRead();
-    auto storeRetriggerCount = [retriggerCountClearOnRead](
-                                   auto&& stat, int64_t value) {
-      stat =
-          retriggerCountClearOnRead && stat.has_value() ? *stat + value : value;
-    };
-    // 26.2.4210 replaced the retrigger attributes with port stats served by
-    // get_port_stats
-    auto readRetriggerCount =
-        [&](const std::vector<sai_stat_id_t>& statIds,
-            auto&& readAttr,
-            const char* statsGroup) -> std::optional<int64_t> {
-      if (statIds.empty()) {
-        return static_cast<int64_t>(readAttr());
-      }
+    auto updateRetriggerCount = [&](auto&& stat,
+                                    const std::vector<sai_stat_id_t>& statIds,
+                                    auto&& readAttr,
+                                    const char* statsGroup) {
+      std::optional<int64_t> value;
       try {
-        auto values = portApi.getStats<SaiPortTraits>(
-            adapterKey, statIds, SAI_STATS_MODE_READ);
-        if (values.empty()) {
-          return std::nullopt;
+        if (statIds.empty()) {
+          value = static_cast<int64_t>(readAttr());
+        } else {
+          auto values = portApi.getStats<SaiPortTraits>(
+              adapterKey, statIds, SAI_STATS_MODE_READ_AND_CLEAR);
+          if (!values.empty()) {
+            value = static_cast<int64_t>(values.front());
+          }
         }
-        return static_cast<int64_t>(values.front());
       } catch (const SaiApiError& e) {
         XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
                   << " (portId: " << portId << "): " << e.what();
-        return std::nullopt;
+        return;
       }
+      if (!value.has_value()) {
+        return;
+      }
+      // The stats are read and cleared, the attributes report a running total;
+      // accumulate the former so HwPortStats stays monotonic, as we do for FEC.
+      auto clearOnRead = !statIds.empty() || asicClearsRetriggerCountOnRead;
+      stat = clearOnRead && stat.has_value() ? *stat + *value : *value;
     };
-    // Only read the retrigger counts for ports that actually have a debounce
-    // hold timer configured.
     auto downPeriod = std::get<
         std::optional<SaiPortTraits::Attributes::LinkDownDebouncePeriodMs>>(
         portAttrs);
@@ -3051,7 +3048,8 @@ void SaiPortManager::updateStats(
         std::optional<SaiPortTraits::Attributes::LinkUpDebouncePeriodMs>>(
         portAttrs);
     if (downPeriod.has_value() && downPeriod->value() > 0) {
-      auto downCount = readRetriggerCount(
+      updateRetriggerCount(
+          curPortStats.linkDownDebounceRetriggerCount_(),
           SaiPortTraits::linkDownDebounceRetriggerStats(),
           [&] {
             return portApi.getAttribute(
@@ -3059,13 +3057,10 @@ void SaiPortManager::updateStats(
                 SaiPortTraits::Attributes::LinkDownDebounceRetriggerCount{});
           },
           "link down debounce retrigger count");
-      if (downCount.has_value()) {
-        storeRetriggerCount(
-            curPortStats.linkDownDebounceRetriggerCount_(), *downCount);
-      }
     }
     if (upPeriod.has_value() && upPeriod->value() > 0) {
-      auto upCount = readRetriggerCount(
+      updateRetriggerCount(
+          curPortStats.linkUpDebounceRetriggerCount_(),
           SaiPortTraits::linkUpDebounceRetriggerStats(),
           [&] {
             return portApi.getAttribute(
@@ -3073,10 +3068,6 @@ void SaiPortManager::updateStats(
                 SaiPortTraits::Attributes::LinkUpDebounceRetriggerCount{});
           },
           "link up debounce retrigger count");
-      if (upCount.has_value()) {
-        storeRetriggerCount(
-            curPortStats.linkUpDebounceRetriggerCount_(), *upCount);
-      }
     }
   }
 #endif
