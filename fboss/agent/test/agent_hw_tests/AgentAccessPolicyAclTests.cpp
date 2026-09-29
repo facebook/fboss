@@ -375,10 +375,39 @@ class AgentAccessPolicyAclAddedTest : public BaseT {
   }
 };
 
+template <typename BaseT>
+class AgentAccessPolicyAclEntryAddedTest
+    : public BaseT,
+      public ::testing::WithParamInterface<std::string> {
+ protected:
+  std::set<std::string> coldBootOmitRules() const override {
+    return {this->GetParam()};
+  }
+};
+
+template <typename BaseT>
+class AgentAccessPolicyAclEntryDeletedTest
+    : public BaseT,
+      public ::testing::WithParamInterface<std::string> {
+ protected:
+  std::set<std::string> warmBootOmitRules() const override {
+    return {this->GetParam()};
+  }
+};
+
 using AgentAccessPolicyClassIdAclAddedTest =
     AgentAccessPolicyAclAddedTest<AgentAccessPolicyClassIdAclTest>;
 using AgentAccessPolicyPortBoundAclAddedTest =
     AgentAccessPolicyAclAddedTest<AgentAccessPolicyPortBoundAclTest>;
+using AgentAccessPolicyClassIdAclEntryAddedTest =
+    AgentAccessPolicyAclEntryAddedTest<AgentAccessPolicyClassIdAclTest>;
+using AgentAccessPolicyPortBoundAclEntryAddedTest =
+    AgentAccessPolicyAclEntryAddedTest<AgentAccessPolicyPortBoundAclTest>;
+using AgentAccessPolicyClassIdAclEntryDeletedTest =
+    AgentAccessPolicyAclEntryDeletedTest<AgentAccessPolicyClassIdAclTest>;
+using AgentAccessPolicyPortBoundAclEntryDeletedTest =
+    AgentAccessPolicyAclEntryDeletedTest<AgentAccessPolicyPortBoundAclTest>;
+
 TEST_F(AgentAccessPolicyClassIdAclTest, AccessPolicyAcl) {
   runAccessPolicyTest();
 }
@@ -394,5 +423,62 @@ TEST_F(AgentAccessPolicyClassIdAclAddedTest, AccessPolicyAclAddedOnWarmboot) {
 TEST_F(AgentAccessPolicyPortBoundAclAddedTest, AccessPolicyAclAddedOnWarmboot) {
   runAccessPolicyTest();
 }
+
+TEST_P(
+    AgentAccessPolicyClassIdAclEntryAddedTest,
+    AccessPolicyAclEntryAddedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_P(
+    AgentAccessPolicyPortBoundAclEntryAddedTest,
+    AccessPolicyAclEntryAddedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_P(
+    AgentAccessPolicyClassIdAclEntryDeletedTest,
+    AccessPolicyAclEntryDeletedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+TEST_P(
+    AgentAccessPolicyPortBoundAclEntryDeletedTest,
+    AccessPolicyAclEntryDeletedOnWarmboot) {
+  runAccessPolicyTest();
+}
+
+namespace {
+std::string aclEntryTestName(
+    const ::testing::TestParamInfo<std::string>& info) {
+  auto name = info.param;
+  std::replace(name.begin(), name.end(), '-', '_');
+  return name;
+}
+} // namespace
+
+INSTANTIATE_TEST_SUITE_P(
+    AccessPolicy,
+    AgentAccessPolicyClassIdAclEntryAddedTest,
+    ::testing::ValuesIn(utility::accessPolicyRepresentativeRules()),
+    aclEntryTestName);
+
+INSTANTIATE_TEST_SUITE_P(
+    AccessPolicy,
+    AgentAccessPolicyPortBoundAclEntryAddedTest,
+    ::testing::ValuesIn(utility::accessPolicyRepresentativeRules()),
+    aclEntryTestName);
+
+INSTANTIATE_TEST_SUITE_P(
+    AccessPolicy,
+    AgentAccessPolicyClassIdAclEntryDeletedTest,
+    ::testing::ValuesIn(utility::accessPolicyRepresentativeRules()),
+    aclEntryTestName);
+
+INSTANTIATE_TEST_SUITE_P(
+    AccessPolicy,
+    AgentAccessPolicyPortBoundAclEntryDeletedTest,
+    ::testing::ValuesIn(utility::accessPolicyRepresentativeRules()),
+    aclEntryTestName);
 
 } // namespace facebook::fboss
