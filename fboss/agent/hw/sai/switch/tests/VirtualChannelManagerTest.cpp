@@ -138,7 +138,8 @@ TEST_F(VirtualChannelManagerTest, changePortAddsAVirtualChannel) {
   ASSERT_EQ(vcCount(), 1);
 
   auto changedPort = swPort->clone();
-  changedPort->setVirtualChannels({makeVc(2, 36), makeVc(6, 12)});
+  changedPort->setVirtualChannels(
+      std::vector<state::PortVcFields>{makeVc(2, 36), makeVc(6, 12)});
   saiManagerTable->portManager().changePort(swPort, changedPort);
 
   EXPECT_EQ(vcCount(), 2);
@@ -152,7 +153,8 @@ TEST_F(VirtualChannelManagerTest, changePortRemovesAVirtualChannel) {
   // Rebuilding the handle with a smaller set is what drops the objects the
   // port no longer wants.
   auto changedPort = swPort->clone();
-  changedPort->setVirtualChannels({makeVc(2, 36)});
+  changedPort->setVirtualChannels(
+      std::vector<state::PortVcFields>{makeVc(2, 36)});
   saiManagerTable->portManager().changePort(swPort, changedPort);
 
   EXPECT_EQ(vcCount(), 1);
@@ -168,7 +170,8 @@ TEST_F(VirtualChannelManagerTest, changedReservationRebindsProfile) {
   // create a new profile and rebind rather than mutate the old one. The stale
   // profile must be gone once nothing references it.
   auto changedPort = swPort->clone();
-  changedPort->setVirtualChannels({makeVc(2, 48)});
+  changedPort->setVirtualChannels(
+      std::vector<state::PortVcFields>{makeVc(2, 48)});
   saiManagerTable->portManager().changePort(swPort, changedPort);
 
   EXPECT_NE(getVc(2).getCbfcSenderCreditProfile(), originalProfile);
@@ -183,7 +186,7 @@ TEST_F(VirtualChannelManagerTest, changePortFlipsAnEnable) {
   auto vc = makeVc(2, 36);
   vc.senderEnable() = false;
   auto changedPort = swPort->clone();
-  changedPort->setVirtualChannels({vc});
+  changedPort->setVirtualChannels(std::vector<state::PortVcFields>{vc});
   saiManagerTable->portManager().changePort(swPort, changedPort);
 
   // Same object, updated in place: the enables are CREATE_AND_SET.
