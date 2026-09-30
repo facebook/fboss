@@ -112,6 +112,10 @@ sai_status_t get_virtual_channel_attribute_fn(
       case SAI_VIRTUAL_CHANNEL_ATTR_INDEX:
         attr_list[i].value.u8 = virtualChannel.getIndex();
         break;
+      case SAI_VIRTUAL_CHANNEL_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_LIMIT:
+        attr_list[i].value.u32 =
+            virtualChannel.getCbfcReceiverNativeCreditLimit();
+        break;
       case SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_CREDIT_PROFILE:
         attr_list[i].value.oid = virtualChannel.getCbfcSenderCreditProfile();
         break;

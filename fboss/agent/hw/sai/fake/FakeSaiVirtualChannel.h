@@ -28,6 +28,9 @@ class FakeVirtualChannel {
   sai_uint8_t getIndex() const {
     return index_;
   }
+  sai_uint32_t getCbfcReceiverNativeCreditLimit() const {
+    return cbfcReceiverNativeCreditLimit_;
+  }
   sai_object_id_t getCbfcSenderCreditProfile() const {
     return cbfcSenderCreditProfile_;
   }
@@ -54,6 +57,8 @@ class FakeVirtualChannel {
   // no setters.
   sai_object_id_t port_;
   sai_uint8_t index_;
+  // READ_ONLY on real hardware; canned here, as on the port.
+  sai_uint32_t cbfcReceiverNativeCreditLimit_{500};
   sai_object_id_t cbfcSenderCreditProfile_{SAI_NULL_OBJECT_ID};
   bool cbfcReceiverEnable_{false};
   bool cbfcSenderEnable_{false};
