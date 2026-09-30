@@ -1255,6 +1255,15 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP:
         attr[i].value.oid = port.qosQueueToVcMap;
         break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_SIZE:
+        attr[i].value.u16 = port.cbfcReceiverNativeCreditSize;
+        break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_PACKET_OVERHEAD:
+        attr[i].value.s16 = port.cbfcReceiverNativePacketOverhead;
+        break;
+      case SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_TOTAL_CREDITS:
+        attr[i].value.u16 = port.cbfcReceiverNativeTotalCredits;
+        break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;
         break;
