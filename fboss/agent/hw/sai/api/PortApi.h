@@ -360,6 +360,21 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_QUEUE_TO_VC_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+    // READ_ONLY. Hardware derives these from the MMU carving; FBOSS never
+    // writes them. They are what the receiver advertises to its peer, so they
+    // are the only way to see how a PG carving turns into credits.
+    using CbfcReceiverNativeCreditSize = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_SIZE,
+        sai_uint16_t>;
+    using CbfcReceiverNativePacketOverhead = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_PACKET_OVERHEAD,
+        sai_int16_t>;
+    using CbfcReceiverNativeTotalCredits = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_CBFC_RECEIVER_NATIVE_TOTAL_CREDITS,
+        sai_uint16_t>;
 #endif
     using QosPfcPriorityToQueueMap = SaiAttribute<
         EnumType,
@@ -1041,6 +1056,9 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosTcToVcMap)
 SAI_ATTRIBUTE_NAME(Port, CbfcSenderCreditLimit)
 SAI_ATTRIBUTE_NAME(Port, QosQueueToVcMap)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeCreditSize)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativePacketOverhead)
+SAI_ATTRIBUTE_NAME(Port, CbfcReceiverNativeTotalCredits)
 #endif
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToPriorityGroupMap)

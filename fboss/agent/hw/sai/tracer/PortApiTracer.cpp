@@ -75,6 +75,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, QosTcToVcMap),
     SAI_ATTR_MAP(Port, CbfcSenderCreditLimit),
     SAI_ATTR_MAP(Port, QosQueueToVcMap),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativeCreditSize),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativePacketOverhead),
+    SAI_ATTR_MAP(Port, CbfcReceiverNativeTotalCredits),
 #endif
     SAI_ATTR_MAP(Port, QosPfcPriorityToQueueMap),
     SAI_ATTR_MAP(Port, QosPfcPriorityToPriorityGroupMap),

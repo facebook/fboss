@@ -33,6 +33,11 @@ struct SaiVirtualChannelTraits {
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_PORT, SaiObjectIdT>;
     using Index =
         SaiAttribute<EnumType, SAI_VIRTUAL_CHANNEL_ATTR_INDEX, sai_uint8_t>;
+    // READ_ONLY: the per-VC credit limit hardware advertises to the peer.
+    using CbfcReceiverNativeCreditLimit = SaiAttribute<
+        EnumType,
+        SAI_VIRTUAL_CHANNEL_ATTR_CBFC_RECEIVER_NATIVE_CREDIT_LIMIT,
+        sai_uint32_t>;
     using CbfcSenderCreditProfile = SaiAttribute<
         EnumType,
         SAI_VIRTUAL_CHANNEL_ATTR_CBFC_SENDER_CREDIT_PROFILE,
@@ -69,6 +74,7 @@ struct SaiVirtualChannelTraits {
 
 SAI_ATTRIBUTE_NAME(VirtualChannel, Port);
 SAI_ATTRIBUTE_NAME(VirtualChannel, Index);
+SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverNativeCreditLimit);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderCreditProfile);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcReceiverEnable);
 SAI_ATTRIBUTE_NAME(VirtualChannel, CbfcSenderEnable);
