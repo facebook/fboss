@@ -37,7 +37,8 @@ struct HalTestModule {
 
 HalTestModule createQsfpModule(
     const HalTestTransceiverEntry& entry,
-    const BspPlatformMapping* bspMapping);
+    const BspPlatformMapping* bspMapping,
+    const std::map<std::string, std::string>& fwHandleMap);
 
 // Create QsfpModules for all transceivers in the config.
 std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config);

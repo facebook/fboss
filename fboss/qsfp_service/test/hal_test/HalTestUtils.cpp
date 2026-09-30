@@ -142,14 +142,16 @@ std::unique_ptr<BspTransceiverImpl> createBspTransceiverImpl(
 
 HalTestModule createQsfpModule(
     const HalTestTransceiverEntry& entry,
-    const BspPlatformMapping* bspMapping) {
+    const BspPlatformMapping* bspMapping,
+    const std::map<std::string, std::string>& fwHandleMap) {
   HalTestModule result;
   result.impl = createBspTransceiverImpl(entry, bspMapping);
 
   std::set<std::string> portNames;
   portNames.insert(*entry.name());
 
-  auto cfg = std::make_shared<const TransceiverConfig>(TransceiverOverrides{});
+  auto cfg = std::make_shared<const TransceiverConfig>(
+      TransceiverOverrides{}, fwHandleMap);
 
   result.module = std::make_unique<CmisModule>(
       std::move(portNames),
@@ -191,7 +193,8 @@ std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config) {
   std::map<int, HalTestModule> modules;
   for (const auto& entry : *config.transceivers()) {
     int id = *entry.id();
-    modules[id] = createQsfpModule(entry, bspMapping.get());
+    modules[id] =
+        createQsfpModule(entry, bspMapping.get(), *config.fwHandleMap());
   }
   return modules;
 }
