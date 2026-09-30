@@ -129,6 +129,55 @@ TEST_F(QosMapManagerTest, noQueueToVcMapWhenUnconfigured) {
   EXPECT_FALSE(handle->queueToVcMap);
 }
 
+TEST_F(QosMapManagerTest, vcQosMapsBoundToPort) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  qp->setTrafficClassToVcIdMap({{0, 2}});
+  qp->setQueueToVcIdMap({{2, 2}});
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+
+  auto portId = PortID(1);
+  saiManagerTable->portManager().setQosPolicy(portId, "default");
+
+  auto* handle = saiManagerTable->qosMapManager().getQosMap();
+  auto portSaiId =
+      saiManagerTable->portManager().getPortHandle(portId)->port->adapterKey();
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::QosTcToVcMap{}),
+      handle->tcToVcMap->adapterKey());
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::QosQueueToVcMap{}),
+      handle->queueToVcMap->adapterKey());
+}
+
+TEST_F(QosMapManagerTest, vcQosMapsReboundOnReapply) {
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  qp->setTrafficClassToVcIdMap({{0, 2}});
+  qp->setQueueToVcIdMap({{2, 2}});
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
+
+  auto portId = PortID(1);
+  saiManagerTable->portManager().setQosPolicy(portId, "default");
+  // Reapplying must leave the binding intact, which is the rebuild path in
+  // getSaiIdsForQosMaps().
+  saiManagerTable->portManager().setQosPolicy(portId, "default");
+
+  auto* handle = saiManagerTable->qosMapManager().getQosMap();
+  auto portSaiId =
+      saiManagerTable->portManager().getPortHandle(portId)->port->adapterKey();
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+
+  EXPECT_EQ(
+      portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::QosQueueToVcMap{}),
+      handle->queueToVcMap->adapterKey());
+}
+
 TEST_F(QosMapManagerTest, queueToVcMapIsSeparateFromTcToVcMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
