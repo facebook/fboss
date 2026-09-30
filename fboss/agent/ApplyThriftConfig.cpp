@@ -3104,7 +3104,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
   // CBFC virtual channels. Independent of PFC: a port may run both, so this
   // is resolved from Port.cbfcConfigName rather than from PortPfc.
-  std::vector<state::PortVcFields> virtualChannels;
+  std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
@@ -3127,7 +3127,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           *cbfcConfigName,
           " does not exist in cbfcConfigs map");
     }
+    if (it->second.virtualChannels()->empty()) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " cbfc config name ",
+          *cbfcConfigName,
+          " has no virtual channels; there is nothing to credit. Leave"
+          " cbfcConfigName unset on a port that does not run CBFC.");
+    }
     std::set<int16_t> seenVcIds;
+    std::vector<state::PortVcFields> configuredVcs;
     for (const auto& vc : *it->second.virtualChannels()) {
       auto vcId = *vc.id();
       if (vcId < 0 ||
@@ -3156,7 +3166,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       if (auto reserved = vc.reservedCreditSize()) {
         vcFields.reservedCreditSize() = *reserved;
       }
-      virtualChannels.push_back(std::move(vcFields));
+      configuredVcs.push_back(std::move(vcFields));
     }
     if (auto limit = it->second.senderCreditLimit()) {
       if (*limit < 0 ||
@@ -3170,14 +3180,16 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       }
       cbfcSenderCreditLimit = *limit;
     }
+    virtualChannels = std::move(configuredVcs);
   }
 
   bool virtualChannelsUnchanged = [&]() {
     auto origVcs = orig->getVirtualChannels();
     if (!origVcs) {
-      return virtualChannels.empty();
+      return !virtualChannels.has_value();
     }
-    return origVcs->toThrift() == virtualChannels;
+    return virtualChannels.has_value() &&
+        origVcs->toThrift() == *virtualChannels;
   }();
 
   portPgConfigUnchanged = isPgConfigUnchanged(portPgCfgs, orig);

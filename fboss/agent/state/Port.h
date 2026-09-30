@@ -368,8 +368,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return safe_cref<switch_state_tags::virtualChannels>();
   }
 
-  void setVirtualChannels(std::vector<state::PortVcFields> virtualChannels) {
-    set<switch_state_tags::virtualChannels>(std::move(virtualChannels));
+  void setVirtualChannels(
+      const std::optional<std::vector<state::PortVcFields>>& virtualChannels) {
+    if (!virtualChannels) {
+      ref<switch_state_tags::virtualChannels>().reset();
+      return;
+    }
+    set<switch_state_tags::virtualChannels>(*virtualChannels);
   }
 
   std::optional<std::string> getCbfcConfigName() const {

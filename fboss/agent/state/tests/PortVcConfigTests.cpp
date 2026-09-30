@@ -144,6 +144,20 @@ TEST(PortVcConfig, DuplicateVcId) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
+TEST(PortVcConfig, EmptyVirtualChannels) {
+  auto cbfcConfig = makeCbfcConfig();
+  // Legal thrift -- virtualChannels is a plain list -- but it would leave the
+  // port with cbfcConfigName set and no virtual channels, which the SAI layer
+  // reads as CBFC being configured.
+  cbfcConfig.virtualChannels()->clear();
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(cbfcConfig);
+
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
 TEST(PortVcConfig, NegativeReservedCreditSize) {
   auto cbfcConfig = makeCbfcConfig();
   cbfcConfig.virtualChannels()[0].reservedCreditSize() = -1;
@@ -258,7 +272,7 @@ TEST(PortVcConfig, RemovalClearsState) {
   ASSERT_NE(nullptr, port);
   EXPECT_FALSE(port->getCbfcConfigName().has_value());
   EXPECT_FALSE(port->getCbfcSenderCreditLimit().has_value());
-  EXPECT_EQ(port->getVirtualChannels()->size(), 0);
+  EXPECT_FALSE(port->getVirtualChannels());
 }
 
 TEST(PortVcConfig, AbsentWhenNotConfigured) {
@@ -275,4 +289,7 @@ TEST(PortVcConfig, AbsentWhenNotConfigured) {
   ASSERT_NE(nullptr, port);
   EXPECT_FALSE(port->getCbfcConfigName().has_value());
   EXPECT_FALSE(port->getCbfcSenderCreditLimit().has_value());
+  // Unset, not an empty list. The SAI layer skips a port on this test alone,
+  // so a present-but-empty list would send it on to program hardware.
+  EXPECT_FALSE(port->getVirtualChannels());
 }

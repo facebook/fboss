@@ -67,9 +67,9 @@ void SaiVirtualChannelManager::programVirtualChannels(
 
   SaiVirtualChannelHandle handle;
   auto& store = saiStore_->get<SaiVirtualChannelTraits>();
-  // virtualChannels is an optional thrift field, so the node is null -- not an
-  // empty list -- on a port that has never carried a CBFC config. Erasing is
-  // what an empty list would do anyway.
+  // virtualChannels is an optional thrift field, and ApplyThriftConfig leaves
+  // it unset on a port that names no cbfcConfig. Erasing is what an empty list
+  // would do anyway.
   const auto& virtualChannels = swPort->getVirtualChannels();
   if (!virtualChannels) {
     handles_.erase(swPort->getID());
