@@ -14,6 +14,7 @@ cpp_unittest(
         "//fboss/platform/reboot_cause_finder:reboot_cause_finder_lib",
         "//folly:dynamic",
         "//folly:file_util",
+        "//folly:network_address",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

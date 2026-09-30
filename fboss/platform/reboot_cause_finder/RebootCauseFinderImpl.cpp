@@ -2,6 +2,8 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+#include "fboss/lib/RestClient.h"
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -66,6 +68,36 @@ constexpr auto kX86RebootCommandPattern = "System is rebooting";
 constexpr std::array<folly::StringPiece, 2> kX86RebootCommandPrograms{
     "systemd-logind",
     "systemd"};
+
+constexpr auto kBmcWedgePowerProvider = "BMCWedgePower";
+
+// The BMC's persistent critical log, read in band over the sideband VLAN that
+// systemd-networkd configures on every fboss-lite switch. fe80::1 is
+// link-local, so the scope interface is not optional. The endpoint is POST and
+// its ACL admits MANAGED_HOST_ANY, which the BMC grants to a peer at fe80::2.
+// Its other grant path is a matching client certificate, which this plaintext
+// request does not present, so the source address is the whole credential.
+//
+// Hence the source must be pinned: the interface also carries the kernel's
+// EUI-64 link-local, both are fe80::/64, so source selection ties and the
+// kernel's pick is arbitrary and flips on link flap. Measured, 28 of 83 lab
+// hosts picked the EUI-64 address, which the BMC rejects with 403.
+constexpr auto kBmcAddress = "fe80::1";
+constexpr auto kHostSourceAddress = "fe80::2%eth0.4088";
+constexpr auto kBmcInterface = "eth0.4088";
+constexpr int kBmcPort = 8080;
+constexpr auto kBmcLogfilePath = "/api/sys/logfile";
+// Arguments go in the body. RestClient issues a POST, and sets
+// Content-Type: application/json, only when postData is non-empty.
+constexpr auto kBmcLogfileBody = R"({"lines": 200})";
+constexpr std::chrono::milliseconds kBmcTimeout{2000};
+
+// wedge_power.sh emits these immediately before it acts, so they are written
+// while the BMC clock is still NTP correct. `reset -s` cycles the whole
+// chassis and takes the BMC down with it; a plain `reset` drops only the x86
+// and the BMC stays up.
+constexpr auto kChassisResetMarker = "Power reset the whole system";
+constexpr auto kX86ResetMarker = "Power reset x86 (userver)";
 
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
@@ -570,6 +602,110 @@ reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
       std::move(causes));
 }
 
+// Timestamps in the BMC log carry a year, unlike syslog on the x86, so no
+// year has to be inferred. mktime interprets them in this host's zone; the
+// BMC and the x86 it sits in are set to the same one.
+//
+// Lines written before the BMC finishes NTP sync carry the image's
+// build-default date instead of the real time, which is why the log is not
+// monotonic. Those dates are months away from any boot window, so the window
+// check below discards them without needing to recognise them.
+std::optional<std::time_t> parseBmcLogTimestamp(const std::string& line) {
+  std::tm tm{};
+  if (strptime(line.c_str(), " %Y %b %d %H:%M:%S", &tm) == nullptr) {
+    return std::nullopt;
+  }
+  tm.tm_isdst = -1;
+  const auto when = std::mktime(&tm);
+  if (when == -1) {
+    return std::nullopt;
+  }
+  return when;
+}
+
+reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
+    const std::string& body,
+    int64_t btimeSec,
+    int64_t windowSec) {
+  auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
+  std::vector<reboot_cause_config::RebootCause> causes;
+
+  std::optional<std::time_t> best;
+  std::string bestDescription;
+  std::string bestLine;
+  try {
+    const auto json = folly::parseJson(body);
+    for (const auto& entry : json["Information"]["entries"]) {
+      const auto line = entry.asString();
+      const char* description = nullptr;
+      if (line.find(kChassisResetMarker) != std::string::npos) {
+        description = "ChassisResetFromBmc";
+      } else if (line.find(kX86ResetMarker) != std::string::npos) {
+        description = "X86ResetFromBmc";
+      } else {
+        continue;
+      }
+      const auto when = parseBmcLogTimestamp(line);
+      if (when && inBootWindow(*when, btimeSec, windowSec) &&
+          (!best || *when > *best)) {
+        best = when;
+        bestDescription = description;
+        bestLine = line;
+      }
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to parse BMC logfile response: {}", ex.what());
+    return makeAttempt(
+        kBmcWedgePowerProvider,
+        reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED,
+        kBmcLogfilePath,
+        {});
+  }
+
+  if (best) {
+    auto cause = makeCause(bestDescription, *best);
+    // The line the timestamp was derived from. The BMC log is not ordered by
+    // time, so keeping the source lets a reader audit the parse rather than
+    // trust it.
+    cause.rawValue() = bestLine;
+    causes.push_back(std::move(cause));
+  }
+  return makeAttempt(
+      kBmcWedgePowerProvider, status, kBmcLogfilePath, std::move(causes));
+}
+
+folly::StringPiece bmcHostSourceAddress() {
+  return kHostSourceAddress;
+}
+
+reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
+    int64_t btimeSec,
+    int64_t windowSec) {
+  std::string body;
+  try {
+    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort, kBmcInterface);
+    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
+    client.setTimeout(kBmcTimeout);
+    body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to reach the BMC logfile API: {}", ex.what());
+    body.clear();
+  }
+  if (body.empty()) {
+    // The BMC is unreachable, the source address could not be bound, the
+    // image has no logfile endpoint, or the ACL rule has not reached it yet.
+    // All are a failed read, not an absence of causes.
+    return makeAttempt(
+        kBmcWedgePowerProvider,
+        reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
+        kBmcLogfilePath,
+        {});
+  }
+  return parseBmcWedgePower(body, btimeSec, windowSec);
+}
+
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
   auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
@@ -715,6 +851,7 @@ void RebootCauseFinderImpl::determineRebootCause() {
         detail::readKernelPanic(paths_.crashDirs, *btime, window));
     software.push_back(
         detail::readX86RebootCommand(paths_.logPaths, *btime, window));
+    software.push_back(detail::readBmcWedgePower(*btime, window));
 
     // Nearest to boot start wins, not whichever reader ran first. A panic and
     // a later operator reboot can both fall inside one window; the reboot is
@@ -725,7 +862,10 @@ void RebootCauseFinderImpl::determineRebootCause() {
     // Without boot start there is no window, so neither implicit provider can
     // be evaluated. Say so rather than letting their absence read as "looked
     // and found nothing".
-    for (const auto* name : {kKernelPanicProvider, kX86RebootCommandProvider}) {
+    for (const auto* name :
+         {kKernelPanicProvider,
+          kX86RebootCommandProvider,
+          kBmcWedgePowerProvider}) {
       attempts.push_back(makeAttempt(
           name,
           reboot_cause_config::RebootCauseProviderStatus::SKIPPED,

@@ -45,6 +45,23 @@ reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
     int64_t btimeSec,
     int64_t windowSec);
 
+// Reads the BMC's persistent critical log over the in-band sideband VLAN.
+reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
+    int64_t btimeSec,
+    int64_t windowSec);
+
+// The source address the BMC's ACL grants. Exposed so a test can assert it
+// still parses and is a zoned link-local; RestClient::setSourceAddress throws
+// otherwise, and on a switch that throw is indistinguishable from an outage.
+folly::StringPiece bmcHostSourceAddress();
+
+// Exposed separately from readBmcWedgePower so the parsing can be tested
+// without an HTTP server.
+reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
+    const std::string& body,
+    int64_t btimeSec,
+    int64_t windowSec);
+
 // std::nullopt when the name is not a timestamp this code understands.
 std::optional<std::time_t> parseCrashDirName(const std::string& name);
 

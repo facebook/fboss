@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
+#include <folly/IPAddressV6.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -237,6 +238,138 @@ TEST_F(RebootCauseFinderImplTest, UnparseableCrashDirEntryIsSkipped) {
   const auto btime = nowSec();
   const auto dir = makeCrashDir({"not-a-timestamp", "README"});
   EXPECT_TRUE(detail::readKernelPanic({dir}, btime, kWindow).causes()->empty());
+}
+
+// --------------------------------------------------------- BMC wedge power
+
+namespace {
+// One entry of the BMC's persistent log, in the format rsyslog writes with
+// the LogUtilFileFormat template: leading space, then a four-digit year.
+std::string bmcLine(std::time_t when, const std::string& message) {
+  std::tm tm{};
+  localtime_r(&when, &tm);
+  char stamp[32];
+  strftime(stamp, sizeof(stamp), "%Y %b %e %H:%M:%S", &tm);
+  return fmt::format(
+      " {} bmc user.crit acctonbmc-2026.36.0: root: {}", stamp, message);
+}
+
+std::string bmcBody(const std::vector<std::string>& lines) {
+  folly::dynamic entries = folly::dynamic::array;
+  for (const auto& l : lines) {
+    entries.push_back(l);
+  }
+  folly::dynamic info = folly::dynamic::object("entries", entries);
+  return folly::toJson(folly::dynamic::object("Information", info));
+}
+} // namespace
+
+TEST_F(RebootCauseFinderImplTest, BmcChassisResetInsideWindowIsReported) {
+  const auto btime = nowSec();
+  const auto body =
+      bmcBody({bmcLine(btime - 160, "Power reset the whole system ...")});
+
+  const auto attempt = detail::parseBmcWedgePower(body, btime, kWindow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+  ASSERT_EQ(attempt.causes()->size(), 1);
+  EXPECT_EQ(*(*attempt.causes())[0].description(), "ChassisResetFromBmc");
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcX86ResetIsDistinguishedFromChassisReset) {
+  const auto btime = nowSec();
+  const auto body =
+      bmcBody({bmcLine(btime - 160, "Power reset x86 (userver) ...")});
+
+  const auto causes =
+      *detail::parseBmcWedgePower(body, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].description(), "X86ResetFromBmc");
+}
+
+// The BMC's ACL grants MANAGED_HOST_ANY to this address and no other, and
+// RestClient::setSourceAddress throws unless it is a zoned link-local. On a
+// switch either failure is recorded as READ_FAILED, which is
+// indistinguishable from the BMC being unreachable.
+//
+// Checked textually rather than by parsing the whole string: folly resolves
+// the zone through getaddrinfo, so IPAddressV6("fe80::2%eth0.4088") throws
+// anywhere that interface is absent, this test host included.
+TEST_F(RebootCauseFinderImplTest, BmcSourceAddressIsZonedLinkLocal) {
+  auto source = detail::bmcHostSourceAddress();
+  auto zone = source.find('%');
+  ASSERT_NE(zone, std::string::npos) << "source must carry its zone";
+  EXPECT_TRUE(folly::IPAddressV6(source.subpiece(0, zone).str()).isLinkLocal());
+  EXPECT_FALSE(source.subpiece(zone + 1).empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcRawValueKeepsTheSourceLine) {
+  const auto btime = nowSec();
+  const auto line = bmcLine(btime - 160, "Power reset the whole system ...");
+  const auto causes =
+      *detail::parseBmcWedgePower(bmcBody({line}), btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  // The parse is auditable only if the line it came from survives.
+  EXPECT_EQ(*causes[0].rawValue(), line);
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcNearestToBootStartWins) {
+  const auto btime = nowSec();
+  const auto body = bmcBody(
+      {bmcLine(btime - 900, "Power reset x86 (userver) ..."),
+       bmcLine(btime - 160, "Power reset the whole system ...")});
+
+  const auto causes =
+      *detail::parseBmcWedgePower(body, btime, kWindow).causes();
+  ASSERT_EQ(causes.size(), 1);
+  EXPECT_EQ(*causes[0].description(), "ChassisResetFromBmc");
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcEventOlderThanWindowIsIgnored) {
+  const auto btime = nowSec();
+  const auto body = bmcBody(
+      {bmcLine(btime - kWindow - 60, "Power reset the whole system ...")});
+
+  EXPECT_TRUE(
+      detail::parseBmcWedgePower(body, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcEventAfterBootStartIsIgnored) {
+  const auto btime = nowSec();
+  const auto body =
+      bmcBody({bmcLine(btime + 60, "Power reset the whole system ...")});
+
+  EXPECT_TRUE(
+      detail::parseBmcWedgePower(body, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcPreNtpDefaultDateIsIgnored) {
+  const auto btime = nowSec();
+  // A line written before the BMC syncs NTP carries the image build-default
+  // date. It is months from any real boot, so the window rejects it.
+  const auto body = bmcBody(
+      {" 2026 Mar 13 08:35:46 bmc user.crit acctonbmc-v2026.36.0: root: "
+       "Power reset the whole system ..."});
+
+  EXPECT_TRUE(
+      detail::parseBmcWedgePower(body, btime, kWindow).causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcUnrelatedLinesAreNotCauses) {
+  const auto btime = nowSec();
+  const auto body = bmcBody(
+      {bmcLine(btime - 160, "Power on uServer (from power-on.sh).."),
+       bmcLine(btime - 150, "Successfully power off micro-server")});
+
+  const auto attempt = detail::parseBmcWedgePower(body, btime, kWindow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+  EXPECT_TRUE(attempt.causes()->empty());
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcMalformedResponseIsParseFailed) {
+  const auto btime = nowSec();
+  const auto attempt = detail::parseBmcWedgePower("not json", btime, kWindow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
+  EXPECT_TRUE(attempt.causes()->empty());
 }
 
 // ------------------------------------------------------ x86 reboot command
@@ -895,6 +1028,21 @@ TEST_F(RebootCauseFinderImplTest, SyslogDecemberLineReadInJanuaryResolves) {
 // persisted record rather than on hand-built thrift structs means these fail
 // if the arbitration changes, not only if the serializer does.
 class DetermineRebootCauseTest : public RebootCauseFinderImplTest {
+ public:
+  // By name, not position: the implicit providers are prepended, so any new
+  // one would silently shift a positional index onto the wrong attempt.
+  static folly::dynamic attemptNamed(
+      const folly::dynamic& rec,
+      const std::string& name) {
+    for (const auto& a : rec["providersAttempted"]) {
+      if (a["name"].asString() == name) {
+        return a;
+      }
+    }
+    ADD_FAILURE() << "no attempt named " << name;
+    return folly::dynamic::object();
+  }
+
  protected:
   void SetUp() override {
     RebootCauseFinderImplTest::SetUp();
@@ -954,11 +1102,14 @@ TEST_F(DetermineRebootCauseTest, NoProviderReportsAnythingSoNoCauseIsClaimed) {
   const auto rec = readRecord();
   EXPECT_EQ(rec.count("determinedCause"), 0);
   EXPECT_EQ(rec["bootTimeMs"].asInt(), btime_ * 1000);
-  ASSERT_EQ(rec["providersAttempted"].size(), 2);
+  // KernelPanic and X86RebootCommand read absent sources cleanly.
+  // BMCWedgePower cannot reach a BMC from a test host, so it reports
+  // READ_FAILED rather than a false "nothing found".
   for (const auto& a : rec["providersAttempted"]) {
-    EXPECT_EQ(a["status"].asInt(), 0) << "absent source is OK, not a failure";
     EXPECT_EQ(a["causes"].size(), 0);
   }
+  EXPECT_EQ(attemptNamed(rec, "KernelPanic")["status"].asInt(), 0);
+  EXPECT_EQ(attemptNamed(rec, "X86RebootCommand")["status"].asInt(), 0);
 }
 
 TEST_F(DetermineRebootCauseTest, PanicInWindowBecomesTheDeterminedCause) {
@@ -985,9 +1136,7 @@ TEST_F(DetermineRebootCauseTest, UnreadableProviderIsRecordedNotClaimed) {
 
   const auto rec = readRecord();
   EXPECT_EQ(rec.count("determinedCause"), 0);
-  ASSERT_EQ(rec["providersAttempted"].size(), 3);
-  const auto& hw = rec["providersAttempted"][2];
-  EXPECT_EQ(hw["name"].asString(), "TEST_CPLD");
+  const auto hw = attemptNamed(rec, "TEST_CPLD");
   EXPECT_EQ(hw["status"].asInt(), 1);
 }
 
@@ -1006,7 +1155,7 @@ TEST_F(DetermineRebootCauseTest, PartiallyParsedProviderKeepsWholeCauses) {
       .determineRebootCause();
 
   const auto rec = readRecord();
-  const auto& hw = rec["providersAttempted"][2];
+  const auto hw = attemptNamed(rec, "TEST_CPLD");
   EXPECT_EQ(hw["status"].asInt(), 2) << "PARSE_FAILED";
   ASSERT_EQ(hw["causes"].size(), 1) << "the whole cause must be kept";
   EXPECT_EQ(hw["causes"][0]["description"].asString(), "Power loss");

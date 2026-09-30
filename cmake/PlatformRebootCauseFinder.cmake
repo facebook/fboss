@@ -28,6 +28,7 @@ target_link_libraries(reboot_cause_finder_lib
   platform_utils
   reboot_cause_config_cpp2
   reboot_cause_finder_config_validator
+  rest_client
   Folly::folly
   FBThrift::thriftcpp2
 )
