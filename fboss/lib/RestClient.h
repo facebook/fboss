@@ -11,6 +11,7 @@
 
 #include <folly/IPAddress.h>
 #include <chrono>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -32,6 +33,14 @@ class RestClient {
 
   void setClientCertAndKey(std::string_view cert, std::string_view key);
   void setVerifyHostname(bool verify);
+  /*
+   * Pin the local socket to this source address, which must be link-local
+   * and carry its zone, as in IPAddressV6("fe80::2%eth0.4088"). Needed when
+   * the peer authorizes by source address and the interface holds more than
+   * one link-local, since the kernel's pick is then arbitrary. Requires an
+   * IPv6 destination. Throws FbossError otherwise.
+   */
+  void setSourceAddress(folly::IPAddressV6 source);
 
  private:
   // Forbidden copy contructor and assignment operator
@@ -52,6 +61,7 @@ class RestClient {
   std::string endpoint_;
   std::string cert_, key_;
   bool verifyHostname_ = true;
+  std::optional<folly::IPAddressV6> sourceAddress_;
 };
 
 } // namespace facebook::fboss
