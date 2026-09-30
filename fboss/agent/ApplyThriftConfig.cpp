@@ -4165,6 +4165,21 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
       qosPolicyNew->setTrafficClassToVcIdMap(*tc2VcIdMap);
     }
 
+    if (const auto& queue2VcIdMap = qosMap->queueToVcId()) {
+      for (const auto& queue2VcIdEntry : *queue2VcIdMap) {
+        // queueToVcId is map<i16, i16>, so a negative vc id is representable
+        // and would otherwise reach the SAI layer.
+        if (queue2VcIdEntry.second < 0 ||
+            queue2VcIdEntry.second >
+                cfg::switch_config_constants::PORT_VC_VALUE_MAX()) {
+          throw FbossError(
+              "Invalid vc id. Valid range is 0 to: ",
+              cfg::switch_config_constants::PORT_VC_VALUE_MAX());
+        }
+      }
+      qosPolicyNew->setQueueToVcIdMap(*queue2VcIdMap);
+    }
+
     if (const auto& pfcPriority2PgIdMap = qosMap->pfcPriorityToPgId()) {
       for (const auto& entry : *pfcPriority2PgIdMap) {
         if (entry.first >

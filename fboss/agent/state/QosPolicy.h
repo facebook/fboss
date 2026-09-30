@@ -209,6 +209,10 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
     set<switch_state_tags::trafficClassToVcId>(trafficClass2VcId);
   }
 
+  void setQueueToVcIdMap(const std::map<int16_t, int16_t>& queue2VcId) {
+    set<switch_state_tags::queueToVcId>(queue2VcId);
+  }
+
   void setPfcPriorityToPgIdMap(
       const std::map<int16_t, int16_t>& pfcPriority2PgId) {
     set<switch_state_tags::pfcPriorityToPgId>(pfcPriority2PgId);
