@@ -230,6 +230,29 @@ TEST_F(PortApiTest, onePort) {
   EXPECT_EQ(lanes[0], 42);
 }
 
+#if defined(SAI_CBFC_SUPPORTED)
+TEST_F(PortApiTest, readNativeCbfcReceiverAttributes) {
+  auto id = createPort(100000, {42}, true);
+
+  // READ_ONLY, derived by hardware from the MMU carving. Fake cans them, so
+  // this asserts the types and union members round-trip, not the values.
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcReceiverNativeCreditSize{}),
+      256);
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcReceiverNativeTotalCredits{}),
+      1000);
+  // Signed on purpose: the spec range is -16..127, and modelling this as
+  // unsigned would read back 65520 rather than -16.
+  EXPECT_EQ(
+      portApi->getAttribute(
+          id, SaiPortTraits::Attributes::CbfcReceiverNativePacketOverhead{}),
+      -16);
+}
+#endif
+
 TEST_F(PortApiTest, fourPorts) {
   auto portIds = createFivePorts();
 }
