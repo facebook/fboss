@@ -203,6 +203,26 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToVcQosMap(
   SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
+
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setQueueToVcQosMap(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newQueueToVcMap = qosPolicy->getQueueToVcId();
+  std::vector<sai_qos_map_t> mapToValueList;
+  mapToValueList.reserve(newQueueToVcMap->size());
+  for (const auto& [queue, vc] : std::as_const(*newQueueToVcMap)) {
+    sai_qos_map_t mapping{};
+    mapping.key.queue_index = queue;
+    mapping.value.vc = vc->cref();
+    mapToValueList.push_back(mapping);
+  }
+  SaiQosMapTraits::Attributes::Type typeAttribute{SAI_QOS_MAP_TYPE_QUEUE_TO_VC};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
+  return store.setObject(k, c);
+}
 #endif
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPgQosMap(
@@ -309,6 +329,10 @@ void SaiQosMapManager::setQosMaps(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CBFC) &&
       newQosPolicy->getTrafficClassToVcId()) {
     handle->tcToVcMap = setTcToVcQosMap(newQosPolicy);
+  }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CBFC) &&
+      newQosPolicy->getQueueToVcId()) {
+    handle->queueToVcMap = setQueueToVcQosMap(newQosPolicy);
   }
 #endif
   if (newQosPolicy->getTrafficClassToVoqId() &&

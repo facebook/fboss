@@ -3382,6 +3382,10 @@ void SaiPortManager::setQosMapsOnPort(
         port->setOptionalAttribute(
             SaiPortTraits::Attributes::QosTcToVcMap{mapping});
         break;
+      case SAI_QOS_MAP_TYPE_QUEUE_TO_VC:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosQueueToVcMap{mapping});
+        break;
 #endif
       case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
         /*
@@ -3444,6 +3448,9 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
     if (qosMapHandle->tcToVcMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_TC_TO_VC, nullObjId);
     }
+    if (qosMapHandle->queueToVcMap) {
+      qosMaps.emplace_back(SAI_QOS_MAP_TYPE_QUEUE_TO_VC, nullObjId);
+    }
 #endif
     if (qosMapHandle->pfcPriorityToQueueMap) {
       qosMaps.emplace_back(SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId);
@@ -3486,6 +3493,10 @@ SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   if (qosMapHandle->tcToVcMap) {
     qosMaps.emplace_back(
         SAI_QOS_MAP_TYPE_TC_TO_VC, qosMapHandle->tcToVcMap->adapterKey());
+  }
+  if (qosMapHandle->queueToVcMap) {
+    qosMaps.emplace_back(
+        SAI_QOS_MAP_TYPE_QUEUE_TO_VC, qosMapHandle->queueToVcMap->adapterKey());
   }
 #endif
   if (qosMapHandle->pfcPriorityToQueueMap) {
