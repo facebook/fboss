@@ -119,6 +119,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       ::facebook::fboss::utility::PortLlrInfo& portLlrInfo,
       int32_t port) override;
 
+  void getPortVcInfo(
+      ::facebook::fboss::utility::PortVcInfo& portVcInfo,
+      int32_t port) override;
+
   bool verifyPortLedStatus(int portId, bool status) override;
   bool verifyPGSettings(int portId, bool pfcEnabled) override;
   void getAggPortInfo(

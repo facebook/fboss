@@ -53,6 +53,36 @@ struct PortLlrInfo {
   4: switch_config.LlrFrameAction flushFrameAction;
 }
 
+// HW-side view of a port's CBFC virtual channels (UE Spec 1.0.2 section 5.2).
+// Sourced from SaiVirtualChannelManager's handle -- the create-time adapter
+// keys -- rather than from the port's QOS_VIRTUAL_CHANNEL_LIST, which can
+// return NOT_SUPPORTED and silently default on current SDK drops. The
+// per-VC values are read back from the objects themselves.
+struct VcInfo {
+  1: i64 vcId;
+  2: byte index;
+  3: bool senderEnable;
+  4: bool receiverEnable;
+  5: bool hasCreditProfile;
+  6: i64 creditProfileId;
+  7: i64 reservedCreditSize;
+  // Read-only, derived by hardware from the MMU carving. Nothing in FBOSS
+  // sets these; reading them is the point of the test. Optional because SDK
+  // support varies -- unset means the SDK refused the read, which is itself a
+  // result worth reporting rather than an error.
+  8: optional i64 receiverNativeCreditLimit;
+}
+
+// The sender credit limit is deliberately absent: brcm-sai 16.0_ea_odp rejects
+// a GET of SAI_PORT_ATTR_CBFC_SENDER_CREDIT_LIMIT, so it can be written but
+// never read back.
+struct PortVcInfo {
+  1: list<VcInfo> virtualChannels;
+  2: optional i64 receiverNativeCreditSize;
+  3: optional i64 receiverNativePacketOverhead;
+  4: optional i64 receiverNativeTotalCredits;
+}
+
 struct AggPortInfo {
   1: bool isPresent;
   2: i32 numMembers;
@@ -150,6 +180,7 @@ service AgentHwTestCtrl {
   // port utils
   list<PortInfo> getPortInfo(1: list<i32> portIds);
   PortLlrInfo getPortLlrInfo(1: i32 port);
+  PortVcInfo getPortVcInfo(1: i32 port);
   bool verifyPortLedStatus(1: i32 port, 2: bool status);
   bool verifyPGSettings(1: i32 port, 2: bool pfcEnabled);
 
