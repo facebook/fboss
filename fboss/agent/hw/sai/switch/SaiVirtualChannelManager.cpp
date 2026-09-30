@@ -45,24 +45,6 @@ void SaiVirtualChannelManager::programVirtualChannels(
     return;
   }
 
-  // Reconciled unconditionally, and ahead of the virtualChannels guard below:
-  // 0 is the SDK's "no port credit limit", so an unset config value has to be
-  // written rather than skipped. Skipping it leaves the last value programmed
-  // forever -- on a port that drops only its limit, and on a port that drops
-  // CBFC entirely and returns early below -- which a later config re-enabling
-  // CBFC without a limit would then silently inherit.
-  //
-  // Set through the port api rather than the port's CreateAttributes.
-  // brcm-sai 16.0_ea_odp rejects a GET of this attribute, and SaiStore reads
-  // back every attribute in that tuple for every port at init, so including it
-  // there aborts the HW agent on boot even with no CBFC configured. That same
-  // failed GET is why nothing can read this back to verify it.
-  SaiApiTable::getInstance()->portApi().setAttribute(
-      portSaiId,
-      SaiPortTraits::Attributes::CbfcSenderCreditLimit{
-          static_cast<sai_uint32_t>(
-              swPort->getCbfcSenderCreditLimit().value_or(0))});
-
   using Attributes = SaiVirtualChannelTraits::Attributes;
 
   SaiVirtualChannelHandle handle;
@@ -74,6 +56,25 @@ void SaiVirtualChannelManager::programVirtualChannels(
   if (!virtualChannels) {
     handles_.erase(swPort->getID());
     return;
+  }
+
+  // Below the guard because brcm-sai 16.0_ea_odp answers INVALID PARAMETER for
+  // this set on a port with no CBFC, and the throw unwinds through
+  // ~SaiPortHandle, whose own remove is NOT SUPPORTED for a port -- so it
+  // terminates the agent rather than failing the port.
+  //
+  // Nothing is written to clear a dropped limit: SAI documents the default as
+  // 0, while brcm-sai writes the value into BUFFER_CREDITS, where 0 is a port
+  // holding no credit. A CBFC change needs a cold boot, which restores the
+  // default anyway.
+  //
+  // Not in the port's CreateAttributes: SaiStore reads every attribute in that
+  // tuple back at init, and this one's GET is rejected.
+  if (auto senderCreditLimit = swPort->getCbfcSenderCreditLimit()) {
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portSaiId,
+        SaiPortTraits::Attributes::CbfcSenderCreditLimit{
+            static_cast<sai_uint32_t>(*senderCreditLimit)});
   }
 
   for (const auto& virtualChannel : *virtualChannels) {
