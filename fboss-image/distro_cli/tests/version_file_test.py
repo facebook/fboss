@@ -892,6 +892,40 @@ class ResolveVersionsTest(VersionFileTestCase):
         self.assertEqual(version_file.resolve_versions({}), ({}, []))
 
 
+class PackagingTest(unittest.TestCase):
+    """The file has to be written before the image is built to be in it"""
+
+    def source(self) -> str:
+        return (
+            Path(__file__).resolve().parents[1] / "builder" / "image_builder.py"
+        ).read_text()
+
+    def test_the_version_file_is_written_before_the_container_runs(self):
+        """The container copies it into the rootfs, so a later write misses it.
+
+        This cannot be caught by calling the writer directly, which is how the
+        file came to be written after the image was already sealed.
+        """
+        body = self.source()
+        wrote = body.index("self._write_version_file()")
+        built = body.index("exit_code = run_container(")
+
+        self.assertLess(
+            wrote,
+            built,
+            "the version file must be written before the image is built, or it "
+            "will not be in the image",
+        )
+
+    def test_the_version_file_is_not_written_into_the_checked_in_rootfs(self):
+        """A generated file under root_files/ would ship in the *next* image."""
+        writer = self.source()
+        start = writer.index("def _write_version_file")
+        end = writer.index("def ", start + 10)
+
+        self.assertNotIn("root_files", writer[start:end])
+
+
 class BuildAndWriteTest(VersionFileTestCase):
     """The file itself"""
 

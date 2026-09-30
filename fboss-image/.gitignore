@@ -11,3 +11,8 @@ image_builder/templates/centos-09.0/root
 *.tar
 *.tar.*
 image_builder/output/
+
+# Written by the CLI before each build and handed to the container, which
+# copies them into the image. Generated, so never checked in.
+image_builder/build-provenance
+image_builder/fboss-distro-version.json

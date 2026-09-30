@@ -293,6 +293,19 @@ dprint "Recording image provenance in /etc/build-info..."
 write_build_info >"${DESCRIPTION_DIR}/root/etc/build-info"
 tee -a "${LOG_FILE}" <"${DESCRIPTION_DIR}/root/etc/build-info"
 
+# The version file the CLI wrote before starting this build. Installed after the
+# root_files copy for the same reason build-info is: an overlay file must not be
+# able to shadow the record of what this image is. Copied rather than generated
+# here because only the CLI can read the manifest and the staged artifacts.
+if [ -f "${WSROOT}/fboss-distro-version.json" ]; then
+  dprint "Installing /etc/fboss-distro-version.json..."
+  cp "${WSROOT}/fboss-distro-version.json" \
+    "${DESCRIPTION_DIR}/root/etc/fboss-distro-version.json"
+else
+  # Not fatal: an image without it still boots, and the build log says why.
+  dprint "WARNING: no version file from the CLI; image will not carry one"
+fi
+
 # Remove any existing after_pkgs files from previous runs
 rm -f ${DESCRIPTION_DIR}/root/var/tmp/after_pkgs_install_file.json
 rm -f ${DESCRIPTION_DIR}/root/var/tmp/after_pkgs_execute_file.json
