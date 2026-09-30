@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Port.h"
 
@@ -189,6 +190,28 @@ TEST_F(VirtualChannelManagerTest, changePortFlipsAnEnable) {
   EXPECT_EQ(vcCount(), 1);
   EXPECT_EQ(getVc(2).id, originalId);
   EXPECT_FALSE(getVc(2).getCbfcSenderEnable());
+}
+
+TEST_F(VirtualChannelManagerTest, virtualChannelHandleExposesCreatedObjects) {
+  auto swPort = makePortWithVcs(p0, {makeVc(2, 36), makeVc(6, 12)});
+  saiManagerTable->portManager().addPort(swPort);
+
+  auto* handle =
+      saiManagerTable->virtualChannelManager().getVirtualChannelHandle(
+          swPort->getID());
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(handle->virtualChannels.size(), 2);
+  EXPECT_EQ(handle->creditProfiles.size(), 2);
+}
+
+TEST_F(VirtualChannelManagerTest, virtualChannelHandleNullForPortWithoutCbfc) {
+  auto swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+
+  EXPECT_EQ(
+      saiManagerTable->virtualChannelManager().getVirtualChannelHandle(
+          swPort->getID()),
+      nullptr);
 }
 
 TEST_F(VirtualChannelManagerTest, removePortRemovesVirtualChannels) {

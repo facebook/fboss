@@ -60,6 +60,13 @@ class SaiVirtualChannelManager {
 
   void removeVirtualChannels(PortID portId);
 
+#if defined(SAI_CBFC_SUPPORTED)
+  // Null when the port has no virtual channels. The handle holds the objects
+  // the manager created, so this is a create-time view rather than a port
+  // getAttribute, which is what hardware tests need to read back against.
+  const SaiVirtualChannelHandle* getVirtualChannelHandle(PortID portId) const;
+#endif
+
  private:
 #if defined(SAI_CBFC_SUPPORTED)
   std::shared_ptr<SaiCbfcCreditProfile> getOrCreateCreditProfile(

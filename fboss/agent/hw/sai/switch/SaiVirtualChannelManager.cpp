@@ -109,6 +109,14 @@ void SaiVirtualChannelManager::programVirtualChannels(
 #endif
 }
 
+#if defined(SAI_CBFC_SUPPORTED)
+const SaiVirtualChannelHandle*
+SaiVirtualChannelManager::getVirtualChannelHandle(PortID portId) const {
+  auto itr = handles_.find(portId);
+  return itr == handles_.end() ? nullptr : &itr->second;
+}
+#endif
+
 void SaiVirtualChannelManager::removeVirtualChannels(
     [[maybe_unused]] PortID portId) {
 #if defined(SAI_CBFC_SUPPORTED)
