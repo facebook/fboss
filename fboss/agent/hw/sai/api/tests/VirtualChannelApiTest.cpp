@@ -118,6 +118,18 @@ TEST_F(VirtualChannelApiTest, virtualChannelStatsReadZero) {
   }
 }
 
+TEST_F(VirtualChannelApiTest, readNativeCreditLimit) {
+  using Attributes = SaiVirtualChannelTraits::Attributes;
+  auto id = createVirtualChannel(kRdmaVc);
+
+  // READ_ONLY, derived by hardware from the MMU carving. Fake cans it, so this
+  // asserts the type and union member round-trip, not the value's meaning.
+  EXPECT_EQ(
+      virtualChannelApi->getAttribute(
+          id, Attributes::CbfcReceiverNativeCreditLimit{}),
+      500);
+}
+
 TEST_F(VirtualChannelApiTest, createCreditProfile) {
   using Attributes = SaiCbfcCreditProfileTraits::Attributes;
   auto id = createCreditProfile(kReservedCreditSize);
