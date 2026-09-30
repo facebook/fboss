@@ -46,6 +46,21 @@ bool isRequiredPort(
   return !requiredPorts || requiredPorts->find(portID) != requiredPorts->end();
 }
 
+void assignGroupProfile(
+    PortProfileMap& portToProfileIDs,
+    const std::vector<PortID>& ports,
+    cfg::PortProfileID profileID,
+    const SafeProfileSelectionOptions& options) {
+  // Add/remove platforms may omit ports outside the required port set.
+  for (const auto& portID : ports) {
+    if (options.supportsAddRemovePort && options.requiredPorts &&
+        !isRequiredPort(portID, options.requiredPorts)) {
+      continue;
+    }
+    portToProfileIDs.emplace(portID, profileID);
+  }
+}
+
 } // namespace
 
 PortProfileMap getSafeProfileIDs(
@@ -114,6 +129,16 @@ PortProfileMap getSafeProfileIDs(
           " does not exist in PlatformMapping");
     }
     const auto portType = *controllingPortEntry->second.mapping()->portType();
+    if (portType == cfg::PortType::HYPER_PORT &&
+        safeProfiles.contains(cfg::PortProfileID::PROFILE_DEFAULT)) {
+      // Hyper ports are configured with PROFILE_DEFAULT.
+      assignGroupProfile(
+          portToProfileIDs,
+          ports,
+          cfg::PortProfileID::PROFILE_DEFAULT,
+          options);
+      continue;
+    }
     if ((options.asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
          options.asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) &&
         options.dualStageRdsw3q2q &&
@@ -169,14 +194,7 @@ PortProfileMap getSafeProfileIDs(
           controllingPort);
     }
 
-    // Add/remove platforms may omit ports outside the required port set.
-    for (const auto& portID : ports) {
-      if (options.supportsAddRemovePort && options.requiredPorts &&
-          !isRequiredPort(portID, options.requiredPorts)) {
-        continue;
-      }
-      portToProfileIDs.emplace(portID, bestProfile);
-    }
+    assignGroupProfile(portToProfileIDs, ports, bestProfile, options);
   }
   return portToProfileIDs;
 }

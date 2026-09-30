@@ -122,6 +122,24 @@ PlatformMapping makeSpecialPolicyMapping() {
   addProfile(mapping, k800GProfile, cfg::PortSpeed::EIGHTHUNDREDG);
   return PlatformMapping(mapping);
 }
+
+// Hyper port 8 supports only PROFILE_DEFAULT, subsuming members 10 and 11.
+PlatformMapping makeHyperPortMapping() {
+  cfg::PlatformMapping mapping;
+  mapping.ports()[8] = makePortGroupEntry(
+      8, 8, {{cfg::PortProfileID::PROFILE_DEFAULT, {10, 11}}});
+  mapping.ports()[8].mapping()->portType() = cfg::PortType::HYPER_PORT;
+  for (const auto member : {10, 11}) {
+    mapping.ports()[member] =
+        makePortGroupEntry(member, member, {{k800GProfile, {}}});
+    mapping.ports()[member].mapping()->portType() =
+        cfg::PortType::HYPER_PORT_MEMBER;
+  }
+  addProfile(
+      mapping, cfg::PortProfileID::PROFILE_DEFAULT, cfg::PortSpeed::DEFAULT);
+  addProfile(mapping, k800GProfile, cfg::PortSpeed::EIGHTHUNDREDG);
+  return PlatformMapping(mapping);
+}
 } // namespace
 
 TEST(PortConfigUtilsTest, safeProfilesKeepEveryPortOnFixedPortPlatforms) {
@@ -168,6 +186,23 @@ TEST(PortConfigUtilsTest, safeProfilesPreserveAsicSpecificPolicy) {
       utility::getSafeProfileIDs(mapping, groups, jerichoOptions), expected);
   EXPECT_EQ(
       utility::getSafeProfileIDs(mapping, groups, chenabOptions), expected);
+}
+
+TEST(PortConfigUtilsTest, safeProfilesKeepDefaultProfileForHyperPorts) {
+  const auto mapping = makeHyperPortMapping();
+  const std::map<PortID, std::vector<PortID>> groups{
+      {PortID(8), {PortID(8)}},
+      {PortID(10), {PortID(10)}},
+      {PortID(11), {PortID(11)}}};
+  const utility::SafeProfileSelectionOptions options{
+      .asicType = cfg::AsicType::ASIC_TYPE_JERICHO3,
+  };
+
+  const utility::PortProfileMap expected{
+      {PortID(8), cfg::PortProfileID::PROFILE_DEFAULT},
+      {PortID(10), k800GProfile},
+      {PortID(11), k800GProfile}};
+  EXPECT_EQ(utility::getSafeProfileIDs(mapping, groups, options), expected);
 }
 
 TEST(PortConfigUtilsTest, safeProfilesRejectConflictingPortGroup) {
