@@ -462,8 +462,7 @@
         88,
         124,
         126,
-        127,
-        132
+        127
     ],
     "tomahawk4": [
         2,
@@ -1259,8 +1258,7 @@
         "INTER_PACKET_GAP",
         "EMPTY_ACL_MATCHER",
         "ACL_DENY_DATA_AND_CONTROL_PLANE",
-        "PORT_USER_METADATA",
-        "ACCESS_POLICY_CLASS_ID_ACL"
+        "PORT_USER_METADATA"
     ],
     "tomahawk4": [
         "CPU_RX_TX",
