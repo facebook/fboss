@@ -13538,6 +13538,9 @@
           "test_name_regex": "HwTest_PROFILE_200G_1_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544_COPPER.TestProfile$"
         },
         {
@@ -13744,6 +13747,9 @@
           "test_name_regex": "HwTest_PROFILE_200G_1_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544_COPPER.TestProfile$"
         },
         {
@@ -13948,6 +13954,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_1_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_2_PAM4_RS544_COPPER.TestProfile$"
