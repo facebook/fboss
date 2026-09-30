@@ -71,6 +71,7 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":artifact",
+        ":constants",
         ":exceptions",
     ],
 )
