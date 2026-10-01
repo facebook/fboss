@@ -50,7 +50,9 @@
         38,
         39,
         40,
-        79
+        79,
+        9,
+        14
     ],
     "chenab2": [
         2,
@@ -102,7 +104,9 @@
         38,
         39,
         40,
-        79
+        79,
+        9,
+        14
     ],
     "ebro": [
         2,
@@ -846,7 +850,9 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "LAG",
+        "LAG_LOAD_BALANCER"
     ],
     "chenab2": [
         "CPU_RX_TX",
@@ -898,7 +904,9 @@
         "HGRID_DU_ROUTE_SCALE",
         "HGRID_UU_ROUTE_SCALE",
         "HUNDRED_THOUSAND_ROUTE_SCALE",
-        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
+        "LAG",
+        "LAG_LOAD_BALANCER"
     ],
     "ebro": [
         "CPU_RX_TX",
