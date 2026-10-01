@@ -30,12 +30,12 @@ DEFINE_bool(
     false,
     "Clear reboot causes from all providers after reading");
 
-// Measured on minipack3n fboss332669634.ash7: a BMC power cycle at 19:51:57
-// reached btime at 20:17:51, a gap of 1554s, nearly all of it POST plus a PXE
-// attempt timing out before falling back to local disk. 1800 would have left
-// four minutes of margin. Too large only risks admitting an older event, which
-// nearest-to-btime selection already handles; too small silently misses the
-// cause.
+// Must span shutdown, POST and the bootloader. On a switch whose firmware
+// attempts a network boot before falling back to local disk, the gap between
+// a power cycle and btime has been observed above 25 minutes, so the default
+// is deliberately generous. Erring large only risks admitting an older event,
+// which nearest-to-btime selection already handles; erring small silently
+// misses the cause.
 DEFINE_int32(
     max_downtime_sec,
     3600,
@@ -52,7 +52,8 @@ namespace {
 constexpr auto kHistoryDir = "/var/facebook/fboss/reboot_history";
 constexpr auto kProcBootIdPath = "/proc/sys/kernel/random/boot_id";
 
-// These three are properties of the kernel, systemd and kdump, identical on
+// These three come from the kernel, systemd and the crash dump tooling,
+// and are the same on
 // every platform, so they are constants rather than per-platform config.
 constexpr auto kProcStatPath = "/proc/stat";
 // Scanning /var/crash turns up the processed subdir itself. It is scanned in
@@ -96,10 +97,10 @@ constexpr auto kSuddenPowerLossProvider = "SuddenPowerLoss";
 constexpr auto kBmcInfoPath = "/api/sys/bmc";
 
 // The BMC shares the chassis power rail, so losing power restarts both it
-// and the x86. The BMC finishes first: measured across 12 hosts the x86 trailed
-// by 133-183s, so allow well beyond that. A BMC that has been up materially
-// longer stayed up while only the x86 restarted, which is some other cause
-// and is what every other provider is for.
+// and the x86. The BMC finishes first, typically by two to three minutes on
+// the platforms this runs on, so allow well beyond that. A BMC that has been up
+// materially longer stayed up while only the x86 restarted, which is some other
+// cause and is what every other provider is for.
 constexpr int64_t kMaxBmcToX86BootSkewSec = 600;
 // The BMC clock is not involved here, both figures are uptimes, so the only
 // negative skew is measurement noise between the two reads.
@@ -128,7 +129,8 @@ constexpr auto kX86ResetPattern = R"(Power reset x86 \(userver\) .*\.\.\.)";
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
 // sandboxes rather than nspawn containers, so the value read here is the
-// host's on both classic and NetOS Native.
+// host's. A service inside a full container namespace would not see it,
+// which is why this is read from /proc rather than cached.
 // Empty when unreadable. The guard cannot be established without it, so the
 // caller does nothing rather than risk a destructive clear.
 std::string readBootId(const std::string& bootIdPath) {
@@ -235,7 +237,7 @@ int64_t toEpochMs(std::time_t t) {
   return static_cast<int64_t>(t) * 1000;
 }
 
-// Render an instant in the host's local (Pacific, fleet-wide) time with the
+// Render an instant in the host's local time with the
 // zone abbreviation, e.g. "2026-07-02 23:16:55 PDT".
 std::string pacificString(std::time_t t) {
   std::tm tm{};
@@ -350,10 +352,12 @@ std::optional<std::time_t> parseCrashDirName(const std::string& name) {
     }
   }
 
-  // The producer wrote this name with localtime() on this host, so mktime()
-  // on the same host is the exact inverse -- the zone text carries no
-  // information mktime does not already have. tm{} zero-inits tm_isdst to 0,
-  // which would assert "not daylight", so it must be set to -1 explicitly.
+  // The zone suffix is discarded and the time is resolved in this host's
+  // zone. That is exact only while the producer's zone and the host's agree,
+  // which is an assumption, not a guarantee: a producer that pins a zone
+  // would misdate the dump by the offset on a host set to another one.
+  // tm{} zero-inits tm_isdst to 0, which would assert "not daylight", so it
+  // must be set to -1 explicitly.
   //
   // The one case this cannot resolve is the hour repeated at the DST
   // fall-back, where mktime picks one of the two candidates.
@@ -638,7 +642,8 @@ reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
 
 // Timestamps in the BMC log carry a year, unlike syslog on the x86, so no
 // year has to be inferred. mktime interprets them in this host's zone; the
-// BMC and the x86 it sits in are set to the same one.
+// BMC and the x86 it sits in are assumed to be set to the same one. A
+// mismatch shifts every event by the offset and out of the boot window.
 //
 // Lines written before the BMC finishes NTP sync carry the image's
 // build-default date instead of the real time, which is why the log is not
@@ -731,7 +736,7 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
   }
   if (body.empty()) {
     // The BMC is unreachable, the source address could not be bound, the
-    // image has no logfile endpoint, or the ACL rule has not reached it yet.
+    // image has no logfile endpoint, or its ACL does not admit us.
     // All are a failed read, not an absence of causes.
     return makeAttempt(
         kBmcWedgePowerProvider,
@@ -914,7 +919,7 @@ void RebootCauseFinderImpl::clearProvider(
 
 void RebootCauseFinderImpl::determineRebootCause() {
   // Anything that re-runs this binary within a boot (a manual invocation, a
-  // platform_stack push, a restart of whatever unit owns it) would otherwise
+  // package upgrade, a restart of whatever unit owns it) would otherwise
   // record a reboot that never happened and, worse, clear the providers that
   // still hold the real boot's causes. Only the first run of a boot is
   // meaningful.
@@ -1016,8 +1021,8 @@ void RebootCauseFinderImpl::determineRebootCause() {
   // infers a cause from there being none, so it runs only once they have all
   // come up empty. It also has to stay out of selectNearestToBoot, which
   // breaks ties by picking the cause closest to boot: this one dates its
-  // cause to when the BMC started, 110-135s before boot on the hosts
-  // sampled, so it would win that tie-break against a genuine cause by
+  // cause to when the BMC started, which is always shortly before boot, so
+  // it would win that tie-break against a genuine cause by
   // arithmetic rather than evidence.
   //
   // It is meaningful only if the BMC log was actually read. Uptime

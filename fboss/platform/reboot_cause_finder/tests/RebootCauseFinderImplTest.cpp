@@ -250,8 +250,7 @@ std::string bmcLine(std::time_t when, const std::string& message) {
   localtime_r(&when, &tm);
   char stamp[32];
   strftime(stamp, sizeof(stamp), "%Y %b %e %H:%M:%S", &tm);
-  return fmt::format(
-      " {} bmc user.crit acctonbmc-2026.36.0: root: {}", stamp, message);
+  return fmt::format(" {} bmc user.crit bmc-image: root: {}", stamp, message);
 }
 
 std::string bmcBody(const std::vector<std::string>& lines) {
@@ -300,7 +299,7 @@ std::string bmcInfoBody(
     const std::string& uptimeSec,
     const std::string& reason) {
   return fmt::format(
-      R"({{"Information": {{"Description": "acctonbmc BMC",
+      R"({{"Information": {{"Description": "BMC",
           "Reset Reason": "{}", "uptime": "{}"}},
           "Actions": [], "Resources": []}})",
       reason,
@@ -343,7 +342,7 @@ TEST_F(RebootCauseFinderImplTest, NoPowerLossWhenBmcIsYoungerThanX86) {
   EXPECT_TRUE(attempt.causes()->empty());
 }
 
-// Measured skew across 12 hosts was 133-183s, so the band has to admit it.
+// The observed skew band is roughly 130-185s, so it has to be admitted.
 TEST_F(RebootCauseFinderImplTest, PowerLossAcceptsTheMeasuredBootSkewBand) {
   for (const int64_t skew : {133, 183}) {
     const int64_t btime = kNow - 300;
@@ -377,8 +376,7 @@ TEST_F(
 TEST_F(RebootCauseFinderImplTest, X86RebootCommandKeepsTheSourceLine) {
   const auto btime = 1790572718;
   const auto line = fmt::format(
-      "{} host systemd-logind[1068]: System is rebooting.",
-      syslogStamp(btime - 30));
+      "{} sw systemd-logind[1]: System is rebooting.", syslogStamp(btime - 30));
   const auto path = writeSecureLog(line + "\n");
   auto attempt = detail::readX86RebootCommand({path}, btime, 3600);
   ASSERT_EQ(attempt.causes()->size(), 1);
@@ -467,9 +465,9 @@ TEST_F(RebootCauseFinderImplTest, BmcPreNtpDefaultDateIsIgnored) {
   const auto btime = nowSec();
   // A line written before the BMC syncs NTP carries the image build-default
   // date. It is months from any real boot, so the window rejects it.
-  const auto body = bmcBody(
-      {" 2026 Mar 13 08:35:46 bmc user.crit acctonbmc-v2026.36.0: root: "
-       "Power reset the whole system ..."});
+  const auto body =
+      bmcBody({" 2026 Mar 13 08:35:46 bmc user.crit bmc-image: root: "
+               "Power reset the whole system ..."});
 
   EXPECT_TRUE(
       detail::parseBmcWedgePower(body, btime, kWindow).causes()->empty());
@@ -560,8 +558,8 @@ TEST_F(RebootCauseFinderImplTest, NonMatchingLinesAreIgnored) {
   const auto btime = nowSec();
   const auto path = writeSecureLog(
       fmt::format(
-          "{} sw sshd: Accepted publickey for netops\n"
-          "{} sw sudo: netops : TTY=pts/0 ; COMMAND=/bin/ls\n",
+          "{} sw sshd: Accepted publickey for admin\n"
+          "{} sw sudo: admin : TTY=pts/0 ; COMMAND=/bin/ls\n",
           syslogStamp(btime - 60),
           syslogStamp(btime - 50)));
   EXPECT_TRUE(
@@ -605,12 +603,13 @@ TEST_F(
 // --------------------------------------------- golden inputs from the real
 // producers. These are literal strings, not round-tripped through the same
 // strftime the implementation parses with, so a shared wrong assumption about
-// the format cannot cancel out. TZ is pinned by the BUCK target.
+// the format cannot cancel out. Tests that assert an absolute epoch set the
+// zone themselves with ScopedTz, since the zone is part of the assertion.
 
 TEST_F(RebootCauseFinderImplTest, GoldenCrashDirNameWithDaylightZone) {
-  // 2026-09-11 16:46:31 PDT == 1789170391 (cross-checked against the record
-  // written on fboss332654848.ash7 in P2500823427). The epoch is absolute,
-  // so the zone is part of the assertion.
+  // 2026-09-11 16:46:31 PDT == 1789170391, cross-checked against a record
+  // written by a real dump. The epoch is absolute, so the zone is part of
+  // the assertion.
   const ScopedTz tz("America/Los_Angeles");
   const auto when = detail::parseCrashDirName("2026-09-11T16:46:31PDT");
   ASSERT_TRUE(when.has_value());
@@ -695,7 +694,9 @@ TEST_F(RebootCauseFinderImplTest, CrashDirNameGarbageRejected) {
 }
 
 // The %Z text is accepted and ignored, in every form a producer emits. The
-// remainder is deliberately not validated -- see the diff summary -- so this
+// remainder is deliberately not validated, because producers emit zone
+// abbreviations of two to five characters as well as numeric offsets and
+// rejecting an unfamiliar one would lose a real dump, so this
 // pins what parses, not what is rejected.
 TEST_F(RebootCauseFinderImplTest, CrashDirNameZoneSuffixesAccepted) {
   for (const auto* name : {
@@ -737,8 +738,9 @@ TEST_F(RebootCauseFinderImplTest, GoldenSyslogLineSpacePaddedDay) {
   EXPECT_EQ(*causes[0].occurredAtMs(), static_cast<int64_t>(eventT) * 1000);
 }
 
-// On NetOS the line lands in /var/log/messages, not /var/log/secure. Reading
-// only secure was a real false negative on minipack3n.
+// Which file systemd-logind's line lands in depends on the image's syslog
+// routing. Searching only one path is a false negative on images that route
+// it to the other.
 TEST_F(RebootCauseFinderImplTest, X86RebootCommandFoundInSecondLogPath) {
   const auto btime = nowSec();
   const auto messages = (tmpDir_ / "messages").string();
@@ -926,20 +928,18 @@ TEST_F(RebootCauseFinderImplTest, CrashDirsCoverBothLocations) {
 
 // sshd records every remote command verbatim into the same files this reader
 // searches, so anyone grepping for the phrase plants a line containing it.
-// Both fixtures below are real lines captured from /var/log/secure on
-// fboss329039409.snc1 after a probe ran `grep -c "System is rebooting"` over
-// ssh. They sit inside the window, so only the program check rejects them.
+// This is not hypothetical: a bulk sweep counting reboot lines put the
+// phrase into /var/log/secure on every host it ran against. Both fixtures sit
+// inside the window, so only the program check rejects them.
 TEST_F(RebootCauseFinderImplTest, SshdEchoOfThePhraseIsNotAReboot) {
   const auto btime = nowSec();
   const auto stamp = syslogStamp(btime - 60);
   const auto path = writeSecureLog(
       fmt::format(
-          "{} sw sshd[1627813]: Exec Request for user root with command "
-          "BT=$(awk \"/^btime/{{print \\$2}}\" /proc/stat); "
-          "echo \"RB=$(grep -c \"System is rebooting\" /var/log/messages)\"\n"
-          "{} sw sshd[1627813]: sshd_auth_msg: {{\"user\": \"root\", "
-          "\"command\": \"grep -c \\\"System is rebooting\\\" "
-          "/var/log/messages\"}}\n",
+          "{} sw sshd[99]: Exec Request for user admin with command "
+          "grep -c \"System is rebooting\" /var/log/messages\n"
+          "{} sw sshd[99]: command: grep -c \"System is rebooting\" "
+          "/var/log/messages\n",
           stamp,
           stamp));
 

@@ -13,8 +13,4 @@ target_link_libraries(reboot_cause_finder_impl_test
   ${LIBGMOCK_LIBRARIES}
 )
 
-# The parsers resolve local time, so the golden-input assertions are a
-# property of the zone, not of the build host. Matches env in the BUCK target.
-gtest_discover_tests(reboot_cause_finder_impl_test
-  PROPERTIES ENVIRONMENT "TZ=America/Los_Angeles"
-)
+gtest_discover_tests(reboot_cause_finder_impl_test)
