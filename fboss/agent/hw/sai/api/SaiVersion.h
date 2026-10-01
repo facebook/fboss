@@ -139,8 +139,14 @@
 // CBFC (saivirtualchannel.h, the CBFC port attributes, the VC qos map types)
 // is upstream as of SAI 1.19.0. brcm-sai 16.0_ea_odp carries the same
 // declarations via its cbfc.patch while still reporting 1.18.1, so neither
-// check alone covers both. Broadcom is rebasing that drop onto the 1.19 tag,
-// after which the first clause can go.
+// check alone covers both.
+//
+// TODO(agrewal): delete SAI_CBFC_SUPPORTED once Broadcom's 16.0 drop is
+// rebased onto the 1.19 tag and reports it. Every CBFC use can then gate on
+// the spec version alone, as other upstream features do. Note the endpoint is
+// the version check, not BRCM_SAI_SDK_XGS_GTE_16_0 on its own: fake SAI
+// compiles the same files and never defines that macro.
+//
 // Compared on SAI_VER_MAJOR/MINOR rather than SAI_API_VERSION: those are plain
 // -D values supplied by both the Buck config and the OSS cmake, whereas
 // SAI_VERSION is only defined above under #ifndef IS_OSS, so using it here
