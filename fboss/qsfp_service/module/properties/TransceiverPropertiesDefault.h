@@ -732,10 +732,20 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
             {"speed": 400000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x1C}, "mediaInterfaceCode": 14},
             {"speed": 400000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x1C}, "mediaInterfaceCode": 14}
           ]
+        },
+        {
+          "combinationName": "4x200G-DR2",
+          "ports": [
+            {"speed": 200000, "hostLanes": {"start": 0, "count": 2}, "mediaLanes": {"start": 0, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 2, "count": 2}, "mediaLanes": {"start": 2, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 4, "count": 2}, "mediaLanes": {"start": 4, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 6, "count": 2}, "mediaLanes": {"start": 6, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34}
+          ]
         }
       ],
       "speedChangeTransitions": [
-        ["1x800G-DR8", "2x400G-DR4"]
+        ["1x800G-DR8", "2x400G-DR4"],
+        ["2x400G-DR4", "4x200G-DR2"]
       ]
     }
   }

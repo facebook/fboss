@@ -92,6 +92,27 @@ TEST_F(TransceiverPropertiesManagerTest, DR8_800G_Properties) {
       code);
 }
 
+TEST_F(TransceiverPropertiesManagerTest, DR8_800G_4x200GCombination) {
+  initDefault();
+
+  const auto& props = TransceiverPropertiesManager::getProperties(
+      MediaInterfaceCode::DR8_800G);
+  ASSERT_EQ(props.supportedSpeedCombinations()->size(), 3);
+  EXPECT_EQ(
+      props.supportedSpeedCombinations()[2].combinationName(), "4x200G-DR2");
+  ASSERT_EQ(props.supportedSpeedCombinations()[2].ports()->size(), 4);
+  for (size_t i = 0; i < 4; ++i) {
+    const auto& port = props.supportedSpeedCombinations()[2].ports()[i];
+    EXPECT_EQ(port.speed(), 200000);
+    EXPECT_EQ(port.hostLanes()->start(), i * 2);
+    EXPECT_EQ(port.hostLanes()->count(), 2);
+    EXPECT_EQ(port.mediaLanes()->start(), i * 2);
+    EXPECT_EQ(port.mediaLanes()->count(), 2);
+    EXPECT_EQ(port.mediaLaneCode()->smfCode(), 0x98);
+    EXPECT_EQ(port.mediaInterfaceCode(), 34);
+  }
+}
+
 TEST_F(TransceiverPropertiesManagerTest, TwoPort400G_Properties) {
   initDefault();
 
