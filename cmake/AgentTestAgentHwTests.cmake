@@ -147,6 +147,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentLinkLocalForwardingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentLoadBalancerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwLinkDebounceTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentHwCbfcTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwLlrTest.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
