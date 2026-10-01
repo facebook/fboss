@@ -1,5 +1,5 @@
 {
-  "___COMMENT___": "Platform Manager Configuration for M4062nhp with a cf2",
+  "___COMMENT___": "Platform Manager Configuration for M4062nhp. The SCM IDPROM bus is named by adapter string, not CPU_BUS@N, because P1 and P2 CPU cards sit on different ACPI nodes. Temporary: switch back to CPU_BUS@N once P1 units are decommissioned.",
   "platformName": "M4062NHP",
   "rootPmUnitName": "SCM",
   "rootSlotType": "SCM_SLOT",
@@ -7,7 +7,7 @@
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 10,
       "idpromConfig": {
-        "busName": "CPU_BUS@3",
+        "busName": "Synopsys DesignWare I2C adapter",
         "address": "0x50",
         "kernelDeviceName": "24c64"
       }
@@ -441,7 +441,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "CPU_BUS@3"
+    "Synopsys DesignWare I2C adapter"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/CHASSIS_EEPROM": "/[CHASSIS_EEPROM]",
