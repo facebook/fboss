@@ -77,16 +77,20 @@ TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
 
   // Step 5: Poll kernel interface MTU until it propagates
   XLOG(INFO) << "[Step 5] Waiting for kernel interface MTU to propagate...";
-  ASSERT_TRUE(interface.vlan.has_value());
-  int kernelMtu = getKernelInterfaceMtu(*interface.vlan);
-  if (kernelMtu > 0) {
-    EXPECT_EQ(kernelMtu, newMtu)
-        << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
-    XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
-               << " has MTU " << kernelMtu;
+  if (!interface.vlan.has_value()) {
+    XLOG(INFO) << "  Skipped: interface has no VLAN (routed-only platform)";
   } else {
-    XLOG(INFO) << "  Skipped: Kernel interface fboss" << *interface.vlan
-               << " not found";
+    int kernelMtu = waitForKernelMtu(
+        *interface.vlan, [newMtu](int mtu) { return mtu == newMtu; });
+    if (kernelMtu > 0) {
+      EXPECT_EQ(kernelMtu, newMtu)
+          << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
+      XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
+                 << " has MTU " << kernelMtu;
+    } else {
+      XLOG(INFO) << "  Skipped: Kernel interface fboss" << *interface.vlan
+                 << " not found";
+    }
   }
 
   // Step 6: Restore original MTU
