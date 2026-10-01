@@ -209,6 +209,16 @@ struct HwPortStats {
   109: optional i64 llrTxNackReplayEvent_;
   110: optional i64 llrTxTimerReplayEvent_;
   111: optional i64 llrTxError_;
+
+  // UEC Credit-Based Flow Control counters (UE Spec 1.0.2 section 5.2).
+  // Populated only on CBFC-capable ASICs (Tomahawk Ultra). Three of the six
+  // SAI_PORT_STAT_CBFC_* counters are absent because nothing backs them on
+  // TU1: SENDER_CREDITS_USED is B0-stepping only, and
+  // SENDER_CREDITS_USED_WATERMARK / NUM_CC_UPDATE_MESSAGES_RX have no BCM
+  // counter on any stepping.
+  112: optional i64 cbfcCcUpdateTx_;
+  113: optional i64 cbfcCfUpdateTx_;
+  114: optional i64 cbfcCfUpdateRx_;
 }
 
 struct HwSysPortStats {

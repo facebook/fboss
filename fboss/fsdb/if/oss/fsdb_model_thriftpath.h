@@ -12084,6 +12084,9 @@ class ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::F
     STRUCT_CHILD_GETTERS(llrTxNackReplayEvent_, 109);
     STRUCT_CHILD_GETTERS(llrTxTimerReplayEvent_, 110);
     STRUCT_CHILD_GETTERS(llrTxError_, 111);
+    STRUCT_CHILD_GETTERS(cbfcCcUpdateTx_, 112);
+    STRUCT_CHILD_GETTERS(cbfcCfUpdateTx_, 113);
+    STRUCT_CHILD_GETTERS(cbfcCfUpdateRx_, 114);
 };
 
 

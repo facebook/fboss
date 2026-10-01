@@ -129,6 +129,9 @@ HwPortStats getInitedStats() {
       0, // llrTxNackReplayEvent
       0, // llrTxTimerReplayEvent
       0, // llrTxError
+      0, // cbfcCcUpdateTx
+      0, // cbfcCfUpdateTx
+      0, // cbfcCfUpdateRx
   };
 }
 
