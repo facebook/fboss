@@ -23,11 +23,17 @@ from fboss.cli.fboss2.tools.bgp_json_to_cli import (
     format_bandwidth,
     generate_as_path_list_commands,
     generate_commands,
+    generate_community_list_commands,
     generate_exec_commands,
     generate_global_commands,
     generate_peer_commands,
     generate_peer_group_commands,
     generate_policy_commands,
+    generate_prefix_list_commands,
+    generate_prefix_list_entry_commands,
+    generate_routing_policy_commands,
+    generate_routing_policy_term_action_commands,
+    generate_routing_policy_term_commands,
     json_to_cli,
 )
 
@@ -1079,6 +1085,447 @@ class GenerateAsPathListCommandsTest(unittest.TestCase):
 
     def test_no_policies_key(self) -> None:
         self.assertEqual(generate_policy_commands({}), [])
+
+
+class GenerateCommunityListCommandsTest(unittest.TestCase):
+    """Tests for generate_community_list_commands (community-list grammar)."""
+
+    PREFIX = "config protocol bgp policy community-list CL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_community_list_commands({"exact_match": True}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL"}), [self.PREFIX]
+        )
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "description": "transit communities",
+                "boolean_operator": 1,
+                "exact_match": True,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description 'transit communities'",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} exact-match true",
+            ],
+        )
+
+    def test_community_per_value(self) -> None:
+        """Each communities value is one quoted `community` line, in order."""
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["65000:100", "^65000:.*$"]}
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} community {escape_shell_arg('65000:100')}",
+                f"{self.PREFIX} community {escape_shell_arg('^65000:.*$')}",
+            ],
+        )
+
+    def test_injection_in_community_neutralized(self) -> None:
+        commands = generate_community_list_commands(
+            {"name": "CL", "communities": ["$(reboot)"]}
+        )
+        self.assertEqual(
+            commands, [f"{self.PREFIX} community {escape_shell_arg('$(reboot)')}"]
+        )
+
+    def test_boolean_operator_or_omitted_not_warns(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "boolean_operator": "OR"}),
+            [self.PREFIX],
+        )
+        commands = generate_community_list_commands(
+            {"name": "CL", "boolean_operator": 3}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"), commands[0])
+        self.assertIn("NOT", commands[0])
+
+    def test_exact_match_false_preserved(self) -> None:
+        self.assertEqual(
+            generate_community_list_commands({"name": "CL", "exact_match": False}),
+            [f"{self.PREFIX} exact-match false"],
+        )
+
+    def test_dead_fields_warn(self) -> None:
+        """Fields bgpd never reads surface as warnings, not silently dropped."""
+        commands = generate_community_list_commands(
+            {
+                "name": "CL",
+                "community_list_names": ["X"],
+                "members": [{"community": {"name": "CM1", "value": "65000:1"}}],
+            }
+        )
+        self.assertEqual(len(commands), 2)
+        self.assertIn("community_list_names", commands[0])
+        self.assertIn("members entries", commands[1])
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_lists_after_as_path_lists(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+            ],
+        )
+
+
+class GeneratePrefixListCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_commands (prefix-list grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"version": 4}), [])
+
+    def test_bare_list_is_recreated(self) -> None:
+        self.assertEqual(generate_prefix_list_commands({"name": "PL"}), [self.PREFIX])
+
+    def test_scalar_attributes(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "description": "loopbacks",
+                "boolean_operator": "AND",
+                "compare_operator": 2,
+                "version": 6,
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} description loopbacks",
+                f"{self.PREFIX} boolean-operator AND",
+                f"{self.PREFIX} compare-operator GE",
+                f"{self.PREFIX} ip-version v6",
+            ],
+        )
+
+    def test_or_default_omitted(self) -> None:
+        self.assertEqual(
+            generate_prefix_list_commands({"name": "PL", "boolean_operator": 2}),
+            [self.PREFIX],
+        )
+
+    def test_unexpressible_values_warn(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "compare_operator": 7,
+                "version": 5,
+                "prefix_list_names": ["X"],
+                "ip_version": 1,
+            }
+        )
+        self.assertEqual(len(commands), 4)
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_policy_block_order(self) -> None:
+        config = {
+            "policies": {
+                "aspath_lists": [{"name": "A"}],
+                "community_lists": [{"name": "CL"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy community-list CL",
+                "config protocol bgp policy prefix-list PL",
+            ],
+        )
+
+
+class GeneratePrefixListEntryCommandsTest(unittest.TestCase):
+    """Tests for generate_prefix_list_entry_commands (entry grammar)."""
+
+    PREFIX = "config protocol bgp policy prefix-list PL entry 10"
+
+    def test_full_entry(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "base_prefix": "10.0.0.0/8",
+                "description": "rfc1918 a",
+                "match_logic": 1,
+                "max_allowed_golden_prefix_subnet_count": 4,
+                "prefix_len_ranges": [{"compare_operator": 3, "value": 24}],
+                "regex": "^10\\.",
+                "communities": ["65000:2", "65000:1"],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
+                f"{self.PREFIX} description 'rfc1918 a'",
+                f"{self.PREFIX} match-logic NOT_EQUAL",
+                f"{self.PREFIX} max-allowed-subnet-count 4",
+                f"{self.PREFIX} prefix-len-range compare-operator LE",
+                f"{self.PREFIX} prefix-len-range value 24",
+                f"{self.PREFIX} regex '^10\\.'",
+                f"{self.PREFIX} communities 65000:1",
+                f"{self.PREFIX} communities 65000:2",
+            ],
+        )
+
+    def test_equal_default_omitted(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"seq_num": 10, "match_logic": 0}
+        )
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_missing_seq_num_warns(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL", {"base_prefix": "10.0.0.0/8"}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("10.0.0.0/8", commands[0])
+
+    def test_extra_ranges_and_ip_version_warn(self) -> None:
+        commands = generate_prefix_list_entry_commands(
+            "PL",
+            {
+                "seq_num": 10,
+                "prefix_len_ranges": [{"value": 24}, {"value": 32}],
+                "ip_version": 1,
+            },
+        )
+        self.assertEqual(commands[0], f"{self.PREFIX} prefix-len-range value 24")
+        self.assertEqual(len(commands), 3)
+        self.assertTrue(commands[1].startswith("# WARNING:"))
+        self.assertTrue(commands[2].startswith("# WARNING:"))
+
+    def test_entries_emitted_inside_list(self) -> None:
+        commands = generate_prefix_list_commands(
+            {
+                "name": "PL",
+                "version": 4,
+                "prefixes": [{"seq_num": 10, "base_prefix": "10.0.0.0/8"}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy prefix-list PL ip-version v4",
+                f"{self.PREFIX} base-prefix 10.0.0.0/8",
+            ],
+        )
+
+
+class GenerateRoutingPolicyCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_commands (routing-policy grammar)."""
+
+    PREFIX = "config protocol bgp policy routing-policy RM"
+
+    def test_empty_name_returns_empty(self) -> None:
+        self.assertEqual(generate_routing_policy_commands({"description": "x"}), [])
+
+    def test_bare_policy_is_recreated(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM"}), [self.PREFIX]
+        )
+
+    def test_description(self) -> None:
+        commands = generate_routing_policy_commands(
+            {"name": "RM", "description": "import from spine"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'import from spine'"])
+
+    def test_result_deny_default_silent_other_warns(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_commands({"name": "RM", "result": 2}), [self.PREFIX]
+        )
+        commands = generate_routing_policy_commands({"name": "RM", "result": "ACCEPT"})
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("ACCEPT", commands[0])
+
+    def test_policy_block_order_lists_then_policies(self) -> None:
+        config = {
+            "policies": {
+                "bgp_policy_statements": [{"name": "RM"}],
+                "aspath_lists": [{"name": "A"}],
+                "prefix_lists": [{"name": "PL"}],
+            }
+        }
+        commands = generate_policy_commands(config)
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy as-path-list A",
+                "config protocol bgp policy prefix-list PL",
+                self.PREFIX,
+            ],
+        )
+
+
+class GenerateRoutingPolicyTermCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_term_commands (term grammar)."""
+
+    PREFIX = "config protocol bgp policy routing-policy RM term 10"
+
+    def test_bare_term_is_recreated(self) -> None:
+        commands = generate_routing_policy_term_commands("RM", {"sequence_number": 10})
+        self.assertEqual(commands, [self.PREFIX])
+
+    def test_description(self) -> None:
+        commands = generate_routing_policy_term_commands(
+            "RM", {"sequence_number": 10, "description": "deny bogons"}
+        )
+        self.assertEqual(commands, [f"{self.PREFIX} description 'deny bogons'"])
+
+    def test_missing_sequence_number_warns(self) -> None:
+        commands = generate_routing_policy_term_commands("RM", {"name": "t1"})
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+        self.assertIn("t1", commands[0])
+
+    def test_terms_emitted_inside_policy(self) -> None:
+        commands = generate_routing_policy_commands(
+            {
+                "name": "RM",
+                "description": "d",
+                "policy_entries": [{"sequence_number": 10}, {"sequence_number": 20}],
+            }
+        )
+        self.assertEqual(
+            commands,
+            [
+                "config protocol bgp policy routing-policy RM description d",
+                self.PREFIX,
+                "config protocol bgp policy routing-policy RM term 20",
+            ],
+        )
+
+
+class GenerateRoutingPolicyTermActionCommandsTest(unittest.TestCase):
+    """Tests for generate_routing_policy_term_action_commands."""
+
+    TERM = "config protocol bgp policy routing-policy RM term 10"
+
+    def test_result(self) -> None:
+        for raw, keyword in ((1, "ACCEPT"), (2, "REJECT"), ("DENY", "REJECT")):
+            commands = generate_routing_policy_term_action_commands(
+                self.TERM, {"term_miss_action": raw}
+            )
+            self.assertEqual(commands, [f"{self.TERM} action result {keyword}"], raw)
+
+    def test_result_next_term_default_omitted(self) -> None:
+        self.assertEqual(
+            generate_routing_policy_term_action_commands(
+                self.TERM, {"term_miss_action": 3}
+            ),
+            [],
+        )
+
+    def test_result_unexpressible_warns(self) -> None:
+        commands = generate_routing_policy_term_action_commands(
+            self.TERM, {"term_miss_action": 6}
+        )
+        self.assertEqual(len(commands), 1)
+        self.assertTrue(commands[0].startswith("# WARNING:"))
+
+    def test_set_actions(self) -> None:
+        term = {
+            "policy_action_entries": [
+                {"type": 1, "set_as_path_prepend": {"asn": 65000, "repeat_times": 2}},
+                {
+                    "type": 2,
+                    "community_action": {"communities": ["65000:1"], "action_type": 1},
+                },
+                {
+                    "type": "COMMUNITY_LIST",
+                    "community_action": {"communities": ["65000:2"], "action_type": 2},
+                },
+                {"type": 3, "set_local_pref": {"local_pref": 200}},
+                {"type": 4, "set_origin": 3},
+                {
+                    "type": 8,
+                    "set_nexthop": {"next_hop": {"next_hop_prefix": "10.0.0.1"}},
+                },
+                {"type": 10, "med_action": {"med_value": 50, "med_action_type": 1}},
+                {
+                    "type": 15,
+                    "weight_action": {"weight_value": 7, "weight_action_type": 1},
+                },
+            ]
+        }
+        commands = generate_routing_policy_term_action_commands(self.TERM, term)
+        self.assertEqual(
+            commands,
+            [
+                f"{self.TERM} action set as-path prepend 65000 65000",
+                f"{self.TERM} action set community 65000:1 additive",
+                f"{self.TERM} action set community 65000:2",
+                f"{self.TERM} action set local-pref 200",
+                f"{self.TERM} action set origin INCOMPLETE",
+                f"{self.TERM} action set next-hop 10.0.0.1",
+                f"{self.TERM} action set med 50",
+                f"{self.TERM} action set weight 7",
+            ],
+        )
+
+    def test_unexpressible_actions_warn(self) -> None:
+        term = {
+            "policy_action_entries": [
+                {"type": 8, "set_nexthop": {"set_self": True}},
+                {"type": 10, "med_action": {"med_value": 1, "med_action_type": 2}},
+                {"type": 11},
+                {
+                    "type": 2,
+                    "community_action": {"communities": ["a", "b"], "action_type": 2},
+                },
+            ]
+        }
+        commands = generate_routing_policy_term_action_commands(self.TERM, term)
+        self.assertEqual(len(commands), 4)
+        for c in commands:
+            self.assertTrue(c.startswith("# WARNING:"), c)
+
+    def test_actions_emitted_inside_term(self) -> None:
+        commands = generate_routing_policy_term_commands(
+            "RM",
+            {
+                "sequence_number": 10,
+                "term_miss_action": 1,
+                "policy_action_entries": [
+                    {"type": 3, "set_local_pref": {"local_pref": 5}}
+                ],
+            },
+        )
+        self.assertEqual(
+            commands,
+            [
+                f"{self.TERM} action result ACCEPT",
+                f"{self.TERM} action set local-pref 5",
+            ],
+        )
 
 
 class GenerateScriptCommandsTest(unittest.TestCase):
