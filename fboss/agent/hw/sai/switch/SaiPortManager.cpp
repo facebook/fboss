@@ -298,6 +298,7 @@ void fillHwPortStats(
     bool updateFecStats,
     [[maybe_unused]] bool updateLlrStats,
     [[maybe_unused]] bool updateLlrExtensionStats,
+    [[maybe_unused]] bool updateCbfcStats,
     bool rxPfcDurationStatsEnabled,
     bool txPfcDurationStatsEnabled) {
   // TODO fill these in when we have debug counter support in SAI
@@ -581,6 +582,27 @@ void fillHwPortStats(
       case SAI_PORT_STAT_LLR_TOTAL_ERROR:
         if (updateLlrExtensionStats) {
           hwPortStats.llrTxError_() = value;
+        }
+        break;
+#endif
+#if defined(SAI_CBFC_SUPPORTED)
+      // Gated on updateCbfcStats (a successful isolated read), same as LLR.
+      // The other three SAI_PORT_STAT_CBFC_* counters have no BCM backing on
+      // TU1 and are not fetched (see SaiPortTraits::cbfcStats), so there is
+      // intentionally no case for them here.
+      case SAI_PORT_STAT_CBFC_NUM_CC_UPDATE_MESSAGES_TX:
+        if (updateCbfcStats) {
+          hwPortStats.cbfcCcUpdateTx_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_TX:
+        if (updateCbfcStats) {
+          hwPortStats.cbfcCfUpdateTx_() = value;
+        }
+        break;
+      case SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_RX:
+        if (updateCbfcStats) {
+          hwPortStats.cbfcCfUpdateRx_() = value;
         }
         break;
 #endif
@@ -2980,6 +3002,18 @@ void SaiPortManager::updateStats(
     }
   }
 #endif
+  bool updateCbfcStats = false;
+#if defined(SAI_CBFC_SUPPORTED)
+  // Isolated read for the same reason as LLR above: get_port_stats is
+  // all-or-nothing, so a NOT_SUPPORTED CBFC read must not take the basic port
+  // counters down with it. Only ports with virtual channels programmed ask for
+  // them, and the fill is gated on the read succeeding.
+  if (managerTable_->virtualChannelManager().getVirtualChannelHandle(portId) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::CBFC)) {
+    updateCbfcStats = collectStats(
+        SaiPortTraits::cbfcStats(), SAI_STATS_MODE_READ, "CBFC port counters");
+  }
+#endif
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
       counters,
@@ -2990,6 +3024,7 @@ void SaiPortManager::updateStats(
       updateFecStats,
       updateLlrStats,
       updateLlrExtensionStats,
+      updateCbfcStats,
       handle->rxPfcDurationStatsEnabled,
       handle->txPfcDurationStatsEnabled);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
