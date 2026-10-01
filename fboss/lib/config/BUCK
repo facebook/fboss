@@ -48,6 +48,7 @@ cpp_library(
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
     exported_deps = [
         "//fboss/agent:fboss-types",

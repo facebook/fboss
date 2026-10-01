@@ -391,20 +391,21 @@ void addDefaultProfilePortGraph(
   const auto& platformPorts = platformMapping.getPlatformPorts();
 
   const auto portGroups = utility::getSubsidiaryPortIDs(platformPorts);
-  std::map<PortID, std::vector<PortID>> interfacePortGroups;
+  std::map<PortID, std::vector<PortID>> supportedPortGroups;
   std::set<PortID> controllingPorts;
   for (const auto& group : portGroups) {
     const auto& portEntryMapping =
         platformMapping.getPlatformPort(group.first).mapping();
-    if (*portEntryMapping->portType() != cfg::PortType::INTERFACE_PORT) {
+    const auto portType = *portEntryMapping->portType();
+    if (portType != cfg::PortType::INTERFACE_PORT &&
+        portType != cfg::PortType::MANAGEMENT_PORT) {
       XLOG(WARN) << "Skipping unsupported port " << group.first << " ('"
                  << *portEntryMapping->name() << "') with type "
-                 << apache::thrift::util::enumNameSafe(
-                        *portEntryMapping->portType())
+                 << apache::thrift::util::enumNameSafe(portType)
                  << " during default profile config generation";
       continue;
     }
-    interfacePortGroups.emplace(group.first, group.second);
+    supportedPortGroups.emplace(group.first, group.second);
     controllingPorts.insert(group.first);
   }
   // A standalone default config intentionally programs only controlling
@@ -412,15 +413,39 @@ void addDefaultProfilePortGraph(
   const utility::SafeProfileSelectionOptions options{
       .asicType = asic.getAsicType(),
       .supportsAddRemovePort = true,
+      .preferOpticalProfiles = true,
       .requiredPorts = std::move(controllingPorts),
   };
   const auto portProfiles =
-      utility::getSafeProfileIDs(platformMapping, interfacePortGroups, options);
+      utility::getSafeProfileIDs(platformMapping, supportedPortGroups, options);
 
-  auto vlanID = utility::kInterfaceVlanIdMin;
+  auto interfaceVlanID = utility::kInterfaceVlanIdMin;
+  auto managementVlanID = utility::kInterfaceVlanIdMax;
   for (const auto& [portID, profileID] : portProfiles) {
-    utility::addInterfacePortToConfig(
-        switchConfig, &platformMapping, portID, profileID, VlanID(vlanID++));
+    if (interfaceVlanID > managementVlanID) {
+      throw FbossError("No free VLAN ID available for default port config");
+    }
+    const auto portType =
+        *platformMapping.getPlatformPort(portID).mapping()->portType();
+    int32_t vlanID;
+    if (portType == cfg::PortType::MANAGEMENT_PORT) {
+      // Allocate management VLANs downward from the high end so they stay
+      // separate from interface VLANs and later low-to-high port additions.
+      vlanID = managementVlanID--;
+    } else {
+      // Allocate interface VLANs upward from the low end, preserving room for
+      // tools such as link_test to add more interface ports afterward.
+      vlanID = interfaceVlanID++;
+    }
+    utility::addRoutedPortToConfig(
+        switchConfig, &platformMapping, portID, profileID, VlanID(vlanID));
+    if (portType == cfg::PortType::MANAGEMENT_PORT) {
+      // Keep the management L3 interface logically up independently of the
+      // physical port state, matching the established COOP configuration.
+      auto& managementInterface = switchConfig.interfaces()->back();
+      managementInterface.isVirtual() = true;
+      managementInterface.isStateSyncDisabled() = true;
+    }
     auto& port = switchConfig.ports()->back();
     port.state() = cfg::PortState::ENABLED;
   }

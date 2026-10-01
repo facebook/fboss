@@ -47,6 +47,8 @@ constexpr std::string_view kAsicJson = "{\"ASIC_CONFIG\":\"test\"}\n";
 constexpr std::string_view kKeyValueConfig =
     "{\"foo\":\"bar\",\"answer\":\"42\"}\n";
 constexpr std::string_view kPortName = "eth1/1/1";
+constexpr std::string_view kManagementPortName = "management0";
+constexpr int32_t kManagementPortId = 100;
 constexpr auto kPortProfile = cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC;
 constexpr auto kWidePortProfile =
     cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
@@ -145,6 +147,52 @@ void writeTwoPortGroupMapping(const fs::path& mappingDirectory) {
   (*mapping.rawPlatformPorts())[std::string(kPortName)] =
       std::move(controllingPort);
   (*mapping.rawPlatformPorts())["eth1/1/2"] = std::move(subsidiaryPort);
+  writeTestFile(
+      mappingDirectory / "raw_platform_mapping.json",
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(mapping));
+}
+
+void writeInterfaceAndManagementPortMapping(const fs::path& mappingDirectory) {
+  writeTestFile(
+      mappingDirectory / "port_id_to_port_assignment.json",
+      "{\"portIdToPortAssignment\":{\"1\":{\"portName\":\"" +
+          std::string(kPortName) + "\",\"portType\":" +
+          std::to_string(static_cast<int>(cfg::PortType::INTERFACE_PORT)) +
+          ",\"scope\":0},\"" + std::to_string(kManagementPortId) +
+          "\":{\"portName\":\"" + std::string(kManagementPortName) +
+          "\",\"portType\":" +
+          std::to_string(static_cast<int>(cfg::PortType::MANAGEMENT_PORT)) +
+          ",\"scope\":0}}}\n");
+
+  cfg::PlatformPortEntry interfacePort;
+  interfacePort.mapping()->id() = 0;
+  interfacePort.mapping()->name() = kPortName;
+  interfacePort.mapping()->controllingPort() = 0;
+  interfacePort.mapping()->pins() = {};
+  interfacePort.mapping()->controllingPortName() = kPortName;
+  interfacePort.supportedProfiles()[kPortProfile] = cfg::PlatformPortConfig{};
+
+  cfg::PlatformPortEntry managementPort;
+  managementPort.mapping()->id() = 0;
+  managementPort.mapping()->name() = kManagementPortName;
+  managementPort.mapping()->controllingPort() = 0;
+  managementPort.mapping()->pins() = {};
+  managementPort.mapping()->controllingPortName() = kManagementPortName;
+  managementPort.supportedProfiles()[kPortProfile] = cfg::PlatformPortConfig{};
+
+  cfg::PlatformPortProfileConfigEntry profile;
+  profile.factor()->profileID() = kPortProfile;
+  profile.profile()->speed() = cfg::PortSpeed::HUNDREDG;
+
+  cfg::PlatformMapping mapping;
+  mapping.ports() = {};
+  mapping.chips() = {};
+  mapping.platformSupportedProfiles() = {std::move(profile)};
+  mapping.rawPlatformPorts() = {};
+  (*mapping.rawPlatformPorts())[std::string(kPortName)] =
+      std::move(interfacePort);
+  (*mapping.rawPlatformPorts())[std::string(kManagementPortName)] =
+      std::move(managementPort);
   writeTestFile(
       mappingDirectory / "raw_platform_mapping.json",
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(mapping));
@@ -592,6 +640,69 @@ TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
       expectedDefaultVlan};
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
   EXPECT_EQ(*switchConfig.defaultVlan(), utility::kDefaultVlanId4094);
+}
+
+TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
+  folly::test::TemporaryDirectory temporaryDirectory;
+  const auto fbossRoot = fs::path(temporaryDirectory.path().string()) / "fboss";
+  createTestPlatform(fbossRoot, "test_vendor");
+  writeInterfaceAndManagementPortMapping(
+      fbossRoot / "lib" / "platform_mapping_v2" /
+      "generated_platform_mappings" / "test_vendor" / kPlatform);
+  const auto inputs = resolveAgentConfigInputs(fbossRoot, kPlatform, "default");
+
+  const auto switchConfig = generateSwitchConfig(inputs);
+
+  auto expectedInterfacePort = utility::createInterfacePortConfig(
+      *inputs.platformMapping,
+      PortID(1),
+      kPortProfile,
+      VlanID(utility::kInterfaceVlanIdMin));
+  expectedInterfacePort.state() = cfg::PortState::ENABLED;
+  expectedInterfacePort.loopbackMode() = cfg::PortLoopbackMode::NONE;
+  expectedInterfacePort.maxFrameSize() =
+      cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  auto expectedManagementPort = utility::createRoutedPortConfig(
+      *inputs.platformMapping,
+      PortID(kManagementPortId),
+      kPortProfile,
+      VlanID(utility::kInterfaceVlanIdMax));
+  expectedManagementPort.state() = cfg::PortState::ENABLED;
+  expectedManagementPort.loopbackMode() = cfg::PortLoopbackMode::NONE;
+  expectedManagementPort.maxFrameSize() =
+      cfg::switch_config_constants::DEFAULT_PORT_MTU();
+  const std::vector<cfg::Port> expectedPorts{
+      expectedInterfacePort, expectedManagementPort};
+  EXPECT_EQ(*switchConfig.ports(), expectedPorts);
+
+  const std::vector<cfg::VlanPort> expectedVlanPorts{
+      utility::createVlanPortConfig(
+          PortID(1), VlanID(utility::kInterfaceVlanIdMin)),
+      utility::createVlanPortConfig(
+          PortID(kManagementPortId), VlanID(utility::kInterfaceVlanIdMax))};
+  EXPECT_EQ(*switchConfig.vlanPorts(), expectedVlanPorts);
+
+  auto expectedManagementInterface = utility::createVlanInterfaceConfig(
+      InterfaceID(utility::kInterfaceVlanIdMax),
+      VlanID(utility::kInterfaceVlanIdMax));
+  expectedManagementInterface.isVirtual() = true;
+  expectedManagementInterface.isStateSyncDisabled() = true;
+  const std::vector<cfg::Interface> expectedInterfaces{
+      utility::createVlanInterfaceConfig(
+          InterfaceID(utility::kInterfaceVlanIdMin),
+          VlanID(utility::kInterfaceVlanIdMin)),
+      expectedManagementInterface};
+  EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
+
+  auto expectedDefaultVlan =
+      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  expectedDefaultVlan.name() = "default";
+  expectedDefaultVlan.routable() = false;
+  const std::vector<cfg::Vlan> expectedVlans{
+      utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
+      utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMax)),
+      expectedDefaultVlan};
+  EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 
 TEST(AgentConfigGenTest, SkipsNonInterfacePortForDefaultProfile) {

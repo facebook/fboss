@@ -12,7 +12,10 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
+
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -38,6 +41,12 @@ std::optional<cfg::PortSpeed> getProfileSpeed(
     }
   }
   return std::nullopt;
+}
+
+bool isOpticalProfile(cfg::PortProfileID profileID) {
+  constexpr std::string_view kOpticalSuffix = "_OPTICAL";
+  const auto profileName = apache::thrift::util::enumNameSafe(profileID);
+  return profileName.ends_with(kOpticalSuffix);
 }
 
 bool isRequiredPort(
@@ -71,7 +80,8 @@ PortProfileMap getSafeProfileIDs(
   // For each controlling-port group, this function:
   // 1. Collects profiles that do not subsume another required port.
   // 2. Applies any ASIC-specific fixed speed or profile requirement.
-  // 3. Otherwise selects the fastest safe profile.
+  // 3. Otherwise selects the fastest safe profile, preferring optical for an
+  //    equal-speed interface or management port.
   // 4. Assigns that profile to every port which must remain in the config.
   PortProfileMap portToProfileIDs;
   const auto& platformEntries = platformMapping.getPlatformPorts();
@@ -157,7 +167,12 @@ PortProfileMap getSafeProfileIDs(
     }
 
     // Without a fixed speed requirement, select the fastest safe profile.
+    // When requested for routed front-panel ports, prefer optical when
+    // profiles have the same speed. Copper remains the fallback.
     const auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
+    const auto preferOptical = options.preferOpticalProfiles &&
+        (portType == cfg::PortType::INTERFACE_PORT ||
+         portType == cfg::PortType::MANAGEMENT_PORT);
     if (bestProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
       for (const auto profileID : safeProfiles) {
         const auto speed = getProfileSpeed(platformMapping, profileID, ports);
@@ -168,9 +183,26 @@ PortProfileMap getSafeProfileIDs(
               " in controlling-port group ",
               controllingPort);
         }
-        if ((pickMaxSpeed &&
+        const auto candidateBySpeed =
+            (pickMaxSpeed &&
              static_cast<int>(bestSpeed) < static_cast<int>(*speed)) ||
-            (!pickMaxSpeed && *speed == bestSpeed)) {
+            (!pickMaxSpeed && *speed == bestSpeed);
+        if (!preferOptical) {
+          if (candidateBySpeed) {
+            bestSpeed = *speed;
+            bestProfile = profileID;
+          }
+          continue;
+        }
+
+        const auto firstAtFixedSpeed = !pickMaxSpeed && *speed == bestSpeed &&
+            bestProfile == cfg::PortProfileID::PROFILE_DEFAULT;
+        const auto opticalTie =
+            bestProfile != cfg::PortProfileID::PROFILE_DEFAULT &&
+            *speed == bestSpeed && isOpticalProfile(profileID) &&
+            !isOpticalProfile(bestProfile);
+        if ((pickMaxSpeed && candidateBySpeed) || firstAtFixedSpeed ||
+            opticalTie) {
           bestSpeed = *speed;
           bestProfile = profileID;
         }
@@ -224,18 +256,33 @@ cfg::Port createDefaultPortConfig(
   return port;
 }
 
-cfg::Port createInterfacePortConfig(
+cfg::Port createRoutedPortConfig(
     const PlatformMapping& platformMapping,
     PortID id,
     cfg::PortProfileID profileID,
     VlanID ingressVlan) {
   auto port = createDefaultPortConfig(
       &platformMapping, id, profileID, static_cast<int32_t>(ingressVlan));
-  if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
-    throw FbossError("Port ", id, " is not an interface port");
+  const auto portType = *port.portType();
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::MANAGEMENT_PORT) {
+    throw FbossError("Port ", id, " is not an interface or management port");
   }
   port.routable() = true;
   port.parserType() = cfg::ParserType::L3;
+  return port;
+}
+
+cfg::Port createInterfacePortConfig(
+    const PlatformMapping& platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID ingressVlan) {
+  auto port =
+      createRoutedPortConfig(platformMapping, id, profileID, ingressVlan);
+  if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
+    throw FbossError("Port ", id, " is not an interface port");
+  }
   return port;
 }
 
@@ -291,7 +338,7 @@ int32_t allocateFreeVlanId(
       "No free vlan id available in range [", minId, ", ", maxId, "]");
 }
 
-void addInterfacePortToConfig(
+void addRoutedPortToConfig(
     cfg::SwitchConfig& config,
     const PlatformMapping* platformMapping,
     PortID id,
@@ -328,8 +375,7 @@ void addInterfacePortToConfig(
     throw FbossError("VLAN/interface ID ", vlanID, " already exists in config");
   }
 
-  auto port =
-      createInterfacePortConfig(*platformMapping, id, profileID, vlanID);
+  auto port = createRoutedPortConfig(*platformMapping, id, profileID, vlanID);
   auto vlan = createVlanConfig(vlanID);
   auto vlanPort = createVlanPortConfig(id, vlanID);
   auto intf = createVlanInterfaceConfig(InterfaceID(numericVlanID), vlanID);
@@ -338,6 +384,22 @@ void addInterfacePortToConfig(
   config.vlans()->push_back(std::move(vlan));
   config.vlanPorts()->push_back(std::move(vlanPort));
   config.interfaces()->push_back(std::move(intf));
+}
+
+void addInterfacePortToConfig(
+    cfg::SwitchConfig& config,
+    const PlatformMapping* platformMapping,
+    PortID id,
+    cfg::PortProfileID profileID,
+    VlanID vlanID) {
+  if (!platformMapping) {
+    throw FbossError("Platform mapping must not be null");
+  }
+  if (*platformMapping->getPlatformPort(id).mapping()->portType() !=
+      cfg::PortType::INTERFACE_PORT) {
+    throw FbossError("Port ", id, " is not an interface port");
+  }
+  addRoutedPortToConfig(config, platformMapping, id, profileID, vlanID);
 }
 
 int32_t addInterfacePortToConfig(
