@@ -977,7 +977,9 @@ void TunManager::addressProcessor(struct nl_object* obj, void* data) {
       rtnl_addr_get_ifindex(addr), ipaddr, nl_addr_get_prefixlen(localaddr));
 }
 
-void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
+void TunManager::performInitialCleanup(
+    std::lock_guard<std::mutex>& lock,
+    std::shared_ptr<SwitchState> state) {
   // Build a map of interface ID to table ID from state interfaces
   auto ifIdToTableId = this->buildIfIdToTableIdMap(state);
 
@@ -986,7 +988,7 @@ void TunManager::performInitialCleanup(std::shared_ptr<SwitchState> state) {
 
   // Only delete probed data if there's a difference between the maps
   if (requiresProbedDataCleanup(ifIdToTableId, probedIfIdToTableId)) {
-    deleteAllProbedData();
+    deleteAllProbedDataLocked(lock);
     probedStateCleanedUp_ = true;
     sw_->stats()->probedStateCleanedUp();
   }
@@ -1061,6 +1063,12 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
  * tunnel interfaces.
  */
 void TunManager::deleteAllProbedData() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  deleteAllProbedDataLocked(lock);
+}
+
+void TunManager::deleteAllProbedDataLocked(
+    std::lock_guard<std::mutex>& /* lock */) {
   XLOG(INFO) << "Starting to delete all probed data from kernel";
 
   // Build a map of interface index to table ID from probed data
@@ -1211,7 +1219,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   }
   if (FLAGS_cleanup_probed_kernel_data) {
     if (!initialCleanupDone_) {
-      performInitialCleanup(state);
+      performInitialCleanup(lock, state);
     } else {
       XLOG(DBG2) << "Initial cleanup already completed, skipping cleanup";
     }
