@@ -56,6 +56,18 @@ WRAP_GET_ATTR_FUNC(
     virtual_channel,
     SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
     virtualChannel);
+WRAP_GET_STATS_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
+WRAP_GET_STATS_EXT_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
+WRAP_CLEAR_STATS_FUNC(
+    virtual_channel,
+    SAI_OBJECT_TYPE_VIRTUAL_CHANNEL,
+    virtualChannel);
 
 WRAP_CREATE_FUNC(
     cbfc_credit_profile,
@@ -83,6 +95,12 @@ sai_virtual_channel_api_t* wrappedVirtualChannelApi() {
       &wrap_set_virtual_channel_attribute;
   virtualChannelWrappers.get_virtual_channel_attribute =
       &wrap_get_virtual_channel_attribute;
+  virtualChannelWrappers.get_virtual_channel_stats =
+      &wrap_get_virtual_channel_stats;
+  virtualChannelWrappers.get_virtual_channel_stats_ext =
+      &wrap_get_virtual_channel_stats_ext;
+  virtualChannelWrappers.clear_virtual_channel_stats =
+      &wrap_clear_virtual_channel_stats;
 
   virtualChannelWrappers.create_cbfc_credit_profile =
       &wrap_create_cbfc_credit_profile;
