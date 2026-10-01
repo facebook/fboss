@@ -92,6 +92,10 @@ class MockFbossCtrlAgent : public apache::thrift::ServiceHandler<FbossCtrl> {
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
   MOCK_METHOD(void, getHwAgentConnectionStatus, (HwAgentStatusMap));
   MOCK_METHOD(void, getMultiSwitchRunState, (MultiSwitchRunState&));
+  MOCK_METHOD(
+      void,
+      getRegexExportedValues,
+      ((std::map<std::string, std::string>&), std::unique_ptr<std::string>));
   MOCK_METHOD(void, listHwObjects, (Out, HwObjects, bool));
   MOCK_METHOD(SSLType, getSSLPolicy, ());
   MOCK_METHOD(void, setPortState, (int32_t, bool));
