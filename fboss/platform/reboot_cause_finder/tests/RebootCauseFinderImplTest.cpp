@@ -386,6 +386,35 @@ TEST_F(RebootCauseFinderImplTest, X86RebootCommandKeepsTheSourceLine) {
   EXPECT_EQ(*attempt.causes()->front().rawValue(), line);
 }
 
+// wedge_power.sh ends an action announcement with "...". Three lines carry
+// the leading text without being a reset: the failure the celestica
+// powercycle patch logs, the script's own usage text, and a line truncated
+// by log rotation. All three were reported as successful resets.
+TEST_F(RebootCauseFinderImplTest, BmcNonResetLinesAreNotCauses) {
+  const auto btime = nowSec();
+  for (const auto* message :
+       {"Power reset the whole system failed",
+        "  reset: Power reset x86 (userver) ungracefully",
+        "Power reset the whole system"}) {
+    const auto body = bmcBody({bmcLine(btime - 160, message)});
+    const auto attempt = detail::parseBmcWedgePower(body, btime, kWindow);
+    EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+    EXPECT_TRUE(attempt.causes()->empty()) << message;
+  }
+}
+
+// The success line takes a longer form when a start-up delay is configured,
+// so the ellipsis cannot be matched as a fixed suffix.
+TEST_F(RebootCauseFinderImplTest, BmcChassisResetWithStartupDelayIsReported) {
+  const auto btime = nowSec();
+  const auto body = bmcBody({bmcLine(
+      btime - 160,
+      "Power reset the whole system with start-up time delay 30 seconds ...")});
+  const auto attempt = detail::parseBmcWedgePower(body, btime, kWindow);
+  ASSERT_EQ(attempt.causes()->size(), 1);
+  EXPECT_EQ(*(*attempt.causes())[0].description(), "ChassisResetFromBmc");
+}
+
 TEST_F(RebootCauseFinderImplTest, BmcSourceAddressIsZonedLinkLocal) {
   auto source = detail::bmcHostSourceAddress();
   auto zone = source.find('%');
@@ -1352,7 +1381,11 @@ TEST_F(RebootCauseFinderImplTest, ProviderUnparseableDateKeepsTheCause) {
   EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
   ASSERT_EQ(causes.size(), 1);
   EXPECT_EQ(*causes[0].occurredAtMs(), 0);
-  EXPECT_EQ(*causes[0].occurredAtPacific(), "soon");
+  // The unparsed text is not a timestamp, so the rendered field is left
+  // empty and the text is kept verbatim where unparsed source belongs.
+  EXPECT_TRUE(causes[0].occurredAtPacific()->empty());
+  ASSERT_TRUE(causes[0].rawValue().has_value());
+  EXPECT_EQ(*causes[0].rawValue(), "soon");
 }
 
 } // namespace

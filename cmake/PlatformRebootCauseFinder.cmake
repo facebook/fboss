@@ -23,6 +23,7 @@ add_library(reboot_cause_finder_lib
 )
 
 target_link_libraries(reboot_cause_finder_lib
+  ${RE2}
   platform_config_lib
   platform_name_lib
   platform_utils

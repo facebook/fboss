@@ -31,6 +31,7 @@ cpp_library(
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         "//fboss/lib:rest-client",
         "//folly:conv",
         "//folly:dynamic",

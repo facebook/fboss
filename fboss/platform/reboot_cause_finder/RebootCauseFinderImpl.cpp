@@ -21,6 +21,7 @@
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
+#include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -86,7 +87,7 @@ constexpr int kBmcPort = 8080;
 constexpr auto kBmcLogfilePath = "/api/sys/logfile";
 // Arguments go in the body. RestClient issues a POST, and sets
 // Content-Type: application/json, only when postData is non-empty.
-constexpr auto kBmcLogfileBody = R"({"lines": 200})";
+constexpr auto kBmcLogfileBody = R"({"lines": 200, "include_rotated": true})";
 constexpr std::chrono::milliseconds kBmcTimeout{2000};
 
 constexpr auto kSuddenPowerLossProvider = "SuddenPowerLoss";
@@ -108,8 +109,21 @@ constexpr int64_t kMinBmcToX86BootSkewSec = -60;
 // while the BMC clock is still NTP correct. `reset -s` cycles the whole
 // chassis and takes the BMC down with it; a plain `reset` drops only the x86
 // and the BMC stays up.
-constexpr auto kChassisResetMarker = "Power reset the whole system";
-constexpr auto kX86ResetMarker = "Power reset x86 (userver)";
+// wedge_power.sh announces an action it is about to take and ends the line
+// with "...". Matching the leading text alone also matches three lines that
+// are not a reset: the failure "Power reset the whole system failed", the
+// script's own usage text "reset: Power reset x86 (userver) ungracefully",
+// and a line truncated by log rotation mid-write. Requiring the ellipsis
+// admits the longer success form, which inserts a configured start-up delay
+// before it, while rejecting all three.
+//
+// Matching prose is fragile either way: these strings are a script's output,
+// not an interface, and can change without notice. A structured source, for
+// instance a BMC endpoint that reports the last reset and its cause, would
+// remove the guesswork and is worth exploring instead of parsing logs.
+constexpr auto kChassisResetPattern =
+    R"(Power reset the whole system .*\.\.\.)";
+constexpr auto kX86ResetPattern = R"(Power reset x86 \(userver\) .*\.\.\.)";
 
 // The kernel regenerates this UUID on every boot, including kexec. It is not
 // virtualized per namespace, and fboss platform services run as RootDirectory
@@ -657,10 +671,12 @@ reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
     const auto json = folly::parseJson(body);
     for (const auto& entry : json["Information"]["entries"]) {
       const auto line = entry.asString();
+      static const RE2 chassisReset(kChassisResetPattern);
+      static const RE2 x86Reset(kX86ResetPattern);
       const char* description = nullptr;
-      if (line.find(kChassisResetMarker) != std::string::npos) {
+      if (RE2::PartialMatch(line, chassisReset)) {
         description = "ChassisResetFromBmc";
-      } else if (line.find(kX86ResetMarker) != std::string::npos) {
+      } else if (RE2::PartialMatch(line, x86Reset)) {
         description = "X86ResetFromBmc";
       } else {
         continue;
@@ -828,16 +844,26 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
       cause.description() = causeJson["description"].asString();
 
       auto dateStr = causeJson["date"].asString();
+      bool dateParsed = false;
       if (auto t = parseProviderDate(dateStr)) {
         cause.occurredAtMs() = toEpochMs(*t);
         cause.occurredAtPacific() = pacificString(*t);
+        dateParsed = true;
       } else {
+        // Leave the rendered field unset rather than filling it with text
+        // that is not a timestamp.
         cause.occurredAtMs() = 0;
-        cause.occurredAtPacific() = dateStr;
+        XLOG(ERR) << fmt::format(
+            "Provider '{}' wrote an unparsable date '{}'",
+            *providerConfig.name(),
+            dateStr);
       }
 
       if (causeJson.count("rawValue")) {
         cause.rawValue() = causeJson["rawValue"].asString();
+      } else if (!dateParsed) {
+        // Nothing better to show, so keep what the provider actually wrote.
+        cause.rawValue() = dateStr;
       }
       causes.push_back(std::move(cause));
     }
