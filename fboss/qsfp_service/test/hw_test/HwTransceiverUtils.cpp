@@ -426,7 +426,12 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 
     case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL:
-      verifyOptical800gProfile(mgmtInterface, mediaInterfaces);
+      verifyOpticalProfileForSpeed(
+          mgmtInterface, mediaInterfaces, cfg::PortSpeed::EIGHTHUNDREDG);
+      break;
+    case cfg::PortProfileID::PROFILE_1600G_8_PAM4_RS544X2N_OPTICAL:
+      verifyOpticalProfileForSpeed(
+          mgmtInterface, mediaInterfaces, cfg::PortSpeed::ONEPOINTSIXT);
       break;
     case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
       verifyCopper800gProfile(tcvrState, mediaInterfaces);
@@ -622,16 +627,17 @@ void HwTransceiverUtils::verifyCopper53gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyOptical800gProfile(
+void HwTransceiverUtils::verifyOpticalProfileForSpeed(
     const TransceiverManagementInterface mgmtInterface,
-    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+    const std::vector<MediaInterfaceId>& mediaInterfaces,
+    cfg::PortSpeed speed) {
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::CMIS);
 
-  // Collect valid SMF codes for 800G speed from config
+  // Collect valid SMF codes for this speed from config
   std::set<SMFMediaInterfaceCode> validSmfCodes;
   for (auto code : TransceiverPropertiesManager::getKnownCodes()) {
     auto codes = TransceiverPropertiesManager::getMediaCodesForSpeed<
-        SMFMediaInterfaceCode>(code, cfg::PortSpeed::EIGHTHUNDREDG);
+        SMFMediaInterfaceCode>(code, speed);
     validSmfCodes.insert(codes.begin(), codes.end());
   }
 

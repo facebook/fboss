@@ -90,9 +90,10 @@ class HwTransceiverUtils {
   static void verifyCopper400gProfile(
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
-  static void verifyOptical800gProfile(
+  static void verifyOpticalProfileForSpeed(
       const TransceiverManagementInterface mgmtInterface,
-      const std::vector<MediaInterfaceId>& mediaInterfaces);
+      const std::vector<MediaInterfaceId>& mediaInterfaces,
+      cfg::PortSpeed speed);
   static void verifyCopper800gProfile(
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
