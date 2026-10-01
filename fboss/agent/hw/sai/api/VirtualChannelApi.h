@@ -13,6 +13,7 @@
 
 #include <optional>
 #include <tuple>
+#include <vector>
 
 extern "C" {
 #include <sai.h>
@@ -70,6 +71,27 @@ struct SaiVirtualChannelTraits {
       SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED,
       SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED,
   };
+
+  // The subset of CounterIdsToRead that a real switch can read, the analogue
+  // of SaiPortTraits::cbfcStats(). get_virtual_channel_stats is
+  // all-or-nothing, so asking for a counter the stepping does not serve loses
+  // every virtual channel counter on the port, not just that one.
+  //
+  // Left out because they are Tomahawk Ultra 1 B0 stepping only and return
+  // NOT_SUPPORTED on A0:
+  //   SENDER_CREDITS_CONSUMED    bcmCosqStatCbfcTxPortVcCreditConsumed
+  //   SENDER_CREDITS_FREED       bcmCosqStatCbfcTxPortVcCRCyclicCount
+  //   RECEIVER_CREDITS_FREED     bcmCosqStatCbfcRxPortVcCFCyclicCount
+  //
+  // CounterIdsToRead above keeps all four: fake serves them regardless of
+  // stepping, and it is the set the object declares rather than the set a
+  // given chip can answer.
+  static const std::vector<sai_stat_id_t>& cbfcVcStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED,
+    };
+    return ids;
+  }
 };
 
 SAI_ATTRIBUTE_NAME(VirtualChannel, Port);
