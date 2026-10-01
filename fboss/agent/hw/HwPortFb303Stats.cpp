@@ -72,6 +72,9 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kLlrTxNackReplayEvent(),
       kLlrTxTimerReplayEvent(),
       kLlrTxError(),
+      kCbfcCcUpdateTx(),
+      kCbfcCfUpdateTx(),
+      kCbfcCfUpdateRx(),
   };
   return kPortKeys;
 }
@@ -431,6 +434,20 @@ void HwPortFb303Stats::updateStats(
   }
   if (curPortStats.llrTxError_().has_value()) {
     updateStat(timeRetrieved_, kLlrTxError(), *curPortStats.llrTxError_());
+  }
+
+  // UEC CBFC counters -- populated only on CBFC-capable ASICs (Tomahawk Ultra).
+  if (curPortStats.cbfcCcUpdateTx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCcUpdateTx(), *curPortStats.cbfcCcUpdateTx_());
+  }
+  if (curPortStats.cbfcCfUpdateTx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCfUpdateTx(), *curPortStats.cbfcCfUpdateTx_());
+  }
+  if (curPortStats.cbfcCfUpdateRx_().has_value()) {
+    updateStat(
+        timeRetrieved_, kCbfcCfUpdateRx(), *curPortStats.cbfcCfUpdateRx_());
   }
 
   // Update queue stats
