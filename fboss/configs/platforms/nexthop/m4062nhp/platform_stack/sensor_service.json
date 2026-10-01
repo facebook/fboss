@@ -394,6 +394,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan1_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -403,6 +405,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan2_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -412,6 +416,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan3_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -421,6 +427,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan4_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -430,6 +438,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan5_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -439,6 +449,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan6_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -448,6 +460,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan7_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -457,6 +471,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan8_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -466,6 +482,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan9_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -475,6 +493,8 @@
           "sysfsPath": "/run/devmap/sensors/FAN_CTRL/fan10_input",
           "type": 4,
           "thresholds": {
+            "maxAlarmVal": 23000,
+            "minAlarmVal": 6000,
             "upperCriticalVal": 25000,
             "lowerCriticalVal": 5000
           }
@@ -538,6 +558,7 @@
           "sysfsPath": "/run/devmap/sensors/PSU1/power1_input",
           "type": 0,
           "thresholds": {
+            "maxAlarmVal": 850,
             "upperCriticalVal": 1000
           },
           "compute": "@/1000000"
@@ -547,6 +568,7 @@
           "sysfsPath": "/run/devmap/sensors/PSU1/in1_input",
           "type": 1,
           "thresholds": {
+            "maxAlarmVal": 264,
             "upperCriticalVal": 300
           },
           "compute": "@/1000.0"
