@@ -798,6 +798,7 @@ target_link_libraries(fboss2_lib
   fsdb_path_converter
   thrift_visitors
   Folly::folly
+  FBThrift::thriftcpp2
   input_balance_util
   cli_model
   bgp_thrift_cpp2

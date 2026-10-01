@@ -4,6 +4,9 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
+#include <folly/synchronization/Baton.h>
+
+#include <thread>
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -427,6 +430,73 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
         {100, SwitchRunState::CONFIGURED});
   }
 };
+
+TEST(
+    CmdShowPortEventBaseTest,
+    PlaintextClients_ConcurrentSyncCallsFromDifferentThreads_Succeed) {
+  auto firstMockAgent = std::make_shared<MockFbossCtrlAgent>();
+  auto secondMockAgent = std::make_shared<MockFbossCtrlAgent>();
+  folly::Baton<> firstRequestStarted;
+  folly::Baton<> unblockFirstRequest;
+  EXPECT_CALL(*firstMockAgent, getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& /* entries */) {
+        firstRequestStarted.post();
+        unblockFirstRequest.wait();
+      }));
+  EXPECT_CALL(*secondMockAgent, getAllPortInfo(_)).Times(1);
+
+  apache::thrift::ScopedServerInterfaceThread firstServer(
+      firstMockAgent,
+      "::1",
+      0,
+      CmdHandlerTestBase::createFastMockServerConfig());
+  apache::thrift::ScopedServerInterfaceThread secondServer(
+      secondMockAgent,
+      "::1",
+      0,
+      CmdHandlerTestBase::createFastMockServerConfig());
+  const HostInfo hostInfo(
+      "test.host", "test-oob.host", folly::IPAddressV6("::1"));
+
+  auto firstClient =
+      utils::createPlaintextClient<apache::thrift::Client<FbossCtrl>>(
+          hostInfo, firstServer.getAddress().getPort());
+  auto secondClient =
+      utils::createPlaintextClient<apache::thrift::Client<FbossCtrl>>(
+          hostInfo, secondServer.getAddress().getPort());
+
+  std::thread firstWorker([&] {
+    std::map<int32_t, PortInfoThrift> entries;
+    firstClient->sync_getAllPortInfo(entries);
+  });
+  firstRequestStarted.wait();
+
+  std::thread secondWorker([&] {
+    std::map<int32_t, PortInfoThrift> entries;
+    secondClient->sync_getAllPortInfo(entries);
+  });
+  secondWorker.join();
+
+  unblockFirstRequest.post();
+  firstWorker.join();
+}
+
+TEST(CmdShowPortEventBaseTest, PlaintextClient_FutureRpc_ReturnsResponse) {
+  auto mockAgent = std::make_shared<MockFbossCtrlAgent>();
+  const std::map<int32_t, PortInfoThrift> expectedEntries{
+      {1, PortInfoThrift{}}};
+  EXPECT_CALL(*mockAgent, getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = expectedEntries; }));
+
+  apache::thrift::ScopedServerInterfaceThread server(
+      mockAgent, "::1", 0, CmdHandlerTestBase::createFastMockServerConfig());
+  const HostInfo hostInfo(
+      "test.host", "test-oob.host", folly::IPAddressV6("::1"));
+  auto client = utils::createPlaintextClient<apache::thrift::Client<FbossCtrl>>(
+      hostInfo, server.getAddress().getPort());
+
+  EXPECT_EQ(client->future_getAllPortInfo().get(), expectedEntries);
+}
 
 TEST_F(CmdShowPortTestFixture, sortByName) {
   auto model = CmdShowPort().createModel(
