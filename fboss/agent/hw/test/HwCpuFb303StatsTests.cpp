@@ -132,6 +132,10 @@ HwPortStats getInitedStats() {
       0, // cbfcCcUpdateTx
       0, // cbfcCfUpdateTx
       0, // cbfcCfUpdateRx
+      {}, // cbfcVcSenderCreditsConsumed
+      {}, // cbfcVcSenderCreditsFreed
+      {}, // cbfcVcReceiverCreditsConsumed
+      {}, // cbfcVcReceiverCreditsFreed
   };
 }
 
