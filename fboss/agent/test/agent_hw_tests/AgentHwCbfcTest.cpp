@@ -86,6 +86,7 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
   auto setup = []() {};
   auto verify = [&]() {
     auto state = getProgrammedState();
+    auto portStats = getLatestPortStats(masterLogicalInterfacePortIds());
     for (const auto& portId : masterLogicalInterfacePortIds()) {
       auto port = state->getPorts()->getNodeIf(portId);
       ASSERT_NE(port, nullptr);
@@ -143,6 +144,41 @@ void AgentHwCbfcTest::verifyCbfcProgrammed() {
       EXPECT_NE(
           *byIndex[kRdmaVc].creditProfileId(),
           *byIndex[kMonitoringVc].creditProfileId());
+
+      // Counters read 0 without induced traffic, so presence is the assertion.
+      // Everything is logged before the first EXPECT so a run still yields
+      // readings even when one fails.
+      const auto& stats = portStats.at(portId);
+      XLOG(DBG2) << "Port " << portId << " CBFC port counters:"
+                 << " ccUpdateTx=" << show(stats.cbfcCcUpdateTx_())
+                 << " cfUpdateTx=" << show(stats.cbfcCfUpdateTx_())
+                 << " cfUpdateRx=" << show(stats.cbfcCfUpdateRx_());
+      auto showVcMap = [&](folly::StringPiece name, const auto& vcMap) {
+        for (const auto& [vcIndex, value] : vcMap) {
+          XLOG(DBG2) << "Port " << portId << " VC " << vcIndex << " " << name
+                     << "=" << value;
+        }
+        if (vcMap.empty()) {
+          XLOG(DBG2) << "Port " << portId << " " << name << " <empty>";
+        }
+      };
+      showVcMap("senderCreditsConsumed", *stats.cbfcVcSenderCreditsConsumed_());
+      showVcMap("senderCreditsFreed", *stats.cbfcVcSenderCreditsFreed_());
+      showVcMap(
+          "receiverCreditsConsumed", *stats.cbfcVcReceiverCreditsConsumed_());
+      showVcMap("receiverCreditsFreed", *stats.cbfcVcReceiverCreditsFreed_());
+
+      EXPECT_TRUE(stats.cbfcCcUpdateTx_().has_value());
+      EXPECT_TRUE(stats.cbfcCfUpdateTx_().has_value());
+      EXPECT_TRUE(stats.cbfcCfUpdateRx_().has_value());
+      // Only the receiver-consumed map is asserted. The other three virtual
+      // channel counters are Tomahawk Ultra 1 B0 stepping only and are not
+      // requested (see SaiVirtualChannelTraits::cbfcVcStats), so their maps
+      // stay empty on A0 -- the logging above is how we find out if that
+      // changes.
+      EXPECT_TRUE(stats.cbfcVcReceiverCreditsConsumed_()->contains(kRdmaVc));
+      EXPECT_TRUE(
+          stats.cbfcVcReceiverCreditsConsumed_()->contains(kMonitoringVc));
     }
   };
   verifyAcrossWarmBoots(setup, verify);
