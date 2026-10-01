@@ -27187,6 +27187,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         }
     ],
     "chenab/2511.36/2511.36/chenab/multi_switch": [
@@ -27255,6 +27267,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -27533,6 +27557,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         }
     ],
     "chenab/2605.37/2605.37/chenab/multi_switch": [
@@ -27601,6 +27637,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -34417,6 +34465,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         }
     ],
     "nvda/2511.36/2511.36/spectrum4/multi_switch": [
@@ -34485,6 +34545,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -34763,6 +34835,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         }
     ],
     "nvda/2605.37/2605.37/spectrum4/multi_switch": [
@@ -34831,6 +34915,18 @@
         },
         {
           "test_name_regex": "AgentAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "AgentHashPolarizationTest/1.verifyNoPolarization$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksFrontPanelTraffic$"
+        },
+        {
+          "test_name_regex": "AgentV6FlowLabelTrunkLoadBalancerTest.V6FlowLabelEcmpTrunk4X3WideTrunksCpuTraffic$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
