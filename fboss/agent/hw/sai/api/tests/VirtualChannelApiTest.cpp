@@ -13,6 +13,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #if defined(SAI_CBFC_SUPPORTED)
 
 using namespace facebook::fboss;
@@ -116,6 +118,27 @@ TEST_F(VirtualChannelApiTest, virtualChannelStatsReadZero) {
   for (auto value : stats) {
     EXPECT_EQ(value, 0);
   }
+}
+
+// The three counters left out of cbfcVcStats() are Tomahawk Ultra 1 B0
+// stepping only. get_virtual_channel_stats is all-or-nothing, so one of them
+// creeping into the list would lose every virtual channel counter on an A0
+// port, not just that one.
+TEST_F(VirtualChannelApiTest, cbfcVcStatsOmitsB0OnlyCounters) {
+  const auto& ids = SaiVirtualChannelTraits::cbfcVcStats();
+  for (auto b0Only :
+       {SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_CONSUMED,
+        SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_FREED,
+        SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED}) {
+    EXPECT_EQ(std::find(ids.begin(), ids.end(), b0Only), ids.end());
+  }
+}
+
+TEST_F(VirtualChannelApiTest, getCbfcVcStats) {
+  auto id = createVirtualChannel(kRdmaVc);
+  auto stats = virtualChannelApi->getStats<SaiVirtualChannelTraits>(
+      id, SaiVirtualChannelTraits::cbfcVcStats(), SAI_STATS_MODE_READ);
+  EXPECT_EQ(stats.size(), SaiVirtualChannelTraits::cbfcVcStats().size());
 }
 
 TEST_F(VirtualChannelApiTest, readNativeCreditLimit) {
