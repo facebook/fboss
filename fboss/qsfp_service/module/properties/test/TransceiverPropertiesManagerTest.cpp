@@ -67,6 +67,8 @@ TEST_F(TransceiverPropertiesManagerTest, DefaultConfigAllCodesKnown) {
   EXPECT_TRUE(
       TransceiverPropertiesManager::isKnown(MediaInterfaceCode::DR4_2x800G));
   EXPECT_TRUE(
+      TransceiverPropertiesManager::isKnown(MediaInterfaceCode::DR8_800G));
+  EXPECT_TRUE(
       TransceiverPropertiesManager::isKnown(
           MediaInterfaceCode::FR4_LPO_2x400G));
 }
@@ -77,6 +79,17 @@ TEST_F(TransceiverPropertiesManagerTest, DR4_2x800G_Properties) {
   auto code = MediaInterfaceCode::DR4_2x800G;
   EXPECT_EQ(TransceiverPropertiesManager::getNumHostLanes(code), 8);
   EXPECT_EQ(TransceiverPropertiesManager::getNumMediaLanes(code), 8);
+}
+
+TEST_F(TransceiverPropertiesManagerTest, DR8_800G_Properties) {
+  initDefault();
+
+  auto code = MediaInterfaceCode::DR8_800G;
+  EXPECT_EQ(TransceiverPropertiesManager::getNumHostLanes(code), 8);
+  EXPECT_EQ(TransceiverPropertiesManager::getNumMediaLanes(code), 8);
+  EXPECT_EQ(
+      TransceiverPropertiesManager::deriveSmfCode(0x56, {0}, 0x52, 500),
+      code);
 }
 
 TEST_F(TransceiverPropertiesManagerTest, TwoPort400G_Properties) {
