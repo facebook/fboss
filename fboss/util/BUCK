@@ -201,6 +201,7 @@ cpp_library(
     ],
     deps = [
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/qsfp_service:sdk_dump_path",
         "//folly:file_util",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
