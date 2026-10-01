@@ -940,6 +940,25 @@ struct SaiPortTraits {
     return ids;
   }
 #endif
+#if defined(SAI_CBFC_SUPPORTED)
+  // UEC Credit-Based Flow Control counters (UE Spec 1.0.2 section 5.2).
+  // get_port_stats is all-or-nothing, so fetch only the counters with a BCM
+  // counter behind them on Tomahawk Ultra 1. The other three in saiport.h are
+  // left out on purpose:
+  //   CBFC_SENDER_CREDITS_USED           TU1 B0 stepping only, NOT_SUPPORTED
+  //                                      on A0
+  //   CBFC_SENDER_CREDITS_USED_WATERMARK no BCM counter on any stepping
+  //   CBFC_NUM_CC_UPDATE_MESSAGES_RX     no BCM counter on any stepping
+  // Adding any of them makes every CBFC port stat read fail.
+  static const std::vector<sai_stat_id_t>& cbfcStats() {
+    static const std::vector<sai_stat_id_t> ids = {
+        SAI_PORT_STAT_CBFC_NUM_CC_UPDATE_MESSAGES_TX,
+        SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_TX,
+        SAI_PORT_STAT_CBFC_NUM_CF_UPDATE_MESSAGES_RX,
+    };
+    return ids;
+  }
+#endif
   static constexpr std::array<sai_stat_id_t, 16> PfcCounterIdsToRead = {
       SAI_PORT_STAT_PFC_0_RX_PKTS,
       SAI_PORT_STAT_PFC_1_RX_PKTS,
