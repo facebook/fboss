@@ -256,6 +256,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "pm_unit_identity",
+    srcs = [
+        "PmUnitIdentity.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":platform_manager_config-cpp2-types",
+        "//fboss/platform/weutil/if:eeprom_contents-cpp2-types",
+    ],
+)
+
+cpp_library(
     name = "utils",
     srcs = [
         "Utils.cpp",

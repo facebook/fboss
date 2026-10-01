@@ -1574,6 +1574,7 @@ add_dependencies(fboss_platform_services
   platform_manager_platform_explorer_test
   platform_data_corral_sw_test
   platform_manager_utils_test
+  platform_manager_pm_unit_identity_test
   platform_helpers_platform_name_lib_test
   platform_helpers_platform_fs_utils_test
   platform_helpers_platform_utils_test

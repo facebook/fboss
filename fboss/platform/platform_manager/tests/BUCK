@@ -77,6 +77,17 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "pm_unit_identity_test",
+    srcs = [
+        "PmUnitIdentityTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "//fboss/platform/platform_manager:pm_unit_identity",
+    ],
+)
+
+cpp_unittest(
     name = "utils_test",
     srcs = [
         "UtilsTest.cpp",
