@@ -24,6 +24,7 @@ from fboss_test_runner.constants import (
     SUB_CMD_SAI_INVARIANT_AGENT,
     SUB_CMD_SERVICES,
 )
+from fboss_test_runner.errors import TestRunnerUsageError
 from fboss_test_runner.log_capture import (
     derive_test_type,
     LOG_BUNDLE_FLAG,
@@ -120,12 +121,12 @@ def _parse_args(argv: list[str] | None = None) -> Namespace:
     args = _build_parser().parse_args(argv)
 
     if getattr(args, "filter", None) and getattr(args, "filter_file", None):
-        raise ValueError(
+        raise TestRunnerUsageError(
             f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
         )
 
     if getattr(args, "profile", None) and not getattr(args, "filter_file", None):
-        raise ValueError(
+        raise TestRunnerUsageError(
             f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
@@ -190,17 +191,21 @@ def main() -> None:
         print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
         sys.exit(0)
 
-    args = _parse_args()
-    runner_action = _runner_action(args)
+    try:
+        args = _parse_args()
+        runner_action = _runner_action(args)
 
-    # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
-    # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
-    if not args.log_bundle:
-        exit_code = runner_action(args)
+        # Log bundling is opt-in via the per-subcommand --log-bundle flag. Without it,
+        # run plainly: no per-run dir, no tee, no zip; result CSVs go to the cwd.
+        if not args.log_bundle:
+            exit_code = runner_action(args)
+            sys.exit(exit_code)
+
+        # LogCapture owns the per-run bundle: it creates the dir, tees output, records
+        # the command, and on exit collects the logs/CSVs and zips -- even on failure.
+        with LogCapture(test_type):
+            exit_code = runner_action(args)
         sys.exit(exit_code)
-
-    # LogCapture owns the per-run bundle: it creates the dir, tees output, records
-    # the command, and on exit collects the logs/CSVs and zips -- even on failure.
-    with LogCapture(test_type):
-        exit_code = runner_action(args)
-    sys.exit(exit_code)
+    except TestRunnerUsageError as error:
+        print(f"Error: {error}", file=sys.stderr)
+        sys.exit(2)

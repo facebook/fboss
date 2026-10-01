@@ -8,12 +8,14 @@ import os
 import sys
 import unittest
 from argparse import Namespace
+from io import StringIO
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import fboss_test_runner.main as main_mod
+from fboss_test_runner.errors import TestRunnerUsageError as UsageError
 from fboss_test_runner.main import (
     _get_fboss_root,
     _parse_args,
@@ -347,6 +349,49 @@ class MainLogBundleGatingTest(unittest.TestCase):
         ):
             with self.assertRaisesRegex(SystemExit, "1"):
                 main()
+
+
+class MainUsageErrorHandlingTest(unittest.TestCase):
+    def test_usage_errors_exit_cleanly_with_and_without_log_bundle(self):
+        for log_bundle in (False, True):
+            with self.subTest(log_bundle=log_bundle):
+                dispatched = MagicMock(
+                    side_effect=UsageError("--config is required to run link tests")
+                )
+                stderr = StringIO()
+                with (
+                    patch.object(sys, "argv", ["run_test.py", "link"]),
+                    patch.dict(
+                        os.environ,
+                        {
+                            "FBOSS_BIN": "/opt/fboss/bin",
+                            "FBOSS_LIB": "/opt/fboss/lib",
+                        },
+                    ),
+                    patch.object(main_mod.os, "chdir"),
+                    patch.object(main_mod, "LogCapture") as log_capture,
+                    patch.object(main_mod, "setup_fboss_env"),
+                    patch.object(main_mod, "_setup_platform_descriptors"),
+                    patch.object(
+                        main_mod,
+                        "_parse_args",
+                        return_value=Namespace(
+                            runner_action=dispatched,
+                            log_bundle=log_bundle,
+                        ),
+                    ),
+                    patch.object(sys, "stderr", stderr),
+                ):
+                    log_capture.return_value.__exit__.return_value = False
+                    with self.assertRaises(SystemExit) as raised:
+                        main()
+
+                self.assertEqual(raised.exception.code, 2)
+                self.assertEqual(
+                    stderr.getvalue(),
+                    "Error: --config is required to run link tests\n",
+                )
+                dispatched.assert_called_once()
 
 
 if __name__ == "__main__":
