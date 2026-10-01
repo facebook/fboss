@@ -372,6 +372,10 @@
       ],
       "embeddedSensorConfigs": [
         {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/pci/drivers/k10temp/0000:00:18.3"
+        },
+        {
           "pmUnitScopedName": "NVME_TEMP",
           "sysfsPath": "/sys/class/nvme/nvme0"
         }
@@ -419,6 +423,7 @@
     "/run/devmap/sensors/SMB_REAR_LEFT_TMP431": "/[SMB_REAR_LEFT_TMP431]",
     "/run/devmap/sensors/CHASSIS_REAR_TMP75": "/[CHASSIS_REAR_TMP75]",
     "/run/devmap/sensors/CPU_POS48V": "/[CPU_POS48V]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/NVME_TEMP": "/[NVME_TEMP]",
     "/run/devmap/fpgas/SCM_FPGA": "/[SCM_FPGA]",
     "/run/devmap/fpgas/SCM_FPGA_INFO_ROM": "/[SCM_FPGA_INFO_ROM]",
