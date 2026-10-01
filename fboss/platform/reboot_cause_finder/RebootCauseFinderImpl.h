@@ -62,6 +62,20 @@ reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
     int64_t btimeSec,
     int64_t windowSec);
 
+// Infers a loss of chassis power from the BMC and the x86 having started
+// together. Says nothing about where the loss came from: an upstream feed,
+// a PSU, or a rail all look the same from here.
+// Last resort only: it asserts a cause from the absence of evidence, so it
+// must not outrank a provider that found a positive signal.
+reboot_cause_config::RebootCauseProviderAttempt readSuddenPowerLoss(
+    int64_t btimeSec,
+    int64_t nowSec);
+
+// Exposed separately from readSuddenPowerLoss so the inference can be tested
+// without an HTTP server.
+reboot_cause_config::RebootCauseProviderAttempt
+parseSuddenPowerLoss(const std::string& body, int64_t btimeSec, int64_t nowSec);
+
 // std::nullopt when the name is not a timestamp this code understands.
 std::optional<std::time_t> parseCrashDirName(const std::string& name);
 

@@ -92,6 +92,21 @@ constexpr auto kBmcLogfilePath = "/api/sys/logfile";
 constexpr auto kBmcLogfileBody = R"({"lines": 200})";
 constexpr std::chrono::milliseconds kBmcTimeout{2000};
 
+constexpr auto kSuddenPowerLossProvider = "SuddenPowerLoss";
+// The BMC reports its own uptime here, both as the `uptime` command's output
+// and, under the lowercase key, as seconds.
+constexpr auto kBmcInfoPath = "/api/sys/bmc";
+
+// The BMC shares the chassis power rail, so losing power restarts both it
+// and the x86. The BMC finishes first: measured across 12 hosts the x86 trailed
+// by 133-183s, so allow well beyond that. A BMC that has been up materially
+// longer stayed up while only the x86 restarted, which is some other cause
+// and is what every other provider is for.
+constexpr int64_t kMaxBmcToX86BootSkewSec = 600;
+// The BMC clock is not involved here, both figures are uptimes, so the only
+// negative skew is measurement noise between the two reads.
+constexpr int64_t kMinBmcToX86BootSkewSec = -60;
+
 // wedge_power.sh emits these immediately before it acts, so they are written
 // while the BMC clock is still NTP correct. `reset -s` cycles the whole
 // chassis and takes the BMC down with it; a plain `reset` drops only the x86
@@ -706,6 +721,82 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
   return parseBmcWedgePower(body, btimeSec, windowSec);
 }
 
+// Sudden power loss leaves no log line anywhere by definition: nothing had a
+// chance to write one. It is inferred instead from the BMC and the x86 having
+// started together. Deliberately not windowed against btime: the event this
+// describes IS this boot, not something that happened before it.
+reboot_cause_config::RebootCauseProviderAttempt parseSuddenPowerLoss(
+    const std::string& body,
+    int64_t btimeSec,
+    int64_t nowSec) {
+  double bmcUptimeSec = 0;
+  std::string resetReason;
+  try {
+    const auto json = folly::parseJson(body);
+    const auto& info = json["Information"];
+    // The lowercase key is seconds; "Uptime" is the uptime(1) output.
+    bmcUptimeSec = folly::to<double>(info["uptime"].asString());
+    if (const auto* reason = info.get_ptr("Reset Reason")) {
+      resetReason = reason->asString();
+    }
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to parse BMC info response: {}", ex.what());
+    return makeAttempt(
+        kSuddenPowerLossProvider,
+        reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED,
+        kBmcInfoPath,
+        {});
+  }
+
+  const int64_t bmcUptime = static_cast<int64_t>(bmcUptimeSec);
+  const int64_t x86Uptime = nowSec - btimeSec;
+  const int64_t skew = bmcUptime - x86Uptime;
+
+  std::vector<reboot_cause_config::RebootCause> causes;
+  if (skew >= kMinBmcToX86BootSkewSec && skew <= kMaxBmcToX86BootSkewSec) {
+    // The BMC started first, so its start is the closest estimate of when
+    // power was lost.
+    auto cause = makeCause(
+        "SuddenPowerLoss", static_cast<std::time_t>(nowSec - bmcUptime));
+    cause.rawValue() = fmt::format(
+        "BMC uptime {}s, x86 uptime {}s, skew {}s, BMC reset reason '{}'",
+        bmcUptime,
+        x86Uptime,
+        skew,
+        resetReason);
+    causes.push_back(std::move(cause));
+  }
+  return makeAttempt(
+      kSuddenPowerLossProvider,
+      reboot_cause_config::RebootCauseProviderStatus::OK,
+      kBmcInfoPath,
+      std::move(causes));
+}
+
+reboot_cause_config::RebootCauseProviderAttempt readSuddenPowerLoss(
+    int64_t btimeSec,
+    int64_t nowSec) {
+  std::string body;
+  try {
+    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort, kBmcInterface);
+    client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
+    client.setTimeout(kBmcTimeout);
+    body = client.requestWithOutput(kBmcInfoPath);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format("Failed to reach the BMC info API: {}", ex.what());
+    body.clear();
+  }
+  if (body.empty()) {
+    return makeAttempt(
+        kSuddenPowerLossProvider,
+        reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
+        kBmcInfoPath,
+        {});
+  }
+  return parseSuddenPowerLoss(body, btimeSec, nowSec);
+}
+
 reboot_cause_config::RebootCauseProviderAttempt readProvider(
     const reboot_cause_config::RebootCauseProviderConfig& providerConfig) {
   auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
@@ -888,8 +979,48 @@ void RebootCauseFinderImpl::determineRebootCause() {
     attempts.push_back(std::move(attempt));
   }
 
+  const auto now = std::chrono::system_clock::now();
+
+  // Last resort. Every provider above reports a positive signal; this one
+  // infers a cause from there being none, so it runs only once they have all
+  // come up empty. It also has to stay out of selectNearestToBoot, which
+  // breaks ties by picking the cause closest to boot: this one dates its
+  // cause to when the BMC started, 110-135s before boot on the hosts
+  // sampled, so it would win that tie-break against a genuine cause by
+  // arithmetic rather than evidence.
+  //
+  // It is meaningful only if the BMC log was actually read. Uptime
+  // correlation shows the chassis restarted, not why: `wedge_power.sh reset
+  // -s` power-cycles the BMC too, so a chassis reset and a power loss look
+  // identical here. What separates them is the wedge_power marker, so if
+  // BMCWedgePower could not read the log we cannot tell "no operator reset"
+  // from "could not look", and must not guess.
+  const bool bmcLogWasRead =
+      std::any_of(attempts.begin(), attempts.end(), [](const auto& attempt) {
+        return *attempt.name() == kBmcWedgePowerProvider &&
+            *attempt.status() ==
+            reboot_cause_config::RebootCauseProviderStatus::OK;
+      });
+  if (btime && bmcLogWasRead) {
+    auto attempt = detail::readSuddenPowerLoss(
+        *btime,
+        static_cast<int64_t>(std::chrono::system_clock::to_time_t(now)));
+    if (!determined.has_value() && !attempt.causes()->empty()) {
+      reboot_cause_config::DeterminedCause d;
+      d.providerName() = kSuddenPowerLossProvider;
+      d.cause() = attempt.causes()->front();
+      determined = d;
+    }
+    attempts.push_back(std::move(attempt));
+  } else {
+    attempts.push_back(makeAttempt(
+        kSuddenPowerLossProvider,
+        reboot_cause_config::RebootCauseProviderStatus::SKIPPED,
+        btime ? "BMC log unread, cannot rule out an operator reset"
+              : "boot time unavailable"));
+  }
+
   reboot_cause_config::RebootCauseRecord record;
-  auto now = std::chrono::system_clock::now();
   record.detectedAtMs() = std::chrono::duration_cast<std::chrono::milliseconds>(
                               now.time_since_epoch())
                               .count();

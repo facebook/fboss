@@ -294,6 +294,83 @@ TEST_F(RebootCauseFinderImplTest, BmcX86ResetIsDistinguishedFromChassisReset) {
 // Checked textually rather than by parsing the whole string: folly resolves
 // the zone through getaddrinfo, so IPAddressV6("fe80::2%eth0.4088") throws
 // anywhere that interface is absent, this test host included.
+namespace {
+// Shape of the real /api/sys/bmc response, trimmed to the fields read.
+std::string bmcInfoBody(
+    const std::string& uptimeSec,
+    const std::string& reason) {
+  return fmt::format(
+      R"({{"Information": {{"Description": "acctonbmc BMC",
+          "Reset Reason": "{}", "uptime": "{}"}},
+          "Actions": [], "Resources": []}})",
+      reason,
+      uptimeSec);
+}
+constexpr int64_t kNow = 1790723381;
+} // namespace
+
+// The BMC shares the chassis power rail, so losing power brings both up
+// together, the BMC first.
+TEST_F(RebootCauseFinderImplTest, PowerLossWhenBmcAndX86StartedTogether) {
+  const int64_t btime = kNow - 400; // x86 up 400s
+  auto attempt = detail::parseSuddenPowerLoss(
+      bmcInfoBody("550.25", "Power ON Reset"), btime, kNow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+  ASSERT_EQ(attempt.causes()->size(), 1);
+  EXPECT_EQ(*attempt.causes()->front().description(), "SuddenPowerLoss");
+  // The BMC started first, so its start estimates when power was lost.
+  EXPECT_EQ(*attempt.causes()->front().occurredAtMs(), (kNow - 550) * 1000);
+  const auto& raw = *attempt.causes()->front().rawValue();
+  EXPECT_NE(raw.find("skew 150s"), std::string::npos) << raw;
+  EXPECT_NE(raw.find("Power ON Reset"), std::string::npos) << raw;
+}
+
+// A BMC that stayed up while only the x86 restarted is not a power loss.
+TEST_F(RebootCauseFinderImplTest, NoPowerLossWhenBmcStayedUp) {
+  const int64_t btime = kNow - 400;
+  auto attempt = detail::parseSuddenPowerLoss(
+      bmcInfoBody("86400.0", "Power ON Reset"), btime, kNow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::OK);
+  EXPECT_TRUE(attempt.causes()->empty());
+}
+
+// The x86 trails the BMC. A BMC younger than the x86 by more than read noise
+// means the BMC restarted on its own, which is a different event.
+TEST_F(RebootCauseFinderImplTest, NoPowerLossWhenBmcIsYoungerThanX86) {
+  const int64_t btime = kNow - 4000;
+  auto attempt = detail::parseSuddenPowerLoss(
+      bmcInfoBody("120.0", "Power ON Reset"), btime, kNow);
+  EXPECT_TRUE(attempt.causes()->empty());
+}
+
+// Measured skew across 12 hosts was 133-183s, so the band has to admit it.
+TEST_F(RebootCauseFinderImplTest, PowerLossAcceptsTheMeasuredBootSkewBand) {
+  for (const int64_t skew : {133, 183}) {
+    const int64_t btime = kNow - 300;
+    auto attempt = detail::parseSuddenPowerLoss(
+        bmcInfoBody(folly::to<std::string>(300 + skew, ".0"), "Power ON Reset"),
+        btime,
+        kNow);
+    EXPECT_EQ(attempt.causes()->size(), 1) << "skew " << skew;
+  }
+}
+
+TEST_F(RebootCauseFinderImplTest, PowerLossReportsParseFailedOnGarbage) {
+  auto attempt = detail::parseSuddenPowerLoss("not json", kNow - 100, kNow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
+  EXPECT_TRUE(attempt.causes()->empty());
+}
+
+TEST_F(
+    RebootCauseFinderImplTest,
+    PowerLossReportsParseFailedWhenUptimeMissing) {
+  auto attempt = detail::parseSuddenPowerLoss(
+      R"({"Information": {"Reset Reason": "Power ON Reset"}})",
+      kNow - 100,
+      kNow);
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
+}
+
 TEST_F(RebootCauseFinderImplTest, BmcSourceAddressIsZonedLinkLocal) {
   auto source = detail::bmcHostSourceAddress();
   auto zone = source.find('%');
