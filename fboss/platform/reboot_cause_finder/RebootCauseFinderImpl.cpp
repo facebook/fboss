@@ -567,6 +567,7 @@ reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
   auto status = reboot_cause_config::RebootCauseProviderStatus::OK;
   std::vector<reboot_cause_config::RebootCause> causes;
   std::optional<std::time_t> best;
+  std::string bestLine;
 
   for (const auto& logPath : logPaths) {
     // An absent path is normal: which file systemd-logind lands in depends on
@@ -603,12 +604,19 @@ reboot_cause_config::RebootCauseProviderAttempt readX86RebootCommand(
       if (when && inBootWindow(*when, btimeSec, windowSec) &&
           (!best || *when > *best)) {
         best = when;
+        bestLine = line.str();
       }
     }
   }
 
   if (best) {
-    causes.push_back(makeCause("X86 Reboot Command", *best));
+    auto cause = makeCause("X86 Reboot Command", *best);
+    // The matched line. Its program field is what separates a real
+    // announcement from an operator's grep echoed back by sshd, so keeping it
+    // lets a reader audit that call instead of trusting it. It also carries
+    // the second to look at in /var/log/secure to find out who asked.
+    cause.rawValue() = bestLine;
+    causes.push_back(std::move(cause));
   }
   return makeAttempt(
       kX86RebootCommandProvider,

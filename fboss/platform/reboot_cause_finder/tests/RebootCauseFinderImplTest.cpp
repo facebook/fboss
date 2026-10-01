@@ -371,6 +371,21 @@ TEST_F(
   EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
 }
 
+// Every other provider keeps the source its answer came from. This one is
+// where a reader goes next to find out who asked for the reboot, so the line
+// and its timestamp have to survive.
+TEST_F(RebootCauseFinderImplTest, X86RebootCommandKeepsTheSourceLine) {
+  const auto btime = 1790572718;
+  const auto line = fmt::format(
+      "{} host systemd-logind[1068]: System is rebooting.",
+      syslogStamp(btime - 30));
+  const auto path = writeSecureLog(line + "\n");
+  auto attempt = detail::readX86RebootCommand({path}, btime, 3600);
+  ASSERT_EQ(attempt.causes()->size(), 1);
+  ASSERT_TRUE(attempt.causes()->front().rawValue().has_value());
+  EXPECT_EQ(*attempt.causes()->front().rawValue(), line);
+}
+
 TEST_F(RebootCauseFinderImplTest, BmcSourceAddressIsZonedLinkLocal) {
   auto source = detail::bmcHostSourceAddress();
   auto zone = source.find('%');
