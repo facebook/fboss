@@ -72,19 +72,16 @@ constexpr std::array<folly::StringPiece, 2> kX86RebootCommandPrograms{
 constexpr auto kBmcWedgePowerProvider = "BMCWedgePower";
 
 // The BMC's persistent critical log, read in band over the sideband VLAN that
-// systemd-networkd configures on every fboss-lite switch. fe80::1 is
-// link-local, so the scope interface is not optional. The endpoint is POST and
-// its ACL admits MANAGED_HOST_ANY, which the BMC grants to a peer at fe80::2.
-// Its other grant path is a matching client certificate, which this plaintext
-// request does not present, so the source address is the whole credential.
+// systemd-networkd configures on every fboss-lite switch. The endpoint is
+// POST and its ACL admits MANAGED_HOST_ANY, which the BMC grants to a peer at
+// fe80::2. Its other grant path is a matching client certificate, which this
+// plaintext request does not present, so the source address is the whole
+// credential.
 //
-// Hence the source must be pinned: the interface also carries the kernel's
-// EUI-64 link-local, both are fe80::/64, so source selection ties and the
-// kernel's pick is arbitrary and flips on link flap. Measured, 28 of 83 lab
-// hosts picked the EUI-64 address, which the BMC rejects with 403.
+// The source has to be pinned: eth0.4088 carries more than one link-local,
+// so the kernel's pick is arbitrary and flips on link flap.
 constexpr auto kBmcAddress = "fe80::1";
 constexpr auto kHostSourceAddress = "fe80::2%eth0.4088";
-constexpr auto kBmcInterface = "eth0.4088";
 constexpr int kBmcPort = 8080;
 constexpr auto kBmcLogfilePath = "/api/sys/logfile";
 // Arguments go in the body. RestClient issues a POST, and sets
@@ -707,7 +704,7 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
     int64_t windowSec) {
   std::string body;
   try {
-    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort, kBmcInterface);
+    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
     client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
     client.setTimeout(kBmcTimeout);
     body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
@@ -787,7 +784,7 @@ reboot_cause_config::RebootCauseProviderAttempt readSuddenPowerLoss(
     int64_t nowSec) {
   std::string body;
   try {
-    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort, kBmcInterface);
+    RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
     client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
     client.setTimeout(kBmcTimeout);
     body = client.requestWithOutput(kBmcInfoPath);
