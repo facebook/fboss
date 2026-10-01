@@ -75,6 +75,10 @@ using HwAgentExportedValues =
 HwAgentExportedValues getHwAgentExportedValues(
     const HostInfo& hostInfo,
     const std::string& regex);
+HwAgentExportedValues getHwAgentExportedValues(
+    const HostInfo& hostInfo,
+    const MultiSwitchRunState& runState,
+    const std::string& regex);
 #endif
 
 void runOnAllHwAgents(const HostInfo& hostInfo, RunForHwAgentFn fn);

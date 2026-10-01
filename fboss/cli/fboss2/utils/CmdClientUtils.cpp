@@ -98,14 +98,21 @@ bool isMultiSwitchEnabled(const HostInfo& hostInfo) {
 HwAgentExportedValues getHwAgentExportedValues(
     const HostInfo& hostInfo,
     const std::string& regex) {
-  HwAgentExportedValues hwAgentValues;
   MultiSwitchRunState runState;
   try {
     runState = getMultiSwitchRunState(hostInfo);
   } catch (const std::exception& e) {
     XLOG(WARN) << "Failed to get multi-switch run state: " << e.what();
-    return hwAgentValues;
+    return {};
   }
+  return getHwAgentExportedValues(hostInfo, runState, regex);
+}
+
+HwAgentExportedValues getHwAgentExportedValues(
+    const HostInfo& hostInfo,
+    const MultiSwitchRunState& runState,
+    const std::string& regex) {
+  HwAgentExportedValues hwAgentValues;
   if (!*runState.multiSwitchEnabled()) {
     return hwAgentValues;
   }
