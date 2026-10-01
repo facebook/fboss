@@ -45,6 +45,12 @@ from fboss_test_runner.constants import (
     XGS_SIMULATOR_ASICS,
     XGS_SIMULATOR_ENV,
 )
+from fboss_test_runner.crash_detection import (
+    core_is_from,
+    describe_core_dump,
+    find_unclean_unit_exits,
+    list_core_dumps,
+)
 from fboss_test_runner.reporters.console_reporter import ConsoleReporter
 from fboss_test_runner.reporters.csv_reporter import CsvReporter
 from fboss_test_runner.reporters.json_reporter import JsonReporter
@@ -612,6 +618,102 @@ class TestRunner(abc.ABC):
             )
             return RunOutcome(result.as_log_line(), [result])
 
+    def _run_test_guarded(
+        self,
+        conf_file: str,
+        test_prefix: str,
+        test_to_run: str,
+        setup_warmboot: bool,
+        sai_replayer_logging_path: str | None = None,
+    ) -> RunOutcome:
+        """_run_test, then fail the test if a unit it left running crashed.
+
+        Every runner leaves some production units running while its binary
+        executes: sai_test keeps fsdb and the platform services up, sai_agent
+        keeps qsfp_service up, the CLI suite runs against the production
+        agents themselves. Those units run with `Restart=always`, so a crash
+        caused by the test is invisible to gtest: systemd brings the unit
+        back, the binary's own readiness wait rides through it, and the test
+        reports OK while a core sits on disk and the hardware may never have
+        got the config. Two signals, both read after the binary exits:
+          * A unit's main process died uncleanly during the window, as
+            recorded by PID 1 in the journal. Clean exits and SIGTERM deaths
+            are ignored, so the stop/restart the CLI or a warm-boot phase
+            performs on purpose does not register, and a console logout
+            bouncing serial-getty (Restart=always, exit 0) does not either.
+            Units the runner stopped beforehand are inactive and produce
+            nothing.
+          * A core file appeared that was not there before the binary
+            started, from anything but the test binary itself (that one
+            already failed on its own). Deliberately not limited to agent
+            cores: any process dumping core on a production image while a
+            test runs makes that result untrustworthy.
+        """
+        cores_before = list_core_dumps()
+        start_time = time.time()
+        run_outcome = self._run_test(
+            conf_file,
+            test_prefix,
+            test_to_run,
+            setup_warmboot,
+            sai_replayer_logging_path,
+        )
+        reasons = find_unclean_unit_exits(start_time)
+        own_binary = os.path.basename(self._get_test_binary_name())
+        cores = sorted(
+            core
+            for core in list_core_dumps() - cores_before
+            if not core_is_from(core, own_binary)
+        )
+        core_reasons = [describe_core_dump(core) for core in cores]
+        # A core summary names the unit and the crash; the journal's
+        # "<unit> main process dumped core" line for the same unit only
+        # repeats the first half, so drop it to stay within the reason cap.
+        reasons = [
+            r
+            for r in reasons
+            if not any(c.startswith(r.split()[0]) for c in core_reasons)
+        ]
+        reasons.extend(core_reasons)
+        if reasons:
+            self._apply_agent_crash(
+                run_outcome, test_prefix, test_to_run, "; ".join(reasons), cores
+            )
+        return run_outcome
+
+    def _apply_agent_crash(
+        self,
+        run_outcome: RunOutcome,
+        test_prefix: str,
+        test_to_run: str,
+        reason: str,
+        cores: list[str] | None = None,
+    ) -> None:
+        """Downgrade a test to FAILED because a unit crashed while it ran.
+
+        The gtest binary reported its own verdict (often OK: the CLI suite's
+        readiness wait rides through a crash + `RestartSec` retry), so the
+        in-memory results are rewritten. A SKIPPED test is downgraded too: a
+        crash in its window is a real failure regardless of what it did. The
+        binary's own output is kept -- it is the only transcript of the run
+        -- with the verdict appended. Core paths go to the banner only: the
+        failure reason is what result databases classify failures on, and
+        they cap it at a few hundred characters.
+        """
+        core_note = f" (core dump(s): {', '.join(cores)})" if cores else ""
+        banner = (
+            f"########## CRASH detected during {test_prefix}{test_to_run}: "
+            f"{reason}{core_note} -- marking test FAILED"
+        )
+        print(banner, flush=True)
+        for result in run_outcome.results:
+            if result.status in (GtestStatus.OK, GtestStatus.SKIPPED):
+                result.status = GtestStatus.FAILED
+        run_outcome.console_output = "\n".join(
+            [run_outcome.console_output.rstrip("\n"), banner]
+            + [result.as_log_line() for result in run_outcome.results]
+        )
+
     def _string_in_file(self, file_path: str, string: str) -> bool | None:
         try:
             with open(file_path) as file:
@@ -746,7 +848,7 @@ class TestRunner(abc.ABC):
                 print("########## Running test: " + test_to_run, flush=True)
                 if simulator:
                     self._restart_bcmsim(simulator)
-                run_outcome = self._run_test(
+                run_outcome = self._run_test_guarded(
                     conf_file,
                     test_prefix,
                     test_to_run,
@@ -797,7 +899,7 @@ class TestRunner(abc.ABC):
                         f"({wb_iter + 1}/{num_wb_iterations}): {test_to_run}",
                         flush=True,
                     )
-                    run_outcome = self._run_test(
+                    run_outcome = self._run_test_guarded(
                         conf_file,
                         test_prefix,
                         test_to_run,
