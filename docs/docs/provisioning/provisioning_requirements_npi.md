@@ -227,7 +227,7 @@ specified and booted by any means supported.
 **Applies to: Microserver**
 
 Bootloader should have a networking stack with IPv6 support and should be able
-to support netboot from such a network. To netboot, devices should support TFTP
+to support netboot from such a network. To netboot, devices must support TFTP
 and HTTP/HTTPS. Also, it’s important to implement DNS resolving support, so if a
 hostname is provided in the bootfile URL, the name servers returned by the DHCP
 request should be used to resolve this hostname into an IP. DHCPv6
