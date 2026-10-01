@@ -3049,6 +3049,7 @@ void SaiPortManager::updateStats(
       toSubtractFromInDiscardsRaw);
   managerTable_->queueManager().updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
+  managerTable_->virtualChannelManager().updateStats(portId, curPortStats);
   managerTable_->macsecManager().updateStats(portId, curPortStats);
   managerTable_->bufferManager().updateIngressPriorityGroupStats(
       portId, curPortStats, updateWatermarks);

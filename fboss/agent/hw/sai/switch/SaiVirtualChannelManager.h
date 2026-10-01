@@ -10,10 +10,12 @@
 
 #pragma once
 
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/api/VirtualChannelApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/types.h"
 
 #include <folly/container/F14Map.h>
@@ -29,7 +31,9 @@ class SaiStore;
 
 #if defined(SAI_CBFC_SUPPORTED)
 
-using SaiVirtualChannel = SaiObject<SaiVirtualChannelTraits>;
+// SaiObjectHasStats is true for the traits, so SaiStore hands back the
+// counters flavour; naming the base here would drop updateStats/getStats.
+using SaiVirtualChannel = SaiObjectWithCounters<SaiVirtualChannelTraits>;
 using SaiCbfcCreditProfile = SaiObject<SaiCbfcCreditProfileTraits>;
 
 // Holds a port's CBFC objects alive. Dropping a handle, or overwriting it with
@@ -66,6 +70,9 @@ class SaiVirtualChannelManager {
   // getAttribute, which is what hardware tests need to read back against.
   const SaiVirtualChannelHandle* getVirtualChannelHandle(PortID portId) const;
 #endif
+
+  // No-op for a port with no virtual channels.
+  void updateStats(PortID portId, HwPortStats& hwPortStats);
 
  private:
 #if defined(SAI_CBFC_SUPPORTED)

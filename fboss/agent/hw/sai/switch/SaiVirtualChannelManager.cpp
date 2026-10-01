@@ -11,10 +11,13 @@
 #include "fboss/agent/hw/sai/switch/SaiVirtualChannelManager.h"
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/Port.h"
+
+#include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 
@@ -122,6 +125,54 @@ void SaiVirtualChannelManager::removeVirtualChannels(
     [[maybe_unused]] PortID portId) {
 #if defined(SAI_CBFC_SUPPORTED)
   handles_.erase(portId);
+#endif
+}
+
+void SaiVirtualChannelManager::updateStats(
+    [[maybe_unused]] PortID portId,
+    [[maybe_unused]] HwPortStats& hwPortStats) {
+#if defined(SAI_CBFC_SUPPORTED)
+  auto handleItr = handles_.find(portId);
+  if (handleItr == handles_.end()) {
+    return;
+  }
+  for (const auto& virtualChannel : handleItr->second.virtualChannels) {
+    const auto index = static_cast<int16_t>(
+        std::get<SaiVirtualChannelTraits::Attributes::Index>(
+            virtualChannel->adapterHostKey())
+            .value());
+    try {
+      virtualChannel->updateStats(
+          SaiVirtualChannelTraits::cbfcVcStats(), SAI_STATS_MODE_READ);
+    } catch (const SaiApiError& e) {
+      // An SDK that does not serve the virtual channel stats must not take the
+      // whole port stats round down with it. Leave the maps unset for this VC
+      // rather than publishing zeros that read as real credit activity.
+      XLOG_EVERY_MS(WARN, 10000)
+          << "Failed to read CBFC counters for port " << portId << " VC "
+          << index << ": " << e.what();
+      continue;
+    }
+    // All four counters are handled even though cbfcVcStats() currently asks
+    // for one: the three B0-only ids become readable on a B0 part without
+    // touching this loop.
+    for (const auto& [statId, value] : virtualChannel->getStats()) {
+      switch (statId) {
+        case SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_CONSUMED:
+          hwPortStats.cbfcVcSenderCreditsConsumed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_SENDER_CREDITS_FREED:
+          hwPortStats.cbfcVcSenderCreditsFreed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_CONSUMED:
+          hwPortStats.cbfcVcReceiverCreditsConsumed_()[index] = value;
+          break;
+        case SAI_VIRTUAL_CHANNEL_STAT_RECEIVER_CREDITS_FREED:
+          hwPortStats.cbfcVcReceiverCreditsFreed_()[index] = value;
+          break;
+      }
+    }
+  }
 #endif
 }
 
