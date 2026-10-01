@@ -333,6 +333,7 @@ class SaiTracer {
       {TYPE_INDEX(bool), &boolAttr},
       {TYPE_INDEX(sai_uint8_t), &u8Attr},
       {TYPE_INDEX(sai_int8_t), &s8Attr},
+      {TYPE_INDEX(sai_int16_t), &s16Attr},
       {TYPE_INDEX(sai_uint16_t), &u16Attr},
       {TYPE_INDEX(sai_uint32_t), &u32Attr},
       {TYPE_INDEX(sai_int32_t), &s32Attr},
