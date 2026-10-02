@@ -50,8 +50,17 @@ void SaiArsManager::addArs(
 #endif
   std::optional<SaiArsTraits::Attributes::EcmpMemberCount>
       ecmpMemberCountForArs = std::nullopt;
+#if defined(BRCM_SAI_SDK_GTE_16_0)
+  // On TH5, past the ASIC's native ARS width the adapter splits the group into
+  // primary and alternate member sets.
+  if (auto arsGroupWidth = flowletSwitchConfig->getArsGroupWidth()) {
+    ecmpMemberCountForArs = SaiArsTraits::Attributes::EcmpMemberCount{
+        static_cast<sai_uint32_t>(*arsGroupWidth)};
+  }
+#endif
 #if defined(BRCM_SAI_SDK_GTE_15_4)
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
+  if (!ecmpMemberCountForArs &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
     if (auto arsWidth = platform_->getAsic()->getMaxArsWidth()) {
       ecmpMemberCountForArs =
           SaiArsTraits::Attributes::EcmpMemberCount{*arsWidth};
