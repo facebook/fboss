@@ -35,8 +35,6 @@ jobs:
           --no-docker-output
           --env-var
           GITHUB_ACTIONS_BUILD
-          --num-jobs
-          18
           --local
           &&
           sudo
