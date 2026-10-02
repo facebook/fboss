@@ -487,3 +487,14 @@ TEST(FlowletSwitching, arsGroupWidthThriftRoundTrip) {
 
   EXPECT_EQ(flowletSwitchingConfig->toThrift().arsGroupWidth(), 128);
 }
+
+TEST(FlowletSwitching, arsGroupWidthClearedRatherThanZeroed) {
+  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+
+  flowletSwitchingConfig->setArsGroupWidth(128);
+  EXPECT_EQ(flowletSwitchingConfig->toThrift().arsGroupWidth(), 128);
+
+  flowletSwitchingConfig->setArsGroupWidth(std::nullopt);
+  EXPECT_FALSE(flowletSwitchingConfig->getArsGroupWidth().has_value());
+  EXPECT_FALSE(flowletSwitchingConfig->toThrift().arsGroupWidth().has_value());
+}
