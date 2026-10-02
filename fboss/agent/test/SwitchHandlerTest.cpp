@@ -1002,7 +1002,7 @@ TEST_F(SwSwitchHandlerTest, restartedHwSwitchAckAfterStaleSeqNum) {
 
   getHwSwitchHandler()->waitUntilAllHwSwitchesConnected();
   const auto start = std::chrono::steady_clock::now();
-  getHwSwitchHandler()->stateChanged(deltas, false);
+  auto stateReturned = getHwSwitchHandler()->stateChanged(deltas, false);
   const auto elapsed = std::chrono::steady_clock::now() - start;
 
   done = true;
@@ -1011,8 +1011,8 @@ TEST_F(SwSwitchHandlerTest, restartedHwSwitchAckAfterStaleSeqNum) {
   switch2Session.join();
   restartedSession.join();
 
-  // The replacement's ack is taken for a resend and dropped.
-  EXPECT_GE(elapsed, std::chrono::seconds(FLAGS_oper_delta_ack_timeout));
+  EXPECT_EQ(stateReturned, stateV1);
+  EXPECT_LT(elapsed, std::chrono::seconds(FLAGS_oper_delta_ack_timeout));
 }
 
 /*
