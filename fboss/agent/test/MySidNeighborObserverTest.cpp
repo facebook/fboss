@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitch.h"
@@ -9,7 +11,9 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -435,5 +439,48 @@ TEST_F(
       InterfaceID(1), folly::IPAddress("2401:db00:2110:3001::2"));
 
   // MySid eventually settles on a non-empty unresolveNextHopsId again.
+  waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
+}
+
+TEST_F(
+    MySidNeighborObserverTest,
+    ReapplyIdenticalConfigDoesNotTouchBoundMySid) {
+  resolveNdpNeighbor("2401:db00:2110:3001::2", InterfaceID(1));
+  addConfigAdjacencyMySid();
+  waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
+  const auto boundMySid = getMySid("3001:db8:1::/48");
+
+  std::atomic<int> numMySidDeltas{0};
+  WaitForSwitchState mySidDeltaCounter(
+      sw_,
+      [&numMySidDeltas](const StateDelta& delta) {
+        if (!DeltaFunctions::isEmpty(delta.getMySidsDelta())) {
+          ++numMySidDeltas;
+        }
+        return false;
+      },
+      "MySidDeltaCounter");
+  addConfigAdjacencyMySid();
+  waitForStateUpdates(sw_);
+  sw_->getRib()->waitForRibUpdates();
+  waitForStateUpdates(sw_);
+
+  EXPECT_EQ(numMySidDeltas.load(), 0);
+  EXPECT_EQ(getMySid("3001:db8:1::/48"), boundMySid);
+}
+
+TEST_F(
+    MySidNeighborObserverTest,
+    NeighborChangesStillHandledAfterIdenticalReapply) {
+  resolveNdpNeighbor("2401:db00:2110:3001::2", InterfaceID(1));
+  addConfigAdjacencyMySid();
+  waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
+  addConfigAdjacencyMySid();
+
+  sw_->getNeighborUpdater()->flushEntryForIntf(
+      InterfaceID(1), folly::IPAddress("2401:db00:2110:3001::2"));
+  waitForMySidResolution("3001:db8:1::/48", false /* unresolved */);
+
+  resolveNdpNeighbor("2401:db00:2110:3001::2", InterfaceID(1));
   waitForMySidResolution("3001:db8:1::/48", true /* resolved */);
 }

@@ -4435,4 +4435,183 @@ TEST_F(RibMySidNextHopTest, asyncUpdatesAreSerialized) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:3::", 48)), table.end());
 }
 
+class RibConfigAdjacencyMySidTest : public RibMySidFibInfoTest {
+ protected:
+  static constexpr int16_t kFunctionId = 0x100;
+  static constexpr uint32_t kEcmpWidth = 64;
+  const folly::CIDRNetworkV6 kPrefix = makeSidPrefix("3001:db8:100::", 48);
+  const std::string kPrefixStr{"3001:db8:100::/48"};
+  const std::unordered_map<std::string, InterfaceID> kPortMap{
+      {"Port-Channel301", InterfaceID(301)},
+      {"Port-Channel302", InterfaceID(302)}};
+
+  static cfg::MySidConfig makeAdjacencyConfig(const std::string& portName) {
+    cfg::MySidConfig mySidConfig;
+    mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+    cfg::AdjacencyMySidConfig adjacency;
+    adjacency.portName() = portName;
+    adjacency.isV6() = true;
+    cfg::MySidEntryConfig entry;
+    entry.set_adjacency(std::move(adjacency));
+    mySidConfig.entries()->emplace(kFunctionId, std::move(entry));
+    return mySidConfig;
+  }
+
+  void reconfigure(
+      RoutingInformationBase* rib,
+      const std::optional<cfg::MySidConfig>& mySidConfig) {
+    RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+    interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+        InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+    rib->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        mySidConfig ? convertMySidConfig(*mySidConfig, kPortMap)
+                    : std::vector<MySidWithNextHops>{},
+        routeToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void bindToNeighbor(InterfaceID intf) {
+    auto mySid = switchState_->getMySids()->getNodeIf(kPrefixStr)->clone();
+    mySid->setUnresolveNextHopsId(std::nullopt);
+    mySid->setResolvedNextHopsId(std::nullopt);
+    RouteNextHopSet nextHops{
+        ResolvedNextHop(folly::IPAddress("2401:db00::2"), intf, ECMP_WEIGHT)};
+    rib_->update(
+        scopeResolver(),
+        {{std::move(mySid), std::move(nextHops), std::nullopt}},
+        {} /* toUnresolveIfMatch */,
+        {} /* toDelete */,
+        "bind uA to neighbor",
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void addFrrBackup() {
+    rib_->updateMySidFrrProtection(
+        scopeResolver(),
+        {{{folly::IPAddress("3001:db8:100::"), 48},
+          makeBackupNextHops({"2001:db8::1", "2001:db8::2"})}},
+        {},
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  state::MySidFields getRibEntry(const RoutingInformationBase& rib) const {
+    return rib.getMySidTableCopy().at(kPrefix);
+  }
+
+  bool isNextHopSetAllocated(int64_t id) const {
+    return rib_->getNextHopIDManagerCopy()
+        ->getNextHopsIf(NextHopSetID(id))
+        .has_value();
+  }
+};
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureIdenticalBoundAdjacencyMySidIsNoOp) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(boundEntry.unresolveNextHopsId().has_value());
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kPrefixStr);
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*rib_), boundEntry);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), stateMySid);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    warmbootReconfigureKeepsBoundAdjacencyMySid) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+
+  auto warmbootRib = RoutingInformationBase::fromThrift(
+      rib_->warmBootState(),
+      switchState_->getFibsInfoMap(),
+      switchState_->getLabelForwardingInformationBase(),
+      switchState_->getMySids(),
+      kEcmpWidth,
+      nullptr);
+  const auto restoredEntry = getRibEntry(*warmbootRib);
+  ASSERT_TRUE(restoredEntry.unresolveNextHopsId().has_value());
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kPrefixStr);
+
+  reconfigure(warmbootRib.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*warmbootRib), restoredEntry);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), stateMySid);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureIdenticalKeepsAdjacencyFrrBackup) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto protectedEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(protectedEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(protectedEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*rib_), protectedEntry);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureBoundAdjacencyInterfaceChangeDropsBinding) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel302"));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(entry.adjacencyInterfaceId().value_or(0), 302);
+  EXPECT_FALSE(entry.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.resolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureBoundAdjacencyToDecapDropsBinding) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), makeDecapMySidConfig(kFunctionId));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(*entry.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_FALSE(entry.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureRemovingBoundAdjacencyReleasesIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), std::nullopt);
+
+  EXPECT_EQ(rib_->getMySidTableCopy().count(kPrefix), 0);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), nullptr);
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
 } // namespace facebook::fboss

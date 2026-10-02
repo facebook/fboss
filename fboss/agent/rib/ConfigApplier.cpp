@@ -24,23 +24,12 @@ namespace facebook::fboss {
 
 namespace {
 
-// True if `existing` and `incoming` MySid entries describe the same
-// programming intent. Used by applyStaticMySids() to skip a no-op replace
-// and avoid unnecessary HW deltas + nhop-id churn.
-//
-// The comparison covers every MySid field that affects HW programming:
-//   - mySid (the prefix)            : implicit (callers key by prefix).
-//   - clientId                      : implicit (callers gate on STATIC_ROUTE).
-//   - resolvedNextHopsId            : derived later by
-//   RibMySidUpdater::resolve().
-//   - type / adjacencyInterfaceId / isV6 / unresolveNextHopsId-set : checked
-//   here.
-//
-// **Maintenance hazard**: any new field added to state::MySidFields that
-// affects HW programming must be added to this comparison. Otherwise the
-// smart diff will silently treat new and old entries as identical and
-// skip the update — stale HW programming with no error. See the field
-// list in `fbcode/fboss/agent/switch_state.thrift::MySidFields`.
+// True if config entry `incoming` needs no replace of `existing`: type,
+// adjacencyInterfaceId, isV6 and the unresolved next-hop set match. The
+// caller matches prefix and clientId. A config uA has no next hops, so the
+// existing uA's next hops and FRR backup (owned by MySidNeighborObserver and
+// the FRR API) are kept. Add any new config-set MySidFields field here, or
+// changes to it are silently skipped.
 bool mySidEntryUnchanged(
     const MySid& existing,
     const MySid& incoming,
@@ -51,6 +40,10 @@ bool mySidEntryUnchanged(
           incoming.getAdjacencyInterfaceId() ||
       existing.getIsV6() != incoming.getIsV6()) {
     return false;
+  }
+  if (incoming.getType() == MySidType::ADJACENCY_MICRO_SID &&
+      incomingUnresolvedNhops.empty()) {
+    return true;
   }
   // Compare unresolved next-hop sets. Existing carries an id into the
   // manager; incoming carries the raw set.
