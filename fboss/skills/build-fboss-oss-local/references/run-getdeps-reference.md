@@ -27,7 +27,7 @@ silently passed through to getdeps, which will reject them.
 |---|---|
 | `--npu-sai-impl <TOKEN>` | Which implementation. Supported tokens: see `-h` and the `CMakeLists.txt` `if/elseif` chain. Exported as `<TOKEN>=1`. |
 | `--npu-sai-sdk-version <SELECTOR>` | **Required** whenever `--npu-sai-impl` is given. e.g. `SAI_VERSION_14_2_0_0_ODP`. Becomes a bare `-D<SELECTOR>` compile define. |
-| `--npu-sai-version <X.Y.Z>` | OCP SAI **spec** version to download. Hard-validated against a built-in table of pinned checksums. |
+| `--npu-sai-version <X.Y.Z>` | OCP SAI **spec** version to download. Any release tag of the OCP SAI repository; there is no allowlist. |
 | `--npu-libsai-impl-path <DIR>` | Directory *containing* `libsai_impl.a`. Not the `.a` file itself. |
 | `--npu-experiments-path <DIR>` | Directory containing the vendor's flat SAI extension headers. |
 | `--npu-libsai-impl-tarball <FILE>` | Alternative to the two path flags: a tarball the wrapper extracts and stages. |
@@ -85,7 +85,11 @@ path, so treat an ASAN build as unsupported until you have verified it.
    [supplying-your-sdk.md](supplying-your-sdk.md).
 3. **Pins the SAI spec version** by rewriting
    `build/fbcode_builder/manifests/libsai` in place with the matching URL and
-   checksum.
+   checksum. getdeps requires a sha256 in every download manifest, so the
+   wrapper streams the tarball once to compute it and caches only the hash in
+   `<scratch>/sai_spec_shas/<version>.sha256`. The first build of a version in a
+   scratch directory therefore needs to reach GitHub, and a version with no
+   matching tag fails there with a 404.
 4. **Forces the toolchain to Clang** via `update-alternatives`, and
    synthesises the compiler flags by reading the Clang block out of the repo's
    `CMakeLists.txt`. This requires root and effectively only works inside the
