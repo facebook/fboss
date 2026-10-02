@@ -621,6 +621,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
     routeUpdater.program();
   }
 
+  // Deletes one client's entry for kChildPrefix, leaving any other client's
+  // entry for the same prefix in place.
+  void delChildRoute(ClientID clientID) {
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.delRoute(RouterID(0), kChildPrefix, kChildPrefixLen, clientID);
+    routeUpdater.program();
+  }
+
   template <typename CIDRNetworkT>
   void addEncapRoute(
       const CIDRNetworkT& prefix,
@@ -1455,6 +1463,92 @@ TYPED_TEST(AgentSrv6EncapTest, multiHopUnresolvedToResolved) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// A counted route that loses its last next hop must detach its counter in
+// hardware before the agent drops its reference to it.
+TYPED_TEST(AgentSrv6EncapTest, openRAndTeAgentRoutesChurn) {
+  // Skip direct encap routes to avoid colliding SRv6 managed next hop keys
+  // with recursive resolution, matching the other recursive tests.
+  this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
+  this->addProductionRecursiveSrv6Routes();
+
+  auto ecmpHelper = this->makeEcmpHelper();
+  std::vector<PortID> egressPorts;
+  egressPorts.reserve(this->kNumNextHops);
+  for (int i = 0; i < this->kNumNextHops; ++i) {
+    egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+  }
+
+  // The parent forwards over the child's SID-list next hops and counts into
+  // the counter it inherited from the child.
+  this->verifyEncapPacket(
+      egressPorts,
+      false /*ecnMarked*/,
+      false /*isV4*/,
+      {this->kSid0},
+      std::nullopt /*injectPort*/,
+      this->kEncapRouteDstIp,
+      this->kChildRouteCounter);
+
+  // Remove both child entries, so kChildPrefix goes away entirely and the
+  // parent falls back to ::/0. On the unfixed agent the hw agent aborts here.
+  this->delChildRoute(ClientID::OPENR);
+  this->delChildRoute(ClientID::TE_AGENT);
+
+  // The parent is now a drop route. Checked on inDstNullDiscards rather than
+  // the generic inDiscards that verifyEncapRouteDrop uses: the parent falls
+  // back to ::/0, so this must land as a null-route drop specifically, and
+  // inDiscards would also be satisfied by an unrelated ingress drop.
+  auto injectPort = this->findInjectPort(egressPorts);
+  auto nullDiscardsBefore =
+      *this->getLatestPortStats(injectPort).inDstNullDiscards_();
+  std::map<PortID, int64_t> egressBytesBefore;
+  for (auto port : egressPorts) {
+    egressBytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
+  }
+
+  constexpr auto kTc{42};
+  constexpr auto kTtl{24};
+  auto intfMac =
+      getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+  this->getSw()->sendPacketOutOfPortAsync(
+      utility::makeUDPTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx(),
+          intfMac,
+          intfMac,
+          folly::IPAddress("1::10"),
+          folly::IPAddress(this->kEncapRouteDstIp),
+          8000,
+          8001,
+          static_cast<uint8_t>(kTc << 2),
+          kTtl),
+      injectPort);
+
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_GT(
+        *this->getLatestPortStats(injectPort).inDstNullDiscards_(),
+        nullDiscardsBefore);
+  });
+  // And nothing leaked out of the next hops the parent used to egress on.
+  for (auto port : egressPorts) {
+    EXPECT_EQ(
+        *this->getLatestPortStats(port).outBytes_(), egressBytesBefore[port]);
+  }
+
+  // Put the child back. The parent re-resolves, re-inherits the counter and
+  // counts again -- which it cannot do if the counter was stranded in
+  // hardware by the detach that never happened.
+  this->addProductionRecursiveSrv6Routes();
+  this->verifyEncapPacket(
+      egressPorts,
+      false /*ecnMarked*/,
+      false /*isV4*/,
+      {this->kSid0},
+      std::nullopt /*injectPort*/,
+      this->kEncapRouteDstIp,
+      this->kChildRouteCounter);
 }
 
 } // namespace facebook::fboss
