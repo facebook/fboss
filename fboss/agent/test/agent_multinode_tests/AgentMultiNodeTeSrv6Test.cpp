@@ -23,15 +23,19 @@
 #include "nettools/ebb/platform/if/gen-cpp2/TeSrv6Agent_clients.h"
 #include "nettools/ebb/platform/if/gen-cpp2/TeSrv6Agent_constants.h"
 
+DECLARE_bool(enable_lacp);
+
 namespace facebook::fboss {
 namespace te = facebook::nettools::ebb::platform::fboss::thrift::srv6;
 namespace {
 
 constexpr size_t kExpectedLinkCount{8};
+constexpr int kLinkUpRetries{60};
+constexpr auto kLinkUpRetryInterval{std::chrono::seconds(5)};
 constexpr uint8_t kAnchorPrefixLength{128};
 constexpr uint8_t kServicePrefixLength{64};
 const std::string kSrv6TunnelId{"srv6Tunnel0"};
-const std::string kNexthopGroupName{"lspgrp_multinode-test-class"};
+const std::string kNexthopGroupName{"lspgrp_tst-lab-test-class"};
 const folly::IPAddressV6 kAnchorAddress{"fdad:face:b00c::1"};
 const folly::IPAddressV6 kLinkSubnet{"fdad:face::"};
 const folly::IPAddressV6 kServiceSubnet{"2800::"};
@@ -39,6 +43,7 @@ const folly::IPAddressV6 kServiceSubnet{"2800::"};
 struct TestLink {
   std::string localPort;
   std::string remotePort;
+  std::string remoteSystem;
   int32_t vlanId;
 };
 
@@ -150,6 +155,7 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_disable_neighbor_updates = false;
+    FLAGS_enable_lacp = true;
     FLAGS_enable_lldp = true;
     FLAGS_enable_nexthop_id_manager = true;
     FLAGS_resolve_nexthops_from_id = true;
@@ -157,40 +163,45 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
   }
 
   bool isTeSrv6Config() const {
-    return std::any_of(
-        getSw()->getConfig().srv6Tunnels()->begin(),
-        getSw()->getConfig().srv6Tunnels()->end(),
-        [](const auto& tunnel) {
-          return *tunnel.tunnelType() == TunnelType::SRV6_ENCAP;
-        });
+    const auto config = getSw()->getConfig();
+    if (!config.srv6Tunnels().has_value()) {
+      return false;
+    }
+    const auto& tunnels = *config.srv6Tunnels();
+    return std::any_of(tunnels.begin(), tunnels.end(), [](const auto& tunnel) {
+      return *tunnel.tunnelType() == TunnelType::SRV6_ENCAP;
+    });
   }
 
   std::vector<TestLink> getTestLinks() const {
     std::vector<TestLink> links;
-    for (const auto& port : *getSw()->getConfig().ports()) {
+    const auto config = getSw()->getConfig();
+    for (const auto& port : *config.ports()) {
       if (*port.state() != cfg::PortState::ENABLED ||
-          port.expectedNeighborReachability()->empty()) {
+          *port.portType() != cfg::PortType::INTERFACE_PORT) {
         continue;
       }
-      const auto& neighbor = port.expectedNeighborReachability()->front();
+      const auto& lldpValues = *port.expectedLLDPValues();
+      const auto remotePort = lldpValues.find(cfg::LLDPTag::PORT);
+      const auto remoteSystem = lldpValues.find(cfg::LLDPTag::SYSTEM_NAME);
+      if (remotePort == lldpValues.end() || remoteSystem == lldpValues.end()) {
+        continue;
+      }
       links.push_back(
           TestLink{
               .localPort = *port.name(),
-              .remotePort = *neighbor.remotePort(),
+              .remotePort = remotePort->second,
+              .remoteSystem = remoteSystem->second,
               .vlanId = *port.ingressVlan(),
           });
     }
     return links;
   }
 
-  std::string getRemoteHostname() const {
+  std::string getRemoteHostname(const std::vector<TestLink>& links) const {
     std::set<std::string> remoteHosts;
-    for (const auto& port : *getSw()->getConfig().ports()) {
-      if (*port.state() == cfg::PortState::ENABLED &&
-          !port.expectedNeighborReachability()->empty()) {
-        remoteHosts.insert(
-            *port.expectedNeighborReachability()->front().remoteSystem());
-      }
+    for (const auto& link : links) {
+      remoteHosts.insert(link.remoteSystem);
     }
     if (remoteHosts.size() != 1) {
       throw FbossError("Expected exactly one remote TE SRv6 switch");
@@ -258,22 +269,47 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
       const std::string& localHostname,
       const std::string& remoteHostname,
       const std::vector<TestLink>& links) const {
-    const auto getUpPorts = [](const std::string& hostname) {
-      std::set<std::string> ports;
-      for (const auto& [_, port] : utility::getPortIdToPortInfo(hostname)) {
-        if (*port.portType() == cfg::PortType::INTERFACE_PORT &&
-            *port.operState() == PortOperState::UP) {
-          ports.insert(*port.name());
-        }
+    const auto localPorts = getUpInterfacePorts(localHostname);
+    const auto remotePorts = getUpInterfacePorts(remoteHostname);
+    return std::all_of(
+               links.begin(),
+               links.end(),
+               [&](const auto& link) {
+                 return localPorts.contains(link.localPort) &&
+                     remotePorts.contains(link.remotePort);
+               }) &&
+        aggregatePortsAreForwarding(localHostname) &&
+        aggregatePortsAreForwarding(remoteHostname);
+  }
+
+  bool aggregatePortsAreForwarding(const std::string& hostname) const {
+    std::vector<AggregatePortThrift> aggregatePorts;
+    auto client = utility::getSwAgentThriftClient(hostname);
+    client->sync_getAggregatePortTable(aggregatePorts);
+    return aggregatePorts.size() == kExpectedLinkCount &&
+        std::all_of(
+               aggregatePorts.begin(),
+               aggregatePorts.end(),
+               [](const auto& port) {
+                 return *port.isUp() &&
+                     std::all_of(
+                         port.memberPorts()->begin(),
+                         port.memberPorts()->end(),
+                         [](const auto& member) {
+                           return *member.isForwarding();
+                         });
+               });
+  }
+
+  std::set<std::string> getUpInterfacePorts(const std::string& hostname) const {
+    std::set<std::string> ports;
+    for (const auto& [_, port] : utility::getPortIdToPortInfo(hostname)) {
+      if (*port.portType() == cfg::PortType::INTERFACE_PORT &&
+          *port.operState() == PortOperState::UP) {
+        ports.insert(*port.name());
       }
-      return ports;
-    };
-    const auto localPorts = getUpPorts(localHostname);
-    const auto remotePorts = getUpPorts(remoteHostname);
-    return std::all_of(links.begin(), links.end(), [&](const auto& link) {
-      return localPorts.contains(link.localPort) &&
-          remotePorts.contains(link.remotePort);
-    });
+    }
+    return ports;
   }
 
   bool serviceRouteUsesSid(
@@ -327,13 +363,24 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
   const auto links = getTestLinks();
   ASSERT_EQ(links.size(), kExpectedLinkCount);
   const auto localHostname = *getSw()->getConfig().hostname();
-  const auto remoteHostname = getRemoteHostname();
+  const auto remoteHostname = getRemoteHostname(links);
 
-  ASSERT_TRUE(checkWithRetryErrorReturn(
+  const auto linksUp = checkWithRetryErrorReturn(
       [&]() { return linksAreUp(localHostname, remoteHostname, links); },
-      30,
-      std::chrono::seconds(1),
-      true));
+      kLinkUpRetries,
+      kLinkUpRetryInterval,
+      true);
+  if (!linksUp) {
+    const auto localPorts = getUpInterfacePorts(localHostname);
+    const auto remotePorts = getUpInterfacePorts(remoteHostname);
+    for (const auto& link : links) {
+      EXPECT_TRUE(localPorts.contains(link.localPort))
+          << localHostname << ":" << link.localPort << " is down";
+      EXPECT_TRUE(remotePorts.contains(link.remotePort))
+          << remoteHostname << ":" << link.remotePort << " is down";
+    }
+  }
+  ASSERT_TRUE(linksUp);
 
   auto localClient = utility::getSwAgentThriftClient(localHostname);
   auto remoteClient = utility::getSwAgentThriftClient(remoteHostname);
