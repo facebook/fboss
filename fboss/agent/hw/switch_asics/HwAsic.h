@@ -592,6 +592,10 @@ class HwAsic {
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,
+    // The link up hold-off timer is a single switch wide control rather than a
+    // per-port one, so every port configuring portUpHoldoffTimeMs has to
+    // configure the same value. Applicable only when PORT_DEBOUNCE is enabled.
+    SWITCH_WIDE_LINK_UP_DEBOUNCE,
     // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
     // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
     // only; the counters are collected via fillInSupportedVendorExtStats().
