@@ -716,7 +716,9 @@ _sai_agent_provision_test_prefix = "sai_agent_provision_test"
             "--rpath='$ORIGIN'",
         ],
         # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sai_impl),
-        versions = to_versions(sai_impl),
+        # Runs in the NetOS fwdstack container, which only ships the py3.12
+        # runtime; the diag shell embeds libpython.
+        versions = dict(to_versions(sai_impl), python = "3.12"),
         deps = [
             "fbsource//third-party/googletest:gtest",
             ":agent_hw_provision_test_src",
