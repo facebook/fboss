@@ -202,8 +202,6 @@ void ConfigApplier::applyStaticMySids() {
   if (!mySidTable_) {
     return;
   }
-  // Helper: release both unresolved and resolved next-hop IDs held by an
-  // entry. Both are independently ref-counted in NextHopIDManager.
   auto releaseEntryNextHopIds = [&](const std::shared_ptr<MySid>& entry) {
     if (!nextHopIDManager_) {
       return;
@@ -212,6 +210,12 @@ void ConfigApplier::applyStaticMySids() {
       nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
     }
     if (const auto id = entry->getResolvedNextHopsId()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+    }
+    if (const auto id = entry->getBackupUnresolveNextHopsId()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+    }
+    if (const auto id = entry->getBackupResolvedNextHopsId()) {
       nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
     }
   };

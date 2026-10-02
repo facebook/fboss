@@ -4614,4 +4614,61 @@ TEST_F(
   EXPECT_FALSE(isNextHopSetAllocated(boundId));
 }
 
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureRemovingAdjacencyWithFrrBackupReleasesBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  addFrrBackup();
+  const auto entry = getRibEntry(*rib_);
+  ASSERT_TRUE(entry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(entry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), std::nullopt);
+
+  EXPECT_FALSE(isNextHopSetAllocated(*entry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*entry.backupResolvedNextHopsId()));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureAdjacencyInterfaceChangeReleasesFrrBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto oldEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(oldEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel302"));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(entry.adjacencyInterfaceId().value_or(0), 302);
+  EXPECT_FALSE(entry.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.backupResolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.unresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupResolvedNextHopsId()));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureAdjacencyToDecapReleasesFrrBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto oldEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(oldEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeDecapMySidConfig(kFunctionId));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(*entry.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_FALSE(entry.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.backupResolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupResolvedNextHopsId()));
+}
+
 } // namespace facebook::fboss
