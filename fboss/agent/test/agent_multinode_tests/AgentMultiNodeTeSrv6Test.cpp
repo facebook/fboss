@@ -473,6 +473,8 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
       utility::getCounterNameToCount(localHostname);
   const auto remoteCountersBefore =
       utility::getCounterNameToCount(remoteHostname);
+  std::map<std::string, int64_t> remoteSwCountersBefore;
+  remoteClient->sync_getCounters(remoteSwCountersBefore);
   const auto localOutBytesBefore = sumPortCounters(
       localCountersBefore, links, &TestLink::localPort, ".out_bytes.sum");
   const auto remoteInBytesBefore = sumPortCounters(
@@ -485,7 +487,7 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
   const auto localEncapBytesBefore = *localEncapCounterBefore->bytes();
   const auto localEncapPacketsBefore = *localEncapCounterBefore->packets();
   const auto decapBefore =
-      getCounter(remoteCountersBefore, "srv6.decap_mysid_to_me.sum");
+      getCounter(remoteSwCountersBefore, "srv6.decap_mysid_to_me.sum");
 
   const auto vlanId = getVlanIDForTx().value();
   const auto mac = getMacForFirstInterfaceWithPorts(getProgrammedState());
@@ -506,6 +508,8 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
     const auto localCounters = utility::getCounterNameToCount(localHostname);
     const auto remoteCounters = utility::getCounterNameToCount(remoteHostname);
     const auto localEncapCounter = getEncapNexthopGroupCounter(*teSrv6Client);
+    std::map<std::string, int64_t> remoteSwCounters;
+    remoteClient->sync_getCounters(remoteSwCounters);
     EXPECT_EVENTUALLY_GT(
         sumPortCounters(
             localCounters, links, &TestLink::localPort, ".out_bytes.sum"),
@@ -521,7 +525,8 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
           *localEncapCounter->packets(), localEncapPacketsBefore);
     }
     EXPECT_EVENTUALLY_GT(
-        getCounter(remoteCounters, "srv6.decap_mysid_to_me.sum"), decapBefore);
+        getCounter(remoteSwCounters, "srv6.decap_mysid_to_me.sum"),
+        decapBefore);
   });
 }
 
