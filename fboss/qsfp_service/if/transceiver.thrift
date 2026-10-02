@@ -246,6 +246,8 @@ enum MediaInterfaceCode {
   // 8x800G over DR4: 4 banks, each a 2x800G-DR4
   DR4_8x800G = 36,
   FR2_200G = 37,
+  // 1.6TBASE-DR8 (IEEE 802.3 Clause 180)
+  DR8_1600G = 38,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -320,6 +322,7 @@ enum SMFMediaInterfaceCode {
   FR2_200G = 0xC0,
   FR2_400G = 0xC2,
   FR1_200G = 0xC4,
+  DR8_1600G = 0x7F,
   ZR_VENDOR_CUSTOM = 0xF7,
 }
 
