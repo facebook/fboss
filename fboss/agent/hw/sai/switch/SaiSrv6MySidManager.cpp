@@ -316,8 +316,26 @@ void SaiSrv6MySidManager::changeMySidEntry(
     const std::shared_ptr<MySid>& oldMySid,
     const std::shared_ptr<MySid>& newMySid,
     const std::shared_ptr<SwitchState>& state) {
-  removeMySidEntry(oldMySid, state);
-  addMySidEntry(newMySid, state);
+  const auto adapterHostKey = getMySidAdapterHostKey(*newMySid, managerTable_);
+  if (getMySidAdapterHostKey(*oldMySid, managerTable_) != adapterHostKey ||
+      oldMySid->getType() != newMySid->getType() ||
+      newMySid->getType() == MySidType::DECAPSULATE_AND_LOOKUP) {
+    removeMySidEntry(oldMySid, state);
+    addMySidEntry(newMySid, state);
+    return;
+  }
+  auto itr = handles_.find(adapterHostKey);
+  if (itr == handles_.end()) {
+    throw FbossError("MySid entry does not exist for ", newMySid->getID());
+  }
+  auto& handle = itr->second;
+  // Repoint before the old next hop is released.
+  auto nexthopHandle = getNextHopHandle(adapterHostKey, *newMySid, state);
+  saiStore_->get<SaiMySidEntryTraits>().setObject(
+      adapterHostKey,
+      getMySidCreateAttributes(*newMySid, nexthopHandle, managerTable_));
+  handle->nexthopHandle =
+      nexthopHandle.value_or(SaiMySidEntryHandle::NextHopHandle{});
 }
 
 #endif

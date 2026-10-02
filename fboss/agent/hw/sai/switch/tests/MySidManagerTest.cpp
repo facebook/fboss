@@ -163,6 +163,25 @@ class MySidManagerWithNextHopIdTest : public MySidManagerTest {
     FLAGS_enable_nexthop_id_manager = false;
   }
 
+  std::shared_ptr<MySid> makeResolvedAdjacencySid(const TestInterface& intf) {
+    RouteNextHopSet nextHops{makeNextHop(intf)};
+    auto mySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+    mySid->setResolvedNextHopsId(
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(nextHops)
+            .nextHopIdSetIter->second.id);
+    return mySid;
+  }
+
+  // The returned weak_ptr expires iff the SAI entry is removed.
+  std::weak_ptr<SaiMySid> addAndWatchMySid(
+      const std::shared_ptr<MySid>& mySid,
+      const std::shared_ptr<SwitchState>& state) {
+    auto& mySidManager = saiManagerTable->srv6MySidManager();
+    mySidManager.addMySidEntry(mySid, state);
+    return mySidManager.getMySidObject(
+        getMySidAdapterHostKey(*mySid, saiManagerTable));
+  }
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
   ResolvedNextHop makeResolvedNextHop(
       const TestInterface& intf,
@@ -578,6 +597,92 @@ TEST_F(MySidManagerWithNextHopIdTest, changeUnresolvedToResolved) {
   auto gotAction = srv6Api.getAttribute(
       key, SaiMySidEntryTraits::Attributes::PacketAction{});
   EXPECT_EQ(gotAction, SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(MySidManagerWithNextHopIdTest, changeResolvedNextHopUpdatesInPlace) {
+  auto oldMySid = makeResolvedAdjacencySid(testInterfaces.at(0));
+  auto newMySid = makeResolvedAdjacencySid(testInterfaces.at(1));
+  auto entry = addAndWatchMySid(oldMySid, getProgrammedState());
+
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      oldMySid, newMySid, getProgrammedState());
+
+  EXPECT_FALSE(entry.expired());
+  auto key = getMySidAdapterHostKey(*newMySid, saiManagerTable);
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto nextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  ASSERT_NE(nextHopId, SAI_NULL_OBJECT_ID);
+  EXPECT_EQ(
+      saiApiTable->nextHopApi().getAttribute(
+          NextHopSaiId(nextHopId), SaiIpNextHopTraits::Attributes::Ip{}),
+      testInterfaces.at(1).remoteHosts.at(0).ip);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(
+    MySidManagerWithNextHopIdTest,
+    changeResolvedToUnresolvedUpdatesInPlace) {
+  auto oldMySid = makeResolvedAdjacencySid(testInterfaces.at(0));
+  auto newMySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  auto entry = addAndWatchMySid(oldMySid, getProgrammedState());
+
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      oldMySid, newMySid, getProgrammedState());
+
+  EXPECT_FALSE(entry.expired());
+  auto key = getMySidAdapterHostKey(*newMySid, saiManagerTable);
+  auto& srv6Api = saiApiTable->srv6Api();
+  EXPECT_EQ(
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{}),
+      SAI_NULL_OBJECT_ID);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_DROP);
+}
+
+TEST_F(
+    MySidManagerWithNextHopIdTest,
+    changeUnresolvedToResolvedUpdatesInPlace) {
+  auto oldMySid = makeMySid("fc00:100::1", 48, MySidType::ADJACENCY_MICRO_SID);
+  auto newMySid = makeResolvedAdjacencySid(testInterfaces.at(0));
+  auto entry = addAndWatchMySid(oldMySid, getProgrammedState());
+
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      oldMySid, newMySid, getProgrammedState());
+
+  EXPECT_FALSE(entry.expired());
+  auto key = getMySidAdapterHostKey(*newMySid, saiManagerTable);
+  auto& srv6Api = saiApiTable->srv6Api();
+  EXPECT_NE(
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{}),
+      SAI_NULL_OBJECT_ID);
+  EXPECT_EQ(
+      srv6Api.getAttribute(
+          key, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(MySidManagerWithNextHopIdTest, changeTypeRecreatesEntry) {
+  auto oldMySid = makeResolvedAdjacencySid(testInterfaces.at(0));
+  auto newMySid =
+      makeMySid("fc00:100::1", 48, MySidType::DECAPSULATE_AND_LOOKUP);
+  auto entry = addAndWatchMySid(oldMySid, getProgrammedState());
+  auto key = getMySidAdapterHostKey(*newMySid, saiManagerTable);
+  ASSERT_EQ(getMySidAdapterHostKey(*oldMySid, saiManagerTable), key);
+
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      oldMySid, newMySid, getProgrammedState());
+
+  EXPECT_TRUE(entry.expired());
+  EXPECT_EQ(
+      saiApiTable->srv6Api().getAttribute(
+          key, SaiMySidEntryTraits::Attributes::EndpointBehavior{}),
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UDT46);
 }
 
 TEST_F(MySidManagerWithNextHopIdTest, addNodeMicroSidWithResolvedNextHop) {
