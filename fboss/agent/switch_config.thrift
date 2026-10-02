@@ -2701,6 +2701,8 @@ struct FlowletSwitchingConfig {
   // how many members shared by every virtual group in the super group there
   // have to be before the adapter starts promoting them to alternate members
   24: optional i32 arsVirtualGroupCommonMembersThreshold;
+  // members per ARS group
+  25: optional i32 arsGroupWidth;
 }
 
 /*

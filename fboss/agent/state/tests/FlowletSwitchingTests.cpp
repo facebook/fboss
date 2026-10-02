@@ -474,3 +474,16 @@ TEST(FlowletSwitching, arsVirtualGroupCommonMembersThresholdAloneRejected) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+// arsGroupWidth is a plain optional on the schema: absent unless configured,
+// and carried through the thrift-cow node unchanged.
+TEST(FlowletSwitching, arsGroupWidthThriftRoundTrip) {
+  cfg::FlowletSwitchingConfig flowletCfg;
+  EXPECT_FALSE(flowletCfg.arsGroupWidth().has_value());
+
+  flowletCfg.arsGroupWidth() = 128;
+  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+  flowletSwitchingConfig->fromThrift(flowletCfg);
+
+  EXPECT_EQ(flowletSwitchingConfig->toThrift().arsGroupWidth(), 128);
+}
