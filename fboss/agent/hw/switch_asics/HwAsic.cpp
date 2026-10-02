@@ -8,11 +8,15 @@
  *
  */
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <folly/Conv.h>
 #include <folly/Range.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <cctype>
 #include <tuple>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
 #include "fboss/agent/hw/switch_asics/Chenab2Asic.h"
@@ -313,6 +317,23 @@ bool HwAsic::saiSdkAtLeast(folly::StringPiece minVersion) const {
     return false;
   }
   return configured->key() >= minimum->key();
+}
+
+bool HwAsic::AcceptedValues::accepts(uint32_t value) const {
+  if (isRange()) {
+    const auto& [minValue, maxValue] = asRange();
+    return (value >= minValue) && (value <= maxValue);
+  }
+  const auto& values = asValues();
+  return std::find(values.begin(), values.end(), value) != values.end();
+}
+
+std::string HwAsic::AcceptedValues::str() const {
+  if (isRange()) {
+    const auto& [minValue, maxValue] = asRange();
+    return fmt::format("[{}, {}]", minValue, maxValue);
+  }
+  return fmt::format("{{{}}}", fmt::join(asValues(), ", "));
 }
 
 cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {

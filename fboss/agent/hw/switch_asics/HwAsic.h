@@ -4,8 +4,11 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
@@ -896,6 +899,38 @@ class HwAsic {
     uint32_t numVoqs;
   };
 
+  class AcceptedValues {
+   public:
+    using Range = std::tuple<uint32_t, uint32_t>;
+    using Values = std::vector<uint32_t>;
+
+    static AcceptedValues range(uint32_t minInclusive, uint32_t maxInclusive) {
+      return AcceptedValues(std::make_tuple(minInclusive, maxInclusive));
+    }
+    static AcceptedValues oneOf(Values values) {
+      return AcceptedValues(std::move(values));
+    }
+
+    bool isRange() const {
+      return std::holds_alternative<Range>(accepted_);
+    }
+    const Range& asRange() const {
+      return std::get<Range>(accepted_);
+    }
+    const Values& asValues() const {
+      return std::get<Values>(accepted_);
+    }
+
+    bool accepts(uint32_t value) const;
+    std::string str() const;
+
+   private:
+    explicit AcceptedValues(std::variant<Range, Values> accepted)
+        : accepted_(std::move(accepted)) {}
+
+    std::variant<Range, Values> accepted_;
+  };
+
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
@@ -978,6 +1013,10 @@ class HwAsic {
   // counters report a running total.
   virtual bool isPortDebounceRetriggerCountClearOnRead() const {
     return true;
+  }
+
+  virtual std::optional<AcceptedValues> getAcceptedLinkUpHoldoffTimeMs() const {
+    return std::nullopt;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;
