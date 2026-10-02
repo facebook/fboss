@@ -272,7 +272,7 @@ class AgentMPLSHeadEndTest : public AgentMPLSDataplaneTest<PortType> {
     auto tags = EthHdr::VlanTags_t{VlanTag(*vlan, 0x8100)};
     EthHdr ethHdr{
         utility::kLocalCpuMac(),
-        routerMac(),
+        folly::MacAddress{"02:00:00:00:00:02"},
         {tags},
         static_cast<uint16_t>(etherType)};
 
