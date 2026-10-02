@@ -100,6 +100,8 @@ Follow this iterative cycle for each failing test:
 
 **Broadcom DNX firmware prerequisite**: All tests on Broadcom DNX switches (Jericho3, Ramon3, etc.) require the firmware `db/` directory at `/tmp/db/` on the switch. See [build-and-load.md](references/build-and-load.md#broadcom-dnx-firmware-required-for-all-tests-on-dnx-platforms) for details. Without this, hw_agent processes abort with `FW: ... is not accessible error:-1`. This does not apply to Broadcom XGS or Leaba/Cisco platforms.
 
+**Leaba/Cisco prerequisite**: the SDK runtime (`lib/dyn` and `res/`) from the same SDK build as the binary must be on the switch. The run also needs `LD_LIBRARY_PATH`, `BASE_OUTPUT_DIR` and, on some ASICs, `ASIC` (`GR2_A0` on G200). Without them the SDK aborts after FBOSS init has succeeded. See the Leaba row in Reference Routing below.
+
 **Discipline**: Work on one test at a time. Try up to 5 iterations before categorizing and moving to the next test.
 
 ## Batch Execution Loop (Mode B)
@@ -195,7 +197,7 @@ These scripts run **on the switch**. Upload them once per session, then run in t
 
 | Script | Purpose | Args | Output |
 |--------|---------|------|--------|
-| `scripts/strip_and_copy.sh` | Strip binary, print stripped path + md5 | `<source_path> <dest_name>` | Stripped binary at `/tmp/<dest_name>` |
+| `scripts/strip_and_copy.sh` | Strip binary, print stripped path + md5 | `<source_path> <dest_name> [output_dir]` | Stripped binary at `<output_dir>/<dest_name>` (default `/tmp`) |
 
 > **Vendor firmware scripts**: See [build-environment.md](references/build-environment.md)
 > for environment-specific SDK path resolution and firmware preparation scripts.
@@ -226,6 +228,7 @@ This routing is client-agnostic:
 | Device access (upload, download, run on switch) | `facebook/device-access.md` | `references/device-access.md` |
 | Build commands, SDK paths, config locations | `facebook/build-environment.md` | `references/build-environment.md` |
 | Build mono/multi binaries, copy to switch | — | `references/build-and-load.md` |
+| Leaba/Cisco runs — SDK runtime staging and checks, environment, benchmarks, lab devices | `facebook/leaba-device.md` | `references/build-and-load.md` (Leaba/Cisco SDK Libraries) and `references/run-tests.md` |
 | Run tests (cold/warm, mono/multi), parse results | — | `references/run-tests.md` |
 | Analyze SAI Replayer logs, read code for root cause | — | `references/analyze-logs.md` |
 | Enable SAI logging, replayer logging, packet tx logs | — | `references/enable-logging.md` |
