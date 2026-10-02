@@ -5532,6 +5532,9 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setArsVirtualGroupCommonMembersThreshold(
         *config.arsVirtualGroupCommonMembersThreshold());
   }
+  if (config.arsGroupWidth()) {
+    newFlowletSwitchingConfig->setArsGroupWidth(*config.arsGroupWidth());
+  }
   if (config.standbySwitchingMode()) {
     // Distinct switching modes keep the standby and primary ARS objects from
     // collapsing into a single SaiStore entry.
