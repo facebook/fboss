@@ -69,6 +69,8 @@ cpp_library(
         "InterfaceMapDelta.cpp",
         "IpTunnel.cpp",
         "IpTunnelMap.cpp",
+        "IsolationGroup.cpp",
+        "IsolationGroupMap.cpp",
         "LabelForwardingInformationBase.cpp",
         "LlrConfig.cpp",
         "LlrConfigMap.cpp",
