@@ -187,6 +187,78 @@ SaiSrv6MySidManager::getMySidObject(
   return saiStore_->get<SaiMySidEntryTraits>().get(key);
 }
 
+std::optional<SaiMySidEntryHandle::NextHopHandle>
+SaiSrv6MySidManager::getNextHopHandle(
+    const SaiMySidEntryTraits::AdapterHostKey& adapterHostKey,
+    const MySid& mySid,
+    const std::shared_ptr<SwitchState>& state) {
+  const auto resolvedNextHopsId = mySid.getResolvedNextHopsId();
+  const auto backupResolvedNextHopsId = mySid.getBackupResolvedNextHopsId();
+  if (!resolvedNextHopsId && !backupResolvedNextHopsId) {
+    return std::nullopt;
+  }
+  std::vector<NextHop> nhops;
+  for (const auto& nextHopsId :
+       {resolvedNextHopsId, backupResolvedNextHopsId}) {
+    if (nextHopsId) {
+      const auto resolvedNextHops =
+          getNextHops(state, static_cast<int64_t>(*nextHopsId));
+      nhops.insert(
+          nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
+    }
+  }
+  if (nhops.empty()) {
+    throw FbossError("Resolved nhops Id set, but no next hops found");
+  }
+  RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
+  const auto nextHopGroupType = getNextHopGroupType(nhopSet);
+  // A lone next hop is normally programmed directly, but not when it is a
+  // backup: the protection group is what carries standby semantics into
+  // hardware. Collapsing a single backup to a plain next hop would forward
+  // over it as if it were the primary path.
+  if (nhops.size() > 1 || isProtectionNextHopGroupType(nextHopGroupType)) {
+    return managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
+        SaiNextHopGroupKey(nhopSet, std::nullopt, nextHopGroupType));
+  }
+  auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
+  std::shared_ptr<SaiSrv6SidListHandle> sidListHandle;
+  if (!resolvedNh.srv6SegmentList().empty()) {
+    auto interfaceId = resolvedNh.intfID().value();
+    auto* routerInterfaceHandle =
+        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+            interfaceId);
+    CHECK(routerInterfaceHandle)
+        << "Missing SAI router interface for " << interfaceId;
+    auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+        routerInterfaceHandle->adapterKey(), resolvedNh);
+    sidListHandle = managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
+        sidListKey, sidListAttrs);
+  }
+  auto managedSaiNextHop = managerTable_->nextHopManager().addManagedSaiNextHop(
+      resolvedNh, std::move(sidListHandle));
+  if (auto* ipNextHop =
+          std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedSaiNextHop)) {
+    auto managedMySidNextHop =
+        std::make_shared<ManagedMySidNextHop<SaiIpNextHopTraits>>(
+            this, adapterHostKey, *ipNextHop);
+    SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
+        managedMySidNextHop);
+    return managedMySidNextHop;
+  }
+  if (auto* srv6NextHop = std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(
+          &managedSaiNextHop)) {
+    auto managedMySidNextHop =
+        std::make_shared<ManagedMySidNextHop<SaiSrv6SidlistNextHopTraits>>(
+            this, adapterHostKey, *srv6NextHop);
+    SaiObjectEventPublisher::getInstance()
+        ->get<SaiSrv6SidlistNextHopTraits>()
+        .subscribe(managedMySidNextHop);
+    return managedMySidNextHop;
+  }
+  throw FbossError(
+      "Expected IP or SRv6 next hop for MySid entry ", mySid.getID());
+}
+
 void SaiSrv6MySidManager::addMySidEntry(
     const std::shared_ptr<MySid>& mySid,
     const std::shared_ptr<SwitchState>& state) {
@@ -195,79 +267,7 @@ void SaiSrv6MySidManager::addMySidEntry(
     throw FbossError("MySid entry already exists for ", mySid->getID());
   }
 
-  std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
-
-  const auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
-  const auto backupResolvedNextHopsId = mySid->getBackupResolvedNextHopsId();
-  if (resolvedNextHopsId || backupResolvedNextHopsId) {
-    std::vector<NextHop> nhops;
-    for (const auto& nextHopsId :
-         {resolvedNextHopsId, backupResolvedNextHopsId}) {
-      if (nextHopsId) {
-        const auto resolvedNextHops =
-            getNextHops(state, static_cast<int64_t>(*nextHopsId));
-        nhops.insert(
-            nhops.end(), resolvedNextHops.begin(), resolvedNextHops.end());
-      }
-    }
-    if (nhops.empty()) {
-      throw FbossError("Resolved nhops Id set, but no next hops found");
-    }
-    RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
-    const auto nextHopGroupType = getNextHopGroupType(nhopSet);
-    // A lone next hop is normally programmed directly, but not when it is a
-    // backup: the protection group is what carries standby semantics into
-    // hardware. Collapsing a single backup to a plain next hop would forward
-    // over it as if it were the primary path.
-    if (nhops.size() > 1 || isProtectionNextHopGroupType(nextHopGroupType)) {
-      auto nextHopGroupHandle =
-          managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(nhopSet, std::nullopt, nextHopGroupType));
-      nexthopHandle = nextHopGroupHandle;
-    } else {
-      auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
-      std::shared_ptr<SaiSrv6SidListHandle> sidListHandle;
-      if (!resolvedNh.srv6SegmentList().empty()) {
-        auto interfaceId = resolvedNh.intfID().value();
-        auto* routerInterfaceHandle =
-            managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
-                interfaceId);
-        CHECK(routerInterfaceHandle)
-            << "Missing SAI router interface for " << interfaceId;
-        auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
-            routerInterfaceHandle->adapterKey(), resolvedNh);
-        sidListHandle =
-            managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
-                sidListKey, sidListAttrs);
-      }
-      auto managedSaiNextHop =
-          managerTable_->nextHopManager().addManagedSaiNextHop(
-              resolvedNh, std::move(sidListHandle));
-      if (auto* ipNextHop = std::get_if<std::shared_ptr<ManagedIpNextHop>>(
-              &managedSaiNextHop)) {
-        auto managedMySidNextHop =
-            std::make_shared<ManagedMySidNextHop<SaiIpNextHopTraits>>(
-                this, adapterHostKey, *ipNextHop);
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiIpNextHopTraits>()
-            .subscribe(managedMySidNextHop);
-        nexthopHandle = managedMySidNextHop;
-      } else if (
-          auto* srv6NextHop = std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(
-              &managedSaiNextHop)) {
-        auto managedMySidNextHop =
-            std::make_shared<ManagedMySidNextHop<SaiSrv6SidlistNextHopTraits>>(
-                this, adapterHostKey, *srv6NextHop);
-        SaiObjectEventPublisher::getInstance()
-            ->get<SaiSrv6SidlistNextHopTraits>()
-            .subscribe(managedMySidNextHop);
-        nexthopHandle = managedMySidNextHop;
-      } else {
-        throw FbossError(
-            "Expected IP or SRv6 next hop for MySid entry ", mySid->getID());
-      }
-    }
-  }
+  auto nexthopHandle = getNextHopHandle(adapterHostKey, *mySid, state);
 
   std::shared_ptr<SaiObject<SaiSrv6TunnelTraits>> decapTunnel;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
