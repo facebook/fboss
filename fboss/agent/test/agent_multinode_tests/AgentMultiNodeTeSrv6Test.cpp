@@ -158,6 +158,7 @@ class AgentMultiNodeTeSrv6Test : public AgentHwTest {
     FLAGS_enable_lacp = true;
     FLAGS_enable_lldp = true;
     FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_publish_stats_to_fsdb = true;
     FLAGS_resolve_nexthops_from_id = true;
     FLAGS_tun_intf = true;
   }
@@ -399,37 +400,7 @@ TEST_F(AgentMultiNodeTeSrv6Test, VerifySetupAndBasicForwarding) {
   const auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
   auto teSrv6Client = createTeSrv6AgentServiceClient(localHostname);
   const auto anchorPrefix = makePrefix(kAnchorAddress, kAnchorPrefixLength);
-  const auto servicePrefix = makePrefix(
-      serviceAddress.mask(kServicePrefixLength), kServicePrefixLength);
   const auto teAnchorPrefix = makeTePrefix(kAnchorAddress, kAnchorPrefixLength);
-  SCOPE_EXIT {
-    try {
-      te::DeleteIpRoutesRequest request;
-      request.prefixes() = {teAnchorPrefix};
-      te::DeleteIpRoutesResponse response;
-      teSrv6Client->sync_deleteIpRoutes(response, request);
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Failed to clean up TE SRv6 IP route: " << ex.what();
-    }
-    try {
-      te::DeleteNexthopGroupsRequest request;
-      request.nhgNames() = {kNexthopGroupName};
-      te::DeleteNexthopGroupsResponse response;
-      teSrv6Client->sync_deleteNexthopGroups(response, request);
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Failed to clean up TE SRv6 nexthop group: " << ex.what();
-    }
-    const auto deleteRoute = [&](int16_t client, const IpPrefix& prefix) {
-      try {
-        localClient->sync_deleteUnicastRoutes(client, {prefix});
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Failed to clean up TE SRv6 route for client " << client
-                  << ": " << ex.what();
-      }
-    };
-    deleteRoute(bgpClient, servicePrefix);
-    deleteRoute(openrClient, anchorPrefix);
-  };
 
   localClient->sync_addUnicastRoutes(
       openrClient,
