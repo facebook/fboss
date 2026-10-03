@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<bf1c1ec2d99e88faa6dd2b4db90e6781>>"
+        "@generated SignedSource<<aeb4f798ff45a61584b2a722e3b8bbf1>>"
     ],
     "MINIPACK": [
         {
@@ -181,6 +181,12 @@
             "asicSdk": "6.5.34",
             "saiSdk": "14.2.0.0_odp",
             "saiVersion": "1.17.4"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.36",
+            "saiSdk": "16.0_ea_odp",
+            "saiVersion": "1.18.1"
         }
     ],
     "MINIPACK3N": [
@@ -295,6 +301,12 @@
             "asicSdk": "6.5.34",
             "saiSdk": "14.2.0.0_odp",
             "saiVersion": "1.17.4"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.36",
+            "saiSdk": "16.0_ea_odp",
+            "saiVersion": "1.18.1"
         }
     ],
     "LADAKH800BCLS": [
@@ -303,6 +315,12 @@
             "asicSdk": "6.5.34",
             "saiSdk": "14.2.0.0_odp",
             "saiVersion": "1.17.4"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.36",
+            "saiSdk": "16.0_ea_odp",
+            "saiVersion": "1.18.1"
         }
     ],
     "LEH800BCLS": [
@@ -311,6 +329,12 @@
             "asicSdk": "6.5.34",
             "saiSdk": "14.2.0.0_odp",
             "saiVersion": "1.17.4"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "6.5.36",
+            "saiSdk": "16.0_ea_odp",
+            "saiVersion": "1.18.1"
         }
     ],
     "MINIPACK3BTA": [
