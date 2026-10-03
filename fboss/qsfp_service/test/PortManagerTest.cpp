@@ -1546,4 +1546,8 @@ TEST_F(PortManagerTest, setPortLoopbackStateInvalidPortThrows) {
       FbossError);
 }
 
+TEST_F(PortManagerTest, getSdkStateWithoutPhyManagerThrows) {
+  EXPECT_THROW(portManager_->getSdkState("sdk_dump"), FbossError);
+}
+
 } // namespace facebook::fboss

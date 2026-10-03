@@ -1041,13 +1041,13 @@ bool SaiPhyManager::getSdkState(const std::string& fileName) {
 
   auto pimPlatformItr = saiPlatforms_.begin();
   if (pimPlatformItr == saiPlatforms_.end()) {
-    return false;
+    throw FbossError("getSdkState: no external PHY has been initialized");
   }
   auto& pimPlatform = pimPlatformItr->second;
 
   auto platformItr = pimPlatform.begin();
   if (platformItr == pimPlatform.end()) {
-    return false;
+    throw FbossError("getSdkState: no external PHY has been initialized");
   }
 
   GlobalXphyID xphyID = platformItr->first;
