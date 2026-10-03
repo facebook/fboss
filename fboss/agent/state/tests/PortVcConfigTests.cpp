@@ -14,6 +14,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -106,6 +107,20 @@ TEST(PortVcConfig, NoCbfcConfigsMap) {
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(PortVcConfig, RejectedOnManagementPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(makeCbfcConfig());
+  config.ports()[0].portType() = cfg::PortType::MANAGEMENT_PORT;
+
+  try {
+    publishAndApplyConfig(stateV0, &config, platform.get());
+    FAIL() << "CBFC on a management port must be rejected";
+  } catch (const FbossError& e) {
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("only interface ports"));
+  }
 }
 
 TEST(PortVcConfig, VcIdOutOfRange) {

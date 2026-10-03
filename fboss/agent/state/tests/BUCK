@@ -65,6 +65,7 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/boost:boost_container",
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",
         "//fboss/agent:address_utils",
