@@ -3109,6 +3109,19 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
+    // The SDK rejects CBFC attributes on non-interface ports (e.g. TU1's
+    // management port), and a failed attribute write during port programming
+    // terminates the HW agent.
+    if (*portConf->portType() != cfg::PortType::INTERFACE_PORT) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " of type ",
+          apache::thrift::util::enumNameSafe(*portConf->portType()),
+          " has cbfc config name ",
+          *cbfcConfigName,
+          "; CBFC is supported on only interface ports");
+    }
     auto cbfcConfigs = cfg_->cbfcConfigs();
     if (!cbfcConfigs) {
       throw FbossError(
