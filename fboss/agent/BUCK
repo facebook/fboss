@@ -280,6 +280,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//fboss/facebook/thrift_acl:simple_acl_handler",
         "//fboss/lib:thrift_method_rate_limit_setup",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
