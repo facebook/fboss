@@ -165,7 +165,9 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     throw FbossError("No UP port found besides the mysid lag ports");
   }
 
-  void sendPacketToProtectedSid(PortID injectPort) {
+  void sendPacketToProtectedSid(
+      PortID injectPort,
+      uint32_t outerFlowLabel = 0) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto txPacket = utility::makeIpInIpTxPacket(
@@ -182,7 +184,8 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         0 /* outerTrafficClass */,
         0 /* innerTrafficClass */,
         64 /* hopLimit */,
-        64 /* innerHopLimit */);
+        64 /* innerHopLimit */,
+        outerFlowLabel);
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
 
@@ -241,6 +244,53 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
   // adjacency (AGG-1) and none of the backup lags.
   void verifyForwardedViaPrimary() {
     verifyForwardedViaOneOfLags({kPrimaryLag} /* liveLags */, backupLags());
+  }
+
+  void pumpTrafficAndVerifyLoadBalancedAcrossLags(
+      const std::vector<int>& liveLags,
+      const std::vector<int>& downLags) {
+    constexpr int kNumPackets{10000};
+    constexpr int kMaxDeviationPct{25};
+    auto lagPorts = allLagPorts();
+    auto injectPort = findInjectPort(lagPorts);
+
+    std::vector<PortID> livePorts;
+    livePorts.reserve(liveLags.size());
+    for (const auto lag : liveLags) {
+      livePorts.push_back(lagPorts[lag]);
+    }
+    const auto liveStatsBefore = getLatestPortStats(livePorts);
+    std::vector<int64_t> downBytesBefore;
+    downBytesBefore.reserve(downLags.size());
+    for (const auto lag : downLags) {
+      downBytesBefore.push_back(*getLatestPortStats(lagPorts[lag]).outBytes_());
+    }
+
+    for (uint32_t flowLabel = 1; flowLabel <= kNumPackets; ++flowLabel) {
+      sendPacketToProtectedSid(injectPort, flowLabel);
+    }
+    WITH_RETRIES({
+      const auto liveStatsAfter = getLatestPortStats(livePorts);
+      const auto [highest, lowest] = utility::getHighestAndLowestBytesIncrement(
+          liveStatsBefore, liveStatsAfter);
+      int64_t forwardedPackets{0};
+      for (const auto& [port, statsBefore] : liveStatsBefore) {
+        forwardedPackets += *liveStatsAfter.at(port).outUnicastPkts__ref() -
+            *statsBefore.outUnicastPkts__ref();
+      }
+      EXPECT_EVENTUALLY_EQ(forwardedPackets, kNumPackets);
+      EXPECT_EVENTUALLY_TRUE(
+          utility::isDeviationWithinThreshold(
+              lowest, highest, kMaxDeviationPct));
+    });
+
+    for (size_t i = 0; i < downLags.size(); ++i) {
+      const auto lag = downLags[i];
+      EXPECT_EQ(
+          *getLatestPortStats(lagPorts[lag]).outBytes_(), downBytesBefore[i])
+          << "traffic egressed lag " << lag << " on port " << lagPorts[lag]
+          << ", which should not be carrying";
+    }
   }
 
   // Link down only, leaving the neighbor in place: FRR switchover is driven by
@@ -480,6 +530,36 @@ TEST_F(AgentMySidAdjFrrRouteTest, allNextHopsUnavailableThenRecover) {
       resolveLagNeighbor(lag);
     }
     deleteSrv6BackupProtection();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMySidAdjFrrRouteTest, backupNextHopFlap) {
+  auto setup = [this]() {
+    unresolveLagNeighbor(kPrimaryLag);
+    addSrv6BackupProtection();
+  };
+  auto verify = [this]() {
+    pumpTrafficAndVerifyLoadBalancedAcrossLags(
+        backupLags(), {kPrimaryLag} /* downLags */);
+
+    constexpr int kFlappedBackupLag{1};
+    bringDownLagLink(kFlappedBackupLag);
+    pumpTrafficAndVerifyLoadBalancedAcrossLags(
+        {2, 3}, {kPrimaryLag, kFlappedBackupLag});
+
+    bringUpLag(kFlappedBackupLag);
+    pumpTrafficAndVerifyLoadBalancedAcrossLags(
+        backupLags(), {kPrimaryLag} /* downLags */);
+
+    resolveLagNeighbor(kPrimaryLag);
+    verifyForwardedViaPrimary();
+    bringDownLagLink(kPrimaryLag);
+    pumpTrafficAndVerifyLoadBalancedAcrossLags(
+        backupLags(), {kPrimaryLag} /* downLags */);
+
+    unresolveLagNeighbor(kPrimaryLag);
+    bringUpLagLink(kPrimaryLag);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
