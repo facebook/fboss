@@ -202,7 +202,10 @@ void ConfigApplier::applyStaticMySids() {
   if (!mySidTable_) {
     return;
   }
-  auto releaseEntryNextHopIds = [&](const std::shared_ptr<MySid>& entry) {
+  // Helper: release the primary next-hop IDs and, unless their ownership is
+  // being transferred to a replacement adjacency MySid, the FRR backup IDs.
+  auto releaseEntryNextHopIds = [&](const std::shared_ptr<MySid>& entry,
+                                    bool releaseFrrProtection) {
     if (!nextHopIDManager_) {
       return;
     }
@@ -212,11 +215,13 @@ void ConfigApplier::applyStaticMySids() {
     if (const auto id = entry->getResolvedNextHopsId()) {
       nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
     }
-    if (const auto id = entry->getBackupUnresolveNextHopsId()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
-    }
-    if (const auto id = entry->getBackupResolvedNextHopsId()) {
-      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+    if (releaseFrrProtection) {
+      if (const auto id = entry->getBackupUnresolveNextHopsId()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+      }
+      if (const auto id = entry->getBackupResolvedNextHopsId()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+      }
     }
   };
   // Helper: build a fresh MySid from the incoming pair and allocate its
@@ -255,7 +260,7 @@ void ConfigApplier::applyStaticMySids() {
     }
     auto incomingIt = incoming.find(it->first);
     if (incomingIt == incoming.end()) {
-      releaseEntryNextHopIds(it->second);
+      releaseEntryNextHopIds(it->second, true /* releaseFrrProtection */);
       it = mySidTable_->erase(it);
       continue;
     }
@@ -267,7 +272,16 @@ void ConfigApplier::applyStaticMySids() {
       continue;
     }
     auto newEntry = buildAndAllocateEntry(entry.mySid, entry.nextHopSet);
-    releaseEntryNextHopIds(it->second);
+    const bool preserveFrrProtection =
+        it->second->getType() == MySidType::ADJACENCY_MICRO_SID &&
+        newEntry->getType() == MySidType::ADJACENCY_MICRO_SID;
+    if (preserveFrrProtection) {
+      newEntry->setBackupUnresolveNextHopsId(
+          it->second->getBackupUnresolveNextHopsId());
+      newEntry->setBackupResolvedNextHopsId(
+          it->second->getBackupResolvedNextHopsId());
+    }
+    releaseEntryNextHopIds(it->second, !preserveFrrProtection);
     it->second = std::move(newEntry);
     handledIncomingCidrs.insert(it->first);
     ++it;
@@ -294,7 +308,7 @@ void ConfigApplier::applyStaticMySids() {
                                folly::IPAddress(cidrV6.first), cidrV6.second))
                     << " is overwriting existing entry with clientId="
                     << static_cast<int>(it->second->getClientId());
-      releaseEntryNextHopIds(it->second);
+      releaseEntryNextHopIds(it->second, true /* releaseFrrProtection */);
       it->second = std::move(newEntry);
     } else {
       mySidTable_->emplace(cidrV6, std::move(newEntry));

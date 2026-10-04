@@ -3698,6 +3698,93 @@ TEST_F(RibMySidNextHopTest, reconfigureChangedAdjacencyInterfaceIdChurnsEntry) {
       << "Changing adjacencyInterfaceId should churn the entry";
 }
 
+TEST_F(
+    RibMySidNextHopTest,
+    reconfigureAdjacencyMySidPreservesFrrBackupNextHops) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::AdjacencyMySidConfig adjacency;
+  adjacency.portName() = "Port-Channel301";
+  adjacency.isV6() = true;
+  cfg::MySidEntryConfig entry;
+  entry.set_adjacency(std::move(adjacency));
+  mySidConfig.entries()->emplace(0x100, std::move(entry));
+  const std::unordered_map<std::string, InterfaceID> portMap{
+      {"Port-Channel301", InterfaceID(301)}};
+  const auto staticMySids = convertMySidConfig(mySidConfig, portMap);
+  auto reconfigure = [&]() {
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        staticMySids,
+        noopFibUpdate,
+        &switchState_);
+  };
+
+  reconfigure();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  const auto primaryNextHops = makeUnresolvedNextHops({"2001:db8::1"});
+  auto reboundMySid =
+      std::make_shared<MySid>(rib_->getMySidTableCopy().at(prefix));
+  rib_->update(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{
+          {std::move(reboundMySid), primaryNextHops, std::nullopt}},
+      {},
+      {},
+      "resolve adjacency mysid primary",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.resolvedNextHopsId().has_value());
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto primaryUnresolvedId = *before.unresolveNextHopsId();
+  const auto primaryResolvedId = *before.resolvedNextHopsId();
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  // Same-config reconciliation must preserve the dynamic primary and backup
+  // bindings.
+  reconfigure();
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_EQ(after.unresolveNextHopsId(), primaryUnresolvedId);
+  EXPECT_EQ(after.resolvedNextHopsId(), primaryResolvedId);
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(primaryUnresolvedId)), primaryNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(primaryResolvedId)).has_value());
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
 // Pass 2's "non-STATIC_ROUTE entry at same CIDR" overwrite path. Existing
 // reconfigurePreservesTeAgentMySid uses a different prefix and so does
 // not exercise this branch. Here we put a TE_AGENT entry (with nhops) at
