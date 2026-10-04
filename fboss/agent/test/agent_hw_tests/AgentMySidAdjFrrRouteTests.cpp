@@ -347,14 +347,17 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     routeUpdater.program();
   }
 
-  void addSrv6BackupProtection(const std::vector<int>& backupLagIndexes) {
-    programBackupRoutes();
-
+  std::unique_ptr<FrrProtectedObject> makeFrrProtectedObject() const {
     auto protectedObject = std::make_unique<FrrProtectedObject>();
     facebook::network::thrift::IPPrefix prefix;
     prefix.prefixAddress() = facebook::network::toBinaryAddress(mySidPrefix(0));
     prefix.prefixLength() = kMySidPrefixLen;
     protectedObject->mySid() = std::move(prefix);
+    return protectedObject;
+  }
+
+  void addSrv6BackupProtection(const std::vector<int>& backupLagIndexes) {
+    programBackupRoutes();
 
     auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
     for (const auto i : backupLagIndexes) {
@@ -364,11 +367,15 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     }
 
     ThriftHandler(getSw()).addAdjacencyFrr(
-        std::move(protectedObject), std::move(backupNextHops));
+        makeFrrProtectedObject(), std::move(backupNextHops));
   }
 
   void addSrv6BackupProtection() {
     addSrv6BackupProtection(backupLags());
+  }
+
+  void deleteSrv6BackupProtection() {
+    ThriftHandler(getSw()).deleteAdjacencyFrr(makeFrrProtectedObject());
   }
 };
 
@@ -388,6 +395,23 @@ TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
     // Restore the primary adjacency and traffic must fail back to it.
     bringUpLag(kPrimaryLag);
     verifyForwardedViaPrimary();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMySidAdjFrrRouteTest, addProtectionToPrimaryOnlyMySid) {
+  auto setup = [this]() { resolveLagNeighbor(kPrimaryLag); };
+  auto verify = [this]() {
+    verifyForwardedViaPrimary();
+
+    addSrv6BackupProtection();
+    verifyForwardedViaPrimary();
+
+    bringDownLagLink(kPrimaryLag);
+    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+
+    bringUpLag(kPrimaryLag);
+    deleteSrv6BackupProtection();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
