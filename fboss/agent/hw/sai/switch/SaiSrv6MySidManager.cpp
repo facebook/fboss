@@ -329,7 +329,23 @@ void SaiSrv6MySidManager::changeMySidEntry(
     throw FbossError("MySid entry does not exist for ", newMySid->getID());
   }
   auto& handle = itr->second;
-  // Repoint before the old next hop is released.
+  const bool replacingProtectionGroup =
+      oldMySid->getBackupResolvedNextHopsId().has_value() &&
+      newMySid->getBackupResolvedNextHopsId().has_value() &&
+      (oldMySid->getResolvedNextHopsId() != newMySid->getResolvedNextHopsId() ||
+       oldMySid->getBackupResolvedNextHopsId() !=
+           newMySid->getBackupResolvedNextHopsId());
+  if (replacingProtectionGroup) {
+    // A protection group owns the midpoint resource on Leaba, so two groups
+    // for the same MySid cannot coexist. Detach and release the old group
+    // before creating its replacement.
+    saiStore_->get<SaiMySidEntryTraits>().setObject(
+        adapterHostKey,
+        getMySidCreateAttributes(*newMySid, std::nullopt, managerTable_));
+    handle->nexthopHandle = SaiMySidEntryHandle::NextHopHandle{};
+  }
+  // Repoint before releasing the old next hop except for protection-group
+  // replacements, which require break-before-make above.
   auto nexthopHandle = getNextHopHandle(adapterHostKey, *newMySid, state);
   saiStore_->get<SaiMySidEntryTraits>().setObject(
       adapterHostKey,

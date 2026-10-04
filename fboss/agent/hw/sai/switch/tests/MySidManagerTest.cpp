@@ -451,6 +451,34 @@ TEST_F(
       groupHandle->nextHopGroup->adapterKey());
 }
 
+TEST_F(MySidManagerWithNextHopIdTest, protectedAdjacencySidLosesPrimary) {
+  RouteNextHopSet backupNextHops{
+      makeResolvedNextHop(testInterfaces.at(1), NextHopRole::BACKUP),
+  };
+  auto protectedMySid =
+      makeAdjacencySid("fc00:100::1", testInterfaces.at(0), backupNextHops);
+  saiManagerTable->srv6MySidManager().addMySidEntry(
+      protectedMySid, getProgrammedState());
+  const auto protectedNextHops =
+      makeProtectionNextHops(testInterfaces.at(0), backupNextHops);
+  ASSERT_NE(getProtectionNextHopGroup(protectedNextHops), nullptr);
+
+  auto backupOnlyMySid =
+      makeBackupOnlyAdjacencySid("fc00:100::1", backupNextHops);
+  saiManagerTable->srv6MySidManager().changeMySidEntry(
+      protectedMySid, backupOnlyMySid, getProgrammedState());
+
+  EXPECT_EQ(getProtectionNextHopGroup(protectedNextHops), nullptr);
+  const auto* backupOnlyGroup = getProtectionNextHopGroup(backupNextHops);
+  ASSERT_NE(backupOnlyGroup, nullptr);
+  ASSERT_NE(backupOnlyGroup->nextHopGroup, nullptr);
+  EXPECT_EQ(
+      saiApiTable->srv6Api().getAttribute(
+          getMySidAdapterHostKey(*backupOnlyMySid, saiManagerTable),
+          SaiMySidEntryTraits::Attributes::NextHopId{}),
+      backupOnlyGroup->nextHopGroup->adapterKey());
+}
+
 TEST_F(
     MySidManagerWithNextHopIdTest,
     protectionAdjacencySidsWithSameBackupsShareChildGroup) {
