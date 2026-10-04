@@ -252,6 +252,66 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     XLOG(DBG2) << "Brought down lag " << lag << " link (port " << port << ")";
   }
 
+  void bringUpLag(int lag) {
+    auto ecmpHelper = makeEcmpHelper();
+    const boost::container::flat_set<PortDescriptor> lagPortDescs{
+        lagPortDesc(lag)};
+    applyNewState(
+        [&ecmpHelper,
+         &lagPortDescs](const std::shared_ptr<SwitchState>& state) {
+          return ecmpHelper.unresolveNextHops(
+              state, lagPortDescs, true /* useLinkLocal */);
+        },
+        "unresolve adjacency mysid neighbor");
+    utility::waitForMySidResolveOrUnresolve(
+        [this]() { return getProgrammedState(); },
+        mySidPrefix(lag),
+        kMySidPrefixLen,
+        false /* resolved */);
+
+    auto port = getEgressPort(lagPortDesc(lag));
+    bringUpPort(port);
+    // The SAI fast-path link-down handler disables the LAG member. Since LACP
+    // is not running in tests, toggle forwarding state to generate the delta
+    // that re-enables it before restoring the neighbor.
+    const auto aggPortId = lagPortDesc(lag).aggPortID();
+    auto setLagForwardingState = [aggPortId, port](
+                                     const std::shared_ptr<SwitchState>& state,
+                                     AggregatePort::Forwarding forwarding) {
+      auto newState = state;
+      auto aggPort =
+          newState->getAggregatePorts()->getNode(aggPortId)->modify(&newState);
+      aggPort->setForwardingState(port, forwarding);
+      return newState;
+    };
+    applyNewState(
+        [&setLagForwardingState](const std::shared_ptr<SwitchState>& state) {
+          return setLagForwardingState(
+              state, AggregatePort::Forwarding::DISABLED);
+        },
+        "disable lag member to sync with SAI state");
+    applyNewState(
+        [&setLagForwardingState](const std::shared_ptr<SwitchState>& state) {
+          return setLagForwardingState(
+              state, AggregatePort::Forwarding::ENABLED);
+        },
+        "re-enable lag member after link flap");
+
+    applyNewState(
+        [&ecmpHelper,
+         &lagPortDescs](const std::shared_ptr<SwitchState>& state) {
+          return ecmpHelper.resolveNextHops(
+              state, lagPortDescs, true /* useLinkLocal */);
+        },
+        "resolve adjacency mysid neighbor");
+    utility::waitForMySidResolveOrUnresolve(
+        [this]() { return getProgrammedState(); },
+        mySidPrefix(lag),
+        kMySidPrefixLen,
+        true /* resolved */);
+    XLOG(DBG2) << "Brought up lag " << lag << " link (port " << port << ")";
+  }
+
   void programBackupRoutes() {
     auto ecmpHelper = makeEcmpHelper();
     auto routeUpdater = getSw()->getRouteUpdater();
@@ -303,6 +363,10 @@ TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
     // Fail the primary link and an FRR backup has to pick the traffic up.
     bringDownLagLink(kPrimaryLag);
     verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+
+    // Restore the primary adjacency and traffic must fail back to it.
+    bringUpLag(kPrimaryLag);
+    verifyForwardedViaPrimary();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
