@@ -190,8 +190,8 @@ class AgentMplsTtlAclTest : public AgentMPLSDataplaneTest<PortID> {
   // Inject an MPLS frame on a front panel port so it takes the regular ingress
   // pipeline. Addressed to the router MAC so the top label is forwarded.
   size_t sendMplsPacket(uint8_t ttl) {
+    // nullopt on port based router interface platforms; frame goes out untagged
     auto vlan = getVlanIDForTx();
-    CHECK(vlan.has_value());
 
     MPLSHdr::Label mplsLabel{
         static_cast<uint32_t>(kTopLabel.value()),
@@ -206,7 +206,7 @@ class AgentMplsTtlAclTest : public AgentMPLSDataplaneTest<PortID> {
         folly::IPAddressV6{"2001::1"},
         10000 /* srcPort */,
         20000 /* dstPort */,
-        *vlan);
+        vlan);
     auto pkt = frame.getTxPacket(
         [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
     auto size = pkt->buf()->computeChainDataLength();
