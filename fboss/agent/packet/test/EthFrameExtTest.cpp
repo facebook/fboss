@@ -249,7 +249,8 @@ TEST(EthFrameExtTest, getEthFrameWithMPLSLabels) {
       kSrcIpV4,
       kDstIpV4,
       /*sPort=*/7000,
-      /*dPort=*/7001);
+      /*dPort=*/7001,
+      VlanID(1));
 
   EXPECT_TRUE(frame.mplsPayLoad().has_value());
   EXPECT_EQ(
