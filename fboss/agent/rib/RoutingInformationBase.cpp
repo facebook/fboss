@@ -1922,23 +1922,37 @@ void RibRouteTables::updateMySidsImpl(
         // re-allocate a resolvedId for the new entry when applicable.
         if (const auto existingIt = mySidTable->find(cidrV6);
             existingIt != mySidTable->end()) {
-          if (const auto oldUnresolvedId =
-                  existingIt->second->getUnresolveNextHopsId()) {
+          const auto& existing = existingIt->second;
+          // Adjacency FRR protection is managed independently through
+          // updateMySidFrrProtection(). A primary-neighbor rebind replaces
+          // this MySid entry, but must transfer the existing backup IDs and
+          // their references to the replacement rather than releasing them.
+          const bool preserveFrrProtection =
+              existing->getType() == MySidType::ADJACENCY_MICRO_SID &&
+              mySid->getType() == MySidType::ADJACENCY_MICRO_SID;
+          if (preserveFrrProtection) {
+            mySid->setBackupUnresolveNextHopsId(
+                existing->getBackupUnresolveNextHopsId());
+            mySid->setBackupResolvedNextHopsId(
+                existing->getBackupResolvedNextHopsId());
+          }
+          if (const auto oldUnresolvedId = existing->getUnresolveNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldUnresolvedId);
           }
-          if (const auto oldResolvedId =
-                  existingIt->second->getResolvedNextHopsId()) {
+          if (const auto oldResolvedId = existing->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedId);
           }
-          if (const auto oldBackupUnresolvedId =
-                  existingIt->second->getBackupUnresolveNextHopsId()) {
-            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
-                *oldBackupUnresolvedId);
-          }
-          if (const auto oldBackupResolvedId =
-                  existingIt->second->getBackupResolvedNextHopsId()) {
-            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
-                *oldBackupResolvedId);
+          if (!preserveFrrProtection) {
+            if (const auto oldBackupUnresolvedId =
+                    existing->getBackupUnresolveNextHopsId()) {
+              nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                  *oldBackupUnresolvedId);
+            }
+            if (const auto oldBackupResolvedId =
+                    existing->getBackupResolvedNextHopsId()) {
+              nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                  *oldBackupResolvedId);
+            }
           }
         }
       }

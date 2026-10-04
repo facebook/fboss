@@ -2780,6 +2780,96 @@ TEST_F(RibMySidFibInfoTest, mySidFrrBackupInstallLeavesResolvedPrimaryIntact) {
   EXPECT_NE(idSetMap->getNextHopIdSetIf(primaryId), nullptr);
 }
 
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsSurvivePrimaryRebind) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  addAdjacencyMySidWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  // Mirror MySidNeighborObserver::queueResolve(): preserve FRR backup IDs
+  // while replacing the primary neighbor binding.
+  auto reboundMySid = std::make_shared<MySid>(before);
+  reboundMySid->setUnresolveNextHopsId(std::nullopt);
+  reboundMySid->setResolvedNextHopsId(std::nullopt);
+  rib_->update(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{
+          {std::move(reboundMySid),
+           makeUnresolvedNextHops({"2001:db8::3"}),
+           std::nullopt}},
+      {},
+      {},
+      "rebind adjacency mysid primary",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsSurvivePrimaryUnresolve) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  addAdjacencyMySidWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.resolvedNextHopsId().has_value());
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {{prefix, folly::IPAddress("2001:db8::1")}},
+      {},
+      "unresolve adjacency mysid primary",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_FALSE(after.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(after.resolvedNextHopsId().has_value());
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
 TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsTrackPartialResolution) {
   // With two backup gateways the resolved set holds exactly those gateways
   // that currently have a covering route, and follows routes appearing and
