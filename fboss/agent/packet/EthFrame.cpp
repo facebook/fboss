@@ -146,12 +146,15 @@ EthFrame getEthFrame(
     AddrT dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     size_t payloadSize) {
   constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   constexpr auto etherType =
       isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
-  auto tags = EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)};
+  EthHdr::VlanTags_t tags;
+  if (vlanId.has_value()) {
+    tags.push_back(VlanTag(*vlanId, 0x8100));
+  }
   EthHdr ethHdr{srcMac, dstMac, {tags}, static_cast<uint16_t>(etherType)};
   std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
   ipHdr.srcAddr = srcIp;
@@ -266,7 +269,7 @@ template EthFrame getEthFrame<folly::IPAddressV4>(
     folly::IPAddressV4 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV6>(
@@ -276,7 +279,7 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     folly::IPAddressV6 dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     size_t payloadSize);
 
 template EthFrame getEthFrame<folly::IPAddressV4>(

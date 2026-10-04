@@ -152,7 +152,7 @@ EthFrame getEthFrame(
     AddrT dstIp,
     uint16_t sPort,
     uint16_t dPort,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     size_t payloadSize = 256);
 
 template <typename AddrT>
