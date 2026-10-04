@@ -68,11 +68,15 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     config.mySidConfig() = makeAdjacencyMySidConfig();
     config.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
         kSrv6TunnelId, InterfaceID(config.interfaces()[0].intfID().value()))};
+    std::set<folly::CIDRNetwork> trapPrefixes{
+        {folly::IPAddressV6(kShiftedProtectedSidPktDst), 128}};
+    for (int i = kPrimaryLag + 1; i < kNumLags; ++i) {
+      trapPrefixes.emplace(repairSid(i), 128);
+    }
     utility::addTrapPacketAcl(
         checkSameAndGetAsicForTesting(ensemble.getL3Asics()),
         &config,
-        std::set<folly::CIDRNetwork>{
-            {folly::IPAddressV6(kShiftedProtectedSidPktDst), 128}});
+        trapPrefixes);
     return config;
   }
 
@@ -255,7 +259,28 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     }
   }
 
+  void verifyShiftedPacket(
+      const utility::EthFrame& originalFrame,
+      const utility::IPv6Packet& shiftedPacket) {
+    // End.X consumes the active uSID and performs one routing hop. Everything
+    // below that outer IPv6 header must remain unchanged.
+    const auto originalV6 = originalFrame.v6PayLoad();
+    ASSERT_TRUE(originalV6.has_value());
+    auto expectedHeader = originalV6->header();
+    expectedHeader.decrementTTL();
+    expectedHeader.dstAddr = folly::IPAddressV6(kShiftedProtectedSidPktDst);
+    EXPECT_EQ(shiftedPacket.header(), expectedHeader);
+
+    const auto* originalInnerV6 = originalV6->v6PayLoad();
+    const auto* shiftedInnerV6 = shiftedPacket.v6PayLoad();
+    ASSERT_NE(originalInnerV6, nullptr);
+    ASSERT_NE(shiftedInnerV6, nullptr);
+    EXPECT_EQ(*shiftedInnerV6, *originalInnerV6);
+  }
+
   void verifyShiftedPacketOnLag(int lag) {
+    // The primary and plain-IP backup paths emit the End.X result directly,
+    // so capture the packet on the selected LAG and verify it as-is.
     const auto egressPort = getEgressPort(lagPortDesc(lag));
     const auto injectPort = findInjectPort(allLagPorts());
     const auto bytesBefore = *getLatestPortStats(egressPort).outBytes_();
@@ -284,20 +309,67 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         frame.header().etherType,
         static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
 
-    const auto originalV6 = originalFrame.v6PayLoad();
     const auto capturedV6 = frame.v6PayLoad();
-    ASSERT_TRUE(originalV6.has_value());
     ASSERT_TRUE(capturedV6.has_value());
-    auto expectedHeader = originalV6->header();
-    expectedHeader.decrementTTL();
-    expectedHeader.dstAddr = folly::IPAddressV6(kShiftedProtectedSidPktDst);
-    EXPECT_EQ(capturedV6->header(), expectedHeader);
+    verifyShiftedPacket(originalFrame, *capturedV6);
+  }
 
-    const auto* originalInnerV6 = originalV6->v6PayLoad();
-    const auto* capturedInnerV6 = capturedV6->v6PayLoad();
-    ASSERT_NE(originalInnerV6, nullptr);
-    ASSERT_NE(capturedInnerV6, nullptr);
-    EXPECT_EQ(*capturedInnerV6, *originalInnerV6);
+  void verifyForwardedViaSrv6Backup(
+      const std::vector<int>& liveLags,
+      const std::vector<int>& downLags) {
+    // A repair path wraps the End.X result in a new IPv6 header whose
+    // destination is the selected backup's repair SID. Strip that header and
+    // apply the same verification used for direct primary forwarding.
+    verifyForwardedViaOneOfLags(liveLags, downLags);
+
+    utility::SwSwitchPacketSnooper snooper(getSw(), "mySidSrv6BackupSnooper");
+    std::map<PortID, int64_t> bytesBefore;
+    for (const auto lag : liveLags) {
+      const auto port = getEgressPort(lagPortDesc(lag));
+      bytesBefore[port] = *getLatestPortStats(port).outBytes_();
+    }
+    auto txPacket = makePacketToProtectedSid();
+    const auto originalFrame =
+        utility::makeEthFrame(*txPacket, true /* skipTtlDecrement */);
+    getSw()->sendPacketOutOfPortAsync(
+        std::move(txPacket), findInjectPort(allLagPorts()));
+
+    auto capturedFrame = snooper.waitForPacket(1);
+    WITH_RETRIES({
+      bool forwarded{false};
+      for (const auto& [port, bytes] : bytesBefore) {
+        if (*getLatestPortStats(port).outBytes_() > bytes) {
+          forwarded = true;
+          break;
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(forwarded);
+      if (!capturedFrame.has_value()) {
+        capturedFrame = snooper.waitForPacket(1);
+      }
+      EXPECT_EVENTUALLY_TRUE(capturedFrame.has_value());
+    });
+    ASSERT_TRUE(capturedFrame.has_value());
+    folly::io::Cursor cursor(capturedFrame->get());
+    utility::EthFrame frame(cursor);
+    const auto encapsulatingV6 = frame.v6PayLoad();
+    ASSERT_TRUE(encapsulatingV6.has_value());
+
+    std::vector<folly::IPAddressV6> expectedRepairSids;
+    expectedRepairSids.reserve(liveLags.size());
+    for (const auto lag : liveLags) {
+      expectedRepairSids.push_back(repairSid(lag));
+    }
+    EXPECT_NE(
+        std::find(
+            expectedRepairSids.begin(),
+            expectedRepairSids.end(),
+            encapsulatingV6->header().dstAddr),
+        expectedRepairSids.end());
+
+    const auto* shiftedPacket = encapsulatingV6->v6PayLoad();
+    ASSERT_NE(shiftedPacket, nullptr);
+    verifyShiftedPacket(originalFrame, *shiftedPacket);
   }
 
   // With the primary adjacency up, FRR backups are programmed but must not
@@ -517,7 +589,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
 
     // Fail the primary link and an FRR backup has to pick the traffic up.
     bringDownLagLink(kPrimaryLag);
-    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+    verifyForwardedViaSrv6Backup(backupLags(), {kPrimaryLag} /* downLags */);
 
     // Restore the primary adjacency and traffic must fail back to it.
     bringUpLag(kPrimaryLag);
@@ -535,7 +607,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, addProtectionToPrimaryOnlyMySid) {
     verifyForwardedViaPrimary();
 
     bringDownLagLink(kPrimaryLag);
-    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+    verifyForwardedViaSrv6Backup(backupLags(), {kPrimaryLag} /* downLags */);
 
     bringUpLag(kPrimaryLag);
     deleteSrv6BackupProtection();
@@ -553,7 +625,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, addPrimaryToBackupOnlyMySid) {
     // primary link is left down by the prior run.
     unresolveLagNeighbor(kPrimaryLag);
     bringUpLagLink(kPrimaryLag);
-    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+    verifyForwardedViaSrv6Backup(backupLags(), {kPrimaryLag} /* downLags */);
 
     // Resolving the primary adds it to the protection group and takes traffic.
     resolveLagNeighbor(kPrimaryLag);
@@ -561,7 +633,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, addPrimaryToBackupOnlyMySid) {
 
     // Hardware protection returns traffic to a backup when the primary fails.
     bringDownLagLink(kPrimaryLag);
-    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+    verifyForwardedViaSrv6Backup(backupLags(), {kPrimaryLag} /* downLags */);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -572,10 +644,10 @@ TEST_F(AgentMySidAdjFrrRouteTest, addBackupAndPrimaryToBackupOnlyMySid) {
   auto setup = [this]() { unresolveLagNeighbor(kPrimaryLag); };
   auto verify = [this, &oneBackup, &twoBackups]() {
     addSrv6BackupProtection(oneBackup);
-    verifyForwardedViaOneOfLags(oneBackup, {kPrimaryLag, 2, 3});
+    verifyForwardedViaSrv6Backup(oneBackup, {kPrimaryLag, 2, 3});
 
     addSrv6BackupProtection(twoBackups);
-    verifyForwardedViaOneOfLags(twoBackups, {kPrimaryLag, 3});
+    verifyForwardedViaSrv6Backup(twoBackups, {kPrimaryLag, 3});
 
     resolveLagNeighbor(kPrimaryLag);
     verifyForwardedViaPrimary();
@@ -589,7 +661,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, allNextHopsUnavailableThenRecover) {
   auto setup = [this]() { unresolveLagNeighbor(kPrimaryLag); };
   auto verify = [this]() {
     addSrv6BackupProtection();
-    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+    verifyForwardedViaSrv6Backup(backupLags(), {kPrimaryLag} /* downLags */);
 
     for (const auto lag : backupLags()) {
       unresolveLagNeighbor(lag);
@@ -597,7 +669,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, allNextHopsUnavailableThenRecover) {
 
     constexpr int kRecoveredBackupLag{1};
     resolveLagNeighbor(kRecoveredBackupLag);
-    verifyForwardedViaOneOfLags({kRecoveredBackupLag}, {kPrimaryLag, 2, 3});
+    verifyForwardedViaSrv6Backup({kRecoveredBackupLag}, {kPrimaryLag, 2, 3});
 
     resolveLagNeighbor(kPrimaryLag);
     verifyForwardedViaPrimary();
