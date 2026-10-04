@@ -79,7 +79,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
 
     auto ecmpHelper = makeEcmpHelper();
     boost::container::flat_set<PortDescriptor> lagPortDescs;
-    for (int i = 0; i < kNumLags; ++i) {
+    for (int i = kPrimaryLag + 1; i < kNumLags; ++i) {
       lagPortDescs.emplace(lagPortDesc(i));
     }
     applyNewState(
@@ -90,7 +90,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         },
         "resolve adjacency mysid neighbors");
 
-    for (int i = 0; i < kNumLags; ++i) {
+    for (int i = kPrimaryLag + 1; i < kNumLags; ++i) {
       utility::waitForMySidResolveOrUnresolve(
           [this]() { return getProgrammedState(); },
           mySidPrefix(i),
@@ -347,7 +347,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     routeUpdater.program();
   }
 
-  void addSrv6BackupProtection() {
+  void addSrv6BackupProtection(const std::vector<int>& backupLagIndexes) {
     programBackupRoutes();
 
     auto protectedObject = std::make_unique<FrrProtectedObject>();
@@ -357,7 +357,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     protectedObject->mySid() = std::move(prefix);
 
     auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
-    for (int i = 1; i < kNumLags; ++i) {
+    for (const auto i : backupLagIndexes) {
       backupNextHops->push_back(
           utility::makeSrv6NextHopThrift(
               backupNextHopAddress(i), repairSid(i), kSrv6TunnelId));
@@ -366,10 +366,17 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     ThriftHandler(getSw()).addAdjacencyFrr(
         std::move(protectedObject), std::move(backupNextHops));
   }
+
+  void addSrv6BackupProtection() {
+    addSrv6BackupProtection(backupLags());
+  }
 };
 
 TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
-  auto setup = [this]() { addSrv6BackupProtection(); };
+  auto setup = [this]() {
+    resolveLagNeighbor(kPrimaryLag);
+    addSrv6BackupProtection();
+  };
   auto verify = [this]() {
     // Primary up: traffic takes the protected SID's own adjacency.
     verifyForwardedViaPrimary();
@@ -404,6 +411,25 @@ TEST_F(AgentMySidAdjFrrRouteTest, addPrimaryToBackupOnlyMySid) {
     // Hardware protection returns traffic to a backup when the primary fails.
     bringDownLagLink(kPrimaryLag);
     verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMySidAdjFrrRouteTest, addBackupAndPrimaryToBackupOnlyMySid) {
+  const std::vector<int> oneBackup{1};
+  const std::vector<int> twoBackups{1, 2};
+  auto setup = [this]() { unresolveLagNeighbor(kPrimaryLag); };
+  auto verify = [this, &oneBackup, &twoBackups]() {
+    addSrv6BackupProtection(oneBackup);
+    verifyForwardedViaOneOfLags(oneBackup, {kPrimaryLag, 2, 3});
+
+    addSrv6BackupProtection(twoBackups);
+    verifyForwardedViaOneOfLags(twoBackups, {kPrimaryLag, 3});
+
+    resolveLagNeighbor(kPrimaryLag);
+    verifyForwardedViaPrimary();
+
+    unresolveLagNeighbor(kPrimaryLag);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
