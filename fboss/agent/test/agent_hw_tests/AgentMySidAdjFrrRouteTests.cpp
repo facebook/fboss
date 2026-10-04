@@ -31,6 +31,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
   // Lag the protected SID's own adjacency is wired to; the rest are backups.
   static constexpr int kPrimaryLag{0};
   static constexpr uint8_t kMySidPrefixLen{48};
+  static constexpr uint8_t kTrafficClass{0xa8};
   static constexpr auto kLocatorPrefix{"fdad:ffff::/32"};
   static constexpr auto kSrv6TunnelId{"srv6Tunnel0"};
   static constexpr auto kShiftedProtectedSidPktDst{"fdad:ffff:f::"};
@@ -195,7 +196,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         folly::IPAddressV6("2001:db8::2") /* innerDst */,
         8000 /* srcPort */,
         8001 /* dstPort */,
-        0 /* outerTrafficClass */,
+        kTrafficClass,
         0 /* innerTrafficClass */,
         64 /* hopLimit */,
         64 /* innerHopLimit */,
@@ -318,8 +319,10 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
       const std::vector<int>& liveLags,
       const std::vector<int>& downLags) {
     // A repair path wraps the End.X result in a new IPv6 header whose
-    // destination is the selected backup's repair SID. Strip that header and
-    // apply the same verification used for direct primary forwarding.
+    // destination is the selected backup's repair SID, whose hop limit and
+    // traffic class are copied from the shifted packet, and whose flow label
+    // carries nonzero entropy. Strip that header and apply the same
+    // verification used for direct primary forwarding.
     verifyForwardedViaOneOfLags(liveLags, downLags);
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "mySidSrv6BackupSnooper");
@@ -369,6 +372,12 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
 
     const auto* shiftedPacket = encapsulatingV6->v6PayLoad();
     ASSERT_NE(shiftedPacket, nullptr);
+    EXPECT_EQ(
+        encapsulatingV6->header().hopLimit, shiftedPacket->header().hopLimit);
+    EXPECT_EQ(
+        encapsulatingV6->header().trafficClass,
+        shiftedPacket->header().trafficClass);
+    EXPECT_NE(encapsulatingV6->header().flowLabel, 0);
     verifyShiftedPacket(originalFrame, *shiftedPacket);
   }
 
