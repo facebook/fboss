@@ -81,6 +81,26 @@ TEST_F(NextHopStoreTest, loadNextHops) {
   EXPECT_EQ(mplsNhop->adapterKey(), nextHopSaiId4);
 }
 
+TEST_F(NextHopStoreTest, loadMplsNextHopsByOutsegType) {
+  folly::IPAddress ip{"4200::41"};
+  std::vector<sai_uint32_t> stack{1001};
+  auto pushSaiId = createMplsNextHop(ip, stack, SAI_OUTSEG_TYPE_PUSH);
+  auto swapSaiId = createMplsNextHop(ip, stack, SAI_OUTSEG_TYPE_SWAP);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiMplsNextHopTraits>();
+
+  SaiMplsNextHopTraits::AdapterHostKey pushKey{
+      42, ip, stack, SAI_OUTSEG_TYPE_PUSH};
+  SaiMplsNextHopTraits::AdapterHostKey swapKey{
+      42, ip, stack, SAI_OUTSEG_TYPE_SWAP};
+  ASSERT_NE(store.get(pushKey), nullptr);
+  ASSERT_NE(store.get(swapKey), nullptr);
+  EXPECT_EQ(store.get(pushKey)->adapterKey(), pushSaiId);
+  EXPECT_EQ(store.get(swapKey)->adapterKey(), swapSaiId);
+}
+
 TEST_F(NextHopStoreTest, nextHopLoadCtor) {
   auto ip = folly::IPAddress("::");
   auto nextHopSaiId = createNextHop(ip);
@@ -107,6 +127,16 @@ TEST_F(NextHopStoreTest, ipNextHopSerDeser) {
 TEST_F(NextHopStoreTest, mplsNextHopSerDeser) {
   auto nextHopSaiId = createMplsNextHop(
       folly::IPAddress{"4200::41"}, std::vector<sai_uint32_t>{1001, 1002});
+  verifyAdapterKeySerDeser<SaiMplsNextHopTraits>({nextHopSaiId});
+}
+
+// The existing case above only covers the SAI default of SWAP. Round trip a
+// push next hop too, so the serialized key carries the non default value.
+TEST_F(NextHopStoreTest, mplsNextHopOutsegTypePushSerDeser) {
+  auto nextHopSaiId = createMplsNextHop(
+      folly::IPAddress{"4200::41"},
+      std::vector<sai_uint32_t>{1001, 1002},
+      SaiMplsNextHopTraits::Attributes::OutsegType{SAI_OUTSEG_TYPE_PUSH});
   verifyAdapterKeySerDeser<SaiMplsNextHopTraits>({nextHopSaiId});
 }
 
