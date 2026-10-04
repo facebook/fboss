@@ -252,7 +252,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     XLOG(DBG2) << "Brought down lag " << lag << " link (port " << port << ")";
   }
 
-  void bringUpLag(int lag) {
+  void unresolveLagNeighbor(int lag) {
     auto ecmpHelper = makeEcmpHelper();
     const boost::container::flat_set<PortDescriptor> lagPortDescs{
         lagPortDesc(lag)};
@@ -268,7 +268,9 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         mySidPrefix(lag),
         kMySidPrefixLen,
         false /* resolved */);
+  }
 
+  void bringUpLagLink(int lag) {
     auto port = getEgressPort(lagPortDesc(lag));
     bringUpPort(port);
     // The SAI fast-path link-down handler disables the LAG member. Since LACP
@@ -296,7 +298,12 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
               state, AggregatePort::Forwarding::ENABLED);
         },
         "re-enable lag member after link flap");
+  }
 
+  void resolveLagNeighbor(int lag) {
+    auto ecmpHelper = makeEcmpHelper();
+    const boost::container::flat_set<PortDescriptor> lagPortDescs{
+        lagPortDesc(lag)};
     applyNewState(
         [&ecmpHelper,
          &lagPortDescs](const std::shared_ptr<SwitchState>& state) {
@@ -309,6 +316,13 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         mySidPrefix(lag),
         kMySidPrefixLen,
         true /* resolved */);
+  }
+
+  void bringUpLag(int lag) {
+    unresolveLagNeighbor(lag);
+    bringUpLagLink(lag);
+    resolveLagNeighbor(lag);
+    auto port = getEgressPort(lagPortDesc(lag));
     XLOG(DBG2) << "Brought up lag " << lag << " link (port " << port << ")";
   }
 
@@ -367,6 +381,29 @@ TEST_F(AgentMySidAdjFrrRouteTest, addSrv6BackupProtection) {
     // Restore the primary adjacency and traffic must fail back to it.
     bringUpLag(kPrimaryLag);
     verifyForwardedViaPrimary();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMySidAdjFrrRouteTest, addPrimaryToBackupOnlyMySid) {
+  auto setup = [this]() {
+    unresolveLagNeighbor(kPrimaryLag);
+    addSrv6BackupProtection();
+  };
+  auto verify = [this]() {
+    // Reestablish the backup-only starting state after warm boot, when the
+    // primary link is left down by the prior run.
+    unresolveLagNeighbor(kPrimaryLag);
+    bringUpLagLink(kPrimaryLag);
+    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+
+    // Resolving the primary adds it to the protection group and takes traffic.
+    resolveLagNeighbor(kPrimaryLag);
+    verifyForwardedViaPrimary();
+
+    // Hardware protection returns traffic to a backup when the primary fails.
+    bringDownLagLink(kPrimaryLag);
+    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
