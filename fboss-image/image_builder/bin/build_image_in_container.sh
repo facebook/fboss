@@ -74,8 +74,16 @@ update_docker() {
   # resolve to a newer version (e.g. 3.12) via update-alternatives. The
   # kiwi-ng-3 shebang uses "python3 -s" which excludes /usr/local/lib paths.
   # Install kiwi to the system site-packages visible under -s.
+  #
+  # Pinned: this install shadows the RPM above, so it is the kiwi that actually
+  # runs, and the container is rebuilt from scratch on every build -- unpinned,
+  # each run silently picks up whatever PyPI serves that day. 11.0.1 is the last
+  # version known to produce an image; a later one fails partitioning with
+  # "sgdisk: Could not change partition 1's type code to EF02!". Bump
+  # deliberately, after a green build, rather than by drift.
+  KIWI_VERSION=11.0.1
   KIWI_SITE_PKG=$(python3 -s -c "import site; print(site.getsitepackages()[0])")
-  python3 -m pip install kiwi --target "${KIWI_SITE_PKG}"
+  python3 -m pip install "kiwi==${KIWI_VERSION}" --target "${KIWI_SITE_PKG}"
 }
 
 build_zstd() {
