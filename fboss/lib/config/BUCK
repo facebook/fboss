@@ -41,12 +41,14 @@ cpp_library(
     name = "fboss_agent_config_utils",
     srcs = [
         "agent/AclConfigUtils.cpp",
+        "agent/CoppConfigUtils.cpp",
         "agent/InterfaceConfigUtils.cpp",
         "agent/PortConfigUtils.cpp",
         "agent/VlanConfigUtils.cpp",
     ],
     headers = [
         "agent/AclConfigUtils.h",
+        "agent/CoppConfigUtils.h",
         "agent/InterfaceConfigUtils.h",
         "agent/PortConfigUtils.h",
         "agent/VlanConfigUtils.h",
@@ -68,6 +70,7 @@ cpp_unittest(
     name = "fboss_agent_config_utils_tests",
     srcs = [
         "agent/tests/AclConfigUtilsTest.cpp",
+        "agent/tests/CoppConfigUtilsTest.cpp",
         "agent/tests/InterfaceConfigUtilsTest.cpp",
         "agent/tests/PortConfigUtilsTest.cpp",
         "agent/tests/VlanConfigUtilsTest.cpp",

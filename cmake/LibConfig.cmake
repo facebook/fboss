@@ -17,6 +17,7 @@ target_link_libraries(fboss_config_utils
 
 add_library(fboss_agent_config_utils
   fboss/lib/config/agent/AclConfigUtils.cpp
+  fboss/lib/config/agent/CoppConfigUtils.cpp
   fboss/lib/config/agent/InterfaceConfigUtils.cpp
   fboss/lib/config/agent/PortConfigUtils.cpp
   fboss/lib/config/agent/VlanConfigUtils.cpp

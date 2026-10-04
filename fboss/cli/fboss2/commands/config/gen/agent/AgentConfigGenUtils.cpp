@@ -29,6 +29,7 @@
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
+#include "fboss/lib/config/agent/CoppConfigUtils.h"
 #include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
 #include "fboss/lib/config/agent/VlanConfigUtils.h"
@@ -613,6 +614,8 @@ cfg::SwitchConfig generateSwitchConfig(
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
   if (inputs.profile == kDefaultProfileName) {
+    utility::addDefaultCpuQueueConfig(switchConfig, *asic);
+    utility::addDefaultCpuTrafficPolicyConfig(switchConfig, *asic);
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
   }
   return switchConfig;

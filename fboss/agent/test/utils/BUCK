@@ -114,6 +114,7 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:network_address",
         "//folly/logging:logging",
     ],

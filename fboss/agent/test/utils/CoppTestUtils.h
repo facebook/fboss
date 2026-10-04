@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/agent/CoppConfigUtils.h"
 
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
@@ -49,20 +50,6 @@ constexpr uint32_t kCoppLowPriWeight = 1;
 constexpr uint32_t kCoppDefaultPriWeight = 1;
 constexpr uint32_t kCoppMidPriWeight = 2;
 constexpr uint32_t kCoppHighPriWeight = 4;
-
-constexpr uint32_t kAveragePacketSize = 300;
-constexpr uint32_t kCoppLowPriPktsPerSec = 100;
-constexpr uint32_t kCoppDefaultPriPktsPerSec = 200;
-
-// Tajo supports higher PPS to CPU
-constexpr uint32_t kCpuPacketOverheadBytes = 52;
-constexpr uint32_t kCoppTajoLowPriPktsPerSec = 10000;
-constexpr uint32_t kCoppTajoDefaultPriPktsPerSec = 20000;
-
-// DNX supports higher PPS to CPU
-constexpr uint32_t kCoppDnxLowPriPktsPerSec = 12000;
-constexpr uint32_t kCoppDnxDefaultPriPktsPerSec = 24000;
-constexpr uint32_t kCoppDnxLowPriKbitsPerSec = 100 * 1024;
 
 constexpr uint16_t kBgpPort = 179;
 
@@ -127,11 +114,6 @@ void setDefaultCpuTrafficPolicyConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai);
 
-cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
-cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic);
-
-cfg::Range getRange(uint32_t minimum, uint32_t maximum);
-
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic);
 
 uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics);
@@ -140,10 +122,6 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics);
 std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
     std::shared_ptr<SwitchState> swState,
     const PortID& srcPort);
-
-uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId);
-
-cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic);
 
 uint64_t getCpuQueueWatermarkBytes(HwPortStats& stats, int queueId);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
@@ -299,8 +277,6 @@ void verifyCoppInvariantHelper(
 void excludeTTL1TrapConfig(cfg::SwitchConfig& config);
 
 CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId);
-
-cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId);
 
 uint32_t getDnxCoppMaxDynamicSharedBytes(uint16_t queueId);
 

@@ -44,6 +44,7 @@ add_library(copp_test_utils
 target_link_libraries(copp_test_utils
   asic_test_utils
   Folly::folly
+  fboss_agent_config_utils
   hw_switch
   load_balancer_test_utils
   packet
