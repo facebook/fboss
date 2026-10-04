@@ -279,6 +279,10 @@ bool P200Asic::isSupportedNonFabric(Feature feature) const {
       // Leaba does not implement the MPLS label0 TTL ACL qualifier yet.
       // Becomes saiSdkAtLeast("<version>") once it does.
       return false;
+    case HwAsic::Feature::SAI_MPLS_NEXTHOP_OUTSEG_TYPE:
+      // Leaba does not implement the MPLS next hop outsegment type attribute
+      // yet. Becomes saiSdkAtLeast("<version>") once it does.
+      return false;
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::SAI_PRBS:
       /*
