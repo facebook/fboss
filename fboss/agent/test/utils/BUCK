@@ -61,7 +61,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
-        "//fboss/lib/config:acl_config_utils",
+        "//fboss/lib/config:fboss_agent_config_utils",
     ],
 )
 
@@ -322,7 +322,6 @@ cpp_library(
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
-        "//fboss/lib/config:acl_config_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly/testing:test_util",
     ],
@@ -334,7 +333,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
-        "//fboss/lib/config:port_config_utils",
+        "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:network_address",
     ],
 )

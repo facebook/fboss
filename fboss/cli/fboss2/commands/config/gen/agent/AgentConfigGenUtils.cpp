@@ -29,7 +29,9 @@
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
@@ -450,12 +452,8 @@ void addDefaultProfilePortGraph(
     port.state() = cfg::PortState::ENABLED;
   }
 
-  auto defaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  defaultVlan.name() = "default";
-  defaultVlan.routable() = false;
-  switchConfig.vlans()->push_back(std::move(defaultVlan));
-  switchConfig.defaultVlan() = utility::kDefaultVlanId4094;
+  utility::addDefaultVlan(switchConfig, asic);
+  utility::addDefaultLoopbackInterface(switchConfig, asic);
 }
 
 } // namespace

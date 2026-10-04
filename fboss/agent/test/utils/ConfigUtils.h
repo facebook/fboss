@@ -25,7 +25,9 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 #include <folly/MacAddress.h>
 #include <vector>

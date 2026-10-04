@@ -33,7 +33,9 @@
 #include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace {
@@ -52,6 +54,29 @@ constexpr int32_t kManagementPortId = 100;
 constexpr auto kPortProfile = cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC;
 constexpr auto kWidePortProfile =
     cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+
+cfg::Vlan makeLoopbackVlan() {
+  auto vlan = utility::createVlanConfig(VlanID(utility::kFbossLoopbackVlanId));
+  vlan.name() = "fbossLoopback0";
+  return vlan;
+}
+
+cfg::Vlan makeDefaultVlan() {
+  auto vlan = utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  vlan.name() = "default";
+  vlan.routable() = false;
+  return vlan;
+}
+
+cfg::Interface makeLoopbackInterface() {
+  auto intf = utility::createVlanInterfaceConfig(
+      InterfaceID(utility::kFbossLoopbackVlanId),
+      VlanID(utility::kFbossLoopbackVlanId));
+  intf.name().reset();
+  intf.isVirtual() = true;
+  intf.isStateSyncDisabled() = true;
+  return intf;
+}
 
 void writeTestFile(const fs::path& path, std::string_view contents) {
   fs::create_directories(path.parent_path());
@@ -628,16 +653,15 @@ TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
   const std::vector<cfg::Interface> expectedInterfaces{
       utility::createVlanInterfaceConfig(
           InterfaceID(utility::kInterfaceVlanIdMin),
-          VlanID(utility::kInterfaceVlanIdMin))};
+          VlanID(utility::kInterfaceVlanIdMin)),
+      makeLoopbackInterface()};
   EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
 
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
   const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
-      expectedDefaultVlan};
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
   EXPECT_EQ(*switchConfig.defaultVlan(), utility::kDefaultVlanId4094);
 }
@@ -691,17 +715,16 @@ TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
       utility::createVlanInterfaceConfig(
           InterfaceID(utility::kInterfaceVlanIdMin),
           VlanID(utility::kInterfaceVlanIdMin)),
-      expectedManagementInterface};
+      expectedManagementInterface,
+      makeLoopbackInterface()};
   EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
 
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
   const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMax)),
-      expectedDefaultVlan};
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 
@@ -720,12 +743,12 @@ TEST(AgentConfigGenTest, SkipsNonInterfacePortForDefaultProfile) {
 
   EXPECT_TRUE(switchConfig.ports()->empty());
   EXPECT_TRUE(switchConfig.vlanPorts()->empty());
-  EXPECT_TRUE(switchConfig.interfaces()->empty());
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
-  const std::vector<cfg::Vlan> expectedVlans{expectedDefaultVlan};
+  const std::vector<cfg::Interface> expectedInterfaces{makeLoopbackInterface()};
+  EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
+  const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 
