@@ -1,9 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -11,11 +13,14 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <fmt/format.h>
 
+#include <set>
 #include <utility>
 
 namespace facebook::fboss {
@@ -28,6 +33,7 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr auto kLocatorPrefix{"fdad:ffff::/32"};
   static constexpr auto kSrv6TunnelId{"srv6Tunnel0"};
+  static constexpr auto kShiftedProtectedSidPktDst{"fdad:ffff:f::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -62,6 +68,11 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     config.mySidConfig() = makeAdjacencyMySidConfig();
     config.srv6Tunnels() = {utility::makeSrv6TunnelConfig(
         kSrv6TunnelId, InterfaceID(config.interfaces()[0].intfID().value()))};
+    utility::addTrapPacketAcl(
+        checkSameAndGetAsicForTesting(ensemble.getL3Asics()),
+        &config,
+        std::set<folly::CIDRNetwork>{
+            {folly::IPAddressV6(kShiftedProtectedSidPktDst), 128}});
     return config;
   }
 
@@ -165,12 +176,11 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     throw FbossError("No UP port found besides the mysid lag ports");
   }
 
-  void sendPacketToProtectedSid(
-      PortID injectPort,
+  std::unique_ptr<TxPacket> makePacketToProtectedSid(
       uint32_t outerFlowLabel = 0) {
     auto intfMac =
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
-    auto txPacket = utility::makeIpInIpTxPacket(
+    return utility::makeIpInIpTxPacket(
         getSw(),
         getVlanIDForTx().value(),
         intfMac,
@@ -186,6 +196,12 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
         64 /* hopLimit */,
         64 /* innerHopLimit */,
         outerFlowLabel);
+  }
+
+  void sendPacketToProtectedSid(
+      PortID injectPort,
+      uint32_t outerFlowLabel = 0) {
+    auto txPacket = makePacketToProtectedSid(outerFlowLabel);
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
   }
 
@@ -424,6 +440,21 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     addSrv6BackupProtection(backupLags());
   }
 
+  void addIpBackupProtection(int backupLag) {
+    const auto nextHop = makeEcmpHelper().nhop(lagPortDesc(backupLag));
+    const auto nextHopIp = nextHop.linkLocalNhopIp.has_value()
+        ? folly::IPAddress(*nextHop.linkLocalNhopIp)
+        : folly::IPAddress(nextHop.ip);
+    NextHopThrift backupNextHop;
+    backupNextHop.address() = facebook::network::toBinaryAddress(nextHopIp);
+    backupNextHop.address()->ifName() =
+        utility::createTunIntfName(nextHop.intf);
+    auto backupNextHops = std::make_unique<std::vector<NextHopThrift>>();
+    backupNextHops->push_back(std::move(backupNextHop));
+    ThriftHandler(getSw()).addAdjacencyFrr(
+        makeFrrProtectedObject(), std::move(backupNextHops));
+  }
+
   void deleteSrv6BackupProtection() {
     ThriftHandler(getSw()).deleteAdjacencyFrr(makeFrrProtectedObject());
   }
@@ -560,6 +591,57 @@ TEST_F(AgentMySidAdjFrrRouteTest, backupNextHopFlap) {
 
     unresolveLagNeighbor(kPrimaryLag);
     bringUpLagLink(kPrimaryLag);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMySidAdjFrrRouteTest, ipNextHopsAsBackup) {
+  constexpr int kBackupLag{1};
+  auto setup = [this]() {
+    unresolveLagNeighbor(kPrimaryLag);
+    addIpBackupProtection(kBackupLag);
+  };
+  auto verify = [this]() {
+    const auto egressPort = getEgressPort(lagPortDesc(kBackupLag));
+    const auto injectPort = findInjectPort(allLagPorts());
+    const auto bytesBefore = *getLatestPortStats(egressPort).outBytes_();
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(), "mySidIpBackupSnooper", egressPort);
+
+    auto txPacket = makePacketToProtectedSid();
+    const auto originalFrame = utility::makeEthFrame(*txPacket);
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    auto capturedFrame = snooper.waitForPacket(1);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GT(
+          *getLatestPortStats(egressPort).outBytes_(), bytesBefore);
+      if (!capturedFrame.has_value()) {
+        capturedFrame = snooper.waitForPacket(1);
+      }
+      EXPECT_EVENTUALLY_TRUE(capturedFrame.has_value());
+    });
+
+    ASSERT_TRUE(capturedFrame.has_value());
+    folly::io::Cursor cursor(capturedFrame->get());
+    utility::EthFrame frame(cursor);
+    EXPECT_EQ(
+        frame.header().etherType,
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+
+    const auto originalV6 = originalFrame.v6PayLoad();
+    const auto capturedV6 = frame.v6PayLoad();
+    ASSERT_TRUE(originalV6.has_value());
+    ASSERT_TRUE(capturedV6.has_value());
+    auto expectedHeader = originalV6->header();
+    expectedHeader.dstAddr = folly::IPAddressV6(kShiftedProtectedSidPktDst);
+    EXPECT_EQ(capturedV6->header(), expectedHeader);
+
+    const auto* originalInnerV6 = originalV6->v6PayLoad();
+    const auto* capturedInnerV6 = capturedV6->v6PayLoad();
+    ASSERT_NE(originalInnerV6, nullptr);
+    ASSERT_NE(capturedInnerV6, nullptr);
+    EXPECT_EQ(*capturedInnerV6, *originalInnerV6);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
