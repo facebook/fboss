@@ -72,12 +72,14 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_MPLS> {
   using AdapterHostKey = std::tuple<
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
-      typename Attributes::LabelStack>;
+      typename Attributes::LabelStack,
+      std::optional<typename Attributes::OutsegType>>;
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
       typename Attributes::RouterInterfaceId,
       typename Attributes::Ip,
       typename Attributes::LabelStack,
+      std::optional<typename Attributes::OutsegType>,
       std::optional<typename Attributes::DisableTtlDecrement>>;
 };
 

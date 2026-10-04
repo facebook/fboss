@@ -24,9 +24,17 @@ class NextHopStoreTest : public SaiStoreTest {
   }
   NextHopSaiId createMplsNextHop(
       const folly::IPAddress& ip,
-      std::vector<sai_uint32_t> stack) {
+      std::vector<sai_uint32_t> stack,
+      std::optional<SaiMplsNextHopTraits::Attributes::OutsegType> outsegType =
+          SaiMplsNextHopTraits::Attributes::OutsegType{SAI_OUTSEG_TYPE_SWAP}) {
     return saiApiTable->nextHopApi().create<SaiMplsNextHopTraits>(
-        {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, std::move(stack), std::nullopt}, 0);
+        {SAI_NEXT_HOP_TYPE_MPLS,
+         42,
+         ip,
+         std::move(stack),
+         outsegType,
+         std::nullopt},
+        0);
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   NextHopSaiId createSrv6SidlistNextHop(
@@ -62,9 +70,9 @@ TEST_F(NextHopStoreTest, loadNextHops) {
 
   auto& mplsNextHopStore = s.get<SaiMplsNextHopTraits>();
   SaiMplsNextHopTraits::AdapterHostKey k3{
-      42, ip1, std::vector<sai_uint32_t>{1001, 1002}};
+      42, ip1, std::vector<sai_uint32_t>{1001, 1002}, SAI_OUTSEG_TYPE_SWAP};
   SaiMplsNextHopTraits::AdapterHostKey k4{
-      42, ip2, std::vector<sai_uint32_t>{2001, 2002}};
+      42, ip2, std::vector<sai_uint32_t>{2001, 2002}, SAI_OUTSEG_TYPE_SWAP};
   auto mplsNhop = mplsNextHopStore.get(k3);
   ASSERT_NE(mplsNhop, nullptr);
   EXPECT_EQ(mplsNhop->adapterKey(), nextHopSaiId3);

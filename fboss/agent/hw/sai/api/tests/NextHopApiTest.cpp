@@ -44,18 +44,22 @@ class NextHopApiTest : public ::testing::Test {
 
   NextHopSaiId createMplsNextHop(
       folly::IPAddress ip,
-      std::vector<sai_uint32_t> stack) {
+      std::vector<sai_uint32_t> stack,
+      sai_int32_t outsegType = SAI_OUTSEG_TYPE_SWAP) {
     SaiMplsNextHopTraits::Attributes::Type typeAttribute(
         SAI_NEXT_HOP_TYPE_MPLS);
     SaiMplsNextHopTraits::Attributes::RouterInterfaceId
         routerInterfaceIdAttribute(0);
     SaiMplsNextHopTraits::Attributes::Ip ipAttribute(ip4);
     SaiMplsNextHopTraits::Attributes::LabelStack labelStack{stack};
+    SaiMplsNextHopTraits::Attributes::OutsegType outsegTypeAttribute{
+        outsegType};
     auto nextHopId = nextHopApi->create<SaiMplsNextHopTraits>(
         {typeAttribute,
          routerInterfaceIdAttribute,
          ipAttribute,
          labelStack,
+         outsegTypeAttribute,
          std::nullopt},
         0);
     auto fnh = fs->nextHopManager.get(nextHopId);
@@ -63,6 +67,7 @@ class NextHopApiTest : public ::testing::Test {
     EXPECT_EQ(ip, fnh.ip);
     EXPECT_EQ(0, fnh.routerInterfaceId);
     EXPECT_EQ(stack, fnh.labelStack);
+    EXPECT_EQ(outsegType, fnh.outsegType);
 
     return nextHopId;
   }

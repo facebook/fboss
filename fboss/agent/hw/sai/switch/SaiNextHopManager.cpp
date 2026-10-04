@@ -99,13 +99,15 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   if (LabelForwardingAction::LabelForwardingType::SWAP ==
       labelForwardingAction->type()) {
     labels.push_back(swNextHop.labelForwardingAction()->swapWith().value());
-    return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
+    return SaiMplsNextHopTraits::AdapterHostKey{
+        rifId, ip, labels, SAI_OUTSEG_TYPE_SWAP};
   }
   for (auto label : labelForwardingAction->pushStack().value()) {
     labels.push_back(label);
   }
 
-  return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
+  return SaiMplsNextHopTraits::AdapterHostKey{
+      rifId, ip, labels, SAI_OUTSEG_TYPE_SWAP};
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -314,6 +316,7 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects added) {
          std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(key_),
          std::get<typename NextHopTraits::Attributes::Ip>(key_),
          std::get<typename NextHopTraits::Attributes::LabelStack>(key_),
+         std::nullopt,
          std::nullopt});
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
