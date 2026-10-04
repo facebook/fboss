@@ -458,4 +458,30 @@ TEST_F(AgentMySidAdjFrrRouteTest, addBackupAndPrimaryToBackupOnlyMySid) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentMySidAdjFrrRouteTest, allNextHopsUnavailableThenRecover) {
+  auto setup = [this]() { unresolveLagNeighbor(kPrimaryLag); };
+  auto verify = [this]() {
+    addSrv6BackupProtection();
+    verifyForwardedViaOneOfLags(backupLags(), {kPrimaryLag} /* downLags */);
+
+    for (const auto lag : backupLags()) {
+      unresolveLagNeighbor(lag);
+    }
+
+    constexpr int kRecoveredBackupLag{1};
+    resolveLagNeighbor(kRecoveredBackupLag);
+    verifyForwardedViaOneOfLags({kRecoveredBackupLag}, {kPrimaryLag, 2, 3});
+
+    resolveLagNeighbor(kPrimaryLag);
+    verifyForwardedViaPrimary();
+    unresolveLagNeighbor(kPrimaryLag);
+
+    for (const auto lag : {2, 3}) {
+      resolveLagNeighbor(lag);
+    }
+    deleteSrv6BackupProtection();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
