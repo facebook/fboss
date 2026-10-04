@@ -4088,6 +4088,9 @@
         },
         {
           "test_name_regex": "AgentRouteStatExtendedLabelTest.RouteCounterExtendedLabel$"
+        },
+        {
+          "test_name_regex": "AgentRouteStatExtendedLabelTest.NamedNhgExtendedCounterLabel$"
         }
     ],
     "leaba/25.11.4210/25.11.4210/gibraltar/multi_switch": [
@@ -4286,6 +4289,9 @@
         },
         {
           "test_name_regex": "AgentRouteStatExtendedLabelTest.RouteCounterExtendedLabel$"
+        },
+        {
+          "test_name_regex": "AgentRouteStatExtendedLabelTest.NamedNhgExtendedCounterLabel$"
         }
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/multi_switch": [
@@ -4354,6 +4360,9 @@
         },
         {
           "test_name_regex": "AgentRouteStatExtendedLabelTest.RouteCounterExtendedLabel$"
+        },
+        {
+          "test_name_regex": "AgentRouteStatExtendedLabelTest.NamedNhgExtendedCounterLabel$"
         }
     ],
     "leaba/26.2.4210/26.2.4210/graphene200/multi_switch/rbb": [
