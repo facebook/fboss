@@ -277,8 +277,8 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
 
   std::unique_ptr<TxPacket>
   makeMplsIngressPacket(Label label, uint8_t ttl, bool isV4) const {
+    // nullopt on port based router interface platforms; frame goes out untagged
     auto vlan = getVlanIDForTx();
-    CHECK(vlan.has_value());
 
     MPLSHdr::Label mplsLabel{
         static_cast<uint32_t>(label.value()), 0, true, ttl};
@@ -292,7 +292,7 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
           folly::IPAddressV4{"200.1.1.1"},
           10000,
           20000,
-          *vlan);
+          vlan);
       pkt = frame.getTxPacket(
           [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
     } else {
@@ -304,7 +304,7 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
           folly::IPAddressV6{"2001::1"},
           10000,
           20000,
-          *vlan);
+          vlan);
       pkt = frame.getTxPacket(
           [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
     }
@@ -314,8 +314,8 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
   std::unique_ptr<TxPacket> makeMplsLabelStackIngressPacket(
       size_t labelStackDepth,
       uint8_t ttl) const {
+    // nullopt on port based router interface platforms; frame goes out untagged
     auto vlan = getVlanIDForTx();
-    CHECK(vlan.has_value());
 
     std::vector<MPLSHdr::Label> labels;
     labels.reserve(labelStackDepth);
@@ -337,7 +337,7 @@ class AgentMPLSMidpointTest : public AgentMPLSDataplaneTest<PortType> {
         folly::IPAddressV6{"2001::1"},
         10000,
         20000,
-        *vlan);
+        vlan);
     return frame.getTxPacket(
         [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); });
   }
