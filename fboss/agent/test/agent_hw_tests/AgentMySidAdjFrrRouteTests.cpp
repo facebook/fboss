@@ -255,11 +255,57 @@ class AgentMySidAdjFrrRouteTest : public AgentHwTest {
     }
   }
 
+  void verifyShiftedPacketOnLag(int lag) {
+    const auto egressPort = getEgressPort(lagPortDesc(lag));
+    const auto injectPort = findInjectPort(allLagPorts());
+    const auto bytesBefore = *getLatestPortStats(egressPort).outBytes_();
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(), "mySidShiftedPacketSnooper", egressPort);
+
+    auto txPacket = makePacketToProtectedSid();
+    const auto originalFrame =
+        utility::makeEthFrame(*txPacket, true /* skipTtlDecrement */);
+    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    auto capturedFrame = snooper.waitForPacket(1);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_GT(
+          *getLatestPortStats(egressPort).outBytes_(), bytesBefore);
+      if (!capturedFrame.has_value()) {
+        capturedFrame = snooper.waitForPacket(1);
+      }
+      EXPECT_EVENTUALLY_TRUE(capturedFrame.has_value());
+    });
+
+    ASSERT_TRUE(capturedFrame.has_value());
+    folly::io::Cursor cursor(capturedFrame->get());
+    utility::EthFrame frame(cursor);
+    EXPECT_EQ(
+        frame.header().etherType,
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+
+    const auto originalV6 = originalFrame.v6PayLoad();
+    const auto capturedV6 = frame.v6PayLoad();
+    ASSERT_TRUE(originalV6.has_value());
+    ASSERT_TRUE(capturedV6.has_value());
+    auto expectedHeader = originalV6->header();
+    expectedHeader.decrementTTL();
+    expectedHeader.dstAddr = folly::IPAddressV6(kShiftedProtectedSidPktDst);
+    EXPECT_EQ(capturedV6->header(), expectedHeader);
+
+    const auto* originalInnerV6 = originalV6->v6PayLoad();
+    const auto* capturedInnerV6 = capturedV6->v6PayLoad();
+    ASSERT_NE(originalInnerV6, nullptr);
+    ASSERT_NE(capturedInnerV6, nullptr);
+    EXPECT_EQ(*capturedInnerV6, *originalInnerV6);
+  }
+
   // With the primary adjacency up, FRR backups are programmed but must not
   // carry traffic: the packet has to leave via the protected SID's own
   // adjacency (AGG-1) and none of the backup lags.
   void verifyForwardedViaPrimary() {
     verifyForwardedViaOneOfLags({kPrimaryLag} /* liveLags */, backupLags());
+    verifyShiftedPacketOnLag(kPrimaryLag);
   }
 
   void pumpTrafficAndVerifyLoadBalancedAcrossLags(
@@ -601,48 +647,7 @@ TEST_F(AgentMySidAdjFrrRouteTest, ipNextHopsAsBackup) {
     unresolveLagNeighbor(kPrimaryLag);
     addIpBackupProtection(kBackupLag);
   };
-  auto verify = [this]() {
-    const auto egressPort = getEgressPort(lagPortDesc(kBackupLag));
-    const auto injectPort = findInjectPort(allLagPorts());
-    const auto bytesBefore = *getLatestPortStats(egressPort).outBytes_();
-    utility::SwSwitchPacketSnooper snooper(
-        getSw(), "mySidIpBackupSnooper", egressPort);
-
-    auto txPacket = makePacketToProtectedSid();
-    const auto originalFrame = utility::makeEthFrame(*txPacket);
-    getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
-
-    auto capturedFrame = snooper.waitForPacket(1);
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_GT(
-          *getLatestPortStats(egressPort).outBytes_(), bytesBefore);
-      if (!capturedFrame.has_value()) {
-        capturedFrame = snooper.waitForPacket(1);
-      }
-      EXPECT_EVENTUALLY_TRUE(capturedFrame.has_value());
-    });
-
-    ASSERT_TRUE(capturedFrame.has_value());
-    folly::io::Cursor cursor(capturedFrame->get());
-    utility::EthFrame frame(cursor);
-    EXPECT_EQ(
-        frame.header().etherType,
-        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
-
-    const auto originalV6 = originalFrame.v6PayLoad();
-    const auto capturedV6 = frame.v6PayLoad();
-    ASSERT_TRUE(originalV6.has_value());
-    ASSERT_TRUE(capturedV6.has_value());
-    auto expectedHeader = originalV6->header();
-    expectedHeader.dstAddr = folly::IPAddressV6(kShiftedProtectedSidPktDst);
-    EXPECT_EQ(capturedV6->header(), expectedHeader);
-
-    const auto* originalInnerV6 = originalV6->v6PayLoad();
-    const auto* capturedInnerV6 = capturedV6->v6PayLoad();
-    ASSERT_NE(originalInnerV6, nullptr);
-    ASSERT_NE(capturedInnerV6, nullptr);
-    EXPECT_EQ(*capturedInnerV6, *originalInnerV6);
-  };
+  auto verify = [this]() { verifyShiftedPacketOnLag(kBackupLag); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
