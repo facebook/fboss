@@ -195,6 +195,8 @@ TEST_F(NextHopApiTest, formatNextHopAttributes) {
   EXPECT_EQ(fmt::format("Ip: {}", str4), fmt::format("{}", ip));
   SaiMplsNextHopTraits::Attributes::LabelStack ls{{42, 100}};
   EXPECT_EQ("LabelStack: [42, 100]", fmt::format("{}", ls));
+  SaiMplsNextHopTraits::Attributes::OutsegType ot{SAI_OUTSEG_TYPE_PUSH};
+  EXPECT_EQ("OutsegType: 0", fmt::format("{}", ot));
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
