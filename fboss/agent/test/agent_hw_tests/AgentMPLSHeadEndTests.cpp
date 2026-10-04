@@ -263,13 +263,16 @@ class AgentMPLSHeadEndTest : public AgentMPLSDataplaneTest<PortType> {
 
   template <typename AddrT>
   utility::EthFrame makeIpIngressFrame(uint8_t ttlOrHopLimit) const {
+    // nullopt on port based router interface platforms; frame goes out untagged
     auto vlan = getVlanIDForTx();
-    CHECK(vlan.has_value());
 
     constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
     constexpr auto etherType =
         isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
-    auto tags = EthHdr::VlanTags_t{VlanTag(*vlan, 0x8100)};
+    EthHdr::VlanTags_t tags;
+    if (vlan.has_value()) {
+      tags.push_back(VlanTag(*vlan, 0x8100));
+    }
     EthHdr ethHdr{
         utility::kLocalCpuMac(),
         folly::MacAddress{"02:00:00:00:00:02"},
