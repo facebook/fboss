@@ -36,6 +36,9 @@ void AgentQosTestBase::verifyDscpQueueMapping(
     for (bool frontPanel : {false, true}) {
       XLOG(DBG2) << "verify send packets "
                  << (frontPanel ? "out of port" : "switched");
+      if (frontPanel) {
+        learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+      }
       utility::sendPktAndVerifyQueueHit(
           queueToDscp,
           getSw(),

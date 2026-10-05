@@ -14,6 +14,8 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -250,6 +252,16 @@ void AgentHwTest::learnL2EntryIfPending(folly::MacAddress mac, PortID port) {
             ETHERTYPE::ETHERTYPE_WOL),
         port);
   });
+}
+
+void AgentHwTest::learnSrcMacOnEcmpTxPortIfPending(int ecmpWidth) {
+  auto state = getProgrammedState();
+  auto intfMac = getMacForFirstInterfaceWithPorts(state);
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(
+      state, getSw()->needL2EntryForNeighbor());
+  learnL2EntryIfPending(
+      utility::MacAddressGenerator().get(intfMac.u64HBO() + 1),
+      ecmpHelper.ecmpPortDescriptorAt(ecmpWidth).phyPortID());
 }
 
 folly::MacAddress AgentHwTest::getMacForFirstInterfaceWithPorts(

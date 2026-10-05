@@ -303,6 +303,8 @@ class AgentHwTest : public ::testing::Test {
       const std::function<void()>& sendPkt);
   // Same, sending an Ethernet frame sourced from mac.
   void learnL2EntryIfPending(folly::MacAddress mac, PortID port);
+  // Same, for intfMac+1 on the port after the first ecmpWidth ECMP ports.
+  void learnSrcMacOnEcmpTxPortIfPending(int ecmpWidth);
 
   folly::MacAddress getMacForFirstInterfaceWithPorts(
       const std::shared_ptr<SwitchState>& state);

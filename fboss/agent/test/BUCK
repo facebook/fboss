@@ -700,6 +700,8 @@ cpp_library(
     ],
     undefined_symbols = True,
     deps = [
+        ":ecmp_helper",
+        ":resourcelibutil",
         "//fboss/agent:packet",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
