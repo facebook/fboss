@@ -679,11 +679,8 @@ SaiAclTableManager::addAclCounter(
         statSuffix = "packets";
         break;
       case cfg::CounterType::BYTES:
-        if (platform_->getAsic()->isSupported(
-                HwAsic::Feature::ACL_BYTE_COUNTER)) {
-          enableByteCount =
-              SaiAclCounterTraits::Attributes::EnableByteCount{true};
-        }
+        enableByteCount =
+            SaiAclCounterTraits::Attributes::EnableByteCount{true};
         statSuffix = "bytes";
         break;
       default:
