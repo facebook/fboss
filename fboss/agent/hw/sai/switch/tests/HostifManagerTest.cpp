@@ -238,7 +238,7 @@ TEST_F(HostifManagerTest, addCpuQueueAndCheckStats) {
   for (const auto& portQueue : queueConfig) {
     for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_TRUE(
-          facebook::fbData->getStatMap()->contains(
+          facebook::fb303::fbData->getStatMap()->contains(
               HwCpuFb303Stats::statName(
                   statKey, portQueue->getID(), *portQueue->getName())));
       EXPECT_EQ(
@@ -284,7 +284,7 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
     auto queueName = folly::to<std::string>("queue", queueId);
     for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_TRUE(
-          facebook::fbData->getStatMap()->contains(
+          facebook::fb303::fbData->getStatMap()->contains(
               HwCpuFb303Stats::statName(statKey, queueId, queueName)));
       EXPECT_EQ(
           cpuStat.getCounterLastIncrement(
@@ -295,7 +295,7 @@ TEST_F(HostifManagerTest, removeCpuQueueAndCheckStats) {
   for (auto queueId : {3, 4}) {
     for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
       EXPECT_FALSE(
-          facebook::fbData->getStatMap()->contains(
+          facebook::fb303::fbData->getStatMap()->contains(
               HwCpuFb303Stats::statName(
                   statKey, queueId, folly::to<std::string>("queue", queueId))));
     }
@@ -333,10 +333,10 @@ TEST_F(HostifManagerTest, changeCpuQueueAndCheckStats) {
   const auto& cpuStat = saiManagerTable->hostifManager().getCpuFb303Stats();
   for (auto statKey : HwCpuFb303Stats::kQueueMonotonicCounterStatKeys()) {
     EXPECT_TRUE(
-        facebook::fbData->getStatMap()->contains(
+        facebook::fb303::fbData->getStatMap()->contains(
             HwCpuFb303Stats::statName(statKey, 1, "high")));
     EXPECT_FALSE(
-        facebook::fbData->getStatMap()->contains(
+        facebook::fb303::fbData->getStatMap()->contains(
             HwCpuFb303Stats::statName(statKey, 1, oldQueueName)));
     EXPECT_EQ(
         cpuStat.getCounterLastIncrement(
