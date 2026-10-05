@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 
 #include "fboss/agent/state/StateDelta.h"
@@ -22,6 +23,54 @@ HwSwitchMatcher scope() {
 } // namespace
 
 class HostifManagerTest : public ManagerTestBase {};
+
+TEST_F(HostifManagerTest, defaultCpuQueueCountMatchesSai) {
+  auto asic = saiPlatform->getAsic();
+  auto queueCount = asic->getDefaultNumPortQueues(
+      cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
+  auto saiQueueCount = saiApiTable->switchApi().getAttribute(
+      saiManagerTable->switchManager().getSwitchSaiId(),
+      SaiSwitchTraits::Attributes::NumberOfCpuQueues{});
+  EXPECT_EQ(queueCount, saiQueueCount);
+  EXPECT_LT(asic->getHiPriCpuQueueId(), queueCount);
+  EXPECT_LT(asic->getHiPriCpuQueueId(), saiQueueCount);
+}
+
+TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
+  auto asic = saiPlatform->getAsic();
+  auto queueCount = asic->getDefaultNumPortQueues(
+      cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
+  std::vector<uint8_t> queueIds;
+  for (int queueId = 0; queueId < queueCount; ++queueId) {
+    queueIds.push_back(queueId);
+  }
+  auto queueConfig = makeQueueConfig(queueIds, cfg::StreamType::MULTICAST);
+  auto controlPlane = std::make_shared<ControlPlane>();
+  controlPlane->resetQueues(queueConfig);
+  auto controlPlanes = std::make_shared<MultiControlPlane>();
+  controlPlanes->addNode(scope().matcherString(), controlPlane);
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+  newState->resetControlPlane(controlPlanes);
+  auto delta = StateDelta(oldState, newState);
+  auto& hostifManager = saiManagerTable->hostifManager();
+
+  // Without explicit CPU VOQs, the manager uses the CPU queue configuration.
+  hostifManager.processHostifDelta(delta.getControlPlaneDelta());
+
+  auto queues = hostifManager.getQueueSettings();
+  auto voqs = hostifManager.getVoqSettings();
+  ASSERT_EQ(queues.size(), queueIds.size());
+  ASSERT_EQ(voqs.size(), queueIds.size());
+  for (auto queueId : queueIds) {
+    EXPECT_NE(
+        hostifManager.getQueueHandle({queueId, cfg::StreamType::MULTICAST}),
+        nullptr);
+    EXPECT_NE(
+        hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST}),
+        nullptr);
+  }
+}
 
 TEST_F(HostifManagerTest, createHostifTrap) {
   uint32_t queueId = 4;
