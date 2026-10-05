@@ -1446,6 +1446,7 @@ cpp_library(
         "//folly:cpp_attributes",
         "//folly:file_util",
         "//folly:range",
+        "//folly:small_vector",
         "//folly:subprocess",
         "//folly:utility",
         "//folly/lang:assume",
