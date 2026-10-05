@@ -231,7 +231,7 @@ This routing is client-agnostic:
 | Leaba/Cisco runs — SDK runtime staging and checks, environment, benchmarks, lab devices | `facebook/leaba-device.md` | `references/build-and-load.md` (Leaba/Cisco SDK Libraries) and `references/run-tests.md` |
 | Run tests (cold/warm, mono/multi), parse results | — | `references/run-tests.md` |
 | Analyze SAI Replayer logs, read code for root cause | — | `references/analyze-logs.md` |
-| Enable SAI logging, replayer logging, packet tx logs | — | `references/enable-logging.md` |
+| Enable SAI logging, replayer logging, packet tx logs, BCM SDK debug logs | — | `references/enable-logging.md` |
 | SAI Replayer — capabilities/flags (packet/get/elapsed-time log), capture, build, run | `facebook/sai-replayer.md` | `references/sai-replayer.md` |
 | Debug crashes — non-stripped binaries, GDB, stack traces | — | `references/crash-debug.md` |
 | Vendor diagnostic shell — counters, routes, neighbors, techsupport dumps | `facebook/vendor-diag-shell.md` | `references/vendor-diag-shell.md` |
