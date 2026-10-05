@@ -593,11 +593,7 @@ struct BgpSettingConfig {
 
   /**
    * Enable egress queue backpressure when queueing updates to TCP socket.
-   *
-   * DEPRECATED: bgp++ always uses egress queue backpressure and ignores this
-   * field.
    */
-  @thrift.Deprecated
   8: optional bool enable_egress_queue_backpressure;
 
   /**
