@@ -13,25 +13,20 @@ class AgentEmptyTestBase : public AgentHwTest {
     return {ProductionFeature::HW_SWITCH};
   }
   std::optional<size_t> maxRequiredInterfacePorts() const override {
-    // Port-up verification needs every platform port.
+    // Loopback verification needs every platform port.
     return std::nullopt;
   }
   void AgentEmptyTest() {
     auto verify = [this]() {
       auto switchId = getCurrentSwitchIdForTesting();
+      auto asic = hwAsicForSwitch(switchId);
       auto state = getProgrammedState();
-      // Interface ports only: special ports such as the management port are
-      // admin-enabled but never link up in a testbed.
-      for (auto portId : masterLogicalInterfacePortIds(switchId)) {
+      for (auto portId : masterLogicalPortIds(switchId)) {
         auto port = state->getPorts()->getNodeIf(portId);
         if (port->isEnabled()) {
-          WITH_RETRIES({
-            EXPECT_EVENTUALLY_TRUE(
-                getProgrammedState()
-                    ->getPorts()
-                    ->getNodeIf(portId)
-                    ->isPortUp());
-          });
+          EXPECT_EQ(
+              port->getLoopbackMode(),
+              asic->getDesiredLoopbackMode(port->getPortType()));
         }
       }
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
