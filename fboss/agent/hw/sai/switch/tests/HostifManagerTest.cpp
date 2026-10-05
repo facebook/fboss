@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/SchedulerApi.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -37,6 +38,7 @@ TEST_F(HostifManagerTest, defaultCpuQueueCountMatchesSai) {
 }
 
 TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
+  constexpr uint8_t kWeight = 24;
   auto asic = saiPlatform->getAsic();
   auto queueCount = asic->getDefaultNumPortQueues(
       cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
@@ -44,9 +46,14 @@ TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
   for (int queueId = 0; queueId < queueCount; ++queueId) {
     queueIds.push_back(queueId);
   }
-  auto queueConfig = makeQueueConfig(queueIds, cfg::StreamType::MULTICAST);
+  auto queueConfig = makeQueueConfig(
+      queueIds,
+      cfg::StreamType::MULTICAST,
+      cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
+      kWeight);
   auto controlPlane = std::make_shared<ControlPlane>();
   controlPlane->resetQueues(queueConfig);
+  ASSERT_TRUE(controlPlane->getVoqs()->empty());
   auto controlPlanes = std::make_shared<MultiControlPlane>();
   controlPlanes->addNode(scope().matcherString(), controlPlane);
   auto oldState = std::make_shared<SwitchState>();
@@ -66,9 +73,19 @@ TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
     EXPECT_NE(
         hostifManager.getQueueHandle({queueId, cfg::StreamType::MULTICAST}),
         nullptr);
-    EXPECT_NE(
-        hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST}),
-        nullptr);
+    auto voqHandle =
+        hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST});
+    ASSERT_NE(voqHandle, nullptr);
+    ASSERT_TRUE(voqHandle->scheduler);
+    auto schedulerId = saiApiTable->queueApi().getAttribute(
+        voqHandle->queue->adapterKey(),
+        SaiQueueTraits::Attributes::SchedulerProfileId{});
+    EXPECT_EQ(schedulerId, voqHandle->scheduler->adapterKey());
+    EXPECT_EQ(
+        saiApiTable->schedulerApi().getAttribute(
+            voqHandle->scheduler->adapterKey(),
+            SaiSchedulerTraits::Attributes::SchedulingWeight{}),
+        kWeight);
   }
 }
 
