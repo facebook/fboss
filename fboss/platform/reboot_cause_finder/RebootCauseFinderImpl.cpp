@@ -218,6 +218,17 @@ reboot_cause_config::RebootCauseProviderAttempt makeAttempt(
   return attempt;
 }
 
+// A failed attempt records why it failed next to what it looked at. The
+// status alone cannot separate an endpoint the BMC image lacks (404) from an
+// ACL rejection (403) or an unreachable BMC, and those have different owners
+// and different fixes. The record outlives the log the reason would otherwise
+// only appear in, so it has to be carried here.
+std::string detailWithReason(
+    folly::StringPiece what,
+    folly::StringPiece reason) {
+  return fmt::format("{}: {}", what, reason);
+}
+
 std::string summariseAttempts(
     const std::vector<reboot_cause_config::RebootCauseProviderAttempt>&
         attempts) {
@@ -700,7 +711,7 @@ reboot_cause_config::RebootCauseProviderAttempt parseBmcWedgePower(
     return makeAttempt(
         kBmcWedgePowerProvider,
         reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED,
-        kBmcLogfilePath,
+        detailWithReason(kBmcLogfilePath, ex.what()),
         {});
   }
 
@@ -724,14 +735,16 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
     int64_t btimeSec,
     int64_t windowSec) {
   std::string body;
+  std::string failure;
   try {
     RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
     client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
     client.setTimeout(kBmcTimeout);
     body = client.requestWithOutput(kBmcLogfilePath, kBmcLogfileBody);
   } catch (const std::exception& ex) {
+    failure = ex.what();
     XLOG(ERR) << fmt::format(
-        "Failed to reach the BMC logfile API: {}", ex.what());
+        "Failed to reach the BMC logfile API: {}", failure);
     body.clear();
   }
   if (body.empty()) {
@@ -741,7 +754,8 @@ reboot_cause_config::RebootCauseProviderAttempt readBmcWedgePower(
     return makeAttempt(
         kBmcWedgePowerProvider,
         reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
-        kBmcLogfilePath,
+        detailWithReason(
+            kBmcLogfilePath, failure.empty() ? "empty response" : failure),
         {});
   }
   return parseBmcWedgePower(body, btimeSec, windowSec);
@@ -771,7 +785,7 @@ reboot_cause_config::RebootCauseProviderAttempt parseSuddenPowerLoss(
     return makeAttempt(
         kSuddenPowerLossProvider,
         reboot_cause_config::RebootCauseProviderStatus::PARSE_FAILED,
-        kBmcInfoPath,
+        detailWithReason(kBmcInfoPath, ex.what()),
         {});
   }
 
@@ -804,20 +818,23 @@ reboot_cause_config::RebootCauseProviderAttempt readSuddenPowerLoss(
     int64_t btimeSec,
     int64_t nowSec) {
   std::string body;
+  std::string failure;
   try {
     RestClient client(folly::IPAddress(kBmcAddress), kBmcPort);
     client.setSourceAddress(folly::IPAddressV6(kHostSourceAddress));
     client.setTimeout(kBmcTimeout);
     body = client.requestWithOutput(kBmcInfoPath);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << fmt::format("Failed to reach the BMC info API: {}", ex.what());
+    failure = ex.what();
+    XLOG(ERR) << fmt::format("Failed to reach the BMC info API: {}", failure);
     body.clear();
   }
   if (body.empty()) {
     return makeAttempt(
         kSuddenPowerLossProvider,
         reboot_cause_config::RebootCauseProviderStatus::READ_FAILED,
-        kBmcInfoPath,
+        detailWithReason(
+            kBmcInfoPath, failure.empty() ? "empty response" : failure),
         {});
   }
   return parseSuddenPowerLoss(body, btimeSec, nowSec);
@@ -830,15 +847,17 @@ reboot_cause_config::RebootCauseProviderAttempt readProvider(
 
   std::string contents;
   if (!folly::readFile(providerConfig.sysfsReadPath()->c_str(), contents)) {
+    const auto reason = folly::errnoStr(errno);
     XLOG(ERR) << fmt::format(
-        "Failed to read reboot causes from provider '{}' at path '{}'",
+        "Failed to read reboot causes from provider '{}' at path '{}': {}",
         *providerConfig.name(),
-        *providerConfig.sysfsReadPath());
+        *providerConfig.sysfsReadPath(),
+        reason);
     status = reboot_cause_config::RebootCauseProviderStatus::READ_FAILED;
     return makeAttempt(
         *providerConfig.name(),
         status,
-        *providerConfig.sysfsReadPath(),
+        detailWithReason(*providerConfig.sysfsReadPath(), reason),
         std::move(causes));
   }
 

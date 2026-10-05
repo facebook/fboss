@@ -11,10 +11,13 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gmock",
         "//fboss/platform/reboot_cause_finder:reboot_cause_finder_lib",
         "//folly:dynamic",
         "//folly:file_util",
         "//folly:network_address",
+        "//folly:scope_guard",
+        "//folly:string",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

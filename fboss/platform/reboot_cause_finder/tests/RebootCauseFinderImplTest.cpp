@@ -2,7 +2,9 @@
 
 #include "fboss/platform/reboot_cause_finder/RebootCauseFinderImpl.h"
 
+#include <sys/stat.h>
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -12,7 +14,10 @@
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/IPAddressV6.h>
+#include <folly/ScopeGuard.h>
+#include <folly/String.h>
 #include <folly/json.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -1311,6 +1316,62 @@ rcc::RebootCauseProviderConfig providerAt(const std::string& path) {
   return c;
 }
 } // namespace
+
+// A failed attempt has to say why it failed, not just what it looked at. The
+// status is the same whether the BMC image lacks the endpoint, its ACL
+// refused us, or the sysfs node is missing, and those have different owners.
+// The record outlives the log, so the reason has to survive in `detail`.
+
+TEST_F(RebootCauseFinderImplTest, ProviderReadFailureDetailCarriesErrno) {
+  const auto path = (tmpDir_ / "definitely-absent").string();
+  const auto attempt = detail::readProvider(providerAt(path));
+
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+  // The path alone was all the record used to carry; the errno is the part
+  // that separates "not exported by this BSP" from "exists but unreadable".
+  EXPECT_THAT(*attempt.detail(), ::testing::HasSubstr(path));
+  EXPECT_THAT(*attempt.detail(), ::testing::HasSubstr(folly::errnoStr(ENOENT)));
+}
+
+TEST_F(RebootCauseFinderImplTest, ProviderReadFailureDetailSeparatesEacces) {
+  const auto path = (tmpDir_ / "unreadable").string();
+  ASSERT_TRUE(folly::writeFile(std::string("x"), path.c_str()));
+  ASSERT_EQ(::chmod(path.c_str(), 0), 0);
+  SCOPE_EXIT {
+    ::chmod(path.c_str(), 0600);
+  };
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "running as root, mode 0 is still readable";
+  }
+
+  const auto attempt = detail::readProvider(providerAt(path));
+
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::READ_FAILED);
+  // Distinct from the absent case above: same status, different reason.
+  EXPECT_THAT(*attempt.detail(), ::testing::HasSubstr(folly::errnoStr(EACCES)));
+  EXPECT_THAT(
+      *attempt.detail(),
+      ::testing::Not(::testing::HasSubstr(folly::errnoStr(ENOENT))));
+}
+
+TEST_F(RebootCauseFinderImplTest, BmcWedgePowerParseFailureDetailCarriesWhy) {
+  const auto attempt = detail::parseBmcWedgePower("not json at all", 0, 3600);
+
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
+  // Must be the path *plus* the parser's complaint. Asserting only that the
+  // path appears, or only that the string is longer than some prefix, would
+  // also hold for the bare path and so would not test anything.
+  EXPECT_THAT(*attempt.detail(), ::testing::StartsWith("/api/sys/logfile: "));
+  EXPECT_GT(attempt.detail()->size(), std::string("/api/sys/logfile: ").size());
+}
+
+TEST_F(RebootCauseFinderImplTest, SuddenPowerLossParseFailureDetailCarriesWhy) {
+  const auto attempt = detail::parseSuddenPowerLoss("{\"bogus\": 1}", 0, 100);
+
+  EXPECT_EQ(*attempt.status(), rcc::RebootCauseProviderStatus::PARSE_FAILED);
+  EXPECT_THAT(*attempt.detail(), ::testing::StartsWith("/api/sys/bmc: "));
+  EXPECT_GT(attempt.detail()->size(), std::string("/api/sys/bmc: ").size());
+}
 
 TEST_F(RebootCauseFinderImplTest, ProviderGoodReadIsOkAndDecodes) {
   const auto path = (tmpDir_ / "causes").string();
