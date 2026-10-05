@@ -604,11 +604,6 @@ void SaiPortManager::changePortImpl(
       saiPort->setOptionalAttribute(
           SaiPortTraits::Attributes::AdminState{true});
     }
-  } else if (newPort->isUp() != oldPort->isUp() && newPort->isUp()) {
-    // The LLR TX trigger only takes effect once the link is up, which is why
-    // programLlr()'s own mode remote write is lost. This is the transition that
-    // arms it.
-    reissueLlrModeRemote(existingPort, newPort->getID());
   }
   changeClm(oldPort, newPort);
 }
@@ -1531,9 +1526,8 @@ void SaiPortManager::programLlr(
     portHandle->llrProfile = std::move(profile);
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeLocal{true});
-    // This sets the mode bit but does not send an LLR_INIT: the port is down,
-    // and a mode remote write before link up is lost (CS00012475411).
-    // reissueLlrModeRemote() arms the trigger on the following link up.
+    // The port is down here, so this sets the mode bit without sending an
+    // LLR_INIT. brcm-sai 16.0EA4 re-arms it on link up (CS00012475411).
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::LlrModeRemote{true});
   } else {
@@ -1541,32 +1535,6 @@ void SaiPortManager::programLlr(
         SaiPortTraits::Attributes::LlrProfile{SAI_NULL_OBJECT_ID});
     portHandle->llrProfile.reset();
   }
-#endif
-}
-
-// SAI_PORT_ATTR_LLR_MODE_REMOTE drives the MAC's SEND_TX_INIT trigger.
-// programLlr() asserts it before link up, where the trigger is lost: SAI
-// returns success and PC_LLR_CONTROL reads LLR_MODE_REMOTE=1, but
-// TX_LLR_INIT_OS stays 0 and no LLR_INIT is sent. Re-asserting after link up
-// arms it. Broadcom CS00012475411.
-//
-// The set goes through the port API, not the store: the store elides a set
-// matching its cached value, and mode remote is already true there from
-// programLlr(). Only remote is re-asserted: local is a persistent enable, and
-// clearing it stops this port acknowledging the partner's frames. Clearing is
-// unavailable in any case, since a port at link up is administratively enabled
-// (CS00012478409).
-void SaiPortManager::reissueLlrModeRemote(
-    [[maybe_unused]] SaiPortHandle* portHandle,
-    [[maybe_unused]] PortID portId) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
-  if (!portHandle->llrProfile) {
-    return;
-  }
-  XLOG(DBG2) << "Re-asserting LLR mode remote on port " << portId;
-  SaiApiTable::getInstance()->portApi().setAttribute(
-      portHandle->port->adapterKey(),
-      SaiPortTraits::Attributes::LlrModeRemote{true});
 #endif
 }
 
