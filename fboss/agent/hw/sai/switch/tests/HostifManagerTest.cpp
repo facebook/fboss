@@ -61,31 +61,38 @@ TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
   newState->resetControlPlane(controlPlanes);
   auto delta = StateDelta(oldState, newState);
   auto& hostifManager = saiManagerTable->hostifManager();
+  EXPECT_TRUE(hostifManager.getCpuSysPortFb303Stats().queueId2Name().empty());
 
   // Without explicit CPU VOQs, the manager uses the CPU queue configuration.
   hostifManager.processHostifDelta(delta.getControlPlaneDelta());
 
   auto queues = hostifManager.getQueueSettings();
   auto voqs = hostifManager.getVoqSettings();
+  const auto& voqQueueNames =
+      hostifManager.getCpuSysPortFb303Stats().queueId2Name();
   ASSERT_EQ(queues.size(), queueIds.size());
   ASSERT_EQ(voqs.size(), queueIds.size());
+  ASSERT_EQ(voqQueueNames.size(), queueIds.size());
   for (auto queueId : queueIds) {
-    EXPECT_NE(
-        hostifManager.getQueueHandle({queueId, cfg::StreamType::MULTICAST}),
-        nullptr);
-    auto voqHandle =
-        hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST});
-    ASSERT_NE(voqHandle, nullptr);
-    ASSERT_TRUE(voqHandle->scheduler);
+    auto queueHandle =
+        hostifManager.getQueueHandle({queueId, cfg::StreamType::MULTICAST});
+    ASSERT_NE(queueHandle, nullptr);
+    ASSERT_TRUE(queueHandle->scheduler);
     auto schedulerId = saiApiTable->queueApi().getAttribute(
-        voqHandle->queue->adapterKey(),
+        queueHandle->queue->adapterKey(),
         SaiQueueTraits::Attributes::SchedulerProfileId{});
-    EXPECT_EQ(schedulerId, voqHandle->scheduler->adapterKey());
+    EXPECT_EQ(schedulerId, queueHandle->scheduler->adapterKey());
     EXPECT_EQ(
         saiApiTable->schedulerApi().getAttribute(
-            voqHandle->scheduler->adapterKey(),
+            queueHandle->scheduler->adapterKey(),
             SaiSchedulerTraits::Attributes::SchedulingWeight{}),
         kWeight);
+    EXPECT_NE(
+        hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST}),
+        nullptr);
+    auto voqQueueName = voqQueueNames.find(queueId);
+    ASSERT_NE(voqQueueName, voqQueueNames.end());
+    EXPECT_EQ(voqQueueName->second, "queue" + std::to_string(queueId));
   }
 }
 
