@@ -296,6 +296,14 @@ class AgentHwTest : public ::testing::Test {
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
 
+  // On BCM PENDING_L2_ENTRY ASICs, sends sendPkt and waits for mac on port.
+  void learnL2EntryIfPending(
+      folly::MacAddress mac,
+      PortID port,
+      const std::function<void()>& sendPkt);
+  // Same, sending an Ethernet frame sourced from mac.
+  void learnL2EntryIfPending(folly::MacAddress mac, PortID port);
+
   folly::MacAddress getMacForFirstInterfaceWithPorts(
       const std::shared_ptr<SwitchState>& state);
   InterfaceID firstInterfaceIDWithPorts(
