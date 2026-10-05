@@ -535,6 +535,12 @@ struct TUpdateGroupPeerInfo {
 
   /* Epoch time (ms) when EoR was sent to this peer; unset if not sent. */
   15: optional i64 eor_sent_time_ms;
+
+  /*
+   * Epoch time (ms) of this peer's last update-group state transition; unset if
+   * the peer has never left its initial state.
+   */
+  16: optional i64 last_modified_peer_update_state_time_ms;
 }
 
 /**
