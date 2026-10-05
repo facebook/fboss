@@ -61,18 +61,25 @@ TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
   newState->resetControlPlane(controlPlanes);
   auto delta = StateDelta(oldState, newState);
   auto& hostifManager = saiManagerTable->hostifManager();
-  EXPECT_TRUE(hostifManager.getCpuSysPortFb303Stats().queueId2Name().empty());
+  const auto& voqStats = hostifManager.getCpuSysPortFb303Stats();
+  for (auto queueId : queueIds) {
+    for (auto statKey : voqStats.kQueueMonotonicCounterStatKeys()) {
+      auto statName = HwSysPortFb303Stats::statName(
+          statKey,
+          voqStats.portName(),
+          queueId,
+          "queue" + std::to_string(queueId));
+      EXPECT_EQ(voqStats.getCounterLastIncrement(statName, -1), -1);
+    }
+  }
 
   // Without explicit CPU VOQs, the manager uses the CPU queue configuration.
   hostifManager.processHostifDelta(delta.getControlPlaneDelta());
 
   auto queues = hostifManager.getQueueSettings();
   auto voqs = hostifManager.getVoqSettings();
-  const auto& voqQueueNames =
-      hostifManager.getCpuSysPortFb303Stats().queueId2Name();
   ASSERT_EQ(queues.size(), queueIds.size());
   ASSERT_EQ(voqs.size(), queueIds.size());
-  ASSERT_EQ(voqQueueNames.size(), queueIds.size());
   for (auto queueId : queueIds) {
     auto queueHandle =
         hostifManager.getQueueHandle({queueId, cfg::StreamType::MULTICAST});
@@ -90,9 +97,14 @@ TEST_F(HostifManagerTest, defaultCpuQueuesWithoutExplicitVoqs) {
     EXPECT_NE(
         hostifManager.getVoqHandle({queueId, cfg::StreamType::MULTICAST}),
         nullptr);
-    auto voqQueueName = voqQueueNames.find(queueId);
-    ASSERT_NE(voqQueueName, voqQueueNames.end());
-    EXPECT_EQ(voqQueueName->second, "queue" + std::to_string(queueId));
+    for (auto statKey : voqStats.kQueueMonotonicCounterStatKeys()) {
+      auto statName = HwSysPortFb303Stats::statName(
+          statKey,
+          voqStats.portName(),
+          queueId,
+          "queue" + std::to_string(queueId));
+      EXPECT_EQ(voqStats.getCounterLastIncrement(statName), 0);
+    }
   }
 }
 
