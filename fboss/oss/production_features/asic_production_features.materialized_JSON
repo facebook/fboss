@@ -400,9 +400,7 @@
         69,
         72,
         86,
-        4,
-        127,
-        132
+        4
     ],
     "tomahawk3": [
         2,
@@ -1202,9 +1200,7 @@
         "PTP_TC",
         "MODIFY_ACL_QUALIFIERS",
         "CLASS_ID_FOR_NEIGHBOR",
-        "ACL_PORT_IN_DISCARDS_COUNTER",
-        "PORT_USER_METADATA",
-        "ACCESS_POLICY_CLASS_ID_ACL"
+        "ACL_PORT_IN_DISCARDS_COUNTER"
     ],
     "tomahawk3": [
         "CPU_RX_TX",
