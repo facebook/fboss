@@ -106,14 +106,11 @@
                         "type": "string"
                     }
                 },
-                "tm_port_header_map": {
+                "tm_port_headers": {
                     "type": "object",
-                    "description": "TM port header entries keyed by port-map topology variant. The generator selects dual_stage_3q_2q for dual-stage port configs, default otherwise.",
+                    "description": "TM port header settings emitted for every variant. Topology-specific header sets are selected through conditional settings.",
                     "additionalProperties": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
+                        "type": "string"
                     }
                 },
                 "dtm_flow_region_map": {

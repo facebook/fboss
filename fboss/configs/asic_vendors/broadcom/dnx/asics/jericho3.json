@@ -137,20 +137,18 @@
             "port_init_speed_xe16.BCM8889X": "10000",
             "port_init_speed_xl.BCM8889X": "40000"
         },
-        "tm_port_header_map": {
-            "default": {
-                "tm_port_header_type_in_0.BCM8889X": "INJECTED",
-                "tm_port_header_type_in_1.BCM8889X": "ETH",
-                "tm_port_header_type_in_218.BCM8889X_ADAPTER": "INJECTED",
-                "tm_port_header_type_in_240.BCM8889X": "INJECTED",
-                "tm_port_header_type_in_241.BCM8889X": "INJECTED",
-                "tm_port_header_type_in_6.BCM8889X": "INJECTED",
-                "tm_port_header_type_out_0.BCM8889X": "CPU",
-                "tm_port_header_type_out_1.BCM8889X": "ETH",
-                "tm_port_header_type_out_218.BCM8889X_ADAPTER": "CPU",
-                "tm_port_header_type_out_240.BCM8889X": "ETH",
-                "tm_port_header_type_out_241.BCM8889X": "ETH"
-            }
+        "tm_port_headers": {
+            "tm_port_header_type_in_0.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_1.BCM8889X": "ETH",
+            "tm_port_header_type_in_218.BCM8889X_ADAPTER": "INJECTED",
+            "tm_port_header_type_in_240.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_241.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_6.BCM8889X": "INJECTED",
+            "tm_port_header_type_out_0.BCM8889X": "CPU",
+            "tm_port_header_type_out_1.BCM8889X": "ETH",
+            "tm_port_header_type_out_218.BCM8889X_ADAPTER": "CPU",
+            "tm_port_header_type_out_240.BCM8889X": "ETH",
+            "tm_port_header_type_out_241.BCM8889X": "ETH"
         },
         "dtm_flow_region_map": {
             "key_format": "dtm_flow_mapping_mode_region_{region}.BCM8889X",
