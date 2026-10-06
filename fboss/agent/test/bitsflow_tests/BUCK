@@ -10,6 +10,9 @@ cpp_unittest(
         "facebook/BitsflowHelperTest.cpp",
     ],
     network_access = network_access_utils.all(),
+    source_headers = [
+        "facebook/BitsflowAclTest.h",
+    ],
     deps = [
         "//common/services/cpp:simple_thrift_aclchecker_handler",
         "//common/services/cpp:thrift_acl_checker_module_config",

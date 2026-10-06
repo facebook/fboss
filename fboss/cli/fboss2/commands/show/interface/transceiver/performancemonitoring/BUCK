@@ -15,6 +15,9 @@ thrift_library(
 cpp_library(
     name = "CmdShowInterfaceTransceiverPerformanceMonitoring",
     srcs = ["CmdShowInterfaceTransceiverPerformanceMonitoring.cpp"],
+    headers = [
+        "CmdShowInterfaceTransceiverPerformanceMonitoring.h",
+    ],
     labels = ["autodeps2_generated"],
     deps = [
         "fbsource//third-party/fmt:fmt",

@@ -10,7 +10,9 @@ cpp_library(
         "facebook/MinipackPlatformMapping.cpp",
     ],
     headers = [
+        "Minipack16QPimPlatformMapping.h",
         "MinipackPlatformMapping.h",
+        "facebook/Minipack16OPimPlatformMapping.h",
     ],
     deps = [
         "//fboss/lib/fpga:minipack_container",

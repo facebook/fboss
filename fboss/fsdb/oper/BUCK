@@ -162,6 +162,9 @@ cpp_library(
     srcs = [
         "ExtendedPathBuilder.cpp",
     ],
+    headers = [
+        "ExtendedPathBuilder.h",
+    ],
     deps = ["//folly:conv"],
     exported_deps = [
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",

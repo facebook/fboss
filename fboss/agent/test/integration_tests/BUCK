@@ -18,6 +18,9 @@ cpp_library(
         "AgentBgpIntegrationTests.cpp",
         "AgentIntegrationTest.cpp",
     ],
+    headers = [
+        "AgentIntegrationTest.h",
+    ],
     link_whole = True,  # Required for gtest to find tests in other files.
     exported_deps = [
         "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",

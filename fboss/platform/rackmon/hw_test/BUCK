@@ -8,6 +8,9 @@ cpp_binary(
         "Main.cpp",
         "RackmonHwTest.cpp",
     ],
+    headers = [
+        "RackmonHwTest.h",
+    ],
     deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",

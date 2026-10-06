@@ -47,6 +47,9 @@ cpp_library(
     srcs = [
         "CrossConfigValidator.cpp",
     ],
+    headers = [
+        "CrossConfigValidator.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/re2:re2",
@@ -68,6 +71,7 @@ cpp_library(
         "ConfigLib.cpp",
     ],
     headers = [
+        "ConfigLib.h",
         ":config_generator_h[GeneratedConfig.h]",
     ],
     exported_deps = [

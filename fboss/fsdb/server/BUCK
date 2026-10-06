@@ -30,6 +30,10 @@ cpp_library(
         "FsdbConfig.cpp",
         "ServiceHandler.cpp",
     ],
+    headers = [
+        "FsdbConfig.h",
+        "ServiceHandler.h",
+    ],
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     deps = [
         "//fboss/fsdb/common:flags",

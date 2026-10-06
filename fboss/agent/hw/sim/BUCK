@@ -10,6 +10,12 @@ cpp_library(
         "SimPlatformPort.cpp",
         "SimSwitch.cpp",
     ],
+    headers = [
+        "SimPlatform.h",
+        "SimPlatformMapping.h",
+        "SimPlatformPort.h",
+        "SimSwitch.h",
+    ],
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent:handler",

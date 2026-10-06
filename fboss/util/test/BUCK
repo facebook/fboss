@@ -11,6 +11,9 @@ cpp_unittest(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     network_access = network_access_utils.none(),
+    source_headers = [
+        "QsfpUtilTest.h",
+    ],
     deps = [
         "//common/init:init",
         "//fboss/util:wedge_qsfp_util_module",
@@ -25,6 +28,9 @@ cpp_unittest(
         "CredoMacsecUtilTest.cpp",
     ],
     network_access = network_access_utils.none(),
+    source_headers = [
+        "CredoMacsecUtilTest.h",
+    ],
     deps = [
         "//common/init:init",
         "//fboss/util:credo_macsec_util_module",

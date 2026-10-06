@@ -45,6 +45,9 @@ cpp_library(
     srcs = [
         "QsfpServiceHandler.cpp",
     ],
+    headers = [
+        "QsfpServiceHandler.h",
+    ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     # PaiDiagShell symbols come from per-impl pai-diag-shell-{impl} libraries
     # that are linked at the final qsfp_service binary stage (via core-{impl}

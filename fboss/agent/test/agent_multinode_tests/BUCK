@@ -30,6 +30,7 @@ cpp_library(
         "AgentMultiNodeVoqSwitchNeighborTests.h",
         "AgentMultiNodeVoqSwitchTrafficTests.h",
         "DsfTopologyInfo.h",
+        "TopologyInfo.h",
     ],
     # @lint-ignore BUCKLINT link_whole is required for gtest registration
     link_whole = True,
