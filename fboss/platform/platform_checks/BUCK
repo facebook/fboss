@@ -66,6 +66,35 @@ cpp_library(
 )
 
 cpp_library(
+    name = "platform_name",
+    srcs = [
+        "PlatformName.cpp",
+    ],
+    headers = [
+        "PlatformName.h",
+    ],
+    deps = [
+        "//fboss/platform/helpers:platform_name_lib",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":host",
+    ],
+)
+
+cpp_library(
+    name = "mock_host",
+    headers = [
+        "tests/MockHost.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":host",
+    ],
+)
+
+cpp_library(
     name = "platform_checks",
     srcs = [
         "checks/KernelVersionCheck.cpp",
@@ -185,5 +214,17 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":remote_host",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_name_test",
+    srcs = [
+        "tests/PlatformNameTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":mock_host",
+        ":platform_name",
     ],
 )

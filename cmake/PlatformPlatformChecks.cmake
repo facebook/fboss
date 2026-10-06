@@ -31,6 +31,16 @@ target_link_libraries(platform_checks_host
   Folly::folly
 )
 
+add_library(platform_checks_platform_name
+  fboss/platform/platform_checks/PlatformName.cpp
+)
+
+target_link_libraries(platform_checks_platform_name
+  platform_checks_host
+  platform_name_lib
+  Folly::folly
+)
+
 add_library(platform_checks
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
