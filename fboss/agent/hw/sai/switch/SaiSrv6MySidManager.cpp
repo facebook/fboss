@@ -58,10 +58,11 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       CHECK(vrHandle) << "No default virtual router";
       vrId = SaiMySidEntryTraits::Attributes::Vrf{
           vrHandle->virtualRouter->adapterKey()};
+      break;
 #else
       throw FbossError("Decapsulate with uSids requires SAI >= 1.16.0");
 #endif
-    } break;
+    }
     case MySidType::BINDING_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_B6_ENCAPS_RED;
       break;
