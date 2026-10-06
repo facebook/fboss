@@ -34,6 +34,25 @@ cpp_library(
 )
 
 cpp_library(
+    name = "host",
+    srcs = [
+        "Host.cpp",
+        "LocalHost.cpp",
+    ],
+    headers = [
+        "Host.h",
+        "LocalHost.h",
+    ],
+    deps = [
+        "//folly:file_util",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
+)
+
+cpp_library(
     name = "platform_checks",
     srcs = [
         "checks/KernelVersionCheck.cpp",
@@ -128,5 +147,18 @@ cpp_unittest(
         ":platform_checks",
         "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/helpers:mock_platform_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "local_host_test",
+    srcs = [
+        "tests/LocalHostTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":host",
+        "//folly:file_util",
+        "//folly/testing:test_util",
     ],
 )
