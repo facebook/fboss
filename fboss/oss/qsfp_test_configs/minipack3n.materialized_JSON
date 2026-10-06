@@ -700,6 +700,14 @@
             }
           ]
       },
+      "T-OH8CNH-NFY": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "36.197"
+            }
+          ]
+      },
       "T-OL8CNH-NFB": {
           "versions": [
             {
