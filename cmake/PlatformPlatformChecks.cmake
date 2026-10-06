@@ -24,6 +24,7 @@ target_link_libraries(platform_check
 add_library(platform_checks_host
   fboss/platform/platform_checks/Host.cpp
   fboss/platform/platform_checks/LocalHost.cpp
+  fboss/platform/platform_checks/RemoteHost.cpp
 )
 
 target_link_libraries(platform_checks_host

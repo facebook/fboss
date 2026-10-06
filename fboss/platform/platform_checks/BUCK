@@ -53,6 +53,19 @@ cpp_library(
 )
 
 cpp_library(
+    name = "remote_host",
+    srcs = [
+        "RemoteHost.cpp",
+    ],
+    headers = [
+        "RemoteHost.h",
+    ],
+    exported_deps = [
+        ":host",
+    ],
+)
+
+cpp_library(
     name = "platform_checks",
     srcs = [
         "checks/KernelVersionCheck.cpp",
@@ -160,5 +173,17 @@ cpp_unittest(
         ":host",
         "//folly:file_util",
         "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "remote_host_test",
+    srcs = [
+        "tests/RemoteHostTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":remote_host",
     ],
 )
