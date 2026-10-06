@@ -2086,6 +2086,11 @@ struct SwitchInfo {
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
   15: SystemPortRanges localSystemPortRanges;
+
+  // L3 interface ID of this switch's portless (virtual) loopback interface.
+  // A portless interface has no member ports, so its owning ASIC cannot be
+  // inferred; naming it here binds it to this switch.
+  16: optional i32 loopbackIntfId;
 }
 
 /*

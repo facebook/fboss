@@ -3485,6 +3485,7 @@ class ChildThriftPath<::facebook::fboss::cfg::SwitchInfo, ::facebook::fboss::fsd
     STRUCT_CHILD_GETTERS(minLinksPerDeviceToRemainInVOQDomain, 13);
     STRUCT_CHILD_GETTERS(minLinksPerDeviceToJoinVOQDomain, 14);
     STRUCT_CHILD_GETTERS(localSystemPortRanges, 15);
+    STRUCT_CHILD_GETTERS(loopbackIntfId, 16);
 };
 
 
