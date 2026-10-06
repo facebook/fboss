@@ -1389,6 +1389,17 @@ struct THealthReport {
   8: i32 warnCount;
 }
 
+/**
+ * Direction for clearing a BGP neighbor session.
+ * Used by clearBgpNeighbor() to specify the type of clear operation.
+ */
+enum ClearBgpNeighborDirection {
+  UNKNOWN = 0,
+  HARD_RESET = 1,
+  ROUTE_REFRESH_IN = 2,
+  ROUTE_REFRESH_OUT = 3,
+}
+
 // @lint-ignore THRIFTCHECKS facebook-service-deprecated existing service inheritance is out of scope for this API addition
 service TBgpService extends fb303.FacebookService {
   /**
@@ -1753,6 +1764,25 @@ service TBgpService extends fb303.FacebookService {
    * @param peer - the peer ip address
    */
   void startSession(1: string peer);
+
+  /**
+   * Clear a BGP neighbor session
+   *
+   * @param peer - the peer ip address (ROUTE_REFRESH_IN/ROUTE_REFRESH_OUT
+   *   require a static IP, not CIDR)
+   * @param direction - the clear operation type:
+   *   HARD_RESET: tear down and re-establish the session
+   *   ROUTE_REFRESH_IN: send Route Refresh request to the peer (requires
+   *     Route Refresh capability)
+   *   ROUTE_REFRESH_OUT: re-send our routes to the peer (triggers AFI-scoped
+   *     RIB re-dump)
+   * @param afi - address family filter (AFI_IPV4, AFI_IPV6, or AFI_ALL for both)
+   */
+  void clearBgpNeighbor(
+    1: string peer,
+    2: ClearBgpNeighborDirection direction,
+    3: bgp_attr.TBgpAfi afi,
+  );
 
   /**
    * Dump the current BGP RIB (prefixes learned from others)
