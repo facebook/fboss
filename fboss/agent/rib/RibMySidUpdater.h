@@ -31,10 +31,7 @@ class MySid;
  */
 class RibMySidUpdater {
  public:
-  // Each element is a (v4RouteMap, v6RouteMap) pair for one VRF. The updater
-  // tries each VRF in order and uses the first matching route.
-  using VrfRouteTables =
-      std::vector<std::pair<IPv4NetworkToRouteMap*, IPv6NetworkToRouteMap*>>;
+  using VrfRouteTables = facebook::fboss::VrfRouteTables;
 
   RibMySidUpdater(
       const VrfRouteTables& routeTables,
