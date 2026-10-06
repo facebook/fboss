@@ -328,7 +328,6 @@ NextHopIDManager::updateNamedNextHopGroup(
       << "Named next-hop group " << name
       << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
 
-  // Deallocate old nexthops
   result.deallocation = decrOrDeallocRouteNextHopSetID(oldSetIdIt->second);
 
   // Allocate new nexthops
@@ -368,7 +367,6 @@ NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
       << "Named next-hop group " << name
       << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
 
-  // Deallocate the nexthops
   auto result = decrOrDeallocRouteNextHopSetID(setIdIt->second);
 
   // Remove the name mappings
@@ -383,6 +381,18 @@ std::optional<NextHopSetID> NextHopIDManager::getNextHopSetIDForName(
   auto it = nameToNextHopSetID_.find(name);
   if (it != nameToNextHopSetID_.end()) {
     return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<NextHopSetID>
+NextHopIDManager::getNormalizedNextHopSetIDForPolicyNhg(
+    const std::string& name) const {
+  for (const auto& [_policyName, policy] : pbrPolicyToNamedNhg_) {
+    auto it = policy.normalizedIds.find(name);
+    if (it != policy.normalizedIds.end()) {
+      return it->second;
+    }
   }
   return std::nullopt;
 }
@@ -1040,11 +1050,38 @@ void NextHopIDManager::addOrUpdatePolicy(const ClassBasedPolicy& policy) {
     }
     nhgs.class2NextHopGroup[fc] = *nhg.name();
   }
+
+  // Claim before releasing: dropping the last reference first would free the id
+  // and allocate a new one, which moves the ACL's match or redirect target.
+  auto oldIt = pbrPolicyToNamedNhg_.find(*policy.name());
+  if (oldIt != pbrPolicyToNamedNhg_.end()) {
+    auto& oldIds = oldIt->second.normalizedIds;
+    auto claim = [&](const std::string& nhgName) {
+      auto it = oldIds.find(nhgName);
+      if (it != oldIds.end()) {
+        nhgs.normalizedIds.emplace(nhgName, it->second);
+        oldIds.erase(it);
+      }
+    };
+    claim(nhgs.defaultNexthopGroup);
+    for (const auto& [_fc, nhgName] : nhgs.class2NextHopGroup) {
+      claim(nhgName);
+    }
+    for (const auto& [_name, id] : oldIds) {
+      decrOrDeallocRouteNextHopSetID(id);
+    }
+  }
   pbrPolicyToNamedNhg_[*policy.name()] = std::move(nhgs);
 }
 
 void NextHopIDManager::removePolicy(const std::string& name) {
-  pbrPolicyToNamedNhg_.erase(name);
+  auto it = pbrPolicyToNamedNhg_.find(name);
+  if (it != pbrPolicyToNamedNhg_.end()) {
+    for (const auto& [_name, id] : it->second.normalizedIds) {
+      decrOrDeallocRouteNextHopSetID(id);
+    }
+    pbrPolicyToNamedNhg_.erase(it);
+  }
 }
 
 const ClassBasedPolicyNhgs* NextHopIDManager::getPolicy(
