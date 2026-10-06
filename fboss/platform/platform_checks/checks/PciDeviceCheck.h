@@ -11,11 +11,9 @@
 #pragma once
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <vector>
 
-#include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/platform_checks/PlatformCheck.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
@@ -23,9 +21,8 @@ namespace facebook::fboss::platform::platform_checks {
 
 class PciDeviceCheck : public PlatformCheck {
  public:
-  explicit PciDeviceCheck(
-      std::shared_ptr<PlatformFsUtils> platformFsUtils =
-          std::make_shared<PlatformFsUtils>());
+  explicit PciDeviceCheck(CheckTarget target = {})
+      : PlatformCheck(std::move(target)) {}
 
   CheckResult run() override;
 
@@ -45,7 +42,6 @@ class PciDeviceCheck : public PlatformCheck {
   virtual std::vector<std::filesystem::path> getPciDevicePaths() const;
 
  private:
-  std::shared_ptr<PlatformFsUtils> fsUtils_;
   struct PciDevice {
     std::string vendor;
     std::string device;

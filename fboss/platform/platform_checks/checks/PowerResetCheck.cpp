@@ -3,7 +3,6 @@
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
 
 #include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <sstream>
 
@@ -33,15 +32,11 @@ std::optional<std::chrono::system_clock::time_point> parseDateTime(
   return std::chrono::system_clock::from_time_t(time);
 }
 
-std::vector<std::string> grepFile(
-    const std::string& filePath,
+std::vector<std::string> grepLines(
+    const std::string& content,
     const std::string& pattern) {
   std::vector<std::string> matchingLines;
-  std::ifstream file(filePath);
-
-  if (!file.is_open()) {
-    return matchingLines;
-  }
+  std::istringstream file(content);
 
   RE2::Options options;
   options.set_case_sensitive(false);
@@ -100,7 +95,8 @@ CheckResult RecentManualRebootCheck::run() {
   const std::string pattern = "System is rebooting";
   const std::string reason = "System was rebooted with `reboot` command";
 
-  auto rebootLogs = power_reset_utils::grepFile(VAR_SECURE_LOGFILE, pattern);
+  auto rebootLogs = power_reset_utils::grepLines(
+      host().readFile(VAR_SECURE_LOGFILE).value_or(""), pattern);
   auto filteredLogs = power_reset_utils::filterLogsByDate(
       rebootLogs, VAR_SECURE_DATE_FORMAT, std::chrono::hours(24)); // 1 day
 
@@ -122,24 +118,19 @@ CheckResult RecentManualRebootCheck::run() {
 // RecentKernelPanicCheck Implementation
 // ============================================================================
 
-RecentKernelPanicCheck::RecentKernelPanicCheck(
-    std::shared_ptr<PlatformFsUtils> fsUtils)
-    : fsUtils_(std::move(fsUtils)) {}
-
 CheckResult RecentKernelPanicCheck::run() {
   std::vector<std::string> recentPanics;
   auto cutoffTime =
       std::chrono::system_clock::now() - std::chrono::hours(24 * 7); // 7 days
 
   // Check if crash directory exists
-  if (!fsUtils_->exists(CRASH_DIR)) {
+  if (!host().exists(CRASH_DIR)) {
     return makeOK();
   }
 
   // Iterate through crash directory
   try {
-    for (const auto& entry : fsUtils_->ls(CRASH_DIR)) {
-      const auto& path = entry.path();
+    for (const auto& path : host().listDirectory(CRASH_DIR)) {
       std::string entryName = path.filename().string();
 
       // Extract just the timestamp portion (before timezone suffix like PST)
@@ -180,22 +171,18 @@ CheckResult RecentKernelPanicCheck::run() {
 // WatchdogDidNotStopCheck Implementation
 // ============================================================================
 
-WatchdogDidNotStopCheck::WatchdogDidNotStopCheck(
-    std::shared_ptr<PlatformUtils> platformUtils)
-    : platformUtils_(std::move(platformUtils)) {}
-
 CheckResult WatchdogDidNotStopCheck::run() {
   // Get dmesg output with timestamps
-  auto [exitStatus, dmesgOutput] = platformUtils_->execCommand("dmesg -T");
+  auto dmesg = host().run("dmesg -T");
 
-  if (exitStatus != 0) {
+  if (!dmesg.ok()) {
     // Unable to read dmesg, skip this check
     return makeError("Unable to read dmesg output");
   }
 
   // Split into lines
   std::vector<std::string> dmesgLines;
-  std::istringstream iss(dmesgOutput);
+  std::istringstream iss(dmesg.standardOut);
   std::string line;
   while (std::getline(iss, line)) {
     dmesgLines.push_back(line);

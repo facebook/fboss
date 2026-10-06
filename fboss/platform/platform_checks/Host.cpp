@@ -58,6 +58,15 @@ bool Host::exists(const std::filesystem::path& path) const {
   return run("test -e " + folly::shellQuote(path.string())).ok();
 }
 
+std::optional<std::string> Host::readTrimmedFile(
+    const std::filesystem::path& path) const {
+  auto content = readFile(path);
+  if (!content) {
+    return std::nullopt;
+  }
+  return folly::trimWhitespace(*content).str();
+}
+
 std::vector<std::filesystem::path> Host::listDirectory(
     const std::filesystem::path& path) const {
   std::vector<std::filesystem::path> entries;

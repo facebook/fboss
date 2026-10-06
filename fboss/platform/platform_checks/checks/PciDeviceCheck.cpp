@@ -14,25 +14,11 @@
 #include <sstream>
 
 #include <folly/logging/xlog.h>
-#include "fboss/platform/helpers/PlatformFsUtils.h"
 
 namespace facebook::fboss::platform::platform_checks {
 
-PciDeviceCheck::PciDeviceCheck(std::shared_ptr<PlatformFsUtils> platformFsUtils)
-    : fsUtils_(std::move(platformFsUtils)) {}
-
 std::vector<std::filesystem::path> PciDeviceCheck::getPciDevicePaths() const {
-  std::vector<std::filesystem::path> paths;
-  try {
-    for (const auto& entry : fsUtils_->ls("/sys/bus/pci/devices")) {
-      if (entry.is_directory()) {
-        paths.push_back(entry.path());
-      }
-    }
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error listing PCI devices: " << ex.what();
-  }
-  return paths;
+  return host().listDirectory("/sys/bus/pci/devices");
 }
 
 CheckResult PciDeviceCheck::run() {
@@ -79,12 +65,12 @@ CheckResult PciDeviceCheck::run() {
 bool PciDeviceCheck::pciDeviceExists(const PciDevice& expectedDevice) {
   try {
     for (const auto& devicePath : getPciDevicePaths()) {
-      auto vendor = fsUtils_->getStringFileContent(devicePath / "vendor");
-      auto device = fsUtils_->getStringFileContent(devicePath / "device");
+      auto vendor = host().readTrimmedFile(devicePath / "vendor");
+      auto device = host().readTrimmedFile(devicePath / "device");
       auto subsystemVendor =
-          fsUtils_->getStringFileContent(devicePath / "subsystem_vendor");
+          host().readTrimmedFile(devicePath / "subsystem_vendor");
       auto subsystemDevice =
-          fsUtils_->getStringFileContent(devicePath / "subsystem_device");
+          host().readTrimmedFile(devicePath / "subsystem_device");
 
       if (!(vendor && device && subsystemVendor && subsystemDevice)) {
         XLOG(WARNING) << "Failed to read PCI device info from " << devicePath;

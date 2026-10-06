@@ -29,6 +29,7 @@ cpp_library(
     ],
     exported_deps = [
         ":check_types-cpp2-types",
+        ":host",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
     ],
 )
@@ -97,6 +98,7 @@ cpp_library(
 cpp_library(
     name = "platform_checks",
     srcs = [
+        "HostEeprom.cpp",
         "checks/KernelVersionCheck.cpp",
         "checks/MacAddressCheck.cpp",
         "checks/PciDeviceCheck.cpp",
@@ -104,6 +106,7 @@ cpp_library(
         "checks/i801SmbusTimeoutCheck.cpp",
     ],
     headers = [
+        "HostEeprom.h",
         "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
         "checks/PciDeviceCheck.h",
@@ -115,14 +118,15 @@ cpp_library(
         "//common/config:configerator",
         "//configerator/structs/fboss/fboss_platform:kernel_versions-cpp2-types",
         "//fboss/platform/weutil:config_utils_lib",
+        "//folly:string",
+        "//folly/json:dynamic",
         "//folly/logging:logging",
+        "//folly/system:shell",
     ],
     exported_deps = [
+        ":host",
         ":platform_check",
-        "//fboss/platform/helpers:platform_fs_utils",
-        "//fboss/platform/helpers:platform_utils",
         "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
-        "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly:network_address",
     ],
 )
@@ -135,6 +139,7 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":mock_host",
         ":platform_checks",
     ],
 )
@@ -147,8 +152,8 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":mock_host",
         ":platform_checks",
-        "//fboss/platform/helpers:mock_platform_fs_utils",
     ],
 )
 
@@ -160,9 +165,8 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":mock_host",
         ":platform_checks",
-        "//fboss/platform/helpers:platform_fs_utils",
-        "//fboss/platform/helpers:platform_utils",
     ],
 )
 
@@ -186,9 +190,8 @@ cpp_unittest(
     network_access = network_access_utils.none(),
     deps = [
         "fbsource//third-party/googletest:gmock",
+        ":mock_host",
         ":platform_checks",
-        "//fboss/platform/helpers:mock_platform_fs_utils",
-        "//fboss/platform/helpers:mock_platform_utils",
     ],
 )
 

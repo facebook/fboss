@@ -65,6 +65,10 @@ class Host {
   // Returns full paths of the entries of `path`, or an empty list on failure.
   virtual std::vector<std::filesystem::path> listDirectory(
       const std::filesystem::path& path) const;
+
+  // readFile() without surrounding whitespace, e.g. for sysfs attributes.
+  std::optional<std::string> readTrimmedFile(
+      const std::filesystem::path& path) const;
 };
 
 // Runs `argv` locally, killing it after `timeout`. Shared by Host

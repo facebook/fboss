@@ -17,6 +17,7 @@ add_library(platform_check
 
 target_link_libraries(platform_check
   check_types_cpp2
+  platform_checks_host
   platform_config_lib
   platform_manager_config_cpp2
 )
@@ -42,6 +43,7 @@ target_link_libraries(platform_checks_platform_name
 )
 
 add_library(platform_checks
+  fboss/platform/platform_checks/HostEeprom.cpp
   fboss/platform/platform_checks/checks/MacAddressCheck.cpp
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
@@ -51,13 +53,11 @@ add_library(platform_checks
 
 target_link_libraries(platform_checks
   platform_check
-  platform_fs_utils
   platform_manager_config_cpp2
   weutil_fboss_eeprom_interface
   weutil_config_utils
   Folly::folly
   ${RE2}
-  platform_utils
 )
 
 add_executable(mac_address_check_test
