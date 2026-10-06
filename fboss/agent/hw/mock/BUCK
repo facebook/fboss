@@ -11,8 +11,11 @@ cpp_library(
         "MockTestHandle.cpp",
     ],
     headers = [
+        "MockHwSwitch.h",
+        "MockPlatform.h",
         "MockPlatformMapping.h",
         "MockPlatformPort.h",
+        "MockTestHandle.h",
     ],
     deps = [
         ":pkt",
@@ -46,6 +49,10 @@ cpp_library(
     srcs = [
         "MockRxPacket.cpp",
         "MockTxPacket.cpp",
+    ],
+    headers = [
+        "MockRxPacket.h",
+        "MockTxPacket.h",
     ],
     deps = [
         "//fboss/agent/packet:packet",

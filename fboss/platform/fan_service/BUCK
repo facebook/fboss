@@ -38,6 +38,9 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
+    headers = [
+        "ConfigValidator.h",
+    ],
     deps = [
         "fbsource//third-party/range-v3:range-v3",
         ":fan_service_config_types",
@@ -62,6 +65,9 @@ cpp_library(
     name = "pid_logic_library",
     srcs = [
         "PidLogic.cpp",
+    ],
+    headers = [
+        "PidLogic.h",
     ],
     deps = ["//folly/logging:logging"],
     exported_deps = [
@@ -88,6 +94,7 @@ cpp_library(
         "FanServiceHandler.h",
         "FsdbSensorSubscriber.h",
         "OvertempCondition.h",
+        "SensorData.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",

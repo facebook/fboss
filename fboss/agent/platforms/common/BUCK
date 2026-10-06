@@ -9,6 +9,10 @@ cpp_library(
         "PlatformMapping.cpp",
         "facebook/PlatformMapping.cpp",
     ],
+    headers = [
+        "MultiPimPlatformMapping.h",
+        "PlatformMapping.h",
+    ],
     deps = [
         "fbsource//third-party/re2:re2",
         "//fboss/agent:fboss-error",

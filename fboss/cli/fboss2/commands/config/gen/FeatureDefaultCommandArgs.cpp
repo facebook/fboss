@@ -101,12 +101,16 @@ void validateConditionValues(
   }
 }
 
-void validateAsicTypes(const FeatureConditionValues& values) {
-  const auto validate = [](const auto& names) {
+template <typename Enum>
+void validateEnumNames(
+    const FeatureConditionValues& values,
+    std::string_view typeName) {
+  const auto validate = [typeName](const auto& names) {
     for (const auto& name : names) {
-      cfg::AsicType asicType;
-      if (!apache::thrift::util::tryParseEnum(name, &asicType)) {
-        throw FbossError("Unknown ASIC type in feature conditions: ", name);
+      Enum value;
+      if (!apache::thrift::util::tryParseEnum(name, &value)) {
+        throw FbossError(
+            "Unknown ", typeName, " in feature conditions: ", name);
       }
     }
   };
@@ -155,10 +159,11 @@ void validateConfig(const FeatureDefaultCommandArgsConfig& config) {
     }
     if (conditions.asicTypes()) {
       validateConditionValues(*conditions.asicTypes(), "asicTypes condition");
-      validateAsicTypes(*conditions.asicTypes());
+      validateEnumNames<cfg::AsicType>(*conditions.asicTypes(), "ASIC type");
     }
     if (conditions.platforms()) {
       validateConditionValues(*conditions.platforms(), "platforms condition");
+      validateEnumNames<PlatformType>(*conditions.platforms(), "platform type");
     }
   }
 }
@@ -177,27 +182,33 @@ bool matches(
       condition->included()->contains(stringValue);
 }
 
+template <typename Enum>
+bool matchesEnum(
+    const std::optional<FeatureConditionValues>& condition,
+    Enum value) {
+  if (!condition) {
+    return true;
+  }
+  const auto matchesValue = [value](const auto& names) {
+    return std::any_of(names.begin(), names.end(), [value](const auto& name) {
+      Enum candidate;
+      return apache::thrift::util::tryParseEnum(name, &candidate) &&
+          candidate == value;
+    });
+  };
+  if (matchesValue(*condition->excluded())) {
+    return false;
+  }
+  return condition->included()->empty() || matchesValue(*condition->included());
+}
+
 bool matches(
     const std::optional<FeatureConditionValues>& condition,
     std::optional<cfg::AsicType> asicType) {
   if (!condition) {
     return true;
   }
-  if (!asicType) {
-    return false;
-  }
-  const auto matchesAsic = [asicType](const auto& names) {
-    return std::any_of(
-        names.begin(), names.end(), [asicType](const auto& name) {
-          cfg::AsicType candidate;
-          return apache::thrift::util::tryParseEnum(name, &candidate) &&
-              candidate == *asicType;
-        });
-  };
-  if (matchesAsic(*condition->excluded())) {
-    return false;
-  }
-  return condition->included()->empty() || matchesAsic(*condition->included());
+  return asicType && matchesEnum(condition, *asicType);
 }
 
 void mergeArgs(
@@ -259,7 +270,7 @@ std::map<std::string, std::string> resolveFeatureDefaultCommandArgs(
     const FeatureDefaultCommandArgsConfig& config,
     std::string_view profile,
     std::optional<cfg::AsicType> asicType,
-    std::string_view platform) {
+    PlatformType platformType) {
   // Callers may construct the Thrift object directly instead of using the JSON
   // parser, so semantic validation also belongs at this public entry point.
   validateConfig(config);
@@ -277,7 +288,7 @@ std::map<std::string, std::string> resolveFeatureDefaultCommandArgs(
     const auto& conditions = *feature.autoEnableWhen();
     if (matches(conditions.configProfiles().to_optional(), profile) &&
         matches(conditions.asicTypes().to_optional(), asicType) &&
-        matches(conditions.platforms().to_optional(), platform)) {
+        matchesEnum(conditions.platforms().to_optional(), platformType)) {
       mergeArgs(resolved, *feature.args(), featureName);
     }
   }
@@ -289,12 +300,12 @@ std::map<std::string, std::string> generateFeatureDefaultCommandArgs(
     ServiceType serviceType,
     std::string_view profile,
     std::optional<cfg::AsicType> asicType,
-    std::string_view platform) {
+    PlatformType platformType) {
   return resolveFeatureDefaultCommandArgs(
       loadFeatureDefaultCommandArgsConfig(fbossRoot, serviceType),
       profile,
       asicType,
-      platform);
+      platformType);
 }
 
 } // namespace facebook::fboss::configgen

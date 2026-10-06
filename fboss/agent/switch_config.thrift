@@ -1197,6 +1197,8 @@ typedef string PortFlowletConfigName
 typedef string LlrConfigName
 typedef string CbfcConfigName
 
+typedef string IsolationGroupName
+
 typedef string FirmwareName
 
 const i32 DEFAULT_PORT_MTU = 9412;
@@ -1493,6 +1495,9 @@ struct Port {
   // than nested inside PortPfc: CBFC and PFC are independent mechanisms that
   // may coexist (UE Spec 1.0.2 section 5.2.3).
   48: optional CbfcConfigName cbfcConfigName;
+  // Traffic ingressing this port is not forwarded to the members of this
+  // isolation group. Names a key of SwitchConfig.isolationGroups.
+  49: optional IsolationGroupName isolationGroup;
 }
 
 enum LacpPortRate {
@@ -2081,6 +2086,11 @@ struct SwitchInfo {
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
   15: SystemPortRanges localSystemPortRanges;
+
+  // L3 interface ID of this switch's portless (virtual) loopback interface.
+  // A portless interface has no member ports, so its owning ASIC cannot be
+  // inferred; naming it here binds it to this switch.
+  16: optional i32 loopbackIntfId;
 }
 
 /*
@@ -2575,6 +2585,27 @@ enum LlrFrameAction {
   BEST_EFFORT = 2,
 }
 
+enum IsolationGroupType {
+  // The isolation group consists of ports: its members are the ports that
+  // traffic must not reach.
+  PORT = 0,
+}
+
+// A named set of ports that traffic must not reach. Referenced per-port by
+// Port.isolationGroup: packets ingressing a port that references this group are
+// never forwarded to any of its members, whether switched or routed.
+//
+// One group may be referenced by many ports, and a port may be a member of the
+// group it references. The intended model is to declare a single group holding
+// every port in an isolation domain, then attach it to whichever of those ports
+// should be isolated -- so membership and attachment are decoupled and either
+// can change without touching the other.
+struct IsolationGroup {
+  2: IsolationGroupType type = IsolationGroupType.PORT;
+  // cfg::Port.logicalID of each isolated member.
+  3: set<i32> memberPorts;
+}
+
 // UEC Link Layer Retry (LLR) profile: the configuration registers defined in
 // UE Spec 1.0.2 section 5.1.4 (Table 5-9). Referenced per-port by name via
 // Port.llrConfigName.
@@ -2675,6 +2706,8 @@ struct FlowletSwitchingConfig {
   // how many members shared by every virtual group in the super group there
   // have to be before the adapter starts promoting them to alternate members
   24: optional i32 arsVirtualGroupCommonMembersThreshold;
+  // members per ARS group
+  25: optional i32 arsGroupWidth;
 }
 
 /*
@@ -2829,4 +2862,6 @@ struct SwitchConfig {
   61: optional map<LlrConfigName, LlrConfig> llrConfigs;
   // Named CBFC configurations, referenced by Port.cbfcConfigName.
   62: optional map<CbfcConfigName, CbfcConfig> cbfcConfigs;
+  // Named isolation groups, referenced per-port by Port.isolationGroup.
+  63: optional map<IsolationGroupName, IsolationGroup> isolationGroups;
 }

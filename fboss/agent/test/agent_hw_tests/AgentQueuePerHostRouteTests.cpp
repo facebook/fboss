@@ -214,6 +214,9 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+    if (useFrontPanel) {
+      learnL2EntryIfPending(srcMac, masterLogicalPortIds()[1]);
+    }
 
     utility::verifyQueuePerHostMapping(
         getAgentEnsemble(),

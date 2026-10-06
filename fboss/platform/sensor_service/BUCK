@@ -13,6 +13,7 @@ cpp_library(
         "facebook/FsdbSyncer.cpp",
     ],
     headers = [
+        "FsdbSyncer.h",
         "SensorServiceImpl.h",
     ],
     deps = [
@@ -47,6 +48,10 @@ cpp_library(
         "Flags.cpp",
         "SensorServiceThriftHandler.cpp",
     ],
+    headers = [
+        "Flags.h",
+        "SensorServiceThriftHandler.h",
+    ],
     deps = [
         ":utils",
         "//fboss/lib:log_thrift_call",
@@ -65,6 +70,9 @@ cpp_library(
     name = "utils",
     srcs = [
         "Utils.cpp",
+    ],
+    headers = [
+        "Utils.h",
     ],
     deps = [
         "fbsource//third-party/exprtk:exprtk",
@@ -85,6 +93,10 @@ cpp_library(
     srcs = [
         "PmClientFactory.cpp",
         "PmUnitInfoFetcher.cpp",
+    ],
+    headers = [
+        "PmClientFactory.h",
+        "PmUnitInfoFetcher.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -110,6 +122,9 @@ cpp_library(
     name = "config_validator",
     srcs = [
         "ConfigValidator.cpp",
+    ],
+    headers = [
+        "ConfigValidator.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",

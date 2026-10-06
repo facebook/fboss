@@ -44,6 +44,16 @@ cpp_library(
         "RoutingInformationBase.cpp",
         "VrfRouteTable.cpp",
     ],
+    headers = [
+        "ConfigApplier.h",
+        "MySidConfigUtils.h",
+        "RibMySidUpdater.h",
+        "RibRouteWeightNormalizer.h",
+        "RouteUpdater.h",
+        "RouteUpdaterUtils.h",
+        "RoutingInformationBase.h",
+        "VrfRouteTable.h",
+    ],
     deps = [
         "//fboss/agent:address_utils",
         "//fboss/agent:utils",
@@ -184,6 +194,13 @@ cpp_library(
         "MySidMapUpdater.cpp",
         "RibToSwitchStateUpdater.cpp",
         "SwitchStateNextHopIdUpdater.cpp",
+    ],
+    headers = [
+        "FibUpdateHelpers.h",
+        "ForwardingInformationBaseUpdater.h",
+        "MySidMapUpdater.h",
+        "RibToSwitchStateUpdater.h",
+        "SwitchStateNextHopIdUpdater.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",

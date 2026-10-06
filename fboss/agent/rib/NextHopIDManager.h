@@ -44,6 +44,8 @@ struct ClassBasedPolicyNhgs {
   std::string defaultNexthopGroup;
   // Forwarding class -> redirect NHG name.
   std::map<ForwardingClass, std::string> class2NextHopGroup;
+  // One held reference per distinct NHG name this policy references.
+  std::unordered_map<std::string, NextHopSetID> normalizedIds;
 };
 
 /**
@@ -206,6 +208,10 @@ class NextHopIDManager {
   // Get the NextHopSetID for a named next-hop group
   // Returns std::nullopt if the group doesn't exist
   std::optional<NextHopSetID> getNextHopSetIDForName(
+      const std::string& name) const;
+
+  // Only groups a class-based policy references carry a normalized set id.
+  std::optional<NextHopSetID> getNormalizedNextHopSetIDForPolicyNhg(
       const std::string& name) const;
 
   // Get the nexthops for a named next-hop group

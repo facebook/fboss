@@ -36,11 +36,6 @@ namespace utility {
  * confusion for our tests.
  */
 auto constexpr kBaseVlanId = 2000;
-/*
- * Default VLAN
- */
-auto constexpr kDefaultVlanId4094 = 4094;
-auto constexpr kDefaultVlanId1 = 1;
 auto constexpr kDownlinkBaseVlanId = 2000;
 auto constexpr kUplinkBaseVlanId = 4000;
 
@@ -75,6 +70,13 @@ PortProfileMap getSafeProfileIDs(
         controllingPortToSubsidiaryPorts,
     const SafeProfileSelectionOptions& options);
 
+// Per-NPU portless loopback interfaces on dual-NPU SUSW platforms. These have
+// no member ports, so SwitchInfo::loopbackIntfId is what binds each one to
+// its owning ASIC. Mirrors FBOSS_LOOPBACKS_INTF / FBOSS_LOOPBACK1_INTF in
+// neteng/fboss/coop/defines.py.
+auto constexpr kNpu0LoopbackIntfId = 10;
+auto constexpr kNpu1LoopbackIntfId = 11;
+
 // Bare port body. Speed derived from PlatformMapping (nullopt ->
 // cfg::PortSpeed::DEFAULT). Sets name/portType/scope (from
 // mapping->getPlatformPort(id).mapping()), logicalID=id, profileID,
@@ -100,11 +102,7 @@ cfg::Port createInterfacePortConfig(
     PortID id,
     cfg::PortProfileID profileID,
     VlanID ingressVlan);
-cfg::Vlan createVlanConfig(VlanID id);
 cfg::VlanPort createVlanPortConfig(PortID portID, VlanID vlanID);
-cfg::Interface createVlanInterfaceConfig(
-    InterfaceID interfaceID,
-    VlanID vlanID);
 
 // Lowest-free vlan id in [minId, maxId] not used by any vlan id or any
 // interface intfID in config. Throws FbossError if none free.

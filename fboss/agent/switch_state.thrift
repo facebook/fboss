@@ -207,6 +207,11 @@ struct PortFields {
   76: optional string cbfcConfigName;
   77: optional list<PortVcFields> virtualChannels;
   78: optional i64 cbfcSenderCreditLimit;
+  // Name of the isolation group whose members traffic ingressing this port is
+  // not forwarded to. Only the name is stored: a change to the group's
+  // membership does not change the port, and is handled off the isolation
+  // group map delta instead.
+  79: optional string isolationGroup;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -478,6 +483,13 @@ struct LlrFields {
   9: switch_config.LlrFrameAction flushFrameAction;
   10: bool reInitOnFlush;
   11: i32 ctlosTargetSpacing;
+}
+
+struct IsolationGroupFields {
+  1: string id;
+  2: switch_config.IsolationGroupType type;
+  // cfg::Port.logicalID of each isolated member.
+  3: set<i32> memberPorts;
 }
 
 struct BlockedNeighbor {
@@ -938,6 +950,10 @@ struct SwitchState {
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   127: map<SwitchIdList, map<string, LlrFields>> llrCfgMaps;
+  130: map<
+    SwitchIdList,
+    map<string, IsolationGroupFields>
+  > isolationGroupMaps;
   128: map<
     SwitchIdList,
     map<string, ClassBasedPolicyFields>

@@ -244,7 +244,7 @@ void SaiRouteManager::addOrUpdateRoute(
       if (packetAction == SAI_PACKET_ACTION_DROP) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+            packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -303,7 +303,7 @@ void SaiRouteManager::addOrUpdateRoute(
             routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, routerInterfaceId, metadata, std::nullopt};
+            packetAction, routerInterfaceId, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, routerInterfaceId, metadata};
@@ -339,7 +339,7 @@ void SaiRouteManager::addOrUpdateRoute(
                    << ", setting route to DROP: " << newRoute->str();
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         attributes = SaiRouteTraits::CreateAttributes{
-            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+            packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
         attributes = SaiRouteTraits::CreateAttributes{
             packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -383,7 +383,7 @@ void SaiRouteManager::addOrUpdateRoute(
               << interfaceId << ", drop it";
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+              packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
           attributes = SaiRouteTraits::CreateAttributes{
               packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -445,7 +445,7 @@ void SaiRouteManager::addOrUpdateRoute(
           packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+              packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
           attributes = SaiRouteTraits::CreateAttributes{
               packetAction, SAI_NULL_OBJECT_ID, metadata};
@@ -531,7 +531,7 @@ void SaiRouteManager::addOrUpdateRoute(
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, cpuPortId, metadata, std::nullopt};
+        packetAction, cpuPortId, metadata, counterID};
 #else
     attributes =
         SaiRouteTraits::CreateAttributes{packetAction, cpuPortId, metadata};
@@ -543,7 +543,7 @@ void SaiRouteManager::addOrUpdateRoute(
     packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+        packetAction, SAI_NULL_OBJECT_ID, metadata, counterID};
 #else
     attributes = SaiRouteTraits::CreateAttributes{
         packetAction, SAI_NULL_OBJECT_ID, metadata};

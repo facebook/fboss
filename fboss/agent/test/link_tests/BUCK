@@ -38,6 +38,11 @@ cpp_library(
         "facebook/MacsecTest.cpp",
         "facebook/QsfpFsdbTests.cpp",
     ],
+    headers = [
+        "LinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/MacsecTest.h",
+    ],
     link_whole = True,
     # Will need symbols from bcm, sai layers. Those
     # will come when we build bcm/sai link test bins
@@ -122,6 +127,9 @@ cpp_library(
     srcs = [
         "facebook/MacsecTestUtils.cpp",
     ],
+    headers = [
+        "facebook/MacsecTestUtils.h",
+    ],
     exported_deps = [
         "//fboss/agent/test:resourcelibutil",
         "//fboss/facebook/mka_service/mka_module:mka_structs",
@@ -142,6 +150,11 @@ cpp_library(
         "LinkTestUtils.cpp",
         "facebook/MacsecSanityTests.cpp",
         "facebook/MacsecTest.cpp",
+    ],
+    headers = [
+        "LinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/MacsecTest.h",
     ],
     link_whole = True,
     # Will need symbols from bcm, sai layers. Those
@@ -226,6 +239,11 @@ cpp_library(
         "facebook/AgentEnsembleMacsecSessionTests.cpp",
         "facebook/AgentEnsembleMacsecStatTests.cpp",
         "facebook/AgentEnsembleMacsecTest.cpp",
+    ],
+    headers = [
+        "AgentEnsembleLinkTest.h",
+        "LinkTestUtils.h",
+        "facebook/AgentEnsembleMacsecTest.h",
     ],
     link_whole = True,
     undefined_symbols = True,

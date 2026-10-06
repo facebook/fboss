@@ -2780,6 +2780,96 @@ TEST_F(RibMySidFibInfoTest, mySidFrrBackupInstallLeavesResolvedPrimaryIntact) {
   EXPECT_NE(idSetMap->getNextHopIdSetIf(primaryId), nullptr);
 }
 
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsSurvivePrimaryRebind) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  addAdjacencyMySidWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  // Mirror MySidNeighborObserver::queueResolve(): preserve FRR backup IDs
+  // while replacing the primary neighbor binding.
+  auto reboundMySid = std::make_shared<MySid>(before);
+  reboundMySid->setUnresolveNextHopsId(std::nullopt);
+  reboundMySid->setResolvedNextHopsId(std::nullopt);
+  rib_->update(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{
+          {std::move(reboundMySid),
+           makeUnresolvedNextHops({"2001:db8::3"}),
+           std::nullopt}},
+      {},
+      {},
+      "rebind adjacency mysid primary",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
+TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsSurvivePrimaryUnresolve) {
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  addInterfaceRoute();
+  addAdjacencyMySidWithNextHops("fc00:100::1", 48, {"2001:db8::1"});
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.resolvedNextHopsId().has_value());
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {{prefix, folly::IPAddress("2001:db8::1")}},
+      {},
+      "unresolve adjacency mysid primary",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_FALSE(after.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(after.resolvedNextHopsId().has_value());
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
 TEST_F(RibMySidFibInfoTest, mySidFrrBackupNextHopsTrackPartialResolution) {
   // With two backup gateways the resolved set holds exactly those gateways
   // that currently have a covering route, and follows routes appearing and
@@ -3608,6 +3698,93 @@ TEST_F(RibMySidNextHopTest, reconfigureChangedAdjacencyInterfaceIdChurnsEntry) {
       << "Changing adjacencyInterfaceId should churn the entry";
 }
 
+TEST_F(
+    RibMySidNextHopTest,
+    reconfigureAdjacencyMySidPreservesFrrBackupNextHops) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::AdjacencyMySidConfig adjacency;
+  adjacency.portName() = "Port-Channel301";
+  adjacency.isV6() = true;
+  cfg::MySidEntryConfig entry;
+  entry.set_adjacency(std::move(adjacency));
+  mySidConfig.entries()->emplace(0x100, std::move(entry));
+  const std::unordered_map<std::string, InterfaceID> portMap{
+      {"Port-Channel301", InterfaceID(301)}};
+  const auto staticMySids = convertMySidConfig(mySidConfig, portMap);
+  auto reconfigure = [&]() {
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        staticMySids,
+        noopFibUpdate,
+        &switchState_);
+  };
+
+  reconfigure();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  const auto primaryNextHops = makeUnresolvedNextHops({"2001:db8::1"});
+  auto reboundMySid =
+      std::make_shared<MySid>(rib_->getMySidTableCopy().at(prefix));
+  rib_->update(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{
+          {std::move(reboundMySid), primaryNextHops, std::nullopt}},
+      {},
+      {},
+      "resolve adjacency mysid primary",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto backupNextHops = makeBackupNextHops({"2001:db8::2"});
+  rib_->updateMySidFrrProtection(
+      scopeResolver(),
+      {{prefix, backupNextHops}},
+      {},
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto before = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(before.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.resolvedNextHopsId().has_value());
+  ASSERT_TRUE(before.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(before.backupResolvedNextHopsId().has_value());
+  const auto primaryUnresolvedId = *before.unresolveNextHopsId();
+  const auto primaryResolvedId = *before.resolvedNextHopsId();
+  const auto backupUnresolvedId = *before.backupUnresolveNextHopsId();
+  const auto backupResolvedId = *before.backupResolvedNextHopsId();
+
+  // Same-config reconciliation must preserve the dynamic primary and backup
+  // bindings.
+  reconfigure();
+
+  const auto after = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_EQ(after.unresolveNextHopsId(), primaryUnresolvedId);
+  EXPECT_EQ(after.resolvedNextHopsId(), primaryResolvedId);
+  EXPECT_EQ(after.backupUnresolveNextHopsId(), backupUnresolvedId);
+  EXPECT_EQ(after.backupResolvedNextHopsId(), backupResolvedId);
+  const auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(primaryUnresolvedId)), primaryNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(primaryResolvedId)).has_value());
+  EXPECT_EQ(
+      manager->getNextHops(NextHopSetID(backupUnresolvedId)), backupNextHops);
+  EXPECT_TRUE(
+      manager->getNextHopsIf(NextHopSetID(backupResolvedId)).has_value());
+}
+
 // Pass 2's "non-STATIC_ROUTE entry at same CIDR" overwrite path. Existing
 // reconfigurePreservesTeAgentMySid uses a different prefix and so does
 // not exercise this branch. Here we put a TE_AGENT entry (with nhops) at
@@ -4433,6 +4610,242 @@ TEST_F(RibMySidNextHopTest, asyncUpdatesAreSerialized) {
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:2::", 48)), table.end());
   EXPECT_NE(table.find(makeSidPrefix("3001:db8:3::", 48)), table.end());
+}
+
+class RibConfigAdjacencyMySidTest : public RibMySidFibInfoTest {
+ protected:
+  static constexpr int16_t kFunctionId = 0x100;
+  static constexpr uint32_t kEcmpWidth = 64;
+  const folly::CIDRNetworkV6 kPrefix = makeSidPrefix("3001:db8:100::", 48);
+  const std::string kPrefixStr{"3001:db8:100::/48"};
+  const std::unordered_map<std::string, InterfaceID> kPortMap{
+      {"Port-Channel301", InterfaceID(301)},
+      {"Port-Channel302", InterfaceID(302)}};
+
+  static cfg::MySidConfig makeAdjacencyConfig(const std::string& portName) {
+    cfg::MySidConfig mySidConfig;
+    mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+    cfg::AdjacencyMySidConfig adjacency;
+    adjacency.portName() = portName;
+    adjacency.isV6() = true;
+    cfg::MySidEntryConfig entry;
+    entry.set_adjacency(std::move(adjacency));
+    mySidConfig.entries()->emplace(kFunctionId, std::move(entry));
+    return mySidConfig;
+  }
+
+  void reconfigure(
+      RoutingInformationBase* rib,
+      const std::optional<cfg::MySidConfig>& mySidConfig) {
+    RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+    interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+        InterfaceID(1), folly::IPAddress("2001:db8::ffff")};
+    rib->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        mySidConfig ? convertMySidConfig(*mySidConfig, kPortMap)
+                    : std::vector<MySidWithNextHops>{},
+        routeToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void bindToNeighbor(InterfaceID intf) {
+    auto mySid = switchState_->getMySids()->getNodeIf(kPrefixStr)->clone();
+    mySid->setUnresolveNextHopsId(std::nullopt);
+    mySid->setResolvedNextHopsId(std::nullopt);
+    RouteNextHopSet nextHops{
+        ResolvedNextHop(folly::IPAddress("2401:db00::2"), intf, ECMP_WEIGHT)};
+    rib_->update(
+        scopeResolver(),
+        {{std::move(mySid), std::move(nextHops), std::nullopt}},
+        {} /* toUnresolveIfMatch */,
+        {} /* toDelete */,
+        "bind uA to neighbor",
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  void addFrrBackup() {
+    rib_->updateMySidFrrProtection(
+        scopeResolver(),
+        {{{folly::IPAddress("3001:db8:100::"), 48},
+          makeBackupNextHops({"2001:db8::1", "2001:db8::2"})}},
+        {},
+        mySidToSwitchStateUpdateViaRibUpdater,
+        &switchState_);
+  }
+
+  state::MySidFields getRibEntry(const RoutingInformationBase& rib) const {
+    return rib.getMySidTableCopy().at(kPrefix);
+  }
+
+  bool isNextHopSetAllocated(int64_t id) const {
+    return rib_->getNextHopIDManagerCopy()
+        ->getNextHopsIf(NextHopSetID(id))
+        .has_value();
+  }
+};
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureIdenticalBoundAdjacencyMySidIsNoOp) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(boundEntry.unresolveNextHopsId().has_value());
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kPrefixStr);
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*rib_), boundEntry);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), stateMySid);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    warmbootReconfigureKeepsBoundAdjacencyMySid) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+
+  auto warmbootRib = RoutingInformationBase::fromThrift(
+      rib_->warmBootState(),
+      switchState_->getFibsInfoMap(),
+      switchState_->getLabelForwardingInformationBase(),
+      switchState_->getMySids(),
+      kEcmpWidth,
+      nullptr);
+  const auto restoredEntry = getRibEntry(*warmbootRib);
+  ASSERT_TRUE(restoredEntry.unresolveNextHopsId().has_value());
+  const auto stateMySid = switchState_->getMySids()->getNodeIf(kPrefixStr);
+
+  reconfigure(warmbootRib.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*warmbootRib), restoredEntry);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), stateMySid);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureIdenticalKeepsAdjacencyFrrBackup) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto protectedEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(protectedEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(protectedEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+
+  EXPECT_EQ(getRibEntry(*rib_), protectedEntry);
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureBoundAdjacencyInterfaceChangeDropsBinding) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel302"));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(entry.adjacencyInterfaceId().value_or(0), 302);
+  EXPECT_FALSE(entry.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.resolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureBoundAdjacencyToDecapDropsBinding) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), makeDecapMySidConfig(kFunctionId));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(*entry.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_FALSE(entry.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureRemovingBoundAdjacencyReleasesIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  const auto boundId = *getRibEntry(*rib_).unresolveNextHopsId();
+
+  reconfigure(rib_.get(), std::nullopt);
+
+  EXPECT_EQ(rib_->getMySidTableCopy().count(kPrefix), 0);
+  EXPECT_EQ(switchState_->getMySids()->getNodeIf(kPrefixStr), nullptr);
+  EXPECT_FALSE(isNextHopSetAllocated(boundId));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureRemovingAdjacencyWithFrrBackupReleasesBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  addFrrBackup();
+  const auto entry = getRibEntry(*rib_);
+  ASSERT_TRUE(entry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(entry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), std::nullopt);
+
+  EXPECT_FALSE(isNextHopSetAllocated(*entry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*entry.backupResolvedNextHopsId()));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureAdjacencyInterfaceChangeReleasesFrrBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto oldEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(oldEntry.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel302"));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(entry.adjacencyInterfaceId().value_or(0), 302);
+  EXPECT_FALSE(entry.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.backupResolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.unresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupResolvedNextHopsId()));
+}
+
+TEST_F(
+    RibConfigAdjacencyMySidTest,
+    reconfigureAdjacencyToDecapReleasesFrrBackupIds) {
+  reconfigure(rib_.get(), makeAdjacencyConfig("Port-Channel301"));
+  bindToNeighbor(InterfaceID(301));
+  addFrrBackup();
+  const auto oldEntry = getRibEntry(*rib_);
+  ASSERT_TRUE(oldEntry.backupUnresolveNextHopsId().has_value());
+  ASSERT_TRUE(oldEntry.backupResolvedNextHopsId().has_value());
+
+  reconfigure(rib_.get(), makeDecapMySidConfig(kFunctionId));
+
+  const auto entry = getRibEntry(*rib_);
+  EXPECT_EQ(*entry.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_FALSE(entry.backupUnresolveNextHopsId().has_value());
+  EXPECT_FALSE(entry.backupResolvedNextHopsId().has_value());
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupUnresolveNextHopsId()));
+  EXPECT_FALSE(isNextHopSetAllocated(*oldEntry.backupResolvedNextHopsId()));
 }
 
 } // namespace facebook::fboss

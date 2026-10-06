@@ -9,6 +9,9 @@ cpp_library(
     srcs = [
         "PcapUtil.cpp",
     ],
+    headers = [
+        "PcapUtil.h",
+    ],
     exported_deps = [
         "fbsource//third-party/libpcap/1.10.6:pcap",
         "//fboss/agent:fboss-error",

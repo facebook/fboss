@@ -12,6 +12,7 @@ cpp_library(
     headers = [
         "Wedge400CGrandTetonPlatformMapping.h",
         "Wedge400CPlatformMapping.h",
+        "Wedge400CPlatformUtil.h",
     ],
     deps = [
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",

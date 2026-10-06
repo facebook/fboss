@@ -306,6 +306,14 @@ class AgentCoppTest : public AgentHwTest {
     auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
         getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
+    if (outOfPort) {
+      // Same SA makeTCPTxPacket derives.
+      learnL2EntryIfPending(
+          destinationMac.isUnicast()
+              ? folly::MacAddress::fromHBO(destinationMac.u64HBO() + 1)
+              : folly::MacAddress("00:00:01:02:03:04"),
+          portIdsForTest()[0]);
+    }
     auto sendAndInspect = [=, this]() {
       auto pkt = utility::makeTCPTxPacket(
           getSw(),

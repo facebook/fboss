@@ -316,6 +316,9 @@ cpp_library(
     # the multi_switch benchmark binary and breaking the @mode/opt link.
     name = "hw_init_and_exit_benchmark_helper",
     srcs = ["HwInitAndExitBenchmarkHelper.cpp"],
+    headers = [
+        "HwInitAndExitBenchmarkHelper.h",
+    ],
     undefined_symbols = True,
     deps = [
         "//fboss/agent:apply_thrift_config",
@@ -527,6 +530,9 @@ agent_benchmark_lib(
         "HwSwitchReachabilityChangeBenchmarkHelper.cpp",
         "HwSwitchReachabilityChangeFabricBenchmark.cpp",
         "HwSwitchReachabilityChangeVoqBenchmark.cpp",
+    ],
+    headers = [
+        "HwSwitchReachabilityChangeBenchmarkHelper.h",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",

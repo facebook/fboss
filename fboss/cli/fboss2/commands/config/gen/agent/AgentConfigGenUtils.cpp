@@ -29,7 +29,10 @@
 #include "fboss/cli/fboss2/utils/ConfigFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/config/agent/AclConfigUtils.h"
+#include "fboss/lib/config/agent/CoppConfigUtils.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 #include "fboss/lib/platforms/PlatformDescriptor.h"
 #include "fboss/lib/platforms/PlatformMappingUtils.h"
 
@@ -450,12 +453,8 @@ void addDefaultProfilePortGraph(
     port.state() = cfg::PortState::ENABLED;
   }
 
-  auto defaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  defaultVlan.name() = "default";
-  defaultVlan.routable() = false;
-  switchConfig.vlans()->push_back(std::move(defaultVlan));
-  switchConfig.defaultVlan() = utility::kDefaultVlanId4094;
+  utility::addDefaultVlan(switchConfig, asic);
+  utility::addDefaultLoopbackInterface(switchConfig, asic);
 }
 
 } // namespace
@@ -615,6 +614,8 @@ cfg::SwitchConfig generateSwitchConfig(
   switchConfig.switchSettings() = std::move(switchSettings);
   utility::setupDefaultAclTableGroups(switchConfig, *asic);
   if (inputs.profile == kDefaultProfileName) {
+    utility::addDefaultCpuQueueConfig(switchConfig, *asic);
+    utility::addDefaultCpuTrafficPolicyConfig(switchConfig, *asic);
     addDefaultProfilePortGraph(switchConfig, *inputs.platformMapping, *asic);
   }
   return switchConfig;
@@ -640,7 +641,7 @@ fs::path generateAgentConfig(
       ServiceType::AGENT,
       inputs.profile,
       getAsicType(switchConfig),
-      platform);
+      *inputs.platformDescriptor.platformType());
   auto config = assembleAgentConfig(
       std::move(defaultCommandLineArgs),
       std::move(switchConfig),

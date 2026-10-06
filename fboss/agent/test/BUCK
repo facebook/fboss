@@ -107,6 +107,9 @@ cpp_unittest(
         "--log_to_scribe=false",
     ],
     network_access = network_access_utils.all(),
+    source_headers = [
+        "TestPacketFactory.h",
+    ],
     supports_static_listing = False,
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
@@ -174,6 +177,7 @@ cpp_unittest(
         "//fboss/agent/rib:fib_updater",
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test/utils:nexthop_id_test_utils",
@@ -304,6 +308,12 @@ cpp_library(
         "MockTunManager.cpp",
         "TestUtils.cpp",
     ],
+    headers = [
+        "CounterCache.h",
+        "MockTunIntf.h",
+        "MockTunManager.h",
+        "TestUtils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":hw_test_handle",
@@ -347,6 +357,9 @@ cpp_library(
     name = "label_forwarding_utils",
     srcs = [
         "LabelForwardingUtils.cpp",
+    ],
+    headers = [
+        "LabelForwardingUtils.h",
     ],
     exported_deps = [
         "//fboss/agent/state:state",
@@ -393,6 +406,9 @@ cpp_library(
     srcs = [
         "ResourceLibUtil.cpp",
     ],
+    headers = [
+        "ResourceLibUtil.h",
+    ],
     deps = ["fbsource//third-party/fmt:fmt"],
     exported_deps = [
         "//fboss/agent/state:state",
@@ -416,6 +432,9 @@ cpp_library(
     name = "route_distribution_gen",
     srcs = [
         "RouteDistributionGenerator.cpp",
+    ],
+    headers = [
+        "RouteDistributionGenerator.h",
     ],
     deps = [
         "fbsource//third-party/glog:glog",
@@ -455,6 +474,9 @@ cpp_library(
     srcs = [
         "RouteScaleGenerators.cpp",
     ],
+    headers = [
+        "RouteScaleGenerators.h",
+    ],
     deps = [
         ":ecmp_helper",
         ":resourcelibutil",
@@ -469,6 +491,9 @@ cpp_library(
     name = "route_gen_test_utils",
     srcs = [
         "RouteGeneratorTestUtils.cpp",
+    ],
+    headers = [
+        "RouteGeneratorTestUtils.h",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
@@ -504,6 +529,9 @@ cpp_library(
     srcs = [
         "EcmpSetupHelper.cpp",
     ],
+    headers = [
+        "EcmpSetupHelper.h",
+    ],
     deps = [
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:core",
@@ -529,6 +557,9 @@ cpp_library(
     srcs = [
         "MirrorConfigs.cpp",
     ],
+    headers = [
+        "MirrorConfigs.h",
+    ],
     exported_deps = [
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
@@ -540,6 +571,9 @@ cpp_library(
     name = "trunk_utils",
     srcs = [
         "TrunkUtils.cpp",
+    ],
+    headers = [
+        "TrunkUtils.h",
     ],
     deps = [
         "//fboss/agent:apply_thrift_config",
@@ -699,10 +733,13 @@ cpp_library(
     ],
     undefined_symbols = True,
     deps = [
+        ":ecmp_helper",
+        ":resourcelibutil",
         "//fboss/agent:packet",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
         "//fboss/agent/hw/test:hw_copp_utils",
+        "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:stats_test_utils",
         "//fboss/lib:common_utils",
@@ -727,6 +764,9 @@ cpp_library(
     name = "multinode_tests_base",
     srcs = [
         "MultiNodeTest.cpp",
+    ],
+    headers = [
+        "MultiNodeTest.h",
     ],
     deps = [
         "//common/network:util",
@@ -922,6 +962,9 @@ cpp_library(
     srcs = [
         "TestEnsembleIf.cpp",
     ],
+    headers = [
+        "TestEnsembleIf.h",
+    ],
     deps = [
         "//fboss/agent:packet",
         "//fboss/agent:utils",
@@ -1082,6 +1125,9 @@ cpp_binary(
     srcs = [
         "AgentWrapperTest.cpp",
     ],
+    headers = [
+        "AgentWrapperTest.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
@@ -1144,6 +1190,9 @@ cpp_library(
     name = "linkstate_toggler",
     srcs = [
         "LinkStateToggler.cpp",
+    ],
+    headers = [
+        "LinkStateToggler.h",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",

@@ -67,6 +67,9 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
+    headers = [
+        "ConfigValidator.h",
+    ],
     deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
@@ -87,6 +90,9 @@ cpp_library(
     name = "i2c_explorer",
     srcs = [
         "I2cExplorer.cpp",
+    ],
+    headers = [
+        "I2cExplorer.h",
     ],
     deps = [
         ":utils",
@@ -110,6 +116,9 @@ cpp_library(
     srcs = [
         "PciExplorer.cpp",
     ],
+    headers = [
+        "PciExplorer.h",
+    ],
     deps = [
         ":i2c_explorer",
         ":utils",
@@ -129,6 +138,9 @@ cpp_library(
 cpp_library(
     name = "device_path_resolver",
     srcs = ["DevicePathResolver.cpp"],
+    headers = [
+        "DevicePathResolver.h",
+    ],
     deps = [
         ":pci_explorer",
         ":utils",
@@ -143,6 +155,9 @@ cpp_library(
 cpp_library(
     name = "presence_checker",
     srcs = ["PresenceChecker.cpp"],
+    headers = [
+        "PresenceChecker.h",
+    ],
     exported_deps = [
         ":device_path_resolver",
         ":utils",
@@ -155,10 +170,14 @@ cpp_library(
     srcs = [
         "SystemInterface.cpp",
     ],
+    headers = [
+        "SystemInterface.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/range-v3:range-v3",
         "//folly:conv",
+        "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
     ],
@@ -171,6 +190,9 @@ cpp_library(
     name = "pkg_manager",
     srcs = [
         "PkgManager.cpp",
+    ],
+    headers = [
+        "PkgManager.h",
     ],
     deps = [
         "fbsource//third-party/range-v3:range-v3",
@@ -210,6 +232,9 @@ cpp_library(
     srcs = [
         "PlatformSnapshotBuilder.cpp",
     ],
+    headers = [
+        "PlatformSnapshotBuilder.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":i2c_misc",
@@ -228,6 +253,10 @@ cpp_library(
     srcs = [
         "ExplorationSummary.cpp",
         "PlatformExplorer.cpp",
+    ],
+    headers = [
+        "ExplorationSummary.h",
+        "PlatformExplorer.h",
     ],
     deps = [
         "fbsource//third-party/re2:re2",
@@ -260,6 +289,9 @@ cpp_library(
     srcs = [
         "PmUnitIdentity.cpp",
     ],
+    headers = [
+        "PmUnitIdentity.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//folly/logging:logging",
@@ -274,6 +306,9 @@ cpp_library(
     name = "utils",
     srcs = [
         "Utils.cpp",
+    ],
+    headers = [
+        "Utils.h",
     ],
     exported_deps = [
         "fbsource//third-party/exprtk:exprtk",
@@ -291,6 +326,9 @@ cpp_library(
     name = "config_utils",
     srcs = [
         "ConfigUtils.cpp",
+    ],
+    headers = [
+        "ConfigUtils.h",
     ],
     # Prevent other libraries from depending on this one. This is to prevent
     # BIOS access from other binaries. Only platform_manager should read from
@@ -332,6 +370,9 @@ cpp_library(
 cpp_library(
     name = "data_store",
     srcs = ["DataStore.cpp"],
+    headers = [
+        "DataStore.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":utils",
@@ -347,6 +388,9 @@ cpp_library(
     name = "platform_manager_handler",
     srcs = [
         "PlatformManagerHandler.cpp",
+    ],
+    headers = [
+        "PlatformManagerHandler.h",
     ],
     deps = [":platform_snapshot_builder"],
     exported_deps = [
@@ -392,6 +436,9 @@ cpp_library(
 cpp_library(
     name = "cpld_manager",
     srcs = ["CpldManager.cpp"],
+    headers = [
+        "CpldManager.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":utils",
@@ -417,6 +464,9 @@ cpp_library(
 cpp_library(
     name = "fan_cpld_manager",
     srcs = ["FanCpldManager.cpp"],
+    headers = [
+        "FanCpldManager.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":fbfancpld_ioctl_h",

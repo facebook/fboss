@@ -345,6 +345,86 @@ std::shared_ptr<Route<AddressT>> remapRouteNextHopSetIds(
   return writable;
 }
 
+RouteNextHopSet resolveNhopFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const NextHop& nh,
+    uint32_t ecmpWidth) {
+  if (nh.intfID().has_value()) {
+    return {nh};
+  }
+
+  const auto& addr = nh.addr();
+  RouteNextHopSet resolved;
+
+  auto collectResolved = [&](auto* routeMap, const auto& nhAddr) {
+    if (!routeMap) {
+      return false;
+    }
+    auto it = routeMap->longestMatch(nhAddr, nhAddr.bitCount());
+    if (it == routeMap->end()) {
+      return false;
+    }
+    const auto& route = it->value();
+    if (!route || !route->isResolved()) {
+      return false;
+    }
+
+    const auto fwdNhops = getNormalizedNextHopsFromRib(
+        manager, route->getForwardInfo(), ecmpWidth);
+    if (fwdNhops.empty()) {
+      return false;
+    }
+    if (route->isConnected()) {
+      resolved.insert(ResolvedNextHop(
+          nh.addr(),
+          fwdNhops.begin()->intf(),
+          fwdNhops.begin()->weight(),
+          nh.labelForwardingAction(),
+          nh.disableTTLDecrement(),
+          nh.topologyInfo(),
+          nh.adjustedWeight(),
+          nh.srv6SegmentList(),
+          nh.tunnelType(),
+          nh.tunnelId(),
+          nh.cost(),
+          nh.role()));
+    } else {
+      std::vector<ResolvedNextHop> nhops;
+      nhops.reserve(fwdNhops.size());
+      for (const auto& fwdNh : fwdNhops) {
+        nhops.emplace_back(
+            fwdNh.addr(),
+            fwdNh.intf(),
+            fwdNh.weight(),
+            nh.labelForwardingAction(),
+            nh.disableTTLDecrement(),
+            nh.topologyInfo(),
+            nh.adjustedWeight(),
+            nh.srv6SegmentList(),
+            nh.tunnelType(),
+            nh.tunnelId(),
+            nh.cost(),
+            nh.role());
+      }
+      resolved.insert(nhops.begin(), nhops.end());
+    }
+    return true;
+  };
+
+  for (const auto& [v4Routes, v6Routes] : routeTables) {
+    bool found = false;
+    if (addr.isV4()) {
+      found = collectResolved(v4Routes, addr.asV4());
+    } else {
+      found = collectResolved(v6Routes, addr.asV6());
+    }
+    if (found) {
+      break;
+    }
+  }
+  return resolved;
+}
 } // namespace
 
 template <typename AddressT, typename FibType, typename IndexT>
@@ -1922,23 +2002,37 @@ void RibRouteTables::updateMySidsImpl(
         // re-allocate a resolvedId for the new entry when applicable.
         if (const auto existingIt = mySidTable->find(cidrV6);
             existingIt != mySidTable->end()) {
-          if (const auto oldUnresolvedId =
-                  existingIt->second->getUnresolveNextHopsId()) {
+          const auto& existing = existingIt->second;
+          // Adjacency FRR protection is managed independently through
+          // updateMySidFrrProtection(). A primary-neighbor rebind replaces
+          // this MySid entry, but must transfer the existing backup IDs and
+          // their references to the replacement rather than releasing them.
+          const bool preserveFrrProtection =
+              existing->getType() == MySidType::ADJACENCY_MICRO_SID &&
+              mySid->getType() == MySidType::ADJACENCY_MICRO_SID;
+          if (preserveFrrProtection) {
+            mySid->setBackupUnresolveNextHopsId(
+                existing->getBackupUnresolveNextHopsId());
+            mySid->setBackupResolvedNextHopsId(
+                existing->getBackupResolvedNextHopsId());
+          }
+          if (const auto oldUnresolvedId = existing->getUnresolveNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldUnresolvedId);
           }
-          if (const auto oldResolvedId =
-                  existingIt->second->getResolvedNextHopsId()) {
+          if (const auto oldResolvedId = existing->getResolvedNextHopsId()) {
             nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedId);
           }
-          if (const auto oldBackupUnresolvedId =
-                  existingIt->second->getBackupUnresolveNextHopsId()) {
-            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
-                *oldBackupUnresolvedId);
-          }
-          if (const auto oldBackupResolvedId =
-                  existingIt->second->getBackupResolvedNextHopsId()) {
-            nextHopIDManager->decrOrDeallocRouteNextHopSetID(
-                *oldBackupResolvedId);
+          if (!preserveFrrProtection) {
+            if (const auto oldBackupUnresolvedId =
+                    existing->getBackupUnresolveNextHopsId()) {
+              nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                  *oldBackupUnresolvedId);
+            }
+            if (const auto oldBackupResolvedId =
+                    existing->getBackupResolvedNextHopsId()) {
+              nextHopIDManager->decrOrDeallocRouteNextHopSetID(
+                  *oldBackupResolvedId);
+            }
           }
         }
       }
@@ -2268,10 +2362,8 @@ void RibRouteTables::deleteNamedNextHopGroups(
 }
 
 void RibRouteTables::addOrUpdatePolicies(
-    const SwitchIdScopeResolver* resolver,
     const std::vector<ClassBasedPolicy>& policies,
-    const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
     if (!lockedRouteTables->nextHopIDManager) {
@@ -2300,13 +2392,18 @@ void RibRouteTables::addOrUpdatePolicies(
       nhIdManager->addOrUpdatePolicy(policy);
     }
   }
+  updateFibNamedNextHopGroups(stateUpdateFn);
+}
 
-  auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  if (!lockedRouteTables->routerIDToRouteTable.empty()) {
-    auto vrf = lockedRouteTables->routerIDToRouteTable.begin()->first;
-    lockedRouteTables.unlock();
-    updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
-  }
+void RibRouteTables::removePolicies(
+    const std::vector<std::string>& policyNames,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
+    for (const auto& name : policyNames) {
+      nextHopIDManager->removePolicy(name);
+    }
+  });
+  updateFibNamedNextHopGroups(stateUpdateFn);
 }
 
 void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
@@ -2360,10 +2457,8 @@ void RoutingInformationBase::deleteNamedNextHopGroups(
 }
 
 void RoutingInformationBase::addOrUpdatePolicies(
-    const SwitchIdScopeResolver* resolver,
     const std::vector<ClassBasedPolicy>& policies,
-    const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
   // Pre-validate before entering the RIB thread so no state is mutated on a bad
   // request.
   for (const auto& policy : policies) {
@@ -2386,10 +2481,25 @@ void RoutingInformationBase::addOrUpdatePolicies(
       }
     }
   }
-  updateStateInRibThread([&]() {
-    ribTables_.addOrUpdatePolicies(
-        resolver, policies, ribToSwitchStateFunc, cookie);
-  });
+  updateStateInRibThread(
+      [&]() { ribTables_.addOrUpdatePolicies(policies, stateUpdateFn); });
+}
+
+void RoutingInformationBase::removePolicies(
+    const std::vector<std::string>& policyNames,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  if (policyNames.empty()) {
+    return;
+  }
+  // Pre-validate before entering the RIB thread so no state is mutated on a bad
+  // request.
+  for (const auto& name : policyNames) {
+    if (name.empty()) {
+      throw FbossError("Class-based policy name cannot be empty");
+    }
+  }
+  updateStateInRibThread(
+      [&]() { ribTables_.removePolicies(policyNames, stateUpdateFn); });
 }
 
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
@@ -2682,6 +2792,19 @@ RouteNextHopSet getNormalizedNextHopsFromRib(
   }
   // No overrides, delegate to ID-aware non-override path.
   return getNonOverrideNormalizedNextHopsFromRib(manager, entry, ecmpWidth);
+}
+
+RouteNextHopSet resolveNextHopSetFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const RouteNextHopSet& nhops,
+    uint32_t ecmpWidth) {
+  RouteNextHopSet resolved;
+  for (const auto& nh : nhops) {
+    auto nhResolved = resolveNhopFromRib(routeTables, manager, nh, ecmpWidth);
+    resolved.insert(nhResolved.begin(), nhResolved.end());
+  }
+  return resolved;
 }
 
 } // namespace facebook::fboss

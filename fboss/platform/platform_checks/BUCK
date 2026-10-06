@@ -34,6 +34,67 @@ cpp_library(
 )
 
 cpp_library(
+    name = "host",
+    srcs = [
+        "Host.cpp",
+        "LocalHost.cpp",
+    ],
+    headers = [
+        "Host.h",
+        "LocalHost.h",
+    ],
+    deps = [
+        "//folly:file_util",
+        "//folly:string",
+        "//folly:subprocess",
+        "//folly/logging:logging",
+        "//folly/system:shell",
+    ],
+)
+
+cpp_library(
+    name = "remote_host",
+    srcs = [
+        "RemoteHost.cpp",
+    ],
+    headers = [
+        "RemoteHost.h",
+    ],
+    exported_deps = [
+        ":host",
+    ],
+)
+
+cpp_library(
+    name = "platform_name",
+    srcs = [
+        "PlatformName.cpp",
+    ],
+    headers = [
+        "PlatformName.h",
+    ],
+    deps = [
+        "//fboss/platform/helpers:platform_name_lib",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+    exported_deps = [
+        ":host",
+    ],
+)
+
+cpp_library(
+    name = "mock_host",
+    headers = [
+        "tests/MockHost.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":host",
+    ],
+)
+
+cpp_library(
     name = "platform_checks",
     srcs = [
         "checks/KernelVersionCheck.cpp",
@@ -128,5 +189,42 @@ cpp_unittest(
         ":platform_checks",
         "//fboss/platform/helpers:mock_platform_fs_utils",
         "//fboss/platform/helpers:mock_platform_utils",
+    ],
+)
+
+cpp_unittest(
+    name = "local_host_test",
+    srcs = [
+        "tests/LocalHostTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":host",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)
+
+cpp_unittest(
+    name = "remote_host_test",
+    srcs = [
+        "tests/RemoteHostTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":remote_host",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_name_test",
+    srcs = [
+        "tests/PlatformNameTest.cpp",
+    ],
+    network_access = network_access_utils.none(),
+    deps = [
+        ":mock_host",
+        ":platform_name",
     ],
 )

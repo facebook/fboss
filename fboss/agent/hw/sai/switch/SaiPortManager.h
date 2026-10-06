@@ -448,7 +448,6 @@ class SaiPortManager {
   bool llrProfileBindingChanged(
       std::optional<sai_object_id_t> boundProfile,
       const std::shared_ptr<Port>& swPort);
-  void reissueLlrModeRemote(SaiPortHandle* portHandle, PortID portId);
   void programSampling(
       PortID portId,
       SamplePacketDirection direction,

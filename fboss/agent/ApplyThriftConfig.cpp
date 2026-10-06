@@ -3102,13 +3102,43 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           " exist but not the portPgConfig map");
     }
   }
-  // CBFC virtual channels. Independent of PFC: a port may run both, so this
-  // is resolved from Port.cbfcConfigName rather than from PortPfc.
+  // CBFC virtual channels, resolved from Port.cbfcConfigName rather than from
+  // PortPfc. PortPfc may still be present to carry the PG config, but with PFC
+  // disabled.
   std::optional<std::vector<state::PortVcFields>> virtualChannels;
   std::optional<int64_t> cbfcSenderCreditLimit;
   std::optional<std::string> newCbfcConfigName;
   if (auto cbfcConfigName = portConf->cbfcConfigName()) {
     newCbfcConfigName = *cbfcConfigName;
+    // The SDK rejects CBFC attributes on non-interface ports (e.g. TU1's
+    // management port), and a failed attribute write during port programming
+    // terminates the HW agent.
+    if (*portConf->portType() != cfg::PortType::INTERFACE_PORT) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " of type ",
+          apache::thrift::util::enumNameSafe(*portConf->portType()),
+          " has cbfc config name ",
+          *cbfcConfigName,
+          "; CBFC is supported on only interface ports");
+    }
+    // TU1 cannot receive PFC and CBFC on the same port (78920-PG102 15.2.5).
+    // Keeping pfc with tx and rx off is allowed: it is how the port keeps its
+    // PG config.
+    if (newPfc && (*newPfc->tx() || *newPfc->rx())) {
+      throw FbossError(
+          "Port ",
+          orig->getID(),
+          " has cbfc config name ",
+          *cbfcConfigName,
+          " and PFC enabled (tx=",
+          *newPfc->tx(),
+          ", rx=",
+          *newPfc->rx(),
+          "); PFC and CBFC cannot both be enabled on a port. Set pfc tx and rx"
+          " to false; portPgConfigName may stay.");
+    }
     auto cbfcConfigs = cfg_->cbfcConfigs();
     if (!cbfcConfigs) {
       throw FbossError(
@@ -5531,6 +5561,9 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     }
     newFlowletSwitchingConfig->setArsVirtualGroupCommonMembersThreshold(
         *config.arsVirtualGroupCommonMembersThreshold());
+  }
+  if (config.arsGroupWidth()) {
+    newFlowletSwitchingConfig->setArsGroupWidth(*config.arsGroupWidth());
   }
   if (config.standbySwitchingMode()) {
     // Distinct switching modes keep the standby and primary ARS objects from

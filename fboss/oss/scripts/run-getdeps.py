@@ -13,12 +13,14 @@ build environment without modifying the upstream getdeps.py script.
 import argparse
 import glob
 import hashlib
+import http.client
 import os
 import re
 import shutil
 import subprocess
 import sys
 import sysconfig
+import urllib.request
 from pathlib import Path
 
 from sdk_versions import (
@@ -74,20 +76,6 @@ SUPPORTED_SAI_IMPLS = {
 }
 SUPPORTED_PHY_IMPLS = {
     "SAI_BRCM_PAI_IMPL",
-}
-SAI_VERSION_SHAS = {
-    "1.13.2": "d60935ba1e5cc7e4ebf2ae7d04f9e937d445e3f875822e27a359c775cb203bae",
-    "1.14.0": "4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7",
-    "1.15.0": "94b7a7dd9dbcc46bf14ba9f12b8597e9e9c2069fcb8e383a61cdf6ca172f3511",
-    "1.15.3": "fd390d86e7abb419023decf1ec254054450a35d9147b0ad6499e6d12aa860812",
-    "1.16.0": "c7d9e85646b28a4d788448db28da649da37cd3ec7955fbeb8d7d80f76ef1796f",
-    "1.16.1": "cf65142d1a1286b5faa24c9ae61b3f955f04724d0bf5ef6e5679298353aa0871",
-    "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
-    "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
-    "1.17.4": "362640d5398c53e7257daf67ff7044591937a8443bf037748527bb2cd185f660",
-    "1.18.0": "606e35da083056e60e818964bcc0737f229a78f1a150e8aa398bc76b3a360509",
-    "1.18.1": "84f2fbd6bf672abaefddfd78a28fec794e37477bf9702fbb56d7bd53ff930ba3",
-    "1.19.0": "199d2cd32408b6470ce0c43beee660cc468e29e72921f1e93e64d4a8eb80246a",
 }
 SUPPORTED_SAI_SDK_VERSIONS = frozenset(SDK_VERSIONS)
 
@@ -146,10 +134,11 @@ def parse_args():
     parser.add_argument(
         ARG_PHY_SAI_VERSION,
         required=False,
-        choices=SAI_VERSION_SHAS.keys(),
+        type=_sai_version_arg,
         help="SAI spec version to use for the PHY (PAI) build pass. "
         "Only used when --phy-sai-impl is set. When omitted, the PHY pass "
-        "uses the build's default SAI version (current behavior).",
+        "uses the build's default SAI version (current behavior). "
+        "Any X.Y.Z release tag of the OCP SAI repo.",
     )
     parser.add_argument(
         ARG_PHY_PAI_SDK_PATH,
@@ -172,8 +161,9 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_SAI_VERSION,
         required=False,
-        choices=SAI_VERSION_SHAS.keys(),
-        help="SAI version to be used for the build.",
+        type=_sai_version_arg,
+        help="SAI spec version to be used for the build. "
+        "Any X.Y.Z release tag of the OCP SAI repo.",
     )
     parser.add_argument(
         ARG_NPU_SAI_SDK_VERSION,
@@ -510,10 +500,51 @@ def _restore_libsai_manifest(content):
         f.write(content)
 
 
-def _edit_libsai_manifest(version):
-    """Overwrite the libsai manifest with the correct URL and SHA for the given version."""
+def _sai_version_arg(value):
+    """argparse type for SAI spec versions: any X.Y.Z, pinned or not."""
+    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+        raise argparse.ArgumentTypeError(
+            f"invalid SAI version '{value}', expected X.Y.Z"
+        )
+    return value
+
+
+def _get_sai_sha(url, version, scratch_path):
+    """Return the sha256 of the SAI spec tarball, which getdeps requires in the
+    libsai manifest, downloading it once per scratch path to compute it.
+
+    Only the sha is cached. The tarball must not land in <scratch>/downloads:
+    getdeps would find it there and skip its fetch, and with it the LFS
+    download and upload.
+    """
+    sha_path = os.path.join(scratch_path, "sai_spec_shas", f"{version}.sha256")
+    if os.path.isfile(sha_path):
+        with open(sha_path) as f:
+            return f.read().strip()
+
+    print_info(f"Downloading {url} to compute its sha256")
+    h = hashlib.sha256()
+    try:
+        # urllib honours http_proxy/https_proxy.
+        with urllib.request.urlopen(url, timeout=300) as response:
+            for chunk in iter(lambda: response.read(1 << 20), b""):
+                h.update(chunk)
+    except (OSError, http.client.HTTPException) as ex:
+        print_error(f"Error: failed to download SAI {version} from {url}: {ex}")
+        sys.exit(1)
+    sha256 = h.hexdigest()
+
+    os.makedirs(os.path.dirname(sha_path), exist_ok=True)
+    with open(sha_path, "w") as f:
+        f.write(sha256 + "\n")
+    print_info(f"SAI {version} sha256 {sha256}, cached in {sha_path}")
+    return sha256
+
+
+def _edit_libsai_manifest(version, scratch_path):
+    """Overwrite the libsai manifest with the URL and SHA for the given version."""
     url = f"https://github.com/opencomputeproject/SAI/archive/v{version}.tar.gz"
-    sha256 = SAI_VERSION_SHAS[version]
+    sha256 = _get_sai_sha(url, version, scratch_path)
     manifest_path = _libsai_manifest_path()
     manifest_str = (
         "[manifest]\n"
@@ -1087,10 +1118,14 @@ def _prepare_pass(
     # follows --npu-sai-version; the PHY pass follows --phy-sai-version.
     if impl in (PASS_IMPL_NPU, PASS_IMPL_FAKE):
         if args.npu_sai_version is not None:
-            _edit_libsai_manifest(args.npu_sai_version)
+            _edit_libsai_manifest(
+                args.npu_sai_version, _get_scratch_path(args.getdeps_args)
+            )
     elif impl == PASS_IMPL_PHY:
         if args.phy_sai_version is not None:
-            _edit_libsai_manifest(args.phy_sai_version)
+            _edit_libsai_manifest(
+                args.phy_sai_version, _get_scratch_path(args.getdeps_args)
+            )
 
 
 def _setup_toolchain(args):

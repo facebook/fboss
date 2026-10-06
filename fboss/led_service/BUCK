@@ -29,6 +29,9 @@ cpp_library(
     srcs = [
         "LedUtils.cpp",
     ],
+    headers = [
+        "LedUtils.h",
+    ],
     deps = [
         ":led-config",
         "//fboss/agent:fboss-error",

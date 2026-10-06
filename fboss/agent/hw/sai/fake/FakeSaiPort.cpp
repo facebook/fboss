@@ -531,8 +531,7 @@ sai_status_t set_port_attribute_fn(
 #if SAI_API_VERSION >= SAI_VERSION(1, 18, 0)
   // Native BCM SDK 6.5.36 refuses to clear an LLR mode, or to attach or detach
   // a PORT_LLR_PROFILE, while the port is administratively enabled (Broadcom
-  // CS00012478409). Setting a mode on an enabled port is permitted: that is how
-  // the one-shot LLR_MODE_REMOTE trigger is armed after link up.
+  // CS00012478409). Setting a mode on an enabled port is permitted.
   if (port.adminState) {
     bool clearingMode = (attr->id == SAI_PORT_ATTR_LLR_MODE_LOCAL ||
                          attr->id == SAI_PORT_ATTR_LLR_MODE_REMOTE) &&

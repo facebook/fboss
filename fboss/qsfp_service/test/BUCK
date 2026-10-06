@@ -14,6 +14,9 @@ cpp_binary(
     srcs = [
         "QsfpServiceTest.cpp",
     ],
+    headers = [
+        "QsfpServiceTest.h",
+    ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
         "fbsource//third-party/googletest:gtest",

@@ -374,7 +374,8 @@ class CmdShowBgpUpdateGroup
            "LastRibVer",
            "DetachRibVer",
            "QueueSize",
-           "EntryCount"});
+           "EntryCount",
+           "LastStateChange"});
 
       for (const auto& peer : peers) {
         table.addRow(
@@ -390,7 +391,11 @@ class CmdShowBgpUpdateGroup
                  ? std::to_string(peer.detached_rib_version().value())
                  : std::string("-"),
              std::to_string(peer.queue_size().value()),
-             std::to_string(peer.entry_count().value())});
+             std::to_string(peer.entry_count().value()),
+             peer.last_modified_peer_update_state_time_ms().has_value()
+                 ? epochMsToString(
+                       peer.last_modified_peer_update_state_time_ms().value())
+                 : std::string("-")});
       }
       out << table << std::endl;
     }

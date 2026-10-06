@@ -57,6 +57,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
 
   void verifyDscpReclassification() {
     XLOG(DBG2) << "verify DSCP reclassification Acls";
+    learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
     auto beforeAclInOutPkts =
         utility::getAclInOutPackets(getSw(), utility::kCounterName());
     sendPacket(
@@ -140,6 +141,9 @@ class AgentDscpMarkingTest : public AgentHwTest {
       for (bool frontPanel : {false, true}) {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
+        if (frontPanel) {
+          learnSrcMacOnEcmpTxPortIfPending(kDefaultEcmpWidth);
+        }
         auto beforeAclInOutPkts =
             utility::getAclInOutPackets(getSw(), utility::kCounterName());
 

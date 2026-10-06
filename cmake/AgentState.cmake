@@ -71,6 +71,8 @@ add_library(state
   fboss/agent/state/InterfaceMap.cpp
   fboss/agent/state/InterfaceMapDelta.cpp
   fboss/agent/state/IpTunnel.cpp
+  fboss/agent/state/IsolationGroup.cpp
+  fboss/agent/state/IsolationGroupMap.cpp
   fboss/agent/state/LabelForwardingInformationBase.cpp
   fboss/agent/state/LlrConfig.cpp
   fboss/agent/state/LlrConfigMap.cpp

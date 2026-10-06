@@ -155,10 +155,12 @@ class RibRouteTables {
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   void addOrUpdatePolicies(
-      const SwitchIdScopeResolver* resolver,
       const std::vector<ClassBasedPolicy>& policies,
-      const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   template <typename RouteType, typename RouteIdType>
   void update(
@@ -688,10 +690,12 @@ class RoutingInformationBase {
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   void addOrUpdatePolicies(
-      const SwitchIdScopeResolver* resolver,
       const std::vector<ClassBasedPolicy>& policies,
-      const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
  private:
   void ensureRunning() const;
@@ -782,6 +786,18 @@ RouteNextHopSet getNonOverrideNormalizedNextHopsFromRib(
 RouteNextHopSet getNormalizedNextHopsFromRib(
     const NextHopIDManager* manager,
     const RouteNextHopEntry& entry,
+    uint32_t ecmpWidth);
+
+// Resolve a next-hop set against the RIB the same way route resolution
+// resolves a route's next hops: each member is dereferenced to the
+// interface-scoped next hops of its longest-match route, trying each VRF in
+// order. A member with no resolving route is dropped, so the remaining
+// members still forward. Members that already carry an interface pass
+// through untouched. Route tables must already be resolved.
+RouteNextHopSet resolveNextHopSetFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const RouteNextHopSet& nhops,
     uint32_t ecmpWidth);
 
 } // namespace facebook::fboss

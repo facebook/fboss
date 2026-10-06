@@ -13,7 +13,11 @@ cpp_library(
         "prefdl/Prefdl.cpp",
     ],
     headers = [
+        "Weutil.h",
+        "WeutilDarwin.h",
+        "WeutilImpl.h",
         "WeutilInterface.h",
+        "prefdl/Prefdl.h",
     ],
     deps = [
         ":config_utils_lib",
@@ -61,6 +65,9 @@ cpp_library(
     srcs = [
         "ConfigValidator.cpp",
     ],
+    headers = [
+        "ConfigValidator.h",
+    ],
     deps = ["//folly/logging:logging"],
     exported_deps = [
         "//fboss/platform/weutil/if:weutil_config-cpp2-types",
@@ -91,6 +98,9 @@ cpp_library(
     name = "eeprom_content_validator",
     srcs = [
         "ContentValidator.cpp",
+    ],
+    headers = [
+        "ContentValidator.h",
     ],
     deps = ["fbsource//third-party/fmt:fmt"],
     exported_deps = [],

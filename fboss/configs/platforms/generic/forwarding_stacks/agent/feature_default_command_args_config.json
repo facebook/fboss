@@ -182,9 +182,9 @@
         },
         "platforms": {
           "included": [
-            "ladakh800bcls",
-            "leh800bcls",
-            "tahansb800bc"
+            "PLATFORM_LADAKH800BCLS",
+            "PLATFORM_LEH800BCLS",
+            "PLATFORM_TAHANSB800BC"
           ]
         }
       }
@@ -201,7 +201,7 @@
         },
         "platforms": {
           "included": [
-            "minipack3bta"
+            "PLATFORM_MINIPACK3BTA"
           ]
         }
       }
@@ -223,11 +223,11 @@
         },
         "platforms": {
           "included": [
-            "wedge800bact",
-            "wedge800cact",
-            "wedge800bnhp",
-            "wedge800cnhp",
-            "m5120csc"
+            "PLATFORM_WEDGE800BACT",
+            "PLATFORM_WEDGE800CACT",
+            "PLATFORM_WEDGE800BNHP",
+            "PLATFORM_WEDGE800CNHP",
+            "PLATFORM_M5120CSC"
           ]
         }
       }
@@ -244,8 +244,8 @@
         },
         "platforms": {
           "included": [
-            "wedge800bact",
-            "wedge800cact"
+            "PLATFORM_WEDGE800BACT",
+            "PLATFORM_WEDGE800CACT"
           ]
         }
       }
@@ -335,7 +335,7 @@
         },
         "platforms": {
           "included": [
-            "yangra"
+            "PLATFORM_YANGRA"
           ]
         }
       }
@@ -352,41 +352,7 @@
         },
         "platforms": {
           "included": [
-            "yangra2"
-          ]
-        }
-      }
-    },
-    "meru400bfu_mode": {
-      "args": {
-        "mode": "meru400bfu"
-      },
-      "autoEnableWhen": {
-        "configProfiles": {
-          "included": [
-            "hw_test"
-          ]
-        },
-        "platforms": {
-          "included": [
-            "meru400bfu"
-          ]
-        }
-      }
-    },
-    "meru400biu_mode": {
-      "args": {
-        "mode": "meru400biu"
-      },
-      "autoEnableWhen": {
-        "configProfiles": {
-          "included": [
-            "hw_test"
-          ]
-        },
-        "platforms": {
-          "included": [
-            "meru400biu"
+            "PLATFORM_YANGRA2"
           ]
         }
       }

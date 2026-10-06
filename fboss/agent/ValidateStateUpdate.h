@@ -24,7 +24,8 @@ bool hasValidPortQueues(
 
 bool isStateUpdateValidCommon(
     const StateDelta& delta,
-    const HwAsicTable* hwAsicTable);
+    const HwAsicTable* hwAsicTable,
+    const SwitchIdScopeResolver* resolver);
 bool isStateUpdateValidMultiSwitch(
     const StateDelta& delta,
     const SwitchIdScopeResolver* resolver,

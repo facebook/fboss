@@ -7,6 +7,9 @@ cpp_library(
     srcs = [
         "XgsPsampMod.cpp",
     ],
+    headers = [
+        "XgsPsampMod.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fboss/agent/packet:hdr_parse_error",

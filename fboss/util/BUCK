@@ -70,6 +70,7 @@ cpp_library(
     headers = [
         "qsfp/QsfpServiceDetector.h",
         "qsfp/QsfpUtilContainer.cpp",
+        "qsfp/QsfpUtilContainer.h",
         "qsfp/QsfpUtilTx.h",
         "wedge_qsfp_util.h",
     ],

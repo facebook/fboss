@@ -28,6 +28,10 @@ cpp_library(
         "FruPresenceExplorer.cpp",
         "LedManager.cpp",
     ],
+    headers = [
+        "FruPresenceExplorer.h",
+        "LedManager.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "//fb303:service_data",
@@ -45,6 +49,9 @@ cpp_library(
     name = "config_validator",
     srcs = [
         "ConfigValidator.cpp",
+    ],
+    headers = [
+        "ConfigValidator.h",
     ],
     deps = ["//folly/logging:logging"],
     exported_deps = [

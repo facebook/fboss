@@ -440,30 +440,12 @@ TEST(PortConfigUtilsTest, createInterfacePortConfigRejectsManagementPort) {
       FbossError);
 }
 
-TEST(PortConfigUtilsTest, createInterfacePortComponentsSetsBasicFields) {
-  const auto vlan = utility::createVlanConfig(VlanID(2001));
-  EXPECT_EQ(*vlan.id(), 2001);
-  EXPECT_EQ(*vlan.name(), "vlan2001");
-  EXPECT_TRUE(*vlan.routable());
-  EXPECT_TRUE(*vlan.recordStats());
-
+TEST(PortConfigUtilsTest, createVlanPortConfigSetsBasicFields) {
   const auto vlanPort = utility::createVlanPortConfig(kPortId, VlanID(2001));
   EXPECT_EQ(*vlanPort.logicalPort(), static_cast<int32_t>(kPortId));
   EXPECT_EQ(*vlanPort.vlanID(), 2001);
   EXPECT_EQ(*vlanPort.spanningTreeState(), cfg::SpanningTreeState::FORWARDING);
   EXPECT_FALSE(*vlanPort.emitTags());
-
-  const auto intf =
-      utility::createVlanInterfaceConfig(InterfaceID(2001), VlanID(2001));
-  EXPECT_EQ(*intf.name(), "2001");
-  EXPECT_EQ(*intf.intfID(), 2001);
-  EXPECT_EQ(*intf.vlanID(), 2001);
-  EXPECT_EQ(*intf.type(), cfg::InterfaceType::VLAN);
-  EXPECT_EQ(*intf.routerID(), 0);
-  EXPECT_EQ(*intf.scope(), cfg::Scope::LOCAL);
-  EXPECT_EQ(*intf.mtu(), 9000);
-  EXPECT_FALSE(intf.mac().has_value());
-  EXPECT_TRUE(intf.ipAddresses()->empty());
 }
 
 TEST(PortConfigUtilsTest, allocateFreeVlanIdSkipsVlanAndInterfaceIds) {

@@ -238,13 +238,35 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
   // TODO - restrict vlan scope to L3 switches
   // Currently we create pseudo vlans on fabric switches
   if (vlan->getPortsInfo().empty()) {
-    // VLANs corresponding to loopback intfs have no ports
-    // associated with them. Also Pseudo vlans created
-    // on fabric switches don't have ports associated with them.
+    // interfaceID is 0 when no cfg::Interface claims this VLAN - a pseudo or
+    // default vlan, which is never programmed as a RIF.
+    const auto intfID = static_cast<int32_t>(vlan->getInterfaceID());
+    if (intfID != 0) {
+      for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo_) {
+        if (switchInfo.loopbackIntfId().has_value() &&
+            *switchInfo.loopbackIntfId() == intfID) {
+          return HwSwitchMatcher(
+              std::unordered_set<SwitchID>({SwitchID(switchId)}));
+        }
+      }
+    }
 
-    // Return the first switchId.
-    // TODO: Remove this after scope resolution is updated to return single
-    // switchId based on virtual interface and switchId configuration.
+    // Nothing names an owner. Prefer the l3 switch over an arbitrary pick:
+    // allSwitchMatcher() includes fabric switches, which never own a RIF.
+    if (l3SwitchMatcher_) {
+      if (l3SwitchMatcher_->switchIds().size() == 1) {
+        return *l3SwitchMatcher_;
+      }
+      // Several l3 switches and a real RIF: the platform must say which ASIC
+      // owns it, otherwise we would program it on the wrong one. A VLAN with
+      // no interface (intfID 0) is not a RIF and is allowed through.
+      CHECK_EQ(intfID, 0)
+          << "Portless interface " << intfID << " on vlan "
+          << static_cast<int32_t>(vlan->getID())
+          << " has no SwitchInfo::loopbackIntfId, but this platform has "
+          << l3SwitchMatcher_->switchIds().size() << " l3 switches";
+    }
+
     return HwSwitchMatcher(
         std::unordered_set<SwitchID>(
             {*allSwitchMatcher().switchIds().begin()}));
@@ -330,7 +352,12 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
           vlanMembers.emplace(*vlanPort.logicalPort(), vlanInfo);
         }
       }
-      return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
+      // cfg::Vlan::intfID is optional and coop does not set it, so a Vlan
+      // built from config reports interface 0. Populate it from the id we
+      // were handed, as ApplyThriftConfig does for state Vlans.
+      auto vlan = std::make_shared<Vlan>(&*vitr, vlanMembers);
+      vlan->setInterfaceID(interfaceId);
+      return scope(vlan);
     }
     case cfg::InterfaceType::PORT: {
       auto itr = std::find_if(

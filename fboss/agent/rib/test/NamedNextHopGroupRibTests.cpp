@@ -14,6 +14,7 @@
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -721,6 +722,103 @@ TEST_F(NamedNextHopGroupRibTest, RouteEntryReportsNamedNhg) {
     }
   }
   EXPECT_TRUE(foundNhg);
+}
+
+// A BGP route whose next hop is resolved recursively by an OpenR route, with
+// TE_Agent steering the same destination through a named next hop group that
+// carries SID lists and a counter. TE_Agent wins on admin distance, so the
+// route takes its counter; repointing TE_Agent at a second group moves the
+// route onto that group's counter.
+TEST_F(NamedNextHopGroupRibTest, TeAgentNamedNhgUpdatesRouteCounterID) {
+  const folly::IPAddress kChildPrefix{"2001::"};
+  const folly::IPAddress kRecursiveNhop{"2001::1"};
+  const folly::IPAddress kDest{"2800::"};
+  constexpr uint8_t kPrefixLen{64};
+  const RouteCounterID kCounter1{"teAgentCounter1"};
+  const RouteCounterID kCounter2{"teAgentCounter2"};
+
+  auto namedNhops = [&kRecursiveNhop](const folly::IPAddressV6& sid) {
+    RouteNextHopSet nhops;
+    nhops.emplace(UnresolvedNextHop(
+        kRecursiveNhop,
+        1,
+        std::nullopt /*labelAction*/,
+        std::nullopt /*disableTTLDecrement*/,
+        std::nullopt /*topologyInfo*/,
+        std::nullopt /*adjustedWeight*/,
+        std::vector<folly::IPAddressV6>{sid},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0")));
+    return nhops;
+  };
+
+  addOrUpdateGroups(
+      {{"nhg1", namedNhops(folly::IPAddressV6("fdad:ffff:1::"))}});
+
+  // OpenR resolves the address the BGP route points at, then BGP resolves
+  // recursively through it.
+  {
+    auto updater = sw_->getRouteUpdater();
+    updater.addRoute(
+        RouterID(0),
+        kChildPrefix,
+        kPrefixLen,
+        ClientID::OPENR,
+        RouteNextHopEntry(
+            makeResolvedNextHops({"1::10", "2::10"}), AdminDistance::OPENR));
+    updater.addRoute(
+        RouterID(0),
+        kDest,
+        kPrefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(
+            RouteNextHopSet{UnresolvedNextHop(kRecursiveNhop, 1)},
+            AdminDistance::EBGP));
+    updater.program();
+  }
+
+  auto destCounterID =
+      [this, &kDest, kPrefixLen]() -> std::optional<RouteCounterID> {
+    auto route = findRoute<folly::IPAddressV6>(
+        RouterID(0), folly::CIDRNetwork(kDest, kPrefixLen), sw_->getState());
+    if (!route) {
+      return std::nullopt;
+    }
+    EXPECT_TRUE(route->isResolved());
+    return route->getForwardInfo().getCounterID();
+  };
+
+  // Only BGP and OpenR so far, neither of which is counted.
+  EXPECT_EQ(destCounterID(), std::nullopt);
+
+  auto programTeAgentRoute = [this, &kDest, kPrefixLen](
+                                 const std::string& nhgName,
+                                 const RouteCounterID& counterID) {
+    UnicastRoute route;
+    route.dest()->ip() = facebook::network::toBinaryAddress(kDest);
+    route.dest()->prefixLength() = kPrefixLen;
+    NamedRouteDestination namedDest;
+    namedDest.nextHopGroup() = nhgName;
+    route.namedRouteDestination() = namedDest;
+    route.counterID() = counterID;
+    auto updater = sw_->getRouteUpdater();
+    updater.addRoute(RouterID(0), ClientID::TE_AGENT, route);
+    updater.program();
+  };
+
+  programTeAgentRoute("nhg1", kCounter1);
+  EXPECT_EQ(destCounterID(), kCounter1);
+
+  // Repoint TE_Agent at a second group carrying a different SID list and a
+  // different counter.
+  addOrUpdateGroups(
+      {{"nhg2", namedNhops(folly::IPAddressV6("fdad:ffff:2::"))}});
+  programTeAgentRoute("nhg2", kCounter2);
+  EXPECT_EQ(destCounterID(), kCounter2);
+
+  auto managerCopy = sw_->getRib()->getNextHopIDManagerCopy();
+  EXPECT_FALSE(managerCopy->hasRoutesForNamedNhg("nhg1"));
+  EXPECT_TRUE(managerCopy->hasRoutesForNamedNhg("nhg2"));
 }
 
 } // namespace facebook::fboss

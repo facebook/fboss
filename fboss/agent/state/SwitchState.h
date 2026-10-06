@@ -34,6 +34,8 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnelMap.h"
+#include "fboss/agent/state/IsolationGroup.h"
+#include "fboss/agent/state/IsolationGroupMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LlrConfig.h"
 #include "fboss/agent/state/LlrConfigMap.h"
@@ -77,6 +79,8 @@ class BufferPoolCfgMap;
 class FlowletSwitchingConfig;
 class PortFlowletCfg;
 class PortFlowletCfgMap;
+class IsolationGroup;
+class IsolationGroupMap;
 class LlrConfig;
 class LlrConfigMap;
 
@@ -202,6 +206,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::llrCfgMaps,
     MultiSwitchLlrConfigMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::isolationGroupMaps,
+    MultiSwitchIsolationGroupMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -339,6 +347,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchLlrConfigMap> getLlrConfigs() const;
 
+  const std::shared_ptr<MultiSwitchIsolationGroupMap> getIsolationGroups()
+      const;
+
   std::chrono::seconds getNdpTimeout() const;
 
   std::chrono::seconds getArpAgerInterval() const;
@@ -454,6 +465,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiSwitchTransceiverMap> transceivers);
   void resetPortFlowletCfgs(std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs);
   void resetLlrConfigs(std::shared_ptr<MultiSwitchLlrConfigMap> cfgs);
+  void resetIsolationGroups(
+      std::shared_ptr<MultiSwitchIsolationGroupMap> groups);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
   void resetRemoteSystemPorts(

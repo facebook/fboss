@@ -26,6 +26,7 @@ sai_status_t create_next_hop_fn(
   std::optional<folly::IPAddress> ip;
   std::optional<sai_object_id_t> routerInterfaceId;
   std::vector<sai_uint32_t> labelStack;
+  sai_int32_t outsegType{SAI_OUTSEG_TYPE_SWAP};
   bool disableTtlDecrement{false};
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   sai_object_id_t tunnelId{SAI_NULL_OBJECT_ID};
@@ -50,6 +51,12 @@ sai_status_t create_next_hop_fn(
         for (auto j = 0; j < attr_list[i].value.u32list.count; j++) {
           labelStack[j] = attr_list[i].value.u32list.list[j];
         }
+        break;
+      case SAI_NEXT_HOP_ATTR_OUTSEG_TYPE:
+        if (type != SAI_NEXT_HOP_TYPE_MPLS) {
+          return SAI_STATUS_INVALID_PARAMETER;
+        }
+        outsegType = attr_list[i].value.s32;
         break;
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
@@ -102,6 +109,7 @@ sai_status_t create_next_hop_fn(
         routerInterfaceId.value(),
         labelStack,
         disableTtlDecrement);
+    fs->nextHopManager.get(*next_hop_id).outsegType = outsegType;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     auto& nextHop = fs->nextHopManager.get(*next_hop_id);
     nextHop.tunnelId = tunnelId;
@@ -156,6 +164,12 @@ sai_status_t get_next_hop_attribute_fn(
         for (auto j = 0; j < attr[i].value.u32list.count; j++) {
           attr[i].value.u32list.list[j] = nextHop.labelStack[j];
         }
+        break;
+      case SAI_NEXT_HOP_ATTR_OUTSEG_TYPE:
+        if (static_cast<int32_t>(nextHop.type) != SAI_NEXT_HOP_TYPE_MPLS) {
+          return SAI_STATUS_INVALID_PARAMETER;
+        }
+        attr[i].value.s32 = nextHop.outsegType;
         break;
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         attr[i].value.booldata = nextHop.disableTtlDecrement;

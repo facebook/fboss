@@ -33,9 +33,8 @@ CMake fails at configure time without it. Because the token becomes a bare
 define, a typo produces a define nobody tests for, and the wrong
 version-conditional code compiles silently.
 
-> The SAI spec version is validated against a built-in table of pinned
-> checksums, so only a fixed set of values is accepted. Run
-> `run-getdeps.py -h` for the current list rather than trusting a written one.
+> Any OCP SAI release tag is accepted as the spec version. Nothing checks that
+> it is the one your SDK was built against, so getting it right is on you.
 
 ### Working out which versions you need
 

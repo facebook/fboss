@@ -1129,39 +1129,6 @@ TEST_F(PortManagerTest, llrHoldsEnableWhenPortObjectExistsUnbound) {
       handle->port->adapterKey(), SaiPortTraits::Attributes::AdminState{}));
 }
 
-// LLR_MODE_REMOTE drives a one-shot trigger that is lost when asserted before
-// link up, so it is re-asserted on the link up that follows. The port is
-// enabled by then, which the fake permits for a mode set.
-TEST_F(PortManagerTest, llrModeRemoteReassertedOnLinkUp) {
-  auto swPort = makePort(p0);
-  swPort->setAdminState(cfg::PortState::DISABLED);
-  swPort->setLlrConfigName("llrProfile");
-  swPort->setLlrConfig(makeLlrConfigNode());
-  saiManagerTable->portManager().addPort(swPort);
-
-  auto& portApi = saiApiTable->portApi();
-  auto portSaiId = saiManagerTable->portManager()
-                       .getPortHandle(swPort->getID())
-                       ->port->adapterKey();
-  // Clear the mode behind the store, standing in for the trigger being lost
-  // before link up. The port is disabled, so the fake permits the clear.
-  portApi.setAttribute(
-      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{false});
-  ASSERT_FALSE(portApi.getAttribute(
-      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}));
-
-  // LLR config is unchanged, so this update is the link coming up.
-  auto newPort = makePort(p0);
-  newPort->setAdminState(cfg::PortState::ENABLED);
-  newPort->setLlrConfigName("llrProfile");
-  newPort->setLlrConfig(makeLlrConfigNode());
-  newPort->setOperState(true);
-  saiManagerTable->portManager().changePort(swPort, newPort);
-
-  EXPECT_TRUE(portApi.getAttribute(
-      portSaiId, SaiPortTraits::Attributes::LlrModeRemote{}));
-}
-
 TEST_F(PortManagerTest, reconfigureLlrOnChangePort) {
   auto swPort = makePort(p0);
   swPort->setAdminState(cfg::PortState::DISABLED);

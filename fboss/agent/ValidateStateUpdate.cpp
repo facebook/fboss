@@ -128,10 +128,83 @@ bool StateUpdateValidator::isLlrConfigUpdateValid(
       });
   return isValid;
 }
+namespace {
+std::string linkUpHoldoffStr(const shared_ptr<facebook::fboss::Port>& port) {
+  auto holdoffTimeMs = port->getPortUpHoldoffTimeMs();
+  return holdoffTimeMs.has_value() ? std::to_string(*holdoffTimeMs) + "ms"
+                                   : "no hold";
+}
+
+bool hasSameLinkUpHoldoff(
+    const shared_ptr<SwitchState>& state,
+    const SwitchIdScopeResolver* resolver,
+    SwitchID switchId) {
+  shared_ptr<Port> firstPort;
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      if (port.second->getPortType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      // Each ASIC programs its own SWITCH_WIDE hold, so only compare ports
+      // that belong to this switch.
+      if (resolver && !resolver->scope(port.second).has(switchId)) {
+        continue;
+      }
+      if (!firstPort) {
+        firstPort = port.second;
+        continue;
+      }
+      if (port.second->getPortUpHoldoffTimeMs() !=
+          firstPort->getPortUpHoldoffTimeMs()) {
+        XLOG(ERR) << "portUpHoldoffTimeMs is a switch wide timer on this ASIC, "
+                  << "but port " << port.second->getName() << " asks for "
+                  << linkUpHoldoffStr(port.second) << " while port "
+                  << firstPort->getName() << " asks for "
+                  << linkUpHoldoffStr(firstPort) << " on switch " << switchId;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// A hold-off the SDK will not take fails the set at the ASIC, so reject it
+// while the update can still be turned away. 0 is always accepted: it is how a
+// config asks for no hold at all.
+bool hasAcceptedLinkUpHoldoff(
+    const shared_ptr<SwitchState>& state,
+    const HwAsic::AcceptedValues& acceptedMs,
+    const SwitchIdScopeResolver* resolver,
+    SwitchID switchId) {
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      // Each ASIC enforces its own accepted values, so only check ports that
+      // belong to this switch.
+      if (resolver && !resolver->scope(port.second).has(switchId)) {
+        continue;
+      }
+      auto holdoffTimeMs = port.second->getPortUpHoldoffTimeMs();
+      if (!holdoffTimeMs.has_value() || *holdoffTimeMs == 0) {
+        continue;
+      }
+      if (!acceptedMs.accepts(*holdoffTimeMs)) {
+        XLOG(ERR) << "portUpHoldoffTimeMs " << *holdoffTimeMs << "ms on port "
+                  << port.second->getName()
+                  << " is not a value this ASIC accepts, " << acceptedMs.str()
+                  << "ms on switch " << switchId;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+} // namespace
 
 bool isStateUpdateValidCommon(
     const StateDelta& delta,
-    const HwAsicTable* hwAsicTable) {
+    const HwAsicTable* hwAsicTable,
+    const SwitchIdScopeResolver* resolver) {
   bool isValid = true;
   bool isEcnProbabilisticMarkingSupported =
       hwAsicTable->isFeatureSupportedOnAllAsic(
@@ -184,6 +257,22 @@ bool isStateUpdateValidCommon(
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});
+
+  for (const auto& [switchId, asic] : hwAsicTable->getHwAsics()) {
+    if (asic->isSupported(HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE) &&
+        !hasSameLinkUpHoldoff(delta.newState(), resolver, switchId)) {
+      isValid = false;
+    }
+  }
+
+  for (const auto& [switchId, asic] : hwAsicTable->getHwAsics()) {
+    auto acceptedMs = asic->getAcceptedLinkUpHoldoffTimeMs();
+    if (acceptedMs.has_value() &&
+        !hasAcceptedLinkUpHoldoff(
+            delta.newState(), *acceptedMs, resolver, switchId)) {
+      isValid = false;
+    }
+  }
 
   // Ensure only one sflow mirror session is configured
   std::set<std::string> ingressMirrors;
@@ -385,7 +474,7 @@ bool StateUpdateValidator::isValidUpdate(
 }
 
 bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) {
-  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+  if (!isStateUpdateValidCommon(delta, asicTable_, scopeResolver_)) {
     return false;
   }
   if (!intfDeltaValidator_.isValidDelta(delta)) {

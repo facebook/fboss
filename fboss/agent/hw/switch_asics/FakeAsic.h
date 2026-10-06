@@ -53,6 +53,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::SDK_REGISTER_DUMP:
       case HwAsic::Feature::ECMP_RANDOM_SPRAY_HIERARCHICAL_LEVEL:
       case HwAsic::Feature::TEMPERATURE_MONITORING:
+      case HwAsic::Feature::SWITCH_WIDE_LINK_UP_DEBOUNCE:
         return false;
 
       default:

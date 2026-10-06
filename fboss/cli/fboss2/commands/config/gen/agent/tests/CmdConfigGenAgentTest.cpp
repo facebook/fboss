@@ -33,7 +33,9 @@
 #include "fboss/cli/fboss2/commands/config/gen/FeatureDefaultCommandArgs.h"
 #include "fboss/cli/fboss2/commands/config/gen/PlatformConfigPathUtils.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
 #include "fboss/lib/config/agent/PortConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 namespace facebook::fboss::configgen {
 namespace {
@@ -52,6 +54,29 @@ constexpr int32_t kManagementPortId = 100;
 constexpr auto kPortProfile = cfg::PortProfileID::PROFILE_100G_4_NRZ_NOFEC;
 constexpr auto kWidePortProfile =
     cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N;
+
+cfg::Vlan makeLoopbackVlan() {
+  auto vlan = utility::createVlanConfig(VlanID(utility::kFbossLoopbackVlanId));
+  vlan.name() = "fbossLoopback0";
+  return vlan;
+}
+
+cfg::Vlan makeDefaultVlan() {
+  auto vlan = utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
+  vlan.name() = "default";
+  vlan.routable() = false;
+  return vlan;
+}
+
+cfg::Interface makeLoopbackInterface() {
+  auto intf = utility::createVlanInterfaceConfig(
+      InterfaceID(utility::kFbossLoopbackVlanId),
+      VlanID(utility::kFbossLoopbackVlanId));
+  intf.name().reset();
+  intf.isVirtual() = true;
+  intf.isStateSyncDisabled() = true;
+  return intf;
+}
 
 void writeTestFile(const fs::path& path, std::string_view contents) {
   fs::create_directories(path.parent_path());
@@ -203,7 +228,8 @@ FeatureDefaultCommandArgs makeAutoFeature(
     std::set<std::string> profiles = {},
     std::set<std::string> asicTypes = {},
     std::set<std::string> excludedAsicTypes = {},
-    std::set<std::string> platforms = {}) {
+    std::set<std::string> platforms = {},
+    std::set<std::string> excludedPlatforms = {}) {
   FeatureEnableConditions conditions;
   if (!profiles.empty()) {
     FeatureConditionValues values;
@@ -216,9 +242,10 @@ FeatureDefaultCommandArgs makeAutoFeature(
     values.excluded() = std::move(excludedAsicTypes);
     conditions.asicTypes() = std::move(values);
   }
-  if (!platforms.empty()) {
+  if (!platforms.empty() || !excludedPlatforms.empty()) {
     FeatureConditionValues values;
     values.included() = std::move(platforms);
+    values.excluded() = std::move(excludedPlatforms);
     conditions.platforms() = std::move(values);
   }
 
@@ -228,9 +255,7 @@ FeatureDefaultCommandArgs makeAutoFeature(
   return feature;
 }
 
-void writeFeatureDefaultCommandArgsConfig(
-    const fs::path& fbossRoot,
-    std::string_view platform = kPlatform) {
+void writeFeatureDefaultCommandArgsConfig(const fs::path& fbossRoot) {
   FeatureDefaultCommandArgsConfig config;
   config.profileDefaultArgs()[std::string(kProfile)] = {
       {"check_wb_handles", "true"},
@@ -257,13 +282,13 @@ void writeFeatureDefaultCommandArgsConfig(
       {std::string(kProfile)},
       {},
       {},
-      {std::string(platform)});
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["use_raw_platform_mapping"] = makeAutoFeature(
       {{"use_raw_platform_mapping", "true"}},
       {std::string(kProfile)},
       {},
       {},
-      {std::string(platform)});
+      {"PLATFORM_WEDGE800BACT"});
 
   writeTestFile(
       fbossRoot / "configs" / "platforms" / "generic" / "forwarding_stacks" /
@@ -288,7 +313,7 @@ fs::path createTestPlatform(
     std::string_view configType = "YAML_CONFIG",
     std::string_view extension = ".yml",
     std::string_view generatedConfig = kAsicYaml) {
-  writeFeatureDefaultCommandArgsConfig(fbossRoot, platform);
+  writeFeatureDefaultCommandArgsConfig(fbossRoot);
   const auto asicConfigDirectory =
       fbossRoot / "configs" / "platforms" / vendor / platform / "asic_config";
   writeTestFile(
@@ -421,7 +446,14 @@ TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {
       {"hw_test"},
       {"ASIC_TYPE_TOMAHAWK5"},
       {},
-      {"wedge800bact"});
+      {"PLATFORM_WEDGE800BACT"});
+  config.features()["excluded_platform"] = makeAutoFeature(
+      {{"excluded_platform", "true"}},
+      {"hw_test"},
+      {},
+      {},
+      {},
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["excluded"] = makeAutoFeature(
       {{"excluded", "true"}}, {"hw_test"}, {}, {"ASIC_TYPE_TOMAHAWK5"});
   config.features()["other_profile"] =
@@ -437,7 +469,7 @@ TEST(FeatureDefaultCommandArgsTest, ResolvesMatchingAutomaticFeatures) {
           config,
           "hw_test",
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
-          "wedge800bact"),
+          PlatformType::PLATFORM_WEDGE800BACT),
       expected);
 }
 
@@ -445,7 +477,11 @@ TEST(FeatureDefaultCommandArgsTest, SkipsAsicConditionsWithoutAsicType) {
   FeatureDefaultCommandArgsConfig config;
   config.profileDefaultArgs()["hw_test"] = {{"base", "true"}};
   config.features()["platform_feature"] = makeAutoFeature(
-      {{"platform_feature", "true"}}, {"hw_test"}, {}, {}, {"wedge800bact"});
+      {{"platform_feature", "true"}},
+      {"hw_test"},
+      {},
+      {},
+      {"PLATFORM_WEDGE800BACT"});
   config.features()["asic_feature"] = makeAutoFeature(
       {{"asic_feature", "true"}}, {"hw_test"}, {"ASIC_TYPE_TOMAHAWK5"});
 
@@ -453,7 +489,7 @@ TEST(FeatureDefaultCommandArgsTest, SkipsAsicConditionsWithoutAsicType) {
       {"base", "true"}, {"platform_feature", "true"}};
   EXPECT_EQ(
       resolveFeatureDefaultCommandArgs(
-          config, "hw_test", std::nullopt, "wedge800bact"),
+          config, "hw_test", std::nullopt, PlatformType::PLATFORM_WEDGE800BACT),
       expected);
 }
 
@@ -466,7 +502,7 @@ TEST(FeatureDefaultCommandArgsTest, RejectsEmptyAutomaticConditions) {
 
   EXPECT_THROW(
       resolveFeatureDefaultCommandArgs(
-          config, "hw_test", std::nullopt, "wedge800bact"),
+          config, "hw_test", std::nullopt, PlatformType::PLATFORM_WEDGE800BACT),
       FbossError);
 }
 
@@ -482,7 +518,7 @@ TEST(FeatureDefaultCommandArgsTest, RejectsConflictingArguments) {
           config,
           "hw_test",
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5,
-          "wedge800bact"),
+          PlatformType::PLATFORM_WEDGE800BACT),
       FbossError);
 }
 
@@ -628,16 +664,15 @@ TEST(AgentConfigGenTest, GeneratesDefaultProfilePortGraph) {
   const std::vector<cfg::Interface> expectedInterfaces{
       utility::createVlanInterfaceConfig(
           InterfaceID(utility::kInterfaceVlanIdMin),
-          VlanID(utility::kInterfaceVlanIdMin))};
+          VlanID(utility::kInterfaceVlanIdMin)),
+      makeLoopbackInterface()};
   EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
 
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
   const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
-      expectedDefaultVlan};
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
   EXPECT_EQ(*switchConfig.defaultVlan(), utility::kDefaultVlanId4094);
 }
@@ -691,17 +726,16 @@ TEST(AgentConfigGenTest, AllocatesManagementPortVlanFromHighEnd) {
       utility::createVlanInterfaceConfig(
           InterfaceID(utility::kInterfaceVlanIdMin),
           VlanID(utility::kInterfaceVlanIdMin)),
-      expectedManagementInterface};
+      expectedManagementInterface,
+      makeLoopbackInterface()};
   EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
 
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
   const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMin)),
       utility::createVlanConfig(VlanID(utility::kInterfaceVlanIdMax)),
-      expectedDefaultVlan};
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 
@@ -720,12 +754,12 @@ TEST(AgentConfigGenTest, SkipsNonInterfacePortForDefaultProfile) {
 
   EXPECT_TRUE(switchConfig.ports()->empty());
   EXPECT_TRUE(switchConfig.vlanPorts()->empty());
-  EXPECT_TRUE(switchConfig.interfaces()->empty());
-  auto expectedDefaultVlan =
-      utility::createVlanConfig(VlanID(utility::kDefaultVlanId4094));
-  expectedDefaultVlan.name() = "default";
-  expectedDefaultVlan.routable() = false;
-  const std::vector<cfg::Vlan> expectedVlans{expectedDefaultVlan};
+  const std::vector<cfg::Interface> expectedInterfaces{makeLoopbackInterface()};
+  EXPECT_EQ(*switchConfig.interfaces(), expectedInterfaces);
+  const std::vector<cfg::Vlan> expectedVlans{
+      makeLoopbackVlan(),
+      makeDefaultVlan(),
+  };
   EXPECT_EQ(*switchConfig.vlans(), expectedVlans);
 }
 

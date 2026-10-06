@@ -11,6 +11,12 @@ cpp_library(
         "Wedge400LedUtils.cpp",
         "facebook/Wedge100LedUtils.cpp",
     ],
+    headers = [
+        "GalaxyLedUtils.h",
+        "MinipackLedUtils.h",
+        "Wedge100LedUtils.h",
+        "Wedge400LedUtils.h",
+    ],
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/lib/usb:wedge_i2c",
@@ -32,6 +38,9 @@ cpp_library(
     name = "bcm_yaml_config",
     srcs = [
         "BcmYamlConfig.cpp",
+    ],
+    headers = [
+        "BcmYamlConfig.h",
     ],
     deps = [
         "//fboss/agent:fboss-error",

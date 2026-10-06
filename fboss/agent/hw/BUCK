@@ -60,6 +60,9 @@ cpp_library(
     srcs = [
         "HwResourceStatsPublisher.cpp",
     ],
+    headers = [
+        "HwResourceStatsPublisher.h",
+    ],
     deps = [
         ":hardware_stats-cpp2-types",
         "//fb303:service_data",
@@ -73,6 +76,9 @@ cpp_library(
     name = "buffer_stats",
     srcs = [
         "BufferStatsLogger.cpp",
+    ],
+    headers = [
+        "BufferStatsLogger.h",
     ],
     deps = ["//folly/logging:logging"],
     exported_deps = [
@@ -107,6 +113,9 @@ cpp_library(
     srcs = [
         "HwTrunkCounters.cpp",
     ],
+    headers = [
+        "HwTrunkCounters.h",
+    ],
     deps = [
         ":counter_utils",
         ":stats_constants",
@@ -122,6 +131,9 @@ cpp_library(
     name = "hw_switch_warmboot_helper",
     srcs = [
         "HwSwitchWarmBootHelper.cpp",
+    ],
+    headers = [
+        "HwSwitchWarmBootHelper.h",
     ],
     deps = [
         "//fboss/agent:agent_dir_util",
@@ -146,6 +158,9 @@ cpp_library(
     srcs = [
         "CounterUtils.cpp",
     ],
+    headers = [
+        "CounterUtils.h",
+    ],
     deps = [
         ":hardware_stats-cpp2-types",
         "//fb303:service_data",
@@ -164,6 +179,9 @@ cpp_library(
     srcs = [
         "DiagCmdFilter.cpp",
     ],
+    headers = [
+        "DiagCmdFilter.h",
+    ],
     deps = [
         "//folly:file_util",
         "//folly:string",
@@ -179,6 +197,9 @@ cpp_library(
     name = "hw_fb303_stats",
     srcs = [
         "HwFb303Stats.cpp",
+    ],
+    headers = [
+        "HwFb303Stats.h",
     ],
     deps = [
         ":counter_utils",
@@ -197,6 +218,11 @@ cpp_library(
         "HwBasePortFb303Stats.cpp",
         "HwPortFb303Stats.cpp",
         "HwSysPortFb303Stats.cpp",
+    ],
+    headers = [
+        "HwBasePortFb303Stats.h",
+        "HwPortFb303Stats.h",
+        "HwSysPortFb303Stats.h",
     ],
     deps = [
         ":counter_utils",
@@ -221,6 +247,9 @@ cpp_library(
     srcs = [
         "HwRouterInterfaceFb303Stats.cpp",
     ],
+    headers = [
+        "HwRouterInterfaceFb303Stats.h",
+    ],
     exported_deps = [
         ":hardware_stats-cpp2-types",
         ":hw_fb303_stats",
@@ -231,6 +260,9 @@ cpp_library(
     name = "hw_cpu_fb303_stats",
     srcs = [
         "HwCpuFb303Stats.cpp",
+    ],
+    headers = [
+        "HwCpuFb303Stats.h",
     ],
     deps = [
         ":stats_constants",

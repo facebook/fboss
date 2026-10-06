@@ -14,6 +14,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -106,6 +107,79 @@ TEST(PortVcConfig, NoCbfcConfigsMap) {
 
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(PortVcConfig, RejectedOnManagementPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfc(makeCbfcConfig());
+  config.ports()[0].portType() = cfg::PortType::MANAGEMENT_PORT;
+
+  try {
+    publishAndApplyConfig(stateV0, &config, platform.get());
+    FAIL() << "CBFC on a management port must be rejected";
+  } catch (const FbossError& e) {
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("only interface ports"));
+  }
+}
+
+namespace {
+
+cfg::SwitchConfig makeConfigWithCbfcAndPfc(bool pfcTx, bool pfcRx) {
+  auto config = makeConfigWithCbfc(makeCbfcConfig());
+  cfg::PortPgConfig pg;
+  pg.id() = 2;
+  config.portPgConfigs() = {{"pg_foo", {pg}}};
+  cfg::PortPfc pfc;
+  pfc.tx() = pfcTx;
+  pfc.rx() = pfcRx;
+  pfc.portPgConfigName() = "pg_foo";
+  config.ports()[0].pfc() = pfc;
+  return config;
+}
+
+void expectPfcAndCbfcRejected(bool pfcTx, bool pfcRx) {
+  // No PG config here: enabling PFC with lossless priorities resolves a
+  // switch-wide scope the mock config cannot provide, and the apply would fail
+  // for that unrelated reason instead.
+  auto config = makeConfigWithCbfc(makeCbfcConfig());
+  cfg::PortPfc pfc;
+  pfc.tx() = pfcTx;
+  pfc.rx() = pfcRx;
+  config.ports()[0].pfc() = pfc;
+  auto platform = createMockPlatform();
+  try {
+    publishAndApplyConfig(make_shared<SwitchState>(), &config, platform.get());
+    FAIL() << "PFC and CBFC on the same port must be rejected";
+  } catch (const FbossError& e) {
+    EXPECT_THAT(e.what(), ::testing::HasSubstr("PFC and CBFC"));
+  }
+}
+
+} // unnamed namespace
+
+TEST(PortVcConfig, RejectedWithPfcRx) {
+  expectPfcAndCbfcRejected(/*pfcTx=*/false, /*pfcRx=*/true);
+}
+
+TEST(PortVcConfig, RejectedWithPfcTx) {
+  expectPfcAndCbfcRejected(/*pfcTx=*/true, /*pfcRx=*/false);
+}
+
+TEST(PortVcConfig, AcceptedWithPfcDisabledAndPgConfigKept) {
+  // PG carving is reachable only through PortPfc, so a CBFC port keeps it by
+  // carrying pfc with tx and rx both off.
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = makeConfigWithCbfcAndPfc(/*pfcTx=*/false, /*pfcRx=*/false);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto port = stateV1->getPorts()->getNodeIf(PortID(1));
+  ASSERT_NE(nullptr, port);
+  EXPECT_EQ(port->getCbfcConfigName(), "cbfc_foo");
+  ASSERT_TRUE(port->getPortPgConfigs());
+  EXPECT_EQ(port->getPortPgConfigs()->size(), 1);
 }
 
 TEST(PortVcConfig, VcIdOutOfRange) {

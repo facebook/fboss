@@ -30,7 +30,9 @@ cpp_library(
         "AgentMultiNodeVoqSwitchNeighborTests.h",
         "AgentMultiNodeVoqSwitchTrafficTests.h",
         "DsfTopologyInfo.h",
+        "TopologyInfo.h",
     ],
+    # @lint-ignore BUCKLINT link_whole is required for gtest registration
     link_whole = True,
     deps = [
         "fbsource//third-party/fmt:fmt",
@@ -56,6 +58,46 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_hw_test",
         "//folly:network_address",
+    ],
+)
+
+cpp_library(
+    name = "agent_te_srv6_multinode_test_src",
+    srcs = [
+        "AgentMultiNodeTeSrv6Test.cpp",
+    ],
+    # @lint-ignore BUCKLINT link_whole is required for gtest registration
+    link_whole = True,
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:address_utils",
+        "//fboss/agent:load_agent_config",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:utils",
+        "//fboss/agent/test/thrift_client_utils:thrift_client_utils",
+        "//fboss/lib:common_utils",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:network_address",
+        "//folly:scope_guard",
+        "//nettools/ebb/platform/if:TeSrv6Agent-cpp2-clients",
+        "//nettools/ebb/platform/if:TeSrv6Agent-cpp2-types",
+    ],
+)
+
+cpp_binary(
+    name = "multi_switch_agent_multinode_test",
+    srcs = [
+        "MultiSwitchAgentMultiNodeMain.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":agent_multinode_test_src",
+        ":agent_te_srv6_multinode_test_src",
+        "//fboss/agent:setup_thrift_test",  # @manual
+        "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:multi_switch_agent_ensemble",
+        "//folly/logging:init",
     ],
 )
 

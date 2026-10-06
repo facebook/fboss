@@ -94,14 +94,6 @@ folly::CIDRNetwork kIPv6NdpSolicitNetwork() {
   return folly::IPAddress::createNetwork("ff02:0:0:0:0:1:ff00::/104");
 }
 
-cfg::Range getRange(uint32_t minimum, uint32_t maximum) {
-  cfg::Range range;
-  range.minimum() = minimum;
-  range.maximum() = maximum;
-
-  return range;
-}
-
 uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
   return hwAsic->getHiPriCpuQueueId();
 }
@@ -114,123 +106,6 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
 uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
   auto hwAsic = checkSameAndGetAsic(hwAsics, FLAGS_switch_id_for_testing);
   return getCoppHighPriQueueId(hwAsic);
-}
-
-cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
-  switch (hwAsic->getAsicType()) {
-    case cfg::AsicType::ASIC_TYPE_FAKE:
-    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
-    case cfg::AsicType::ASIC_TYPE_MOCK:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
-    case cfg::AsicType::ASIC_TYPE_EBRO:
-    case cfg::AsicType::ASIC_TYPE_P200:
-    case cfg::AsicType::ASIC_TYPE_GARONNE:
-    case cfg::AsicType::ASIC_TYPE_YUBA:
-    case cfg::AsicType::ASIC_TYPE_G202X:
-      return cfg::ToCpuAction::COPY;
-    case cfg::AsicType::ASIC_TYPE_JERICHO2:
-    case cfg::AsicType::ASIC_TYPE_JERICHO3:
-    case cfg::AsicType::ASIC_TYPE_JERICHO4:
-    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
-    case cfg::AsicType::ASIC_TYPE_CHENAB:
-    case cfg::AsicType::ASIC_TYPE_CHENAB2:
-      return cfg::ToCpuAction::TRAP;
-    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-    case cfg::AsicType::ASIC_TYPE_AGERA3:
-    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_RAMON:
-    case cfg::AsicType::ASIC_TYPE_RAMON3:
-      throw FbossError(
-          "AsicType ", hwAsic->getAsicType(), " doesn't support cpu action");
-  }
-  throw FbossError("Unexpected AsicType ", hwAsic->getAsicType());
-}
-
-cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
-  cfg::StreamType defaultStreamType = cfg::StreamType::MULTICAST;
-  auto streamTypes = hwAsic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
-  if (streamTypes.begin() != streamTypes.end()) {
-    defaultStreamType = *streamTypes.begin();
-  }
-  return defaultStreamType;
-}
-
-cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
-  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-    // TODO(Chenab): use strict priority scheduling when available
-    return cfg::QueueScheduling::STRICT_PRIORITY;
-  }
-  return cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
-}
-
-uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
-  uint32_t pps;
-  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-    if (queueId == kCoppLowPriQueueId) {
-      pps = kCoppTajoLowPriPktsPerSec;
-    } else if (queueId == kCoppDefaultPriQueueId) {
-      pps = kCoppTajoDefaultPriPktsPerSec;
-    } else {
-      throw FbossError("Unexpected queue id ", queueId);
-    }
-  } else if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
-    if (queueId == kCoppLowPriQueueId) {
-      pps = kCoppDnxLowPriPktsPerSec;
-    } else if (queueId == kCoppDefaultPriQueueId) {
-      pps = kCoppDnxDefaultPriPktsPerSec;
-    } else {
-      throw FbossError("Unexpected queue id ", queueId);
-    }
-  } else {
-    if (queueId == kCoppLowPriQueueId) {
-      pps = kCoppLowPriPktsPerSec;
-    } else if (queueId == kCoppDefaultPriQueueId) {
-      pps = kCoppDefaultPriPktsPerSec;
-    } else {
-      throw FbossError("Unexpected queue id ", queueId);
-    }
-  }
-  return pps;
-}
-
-uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
-  uint32_t kbps;
-  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
-      hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB ||
-      hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1) {
-    kbps = (round(pps / 60) * 60) *
-        (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
-  } else {
-    throw FbossError("Copp queue pps to kbps unsupported for platform");
-  }
-  return kbps;
-}
-
-cfg::PortQueueRate getPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
-  uint32_t pps = getCoppQueuePps(hwAsic, queueId);
-  auto portQueueRate = cfg::PortQueueRate();
-
-  if (hwAsic->isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
-    portQueueRate.pktsPerSec() = getRange(0, pps);
-  } else {
-    uint32_t kbps;
-    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
-        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
-        hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
-      kbps = kCoppDnxLowPriKbitsPerSec;
-    } else {
-      kbps = getCoppQueueKbpsFromPps(hwAsic, pps);
-    }
-    portQueueRate.kbitsPerSec() = getRange(0, kbps);
-  }
-
-  return portQueueRate;
 }
 
 void addCpuQueueConfig(

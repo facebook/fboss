@@ -8,6 +8,10 @@ cpp_library(
         "UsbDevice.cpp",
         "UsbHandle.cpp",
     ],
+    headers = [
+        "UsbDevice.h",
+        "UsbHandle.h",
+    ],
     exported_deps = [
         "fbsource//third-party/glog:glog",
         ":usb-api",
@@ -22,6 +26,9 @@ cpp_library(
     name = "cp2112",
     srcs = [
         "CP2112.cpp",
+    ],
+    headers = [
+        "CP2112.h",
     ],
     exported_deps = [
         "fbsource//third-party/glog:glog",
@@ -86,6 +93,16 @@ cpp_library(
         "Wedge100I2CBus.cpp",
         "WedgeI2CBus.cpp",
     ],
+    headers = [
+        "GalaxyI2CBus.h",
+        "Minipack16QI2CBus.h",
+        "Minipack16QTransceiverApi.h",
+        "PCA9548.h",
+        "PCA9548MultiplexedBus.h",
+        "PCA9548MuxedBus.h",
+        "Wedge100I2CBus.h",
+        "WedgeI2CBus.h",
+    ],
     deps = [
         ":cp2112",
         ":usb-api",
@@ -110,6 +127,9 @@ cpp_library(
     name = "base-i2c-dependencies",
     srcs = [
         "BaseWedgeI2CBus.cpp",
+    ],
+    headers = [
+        "BaseWedgeI2CBus.h",
     ],
     deps = [
         "fbsource//third-party/glog:glog",

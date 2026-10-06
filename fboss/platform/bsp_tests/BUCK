@@ -63,6 +63,15 @@ cpp_library(
         "utils/KmodUtils.cpp",
         "utils/WatchdogUtils.cpp",
     ],
+    headers = [
+        "utils/CdevUtils.h",
+        "utils/GpioUtils.h",
+        "utils/HwmonUtils.h",
+        "utils/I2CUtils.h",
+        "utils/IdpromUtils.h",
+        "utils/KmodUtils.h",
+        "utils/WatchdogUtils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
@@ -103,6 +112,9 @@ cpp_binary(
         "WatchdogTests.cpp",
         "XcvrTests.cpp",
     ],
+    headers = [
+        "BspTest.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
@@ -141,6 +153,10 @@ cpp_library(
     srcs = [
         "BspTestEnvironment.cpp",
         "RuntimeConfigBuilder.cpp",
+    ],
+    headers = [
+        "BspTestEnvironment.h",
+        "RuntimeConfigBuilder.h",
     ],
     deps = [
         "//fboss/platform/config_lib:config_lib",

@@ -22,6 +22,9 @@ cpp_library(
     srcs = [
         "Srv6TestUtils.cpp",
     ],
+    headers = [
+        "Srv6TestUtils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":config_utils",
@@ -61,7 +64,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
-        "//fboss/lib/config:acl_config_utils",
+        "//fboss/lib/config:fboss_agent_config_utils",
     ],
 )
 
@@ -114,6 +117,7 @@ cpp_library(
         "//fboss/agent/hw:hardware_stats-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
+        "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:network_address",
         "//folly/logging:logging",
     ],
@@ -318,11 +322,11 @@ cpp_library(
         ":port_test_utils",
         ":voq_test_utils",
         "//fboss/agent:core",
+        "//fboss/agent:load_agent_config",
         "//fboss/agent:switchinfo_utils",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test:utils",
-        "//fboss/lib/config:acl_config_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly/testing:test_util",
     ],
@@ -334,7 +338,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
-        "//fboss/lib/config:port_config_utils",
+        "//fboss/lib/config:fboss_agent_config_utils",
         "//folly:network_address",
     ],
 )
@@ -389,6 +393,9 @@ cpp_library(
     srcs = [
         "LoadBalancerTestUtils.cpp",
     ],
+    headers = [
+        "LoadBalancerTestUtils.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
@@ -440,6 +447,9 @@ cpp_library(
     name = "trap_packet_utils",
     srcs = [
         "TrapPacketUtils.cpp",
+    ],
+    headers = [
+        "TrapPacketUtils.h",
     ],
     deps = [":acl_test_utils"],
     exported_deps = [
@@ -496,6 +506,9 @@ cpp_library(
     srcs = [
         "EcmpDataPlaneTestUtil.cpp",
     ],
+    headers = [
+        "EcmpDataPlaneTestUtil.h",
+    ],
     deps = [
         "fbsource//third-party/fmt:fmt",
         ":load_balancer_test_utils",
@@ -518,6 +531,9 @@ cpp_library(
     name = "port_stats_test_utils",
     srcs = [
         "PortStatsTestUtils.cpp",
+    ],
+    headers = [
+        "PortStatsTestUtils.h",
     ],
     deps = [
         "//fboss/agent:core",
@@ -594,6 +610,9 @@ cpp_library(
     srcs = [
         "AgentHwTestConstants.cpp",
     ],
+    headers = [
+        "AgentHwTestConstants.h",
+    ],
     exported_deps = [
         "//fboss/agent/if:mpls-cpp2-types",
     ],
@@ -643,6 +662,9 @@ cpp_library(
     srcs = [
         "InvariantTestUtils.cpp",
     ],
+    headers = [
+        "InvariantTestUtils.h",
+    ],
     deps = [
         ":config_utils",
         ":copp_test_utils",
@@ -662,6 +684,9 @@ cpp_library(
     srcs = [
         "RouteTestUtils.cpp",
     ],
+    headers = [
+        "RouteTestUtils.h",
+    ],
     deps = [
         "//fboss/agent:route_update_wrapper",
         "//fboss/agent/test:agent_ensemble",
@@ -677,6 +702,9 @@ cpp_library(
     name = "mirror_test_utils",
     srcs = [
         "MirrorTestUtils.cpp",
+    ],
+    headers = [
+        "MirrorTestUtils.h",
     ],
     deps = [
         ":config_utils",

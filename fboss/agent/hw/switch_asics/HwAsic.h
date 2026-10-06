@@ -4,8 +4,11 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fboss/lib/phy/gen-cpp2/phy_types.h>
@@ -332,6 +335,12 @@ class HwAsic {
     // SAI_STATUS_INVALID_ATTR_VALUE instead of ignoring it.
     SAI_ACL_MPLS_LABEL0_TTL,
 
+    // Set to true if the SAI implementation honours
+    // SAI_NEXT_HOP_ATTR_OUTSEG_TYPE on an MPLS next hop. When it is not set,
+    // the adapter falls back to the SAI default of SAI_OUTSEG_TYPE_SWAP, so
+    // head-end imposition silently forwards the packet unlabelled.
+    SAI_MPLS_NEXTHOP_OUTSEG_TYPE,
+
     // Set to true if the SAI implementation supports counting packets dropped
     // due to MPLS label lookup failure. Creates a SAI debug counter with drop
     // reason SAI_IN_DROP_REASON_MPLS_MISS, exposed as a per-port stat via
@@ -592,6 +601,10 @@ class HwAsic {
     // Per-port link up/down debounce (hold-off timers) and the associated
     // debounce retrigger counters.
     PORT_DEBOUNCE,
+    // The link up hold-off timer is a single switch wide control rather than a
+    // per-port one, so every port configuring portUpHoldoffTimeMs has to
+    // configure the same value. Applicable only when PORT_DEBOUNCE is enabled.
+    SWITCH_WIDE_LINK_UP_DEBOUNCE,
     // Per-port Switch Lifetime Limit / Headroom Lifetime Limit egress discard
     // counters (SAI_PORT_STAT_IF_OUT_DISCARDS_SLL / _HLL). NVIDIA Spectrum
     // only; the counters are collected via fillInSupportedVendorExtStats().
@@ -892,6 +905,38 @@ class HwAsic {
     uint32_t numVoqs;
   };
 
+  class AcceptedValues {
+   public:
+    using Range = std::tuple<uint32_t, uint32_t>;
+    using Values = std::vector<uint32_t>;
+
+    static AcceptedValues range(uint32_t minInclusive, uint32_t maxInclusive) {
+      return AcceptedValues(std::make_tuple(minInclusive, maxInclusive));
+    }
+    static AcceptedValues oneOf(Values values) {
+      return AcceptedValues(std::move(values));
+    }
+
+    bool isRange() const {
+      return std::holds_alternative<Range>(accepted_);
+    }
+    const Range& asRange() const {
+      return std::get<Range>(accepted_);
+    }
+    const Values& asValues() const {
+      return std::get<Values>(accepted_);
+    }
+
+    bool accepts(uint32_t value) const;
+    std::string str() const;
+
+   private:
+    explicit AcceptedValues(std::variant<Range, Values> accepted)
+        : accepted_(std::move(accepted)) {}
+
+    std::variant<Range, Values> accepted_;
+  };
+
   std::optional<cfg::SdkVersion> getSdkVersion() const {
     return sdkVersion_;
   }
@@ -974,6 +1019,10 @@ class HwAsic {
   // counters report a running total.
   virtual bool isPortDebounceRetriggerCountClearOnRead() const {
     return true;
+  }
+
+  virtual std::optional<AcceptedValues> getAcceptedLinkUpHoldoffTimeMs() const {
+    return std::nullopt;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

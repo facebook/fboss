@@ -11,6 +11,10 @@ cpp_library(
         "InterruptTest.cpp",
         "SoakTest.cpp",
     ],
+    headers = [
+        "InterruptTest.h",
+        "SoakTest.h",
+    ],
     link_whole = True,  # Required for gtest to find tests in other files.
     deps = [
         "//fboss/agent:core",

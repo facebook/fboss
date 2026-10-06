@@ -4675,6 +4675,18 @@ void CmisModule::setDiagsCapability() {
             (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
         diags.loopbackLine() =
             (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+        LoopbackCapability lbCap;
+        lbCap.mediaSideOutput() = data & FieldMasks::LOOPBACK_MEDIA_OUTPUT_MASK;
+        lbCap.mediaSideInput() = data & FieldMasks::LOOPBACK_MEDIA_INPUT_MASK;
+        lbCap.hostSideOutput() = data & FieldMasks::LOOPBACK_HOST_OUTPUT_MASK;
+        lbCap.hostSideInput() = data & FieldMasks::LOOPBACK_HOST_INPUT_MASK;
+        lbCap.perLaneHostSide() =
+            data & FieldMasks::LOOPBACK_PER_LANE_HOST_MASK;
+        lbCap.perLaneMediaSide() =
+            data & FieldMasks::LOOPBACK_PER_LANE_MEDIA_MASK;
+        lbCap.simultaneousHostAndMediaSide() =
+            data & FieldMasks::LOOPBACK_SIMULTANEOUS_HOST_MEDIA_MASK;
+        diags.loopbackCapability() = lbCap;
 
         readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
         diags.prbsLine() =

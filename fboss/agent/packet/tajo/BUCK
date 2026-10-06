@@ -7,6 +7,9 @@ cpp_library(
     srcs = [
         "TajoPuntHeader.cpp",
     ],
+    headers = [
+        "TajoPuntHeader.h",
+    ],
     exported_deps = [
         "//folly/io:iobuf",
     ],

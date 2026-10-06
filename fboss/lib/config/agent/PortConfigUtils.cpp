@@ -19,11 +19,11 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/config/agent/InterfaceConfigUtils.h"
+#include "fboss/lib/config/agent/VlanConfigUtils.h"
 
 namespace facebook::fboss::utility {
 namespace {
-
-constexpr int32_t kDefaultInterfaceMtu = 9000;
 
 std::optional<cfg::PortSpeed> getProfileSpeed(
     const PlatformMapping& platformMapping,
@@ -286,15 +286,6 @@ cfg::Port createInterfacePortConfig(
   return port;
 }
 
-cfg::Vlan createVlanConfig(VlanID id) {
-  cfg::Vlan vlan;
-  vlan.id() = static_cast<int32_t>(id);
-  vlan.name() = "vlan" + std::to_string(static_cast<int32_t>(id));
-  vlan.routable() = true;
-  vlan.recordStats() = true;
-  return vlan;
-}
-
 cfg::VlanPort createVlanPortConfig(PortID portID, VlanID vlanID) {
   cfg::VlanPort vlanPort;
   vlanPort.vlanID() = static_cast<int32_t>(vlanID);
@@ -302,20 +293,6 @@ cfg::VlanPort createVlanPortConfig(PortID portID, VlanID vlanID) {
   vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
   vlanPort.emitTags() = false;
   return vlanPort;
-}
-
-cfg::Interface createVlanInterfaceConfig(
-    InterfaceID interfaceID,
-    VlanID vlanID) {
-  cfg::Interface intf;
-  intf.name() = std::to_string(static_cast<int32_t>(interfaceID));
-  intf.intfID() = static_cast<int32_t>(interfaceID);
-  intf.vlanID() = static_cast<int32_t>(vlanID);
-  intf.type() = cfg::InterfaceType::VLAN;
-  intf.routerID() = 0;
-  intf.scope() = cfg::Scope::LOCAL;
-  intf.mtu() = kDefaultInterfaceMtu;
-  return intf;
 }
 
 int32_t allocateFreeVlanId(

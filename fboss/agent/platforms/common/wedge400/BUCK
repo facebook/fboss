@@ -9,6 +9,11 @@ cpp_library(
         "Wedge400GrandTetonPlatformMapping.cpp",
         "Wedge400PlatformMapping.cpp",
     ],
+    headers = [
+        "Wedge400AcadiaPlatformMapping.h",
+        "Wedge400GrandTetonPlatformMapping.h",
+        "Wedge400PlatformMapping.h",
+    ],
     exported_deps = [
         "//fboss/agent/platforms/common:platform_mapping",
     ],

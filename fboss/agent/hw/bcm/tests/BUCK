@@ -12,6 +12,9 @@ cpp_library(
     srcs = [
         "BcmUnitTestUtils.cpp",
     ],
+    headers = [
+        "BcmUnitTestUtils.h",
+    ],
     # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
 )
 
@@ -52,6 +55,10 @@ cpp_library(
         "HwSwitchEnsembleFactory.cpp",
         "facebook/BcmSwitchEnsemble.cpp",
     ],
+    headers = [
+        "BcmLinkStateToggler.h",
+        "BcmSwitchEnsemble.h",
+    ],
     link_whole = True,
     # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     deps = [":bcm_test-6.5.26"],
@@ -81,6 +88,9 @@ cpp_library(
     name = "bcm_linkstate_toggler",
     srcs = [
         "BcmLinkStateToggler.cpp",
+    ],
+    headers = [
+        "BcmLinkStateToggler.h",
     ],
     # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
@@ -117,6 +127,9 @@ cpp_library(
     srcs = [
         "dataplane_tests/BcmQosUtils.cpp",
     ],
+    headers = [
+        "dataplane_tests/BcmQosUtils.h",
+    ],
     # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
@@ -135,6 +148,9 @@ cpp_library(
     srcs = [
         "BcmTrunkUtils.cpp",
         "HwTestTrunkUtils.cpp",
+    ],
+    headers = [
+        "BcmTrunkUtils.h",
     ],
     # @oss-disable[end= ]: target_compatible_with = ["ovr_config//cpu:x86_64"],
     exported_deps = [
@@ -444,6 +460,15 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         name = "bcm_test{}".format(to_impl_suffix(sdk)),
         srcs = bcm_test_real_hw_facebook_srcs,
         headers = [
+            "BcmCosQueueManagerTest.h",
+            "BcmLinkStateDependentTests.h",
+            "BcmLinkStateToggler.h",
+            "BcmMplsTestUtils.h",
+            "BcmSwitchEnsemble.h",
+            "BcmTest.h",
+            "BcmTestUtils.h",
+            "BcmTrunkUtils.h",
+            "dataplane_tests/BcmQosUtils.h",
             "facebook/BcmTestHandler.h",
         ],
         linker_flags = [
@@ -496,6 +521,17 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         srcs = bcm_test_fake_hw_facebook_test_srcs,
         headers = [
             "facebook/BcmTestHandler.h",
+        ],
+        source_headers = [
+            "BcmCosQueueManagerTest.h",
+            "BcmLinkStateDependentTests.h",
+            "BcmLinkStateToggler.h",
+            "BcmMplsTestUtils.h",
+            "BcmSwitchEnsemble.h",
+            "BcmTest.h",
+            "BcmTestUtils.h",
+            "BcmTrunkUtils.h",
+            "dataplane_tests/BcmQosUtils.h",
         ],
         supports_static_listing = False,
         # @oss-disable[end= ]: target_compatible_with = sai_impl_target_compatible_with(sdk),
