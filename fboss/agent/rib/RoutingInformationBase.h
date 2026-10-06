@@ -788,4 +788,16 @@ RouteNextHopSet getNormalizedNextHopsFromRib(
     const RouteNextHopEntry& entry,
     uint32_t ecmpWidth);
 
+// Resolve a next-hop set against the RIB the same way route resolution
+// resolves a route's next hops: each member is dereferenced to the
+// interface-scoped next hops of its longest-match route, trying each VRF in
+// order. A member with no resolving route is dropped, so the remaining
+// members still forward. Members that already carry an interface pass
+// through untouched. Route tables must already be resolved.
+RouteNextHopSet resolveNextHopSetFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const RouteNextHopSet& nhops,
+    uint32_t ecmpWidth);
+
 } // namespace facebook::fboss

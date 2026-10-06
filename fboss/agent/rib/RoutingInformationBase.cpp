@@ -345,6 +345,86 @@ std::shared_ptr<Route<AddressT>> remapRouteNextHopSetIds(
   return writable;
 }
 
+RouteNextHopSet resolveNhopFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const NextHop& nh,
+    uint32_t ecmpWidth) {
+  if (nh.intfID().has_value()) {
+    return {nh};
+  }
+
+  const auto& addr = nh.addr();
+  RouteNextHopSet resolved;
+
+  auto collectResolved = [&](auto* routeMap, const auto& nhAddr) {
+    if (!routeMap) {
+      return false;
+    }
+    auto it = routeMap->longestMatch(nhAddr, nhAddr.bitCount());
+    if (it == routeMap->end()) {
+      return false;
+    }
+    const auto& route = it->value();
+    if (!route || !route->isResolved()) {
+      return false;
+    }
+
+    const auto fwdNhops = getNormalizedNextHopsFromRib(
+        manager, route->getForwardInfo(), ecmpWidth);
+    if (fwdNhops.empty()) {
+      return false;
+    }
+    if (route->isConnected()) {
+      resolved.insert(ResolvedNextHop(
+          nh.addr(),
+          fwdNhops.begin()->intf(),
+          fwdNhops.begin()->weight(),
+          nh.labelForwardingAction(),
+          nh.disableTTLDecrement(),
+          nh.topologyInfo(),
+          nh.adjustedWeight(),
+          nh.srv6SegmentList(),
+          nh.tunnelType(),
+          nh.tunnelId(),
+          nh.cost(),
+          nh.role()));
+    } else {
+      std::vector<ResolvedNextHop> nhops;
+      nhops.reserve(fwdNhops.size());
+      for (const auto& fwdNh : fwdNhops) {
+        nhops.emplace_back(
+            fwdNh.addr(),
+            fwdNh.intf(),
+            fwdNh.weight(),
+            nh.labelForwardingAction(),
+            nh.disableTTLDecrement(),
+            nh.topologyInfo(),
+            nh.adjustedWeight(),
+            nh.srv6SegmentList(),
+            nh.tunnelType(),
+            nh.tunnelId(),
+            nh.cost(),
+            nh.role());
+      }
+      resolved.insert(nhops.begin(), nhops.end());
+    }
+    return true;
+  };
+
+  for (const auto& [v4Routes, v6Routes] : routeTables) {
+    bool found = false;
+    if (addr.isV4()) {
+      found = collectResolved(v4Routes, addr.asV4());
+    } else {
+      found = collectResolved(v6Routes, addr.asV6());
+    }
+    if (found) {
+      break;
+    }
+  }
+  return resolved;
+}
 } // namespace
 
 template <typename AddressT, typename FibType, typename IndexT>
@@ -2712,6 +2792,19 @@ RouteNextHopSet getNormalizedNextHopsFromRib(
   }
   // No overrides, delegate to ID-aware non-override path.
   return getNonOverrideNormalizedNextHopsFromRib(manager, entry, ecmpWidth);
+}
+
+RouteNextHopSet resolveNextHopSetFromRib(
+    const VrfRouteTables& routeTables,
+    const NextHopIDManager* manager,
+    const RouteNextHopSet& nhops,
+    uint32_t ecmpWidth) {
+  RouteNextHopSet resolved;
+  for (const auto& nh : nhops) {
+    auto nhResolved = resolveNhopFromRib(routeTables, manager, nh, ecmpWidth);
+    resolved.insert(nhResolved.begin(), nhResolved.end());
+  }
+  return resolved;
 }
 
 } // namespace facebook::fboss

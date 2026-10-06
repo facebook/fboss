@@ -46,7 +46,6 @@ class RibMySidUpdater {
   void resolveOneMySid(std::shared_ptr<MySid>& mySid);
   RouteNextHopSet resolveNextHopSet(
       const RouteNextHopSet& unresolvedNhops) const;
-  RouteNextHopSet resolveNhop(const NextHop& nh) const;
   void updateResolvedNextHopSetId(
       std::shared_ptr<MySid>& mySidPtr,
       const RouteNextHopSet& resolvedNhops,
