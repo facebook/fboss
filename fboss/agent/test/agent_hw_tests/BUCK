@@ -294,6 +294,7 @@ cpp_library(
         "AgentPortBoundIngressAclTests.cpp",
         "AgentPortLedTests.cpp",
         "AgentPortProfileTests.cpp",
+        "AgentPortlessInterfaceScopeTests.cpp",
         "AgentPrbsTests.cpp",
         "AgentQueuePerHostL2Tests.cpp",
         "AgentQueuePerHostRouteTests.cpp",

@@ -70,6 +70,13 @@ PortProfileMap getSafeProfileIDs(
         controllingPortToSubsidiaryPorts,
     const SafeProfileSelectionOptions& options);
 
+// Per-NPU portless loopback interfaces on dual-NPU SUSW platforms. These have
+// no member ports, so SwitchInfo::loopbackIntfId is what binds each one to
+// its owning ASIC. Mirrors FBOSS_LOOPBACKS_INTF / FBOSS_LOOPBACK1_INTF in
+// neteng/fboss/coop/defines.py.
+auto constexpr kNpu0LoopbackIntfId = 10;
+auto constexpr kNpu1LoopbackIntfId = 11;
+
 // Bare port body. Speed derived from PlatformMapping (nullopt ->
 // cfg::PortSpeed::DEFAULT). Sets name/portType/scope (from
 // mapping->getPlatformPort(id).mapping()), logicalID=id, profileID,

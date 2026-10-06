@@ -178,6 +178,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentPortBandWidthTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortLedTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPortProfileTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPortlessInterfaceScopeTests.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
