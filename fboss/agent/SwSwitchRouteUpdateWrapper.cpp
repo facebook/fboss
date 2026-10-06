@@ -16,6 +16,7 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -62,6 +63,19 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
         lastDelta ? lastDelta->oldState() : std::make_shared<SwitchState>();
     return StateDelta(oldState, sw->getState());
   };
+}
+
+std::function<void(const NextHopIDManager*)> createNextHopIdStateUpdate(
+    SwSwitch* sw,
+    std::string name) {
+  return
+      [sw, name = std::move(name)](const NextHopIDManager* nextHopIDManager) {
+        SwitchStateNextHopIdUpdater nhopUpdater(nextHopIDManager);
+        sw->updateStateWithHwFailureProtection(
+            name, [&nhopUpdater](const std::shared_ptr<SwitchState>& state) {
+              return nhopUpdater(state);
+            });
+      };
 }
 
 SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
