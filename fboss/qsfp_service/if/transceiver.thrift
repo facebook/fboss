@@ -1029,6 +1029,17 @@ struct WriteResponse {
   1: bool success;
 }
 
+// CMIS Page 13h Byte 128
+struct LoopbackCapability {
+  1: bool mediaSideOutput = false;
+  2: bool mediaSideInput = false;
+  3: bool hostSideOutput = false;
+  4: bool hostSideInput = false;
+  5: bool perLaneHostSide = false;
+  6: bool perLaneMediaSide = false;
+  7: bool simultaneousHostAndMediaSide = false;
+}
+
 struct DiagsCapability {
   1: bool diagnostics = false;
   2: bool vdm = false;
@@ -1055,6 +1066,7 @@ struct DiagsCapability {
   21: bool modeMismatchFlag = false;
   22: bool dspTempMargin = false;
   23: bool laserTempMargin = false;
+  24: optional LoopbackCapability loopbackCapability;
 }
 
 enum TransceiverStateMachineState {
