@@ -83,3 +83,41 @@ target_link_libraries(pci_device_check_test
 )
 
 gtest_discover_tests(pci_device_check_test)
+
+add_executable(platform_checks_local_host_test
+  fboss/platform/platform_checks/tests/LocalHostTest.cpp
+)
+
+target_link_libraries(platform_checks_local_host_test
+  platform_checks_host
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_local_host_test)
+
+add_executable(platform_checks_remote_host_test
+  fboss/platform/platform_checks/tests/RemoteHostTest.cpp
+)
+
+target_link_libraries(platform_checks_remote_host_test
+  platform_checks_host
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_remote_host_test)
+
+add_executable(platform_checks_platform_name_test
+  fboss/platform/platform_checks/tests/PlatformNameTest.cpp
+)
+
+target_link_libraries(platform_checks_platform_name_test
+  platform_checks_platform_name
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_checks_platform_name_test)

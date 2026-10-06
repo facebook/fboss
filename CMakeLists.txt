@@ -1578,6 +1578,9 @@ add_dependencies(fboss_platform_services
   platform_helpers_platform_name_lib_test
   platform_helpers_platform_fs_utils_test
   platform_helpers_platform_utils_test
+  platform_checks_local_host_test
+  platform_checks_remote_host_test
+  platform_checks_platform_name_test
   platform_manager_data_store_test
   platform_manager_config_validator_test
   platform_manager_presence_checker_test
