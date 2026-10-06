@@ -2282,10 +2282,8 @@ void RibRouteTables::deleteNamedNextHopGroups(
 }
 
 void RibRouteTables::addOrUpdatePolicies(
-    const SwitchIdScopeResolver* resolver,
     const std::vector<ClassBasedPolicy>& policies,
-    const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
     if (!lockedRouteTables->nextHopIDManager) {
@@ -2314,13 +2312,18 @@ void RibRouteTables::addOrUpdatePolicies(
       nhIdManager->addOrUpdatePolicy(policy);
     }
   }
+  updateFibNamedNextHopGroups(stateUpdateFn);
+}
 
-  auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  if (!lockedRouteTables->routerIDToRouteTable.empty()) {
-    auto vrf = lockedRouteTables->routerIDToRouteTable.begin()->first;
-    lockedRouteTables.unlock();
-    updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
-  }
+void RibRouteTables::removePolicies(
+    const std::vector<std::string>& policyNames,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
+    for (const auto& name : policyNames) {
+      nextHopIDManager->removePolicy(name);
+    }
+  });
+  updateFibNamedNextHopGroups(stateUpdateFn);
 }
 
 void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
@@ -2374,10 +2377,8 @@ void RoutingInformationBase::deleteNamedNextHopGroups(
 }
 
 void RoutingInformationBase::addOrUpdatePolicies(
-    const SwitchIdScopeResolver* resolver,
     const std::vector<ClassBasedPolicy>& policies,
-    const RibToSwitchStateFunction& ribToSwitchStateFunc,
-    void* cookie) {
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
   // Pre-validate before entering the RIB thread so no state is mutated on a bad
   // request.
   for (const auto& policy : policies) {
@@ -2400,10 +2401,25 @@ void RoutingInformationBase::addOrUpdatePolicies(
       }
     }
   }
-  updateStateInRibThread([&]() {
-    ribTables_.addOrUpdatePolicies(
-        resolver, policies, ribToSwitchStateFunc, cookie);
-  });
+  updateStateInRibThread(
+      [&]() { ribTables_.addOrUpdatePolicies(policies, stateUpdateFn); });
+}
+
+void RoutingInformationBase::removePolicies(
+    const std::vector<std::string>& policyNames,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  if (policyNames.empty()) {
+    return;
+  }
+  // Pre-validate before entering the RIB thread so no state is mutated on a bad
+  // request.
+  for (const auto& name : policyNames) {
+    if (name.empty()) {
+      throw FbossError("Class-based policy name cannot be empty");
+    }
+  }
+  updateStateInRibThread(
+      [&]() { ribTables_.removePolicies(policyNames, stateUpdateFn); });
 }
 
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {

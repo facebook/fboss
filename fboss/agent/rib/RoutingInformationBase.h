@@ -155,10 +155,12 @@ class RibRouteTables {
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   void addOrUpdatePolicies(
-      const SwitchIdScopeResolver* resolver,
       const std::vector<ClassBasedPolicy>& policies,
-      const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   template <typename RouteType, typename RouteIdType>
   void update(
@@ -688,10 +690,12 @@ class RoutingInformationBase {
       const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   void addOrUpdatePolicies(
-      const SwitchIdScopeResolver* resolver,
       const std::vector<ClassBasedPolicy>& policies,
-      const RibToSwitchStateFunction& ribToSwitchStateFunc,
-      void* cookie);
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void removePolicies(
+      const std::vector<std::string>& policyNames,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
  private:
   void ensureRunning() const;
