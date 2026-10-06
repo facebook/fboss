@@ -35,7 +35,7 @@ class BroadcomDnxGenerator(BaseAsicConfigGenerator):
         # settings may target. Single-NPU platforms have only the common section.
         self.sections: dict[str, dict[str, str]] = {"common": self.common}
 
-        self._load_vendor_configs()
+        self._load_asic_vendor_input_configs()
         self._validate_conditional_settings()
 
         output_structure = self.platform_config.get("output_structure", {})
@@ -60,8 +60,8 @@ class BroadcomDnxGenerator(BaseAsicConfigGenerator):
     def output_extension(self) -> str:
         return ".json"
 
-    def _load_vendor_configs(self) -> None:
-        """Load the per-ASIC config JSON."""
+    def _load_asic_vendor_input_configs(self) -> None:
+        """Load the input config files from the asic_vendors directory."""
         asic_config_path = os.path.join(
             self.paths.asic_vendors_dir,
             self.asic_vendor,

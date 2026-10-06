@@ -36,7 +36,7 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
 
         self.values: dict[str, Any] = {}
 
-        self._load_vendor_configs()
+        self._load_asic_vendor_input_configs()
         self._init_tables()
         self._validate_conditional_settings()
 
@@ -62,8 +62,8 @@ class BroadcomXgsGenerator(BaseAsicConfigGenerator):
     def output_extension(self) -> str:
         return ".yml"
 
-    def _load_vendor_configs(self) -> None:
-        """Load the family-wide OCP, SDK, SAI common blocks and the per-ASIC config."""
+    def _load_asic_vendor_input_configs(self) -> None:
+        """Load the input config files from the asic_vendors directory."""
         vendor = self.asic_vendor
         asic = self.asic_name
 
